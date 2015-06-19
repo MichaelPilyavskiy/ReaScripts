@@ -1,0 +1,40 @@
+function smart_duplicate_items_snapgrid_relative()
+(
+   Undo_BeginBlock();
+      
+   count_sel_items = CountSelectedMediaItems(0);
+      
+   first_item = GetSelectedMediaItem(0, 0);
+   first_item_start = GetMediaItemInfo_Value(first_item, "D_POSITION");
+     
+   i = 0;
+   item_end_max0 = 0;
+   loop(count_sel_items,
+     item = GetSelectedMediaItem(0, i);
+     item_pos = GetMediaItemInfo_Value(item, "D_POSITION");
+     item_len = GetMediaItemInfo_Value(item, "D_LENGTH");
+     item_end = item_pos + item_len;
+     item_end_max = max(item_end, item_end_max0);
+     item_end_max0 = item_end_max;
+     i += 1;
+   );   
+   
+   last_item_end = item_end_max0;
+       
+   com_len = last_item_end - first_item_start; 
+   com_len_qn = TimeMap2_timeToQN(0, com_len)/4;
+   
+   nextgrid = extension_api("BR_GetNextGridDivision",0);
+   grid = 1.5 / nextgrid;
+   
+   com_len_round_qn = ceil (com_len_qn * grid) / grid;     
+      
+   ApplyNudge(0, 0, 5, 15, com_len_round_qn, 0, 1);
+   Undo_EndBlock("smart_duplicate_items_snapgrid_relative", 0);
+);
+
+PreventUIRefresh(1);
+smart_duplicate_items_snapgrid_relative();
+PreventUIRefresh(-1);
+
+UpdateArrange();
