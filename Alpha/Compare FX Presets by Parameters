@@ -1,0 +1,60 @@
+
+function Get_Preset_Parmtrs(preset) //Get PresetParameters Values
+( TrackFX_SetPreset(track, i_fx, preset);
+  i_param = 0; 
+  loop( par_count,                 
+        Parmtr_Val[i] = TrackFX_GetParamNormalized(track, i_fx, i_param);         
+        i_param += 1;
+        i +=1;        
+       );       
+ ); 
+
+
+//Start//
+track = GetSelectedTrack(0, 0);//Get First Sel track_id
+track ? (fx_count = TrackFX_GetCount(track););//Get fx_count
+  
+j  = 0;
+loop(fx_count,
+      FX_Open = TrackFX_GetOpen(track, j);
+      FX_Open ?         //IF Cur FX Open in the FX chain or a floating window
+        (i_fx = j;      //Get index fx and #User_pres_name
+         TrackFX_GetPreset(track, i_fx, #User_pres_name);
+         );                                     
+      j += 1;
+     );
+
+
+
+FX_Open ?
+ ( 
+   GetUserInputs("Get Presets", 2, "preset A name, preset B name", #inputdata);
+   match("%s,%s", #inputdata, #presetA, #presetB);
+   par_count = TrackFX_GetNumParams(track, fx); 
+   i  = 0;
+  
+   Get_Preset_Parmtrs(#presetA);//Function Get #presetA Parameters Values
+   Get_Preset_Parmtrs(#presetB);//Function Get #presetB Parameters Values
+
+ShowConsoleMsg("");//Clean console
+i_param = 0;
+loop(par_count,
+        Parmtr_Val[i_param] != Parmtr_Val[i_param + par_count ] ?  //IF Values Not Equal
+        ( 
+          TrackFX_GetParamName(track,i_fx,i_param, #par_name);//Parmtr Name
+          strcat(#par_name,"  ||  ");//#par_name = "#par_name  || "
+          sprintf(#Parmtr_Num, "%d",i_param);//#Parmtr_Num To String
+          strcat(#Parmtr_Num,"  =  ");//#Parmtr_Num = "#Parmtr_Num = " 
+          sprintf(#A_Parmtr_Val, "%f",Parmtr_Val[i_param]);//A_Parmtr To String
+          sprintf(#B_Parmtr_Val, "%f",Parmtr_Val[i_param + par_count]);//B_Parmtr To String
+          ShowConsoleMsg(#Parmtr_Num);
+          ShowConsoleMsg(#par_name);
+          ShowConsoleMsg(#A_Parmtr_Val);
+          ShowConsoleMsg("  ||  ");
+          ShowConsoleMsg(#B_Parmtr_Val);
+          ShowConsoleMsg("\n");
+         );
+     i_param +=1;
+     );  
+TrackFX_SetPreset(track, i_fx, #User_pres_name);//Restore User preset
+ );
