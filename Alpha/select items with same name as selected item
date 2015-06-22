@@ -1,0 +1,20 @@
+--mpl select items with same name as selected item
+item = reaper.GetSelectedMediaItem(0, 0)
+take = reaper.GetActiveTake(item)
+takename0 = reaper.GetTakeName(take)
+
+itemcount = reaper.CountMediaItems(0)
+  if itemcount > 0 then  
+   for i = 1, itemcount do
+     local item = reaper.GetMediaItem(0, i-1)     
+     if item ~= nil then    
+      local take = reaper.GetActiveTake(item)
+      takename = reaper.GetTakeName(take)      
+      if  takename == takename0 then
+       reaper.SetMediaItemSelected(item, true)       
+      end
+     end
+   end
+  end
+reaper.UpdateArrange()  
+      
