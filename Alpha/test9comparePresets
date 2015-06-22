@@ -1,0 +1,71 @@
+ 
+function compare_presets()
+(
+Undo_BeginBlock();
+GetUserInputs("Get Presets", 2, "preset A name, preset B name", #inputdata);
+match("%s,%s", #inputdata, #presetA, #presetB);
+(track = GetSelectedTrack(0, 0)) ? (
+fxcount = TrackFX_GetCount(track);
+i = 0;
+loop(fxcount,
+  fx = TrackFX_GetOpen(track, i) ? (
+    curpresetidx = TrackFX_GetPresetIndex(track, fx, allpres); // for restoring at the end of comparison
+         
+         
+         TrackFX_SetPreset(track, fx, #presetA); // set preset A
+         parcount = TrackFX_GetNumParams(track, fx);
+         j = 0;
+         loop(parcount,
+           paramA[j] = TrackFX_GetParam(track, fx, j, minvalOut, maxvalOut);
+           j += 1;
+         );
+                 
+               
+         TrackFX_SetPreset(track, fx, #presetB); // set preset A
+         parcount = TrackFX_GetNumParams(track, fx);
+         j = 0;
+         loop(parcount,
+           k = j + parcount;
+           paramB[k] = TrackFX_GetParam(track, fx, j, minvalOut, maxvalOut);
+           j += 1;
+         ); 
+                 
+         
+         
+         j = 0;
+         k = 0;
+         l = 0;
+         loop (parcount,
+            k = j + parcount;
+            par1 = paramA[j];
+            par2 = paramB[k];
+            par1 != par2 ? ( // is for test, here should be par1 != par2
+            
+            
+              ShowConsoleMsg("A");
+              ShowConsoleMsg(sprintf(#str, "%{j}d"));
+              ShowConsoleMsg("_");
+              ShowConsoleMsg(sprintf(#str, "%{par1}f"));
+              ShowConsoleMsg("---->");
+              
+              ShowConsoleMsg("B");
+              ShowConsoleMsg(sprintf(#str, "%{j}d"));
+              ShowConsoleMsg("_");
+              ShowConsoleMsg(sprintf(#str, "%{par2}f"));
+              ShowConsoleMsg("\n");
+                     
+                     
+            );
+            j += 1;
+            
+         );
+    TrackFX_SetPresetByIndex(track, fx, curpresetidx); // set current preset back
+     );
+  i += 1;
+  );
+);
+TrackList_AdjustWindows(0);
+Undo_EndBlock("compare_presets", 0);
+);
+compare_presets();
+UpdateArrange();
