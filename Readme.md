@@ -6,7 +6,7 @@
 
 This repo is for developement. 
 
-If you want download scripts on this repo:
+If you want to download scripts on this repo:
 - For one script: click on one script, then click on the Raw button, then File > Save (via Menu, Right Click or CTRL/CMD +S).
 - For the whole archive (may be simpler): click on Download Zip button on right
 
