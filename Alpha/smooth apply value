@@ -1,0 +1,24 @@
+track = reaper.GetTrack(0,0)
+a = reaper.GetMediaTrackInfo_Value(track, "D_VOL")
+b = 0.5 - a 
+time_to_change = 0.3
+
+function timer()
+time2 = reaper.time_precise()
+time_delta = time2 - time1
+x = time_delta / time_to_change
+b0 = b*x
+time_con = true
+if time_con == true then
+  if time2 - time1 < time_to_change then
+   time_con = true
+   reaper.defer(timer)
+   set = a + b0
+   reaper.SetMediaTrackInfo_Value(track, "D_VOL", set)
+   else
+   time_con = false
+  end
+end
+end
+time1 = reaper.time_precise()
+timer()
