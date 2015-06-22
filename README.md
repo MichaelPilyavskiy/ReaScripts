@@ -14,3 +14,6 @@ If you want download scripts on this repo:
 - [X-Raym](http://forum.cockos.com/member.php?u=58284)
 - [spk77](http://forum.cockos.com/member.php?u=49553)
 - [Breeder](http://forum.cockos.com/member.php?u=27094)
+
+If you found bugs or you have some script request, you can post it in Issues.
+
