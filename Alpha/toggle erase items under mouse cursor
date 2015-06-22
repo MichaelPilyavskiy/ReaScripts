@@ -1,0 +1,65 @@
+items_t = {}
+i = 1
+function main() local cond
+
+ if cond ~= 0 then
+  retval, segmentOut, detailsOut = reaper.BR_GetMouseCursorContext()
+ --[[ if retval ~= nil and
+    segmentOut == track and
+    detailsOut == item then
+    --if retval ~= nil]]
+    item = reaper.BR_GetMouseCursorContext_Item()
+     
+    if item ~= nil then
+   table.insert(items_t, i, item)
+    end
+  end 
+  it2 = items_t[1]
+  if item_t ~= nil then
+  reaper.SetMediaItemSelected(it2, 1)  
+  end   
+  reaper.defer(main)
+  
+-- else
+ --cond = 0 
+  --if item ~= nil then
+  
+ end
+--end  
+--end
+
+
+
+
+cond = 1
+main()
+
+time1 = reaper.time_precise()
+function timer()
+time2 = reaper.time_precise()
+time_con = true
+if time_con == true then
+  if time2 - time1 < 2 then
+   time_con = true
+   reaper.defer(timer)
+   else
+   time_con = false
+  end
+end
+end
+
+function exit()
+val = 0
+end
+
+timer()
+cond = 0
+reaper.atexit(exit)
+
+--[[if item ~= nil then
+    --[[ track = reaper.BR_GetMouseCursorContext_Track()
+    if track ~= nil then
+    reaper.DeleteTrackMediaItem(track, item)    
+    end]]
+    
+
