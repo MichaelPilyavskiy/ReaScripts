@@ -1,0 +1,6 @@
+retval, retvals_csv = reaper.GetUserInputs("Number of slot", 1, "", "")
+if retval ~= nil then 
+str = "_S&M_ADD_TRTEMPLATE"
+fstr = str..retvals_csv
+reaper.Main_OnCommand(reaper.NamedCommandLookup(fstr), 0) 
+end
