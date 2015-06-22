@@ -1,0 +1,213 @@
+-- Replace sources for selected items using user defined references
+reaper.ShowConsoleMsg("")
+
+-- global tables
+selected_old_item_guid_t = {}
+takename_old_temp_t = {}
+clear_takename_old_t = {}
+
+takename_new_temp_t = {}
+clear_takename_new_t = {}
+src_filename_new_t = {}
+
+startTime, endTime = reaper.BR_GetArrangeView(0)
+
+-----------------------   step  1   ----------------------------------
+------------------  save selected items  -----------------------------
+
+function step1() local selitemcount, i, item
+  selitemcount = reaper.CountSelectedMediaItems(0)
+  if selitemcount > 0 then  
+   for i = 1, selitemcount do
+     item = reaper.GetSelectedMediaItem(0, i-1)     
+     if item ~= nil then
+       guidStringOut = reaper.BR_GetMediaItemGUID(item)      
+       table.insert(selected_old_item_guid_t, i, guidStringOut)      
+     end  -- item not nil
+   end -- loop
+   cond1 = 1 
+  else
+   reaper.ShowMessageBox("Select files you want to replace their sources to make script work", "Message", 0)
+   cond1 = 0 
+  end -- itemcount > 0  
+end -- func step1
+
+step1()
+
+-----------------------   step  1_2   ---------------------------------
+--------------  save selected items clear takename  -------------------
+
+function step1_2() local selitemcount, i, item
+  selitemcount = reaper.CountSelectedMediaItems(0)
+  if selitemcount > 0 then  
+   for i = 1, selitemcount do
+     item = reaper.GetSelectedMediaItem(0, i-1)     
+     if item ~= nil then
+       take = reaper.GetActiveTake(item)
+       if take ~= nil then           
+        takename = reaper.GetTakeName(take) -- "blablabla.mp3"        
+        local i2 = 1
+        for word in string.gmatch(takename, '([^.]+)') do   --get ".mp3"           
+          table.insert (takename_old_temp_t, i2, word)
+          i2 = i2 + 1
+        end
+        local i3 = #takename_old_temp_t
+        local tempstr = takename_old_temp_t[i3]
+        takename_old_ext_len = string.len(tempstr) + 2
+        takename_old = string.sub(takename, 0, - takename_old_ext_len) -- "blablabla" 
+        table.insert (clear_takename_old_t, i, takename_old)  -- store names to table
+        end -- end if take not nil           
+     end  -- item not nil
+   end -- loop
+  end -- itemcount > 0  
+end -- func step1_2
+
+step1_2()
+
+-----------------------   step  2   ----------------------------------
+---------------------  add new items  --------------------------------
+
+function step2()
+  itemcount = reaper.CountMediaItems(0)
+  reaper.ShowMessageBox("Add new sources file to SINGLE track", "Message", 0)
+  reaper.Main_OnCommand (40018, 0)-- Insert media files  
+end  
+
+
+if cond1 == 1 then
+  step2()  
+end  
+    
+-----------------------   step  3   ----------------------------------
+------------  store takename and src to the table  -------------------  
+
+--step 3 -- store takename and src to the table
+function step3() local selitemcount, item, take, takename_new, src, takename_new_ext_len, src  
+ itemcount2 = reaper.CountMediaItems(0)
+ if itemcount2 == itemcount then
+  cond2 = 0
+  reaper.ShowMessageBox("Select new sources to make script work", "Message", 0) 
+ else 
+  cond2 = 1 
+  selitemcount = reaper.CountSelectedMediaItems(0)
+  if selitemcount > 0 then      
+    for i = 1, selitemcount do
+      item = reaper.GetSelectedMediaItem(0, i-1)
+      take = reaper.GetActiveTake(item)
+      if take ~= nil then           
+        takename = reaper.GetTakeName(take) -- "blablabla.mp3"               
+        local i2 = 1
+        for word in string.gmatch(takename, '([^.]+)') do   --get ".mp3"
+         table.insert (takename_new_temp_t, i2, word)
+         i2 = i2 + 1
+        end
+        local i3 = #takename_new_temp_t
+        local tempstr = takename_new_temp_t[i3]
+        takename_new_ext_len = string.len(tempstr) + 2
+        takename_new = string.sub(takename, 0, - takename_new_ext_len) -- "blablabla"
+        table.insert (clear_takename_new_t, i, takename_new)  -- store names to table
+        src = reaper.GetMediaItemTake_Source(take)
+        src_file = reaper.GetMediaSourceFileName(src, "")
+        table.insert (src_filename_new_t, i, src_file) -- store sources full addresses of new files
+      end -- end if take not nil           
+    end -- end loop     
+  end -- end if selitemcount > 0  
+ end 
+end  -- end function
+
+if cond1 == 1 then
+  step3()
+end
+-----------------------   step  4   ----------------------------------
+-------  delete these new files from project/arrangement  ------------
+
+function step4() 
+  reaper.Main_OnCommand (40699, 0) -- cut items
+end
+if cond2 == 1 then
+  step4()
+end
+
+-----------------------   step  5   ----------------------------------
+-----------------  restore selected items  ---------------------------
+
+function step5() local item, temp_guid
+  if #selected_old_item_guid_t ~= nil then 
+    for i = 1, #selected_old_item_guid_t, 1 do
+      temp_guid = selected_old_item_guid_t[i]
+      item = reaper.BR_GetMediaItemByGUID(0, temp_guid)
+      if item ~= nil then
+        reaper.SetMediaItemInfo_Value(item, "B_UISEL", 1)
+      end  
+    end
+  end  
+end -- func step5
+
+if cond2 == 1 then
+  step5()
+end
+
+-----------------------   step  6   ----------------------------------
+--------------------  check for same name  ---------------------------
+
+function step6() local src, clear_takename_old, clear_takename_new, temp_guid, item
+  retval1, retvals_csv = reaper.GetUserInputs("What name looooonger?", 1, "0 is old 1 is new", "")
+  cond3 = tonumber(retvals_csv)
+  
+  
+ -- retval2, retvals_csv2 = reaper.GetUserInputs("How much max characters looooonger", 1, "Space is also the character", "")
+  if retval1 == true then
+    if cond3 == 1 then
+     -- char_diff = retvals_csv2 + 1
+      for i = 1, #clear_takename_old_t, 1 do
+        clear_takename_old = clear_takename_old_t[i]         
+        for j = 1, #clear_takename_new_t, 1 do
+         clear_takename_new = clear_takename_new_t[j]        
+         find_st, find_end = string.find(clear_takename_new, clear_takename_old)      
+         if find_st ~= nil then
+          if find_end ~= nil then
+            temp_filename = src_filename_new_t[j]
+            src = reaper.PCM_Source_CreateFromFile(temp_filename)
+            temp_guid = selected_old_item_guid_t[i]
+            item = reaper.BR_GetMediaItemByGUID(0, temp_guid)
+            take = reaper.GetActiveTake(item)
+            reaper.SetMediaItemTake_Source(take, src)
+          end  
+         end 
+        end
+        end
+      else
+      
+      for i = 1, #clear_takename_old_t, 1 do
+        clear_takename_old = clear_takename_old_t[i]         
+        for j = 1, #clear_takename_new_t, 1 do
+          clear_takename_new = clear_takename_new_t[j]        
+          find_st, find_end = string.find(clear_takename_old, clear_takename_new)      
+          if find_st ~= nil then
+            if find_end ~= nil then
+              temp_filename = src_filename_new_t[j]
+              src = reaper.PCM_Source_CreateFromFile(temp_filename)
+              temp_guid = selected_old_item_guid_t[i]
+              item = reaper.BR_GetMediaItemByGUID(0, temp_guid)
+              take = reaper.GetActiveTake(item)
+              reaper.SetMediaItemTake_Source(take, src)
+            end  
+          end
+        end  
+      end
+    end
+  end
+end
+   
+ 
+if cond2 == 1 then
+  step6()
+end
+
+reaper.BR_SetArrangeView(0, startTime, endTime)
+reaper.UpdateArrange()
+
+--[[
+reaper.Undo_BeginBlock()
+reaper.Undo_EndBlock("Replace sources for selected items using user defined references", 1)
+]]
