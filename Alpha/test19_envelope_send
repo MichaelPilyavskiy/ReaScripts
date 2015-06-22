@@ -1,0 +1,103 @@
+--function show_envelope_for_last_touched_track()
+ 
+ --defer
+ --check for number of send volume envelopes in project
+ --if number changed run:
+ 
+ 
+ 
+ 
+ 
+ -- store isactive, isshown, envelopesid
+ -- sws show all send volume  envelopes for selected track
+ -- restore isactive, isshown, envelopesid
+ 
+ 
+function count_all_envelopes_in_project() local i, counttracks, all_envelopes, count_track_envelopes, all_envelopes
+  counttracks = reaper.CountTracks(0) 
+  all_envelopes = 0 
+  for i = 1, counttracks, 1 do
+    track = reaper.GetTrack(0, i-1)
+    if track ~= nil then
+     count_track_envelopes = reaper.CountTrackEnvelopes(track)
+     all_envelopes = count_track_envelopes + all_envelopes      
+    end
+  end  
+  return all_envelopes
+end
+
+all_envelopes_old = 0
+all_envelopes_new = all_envelopes_old
+all_envelopes_old = count_all_envelopes_in_project() 
+
+function main() local i, counttracks
+  if all_envelopes_new > all_envelopes_old then
+    counttracks = reaper.CountTracks(0)    
+      for i = 1, counttracks, 1 do
+        track = reaper.GetTrack(0, i-1)
+        if track ~= nil then
+          count_track_envelopes = reaper.CountTrackEnvelopes(track)
+          for i = 1, count_track_envelopes, 1 do
+            track = reaper.GetTrack(0, i-1)
+            if track ~= nil then
+              envelope = reaper.GetTrackEnvelope(track, i-1)
+              reaper.BR_GetMediaTrackSendInfo_Envelope(MediaTrack track, integer category, integer sendidx, integer envelopeType)
+
+
+
+
+
+reaper.defer(main)
+
+
+
+count_all_envelopes_in_project()
+
+]]
+str = count_all_envelopes_in_project()
+reaper.ShowConsoleMsg("")
+reaper.ShowConsoleMsg(str)
+    reaper.ShowConsoleMsg("\n")
+    
+--[[all_envelopes = tostring(all_envelopes)
+reaper.ShowConsoleMsg(all_envelopes)
+track = reaper.GetSelectedTrack(0, 0)
+
+
+
+
+if track ~= nil then  
+  numsends = reaper.GetTrackNumSends(track, 0) 
+  if numsends ~= nil then
+    lastsendidx = numsends - 1
+    envelopeType = 0 -- envelopeType determines which envelope is returned (0=volume, 1=pan, 2=mute)
+    TrackEnvelope = reaper.BR_GetMediaTrackSendInfo_Envelope(track, 0, lastsendidx, envelopeType) -- get last send envelope   
+  end
+end 
+
+TrackEnvelope_str = tostring(TrackEnvelope)
+
+reaper.ShowConsoleMsg(str)
+-- Perform make last send envelope visible
+--if tostring(envelope) ~= "userdata: 0000000000000000" then 
+  --[[
+ br_envelope = reaper.BR_EnvAlloc(envelope, true)
+    active = true   
+    visible = true 
+    armed = true   
+    inLane = true  
+    laneHeight = 100   
+    defaultShape = 0 -- default point shape: 0 -Linear,1-Square, 2-Slow start/end, 3-Fast start, 4-Fast end, 5-Bezier
+  faderScaling = false
+
+    reaper.BR_EnvSetProperties(br_envelope, active, visible, armed, inLane, laneHeight, defaultShape, faderScaling)  
+  
+  reaper.BR_EnvFree(br_envelope, 1)
+
+ end   
+
+ end
+  
+show_envelope_for_last_touched_track()]]
+
+--_BR_SHOW_SEND_ENV_VOL_SEL_TRACK - show all send volume  envelopes for selected track]]
