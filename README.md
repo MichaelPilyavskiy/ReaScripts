@@ -1,6 +1,6 @@
 #Michael Pilyavskiy's ReaScripts
 
-##Michael Pilyavskiy's Scripts for [Cockos REAPER](http://reaper.fm)
+##Scripts for [Cockos REAPER](http://reaper.fm)
 - Scripts written by Michael Pilyavskiy
 - Scripts moded by Michael Pilyavskiy
 
