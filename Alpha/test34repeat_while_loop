@@ -1,0 +1,13 @@
+function repeat_while_loop()
+  startOut, endOut = reaper.GetSet_LoopTimeRange2(0, false, true, 0, 0, true)
+  timesel = endOut - startOut
+  if timesel > 0 then
+  reaper.GetSetRepeatEx(0,1)  
+  reaper.defer(repeat_while_loop)
+  else
+  reaper.GetSetRepeatEx(0,0)  
+  reaper.defer(repeat_while_loop)
+  end   
+end
+
+repeat_while_loop()
