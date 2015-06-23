@@ -2,7 +2,7 @@
 
 ##Scripts for [Cockos REAPER](http://reaper.fm)
 - Scripts written by Michael Pilyavskiy
-- Scripts moded by Michael Pilyavskiy
+- Scripts modded by Michael Pilyavskiy
 
 This repo is for developement. 
 
