@@ -246,8 +246,6 @@ function mainloop()
   reaper.defer(mainloop)
  end 
 end
-
-function exit()  
   
 end
 
