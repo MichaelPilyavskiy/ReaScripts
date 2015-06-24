@@ -5,8 +5,9 @@
 - Scripts modded by Michael Pilyavskiy
 
 This repo is for developement. 
+"Alpha" folder is scripts, which may not working or working bad.
 
-If you want to download scripts on this repo:
+Anyway, if you still wanna download scripts on this repo:
 - For one script: click on one script, then click on the Raw button, then File > Save (via Menu, Right Click or CTRL/CMD +S).
 - For the whole archive (may be simpler): click on Download Zip button on right
 
