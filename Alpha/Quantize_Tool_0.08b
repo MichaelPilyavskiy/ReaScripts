@@ -17,7 +17,7 @@
     .."Changelog:".."\n"
     .."\n"
     .."\n"    
-    .."  04.07.2015 - 0.081 broken swing, custom grid".."\n"        
+    .."  04.07.2015 - 0.081 broken swing, custom grid, fontsize = 16".."\n"        
     .."  04.07.2015 - 0.08 quantize engine improvements".."\n"    
     .."  02.07.2015 - 0.07 rebuild everything".."\n"    
     .."  01.07.2015 - 0.06 menu count numbers, strength slider, point gravity slider, quantize engine basics".."\n"                    
@@ -495,8 +495,7 @@ function GUI_button (is_button_pressed, name, object_coord_t)
   gfx.roundrect(object_coord_t[1], 
                 object_coord_t[2],  
                 object_coord_t[3], 
-                object_coord_t[4],0.1,true) 
-  fontsize = 18
+                object_coord_t[4],0.1,true)   
   gfx.setfont(1,font, fontsize, b)
   local measurestr = gfx.measurestr(name)   
   if measurestr < object_coord_t[3] then
@@ -522,24 +521,18 @@ function GUI_menu (x, y, w, h, names, values, num_buttons, is_selected)
    if is_selected == true then
       gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, 0.5     
      else
-      gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, 0.2
-      
+      gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, 0.2      
    end   
    gfx.roundrect(x,y,w,h,0.1,true)
-
    pattern = "([^,]+),([^,]+)"
    for i = 1, num_buttons - 1, 1 do
      pattern = pattern..",([^,]+)"
-   end
-   
-   
+   end  
    y = y + (h - ((num_buttons+1) * fontsize + (num_buttons-2)*2) ) / 2
-   name, b1, b2, b3, b4, b5, b6, b7 = names:match(pattern)  
-   fontsize = 18
+   name, b1, b2, b3, b4, b5, b6, b7 = names:match(pattern) 
    gfx.setfont(1,font, fontsize, b)   
    gfx.x = x
-   gfx.y = y   
-   
+   gfx.y = y      
    measurestr_space = gfx.measurestr(" ")
    local measurestrname = gfx.measurestr(name)   
    local measurestr1 = gfx.measurestr(b1)
@@ -548,12 +541,10 @@ function GUI_menu (x, y, w, h, names, values, num_buttons, is_selected)
    local measurestr4 = gfx.measurestr(b4)
    local measurestr5 = gfx.measurestr(b5) 
    local measurestr6 = gfx.measurestr(b6) 
-   local measurestr7 = gfx.measurestr(b7) 
-   
+   local measurestr7 = gfx.measurestr(b7)    
    gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, 1
    gfx.x = x + (w - measurestrname)/2
-   gfx.drawstr(name)
-   
+   gfx.drawstr(name)   
    x1 = x
    y1 = y + fontsize
    w1 = w
@@ -783,6 +774,7 @@ function GUI_define()
   x_offset = main_w / 40
   y_offset = 0  
   font = "Calibri" 
+  fontsize = 16
   ---- snap_direction_coord_buttons ----
   sdcb = {555, 180, 140, 115}
   sbcb = {555, 115, 140, 60}
