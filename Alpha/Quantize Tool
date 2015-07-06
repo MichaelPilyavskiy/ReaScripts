@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.091 (beta)"
+ vrs = "0.092 (beta)"
  
  about = "Quantize tool by Michael Pilyavskiy ".."\n"..
          "Version "..vrs.."\n"..
@@ -17,7 +17,7 @@
     .."Changelog:".."\n"
     .."\n"
     .."\n"    
-    .."  06.07.2015 - 0.091 groove points compare bug, stretch markers get/quantize bugfixes, draw grid bug, gravity function building ".."\n"      
+    .."  06.07.2015 - 0.092 gui, groove points compare bug, stretch markers get/quantize bugfixes, draw grid bug, gravity function building ".."\n"      
     .."  04.07.2015 - 0.081 swing always 1/4 bug , custom grid, fontsize = 16".."\n"        
     .."  04.07.2015 - 0.08 quantize engine improvements".."\n"    
     .."  02.07.2015 - 0.07 new gui, performance improvements...".."\n"    
@@ -158,11 +158,14 @@
   project_grid_time = reaper.BR_GetNextGridDivision(0)
   project_grid_beats, project_grid_measures, project_grid_cml = reaper.TimeMap2_timeToBeats(0, project_grid_time)
   
+  
   if quantize_ref_values[5] == 1 then 
      get_grid = set_grid
    else  
      get_grid = project_grid_beats   
   end
+  
+  
   divider_r = round(4/get_grid, 1) 
    if  divider_r % 3 == 0 then  --grid_temp_v1 > 0 then 
      is_grid_triplet = true      
@@ -360,7 +363,7 @@
  --------------------------------------------------------------------------------------------------------------- 
    
 function GET_groove_from_swing_grid()    
-   grid_time, grid_set1 = GET_grid()  
+   grid_time, grid_set1 = GET_grid()
    bars = 1
    loop_cycles = bars*4 / grid_set1  
    swing_groove = 0
@@ -484,8 +487,8 @@ end
         reaper.SetTakeStretchMarker(take, -1, item_len, item_len)
         count_stretch_markers = reaper.GetTakeNumStretchMarkers(take)
           if count_stretch_markers ~= nil then
-            for j = 1, count_stretch_markers-2,1 do
-              retval, posOut, srcpos = reaper.GetTakeStretchMarker(take, j)
+            for j = 2, count_stretch_markers-1,1 do
+              retval, posOut, srcpos = reaper.GetTakeStretchMarker(take, j-1)
                             
               str_marker_info = take_guid.."_"..j.."_"..posOut.."_"..srcpos
 --[[ store str.maker ]]  table.insert(str_markers_to_quantize_info_t, str_marker_info)               
@@ -544,13 +547,16 @@ function GUI_button (is_button_pressed, name, object_coord_t)
                 object_coord_t[3], 
                 object_coord_t[4],0.1,true)   
   gfx.setfont(1,font, fontsize, b)
-  local measurestr = gfx.measurestr(name)   
-  if measurestr < object_coord_t[3] then
+  local measurestr = gfx.measurestr(name) 
+  w1,w2 = name:match("([^ ]+) ([^ ]+)")   
+  
+  if w2 == nil then--measurestr < object_coord_t[3] then
     gfx.x, gfx.y, gfx.r, gfx.g, gfx.b, gfx.a = object_coord_t[1] + (object_coord_t[3] - measurestr)/2, 
                                              object_coord_t[2] + (object_coord_t[4] - fontsize)/2   , 0.4, 1, 0.4, button_a
     gfx.drawstr(name)  
-   else w1,w2 = name:match("([^ ]+) ([^ ]+)") 
+   else 
      local measurestr1 = gfx.measurestr(w1)
+     
      local measurestr2 = gfx.measurestr(w2)
     gfx.x, gfx.y, gfx.r, gfx.g, gfx.b, gfx.a = object_coord_t[1] + (object_coord_t[3] - measurestr1)/2, 
                                                object_coord_t[2] + (object_coord_t[4] - fontsize)/2 - fontsize/2  , 0.4, 1, 0.4, button_a
@@ -563,12 +569,12 @@ end
 
 ---------------------------------------------------------------------------------------------------------------     
 
-function GUI_menu (x, y, w, h, names, values, num_buttons, is_selected)
+function GUI_menu (x, y, w, h, names, values, num_buttons, is_selected, is_red1, is_red2)
 
    if is_selected == true then
       gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, 0.5     
      else
-      gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, 0.2      
+      gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, 0.1      
    end   
    gfx.roundrect(x,y,w,h,0.1,true)
    pattern = "([^,]+),([^,]+)"
@@ -816,29 +822,76 @@ end
 function GUI_define() 
   gfx.x = 0
   gfx.y = 0    
-  main_w = 800
-  main_h = 305  
+  main_w = 525
+  main_h = 320
   x_offset = main_w / 40
   y_offset = 0  
   font = "Calibri" 
   fontsize = 16
   ---- snap_direction_coord_buttons ----
-  sdcb = {555, 180, 140, 115} -- snap dest
-  sbcb = {555, 115, 140, 60} -- snap beh
-  qrcb = {105, 115, 140, 180} -- quantize ref
-  qdcb = {410, 115, 140, 180} -- quantize dest
   
-  ---- DEFINE OBJECTS ----   
+  
+  ---- DEFINE OBJECTS ----  
+     -- ROW 1 --       
+  object_get_coord_t =    {5, 5, 125, 50}
+  qrcb =                  {object_get_coord_t[1], 
+                           object_get_coord_t[2]+object_get_coord_t[4]+5, 
+                           object_get_coord_t[3], 
+                           150} -- reference  
+  object_swing_coord_t =  {object_get_coord_t[1], 
+                           qrcb[2] + 120,
+                           object_get_coord_t[3], 
+                           18}
+  object_grid_coord_t =   {object_get_coord_t[1], 
+                           qrcb[2] + 102,
+                           object_get_coord_t[3], 
+                           18}
+     -- ROW 2 --                              
+  sbcb =                  {object_get_coord_t[1]+ object_get_coord_t[3] +5, 
+                           object_get_coord_t[2], 
+                           125, 
+                           60} -- snap beh  
+  sdcb =                  {sbcb[1], 
+                           sbcb[2]+sbcb[4]+5, 
+                           sbcb[3], 
+                           90} -- snap dir
+     -- ROW 3 --                             
+  object_get2_coord_t =   {sbcb[1]+sbcb[3]+5, 
+                           object_get_coord_t[2], 
+                           object_get_coord_t[3], 
+                           object_get_coord_t[4]}
+  qdcb =                  {object_get2_coord_t[1], 
+                           object_get2_coord_t[2]+object_get2_coord_t[4]+5,
+                           object_get2_coord_t[3], 
+                           qrcb[4]} -- quantize dest
+     -- ROW 4 --                                   
+  object_strength_coord_t = {object_get2_coord_t[1] + object_get2_coord_t[3] + 5, 
+                           object_get_coord_t[2], 
+                           object_get_coord_t[3], 
+                           object_get_coord_t[4]}                            
+  object_about_coord_t =  {object_strength_coord_t[1], 
+                           object_strength_coord_t[2]+object_strength_coord_t[4]+5,
+                           object_strength_coord_t[3],
+                           object_strength_coord_t[4]} 
+  -- GRID 1 --                                 
+  object_rect_coord_t =   {qrcb[1], 
+                           qrcb[2]+qrcb[4]+5, 
+                           main_w-qrcb[1]*2,
+                           main_h - (qrcb[2]+qrcb[4]+10)}
+  
+  
+  
   object_main_coord_t = {0, 0, main_w, main_h}
   object_exit_coord_t = {main_w - 100, 10, 90, 47}
-  object_about_coord_t = {main_w - 100, 63, 90, 47}
-  object_rect_coord_t = {10, 10, main_w - 115, 100}
-  object_get_coord_t = {10, 115, 90, 180}
+  
+  
+  
+  
+  
   object_set_coord_t = {main_w - 100, 115, 90, 115}
-  object_strength_coord_t = {main_w - 100, 235, 90, 60}
-  object_gravity_coord_t = {555, sbcb[2] + 22, 140, 18}
-  object_swing_coord_t = {105, qrcb[2] + 135 , 140, 18}
-  object_grid_coord_t = {105, qrcb[2] + 117, 140, 18}
+  object_gravity_coord_t = {sbcb[1], sbcb[2] + 22, 140, 18}
+  
+  
 end
 ---------------------------------------------------------------------------------------------------------------    
     
@@ -848,11 +901,11 @@ function GUI_draw ()
     
  ------- BUTTONS -------- 
   GUI_button(is_button_about_pressed, "About", object_about_coord_t)
-  GUI_button(is_button_exit_pressed, "Exit", object_exit_coord_t)
-  GUI_button(is_button_get_pressed, "Get Groove", object_get_coord_t)
-  GUI_button(is_button_set_pressed, "Apply Quantize", object_set_coord_t)
-  GUI_button(is_button_set_pressed, "Strength", object_strength_coord_t)
-  --GUI_button(is_button_set_pressed, "Gravity", object_gravity_coord_t)
+  --GUI_button(is_button_exit_pressed, "Exit", object_exit_coord_t)
+  GUI_button(is_button_get_pressed, "Get Reference", object_get_coord_t)
+  --GUI_button(is_button_set_pressed, "Apply Quantize", object_set_coord_t)
+  GUI_button(is_button_set_pressed, "Apply Quantize", object_strength_coord_t)
+  GUI_button(is_button_get2_pressed, "Get Objects to quantize", object_get2_coord_t)
   
  -------- MENUS --------- 
   snap_direction_coord_buttons = GUI_menu(sdcb[1], sdcb[2], sdcb[3], sdcb[4], 
@@ -910,7 +963,7 @@ function GUI_draw ()
      GUI_fill_slider(object_grid_coord_t[1], 
                   object_grid_coord_t[2], 
                   object_grid_coord_t[3], 
-                  object_grid_coord_t[4], set_grid, false)
+                  object_grid_coord_t[4], set_grid_slider, false)
   end                  
 end  
     
@@ -988,24 +1041,14 @@ function MOUSE_get ()
                                                         else is_button_exit_pressed = false end  
                                                         
   ----- GET -----   
-  if MOUSE_click_under_gui_rect(object_get_coord_t) == true then  GET_groove_engine()  
-                                                            is_button_get_pressed = true  
-                                                            is_quant_ref_selected = true 
-                                                           else 
-                                                            is_button_get_pressed = false  
-                                                            is_quant_ref_selected = false
-                                                            end 
-                                                             
-  ----- SET -----                                                     
-  if MOUSE_click_under_gui_rect(object_set_coord_t) == true then  
-                                                            ENGINE_QUANTIZE()
-                                                            is_button_set_pressed = true 
-                                                            is_snap_selected = true 
-                                                            is_quant_dest_selected = true
-                                                       else is_button_set_pressed = false 
-                                                            is_snap_selected = false  
-                                                            is_quant_dest_selected = false                                                            
-                                                            end 
+  if MOUSE_click_under_gui_rect(object_get_coord_t) == true then  GET_groove_engine() is_button_get_pressed = true                                                              
+                                                                                 else is_button_get_pressed = false end 
+  ----- GET2 -----   
+  if MOUSE_click_under_gui_rect(object_get2_coord_t) == true then  GET_objects_to_quantize() is_button_get2_pressed = true                                                              
+                                                                                        else is_button_get2_pressed = false end                                                              
+  ----- SET -----
+  if MOUSE_click_under_gui_rect(object_set_coord_t) == true then ENGINE_QUANTIZE() is_button_set_pressed = true                                                              
+                                                                              else is_button_set_pressed = false end 
                                                              
   ----- STRENGTH -----                                                          
   if MOUSE_click_under_gui_rect(object_strength_coord_t) == true then  
@@ -1051,8 +1094,8 @@ function MOUSE_get ()
   if MOUSE_click_under_gui_rect(quantize_ref_coord_buttons,20) == true then quantize_ref_values = {0, 0, 0, 0, 0, 1} is_quant_ref_selected = true  end
   
   ----- IS INSIDE TOOL -----
-  if MOUSE_under_gui_rect(object_main_coord_t) == true then is_mouse_inside = true
-                                                       else is_mouse_inside = false GET_objects_to_quantize() end    
+ --[[ if MOUSE_under_gui_rect(object_main_coord_t) == true then is_mouse_inside = true
+                                                       else is_mouse_inside = false --[[GET_objects_to_quantize() end    ]]
   ----- SWING -----                                                     
   if MOUSE_click_under_gui_rect(object_swing_coord_t) == true then
     swing = math.floor((mx - object_swing_coord_t[1]) / object_swing_coord_t[3] * 100) 
@@ -1067,7 +1110,9 @@ function MOUSE_get ()
 
   ----- GRID -----                                                     
   if MOUSE_click_under_gui_rect(object_grid_coord_t) == true then       
-   div_temp2 = math.ceil(math.exp(((mx - object_swing_coord_t[1]) / object_swing_coord_t[3]) * 4.6))
+   div_temp2 = math.ceil(math.exp(((mx - object_grid_coord_t[1]) / object_grid_coord_t[3]) * 4.6))/2
+   
+   
    
    if div_temp2 > 2 and div_temp2 < 3 then div_temp2 = 2 end
    if div_temp2 > 3 and div_temp2 < 4 then div_temp2 = 3 end
@@ -1077,10 +1122,9 @@ function MOUSE_get ()
    if div_temp2 > 12 and div_temp2 < 16 then div_temp2 = 12 end
    if div_temp2 > 16 and div_temp2 < 24 then div_temp2 = 16 end
    if div_temp2 > 24 and div_temp2 < 32 then div_temp2 = 24 end
-   if div_temp2 > 32 and div_temp2 < 48 then div_temp2 = 32 end   
-   if div_temp2 > 64 and div_temp2 < 96 then div_temp2 = 64 end
-   if div_temp2 > 96  then div_temp2 = 96 end
-    
+   if div_temp2 > 32 then div_temp2 = 32 end 
+   
+    set_grid_slider = div_temp2/96
     set_grid = round(4/div_temp2, 4)
     GET_groove_engine ()  
     ENGINE_QUANTIZE()    
@@ -1124,7 +1168,8 @@ end
   -- new_pos_t = {0} 
    groove_points_t = {}   
    
-   swing = 50    
+   swing = 50 
+   set_grid_slider = 0   
    strength = 100
    gravity = 100     
    run_cond = 1      
