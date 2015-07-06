@@ -33,10 +33,8 @@
  
  function ENGINE_groove_compare(pos_beats)   
    for j = 1, #groove_points_t, 1 do -- compare with groove point 
-   cur_groove_point = groove_points_t[j]   
-   
-   if j ~= 1 then prev_groove_point = groove_points_t[j-1] else prev_groove_point = 0 end    
-                           
+   cur_groove_point = groove_points_t[j] 
+   --if j ~= 1 then prev_groove_point = groove_points_t[j-1] else prev_groove_point = 0 end 
    if j + 1 > #groove_points_t then next_groove_point = bars*4 else 
     next_groove_point = groove_points_t[j+1] end                                        
    if snap_behaviour_values[2] == 1 then -- if snap everything       
