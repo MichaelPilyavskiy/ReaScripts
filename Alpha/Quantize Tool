@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.081 (beta)"
+ vrs = "0.09 (beta)"
  
  about = "Quantize tool by Michael Pilyavskiy ".."\n"..
          "Version "..vrs.."\n"..
@@ -17,10 +17,11 @@
     .."Changelog:".."\n"
     .."\n"
     .."\n"    
-    .."  04.07.2015 - 0.081 broken swing, custom grid, fontsize = 16".."\n"        
+    .."  06.07.2015 - 0.09 groove points compare bug, stretch markers get/quantize bugfixes ".."\n"      
+    .."  04.07.2015 - 0.081 swing always 1/4 bug , custom grid, fontsize = 16".."\n"        
     .."  04.07.2015 - 0.08 quantize engine improvements".."\n"    
-    .."  02.07.2015 - 0.07 rebuild everything".."\n"    
-    .."  01.07.2015 - 0.06 menu count numbers, strength slider, point gravity slider, quantize engine basics".."\n"                    
+    .."  02.07.2015 - 0.07 rebuild everything...".."\n"    
+    .."  01.07.2015 - 0.06 menu count numbers, strength slider, point gravity slider, quantize engine basics".."\n"
     .."  30.06.2015 - 0.05 about,get project grid".."\n"
     .."  28.06.2015 - 0.04 get_groove function building".."\n"
     .."  27.06.2015 - 0.03 font, back, menus".."\n"
@@ -32,19 +33,24 @@
  
  function ENGINE_groove_compare(pos_beats)   
    for j = 1, #groove_points_t, 1 do -- compare with groove point 
-   cur_groove_point = groove_points_t[j]                           
-     if j + 1 > #groove_points_t then next_groove_point = bars*4 else 
-     next_groove_point = groove_points_t[j+1] end                                        
-       if snap_behaviour_values[2] == 1 then -- if snap everything       
+   cur_groove_point = groove_points_t[j]   
+   
+   if j ~= 1 then prev_groove_point = groove_points_t[j-1] else prev_groove_point = 0 end    
+                           
+   if j + 1 > #groove_points_t then next_groove_point = bars*4 else 
+    next_groove_point = groove_points_t[j+1] end                                        
+   if snap_behaviour_values[2] == 1 then -- if snap everything       
          if snap_direction_values[1] == 1 then -- to previous point
            if pos_beats > cur_groove_point and pos_beats < next_groove_point then              
              new_pos_temp = cur_groove_point end
          end --snap_direction_values[1] == 1         
          if snap_direction_values[2] == 1 then -- to closest point         
-           if pos_beats > cur_groove_point and pos_beats < (next_groove_point - cur_groove_point)/2 then
+           if pos_beats > cur_groove_point and pos_beats < cur_groove_point+(next_groove_point - cur_groove_point)/2 then
              new_pos_temp = cur_groove_point end
-           if pos_beats > cur_groove_point and pos_beats > (next_groove_point - cur_groove_point)/2 then
+           if pos_beats > cur_groove_point and pos_beats > cur_groove_point+(next_groove_point - cur_groove_point)/2 then
              new_pos_temp = next_groove_point end
+           if pos_beats == cur_groove_point  then
+             new_pos_temp = cur_groove_point end
          end  --snap_direction_values[2] == 1         
          if snap_direction_values[3] == 1 then -- to previous point
            if pos_beats > cur_groove_point and pos_beats < next_groove_point then
@@ -94,8 +100,8 @@
          str_marker_new_pos = str_marker_pos_beats + delta_pos        
          str_marker_new_pos_time = reaper.TimeMap2_beatsToTime(0, str_marker_new_pos, str_marker_pos_measure)
          str_marker_new_pos_time_intake = str_marker_new_pos_time - current_item_pos_time
-         reaper.SetTakeStretchMarker(current_take, -1, 0, 0)  
-         reaper.SetTakeStretchMarker(current_take, j-1, str_marker_new_pos_time_intake,srcpos)       
+         --reaper.SetTakeStretchMarker(current_take, -1, 0, 0)  
+         reaper.SetTakeStretchMarker(current_take, j, str_marker_new_pos_time_intake, srcpos)       
        end  
      end -- for
     end       
@@ -156,9 +162,6 @@
    else  
      get_grid = project_grid_beats   
   end
-     
-  
-  
   divider_r = round(4/get_grid, 1) 
    if  divider_r % 3 == 0 then  --grid_temp_v1 > 0 then 
      is_grid_triplet = true      
@@ -166,7 +169,7 @@
      is_grid_triplet = false 
    end      
    if project_grid_measures == 0 then
-     if is_grid_triplet == true then grid_string = "1/"..tostring(  (math.ceil(4/get_grid/3*2)))  .."T"
+     if is_grid_triplet == true then grid_string = "1/"..tostring(  math.ceil(round(4/get_grid/3*2),1) )  .."T"
                                 else grid_string = "1/"..tostring(math.ceil(4/get_grid)) end
     else 
      --grid_string = project_grid_measures
@@ -430,16 +433,20 @@ end
     for i = 1, count_sel_items, 1 do
       item = reaper.GetSelectedMediaItem(0, i-1)
       item_guid = reaper.BR_GetMediaItemGUID(item) 
-      item_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")      
+      item_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+      item_len = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")      
       item_info_string = item_guid.."_"..item_pos
 --[[ store item ]]  table.insert(items_to_quantize_info_t, i, item_info_string) 
       take = reaper.GetActiveTake(item)      
       if take ~= nil then
         take_guid = reaper.BR_GetMediaItemTakeGUID(take)
+        reaper.SetTakeStretchMarker(take, -1, 0, 0)
+        reaper.SetTakeStretchMarker(take, -1, item_len, item_len)
         count_stretch_markers = reaper.GetTakeNumStretchMarkers(take)
           if count_stretch_markers ~= nil then
-            for j = 1, count_stretch_markers,1 do
-              retval, posOut, srcpos = reaper.GetTakeStretchMarker(take, j-1)              
+            for j = 1, count_stretch_markers-2,1 do
+              retval, posOut, srcpos = reaper.GetTakeStretchMarker(take, j)
+                            
               str_marker_info = take_guid.."_"..j.."_"..posOut.."_"..srcpos
 --[[ store str.maker ]]  table.insert(str_markers_to_quantize_info_t, str_marker_info)               
             end -- loop takes  
@@ -776,8 +783,10 @@ function GUI_define()
   font = "Calibri" 
   fontsize = 16
   ---- snap_direction_coord_buttons ----
-  sdcb = {555, 180, 140, 115}
-  sbcb = {555, 115, 140, 60}
+  sdcb = {555, 180, 140, 115} -- snap dest
+  sbcb = {555, 115, 140, 60} -- snap beh
+  qrcb = {105, 115, 140, 180} -- quantize ref
+  qdcb = {410, 115, 140, 180} -- quantize dest
   
   ---- DEFINE OBJECTS ----   
   object_main_coord_t = {0, 0, main_w, main_h}
@@ -788,8 +797,8 @@ function GUI_define()
   object_set_coord_t = {main_w - 100, 115, 90, 115}
   object_strength_coord_t = {main_w - 100, 235, 90, 60}
   object_gravity_coord_t = {555, sbcb[2] + 22, 140, 18}
-  object_swing_coord_t = {105, 257, 140, 18}
-  object_grid_coord_t = {105, 237, 140, 18}
+  object_swing_coord_t = {105, qrcb[2] + 135 , 140, 18}
+  object_grid_coord_t = {105, qrcb[2] + 117, 140, 18}
 end
 ---------------------------------------------------------------------------------------------------------------    
     
@@ -819,7 +828,7 @@ function GUI_draw ()
                         "stretch markers".." ("..str_markers_count_info.."),"..
                         "envelope points".." ("..envelope_points_count_info..")"
                               
-  quantize_dest_coord_buttons =  GUI_menu(410, 115, 140, 180, quantize_dest_names, quantize_dest_values,3, is_quant_dest_selected)
+  quantize_dest_coord_buttons =  GUI_menu(qdcb[1], qdcb[2], qdcb[3], qdcb[4], quantize_dest_names, quantize_dest_values,3, is_quant_dest_selected)
                                    
   ref_items_count_info = get_groove_engine_values[1]
   ref_str_markers_count_info = get_groove_engine_values[2]
@@ -830,7 +839,7 @@ function GUI_draw ()
                        "stretch markers".." ("..ref_str_markers_count_info.."),"..
                        "envelope points".." ("..ref_envelope_points_count_info.."),"..
                        "notes".." ("..ref_notes_count_info.."),".."custom grid "..grid_string..",".."swing grid".." ("..swing.."%),"                                
-  quantize_ref_coord_buttons =   GUI_menu(105, 115, 140, 180,quantize_ref_names, quantize_ref_values,6, is_quant_ref_selected)
+  quantize_ref_coord_buttons =   GUI_menu(qrcb[1], qrcb[2], qrcb[3], qrcb[4],quantize_ref_names, quantize_ref_values,6, is_quant_ref_selected)
   
   ------- GRID ---------
   GUI_GRID_rect(is_mouse_on_rect)
@@ -1033,8 +1042,8 @@ function MOUSE_get ()
    if div_temp2 > 96  then div_temp2 = 96 end
     
     set_grid = round(4/div_temp2, 4)
-    
-    
+    GET_groove_engine ()  
+    ENGINE_QUANTIZE()    
     is_button_get_pressed = true  
     is_quant_ref_selected = true 
     is_button_set_pressed = true
