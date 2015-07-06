@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.09 (beta)"
+ vrs = "0.091 (beta)"
  
  about = "Quantize tool by Michael Pilyavskiy ".."\n"..
          "Version "..vrs.."\n"..
@@ -17,10 +17,10 @@
     .."Changelog:".."\n"
     .."\n"
     .."\n"    
-    .."  06.07.2015 - 0.09 groove points compare bug, stretch markers get/quantize bugfixes ".."\n"      
+    .."  06.07.2015 - 0.091 groove points compare bug, stretch markers get/quantize bugfixes, draw grid bug, gravity function building ".."\n"      
     .."  04.07.2015 - 0.081 swing always 1/4 bug , custom grid, fontsize = 16".."\n"        
     .."  04.07.2015 - 0.08 quantize engine improvements".."\n"    
-    .."  02.07.2015 - 0.07 rebuild everything...".."\n"    
+    .."  02.07.2015 - 0.07 new gui, performance improvements...".."\n"    
     .."  01.07.2015 - 0.06 menu count numbers, strength slider, point gravity slider, quantize engine basics".."\n"
     .."  30.06.2015 - 0.05 about,get project grid".."\n"
     .."  28.06.2015 - 0.04 get_groove function building".."\n"
@@ -31,33 +31,38 @@
   
  ---------------------------------------------------------------------------------------------------------------  
  
- function ENGINE_groove_compare(pos_beats)   
+ function ENGINE_groove_compare(pos_beats)
+  if groove_points_t ~= nil then
+   GET_groove_gravity()
    for j = 1, #groove_points_t, 1 do -- compare with groove point 
-   cur_groove_point = groove_points_t[j] 
-   --if j ~= 1 then prev_groove_point = groove_points_t[j-1] else prev_groove_point = 0 end 
-   if j + 1 > #groove_points_t then next_groove_point = bars*4 else 
-    next_groove_point = groove_points_t[j+1] end                                        
-   if snap_behaviour_values[2] == 1 then -- if snap everything       
+     cur_groove_point = groove_points_t[j]
+     if snap_behaviour_values[2] == 1 then -- if snap everything   
+       if j ~= 1 then prev_groove_point = groove_points_t[j-1] else prev_groove_point = 0 end 
+       if j + 1 > #groove_points_t then next_groove_point = bars*4 else next_groove_point = groove_points_t[j+1] end 
+         ---------------------------------------------------------
          if snap_direction_values[1] == 1 then -- to previous point
-           if pos_beats > cur_groove_point and pos_beats < next_groove_point then              
-             new_pos_temp = cur_groove_point end
-         end --snap_direction_values[1] == 1         
+           if pos_beats > cur_groove_point and pos_beats < next_groove_point then new_pos_temp = cur_groove_point end
+         end --snap_direction_values[1] == 1  
+         ---------------------------------------------------------       
          if snap_direction_values[2] == 1 then -- to closest point         
-           if pos_beats > cur_groove_point and pos_beats < cur_groove_point+(next_groove_point - cur_groove_point)/2 then
-             new_pos_temp = cur_groove_point end
-           if pos_beats > cur_groove_point and pos_beats > cur_groove_point+(next_groove_point - cur_groove_point)/2 then
-             new_pos_temp = next_groove_point end
-           if pos_beats == cur_groove_point  then
-             new_pos_temp = cur_groove_point end
+           if pos_beats > cur_groove_point and pos_beats < cur_groove_point+(next_groove_point - cur_groove_point)/2 then new_pos_temp = cur_groove_point end
+           if pos_beats > cur_groove_point and pos_beats > cur_groove_point+(next_groove_point - cur_groove_point)/2 then new_pos_temp = next_groove_point end
+           if pos_beats == cur_groove_point  then new_pos_temp = cur_groove_point end
          end  --snap_direction_values[2] == 1         
+         ---------------------------------------------------------
          if snap_direction_values[3] == 1 then -- to previous point
-           if pos_beats > cur_groove_point and pos_beats < next_groove_point then
-             new_pos_temp = next_groove_point end
-         end --snap_direction_values[3] == 1
-                  
-     end -- snap_behaviour_values[2] == 1         
+           if pos_beats > cur_groove_point and pos_beats < next_groove_point then new_pos_temp = next_groove_point end
+         end --snap_direction_values[3] == 1                           
+     end      
+     if snap_behaviour_values[1] == 1 then         
+         if  pos_beats >= cur_groove_point_zone_min_t[j] and pos_beats <= cur_groove_point_zone_max_t[j] 
+          then new_pos_temp = cur_groove_point 
+            else new_pos_temp = pos_beats 
+         end         
+     end                 
    end  -- for j = 1, #groove_points_t,  
    return new_pos_temp 
+  end -- if  groove_points_t ~= nil
  end
  
  --------------------------------------------------------------------------------------------------------------- 
@@ -82,7 +87,7 @@
 
  ---------------------------------------------------------------------------------------------------------------
         
- function ENGINE_quantize_str_markers()   
+ function ENGINE_quantize_str_markers()      
    if groove_points_t ~= nil then 
      for i = 1, #str_markers_to_quantize_info_t, 1 do
        str_markers_to_quantize = str_markers_to_quantize_info_t[i]       
@@ -93,14 +98,11 @@
        str_marker_pos_time_true = str_marker_pos_time + current_item_pos_time  
        str_marker_pos_beats, str_marker_pos_measure, str_marker_pos_cmlOut = reaper.TimeMap2_timeToBeats(0, str_marker_pos_time_true)
        new_pos_temp = ENGINE_groove_compare(str_marker_pos_beats) 
-       if new_pos_temp ~= nil then
-         delta_pos = (new_pos_temp - str_marker_pos_beats)*(strength/100)
-         str_marker_new_pos = str_marker_pos_beats + delta_pos        
-         str_marker_new_pos_time = reaper.TimeMap2_beatsToTime(0, str_marker_new_pos, str_marker_pos_measure)
-         str_marker_new_pos_time_intake = str_marker_new_pos_time - current_item_pos_time
-         --reaper.SetTakeStretchMarker(current_take, -1, 0, 0)  
-         reaper.SetTakeStretchMarker(current_take, j, str_marker_new_pos_time_intake, srcpos)       
-       end  
+       if new_pos_temp ~= nil then delta_pos = (new_pos_temp - str_marker_pos_beats)*(strength/100) else delta_pos = 0 end
+       str_marker_new_pos = str_marker_pos_beats + delta_pos        
+       str_marker_new_pos_time = reaper.TimeMap2_beatsToTime(0, str_marker_new_pos, str_marker_pos_measure)
+       str_marker_new_pos_time_intake = str_marker_new_pos_time - current_item_pos_time         
+       reaper.SetTakeStretchMarker(current_take, j, str_marker_new_pos_time_intake, srcpos)
      end -- for
     end       
  end -- func   
@@ -111,9 +113,6 @@
    if groove_points_t ~= nil then 
      for i = 1, #envelope_points_to_quantize_info_t, 1 do
        envelope_points_to_quantize = envelope_points_to_quantize_info_t[i]   
-           
-           
-           
        take_guid, j, str_marker_pos_time, srcpos = str_markers_to_quantize:match("([^_]+)_([^_]+)_([^_]+)_([^_]+)")
        current_take = reaper.SNM_GetMediaItemTakeByGUID(0, take_guid)
        current_item = reaper.GetMediaItemTake_Item(current_take)
@@ -128,9 +127,6 @@
          str_marker_new_pos_time_intake = str_marker_new_pos_time - current_item_pos_time
          test = reaper.SetTakeStretchMarker(current_take, j, str_marker_new_pos_time_intake,srcpos)       
        end  
-       
-       
-       
      end -- for  
     end     
  end
@@ -141,7 +137,14 @@
    if quantize_dest_values[2] == 1 then ENGINE_quantize_str_markers() end
    if quantize_dest_values[3] == 1 then ENGINE_quantize_env_points() end
  end 
-   
+  
+ ---------------------------------------------------------------------------------------------------------------
+  
+ function table.replace(table_name, i, value)
+   table.insert(table_name, i, value)
+   table.remove(table_name, i+1) 
+ end
+  
  ---------------------------------------------------------------------------------------------------------------
     
  function round(num, idp)
@@ -353,7 +356,9 @@
    end
    bars = 1 
  end 
-  
+ 
+ --------------------------------------------------------------------------------------------------------------- 
+   
 function GET_groove_from_swing_grid()    
    grid_time, grid_set1 = GET_grid()  
    bars = 1
@@ -368,9 +373,45 @@ function GET_groove_from_swing_grid()
     end
     swing_groove = swing_groove + grid_beats  
     end   
-  end     
+  end    
+ 
  --------------------------------------------------------------------------------------------------------------- 
+ 
+  function GET_groove_gravity()  
+   cur_groove_point_zone_min_delta_t = {}
+   cur_groove_point_zone_max_delta_t = {} 
+   cur_groove_point_zone_min_t = {}
+   cur_groove_point_zone_max_t = {} 
+   -- make table for zones
+   for j = 1, #groove_points_t, 1 do 
+     if j == 1                then prev_groove_point = 0 else      prev_groove_point = groove_points_t[j-1] end     
+     if j == #groove_points_t then next_groove_point = 4*bars else next_groove_point = groove_points_t[j+1] end
+     cur_groove_point = groove_points_t[j]  
+       
+     if j == 1 then 
+                    table.insert(cur_groove_point_zone_min_delta_t, j, 0)
+                    table.insert(cur_groove_point_zone_max_delta_t, j, (next_groove_point - cur_groove_point)/2) end
+     if j > 1 and j <= #groove_points_t then 
+                    table.insert(cur_groove_point_zone_min_delta_t, j, (cur_groove_point - prev_groove_point)/2)      
+                    table.insert(cur_groove_point_zone_max_delta_t, j, (next_groove_point - cur_groove_point)/2) end
+     if j == #groove_points_t then 
+                    table.insert(cur_groove_point_zone_min_delta_t, j, (cur_groove_point - prev_groove_point)/2)      
+                    table.insert(cur_groove_point_zone_max_delta_t, j, 0) end   
+   end    
+      
+   -- edit table
+   for j = 1, #groove_points_t, 1 do 
+     if j == 1                then prev_groove_point = 0 else      prev_groove_point = groove_points_t[j-1] end     
+     if j == #groove_points_t then next_groove_point = 4*bars else next_groove_point = groove_points_t[j+1] end
+     cur_groove_point = groove_points_t[j]  
      
+     table.insert(cur_groove_point_zone_min_t, j, cur_groove_point - cur_groove_point_zone_min_delta_t[j]*(gravity/100))
+     table.insert(cur_groove_point_zone_max_t, j, cur_groove_point + cur_groove_point_zone_max_delta_t[j]*(gravity/100))
+   end -- edit ]]  
+  end 
+ 
+ --------------------------------------------------------------------------------------------------------------- 
+ 
  function GET_groove_engine ()     
   groove_points_t = {} 
         
@@ -386,6 +427,7 @@ function GET_groove_from_swing_grid()
   if env_point_t_size == nil then ref_envelope_points_count_info = 0 else ref_envelope_points_count_info = env_point_t_size end
   if notes_t_size == nil then ref_notes_count_info = 0 else ref_notes_count_info = notes_t_size end
   get_groove_engine_values = {ref_items_count_info, ref_str_markers_count_info, ref_envelope_points_count_info, ref_notes_count_info}  
+    
 end
   
  ---------------------------------------------------------------------------------------------------------------
@@ -660,9 +702,9 @@ function GUI_GRID_draw()
   x1 = object_rect_coord_t[1]
   y1 = object_rect_coord_t[2]+object_rect_coord_t[4]    
   if is_grid_triplet == 1 then
-    stripes_in_bar = math.floor(bars*(4 / grid_beats))  + 1 --   bug
+    stripes_in_bar = round(bars*(4 / grid_beats), 4)  + 1 --   bug
    else  
-    stripes_in_bar = math.floor(bars*(4 / grid_beats))
+    stripes_in_bar = round(bars*(4 / grid_beats), 4)
    end 
   gfx.x = x1
   gfx.y = y1  
@@ -841,11 +883,11 @@ function GUI_draw ()
   
   ------- GRID ---------
   GUI_GRID_rect(is_mouse_on_rect)
-  GUI_GRID_draw()
+  
   GUI_GRID_groove() 
   GUI_GRID_dest() 
   GUI_GRID_play_pos() 
-  
+  GUI_GRID_draw()
   ------ SLIDERS -------
   GUI_fill_slider(object_strength_coord_t[1], 
                   object_strength_coord_t[2], 
@@ -978,7 +1020,7 @@ function MOUSE_get ()
   if MOUSE_click_under_gui_rect(object_gravity_coord_t) == true then  
      gravity = (math.floor((mx - object_gravity_coord_t[1] - object_gravity_coord_t[3]/2) / object_gravity_coord_t[3] * 150) + 1)*2
                                                         if  gravity < 0 then  gravity = 0 end
-                                                        if  gravity > 100 then  gravity = 100 end
+                                                        if  gravity > 100 then  gravity = 100 end                                                           
                                                             ENGINE_QUANTIZE()                
                                                             is_button_set_pressed = true
                                                             is_snap_selected = true 
@@ -1073,18 +1115,18 @@ end
    
    snap_direction_values = {0,1, 0} -- menu
    quantize_dest_values = {0, 1, 0, 0} -- menu
-   quantize_ref_values = {0, 0, 0, 0, 0, 0} -- menu
+   quantize_ref_values = {0, 0, 0, 0, 1, 0} -- menu
    snap_behaviour_values = {0,1} -- menu
    get_groove_engine_values = {0, 0, 0, 0} -- object quantity
    quantize_dest_objects = {0, 0, 0, 0} -- object quantity
    bars = 1 -- default bars in main rect
    set_grid = 0.5
   -- new_pos_t = {0} 
-   groove_points_t = {0}   
+   groove_points_t = {}   
    
    swing = 50    
    strength = 100
-   gravity = 0     
+   gravity = 100     
    run_cond = 1      
 ---------------------------------------------------------------------------------------------------------------    
 
