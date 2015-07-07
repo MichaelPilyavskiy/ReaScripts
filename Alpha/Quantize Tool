@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.111 (beta)"
+ vrs = "0.112 (beta)"
  
  about = "Quantize tool by Michael Pilyavskiy ".."\n"..
          "Version "..vrs.."\n"..
@@ -17,7 +17,8 @@
     .."Changelog:".."\n"
     .."\n"
     .."\n"    
-    .."  07.07.2015 - 0.111 restore exit button, right click on swing to type swing, swing 100% is half grid, info, quantize items bug, info, user cancelled swing dialog".."\n"           
+    .."  07.07.2015 - 0.112 restore exit button, right click on swing to type swing,".."\n" 
+    .."  swing 100% is half grid, info, quantize items bug, user cancelled swing dialog, get stretch markers via srcpos".."\n"
     .."  06.07.2015 - 0.092 gui, groove points compare bug, stretch markers get/quantize bugfixes, draw grid bug, gravity function building ".."\n"      
     .."  04.07.2015 - 0.081 swing always 1/4 bug , custom grid, fontsize = 16".."\n"        
     .."  04.07.2015 - 0.08 quantize engine improvements".."\n"    
@@ -89,24 +90,51 @@
 
  ---------------------------------------------------------------------------------------------------------------
         
- function ENGINE_quantize_str_markers()      
+ function ENGINE_quantize_str_markers()
+   if   str_markers_to_quantize_info_t ~= nil then 
+     for i = 1, #str_markers_to_quantize_info_t, 1 do
+       str_markers_to_quantize = str_markers_to_quantize_info_t[i]
+       take_guid, str_marker_pos_time, srcpos = str_markers_to_quantize:match("([^_]+)_([^_]+)_([^_]+)") 
+       current_take_0 = reaper.SNM_GetMediaItemTakeByGUID(0, take_guid)
+       current_item_0 = reaper.GetMediaItemTake_Item(current_take_0)
+       current_item_0_len = reaper.GetMediaItemInfo_Value(current_item_0, "D_LENGTH") 
+       reaper.SetTakeStretchMarker(current_take_0, -1, 0, 0)
+       reaper.SetTakeStretchMarker(current_take_0, -1, current_item_0_len, current_item_0_len)
+       temp_src_pos_t = {}
+       count_stretch_markers = reaper.GetTakeNumStretchMarkers(current_take_0)
+       if count_stretch_markers ~= nil then
+         for j = 1, count_stretch_markers,1 do
+         retval, posOut, srcpos = reaper.GetTakeStretchMarker(take, j-1) 
+         src_pos_r = round(srcpos, 9)
+         table.insert(temp_src_pos_t, j, src_pos_r)
+         end
+       end
+     end  
+   end          
    if groove_points_t ~= nil then 
-    if   str_markers_to_quantize_info_t ~= nil then
+    if   str_markers_to_quantize_info_t ~= nil then    
      for i = 1, #str_markers_to_quantize_info_t, 1 do
        str_markers_to_quantize = str_markers_to_quantize_info_t[i]       
-       take_guid, j, str_marker_pos_time, srcpos = str_markers_to_quantize:match("([^_]+)_([^_]+)_([^_]+)_([^_]+)")
+       take_guid, str_marker_pos_time, srcpos = str_markers_to_quantize:match("([^_]+)_([^_]+)_([^_]+)")  
+       src_pos_r1 = round(srcpos, 9)            
        current_take = reaper.SNM_GetMediaItemTakeByGUID(0, take_guid)
        current_item = reaper.GetMediaItemTake_Item(current_take)
        current_item_pos_time = reaper.GetMediaItemInfo_Value(current_item, "D_POSITION")
        str_marker_pos_time_true = str_marker_pos_time + current_item_pos_time  
        str_marker_pos_beats, str_marker_pos_measure, str_marker_pos_cmlOut = reaper.TimeMap2_timeToBeats(0, str_marker_pos_time_true)
-       new_pos_temp = ENGINE_groove_compare(str_marker_pos_beats) 
-       if new_pos_temp ~= nil then delta_pos = (new_pos_temp - str_marker_pos_beats)*(strength/100) else delta_pos = 0 end
+       new_pos_temp = ENGINE_groove_compare(str_marker_pos_beats)
+       if new_pos_temp ~= nil then delta_pos = (new_pos_temp - str_marker_pos_beats)*(strength/100) else delta_pos = 0 end       
        str_marker_new_pos = str_marker_pos_beats + delta_pos        
        str_marker_new_pos_time = reaper.TimeMap2_beatsToTime(0, str_marker_new_pos, str_marker_pos_measure)
-       str_marker_new_pos_time_intake = str_marker_new_pos_time - current_item_pos_time         
-       reaper.SetTakeStretchMarker(current_take, j, str_marker_new_pos_time_intake, srcpos)
+       str_marker_new_pos_time_intake = str_marker_new_pos_time - current_item_pos_time       
+       for k = 1, #temp_src_pos_t, 1 do
+         temp_src_pos = temp_src_pos_t[k]         
+         if temp_src_pos == src_pos_r1 then       
+           reaper.SetTakeStretchMarker(current_take, k-1, str_marker_new_pos_time_intake, srcpos)
+         end  
+       end
      end -- for
+     
     end 
    end       
  end -- func   
@@ -493,14 +521,12 @@ end
       item_info_string = item_guid.."_"..item_pos
       take = reaper.GetActiveTake(item)      
       if take ~= nil then
-        take_guid = reaper.BR_GetMediaItemTakeGUID(take)
-        reaper.SetTakeStretchMarker(take, -1, 0, 0)
-        reaper.SetTakeStretchMarker(take, -1, item_len, item_len)
+        take_guid = reaper.BR_GetMediaItemTakeGUID(take)        
         count_stretch_markers = reaper.GetTakeNumStretchMarkers(take)
           if count_stretch_markers ~= nil then
-            for j = 2, count_stretch_markers-1,1 do
+            for j = 1, count_stretch_markers,1 do
               retval, posOut, srcpos = reaper.GetTakeStretchMarker(take, j-1)                            
-              str_marker_info = take_guid.."_"..j.."_"..posOut.."_"..srcpos
+              str_marker_info = take_guid.."_"..posOut.."_"..srcpos
 --[[ store str.maker ]]  table.insert(str_markers_to_quantize_info_t, str_marker_info)               
             end -- loop takes  
           end -- count_stretch_markers ~= nil 
@@ -1233,9 +1259,9 @@ function INFO()
   if is_button_get2_pressed == true and quantize_dest_objects_com ~= nil and quantize_dest_objects_com == 0 then
      string_info = "Don`t forget to select type of you object under ''Quantize''" end
      
-  if quantize_dest_objects_com ~= nil and quantize_dest_objects_com > 0 then string_info = "Now choose snap options" end
+  --if quantize_dest_objects_com ~= nil and quantize_dest_objects_com > 0 then string_info = "Now choose snap options" end
      
-  if table.sum(snap_direction_values) + table.sum(snap_behaviour_values) >= 2 then string_info = "Get reference from selected objects OR move swing / grid sliders" end
+  if quantize_dest_objects_com ~= nil and quantize_dest_objects_com > 0 and table.sum(snap_direction_values) + table.sum(snap_behaviour_values) >= 2 then string_info = "Get reference from selected objects OR move swing / grid sliders" end
    
 end
 
@@ -1264,8 +1290,8 @@ end
    -- menus defaults --
    quantize_dest_values = {0, 0, 0, 0} -- menu
       
-   snap_direction_values = {0,0,0} -- menu
-   snap_behaviour_values = {0,0} -- menu
+   snap_direction_values = {0,1,0} -- menu
+   snap_behaviour_values = {0,1} -- menu
    
    
    quantize_ref_values = {0, 0, 0, 0, 1, 0} -- menu
