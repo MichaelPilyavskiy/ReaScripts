@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.112 (beta)"
+ vrs = "0.113 (beta)"
  
  about = "Quantize tool by Michael Pilyavskiy ".."\n"..
          "Version "..vrs.."\n"..
@@ -17,11 +17,13 @@
     .."Changelog:".."\n"
     .."\n"
     .."\n"    
-    .."  07.07.2015 - 0.112 restore exit button, right click on swing to type swing,".."\n" 
-    .."  swing 100% is half grid, info, quantize items bug, user cancelled swing dialog, get stretch markers via srcpos".."\n"
-    .."  06.07.2015 - 0.092 gui, groove points compare bug, stretch markers get/quantize bugfixes, draw grid bug, gravity function building ".."\n"      
+    .."  07.07.2015 - 0.113 restore exit button, right click on swing to type swing,".."\n" 
+    .."            swing 100% is half grid, info, quantize items bug,".."\n" 
+    .."            user cancelled swing dialog, get stretch markers via srcpos, centered swing".."\n"    
+    .."  06.07.2015 - 0.092 gui, groove points compare bug, stretch markers get/quantize bugfixes,".."\n" 
+    .."            draw grid bug, gravity function building ".."\n"      
     .."  04.07.2015 - 0.081 swing always 1/4 bug , custom grid, fontsize = 16".."\n"        
-    .."  04.07.2015 - 0.08 quantize engine improvements".."\n"    
+    .."            quantize engine improvements".."\n"    
     .."  02.07.2015 - 0.07 new gui, performance improvements...".."\n"    
     .."  01.07.2015 - 0.06 menu count numbers, strength slider, point gravity slider, quantize engine basics".."\n"
     .."  30.06.2015 - 0.05 about,get project grid".."\n"
@@ -91,31 +93,44 @@
  ---------------------------------------------------------------------------------------------------------------
         
  function ENGINE_quantize_str_markers()
+   -- add markers to the start and end
+   if   str_markers_to_quantize_info_t ~= nil then    
+     str_markers_to_quantize = str_markers_to_quantize_info_t[1]
+     take_guid, str_marker_pos_time, srcpos = str_markers_to_quantize:match("([^_]+)_([^_]+)_([^_]+)") 
+     current_take_0 = reaper.SNM_GetMediaItemTakeByGUID(0, take_guid)
+     current_item_0 = reaper.GetMediaItemTake_Item(current_take_0)
+     current_item_0_len = reaper.GetMediaItemInfo_Value(current_item_0, "D_LENGTH")
+     count_stretch_markers = reaper.GetTakeNumStretchMarkers(current_take_0)
+       reaper.SetTakeStretchMarker(current_take_0, -1, 0, 0)
+       reaper.SetTakeStretchMarker(current_take_0, -1, current_item_0_len, current_item_0_len)
+   end  
    if   str_markers_to_quantize_info_t ~= nil then 
      for i = 1, #str_markers_to_quantize_info_t, 1 do
        str_markers_to_quantize = str_markers_to_quantize_info_t[i]
-       take_guid, str_marker_pos_time, srcpos = str_markers_to_quantize:match("([^_]+)_([^_]+)_([^_]+)") 
-       current_take_0 = reaper.SNM_GetMediaItemTakeByGUID(0, take_guid)
-       current_item_0 = reaper.GetMediaItemTake_Item(current_take_0)
-       current_item_0_len = reaper.GetMediaItemInfo_Value(current_item_0, "D_LENGTH") 
-       reaper.SetTakeStretchMarker(current_take_0, -1, 0, 0)
-       reaper.SetTakeStretchMarker(current_take_0, -1, current_item_0_len, current_item_0_len)
+       take_guid, str_marker_pos_time_s, srcpos_s = str_markers_to_quantize:match("([^_]+)_([^_]+)_([^_]+)")
+        str_marker_pos_time = tonumber(str_marker_pos_time_s)
+        srcpos = tonumber(srcpos_s)
+       current_take_0 = reaper.SNM_GetMediaItemTakeByGUID(0, take_guid)       
        temp_src_pos_t = {}
        count_stretch_markers = reaper.GetTakeNumStretchMarkers(current_take_0)
-       if count_stretch_markers ~= nil then
+       if str_marker_pos_time > 0 and srcpos > 0 then
+        if count_stretch_markers ~= nil then
          for j = 1, count_stretch_markers,1 do
          retval, posOut, srcpos = reaper.GetTakeStretchMarker(take, j-1) 
          src_pos_r = round(srcpos, 9)
          table.insert(temp_src_pos_t, j, src_pos_r)
          end
-       end
+        end
+       end 
      end  
    end          
    if groove_points_t ~= nil then 
     if   str_markers_to_quantize_info_t ~= nil then    
      for i = 1, #str_markers_to_quantize_info_t, 1 do
        str_markers_to_quantize = str_markers_to_quantize_info_t[i]       
-       take_guid, str_marker_pos_time, srcpos = str_markers_to_quantize:match("([^_]+)_([^_]+)_([^_]+)")  
+       take_guid, str_marker_pos_time_s, srcpos_s = str_markers_to_quantize:match("([^_]+)_([^_]+)_([^_]+)")  
+         str_marker_pos_time = tonumber(str_marker_pos_time_s)
+         srcpos = tonumber(srcpos_s)
        src_pos_r1 = round(srcpos, 9)            
        current_take = reaper.SNM_GetMediaItemTakeByGUID(0, take_guid)
        current_item = reaper.GetMediaItemTake_Item(current_take)
@@ -129,12 +144,11 @@
        str_marker_new_pos_time_intake = str_marker_new_pos_time - current_item_pos_time       
        for k = 1, #temp_src_pos_t, 1 do
          temp_src_pos = temp_src_pos_t[k]         
-         if temp_src_pos == src_pos_r1 then       
+         if temp_src_pos == src_pos_r1 and str_marker_new_pos_time_intake > 0 and srcpos > 0 then       
            reaper.SetTakeStretchMarker(current_take, k-1, str_marker_new_pos_time_intake, srcpos)
          end  
        end
-     end -- for
-     
+     end -- for     
     end 
    end       
  end -- func   
@@ -851,7 +865,9 @@ end
 
 --------------------------------------------------------------------------------------------------------------- 
 
-function GUI_fill_slider(object_coord_t, var, center)
+function GUI_fill_slider(object_coord_t, var, center, a2)
+  a1 = 0.2
+  if a2 == nil then a2 = 0.3  end
   x = object_coord_t[1]
   y = object_coord_t[2]
   w = object_coord_t[3]
@@ -861,33 +877,78 @@ function GUI_fill_slider(object_coord_t, var, center)
     gfx.x = x
     y1 = y + h
     for i = 1, w*var/100, 1 do 
-      a = math.abs(math.abs(i/w*var/100 - 1) - 1) * 0.4
+      a = math.abs(math.abs(i/w*var/100 - 1) - 1) * a2
       gfx.a = a
       gfx.line(x+i,y, x+i, y1) 
     end    
-    gfx.a = 0.2
-    gfx.roundrect(x, y, w, h,0.1,true)     
+    gfx.a = a1
+    --gfx.roundrect(x, y, w, h,0.1,true)     
    else   
     gfx.r, gfx.g, gfx.b = 1, 1, 1      
     gfx.x = x
     y1 = y + h
     for i = 1, w*var/250, 1 do 
-     a = math.abs(i*10/w/2*var/200 - 1) * 0.3
+     a = math.abs(i*10/w/2*var/200 - 1) * a2
      gfx.a = a     
      gfx.line(x + w/2+i,y, x + w/2+i, y1) 
     end    
-    gfx.a = 0.2
-    gfx.roundrect(x, y, w, h,0.1,true)     
+    gfx.a = a1
+   -- gfx.roundrect(x, y, w, h,0.1,true)     
     gfx.r, gfx.g, gfx.b = 1, 1, 1      
     gfx.x = x
     y1 = y + h
     for i = 1, w*var/250, 1 do 
-    a = math.abs(i*10/w/2*var/200 - 1) * 0.3
+    a = math.abs(i*10/w/2*var/200 - 1) * a2
     gfx.a = a     
     gfx.line(x + w/2-i+1,y, x + w/2-i+1, y1) 
     end    
-    gfx.a = 0.2
-    gfx.roundrect(x, y, w, h,0.1,true) 
+    gfx.a = a1
+    --gfx.roundrect(x, y, w, h,0.1,true) 
+  end  
+end
+
+--------------------------------------------------------------------------------------------------------------- 
+
+function GUI_fill_slider_inv(object_coord_t, var, center, a2)
+  var = math.abs(var)
+  a1 = 0.2
+  if a2 == nil then a2 = 0.3  end
+  x = object_coord_t[1]
+  y = object_coord_t[2]
+  w = object_coord_t[3]
+  h = object_coord_t[4]
+  if center == false then
+    gfx.r, gfx.g, gfx.b = 1, 1, 1  
+    gfx.x = x
+    y1 = y + h
+    for i = 1, w*var/100, 1 do 
+      a = math.abs(math.abs(i/w*var/100 - 1) - 1) * a2
+      gfx.a = a
+      gfx.line(x-i,y, x-i, y1) 
+    end    
+    gfx.a = a1
+   -- gfx.roundrect(x, y, w, h,0.1,true)     
+   else   
+    gfx.r, gfx.g, gfx.b = 1, 1, 1      
+    gfx.x = x
+    y1 = y + h
+    for i = 1, w*var/250, 1 do 
+     a = math.abs(i*10/w/2*var/200 - 1) * a2
+     gfx.a = a     
+     gfx.line(x - w/2+i,y, x - w/2+i, y1) 
+    end    
+    gfx.a = a1
+   -- gfx.roundrect(x, y, w, h,0.1,true)     
+    gfx.r, gfx.g, gfx.b = 1, 1, 1      
+    gfx.x = x
+    y1 = y + h
+    for i = 1, w*var/250, 1 do 
+    a = math.abs(i*10/w/2*var/200 - 1) * a2
+    gfx.a = a     
+    gfx.line(x - w/2-i+1,y, x - w/2-i+1, y1) 
+    end    
+    gfx.a = a1
+   -- gfx.roundrect(x, y, w, h,0.1,true) 
   end  
 end
 
@@ -968,7 +1029,17 @@ function GUI_define()
   object_swing_coord_t =  {row3_x_offset, 
                            qrcb[2] + 126,
                            b_def[3], 
+                           fontsize} -- for mouse
+  object_swing1_coord_t =  {row3_x_offset+b_def[3]/2, 
+                           qrcb[2] + 126,
+                           b_def[3]/2, 
                            fontsize}
+  object_swing2_coord_t =  {row3_x_offset + b_def[3]/2 +1, 
+                           qrcb[2] + 126,
+                           b_def[3]/2, 
+                           fontsize}                                                      
+                           
+                           
   object_grid_coord_t =   {row3_x_offset, 
                            qrcb[2] + 108,
                            b_def[3], 
@@ -1050,7 +1121,8 @@ function GUI_draw ()
    GUI_fill_slider(object_gravity_coord_t, gravity, true)
   end                
   if quantize_ref_values[6] == 1 then
-     GUI_fill_slider(object_swing_coord_t, swing, false)
+     if swing >= 0 then  GUI_fill_slider(object_swing1_coord_t, swing, false, 0.5)
+                    else GUI_fill_slider_inv(object_swing2_coord_t, swing, false, 0.5) end
   end    
               
   if quantize_ref_values[5] == 1 then
@@ -1195,8 +1267,10 @@ function MOUSE_get ()
                                                        else is_mouse_inside = false --[[GET_objects_to_quantize() end    ]]
   ----- SWING -----                                                     
   if MOUSE_click_under_gui_rect(object_swing_coord_t) == true then
-    swing = math.floor( ((mx - object_swing_coord_t[1]) / object_swing_coord_t[3] * 100))
+    --swing = math.floor( ((mx - object_swing_coord_t[1]) / object_swing_coord_t[3] * 100))
+    swing = (math.floor((mx - object_swing_coord_t[1] - object_swing_coord_t[3]/2) / object_swing_coord_t[3] * 150) + 1)*2
     if swing > 100 then swing = 100 end
+    if swing < -100 then swing = -100 end
     GET_groove_engine ()  
     ENGINE_QUANTIZE()
     is_button_get_pressed = true  
