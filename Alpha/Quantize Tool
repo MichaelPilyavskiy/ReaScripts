@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.11 (beta)"
+ vrs = "0.111 (beta)"
  
  about = "Quantize tool by Michael Pilyavskiy ".."\n"..
          "Version "..vrs.."\n"..
@@ -17,7 +17,7 @@
     .."Changelog:".."\n"
     .."\n"
     .."\n"    
-    .."  07.07.2015 - 0.11 restore exit button, right click on swing to type swing, swing 100% is half grid, info, quantize items bug, info".."\n"           
+    .."  07.07.2015 - 0.111 restore exit button, right click on swing to type swing, swing 100% is half grid, info, quantize items bug, info, user cancelled swing dialog".."\n"           
     .."  06.07.2015 - 0.092 gui, groove points compare bug, stretch markers get/quantize bugfixes, draw grid bug, gravity function building ".."\n"      
     .."  04.07.2015 - 0.081 swing always 1/4 bug , custom grid, fontsize = 16".."\n"        
     .."  04.07.2015 - 0.08 quantize engine improvements".."\n"    
@@ -1182,8 +1182,9 @@ function MOUSE_get ()
 
   ----- SWING -----                                                     
   if MOUSE_RB_click_under_gui_rect(object_swing_coord_t) == true then
-    retval, swing_ret =  reaper.GetUserInputs("Swing value", 1, "Swing", "")
-    swing = tonumber(swing_ret)
+    retval, swing_ret =  reaper.GetUserInputs("Swing value", 1, "Swing", "0")    
+    swing = tonumber(swing_ret)    
+    if swing == nil then swing = 0 end
     if swing > 100 then swing = 100 end
     GET_groove_engine ()  
     ENGINE_QUANTIZE()
