@@ -2,24 +2,11 @@ function starts_with(text,prefix)
   return string.sub(text, 1, string.len(prefix)) == prefix
 end
 
--- Get "POOLEDEVTS ..." -line from MIDI take chunk. 
-function getGUIDpooled_midi(take) local fs, fs_content, line, ret_line  
-  fs = reaper.SNM_CreateFastString("")
-  reaper.SNM_GetSetSourceState2(take, fs, false)
-  fs_content = reaper.SNM_GetFastString(fs)    
-  reaper.SNM_DeleteFastString(fs)    
-  for line in fs_content:gmatch("[^\r\n]+") do      
-    if starts_with(line, "POOLEDEVTS") then  
-      return line
-    end 
-  end
-end 
-
 ref_item = reaper.GetSelectedMediaItem(0,0)
 if ref_item ~= nil then
   ref_take = reaper.GetActiveTake(ref_item) 
-  if ref_take ~= nil then     
-    ref_guid = getGUIDpooled_midi(ref_take)
+  if ref_take ~= nil then   
+    retval, ref_guid = reaper.BR_GetMidiTakePoolGUID(ref_take)
     ref_col = reaper.GetDisplayedMediaItemColor2(ref_item, ref_take)
   end
 end
@@ -33,8 +20,8 @@ function main() local i, j, itemcount, item, takecount, take, src
         takecount = reaper.CountTakes(item)
         for j = 1, takecount, 1 do
           take = reaper.GetTake(item, j-1)           
-          if take ~= nil then  
-            take_guid = getGUIDpooled_midi(take) 
+          if take ~= nil then              
+            retval, take_guid = reaper.BR_GetMidiTakePoolGUID(take) 
             if take_guid ~= nil then   
               if take_guid == ref_guid then               
                 reaper.SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", ref_col|0x100000)                
@@ -49,4 +36,3 @@ function main() local i, j, itemcount, item, takecount, take, src
 end 
 
 main()
-
