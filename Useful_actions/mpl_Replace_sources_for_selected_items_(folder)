@@ -1,28 +1,4 @@
 name_script =  "Replace sources for selected items using user defined folder"
- vrs = "1.0a"
- 
- about = name_script.."\n"..
-         "Version "..vrs.."\n"..
-         "\n"..
-         "\n"..
-         " -- Soundcloud -- soundcloud.com/mp57".."\n"..
-         " -- PromoDJ --  pdj.com/michaelpilyavskiy".."\n"..
-         " -- VK --  vk.com/MPL57".."\n"..         
-         " -- GitHub --  github.com/MichaelPilyavskiy/ReaScripts".."\n"
-         .."\n"
-         .."\n"
-         .."\n"
-         
-         
-    .."Changelog:".."\n"
-    .."\n"
-    .."\n"    
-    .."  06.07.2015 - 1.0 first stable build, simple GUI".."\n"      
-
-         .."\n"
-         .."\n"
-         .."\n"
-             
   
  --------------------------------------------------------------------------------------
 function GET_new_items()  
@@ -243,7 +219,6 @@ end
    
    GUI_button(but_replace, "Replace sources", fontsize) 
    
-   GUI_button(but_about, "About", fontsize) 
    GUI_button(but_exit, "Exit", fontsize) 
  end
  
