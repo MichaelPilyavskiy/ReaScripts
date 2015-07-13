@@ -1,14 +1,13 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.13 (beta)"
+ vrs = "0.141 (beta)"
  
  -- known bugs :
- -- markers not get/quantize if takerate not equal 1
  -- gravity doesn`t work properly
  -- apply quantize crashes reaper  
  
  -- to do:
  -- global/local snap selector
- -- blue lines represent obkects to quantize
+ -- blue lines represent objects to quantize
  -- lmb click on grid add groove point
  -- rmb click on grid delete groove point
  -- quantize/get groove tempo envelope
@@ -30,10 +29,12 @@
     .."Changelog:".."\n"
     .."\n"
     .."\n" 
+    .."  13.07.2015 - 0.141 stretch markers quantize when takerate not equal 1".."\n" 
+    .."            get groove from stretch markers when takerate not equal 1".."\n" 
+    .."            envelope points quantize engine, gui improvements".."\n"
+    .."            ".."\n"
+    .."\n"     
     .."  11.07.2015 - 0.13 swing follow bug, markers quantize engine rebuilded again...".."\n" 
-    .."            ".."\n" 
-    .."            ".."\n"
-    .."            ".."\n"
     .."\n"       
     .."  09.07.2015 - 0.12 empty type swing window, project grid option,".."\n" 
     .."            swing linked to grid, bypass, toggle state 0.5s for mouse click".."\n" 
@@ -105,9 +106,23 @@
   end -- if  groove_points_t ~= nil
  end
  
- --------------------------------------------------------------------------------------------------------------- 
+ ---------------------------------------------------------------------------------------------------------------
   
+ function ENGINE_quantize_items_restore()  
+  if groove_points_t ~= nil then 
+   for i = 1, #items_to_quantize_info_t, 1 do
+     items_to_quantize = items_to_quantize_info_t[i]  
+     item_guid, item_pos_time = items_to_quantize:match("([^_]+)_([^_]+)")
+     current_item = reaper.BR_GetMediaItemByGUID(0, item_guid)
+     reaper.SetMediaItemInfo_Value(current_item, "D_POSITION", item_pos_time) 
+   end -- for items 
+  end    
+ end
+ 
+ ---------------------------------------------------------------------------------------------------------------
+ 
  function ENGINE_quantize_items() 
+  ENGINE_quantize_items_restore()
   if groove_points_t ~= nil then 
    for i = 1, #items_to_quantize_info_t, 1 do
      items_to_quantize = items_to_quantize_info_t[i]  
@@ -128,7 +143,7 @@
  
  ---------------------------------------------------------------------------------------------------------------
  
-  function  ENGINE_quantize_str_markers_restore()
+  function ENGINE_quantize_str_markers_restore()
    if   str_markers_to_quantize_info_t ~= nil and groove_points_t ~= nil then 
      for i = 1, #str_markers_to_quantize_info_t, 1 do
        str_markers_to_quantize = str_markers_to_quantize_info_t[i]
@@ -143,8 +158,7 @@
      for i = 1, #str_markers_to_quantize_info_t, 1 do
        str_markers_to_quantize = str_markers_to_quantize_info_t[i]
        take_guid, spos, ssrcpos  = str_markers_to_quantize:match("([^_]+)_([^_]+)_([^_]+)")
-       pos, srcpos = tonumber(spos),tonumber( ssrcpos)   
-       
+       pos, srcpos = tonumber(spos),tonumber(ssrcpos)
        reaper.SetTakeStretchMarker(current_take, -1, pos, srcpos)
      end 
    end    
@@ -166,27 +180,25 @@
       current_item_pos_time = reaper.GetMediaItemInfo_Value(current_item, "D_POSITION")
       current_item_len_time = reaper.GetMediaItemInfo_Value(current_item, "D_LENGHT")
       
-      -- add markers to start and end
-      --reaper.SetTakeStretchMarker(current_take, -1, 0)
-      --reaper.SetTakeStretchMarker(current_take, -1, current_item_len_time)
-      
+      current_take_rate = reaper.GetMediaItemTakeInfo_Value(current_take, "D_PLAYRATE")
       -- execute through all markers markers
-      count_stretch_markers = reaper.GetTakeNumStretchMarkers(current_take)
-      for j = 1, count_stretch_markers, 1 do
       
+      count_stretch_markers = reaper.GetTakeNumStretchMarkers(current_take)      
+      for j = 1, count_stretch_markers, 1 do
+        
         retval, str_marker_pos_time, str_marker_srcpos_time = reaper.GetTakeStretchMarker(current_take, j-1)
         
-        str_marker_pos_time_true = str_marker_pos_time + current_item_pos_time  
+        str_marker_pos_time_true = str_marker_pos_time/current_take_rate + current_item_pos_time  
         str_marker_pos_beats, str_marker_pos_measure, str_marker_pos_cmlOut = reaper.TimeMap2_timeToBeats(0, str_marker_pos_time_true)
         new_pos_temp = ENGINE_groove_compare(str_marker_pos_beats)             
         delta_pos0 = (new_pos_temp - str_marker_pos_beats)*(strength/100)                   
         delta_pos = BYPASS_engine(delta_pos0)
         
-        str_marker_new_pos = str_marker_pos_beats + delta_pos        
+        str_marker_new_pos = str_marker_pos_beats + delta_pos
         str_marker_new_pos_time = reaper.TimeMap2_beatsToTime(0, str_marker_new_pos, str_marker_pos_measure)
-        str_marker_new_pos_time_intake = str_marker_new_pos_time - current_item_pos_time  
+        str_marker_new_pos_time_intake = (str_marker_new_pos_time - current_item_pos_time)*current_take_rate
         
-        reaper.SetTakeStretchMarker(current_take, j-1, str_marker_new_pos_time_intake)--, str_marker_srcpos_time)
+        reaper.SetTakeStretchMarker(current_take, j-1, str_marker_new_pos_time_intake)
         
       end
     end  -- for i = 1, #str_markers_to_quantize_info_t
@@ -210,37 +222,74 @@
  
  ---------------------------------------------------------------------------------------------------------------
  
---[[ function ENGINE_quantize_env_points()
+ function ENGINE_quantize_env_points_restore()
    if groove_points_t ~= nil then 
      for i = 1, #envelope_points_to_quantize_info_t, 1 do
-       envelope_points_to_quantize = envelope_points_to_quantize_info_t[i]   
-       take_guid, j, str_marker_pos_time, srcpos = str_markers_to_quantize:match("([^_]+)_([^_]+)_([^_]+)_([^_]+)")
-       current_take = reaper.SNM_GetMediaItemTakeByGUID(0, take_guid)
-       current_item = reaper.GetMediaItemTake_Item(current_take)
-       current_item_pos_time = reaper.GetMediaItemInfo_Value(current_item, "D_POSITION")
-       str_marker_pos_time_true = str_marker_pos_time + current_item_pos_time  
-       str_marker_pos_beats, str_marker_pos_measure, str_marker_pos_cmlOut = reaper.TimeMap2_timeToBeats(0, str_marker_pos_time_true)
-       new_pos_temp = ENGINE_groove_compare(str_marker_pos_beats) 
+       envelope_points_to_quantize = envelope_points_to_quantize_info_t[i]  
+       track_guid, env_num_s, point_num_s, value_s, position_s, shape_s,bezier_s = 
+       envelope_points_to_quantize:match("([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)") 
+       
+       env_num = tonumber(env_num_s)  -1
+       point_num = tonumber(point_num_s)  -1
+       value = tonumber(value)  
+       position = tonumber(position_s)  
+       shape = tonumber(shape_s)  
+       bezier = tonumber(bezier_s)
+       
+       track = reaper.BR_GetMediaTrackByGUID(0, track_guid)  
+       TrackEnvelope = reaper.GetTrackEnvelope(track, env_num) 
+       if TrackEnvelope ~= nil then
+         BR_Envelope = reaper.BR_EnvAlloc(TrackEnvelope, true)     
+         reaper.BR_EnvSetPoint(BR_Envelope, point_num, position, value, shape, true, bezier)     
+         reaper.BR_EnvFree(BR_Envelope, true)     
+       end    
+     end -- for 
+   end  
+ end
+ 
+ ---------------------------------------------------------------------------------------------------------------
+ 
+ function ENGINE_quantize_env_points()
+   ENGINE_quantize_env_points_restore()
+   if groove_points_t ~= nil then 
+     for i = 1, #envelope_points_to_quantize_info_t, 1 do
+       envelope_points_to_quantize = envelope_points_to_quantize_info_t[i]  
+       track_guid, env_num_s, point_num_s, value_s, position_s, shape_s,bezier_s = 
+         envelope_points_to_quantize:match("([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)") 
+         
+       env_num = tonumber(env_num_s)  -1
+       point_num = tonumber(point_num_s)  -1
+       value = tonumber(value)  
+       position = tonumber(position_s)  
+       shape = tonumber(shape_s)  
+       bezier = tonumber(bezier_s)
+               
+       track = reaper.BR_GetMediaTrackByGUID(0, track_guid)  
+       TrackEnvelope = reaper.GetTrackEnvelope(track, env_num) 
+       if TrackEnvelope ~= nil then
+         BR_Envelope = reaper.BR_EnvAlloc(TrackEnvelope, true)
+         envelope_point_pos_beats, envelope_point_pos_measure, envelope_point_pos_cmlOut = 
+           reaper.TimeMap2_timeToBeats(0, position)
+         new_pos_temp = ENGINE_groove_compare(envelope_point_pos_beats)  
               
-         delta_pos = (new_pos_temp - str_marker_pos_beats)*(strength/100)
+         delta_pos0 = (new_pos_temp - envelope_point_pos_beats)*(strength/100)                   
+         delta_pos = BYPASS_engine(delta_pos0)  
+           
+         envelope_point_pos_beats_new = envelope_point_pos_beats + delta_pos
+         envelope_point_pos_time = reaper.TimeMap2_beatsToTime(0, envelope_point_pos_beats_new, envelope_point_pos_measure)
+         reaper.BR_EnvSetPoint(BR_Envelope, point_num, envelope_point_pos_time, value, shape, true, bezier)
          
-         
-         delta_pos = BYPASS_engine(delta_pos0)
-         
-         str_marker_new_pos = str_marker_pos_beats + delta_pos        
-         str_marker_new_pos_time = reaper.TimeMap2_beatsToTime(0, str_marker_new_pos, str_marker_pos_measure)
-         str_marker_new_pos_time_intake = str_marker_new_pos_time - current_item_pos_time
-         test = reaper.SetTakeStretchMarker(current_take, j, str_marker_new_pos_time_intake,srcpos)       
-         
+         reaper.BR_EnvFree(BR_Envelope, true)     
+       end    
      end -- for  
     end     
- end]]
+ end
  ---------------------------------------------------------------------------------------------------------------
   
  function ENGINE_QUANTIZE()  
    if quantize_dest_values[1] == 1 then ENGINE_quantize_items() end
    if quantize_dest_values[2] == 1 then ENGINE_quantize_str_markers() end
-   --if quantize_dest_values[3] == 1 then ENGINE_quantize_env_points() end  
+   if quantize_dest_values[3] == 1 then ENGINE_quantize_env_points() end  
  end 
   
  ---------------------------------------------------------------------------------------------------------------
@@ -352,25 +401,21 @@
        if ref_item ~= nil then
          ref_take = reaper.GetActiveTake(ref_item)
          if ref_take ~= nil then    
-           takerate = reaper.GetMediaItemTakeInfo_Value(ref_take, "D_PLAYRATE" )
-           if takerate ~= 1 then 
-             reaper.ShowMessageBox("Sorry, use only with take rate = 1.0","",  0)
-             run_cond = 0
-           end    -- takerate ~= 1 then   
+           takerate = reaper.GetMediaItemTakeInfo_Value(ref_take, "D_PLAYRATE" )           
            str_markers_count = reaper.GetTakeNumStretchMarkers(ref_take) 
            if  str_markers_count ~= nil then
              for i = 1, str_markers_count, 1 do
-              retval, ref_str_mark_pos = reaper.GetTakeStretchMarker(ref_take, i-1)               
+             
               ref_item_pos = reaper.GetMediaItemInfo_Value(ref_item, "D_POSITION")
-              ref_item_pos_beats, ref_item_pos_measure, ref_item_pos_cmlOut = reaper.TimeMap2_timeToBeats(0, ref_item_pos)
-              ref_item_pos_compute = round(ref_item_pos_beats + ref_item_pos_measure*ref_item_pos_cmlOut, 4)                  
+              ref_item_pos_beats, ref_item_pos_measure, ref_item_pos_cmlOut = reaper.TimeMap2_timeToBeats(0, ref_item_pos)                               
               ref_item_len = reaper.GetMediaItemInfo_Value(ref_item, "D_LENGTH")
-              ref_item_len_beats, ref_item_len_measure, ref_item_len_cmlOut = reaper.TimeMap2_timeToBeats(0, ref_item_len) 
-              ref_item_len_compute = round(ref_item_len_beats + ref_item_len_measure*ref_item_len_cmlOut, 4)               
-              ref_str_mark_pos_beats, ref_str_mark_pos_measure, ref_str_mark_pos_cml  = reaper.TimeMap2_timeToBeats(0, ref_item_pos + ref_str_mark_pos)
-              ref_str_mark_pos_beats_compute = round(ref_str_mark_pos_beats + ref_str_mark_pos_measure * ref_str_mark_pos_cml, 4)                                
-              if ref_str_mark_pos_beats_compute >= ref_item_pos_compute and ref_str_mark_pos_beats_compute <= ref_item_pos_compute + ref_item_len_compute then
-                table.insert(str_mark_t, ref_str_mark_pos_beats_compute)                 
+              ref_item_len_beats, ref_item_len_measure, ref_item_len_cmlOut = reaper.TimeMap2_timeToBeats(0, ref_item_len)
+             
+              retval, ref_str_mark_pos = reaper.GetTakeStretchMarker(ref_take, i-1)               
+              if ref_str_mark_pos >= ref_item_pos and ref_str_mark_pos <= ref_item_pos + ref_item_len then
+                ref_str_mark_pos_beats, ref_str_mark_pos_measure, ref_str_mark_pos_cml  = 
+                reaper.TimeMap2_timeToBeats(0, ref_item_pos + ref_str_mark_pos/takerate)    
+                table.insert(str_mark_t, ref_str_mark_pos_beats)                 
               end  
              end -- for
            end -- str_markers_count ~= nil
@@ -399,8 +444,9 @@
  function GET_groove_from_env_points()   
    env_point_t = {}                     
    envelope = reaper.GetSelectedTrackEnvelope(0)
-   if envelope ~= nil and envelope_points_count > 0 then
-     envelope_points_count = reaper.CountEnvelopePoints(envelope)
+   if envelope ~= nil then
+    envelope_points_count = reaper.CountEnvelopePoints(envelope)
+    if envelope_points_count > 0 then
      for i = 1, envelope_points_count, 1  do
        retval, ep_pos, value, shape, tension, isselected = reaper.GetEnvelopePoint(envelope, i-1)
        if isselected == true then
@@ -412,8 +458,9 @@
          table.insert(env_point_t, ep_pos_compute)
        end -- if selected  
      end -- loop env points
-   end --envelope_points_count > 0 
-   if envelope_points_count > 0 then
+    end  --envelope_points_count > 0
+   end -- envelope not nil
+   if envelope_points_count ~= nil then
      table.sort(env_point_t, function(a,b) return a<b end)
      ep_pos_max = env_point_t[#env_point_t]            
      table.sort(env_point_t, function(a,b) return a>b end)
@@ -561,6 +608,7 @@ end
  ---------------------------------------------------------------------------------------------------------------
   
  function GET_objects_to_quantize_env_points()
+  new_pos_t = {}
   count_tracks = reaper.CountTracks(0)
   if count_tracks ~= nil then    
     for i = 1, count_tracks, 1 do
@@ -578,8 +626,9 @@ end
                 for k = 1, count_env_points, 1 do    
                   retval, position, value, shapeOut, selected, bezier = reaper.BR_EnvGetPoint(BR_Envelope, k-1)
                   if selected == true then                  
---[[ store point ]] envelope_points_info = track_guid.."_"..j.."_"..k.."_"..position                    
-                    table.insert(envelope_points_to_quantize_info_t, envelope_points_info)                                         
+--[[ store point ]] envelope_points_info = track_guid.."_"..j.."_"..k.."_"..value.."_"..position.."_"..shapeOut.."_"..bezier
+                    table.insert(envelope_points_to_quantize_info_t, envelope_points_info)
+                                                             
                   end
                 end -- loop env points  
               end  -- count_env_points ~= nil        
@@ -919,7 +968,7 @@ end
 
 ---------------------------------------------------------------------------------------------------------------
 
-function GUI_GRID_dest()  local x1, y1, x2, y2 
+function GUI_GRID_dest()  local x1, y1, x2, y2  
  if new_pos_t ~= nil then
   for i = 1, #new_pos_t, 1 do  
    new_pos = new_pos_t[i]      
@@ -1298,6 +1347,8 @@ function MOUSE_get ()
   
   is_quant_ref_selected = false
   
+  is_button_set_pressed = false
+  
   ----- RECT -----
   if MOUSE_under_gui_rect(object_rect_coord_t) == true  then is_mouse_on_rect = true
                                                         else is_mouse_on_rect = false end   
@@ -1324,9 +1375,11 @@ function MOUSE_get ()
   ----- STRENGTH -----                                                          
   if MOUSE_click_under_gui_rect(object_strength_coord_t) == true then  
                                                             ENGINE_QUANTIZE()
+                                                            
                                                             is_button_set_pressed = true
                                                             is_quant_dest_selected = true
                                                             is_snap_selected = true 
+                                                            is_snap_selected1 = true
      strength = (math.floor((mx - object_strength_coord_t[1]) / object_strength_coord_t[3] * 100) + 1)*2
      if strength > 100 then strength = 100 end end                                                             
   ----- GRAVITY -----                                                            
@@ -1374,10 +1427,12 @@ function MOUSE_get ()
     if swing < -100 then swing = -100 end
     GET_groove_engine ()  
     ENGINE_QUANTIZE()
-    is_button_get_pressed = true  
+    is_button_get_pressed = true
+    is_button_set_pressed = true  
     is_quant_ref_selected = true 
     is_button_set_pressed = true
     is_snap_selected = true 
+    is_snap_selected1 = true 
     is_quant_dest_selected = true 
   end  
 
@@ -1417,7 +1472,8 @@ function MOUSE_get ()
     is_button_get_pressed = true  
     is_quant_ref_selected = true 
     is_button_set_pressed = true
-    is_snap_selected = true 
+    is_snap_selected = true
+    is_snap_selected1 = true 
     is_quant_dest_selected = true 
    
   end
@@ -1430,8 +1486,7 @@ function INFO()
   string_info = "Ok, let`s GET something you wanna quantize with this tool. Click on ''Get Objects''"  
   if is_button_get2_pressed == true and quantize_dest_objects_com ~= nil and quantize_dest_objects_com == 0 then
      string_info = "Don`t forget to select type of you object under ''Quantize''" end     
-  if quantize_dest_objects_com ~= nil and quantize_dest_objects_com > 0 and table.sum(snap_direction_values) + table.sum(snap_behaviour_values) >= 2 and 
-     is_loop_source == 0 then 
+  if quantize_dest_objects_com ~= nil and quantize_dest_objects_com > 0 and table.sum(snap_direction_values) + table.sum(snap_behaviour_values) >= 2 then 
      string_info = "Get reference from selected objects OR move swing / grid sliders" end
   if quantize_dest_values[2] == 1 and is_loop_source == 1 then
      string_info = "Stretch markers quantize DOES NOT work when Item Loop Source is ON" end
@@ -1464,23 +1519,22 @@ end
 
 --------------------------------------------------------------------------------------------------------------- 
   
-   show_gui_help = 0
-   
+   show_gui_help = 0   
    
    -- menus defaults --
    quantize_dest_values = {0, 0, 0, 0} -- menu
       
    snap_direction_values = {0,1,0} -- menu
-   snap_behaviour_values = {0,1} -- menu
-   
+   snap_behaviour_values = {0,1} -- menu   
    
    quantize_ref_values = {0, 0, 0, 0, 1, 0} -- menu
    
    get_groove_engine_values = {0, 0, 0, 0} -- object quantity
    quantize_dest_objects = {0, 0, 0, 0} -- object quantity
-   bars = 1 -- default bars in main rect
+   bars = 2 -- default bars in main rect
    set_grid = 4
-  -- new_pos_t = {0} 
+   
+   new_pos_t = {} 
    groove_points_t = {}   
       
    swing = 50 
