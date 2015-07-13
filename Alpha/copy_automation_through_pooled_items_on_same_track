@@ -1,0 +1,90 @@
+-- copy envelope points below selected item and paste it on same envelopes under items pooled to selected item on the same track
+
+function get_points()
+  envelope_points_t = {}
+  ref_item = reaper.GetSelectedMediaItem(0,0)
+  if ref_item ~= nil then
+    ref_take = reaper.GetActiveTake(ref_item) 
+    ref_item_pos = reaper.GetMediaItemInfo_Value(ref_item, "D_POSITION")
+    ref_item_len = reaper.GetMediaItemInfo_Value(ref_item, "D_LENGTH")
+    if ref_take ~= nil then   
+      retval, ref_guid = reaper.BR_GetMidiTakePoolGUID(ref_take)
+      ref_take_guid = reaper.BR_GetMediaItemTakeGUID(ref_take)      
+      if retval ~= nil then        
+        ref_col = reaper.GetDisplayedMediaItemColor2(ref_item, ref_take)
+        ref_track = reaper.GetMediaItemTrack(ref_item)       
+        ref_track_guid = reaper.GetTrackGUID(ref_track) 
+        envelopescount = reaper.CountTrackEnvelopes(ref_track)
+        for i = 1, envelopescount, 1 do
+          envelope = reaper.GetTrackEnvelope(ref_track, i-1)
+          BR_Envelope = reaper.BR_EnvAlloc(envelope, true)
+          pointscount = reaper.BR_EnvCountPoints(BR_Envelope)
+          for j = 1, pointscount, 1 do           
+            retval, time, value, shape, selected, bezier = reaper.BR_EnvGetPoint(BR_Envelope, j-1)            
+            if selected == true then selected = 1 else selected = 0 end
+            if time >= ref_item_pos and time <= ref_item_pos + ref_item_len then 
+              time_relative_to_item = time - ref_item_pos
+              string = ref_track_guid.."_"..i.."_"..j.."_"..time_relative_to_item.."_"..value.."_"..shape.."_"..selected.."_"..bezier
+              table.insert(envelope_points_t, string)
+              reaper.BR_EnvFree(BR_Envelope, true)
+            end
+          end
+        end
+      end
+    end
+  end
+end
+
+
+function set_points()
+  if envelope_points_t ~= nil then
+    for i = 1, #envelope_points_t, 1 do
+      envelope_point = envelope_points_t[i]
+      ref_track_guid, env_id, point_id, timepos, value, shape, selected, bezier = 
+        envelope_point:match("([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)_([^_]+)")
+      if selected == 1 then selected = true else selected = false end
+      trackcount = reaper.CountTracks(0)
+      if trackcount~= nil then 
+        for i = 1, trackcount, 1 do
+          track = reaper.GetTrack(0, i-1)
+          if track ~= nil then
+            track_guid = reaper.GetTrackGUID(track)
+            if track_guid == ref_track_guid then
+              itemcount = reaper.CountMediaItems(0)      
+              if itemcount ~= nil then
+                for j = 1, itemcount, 1 do
+                  item = reaper.GetMediaItem(0, j-1)
+                  item_pos = reaper.GetMediaItemInfo_Value(ref_item, "D_POSITION")
+                  item_len = reaper.GetMediaItemInfo_Value(ref_item, "D_LENGTH")
+                  if item ~= nil then
+                    takecount = reaper.CountTakes(item)
+                    for k = 1, takecount, 1 do
+                      take = reaper.GetTake(item, k-1)           
+                      if take ~= nil then              
+                        retval, take_guid = reaper.BR_GetMidiTakePoolGUID(take) 
+                        take_guid0 = reaper.BR_GetMediaItemTakeGUID(take)
+                        if take_guid ~= nil then   
+                          if take_guid == ref_guid and take_guid0 ~= ref_take_guid then               
+                            reaper.SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", ref_col|0x100000)                
+                            reaper.UpdateItemInProject(item)  
+                            envelope = reaper.GetTrackEnvelope(track, env_id-1)
+                            BR_Envelope = reaper.BR_EnvAlloc(envelope, true)
+                            reaper.BR_EnvSetPoint(BR_Envelope, point_id-1, item_pos+timepos, value, shape, selected, bezier) 
+                            reaper.BR_EnvFree(BR_Envelope, true)                                                        
+                          end  
+                        end    
+                      end  
+                    end  
+                  end
+                end
+              end  
+            end
+          end
+        end
+      end
+    end
+  end   
+end  
+
+get_points()
+set_points()
