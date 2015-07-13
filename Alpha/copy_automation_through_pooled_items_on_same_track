@@ -54,22 +54,21 @@ function set_points()
               if itemcount ~= nil then
                 for j = 1, itemcount, 1 do
                   item = reaper.GetMediaItem(0, j-1)
-                  item_pos = reaper.GetMediaItemInfo_Value(ref_item, "D_POSITION")
-                  item_len = reaper.GetMediaItemInfo_Value(ref_item, "D_LENGTH")
+                  item_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
+                  item_len = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
                   if item ~= nil then
                     takecount = reaper.CountTakes(item)
                     for k = 1, takecount, 1 do
                       take = reaper.GetTake(item, k-1)           
                       if take ~= nil then              
-                        retval, take_guid = reaper.BR_GetMidiTakePoolGUID(take) 
-                        take_guid0 = reaper.BR_GetMediaItemTakeGUID(take)
+                        retval, take_guid = reaper.BR_GetMidiTakePoolGUID(take)                        
                         if take_guid ~= nil then   
-                          if take_guid == ref_guid and take_guid0 ~= ref_take_guid then               
+                          if take_guid == ref_guid then               
                             reaper.SetMediaItemTakeInfo_Value(take, "I_CUSTOMCOLOR", ref_col|0x100000)                
                             reaper.UpdateItemInProject(item)  
                             envelope = reaper.GetTrackEnvelope(track, env_id-1)
                             BR_Envelope = reaper.BR_EnvAlloc(envelope, true)
-                            reaper.BR_EnvSetPoint(BR_Envelope, point_id-1, item_pos+timepos, value, shape, selected, bezier) 
+                            reaper.BR_EnvSetPoint(BR_Envelope, -1, item_pos+timepos, value, shape, selected, bezier) 
                             reaper.BR_EnvFree(BR_Envelope, true)                                                        
                           end  
                         end    
