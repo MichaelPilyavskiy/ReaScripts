@@ -26,9 +26,10 @@ function get_points()
               time_relative_to_item = time - ref_item_pos
               string = ref_track_guid.."_"..i.."_"..j.."_"..time_relative_to_item.."_"..value.."_"..shape.."_"..selected.."_"..bezier
               table.insert(envelope_points_t, string)
-              reaper.BR_EnvFree(BR_Envelope, true)
+              
             end
           end
+          reaper.BR_EnvFree(BR_Envelope, true)
         end
       end
     end
