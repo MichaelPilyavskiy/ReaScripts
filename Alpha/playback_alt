@@ -1,0 +1,39 @@
+playstate = reaper.GetPlayState()
+play_pos = reaper.GetPlayPosition()
+valOut = reaper.GetExtState("playBack_state", "Pause")
+if valOut ~= nil then 
+  pause_pos = tonumber(valOut)
+end  
+
+
+-- if stopped press play
+
+if playstate == 0 then  
+  reaper.Main_OnCommandEx(reaper.NamedCommandLookup("_BR_SAVE_CURSOR_POS_SLOT_1"), 0, 0) 
+  reaper.OnPlayButton()
+  reaper.DeleteExtState("playBack_state", "Pause", true)     
+end
+
+-- if playing from start press pause
+
+if playstate == 1 and pause_pos == nil then
+    reaper.CSurf_OnPause()
+    play_pos2 = reaper.GetPlayPosition()    
+    reaper.SetExtState("playBack_state", "Pause", play_pos2, true)
+end
+
+-- if playing from pause press stop
+if playstate == 1 and pause_pos ~= nil and play_pos > pause_pos then
+  reaper.CSurf_OnStop()  
+  reaper.Main_OnCommandEx(reaper.NamedCommandLookup("_BR_RESTORE_CURSOR_POS_SLOT_1"), 0, 0)
+  reaper.DeleteExtState("playBack", "State", true)
+    
+end
+  
+-- if paused press play
+if playstate == 2 then  
+  pause_pos2 = reaper.GetCursorPositionEx(0)
+  reaper.SetExtState("playBack_state", "Pause", pause_pos2, true)
+  reaper.OnPlayButton()
+end  
+  
