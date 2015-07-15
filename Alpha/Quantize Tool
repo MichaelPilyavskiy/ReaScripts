@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.141 (beta)"
+ vrs = "0.15 (beta)"
  
  -- known bugs :
  -- gravity doesn`t work properly
@@ -29,6 +29,9 @@
     .."Changelog:".."\n"
     .."\n"
     .."\n" 
+    .."  15.07.2015 - 0.15 info message when snap > 1 to prevent reaper crash".."\n" 
+    .."            ".."\n"
+    .."\n"      
     .."  13.07.2015 - 0.141 stretch markers quantize when takerate not equal 1".."\n" 
     .."            get groove from stretch markers when takerate not equal 1".."\n" 
     .."            envelope points quantize engine, gui improvements".."\n"
@@ -351,8 +354,9 @@
    if project_grid_measures == 0 then
      if is_grid_triplet == true then grid_string = "1/"..tostring(  math.ceil(round(4/get_grid/3*2),1) )  .."T"
                                 else grid_string = "1/"..tostring(math.ceil(4/get_grid)) end
+     execute_mouse = 1                           
     else 
-     execute = 0
+     execute_mouse = 0
      grid_string = ""
    end     
    get_grid = round(get_grid, 6) 
@@ -628,7 +632,7 @@ end
                   if selected == true then                  
 --[[ store point ]] envelope_points_info = track_guid.."_"..j.."_"..k.."_"..value.."_"..position.."_"..shapeOut.."_"..bezier
                     table.insert(envelope_points_to_quantize_info_t, envelope_points_info)
-                                                             
+                    table.insert(new_pos_t, position)
                   end
                 end -- loop env points  
               end  -- count_env_points ~= nil        
@@ -644,6 +648,7 @@ end
  ---------------------------------------------------------------------------------------------------------------
   
  function GET_objects_to_quantize_markers()
+  new_pos_t = {}
   count_sel_items = reaper.CountSelectedMediaItems(0)
   if count_sel_items ~= nil then 
     count_stretch_markers_com = 0
@@ -660,6 +665,7 @@ end
             --if posOut > 0 and srcpos > 0 then
 --[[ store str.maker ]]  
               table.insert(str_markers_to_quantize_info_t, str_marker_info) 
+              table.insert(new_pos_t, posOut)
             --end  
           end -- loop takes  
         end -- count_stretch_markers ~= nil 
@@ -672,6 +678,7 @@ end
   ---------------------------------------------------------------------------------------------------------------
   
  function GET_objects_to_quantize_items()
+ new_pos_t = {}
   count_sel_items = reaper.CountSelectedMediaItems(0)
   if count_sel_items ~= nil then     
     for i = 1, count_sel_items, 1 do
@@ -680,7 +687,9 @@ end
       item_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
       item_len = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")      
       item_info_string = item_guid.."_"..item_pos
---[[ store item ]]  table.insert(items_to_quantize_info_t, i, item_info_string)       
+--[[ store item ]]  
+      table.insert(items_to_quantize_info_t, i, item_info_string)
+      table.insert(new_pos_t, item_pos)       
     end -- item loop
   end -- count_sel_items ~= nil
  end 
@@ -1074,7 +1083,7 @@ end
 ---------------------------------------------------------------------------------------------------------------
 
 function GUI_info(object_coord_t, string_info) 
-    
+    gfx.setfont(1,font, fontsize)
     x = object_coord_t[1]
     y = object_coord_t[2]
     w = object_coord_t[3]
@@ -1188,12 +1197,11 @@ end
 function GUI_draw ()
   gfx.init("Quantize tool // ".."Version "..vrs, main_w, main_h) 
   GUI_background()  
-    
+  if execute_mouse == 1 then
  ------- BUTTONS -------- 
   GUI_button(is_button_about_pressed, "About", object_about_coord_t)
   GUI_button(is_button_exit_pressed, "Exit", object_exit_coord_t)
   GUI_button(is_button_get_pressed, "Get Reference", object_get_coord_t)
-  --GUI_button(is_button_set_pressed, "Apply Quantize", object_set_coord_t)
   GUI_button(is_button_set_pressed, "Apply Quantize", object_strength_coord_t)
   GUI_button(is_button_get2_pressed, "Get Objects to quantize", object_get2_coord_t)
   GUI_button(is_button_bypass_pressed, "Bypass", object_bypass_coord_t)
@@ -1230,13 +1238,15 @@ function GUI_draw ()
                        "notes".." ("..ref_notes_count_info.."),"..grid_str_sel..grid_string..",".."swing grid".." ("..swing.."%),"                                
   quantize_ref_coord_buttons =   GUI_menu(qrcb,quantize_ref_names, quantize_ref_values,6, is_quant_ref_selected)
   
-  ------- GRID ---------
-  GUI_GRID_rect(is_mouse_on_rect)  
-  GUI_GRID_groove() 
   
-  ------- GUI_GRID_dest() 
-  GUI_GRID_play_pos() 
-  GUI_GRID_draw()
+   ------- GRID ---------
+   GUI_GRID_rect(is_mouse_on_rect)  
+   GUI_GRID_groove() 
+   
+   ------- GUI_GRID_dest() 
+   GUI_GRID_play_pos() 
+   GUI_GRID_draw()
+  
   
   ------ SLIDERS -------
   GUI_fill_slider(object_strength_coord_t, strength, false)
@@ -1251,7 +1261,7 @@ function GUI_draw ()
   if quantize_ref_values[5] == 1 then
      GUI_fill_slider(object_grid_coord_t, set_grid_slider, false)
   end      
-  
+  end
   ------ INFO ---------
   GUI_info(object_info_coord_t, string_info)          
 end  
@@ -1482,8 +1492,8 @@ end
 --------------------------------------------------------------------------------------------------------------- 
 
 function INFO()
-  if project_grid_measures ~= 0 then string_info = "Set line spacing (Snap/Grid settings) lower than 1"  end  
-  string_info = "Ok, let`s GET something you wanna quantize with this tool. Click on ''Get Objects''"  
+  if execute_mouse == 0 then string_info = "Set line spacing (Snap/Grid settings) lower than 1"  end  
+  if execute_mouse == 1 then string_info = "Ok, let`s GET something you wanna quantize with this tool. Click on ''Get Objects''" end 
   if is_button_get2_pressed == true and quantize_dest_objects_com ~= nil and quantize_dest_objects_com == 0 then
      string_info = "Don`t forget to select type of you object under ''Quantize''" end     
   if quantize_dest_objects_com ~= nil and quantize_dest_objects_com > 0 and table.sum(snap_direction_values) + table.sum(snap_behaviour_values) >= 2 then 
@@ -1508,7 +1518,7 @@ function run()
  if run_cond == 1 then 
    GUI_define() 
    GUI_draw()
-   if execute ==1 then MOUSE_get() end
+   if execute_mouse == 1 then MOUSE_get() end
    gfx.update()
    reaper.UpdateArrange()    
    reaper.defer(run)
@@ -1546,7 +1556,7 @@ end
    byp_toggle_step = 1
    bypass = false
    
-   execute =1   
+   execute_mouse =1   
    run_cond = 1   
     
 ---------------------------------------------------------------------------------------------------------------    
