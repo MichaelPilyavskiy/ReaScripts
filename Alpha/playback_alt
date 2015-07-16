@@ -1,5 +1,7 @@
 playstate = reaper.GetPlayState()
 play_pos = reaper.GetPlayPosition()
+pause_pos1 = reaper.GetCursorPositionEx(0)
+marker_name = "Start"
 valOut = reaper.GetExtState("playBack_state", "Pause")
 if valOut ~= nil then 
   pause_pos = tonumber(valOut)
@@ -9,6 +11,7 @@ end
 -- if stopped press play
 
 if playstate == 0 then  
+  reaper.AddProjectMarker(0, false, pause_pos1, pause_pos1, marker_name, 1)  
   reaper.Main_OnCommandEx(reaper.NamedCommandLookup("_BR_SAVE_CURSOR_POS_SLOT_1"), 0, 0) 
   reaper.OnPlayButton()
   reaper.DeleteExtState("playBack_state", "Pause", true)     
@@ -17,9 +20,8 @@ end
 -- if playing from start press pause
 
 if playstate == 1 and pause_pos == nil then
-    reaper.CSurf_OnPause()
-    play_pos2 = reaper.GetPlayPosition()    
-    reaper.SetExtState("playBack_state", "Pause", play_pos2, true)
+    reaper.CSurf_OnPause()       
+    reaper.SetExtState("playBack_state", "Pause", play_pos, true)
 end
 
 -- if playing from pause press stop
@@ -27,13 +29,25 @@ if playstate == 1 and pause_pos ~= nil and play_pos > pause_pos then
   reaper.CSurf_OnStop()  
   reaper.Main_OnCommandEx(reaper.NamedCommandLookup("_BR_RESTORE_CURSOR_POS_SLOT_1"), 0, 0)
   reaper.DeleteExtState("playBack", "State", true)
-    
+  pause_pos2 = reaper.GetCursorPositionEx(0)
+  
+  retval, num_markersOut, num_regionsOut = reaper.CountProjectMarkers(0)
+  if num_markersOut ~= nil then
+    for i = 1, num_markersOut, 1 do
+      retval, isrgnOut, posOut, rgnendOut, nameOut, markrgnindexnumberOut, colorOut = reaper.EnumProjectMarkers3(0, i-1)
+      if posOut == pause_pos2 and nameOut == marker_name then
+        reaper.DeleteProjectMarker(0, 1, false) 
+      end  
+    end
+  end
+  
+   
+  
 end
   
 -- if paused press play
-if playstate == 2 then  
-  pause_pos2 = reaper.GetCursorPositionEx(0)
-  reaper.SetExtState("playBack_state", "Pause", pause_pos2, true)
+if playstate == 2 then    
+  reaper.SetExtState("playBack_state", "Pause", pause_pos1, true)
   reaper.OnPlayButton()
 end  
   
