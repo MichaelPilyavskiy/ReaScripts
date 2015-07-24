@@ -1,6 +1,5 @@
 velocity = 127
 
-reaper.Main_OnCommand(reaper.NamedCommandLookup("_BR_SAVE_CURSOR_POS_SLOT_1"), 1)
 midieditor = reaper.MIDIEditor_GetActive()
 take = reaper.MIDIEditor_GetTake(midieditor)
 reaper.MIDIEditor_OnCommand(midieditor, 40001)
@@ -9,11 +8,12 @@ identifier, inlineEditorOut, noteRowOut, ccLaneOut, ccLaneValOut, ccLaneIdOut = 
 position_temp = reaper.BR_GetMouseCursorContext_Position()
 position = reaper.SnapToGrid(0, position_temp)
 retval, notecntOut, ccevtcntOut, textsyxevtcntOut = reaper.MIDI_CountEvts(take)
+
 for i = 1, notecntOut do
   retval, selectedOut, mutedOut, startppqposOut, endppqposOut, chanOut, pitchOut, velOut = reaper.MIDI_GetNote(take, i-1)
   note_position = reaper.MIDI_GetProjTimeFromPPQPos(take, startppqposOut)
-  if startppqposOut == position and pitchOut == noteRowOut then
-    reaper.MIDI_SetNote(take, i-1, selectedOut, mutedOut, startppqposOut, endppqposOut, chanOut, pitchOut, velocity, false) break
+  if note_position == position and pitchOut == noteRowOut then
+    reaper.MIDI_SetNote(take, i-1, selectedOut, mutedOut, startppqposOut, endppqposOut, chanOut, pitchOut, 127, false)     
   end
 end
-reaper.Main_OnCommand(reaper.NamedCommandLookup("_BR_RESTORE_CURSOR_POS_SLOT_1"), 1)
+reaper.MIDI_Sort(take) 
