@@ -1,4 +1,7 @@
-delta = -0.01 
+script_title = "Move item contents under stretch markers"
+delta = -0.01
+
+reaper.Undo_BeginBlock()
 
 item = reaper.GetSelectedMediaItem(0, 0)   
 if item ~= nil then
@@ -16,3 +19,4 @@ if item ~= nil then
   end 
   reaper.UpdateItemInProject(item)
 end  
+reaper.Undo_EndBlock(script_title, 0)
