@@ -1,3 +1,8 @@
+#script_title = "Delete_x_characters_from_selected_track_names";
+
+Undo_BeginBlock();
+
+
 function deletecharsfromname()
 (
 Undo_BeginBlock();
@@ -29,3 +34,5 @@ Undo_EndBlock("deletecharsfromname", 0);
 
 deletecharsfromname();
 UpdateArrange();
+
+Undo_EndBlock(#script_title, 0);
