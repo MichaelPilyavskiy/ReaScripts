@@ -1,16 +1,16 @@
 retval, duplicate_x_s = reaper.GetUserInputs("", 1, "How much times copy?", "")
-if retval ~= nil then
+if retval ~= nil and duplicate_x_s ~= "" then
  act_editor = reaper.MIDIEditor_GetActive()
  if act_editor ~= nil then
   take = reaper.MIDIEditor_GetTake(act_editor)
   if take ~= nil then
     item = reaper.GetMediaItemTake_Item(take)
+    item_pos = reaper.GetMediaItemInfo_Value(item, "D_POSITION")
     item_len = reaper.GetMediaItemInfo_Value(item, "D_LENGTH")
-    
     channel = reaper.MIDIEditor_GetSetting_int(act_editor, "default_note_chan")
     retval, notecnt, ccevtcnt, textsyxevtcnt = reaper.MIDI_CountEvts(take)
     if notecnt ~= nil then
-      startppqpos_min = reaper.MIDI_GetPPQPosFromProjTime(take, item_len)
+      startppqpos_min = reaper.MIDI_GetPPQPosFromProjTime(take, item_len+item_pos)
       endppqpos_max = 0
       for i = 1, notecnt do
         retval, selected, muted, startppqpos, endppqpos, chan, pitchOut, vel = reaper.MIDI_GetNote(take, i-1)
