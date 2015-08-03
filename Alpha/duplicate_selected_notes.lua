@@ -14,7 +14,6 @@ if act_editor ~= nil then
       endppqpos_max = 0
       for i = 1, notecnt do
         retval, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(take, i-1)
-        i_sel = 1
         if selected == true and chan == channel then          
           notes_2_copy_subt = {selected, muted, startppqpos, endppqpos, chan, pitch, vel}          
           table.insert(notes_2_copy_t, notes_2_copy_subt)          
