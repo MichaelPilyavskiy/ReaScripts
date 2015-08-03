@@ -1,3 +1,6 @@
+script_title = "Duplicate selected notes"
+reaper.Undo_BeginBlock()
+
 notes_2_copy_t = {}  
 notes_2_copy_subt = {}
 act_editor = reaper.MIDIEditor_GetActive()
@@ -42,7 +45,10 @@ if act_editor ~= nil then
     reaper.MIDI_Sort(take)    
   end  
 end
-
-reaper.UpdateItemInProject(item)
+if item ~= nil then
+  reaper.UpdateItemInProject(item)
+end  
 reaper.UpdateArrange()
+
+reaper.Undo_EndBlock(script_title, 0)
  
