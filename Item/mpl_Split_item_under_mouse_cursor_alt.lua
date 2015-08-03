@@ -1,4 +1,4 @@
--- if no items selected, nothing happend
+-- if no items are selected, nothing happend (Preferences/Editing behaviour)
 
 window, segment, details = reaper.BR_GetMouseCursorContext()
 if details == "item" then 
