@@ -1,3 +1,6 @@
+-- Adobe Audition behaviour playback: 
+-- play/pause/play from pause position/return to first position
+
 playstate = reaper.GetPlayState()
 play_pos = reaper.GetPlayPosition()
 pause_pos1 = reaper.GetCursorPositionEx(0)
