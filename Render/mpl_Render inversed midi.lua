@@ -1,3 +1,7 @@
+script_title = "Render inversed midi"
+
+reaper.PreventUIRefresh(1)
+reaper.Undo_BeginBlock()
 reaper.Main_OnCommand(40153, 0) -- open editor
 MIDI_editor = reaper.MIDIEditor_GetActive()
 reaper.MIDIEditor_OnCommand(MIDI_editor, 40003) -- sel all notes
@@ -29,3 +33,6 @@ if item2 ~= nil then
    end
 end
 reaper.SetMediaItemInfo_Value(item1, "B_UISEL", 0)
+reaper.Undo_EndBlock(script_title, 0)
+reaper.UpdateArrange()
+reaper.PreventUIRefresh(-1)
