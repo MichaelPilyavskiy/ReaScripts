@@ -1,6 +1,6 @@
-sel_track = reaper.GetSelectedTrack(0,0)
 plugname = "ReaVerb"
 
+sel_track = reaper.GetSelectedTrack(0,0)
 plugname_lc = string.lower(plugname)
 if sel_track ~= nil then
     count_sends = reaper.GetTrackNumSends(sel_track, 0)
