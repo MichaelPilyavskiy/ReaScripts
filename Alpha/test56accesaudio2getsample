@@ -1,0 +1,28 @@
+item = reaper.GetSelectedMediaItem(0, 0)
+take = reaper.GetActiveTake(item)
+source = reaper.GetMediaItemTake_Source(take)
+
+accessor = reaper.CreateTakeAudioAccessor(take)
+samplerate = reaper.GetMediaSourceSampleRate(source)
+channels = reaper.GetMediaSourceNumChannels(source)
+start_pos = 0
+samples = 44100
+buf_size = samples -- first 1 second
+buffer = reaper.new_array(buf_size*channels)
+
+reaper.GetAudioAccessorSamples(accessor, samplerate, channels, start_pos, samples, buffer)
+
+sample_max = 0
+for i = 1, buf_size do
+ sample = math.abs(buffer[i]) 
+ sample_max = math.max(sample, sample_max)
+ if sample_max ~= sample_max0 -- if max peak value is changed
+    then max_peak_sample = i/2 end
+ sample_max0 = sample_max
+end
+
+snap_offset_position = max_peak_sample / samplerate
+reaper.DestroyAudioAccessor(accessor)
+reaper.SetMediaItemInfo_Value(item, "D_SNAPOFFSET", snap_offset_position)
+reaper.UpdateArrange()
+
