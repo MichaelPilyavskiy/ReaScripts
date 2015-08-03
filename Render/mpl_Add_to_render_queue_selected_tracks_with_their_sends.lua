@@ -1,4 +1,4 @@
--- Don`t forget to check RENDER settings befor running script:
+-- Don`t forget to check RENDER settings before running script:
 
 -- 1. make sure that "silently increment filenames" is CHECKED
 -- 2. Save render settings ("Save changes and close").
