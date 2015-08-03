@@ -1,4 +1,4 @@
-#script_title = "Delete_x_characters_from_selected_track_names";
+#script_title = "Delete x characters from selected track names";
 
 Undo_BeginBlock();
 
