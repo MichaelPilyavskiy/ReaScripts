@@ -1,3 +1,7 @@
+script_title = "Randomize parameters of floating fx"
+
+reaper.Undo_BeginBlock()
+
 trackcount = reaper.CountTracks(0)
 if trackcount ~= nil then
   for i =1, trackcount do
@@ -57,3 +61,5 @@ if trackcount ~= nil then
     end  
   end
 end 
+
+reaper.Undo_EndBlock(script_title, 0)
