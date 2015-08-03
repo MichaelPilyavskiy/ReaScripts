@@ -1,6 +1,6 @@
-function starts_with(text,prefix)
-  return string.sub(text, 1, string.len(prefix)) == prefix
-end
+script_title = "Color pooled MIDI takes as selected reference"
+
+reaper.Undo_BeginBlock()
 
 ref_item = reaper.GetSelectedMediaItem(0,0)
 if ref_item ~= nil then
@@ -36,3 +36,5 @@ function main() local i, j, itemcount, item, takecount, take, src
 end 
 
 main()
+
+reaper.Undo_EndBlock(script_title, 0)
