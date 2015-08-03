@@ -12,7 +12,6 @@ if sel_track ~= nil then
           retval, fx_name = reaper.TrackFX_GetFXName(send_track, j-1, "")
           fx_name_lc = string.lower(fx_name)
           if string.find(fx_name_lc, plugname_lc) ~= nil then
-            --reaper.TrackFX_GetOpen(send_track, j-1)
             reaper.TrackFX_Show(send_track, j-1, 3)
           end
         end  
