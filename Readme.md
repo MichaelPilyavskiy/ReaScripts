@@ -9,7 +9,7 @@ This repo is for developement.
 
 Anyway, if you still wanna download scripts on this repo:
 - For one script: click on one script, then click on the Raw button, then File > Save (via Menu, Right Click or CTRL/CMD +S).
-- For the whole archive: click on Download Zip button on right side
+- For the whole archive: click on [Download Zip](https://github.com/MichaelPilyavskiy/ReaScripts/archive/master.zip) button on right side
 
 ##Helpers
 - [X-Raym](http://forum.cockos.com/member.php?u=58284)
