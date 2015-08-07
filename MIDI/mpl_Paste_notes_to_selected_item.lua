@@ -1,4 +1,4 @@
-script_title = "Paste notes from selected item"
+script_title = "Paste notes to selected item"
 reaper.Undo_BeginBlock()
 
 count = reaper.GetExtState("Buffer", "count")   
