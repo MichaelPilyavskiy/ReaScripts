@@ -78,6 +78,8 @@ function set_param(mult0, offset0)
       string_find(par_name, "decay") == false and
       string_find(par_name, "sustain") == false and
       string_find(par_name, "release") == false and
+      string_find(par_name, "bypass") == false and
+      string_find(par_name, "dest") == false and
       string_find(par_name, "active") == false 
       
       then
