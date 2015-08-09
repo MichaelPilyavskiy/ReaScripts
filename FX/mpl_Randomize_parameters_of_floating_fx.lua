@@ -73,7 +73,7 @@ function set_param(mult0, offset0)
       string_find(par_name, "power") == false and
       string_find(par_name, "solo") == false and
       string_find(par_name, "mute") == false and
-      string_find(par_name, "feedback") == false and
+      string_find(par_name, "feed") == false and
       string_find(par_name, "attack") == false and
       string_find(par_name, "decay") == false and
       string_find(par_name, "sustain") == false and
@@ -82,7 +82,14 @@ function set_param(mult0, offset0)
       string_find(par_name, "dest") == false and
       string_find(par_name, "mix") == false and
       string_find(par_name, "out") == false and
+      string_find(par_name, "make") == false and
+      string_find(par_name, "auto") == false and
+      string_find(par_name, "level") == false and
+      string_find(par_name, "peak") == false and
+      string_find(par_name, "limit") == false and
+      string_find(par_name, "velocity") == false and
       string_find(par_name, "active") == false 
+      
       
       then
       value_out = value + math.random(0,1)* mult0 + offset0
