@@ -1,6 +1,5 @@
 script_title = "Randomize parameters of floating fx"
 
-
 function string_find(name, name_cust)
   name_lc = string.lower(name)
   name_cust_lc = string.lower(name_cust)
@@ -55,7 +54,7 @@ end
 --------------------------------------------
 --------------------------------------------
 
-function set_param()
+function set_param(mult0, offset0)
  if par_t ~= nil then
   for i = 1, #par_t do
     temp_t = par_t[i]
@@ -82,7 +81,7 @@ function set_param()
       string_find(par_name, "active") == false 
       
       then
-      value_out = value*mult + offset      
+      value_out = value*mult0 + offset0      
       reaper.TrackFX_SetParam(track, fx_id-1, par_id-1, value_out) --math.random(0,1))
     end
   end
@@ -133,6 +132,7 @@ main_h = 90
 rect1 = {30, 10, 230, 30}
 rect2 = {30, 50, 230, 30}
 rect3 = {280, 10, 150, 30}
+rect4 = {280, 50, 150, 30}
 gfx.init("mpl Randomize Parameters", main_w, main_h) 
 
 --------------------------------------------
@@ -144,24 +144,32 @@ function run()
   LB_DOWN = gfx.mouse_cap&1 
   
   offset, offset_b = get_mouse(rect1, offset)  
-  if offset_b == true then set_param() end
+  if offset_b == true then set_param(mult, offset) end
   
   mult, mult_b = get_mouse(rect2, mult)
-  if mult_b == true then set_param() end
+  if mult_b == true then set_param(mult, offset) end
    
   isset_val, isset = get_mouse(rect3)
   if isset == true then  Store_params()  end
   
+  isrest_val, isrest = get_mouse(rect4)
+  if isrest == true then  set_param(1, 0)  end
   
+  --- buttons ---
   
   if offset == nil then offset = 0 end
   str_draw("Offset "..offset,rect1)  
+  
   if mult == nil then  mult = 0 end 
   str_draw("Multiply "..mult,rect2)
   
   if par_t == nil then par_table_size = 0 else par_table_size = #par_t end
   str_draw("Get parameters ("..par_table_size..")",rect3)
-    
+  
+  str_draw("Restore",rect4) 
+   
+  ----------------
+   
   gfx.update()
   if gfx.getchar() ~= -1 then reaper.defer(run) else gfx.quit() end
 end
