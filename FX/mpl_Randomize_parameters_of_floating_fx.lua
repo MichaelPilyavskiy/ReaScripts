@@ -58,8 +58,8 @@ function set_param(mult0, offset0)
  if par_t ~= nil then
   for i = 1, #par_t do
     temp_t = par_t[i]
-    fx_id, par_id, value, minvalOut, maxvalOut, par_name = temp_t[2], temp_t[3], temp_t[4],temp_t[5], temp_t[6], temp_t[7]
-    track = reaper.GetTrack(0, temp_t[1]-1)
+    track_id, fx_id, par_id, value, minvalOut, maxvalOut, par_name = temp_t[1], temp_t[2], temp_t[3], temp_t[4],temp_t[5], temp_t[6], temp_t[7]
+    track = reaper.GetTrack(0, track_id-1)
     if track ~= nil and fx_id~= nil and par_id~= nil and
       string_find(par_name, "gain") == false and
       string_find(par_name, "vol") == false and
@@ -80,11 +80,15 @@ function set_param(mult0, offset0)
       string_find(par_name, "release") == false and
       string_find(par_name, "bypass") == false and
       string_find(par_name, "dest") == false and
+      string_find(par_name, "mix") == false and
+      string_find(par_name, "out") == false and
       string_find(par_name, "active") == false 
       
       then
-      value_out = value*mult0 + offset0      
-      reaper.TrackFX_SetParam(track, fx_id-1, par_id-1, value_out) --math.random(0,1))
+      value_out = value + math.random(0,1)* mult0 + offset0
+      if value_out >= limit_min and value_out <= limit_max then
+        reaper.TrackFX_SetParam(track, fx_id-1, par_id-1, value_out) 
+      end  
     end
   end
  end
@@ -129,12 +133,16 @@ end
 
 offset = 0
 mult = 0
+limit_min = 0
+limit_max = 1
 main_w = 450
-main_h = 90
+main_h = 170
 rect1 = {30, 10, 230, 30}
 rect2 = {30, 50, 230, 30}
 rect3 = {280, 10, 150, 30}
 rect4 = {280, 50, 150, 30}
+rect5 = {30, 90, 230, 30}
+rect6 = {30, 130, 230, 30}
 gfx.init("mpl Randomize Parameters", main_w, main_h) 
 
 --------------------------------------------
@@ -149,7 +157,9 @@ function run()
   if offset_b == true then set_param(mult, offset) end
   
   mult, mult_b = get_mouse(rect2, mult)
-  if mult_b == true then set_param(mult, offset) end
+  mult_log = math.abs(1/(100*math.log(mult)))
+  if  mult_log > 1 then  mult_log =1 end
+  if mult_b == true then set_param( mult_log, offset) end
    
   isset_val, isset = get_mouse(rect3)
   if isset == true then  Store_params()  end
@@ -163,13 +173,18 @@ function run()
   str_draw("Offset "..offset,rect1)  
   
   if mult == nil then  mult = 0 end 
-  str_draw("Multiply "..mult,rect2)
+  str_draw("Multiply ".. mult_log,rect2)
   
   if par_t == nil then par_table_size = 0 else par_table_size = #par_t end
   str_draw("Get parameters ("..par_table_size..")",rect3)
   
   str_draw("Restore",rect4) 
-   
+  
+  str_draw("Limit min "..limit_min,rect5) 
+  limit_min = get_mouse(rect5, limit_min) 
+  
+  str_draw("Limit max "..limit_max,rect6) 
+  limit_max = get_mouse(rect6, limit_max) 
   ----------------
    
   gfx.update()
