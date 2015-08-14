@@ -1,6 +1,6 @@
 #Michael Pilyavskiy's ReaScripts
 
-##Scripts for [Cockos REAPER](http://reaper.fm)
+##Scripts for [Cockos REAPER](http://reaper.fm), don`t forget to install last release of REAPER and SWS (or sometimes last beta of them):
 - Scripts written by Michael Pilyavskiy
 - Scripts modded by Michael Pilyavskiy
 
