@@ -4,7 +4,7 @@
 ##Don`t forget to install last release of REAPER and SWS (or sometimes last beta of them).
 
 If you wanna download scripts on this repo:
-- For one script: click on one script, then click on the Raw button, then File > Save (via Menu, Right Click or CTRL/CMD +S)>delete .txt extension
+- For one script: click on one script, then click on the Raw button, then File > Save (via Menu, Right Click or CTRL/CMD +S) > delete ".txt" extension
 - For the whole archive: click on [Download Zip](https://github.com/MichaelPilyavskiy/ReaScripts/archive/master.zip) button on right side
 
 ##Helpers
@@ -14,5 +14,11 @@ If you wanna download scripts on this repo:
 - [heda](http://forum.cockos.com/member.php?u=47822)
 - [Xenakios](http://forum.cockos.com/member.php?u=3602)
 
-If you found bugs or you have some script request, you can post it in [Issues](https://github.com/MichaelPilyavskiy/ReaScripts/issues).
+If you found bugs or you have some script request, you can post it in [Issues](https://github.com/MichaelPilyavskiy/ReaScripts/issues) or write me directly:
+- https://vk.com/michael_pilyavskiy
+- https://soundcloud.com/mp57
 
+Donations:
+QIWI +79102035901
+Yandex Money 410013415541705
+Sberbank (Maestro) 67628047 9001483373
