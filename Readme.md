@@ -1,7 +1,7 @@
 #Michael Pilyavskiy's ReaScripts
 
-##Scripts for [Cockos REAPER](http://reaper.fm) 
-#Don`t forget to install last release of REAPER and SWS (or sometimes last beta of them).
+#Scripts for [Cockos REAPER](http://reaper.fm) 
+##Don`t forget to install last release of REAPER and SWS (or sometimes last beta of them).
 
 This repo is for developement. 
 "Alpha" folder is scripts, which may not working or working bad.
