@@ -36,11 +36,7 @@
     newchunk = string.gsub(track_state_chunk, "MIDIOUT", temp_string.."MIDIOUT")  
     reaper.SetTrackStateChunk(dest_track, newchunk)
   end  
-  
---[[  
-reaper.ShowConsoleMsg("")
-reaper.ShowConsoleMsg(newchunk)
-]]
+ 
 
 reaper.UpdateArrange()
 reaper.Undo_EndBlock(script_title, 0)
