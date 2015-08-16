@@ -14,7 +14,7 @@ if segment == "track" then
          reaper.TrackFX_Show(track, vsti_id, 2)
       end
      else
-      reaper.Main_OnCommandEx(40271, 0, 0)
+      reaper.Main_OnCommandEx(40271, 0, 0) -- show fx browser
     end   
   end
 end
