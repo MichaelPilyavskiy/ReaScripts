@@ -1,4 +1,4 @@
-// mpl_show_vsti_on_track_under_mouse_cursor
+// Float VSTi under mouse cursor, show add fx if not exists
 function main() local(tr, vsti_id)
 ( 
   extension_api("BR_GetMouseCursorContext", #window, #segment, #details, 50);
