@@ -1,7 +1,8 @@
--- Don`t forget to check RENDER settings before running script:
-
 -- 1. make sure that "silently increment filenames" is CHECKED
--- 2. Save render settings ("Save changes and close").
+-- 2. Render settings: 
+--    Render Master mix
+--    wildcards - $project (to prevent overwriting)
+--    Save render settings ("Save changes and close").
 -- 3. Run script.
 -- 4. Check your render queue.
 
