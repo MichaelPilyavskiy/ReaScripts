@@ -26,7 +26,7 @@
          
          
     .."Changelog:".."\n"
-    .."  17.08.2015 - 0.5 a lot of structure, GUI and logic improvements, updates and new features ".."\n" 
+    .."  17.08.2015 - 0.5 a lot of structure, GUI and logic improvements".."\n" 
     .."  15.07.2015 - 0.152 info message when snap > 1 to prevent reaper crash".."\n" 
     .."            ESC to close".."\n"   
     .."  13.07.2015 - 0.141 stretch markers quantize when takerate not equal 1".."\n" 
