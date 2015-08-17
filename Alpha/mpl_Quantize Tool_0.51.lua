@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.5e (beta)"
+ vrs = "0.51 (beta)"
 
  -- to do:
  -- lmb click on grid add groove point
@@ -26,7 +26,7 @@
          
          
     .."Changelog:".."\n"
-    .."  17.08.2015 - 0.5e a lot of structure, GUI and logic improvements".."\n" 
+    .."  17.08.2015 - 0.51 a lot of structure, GUI and logic improvements".."\n" 
     .."  15.07.2015 - 0.152 info message when snap > 1 to prevent reaper crash".."\n" 
     .."            ESC to close".."\n"   
     .."  13.07.2015 - 0.141 stretch markers quantize when takerate not equal 1".."\n" 
