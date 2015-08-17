@@ -1,4 +1,6 @@
-  retval, track, item, fxnum = reaper.GetFocusedFX()
+ -- this script is ONLY for use with mpl_AB_floating_fx.lua --
+ 
+ retval, track, item, fxnum = reaper.GetFocusedFX()
   track = reaper.GetTrack(0, track-1)
   if retval == 1 then -- if track fx
   
