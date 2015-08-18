@@ -1,12 +1,14 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.541 (beta)"
+ vrs = "0.542 (beta)"
 
- -- to do list:
+ --------------------
+ ---- To Do list ----
+ --------------------
  
  -- ENGINE3_quantize_objects() stretch markers
  -- generate pattern engine
- -- bar / beat grid on gui display
  
+ -- bar / beat grid on gui display 
  -- lmb click on grid add groove point
  -- rmb click on grid delete groove point
  -- quantize/get groove tempo envelope
@@ -20,8 +22,22 @@
  -- add pattern edges
  -- about button
  -- getset ref pitch/pan from itemtakes notes and env points
+ -- popup start/end time in display
+ 
+ 
+ 
+ --------------------
+ ------- Bugs -------
+ --------------------
  
  -- stretch markers bug: http://forum.cockos.com/project.php?issueid=5647
+ -- stretch markers quantize DOES NOT work when Item Loop Source is ON
+ 
+ 
+ 
+ --------------------
+ ------- About ------
+ -------------------- 
  
  about = "Quantize tool by Michael Pilyavskiy ".."\n"..
          "Version "..vrs.."\n"..
@@ -34,7 +50,7 @@
          
          
     .."Changelog:".."\n"
-    .."  17.08.2015 - 0.541 gravity improvements, main quantize engine updates".."\n" 
+    .."  17.08.2015 - 0.542 gravity improvements, main quantize engine updates".."\n" 
     .."  17.08.2015 - 0.5 a lot of structure, GUI and logic improvements".."\n" 
     .."  15.07.2015 - 0.152 info message when snap > 1 to prevent reaper crash".."\n" 
     .."            ESC to close".."\n"   
@@ -62,9 +78,13 @@
     .."  27.06.2015 - 0.03 font, back, menus".."\n"
     .."  25.06.2015 - 0.02 gui, snap direction, swing gui fill gradient, swing engine".."\n"
     .."  23.06.2015 - 0.01 idea".."\n"
- 
- --------------------------------------------------------------------------------------------------------------- 
- 
+
+
+
+ --------------------
+ ------- Code -------
+ --------------------
+   
  function test_var(test, test2)  
    if test ~= nil then  reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(test) end
    if test2 ~= nil then reaper.ShowConsoleMsg("\n") reaper.ShowConsoleMsg(test2) end
@@ -868,7 +888,7 @@ end
      -- sm --
      if quantize_ref_values_t[2] == 1 then     
        for i = 1, #ref_sm_pos_t do
-         table_temp_val = {ref_sm_pos_t[i],1}
+         table_temp_val = {ref_sm_pos_t[i],nil}
          table.insert (ref_points_t, i, table_temp_val)
        end
      end
@@ -892,7 +912,7 @@ end
      -- grid --
      if quantize_ref_values_t[5] == 1 then     
        for i = 1, #ref_grid_t do
-         table_temp_val = {ref_grid_t[i] , 1}
+         table_temp_val = {ref_grid_t[i] , nil}
          table.insert (ref_points_t, i, table_temp_val)
        end
      end
@@ -900,7 +920,7 @@ end
      -- swing --
      if quantize_ref_values_t[6] == 1 then     
        for i = 1, #ref_swing_grid_t do
-         table_temp_val = {ref_swing_grid_t[i], 1}
+         table_temp_val = {ref_swing_grid_t[i], nil}
          table.insert (ref_points_t, i, table_temp_val)
        end
      end
@@ -1240,8 +1260,7 @@ end
       
  ---------------------------------------------------------------------------------------------------------------       
  
-  function ENGINE3_quantize_compare(pos,vol)
-    if vol == nil then vol = 1 end
+  function ENGINE3_quantize_compare(pos,vol)    
     newval = nil
     if snap_area_values_t[1] == 1 then -- if use gravity      
       pos_gravity_min = pos - gravity_mult_value*gravity_value if pos_gravity_min < 0 then pos_gravity_min = 0 end
@@ -1267,18 +1286,16 @@ end
     if newval ~= nil then 
       pos_ret = newval[1] 
       pos_ret = pos - (pos - newval[1]) * strenght_value
+      if newval[2] ~= nil then 
+        vol_ret = newval[2] 
+        vol_ret = vol - (vol - newval[2]) * use_vel_value
+       else
+        vol_ret = vol
+      end  
      else 
-      pos_ret = pos 
-    end
-        
-    if newval ~= nil then 
-      vol_ret = newval[2] 
-      vol_ret = vol - (vol - newval[2]) * use_vel_value
-     else 
+      pos_ret = pos
       vol_ret = vol  
     end
-    
-    
     return pos_ret, vol_ret
   end
      
@@ -1758,100 +1775,6 @@ end
  
  
  --[[ 
-
-
---------------------------------------------------------------------------------------------------------------- 
-
-function oldGUI_GRID_draw()
-  --grid_time, grid_beats, is_grid_triplet, grid_string, divider_r = GET_grid()   
-  retval, measures, cml, fullbeats, cdenom = reaper.TimeMap2_timeToBeats(0, max_position)
-  
-  x1 = object_rect_coord_t[1]
-  y1 = object_rect_coord_t[2]+(object_rect_coord_t[4]/2) 
-  x2 = object_rect_coord_t[3]+5
-  gfx.r, gfx.g, gfx.b,gfx.a = 1,1,1,0.2
-  gfx.line(x1, y1, x2, y1, 0.9)
-  
-  gfx.x = x1
-  gfx.y = y1 
-   
-  if snap_mode_values[1]==1 then     
-    for i = 0, object_rect_coord_t[3], object_rect_coord_t[3]/lastbar1 do   
-    dy = 25
-    gfx.r, gfx.g, gfx.b,gfx.a = 1,1,1,0.7
-    gfx.line(i+object_rect_coord_t[1], y1, i+object_rect_coord_t[1], y1 - dy, 0.9)
-    gfx.line(i+object_rect_coord_t[1], y1, i+object_rect_coord_t[1], y1 + dy, 0.9)
-    end      
-  end 
-  
-  if snap_mode_values[2]==1 then     
-    for i = 0, object_rect_coord_t[3], object_rect_coord_t[3]/pattern_bars do   
-      dy = 25
-      gfx.r, gfx.g, gfx.b,gfx.a = 1,1,1,0.7
-      gfx.line(i+object_rect_coord_t[1], y1, i+object_rect_coord_t[1], y1 - dy, 0.9)
-      gfx.line(i+object_rect_coord_t[1], y1, i+object_rect_coord_t[1], y1 + dy, 0.9)
-    end  
-    i2 = 0
-    for i = 0, object_rect_coord_t[3], object_rect_coord_t[3]/divider_r do   
-      dy1 = 7
-      dy2 = 13
-      dy3 = 15
-      dy4 = 17
-      dy5 = 25
-      if is_grid_triplet == false then
-        dy = dy1
-        if i2 % 2 == 0 then dy = dy2 end 
-        if i2 % 4 == 0 then dy = dy3 end
-        if i2 % 8 == 0 then dy = dy4 end
-        if i2 % 16 == 0 then dy = dy5 end  
-       else
-        dy = dy1
-        if i2 % 3 == 0 then dy = dy2 end 
-        if i2 % 6 == 0 then dy = dy3 end
-        if i2 % 12 == 0 then dy = dy4 end
-        if i2 % 24 == 0 then dy = dy5 end   
-      end   
-      i2 = i2 + 1
-      gfx.r, gfx.g, gfx.b,gfx.a = 1,1,1,0.5
-      x1 = i+object_rect_coord_t[1]
-      gfx.line(x1, y1, x1, y1 - dy, 0.9)
-      gfx.line(x1, y1, x1, y1 + dy, 0.9)
-      
-    end        
-  end 
-  
-  --if snap_mode_values[2]==1 then delta = object_rect_coord_t[3]/4*pattern_bars gui_loop_count = pattern_bars end -- pattern  
- --[[ for i = 0, object_rect_coord_t[3], grid_time/object_rect_coord_t[3] do   
-   dy1 = 7
-  dy2 = 13
-  dy3 = 15
-  dy4 = 17
-  dy5 = 25
-  if is_grid_triplet == false then
-  dy = dy1
-  if i % 2 == 0 then dy = dy2 end 
-  if i % 4 == 0 then dy = dy3 end
-  if i % 8 == 0 then dy = dy4 end
-  if i % 16 == 0 then dy = dy5 end  
-  else
-  dy = dy1
-  if i % 3 == 0 then dy = dy2 end 
-  if i % 6 == 0 then dy = dy3 end
-  if i % 12 == 0 then dy = dy4 end
-  if i % 24 == 0 then dy = dy5 end   
-  end    
-  dy = 12
-  gfx.r, gfx.g, gfx.b,gfx.a = 1,1,1,0.5
-  gfx.line(x1, y1, x1, y1 - dy, 0.9)
-  gfx.line(x1, y1, x1, y1 + dy, 0.9)
-  x1 = x1 + delta
-  if x1 >=  object_rect_coord_t[3] then break end  
-  end 
-   
-end
- 
---------------------------------------------------------------------------------------------------------------- 
-
 function oldGUI_fill_slider(object_coord_t, var, center, a2)
   a1 = 0.2
   if a2 == nil then a2 = 0.3  end
@@ -1919,17 +1842,7 @@ function oldMOUSE_toggleclick_under_gui_rect (object_coord_t, offset, time)
   end  
 end 
 
----------------------------------------------------------------------------------------------------------------
-function oldINFO()
-  if execute_mouse == 0 then string_info = "Set line spacing (Snap/Grid settings) lower than 1"  end  
-  if execute_mouse == 1 then string_info = "Ok, let`s GET something you wanna quantize with this tool. Click on ''Quantize objects''" end 
-  if is_button_get2_pressed == true and quantize_dest_objects_com ~= nil and quantize_dest_objects_com == 0 then
-     string_info = "Don`t forget to select type of you object under ''Quantize''" end     
-  if quantize_dest_objects_com ~= nil and quantize_dest_objects_com > 0 and table.sum(snap_direction_values) + table.sum(snap_behaviour_values) >= 2 then 
-     string_info = "Get reference from selected objects OR move ''swing grid'' / ''project grid'' sliders" end
-  if quantize_dest_values[2] == 1 and is_loop_source == 1 then
-     string_info = "Stretch markers quantize DOES NOT work when Item Loop Source is ON" end
-end
+
 
 --reaper.APITest()
 --reaper.ShowConsoleMsg("")
