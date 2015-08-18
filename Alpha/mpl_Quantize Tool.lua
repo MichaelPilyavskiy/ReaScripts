@@ -1,7 +1,12 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.54 (beta)"
+ vrs = "0.541 (beta)"
 
  -- to do list:
+ 
+ -- ENGINE3_quantize_objects() stretch markers
+ -- generate pattern engine
+ -- bar / beat grid on gui display
+ 
  -- lmb click on grid add groove point
  -- rmb click on grid delete groove point
  -- quantize/get groove tempo envelope
@@ -29,7 +34,7 @@
          
          
     .."Changelog:".."\n"
-    .."  17.08.2015 - 0.54 gravity improvements, main quantize engine updates".."\n" 
+    .."  17.08.2015 - 0.541 gravity improvements, main quantize engine updates".."\n" 
     .."  17.08.2015 - 0.5 a lot of structure, GUI and logic improvements".."\n" 
     .."  15.07.2015 - 0.152 info message when snap > 1 to prevent reaper crash".."\n" 
     .."            ESC to close".."\n"   
@@ -1410,7 +1415,12 @@ end
           end  
         end
       end
-      
+      -- sort notes
+      for i = 1, #dest_notes_t do
+        dest_notes_subt = dest_notes_t[i]
+        take = reaper.GetMediaItemTakeByGUID(0,dest_notes_subt[1])
+        if take ~= nil then reaper.MIDI_Sort(take) end
+      end      
        
     end     
        
