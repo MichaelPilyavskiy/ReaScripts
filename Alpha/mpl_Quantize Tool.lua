@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.53 (beta)"
+ vrs = "0.54 (beta)"
 
  -- to do list:
  -- lmb click on grid add groove point
@@ -29,8 +29,8 @@
          
          
     .."Changelog:".."\n"
-    .."  17.08.2015 - 0.53 gravity improvements, main quantize engine updates".."\n" 
-    .."  17.08.2015 - 0.5 a lot of structure, GUI and logic improvements, updates and new features ".."\n" 
+    .."  17.08.2015 - 0.54 gravity improvements, main quantize engine updates".."\n" 
+    .."  17.08.2015 - 0.5 a lot of structure, GUI and logic improvements".."\n" 
     .."  15.07.2015 - 0.152 info message when snap > 1 to prevent reaper crash".."\n" 
     .."            ESC to close".."\n"   
     .."  13.07.2015 - 0.141 stretch markers quantize when takerate not equal 1".."\n" 
@@ -79,6 +79,7 @@
      
    snap_mode_values_t = {1,0} 
    use_vel_values_t = {1,0} 
+   sel_notes_mode_values_t = {1,0}
    
    snap_area_values_t = {0,1}
    snap_dir_values_t = {0,1,0}
@@ -124,6 +125,7 @@
    -- default states for menus --
    snap_mode_menu_names_t = {"Snap reference mode:", "Global (timeline)","Local (pattern)"}
    use_vel_menu_names_t = {"Ref. velocity:", "<   Use velocity / gain / point value ("..(math.ceil(math.round(use_vel_value*100,1))).."%)   >", "Don`t use"}
+   sel_notes_mode_menu_names_t = {"Ref. notes:", "Get selected only","Get all notes in selected item"}
    
    snap_area_menu_names_t = {"Snap area:","< Use gravity ("..(math.round(gravity_value*gravity_mult_value,2)).." sec) >","Snap everything"}
    snap_dir_menu_names_t =  {"Snap direction:","To previous point","To closest point","To next point"} 
@@ -142,12 +144,12 @@
    quantize_ref_menu_swing_name = "swing grid "..math.ceil(swing_value*100).."%"
    
    if snap_mode_values_t[2] == 1 then        
-     quantize_ref_menu_names_t = {"Get snap reference:", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
+     quantize_ref_menu_names_t = {"Reference (groove points):", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
                                 quantize_ref_menu_ep_name, quantize_ref_menu_notes_name,
                                 quantize_ref_menu_grid_name,
                                 quantize_ref_menu_swing_name}
     else
-     quantize_ref_menu_names_t = {"Get snap reference:", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
+     quantize_ref_menu_names_t = {"Reference (groove points):", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
                                 quantize_ref_menu_ep_name, quantize_ref_menu_notes_name}
    end
    -----------------------                             
@@ -158,7 +160,7 @@
    quantize_dest_menu_ep_name = "Envelope points ("..count_dest_ep_positions..")" 
    quantize_dest_menu_notes_name = "Notes ("..count_dest_notes_positions..")" 
    
-   quantize_dest_menu_names_t = {"Quantize objects:",quantize_dest_menu_item_name, quantize_dest_menu_sm_name,
+   quantize_dest_menu_names_t = {"Objects to quantize:",quantize_dest_menu_item_name, quantize_dest_menu_sm_name,
                                 quantize_dest_menu_ep_name, quantize_dest_menu_notes_name} 
    
    if quantize_ref_values_t[5] == 1 or quantize_ref_values_t[6] == 1 then
@@ -207,6 +209,7 @@
   -- menus -- 
   snap_mode_menu_xywh_t = {x_offset, y_offset, width1, heigth2}
   use_vel_menu_xywh_t = {x_offset, y_offset+20, width1, heigth2}
+  sel_notes_mode_menu_xywh_t = {x_offset, y_offset+40, width1, heigth2}
   
   snap_area_menu_xywh_t = {x_offset, 150, width1, heigth2}
   snap_dir_menu_xywh_t = {x_offset, snap_area_menu_xywh_t[2]+snap_area_menu_xywh_t[4]+beetween_menus2, width1, heigth2}  
@@ -587,15 +590,15 @@ end
          gfx.blurto(gui_offset*2+width1,main_h)
        end
        -- background + --
-       gfx.r, gfx.g, gfx.b, gfx.a = 0, 0, 0, 0.5
+       gfx.r, gfx.g, gfx.b, gfx.a = 0, 0, 0, 0.8
        gfx.rect(0,0,gui_offset*2+width1,main_h)            
        
        -- areas background --
        
-       gfx.r, gfx.g, gfx.b, gfx.a = 1,1, 1, 0.1
+       gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, 0.1
        gfx.rect(ref_options_area_xywh_t[1],ref_options_area_xywh_t[2],ref_options_area_xywh_t[3],ref_options_area_xywh_t[4])
        
-       gfx.r, gfx.g, gfx.b, gfx.a = 1,1, 1, 0.1
+       gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, 0.1
        gfx.rect(quantize_options_area_xywh_t[1],quantize_options_area_xywh_t[2],quantize_options_area_xywh_t[3],quantize_options_area_xywh_t[4])
        
       -- ref setup area --
@@ -603,6 +606,7 @@ end
         use_vel_xywh_buttons_t =        GUI_menu (use_vel_menu_xywh_t, use_vel_menu_names_t, use_vel_values_t, false,false,itemcolor2_t,0)
           use_vel_slider_xywh_t = {use_vel_xywh_buttons_t[1], use_vel_xywh_buttons_t[2], use_vel_xywh_buttons_t[3], use_vel_xywh_buttons_t[4]}
           GUI_slider_gradient(use_vel_slider_xywh_t, "", use_vel_value, "normal")
+        sel_notes_mode_xywh_buttons_t =      GUI_menu (sel_notes_mode_menu_xywh_t, sel_notes_mode_menu_names_t, sel_notes_mode_values_t, false,false,itemcolor2_t,0)
         
       -- quantize setup area -- 
         snap_area_xywh_buttons_t =      GUI_menu (snap_area_menu_xywh_t, snap_area_menu_names_t, snap_area_values_t, false,false,itemcolor2_t,0)
@@ -798,8 +802,16 @@ end
                if notecntOut ~= nil then
                  for j = 1, notecntOut, 1 do                 
                    retval, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(ref_take, j-1)
-                   ref_note_pos = reaper.MIDI_GetProjTimeFromPPQPos(ref_take, startppqpos)                   
-                   table.insert(ref_notes_t, {ref_note_pos, vel/127})
+                   if sel_notes_mode_values_t[1] == 1 then -- if selected only
+                     if selectedOut == true then
+                       ref_note_pos = reaper.MIDI_GetProjTimeFromPPQPos(ref_take, startppqpos)                   
+                       table.insert(ref_notes_t, {ref_note_pos, vel/127})
+                     end  
+                   end  
+                   if sel_notes_mode_values_t[2] == 1 then -- if all in item
+                     ref_note_pos = reaper.MIDI_GetProjTimeFromPPQPos(ref_take, startppqpos)                   
+                     table.insert(ref_notes_t, {ref_note_pos, vel/127})
+                   end  
                  end -- count notes                   
                end -- notecntOut > 0
              end -- TakeIsMIDI
@@ -1087,9 +1099,18 @@ end
               if notecntOut ~= nil then
                 for j = 1, notecntOut, 1 do                 
                   retval, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(take, j-1) 
-                  dest_note_pos = reaper.MIDI_GetProjTimeFromPPQPos(take, startppqpos)                                 
-                  dest_notes_subt = {take_guid, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel, dest_note_pos}                   
-                  table.insert(dest_notes_t, dest_notes_subt) 
+                  if sel_notes_mode_values_t[1] == 1 then -- if use selected only
+                    if selectedOut == true then
+                      dest_note_pos = reaper.MIDI_GetProjTimeFromPPQPos(take, startppqpos)                                 
+                      dest_notes_subt = {take_guid, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel, dest_note_pos, j}                   
+                      table.insert(dest_notes_t, dest_notes_subt) 
+                    end  
+                  end  
+                  if sel_notes_mode_values_t[2] == 1 then -- if use all in item
+                    dest_note_pos = reaper.MIDI_GetProjTimeFromPPQPos(take, startppqpos)                                 
+                    dest_notes_subt = {take_guid, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel, dest_note_pos, j}                   
+                    table.insert(dest_notes_t, dest_notes_subt)   
+                  end
                 end -- count notes                   
               end -- notecntOut > 0
             end -- TakeIsMIDI
@@ -1259,7 +1280,7 @@ end
  ---------------------------------------------------------------------------------------------------------------
   
   function ENGINE3_quantize_objects()    
-    --------------------
+    -------------------------------------------------------------------------------------
     --  items --
     --------------------
     if quantize_dest_values_t[1] == 1 then 
@@ -1291,7 +1312,7 @@ end
     end -- if quantize items  
     
     
-    ------------
+    -----------------------------------------------------------------------------
     -- points --
     ------------
     if quantize_dest_values_t[3] == 1 then 
@@ -1311,10 +1332,18 @@ end
             dest_ep_subt[7], dest_ep_subt[8], dest_ep_subt[9], true)   
           end         
         end
-      end  
-      reaper.Envelope_SortPoints (TrackEnvelope)
+        -- sort envelopes
+        for i = 1, #dest_ep_t do
+          dest_ep_subt = dest_ep_t[i]
+          if dest_ep_subt[1] == true then track = reaper.BR_GetMediaTrackByGUID(0, dest_ep_subt[2])
+            if track ~= nil then TrackEnvelope = reaper.GetTrackEnvelope(track, dest_ep_subt[3]-1) reaper.Envelope_SortPoints (TrackEnvelope) end end
+          if dest_ep_subt[1] == false then -- if point of take envelope
+            take = reaper.SNM_GetMediaItemTakeByGUID(0, dest_ep_subt[2])
+            if take ~= nil then TrackEnvelope = reaper.GetTakeEnvelope(take, dest_ep_subt[3]-1) reaper.Envelope_SortPoints(TrackEnvelope) end end          
+        end  
+      end   
       -- quantize envpoints pos and values --
-      if dest_ep_t ~= nil then
+      if dest_ep_t ~= nil and restore_button_state == false then
         for i = 1, #dest_ep_t do
           dest_ep_subt = dest_ep_t[i]
           -- 1 is_track_env, 2 guid, 3 env_id, 4 point_id, 5 time, 6 value, 7 shape, 8 tension, 9  selected
@@ -1327,14 +1356,63 @@ end
           if  TrackEnvelope ~= nil then              
             ep_newpos, ep_newvol = ENGINE3_quantize_compare(dest_ep_subt[5], dest_ep_subt[6])
             reaper.SetEnvelopePoint(TrackEnvelope, dest_ep_subt[4]-1, ep_newpos, ep_newvol, 
-            dest_ep_subt[7], dest_ep_subt[8], dest_ep_subt[9], true)  
+            dest_ep_subt[7], dest_ep_subt[8], dest_ep_subt[9], true)
           end         
         end
       end  
-      reaper.Envelope_SortPoints (TrackEnvelope)      
+      -- sort envelopes
+        for i = 1, #dest_ep_t do
+          dest_ep_subt = dest_ep_t[i]
+          if dest_ep_subt[1] == true then track = reaper.BR_GetMediaTrackByGUID(0, dest_ep_subt[2])
+            if track ~= nil then TrackEnvelope = reaper.GetTrackEnvelope(track, dest_ep_subt[3]-1) reaper.Envelope_SortPoints (TrackEnvelope) end end
+          if dest_ep_subt[1] == false then -- if point of take envelope
+            take = reaper.SNM_GetMediaItemTakeByGUID(0, dest_ep_subt[2])
+            if take ~= nil then TrackEnvelope = reaper.GetTakeEnvelope(take, dest_ep_subt[3]-1) reaper.Envelope_SortPoints(TrackEnvelope) end end          
+        end    
     end
+    
+    
+    ----------------------------------------------------------------------------
+    -- notes --
+    ------------
+    if quantize_dest_values_t[4] == 1 then 
+      --  restore notes pos and val --
+      if dest_notes_t ~= nil then
+        for i = 1, #dest_notes_t do
+          dest_notes_subt = dest_notes_t[i]
+          --1take_guid, 2selectedOut, 3mutedOut, 4startppqpos, 5endppqpos, 6chan, 7pitch, 8vel, 9dest_note_pos, 10 1-based noteid  
+          take = reaper.GetMediaItemTakeByGUID(0,dest_notes_subt[1])
+          if take ~= nil then                      
+            reaper.MIDI_SetNote(take, dest_notes_subt[10]-1, dest_notes_subt[2], dest_notes_subt[3], dest_notes_subt[4], dest_notes_subt[5], 
+            dest_notes_subt[6], dest_notes_subt[7], dest_notes_subt[8], true)
+          end  
+        end
+      end 
+      -- sort notes
+      for i = 1, #dest_notes_t do
+        dest_notes_subt = dest_notes_t[i]
+        take = reaper.GetMediaItemTakeByGUID(0,dest_notes_subt[1])
+        if take ~= nil then reaper.MIDI_Sort(take) end
+      end 
+      -- quantize notes pos and values --
+      if dest_notes_t ~= nil and restore_button_state == false then
+        for i = 1, #dest_notes_t do
+          dest_notes_subt = dest_notes_t[i]
+          --1take_guid, 2selectedOut, 3mutedOut, 4startppqpos, 5endppqpos, 6chan, 7pitch, 8vel, 9dest_note_pos   
+          take = reaper.GetMediaItemTakeByGUID(0,dest_notes_subt[1])
+          if take ~= nil then    
+            --insert stored notes
+            notes_newpos, notes_newvol = ENGINE3_quantize_compare(dest_notes_subt[9], dest_notes_subt[8]/127) 
+            notes_newpos_ppq = reaper.MIDI_GetPPQPosFromProjTime(take, notes_newpos)
+            ppq_dif = dest_notes_subt[5] - dest_notes_subt[4]
+             reaper.MIDI_SetNote(take, dest_notes_subt[10]-1, dest_notes_subt[2], dest_notes_subt[3], notes_newpos_ppq, notes_newpos_ppq+ppq_dif, 
+            dest_notes_subt[6], dest_notes_subt[7], math.ceil(notes_newvol*127), true)
+          end  
+        end
+      end
+      
        
-       --take_guid, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel, dest_note_pos
+    end     
        
   end
      
@@ -1550,7 +1628,7 @@ end
      ----- SNAP MODE MENU -----
      if snap_mode_xywh_buttons_t ~= nil then
        if MOUSE_clickhold_under_gui_rect(snap_mode_xywh_buttons_t,0) == true then snap_mode_values_t = {1, 0} end
-       if MOUSE_clickhold_under_gui_rect(snap_mode_xywh_buttons_t,4) == true then snap_mode_values_t = {0, 1} end
+       if MOUSE_clickhold_under_gui_rect(snap_mode_xywh_buttons_t,4) == true then snap_mode_values_t = {0, 1} quantize_ref_values_t = {0, 0, 0, 0, 1, 0} end
      end  
      ----- USE VELOCITY ------       
      if use_vel_xywh_buttons_t ~= nil then
@@ -1565,6 +1643,13 @@ end
          ENGINE3_quantize_objects()
        end      
       end 
+     ------ USE NOTES ------      
+     if sel_notes_mode_xywh_buttons_t ~= nil then
+       if MOUSE_clickhold_under_gui_rect(sel_notes_mode_xywh_buttons_t,0) == true then sel_notes_mode_values_t = {1, 0} end
+       if MOUSE_clickhold_under_gui_rect(sel_notes_mode_xywh_buttons_t,4) == true then sel_notes_mode_values_t = {0, 1} end
+     end      
+     
+     
        
      ----- SNAP AREA MENU -----
      if snap_area_xywh_buttons_t ~= nil then
