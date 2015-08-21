@@ -1,4 +1,3 @@
-reaper.ShowConsoleMsg("")
   midieditor = reaper.MIDIEditor_GetActive() 
   if  midieditor ~= nil then
     is_scale_enabled = reaper.MIDIEditor_GetSetting_int(midieditor, "scale_enabled")
@@ -21,10 +20,11 @@ reaper.ShowConsoleMsg("")
             for j = 1, count_takes do
               take = reaper.GetTake(item, j-1)
               if take ~= nil then
+                table_to_insert = {}
                 retval, notecnt = reaper.MIDI_CountEvts(take)
                 if notecnt ~= nil then
                   for k = 1, notecnt do
-                    retval,selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(take, k-1)                    
+                    retval,selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(take, k-1)
                     pitch_norm = pitch % 12                    
                     if scale_pat_t[pitch_norm+1] == "0" then
                        set_pitch = pitch
@@ -33,15 +33,34 @@ reaper.ShowConsoleMsg("")
                          set_pitch = set_pitch + m 
                          pitch_norm = pitch % 12 
                        until 
-                         (scale_pat_t[pitch_norm+1] == "1") 
+                         (scale_pat_t[pitch_norm+1] == "0") 
                       else
                        set_pitch = pitch
                     end
+                    temp_table = {selected, muted, startppqpos, endppqpos, chan, set_pitch, vel}
+                    table.insert(table_to_insert, temp_table)
                     
-                    reaper.MIDI_SetNote(take, k-1, selected, muted, startppqpos, endppqpos, chan, set_pitch, vel, true)
-                    reaper.ShowConsoleMsg("pitch"..pitch.."\n".."set_pitch"..set_pitch.."\n")
                   end                    
                 end
+                reaper.MIDI_Sort(take)
+                
+                -- delete notes from take
+                if notecnt ~= nil then
+                  for o = 1, notecnt do
+                    reaper.MIDI_DeleteNote(take, 0) 
+                    reaper.MIDI_Sort(take)
+                  end
+                end       
+                
+                -- insert new notes from table
+                if table_to_insert ~= nil then
+                  for n = 1, #table_to_insert do
+                    temp_table = table_to_insert[n]
+                    selected, muted, startppqpos, endppqpos, chan, pitch, vel = 
+                      temp_table[1],temp_table[2],temp_table[3],temp_table[4],temp_table[5],temp_table[6], temp_table[7],
+                    reaper.MIDI_InsertNote(take, selected, muted, startppqpos, endppqpos, chan, pitch, vel, true)
+                  end
+                end  
               end
               reaper.MIDI_Sort(take)
             end
@@ -50,4 +69,6 @@ reaper.ShowConsoleMsg("")
         end
       end      
     end
-  end  
+  end
+  
+  
