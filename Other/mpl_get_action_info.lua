@@ -8500,8 +8500,8 @@ end
 ---------------------------------------------------------------
 ---------------------------------------------------------------
 
-  retval, command_ID = reaper.GetUserInputs("Get Action info", 1, "Command ID", "")
- -- retval = true command_ID = "_S&M_CYCLACTION_9"
+--  retval, command_ID = reaper.GetUserInputs("Get Action info", 1, "Command ID", "")
+  retval = true command_ID = "_S&M_CYCLACTION_7"
       
 ---------------------------------------------------------------
 ---------------------------------------------------------------
@@ -8697,7 +8697,16 @@ end
               if cae_action_t[i-1] ~= "" then
                 reaper.ShowConsoleMsg(space.."\n".."end")
               end  
+            end
+            
+            -- if console x
+            if string.find(cae_action_t[i], "CONSOLE x") == 1 then
+              reaper.ShowConsoleMsg(space.."\n"..
+              "track = reaper.GetLastTouchedTrack()".."\n"..
+              "reaper.TrackFX_GetByName(track, ".."'"..string.sub(cae_action_t[i], 11).."'"..", true)")
             end            
+            
+                        
             
           end  
           
