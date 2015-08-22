@@ -8388,15 +8388,15 @@ end
 ---------------------------------------------------------------
 ---------------------------------------------------------------
   
-  function get_action_from_table(command_ID)
-    action_ret_t = {}
+  function get_action_from_table(command_ID0)
+    action_ret_t0 = {}
     for i = 1, #actions_table do
       action = actions_table[i]
       sub_t = {}  for word in string.gmatch(action, "%S+") do  table.insert(sub_t, word) end -- table from acton table line
-      if command_ID == sub_t[2] then table.insert(action_ret_t, action) end
-      if command_ID == sub_t[3] then table.insert(action_ret_t, action) end
+      if command_ID0 == sub_t[2] then table.insert(action_ret_t0, action) end
+      if command_ID0 == sub_t[3] then table.insert(action_ret_t0, action) end
     end
-    return action_ret_t
+    return action_ret_t0
   end
   
 ---------------------------------------------------------------
@@ -8475,9 +8475,37 @@ end
 ---------------------------------------------------------------
 ---------------------------------------------------------------
 
-  retval, command_ID = reaper.GetUserInputs("Get Action info", 1, "Command ID", "")
-  --retval = true
-  --command_ID = "_XENAKIOS_SISFTNEXTRPPIF"
+  function get_action_by_string(string_ID)
+    val_1 = get_action_from_table(string_ID)
+    if action_ret_t ~= nil and #action_ret_t > 0 then
+      reaper.ShowConsoleMsg("  || Actions ||".."\n".."\n") 
+      for i = 1, #action_ret_t do
+        if string.find(action_ret_t[i], "Main") ~= nil then 
+          clear_action_string = string.sub(action_ret_t[i], 9+string.len(string_ID)) 
+        end
+      end
+    end
+    return val_1
+  end
+      
+---------------------------------------------------------------
+---------------------------------------------------------------
+
+  function return_action_to_perform(string1)
+    if tonumber(string1) ~= nil then ret_string = string1 end
+    if string.find(string1, "_") == 1 then ret_string = "reaper.NamedCommandLookup ('"..string1.."')" end
+    return ret_string
+  end
+      
+---------------------------------------------------------------
+---------------------------------------------------------------
+
+  --retval, command_ID = reaper.GetUserInputs("Get Action info", 1, "Command ID", "")
+  retval = true command_ID = "_S&M_CYCLACTION_9"
+      
+---------------------------------------------------------------
+---------------------------------------------------------------
+  
   path = reaper.GetExePath()
   kb_shortcuts_t = Get_table_from_file(path.."\\".."reaper-kb.ini")
   
@@ -8486,7 +8514,7 @@ end
   if string.sub(command_ID, 0,1) == "_" then is_main_action = false end 
   
   if is_main_action == true then
-    action_ret_t = get_action_from_table(command_ID)
+    local action_ret_t = get_action_from_table(command_ID)
     if action_ret_t ~= nil and #action_ret_t > 0 then
       reaper.ShowConsoleMsg("  || Actions ||".."\n".."\n") 
       for i = 1, #action_ret_t do
@@ -8609,12 +8637,94 @@ end
        
       end
     end
-        -- if sws
-        for i = 1, #sws_action_table do
-          sws_action_table_item = sws_action_table[i]
-          if string.find(sws_action_table_item, command_ID) == 2 then 
-            reaper.ShowConsoleMsg("  || SWS Action ||".."\n".."\n") 
-            reaper.ShowConsoleMsg("   "..string.sub(sws_action_table_item, string.len(command_ID)+4).."\n")
+    
+    -- if sws action --
+    for i = 1, #sws_action_table do
+      sws_action_table_item = sws_action_table[i]
+      if string.find(sws_action_table_item, command_ID) == 2 then 
+        reaper.ShowConsoleMsg("  || SWS Action ||".."\n".."\n") 
+        reaper.ShowConsoleMsg("   "..string.sub(sws_action_table_item, string.len(command_ID)+4).."\n")
+      end
+    end   
+    
+    -- if sws cycle action -- 
+    st_10, en_10 = string.find(command_ID, "S&M_CYCLACTION_")
+    if  st_10 ~= nil then
+      sws_cae_table = Get_table_from_file(path.."\\".."S&M_Cyclactions.ini")
+      if sws_cae_table ~= nil then
+        cae_id = tonumber(string.sub(command_ID, en_10+1)) + 2
+        st_11 = string.find(sws_cae_table[cae_id], "|")
+        cae_action_string = string.sub(sws_cae_table[cae_id], st_11, -2)
+        cae_action_t = {}
+        for word in string.gmatch(cae_action_string, "[^|]+") do
+          table.insert(cae_action_t, word)
+        end
+        if cae_action_t~= nil then          
+          reaper.ShowConsoleMsg("  || SWS Cycle Action ( beta version ! ) ||".."\n".."\n")
+          
+          space = ""
+          
+          for i=1, #cae_action_t do
+          
+            -- if action
+            if tonumber(cae_action_t[i]) ~= nil or string.find(cae_action_t[i], "_") == 1 then
+              reaper.ShowConsoleMsg("\n"..space.."reaper.Main_OnCommand ("..return_action_to_perform(cae_action_t[i])..", 0 ) ")
+            end
+            
+            -- if loop
+            if string.find(cae_action_t[i], "LOOP") == 1 then
+              reaper.ShowConsoleMsg("\n"..space.."for i = 1, "..string.sub(cae_action_t[i], 6).." do")
+              space = space.."  "
+            end
+            
+            -- if end loop
+            if cae_action_t[i] == "ENDLOOP" then
+              space = string.sub(space, 3)
+              reaper.ShowConsoleMsg("\n"..space.."end")              
+            end
+            
+            -- if if
+            if cae_action_t[i]== "IF" then
+              reaper.ShowConsoleMsg(space.."is_toggle = reaper.GetToggleCommandStateEx(0, "..return_action_to_perform(cae_action_t[i+1])..")".."\n"..
+              "if is_toggle == 1 then ")
+              cae_action_t[i+1] = ""
+              space = space.."  "
+            end         
+            
+            -- if end if
+            if string.find(cae_action_t[i], "ENDIF") == 1 then              
+              space = string.sub(space, 2)
+              if cae_action_t[i-1] ~= "" then
+                reaper.ShowConsoleMsg(space.."\n".."end")
+              end  
+            end            
+            
+          end  
+          
+          cae_loop_st_count = 0
+          cae_loop_en_count = 0
+          for i=1, #cae_action_t do
+          -- count "if" "for" in table
+            if cae_action_t[i] == "IF" or string.find(cae_action_t[i], "LOOP") == 1 then
+              cae_loop_st_count = cae_loop_st_count + 1
+            end  
+            if cae_action_t[i] == "ENDIF" or cae_action_t[i] == "ENDLOOP" then
+              cae_loop_en_count = cae_loop_en_count + 1
+            end 
+          -- count "end"  in table
           end
-        end     
-  end
+          if cae_loop_en_count < cae_loop_st_count then
+            for i = 1, cae_loop_st_count - cae_loop_en_count do
+              reaper.ShowConsoleMsg("\n".."end")
+            end
+          end
+        end
+      end
+    end
+  end --is main action
+  
+  
+  
+   
+  
+  
