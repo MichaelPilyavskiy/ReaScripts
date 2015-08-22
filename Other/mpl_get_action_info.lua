@@ -6998,7 +6998,7 @@ end
         if clear_action_string ~= nil then
           translated_action_string0 = get_action_translation(clear_action_string)
           if translated_action_string0 ~= nil then
-            translated_action_string = "     Translation: "..translated_action_string0
+            translated_action_string = "     Current name: "..translated_action_string0
             if translated_action_string == nil or string.find(translated_action_string, clear_action_string) ~= nil 
               then translated_action_string = " " end
             reaper.ShowConsoleMsg("   "..action_ret_t[i].."\n"..translated_action_string.."\n")
