@@ -9,8 +9,6 @@ end
   
 retval, filename = reaper.GetUserInputs("Get CommandID from filename", 1, "Filename", "")
  if  retval == true and filename~= nil and filename ~= "" then
-  
- 
   reaper.ShowConsoleMsg("")
   path = reaper.GetExePath()
   is_path_ins1, is_path_ins2 = string.find(filename, path)
@@ -30,8 +28,6 @@ retval, filename = reaper.GetUserInputs("Get CommandID from filename", 1, "Filen
         end 
         reaper.ShowConsoleMsg( "Command Id: ".. string.sub(kb_shortcuts_item, kb_shortcuts_item_t[1]+ 1,kb_shortcuts_item_t[2]-1 ) .."\n"..
           "REAPER action name: ".. string.sub(kb_shortcuts_item, kb_shortcuts_item_t[3]+ 1,kb_shortcuts_item_t[4]-1) )
-        
-        
         break
       end
     end
