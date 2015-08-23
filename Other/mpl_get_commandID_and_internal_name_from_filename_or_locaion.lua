@@ -37,5 +37,3 @@ retval, filename = reaper.GetUserInputs("Get CommandID from filename", 1, "Filen
     end
   end
  end 
- 
- --E:\Soft\Audio\Reaper Setup\5.01pre3\Scripts\test35_Quantize_Tool_vrs0.52.lua
