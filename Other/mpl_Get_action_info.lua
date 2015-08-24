@@ -8501,8 +8501,8 @@ end
 ---------------------------------------------------------------
 
   retval, command_ID = reaper.GetUserInputs("Get Action info", 1, "Command ID", "")
- --retval = true command_ID = "_S&M_CYCLACTION_7"
-      
+ -- retval = true command_ID = "_S&M_CYCLACTION_1"
+ 
 ---------------------------------------------------------------
 ---------------------------------------------------------------
   
