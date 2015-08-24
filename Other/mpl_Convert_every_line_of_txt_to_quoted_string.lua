@@ -1,5 +1,6 @@
   readfile = "C:/Users/Michael/Desktop/Main_Section.txt"
-  writefile = "C:/Users/Michael/Desktop/1.txt"
+  writefile = "C:/file.txt"
+  
   f = io.open(readfile, "r")
   content = f:read("*all")
   lines_t = {}
