@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.542 (beta)"
+ vrs = "0.55 (beta)"
 
  --------------------
  ---- To Do list ----
@@ -30,6 +30,7 @@
  ------- Bugs -------
  --------------------
  
+ -- unselected notes removed when refitem/destnote/getselonly
  -- stretch markers bug: http://forum.cockos.com/project.php?issueid=5647
  -- stretch markers quantize DOES NOT work when Item Loop Source is ON
  
@@ -50,6 +51,7 @@
          
          
     .."Changelog:".."\n"
+    .."  25.08.2015 - 0.55 quantize notes/selected notes improvements".."\n"
     .."  17.08.2015 - 0.542 gravity improvements, main quantize engine updates".."\n" 
     .."  17.08.2015 - 0.5 a lot of structure, GUI and logic improvements".."\n" 
     .."  15.07.2015 - 0.152 info message when snap > 1 to prevent reaper crash".."\n" 
@@ -104,7 +106,7 @@
      
    snap_mode_values_t = {1,0} 
    use_vel_values_t = {1,0} 
-   sel_notes_mode_values_t = {1,0}
+   sel_notes_mode_values_t = {0,1}
    
    snap_area_values_t = {0,1}
    snap_dir_values_t = {0,1,0}
@@ -1124,18 +1126,9 @@ end
               if notecntOut ~= nil then
                 for j = 1, notecntOut, 1 do                 
                   retval, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote(take, j-1) 
-                  if sel_notes_mode_values_t[1] == 1 then -- if use selected only
-                    if selectedOut == true then
-                      dest_note_pos = reaper.MIDI_GetProjTimeFromPPQPos(take, startppqpos)                                 
-                      dest_notes_subt = {take_guid, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel, dest_note_pos, j}                   
-                      table.insert(dest_notes_t, dest_notes_subt) 
-                    end  
-                  end  
-                  if sel_notes_mode_values_t[2] == 1 then -- if use all in item
-                    dest_note_pos = reaper.MIDI_GetProjTimeFromPPQPos(take, startppqpos)                                 
-                    dest_notes_subt = {take_guid, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel, dest_note_pos, j}                   
-                    table.insert(dest_notes_t, dest_notes_subt)   
-                  end
+                  dest_note_pos = reaper.MIDI_GetProjTimeFromPPQPos(take, startppqpos)                                 
+                  dest_notes_subt = {take_guid, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel, dest_note_pos}                   
+                  table.insert(dest_notes_t, dest_notes_subt)  
                 end -- count notes                   
               end -- notecntOut > 0
             end -- TakeIsMIDI
@@ -1303,8 +1296,8 @@ end
   
   function ENGINE3_quantize_objects()    
     -------------------------------------------------------------------------------------
-    --  items --
-    --------------------
+    --  items --------------------------------------------------------------------------
+    -------------------------------------------------------------------------------------
     if quantize_dest_values_t[1] == 1 then 
     
      --  restore items pos and vol --
@@ -1335,8 +1328,9 @@ end
     
     
     -----------------------------------------------------------------------------
-    -- points --
-    ------------
+    -- points -------------------------------------------------------------------
+    -----------------------------------------------------------------------------
+    
     if quantize_dest_values_t[3] == 1 then 
       --  restore point pos and val --
       if dest_ep_t ~= nil then
@@ -1395,53 +1389,103 @@ end
     
     
     ----------------------------------------------------------------------------
-    -- notes --
-    ------------
+    -- notes -------------------------------------------------------------------
+    ----------------------------------------------------------------------------
+    
     if quantize_dest_values_t[4] == 1 then 
-      --  restore notes pos and val --
+    
+      --RESTORE--
+      
+      --  delete notes from dest takes --
       if dest_notes_t ~= nil then
         for i = 1, #dest_notes_t do
           dest_notes_subt = dest_notes_t[i]
-          --1take_guid, 2selectedOut, 3mutedOut, 4startppqpos, 5endppqpos, 6chan, 7pitch, 8vel, 9dest_note_pos, 10 1-based noteid  
+          --1take_guid, 2selectedOut, 3mutedOut, 4startppqpos, 5endppqpos, 6chan, 7pitch, 8vel, 9dest_note_pos  
           take = reaper.GetMediaItemTakeByGUID(0,dest_notes_subt[1])
-          if take ~= nil then                      
-            reaper.MIDI_SetNote(take, dest_notes_subt[10]-1, dest_notes_subt[2], dest_notes_subt[3], dest_notes_subt[4], dest_notes_subt[5], 
-            dest_notes_subt[6], dest_notes_subt[7], dest_notes_subt[8], true)
+          if take ~= nil then          
+            -- delete notes from take
+            retval, notecnt = reaper.MIDI_CountEvts(take)
+            if notecntOut ~= nil then
+              for j = 1, notecnt do
+                reaper.MIDI_DeleteNote(take, 0)
+                reaper.MIDI_Sort(take)
+              end
+            end 
           end  
         end
-      end 
-      -- sort notes
-      for i = 1, #dest_notes_t do
-        dest_notes_subt = dest_notes_t[i]
-        take = reaper.GetMediaItemTakeByGUID(0,dest_notes_subt[1])
-        if take ~= nil then reaper.MIDI_Sort(take) end
-      end 
-      -- quantize notes pos and values --
-      if dest_notes_t ~= nil and restore_button_state == false then
+      end       
+      --insert notes
+      if quantize_dest_values_t[4] == 1 then 
+        --  Insert notes   --
+        if dest_notes_t ~= nil then
+          for i = 1, #dest_notes_t do
+            dest_notes_subt = dest_notes_t[i]
+            --1take_guid, 2selectedOut, 3mutedOut, 4startppqpos, 5endppqpos, 6chan, 7pitch, 8vel, 9dest_note_pos  
+            take = reaper.GetMediaItemTakeByGUID(0,dest_notes_subt[1])
+            if take ~= nil then  
+              reaper.MIDI_InsertNote(take, dest_notes_subt[2], dest_notes_subt[3], dest_notes_subt[4], dest_notes_subt[5], 
+                dest_notes_subt[6], dest_notes_subt[7], dest_notes_subt[8], true)
+            end 
+            reaper.MIDI_Sort(take)
+          end           
+        end       
+      end       
+      
+      --END RESTORE--
+      
+      
+      
+      
+      
+    if dest_notes_t ~= nil and restore_button_state == false then
+      --  delete notes from dest takes --
+      if dest_notes_t ~= nil then
         for i = 1, #dest_notes_t do
           dest_notes_subt = dest_notes_t[i]
-          --1take_guid, 2selectedOut, 3mutedOut, 4startppqpos, 5endppqpos, 6chan, 7pitch, 8vel, 9dest_note_pos   
+          --1take_guid, 2selectedOut, 3mutedOut, 4startppqpos, 5endppqpos, 6chan, 7pitch, 8vel, 9dest_note_pos  
           take = reaper.GetMediaItemTakeByGUID(0,dest_notes_subt[1])
-          if take ~= nil then    
-            --insert stored notes
-            notes_newpos, notes_newvol = ENGINE3_quantize_compare(dest_notes_subt[9], dest_notes_subt[8]/127) 
-            notes_newpos_ppq = reaper.MIDI_GetPPQPosFromProjTime(take, notes_newpos)
-            ppq_dif = dest_notes_subt[5] - dest_notes_subt[4]
-             reaper.MIDI_SetNote(take, dest_notes_subt[10]-1, dest_notes_subt[2], dest_notes_subt[3], notes_newpos_ppq, notes_newpos_ppq+ppq_dif, 
-            dest_notes_subt[6], dest_notes_subt[7], math.ceil(notes_newvol*127), true)
+          if take ~= nil then          
+            -- delete notes from take
+            retval, notecnt = reaper.MIDI_CountEvts(take)
+            if notecntOut ~= nil then
+              for j = 1, notecnt do
+                reaper.MIDI_DeleteNote(take, 0)
+                reaper.MIDI_Sort(take)
+              end
+            end 
           end  
         end
-      end
-      -- sort notes
+      end  
+      --insert
       for i = 1, #dest_notes_t do
         dest_notes_subt = dest_notes_t[i]
+        --1take_guid, 2selectedOut, 3mutedOut, 4startppqpos, 5endppqpos, 6chan, 7pitch, 8vel, 9dest_note_pos ,10 1-based noteid    
         take = reaper.GetMediaItemTakeByGUID(0,dest_notes_subt[1])
-        if take ~= nil then reaper.MIDI_Sort(take) end
-      end      
+        if take ~= nil then
+          ppq_dif = dest_notes_subt[5] - dest_notes_subt[4]
+          
+          
+          if sel_notes_mode_values_t[1] == 1 then
+            if dest_notes_subt[2] == true then
+              notes_newpos, notes_newvol = ENGINE3_quantize_compare(dest_notes_subt[9], dest_notes_subt[8]/127)
+             else
+              notes_newpos = dest_notes_subt[9]
+              notes_newvol = dest_notes_subt[8]/127
+            end 
+          end
+          if sel_notes_mode_values_t[2] == 1 then
+            notes_newpos, notes_newvol = ENGINE3_quantize_compare(dest_notes_subt[9], dest_notes_subt[8]/127)
+          end
+          notes_newpos_ppq = reaper.MIDI_GetPPQPosFromProjTime(take, notes_newpos)-1
+          reaper.MIDI_InsertNote(take, dest_notes_subt[2], dest_notes_subt[3], notes_newpos_ppq, notes_newpos_ppq+ppq_dif, 
+          dest_notes_subt[6], dest_notes_subt[7], math.ceil(notes_newvol*127), false)
+          reaper.MIDI_Sort(take)
+        end  
+      end    
+    end --dest_notes_t ~= nil and restore_button_state == false  
+   end     --if quantize_dest_values_t[4] == 1 then 
        
-    end     
-       
-  end
+  end -- func
      
  ---------------------------------------------------------------------------------------------------------------
  ---------------------------------------------------------------------------------------------------------------
