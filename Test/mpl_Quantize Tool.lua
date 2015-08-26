@@ -1,11 +1,9 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.61 (beta)"
+ vrs = "0.62 (beta)"
 
  --------------------
  ---- To Do list ----
  --------------------
- 
- -- generate pattern engine
  
  -- bar / beat grid on gui display 
  -- lmb click on grid add groove point
@@ -16,8 +14,6 @@
  -- create objects
  -- font size option
  -- hold MMB move grid / scroll zoom grid
- -- multiply/divide pattern length by 2
- -- add pattern edges
  -- about button
  -- getset ref pitch/pan from itemtakes notes and env points
  -- popup start/end time in display
@@ -48,7 +44,7 @@
          
          
     .."Changelog:".."\n"
-    .."  26.08.2015 - 0.61 generate pattern grid engine, pattern length, gui improvements".."\n"    
+    .."  26.08.2015 - 0.62 generate pattern grid engine, pattern length, gui improvements".."\n"    
     .."  26.08.2015 - 0.56 quantize stretchmarkers func new build".."\n"
     .."  25.08.2015 - 0.55 quantize notes/selected notes improvements".."\n"
     .."  17.08.2015 - 0.542 gravity improvements, main quantize engine updates".."\n" 
@@ -1402,6 +1398,7 @@ end
     -----------------------------------------------------------------------------
     -- stretch markers ----------------------------------------------------------
     -----------------------------------------------------------------------------
+    if quantize_dest_values_t[2] == 1 then 
     --dest sm
     --1take_guid, 2posOut, 3srcpos, 4item_pos, 5takerate, 6item_len
     
@@ -1440,7 +1437,7 @@ end
       end 
       
       --quant stretch markers    
-      if dest_sm_t ~= nil then
+      if dest_sm_t ~= nil and restore_button_state == false then
         for i = 1, #dest_sm_t do
           dest_sm_subt = dest_sm_t[i]  
           take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
@@ -1455,25 +1452,28 @@ end
         end
       end
          
-      if dest_sm_t ~= nil then
+      if dest_sm_t ~= nil and restore_button_state == false then
         for i = 1, #dest_sm_t do
           dest_sm_subt = dest_sm_t[i]  
           take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
           if take ~= nil then 
-            --reaper.SetTakeStretchMarker(take, -1, 0, 0)
-            --reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[6], dest_sm_subt[6])  
+            --1take_guid, 2posOut, 3srcpos, 4item_pos, 5takerate, 6item_len
+            reaper.SetTakeStretchMarker(take, -1, 0, 0)
+            reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[6], dest_sm_subt[6])  
             reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])            
             true_sm_pos = dest_sm_subt[4] + dest_sm_subt[2]/ dest_sm_subt[5]
             new_sm_pos = ENGINE3_quantize_compare(true_sm_pos,0)
             new_sm_pos_rev = (new_sm_pos - dest_sm_subt[4])*dest_sm_subt[5]            
-            --if new_sm_pos > 0 then
+            if new_sm_pos > 0 and dest_sm_subt[3] > 0 then
               reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev, dest_sm_subt[3])            
-            --end  
-          end  
+            end  
+          end 
+          item = reaper.GetMediaItemTake_Item(take) 
+          reaper.UpdateItemInProject(item)
         end
       end 
            
-    
+    end
     -----------------------------------------------------------------------------
     -- points -------------------------------------------------------------------
     -----------------------------------------------------------------------------
