@@ -1,10 +1,11 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.66 (beta)"
+ vrs = "0.67 (beta)"
 
  --------------------
  ---- To Do list ----
  --------------------
  
+ -- get stretch markers ref points relative to item pos 
  -- lmb click on grid add groove point
  -- rmb click on grid delete groove point
  -- quantize/get groove tempo envelope
@@ -23,7 +24,7 @@
  --------------------
  
  -- stretch markers bug: http://forum.cockos.com/project.php?issueid=5647
- -- stretch markers quantize DOES NOT work when Item Loop Source is ON 
+ -- stretch markers quantize DOES NOT work when Item Loop Source is ON, too much conditions for this. 
  
  
  --------------------
@@ -41,7 +42,8 @@
          
          
     .."Changelog:".."\n"
-    .."  26.08.2015 - 0.66 generate pattern grid engine, pattern length, gui improvements, grid string bug".."\n"    
+    .."  26.08.2015 - 0.67 generate pattern grid engine, pattern length,".."\n"
+    .."            gui improvements, grid string bug, menu defaults".."\n"    
     .."  26.08.2015 - 0.56 quantize stretchmarkers func new build".."\n"
     .."  25.08.2015 - 0.55 quantize notes/selected notes improvements".."\n"
     .."  17.08.2015 - 0.542 gravity improvements, main quantize engine updates".."\n" 
@@ -130,7 +132,7 @@
    grid_value = 0
    swing_value = 0.25
    strenght_value = 1
-   gravity_value = 0.2
+   gravity_value = 0.5
    gravity_mult_value = 0.3 -- second
    use_vel_value = 0
    swing_scale = 0.5
@@ -1835,7 +1837,8 @@ end
      if MOUSE_clickhold_under_gui_rect(quantize_dest_xywh_buttons_t,4) == true then 
        quantize_dest_values_t = {0, 1, 0, 0} 
        count_dest_sm_positions = ENGINE2_get_dest_sm() 
-       ENGINE2_get_dest_FORM_points() end
+       ENGINE2_get_dest_FORM_points() 
+       snap_area_values_t = {1,0} end
      if MOUSE_clickhold_under_gui_rect(quantize_dest_xywh_buttons_t,8) == true then 
        quantize_dest_values_t = {0, 0, 1, 0} 
        count_dest_ep_positions = ENGINE2_get_dest_ep()  
@@ -1945,7 +1948,8 @@ end
      end
      
      -- ABOUT BUTTON --
-     if MOUSE_clickhold_under_gui_rect(about_button_xywh_t,0) == true then reaper.ShowConsoleMsg(about) end
+     if MOUSE_clickhold_under_gui_rect(about_button_xywh_t,0) == true then 
+       reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(about) end
          
    end -- if options page on
    
