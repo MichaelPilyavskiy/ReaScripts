@@ -1,11 +1,10 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.55 (beta)"
+ vrs = "0.56 (beta)"
 
  --------------------
  ---- To Do list ----
  --------------------
  
- -- ENGINE3_quantize_objects() stretch markers
  -- generate pattern engine
  
  -- bar / beat grid on gui display 
@@ -30,7 +29,6 @@
  ------- Bugs -------
  --------------------
  
- -- unselected notes removed when refitem/destnote/getselonly
  -- stretch markers bug: http://forum.cockos.com/project.php?issueid=5647
  -- stretch markers quantize DOES NOT work when Item Loop Source is ON
  
@@ -51,6 +49,7 @@
          
          
     .."Changelog:".."\n"
+    .."  25.08.2015 - 0.56 quantize stretchmarkers func new build".."\n"
     .."  25.08.2015 - 0.55 quantize notes/selected notes improvements".."\n"
     .."  17.08.2015 - 0.542 gravity improvements, main quantize engine updates".."\n" 
     .."  17.08.2015 - 0.5 a lot of structure, GUI and logic improvements".."\n" 
@@ -108,9 +107,10 @@
    use_vel_values_t = {1,0} 
    sel_notes_mode_values_t = {0,1}
    
-   snap_area_values_t = {0,1}
+   snap_area_values_t = {1,0}
    snap_dir_values_t = {0,1,0}
    swing_scale_values_t = {0,1}
+   sel_notes_mode2_values_t = {0,1}
    
    if snap_mode_values_t[2] == 1 then  quantize_ref_values_t = {0, 0, 0, 0, 1, 0} else quantize_ref_values_t = {0, 0, 0, 0} end
    
@@ -131,7 +131,7 @@
    grid_value = 0
    swing_value = 0
    strenght_value = 0
-   gravity_value = 0
+   gravity_value = 0.2
    gravity_mult_value = 1 -- second
    use_vel_value = 0
    swing_scale = 0.5
@@ -157,6 +157,7 @@
    snap_area_menu_names_t = {"Snap area:","< Use gravity ("..(math.round(gravity_value*gravity_mult_value,2)).." sec) >","Snap everything"}
    snap_dir_menu_names_t =  {"Snap direction:","To previous point","To closest point","To next point"} 
    swing_scale_menu_names_t =  {"Swing scaling:","1x (100% is next grid)","0.5x (REAPER behaviour)"}
+   sel_notes_mode2_menu_names_t = {"Quantize notes:", "Selected only","All notes in selected item"}
    
    ---------------------
    -- count reference --
@@ -241,7 +242,8 @@
   snap_area_menu_xywh_t = {x_offset, 150, width1, heigth2}
   snap_dir_menu_xywh_t = {x_offset, snap_area_menu_xywh_t[2]+snap_area_menu_xywh_t[4]+beetween_menus2, width1, heigth2}  
   swing_scale_menu_xywh_t = {x_offset,  snap_dir_menu_xywh_t[2]+snap_dir_menu_xywh_t[4]+beetween_menus2, width1, heigth2}
- 
+  sel_notes_mode2_menu_xywh_t = {x_offset, swing_scale_menu_xywh_t[2]+swing_scale_menu_xywh_t[4]+beetween_menus2, width1, heigth2}
+  
   quantize_ref_menu_xywh_t = {x_offset, y_offset, width1/2, y_offset1-y_offset}
   quantize_dest_menu_xywh_t = {x_offset+width1/2+gui_offset, y_offset, width1/2-gui_offset , y_offset1-y_offset}
 
@@ -642,6 +644,7 @@ end
         
         snap_dir_xywh_buttons_t =       GUI_menu (snap_dir_menu_xywh_t,  snap_dir_menu_names_t, snap_dir_values_t, false,false,itemcolor2_t,0)
         swing_scale_xywh_buttons_t =    GUI_menu (swing_scale_menu_xywh_t,  swing_scale_menu_names_t, swing_scale_values_t, false,false,itemcolor2_t,0)
+        sel_notes_mode2_xywh_buttons_t =      GUI_menu (sel_notes_mode2_menu_xywh_t, sel_notes_mode2_menu_names_t, sel_notes_mode2_values_t, false,false,itemcolor2_t,0)
         
      end -- if options page on
      
@@ -1018,8 +1021,8 @@ end
             if count_stretch_markers ~= nil then
               for j = 1, count_stretch_markers,1 do
                 retval, posOut, srcpos = reaper.GetTakeStretchMarker(take, j-1)
-                if  posOut > 0 and posOut/takerate < item_len-0.000001 then
-                  dest_sm_subt = {take_guid, posOut, srcpos, item_pos, takerate}
+                dest_sm_subt = {take_guid, posOut, srcpos, item_pos, takerate, item_len}
+                if posOut ~= 0 or posOut ~= item_len then
                   table.insert(dest_sm_t, dest_sm_subt)
                 end  
               end -- loop takes  
@@ -1112,6 +1115,7 @@ end
 
  function ENGINE2_get_dest_notes() 
   dest_notes_t = {}
+  dest_notes_t2 = {} -- for notes count if quant sel only
   dest_notes_subt = {} 
   count_sel_items = reaper.CountSelectedMediaItems(0)
   if count_sel_items ~= nil then   -- get measures beetween items
@@ -1129,6 +1133,14 @@ end
                   dest_note_pos = reaper.MIDI_GetProjTimeFromPPQPos(take, startppqpos)                                 
                   dest_notes_subt = {take_guid, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel, dest_note_pos}                   
                   table.insert(dest_notes_t, dest_notes_subt)  
+                  if sel_notes_mode2_values_t[1] == 1 then
+                    if selectedOut == true then
+                      table.insert(dest_notes_t2, dest_notes_subt)
+                    end  
+                  end
+                  if sel_notes_mode2_values_t[2] == 1 then
+                    table.insert(dest_notes_t2, dest_notes_subt) 
+                  end                  
                 end -- count notes                   
               end -- notecntOut > 0
             end -- TakeIsMIDI
@@ -1136,7 +1148,7 @@ end
         end-- ref_item ~= nil
       end -- for count_sel_ref_items
     end --   count_sel_ref_items > 0   
-  return #dest_notes_t
+  return #dest_notes_t2
  end 
      
  ---------------------------------------------------------------------------------------------------------------
@@ -1153,25 +1165,23 @@ end
          table_temp_val_sub_t = dest_items_t[i]         
          table.insert (dest_points_t, i, {table_temp_val_sub_t[2], table_temp_val_sub_t[3]})         
        end
-     end
-     
+     end     
      
      -- sm --
      if quantize_dest_values_t[2] == 1 then     
        for i = 1, #dest_sm_t do
          table_temp_val = dest_sm_t[i]
          --take_guid, posOut, srcpos, item_pos, takerate         
-         table.insert (dest_points_t, i, {table_temp_val[4] + (table_temp_val[2]/table_temp_val[5]), 1} )
+         table.insert (dest_points_t, {table_temp_val[4] + (table_temp_val[2]/table_temp_val[5]), 1} )
        end
-     end
-     
+     end     
      
      -- ep --
      if quantize_dest_values_t[3] == 1 then     
        for i = 1, #dest_ep_t do
          table_temp_val = dest_ep_t[i]
          -- istrackenvelope, track_guid, env_id, point_id, time, value, shape, tension, selected
-         table.insert (dest_points_t, i, {table_temp_val[5], table_temp_val[6]})
+         table.insert (dest_points_t, {table_temp_val[5], table_temp_val[6]})
        end
      end
      
@@ -1180,7 +1190,14 @@ end
        for i = 1, #dest_notes_t do
          table_temp_val = dest_notes_t[i]
          -- take_guid, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel, dest_note_pos
-         table.insert (dest_points_t, i, {table_temp_val[9], table_temp_val[8]/127})
+         if sel_notes_mode2_values_t[1] == 1 then
+           if table_temp_val[2] == true then
+             table.insert (dest_points_t, {table_temp_val[9], table_temp_val[8]/127})
+           end  
+         end  
+         if sel_notes_mode2_values_t[2] == 1 then
+           table.insert (dest_points_t, {table_temp_val[9], table_temp_val[8]/127})
+         end           
        end
      end   
                  
@@ -1326,6 +1343,80 @@ end
       end
     end -- if quantize items  
     
+    -----------------------------------------------------------------------------
+    -- stretch markers ----------------------------------------------------------
+    -----------------------------------------------------------------------------
+    --dest sm
+    --1take_guid, 2posOut, 3srcpos, 4item_pos, 5takerate, 6item_len
+    
+    --restore
+      --delete all in current take
+      --insert from table
+    --apply in bypass is off
+      --delete all in current take
+      --quantize when inserting from table
+      --  delete notes from dest takes --
+      
+    -- restore  
+      if dest_sm_t ~= nil then
+        for i = 1, #dest_sm_t do
+          dest_sm_subt = dest_sm_t[i]  
+          take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
+          if take ~= nil then  
+            count_sm = reaper.GetTakeNumStretchMarkers(take)
+            if count_sm ~= nil then
+              for j = 1 , count_sm do
+                reaper.DeleteTakeStretchMarkers(take, j-1)
+              end
+            end            
+          end  
+        end
+      end   
+      if dest_sm_t ~= nil then
+        for i = 1, #dest_sm_t do
+          dest_sm_subt = dest_sm_t[i]  
+          take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
+          if take ~= nil then  
+            reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])
+            reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[2], dest_sm_subt[3])            
+          end  
+        end
+      end 
+      
+      --quant stretch markers    
+      if dest_sm_t ~= nil then
+        for i = 1, #dest_sm_t do
+          dest_sm_subt = dest_sm_t[i]  
+          take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
+          if take ~= nil then  
+            count_sm = reaper.GetTakeNumStretchMarkers(take)
+            if count_sm ~= nil then
+              for j = 1 , count_sm do
+                reaper.DeleteTakeStretchMarkers(take, j-1)
+              end
+            end            
+          end  
+        end
+      end
+         
+      if dest_sm_t ~= nil then
+        for i = 1, #dest_sm_t do
+          dest_sm_subt = dest_sm_t[i]  
+          take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
+          if take ~= nil then 
+            --reaper.SetTakeStretchMarker(take, -1, 0, 0)
+            --reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[6], dest_sm_subt[6])  
+            reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])            
+            true_sm_pos = dest_sm_subt[4] + dest_sm_subt[2]/ dest_sm_subt[5]
+            new_sm_pos = ENGINE3_quantize_compare(true_sm_pos,0)
+            new_sm_pos_rev = (new_sm_pos - dest_sm_subt[4])*dest_sm_subt[5]            
+            --if new_sm_pos > 0 then
+              reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev, dest_sm_subt[3])            
+            --end  
+          end  
+        end
+      end 
+           
     
     -----------------------------------------------------------------------------
     -- points -------------------------------------------------------------------
@@ -1431,12 +1522,7 @@ end
         end       
       end       
       
-      --END RESTORE--
-      
-      
-      
-      
-      
+      --END RESTORE notes--
     if dest_notes_t ~= nil and restore_button_state == false then
       --  delete notes from dest takes --
       if dest_notes_t ~= nil then
@@ -1465,7 +1551,7 @@ end
           ppq_dif = dest_notes_subt[5] - dest_notes_subt[4]
           
           
-          if sel_notes_mode_values_t[1] == 1 then
+          if sel_notes_mode2_values_t[1] == 1 then
             if dest_notes_subt[2] == true then
               notes_newpos, notes_newvol = ENGINE3_quantize_compare(dest_notes_subt[9], dest_notes_subt[8]/127)
              else
@@ -1473,7 +1559,7 @@ end
               notes_newvol = dest_notes_subt[8]/127
             end 
           end
-          if sel_notes_mode_values_t[2] == 1 then
+          if sel_notes_mode2_values_t[2] == 1 then
             notes_newpos, notes_newvol = ENGINE3_quantize_compare(dest_notes_subt[9], dest_notes_subt[8]/127)
           end
           notes_newpos_ppq = reaper.MIDI_GetPPQPosFromProjTime(take, notes_newpos)-1
@@ -1484,7 +1570,6 @@ end
       end    
     end --dest_notes_t ~= nil and restore_button_state == false  
    end     --if quantize_dest_values_t[4] == 1 then 
-       
   end -- func
      
  ---------------------------------------------------------------------------------------------------------------
@@ -1698,7 +1783,7 @@ end
    
      ----- SNAP MODE MENU -----
      if snap_mode_xywh_buttons_t ~= nil then
-       if MOUSE_clickhold_under_gui_rect(snap_mode_xywh_buttons_t,0) == true then snap_mode_values_t = {1, 0} end
+       if MOUSE_clickhold_under_gui_rect(snap_mode_xywh_buttons_t,0) == true then snap_mode_values_t = {1, 0} quantize_ref_values_t = {0, 0, 0, 0} end
        if MOUSE_clickhold_under_gui_rect(snap_mode_xywh_buttons_t,4) == true then snap_mode_values_t = {0, 1} quantize_ref_values_t = {0, 0, 0, 0, 1, 0} end
      end  
      ----- USE VELOCITY ------       
@@ -1753,7 +1838,14 @@ end
          swing_scale_values_t = {1,0} swing_scale = 1 end
        if MOUSE_clickhold_under_gui_rect(swing_scale_xywh_buttons_t,4) == true then 
          swing_scale_values_t = {0,1} swing_scale = 0.5 end
-     end      
+     end  
+     
+     ------ dest NOTES ------      
+     if sel_notes_mode2_xywh_buttons_t ~= nil then
+       if MOUSE_clickhold_under_gui_rect(sel_notes_mode2_xywh_buttons_t,0) == true then sel_notes_mode2_values_t = {1, 0} end
+       if MOUSE_clickhold_under_gui_rect(sel_notes_mode2_xywh_buttons_t,4) == true then sel_notes_mode2_values_t = {0, 1} end
+     end
+         
    end -- if options page on
    
    end -- if snap >1
