@@ -1,9 +1,11 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.6 (beta)"
+ vrs = "0.61 (beta)"
 
  --------------------
  ---- To Do list ----
  --------------------
+ 
+ -- generate pattern engine
  
  -- bar / beat grid on gui display 
  -- lmb click on grid add groove point
@@ -14,6 +16,7 @@
  -- create objects
  -- font size option
  -- hold MMB move grid / scroll zoom grid
+ -- multiply/divide pattern length by 2
  -- add pattern edges
  -- about button
  -- getset ref pitch/pan from itemtakes notes and env points
@@ -45,7 +48,7 @@
          
          
     .."Changelog:".."\n"
-    .."  26.08.2015 - 0.6 generate pattern grid engine, pattern length".."\n"    
+    .."  26.08.2015 - 0.61 generate pattern grid engine, pattern length, gui improvements".."\n"    
     .."  26.08.2015 - 0.56 quantize stretchmarkers func new build".."\n"
     .."  25.08.2015 - 0.55 quantize notes/selected notes improvements".."\n"
     .."  17.08.2015 - 0.542 gravity improvements, main quantize engine updates".."\n" 
@@ -102,6 +105,7 @@
      -- preset area --
    snap_mode_values_t = {0,1} 
    pat_len_values_t = {1,0,0}
+   pat_edge_values_t = {0,1}
    use_vel_values_t = {1,0} 
    sel_notes_mode_values_t = {0,1}
    
@@ -159,6 +163,7 @@
    -- default states for menus --
    snap_mode_menu_names_t = {"Snap reference mode:", "Global (timeline)","Local (pattern)"}
    pat_len_menu_names_t = {"Pattern length:", "1 bar","2 bars", "4 bars"}
+   pat_edge_menu_names_t = {"Pattern edges:", "On","Off"}
    use_vel_menu_names_t = {"Ref. velocity:", "<   Use velocity / gain / point value ("..(math.ceil(math.round(use_vel_value*100,1))).."%)   >", "Don`t use"}
    sel_notes_mode_menu_names_t = {"Ref. notes:", "Get selected only","Get all notes in selected item"}
    
@@ -245,8 +250,9 @@
   -- menus -- 
   snap_mode_menu_xywh_t = {x_offset, y_offset, width1, heigth2}
   pat_len_menu_xywh_t = {x_offset, y_offset+20, width1, heigth2}
-  use_vel_menu_xywh_t = {x_offset, y_offset+40, width1, heigth2}
-  sel_notes_mode_menu_xywh_t = {x_offset, y_offset+60, width1, heigth2}
+  pat_edge_menu_xywh_t = {x_offset, y_offset+40, width1, heigth2}
+  use_vel_menu_xywh_t = {x_offset, y_offset+60, width1, heigth2}
+  sel_notes_mode_menu_xywh_t = {x_offset, y_offset+80, width1, heigth2}
   
   snap_area_menu_xywh_t = {x_offset, 150, width1, heigth2}
   snap_dir_menu_xywh_t = {x_offset, snap_area_menu_xywh_t[2]+snap_area_menu_xywh_t[4]+beetween_menus2, width1, heigth2}  
@@ -642,6 +648,7 @@ end
       -- ref setup area --
         snap_mode_xywh_buttons_t =      GUI_menu (snap_mode_menu_xywh_t, snap_mode_menu_names_t, snap_mode_values_t, false,false,itemcolor2_t,0)
         pat_len_xywh_buttons_t =      GUI_menu (pat_len_menu_xywh_t, pat_len_menu_names_t, pat_len_values_t, false,false,itemcolor2_t,0)
+        pat_edge_xywh_buttons_t =      GUI_menu (pat_edge_menu_xywh_t, pat_edge_menu_names_t, pat_edge_values_t, false,false,itemcolor2_t,0)
         use_vel_xywh_buttons_t =        GUI_menu (use_vel_menu_xywh_t, use_vel_menu_names_t, use_vel_values_t, false,false,itemcolor2_t,0)
           use_vel_slider_xywh_t = {use_vel_xywh_buttons_t[1], use_vel_xywh_buttons_t[2], use_vel_xywh_buttons_t[3], use_vel_xywh_buttons_t[4]}
           GUI_slider_gradient(use_vel_slider_xywh_t, "", use_vel_value, "normal")
@@ -960,9 +967,14 @@ end
             table.insert(ref_points_t2, {(retval+measure2*cml)-first_measure*cml, ref_point_subt_temp[2]})
           end  
         end
+        -- add edges
+        if pat_edge_values_t[1] == 1 then
+          table.insert(ref_points_t2, {0, 1})
+          table.insert(ref_points_t2, {pattern_len*cml, 1})
+        end
         -- generate grid from ref_points_t2
         ref_points_t = {}
-        for i=1, last_measure+1, pattern_len do          
+        for i=1, last_measure+8, pattern_len do          
           for j=1, #ref_points_t2 do
             ref_points_t2_subt = ref_points_t2[j]            
             ref_pos_time = reaper.TimeMap2_beatsToTime(0, ref_points_t2_subt[1], i-1)
@@ -1019,6 +1031,8 @@ function GET_project_len()
   table.sort(positions_of_objects_t)
   i_max = #positions_of_objects_t
   max_object_position = positions_of_objects_t[i_max]
+  retval, measuresOut, cml = reaper.TimeMap2_timeToBeats(0, max_object_position)
+  max_object_position = reaper.TimeMap2_beatsToTime(0, 0, measuresOut)
   if max_object_position == nil then max_object_position = 0 end
 end
   
@@ -1712,10 +1726,8 @@ end
    if snap_mode_values_t[2] == 1 then 
      if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,0) == true then 
        quantize_ref_values_t = {1, 0, 0, 0, 0, 0} 
-       ENGINE1_get_reference_item_positions()
-       if ref_points_t ~= nil then count_reference_item_positions = #ref_points_t2 else count_reference_item_positions = 0 end
-       
-       ENGINE1_get_reference_FORM_points() end
+       count_reference_item_positions = ENGINE1_get_reference_item_positions() 
+       ENGINE1_get_reference_FORM_points()end
      if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,4) == true then 
        quantize_ref_values_t = {0, 1, 0, 0, 0, 0} 
        count_reference_sm_positions = ENGINE1_get_reference_SM_positions() 
@@ -1833,9 +1845,14 @@ end
      end  
      ----- PATTERN LENGTH -----
      if pat_len_xywh_buttons_t ~= nil then
-       if MOUSE_clickhold_under_gui_rect(pat_len_xywh_buttons_t,0) == true then pat_len_values_t = {1, 0, 0} end
-       if MOUSE_clickhold_under_gui_rect(pat_len_xywh_buttons_t,4) == true then pat_len_values_t = {0, 1, 0} end
-       if MOUSE_clickhold_under_gui_rect(pat_len_xywh_buttons_t,8) == true then pat_len_values_t = {0, 0, 1} end
+       if MOUSE_clickhold_under_gui_rect(pat_len_xywh_buttons_t,0) == true then pat_len_values_t = {1, 0, 0} ENGINE2_get_dest_FORM_points() end
+       if MOUSE_clickhold_under_gui_rect(pat_len_xywh_buttons_t,4) == true then pat_len_values_t = {0, 1, 0} ENGINE2_get_dest_FORM_points() end
+       if MOUSE_clickhold_under_gui_rect(pat_len_xywh_buttons_t,8) == true then pat_len_values_t = {0, 0, 1} ENGINE2_get_dest_FORM_points() end
+     end      
+     ----- PATTERN EDGE -----
+     if pat_edge_xywh_buttons_t ~= nil then
+       if MOUSE_clickhold_under_gui_rect(pat_edge_xywh_buttons_t,0) == true then pat_edge_values_t = {1, 0} ENGINE2_get_dest_FORM_points() end
+       if MOUSE_clickhold_under_gui_rect(pat_edge_xywh_buttons_t,4) == true then pat_edge_values_t = {0, 1} ENGINE2_get_dest_FORM_points() end
      end      
      ----- USE VELOCITY ------       
      if use_vel_xywh_buttons_t ~= nil then
