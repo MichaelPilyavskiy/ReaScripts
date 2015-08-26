@@ -1,27 +1,24 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.56 (beta)"
+ vrs = "0.6 (beta)"
 
  --------------------
  ---- To Do list ----
  --------------------
- 
- -- generate pattern engine
  
  -- bar / beat grid on gui display 
  -- lmb click on grid add groove point
  -- rmb click on grid delete groove point
  -- quantize/get groove tempo envelope
  -- presets store/recall
- -- prevent transient quantize
+ -- prevent transients stretch markers quantize
  -- create objects
  -- font size option
  -- hold MMB move grid / scroll zoom grid
- -- get only selected notes as reference optiion
- -- multiply/divide pattern length by 2
  -- add pattern edges
  -- about button
  -- getset ref pitch/pan from itemtakes notes and env points
  -- popup start/end time in display
+ -- load/save pattern
  
  
  
@@ -30,8 +27,7 @@
  --------------------
  
  -- stretch markers bug: http://forum.cockos.com/project.php?issueid=5647
- -- stretch markers quantize DOES NOT work when Item Loop Source is ON
- 
+ -- stretch markers quantize DOES NOT work when Item Loop Source is ON 
  
  
  --------------------
@@ -49,7 +45,8 @@
          
          
     .."Changelog:".."\n"
-    .."  25.08.2015 - 0.56 quantize stretchmarkers func new build".."\n"
+    .."  26.08.2015 - 0.6 generate pattern grid engine, pattern length".."\n"    
+    .."  26.08.2015 - 0.56 quantize stretchmarkers func new build".."\n"
     .."  25.08.2015 - 0.55 quantize notes/selected notes improvements".."\n"
     .."  17.08.2015 - 0.542 gravity improvements, main quantize engine updates".."\n" 
     .."  17.08.2015 - 0.5 a lot of structure, GUI and logic improvements".."\n" 
@@ -101,23 +98,29 @@
  --------------------------------------------------------------------------------------------------------------- 
   
  function DEFINE_default_variables() 
-   restore_button_state = false
-     
-   snap_mode_values_t = {1,0} 
+   
+     -- preset area --
+   snap_mode_values_t = {0,1} 
+   pat_len_values_t = {1,0,0}
    use_vel_values_t = {1,0} 
    sel_notes_mode_values_t = {0,1}
    
-   snap_area_values_t = {1,0}
+   snap_area_values_t = {0,1}
    snap_dir_values_t = {0,1,0}
    swing_scale_values_t = {0,1}
    sel_notes_mode2_values_t = {0,1}
    
-   if snap_mode_values_t[2] == 1 then  quantize_ref_values_t = {0, 0, 0, 0, 1, 0} else quantize_ref_values_t = {0, 0, 0, 0} end
+ 
+     -- end preset area --
+  
    
-   quantize_dest_values_t = {0, 0, 0, 0}
    
+   
+   restore_button_state = false
    options_button_state = false
-   
+   if snap_mode_values_t[2] == 1 then  quantize_ref_values_t = {0, 0, 0, 0, 0, 1} else quantize_ref_values_t = {0, 0, 0, 0} end
+   quantize_dest_values_t = {0, 0, 0, 0}
+    
    count_reference_item_positions = 0
    count_reference_sm_positions = 0
    count_reference_ep_positions = 0
@@ -130,13 +133,13 @@
    
    grid_value = 0
    swing_value = 0
-   strenght_value = 0
+   strenght_value = 1
    gravity_value = 0.2
    gravity_mult_value = 1 -- second
    use_vel_value = 0
    swing_scale = 0.5
    
-   pattern_len = 1 -- bar
+   
    
  end
  
@@ -149,8 +152,13 @@
    
    grid_beats, grid_string, project_grid_measures, project_grid_cml = GET_grid()
    
+   if pat_len_values_t[1] == 1 then  pattern_len = 1 end -- bar  
+   if pat_len_values_t[2] == 1 then  pattern_len = 2 end 
+   if pat_len_values_t[3] == 1 then  pattern_len = 4 end 
+   
    -- default states for menus --
    snap_mode_menu_names_t = {"Snap reference mode:", "Global (timeline)","Local (pattern)"}
+   pat_len_menu_names_t = {"Pattern length:", "1 bar","2 bars", "4 bars"}
    use_vel_menu_names_t = {"Ref. velocity:", "<   Use velocity / gain / point value ("..(math.ceil(math.round(use_vel_value*100,1))).."%)   >", "Don`t use"}
    sel_notes_mode_menu_names_t = {"Ref. notes:", "Get selected only","Get all notes in selected item"}
    
@@ -188,7 +196,7 @@
    quantize_dest_menu_ep_name = "Envelope points ("..count_dest_ep_positions..")" 
    quantize_dest_menu_notes_name = "Notes ("..count_dest_notes_positions..")" 
    
-   quantize_dest_menu_names_t = {"Objects to quantize:",quantize_dest_menu_item_name, quantize_dest_menu_sm_name,
+   quantize_dest_menu_names_t = {"Select objects to quantize:",quantize_dest_menu_item_name, quantize_dest_menu_sm_name,
                                 quantize_dest_menu_ep_name, quantize_dest_menu_notes_name} 
    
    if quantize_ref_values_t[5] == 1 or quantize_ref_values_t[6] == 1 then
@@ -236,8 +244,9 @@
   
   -- menus -- 
   snap_mode_menu_xywh_t = {x_offset, y_offset, width1, heigth2}
-  use_vel_menu_xywh_t = {x_offset, y_offset+20, width1, heigth2}
-  sel_notes_mode_menu_xywh_t = {x_offset, y_offset+40, width1, heigth2}
+  pat_len_menu_xywh_t = {x_offset, y_offset+20, width1, heigth2}
+  use_vel_menu_xywh_t = {x_offset, y_offset+40, width1, heigth2}
+  sel_notes_mode_menu_xywh_t = {x_offset, y_offset+60, width1, heigth2}
   
   snap_area_menu_xywh_t = {x_offset, 150, width1, heigth2}
   snap_dir_menu_xywh_t = {x_offset, snap_area_menu_xywh_t[2]+snap_area_menu_xywh_t[4]+beetween_menus2, width1, heigth2}  
@@ -415,16 +424,16 @@
   
 function GUI_display_pos (pos, rgba_t, align, val)  
    if val == nil or val > 1 then val = 1 end   
-   if snap_mode_values_t[2] == 1 then -- if pattern mode   
-     pos_beats, pos_measure  = reaper.TimeMap2_timeToBeats(0, pos)
-     pos_norm_pos = (pos_beats / project_grid_cml + (pos_measure % pattern_len) ) / pattern_len     
-     x1 = display_rect_xywh_t[1] + display_rect_xywh_t[3] *  (pos_norm_pos - display_start) / (display_end - display_start)
+   
+  --[[if snap_mode_values_t[2] == 1 then -- if pattern mode        
+     pat_len_position = reaper.TimeMap2_beatsToTime(0, 0, pattern_len-1)     
+     x1 = display_rect_xywh_t[1] + (display_rect_xywh_t[3] * (pos / pat_len_position))   
    end
    
    
-   if snap_mode_values_t[1] == 1 then -- if global  
+   if snap_mode_values_t[1] == 1 then -- if global  ]]
       x1 = display_rect_xywh_t[1] + display_rect_xywh_t[3] *   (pos / max_object_position)   
-   end
+--   end
    
    if align == "full" then
      y1 = display_rect_xywh_t[2]
@@ -444,7 +453,7 @@ function GUI_display_pos (pos, rgba_t, align, val)
    gfx.x = x1
    gfx.y = y1
    gfx.r, gfx.g, gfx.b, gfx.a = rgba_t[1], rgba_t[2], rgba_t[3], rgba_t[4]
-   if x1 > display_rect_xywh_t[1] and x1 < display_rect_xywh_t[1] + display_rect_xywh_t[3] then
+   if x1 >= display_rect_xywh_t[1] and x1 < display_rect_xywh_t[1] + display_rect_xywh_t[3] then
      gfx.line(x1, y1, x1, y2, 0.9)
    end  
 end 
@@ -632,6 +641,7 @@ end
        
       -- ref setup area --
         snap_mode_xywh_buttons_t =      GUI_menu (snap_mode_menu_xywh_t, snap_mode_menu_names_t, snap_mode_values_t, false,false,itemcolor2_t,0)
+        pat_len_xywh_buttons_t =      GUI_menu (pat_len_menu_xywh_t, pat_len_menu_names_t, pat_len_values_t, false,false,itemcolor2_t,0)
         use_vel_xywh_buttons_t =        GUI_menu (use_vel_menu_xywh_t, use_vel_menu_names_t, use_vel_values_t, false,false,itemcolor2_t,0)
           use_vel_slider_xywh_t = {use_vel_xywh_buttons_t[1], use_vel_xywh_buttons_t[2], use_vel_xywh_buttons_t[3], use_vel_xywh_buttons_t[4]}
           GUI_slider_gradient(use_vel_slider_xywh_t, "", use_vel_value, "normal")
@@ -929,7 +939,40 @@ end
          table.insert (ref_points_t, i, table_temp_val)
        end
      end
-     
+    
+    
+    -- form pattern / generate pattern grid
+           
+     if ref_points_t ~= nil and snap_mode_values_t[2] == 1 then
+        ref_points_t2 = {}--table for beats pos        
+        retval, last_measure, cml, fullbeats, cdenom = reaper.TimeMap2_timeToBeats(0, max_object_position) -- last project measure
+        first_measure = last_measure --start value  for loop
+        for i = 1, #ref_points_t do          
+          ref_point_subt_temp = ref_points_t[i]
+          retval, measure, cml, fullbeats, cdenom = reaper.TimeMap2_timeToBeats(0, ref_point_subt_temp[1])
+          first_measure = math.min(first_measure, measure)
+        end  
+        -- if pos not bigger than fisrt item measure + pattern length , add to table
+        for i = 1, #ref_points_t do
+          ref_point_subt_temp = ref_points_t[i]          
+          retval, measure2, cml, fullbeats, cdenom = reaper.TimeMap2_timeToBeats(0, ref_point_subt_temp[1])
+          if measure2 < first_measure + pattern_len then
+            table.insert(ref_points_t2, {(retval+measure2*cml)-first_measure*cml, ref_point_subt_temp[2]})
+          end  
+        end
+        -- generate grid from ref_points_t2
+        ref_points_t = {}
+        for i=1, last_measure+1, pattern_len do          
+          for j=1, #ref_points_t2 do
+            ref_points_t2_subt = ref_points_t2[j]            
+            ref_pos_time = reaper.TimeMap2_beatsToTime(0, ref_points_t2_subt[1], i-1)
+            if ref_points_t2_subt[1] > cml then
+              ref_pos_time = reaper.TimeMap2_beatsToTime(0, ref_points_t2_subt[1] - cml, i-1)
+            end  
+            table.insert(ref_points_t, {ref_pos_time, ref_points_t2_subt[2]} )
+          end  
+        end        
+     end
  end 
    
  ---------------------------------------------------------------------------------------------------------------
@@ -1201,8 +1244,7 @@ end
        end
      end   
                  
-     --[[
-     -- grid --
+     --[[ grid --
      if quantize_ref_values_t[5] == 1 then     
        for i = 1, #ref_grid_t do
          table_temp_val = ref_grid_t[i] 
@@ -1216,8 +1258,8 @@ end
          table_temp_val = ref_swing_grid_t[i]
          table.insert (ref_points_t, i, table_temp_val)
        end
-     end
-     ]]
+     end]]
+     
  end 
  
  ---------------------------------------------------------------------------------------------------------------
@@ -1670,7 +1712,9 @@ end
    if snap_mode_values_t[2] == 1 then 
      if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,0) == true then 
        quantize_ref_values_t = {1, 0, 0, 0, 0, 0} 
-       count_reference_item_positions = ENGINE1_get_reference_item_positions() 
+       ENGINE1_get_reference_item_positions()
+       if ref_points_t ~= nil then count_reference_item_positions = #ref_points_t2 else count_reference_item_positions = 0 end
+       
        ENGINE1_get_reference_FORM_points() end
      if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,4) == true then 
        quantize_ref_values_t = {0, 1, 0, 0, 0, 0} 
@@ -1703,6 +1747,7 @@ end
         if swing_grid_value_slider_xywh_t ~= nil then swing_value = ((mx - swing_grid_value_slider_xywh_t[1])/swing_grid_value_slider_xywh_t[3])*2-1 end
         ENGINE1_get_reference_swing_grid()
         ENGINE1_get_reference_FORM_points()
+        ENGINE3_quantize_objects()
       else
         display_swing_value_slider = false
      end -- lb mouse on swing
@@ -1786,6 +1831,12 @@ end
        if MOUSE_clickhold_under_gui_rect(snap_mode_xywh_buttons_t,0) == true then snap_mode_values_t = {1, 0} quantize_ref_values_t = {0, 0, 0, 0} end
        if MOUSE_clickhold_under_gui_rect(snap_mode_xywh_buttons_t,4) == true then snap_mode_values_t = {0, 1} quantize_ref_values_t = {0, 0, 0, 0, 1, 0} end
      end  
+     ----- PATTERN LENGTH -----
+     if pat_len_xywh_buttons_t ~= nil then
+       if MOUSE_clickhold_under_gui_rect(pat_len_xywh_buttons_t,0) == true then pat_len_values_t = {1, 0, 0} end
+       if MOUSE_clickhold_under_gui_rect(pat_len_xywh_buttons_t,4) == true then pat_len_values_t = {0, 1, 0} end
+       if MOUSE_clickhold_under_gui_rect(pat_len_xywh_buttons_t,8) == true then pat_len_values_t = {0, 0, 1} end
+     end      
      ----- USE VELOCITY ------       
      if use_vel_xywh_buttons_t ~= nil then
        if MOUSE_clickhold_under_gui_rect(use_vel_xywh_buttons_t,0) == true then use_vel_values_t = {1, 0} end
