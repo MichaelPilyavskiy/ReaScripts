@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.63 (beta)"
+ vrs = "0.64 (beta)"
 
  --------------------
  ---- To Do list ----
@@ -43,7 +43,7 @@
          
          
     .."Changelog:".."\n"
-    .."  26.08.2015 - 0.63 generate pattern grid engine, pattern length, gui improvements".."\n"    
+    .."  26.08.2015 - 0.64 generate pattern grid engine, pattern length, gui improvements, grid string bug".."\n"    
     .."  26.08.2015 - 0.56 quantize stretchmarkers func new build".."\n"
     .."  25.08.2015 - 0.55 quantize notes/selected notes improvements".."\n"
     .."  17.08.2015 - 0.542 gravity improvements, main quantize engine updates".."\n" 
@@ -270,6 +270,7 @@
   
   -- buttons --
   options_button_xywh_t = {x_offset+width1+gui_offset, y_offset, main_w - width1 - gui_offset*3, main_h-gui_offset*2 }
+  about_button_xywh_t = {x_offset, y_offset+main_h - 30, width1, 20}
   
  end
  
@@ -637,7 +638,8 @@ end
    -- options page --
    ------------------
    
-     if options_button_state == true then     
+     if options_button_state == true then    
+       -- background blur 
        for i = 1, 6 do
          gfx.x, gfx.y = 0,0
          gfx.blurto(gui_offset*2+width1,main_h)
@@ -672,6 +674,10 @@ end
         swing_scale_xywh_buttons_t =    GUI_menu (swing_scale_menu_xywh_t,  swing_scale_menu_names_t, swing_scale_values_t, false,false,itemcolor2_t,0)
         sel_notes_mode2_xywh_buttons_t =      GUI_menu (sel_notes_mode2_menu_xywh_t, sel_notes_mode2_menu_names_t, sel_notes_mode2_values_t, false,false,itemcolor2_t,0)
         
+      -- about button
+      
+       GUI_button(about_button_xywh_t, "About","About")
+         
      end -- if options page on
      
    ------------------  
@@ -719,7 +725,7 @@ end
        grid_beats = custom_grid_beats_t[custom_grid_beats_i]
      end   
      grid_divider = math.ceil(math.round(4/grid_beats, 1))
-     grid_string = "1/"..grid_divider
+     grid_string = "1/"..math.ceil(grid_divider*0.5)
      if grid_divider % 3 == 0 then grid_string = "1/"..math.ceil(grid_divider/3*2).."T" end
     else
      grid_string = "error"
@@ -1433,7 +1439,7 @@ end
             count_sm = reaper.GetTakeNumStretchMarkers(take)
             if count_sm ~= nil then
               for j = 1 , count_sm do
-                reaper.DeleteTakeStretchMarkers(take, j-1)
+                reaper.DeleteTakeStretchMarkers(take, j)
               end
             end            
           end  
@@ -1459,7 +1465,7 @@ end
             count_sm = reaper.GetTakeNumStretchMarkers(take)
             if count_sm ~= nil then
               for j = 1 , count_sm do
-                reaper.DeleteTakeStretchMarkers(take, j-1)
+                reaper.DeleteTakeStretchMarkers(take, j)
               end
             end            
           end  
@@ -1927,6 +1933,9 @@ end
        if MOUSE_clickhold_under_gui_rect(sel_notes_mode2_xywh_buttons_t,0) == true then sel_notes_mode2_values_t = {1, 0} end
        if MOUSE_clickhold_under_gui_rect(sel_notes_mode2_xywh_buttons_t,4) == true then sel_notes_mode2_values_t = {0, 1} end
      end
+     
+     -- ABOUT BUTTON --
+     if MOUSE_clickhold_under_gui_rect(about_button_xywh_t,0) == true then reaper.ShowConsoleMsg(about) end
          
    end -- if options page on
    
@@ -1961,108 +1970,3 @@ end
  DEFINE_default_variables()
  DEFINE_default_variables_GUI()  
  MAIN_run()
-  
----------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------
-  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- --[[ 
-function oldGUI_fill_slider(object_coord_t, var, center, a2)
-  a1 = 0.2
-  if a2 == nil then a2 = 0.3  end
-  x = object_coord_t[1]
-  y = object_coord_t[2]
-  w = object_coord_t[3]
-  h = object_coord_t[4]
-  gfx.a = show_gui_help
-  gfx.roundrect(x, y, w, h,0.1,true)
-  if center == false then
-    gfx.r, gfx.g, gfx.b = 1, 1, 1  
-    gfx.x = x
-    y1 = y + h
-    for i = 1, w*var/100, 1 do 
-      a = math.abs(math.abs(i/w*var/100 - 1) - 1) * a2
-      gfx.a = a
-      gfx.line(x+i,y, x+i, y1) 
-    end    
-    gfx.a = a1         
-   else   
-    gfx.r, gfx.g, gfx.b = 1, 1, 1      
-    gfx.x = x
-    y1 = y + h
-    for i = 1, w*var/250, 1 do 
-     a = math.abs(i*10/w/2*var/200 - 1) * a2
-     gfx.a = a     
-     gfx.line(x + w/2+i,y, x + w/2+i, y1) 
-    end    
-    gfx.a = a1     
-    gfx.r, gfx.g, gfx.b = 1, 1, 1      
-    gfx.x = x
-    y1 = y + h
-    for i = 1, w*var/250, 1 do 
-    a = math.abs(i*10/w/2*var/200 - 1) * a2
-    gfx.a = a     
-    gfx.line(x + w/2-i+1,y, x + w/2-i+1, y1) 
-    end    
-    gfx.a = a1 
-  end  
-end
-
-
----------------------------------------------------------------------------------------------------------------
-       
-function oldMOUSE_toggleclick_under_gui_rect (object_coord_t, offset, time) 
-  if gfx.mouse_cap == 1 then LB_DOWN = 1 else LB_DOWN = 0 end   
-  if gfx.mouse_cap == 1 and cur_time  - set_click_time > time  then  
-    LB_DOWN = 1
-    set_click_time = cur_time
-   else 
-    LB_DOWN = 0      
-  end  
-  
-  if offset == nil then offset = 0 end
-  x = object_coord_t[1+offset]
-  y = object_coord_t[2+offset]
-  w = object_coord_t[3+offset]
-  h = object_coord_t[4+offset]
-  if LB_DOWN == 1 -- mouse on swing
-   and mx > x
-   and mx < x + w
-   and my > y 
-   and my < y + h then       
-    return true
-  end  
-end 
-
-
-
---reaper.APITest()
---reaper.ShowConsoleMsg("")
-
-]]
