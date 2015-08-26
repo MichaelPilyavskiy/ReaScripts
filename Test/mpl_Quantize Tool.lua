@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.64 (beta)"
+ vrs = "0.65 (beta)"
 
  --------------------
  ---- To Do list ----
@@ -43,7 +43,7 @@
          
          
     .."Changelog:".."\n"
-    .."  26.08.2015 - 0.64 generate pattern grid engine, pattern length, gui improvements, grid string bug".."\n"    
+    .."  26.08.2015 - 0.65 generate pattern grid engine, pattern length, gui improvements, grid string bug".."\n"    
     .."  26.08.2015 - 0.56 quantize stretchmarkers func new build".."\n"
     .."  25.08.2015 - 0.55 quantize notes/selected notes improvements".."\n"
     .."  17.08.2015 - 0.542 gravity improvements, main quantize engine updates".."\n" 
@@ -269,7 +269,7 @@
   apply_slider_xywh_t = {x_offset, display_rect_xywh_t[2]+display_rect_xywh_t[4]+beetween_menus2, width1, heigth4}  
   
   -- buttons --
-  options_button_xywh_t = {x_offset+width1+gui_offset, y_offset, main_w - width1 - gui_offset*3, main_h-gui_offset*2 }
+  options_button_xywh_t = {x_offset+width1+gui_offset, 0, main_w - width1 - gui_offset*2, main_h }
   about_button_xywh_t = {x_offset, y_offset+main_h - 30, width1, 20}
   
  end
@@ -428,15 +428,15 @@
 function GUI_display_pos (pos, rgba_t, align, val)  
    if val == nil or val > 1 then val = 1 end   
    
-  --[[if snap_mode_values_t[2] == 1 then -- if pattern mode        
-     pat_len_position = reaper.TimeMap2_beatsToTime(0, 0, pattern_len-1)     
+  if snap_mode_values_t[2] == 1 then -- if pattern mode        
+     pat_len_position = reaper.TimeMap2_beatsToTime(0, 0, pattern_len)     
      x1 = display_rect_xywh_t[1] + (display_rect_xywh_t[3] * (pos / pat_len_position))   
    end
    
    
    if snap_mode_values_t[1] == 1 then -- if global  ]]
       x1 = display_rect_xywh_t[1] + display_rect_xywh_t[3] *   (pos / max_object_position)   
---   end
+   end
    if align == "centered" then
      y1 = display_rect_xywh_t[2] + display_rect_xywh_t[4]/2 - (display_rect_xywh_t[4]*0.5)*val
      y2 = display_rect_xywh_t[2] + display_rect_xywh_t[4]/2 + (display_rect_xywh_t[4]*0.5)*val
@@ -505,7 +505,7 @@ end
    end 
    
    -- bars
-   for i = 0,  last_measure do
+   for i = 0,  last_measure+16 do
      bar_time = reaper.TimeMap2_beatsToTime(0, 0, i)
      GUI_display_pos(bar_time, bar_points_rgba_t, "centered", 0.5)
      for j = 1, cml-1 do
@@ -989,7 +989,7 @@ end
         end
         -- generate grid from ref_points_t2
         ref_points_t = {}
-        for i=1, last_measure+8, pattern_len do          
+        for i=1, last_measure+16, pattern_len do          
           for j=1, #ref_points_t2 do
             ref_points_t2_subt = ref_points_t2[j]            
             ref_pos_time = reaper.TimeMap2_beatsToTime(0, ref_points_t2_subt[1], i-1)
