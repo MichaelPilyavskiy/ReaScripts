@@ -107,8 +107,7 @@
    snap_area_values_t = {0,1}
    snap_dir_values_t = {0,1,0}
    swing_scale_values_t = {0,1}
-   sel_notes_mode2_values_t = {0,1}
-   
+   sel_notes_mode2_values_t = {0,1}   
  
      -- end preset area --
   
@@ -228,7 +227,7 @@
   gui_help = 0.0  
   font = "Arial"
   fontsize_menu_name  = 16
-  fontsize_menu_item = 15
+  fontsize_menu_item = fontsize_menu_name-1
   itemcolor1_t = {0.4, 1, 0.4}
   itemcolor2_t = {0.5, 0.8, 1}
   frame_alpha_default = 0.05  
@@ -270,7 +269,7 @@
   
   -- buttons --
   options_button_xywh_t = {x_offset+width1+gui_offset, 0, main_w - width1 - gui_offset*2, main_h }
-  about_button_xywh_t = {x_offset, y_offset+main_h - 30, width1, 20}
+  about_button_xywh_t = {x_offset, y_offset+main_h - 30, 50, 20}
   
  end
  
@@ -571,7 +570,7 @@ end
  
 ---------------------------------------------------------------------------------------------------------------
 
- function GUI_button(xywh_t, name, name_pressed, state)
+ function GUI_button(xywh_t, name, name_pressed, state, has_frame)
    x = xywh_t[1]
    y = xywh_t[2]
    w = xywh_t[3]
@@ -587,17 +586,22 @@ end
    y0 = y + (h - fontsize_menu_name)/2
    gfx.x, gfx.y, gfx.r, gfx.g, gfx.b, gfx.a = x0,y0,0.4, 1, 0.4,0.9 
    
+  
    if state == false then 
      gfx.drawstr(name) 
      -- frame -- 
-     gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, frame_alpha_default
-     gfx.roundrect(x,y,w,h,0.1, true)
+     if has_frame == true then
+       gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, frame_alpha_default
+       gfx.roundrect(x,y,w,h,0.1, true)
+     end  
     else 
       gfx.drawstr(name_pressed) 
       -- frame -- 
-      gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, frame_alpha_selected
+     if has_frame == true then
+        gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, frame_alpha_selected
       gfx.roundrect(x,y,w,h,0.1, true)
-   end
+        end
+   end   
  end
  
 ---------------------------------------------------------------------------------------------------------------
@@ -632,7 +636,7 @@ end
    
      GUI_slider_gradient(apply_slider_xywh_t, apply_bypass_slider_name, strenght_value,"normal")
    
-     GUI_button(options_button_xywh_t, "<<", ">>", options_button_state)
+     GUI_button(options_button_xywh_t, "<<", ">>", options_button_state, true)
      
    ------------------  
    -- options page --
@@ -676,7 +680,7 @@ end
         
       -- about button
       
-       GUI_button(about_button_xywh_t, "About","About")
+       GUI_button(about_button_xywh_t, "About","About", _, true)
          
      end -- if options page on
      
