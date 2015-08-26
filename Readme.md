@@ -18,7 +18,7 @@ If you found bugs or you have some script request, you can post it in [Issues](h
 - Yandex Money 410013415541705
 - Sberbank (Maestro) 67628047 9001483373
 
-##Thank to:
+##Thanks to:
 - [X-Raym](http://forum.cockos.com/member.php?u=58284)
 - [spk77](http://forum.cockos.com/member.php?u=49553)
 - [Breeder](http://forum.cockos.com/member.php?u=27094)
