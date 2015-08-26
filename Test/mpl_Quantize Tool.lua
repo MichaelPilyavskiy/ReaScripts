@@ -1,11 +1,10 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "0.62 (beta)"
+ vrs = "0.63 (beta)"
 
  --------------------
  ---- To Do list ----
  --------------------
  
- -- bar / beat grid on gui display 
  -- lmb click on grid add groove point
  -- rmb click on grid delete groove point
  -- quantize/get groove tempo envelope
@@ -44,7 +43,7 @@
          
          
     .."Changelog:".."\n"
-    .."  26.08.2015 - 0.62 generate pattern grid engine, pattern length, gui improvements".."\n"    
+    .."  26.08.2015 - 0.63 generate pattern grid engine, pattern length, gui improvements".."\n"    
     .."  26.08.2015 - 0.56 quantize stretchmarkers func new build".."\n"
     .."  25.08.2015 - 0.55 quantize notes/selected notes improvements".."\n"
     .."  17.08.2015 - 0.542 gravity improvements, main quantize engine updates".."\n" 
@@ -135,7 +134,7 @@
    swing_value = 0
    strenght_value = 1
    gravity_value = 0.2
-   gravity_mult_value = 1 -- second
+   gravity_mult_value = 0.3 -- second
    use_vel_value = 0
    swing_scale = 0.5
    
@@ -163,7 +162,7 @@
    use_vel_menu_names_t = {"Ref. velocity:", "<   Use velocity / gain / point value ("..(math.ceil(math.round(use_vel_value*100,1))).."%)   >", "Don`t use"}
    sel_notes_mode_menu_names_t = {"Ref. notes:", "Get selected only","Get all notes in selected item"}
    
-   snap_area_menu_names_t = {"Snap area:","< Use gravity ("..(math.round(gravity_value*gravity_mult_value,2)).." sec) >","Snap everything"}
+   snap_area_menu_names_t = {"Snap area:","< Use gravity ("..(math.ceil(math.round(gravity_value*gravity_mult_value,3)*1000)).." ms) >","Snap everything"}
    snap_dir_menu_names_t =  {"Snap direction:","To previous point","To closest point","To next point"} 
    swing_scale_menu_names_t =  {"Swing scaling:","1x (100% is next grid)","0.5x (REAPER behaviour)"}
    sel_notes_mode2_menu_names_t = {"Quantize notes:", "Selected only","All notes in selected item"}
@@ -239,6 +238,7 @@
   playpos_rgba_t = {0.5, 0.5, 0, 0.8}
   ref_points_rgba_t = {0, 1, 0, 0.5}
   dest_points_rgba_t = {0.1, 0.6, 1, 1}
+  bar_points_rgba_t = {1,1,1,0.5}
   
   display_end = 1 -- 0..1
   display_start = 0 -- 0..1
@@ -250,7 +250,7 @@
   use_vel_menu_xywh_t = {x_offset, y_offset+60, width1, heigth2}
   sel_notes_mode_menu_xywh_t = {x_offset, y_offset+80, width1, heigth2}
   
-  snap_area_menu_xywh_t = {x_offset, 150, width1, heigth2}
+  snap_area_menu_xywh_t = {x_offset, y_offset+110, width1, heigth2}
   snap_dir_menu_xywh_t = {x_offset, snap_area_menu_xywh_t[2]+snap_area_menu_xywh_t[4]+beetween_menus2, width1, heigth2}  
   swing_scale_menu_xywh_t = {x_offset,  snap_dir_menu_xywh_t[2]+snap_dir_menu_xywh_t[4]+beetween_menus2, width1, heigth2}
   sel_notes_mode2_menu_xywh_t = {x_offset, swing_scale_menu_xywh_t[2]+swing_scale_menu_xywh_t[4]+beetween_menus2, width1, heigth2}
@@ -259,7 +259,7 @@
   quantize_dest_menu_xywh_t = {x_offset+width1/2+gui_offset, y_offset, width1/2-gui_offset , y_offset1-y_offset}
 
   -- options areas --
-  ref_options_area_xywh_t = {x_offset, snap_mode_menu_xywh_t[2],width1, 100}
+  ref_options_area_xywh_t = {x_offset, snap_mode_menu_xywh_t[2],width1, 105}
   quantize_options_area_xywh_t = {x_offset, snap_area_menu_xywh_t[2],width1, 100}  
   
   -- frames --
@@ -436,7 +436,10 @@ function GUI_display_pos (pos, rgba_t, align, val)
    if snap_mode_values_t[1] == 1 then -- if global  ]]
       x1 = display_rect_xywh_t[1] + display_rect_xywh_t[3] *   (pos / max_object_position)   
 --   end
-   
+   if align == "centered" then
+     y1 = display_rect_xywh_t[2] + display_rect_xywh_t[4]/2 - (display_rect_xywh_t[4]*0.5)*val
+     y2 = display_rect_xywh_t[2] + display_rect_xywh_t[4]/2 + (display_rect_xywh_t[4]*0.5)*val
+   end   
    if align == "full" then
      y1 = display_rect_xywh_t[2]
      y2 = display_rect_xywh_t[2] + display_rect_xywh_t[4]
@@ -498,7 +501,17 @@ end
        if dest_point[2] == nil then val = 1 else val = dest_point[2] end
        GUI_display_pos(dest_point[1], dest_points_rgba_t, "bottom", val)
      end
-   end    
+   end 
+   
+   -- bars
+   for i = 0,  last_measure do
+     bar_time = reaper.TimeMap2_beatsToTime(0, 0, i)
+     GUI_display_pos(bar_time, bar_points_rgba_t, "centered", 0.5)
+     for j = 1, cml-1 do
+       beat_time = reaper.TimeMap2_beatsToTime(0, j, i)
+       GUI_display_pos(beat_time, bar_points_rgba_t, "centered", 0.3)
+     end     
+   end  
  end  
  
 ---------------------------------------------------------------------------------------------------------------
@@ -948,7 +961,7 @@ end
            
      if ref_points_t ~= nil and snap_mode_values_t[2] == 1 then
         ref_points_t2 = {}--table for beats pos        
-        retval, last_measure, cml, fullbeats, cdenom = reaper.TimeMap2_timeToBeats(0, max_object_position) -- last project measure
+         -- last project measure
         first_measure = last_measure --start value  for loop
         for i = 1, #ref_points_t do          
           ref_point_subt_temp = ref_points_t[i]
@@ -1030,6 +1043,7 @@ function GET_project_len()
   retval, measuresOut, cml = reaper.TimeMap2_timeToBeats(0, max_object_position)
   max_object_position = reaper.TimeMap2_beatsToTime(0, 0, measuresOut)
   if max_object_position == nil then max_object_position = 0 end
+  retval, last_measure, cml, fullbeats, cdenom = reaper.TimeMap2_timeToBeats(0, max_object_position)
 end
   
  ---------------------------------------------------------------------------------------------------------------
@@ -1075,7 +1089,7 @@ end
               for j = 1, count_stretch_markers,1 do
                 retval, posOut, srcpos = reaper.GetTakeStretchMarker(take, j-1)
                 dest_sm_subt = {take_guid, posOut, srcpos, item_pos, takerate, item_len}
-                if posOut ~= 0 or posOut ~= item_len then
+                if posOut > 0 and posOut < item_len-0.00001 then
                   table.insert(dest_sm_t, dest_sm_subt)
                 end  
               end -- loop takes  
