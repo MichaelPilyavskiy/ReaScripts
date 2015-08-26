@@ -10,8 +10,11 @@ If you wanna download scripts on this repo:
 
 ##Bugs and requests
 If you found bugs or you have some script request, you can post it in [Issues](https://github.com/MichaelPilyavskiy/ReaScripts/issues) or write me directly:
-- https://vk.com/michael_pilyavskiy
-- https://soundcloud.com/mp57
+- [VK](https://vk.com/michael_pilyavskiy)
+- [SoundCloud](https://soundcloud.com/mp57)
+- [Cockos Forum](http://forum.cockos.com/member.php?u=70694)
+- [RMM forum](http://rmmedia.ru/members/69811/)
+- [PromoDJ](http://promodj.com/michaelpilyavskiy)
 
 ##Donations:
 - QIWI +79102035901
