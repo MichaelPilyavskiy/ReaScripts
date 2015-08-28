@@ -1,4 +1,6 @@
 script_title = "Duplicate selected notes"
+-- Alternative to internal duplicate action which is buggy especially with multichannel midi
+
 reaper.Undo_BeginBlock()
 
 notes_2_copy_t = {}  
