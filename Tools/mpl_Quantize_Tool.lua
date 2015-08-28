@@ -31,7 +31,7 @@ about = "Quantize tool by Michael Pilyavskiy ".."\n"..
          
     .."Changelog:".."\n"
     .."  28.08.2015 - 1.0 Public release".."\n"
-    .."  28.08.2015 - 0.7 todo list and bugs, ru/en manual,".."\n"
+    .."  28.08.2015 - 0.7 todo list and bugs, en manual,".."\n"
     .."            str markers relative mode".."\n"        
     .."  26.08.2015 - 0.68 relative sm reference mode, help button".."\n"
     .."  26.08.2015 - 0.67 generate pattern grid engine, pattern length,".."\n"
