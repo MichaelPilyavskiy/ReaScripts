@@ -1,4 +1,4 @@
--- Michael Pilyavskiy: Unlock items for 30 seconds
+-- Michael Pilyavskiy: Unlock all items for 30 seconds
 
 time = 30 -- time in seconds you need for pause
 
