@@ -15,6 +15,7 @@ if midi_editor ~= nil then
     notecnt = reaper.FNG_CountMidiNotes(FNG_take)
     if notecnt ~= nil then
       notes_2_copy_t = {}
+      end_note_ppq_all = 0
       for i=1, notecnt do
         FNG_note = reaper.FNG_GetMidiNote(FNG_take, i-1)
         FNG_note_sel = reaper.FNG_GetMidiNoteIntProperty(FNG_note,"SELECTED")
@@ -27,6 +28,7 @@ if midi_editor ~= nil then
         if FNG_note_sel == 1 then          
           table.insert(notes_2_copy_t, {FNG_note_mute, FNG_note_pos,FNG_note_len,FNG_note_chan, FNG_note_pitch, FNG_note_vel})
         end
+        end_note_ppq_all = math.max(end_note_ppq_all,FNG_note_pos+FNG_note_len)
       end
     end 
     
@@ -46,7 +48,8 @@ if midi_editor ~= nil then
     time_of_measure = reaper.TimeMap2_beatsToTime(0, 0, 1)
     measure_ppq = reaper.MIDI_GetPPQPosFromProjTime(take, time_of_measure+ item_pos)
     adjust_ppq = measure_ppq * (measures+1)
-    
+    end_note_ppq = math.max(max_ppq + adjust_ppq, end_note_ppq_all)
+    end_note_ppq_time = reaper.MIDI_GetProjTimeFromPPQPos(take, end_note_ppq)  - item_pos
         
     -- deselect other notes --
     notecnt = reaper.FNG_CountMidiNotes(FNG_take)
@@ -61,12 +64,12 @@ if midi_editor ~= nil then
     --------------------------------------------------------------
       
     -- adjust item edges  
-    if notes_2_copy_t ~= nil then  
-      last_copied_note_pos = reaper.MIDI_GetProjTimeFromPPQPos(take, (max_ppq + adjust_ppq)) - item_pos       
-      if last_copied_note_pos > item_len then
-        reaper.ApplyNudge(0, 0, 3, 16, measures+1, false, 1)
-        reaper.UpdateItemInProject(item)
+    if notes_2_copy_t ~= nil then    
+      
+      if end_note_ppq_time > item_len then
+        reaper.ApplyNudge(0, 0, 3, 16, 1, false, 1)          
       end  
+      reaper.UpdateItemInProject(item)    
     end    
     
     --------------------------------------------------------------
