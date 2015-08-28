@@ -1,15 +1,5 @@
 script_title = "Smart duplicate notes"
 
--- There is a bug or something in MIDI Editor API.
--- When you run this script and dont close  every time you duplicate notes,
--- last selected note inserted until event length reached or inserted with 1 tick lenght.
--- Also when you already copied notes and want to move midi item edge, 
--- end of last selected note is snapping to this edge.
-
--- So to prevent this bug: run this script, 
--- then click on any space of midi editor to "update" it, 
--- and then run script again (if you need).
-
 reaper.Undo_BeginBlock()
 
 midi_editor = reaper.MIDIEditor_GetActive()
@@ -72,8 +62,8 @@ if midi_editor ~= nil then
       
     -- adjust item edges  
     if notes_2_copy_t ~= nil then  
-      item_len2 = reaper.MIDI_GetProjTimeFromPPQPos(take, (max_ppq+adjust_ppq)*(measures+1))
-      if item_len2 > item_len then
+      last_copied_note_pos = reaper.MIDI_GetProjTimeFromPPQPos(take, (max_ppq + adjust_ppq)) - item_pos       
+      if last_copied_note_pos > item_len then
         reaper.ApplyNudge(0, 0, 3, 16, measures+1, false, 1)
         reaper.UpdateItemInProject(item)
       end  
