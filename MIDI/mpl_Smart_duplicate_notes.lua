@@ -67,7 +67,7 @@ if midi_editor ~= nil then
     if notes_2_copy_t ~= nil then    
       
       if end_note_ppq_time > item_len then
-        reaper.ApplyNudge(0, 0, 3, 16, 1, false, 1)          
+        reaper.ApplyNudge(0, 0, 3, 16, measures+1, false, 1)          
       end  
       reaper.UpdateItemInProject(item)    
     end    
