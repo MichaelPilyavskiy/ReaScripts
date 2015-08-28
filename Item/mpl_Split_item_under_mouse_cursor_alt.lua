@@ -1,4 +1,4 @@
--- if no items are selected, nothing happend (Preferences/Editing behaviour)
+-- Always split only item under mouse cursor (without snap)
 
 window, segment, details = reaper.BR_GetMouseCursorContext()
 if details == "item" then 
