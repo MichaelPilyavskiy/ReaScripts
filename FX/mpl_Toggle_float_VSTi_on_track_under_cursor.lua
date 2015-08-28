@@ -1,4 +1,4 @@
-script_title = "Toggle float VSTi under mouse cursor, show 'add fx' window if not exists"
+script_title = "Toggle float VSTi on track under mouse cursor, show 'add fx' window if not exists"
 reaper.Undo_BeginBlock()
 
 window, segment, details = reaper.BR_GetMouseCursorContext()
