@@ -1,10 +1,8 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "1.01"
+ vrs = "1.02"
 
 todobugs = 
-[===[ 
-To do list / requested features:
-  -- sliders fine
+[===[ To do list / requested features:
   -- quantize note end
   -- quantize note position only
   -- lmb click on grid add groove point
@@ -19,7 +17,6 @@ To do list / requested features:
   -- load/save pattern
  
 Expected bugs which could not be fixed for this release:
-
  -- stretch markers bug: http://forum.cockos.com/project.php?issueid=5647
  -- stretch markers quantize DOES NOT work when Item Loop Source is on
  ]===]
@@ -27,16 +24,23 @@ Expected bugs which could not be fixed for this release:
 about = [===[Quantize tool by Michael Pilyavskiy
 
 Contacts:
-Soundcloud - http://soundcloud.com/mp57
-PromoDJ -  http://pdj.com/michaelpilyavskiy
-VK -  http://vk.com/michael_pilyavskiy         
-GitHub -  http://github.com/MichaelPilyavskiy/ReaScripts
-ReaperForum - http://forum.cockos.com/member.php?u=70694         
+            Soundcloud - http://soundcloud.com/mp57
+            PromoDJ -  http://pdj.com/michaelpilyavskiy
+            VK -  http://vk.com/michael_pilyavskiy         
+            GitHub -  http://github.com/MichaelPilyavskiy/ReaScripts
+            ReaperForum - http://forum.cockos.com/member.php?u=70694
+         
+Donation (as I know it is for russians only, I don`t really know 
+a good service for donations around the world):
+            QIWI +79102035901
+            Yandex Money 410013415541705
+            Sberbank (Maestro) 67628047 9001483373
                  
 Changelog:
-29.08.2015  1.01
+29.08.2015  1.02
             fixed info strings, thanks to heda!
             fixed error if project is empty
+            swing value support decimals (only if user type)
 28.08.2015  1.0 
             Public release      
 28.08.2015  0.7 
@@ -90,17 +94,10 @@ Changelog:
             swing engine
 23.06.2015  0.01 'swing items' idea
     
-Donation 
-(as I know it is for russians only, I don`t really know a good 
-service for donations around the world):
-        QIWI +79102035901
-        Yandex Money 410013415541705
-        Sberbank (Maestro) 67628047 9001483373
  ]===]
  
 help1 = 
-[===[ 
-1. What is it?
+[===[1. What is it?
 It`s LUA script for REAPER. I suppose you to have installed 
 last version of REAPER and SWS/S&M extension (minimum REAPER
  5.0 + SWS 2.8.0).
@@ -362,7 +359,7 @@ Michael.
    
    if custom_grid_beats_i == 0 or custom_grid_beats_i == nil then  quantize_ref_menu_grid_name = "project grid: "..grid_string 
                         else quantize_ref_menu_grid_name = "custom grid: "..grid_string end
-   quantize_ref_menu_swing_name = "swing grid "..math.ceil(swing_value*100).."%"
+      quantize_ref_menu_swing_name = "swing grid "..(swing_value*100).."%"
    
    if snap_mode_values_t[2] == 1 then        
      quantize_ref_menu_names_t = {"Reference (groove points):", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
@@ -1993,7 +1990,8 @@ end
         MOUSE_clickhold_under_gui_rect(swing_grid_value_slider_xywh_t, 0) == true then 
         quantize_ref_values_t = {0, 0, 0, 0, 0, 1} 
         display_swing_value_slider = true
-        if swing_grid_value_slider_xywh_t ~= nil then swing_value = ((mx - swing_grid_value_slider_xywh_t[1])/swing_grid_value_slider_xywh_t[3])*2-1 end
+        if swing_grid_value_slider_xywh_t ~= nil then 
+          swing_value = ((mx - swing_grid_value_slider_xywh_t[1])/swing_grid_value_slider_xywh_t[3])*2-1 end
         ENGINE1_get_reference_swing_grid()
         ENGINE1_get_reference_FORM_points()
         ENGINE3_quantize_objects()
@@ -2191,9 +2189,9 @@ end
    MOUSE_get()  
    reaper.UpdateArrange()    
    test_var(test)
-     
-   if gfx.getchar() == 27 then MAIN_exit() end     
-   if gfx.getchar() ~= -1 then reaper.defer(MAIN_run) else MAIN_exit() end
+   char = gfx.getchar()  
+   if char == 27 then MAIN_exit() end     
+   if char ~= -1 then reaper.defer(MAIN_run) else MAIN_exit() end
  end 
  
  main_w = 440
