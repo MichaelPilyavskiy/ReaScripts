@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "1.1"
+ vrs = "1.01"
 
 todobugs = 
 [===[ 
