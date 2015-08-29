@@ -1,246 +1,268 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "1.0"
+ vrs = "1.1"
 
-todo = 
-" To do list / requested features:".."\n"..
-" -- lmb click on grid add groove point".."\n"..
-" -- rmb click on grid delete groove point".."\n"..
-" -- quantize/get groove tempo envelope".."\n"..
-" -- presets store/recall".."\n"..
-" -- prevent transients stretch markers quantize".."\n"..
-" -- create objects".."\n"..
-" -- hold MMB move grid / scroll zoom grid".."\n"..
-" -- getset ref pitch/pan from itemtakes notes and env points".."\n"..
-" -- popup start/end time in display".."\n"..
-" -- load/save pattern".."\n".."\n"
+todobugs = 
+[===[ 
+To do list / requested features:
+  -- sliders fine
+  -- quantize note end
+  -- quantize note position only
+  -- lmb click on grid add groove point
+  -- rmb click on grid delete groove point
+  -- quantize/get groove tempo envelope
+  -- presets store/recall
+  -- prevent transients stretch markers quantize
+  -- create objects
+  -- hold MMB move grid / scroll zoom grid
+  -- getset ref pitch/pan from itemtakes notes and env points
+  -- popup start/end time in display
+  -- load/save pattern
  
-bugs = 
-" Expected bugs could not be fixed for this release:".."\n".. 
-" -- stretch markers bug: http://forum.cockos.com/project.php?issueid=5647".."\n"..
-" -- stretch markers quantize DOES NOT work when Item Loop Source is ON, too much conditions for this. "
+Expected bugs which could not be fixed for this release:
+
+ -- stretch markers bug: http://forum.cockos.com/project.php?issueid=5647
+ -- stretch markers quantize DOES NOT work when Item Loop Source is on
+ ]===]
  
-about = "Quantize tool by Michael Pilyavskiy ".."\n"..
-         "Version "..vrs.."\n"..
-         "\n"..
-         " -- Soundcloud -- http://soundcloud.com/mp57".."\n"..
-         " -- PromoDJ --  http://pdj.com/michaelpilyavskiy".."\n"..
-         " -- VK --  http://vk.com/michael_pilyavskiy".."\n"..         
-         " -- GitHub --  http://github.com/MichaelPilyavskiy/ReaScripts".."\n"
-         .."\n"
-         
-         
-    .."Changelog:".."\n"
-    .."  28.08.2015 - 1.0 Public release".."\n"
-    .."  28.08.2015 - 0.7 todo list and bugs, en manual,".."\n"
-    .."            str markers relative mode".."\n"        
-    .."  26.08.2015 - 0.68 relative sm reference mode, help button".."\n"
-    .."  26.08.2015 - 0.67 generate pattern grid engine, pattern length,".."\n"
-    .."            gui improvements, grid string bug, menu defaults".."\n"    
-    .."  26.08.2015 - 0.56 quantize stretchmarkers func new build".."\n"
-    .."  25.08.2015 - 0.55 quantize notes/selected notes improvements".."\n"
-    .."  17.08.2015 - 0.542 gravity improvements, main quantize engine updates".."\n" 
-    .."  17.08.2015 - 0.5 a lot of structure, GUI and logic improvements".."\n" 
-    .."  15.07.2015 - 0.152 info message when snap > 1 to prevent reaper crash".."\n" 
-    .."            ESC to close".."\n"   
-    .."  13.07.2015 - 0.141 stretch markers quantize when takerate not equal 1".."\n" 
-    .."            get groove from stretch markers when takerate not equal 1".."\n" 
-    .."            envelope points quantize engine, gui improvements".."\n"
-    .."  11.07.2015 - 0.13 swing follow bug, markers quantize engine rebuilded again...".."\n" 
-    .."  09.07.2015 - 0.12 empty type swing window, project grid option,".."\n" 
-    .."            swing linked to grid, bypass, toggle state 0.5s for mouse click".."\n" 
-    .."            str_markers quantize improvements".."\n"          
-    .."  07.07.2015 - 0.113 restore exit button, right click on swing to type swing,".."\n" 
-    .."            swing 100% is half grid, info, quantize items bug,".."\n" 
-    .."            user cancelled swing dialog, get stretch markers via srcpos,".."\n"
-    .."            centered swing".."\n"
-    .."  06.07.2015 - 0.092 gui, groove points compare bug,".."\n" 
-    .."            stretch markers get/quantize bugfixes,".."\n" 
-    .."            draw grid bug, gravity function building ".."\n"
-    .."  04.07.2015 - 0.081 swing always 1/4 bug , custom grid, fontsize = 16".."\n"        
-    .."            quantize engine improvements".."\n"
-    .."  02.07.2015 - 0.07 new gui, performance improvements...".."\n"
-    .."  01.07.2015 - 0.06 menu count numbers, strength slider, point gravity slider,".."\n"
-    .."            quantize engine basics".."\n"
-    .."  30.06.2015 - 0.05 about,get project grid".."\n"
-    .."  28.06.2015 - 0.04 get_groove function building".."\n"
-    .."  27.06.2015 - 0.03 font, back, menus".."\n"
-    .."  25.06.2015 - 0.02 gui, snap direction, swing gui fill gradient, swing engine".."\n"
-    .."  23.06.2015 - 0.01 'swing items' idea".."\n"
-    .."\n"..
+about = [===[Quantize tool by Michael Pilyavskiy
+
+Contacts:
+Soundcloud - http://soundcloud.com/mp57
+PromoDJ -  http://pdj.com/michaelpilyavskiy
+VK -  http://vk.com/michael_pilyavskiy         
+GitHub -  http://github.com/MichaelPilyavskiy/ReaScripts
+ReaperForum - http://forum.cockos.com/member.php?u=70694         
+                 
+Changelog:
+29.08.2015  1.01
+            fixed info strings, thanks to heda!
+            fixed error if project is empty
+28.08.2015  1.0 
+            Public release      
+28.08.2015  0.7 
+            todo list and bugs
+            manual
+            str markers relative mode      
+26.08.2015  0.68 
+            relative sm reference mode
+            help button
+            generate pattern grid engine
+            pattern length
+26.08.2015  0.56 
+            quantize stretchmarkers func new build
+            quantize notes/selected notes improvements
+            gravity improvements
+            main quantize engine updates 
+17.08.2015  0.5 
+            a lot of structure improvements 
+            a lot of GUI improvements 
+            a lot of logic improvements 
+15.07.2015  0.152 
+            info message when snap > 1 to prevent reaper crash
+            ESC to close
+13.07.2015  0.141 
+            quant stretch markers quantize when takerate not equal 1
+            get groove from stretch markers when takerate not equal 1 
+            envelope points quantize engine
+09.07.2015  0.12 
+            project grid option
+            swing linked to grid
+            bypass               
+07.07.2015  0.113 
+            right click on swing to type swin
+            swing 100% is half grid
+            centered swing (-+)
+04.07.2015  0.081 
+            custom grid 
+02.07.2015  0.07 
+            new gui
+01.07.2015  0.06 
+            menu count numbers
+            strength slider
+            point gravity slider
+30.06.2015  0.05 
+            about
+            get project grid
+28.06.2015  0.04 
+            get_groove function building
+25.06.2015  0.02 gui
+            snap direction
+            swing engine
+23.06.2015  0.01 'swing items' idea
     
-    "Donation (as I know it is for russians only, I don`t really know a".."\n"..
-    "good service for donations around the world):".."\n"..
-    "    QIWI +79102035901".."\n"..
-    "    Yandex Money 410013415541705".."\n"..
-    "    Sberbank (Maestro) 67628047 9001483373".."\n"..
-    "\n"
-
+Donation 
+(as I know it is for russians only, I don`t really know a good 
+service for donations around the world):
+        QIWI +79102035901
+        Yandex Money 410013415541705
+        Sberbank (Maestro) 67628047 9001483373
+ ]===]
+ 
 help1 = 
-"---------------- EN ----------------".."\n"..
-"1. What is it?".."\n"..
-"It`s LUA script for REAPER. I suppose you to have installed ".."\n"..
-"last version of REAPER and SWS/S&M extension (minimum REAPER".."\n"..
-" 5.0 + SWS 2.8.0).".."\n"..
-"\n"..
-"2. What it was created for?".."\n"..
-"It was created because of limitation of REAPER snap/grid ".."\n"..
-"settings for main arrangement, especially  around swing grid".."\n"..
-"context. Early times it was small script with simple GUI ".."\n"..
-"called 'Swing Items'. Also there was some limitations in ".."\n"..
-"Groove Tool from SWS/S&M extension, which is also very ".."\n"..
-"powerful tool. So, I decided to build something that ".."\n"..
-"combines some useful features in case of snap and groove ".."\n"..
-"contexts.".."\n"..
-"\n"..
-"3. How to use this?".."\n"..
-"Ok there is actually two windows. First window is main and ".."\n"..
-"contain one selector for objects you wanna get 'groove ".."\n"..
-"points' from and another selector for choosing object you ".."\n"..
-"wanna quantize. Second window contains settings and link to ".."\n"..
-"information about me and 'readme' info, you watching now.".."\n"..
-"\n"..
-"4. Main window.".."\n"..
-"\n"..
-"4.1.Reference section. Here we somehow get 'groove points'.".."\n"..
-"\n"..
-"4.1.1 Items. To get reference points from items select items".."\n"..
-"in your project and click on 'items'. It should show number ".."\n"..
-"of items in parentheses. You can set option if you wanna ".."\n"..
-"get items volume to apply it to destination objects ".."\n"..
-"(OptionsPage - Use Velocity).".."\n"..
-"4.1.2 Stretch Markers. To get reference points from stretch ".."\n"..
-"markers select items with stretch markers in your project ".."\n"..
-"and click on 'stretch markers'. It should show number of ".."\n"..
-"stretch markers in all selected items in parentheses. You ".."\n"..
-"can setup (OptionsPage - Ref.Str.markers) how do you wanna ".."\n"..
-"get stretch markers positions - relative to grid or relative".."\n"..
-"to bar of first item first stretch marker. ".."\n"..
-"4.1.3 Envelope Points. To get reference points from envelope".."\n"..
-"points select envelope points in any envelope (as track as ".."\n"..
-"take) and click on 'envelope points'. It should show number ".."\n"..
-"of points in parentheses. You can set option if you wanna ".."\n"..
-"get points value to apply it to destination objects ".."\n"..
-"(OptionsPage - Use Velocity).".."\n"..
-"4.1.4 Notes. To get reference points from notes select items".."\n"..
-"with notes in your project or open take in midi editor and ".."\n"..
-"select notes and click on 'notes'. It should show number of ".."\n"..
-"notes in parentheses. You can set option if you wanna get ".."\n"..
-"notes velocity to apply it to destination objects ".."\n"..
-"(OptionsPage - Use Velocity). You can also set option if ".."\n"..
-"you wanna get only selected notes in selected items or all ".."\n"..
-"notes in selected items(OptionsPage - Ref.notes).".."\n"..
-"4.1.5 Project Grid / Custom Grid - is a slider with grid ".."\n"..
-"selector. Project Grid is leftmost value. It is also apply ".."\n"..
-"button. Works only in Local (Pattern) mode.".."\n"..
-"4.1.6 Swing Grid is also a slider / apply button, so can ".."\n"..
-"listen what you swing on the fly.".."\n"..
-"\n"..
-"4.2. Destination section. Here we store objects and their ".."\n"..
-"positions.".."\n"..
-"4.2.1 Items. Select items in project you wanna quantize and ".."\n"..
-"click 'Items' button. Number of items should be shown in ".."\n"..
-"parentheses. Note, if you stored items to script, and move ".."\n"..
-"it to somewhere, after every click on 'Apply' button their ".."\n"..
-"positions and volumes will be firstly restored! This done ".."\n"..
-"to prevent feedback (store and snap->store and snap once ".."\n"..
-"again -> etc).".."\n"..
-"4.2.2 Stretch markers. Select stretch markers in item you ".."\n"..
-"wanna quantize and click 'Stretch markers' button. Number ".."\n"..
-"of stretch markers should be shown in parentheses. Note, if ".."\n"..
-"you stored stretch markers to script, and delete/move it to ".."\n"..
-"somewhere in item, after every click on 'Apply' button their".."\n"..
-"positions will be firstly restored! This done to prevent ".."\n"..
-"feedback (store and snap->store and snap once again -> etc).".."\n"..
-"Automatically set 'Use gravity' mode (check 5.2.1). Also".."\n"..
-"to be clear - be careful with stretch markers, because they".."\n"..
-"could be very buggy and even crash Reaper if you will do ".."\n"..
-"something extremely fast. Of course I will fix something ".."\n"..
-"in future, but for now just be carefull.".."\n"..
-"4.2.3 Envelope Points. Select envelope points in project ".."\n"..
-"you wanna quantize and click 'Envelope points' button. ".."\n"..
-"Number of envelope points should be shown in parentheses. ".."\n"..
-"Note, if you stored envelope points to script, and move it ".."\n"..
-"to somewhere, after every click on 'Apply' button their ".."\n"..
-"positions and values will be firstly restored! This done to ".."\n"..
-"prevent feedback (store and snap->store and snap once again ".."\n"..
-"-> etc).".."\n"..
-"4.2.4 Notes. Select notes or items with notes in project ".."\n"..
-"you wanna quantize and click 'Notes' button. Number of ".."\n"..
-"notes should be shown in parentheses. Note, if you stored ".."\n"..
-"notes to script, and move it to somewhere, after every click".."\n"..
-"on 'Apply' button their positions and velocities will be ".."\n"..
-"firstly restored! This done to prevent feedback (store and ".."\n"..
-"snap->store and snap once again -> etc).".."\n"..
-"\n"..
-"4.3 Display".."\n"..
-"\n"..
-"4.3.1 Green lines represent reference groove points and ".."\n"..
-"values (if any).4.3.2 Blue lines represent quantized objects".."\n"..
-"positions and their values (if any).".."\n"..
-"4.3.3 Bold white lines look like kick waveform represent ".."\n"..
-"bar start.".."\n"
+[===[ 
+1. What is it?
+It`s LUA script for REAPER. I suppose you to have installed 
+last version of REAPER and SWS/S&M extension (minimum REAPER
+ 5.0 + SWS 2.8.0).
 
-help2 = "4.3.3.1 Thin white lines represent beat start.".."\n"..
-"4.3.4 Yellow line is play cursor. This especially relevant ".."\n"..
-"and useful for Local (pattern) mode.".."\n"..
-"4.3.5 Red line is edit cursor. Also useful to show where ".."\n"..
-"your reference points is placed relative to pattern ".."\n"..
-"start/end.".."\n"..
-"4.4 Apply button set quantize parameters and snap objects ".."\n"..
-"positions and values (if any) to reference points. It is ".."\n"..
-"also strength slider, so if slider is 50%, snap is 50% ".."\n"..
-"stronger, 0% - nothing happened with objects, 100% solid ".."\n"..
-"snap to points.".."\n"..
-"4.5 Options button on the right corner has toggle behaviour.".."\n"..
-"Other words, it open/close page with settings.".."\n"..
-"\n"..
-"5. Options Page. Here you can set some settings.".."\n"..
-"\n"..
-"5.1 Reference settings area".."\n"..
-"\n"..
-"5.1.1 Snap reference mode. When 'Global' is selected, snap ".."\n"..
-"points is writed to the memory directly with their positions.".."\n"..
-"When pattern mode is on, script firstly convert position of ".."\n"..
-"point in seconds to position in bar/beats. When it convert ".."\n"..
-"all of reference points, if generate pattern and multiply ".."\n"..
-"this pattern to all project timeline. It is like 'new ghost ".."\n"..
-"grid generator'.".."\n"..
-"5.1.2 Pattern length. This set how much first bars reference ".."\n"..
-"points will be taken from.".."\n"..
-"5.1.3 Pattern edges. Add edges to start and end of pattern.".."\n"..
-"5.1.4 Using reference velocity. Described in 4.1.1-4.1.4.".."\n"..
-"5.1.5 How to get reference notes. Described in 4.1.4.".."\n"..
-"5.1.6 How to get reference stretch markers. Described in 4.1.2.".."\n"..
-"\n"..
-"5.2 Quantize objects settings area".."\n"..
-"\n"..
-"5.2.1 Use gravity. Automatically selected by setting stretch ".."\n"..
-"markers as destination. If this selector is on 'Use gravity', ".."\n"..
-"then objects snap to reference points only if they exists in".."\n"..
-"some area (in seconds), ehich is set by you moving built-in".."\n"..
-"slider. 'Snap everything' means every object you selected".."\n"..
-"will be snapped to reference point. Be carefull with this ".."\n"..
-"when using with stretch markers.".."\n"..
-"5.2.2 Snap direction. That means if destination object ".."\n"..
-"position is right beetween two points, it will snap to point".."\n"..
-"defined in this selector.".."\n"..
-"5.2.3 Swing scaling is made because of my previously ".."\n"..
-"misunderstanding REAPER setting of MIDI Editor, so as ".."\n"..
-"described 1x is swing 100% is next grid, 0.5x is half-grid or ".."\n"..
-"REAPER native behaviour.".."\n"..
-"5.2.4 Quantize notes. Select this if you wanna quantize all ".."\n"..
-"notes in item or only selected. You can also select notes in ".."\n"..
-"MIDI Editor, close it and select item. This also will works.".."\n"..
-"\n"..
-"5.3 Buttons".."\n"..
-"\n"..
-"5.3.1 About. Info about me, version (should be same as title),".."\n"..
-"donation links and changelog.".."\n"..
-"5.3.2 Current Help on Russian and English.".."\n"..
-"\n"..
-"Michael.".."\n"
+2. What it was created for?
+It was created because of limitation of REAPER snap/grid 
+settings for main arrangement, especially  around swing grid
+context. Early times it was small script with simple GUI 
+called "Swing Items". Also there was some limitations in 
+Groove Tool from SWS/S&M extension, which is also very 
+powerful tool. So, I decided to build something that 
+combines some useful features in case of snap and groove 
+contexts.
 
+3. How to use this?
+Ok there is actually two windows. First window is main and 
+contain one selector for objects you wanna get 'groove 
+points' from and another selector for choosing object you 
+wanna quantize. Second window contains settings and link to 
+information about me and 'readme' info, you watching now.
 
+4. Main window.
+
+4.1.Reference section. Here we somehow get 'groove points'.
+
+4.1.1 Items. To get reference points from items select items
+in your project and click on 'items'. It should show number 
+of items in parentheses. You can set option if you wanna 
+get items volume to apply it to destination objects 
+(OptionsPage - Use Velocity).
+4.1.2 Stretch Markers. To get reference points from stretch 
+markers select items with stretch markers in your project 
+and click on 'stretch markers'. It should show number of 
+stretch markers in all selected items in parentheses. You 
+can setup (OptionsPage - Ref.Str.markers) how do you wanna 
+get stretch markers positions - relative to grid or relative
+to bar of first item first stretch marker. 
+4.1.3 Envelope Points. To get reference points from envelope
+ points select envelope points in any envelope (as track as 
+take) and click on 'envelope points'. It should show number 
+of points in parentheses. You can set option if you wanna 
+get points value to apply it to destination objects 
+(OptionsPage - Use Velocity).
+4.1.4 Notes. To get reference points from notes select items
+ with notes in your project or open take in midi editor and 
+select notes and click on 'notes'. It should show number of 
+notes in parentheses. You can set option if you wanna get 
+notes velocity to apply it to destination objects 
+(OptionsPage - Use Velocity). You can also set option if 
+you wanna get only selected notes in selected items or all 
+notes in selected items(OptionsPage - Ref.notes).
+
+4.1.5 Project Grid / Custom Grid - is a slider with grid 
+selector. Project Grid is leftmost value. It is also apply 
+button. Works only in Local (Pattern) mode.
+4.1.6 Swing Grid is also a slider / apply button, so can 
+listen what you swing on the fly.
+
+4.2. Destination section. Here we store objects and their 
+positions.
+4.2.1 Items. Select items in project you wanna quantize and 
+click 'Items' button. Number of items should be shown in 
+parentheses. Note, if you stored items to script, and move 
+it to somewhere, after every click on 'Apply' button their 
+positions and volumes will be firstly restored! This done 
+to prevent feedback (store and snap->store and snap once 
+again -> etc).
+4.2.2 Stretch markers. Select stretch markers in item you 
+wanna quantize and click 'Stretch markers' button. Number 
+of stretch markers should be shown in parentheses. Note, if 
+you stored stretch markers to script, and delete/move it to 
+somewhere in item, after every click on 'Apply' button their
+positions will be firstly restored! This done to prevent 
+feedback (store and snap->store and snap once again -> etc).
+Automatically set 'Use gravity' mode (check 5.2.1). Also
+to be clear - be careful with stretch markers, because they
+could be very buggy and even crash Reaper if you will do 
+something extremely fast. Of course I will fix something 
+in future, but for now just be carefull.
+4.2.3 Envelope Points. Select envelope points in project 
+you wanna quantize and click 'Envelope points' button. 
+Number of envelope points should be shown in parentheses. 
+Note, if you stored envelope points to script, and move it 
+to somewhere, after every click on 'Apply' button their 
+positions and values will be firstly restored! This done to 
+prevent feedback (store and snap->store and snap once again 
+-> etc).
+4.2.4 Notes. Select notes or items with notes in project 
+you wanna quantize and click 'Notes' button. Number of 
+notes should be shown in parentheses. Note, if you stored 
+notes to script, and move it to somewhere, after every click
+ on 'Apply' button their positions and velocities will be 
+firstly restored! This done to prevent feedback (store and 
+snap->store and snap once again -> etc).
+
+4.3 Display
+
+4.3.1 Green lines represent reference groove points and 
+values (if any).4.3.2 Blue lines represent quantized objects
+positions and their values (if any).
+4.3.3 Bold white lines look like kick waveform represent 
+bar start.
+4.3.3.1 Thin white lines represent beat start.
+4.3.4 Yellow line is play cursor. This especially relevant 
+and useful for Local (pattern) mode.
+4.3.5 Red line is edit cursor. Also useful to show where 
+your reference points is placed relative to pattern 
+start/end.
+4.4 Apply button set quantize parameters and snap objects 
+positions and values (if any) to reference points. It is 
+also strength slider, so if slider is 50%, snap is 50% 
+stronger, 0% - nothing happened with objects, 100% solid 
+snap to points.
+4.5 Options button on the right corner has toggle behaviour.
+Other words, it open/close page with settings.
+
+5. Options Page. Here you can set some settings.
+
+5.1 Reference settings area
+
+5.1.1 Snap reference mode. When 'Global' is selected, snap 
+points is writed to the memory directly with their positions.
+When pattern mode is on, script firstly convert position of 
+point in seconds to position in bar/beats. When it convert 
+all of reference points, if generate pattern and multiply 
+this pattern to all project timeline. It is like 'new ghost 
+grid generator'.
+5.1.2 Pattern length. This set how much first bars reference 
+points will be taken from.
+5.1.3 Pattern edges. Add edges to start and end of pattern.
+5.1.4 Using reference velocity. Described in 4.1.1-4.1.4.
+5.1.5 How to get reference notes. Described in 4.1.4.
+5.1.6 How to get reference stretch markers. Described in 4.1.2.
+
+5.2 Quantize objects settings area
+
+5.2.1 Use gravity. Automatically selected by setting stretch 
+markers as destination. If this selector is on 'Use gravity', 
+then objects snap to reference points only if they exists in
+some area (in seconds), ehich is set by you moving built-in
+slider. 'Snap everything' means every object you selected
+will be snapped to reference point. Be carefull with this 
+when using with stretch markers.
+5.2.2 Snap direction. That means if destination object 
+position is right beetween two points, it will snap to point
+defined in this selector.
+5.2.3 Swing scaling is made because of my previously 
+misunderstanding REAPER setting of MIDI Editor, so as 
+described 1x is swing 100% is next grid, 0.5x is half-grid or 
+REAPER native behaviour.
+5.2.4 Quantize notes. Select this if you wanna quantize all 
+notes in item or only selected. You can also select notes in 
+MIDI Editor, close it and select item. This also will works.
+
+5.3 Buttons
+
+5.3.1 About. Info about me, version (should be same as title),
+donation links and changelog.
+5.3.2 Current Help on Russian and English.
+
+Michael.
+ ]===]
  --------------------
  ------- Code -------
  --------------------
@@ -1240,6 +1262,7 @@ function GET_project_len()
   table.sort(positions_of_objects_t)
   i_max = #positions_of_objects_t
   max_object_position = positions_of_objects_t[i_max]
+  if max_object_position == nil then max_object_position = 1 end
   retval, measuresOut, cml = reaper.TimeMap2_timeToBeats(0, max_object_position)
   max_object_position = reaper.TimeMap2_beatsToTime(0, 0, measuresOut)
   if max_object_position == nil then max_object_position = 0 end
@@ -2142,11 +2165,11 @@ end
      
      -- HELP BUTTON --
      if MOUSE_clickhold_under_gui_rect(help_button_xywh_t,0) == true then 
-     reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(help1..help2) end  
+     reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(help1) end  
      
      -- TODO BUTTON --
      if MOUSE_clickhold_under_gui_rect(todo_button_xywh_t,0) == true then 
-     reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(todo..bugs) end           
+     reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(todobugs) end           
    end -- if options page on
    
    end -- if snap >1
