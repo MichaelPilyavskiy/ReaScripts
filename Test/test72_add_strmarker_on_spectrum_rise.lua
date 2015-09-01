@@ -3,7 +3,7 @@
     
   width = 1000
   heigtht = 200
-  fft_size = 256*4
+  fft_size = 256
   gfx.init("test", width, heigtht)
 --[[function run()  
   position = reaper.GetPlayPosition()]]
@@ -20,6 +20,7 @@
       if is_midi == false then
         x = 0
         y = 0
+        fft_sum_prev = 0.0000001
         for read_pos = 0, item_len, step do
           src = reaper.GetMediaItemTake_Source(take)
           num_ch = reaper.GetMediaSourceNumChannels(src)
@@ -39,15 +40,24 @@
             --gfx.lineto(i/4,200- math.abs(audio_accessor_buffer_fft_value))
             fft_sum = fft_sum +  math.abs(audio_accessor_buffer_fft_value)
           end
-          fft_sum = fft_sum/20
+          fft_sum_current = fft_sum/2
           
           gfx.x = x
-          gfx.y = heigtht
-          gfx.lineto(x,heigtht-fft_sum)
+          gfx.y = 0
+         
+          if fft_sum_current >200 then fft_sum_current = 200 end
+          
+          gfx.lineto(x, fft_sum_current)
           x = x+10
+          
+          if fft_sum_current/fft_sum_prev > 2 then          
+            reaper.SetTakeStretchMarker(take, -1, read_pos)
+          end
+          fft_sum_prev = fft_sum_current
        end         
       end
     end
+    reaper.UpdateItemInProject(item)
   end
   
   
