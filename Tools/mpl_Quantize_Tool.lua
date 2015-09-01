@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "1.02"
+ vrs = "1.03"
 
 todobugs = 
 [===[ To do list / requested features:
@@ -37,6 +37,11 @@ a good service for donations around the world):
             Sberbank (Maestro) 67628047 9001483373
                  
 Changelog:
+01.09.2015  1.03
+            fixed swing grid tempo bug, project grid tempo bug
+            fixed -1 tick midi notes position when quantize/restore
+            cutted options button
+            fixed display issue in pattern mode
 29.08.2015  1.02
             fixed info strings, thanks to heda!
             fixed error if project is empty
@@ -330,7 +335,7 @@ Michael.
    playpos = reaper.GetPlayPosition() 
    editpos = reaper.GetCursorPosition()   
    
-   grid_beats, grid_string, project_grid_measures, project_grid_cml = GET_grid()
+   grid_beats, grid_string, project_grid_measures, project_grid_cml, grid_time, grid_bar_time = GET_grid()
    
    if pat_len_values_t[1] == 1 then  pattern_len = 1 end -- bar  
    if pat_len_values_t[2] == 1 then  pattern_len = 2 end 
@@ -381,9 +386,6 @@ Michael.
    quantize_dest_menu_names_t = {"Select objects to quantize:",quantize_dest_menu_item_name, quantize_dest_menu_sm_name,
                                 quantize_dest_menu_ep_name, quantize_dest_menu_notes_name} 
    
-   if quantize_ref_values_t[5] == 1 or quantize_ref_values_t[6] == 1 then
-     pattern_len = 1 
-   end  
    
    if restore_button_state == false then 
      apply_bypass_slider_name = "Apply (LMB) / Quantize strength slider / Restore (RMB)"end
@@ -433,7 +435,7 @@ Michael.
   sel_notes_mode_menu_xywh_t = {x_offset, y_offset+80, width1, heigth2}
   sm_rel_ref_menu_xywh_t = {x_offset, y_offset+100, width1, heigth2}
   
-  snap_area_menu_xywh_t = {x_offset, sm_rel_ref_menu_xywh_t[2]+30, width1, heigth2}
+  snap_area_menu_xywh_t = {x_offset, sm_rel_ref_menu_xywh_t[2]+35, width1, heigth2}
   snap_dir_menu_xywh_t = {x_offset, snap_area_menu_xywh_t[2]+snap_area_menu_xywh_t[4]+beetween_menus2, width1, heigth2}  
   swing_scale_menu_xywh_t = {x_offset,  snap_dir_menu_xywh_t[2]+snap_dir_menu_xywh_t[4]+beetween_menus2, width1, heigth2}
   sel_notes_mode2_menu_xywh_t = {x_offset, swing_scale_menu_xywh_t[2]+swing_scale_menu_xywh_t[4]+beetween_menus2, width1, heigth2}
@@ -446,16 +448,17 @@ Michael.
   quantize_options_area_xywh_t = {x_offset, snap_area_menu_xywh_t[2],width1, 100}  
   
   -- frames --
-  display_rect_xywh_t = {x_offset, y_offset1+gui_offset, width1, heigth3}  
+  display_rect_xywh_t = {x_offset, y_offset1+gui_offset, main_w-gui_offset*2, heigth3}  
   
   -- static slider --
-  apply_slider_xywh_t = {x_offset, display_rect_xywh_t[2]+display_rect_xywh_t[4]+beetween_menus2, width1, heigth4}  
+  apply_slider_xywh_t = {x_offset, display_rect_xywh_t[2]+display_rect_xywh_t[4]+beetween_menus2, main_w-gui_offset*2, heigth4}  
   
   -- buttons --
-  options_button_xywh_t = {x_offset+width1+gui_offset, 0, main_w - width1 - gui_offset*2, main_h }
-  about_button_xywh_t = {x_offset, y_offset+main_h - 50, 130, 40}
-  help_button_xywh_t = {x_offset + about_button_xywh_t[3] + 5, y_offset+main_h - 50, 130, 40}
-  todo_button_xywh_t = {x_offset + help_button_xywh_t[1] + help_button_xywh_t[3], y_offset+main_h - 50, 130, 40}
+  options_button_xywh_t = {x_offset+width1+gui_offset, y_offset, main_w - width1 - gui_offset*2, y_offset1-y_offset}
+  options_buttons_width = 140
+  about_button_xywh_t = {x_offset, y_offset+main_h - 50, options_buttons_width, 40}
+  help_button_xywh_t = {x_offset + about_button_xywh_t[3] + 5, y_offset+main_h - 50,options_buttons_width, 40}
+  todo_button_xywh_t = {x_offset + help_button_xywh_t[1] + help_button_xywh_t[3], y_offset+main_h - 50, options_buttons_width, 40}
  end
  
  ---------------------------------------------------------------------------------------------------------------
@@ -612,7 +615,7 @@ Michael.
 function GUI_display_pos (pos, rgba_t, align, val)  
    if val == nil or val > 1 then val = 1 end   
    
-  --[[if snap_mode_values_t[2] == 1 then -- if pattern mode        
+  if snap_mode_values_t[2] == 1 then -- if pattern mode        
      pat_len_position = reaper.TimeMap2_beatsToTime(0, 0, pattern_len)     
      x1 = display_rect_xywh_t[1] + (display_rect_xywh_t[3] * (pos / pat_len_position))   
    end
@@ -620,7 +623,7 @@ function GUI_display_pos (pos, rgba_t, align, val)
    
    if snap_mode_values_t[1] == 1 then -- if global  ]]
       x1 = display_rect_xywh_t[1] + display_rect_xywh_t[3] *   (pos / max_object_position)   
---   end
+   end
    if align == "centered" then
      y1 = display_rect_xywh_t[2] + display_rect_xywh_t[4]/2 - (display_rect_xywh_t[4]*0.5)*val
      y2 = display_rect_xywh_t[2] + display_rect_xywh_t[4]/2 + (display_rect_xywh_t[4]*0.5)*val
@@ -843,7 +846,7 @@ end
        end
        -- background + --
        gfx.r, gfx.g, gfx.b, gfx.a = 0, 0, 0, 0.8
-       gfx.rect(0,0,gui_offset*2+width1,main_h)            
+       gfx.rect(0,0,main_w,main_h)            
        
        -- areas background --
        
@@ -883,7 +886,7 @@ end
         sel_notes_mode2_xywh_buttons_t =      GUI_menu (sel_notes_mode2_menu_xywh_t, sel_notes_mode2_menu_names_t, sel_notes_mode2_values_t, false,false,itemcolor2_t,0)
         
       -- buttons
-      
+       GUI_button(options_button_xywh_t, "<<", ">>", options_button_state, true)
        GUI_button(about_button_xywh_t, "About","About", _, true)
        GUI_button(help_button_xywh_t, "Help","Help", _, true)
        GUI_button(todo_button_xywh_t, "ToDo / Bugs","ToDo / Bugs", _, true)  
@@ -938,8 +941,10 @@ end
      if grid_divider % 3 == 0 then grid_string = "1/"..math.ceil(grid_divider/3*2).."T" end
     else
      grid_string = "error"
-   end -- if proj grid measures ==0 / snap < 1  
-   return  grid_beats, grid_string, project_grid_measures,project_grid_cml
+   end -- if proj grid measures ==0 / snap < 1 
+   grid_time = reaper.TimeMap2_beatsToTime(0, grid_beats*2) 
+   grid_bar_time  = reaper.TimeMap2_beatsToTime(0, 0, 1) 
+   return  grid_beats, grid_string, project_grid_measures,project_grid_cml, grid_time, grid_bar_time
  end 
   
  --------------------------------------------------------------------------------------------------------------- 
@@ -1101,7 +1106,7 @@ end
    
  function ENGINE1_get_reference_grid()
    ref_grid_t = {}
-   for i = 0, 4, grid_beats do
+   for i = 0, grid_bar_time, grid_time do
      table.insert(ref_grid_t, i)
    end
  end 
@@ -1111,11 +1116,11 @@ end
   function ENGINE1_get_reference_swing_grid()  
      ref_swing_grid_t = {}
      local i2 = 0
-     for grid_step = 0, 4, grid_beats do       
+     for grid_step = 0, grid_bar_time, grid_time do       
        if i2 % 2 == 0 then 
          table.insert(ref_swing_grid_t, grid_step) end
        if i2 % 2 == 1 then        
-         grid_step_swing = grid_step + swing_value* swing_scale*grid_beats         
+         grid_step_swing = grid_step + swing_value* swing_scale*grid_time
          table.insert(ref_swing_grid_t, grid_step_swing) 
        end
        i2 = i2+1
@@ -1852,7 +1857,7 @@ end
           if sel_notes_mode2_values_t[2] == 1 then
             notes_newpos, notes_newvol = ENGINE3_quantize_compare(dest_notes_subt[9], dest_notes_subt[8]/127)
           end
-          notes_newpos_ppq = reaper.MIDI_GetPPQPosFromProjTime(take, notes_newpos)-1
+          notes_newpos_ppq = reaper.MIDI_GetPPQPosFromProjTime(take, notes_newpos)
           reaper.MIDI_InsertNote(take, dest_notes_subt[2], dest_notes_subt[3], notes_newpos_ppq, notes_newpos_ppq+ppq_dif, 
           dest_notes_subt[6], dest_notes_subt[7], math.ceil(notes_newvol*127), false)
           reaper.MIDI_Sort(take)
