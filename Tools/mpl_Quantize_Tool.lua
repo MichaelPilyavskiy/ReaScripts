@@ -1118,26 +1118,30 @@ end
  function ENGINE1_get_reference_usergroove()
    if ref_groove_t == nil then -- if already got
     retval, groove_user_input = reaper.GetUserInputs("Type name of groove", 1, "Name of groove", "")
-    filename = exepath.."\\Grooves\\"..groove_user_input..".rgt"
-    content_temp_t = {}
-    file = io.open(filename, "r")
-    content = file:read("*all")
-    for line in io.lines(filename) do
-      line_n = tonumber(line)
-      if line_n == nil then
-        line_ins = 0
-       else 
-        line_ins = reaper.TimeMap2_beatsToTime(0, line_n)
-      end   
-      table.insert(content_temp_t, line_ins) 
+    if retval ~= nil then
+      filename = exepath.."\\Grooves\\"..groove_user_input..".rgt"
+      content_temp_t = {}
+      file = io.open(filename, "r")
+      if file ~= nil then
+        content = file:read("*all")
+        for line in io.lines(filename) do
+          line_n = tonumber(line)
+          if line_n == nil then
+            line_ins = 0
+           else 
+            line_ins = reaper.TimeMap2_beatsToTime(0, line_n)
+          end   
+          table.insert(content_temp_t, line_ins) 
+        end
+        file:close()
+        
+        ref_groove_t = {}  
+        for i = 4, #content_temp_t-4 do
+           temp_var = content_temp_t[i]
+           table.insert(ref_groove_t, temp_var)
+        end
+      end 
     end
-    file:close()
-    
-    ref_groove_t = {}
-    for i = 4, #content_temp_t-4 do
-       temp_var = content_temp_t[i]
-       table.insert(ref_groove_t, temp_var)
-     end
    end  
  end
  
@@ -1204,7 +1208,7 @@ end
      end               
      
      -- groove 
-     if quantize_ref_values_t[5] == 1 then     
+     if quantize_ref_values_t[5] == 1 and ref_groove_t ~= nil then     
        for i = 1, #ref_groove_t do
          table_temp_val = ref_groove_t[i]
          table.insert (ref_points_t, i, {table_temp_val, 1})
