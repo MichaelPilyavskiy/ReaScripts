@@ -1,8 +1,9 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "1.03"
+ vrs = "1.031"
 
 todobugs = 
 [===[ To do list / requested features:
+  -- load/save pattern as rgr
   -- quantize note end
   -- quantize note position only
   -- lmb click on grid add groove point
@@ -14,7 +15,6 @@ todobugs =
   -- hold MMB move grid / scroll zoom grid
   -- getset ref pitch/pan from itemtakes notes and env points
   -- popup start/end time in display
-  -- load/save pattern
  
 Expected bugs which could not be fixed for this release:
  -- stretch markers bug: http://forum.cockos.com/project.php?issueid=5647
@@ -37,11 +37,12 @@ a good service for donations around the world):
             Sberbank (Maestro) 67628047 9001483373
                  
 Changelog:
-01.09.2015  1.03
+01.09.2015  1.031
             fixed swing grid tempo bug, project grid tempo bug
             fixed -1 tick midi notes position when quantize/restore
             cutted options button
             fixed display issue in pattern mode
+            beta - User Groove (import .rgt files for SWS Groove Tool)
 29.08.2015  1.02
             fixed info strings, thanks to heda!
             fixed error if project is empty
@@ -284,7 +285,8 @@ Michael.
  --------------------------------------------------------------------------------------------------------------- 
   
  function DEFINE_default_variables() 
-   
+ 
+   exepath = reaper.GetExePath()
      -- preset area --
    snap_mode_values_t = {0,1} 
    pat_len_values_t = {1,0,0}
@@ -305,7 +307,7 @@ Michael.
    
    restore_button_state = false
    options_button_state = false
-   if snap_mode_values_t[2] == 1 then  quantize_ref_values_t = {0, 0, 0, 0, 0, 1} else quantize_ref_values_t = {0, 0, 0, 0} end
+   if snap_mode_values_t[2] == 1 then  quantize_ref_values_t = {0, 0, 0, 0, 0, 0, 1} else quantize_ref_values_t = {0, 0, 0, 0} end
    quantize_dest_values_t = {0, 0, 0, 0}
     
    count_reference_item_positions = 0
@@ -325,6 +327,7 @@ Michael.
    gravity_mult_value = 0.3 -- second
    use_vel_value = 0
    swing_scale = 0.5
+   user_groove_name = ""
       
  end
  
@@ -362,13 +365,16 @@ Michael.
    quantize_ref_menu_ep_name = "Envelope points ("..count_reference_ep_positions..")" 
    quantize_ref_menu_notes_name = "Notes ("..count_reference_notes_positions..")" 
    
-   if custom_grid_beats_i == 0 or custom_grid_beats_i == nil then  quantize_ref_menu_grid_name = "project grid: "..grid_string 
-                        else quantize_ref_menu_grid_name = "custom grid: "..grid_string end
-      quantize_ref_menu_swing_name = "swing grid "..(swing_value*100).."%"
+   if custom_grid_beats_i == 0 or custom_grid_beats_i == nil then  
+       quantize_ref_menu_grid_name = "project grid: "..grid_string 
+     else quantize_ref_menu_grid_name = "custom grid: "..grid_string end
+       
+   quantize_ref_menu_swing_name = "swing grid "..(swing_value*100).."%"
+   quantize_ref_menu_groove_name = "User Groove"..string.sub(user_groove_name, 0, 8)
    
    if snap_mode_values_t[2] == 1 then        
      quantize_ref_menu_names_t = {"Reference (groove points):", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
-                                quantize_ref_menu_ep_name, quantize_ref_menu_notes_name,
+                                quantize_ref_menu_ep_name, quantize_ref_menu_notes_name, quantize_ref_menu_groove_name,
                                 quantize_ref_menu_grid_name,
                                 quantize_ref_menu_swing_name}
     else
@@ -594,6 +600,11 @@ Michael.
      if b6~=nil then 
      item_y_offset = y5 + h5 + beetween_items2
      x6,y6,w6,h6 = GUI_menu_item (b6, item_y_offset, values_t[6],true,itemcolor_t) end 
+     
+     if b7~=nil then 
+     item_y_offset = y6 + h6 + beetween_items2
+     x7,y7,w7,h7 = GUI_menu_item (b7, item_y_offset, values_t[7],true,itemcolor_t) end 
+     
    end   
                    
      
@@ -818,9 +829,9 @@ end
      
      quantize_ref_xywh_buttons_t =   GUI_menu (quantize_ref_menu_xywh_t, quantize_ref_menu_names_t, quantize_ref_values_t, true,false,itemcolor1_t,0.05)
      if snap_mode_values_t[2] == 1 then -- if pattern mode
-       meas_str_temp = gfx.measurestr(quantize_ref_menu_names_t[6])       -- if grid
-       grid_value_slider_xywh_t = {x_offset, quantize_ref_xywh_buttons_t[18]-2, width1/2, fontsize_menu_item+4}
-       swing_grid_value_slider_xywh_t = {x_offset, quantize_ref_xywh_buttons_t[22]-2, width1/2, fontsize_menu_item+4}
+       meas_str_temp = gfx.measurestr(quantize_ref_menu_names_t[7])       -- if grid
+       grid_value_slider_xywh_t = {x_offset, quantize_ref_xywh_buttons_t[22]-2, width1/2, fontsize_menu_item+4}
+       swing_grid_value_slider_xywh_t = {x_offset, quantize_ref_xywh_buttons_t[26]-2, width1/2, fontsize_menu_item+4}
        if display_grid_value_slider == true then GUI_slider_gradient(grid_value_slider_xywh_t, "", grid_value, "normal") end 
        if display_swing_value_slider == true then GUI_slider_gradient(swing_grid_value_slider_xywh_t, "", swing_value, "centered") end 
      end  
@@ -1103,6 +1114,34 @@ end
  end   
  
 ---------------------------------------------------------------------------
+
+ function ENGINE1_get_reference_usergroove()
+   if ref_groove_t == nil then -- if already got
+    retval, groove_user_input = reaper.GetUserInputs("Type name of groove", 1, "Name of groove", "")
+    filename = exepath.."\\Grooves\\"..groove_user_input..".rgt"
+    content_temp_t = {}
+    file = io.open(filename, "r")
+    content = file:read("*all")
+    for line in io.lines(filename) do
+      line_n = tonumber(line)
+      if line_n == nil then
+        line_ins = 0
+       else 
+        line_ins = reaper.TimeMap2_beatsToTime(0, line_n)
+      end   
+      table.insert(content_temp_t, line_ins) 
+    end
+    file:close()
+    
+    ref_groove_t = {}
+    for i = 4, #content_temp_t-4 do
+       temp_var = content_temp_t[i]
+       table.insert(ref_groove_t, temp_var)
+     end
+   end  
+ end
+ 
+---------------------------------------------------------------------------
    
  function ENGINE1_get_reference_grid()
    ref_grid_t = {}
@@ -1164,8 +1203,17 @@ end
        end
      end               
      
-     -- grid --
+     -- groove 
      if quantize_ref_values_t[5] == 1 then     
+       for i = 1, #ref_groove_t do
+         table_temp_val = ref_groove_t[i]
+         table.insert (ref_points_t, i, {table_temp_val, 1})
+       end
+     end      
+     
+     
+     -- grid --
+     if quantize_ref_values_t[6] == 1 then     
        for i = 1, #ref_grid_t do
          table_temp_val = {ref_grid_t[i] , nil}
          table.insert (ref_points_t, i, table_temp_val)
@@ -1173,11 +1221,11 @@ end
      end
      
      -- swing --
-     if quantize_ref_values_t[6] == 1 then     
-       for i = 1, #ref_swing_grid_t do
-         table_temp_val = {ref_swing_grid_t[i], nil}
-         table.insert (ref_points_t, i, table_temp_val)
-       end
+     if quantize_ref_values_t[7] == 1 then   
+         for i = 1, #ref_swing_grid_t do
+           table_temp_val = {ref_swing_grid_t[i], nil}
+           table.insert (ref_points_t, i, table_temp_val)
+         end      
      end
     
     
@@ -1964,36 +2012,44 @@ end
      
    if snap_mode_values_t[2] == 1 then 
      if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,0) == true then 
-       quantize_ref_values_t = {1, 0, 0, 0, 0, 0} 
+       quantize_ref_values_t = {1, 0, 0, 0, 0, 0, 0} 
        count_reference_item_positions = ENGINE1_get_reference_item_positions() 
        ENGINE1_get_reference_FORM_points()end
      if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,4) == true then 
-       quantize_ref_values_t = {0, 1, 0, 0, 0, 0} 
+       quantize_ref_values_t = {0, 1, 0, 0, 0, 0, 0} 
        count_reference_sm_positions = ENGINE1_get_reference_SM_positions() 
        ENGINE1_get_reference_FORM_points() end
      if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,8) == true then 
-       quantize_ref_values_t = {0, 0, 1, 0, 0, 0} 
+       quantize_ref_values_t = {0, 0, 1, 0, 0, 0, 0} 
        count_reference_ep_positions = ENGINE1_get_reference_EP_positions() 
        ENGINE1_get_reference_FORM_points() end
      if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,12) == true then 
-       quantize_ref_values_t = {0, 0, 0, 1, 0, 0} 
+       quantize_ref_values_t = {0, 0, 0, 1, 0, 0, 0} 
        count_reference_notes_positions = ENGINE1_get_reference_notes_positions() 
        ENGINE1_get_reference_FORM_points() end  
-           -- grid --
-     if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,16) == true or 
-        MOUSE_clickhold_under_gui_rect(grid_value_slider_xywh_t, 0) == true then 
-       quantize_ref_values_t = {0, 0, 0, 0, 1, 0}
-       display_grid_value_slider = true
-       if grid_value_slider_xywh_t ~= nil then grid_value = (mx - grid_value_slider_xywh_t[1])/grid_value_slider_xywh_t[3] end
-       ENGINE1_get_reference_grid()
+           -- user groove--
+     if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,16) == true then 
+       quantize_ref_values_t = {0, 0, 0, 0, 1, 0, 0} 
+       ENGINE1_get_reference_usergroove()
        ENGINE1_get_reference_FORM_points() 
+       ENGINE3_quantize_objects()
+            end  
+           -- grid --
+     if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,20) == true or  
+        MOUSE_clickhold_under_gui_rect(grid_value_slider_xywh_t, 0) == true
+     then quantize_ref_values_t = {0, 0, 0, 0, 0, 1, 0}
+          display_grid_value_slider = true
+          if grid_value_slider_xywh_t ~= nil then grid_value = (mx - grid_value_slider_xywh_t[1])/grid_value_slider_xywh_t[3] end
+          ENGINE1_get_reference_grid()
+          ENGINE1_get_reference_FORM_points() 
+          ENGINE3_quantize_objects()
       else
        display_grid_value_slider = false
      end
            -- swing --
-     if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,20) == true or 
+     if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,24) == true or 
         MOUSE_clickhold_under_gui_rect(swing_grid_value_slider_xywh_t, 0) == true then 
-        quantize_ref_values_t = {0, 0, 0, 0, 0, 1} 
+        quantize_ref_values_t = {0, 0, 0, 0, 0, 0, 1} 
         display_swing_value_slider = true
         if swing_grid_value_slider_xywh_t ~= nil then 
           swing_value = ((mx - swing_grid_value_slider_xywh_t[1])/swing_grid_value_slider_xywh_t[3])*2-1 end
@@ -2004,7 +2060,7 @@ end
         display_swing_value_slider = false
      end -- lb mouse on swing
      
-     if MOUSE_RB_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,20) == true then
+     if MOUSE_RB_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,24) == true then
        swing_value_retval, swing_value_return_s =  reaper.GetUserInputs("Swing value", 1, "Swing", "") 
        if swing_value_retval ~= nil then 
          swing_value_return = tonumber(swing_value_return_s)           
