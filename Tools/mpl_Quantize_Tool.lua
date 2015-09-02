@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "1.031"
+ vrs = "1.04"
 
 todobugs = 
 [===[ To do list / requested features:
@@ -37,6 +37,8 @@ a good service for donations around the world):
             Sberbank (Maestro) 67628047 9001483373
                  
 Changelog:
+03.09.2015  1.04
+            fixed error when snap is more than 1 (for some reason) it will not work
 01.09.2015  1.031
             fixed swing grid tempo bug, project grid tempo bug
             fixed -1 tick midi notes position when quantize/restore
@@ -262,7 +264,7 @@ MIDI Editor, close it and select item. This also will works.
 
 5.3.1 About. Info about me, version (should be same as title),
 donation links and changelog.
-5.3.2 Current Help on Russian and English.
+5.3.2 Current Help on English.
 
 Michael.
  ]===]
@@ -327,7 +329,7 @@ Michael.
    gravity_mult_value = 0.3 -- second
    use_vel_value = 0
    swing_scale = 0.5
-   user_groove_name = ""
+   groove_user_input = ""
       
  end
  
@@ -370,7 +372,7 @@ Michael.
      else quantize_ref_menu_grid_name = "custom grid: "..grid_string end
        
    quantize_ref_menu_swing_name = "swing grid "..(swing_value*100).."%"
-   quantize_ref_menu_groove_name = "User Groove"..string.sub(user_groove_name, 0, 8)
+   quantize_ref_menu_groove_name = "UserGroove (beta) "..string.sub(groove_user_input, 0, 8)
    
    if snap_mode_values_t[2] == 1 then        
      quantize_ref_menu_names_t = {"Reference (groove points):", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
@@ -950,11 +952,11 @@ end
      grid_divider = math.ceil(math.round(4/grid_beats, 1))
      grid_string = "1/"..math.ceil(grid_divider*0.5)
      if grid_divider % 3 == 0 then grid_string = "1/"..math.ceil(grid_divider/3*2).."T" end
+     grid_time = reaper.TimeMap2_beatsToTime(0, grid_beats*2) 
+     grid_bar_time  = reaper.TimeMap2_beatsToTime(0, 0, 1)
     else
      grid_string = "error"
    end -- if proj grid measures ==0 / snap < 1 
-   grid_time = reaper.TimeMap2_beatsToTime(0, grid_beats*2) 
-   grid_bar_time  = reaper.TimeMap2_beatsToTime(0, 0, 1) 
    return  grid_beats, grid_string, project_grid_measures,project_grid_cml, grid_time, grid_bar_time
  end 
   
