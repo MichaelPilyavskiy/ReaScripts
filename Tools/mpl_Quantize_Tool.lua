@@ -1,8 +1,11 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "1.04"
+ vrs = "1.041"
 
 todobugs = 
 [===[ To do list / requested features:
+  -- when groove - point groove name in menu, right click for type name
+  -- click on usergroove display list of all grooves in /reaper/grooves
+  -- when pattern, limit view to min/max dest positions
   -- load/save pattern as rgr
   -- quantize note end
   -- quantize note position only
@@ -37,8 +40,9 @@ a good service for donations around the world):
             Sberbank (Maestro) 67628047 9001483373
                  
 Changelog:
-03.09.2015  1.04
-            fixed error when snap is more than 1 (for some reason) it will not work
+03.09.2015  1.041
+            fixed error page when snap is more than 1
+            fixed incorrect project/custom grid values
 01.09.2015  1.031
             fixed swing grid tempo bug, project grid tempo bug
             fixed -1 tick midi notes position when quantize/restore
@@ -929,7 +933,18 @@ end
    project_grid_time = reaper.BR_GetNextGridDivision(0)
    project_grid_beats, project_grid_measures, project_grid_cml = reaper.TimeMap2_timeToBeats(0, project_grid_time)
    
-   custom_grid_beats_t = {4/2,
+   custom_grid_beats_t = {4/4,
+                          4/6,
+                          4/8,
+                          4/12,
+                          4/16,
+                          4/24,
+                          4/32,
+                          4/48,
+                          4/64,
+                          4/96,
+                          4/128}
+--[[   custom_grid_beats_t = {4/2,
                           4/3,
                           4/4,
                           4/6,
@@ -939,18 +954,19 @@ end
                           4/24,
                           4/32,
                           4/48,
-                          4/64}
-                          
+                          4/64}   ]]                       
    custom_grid_beats_i = math.floor(grid_value*12)
    
    if project_grid_measures == 0 then
      if custom_grid_beats_i == 0 then 
-       grid_beats = project_grid_beats 
+       grid_beats = project_grid_beats *0.5       
       else
-       grid_beats = custom_grid_beats_t[custom_grid_beats_i]
+       grid_beats = custom_grid_beats_t[custom_grid_beats_i]       
      end   
-     grid_divider = math.ceil(math.round(4/grid_beats, 1))
-     grid_string = "1/"..math.ceil(grid_divider*0.5)
+     
+     grid_divider = math.ceil(math.round(4/grid_beats, 1))*0.5
+     grid_string = "1/"..math.ceil(grid_divider)
+     
      if grid_divider % 3 == 0 then grid_string = "1/"..math.ceil(grid_divider/3*2).."T" end
      grid_time = reaper.TimeMap2_beatsToTime(0, grid_beats*2) 
      grid_bar_time  = reaper.TimeMap2_beatsToTime(0, 0, 1)
