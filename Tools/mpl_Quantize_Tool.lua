@@ -42,7 +42,7 @@ a good service for donations around the world):
 changelog =                   
 [===[
 Changelog:
-05.09.2015  1.051
+05.09.2015  1.052
             fixed display shows max-1 bar
             added get reference str.marker from selected item/time selection of selected item 
             added quantize str.marker from selected item/time selection of selected item
@@ -51,6 +51,7 @@ Changelog:
             revert pattern mode display behaviour to fix later
             removed display bar lines. -10% CPU 
             improved count ref/dest objects
+            disable set 'Use Gravity' when choosing destination stretch markers
 03.09.2015  1.041
             fixed error page when snap is more than 1
             fixed incorrect project/custom grid values
@@ -171,10 +172,9 @@ you stored stretch markers to script, and delete/move it to
 somewhere in item, after every click on 'Apply' button their
 positions will be firstly restored! This done to prevent 
 feedback (store and snap->store and snap once again -> etc).
-Automatically set 'Use gravity' mode (check 5.2.1). Also
-to be clear - be careful with stretch markers, because they
-could be very buggy and even crash Reaper if you will do 
-something extremely fast. Of course I will fix something 
+Also to be clear - be careful with stretch markers, because 
+they could be very buggy and even crash Reaper if you will 
+do something extremely fast. Of course I will fix something 
 in future, but for now just be carefull.
 4.2.3 Envelope Points. Select envelope points in project 
 you wanna quantize and click 'Envelope points' button. 
@@ -2128,8 +2128,7 @@ end
      if MOUSE_clickhold_under_gui_rect(quantize_dest_xywh_buttons_t,4) == true then 
        quantize_dest_values_t = {0, 1, 0, 0} 
        count_dest_sm_positions = ENGINE2_get_dest_sm() 
-       ENGINE2_get_dest_FORM_points() 
-       snap_area_values_t = {1,0} end
+       ENGINE2_get_dest_FORM_points() end
      if MOUSE_clickhold_under_gui_rect(quantize_dest_xywh_buttons_t,8) == true then 
        quantize_dest_values_t = {0, 0, 1, 0} 
        count_dest_ep_positions = ENGINE2_get_dest_ep()  
