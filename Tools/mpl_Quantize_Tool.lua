@@ -37,7 +37,7 @@ a good service for donations around the world):
             
  ]===]
  
- vrs = "1.051"
+ vrs = "1.052"
  
 changelog =                   
 [===[
