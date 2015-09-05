@@ -19,7 +19,6 @@ If you found bugs or you have some script request, you can post it in [Issues](h
 ##Donations:
 - QIWI +79102035901
 - Yandex Money 410013415541705
-- Sberbank (Maestro) 67628047 9001483373
 
 ##Thanks to:
 - [X-Raym](http://forum.cockos.com/member.php?u=58284)
