@@ -1,33 +1,30 @@
 ------  Michael Pilyavskiy Quantize tool  ----
- vrs = "1.05"
 
-todobugs = 
+todo= 
 [===[ To do list / requested features:
   -- when groove - point groove name in menu, right click for type name
   -- click on usergroove display list of all grooves in /reaper/grooves
   -- when pattern, limit view to min/max dest positions
-  -- load/save pattern as rgr
+  -- save pattern as rgr
   -- quantize note end
   -- quantize note position only
   -- lmb click on grid add groove point
   -- rmb click on grid delete groove point
-  -- quantize/get groove tempo envelope
   -- presets store/recall
   -- prevent transients stretch markers quantize
   -- create objects
-  -- hold MMB move grid / scroll zoom grid
   -- getset ref pitch/pan from itemtakes notes and env points
-  -- popup start/end time in display
+ ]===]  
  
-Expected bugs which could not be fixed for this release:
+bugs  =
+[===[ Expected bugs which could not be fixed for this release:
  -- stretch markers bug: http://forum.cockos.com/project.php?issueid=5647
  -- stretch markers quantize DOES NOT work when Item Loop Source is on
  ]===]
  
 about = [===[Quantize tool by Michael Pilyavskiy
 
-Contacts:
-            Soundcloud - http://soundcloud.com/mp57
+Contacts:   Soundcloud - http://soundcloud.com/mp57
             PromoDJ -  http://pdj.com/michaelpilyavskiy
             VK -  http://vk.com/michael_pilyavskiy         
             GitHub -  http://github.com/MichaelPilyavskiy/ReaScripts
@@ -37,15 +34,23 @@ Donation (as I know it is for russians only, I don`t really know
 a good service for donations around the world):
             QIWI +79102035901
             Yandex Money 410013415541705
-                 
+            
+ ]===]
+ 
+ vrs = "1.051"
+ 
+changelog =                   
+[===[
 Changelog:
-05.09.2015  1.05
+05.09.2015  1.051
             fixed display shows max-1 bar
-            added get reference str.marker from selected item / time selection of selected item 
-            added quantize str.marker from selected item / time selection of selected item
-            Changing mode form relevant mode points and leave previously got points
+            added get reference str.marker from selected item/time selection of selected item 
+            added quantize str.marker from selected item/time selection of selected item
+            Changing global/local mode form relevant mode points and leave previously got points
             Every menu changing also form ref.points or quantize objects to quick preview
-            revert pattern mode display behaviour to fix later          
+            revert pattern mode display behaviour to fix later
+            removed display bar lines. -10% CPU 
+            improved count ref/dest objects
 03.09.2015  1.041
             fixed error page when snap is more than 1
             fixed incorrect project/custom grid values
@@ -63,53 +68,29 @@ Changelog:
             Public release      
 28.08.2015  0.7 
             todo list and bugs
-            manual
-            str markers relative mode      
+            help/manual  
 26.08.2015  0.68 
             relative sm reference mode
-            help button
-            generate pattern grid engine
-            options: pattern length
-26.08.2015  0.56 
-            quantize stretchmarkers func new build
-            quantize notes/selected notes improvements
-            gravity improvements
-            main quantize engine updates 
-17.08.2015  0.5 
-            a lot of structure improvements 
-            a lot of GUI improvements 
-            a lot of logic improvements 
+            pattern length
 15.07.2015  0.152 
             info message when snap > 1 to prevent reaper crash
             ESC to close
-13.07.2015  0.141 
-            quant stretch markers quantize when takerate not equal 1
-            get groove from stretch markers when takerate not equal 1 
-            envelope points quantize engine
 09.07.2015  0.12 
-            project grid option
+            project grid
             swing linked to grid
-            bypass               
+            bypass/restore
 07.07.2015  0.113 
             right click on swing to type swin
             swing 100% is half grid
             centered swing (-+)
 04.07.2015  0.081 
             custom grid 
-02.07.2015  0.07 
-            new gui
 01.07.2015  0.06 
             menu count numbers
             strength slider
             point gravity slider
-30.06.2015  0.05 
-            about
-            get project grid
-28.06.2015  0.04 
-            get_groove function building
 25.06.2015  0.02 gui
             snap direction
-            swing engine
 23.06.2015  0.01 'swing items' idea
     
  ]===]
@@ -735,14 +716,7 @@ end
    for i = 0,  last_measure+16 do
      bar_time = reaper.TimeMap2_beatsToTime(0, 0, i)
      GUI_display_pos(bar_time, bar_points_rgba_t, "centered", 0.5)
-     val3 = 0.5
-     val2 = 0
-     for i =1, 100 do
-       bar_points_rgba_t2 = {bar_points_rgba_t[1], bar_points_rgba_t[2], bar_points_rgba_t[3], bar_points_rgba_t[4]-val2}
-       GUI_display_pos(bar_time+i/500, bar_points_rgba_t2, "centered", val3)
-       val3 = val3^1.05
-       val2 = val2 + 0.01
-     end
+     --beats
      for j = 1, cml-1 do
        beat_time = reaper.TimeMap2_beatsToTime(0, j, i)
        GUI_display_pos(beat_time, bar_points_rgba_t, "centered", 0.3)
@@ -930,7 +904,7 @@ end
         
       -- buttons
        GUI_button(options_button_xywh_t, "<<", ">>", options_button_state, true)
-       GUI_button(about_button_xywh_t, "About","About", _, true)
+       GUI_button(about_button_xywh_t, "About / ChangeLog","About / ChangeLog", _, true)
        GUI_button(help_button_xywh_t, "Help","Help", _, true)
        GUI_button(todo_button_xywh_t, "ToDo / Bugs","ToDo / Bugs", _, true)  
      end -- if options page on
@@ -2292,7 +2266,7 @@ end
   --|||-- BUTTONS -----     
      -- ABOUT BUTTON --
      if MOUSE_clickhold_under_gui_rect(about_button_xywh_t,0) == true then 
-       reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(about) end
+       reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(about..changelog) end
      
      -- HELP BUTTON --
      if MOUSE_clickhold_under_gui_rect(help_button_xywh_t,0) == true then 
@@ -2300,7 +2274,7 @@ end
      
      -- TODO BUTTON --
      if MOUSE_clickhold_under_gui_rect(todo_button_xywh_t,0) == true then 
-     reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(todobugs) end           
+     reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(todo..bugs) end           
    end -- if options page on
    
    end -- if snap >1
