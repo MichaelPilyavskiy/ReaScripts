@@ -43,7 +43,7 @@ Donation:
 changelog =                   
 [===[
 Changelog:
-06.09.2015  1.06
+06.09.2015  1.061
             manual updated
 05.09.2015  1.052
             fixed display shows max-1 bar
@@ -111,11 +111,11 @@ It`s LUA script for REAPER. I suppose you to have installed last version of REAP
 
 5. Main window.
 
-5.1.0 Reference section. Here we somehow get 'groove points'.
-5.1.1 Items. To get reference points from items select items in your project and click on 'items'. It should show number of items in parentheses. You can set option if you wanna get items volume to apply it to destination objects (OptionsPage - Use Velocity).
-5.1.2 Stretch Markers. To get reference points from stretch markers select items with stretch markers in your project and click on 'stretch markers'. It should show number of stretch markers in all selected items in parentheses. 
-5.1.3 Envelope Points. To get reference points from envelope points select envelope points in any envelope (as track as take) and click on 'envelope points'. It should show number of points in parentheses. You can set option if you wanna get points value to apply it to destination objects (OptionsPage - Use Velocity).
-5.1.4 Notes. To get reference points from notes select items with notes in your project or open take in midi editor and select notes and click on 'notes'. It should show number of notes in parentheses. You can set option if you wanna get notes velocity to apply it to destination objects (OptionsPage - Use Velocity). 
+5.1.0 Reference section. Here we somehow get 'groove points'. Count of reference points is in parentheses.
+5.1.1 Items. To get reference points from items select items in your project and click on 'items'. 
+5.1.2 Stretch Markers. To get reference points from stretch markers select items with stretch markers in your project and click on 'stretch markers'.
+5.1.3 Envelope Points. To get reference points from envelope points select envelope points in any envelope (as track as take) and click on 'envelope points'. 
+5.1.4 Notes. To get reference points from notes select items with notes in your project or open take in midi editor and select notes and click on 'notes'. 
 5.1.5 User Groove. Here you can manually type or paste name of SWS Fingers Groove Tool File (without extension). Note, this function is beta state.
 5.1.6 Project Grid / Custom Grid - is a slider with grid selector. Project Grid is leftmost value. It is also apply button. Works only in Local (Pattern) mode.
 5.1.7 Swing Grid is also a slider / apply button, so can listen what you swing on the fly.
@@ -146,10 +146,10 @@ It`s LUA script for REAPER. I suppose you to have installed last version of REAP
 6.1.1 Snap reference mode. When 'Global' is selected, snap points is writed to the memory directly with their positions.When pattern mode is on, script firstly convert position of point in seconds to position in bar/beats. When it convert all of reference points, if generate pattern and multiply this pattern to all project timeline. It is like 'new ghost grid generator'.
 6.1.2 Pattern length. This set how much first bars reference points will be taken from.
 6.1.3 Pattern edges. Add edges to start and end of pattern.
-6.1.4 Using reference velocity. When quantize, use also velocity/value/gain of selected reference objects.
+6.1.4 Using reference velocity. When quantize, use also velocity/value/gain of selected reference objects if possible.
 6.1.5 How to get reference notes. You can set option if you wanna get only selected notes in selected items or all notes in selected items.
 6.1.6 How to get reference stretch markers. You can setup how do you wanna get stretch markers positions - relative to grid or relative to bar of first item of first stretch marker. 
-6.1.7 Allow to get stretch markers only within time selection
+6.1.7 Allow to get stretch markers only within time selection.
 
 6.2 Quantize objects settings area
 6.2.1 Use gravity. Automatically selected by setting stretch markers as destination. If this selector is on 'Use gravity', then objects snap to reference points only if they exists insome area (in seconds), ehich is set by you moving built-inslider. 'Snap everything' means every object you selectedwill be snapped to reference point. Be carefull with this when using with stretch markers.
