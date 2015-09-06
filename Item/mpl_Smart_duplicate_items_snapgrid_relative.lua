@@ -1,4 +1,4 @@
-script_title = "mpl Smart duplicate items snapgrid relative)"
+script_title = "mpl Smart duplicate items snapgrid relative"
 
 -- 06.09.2015 LUA version + wrong timing bugfix
 
