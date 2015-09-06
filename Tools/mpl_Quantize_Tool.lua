@@ -38,13 +38,14 @@ Donation:
             MasterCard 5189 0100 0686 8799
  ]===]
  
- vrs = "1.06"
+ vrs = "1.062"
  
 changelog =                   
 [===[
 Changelog:
-06.09.2015  1.061
+06.09.2015  1.062
             manual updated
+            dont show beats if project length > 10 bars
 05.09.2015  1.052
             fixed display shows max-1 bar
             added get reference str.marker from selected item/time selection of selected item 
@@ -624,10 +625,12 @@ end
      bar_time = reaper.TimeMap2_beatsToTime(0, 0, i)
      GUI_display_pos(bar_time, bar_points_rgba_t, "centered", 0.5)
      --beats
-     for j = 1, cml-1 do
-       beat_time = reaper.TimeMap2_beatsToTime(0, j, i)
-       GUI_display_pos(beat_time, bar_points_rgba_t, "centered", 0.3)
-     end     
+     if last_measure <= 10 then
+       for j = 1, cml-1 do
+         beat_time = reaper.TimeMap2_beatsToTime(0, j, i)
+         GUI_display_pos(beat_time, bar_points_rgba_t, "centered", 0.3)
+       end  
+      end    
    end  
  end  
  
