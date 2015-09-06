@@ -36,14 +36,15 @@ Donation:
             QIWI +79102035901
             Yandex Money ID 410013415541705
             MasterCard 5189 0100 0686 8799
+            
  ]===]
  
- vrs = "1.062"
+ vrs = "1.063"
  
 changelog =                   
 [===[
 Changelog:
-06.09.2015  1.062
+06.09.2015  1.063
             manual updated
             dont show beats if project length > 10 bars
 05.09.2015  1.052
@@ -115,7 +116,7 @@ It`s LUA script for REAPER. I suppose you to have installed last version of REAP
 5.1.0 Reference section. Here we somehow get 'groove points'. Count of reference points is in parentheses.
 5.1.1 Items. To get reference points from items select items in your project and click on 'items'. 
 5.1.2 Stretch Markers. To get reference points from stretch markers select items with stretch markers in your project and click on 'stretch markers'.
-5.1.3 Envelope Points. To get reference points from envelope points select envelope points in any envelope (as track as take) and click on 'envelope points'. 
+5.1.3 Envelope Points. To get reference points from envelope points select envelope points in any envelope (as track as take shold works) and click on 'envelope points'. 
 5.1.4 Notes. To get reference points from notes select items with notes in your project or open take in midi editor and select notes and click on 'notes'. 
 5.1.5 User Groove. Here you can manually type or paste name of SWS Fingers Groove Tool File (without extension). Note, this function is beta state.
 5.1.6 Project Grid / Custom Grid - is a slider with grid selector. Project Grid is leftmost value. It is also apply button. Works only in Local (Pattern) mode.
@@ -124,15 +125,15 @@ It`s LUA script for REAPER. I suppose you to have installed last version of REAP
 5.2.0 Destination section. Here we store objects and their positions. Note! If you stored object to script by clicking this area, and move it to somewhere (so you manually change position), after every click on any 'Apply' action their positions and volumes will be firstly restored! This done to prevent feedback (store and snap->store and snap once again -> etc). Also count of objects placed  in parentheses
 5.2.1 Items. Select items in project you wanna quantize and click 'Items' button. Number of items should be shown in parentheses. 
 5.2.2 Stretch markers. Select stretch markers in item you wanna quantize and click 'Stretch markers' button. Also to be clear - be careful with stretch markers, because they could be very buggy and even crash Reaper if you will do something extreme. Of course I will fix something in future, but for now just be carefull and always save your current project state before using!.
-5.2.3 Envelope Points. Select envelope points in project you wanna quantize and click 'Envelope points' button. 
+5.2.3 Envelope Points. Select envelope points (as track as take envelope shold works) in project you wanna quantize and click 'Envelope points' button. 
 5.2.4 Notes. Select notes or items with notes in project you wanna quantize and click 'Notes' button. 
 
 5.3 Display
 5.3.1 Green lines represent reference groove points and values (if any).
 5.3.2 Blue lines represent quantized objectspositions and their values (if any).
 5.3.3 White lines represent bars and beats.
-5.3.4 Yellow line is play cursor. This especially relevant and useful for Local (pattern) mode.
-5.3.5 Red line is edit cursor. Also useful to show where your reference points is placed relative to pattern start/end.
+5.3.4 Yellow line is play cursor. 
+5.3.5 Red line is edit cursor.
 
 5.4 Main 'Apply' slider
 5.4.1 Left click on this slider set quantize parameters and snap objects positions and values (if any) to reference points. 
@@ -144,7 +145,7 @@ It`s LUA script for REAPER. I suppose you to have installed last version of REAP
 
 6. Options Page. Here you can set some settings.
 6.1 Reference settings area
-6.1.1 Snap reference mode. When 'Global' is selected, snap points is writed to the memory directly with their positions.When pattern mode is on, script firstly convert position of point in seconds to position in bar/beats. When it convert all of reference points, if generate pattern and multiply this pattern to all project timeline. It is like 'new ghost grid generator'.
+6.1.1 Snap reference mode. When 'Global' is selected, snap points is writed to the memory directly with their positions.When pattern mode is on, script firstly convert position of point in seconds to position in bar/beats. When it convert all of reference points, generates pattern and multiply this pattern to all project timeline. It is like 'new ghost grid generator'.
 6.1.2 Pattern length. This set how much first bars reference points will be taken from.
 6.1.3 Pattern edges. Add edges to start and end of pattern.
 6.1.4 Using reference velocity. When quantize, use also velocity/value/gain of selected reference objects if possible.
@@ -153,7 +154,7 @@ It`s LUA script for REAPER. I suppose you to have installed last version of REAP
 6.1.7 Allow to get stretch markers only within time selection.
 
 6.2 Quantize objects settings area
-6.2.1 Use gravity. Automatically selected by setting stretch markers as destination. If this selector is on 'Use gravity', then objects snap to reference points only if they exists insome area (in seconds), ehich is set by you moving built-inslider. 'Snap everything' means every object you selectedwill be snapped to reference point. Be carefull with this when using with stretch markers.
+6.2.1 Use gravity. If this selector is on 'Use gravity', then objects are quantized only if their positions are closer (area in seconds) to reference points. 'Snap everything' means every object you selected will be snapped to reference point. Be carefull with this when using with stretch markers.
 6.2.2 Snap direction. That means if destination object position is right beetween two points, it will snap to pointdefined in this selector.
 6.2.3 Swing scaling is made because of my previously misunderstanding REAPER setting of MIDI Editor, so as described 1x is swing 100% is next grid, 0.5x is half-grid or REAPER native behaviour.
 6.2.4 Quantize notes. Select this if you wanna quantize all notes in item or only selected. You can also select notes in MIDI Editor, close it and select item. This also will works.
