@@ -1,4 +1,3 @@
-
 script_title = "mpl Toggle 'Reverse volume' flag on group settings and invert color of track under mouse cursor"
 
 reaper.Undo_BeginBlock()  
@@ -9,6 +8,8 @@ if segment == "track" then
   --track = reaper.GetSelectedTrack(0,0)
   if track ~= nil then 
     retval, chunk = reaper.GetTrackStateChunk(track, "")
+    --reaper.ShowConsoleMsg("")   
+    --reaper.ShowConsoleMsg(chunk)
     chunk_temp = string.sub(chunk, 2)
     close_v1 = string.find(chunk_temp, ">")
     close_v2 = string.find(chunk_temp, "<")
@@ -35,14 +36,21 @@ if segment == "track" then
         
         -- fill nills on table
         GROUP_FLAGS_t_size = #GROUP_FLAGS_t
-        if GROUP_FLAGS_t_size < 21 then
-          for i = GROUP_FLAGS_t_size+1, 22 do
+        if GROUP_FLAGS_t_size < 23 then
+          for i = GROUP_FLAGS_t_size+1, 23 do
             table.insert(GROUP_FLAGS_t, i, "0")
           end  
         end
         
-        -- check and edit reverse volume flag =15
-        if GROUP_FLAGS_t[15] == "0" then GROUP_FLAGS_t[15] = "1" else GROUP_FLAGS_t[15] = "0" end 
+        -- find active group states for selected track
+        active_state = 0
+        for i =1, #GROUP_FLAGS_t do
+          GROUP_FLAGS_item = GROUP_FLAGS_t[i]
+          GROUP_FLAGS_item_n = tonumber(GROUP_FLAGS_item)
+          active_state = math.max(active_state, GROUP_FLAGS_item_n)
+        end
+        -- check and edit reverse volume flag =15        
+        if GROUP_FLAGS_t[15] == "0" then GROUP_FLAGS_t[15] = tostring(active_state) else GROUP_FLAGS_t[15] = "0" end 
         
         -- END edit flags table 
         
@@ -74,4 +82,4 @@ end
   reaper.TrackList_AdjustWindows(false)
   reaper.UpdateArrange()
     
-reaper.Undo_EndBlock(script_title, 0)    
+reaper.Undo_EndBlock(script_title, 0) 
