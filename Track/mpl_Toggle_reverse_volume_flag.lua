@@ -1,5 +1,5 @@
 
-script_title = "mpl Toggle 'Reverse volume' flag on group settings and invert track color"
+script_title = "mpl Toggle 'Reverse volume' flag on group settings and invert color of track under mouse cursor"
 
 reaper.Undo_BeginBlock()  
   
