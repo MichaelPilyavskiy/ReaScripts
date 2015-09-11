@@ -41,12 +41,12 @@ Donation.
             
  ]===]
  
- vrs = "1.102"
+ vrs = "1.103"
  
 changelog =                   
 [===[
 Changelog:
-11.09.2015  1.102
+11.09.2015  1.103
             fixed custom grid bug
             click on display save current groove to file
             show name of loaded groove in reference menu
@@ -1217,7 +1217,7 @@ end
      
      
      -- grid --
-     if quantize_ref_values_t[6] == 1 then     
+     if quantize_ref_values_t[6] == 1 and ref_grid_t ~= nil then     
        for i = 1, #ref_grid_t do
          temp_val5 = ref_grid_t[i]
          table.insert (ref_points_t, {temp_val5, 1})
@@ -1225,7 +1225,7 @@ end
      end
      
      -- swing --
-     if quantize_ref_values_t[7] == 1 then   
+     if quantize_ref_values_t[7] == 1 and ref_swing_grid_t ~= nil then   
          for i = 1, #ref_swing_grid_t do
            temp_val4 = ref_swing_grid_t[i]
            table.insert (ref_points_t, {temp_val4, 1})
