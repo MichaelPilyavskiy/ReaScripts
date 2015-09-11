@@ -14,7 +14,7 @@ todo=
  ]===]  
  
 bugs  =
-[===[ Expected bugs which could not be fixed for this release:
+[===[ Expected bugs which could not be fixed for this release: 
   -- io.popen doesn`t work in REAPER x86 http://forum.cockos.com/showthread.php?t=166046
      it is for showing list of user grooves in /reaper/grooves
   -- stretch markers bug: http://forum.cockos.com/project.php?issueid=5647
@@ -41,12 +41,13 @@ Donation.
             
  ]===]
  
- vrs = "1.1"
+ vrs = "1.101"
  
 changelog =                   
 [===[
 Changelog:
-11.09.2015  1.1
+11.09.2015  1.101
+            fixed custom grid bug
             click on display save current groove to file
             show name of loaded groove in reference menu
             set strength/swing via CC and OSC via
@@ -1218,8 +1219,8 @@ end
      -- grid --
      if quantize_ref_values_t[6] == 1 then     
        for i = 1, #ref_grid_t do
-         table_temp_val = {ref_grid_t[i] , nil}
-         table.insert (ref_points_t, i,{ table_temp_val})
+         temp_val5 = ref_grid_t[i]
+         table.insert (ref_points_t, {temp_val5, 1})
        end
      end
      
