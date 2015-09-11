@@ -36,17 +36,17 @@ Donation.
             -- Yandex Money ID 410013415541705
             -- MasterCard 5189 0100 0686 8799
             
-            World (Currently Not Available, should works after october 2015):
+            World (Currently Not Available (or yes? seems not everyone can donate), should works after october 2015):
             -- http://paypal.me/donate2mpl
             
  ]===]
  
- vrs = "1.101"
+ vrs = "1.102"
  
 changelog =                   
 [===[
 Changelog:
-11.09.2015  1.101
+11.09.2015  1.102
             fixed custom grid bug
             click on display save current groove to file
             show name of loaded groove in reference menu
@@ -2406,22 +2406,22 @@ end
 
 ---------------------------------------------------------------------------------------------------------------
 function EXT_get()
-  if last_strenght_value_s_ret == nil then first_time_st = true end
+  if last_strenght_value_s_ret == nil then first_time_st = true else first_time_st = false end
   last_strenght_value_s_ret, strenght_value_ret, is_apply_strenght = EXT_get_sub("Strenght", last_strenght_value_s)
   if strenght_value_ret ~= nil and is_apply_strenght == true then 
     strenght_value = strenght_value_ret 
     last_strenght_value_s = last_strenght_value_s_ret
-    if first_time_sw ~= true then
+    if first_time_st == false then
       ENGINE3_quantize_objects() 
     end  
   end
   
-  if last_swing_value_s_ret == nil then first_time_sw = true end
+  if last_swing_value_s_ret == nil then first_time_sw = true else first_time_sw = false end
   last_swing_value_s_ret, swing_value_ret, is_apply_swing = EXT_get_sub("Swing", last_swing_value_s)
   if swing_value_ret ~= nil and is_apply_swing == true then 
     swing_value = swing_value_ret 
     last_swing_value_s = last_swing_value_s_ret
-    if first_time_sw ~= true then
+    if first_time_sw == false then
       ENGINE1_get_reference_swing_grid()
       ENGINE1_get_reference_FORM_points()
       ENGINE3_quantize_objects() 
