@@ -1,15 +1,12 @@
 ------  Michael Pilyavskiy Quantize tool  ----
 
+
 todo= 
 [===[ To do list / requested features:
-  -- when groove - point groove name in menu, right click for type name
-  -- when pattern, limit view to min/max dest positions
-  -- save pattern as rgr
   -- quantize note end
   -- quantize note position only
   -- lmb click on grid add groove point
   -- rmb click on grid delete groove point
-  -- presets store/recall
   -- prevent transients stretch markers quantize
   -- create objects
   -- getset ref pitch/pan from itemtakes notes and env points  
@@ -26,24 +23,41 @@ bugs  =
  
 about = [===[Quantize tool by Michael Pilyavskiy
 
-Contacts:   Soundcloud - http://soundcloud.com/mp57
+Contacts.
+            Soundcloud - http://soundcloud.com/mp57
             PromoDJ -  http://pdj.com/michaelpilyavskiy
             VK -  http://vk.com/michael_pilyavskiy         
             GitHub -  http://github.com/MichaelPilyavskiy/ReaScripts
             ReaperForum - http://forum.cockos.com/member.php?u=70694
          
-Donation:
-            QIWI +79102035901
-            Yandex Money ID 410013415541705
-            MasterCard 5189 0100 0686 8799
+Donation.
+            Russia:
+            -- QIWI +79102035901
+            -- Yandex Money ID 410013415541705
+            -- MasterCard 5189 0100 0686 8799
+            
+            World (Currently Not Available, should works after october 2015):
+            -- http://paypal.me/donate2mpl
             
  ]===]
  
- vrs = "1.063"
+ vrs = "1.1"
  
 changelog =                   
 [===[
 Changelog:
+11.09.2015  1.1
+            click on display save current groove to file
+            show name of loaded groove in reference menu
+            set strength/swing via CC and OSC via
+              mpl_Quantize_Tool_set_strength.lua
+              mpl_Quantize_Tool_set_swing.lua (beetween 0-100%)
+              check in http://github.com/MichaelPilyavskiy/ReaScripts/tree/master/Tools
+            form pattern improvements  
+            limit view to min/max dest positions in pattern mode 
+            store and recall preset - \REAPER\Scripts\mpl_Quantize_Tool_settings.txt
+07.09.2015  1.07
+            donate button
 06.09.2015  1.063
             manual updated
             dont show beats if project length > 10 bars
@@ -134,6 +148,7 @@ It`s LUA script for REAPER. I suppose you to have installed last version of REAP
 5.3.3 White lines represent bars and beats.
 5.3.4 Yellow line is play cursor. 
 5.3.5 Red line is edit cursor.
+5.3.6 Right click on display can save current groove to REAPER/Grooves folder.
 
 5.4 Main 'Apply' slider
 5.4.1 Left click on this slider set quantize parameters and snap objects positions and values (if any) to reference points. 
@@ -162,8 +177,14 @@ It`s LUA script for REAPER. I suppose you to have installed last version of REAP
 
 6.3 Buttons
 6.3.1 About/ChangeLog. Info about me, version (should be same as title), donation links and changelog.
-6.3.2 Current Help on English. Relevant for version 1.06
+6.3.2 Current Help on English. Relevant for version 1.08
 6.3.3 Requested features, todo list and expected bugs. If you have suggestions, be free to write your thoughts. Contacts are in 'About'.
+6.3.4 Donate button opens paypal donate link in default browser
+6.3.5 Store current preset to \REAPER\Scripts\mpl_Quantize_Tool_settings.txt
+
+7. Control.
+7.1 Use mpl_Quantize_tool_set_swing.lua to control swing value via OSC or MIDI CC
+7.2 Use mpl_Quantize_tool_set_strength.lua to control strength value via OSC or MIDI CC
 
 
 Michael.
@@ -176,35 +197,74 @@ Michael.
    if test ~= nil then  reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(test) end
    if test2 ~= nil then reaper.ShowConsoleMsg("\n") reaper.ShowConsoleMsg(test2) end
  end
+
+
+ ---------------------------------------------------------------------------------------------------------------  
+function open_URL()
+  url = "http://paypal.me/donate2mpl"
+  local OS=reaper.GetOS()
+  if OS=="OSX32" or OS=="OSX64" then
+    os.execute("open ".. url)
+   else
+    os.execute("start ".. url)
+  end
+end
+
  
- --------------------------------------------------------------------------------------------------------------- 
- 
+ ---------------------------------------------------------------------------------------------------------------  
  function math.round(num, idp)
    local mult = 10^(idp or 0)
    return math.floor(num * mult + 0.5) / mult
  end 
- 
- --------------------------------------------------------------------------------------------------------------- 
-  
- function DEFINE_default_variables() 
- 
-   exepath = reaper.GetExePath()
-     -- preset area --
-   snap_mode_values_t = {0,1} 
-   pat_len_values_t = {1,0,0}
-   pat_edge_values_t = {0,1}
-   use_vel_values_t = {1,0} 
-   sel_notes_mode_values_t = {0,1}
-   sm_rel_ref_values_t = {1,0}
-   sm_timesel_ref_values_t = {1,0}
-   
-   snap_area_values_t = {0,1}
-   snap_dir_values_t = {0,1,0}
-   swing_scale_values_t = {0,1}
-   sel_notes_mode2_values_t = {0,1}   
-   sm_timesel_dest_values_t = {1,0}
-   
-     -- end preset area --
+       
+ ---------------------------------------------------------------------------------------------------------------   
+ function s_value(table_line, value_num)
+    local value = tonumber(string.sub(settings_temp_t[table_line],value_num,value_num))
+    if value == nil then value = 0 end
+    return value
+ end
+       
+ ---------------------------------------------------------------------------------------------------------------   
+ function DEFINE_default_variables()    
+   exepath = reaper.GetExePath()   
+   settings_filename = exepath.."\\Scripts\\mpl_Quantize_Tool_settings.txt"
+   settings_file = io.open(settings_filename,"r")
+   if settings_file ~= nil then 
+      settings_temp_t = {}  
+      settings_content = settings_file:read("*all")
+      for settings_line in io.lines(settings_filename) do
+        table.insert(settings_temp_t, settings_line)  
+      end
+      settings_file:close()
+      
+      snap_mode_values_t = {s_value(1,1),s_value(1,2)} 
+      pat_len_values_t = {s_value(2,1),s_value(2,2),s_value(2,3)}
+      pat_edge_values_t = {s_value(3,1),s_value(3,2)} 
+      use_vel_values_t = {s_value(4,1),s_value(4,2)} 
+      sel_notes_mode_values_t = {s_value(5,1),s_value(5,2)} 
+      sm_rel_ref_values_t = {s_value(6,1),s_value(6,2)} 
+      sm_timesel_ref_values_t = {s_value(7,1),s_value(7,2)} 
+      
+      snap_area_values_t = {s_value(8,1),s_value(8,2)} 
+      snap_dir_values_t = {s_value(9,1),s_value(9,2),s_value(9,3)}
+      swing_scale_values_t = {s_value(10,1),s_value(10,2)} 
+      sel_notes_mode_values_at = {s_value(11,1),s_value(11,2)}   
+      sm_timesel_dest_values_t = {s_value(12,1),s_value(12,2)} 
+     else
+      snap_mode_values_t = {0,1} 
+      pat_len_values_t = {1,0,0}
+      pat_edge_values_t = {0,1}
+      use_vel_values_t = {1,0} 
+      sel_notes_mode_values_t = {0,1}
+      sm_rel_ref_values_t = {1,0}
+      sm_timesel_ref_values_t = {1,0}
+      
+      snap_area_values_t = {0,1}
+      snap_dir_values_t = {0,1,0}
+      swing_scale_values_t = {0,1}
+      sel_notes_mode_values_at = {0,1}   
+      sm_timesel_dest_values_t = {1,0}
+   end
   
    
    
@@ -227,18 +287,21 @@ Michael.
    grid_value = 0
    swing_value = 0.25
    strenght_value = 1
+   last_strenght_value_s = ""
    gravity_value = 0.5
    gravity_mult_value = 0.3 -- second
    use_vel_value = 0
-   swing_scale = 0.5
+   if swing_scale_values_t[1]&1 then swing_scale = 1.0 end
+   if swing_scale_values_t[2]&1 then swing_scale = 0.5 end
    groove_user_input = ""
-      
+   quantize_ref_menu_groove_name = "UserGroove"
+   
  end
  
  --------------------------------------------------------------------------------------------------------------- 
   
  function DEFINE_dynamic_variables() 
-     
+   max_object_position, first_measure, last_measure, cml, first_measure_dest_time, last_measure_dest_time, last_measure_dest  = GET_project_len()
    playpos = reaper.GetPlayPosition() 
    editpos = reaper.GetCursorPosition()   
    
@@ -262,7 +325,7 @@ Michael.
    snap_area_menu_names_t = {"Snap area:","< Use gravity ("..(math.ceil(math.round(gravity_value*gravity_mult_value,3)*1000)).." ms) >","Snap everything"}
    snap_dir_menu_names_t =  {"Snap direction:","To previous point","To closest point","To next point"} 
    swing_scale_menu_names_t =  {"Swing scaling:","1x (100% is next grid)","0.5x (REAPER behaviour)"}
-   sel_notes_mode2_menu_names_t = {"Quantize notes:", "Selected only","All notes in selected item"}
+   sel_notes_mode_menu_names_at = {"Quantize notes:", "Selected only","All notes in selected item"}
    sm_timesel_dest_menu_names_t = {"Destinaion str.markers:", "All", "Time selection"}
    
    ---------------------
@@ -282,8 +345,7 @@ Michael.
        quantize_ref_menu_grid_name = "project grid: "..grid_string 
      else quantize_ref_menu_grid_name = "custom grid: "..grid_string end
        
-   quantize_ref_menu_swing_name = "swing grid "..(swing_value*100).."%"
-   quantize_ref_menu_groove_name = "UserGroove (beta) "..string.sub(groove_user_input, 0, 8)
+   quantize_ref_menu_swing_name = "swing grid "..math.floor(swing_value*100).."%"   
    
    if snap_mode_values_t[2] == 1 then        
      quantize_ref_menu_names_t = {"Reference points ("..count_ref_positions..") :", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
@@ -291,7 +353,7 @@ Michael.
                                 quantize_ref_menu_grid_name,
                                 quantize_ref_menu_swing_name}
     else
-     quantize_ref_menu_names_t = {quantize_ref_menu_names_t[1], quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
+     quantize_ref_menu_names_t = {"Reference points ("..count_ref_positions..") :", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
                                 quantize_ref_menu_ep_name, quantize_ref_menu_notes_name}
    end
    -----------------------                             
@@ -361,7 +423,7 @@ Michael.
   snap_area_menu_xywh_t = {x_offset, y_offset2 + beetween_items3, width1, heigth2}
   snap_dir_menu_xywh_t = {x_offset, y_offset2 + beetween_items3*2, width1, heigth2}  
   swing_scale_menu_xywh_t = {x_offset,  y_offset2 + beetween_items3*3, width1, heigth2}
-  sel_notes_mode2_menu_xywh_t = {x_offset, y_offset2 + beetween_items3*4, width1, heigth2}
+  sel_notes_mode_menu_xywh_at = {x_offset, y_offset2 + beetween_items3*4, width1, heigth2}
   sm_timesel_dest_menu_xywh_t = {x_offset, y_offset2 + beetween_items3*5, width1, heigth2}
   
   quantize_ref_menu_xywh_t = {x_offset, y_offset, width1/2, y_offset1-y_offset}
@@ -383,6 +445,9 @@ Michael.
   about_button_xywh_t = {x_offset, y_offset+main_h - 50, options_buttons_width, 40}
   help_button_xywh_t = {x_offset + about_button_xywh_t[3] + 5, y_offset+main_h - 50,options_buttons_width, 40}
   todo_button_xywh_t = {x_offset + help_button_xywh_t[1] + help_button_xywh_t[3], y_offset+main_h - 50, options_buttons_width, 40}
+  
+  store_preset_button_xywh_t = {x_offset, y_offset+main_h - 95, options_buttons_width, 40}
+    donate_button_xywh_t = {x_offset + store_preset_button_xywh_t[3] + 5, y_offset+main_h - 95,options_buttons_width, 40}
  end
  
  ---------------------------------------------------------------------------------------------------------------
@@ -542,17 +607,10 @@ Michael.
  ---------------------------------------------------------------------------------------------------------------
   
 function GUI_display_pos (pos, rgba_t, align, val)  
-   if val == nil or val > 1 then val = 1 end   
-   
-  --[[if snap_mode_values_t[2] == 1 then -- if pattern mode        
-     pat_len_position = reaper.TimeMap2_beatsToTime(0, 0, pattern_len)     
-     x1 = display_rect_xywh_t[1] + (display_rect_xywh_t[3] * (pos / pat_len_position))   
-   end
-   
-   
-   if snap_mode_values_t[1] == 1 then -- if global  ]]
-      x1 = display_rect_xywh_t[1] + display_rect_xywh_t[3] *   (pos / max_object_position)   
-  -- end
+   if val == nil or val > 1 then val = 1 end      
+    
+    --GUI_display_length
+   x1 = display_rect_xywh_t[1] + display_rect_xywh_t[3] *   ( (pos-gui_display_offset) / gui_display_length)   
    
    if align == "centered" then
      y1 = display_rect_xywh_t[2] + display_rect_xywh_t[4]/2 - (display_rect_xywh_t[4]*0.5)*val
@@ -584,6 +642,10 @@ end
  ---------------------------------------------------------------------------------------------------------------
  
  function GUI_display() 
+   
+   gui_display_offset = first_measure_dest_time
+   gui_display_length = last_measure_dest_time - first_measure_dest_time
+   
    -- display main rectangle -- 
    gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1,frame_alpha_default
    gfx.roundrect(display_rect_xywh_t[1], display_rect_xywh_t[2],display_rect_xywh_t[3], display_rect_xywh_t[4],0.1, true)
@@ -622,17 +684,22 @@ end
    end 
    
    -- bars
-   for i = 0,  last_measure+16 do
-     bar_time = reaper.TimeMap2_beatsToTime(0, 0, i)
-     GUI_display_pos(bar_time, bar_points_rgba_t, "centered", 0.5)
-     --beats
-     if last_measure <= 10 then
-       for j = 1, cml-1 do
-         beat_time = reaper.TimeMap2_beatsToTime(0, j, i)
-         GUI_display_pos(beat_time, bar_points_rgba_t, "centered", 0.3)
+   _, gui_display_length_bars = reaper.TimeMap2_timeToBeats(0, gui_display_length)
+   for i = 0, gui_display_length_bars+1 do      
+     bar_time = reaper.TimeMap2_beatsToTime(0, 0, i)  
+     GUI_display_pos(0, bar_points_rgba_t, "centered", 0.4)   
+     GUI_display_pos(bar_time, bar_points_rgba_t, "centered", 0.4)  
+   end    
+   
+   -- beats
+   if gui_display_length_bars <= 10 then
+     for i = 1, cml*gui_display_length_bars do
+       if i%cml ~= 0 then
+         beat_time = reaper.TimeMap2_beatsToTime(0, i)
+         GUI_display_pos(beat_time+gui_display_offset, bar_points_rgba_t, "centered", 0.2)
        end  
-      end    
-   end  
+     end  
+   end 
  end  
  
 ---------------------------------------------------------------------------------------------------------------
@@ -782,15 +849,20 @@ end
        gfx.rect(quantize_options_area_xywh_t[1],quantize_options_area_xywh_t[2],quantize_options_area_xywh_t[3],quantize_options_area_xywh_t[4])
        
        -- buttons background --
-       gfx.r, gfx.g, gfx.b, gfx.a = 0.5, 0.8, 1, 0.3
+       gfx.r, gfx.g, gfx.b, gfx.a = 0.5, 0.8, 1, 0.15
+       gfx.rect(store_preset_button_xywh_t[1],store_preset_button_xywh_t[2], store_preset_button_xywh_t[3], store_preset_button_xywh_t[4])
+       
+       gfx.r, gfx.g, gfx.b, gfx.a = 0.5, 0.8, 1, 0.15
        gfx.rect(about_button_xywh_t[1], about_button_xywh_t[2], about_button_xywh_t[3], about_button_xywh_t[4])
        
-       gfx.r, gfx.g, gfx.b, gfx.a = 0.5, 0.8, 1, 0.3
+       gfx.r, gfx.g, gfx.b, gfx.a = 0.5, 0.8, 1, 0.15
        gfx.rect(help_button_xywh_t[1], help_button_xywh_t[2],help_button_xywh_t[3], help_button_xywh_t[4])
 
-       gfx.r, gfx.g, gfx.b, gfx.a = 0.5, 0.8, 1, 0.3
+       gfx.r, gfx.g, gfx.b, gfx.a = 0.5, 0.8, 1, 0.15
        gfx.rect(todo_button_xywh_t[1], todo_button_xywh_t[2],todo_button_xywh_t[3], todo_button_xywh_t[4])       
        
+       gfx.r, gfx.g, gfx.b, gfx.a = 0.5, 0.8, 1, 0.15
+       gfx.rect(donate_button_xywh_t[1], donate_button_xywh_t[2],donate_button_xywh_t[3], donate_button_xywh_t[4]) 
        
       -- ref setup area --
         snap_mode_xywh_buttons_t =      GUI_menu (snap_mode_menu_xywh_t, snap_mode_menu_names_t, snap_mode_values_t, false,false,itemcolor2_t,0)
@@ -810,14 +882,16 @@ end
         
         snap_dir_xywh_buttons_t =       GUI_menu (snap_dir_menu_xywh_t,  snap_dir_menu_names_t, snap_dir_values_t, false,false,itemcolor2_t,0)
         swing_scale_xywh_buttons_t =    GUI_menu (swing_scale_menu_xywh_t,  swing_scale_menu_names_t, swing_scale_values_t, false,false,itemcolor2_t,0)
-        sel_notes_mode2_xywh_buttons_t =      GUI_menu (sel_notes_mode2_menu_xywh_t, sel_notes_mode2_menu_names_t, sel_notes_mode2_values_t, false,false,itemcolor2_t,0)
+        sel_notes_mode_xywh_buttons_at =      GUI_menu (sel_notes_mode_menu_xywh_at, sel_notes_mode_menu_names_at, sel_notes_mode_values_at, false,false,itemcolor2_t,0)
         sm_timesel_dest_xywh_buttons_t = GUI_menu (sm_timesel_dest_menu_xywh_t, sm_timesel_dest_menu_names_t, sm_timesel_dest_values_t, false,false,itemcolor2_t,0)
         
       -- buttons
        GUI_button(options_button_xywh_t, "<<", ">>", options_button_state, true)
        GUI_button(about_button_xywh_t, "About / ChangeLog","About / ChangeLog", _, true)
        GUI_button(help_button_xywh_t, "Help","Help", _, true)
-       GUI_button(todo_button_xywh_t, "ToDo / Bugs","ToDo / Bugs", _, true)  
+       GUI_button(todo_button_xywh_t, "ToDo / Bugs","ToDo / Bugs", _, true)
+       GUI_button(donate_button_xywh_t, "Donate if you like it","Donate if you like it", _, true) 
+       GUI_button(store_preset_button_xywh_t, "Store preset","Store preset", _, true)  
      end -- if options page on
      
    ------------------  
@@ -1032,7 +1106,7 @@ end
 ---------------------------------------------------------------------------
 
  function ENGINE1_get_reference_usergroove()
-   if ref_groove_t == nil then -- if already got
+   --if ref_groove_t == nil then -- if already got
     retval, groove_user_input = reaper.GetUserInputs("Type name of groove", 1, "Name of groove", "")
     if retval ~= nil or groove_user_input ~= "" then
       filename = exepath.."\\Grooves\\"..groove_user_input..".rgt"
@@ -1040,27 +1114,30 @@ end
       file = io.open(filename, "r")
       if file ~= nil then
         content = file:read("*all")
-        for line in io.lines(filename) do
-          line_n = tonumber(line)
-          if line_n == nil then
-            line_ins = 0
-           else 
-            line_ins = reaper.TimeMap2_beatsToTime(0, line_n)
-          end   
-          table.insert(content_temp_t, line_ins) 
+        for line in io.lines(filename) do           
+          table.insert(content_temp_t, line) 
         end
         file:close()
         
+        beats_in_groove = tonumber(string.sub(content_temp_t[2], 28))
+        pattern_len = beats_in_groove/4
+        
         ref_groove_t = {}  
-        for i = 4, #content_temp_t-4 do
-           temp_var = content_temp_t[i]
-           table.insert(ref_groove_t, temp_var)
+        table.insert(ref_groove_t, 0)
+        for i = 1, #content_temp_t do
+           if i>=5 then
+             temp_var = tonumber(content_temp_t[i])
+             temp_var_conv = reaper.TimeMap2_beatsToTime(0, temp_var)
+             table.insert(ref_groove_t, temp_var_conv)
+           end  
         end
+        quantize_ref_menu_groove_name = groove_user_input
       end
       ENGINE1_get_reference_FORM_points() 
       ENGINE3_quantize_objects() 
+      
     end
-   end  
+   --end  
  end
  
 ---------------------------------------------------------------------------
@@ -1076,7 +1153,7 @@ end
    
   function ENGINE1_get_reference_swing_grid()  
      ref_swing_grid_t = {}
-     local i2 = 0
+     i2 = 0
      for grid_step = 0, grid_bar_time, grid_time do       
        if i2 % 2 == 0 then 
          table.insert(ref_swing_grid_t, grid_step) end
@@ -1142,15 +1219,15 @@ end
      if quantize_ref_values_t[6] == 1 then     
        for i = 1, #ref_grid_t do
          table_temp_val = {ref_grid_t[i] , nil}
-         table.insert (ref_points_t, i, table_temp_val)
+         table.insert (ref_points_t, i,{ table_temp_val})
        end
      end
      
      -- swing --
      if quantize_ref_values_t[7] == 1 then   
          for i = 1, #ref_swing_grid_t do
-           table_temp_val = {ref_swing_grid_t[i], nil}
-           table.insert (ref_points_t, i, table_temp_val)
+           temp_val4 = ref_swing_grid_t[i]
+           table.insert (ref_points_t, {temp_val4, 1})
          end      
      end
     
@@ -1158,30 +1235,35 @@ end
     -- form pattern / generate pattern grid
            
      if ref_points_t ~= nil and snap_mode_values_t[2] == 1 then
-        ref_points_t2 = {}--table for beats pos        
-         -- last project measure
-        first_measure = last_measure --start value  for loop
+        ref_points_t2 = {}--table for beats pos  
+              
+         -- first ref item measure
+        ref_point_subt_temp_min = math.huge --start value  for loop
         for i = 1, #ref_points_t do          
-          ref_point_subt_temp = ref_points_t[i]
-          retval, measure, cml, fullbeats, cdenom = reaper.TimeMap2_timeToBeats(0, ref_point_subt_temp[1])
-          first_measure = math.min(first_measure, measure)
+          ref_point_subt_temp = ref_points_t[i]          
+          ref_point_subt_temp_min = math.min(ref_point_subt_temp_min, ref_point_subt_temp[1])
         end  
-        -- if pos not bigger than fisrt item measure + pattern length , add to table
+        
+        retval, first_pat_measure, cml, fullbeats, cdenom = reaper.TimeMap2_timeToBeats(0, ref_point_subt_temp_min)
+        
+        -- if pos not bigger than first item measure + pattern length , add to table
         for i = 1, #ref_points_t do
           ref_point_subt_temp = ref_points_t[i]          
-          retval, measure2, cml, fullbeats, cdenom = reaper.TimeMap2_timeToBeats(0, ref_point_subt_temp[1])
-          if measure2 < first_measure + pattern_len then
-            table.insert(ref_points_t2, {(retval+measure2*cml)-first_measure*cml, ref_point_subt_temp[2]})
+          retval, measure2, cml1, fullbeats, cdenom = reaper.TimeMap2_timeToBeats(0, ref_point_subt_temp[1])
+          if measure2 < first_pat_measure + pattern_len then
+            table.insert(ref_points_t2, {retval, ref_point_subt_temp[2]})
           end  
         end
+        
         -- add edges
         if pat_edge_values_t[1] == 1 then
           table.insert(ref_points_t2, {0, 1})
           table.insert(ref_points_t2, {pattern_len*cml, 1})
         end
+        
         -- generate grid from ref_points_t2
         ref_points_t = {}
-        for i=1, last_measure+16, pattern_len do          
+        for i=1, 400, pattern_len do          
           for j=1, #ref_points_t2 do
             ref_points_t2_subt = ref_points_t2[j]            
             ref_pos_time = reaper.TimeMap2_beatsToTime(0, ref_points_t2_subt[1], i-1)
@@ -1190,15 +1272,15 @@ end
             end  
             table.insert(ref_points_t, {ref_pos_time, ref_points_t2_subt[2]} )
           end  
-        end        
-     end
+        end     
+     end  
  end 
    
  ---------------------------------------------------------------------------------------------------------------
  ---------------------------------------------------------------------------------------------------------------
  
 function GET_project_len()
-  positions_of_objects_t = {}
+  --[[positions_of_objects_t = {}
   count_tracks = reaper.CountTracks(0)
   if count_tracks ~= nil then    
     for i = 1, count_tracks, 1 do
@@ -1242,7 +1324,38 @@ function GET_project_len()
   retval, measuresOut, cml = reaper.TimeMap2_timeToBeats(0, max_object_position)
   max_object_position = reaper.TimeMap2_beatsToTime(0, 0, measuresOut+1)
   if max_object_position == nil then max_object_position = 0 end
-  retval, last_measure, cml, fullbeats, cdenom = reaper.TimeMap2_timeToBeats(0, max_object_position)
+  retval, last_measure, cml, fullbeats, cdenom = reaper.TimeMap2_timeToBeats(0, max_object_position)]]
+  
+  max_point = 0
+  min_point = math.huge
+  
+  if dest_points_t ~= nil then
+    for i = 1, #dest_points_t do      
+      dest_points_t_subt = dest_points_t[i]
+      max_point = math.max(dest_points_t_subt[1],max_point)
+      min_point = math.min(dest_points_t_subt[1],min_point)
+    end
+  end  
+  _, first_measure_dest = reaper.TimeMap2_timeToBeats(0, min_point)  
+  _, last_measure_dest = reaper.TimeMap2_timeToBeats(0, max_point)
+  last_measure_dest = last_measure_dest+1
+  first_measure_dest_time = reaper.TimeMap2_beatsToTime(0, 0, first_measure_dest)
+  last_measure_dest_time = reaper.TimeMap2_beatsToTime(0, 0, last_measure_dest)
+  
+  if ref_points_t ~= nil then  
+    for i = 1, #ref_points_t do
+      ref_points_t_item_subt = ref_points_t[i]
+      max_point = math.max(ref_points_t_item_subt[1],max_point)
+      min_point = math.min(ref_points_t_item_subt[1],min_point)
+    end  
+  end  
+  
+  max_object_position = max_point
+  _, first_measure = reaper.TimeMap2_timeToBeats(0, min_point)
+  _, last_measure1 = reaper.TimeMap2_timeToBeats(0, max_point)
+  last_measure = last_measure1 +1
+  _, _, cml_com = reaper.TimeMap2_timeToBeats(0, 0)
+  return max_object_position, first_measure, last_measure, cml_com, first_measure_dest_time, last_measure_dest_time, last_measure_dest
 end
   
  ---------------------------------------------------------------------------------------------------------------
@@ -1399,12 +1512,12 @@ end
                   dest_note_pos = reaper.MIDI_GetProjTimeFromPPQPos(take, startppqpos)                                 
                   dest_notes_subt = {take_guid, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel, dest_note_pos}                   
                   table.insert(dest_notes_t, dest_notes_subt)  
-                  if sel_notes_mode2_values_t[1] == 1 then
+                  if sel_notes_mode_values_at[1] == 1 then
                     if selectedOut == true then
                       table.insert(dest_notes_t2, dest_notes_subt)
                     end  
                   end
-                  if sel_notes_mode2_values_t[2] == 1 then
+                  if sel_notes_mode_values_at[2] == 1 then
                     table.insert(dest_notes_t2, dest_notes_subt) 
                   end                  
                 end -- count notes                   
@@ -1462,12 +1575,12 @@ end
        for i = 1, #dest_notes_t do
          table_temp_val = dest_notes_t[i]
          -- take_guid, selectedOut, mutedOut, startppqpos, endppqpos, chan, pitch, vel, dest_note_pos
-         if sel_notes_mode2_values_t[1] == 1 then
+         if sel_notes_mode_values_at[1] == 1 then
            if table_temp_val[2] == true then
              table.insert (dest_points_t, {table_temp_val[9], table_temp_val[8]/127})
            end  
          end  
-         if sel_notes_mode2_values_t[2] == 1 then
+         if sel_notes_mode_values_at[2] == 1 then
            table.insert (dest_points_t, {table_temp_val[9], table_temp_val[8]/127})
          end           
        end
@@ -1834,7 +1947,7 @@ end
           ppq_dif = dest_notes_subt[5] - dest_notes_subt[4]
           
           
-          if sel_notes_mode2_values_t[1] == 1 then
+          if sel_notes_mode_values_at[1] == 1 then
             if dest_notes_subt[2] == true then
               notes_newpos, notes_newvol = ENGINE3_quantize_compare(dest_notes_subt[9], dest_notes_subt[8]/127)
              else
@@ -1842,7 +1955,7 @@ end
               notes_newvol = dest_notes_subt[8]/127
             end 
           end
-          if sel_notes_mode2_values_t[2] == 1 then
+          if sel_notes_mode_values_at[2] == 1 then
             notes_newpos, notes_newvol = ENGINE3_quantize_compare(dest_notes_subt[9], dest_notes_subt[8]/127)
           end
           notes_newpos_ppq = reaper.MIDI_GetPPQPosFromProjTime(take, notes_newpos)
@@ -1854,7 +1967,63 @@ end
     end --dest_notes_t ~= nil and restore_button_state == false  
    end     --if quantize_dest_values_t[4] == 1 then 
   end -- func
+  
+  
+ ---------------------------------------------------------------------------------------------------------------
+ ---------------------------------------------------------------------------------------------------------------      
+ function ENGINE4_save_groove_as_rgt()
+   if ref_points_t2 ~= nil then
+     rgt_t = {}
+     --form_return_lines
+     rgt_t[1] = "Version: 0"
+     rgt_t[2] = "Number of beats in groove: "..pattern_len*4
+     rgt_t[3] = "Groove: "..#ref_points_t2.." positions"
+     rgt_t[4] = "1e-007"
+     for i = 2, #ref_points_t2 do
+        rgt_t_item = ref_points_t2[i]
+        rgt_t_item = tostring(math.round(rgt_t_item[1], 10))
+        
+        table.insert(rgt_t, rgt_t_item)
+     end
      
+     --write file
+     retval, ret_groove_user_input = reaper.GetUserInputs("Save groove", 1, "Name of groove", "")
+     if retval ~= nil or ret_groove_user_input ~= "" then     
+       ret_filename = exepath.."\\Grooves\\"..ret_groove_user_input..".rgt"
+       
+       file = io.open(ret_filename,"w")       
+       for i = 1, #rgt_t do file:write(rgt_t[i].."\n") end
+       file:close()
+       
+     end  
+     
+   end
+ end
+ 
+ ---------------------------------------------------------------------------------------------------------------
+ function ENGINE4_save_preset()
+   settings_t = {}
+   
+   settings_t[1] = table.concat(snap_mode_values_t, "")
+   settings_t[2] = table.concat(pat_len_values_t, "")
+   settings_t[3] = table.concat(pat_edge_values_t, "")
+   settings_t[4] = table.concat(use_vel_values_t, "")
+   settings_t[5] = table.concat(sel_notes_mode_values_t, "")
+   settings_t[6] = table.concat(sm_rel_ref_values_t, "")
+   settings_t[7] = table.concat(sm_timesel_ref_values_t, "")
+   settings_t[8] = table.concat(snap_area_values_t, "")
+   settings_t[9] = table.concat(snap_dir_values_t, "")
+   settings_t[10] = table.concat(swing_scale_values_t, "")
+   settings_t[11] = table.concat(sel_notes_mode_values_at, "")   
+   settings_t[12] = table.concat(sm_timesel_dest_values_t, "")  
+      
+   file = io.open(settings_filename,"w")          
+   for i = 1, #settings_t-1 do file:write(settings_t[i].."\n") end
+   file:write("\n".."Configuration for mpl Quantize Tool".."\n".."If you`re not sure what is that, don`t modify this!".."\n".."\n")
+   file:close()
+   
+   
+ end
  ---------------------------------------------------------------------------------------------------------------
  ---------------------------------------------------------------------------------------------------------------
       
@@ -1967,12 +2136,16 @@ end
        quantize_ref_values_t = {0, 0, 0, 1, 0, 0, 0} 
        count_reference_notes_positions = ENGINE1_get_reference_notes_positions() 
        ENGINE1_get_reference_FORM_points() end  
+       
            -- user groove--
+           
      if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,16) == true then 
        quantize_ref_values_t = {0, 0, 0, 0, 1, 0, 0} 
        ENGINE1_get_reference_usergroove()
-            end  
+     end  
+     
            -- grid --
+           
      if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,20) == true or  
         MOUSE_clickhold_under_gui_rect(grid_value_slider_xywh_t, 0) == true
      then quantize_ref_values_t = {0, 0, 0, 0, 0, 1, 0}
@@ -1984,7 +2157,9 @@ end
       else
        display_grid_value_slider = false
      end
+     
            -- swing --
+           
      if MOUSE_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,24) == true or 
         MOUSE_clickhold_under_gui_rect(swing_grid_value_slider_xywh_t, 0) == true then 
         quantize_ref_values_t = {0, 0, 0, 0, 0, 0, 1} 
@@ -2052,7 +2227,7 @@ end
      -- APPLY BUTTON / SLIDER --
      if MOUSE_clickhold_under_gui_rect(apply_slider_xywh_t,0) == true then 
        strenght_value = (mx - apply_slider_xywh_t[1])/apply_slider_xywh_t[3]*2
-       if strenght_value >1 then strenght_value = 1 end
+       if strenght_value >1 then strenght_value = 1 end      
        ENGINE3_quantize_objects()
      end 
      
@@ -2063,6 +2238,15 @@ end
       else  
        restore_button_state = false 
      end
+     
+     -- DISPLAY --
+     if MOUSE_RB_clickhold_under_gui_rect(display_rect_xywh_t,0) == true then 
+       gfx.x, gfx.y = mx, my 
+       should_save = gfx.showmenu("Save groove as rgt")
+       if should_save == 1 then 
+         ENGINE4_save_groove_as_rgt()
+       end  
+     end 
        
    end
    
@@ -2161,9 +2345,9 @@ end
      end  
      
      ------ dest NOTES ------      
-     if sel_notes_mode2_xywh_buttons_t ~= nil then
-       if MOUSE_clickhold_under_gui_rect(sel_notes_mode2_xywh_buttons_t,0) == true then sel_notes_mode2_values_t = {1, 0} ENGINE3_quantize_objects() end
-       if MOUSE_clickhold_under_gui_rect(sel_notes_mode2_xywh_buttons_t,4) == true then sel_notes_mode2_values_t = {0, 1} ENGINE3_quantize_objects() end
+     if sel_notes_mode_xywh_buttons_at ~= nil then
+       if MOUSE_clickhold_under_gui_rect(sel_notes_mode_xywh_buttons_at,0) == true then sel_notes_mode_values_at = {1, 0} ENGINE3_quantize_objects() end
+       if MOUSE_clickhold_under_gui_rect(sel_notes_mode_xywh_buttons_at,4) == true then sel_notes_mode_values_at = {0, 1} ENGINE3_quantize_objects() end
      end
      
      ------ SM ALL/TIMESELECTION ONLY destination ------      
@@ -2174,6 +2358,12 @@ end
   ---------------------  
    
   --|||-- BUTTONS -----     
+     -- STORE PRESET BUTTON --
+     if MOUSE_clickhold_under_gui_rect(store_preset_button_xywh_t,0) == true then 
+        ENGINE4_save_preset()
+        reaper.MB("Configuration saved successfully to "..exepath.."\\Scripts\\mpl_Quantize_Tool_settings.txt", "Preset saving", 0)
+        end
+
      -- ABOUT BUTTON --
      if MOUSE_clickhold_under_gui_rect(about_button_xywh_t,0) == true then 
        reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(about..changelog) end
@@ -2184,12 +2374,62 @@ end
      
      -- TODO BUTTON --
      if MOUSE_clickhold_under_gui_rect(todo_button_xywh_t,0) == true then 
-     reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(todo..bugs) end           
+     reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(todo..bugs) end   
+     
+     -- DONATE BUTTON --
+     if MOUSE_clickhold_under_gui_rect(donate_button_xywh_t,0) == true then 
+     open_URL() end  
+             
    end -- if options page on
    
    end -- if snap >1
  end
+        
+---------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------
+function EXT_get_sub(key, last_value_s)
+  if reaper.HasExtState("mplQT_settings", key) == true then
+    value_s = reaper.GetExtState("mplQT_settings", key)         
+    if last_value_s == nil then last_value_s = ""  end
+    if value_s ~= last_value_s then
+      value_ret = tonumber(value_s)    
+      last_value_s_ret = value_s
+      is_apply = true
+      local value = value_ret
+     else
+      is_apply = false
+    end  
+  end 
+  return last_value_s_ret, value_ret, is_apply
+end
+
+---------------------------------------------------------------------------------------------------------------
+function EXT_get()
+  if last_strenght_value_s_ret == nil then first_time_st = true end
+  last_strenght_value_s_ret, strenght_value_ret, is_apply_strenght = EXT_get_sub("Strenght", last_strenght_value_s)
+  if strenght_value_ret ~= nil and is_apply_strenght == true then 
+    strenght_value = strenght_value_ret 
+    last_strenght_value_s = last_strenght_value_s_ret
+    if first_time_sw ~= true then
+      ENGINE3_quantize_objects() 
+    end  
+  end
   
+  if last_swing_value_s_ret == nil then first_time_sw = true end
+  last_swing_value_s_ret, swing_value_ret, is_apply_swing = EXT_get_sub("Swing", last_swing_value_s)
+  if swing_value_ret ~= nil and is_apply_swing == true then 
+    swing_value = swing_value_ret 
+    last_swing_value_s = last_swing_value_s_ret
+    if first_time_sw ~= true then
+      ENGINE1_get_reference_swing_grid()
+      ENGINE1_get_reference_FORM_points()
+      ENGINE3_quantize_objects() 
+    end  
+  end
+  
+end     
+
+
 ---------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------
 
@@ -2199,14 +2439,15 @@ end
  
  --------------------------------------------------------------------------------------------------------------- 
     
- function MAIN_run()
-   GET_project_len()   
+ function MAIN_run()      
    DEFINE_dynamic_variables()   
    GUI_DRAW()   
    MOUSE_get()  
+   EXT_get()
    reaper.UpdateArrange()    
    test_var(test)
    char = gfx.getchar()  
+   --ENGINE4_save_preset()
    if char == 27 then MAIN_exit() end     
    if char ~= -1 then reaper.defer(MAIN_run) else MAIN_exit() end
  end 
