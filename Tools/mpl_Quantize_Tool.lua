@@ -46,7 +46,7 @@ Donation.
 changelog =                   
 [===[
 Changelog:
-13.09.2015  1.1  build 1      
+13.09.2015  1.1  build 2      
           New: 
             get reference str.marker from selected item/time selection of selected item
             quantize str.marker from selected item/time selection of selected item
@@ -54,9 +54,10 @@ Changelog:
             rmb click on display save current groove to rgt (SWS Fingers Groove Tool) file
             swing value support decimals (only if user type)
             store and recall preset - \REAPER\Scripts\mpl_Quantize_Tool_settings.txt
-            set strength/swing via CC and OSC with
+            set strength/swing/grid via CC and OSC with
               mpl_Quantize_Tool_set_strength.lua
               mpl_Quantize_Tool_set_swing.lua (beetween 0-100%)
+              mpl_Quantize_Tool_set_grid.lua
               check in http://github.com/MichaelPilyavskiy/ReaScripts/tree/master/Tools
 
           Improvements:
@@ -912,6 +913,8 @@ end
       else
        grid_beats = custom_grid_beats_t[custom_grid_beats_i]       
      end   
+     
+     if grid_beats == nil then grid_beats = project_grid_beats end
      
      grid_divider = math.ceil(math.round(4/grid_beats, 1))*0.5
      grid_string = "1/"..math.ceil(grid_divider)
@@ -2396,12 +2399,27 @@ function EXT_get()
     swing_value = swing_value_ret 
     last_swing_value_s = last_swing_value_s_ret
     if first_time_sw == false then
+      snap_mode_values_t = {0,1} 
+      quantize_ref_values_t = {0, 0, 0, 0, 0, 0, 1}
       ENGINE1_get_reference_swing_grid()
       ENGINE1_get_reference_FORM_points()
       ENGINE3_quantize_objects() 
     end  
   end
-  
+
+  if last_grid_value_s_ret == nil then first_time_grid = true else first_time_grid = false end
+  last_grid_value_s_ret, grid_value_ret, is_apply_grid = EXT_get_sub("Grid", last_grid_value_s)
+  if grid_value_ret ~= nil and is_apply_grid == true then 
+    grid_value = grid_value_ret 
+    last_grid_value_s = last_grid_value_s_ret
+    if first_time_grid == false then    
+      snap_mode_values_t = {0,1} 
+      quantize_ref_values_t = {0, 0, 0, 0, 0, 1, 0}
+      ENGINE1_get_reference_grid()
+      ENGINE1_get_reference_FORM_points()
+      ENGINE3_quantize_objects() 
+    end  
+  end  
 end     
 
 
