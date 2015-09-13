@@ -41,79 +41,46 @@ Donation.
             
  ]===]
  
- vrs = "1.11"
+ vrs = "1.1"
  
 changelog =                   
 [===[
 Changelog:
-13.09.2015  1.11
-            UpdateArrange() moved to main quantize function: -10% CPU 
-11.09.2015  1.103
-            fixed custom grid bug
-            click on display save current groove to file
-            show name of loaded groove in reference menu
+13.09.2015  1.1  build 1      
+        new:                  
+            get reference str.marker from selected item/time selection of selected item 
+            quantize str.marker from selected item/time selection of selected item
+            User Groove (import .rgt files for SWS Fingers Groove Tool)
+            swing value support decimals (only if user type)
+            store and recall preset - \REAPER\Scripts\mpl_Quantize_Tool_settings.txt
             set strength/swing via CC and OSC via
               mpl_Quantize_Tool_set_strength.lua
               mpl_Quantize_Tool_set_swing.lua (beetween 0-100%)
               check in http://github.com/MichaelPilyavskiy/ReaScripts/tree/master/Tools
-            form pattern improvements  
-            limit view to min/max dest positions in pattern mode 
-            store and recall preset - \REAPER\Scripts\mpl_Quantize_Tool_settings.txt
-07.09.2015  1.07
-            donate button
-06.09.2015  1.063
-            manual updated
-            dont show beats if project length > 10 bars
-05.09.2015  1.052
-            fixed display shows max-1 bar
-            added get reference str.marker from selected item/time selection of selected item 
-            added quantize str.marker from selected item/time selection of selected item
-            Changing global/local mode form relevant mode points and leave previously got points
-            Every menu changing also form ref.points or quantize objects to quick preview
-            revert pattern mode display behaviour to fix later
-            removed display bar lines. -10% CPU 
-            improved count ref/dest objects
+            rmb click on display save current groove to rgt (SWS Fingers Groove Tool)file
+        improvements: 
+            cutted options button (to prevent trigger options page)
+            count ref/dest objects            
             disable set 'Use Gravity' when choosing destination stretch markers
-03.09.2015  1.041
-            fixed error page when snap is more than 1
-            fixed incorrect project/custom grid values
-01.09.2015  1.031
-            fixed swing grid tempo bug, project grid tempo bug
-            fixed -1 tick midi notes position when quantize/restore
-            cutted options button
-            fixed display issue in pattern mode
-            beta - User Groove (import .rgt files for SWS Groove Tool)
-29.08.2015  1.02
-            fixed info strings, thanks to heda!
-            fixed error if project is empty
-            swing value support decimals (only if user type)
+            Changing global/local mode form relevant mode points and leave previously got points
+            Every menu changing also form ref.points or quantize objects to quick preview     
+        Performance:
+            removed display bar lines. -10% CPU
+            UpdateArrange() moved to main quantize function: 10%-20% less CPU, depending on how project is big
+        bugfixes:      
+            incorrect project/custom grid values
+            swing grid tempo bug, project grid tempo bug
+            -1 tick midi notes position when quantize/restore            
+            display issues       
+            error if project is empty
+        Info:
+            improved syntax of info strings, thanks to heda!
+            donate button
+            manual updated            
+            
 28.08.2015  1.0 
-            Public release      
-28.08.2015  0.7 
-            todo list and bugs
-            help/manual  
-26.08.2015  0.68 
-            relative sm reference mode
-            pattern length
-15.07.2015  0.152 
-            info message when snap > 1 to prevent reaper crash
-            ESC to close
-09.07.2015  0.12 
-            project grid
-            swing linked to grid
-            bypass/restore
-07.07.2015  0.113 
-            right click on swing to type swin
-            swing 100% is half grid
-            centered swing (-+)
-04.07.2015  0.081 
-            custom grid 
-01.07.2015  0.06 
-            menu count numbers
-            strength slider
-            point gravity slider
-25.06.2015  0.02 gui
-            snap direction
+            Public release     
+            
 23.06.2015  0.01 'swing items' idea
     
  ]===]
