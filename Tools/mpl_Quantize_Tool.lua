@@ -46,7 +46,7 @@ Donation.
 changelog =                   
 [===[
 Changelog:
-13.09.2015  1.1  build 2      
+13.09.2015  1.1  build 3      
           New: 
             get reference str.marker from selected item/time selection of selected item
             quantize str.marker from selected item/time selection of selected item
@@ -1969,9 +1969,11 @@ end
      if retval ~= nil or ret_groove_user_input ~= "" then     
        ret_filename = exepath.."\\Grooves\\"..ret_groove_user_input..".rgt"
        
-       file = io.open(ret_filename,"w")       
-       for i = 1, #rgt_t do file:write(rgt_t[i].."\n") end
-       file:close()
+       file = io.open(ret_filename,"w")   
+       if   file~= nil then  
+         for i = 1, #rgt_t do file:write(rgt_t[i].."\n") end
+         file:close()
+       end  
        
      end  
      
@@ -1995,10 +1997,15 @@ end
    settings_t[11] = table.concat(sel_notes_mode_values_at, "")   
    settings_t[12] = table.concat(sm_timesel_dest_values_t, "")  
       
-   file = io.open(settings_filename,"w")          
-   for i = 1, #settings_t-1 do file:write(settings_t[i].."\n") end
-   file:write("\n".."Configuration for mpl Quantize Tool".."\n".."If you`re not sure what is that, don`t modify this!".."\n".."\n")
-   file:close()
+   file = io.open(settings_filename,"w")        
+   if file ~= nil then
+     for i = 1, #settings_t-1 do file:write(settings_t[i].."\n") end
+     file:write("\n".."Configuration for mpl Quantize Tool".."\n".."If you`re not sure what is that, don`t modify this!".."\n".."\n")
+     file:close()
+     reaper.MB("Configuration saved successfully to "..exepath.."\\Scripts\\mpl_Quantize_Tool_settings.txt", "Preset saving", 0)
+    else
+      reaper.MB("Something goes wrong", "Preset saving", 0)
+   end  
    
    
  end
@@ -2338,8 +2345,7 @@ end
   --|||-- BUTTONS -----     
      -- STORE PRESET BUTTON --
      if MOUSE_clickhold_under_gui_rect(store_preset_button_xywh_t,0) == true then 
-        ENGINE4_save_preset()
-        reaper.MB("Configuration saved successfully to "..exepath.."\\Scripts\\mpl_Quantize_Tool_settings.txt", "Preset saving", 0)
+        ENGINE4_save_preset()        
         end
 
      -- ABOUT BUTTON --
