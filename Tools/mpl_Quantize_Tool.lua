@@ -36,16 +36,18 @@ Donation.
             -- Yandex Money ID 410013415541705
             -- MasterCard 5189 0100 0686 8799
             
-            World (Currently Not Available (or yes? seems not everyone can donate), should works after october 2015):
+            World:
             -- http://paypal.me/donate2mpl
             
  ]===]
  
- vrs = "1.103"
+ vrs = "1.11"
  
 changelog =                   
 [===[
 Changelog:
+13.09.2015  1.11
+            UpdateArrange() moved to main quantize function: -10% CPU 
 11.09.2015  1.103
             fixed custom grid bug
             click on display save current groove to file
@@ -1967,6 +1969,7 @@ end
       end    
     end --dest_notes_t ~= nil and restore_button_state == false  
    end     --if quantize_dest_values_t[4] == 1 then 
+   reaper.UpdateArrange()
   end -- func
   
   
@@ -2444,8 +2447,7 @@ end
    DEFINE_dynamic_variables()   
    GUI_DRAW()   
    MOUSE_get()  
-   EXT_get()
-   reaper.UpdateArrange()    
+   EXT_get()       
    test_var(test)
    char = gfx.getchar()  
    --ENGINE4_save_preset()
