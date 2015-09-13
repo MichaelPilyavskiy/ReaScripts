@@ -47,36 +47,40 @@ changelog =
 [===[
 Changelog:
 13.09.2015  1.1  build 1      
-        new:                  
-            get reference str.marker from selected item/time selection of selected item 
+          New: 
+            get reference str.marker from selected item/time selection of selected item
             quantize str.marker from selected item/time selection of selected item
             User Groove (import .rgt files for SWS Fingers Groove Tool)
+            rmb click on display save current groove to rgt (SWS Fingers Groove Tool) file
             swing value support decimals (only if user type)
             store and recall preset - \REAPER\Scripts\mpl_Quantize_Tool_settings.txt
-            set strength/swing via CC and OSC via
+            set strength/swing via CC and OSC with
               mpl_Quantize_Tool_set_strength.lua
               mpl_Quantize_Tool_set_swing.lua (beetween 0-100%)
               check in http://github.com/MichaelPilyavskiy/ReaScripts/tree/master/Tools
-            rmb click on display save current groove to rgt (SWS Fingers Groove Tool)file
-        improvements: 
+
+          Improvements:
             cutted options button (to prevent trigger options page)
-            count ref/dest objects            
+            count ref/dest objects
             disable set 'Use Gravity' when choosing destination stretch markers
             Changing global/local mode form relevant mode points and leave previously got points
-            Every menu changing also form ref.points or quantize objects to quick preview     
-        Performance:
+            Every menu changing also form ref.points or quantize objects to quick preview
+
+          Performance:
             removed display bar lines. -10% CPU
             UpdateArrange() moved to main quantize function: 10%-20% less CPU, depending on how project is big
-        bugfixes:      
+
+          Bugfixes: 
             incorrect project/custom grid values
             swing grid tempo bug, project grid tempo bug
-            -1 tick midi notes position when quantize/restore            
-            display issues       
+            -1 tick midi notes position when quantize/restore
+            display issues
             error if project is empty
-        Info:
+
+          Info:
             improved syntax of info strings, thanks to heda!
             donate button
-            manual updated            
+            manual updated           
             
 28.08.2015  1.0 
             Public release     
