@@ -47,11 +47,12 @@ Donation.
 changelog =                   
 [===[
 Changelog:
-14.09.2015  1.2  build 1
+14.09.2015  1.2  build 2
           New
             middle mouse button click on apply slider to set strength value
           Improvements:
             project grid is default, form points on start
+            right click on custom grid select/form project grid
           Bugfixes:
             fixed preset system dont store dest str.marker settings
         
@@ -2170,6 +2171,15 @@ end
       else
        display_grid_value_slider = false
      end
+     
+     if MOUSE_RB_clickhold_under_gui_rect(quantize_ref_xywh_buttons_t,20) == true or  
+        MOUSE_RB_clickhold_under_gui_rect(grid_value_slider_xywh_t, 0) == true
+         then quantize_ref_values_t = {0, 0, 0, 0, 0, 1, 0}
+          grid_value = 0
+          ENGINE1_get_reference_grid()
+          ENGINE1_get_reference_FORM_points() 
+          ENGINE3_quantize_objects()
+     end     
      
            -- swing --
            
