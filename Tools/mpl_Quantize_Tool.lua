@@ -43,12 +43,12 @@ Donation.
             
  ]===]
  
- vrs = "1.2 build 3"
+ vrs = "1.2 build 4"
  
 changelog =                   
 [===[
 Changelog:
-14.09.2015  1.2  build 3
+14.09.2015  1.2  build 4
           New
             middle mouse button click on apply slider to set strength value
           Improvements:
@@ -292,8 +292,8 @@ end
  function DEFINE_dynamic_variables() 
    max_object_position, first_measure, last_measure, cml, first_measure_dest_time, last_measure_dest_time, last_measure_dest  = GET_project_len()
    
-   timesig_error_ret = GET_timesigs()
-   if timesig_error_ret == nil and cml_com == 4 then timesig_error_ret = false end
+  --[[ timesig_error = GET_timesigs()
+   if timesig_error == nil and cml_com == 4 or timesig_error == false and cml_com == 4 then timesig_error = false end]]
    
    playpos = reaper.GetPlayPosition() 
    editpos = reaper.GetCursorPosition()   
@@ -790,7 +790,7 @@ end
      
  function GUI_DRAW()
  
-  if project_grid_measures < 1 and timesig_error_ret == false then
+  if project_grid_measures < 1 then--and timesig_error == false then
   
    ------------------  
    --- main page ----
@@ -908,7 +908,7 @@ end
 ---------------------------------------------------------------------------------------------------------------
  --------------------------------------------------------------------------------------------------------------- 
     
- function GET_timesigs()
+ --[[function GET_timesigs()
    timesig_count = reaper.CountTempoTimeSigMarkers(0)
    if timesig_count ~= nil then
      for i =1, timesig_count do
@@ -916,15 +916,14 @@ end
        if timesig == 4 or timesig_denom == 4 then 
          timesig_error = false 
         else 
-         timesig_error = true 
+         timesig_error = true break
        end  
        if timesig == 0 and timesig_denom == 0 then  timesig_error = false   end
      end 
     else
      timesig_error = false  
    end
-   return timesig_error
- end
+ end]]
  
  ---------------------------------------------------------------------------------------------------------------      
  function GET_grid()
