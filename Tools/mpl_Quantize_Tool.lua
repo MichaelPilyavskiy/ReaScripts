@@ -19,6 +19,7 @@ bugs  =
      it is for showing list of user grooves in /reaper/grooves
   -- stretch markers bug: http://forum.cockos.com/project.php?issueid=5647
   -- stretch markers quantize DOES NOT work when Item Loop Source is on
+  -- use this script only with 4/4 projects
  ]===]
  
 about = [===[Quantize tool by Michael Pilyavskiy
@@ -41,11 +42,19 @@ Donation.
             
  ]===]
  
- vrs = "1.1"
+ vrs = "1.2 build 1"
  
 changelog =                   
 [===[
 Changelog:
+14.09.2015  1.2  build 1
+          New
+            middle mouse button click on apply slider to set strength value
+          Improvements:
+            project grid is default, form points on start
+          Bugfixes:
+            fixed preset system dont store dest str.marker settings
+        
 13.09.2015  1.1  build 3      
           New: 
             get reference str.marker from selected item/time selection of selected item
@@ -246,7 +255,7 @@ end
    
    restore_button_state = false
    options_button_state = false
-   if snap_mode_values_t[2] == 1 then  quantize_ref_values_t = {0, 0, 0, 0, 0, 0, 1} else quantize_ref_values_t = {0, 0, 0, 0} end
+   if snap_mode_values_t[2] == 1 then  quantize_ref_values_t = {0, 0, 0, 0, 0, 1, 0} else quantize_ref_values_t = {0, 0, 0, 0} end
    quantize_dest_values_t = {0, 0, 0, 0}
     
    count_reference_item_positions = 0
@@ -270,7 +279,7 @@ end
    if swing_scale_values_t[2]&1 then swing_scale = 0.5 end
    groove_user_input = ""
    quantize_ref_menu_groove_name = "UserGroove"
-   
+   pattern_len = 1
  end
  
  --------------------------------------------------------------------------------------------------------------- 
@@ -345,7 +354,7 @@ end
    
    
    if restore_button_state == false then 
-     apply_bypass_slider_name = "Apply (LMB) / Quantize strength slider / Restore (RMB)"end
+     apply_bypass_slider_name = "Apply (LMB) / Quantize strength (MMB) / Restore (RMB)" end
  end 
    
  --------------------------------------------------------------------------------------------------------------- 
@@ -444,7 +453,8 @@ end
    
    w0 = measurestr
    h0 = fontsize_menu_item   
-   gfx.r, gfx.g, gfx.b, gfx.a = color_t[1], color_t[2], color_t[3], is_selected_item * 0.8 + 0.3  
+   
+   gfx.r, gfx.g, gfx.b, gfx.a = color_t[1], color_t[2], color_t[3], is_selected_item * 0.8 + 0.17 
    gfx.x = x0
    gfx.y = y0
    gfx.drawstr(b0) 
@@ -1999,7 +2009,7 @@ end
       
    file = io.open(settings_filename,"w")        
    if file ~= nil then
-     for i = 1, #settings_t-1 do file:write(settings_t[i].."\n") end
+     for i = 1, #settings_t do file:write(settings_t[i].."\n") end
      file:write("\n".."Configuration for mpl Quantize Tool".."\n".."If you`re not sure what is that, don`t modify this!".."\n".."\n")
      file:close()
      reaper.MB("Configuration saved successfully to "..exepath.."\\Scripts\\mpl_Quantize_Tool_settings.txt", "Preset saving", 0)
@@ -2069,7 +2079,25 @@ end
     return true
   end  
  end 
-     
+      
+---------------------------------------------------------------------------------------------------------------
+
+
+ function MOUSE_MB_clickhold_under_gui_rect (object_coord_t, offset) 
+  if gfx.mouse_cap == 64 then MB_DOWN = 1 else MB_DOWN = 0 end   
+  x = object_coord_t[1+offset]
+  y = object_coord_t[2+offset]
+  w = object_coord_t[3+offset]
+  h = object_coord_t[4+offset]
+  if MB_DOWN == 1
+   and mx > x
+   and mx < x + w
+   and my > y 
+   and my < y + h then       
+    return true
+  end  
+ end 
+      
 ---------------------------------------------------------------------------------------------------------------
     
  function MOUSE_clickhold_under_gui_rect (object_coord_t, offset) 
@@ -2216,13 +2244,26 @@ end
        ENGINE3_quantize_objects()
      end 
      
-     -- restore BUTTON --  
+     -- APPLY BUTTON / SLIDER restore --  
      if MOUSE_RB_clickhold_under_gui_rect(apply_slider_xywh_t,0) == true then 
        restore_button_state = true 
        ENGINE3_quantize_objects()
       else  
        restore_button_state = false 
      end
+     
+     -- APPLY BUTTON / SLIDER type --  
+     if MOUSE_MB_clickhold_under_gui_rect(apply_slider_xywh_t,0) == true then      
+       strenght_value_retval, strenght_value_return_s =  reaper.GetUserInputs("Strenght value", 1, "Strenght (%)", "") 
+       if strenght_value_retval ~= nil then 
+         strenght_value_return = tonumber(strenght_value_return_s) 
+         if strenght_value_return ~= nil then       
+           strenght_value = strenght_value_return/100
+           if math.abs(strenght_value) >1 then strenght_value = 1 end       
+           ENGINE3_quantize_objects()           
+         end
+       end    
+     end     
      
      -- DISPLAY --
      if MOUSE_RB_clickhold_under_gui_rect(display_rect_xywh_t,0) == true then 
@@ -2456,5 +2497,12 @@ end
  reaper.atexit(MAIN_exit) 
  
  DEFINE_default_variables()
- DEFINE_default_variables_GUI()  
+ DEFINE_default_variables_GUI() 
+ 
+ GET_grid() 
+ if grid_beats ~= nil then
+   ENGINE1_get_reference_grid()
+   ENGINE1_get_reference_FORM_points()
+ end  
+
  MAIN_run()
