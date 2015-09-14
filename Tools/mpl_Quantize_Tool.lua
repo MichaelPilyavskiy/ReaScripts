@@ -3,6 +3,7 @@
 
 todo= 
 [===[ To do list / requested features:
+  -- ENGINE1_get_reference_FORM_points() / generate grid from ref_points_t2 for different timesigs
   -- quantize note end
   -- quantize note position only
   -- lmb click on grid add groove point
@@ -42,17 +43,18 @@ Donation.
             
  ]===]
  
- vrs = "1.2 build 2"
+ vrs = "1.2 build 3"
  
 changelog =                   
 [===[
 Changelog:
-14.09.2015  1.2  build 2
+14.09.2015  1.2  build 3
           New
             middle mouse button click on apply slider to set strength value
           Improvements:
             project grid is default, form points on start
             right click on custom grid select/form project grid
+            small improvements in pattern mode for project with different tempo (different timesignature still don`t work properly)
           Bugfixes:
             fixed preset system dont store dest str.marker settings
         
@@ -211,6 +213,8 @@ end
        
  ---------------------------------------------------------------------------------------------------------------   
  function DEFINE_default_variables()    
+   
+   
    exepath = reaper.GetExePath()   
    settings_filename = exepath.."\\Scripts\\mpl_Quantize_Tool_settings.txt"
    settings_file = io.open(settings_filename,"r")
@@ -287,6 +291,10 @@ end
   
  function DEFINE_dynamic_variables() 
    max_object_position, first_measure, last_measure, cml, first_measure_dest_time, last_measure_dest_time, last_measure_dest  = GET_project_len()
+   
+   timesig_error_ret = GET_timesigs()
+   if timesig_error_ret == nil and cml_com == 4 then timesig_error_ret = false end
+   
    playpos = reaper.GetPlayPosition() 
    editpos = reaper.GetCursorPosition()   
    
@@ -782,7 +790,7 @@ end
      
  function GUI_DRAW()
  
-  if project_grid_measures < 1 then
+  if project_grid_measures < 1 and timesig_error_ret == false then
   
    ------------------  
    --- main page ----
@@ -898,8 +906,27 @@ end
  end
   
 ---------------------------------------------------------------------------------------------------------------
- ---------------------------------------------------------------------------------------------------------------    
+ --------------------------------------------------------------------------------------------------------------- 
+    
+ function GET_timesigs()
+   timesig_count = reaper.CountTempoTimeSigMarkers(0)
+   if timesig_count ~= nil then
+     for i =1, timesig_count do
+       _, _, _, _, _, timesig, timesig_denom = reaper.GetTempoTimeSigMarker(0, i-1)
+       if timesig == 4 or timesig_denom == 4 then 
+         timesig_error = false 
+        else 
+         timesig_error = true 
+       end  
+       if timesig == 0 and timesig_denom == 0 then  timesig_error = false   end
+     end 
+    else
+     timesig_error = false  
+   end
+   return timesig_error
+ end
  
+ ---------------------------------------------------------------------------------------------------------------      
  function GET_grid()
    project_grid_time = reaper.BR_GetNextGridDivision(0)
    project_grid_beats, project_grid_measures, project_grid_cml = reaper.TimeMap2_timeToBeats(0, project_grid_time)
@@ -1130,10 +1157,13 @@ end
  
 ---------------------------------------------------------------------------
    
- function ENGINE1_get_reference_grid()
+ function ENGINE1_get_reference_grid()   
    ref_grid_t = {}
-   for i = 0, grid_bar_time, grid_time do
+   if cml == nil then cml = 4 end
+   for i = 0, cml, grid_beats do
+     grid_time_st2table  = reaper.TimeMap2_beatsToTime(0, i)
      table.insert(ref_grid_t, i)
+     i = i + grid_beats
    end
  end 
  
@@ -1142,12 +1172,16 @@ end
   function ENGINE1_get_reference_swing_grid()  
      ref_swing_grid_t = {}
      i2 = 0
-     for grid_step = 0, grid_bar_time, grid_time do       
+     if cml_com == nil then cml_com = 4 end
+     
+     for grid_p = 0, cml_com, grid_beats do         
        if i2 % 2 == 0 then 
-         table.insert(ref_swing_grid_t, grid_step) end
+         grid_p_totable  = reaper.TimeMap2_beatsToTime(0, grid_p)
+         table.insert(ref_swing_grid_t, grid_p_totable) end
        if i2 % 2 == 1 then        
-         grid_step_swing = grid_step + swing_value* swing_scale*grid_time
-         table.insert(ref_swing_grid_t, grid_step_swing) 
+         grid_p_totable_temp = grid_p + swing_value* swing_scale*grid_beats
+         grid_p_totable= reaper.TimeMap2_beatsToTime(0, grid_p_totable_temp)
+         table.insert(ref_swing_grid_t, grid_p_totable) 
        end
        i2 = i2+1
      end   
