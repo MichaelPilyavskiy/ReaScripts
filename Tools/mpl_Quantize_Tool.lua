@@ -42,7 +42,7 @@ Donation.
             
  ]===]
  
- vrs = "1.2 build 1"
+ vrs = "1.2 build 2"
  
 changelog =                   
 [===[
