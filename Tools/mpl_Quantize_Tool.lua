@@ -43,22 +43,29 @@ Donation.
             
  ]===]
  
- vrs = "1.2 build 6"
+ vrs = "1.2 build 7"
  
 changelog =                   
 [===[
 Changelog:
-14.09.2015  1.2  build 6
+14.09.2015  1.2  build 7
           New
             middle mouse button click on apply slider to set strength value
             right click on custom grid select/form project grid
-            added menu buttons with actions
+            added reference actions:
+                save as rgt groove (moved from display)
+            added quantize actions:
+                reset str.markers
+                reset str.markers at time selection
+                
           Improvements:
             project grid is default, form points on start                        
             strength slider shows its value
+            
           Bugfixes:
             fix wrong formed points in pattern mode for project with different tempo
             fixed preset system dont store dest str.marker settings
+            display issues
         
 13.09.2015  1.1  build 3      
           New: 
@@ -699,8 +706,9 @@ end
    
    -- bars
    _, gui_display_length_bars = reaper.TimeMap2_timeToBeats(0, gui_display_length)
+   _, gui_display_offset_bars = reaper.TimeMap2_timeToBeats(0, gui_display_offset)
    for i = 0, gui_display_length_bars+1 do      
-     bar_time = reaper.TimeMap2_beatsToTime(0, 0, i)  
+     bar_time = reaper.TimeMap2_beatsToTime(0, 0, i+gui_display_offset_bars)  
      GUI_display_pos(0, bar_points_rgba_t, "centered", 0.4)   
      GUI_display_pos(bar_time, bar_points_rgba_t, "centered", 0.4)  
    end    
