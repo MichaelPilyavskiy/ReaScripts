@@ -3,7 +3,7 @@
 
 todo= 
 [===[ To do list / requested features:
-  -- ENGINE1_get_reference_FORM_points() / generate grid from ref_points_t2 for different timesigs
+  -- ENGINE1_get_reference_FORM_points() / rebuild generate grid from ref_points_t2 for different timesigs/tempo
   -- quantize note end
   -- quantize note position only
   -- lmb click on grid add groove point
@@ -43,20 +43,21 @@ Donation.
             
  ]===]
  
- vrs = "1.2 build 5"
+ vrs = "1.2 build 6"
  
 changelog =                   
 [===[
 Changelog:
-14.09.2015  1.2  build 5
+14.09.2015  1.2  build 6
           New
             middle mouse button click on apply slider to set strength value
-          Improvements:
-            project grid is default, form points on start
             right click on custom grid select/form project grid
-            small improvements in pattern mode for project with different tempo (different timesignature still don`t work properly)
+            added menu buttons with actions
+          Improvements:
+            project grid is default, form points on start                        
             strength slider shows its value
           Bugfixes:
+            fix wrong formed points in pattern mode for project with different tempo
             fixed preset system dont store dest str.marker settings
         
 13.09.2015  1.1  build 3      
@@ -165,7 +166,7 @@ It`s LUA script for REAPER. I suppose you to have installed last version of REAP
 
 6.3 Buttons
 6.3.1 About/ChangeLog. Info about me, version (should be same as title), donation links and changelog.
-6.3.2 Current Help on English. Relevant for version 1.08
+6.3.2 Current Help in English. Relevant for version 1.08
 6.3.3 Requested features, todo list and expected bugs. If you have suggestions, be free to write your thoughts. Contacts are in 'About'.
 6.3.4 Donate button opens paypal donate link in default browser
 6.3.5 Store current preset to \REAPER\Scripts\mpl_Quantize_Tool_settings.txt
@@ -180,7 +181,16 @@ Michael.
  --------------------
  ------- Code -------
  --------------------
-   
+ ---------------------------------------------------------------------------------------------------------------  
+   function extract_table(table)
+    a = table[1]
+    b = table[2]
+    c = table[3]
+    d = table[4]
+    return a,b,c,d
+  end
+
+    ---------------------------------------------------------------------------------------------------------------  
  function test_var(test, test2)  
    if test ~= nil then  reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(test) end
    if test2 ~= nil then reaper.ShowConsoleMsg("\n") reaper.ShowConsoleMsg(test2) end
@@ -397,9 +407,13 @@ end
   
   editpos_rgba_t = {0.5, 0, 0, 0.6}
   playpos_rgba_t = {0.5, 0.5, 0, 0.8}
-  ref_points_rgba_t = {0, 1, 0, 0.5}
-  dest_points_rgba_t = {0.1, 0.6, 1, 1}
   bar_points_rgba_t = {1,1,1,0.5}
+  
+  ref_points_rgba_t = {0, 1, 0, 0.5}
+  dest_points_rgba_t = {0.1, 0.6, 1, 1}  
+  
+  menu_ref_rgba_t = {0.4, 1, 0.4,0.9}
+  menu_dest_rgba_t = {0.5, 0.8, 1, 0.9}
   
   display_end = 1 -- 0..1
   display_start = 0 -- 0..1
@@ -419,9 +433,14 @@ end
   swing_scale_menu_xywh_t = {x_offset,  y_offset2 + beetween_items3*3, width1, heigth2}
   sel_notes_mode_menu_xywh_at = {x_offset, y_offset2 + beetween_items3*4, width1, heigth2}
   sm_timesel_dest_menu_xywh_t = {x_offset, y_offset2 + beetween_items3*5, width1, heigth2}
+
+  -- main page options buttons
+  menu_ref_rect_xywh_t = {x_offset, y_offset, width1/2, 20}
+  menu_dest_rect_xywh_t = {x_offset+width1/2+gui_offset, y_offset, width1/2-gui_offset, 20}
   
-  quantize_ref_menu_xywh_t = {x_offset, y_offset, width1/2, y_offset1-y_offset}
-  quantize_dest_menu_xywh_t = {x_offset+width1/2+gui_offset, y_offset, width1/2-gui_offset , y_offset1-y_offset}
+  -- main menu windows
+  quantize_ref_menu_xywh_t = {x_offset, y_offset*2+heigth2, width1/2, y_offset1-y_offset-25}
+  quantize_dest_menu_xywh_t = {x_offset+width1/2+gui_offset, y_offset*2+heigth2, width1/2-gui_offset , y_offset1-y_offset-25}
 
   -- options areas --
   ref_options_area_xywh_t = {x_offset, snap_mode_menu_xywh_t[2],width1, beetween_items3*6 + beetween_items3}
@@ -753,7 +772,7 @@ end
  
 ---------------------------------------------------------------------------------------------------------------
 
- function GUI_button(xywh_t, name, name_pressed, state, has_frame)
+ function GUI_button(xywh_t, name, name_pressed, state, has_frame, color_t)
    x = xywh_t[1]
    y = xywh_t[2]
    w = xywh_t[3]
@@ -767,7 +786,12 @@ end
    measurestrname = gfx.measurestr(name)      
    x0 = x + (w - measurestrname)/2
    y0 = y + (h - fontsize_menu_name)/2
-   gfx.x, gfx.y, gfx.r, gfx.g, gfx.b, gfx.a = x0,y0,0.4, 1, 0.4,0.9 
+   if color_t ~= nil then
+     r,g,b,a = extract_table(color_t)
+     gfx.x, gfx.y, gfx.r, gfx.g, gfx.b, gfx.a = x0,y0,r,g,b,a 
+    else
+     gfx.x, gfx.y, gfx.r, gfx.g, gfx.b, gfx.a = x0,y0,0.4, 1, 0.4,0.9 
+   end  
    
   
    if state == false then 
@@ -814,7 +838,20 @@ end
      
      
      quantize_dest_xywh_buttons_t =  GUI_menu (quantize_dest_menu_xywh_t, quantize_dest_menu_names_t, quantize_dest_values_t, true,false,itemcolor2_t,0.05)
-   
+     
+     -- frame for pop-up menu
+       --draw ref popup frame
+       GUI_button(menu_ref_rect_xywh_t, "Reference actions", "Reference actions", false, true,menu_ref_rgba_t)
+       GUI_button(menu_dest_rect_xywh_t, "Quantize actions", "Quantize actions", false, true,menu_dest_rgba_t)
+       --[[gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, frame_alpha_default
+       x,y,w,h =  extract_table(menu_ref_rect_xywh_t)       
+       gfx.roundrect(x,y,w,h,0.1, true) 
+       
+       --draw dest popup frame
+       gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, frame_alpha_default
+       x,y,w,h =  extract_table(menu_dest_rect_xywh_t)       
+       gfx.roundrect(x,y,w,h,0.1, true) ]]
+       
      GUI_display()
    
      GUI_slider_gradient(apply_slider_xywh_t, apply_bypass_slider_name, strenght_value,"normal")
@@ -1402,7 +1439,7 @@ end
 
  ---------------------------------------------------------------------------------------------------------------
   
- function ENGINE2_get_dest_sm()
+ function ENGINE2_get_dest_sm(do_reset, time_sel)
   dest_sm_t = {}
   dest_sm_subt = {} 
   count_sel_items = reaper.CountSelectedMediaItems(0)
@@ -1422,7 +1459,20 @@ end
             if count_stretch_markers ~= nil then
               for j = 1, count_stretch_markers,1 do
                 retval, posOut, srcpos = reaper.GetTakeStretchMarker(take, j-1)
-                dest_sm_subt = {take_guid, posOut, srcpos, item_pos, takerate, item_len}
+                if do_reset ~= nil and do_reset == true then 
+                  if time_sel ~= nil and time_sel == true then
+                    pos_true = posOut/takerate+item_pos
+                    if pos_true > timesel_st and pos_true < timesel_end then
+                      dest_sm_subt = {take_guid, srcpos, srcpos, item_pos, takerate, item_len}
+                     else
+                      dest_sm_subt = {take_guid, posOut, srcpos, item_pos, takerate, item_len}
+                    end  
+                   else
+                    dest_sm_subt = {take_guid, srcpos, srcpos, item_pos, takerate, item_len}
+                  end                    
+                 else
+                  dest_sm_subt = {take_guid, posOut, srcpos, item_pos, takerate, item_len}
+                end  
                 if posOut > 0 and posOut < item_len-0.001 then
                   table.insert(dest_sm_t, dest_sm_subt)
                 end  
@@ -1765,30 +1815,7 @@ end
       --  delete notes from dest takes --
       
     -- restore  
-      if dest_sm_t ~= nil then
-        for i = 1, #dest_sm_t do
-          dest_sm_subt = dest_sm_t[i]  
-          take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
-          if take ~= nil then  
-            count_sm = reaper.GetTakeNumStretchMarkers(take)
-            if count_sm ~= nil then
-              for j = 1 , count_sm do
-                reaper.DeleteTakeStretchMarkers(take, j)
-              end
-            end            
-          end  
-        end
-      end   
-      if dest_sm_t ~= nil then
-        for i = 1, #dest_sm_t do
-          dest_sm_subt = dest_sm_t[i]  
-          take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
-          if take ~= nil then  
-            reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])
-            reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[2], dest_sm_subt[3])            
-          end  
-        end
-      end 
+      ENGINE3_restore_dest_sm() 
       
       --quant stretch markers    
       if dest_sm_t ~= nil and restore_button_state == false then
@@ -1991,7 +2018,38 @@ end
    reaper.UpdateArrange()
   end -- func
   
-  
+        
+ ---------------------------------------------------------------------------------------------------------------  
+ 
+ function ENGINE3_restore_dest_sm()
+    -- restore  
+      if dest_sm_t ~= nil then
+        for i = 1, #dest_sm_t do
+          dest_sm_subt = dest_sm_t[i]  
+          take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
+          if take ~= nil then  
+            count_sm = reaper.GetTakeNumStretchMarkers(take)
+            if count_sm ~= nil then
+              for j = 1 , count_sm do
+                reaper.DeleteTakeStretchMarkers(take, j)
+              end
+            end            
+          end  
+        end
+      end   
+      if dest_sm_t ~= nil then
+        for i = 1, #dest_sm_t do
+          dest_sm_subt = dest_sm_t[i]  
+          take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
+          if take ~= nil then  
+            reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])
+            reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[2], dest_sm_subt[3])            
+          end  
+        end
+      end 
+      reaper.UpdateArrange()  
+    end 
+ 
  ---------------------------------------------------------------------------------------------------------------
  ---------------------------------------------------------------------------------------------------------------      
  function ENGINE4_save_groove_as_rgt()
@@ -2309,15 +2367,26 @@ end
        end    
      end     
      
-     -- DISPLAY --
-     if MOUSE_RB_clickhold_under_gui_rect(display_rect_xywh_t,0) == true then 
+     -- TOP MENU 1 --
+     if MOUSE_clickhold_under_gui_rect(menu_ref_rect_xywh_t,0) == true or MOUSE_RB_clickhold_under_gui_rect(menu_ref_rect_xywh_t,0) == true then 
        gfx.x, gfx.y = mx, my 
-       should_save = gfx.showmenu("Save groove as rgt")
+       should_save = gfx.showmenu("Save current pattern as rgt groove")
        if should_save == 1 then 
          ENGINE4_save_groove_as_rgt()
        end  
      end 
-       
+
+     -- TOP MENU 2--
+     if MOUSE_clickhold_under_gui_rect(menu_dest_rect_xywh_t,0) == true or MOUSE_RB_clickhold_under_gui_rect(menu_dest_rect_xywh_t,0) == true then 
+       gfx.x, gfx.y = mx, my 
+       menu2_ret = gfx.showmenu("Reset stored stretch markers to 1.0x|"..
+                                "Reset stored stretch markers to 1.0x in time selection")
+       if menu2_ret == 1 then  ENGINE2_get_dest_sm(true)
+                               ENGINE3_restore_dest_sm()    end  
+       if menu2_ret == 2 then  ENGINE2_get_dest_sm(true,true)
+                               ENGINE3_restore_dest_sm()    end                                        
+     end 
+            
    end
    
      -------------------------
