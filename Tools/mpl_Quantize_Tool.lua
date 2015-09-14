@@ -43,18 +43,19 @@ Donation.
             
  ]===]
  
- vrs = "1.2 build 4"
+ vrs = "1.2 build 5"
  
 changelog =                   
 [===[
 Changelog:
-14.09.2015  1.2  build 4
+14.09.2015  1.2  build 5
           New
             middle mouse button click on apply slider to set strength value
           Improvements:
             project grid is default, form points on start
             right click on custom grid select/form project grid
             small improvements in pattern mode for project with different tempo (different timesignature still don`t work properly)
+            strength slider shows its value
           Bugfixes:
             fixed preset system dont store dest str.marker settings
         
@@ -363,7 +364,7 @@ end
    
    
    if restore_button_state == false then 
-     apply_bypass_slider_name = "Apply (LMB) / Quantize strength (MMB) / Restore (RMB)" end
+     apply_bypass_slider_name = "Apply (LMB) / Quantize strength "..math.ceil(strenght_value*100).."% (MMB) / Restore (RMB)" end
  end 
    
  --------------------------------------------------------------------------------------------------------------- 
