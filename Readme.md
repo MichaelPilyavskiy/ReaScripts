@@ -17,9 +17,7 @@ If you found bugs or you have some script request, you can post it in [Issues](h
 - [PromoDJ](http://promodj.com/michaelpilyavskiy)
 
 ##Donations:
-- QIWI +79102035901
-- Yandex Money ID 410013415541705
-- MasterCard 5189 0100 0686 8799
+- [PayPal](http://paypal.me/donate2mpl)
 
 ##Thanks to:
 - [X-Raym](http://forum.cockos.com/member.php?u=58284)
