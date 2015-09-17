@@ -3,6 +3,9 @@
 
 todo= 
 [===[ To do list / requested features:
+  -- get groove from open file window
+  -- rmb gravity set value
+  -- first click on slider apply . second show fader
   -- ENGINE1_get_reference_FORM_points() / rebuild generate grid from ref_points_t2 for different timesigs/tempo
   -- quantize note end
   -- quantize note position only
@@ -25,38 +28,36 @@ bugs  =
  
 about = [===[Quantize tool by Michael Pilyavskiy
 
-Contacts.
+    ========
+    Contacts
+    ========
+   
             Soundcloud - http://soundcloud.com/mp57
             PromoDJ -  http://pdj.com/michaelpilyavskiy
             VK -  http://vk.com/michael_pilyavskiy         
             GitHub -  http://github.com/MichaelPilyavskiy/ReaScripts
             ReaperForum - http://forum.cockos.com/member.php?u=70694
-         
-Donation.
-            Russia:
-            -- QIWI +79102035901
-            -- Yandex Money ID 410013415541705
-            -- MasterCard 5189 0100 0686 8799
-            
-            World:
-            -- http://paypal.me/donate2mpl
-            
+  
  ]===]
  
  vrs = "1.2 build 7"
  
 changelog =                   
 [===[
-Changelog:
-14.09.2015  1.2  build 7
+
+   ==========
+   Changelog:
+   ==========   
+       
+14.09.2015  1.2  build 8
           New
             middle mouse button click on apply slider to set strength value
             right click on custom grid select/form project grid
             added reference actions:
                 save as rgt groove (moved from display)
             added quantize actions:
-                reset str.markers
-                reset str.markers at time selection
+                reset stored str.markers
+                reset stored str..markers at time selection
                 
           Improvements:
             project grid is default, form points on start                        
@@ -1203,12 +1204,9 @@ end
 ---------------------------------------------------------------------------
    
  function ENGINE1_get_reference_grid()   
-   ref_grid_t = {}
-   if cml == nil then cml = 4 end
-   for i = 0, cml, grid_beats do
-     grid_time_st2table  = reaper.TimeMap2_beatsToTime(0, i)
+   ref_grid_t = {}   
+   for i = 0, grid_bar_time, grid_time  do     
      table.insert(ref_grid_t, i)
-     i = i + grid_beats
    end
  end 
  
@@ -1217,16 +1215,13 @@ end
   function ENGINE1_get_reference_swing_grid()  
      ref_swing_grid_t = {}
      i2 = 0
-     if cml_com == nil then cml_com = 4 end
-     
-     for grid_p = 0, cml_com, grid_beats do         
+     if cml_com == nil then cml_com = 4 end     
+     for grid_p = 0, grid_bar_time, grid_time do         
        if i2 % 2 == 0 then 
-         grid_p_totable  = reaper.TimeMap2_beatsToTime(0, grid_p)
-         table.insert(ref_swing_grid_t, grid_p_totable) end
+         table.insert(ref_swing_grid_t, grid_p) end
        if i2 % 2 == 1 then        
-         grid_p_totable_temp = grid_p + swing_value* swing_scale*grid_beats
-         grid_p_totable= reaper.TimeMap2_beatsToTime(0, grid_p_totable_temp)
-         table.insert(ref_swing_grid_t, grid_p_totable) 
+         grid_p_sw = grid_p + swing_value* swing_scale*grid_time
+         table.insert(ref_swing_grid_t,grid_p_sw) 
        end
        i2 = i2+1
      end   
@@ -2620,8 +2615,8 @@ end
  DEFINE_default_variables()
  DEFINE_default_variables_GUI() 
  
- GET_grid() 
- if grid_beats ~= nil then
+ grid_beats_pr = GET_grid() 
+ if grid_beats_pr ~= nil then
    ENGINE1_get_reference_grid()
    ENGINE1_get_reference_FORM_points()
  end  
