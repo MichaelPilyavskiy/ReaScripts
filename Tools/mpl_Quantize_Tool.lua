@@ -40,7 +40,7 @@ about = [===[Quantize tool by Michael Pilyavskiy
   
  ]===]
  
- vrs = "1.2 build 7"
+ vrs = "1.2 build 8"
  
 changelog =                   
 [===[
@@ -67,6 +67,7 @@ changelog =
             fix wrong formed points in pattern mode for project with different tempo
             fixed preset system dont store dest str.marker settings
             display issues
+            grid, swing reference issues
         
 13.09.2015  1.1  build 3      
           New: 
@@ -2615,8 +2616,8 @@ end
  DEFINE_default_variables()
  DEFINE_default_variables_GUI() 
  
- grid_beats_pr = GET_grid() 
- if grid_beats_pr ~= nil then
+ grid_beats = GET_grid() 
+ if grid_beats ~= nil then
    ENGINE1_get_reference_grid()
    ENGINE1_get_reference_FORM_points()
  end  
