@@ -27,7 +27,7 @@
     temp_string = ""
     for i = 1, #sel_id_t do
       source_track_id = sel_id_t[i]
-      temp_string = temp_string.."AUXRECV "..source_track_id.." 0 1 0 0 0 0 0 0 -1 0 -1 ''".."\n"
+      temp_string = temp_string.."AUXRECV "..source_track_id.." 0 1 0 0 0 0 0 0 -1 4177951 -1 ''".."\n"
     end
   end
 
