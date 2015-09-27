@@ -14,7 +14,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.3 build 2"
+ vrs = "1.3 build 3"
  
 changelog =                   
 [===[
@@ -23,7 +23,7 @@ changelog =
    Changelog:
    ==========   
 
-27.09.2015  1.3  build 2  - need REAPER 5.03+     
+27.09.2015  1.3  build 3  - need REAPER 5.03+     
           New
             rightclick on user groove open REAPER\Grooves list
             Check for REAPER compatibility on startup
@@ -35,6 +35,7 @@ changelog =
           Performance
             Option to disable display (reduce CPU usage a lot in some situations)
             Improved GUI updates
+          Presets temporatory disabled
           
 14.09.2015  1.2  build 8
           New
@@ -1726,17 +1727,14 @@ end
       end
          
       if dest_sm_t ~= nil and restore_button_state == false then
-        stretch_markers_out_t ={}
         for i = 1, #dest_sm_t do
           dest_sm_subt = dest_sm_t[i]  
           take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
           if take ~= nil then 
             item = reaper.GetMediaItemTake_Item(take)
-            take_len = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
             --1take_guid, 2posOut, 3srcpos, 4item_pos, 5takerate, 6item_len
+            reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])
             reaper.SetTakeStretchMarker(take, -1, 0, 0)
-            reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[6]*dest_sm_subt[5], dest_sm_subt[6]*dest_sm_subt[5])  
-            reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])            
             true_sm_pos = dest_sm_subt[4] + dest_sm_subt[2]/ dest_sm_subt[5]
             if sm_timesel_dest_values_t[1] == 1 then            
               new_sm_pos = ENGINE3_quantize_compare(true_sm_pos,0)
@@ -1746,40 +1744,15 @@ end
                else
                 new_sm_pos = true_sm_pos
               end
-            end 
-            new_sm_pos_rev = (new_sm_pos - dest_sm_subt[4])*dest_sm_subt[5]            
-            
-            if new_sm_pos > 0 and dest_sm_subt[3] > 0 then
-              table.insert(stretch_markers_out_t, {take, new_sm_pos_rev, dest_sm_subt[3],take_len})
-            end 
+            end            
+            new_sm_pos_rev = (new_sm_pos - dest_sm_subt[4])*dest_sm_subt[5] 
+            reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev, dest_sm_subt[3])
           end--take not nil 
           item = reaper.GetMediaItemTake_Item(take) 
           reaper.UpdateItemInProject(item)
         end -- for loop
-        
-        --check stretch marker rate
-        if stretch_markers_out_t~= nil then
-          for i = 1, #stretch_markers_out_t do
-            stretch_markers_out_subt = stretch_markers_out_t[i]
-           --[[ stretch_markers_out_subt_next = stretch_markers_out_t[i+1]
-            
-            if stretch_markers_out_subt[1] == stretch_markers_out_subt_next[1] then -- if same take
-              marker_rate = (stretch_markers_out_subt_next[3]-stretch_markers_out_subt[3])/
-                (stretch_markers_out_subt_next[2]-stretch_markers_out_subt[2])
-             else
-              marker_rate = (stretch_markers_out_subt[4]-stretch_markers_out_subt[3])/
-                (stretch_markers_out_subt[4]-stretch_markers_out_subt[2])                            
-            end
-            if marker_rate > 0.1 and  marker_rate < 100 then]]
-              reaper.SetTakeStretchMarker(stretch_markers_out_subt[1], -1, 
-                stretch_markers_out_subt[2], stretch_markers_out_subt[3])
-            --end
-          end  
-        end
-        
-
-
       end --dest_sm_t ~= nil and restore_button_state == false
+      
     end -- if stretch markers
     -----------------------------------------------------------------------------
     -- points -------------------------------------------------------------------
