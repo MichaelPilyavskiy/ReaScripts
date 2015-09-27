@@ -14,7 +14,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.3 build 1"
+ vrs = "1.3 build 2"
  
 changelog =                   
 [===[
@@ -23,7 +23,7 @@ changelog =
    Changelog:
    ==========   
 
-27.09.2015  1.3  build 1  - need REAPER 5.03+     
+27.09.2015  1.3  build 2  - need REAPER 5.03+     
           New
             rightclick on user groove open REAPER\Grooves list
             Check for REAPER compatibility on startup
@@ -32,8 +32,6 @@ changelog =
             Option to store current groove to midi item (notes length = 120ppq)
           Improvements          
             right click on gravity - type value in ms  
-          Bugfixes
-            added stretch markers rate limit 0.1x < rate < 100x
           Performance
             Option to disable display (reduce CPU usage a lot in some situations)
             Improved GUI updates
@@ -1761,9 +1759,9 @@ end
         
         --check stretch marker rate
         if stretch_markers_out_t~= nil then
-          for i = 1, #stretch_markers_out_t-1 do
+          for i = 1, #stretch_markers_out_t do
             stretch_markers_out_subt = stretch_markers_out_t[i]
-            stretch_markers_out_subt_next = stretch_markers_out_t[i+1]
+           --[[ stretch_markers_out_subt_next = stretch_markers_out_t[i+1]
             
             if stretch_markers_out_subt[1] == stretch_markers_out_subt_next[1] then -- if same take
               marker_rate = (stretch_markers_out_subt_next[3]-stretch_markers_out_subt[3])/
@@ -1772,10 +1770,10 @@ end
               marker_rate = (stretch_markers_out_subt[4]-stretch_markers_out_subt[3])/
                 (stretch_markers_out_subt[4]-stretch_markers_out_subt[2])                            
             end
-            if marker_rate > 0.1 and  marker_rate < 100 then
+            if marker_rate > 0.1 and  marker_rate < 100 then]]
               reaper.SetTakeStretchMarker(stretch_markers_out_subt[1], -1, 
                 stretch_markers_out_subt[2], stretch_markers_out_subt[3])
-            end
+            --end
           end  
         end
         
