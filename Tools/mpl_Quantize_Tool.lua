@@ -3,18 +3,18 @@
 
 todo= 
 [===[ To do list / requested features:
-  -- ENGINE1_get_reference_FORM_points() / rebuild generate grid from ref_points_t2 for different timesigs/tempo
+  -- rebuild generate grid from ref_points_t2 for different timesigs/tempo
+  -- rebuild generate grid only for dest objects area (save cpu usage)
   -- prevent transients stretch markers quantize
 ]===]  
  
 bugs  =
 [===[ Expected bugs which could not be fixed for this release: 
-  -- stretch markers quantize DOES NOT work when Item Loop Source is on
   -- use this script only with 4/4 projects
  ]===]
  
  
- vrs = "1.3 build 3"
+ vrs = "1.3 build 4"
  
 changelog =                   
 [===[
@@ -23,18 +23,23 @@ changelog =
    Changelog:
    ==========   
 
-27.09.2015  1.3  build 3  - need REAPER 5.03+     
+29.09.2015  1.3  build 4  - need REAPER 5.03+     
           New
             rightclick on user groove open REAPER\Grooves list
             Check for REAPER compatibility on startup
             GUI - options window deprecated and splitted to 3 menus on main page
             GUI - options sliders dynamically shown when relevant
-            Option to store current groove to midi item (notes length = 120ppq)
+            Store current groove to midi item (notes length = 120ppq)
+            Match items positions to ref.points
           Improvements          
             right click on gravity - type value in ms  
+            apply slider position more closer to mouse cursor
           Performance
             Option to disable display (reduce CPU usage a lot in some situations)
             Improved GUI updates
+          Bugfixes
+            fixed stretch markers quantize for loop sourced items  
+            
           Presets temporatory disabled
           
 14.09.2015  1.2  build 8
@@ -166,11 +171,12 @@ It`s LUA script for REAPER. I suppose you to have installed last version of REAP
 10. Quantize objects settings (left menu)
 10.1 Reset stored stretch markers.
 10.2 Same, but for marker within time selection.
-10.3 Use gravity. If this selector is on 'Use gravity', then objects are quantized only if their positions are closer (area in seconds) to reference points. 'Snap everything' means every object you selected will be snapped to reference point. Be carefull with this when using with stretch markers.
-10.4 Snap direction. That means if destination object position is right beetween two points, it will snap to point defined in this selector.
-10.5 Swing scaling is made because of my previously misunderstanding REAPER setting of MIDI Editor, so when unchecked, 0.5x is half-grid, that`s REAPER native behaviour.
-10.6 Quantize notes. Select this if you wanna quantize all notes in item or only selected. You can also select notes in MIDI Editor, close it and select item.
-10.5 Allow to stretch stretch marker which are placed only within time selection. Other markers will be stayed at their place. If you wanna change markers selection, again set time selection and store destionation stretch markers (see 5.2.0)
+10.3 Sync stored items to reference positions. Works only in Global mode.
+10.4 Use gravity. If this selector is on 'Use gravity', then objects are quantized only if their positions are closer (area in seconds) to reference points. 'Snap everything' means every object you selected will be snapped to reference point. Be carefull with this when using with stretch markers.
+10.5 Snap direction. That means if destination object position is right beetween two points, it will snap to point defined in this selector.
+10.6 Swing scaling is made because of my previously misunderstanding REAPER setting of MIDI Editor, so when unchecked, 0.5x is half-grid, that`s REAPER native behaviour.
+10.7 Quantize notes. Select this if you wanna quantize all notes in item or only selected. You can also select notes in MIDI Editor, close it and select item.
+10.8 Allow to stretch stretch marker which are placed only within time selection. Other markers will be stayed at their place. If you wanna change markers selection, again set time selection and store destionation stretch markers (see 5.2.0)
 
 11 Top menu
 11.1 About. Info about me, version (should be same as title).
@@ -1365,6 +1371,7 @@ end
           if reaper.TakeIsMIDI(take) == false then          
             take_guid = reaper.BR_GetMediaItemTakeGUID(take)
             takerate = reaper.GetMediaItemTakeInfo_Value(take, "D_PLAYRATE")                    
+            takeoffset = reaper.GetMediaItemTakeInfo_Value(take, "D_STARTOFFS")
             count_stretch_markers = reaper.GetTakeNumStretchMarkers(take)
             if count_stretch_markers ~= nil then
               for j = 1, count_stretch_markers,1 do
@@ -1373,15 +1380,15 @@ end
                   if time_sel ~= nil and time_sel == true then
                     pos_true = posOut/takerate+item_pos
                     if pos_true > timesel_st and pos_true < timesel_end then
-                      dest_sm_subt = {take_guid, srcpos, srcpos, item_pos, takerate, item_len}
+                      dest_sm_subt = {take_guid, srcpos, srcpos, item_pos, takerate, item_len,takeoffset}
                      else
-                      dest_sm_subt = {take_guid, posOut, srcpos, item_pos, takerate, item_len}
+                      dest_sm_subt = {take_guid, posOut, srcpos, item_pos, takerate, item_len,takeoffset}
                     end  
                    else
-                    dest_sm_subt = {take_guid, srcpos, srcpos, item_pos, takerate, item_len}
+                    dest_sm_subt = {take_guid, srcpos, srcpos, item_pos, takerate, item_len,takeoffset}
                   end                    
                  else
-                  dest_sm_subt = {take_guid, posOut, srcpos, item_pos, takerate, item_len}
+                  dest_sm_subt = {take_guid, posOut, srcpos, item_pos, takerate, item_len,takeoffset}
                 end  
                 if posOut > 0 and posOut < item_len-0.001 then
                   table.insert(dest_sm_t, dest_sm_subt)
@@ -1732,7 +1739,7 @@ end
           take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
           if take ~= nil then 
             item = reaper.GetMediaItemTake_Item(take)
-            --1take_guid, 2posOut, 3srcpos, 4item_pos, 5takerate, 6item_len
+            --1take_guid, 2posOut, 3srcpos, 4item_pos, 5takerate, 6item_len,7takeoffset
             reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])
             reaper.SetTakeStretchMarker(take, -1, 0, 0)
             true_sm_pos = dest_sm_subt[4] + dest_sm_subt[2]/ dest_sm_subt[5]
@@ -1934,12 +1941,31 @@ end
           take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
           if take ~= nil then  
             reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])
-            reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[2], dest_sm_subt[3])            
+            reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[2]-dest_sm_subt[7], dest_sm_subt[3]-dest_sm_subt[7])            
           end  
         end
       end 
       reaper.UpdateArrange()  
     end 
+
+ ---------------------------------------------------------------------------------------------------------------    
+  function ENGINE3_sync_items_to_points()    
+    if ref_points_t ~= nil then
+      for i =1, #ref_points_t do
+        ref_points_subt = ref_points_t[i]
+        if dest_items_t ~= nil and i <= #dest_items_t then
+          dest_items_subt = dest_items_t[i]
+          if dest_items_subt ~= nil then
+            item = reaper.BR_GetMediaItemByGUID(0, dest_items_subt[1])
+            if item ~= nil then
+              reaper.SetMediaItemInfo_Value(item, "D_POSITION", ref_points_subt[1])
+            end
+            reaper.UpdateItemInProject(item)
+          end        
+        end          
+      end
+    end
+  end
  
  ---------------------------------------------------------------------------------------------------------------
  ---------------------------------------------------------------------------------------------------------------      
@@ -2110,7 +2136,11 @@ end
   function menu_entry_ret(table, index)
     if table[index] == 1 then return "!" else return "" end
   end
- 
+
+  function menu_entry_ret2(table, index)
+    if table[index] == 1 then return "#" else return "" end
+  end
+   
  --------------------------------------------------------------------------------------------------------------- 
   function MOUSE_get() 
     cur_time = os.clock()
@@ -2282,7 +2312,7 @@ end
        
        -- set LB
        if MOUSE_LB_gate(apply_slider_xywh_t,0) then 
-         strenght_value = (mx - apply_slider_xywh_t[1])/apply_slider_xywh_t[3]*2
+         strenght_value = (mx - apply_slider_xywh_t[1])/apply_slider_xywh_t[3]/0.93
          if strenght_value >1 then strenght_value = 1 end      
          ENGINE3_quantize_objects()
        end        
@@ -2313,10 +2343,10 @@ end
        
        -- reference side --
                 
-       actions_menu_t={'#Actions',
+       actions_menu_t={'#Actions:',
                  'Save current pattern as .rgt groove',
                  'Create MIDI item on new track from current groove|'}
-       snap_ref_menu_t = {'#Reference settings',
+       snap_ref_menu_t = {'#Reference settings:',
                            menu_entry_ret(snap_mode_values_t, 1)..'Mode: Global mode',
                            menu_entry_ret(snap_mode_values_t, 2)..'Mode: Pattern mode|',
                            menu_entry_ret(pat_len_values_t,1)..'Pattern length: 1 bar',
@@ -2388,10 +2418,11 @@ end
        
        --dest side         
                 
-       actions1_menu_t={'#Actions',
+       actions1_menu_t={'#Actions:',
                          'Reset stored stretch markers to 1.0x',
-                         'Reset stored stretch markers to 1.0x in time selection|'}
-       snap_dest_menu_t = {'#Quantize settings',
+                         'Reset stored stretch markers to 1.0x in time selection',
+                         menu_entry_ret2(snap_mode_values_t, 2)..'Sync stored items positions to reference points|'}
+       snap_dest_menu_t = {'#Quantize settings:',
                            menu_entry_ret(snap_area_values_t, 1)..'Use Gravity Area|',
                            menu_entry_ret(snap_dir_values_t,1)..'Snap direction: to previous ref.point',
                            menu_entry_ret(snap_dir_values_t,2)..'Snap direction: to closest ref.point',
@@ -2415,6 +2446,9 @@ end
          if menu_ret2 == 3 then -- reset str.markers to 1.0 in timesel
            ENGINE2_get_dest_sm(true,true)
            ENGINE3_restore_dest_sm() end           
+         if menu_ret2 == 4 and snap_mode_values_t[1] == 1 then -- sync item pos
+           ENGINE3_sync_items_to_points() end
+           
            
          if menu_ret2 == 2 + #actions1_menu_t then -- use gravity
            if snap_area_values_t[2]==1 then snap_area_values_t = {1, 0} ENGINE3_quantize_objects()
