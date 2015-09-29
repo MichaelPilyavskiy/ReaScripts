@@ -23,38 +23,47 @@
         if string.find(chunk_t_item, 'PROGRAMENV '..paramnumber) then     
           chunk_t2 = {}
           for line1 in chunk_t_item:gmatch("[^\r\n]+") do  table.insert(chunk_t2, line1)  end                
-          mod_found = true
           break
         end        
       end
     end
-  end
   
+
   -- draw chunk_t2
-  if mod_found~= nil then
+  
     retval, param_name = reaper.TrackFX_GetParamName(track, fxnumber, paramnumber, "")
+    
     gfx.init("Parameters Modulation", 200, 800, 0);
       gfx.setfont(1, "Calibri", 18);
       x,y = 10, 5
       gfx.x=x;
       gfx.y =y
       gfx.printf("Par name:  "..param_name);
-      x = x +10
-      for i = 2, #chunk_t2-1 do
-        y = y+18
-        chunk_t2_item = chunk_t2[i]
-        chunk_t3 = {}
-        for line1 in chunk_t2_item:gmatch('[%g]+') do  table.insert(chunk_t3, line1)  end          
-        gfx.x=x
-        gfx.y=y
-        gfx.printf(chunk_t3[1])
-        x = x + 10
-        for j = 2, #chunk_t3 do
-          y = y + 18
+      st_find = string.find(chunk_t2[1], 'PROGRAMENV '..paramnumber)
+      if st_find~=nil then
+        x = x +10
+        for i = 2, #chunk_t2-1 do
+          y = y+18
+          chunk_t2_item = chunk_t2[i]
+          chunk_t3 = {}
+          for line1 in chunk_t2_item:gmatch('[%g]+') do  table.insert(chunk_t3, line1)  end          
           gfx.x=x
           gfx.y=y
-          gfx.printf(chunk_t3[j])          
-        end  
-        x = x -10
-      end
-     end  
+          gfx.printf(chunk_t3[1])
+          x = x + 10
+          for j = 2, #chunk_t3 do
+            y = y + 18
+            gfx.x=x
+            gfx.y=y
+            gfx.printf(chunk_t3[j])          
+          end  
+          x = x -10
+        end
+       else
+         x = x +10
+         y = y +18
+         gfx.x=x
+         gfx.y=y                     
+         gfx.printf('(No modulation)')
+      end  
+  end   
