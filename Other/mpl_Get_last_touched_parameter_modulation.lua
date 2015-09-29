@@ -42,21 +42,23 @@
       st_find = string.find(chunk_t2[1], 'PROGRAMENV '..paramnumber)
       if st_find~=nil then
         x = x +10
-        for i = 2, #chunk_t2-1 do
-          y = y+18
+        for i = 2, #chunk_t2-3 do
           chunk_t2_item = chunk_t2[i]
-          chunk_t3 = {}
-          for line1 in chunk_t2_item:gmatch('[%g]+') do  table.insert(chunk_t3, line1)  end          
-          gfx.x=x
-          gfx.y=y
-          gfx.printf(chunk_t3[1])
-          x = x + 10
-          for j = 2, #chunk_t3 do
-            y = y + 18
+          if chunk_t2_item ~= '>' then
+            y = y+18
+            chunk_t3 = {}
+            for line1 in chunk_t2_item:gmatch('[%g]+') do  table.insert(chunk_t3, line1)  end          
             gfx.x=x
             gfx.y=y
-            gfx.printf(chunk_t3[j])          
-          end  
+            gfx.printf(chunk_t3[1])
+            x = x + 10
+            for j = 2, #chunk_t3 do
+                y = y + 18
+                gfx.x=x
+                gfx.y=y
+                gfx.printf(chunk_t3[j])   
+            end  
+          end   
           x = x -10
         end
        else
