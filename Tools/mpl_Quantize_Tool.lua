@@ -10,11 +10,10 @@ todo=
  
 bugs  =
 [===[ Expected bugs which could not be fixed for this release: 
-  
  ]===]
  
  
- vrs = "1.3 build 6"
+ vrs = "1.3 build 7"
  
 changelog =                   
 [===[
@@ -23,7 +22,7 @@ changelog =
    Changelog:
    ==========   
 
-29.09.2015  1.3  build 6  - need REAPER 5.03+     
+29.09.2015  1.3  build 7  - need REAPER 5.03+     
           New
             rightclick on user groove open REAPER\Grooves list
             Check for REAPER compatibility on startup
@@ -2499,7 +2498,7 @@ end
            reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(changelog) end
          if menu_ret3 == 3 then 
            reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(help1) end  
-         if menu_ret3 == 5 then 
+         if menu_ret3 == 4 then 
            open_URL("http://github.com/MichaelPilyavskiy/ReaScripts/tree/master/Tools") end    
          if menu_ret3 == 5 then 
            open_URL("http://paypal.me/donate2mpl") end  
