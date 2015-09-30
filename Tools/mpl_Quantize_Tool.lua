@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.4 build 1"
+ vrs = "1.4 build 2"
  
 changelog =                   
 [===[
@@ -21,15 +21,16 @@ changelog =
    ==========
    Changelog:
    ==========   
-30.09.2015  1.4 build 1 - need REAPER 5.03+
+30.09.2015  1.4 build 2 - need REAPER 5.03+ SWS 2.8.1+
           New
             additional buttons simulate right click for tablet users
+            check for SWS version on startup
           Bugfixes
             disabled get grid on start could make script buggy on start
             hope finally fixed loop sourced item stretch markers restore/quantize
             
             
-29.09.2015  1.3 build 10  - need REAPER 5.03+     
+29.09.2015  1.3 build 10  - need REAPER 5.03+ SWS 2.8.1+
           New
             rightclick on user groove open REAPER\Grooves list
             Check for REAPER compatibility on startup
@@ -2640,7 +2641,13 @@ end
  
  reaper_vrs = reaper.GetAppVersion()
  reaper_vrs_num = tonumber(string.sub(reaper_vrs, 1,4))
- if reaper_vrs_num >= 5.03 then
+ 
+ sws_whatsnew = reaper.GetExePath()..'\\Plugins\\reaper_sws_whatsnew.txt'
+ file = io.open(sws_whatsnew, "r")
+ if file ~= nil then sws_version = tonumber(string.sub(file:read("*all"), 3, 5)) file:close() end
+ 
+ 
+ if reaper_vrs_num >= 5.03 and sws_version >= 2.8 then
    main_w = 440
    main_h = 355
    
@@ -2652,8 +2659,8 @@ end
    
    MAIN_run()
   else
-   err_ret = reaper.MB("This script requires REAPER 5.03+ and SWS 2.8.1+"..'\n'..'Do you wanna get old version?', "Error", 4)
+   err_ret = reaper.MB("This script requires REAPER 5.03+ and SWS 2.8.1+"..'\n'..'\n'..'You know where to find new REAPER. So do you wanna procced to SWS S&M extension download?', "Error", 4)
    if err_ret ==6 then 
-     open_URL("http://raw.githubusercontent.com/MichaelPilyavskiy/ReaScripts/54dc4fd812a691cee676028b31a08e6c91c02438/Tools/mpl_Quantize_Tool_1.2.lua")
+     open_URL("http://sws.mj-s.com/")
    end  
  end
