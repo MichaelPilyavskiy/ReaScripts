@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.3 build 11"
+ vrs = "1.4 build 1"
  
 changelog =                   
 [===[
@@ -21,8 +21,15 @@ changelog =
    ==========
    Changelog:
    ==========   
-
-29.09.2015  1.3  build 11  - need REAPER 5.03+     
+30.09.2015  1.4 build 1 - need REAPER 5.03+
+          New
+            additional buttons simulate right click for tablet users
+          Bugfixes
+            disabled get grid on start could make script buggy on start
+            hope finally fixed loop sourced item stretch markers restore/quantize
+            
+            
+29.09.2015  1.3 build 10  - need REAPER 5.03+     
           New
             rightclick on user groove open REAPER\Grooves list
             Check for REAPER compatibility on startup
@@ -31,7 +38,6 @@ changelog =
             Store current groove to midi item (notes length = 120ppq)
             Match items positions to ref.points
             Ctrl+LMB click add/subtract value from swing/gravity slider depending on position within slider
-            additional buttons simulate right click for tablet users
           Improvements          
             right click on gravity - type value in ms  
             apply slider position more closer to mouse cursor
