@@ -14,7 +14,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.3 build 4"
+ vrs = "1.3 build 5"
  
 changelog =                   
 [===[
@@ -23,7 +23,7 @@ changelog =
    Changelog:
    ==========   
 
-29.09.2015  1.3  build 4  - need REAPER 5.03+     
+29.09.2015  1.3  build 5  - need REAPER 5.03+     
           New
             rightclick on user groove open REAPER\Grooves list
             Check for REAPER compatibility on startup
@@ -2145,9 +2145,13 @@ end
   function MOUSE_get() 
     cur_time = os.clock()
     timer = 0.5
-    LMB_state = gfx.mouse_cap&1 == 1 
+--[[[    LMB_state = gfx.mouse_cap&1 == 1 
     RMB_state = gfx.mouse_cap&2 == 2
-    MMB_state = gfx.mouse_cap&64 == 64  
+    MMB_state = gfx.mouse_cap&64 == 64 ]]
+    
+    if gfx.mouse_cap == 1 then LMB_state = true else LMB_state = false end 
+    if gfx.mouse_cap == 2 then RMB_state = true else RMB_state = false end
+    if gfx.mouse_cap == 64 then MMB_state = true else MMB_state = false end
     mx, my = gfx.mouse_x, gfx.mouse_y  
     
     
