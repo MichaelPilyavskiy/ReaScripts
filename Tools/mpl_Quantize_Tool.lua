@@ -10,11 +10,11 @@ todo=
  
 bugs  =
 [===[ Expected bugs which could not be fixed for this release: 
-  -- use this script only with 4/4 projects
+  
  ]===]
  
  
- vrs = "1.3 build 5"
+ vrs = "1.3 build 6"
  
 changelog =                   
 [===[
@@ -23,7 +23,7 @@ changelog =
    Changelog:
    ==========   
 
-29.09.2015  1.3  build 5  - need REAPER 5.03+     
+29.09.2015  1.3  build 6  - need REAPER 5.03+     
           New
             rightclick on user groove open REAPER\Grooves list
             Check for REAPER compatibility on startup
@@ -430,7 +430,7 @@ Michael.
     main_w/2-options_button_width-gui_offset*1.5-x_offset, y_offset1-y_offset-(snap_area_values_t[1]*30)}
   
   -- sliders
-  use_vel_slider_xywh_t = {quantize_ref_menu_xywh_t[1], quantize_ref_menu_xywh_t[2]+quantize_ref_menu_xywh_t[4]+5,
+  use_vel_slider_xywh_t = {quantize_ref_menu_xywh_t[1], quantize_ref_menu_xywh_t[2]+quantize_ref_menu_xywh_t[4]-25,
    quantize_ref_menu_xywh_t[3],25}
    
   gravity_slider_xywh_t = {quantize_dest_menu_xywh_t[1], quantize_dest_menu_xywh_t[2]+quantize_dest_menu_xywh_t[4]+5-30,
