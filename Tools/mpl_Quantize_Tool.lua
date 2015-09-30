@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.4 build 3"
+ vrs = "1.4 build 4"
  
 changelog =                   
 [===[
@@ -21,13 +21,15 @@ changelog =
    ==========
    Changelog:
    ==========   
-30.09.2015  1.4 build 3 - need REAPER 5.03+ SWS 2.8.1+
+30.09.2015  1.4 build 4 - need REAPER 5.03+ SWS 2.8.1+
           New
             additional buttons simulate right click for tablet users
             check for SWS version on startup (win only)
           Bugfixes
             disabled get grid on start could make script buggy on start
             hope finally fixed loop sourced item stretch markers restore/quantize
+            fixed incorrect address for UserGroove folder on OSX
+            fixed incorrect address for SWS version check on OSX
             
             
 29.09.2015  1.3 build 10  - need REAPER 5.03+ SWS 2.8.1+
@@ -220,8 +222,7 @@ Michael.
 
 
  ---------------------------------------------------------------------------------------------------------------  
-  function open_URL(url)
-    local OS=reaper.GetOS()
+  function open_URL(url)    
     if OS=="OSX32" or OS=="OSX64" then
       os.execute("open ".. url)
      else
@@ -1098,7 +1099,11 @@ end
    grooves_t = {}
    repeat   
      i = i +1   
-     groove_name = reaper.EnumerateFiles(exepath.."\\Grooves\\", i)
+     if OS=="OSX32" or OS=="OSX64" then
+       groove_name = reaper.EnumerateFiles(exepath.."/Grooves/", i)
+      else
+       groove_name = reaper.EnumerateFiles(exepath.."\\Grooves\\", i)
+     end  
      table.insert(grooves_t, groove_name)         
      until
      groove_name == nil
@@ -1108,7 +1113,11 @@ end
      gfx.x, gfx.y = mx, my
      groove_menu_ret = gfx.showmenu(groove_menu_string)
      if groove_menu_ret ~= 0 then
-       filename_full = exepath.."\\Grooves\\"..grooves_t[groove_menu_ret-1]
+       if OS=="OSX32" or OS=="OSX64" then
+         filename_full = exepath.."/Grooves/"..grooves_t[groove_menu_ret-1]
+        else
+         filename_full = exepath.."\\Grooves\\"..grooves_t[groove_menu_ret-1]
+       end 
          if filename_full ~=nil then          
            content_temp_t = {}
            file = io.open(filename_full, "r")
@@ -2639,10 +2648,19 @@ end
    if char ~= -1 then reaper.defer(MAIN_run) else MAIN_exit() end
  end 
  
+ 
+ ---------------------------------------
+ OS=reaper.GetOS()
+ 
  reaper_vrs = reaper.GetAppVersion()
  reaper_vrs_num = tonumber(string.sub(reaper_vrs, 1,4))
  
- sws_whatsnew = reaper.GetExePath()..'\\Plugins\\reaper_sws_whatsnew.txt'
+ if OS=="OSX32" or OS=="OSX64" then
+   sws_whatsnew = reaper.GetExePath()..'/Plugins/reaper_sws_whatsnew.txt'
+  else
+   sws_whatsnew = reaper.GetExePath()..'\\Plugins\\reaper_sws_whatsnew.txt'
+ end
+   
  file = io.open(sws_whatsnew, "r")
  if file ~= nil then sws_version = tonumber(string.sub(file:read("*all"), 3, 5)) file:close() end
  
