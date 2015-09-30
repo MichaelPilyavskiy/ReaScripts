@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.3 build 10"
+ vrs = "1.3 build 11"
  
 changelog =                   
 [===[
@@ -22,7 +22,7 @@ changelog =
    Changelog:
    ==========   
 
-29.09.2015  1.3  build 10  - need REAPER 5.03+     
+29.09.2015  1.3  build 11  - need REAPER 5.03+     
           New
             rightclick on user groove open REAPER\Grooves list
             Check for REAPER compatibility on startup
@@ -31,6 +31,7 @@ changelog =
             Store current groove to midi item (notes length = 120ppq)
             Match items positions to ref.points
             Ctrl+LMB click add/subtract value from swing/gravity slider depending on position within slider
+            additional buttons simulate right click for tablet users
           Improvements          
             right click on gravity - type value in ms  
             apply slider position more closer to mouse cursor
@@ -156,7 +157,7 @@ It`s LUA script for REAPER. I suppose you to have installed last version of REAP
 8. Main 'Apply' slider
 8.1 Left click on this slider set quantize parameters and snap objects positions and values (if any) to reference points. 
 8.2 It is also strength slider, so if slider is 50%, snap is 50% stronger, 0% - nothing happened with objects, 100% solid snap to points.
-8.3 Right click restore objects positions to moment when you stored them.
+8.3 Right click or 'R' buttom from left restore objects positions to the moment when you stored them.
 
 9.0 Reference settings menu (right menu)
 9.1 Save current groove to .rgt file in REAPER/Grooves, compatible with SWS Fingers Groove Tool.
@@ -314,7 +315,8 @@ Michael.
   
  function DEFINE_dynamic_variables() 
    --GUI
-   apply_slider_xywh_t = {x_offset, y_offset1+gui_offset+5+enable_display_t[1]*40, main_w-gui_offset*2, heigth3-enable_display_t[1]*40}  
+   apply_slider_xywh_t = {x_offset+40, y_offset1+gui_offset+5+enable_display_t[1]*40, main_w-gui_offset*2-40, heigth3-enable_display_t[1]*40}  
+   restore_button_xywh_t = {x_offset, apply_slider_xywh_t[2],35,apply_slider_xywh_t[4]}
      
    quantize_ref_menu_xywh_t = {x_offset+gui_offset+options_button_width, y_offset, 
      main_w/2-options_button_width-gui_offset*1.5-x_offset, y_offset1-y_offset-(use_vel_values_t[1]*30)}
@@ -434,7 +436,7 @@ Michael.
    quantize_ref_menu_xywh_t[3],25}
    
   gravity_slider_xywh_t = {quantize_dest_menu_xywh_t[1], quantize_dest_menu_xywh_t[2]+quantize_dest_menu_xywh_t[4]+5-30,
-   quantize_dest_menu_xywh_t[3],25}  
+   quantize_dest_menu_xywh_t[3]-25,25}  
   
   -- display
   display_rect_xywh_t = {x_offset, y_offset1+gui_offset+5, main_w-gui_offset*2, 35}  
@@ -447,6 +449,9 @@ Michael.
     --right
     opt3_width = 60
     options3_button_xywh_t = {(main_w-opt3_width)/2, y_offset, opt3_width, 20}
+    
+    type_gravity_button_xywh_t = {gravity_slider_xywh_t[1]+gravity_slider_xywh_t[3]+5,gravity_slider_xywh_t[2],
+      20, gravity_slider_xywh_t[4]}
  end
  
  ---------------------------------------------------------------------------------------------------------------
@@ -705,7 +710,7 @@ end
  
 ---------------------------------------------------------------------------------------------------------------
 
- function GUI_slider_gradient(xywh_t, name, slider_val, type)
+ function GUI_slider_gradient(xywh_t, name, slider_val, type,dadx)
    if slider_val > 1 then slider_val = 1 end
    slider_val_inv = math.abs(math.abs(slider_val) - 1)
    x = xywh_t[1]
@@ -713,7 +718,7 @@ end
    w = xywh_t[3]-slider_val_inv*xywh_t[3]
    w0 = xywh_t[3]
    h = xywh_t[4]
-   r,g,b,a = 1,1,1.1   
+   r,g,b,a = 1,1,1,0.0
    gfx.x = x
    gfx.y = y
    drdx = 0
@@ -722,7 +727,7 @@ end
    dgdy = 0.002     
    dbdx = 0
    dbdy = 0
-   dadx = 0.001
+   if dadx == nil then dadx = 0.001 end
    dady = 0.0001
    
    if type == "normal" then
@@ -815,11 +820,23 @@ end
        GUI_menu (quantize_ref_menu_xywh_t, quantize_ref_menu_names_t, 
                  quantize_ref_values_t, true,false,itemcolor1_t,0.05)
      if snap_mode_values_t[2] == 1 then -- if pattern mode
+       add_groove_button_xywh_t = {quantize_ref_menu_xywh_t[1]+quantize_ref_menu_xywh_t[3]-20,
+         quantize_ref_xywh_buttons_t[18],20,15}
+       GUI_button(add_groove_button_xywh_t, ">", "<<", _, true)
+       
        meas_str_temp = gfx.measurestr(quantize_ref_menu_names_t[7])       -- if grid
-       grid_value_slider_xywh_t = {quantize_ref_menu_xywh_t[1], quantize_ref_xywh_buttons_t[22]-2, quantize_ref_menu_xywh_t[3], fontsize_menu_item+4}
-       swing_grid_value_slider_xywh_t = {quantize_ref_menu_xywh_t[1], quantize_ref_xywh_buttons_t[26]-2, quantize_ref_menu_xywh_t[3], fontsize_menu_item+4}
-       if display_grid_value_slider == true then GUI_slider_gradient(grid_value_slider_xywh_t, "", grid_value, "normal") end 
-       if display_swing_value_slider == true then GUI_slider_gradient(swing_grid_value_slider_xywh_t, "", swing_value, "centered") end 
+       --grid slider
+       grid_value_slider_xywh_t = {quantize_ref_menu_xywh_t[1]+5, quantize_ref_xywh_buttons_t[22]-2, quantize_ref_menu_xywh_t[3]-10, fontsize_menu_item+3}
+       if display_grid_value_slider == true then 
+         GUI_slider_gradient(grid_value_slider_xywh_t, "", grid_value, "normal") end 
+       --swing slider
+       swing_grid_value_slider_xywh_t = {quantize_ref_menu_xywh_t[1]+5, quantize_ref_xywh_buttons_t[26]-1, 
+         quantize_ref_menu_xywh_t[3]-30, fontsize_menu_item+3}
+       GUI_slider_gradient(swing_grid_value_slider_xywh_t, "", swing_value, "centered",0.005) 
+       --swing button
+       type_swing_button_xywh_t = {quantize_ref_menu_xywh_t[1]+quantize_ref_menu_xywh_t[3]-20,
+         quantize_ref_xywh_buttons_t[26],20,15}
+       GUI_button(type_swing_button_xywh_t, ">", "<<", _, true)
      end  
           
      quantize_dest_xywh_buttons_t =  
@@ -829,16 +846,20 @@ end
      
      if enable_display_t[1] == 1 then GUI_display() end 
    
-     GUI_slider_gradient(apply_slider_xywh_t, apply_bypass_slider_name, strenght_value,"normal")
+     GUI_slider_gradient(apply_slider_xywh_t, apply_bypass_slider_name, strenght_value,"normal",0.0003)
+     
      if use_vel_values_t[1]==1 then
        GUI_slider_gradient(use_vel_slider_xywh_t, "Use ref. velocity "..math.floor(use_vel_value*100)..'%', use_vel_value, "normal") end
        
+       
      if snap_area_values_t[1] == 1 then 
-       GUI_slider_gradient(gravity_slider_xywh_t, "Gravity "..math.floor(gravity_value*gravity_mult_value*1000)..' ms', gravity_value, "mirror") end -- if gravity
+       GUI_slider_gradient(gravity_slider_xywh_t, "Gravity "..math.floor(gravity_value*gravity_mult_value*1000)..' ms', gravity_value, "mirror") 
+       GUI_button(type_gravity_button_xywh_t, ">", "<<", _, true) end -- if gravity
      
      GUI_button(options_button_xywh_t, "<<", "<<", _, true)
      GUI_button(options2_button_xywh_t, ">>", ">>", _, true)
      GUI_button(options3_button_xywh_t, 'Menu', "Menu", _, true)
+     GUI_button(restore_button_xywh_t, "R >", "<<", _, true)
              
    else -- if snap > 1 show error
      
@@ -848,7 +869,7 @@ end
      gfx.drawstr("Set line spacing (Snap/Grid settings) lower than 1")   
     
   end -- if project_grid_measures == 0   
-  if update_gui == true then gfx.update() else end
+  gfx.update()
  end
   
 ---------------------------------------------------------------------------------------------------------------
@@ -1668,6 +1689,7 @@ end
  ---------------------------------------------------------------------------------------------------------------
   
   function ENGINE3_quantize_objects()    
+--  reaper.APITest()
     -------------------------------------------------------------------------------------
     --  items --------------------------------------------------------------------------
     -------------------------------------------------------------------------------------
@@ -1941,7 +1963,7 @@ end
           take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
           if take ~= nil then  
             reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])
-            reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[2]-dest_sm_subt[7], dest_sm_subt[3]-dest_sm_subt[7])            
+            reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[3]-dest_sm_subt[7], dest_sm_subt[3])            
           end  
         end
       end 
@@ -2188,7 +2210,7 @@ end
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,16) then 
          quantize_ref_values_t = {0, 0, 0, 0, 1, 0, 0} 
          ENGINE1_get_reference_FORM_points() end  
-       if MOUSE_RB_gate(quantize_ref_xywh_buttons_t,16) then         
+       if MOUSE_RB_gate(quantize_ref_xywh_buttons_t,16) or MOUSE_LB_gate(add_groove_button_xywh_t,0)then         
           ENGINE1_get_reference_usergroove() 
           ENGINE1_get_reference_FORM_points() end
        -- grid --             
@@ -2211,23 +2233,22 @@ end
                ENGINE3_quantize_objects()
              end     
        -- swing --
-       if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,24) or MOUSE_LB_gate(swing_grid_value_slider_xywh_t, 0) then 
-          quantize_ref_values_t = {0, 0, 0, 0, 0, 0, 1} 
-          display_swing_value_slider = true
-          if swing_grid_value_slider_xywh_t ~= nil then 
+       
+         if MOUSE_LB_gate(swing_grid_value_slider_xywh_t,0) or  
+           MOUSE_LB_gate(quantize_ref_xywh_buttons_t,24) then 
+            quantize_ref_values_t = {0, 0, 0, 0, 0, 0, 1} 
             if Ctrl_state == true then
               swing_value = swing_value+(((mx - swing_grid_value_slider_xywh_t[1])/swing_grid_value_slider_xywh_t[3])*2-1)*0.001
-             else swing_value = ((mx - swing_grid_value_slider_xywh_t[1])/swing_grid_value_slider_xywh_t[3])*2-1 end end
+             else swing_value = ((mx - swing_grid_value_slider_xywh_t[1])/swing_grid_value_slider_xywh_t[3])*2-1 end
             if swing_value > 1 then   swing_value = 1 end
             if swing_value < -1 then   swing_value = -1 end
-          ENGINE1_get_reference_swing_grid()
-          ENGINE1_get_reference_FORM_points()
-          ENGINE3_quantize_objects()
-        else
-          display_swing_value_slider = false
-       end
+            ENGINE1_get_reference_swing_grid()
+            ENGINE1_get_reference_FORM_points()
+            ENGINE3_quantize_objects()
+          end
              -- (type swing value)
-             if MOUSE_RB_gate(quantize_ref_xywh_buttons_t,24) or MOUSE_RB_gate(swing_grid_value_slider_xywh_t, 0) then
+             if MOUSE_RB_gate(quantize_ref_xywh_buttons_t,24) or MOUSE_RB_gate(swing_grid_value_slider_xywh_t, 0) 
+              or MOUSE_LB_gate(type_swing_button_xywh_t,0) then
                swing_value_retval, swing_value_return_s =  reaper.GetUserInputs("Swing value", 1, "Swing", "") 
                if swing_value_retval ~= nil then 
                  swing_value_return = tonumber(swing_value_return_s)           
@@ -2309,7 +2330,7 @@ end
            if gravity_value < 0 then gravity_value = 0 end
            ENGINE3_quantize_objects()
          end 
-         if MOUSE_RB_gate(gravity_slider_xywh_t,0) == true then 
+         if MOUSE_LB_gate(type_gravity_button_xywh_t,0) or MOUSE_RB_gate(gravity_slider_xywh_t,0) == true then 
            gravity_value_retval, gravity_value_return_s =  reaper.GetUserInputs("Gravity value", 1, "Gravity, ms", "") 
            if gravity_value_retval ~= nil then 
               gravity_value_return = tonumber(gravity_value_return_s)
@@ -2622,12 +2643,6 @@ end
    
    DEFINE_default_variables()
    DEFINE_default_variables_GUI() 
-   
-   grid_beats = GET_grid() 
-   if grid_beats ~= nil then
-     ENGINE1_get_reference_grid()
-     ENGINE1_get_reference_FORM_points()
-   end  
    
    MAIN_run()
   else
