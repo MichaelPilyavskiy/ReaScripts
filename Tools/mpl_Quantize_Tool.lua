@@ -1,5 +1,6 @@
 ------  Michael Pilyavskiy Quantize tool  ----
 fontsize_menu_name  = 16
+OSX_UserName = 'Your_name'
 
 todo= 
 [===[ To do list / requested features:
@@ -13,7 +14,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.4 build 7"
+ vrs = "1.4 build 8"
  
 changelog =                   
 [===[
@@ -21,7 +22,7 @@ changelog =
    ==========
    Changelog:
    ==========   
-30.09.2015  1.4 build 7 - need REAPER 5.03+ SWS 2.8.1+
+30.09.2015  1.4 build 8 - need REAPER 5.03+ SWS 2.8.1+
           New
             additional buttons simulate right click for tablet users
             check for SWS version on startup (win only)
@@ -30,6 +31,7 @@ changelog =
             hope finally fixed loop sourced item stretch markers restore/quantize
           Improvements
             font size param. moved to the top for OSX users who have problems with gui
+            OSX user: type your user name on third line of this script to get UserGroove works
             
             
 29.09.2015  1.3 build 10  - need REAPER 5.03+ SWS 2.8.1+
@@ -1100,7 +1102,7 @@ end
    repeat   
      i = i +1   
      if OS=="OSX32" or OS=="OSX64" then
-       groove_name = reaper.EnumerateFiles(exepath.."/Grooves/", i)
+       groove_name = reaper.EnumerateFiles('/Volumes/Data/'..OSX_UserName..'/Library/Application Support/REAPER/Grooves', i)
       else
        groove_name = reaper.EnumerateFiles(exepath.."\\Grooves\\", i)
      end  
