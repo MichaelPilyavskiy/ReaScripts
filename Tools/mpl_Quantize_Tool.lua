@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.3 build 7"
+ vrs = "1.3 build 9"
  
 changelog =                   
 [===[
@@ -22,7 +22,7 @@ changelog =
    Changelog:
    ==========   
 
-29.09.2015  1.3  build 7  - need REAPER 5.03+     
+29.09.2015  1.3  build 9  - need REAPER 5.03+     
           New
             rightclick on user groove open REAPER\Grooves list
             Check for REAPER compatibility on startup
@@ -2183,9 +2183,11 @@ end
          ENGINE1_get_reference_FORM_points() end  
        -- user groove--             
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,16) then 
-         quantize_ref_values_t = {0, 0, 0, 0, 1, 0, 0} end  
+         quantize_ref_values_t = {0, 0, 0, 0, 1, 0, 0} 
+         ENGINE1_get_reference_FORM_points() end  
        if MOUSE_RB_gate(quantize_ref_xywh_buttons_t,16) then         
-          ENGINE1_get_reference_usergroove() end
+          ENGINE1_get_reference_usergroove() 
+          ENGINE1_get_reference_FORM_points() end
        -- grid --             
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,20) or MOUSE_LB_gate(grid_value_slider_xywh_t, 0) then 
          quantize_ref_values_t = {0, 0, 0, 0, 0, 1, 0}
@@ -2620,6 +2622,6 @@ end
   else
    err_ret = reaper.MB("This script requires REAPER 5.03+ and SWS 2.8.1+"..'\n'..'Do you wanna get old version?', "Error", 4)
    if err_ret ==6 then 
-     open_URL("http://raw.githubusercontent.com/MichaelPilyavskiy/ReaScripts/master/Tools/mpl_Quantize_Tool_1.0.lua")
+     open_URL("http://raw.githubusercontent.com/MichaelPilyavskiy/ReaScripts/54dc4fd812a691cee676028b31a08e6c91c02438/Tools/mpl_Quantize_Tool_1.2.lua")
    end  
  end
