@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.4 build 5"
+ vrs = "1.4 build 6"
  
 changelog =                   
 [===[
@@ -21,15 +21,13 @@ changelog =
    ==========
    Changelog:
    ==========   
-30.09.2015  1.4 build 5 - need REAPER 5.03+ SWS 2.8.1+
+30.09.2015  1.4 build 6 - need REAPER 5.03+ SWS 2.8.1+
           New
             additional buttons simulate right click for tablet users
             check for SWS version on startup (win only)
           Bugfixes
             disabled get grid on start could make script buggy on start
             hope finally fixed loop sourced item stretch markers restore/quantize
-            fixed incorrect address for UserGroove folder on OSX
-            fixed incorrect address for SWS version check on OSX
           Improvements
             font size param. moved to the top for OSX users who have problems with gui
             
