@@ -1,5 +1,5 @@
 ------  Michael Pilyavskiy Quantize tool  ----
-
+fontsize_menu_name  = 16
 
 todo= 
 [===[ To do list / requested features:
@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.4 build 4"
+ vrs = "1.4 build 5"
  
 changelog =                   
 [===[
@@ -21,7 +21,7 @@ changelog =
    ==========
    Changelog:
    ==========   
-30.09.2015  1.4 build 4 - need REAPER 5.03+ SWS 2.8.1+
+30.09.2015  1.4 build 5 - need REAPER 5.03+ SWS 2.8.1+
           New
             additional buttons simulate right click for tablet users
             check for SWS version on startup (win only)
@@ -30,6 +30,8 @@ changelog =
             hope finally fixed loop sourced item stretch markers restore/quantize
             fixed incorrect address for UserGroove folder on OSX
             fixed incorrect address for SWS version check on OSX
+          Improvements
+            font size param. moved to the top for OSX users who have problems with gui
             
             
 29.09.2015  1.3 build 10  - need REAPER 5.03+ SWS 2.8.1+
@@ -416,7 +418,7 @@ Michael.
   -- gfx.vars --
   gui_help = 0.0  
   font = "Arial"
-  fontsize_menu_name  = 16
+  --fontsize_menu_name  = 16
   fontsize_menu_item = fontsize_menu_name-1
   itemcolor1_t = {0.4, 1, 0.4}
   itemcolor2_t = {0.5, 0.8, 1}
