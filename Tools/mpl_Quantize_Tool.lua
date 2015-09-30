@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.4 build 2"
+ vrs = "1.4 build 3"
  
 changelog =                   
 [===[
@@ -21,10 +21,10 @@ changelog =
    ==========
    Changelog:
    ==========   
-30.09.2015  1.4 build 2 - need REAPER 5.03+ SWS 2.8.1+
+30.09.2015  1.4 build 3 - need REAPER 5.03+ SWS 2.8.1+
           New
             additional buttons simulate right click for tablet users
-            check for SWS version on startup
+            check for SWS version on startup (win only)
           Bugfixes
             disabled get grid on start could make script buggy on start
             hope finally fixed loop sourced item stretch markers restore/quantize
@@ -2646,7 +2646,7 @@ end
  file = io.open(sws_whatsnew, "r")
  if file ~= nil then sws_version = tonumber(string.sub(file:read("*all"), 3, 5)) file:close() end
  
- 
+ if sws_version == nil then sws_version = 2.8 end
  if reaper_vrs_num >= 5.03 and sws_version >= 2.8 then
    main_w = 440
    main_h = 355
