@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.3 build 9"
+ vrs = "1.3 build 10"
  
 changelog =                   
 [===[
@@ -22,7 +22,7 @@ changelog =
    Changelog:
    ==========   
 
-29.09.2015  1.3  build 9  - need REAPER 5.03+     
+29.09.2015  1.3  build 10  - need REAPER 5.03+     
           New
             rightclick on user groove open REAPER\Grooves list
             Check for REAPER compatibility on startup
@@ -30,6 +30,7 @@ changelog =
             GUI - options sliders dynamically shown when relevant
             Store current groove to midi item (notes length = 120ppq)
             Match items positions to ref.points
+            Ctrl+LMB click add/subtract value from swing/gravity slider depending on position within slider
           Improvements          
             right click on gravity - type value in ms  
             apply slider position more closer to mouse cursor
@@ -354,7 +355,7 @@ Michael.
        quantize_ref_menu_grid_name = "project grid: "..grid_string 
      else quantize_ref_menu_grid_name = "custom grid: "..grid_string end
        
-   quantize_ref_menu_swing_name = "swing grid "..math.floor(swing_value*100).."%"   
+   quantize_ref_menu_swing_name = "swing grid "..math.round(swing_value*100, 2).."%"   
          
    if snap_mode_values_t[2] == 1 then        
      quantize_ref_menu_names_t = {"Reference points ("..count_ref_positions..") :", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
@@ -2148,9 +2149,11 @@ end
     RMB_state = gfx.mouse_cap&2 == 2
     MMB_state = gfx.mouse_cap&64 == 64 ]]
     
-    if gfx.mouse_cap == 1 then LMB_state = true else LMB_state = false end 
+    if gfx.mouse_cap == 1 or gfx.mouse_cap == 5 then LMB_state = true else LMB_state = false end 
     if gfx.mouse_cap == 2 then RMB_state = true else RMB_state = false end
     if gfx.mouse_cap == 64 then MMB_state = true else MMB_state = false end
+    
+    if gfx.mouse_cap == 5 then Ctrl_state = true else Ctrl_state = false end
     mx, my = gfx.mouse_x, gfx.mouse_y  
     
     
@@ -2211,7 +2214,12 @@ end
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,24) or MOUSE_LB_gate(swing_grid_value_slider_xywh_t, 0) then 
           quantize_ref_values_t = {0, 0, 0, 0, 0, 0, 1} 
           display_swing_value_slider = true
-          if swing_grid_value_slider_xywh_t ~= nil then swing_value = ((mx - swing_grid_value_slider_xywh_t[1])/swing_grid_value_slider_xywh_t[3])*2-1 end
+          if swing_grid_value_slider_xywh_t ~= nil then 
+            if Ctrl_state == true then
+              swing_value = swing_value+(((mx - swing_grid_value_slider_xywh_t[1])/swing_grid_value_slider_xywh_t[3])*2-1)*0.001
+             else swing_value = ((mx - swing_grid_value_slider_xywh_t[1])/swing_grid_value_slider_xywh_t[3])*2-1 end end
+            if swing_value > 1 then   swing_value = 1 end
+            if swing_value < -1 then   swing_value = -1 end
           ENGINE1_get_reference_swing_grid()
           ENGINE1_get_reference_FORM_points()
           ENGINE3_quantize_objects()
@@ -2294,8 +2302,11 @@ end
               
        if gravity_slider_xywh_t ~= nil and snap_area_values_t[1] == 1 then
          if MOUSE_LB_gate(gravity_slider_xywh_t,0) == true then 
-           gravity_value = (mx - gravity_slider_xywh_t[1])/gravity_slider_xywh_t[3]*2 
+           if Ctrl_state == true then 
+               gravity_value = gravity_value + ((mx - gravity_slider_xywh_t[1])/gravity_slider_xywh_t[3]*2-1)*0.001
+             else gravity_value = (mx - gravity_slider_xywh_t[1])/gravity_slider_xywh_t[3]*2 end 
            if gravity_value > 1 then gravity_value = 1 end
+           if gravity_value < 0 then gravity_value = 0 end
            ENGINE3_quantize_objects()
          end 
          if MOUSE_RB_gate(gravity_slider_xywh_t,0) == true then 
