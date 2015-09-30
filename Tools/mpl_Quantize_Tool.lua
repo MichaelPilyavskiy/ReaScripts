@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.4 build 6"
+ vrs = "1.4 build 7"
  
 changelog =                   
 [===[
@@ -21,7 +21,7 @@ changelog =
    ==========
    Changelog:
    ==========   
-30.09.2015  1.4 build 6 - need REAPER 5.03+ SWS 2.8.1+
+30.09.2015  1.4 build 7 - need REAPER 5.03+ SWS 2.8.1+
           New
             additional buttons simulate right click for tablet users
             check for SWS version on startup (win only)
@@ -828,7 +828,7 @@ end
        GUI_menu (quantize_ref_menu_xywh_t, quantize_ref_menu_names_t, 
                  quantize_ref_values_t, true,false,itemcolor1_t,0.05)
      if snap_mode_values_t[2] == 1 then -- if pattern mode
-       add_groove_button_xywh_t = {quantize_ref_menu_xywh_t[1]+quantize_ref_menu_xywh_t[3]-20,
+       add_groove_button_xywh_t = {quantize_ref_menu_xywh_t[1]+quantize_ref_menu_xywh_t[3]-25,
          quantize_ref_xywh_buttons_t[18],20,15}
        GUI_button(add_groove_button_xywh_t, ">", "<<", _, true)
        
@@ -839,10 +839,10 @@ end
          GUI_slider_gradient(grid_value_slider_xywh_t, "", grid_value, "normal") end 
        --swing slider
        swing_grid_value_slider_xywh_t = {quantize_ref_menu_xywh_t[1]+5, quantize_ref_xywh_buttons_t[26]-1, 
-         quantize_ref_menu_xywh_t[3]-30, fontsize_menu_item+3}
+         quantize_ref_menu_xywh_t[3]-35, fontsize_menu_item+3}
        GUI_slider_gradient(swing_grid_value_slider_xywh_t, "", swing_value, "centered",0.005) 
        --swing button
-       type_swing_button_xywh_t = {quantize_ref_menu_xywh_t[1]+quantize_ref_menu_xywh_t[3]-20,
+       type_swing_button_xywh_t = {quantize_ref_menu_xywh_t[1]+quantize_ref_menu_xywh_t[3]-25,
          quantize_ref_xywh_buttons_t[26],20,15}
        GUI_button(type_swing_button_xywh_t, ">", "<<", _, true)
      end  
