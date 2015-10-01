@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.5 build 2"
+ vrs = "1.5 build 3"
  
 changelog =                   
 [===[
@@ -21,7 +21,7 @@ changelog =
    ==========
    Changelog:
    ==========   
-01.10.2015  1.5 build 2  - need REAPER 5.03+ SWS 2.8.1+
+01.10.2015  1.5 build 3  - need REAPER 5.03+ SWS 2.8.1+
           New
             Show QT in actions info line (main menu right item)
             Added undo points to some operations
@@ -1857,7 +1857,7 @@ end
             item = reaper.GetMediaItemTake_Item(take)
             --1take_guid, 2posOut, 3srcpos, 4item_pos, 5takerate, 6item_len,7takeoffset
             reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])
---            reaper.SetTakeStretchMarker(take, -1, 0, 0)
+            reaper.SetTakeStretchMarker(take, -1, 0, dest_sm_subt[7])
             true_sm_pos = dest_sm_subt[4] + dest_sm_subt[2]/ dest_sm_subt[5]
             if sm_timesel_dest_values_t[1] == 1 then            
               new_sm_pos = ENGINE3_quantize_compare(true_sm_pos,0)
@@ -1869,7 +1869,10 @@ end
               end
             end            
             new_sm_pos_rev = (new_sm_pos - dest_sm_subt[4])*dest_sm_subt[5] 
-            reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev, dest_sm_subt[3])
+            if new_sm_pos_rev > 0 and new_sm_pos_rev < dest_sm_subt[6] then 
+              reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev, dest_sm_subt[3])
+            end
+            reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[6]/dest_sm_subt[5], dest_sm_subt[7]+dest_sm_subt[6]/dest_sm_subt[5])            
           end--take not nil 
           item = reaper.GetMediaItemTake_Item(take) 
           reaper.UpdateItemInProject(item)
