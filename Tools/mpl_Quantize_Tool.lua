@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.4 build 9"
+ vrs = "1.5 build 1"
  
 changelog =                   
 [===[
@@ -21,17 +21,32 @@ changelog =
    ==========
    Changelog:
    ==========   
+01.10.2015  1.5 build 1  - need REAPER 5.03+ SWS 2.8.1+
+          New
+            Show QT in actions info line (main menu right item)
+            Added undo points to some operations
+          Improvements
+            highlight grid and swing slider under mouse cursor
+            stretch markers restore/quantize code improvements
+            space key pass through and run Transport:Play/Stop
+            prevent opening left menu and type swing whe drag swing slider
+          Bugfixes
+            fixed wrong groove name
+            fixed properly 'Groove' path finding both on OSX and Windows
+            fixed add null stretch markers when quantize/restore
+            fixed new restore button doesn`t work
+          Performance
+            'reference grid' generated only where destination points placed +-1bar
+              
 30.09.2015  1.4 build 9 - need REAPER 5.03+ SWS 2.8.1+
           New
             additional buttons simulate right click for tablet users
             check for SWS version on startup (win only)
           Bugfixes
             disabled get grid on start could make script buggy on start
-            hope finally fixed loop sourced item stretch markers restore/quantize
+            fixed loop sourced item stretch markers restore/quantize
           Improvements
             font size param. moved to the top for OSX users who have problems with gui
-            OSX user: type your user name on third line of this script to get UserGroove works
-            
             
 29.09.2015  1.3 build 10  - need REAPER 5.03+ SWS 2.8.1+
           New
@@ -249,7 +264,6 @@ Michael.
  function DEFINE_default_variables()    
    
    
-   exepath = reaper.GetExePath()   
    settings_filename = exepath.."\\Scripts\\mpl_Quantize_Tool_settings.txt"
    settings_file = io.open(settings_filename,"r")
    if settings_file ~= nil then 
@@ -294,7 +308,7 @@ Michael.
    
    
    restore_button_state = false
-   if snap_mode_values_t[2] == 1 then  quantize_ref_values_t = {0, 0, 0, 0, 0, 1, 0} else quantize_ref_values_t = {0, 0, 0, 0} end
+   if snap_mode_values_t[2] == 1 then  quantize_ref_values_t = {0, 0, 0, 0, 0, 0, 0} else quantize_ref_values_t = {0, 0, 0, 0} end
    quantize_dest_values_t = {0, 0, 0, 0}
     
    count_reference_item_positions = 0
@@ -391,7 +405,7 @@ Michael.
    
    
    if restore_button_state == false then 
-     apply_bypass_slider_name = "Apply (LMB) / Quantize strength "..math.ceil(strenght_value*100).."% (MMB) / Restore (RMB)" end
+     apply_bypass_slider_name = "Apply quantize "..math.ceil(strenght_value*100).."%" end
  end 
    
  --------------------------------------------------------------------------------------------------------------- 
@@ -490,7 +504,7 @@ Michael.
    -- gui help --
    gfx.r, gfx.g, gfx.b, gfx.a = 1,1,1,gui_help
    gfx.roundrect(x0,y0,w0,h0,0.1,true) 
-   return x0, y0, w0, h0
+   return x, y0, 182.5, h0
  end 
       
  ---------------------------------------------------------------------------------------------------------------   
@@ -825,27 +839,70 @@ end
     
      -- menus --  
      
+     get_but_wh = {25,15}
      quantize_ref_xywh_buttons_t =   
        GUI_menu (quantize_ref_menu_xywh_t, quantize_ref_menu_names_t, 
                  quantize_ref_values_t, true,false,itemcolor1_t,0.05)
+     
+     
+     
+     --get items
+     get_item_button_xywh_t = {quantize_ref_menu_xywh_t[1]+quantize_ref_menu_xywh_t[3]-30,
+         quantize_ref_xywh_buttons_t[2],get_but_wh[1],get_but_wh[2]}
+     if show_get_item == true then 
+       GUI_button(get_item_button_xywh_t, "get", "<<", _, false) end
+     --get sm
+     get_sm_button_xywh_t = {quantize_ref_menu_xywh_t[1]+quantize_ref_menu_xywh_t[3]-30,
+         quantize_ref_xywh_buttons_t[6],get_but_wh[1],get_but_wh[2]}
+     if show_get_sm == true then 
+       GUI_button(get_sm_button_xywh_t, "get", "<<", _, false) end
+     --get ep
+     get_ep_button_xywh_t = {quantize_ref_menu_xywh_t[1]+quantize_ref_menu_xywh_t[3]-30,
+         quantize_ref_xywh_buttons_t[10],get_but_wh[1],get_but_wh[2]}
+     if show_get_ep == true then 
+       GUI_button(get_ep_button_xywh_t, "get", "<<", _, false) end                   
+     --get notes
+     get_note_button_xywh_t = {quantize_ref_menu_xywh_t[1]+quantize_ref_menu_xywh_t[3]-30,
+         quantize_ref_xywh_buttons_t[14],get_but_wh[1],get_but_wh[2]}
+     if show_get_note == true then 
+       GUI_button(get_note_button_xywh_t, "get", "<<", _, false) end
+                 
+                 
+                 
      if snap_mode_values_t[2] == 1 then -- if pattern mode
-       add_groove_button_xywh_t = {quantize_ref_menu_xywh_t[1]+quantize_ref_menu_xywh_t[3]-25,
-         quantize_ref_xywh_buttons_t[18],20,15}
-       GUI_button(add_groove_button_xywh_t, ">", "<<", _, true)
+       usergroove_line_xywh_t = {quantize_ref_menu_xywh_t[1], quantize_ref_xywh_buttons_t[18],
+          quantize_ref_menu_xywh_t[3], fontsize_menu_item}
+       
+       add_groove_button_xywh_t = {quantize_ref_menu_xywh_t[1]+quantize_ref_menu_xywh_t[3]-30,
+         quantize_ref_xywh_buttons_t[18],get_but_wh[1],get_but_wh[2]}
+       if show_groove_buttons then GUI_button(add_groove_button_xywh_t, "get", "<<", _, false) end
+       --prev groove
+       prev_groove_button_xywh_t = {quantize_ref_menu_xywh_t[1]+5,
+         quantize_ref_xywh_buttons_t[18],15,15}       
+       if show_groove_buttons then GUI_button(prev_groove_button_xywh_t, "<", "<<", _, false) end
+       --next groove
+       next_groove_button_xywh_t = {quantize_ref_menu_xywh_t[1]+20,
+                quantize_ref_xywh_buttons_t[18],15,15}       
+       if show_groove_buttons then GUI_button(next_groove_button_xywh_t, ">", "<<", _, false)    end   
+       
        
        meas_str_temp = gfx.measurestr(quantize_ref_menu_names_t[7])       -- if grid
        --grid slider
+       grid_line_xywh_t = {quantize_ref_menu_xywh_t[1], quantize_ref_xywh_buttons_t[22],
+          quantize_ref_menu_xywh_t[3], fontsize_menu_item}
        grid_value_slider_xywh_t = {quantize_ref_menu_xywh_t[1]+5, quantize_ref_xywh_buttons_t[22]-2, quantize_ref_menu_xywh_t[3]-10, fontsize_menu_item+3}
-       if display_grid_value_slider == true then 
+       if show_grid_slider == true then 
          GUI_slider_gradient(grid_value_slider_xywh_t, "", grid_value, "normal") end 
        --swing slider
+       swing_line_xywh_t = {quantize_ref_menu_xywh_t[1], quantize_ref_xywh_buttons_t[26], 
+         quantize_ref_menu_xywh_t[3], fontsize_menu_item}
        swing_grid_value_slider_xywh_t = {quantize_ref_menu_xywh_t[1]+5, quantize_ref_xywh_buttons_t[26]-1, 
          quantize_ref_menu_xywh_t[3]-35, fontsize_menu_item+3}
-       GUI_slider_gradient(swing_grid_value_slider_xywh_t, "", swing_value, "centered",0.005) 
+       if show_swing_slider then GUI_slider_gradient(swing_grid_value_slider_xywh_t, "", swing_value, "centered",0.005)  end
        --swing button
        type_swing_button_xywh_t = {quantize_ref_menu_xywh_t[1]+quantize_ref_menu_xywh_t[3]-25,
          quantize_ref_xywh_buttons_t[26],20,15}
-       GUI_button(type_swing_button_xywh_t, ">", "<<", _, true)
+       if show_swing_slider then GUI_button(type_swing_button_xywh_t, ">", "<<", _, false) end
      end  
           
      quantize_dest_xywh_buttons_t =  
@@ -1095,30 +1152,35 @@ end
  
 ---------------------------------------------------------------------------
 
- function ENGINE1_get_reference_usergroove()
+ function ENGINE1_get_reference_usergroove(rel)
    i=-1
    grooves_t = {}
    repeat   
-     i = i +1   
-     if OS=="OSX32" or OS=="OSX64" then       
-       groove_name = reaper.EnumerateFiles(reaper.GetResourcePath()..'/REAPER/Grooves', i)
-      else
-       groove_name = reaper.EnumerateFiles(exepath.."\\Grooves\\", i)
+     i = i +1
+     groove_name = reaper.EnumerateFiles(exepath..'/Grooves', i)
+     if groove_name ~= nil then
+       if string.find(groove_name, '.rgt')~= nil then
+         table.insert(grooves_t, groove_name)         
+       end  
      end  
-     table.insert(grooves_t, groove_name)         
      until
      groove_name == nil
    
    if grooves_t ~= nil then
      groove_menu_string = table.concat(grooves_t, " | ")
      gfx.x, gfx.y = mx, my
-     groove_menu_ret = gfx.showmenu(groove_menu_string)
+     if rel ~= nil and groove_menu_ret ~= nil then     
+       groove_menu_ret = groove_menu_ret+rel end   
+     if  groove_menu_ret == nil then 
+       groove_menu_ret = 1 
+      else
+       if  groove_menu_ret <1 then groove_menu_ret = 1 end
+     end
+     
+     if rel == nil then groove_menu_ret = gfx.showmenu(groove_menu_string) end
+     
      if groove_menu_ret ~= 0 then
-       if OS=="OSX32" or OS=="OSX64" then
-         filename_full = exepath.."/Grooves/"..grooves_t[groove_menu_ret-1]
-        else
-         filename_full = exepath.."\\Grooves\\"..grooves_t[groove_menu_ret-1]
-       end 
+       filename_full = exepath.."/Grooves/"..grooves_t[groove_menu_ret]
          if filename_full ~=nil then          
            content_temp_t = {}
            file = io.open(filename_full, "r")
@@ -1130,8 +1192,7 @@ end
              file:close()
             
              beats_in_groove = tonumber(string.sub(content_temp_t[2], 28))
-             pattern_len = beats_in_groove/4
-            
+             --pattern_len = math.floor(beats_in_groove/4)
              ref_groove_t = {}  
              table.insert(ref_groove_t, 0)
              for i = 1, #content_temp_t do
@@ -1141,7 +1202,7 @@ end
                   table.insert(ref_groove_t, temp_var_conv)
                 end  
              end
-             quantize_ref_menu_groove_name = grooves_t[groove_menu_ret-1]
+             quantize_ref_menu_groove_name = grooves_t[groove_menu_ret]
              ENGINE1_get_reference_FORM_points() 
              ENGINE3_quantize_objects() 
            end -- if file ~= nil           
@@ -1191,7 +1252,7 @@ end
      end
      
      -- sm --
-     if quantize_ref_values_t[2] == 1 then     
+     if quantize_ref_values_t[2] == 1 and ref_sm_pos_t ~= nil then     
        for i = 1, #ref_sm_pos_t do
          table_temp_val = {ref_sm_pos_t[i],nil}
          if sm_timesel_ref_values_t[2]==1 then 
@@ -1203,7 +1264,7 @@ end
      end
      
      -- ep --
-     if quantize_ref_values_t[3] == 1 then     
+     if quantize_ref_values_t[3] == 1 and ref_ep_t ~=nil then     
        for i = 1, #ref_ep_t do
          table_temp_val = ref_ep_t[i]
          table.insert (ref_points_t, i, {table_temp_val[1],table_temp_val[2]})
@@ -1211,7 +1272,7 @@ end
      end
      
      -- notes --
-     if quantize_ref_values_t[4] == 1 then     
+     if quantize_ref_values_t[4] == 1 and ref_notes_t ~= nil then     
        for i = 1, #ref_notes_t do
          table_temp_val = ref_notes_t[i]
          table.insert (ref_points_t, i, {table_temp_val[1],table_temp_val[2]})
@@ -1274,19 +1335,34 @@ end
         end
         
         -- generate grid from ref_points_t2
-        ref_points_t = {}
-        for i=1, 400, pattern_len do          
-          for j=1, #ref_points_t2 do
-            ref_points_t2_subt = ref_points_t2[j]            
-            ref_pos_time = reaper.TimeMap2_beatsToTime(0, ref_points_t2_subt[1], i-1)
-            if ref_points_t2_subt[1] > cml then
-              ref_pos_time = reaper.TimeMap2_beatsToTime(0, ref_points_t2_subt[1] - cml, i-1)
-            end  
-            table.insert(ref_points_t, {ref_pos_time, ref_points_t2_subt[2]} )
-          end  
-        end     
-     end  
-     update_gui = true
+          ref_points_t = {}
+          --count dest points max min
+          if dest_points_t == nil then dest_points_t = {{0,1}} end
+            dest_points_measure_min1 = math.huge
+            dest_points_measure_max1 = 0      
+                  
+            for i=1, #dest_points_t do
+              dest_points_t_subt = dest_points_t[i]
+              _, measure = reaper.TimeMap2_timeToBeats(0,dest_points_t_subt[1])
+              dest_points_measure_min1 = math.min(measure, dest_points_measure_min1)
+              dest_points_measure_max1 = math.max(measure, dest_points_measure_max1)
+            end  -- for loop
+          
+            if dest_points_measure_min1 == 0 then dest_points_measure_min1 = 1 end
+                      
+            for i=dest_points_measure_min1-1, dest_points_measure_max1+1, pattern_len do          
+              for j=1, #ref_points_t2 do
+                ref_points_t2_subt = ref_points_t2[j]            
+                ref_pos_time = reaper.TimeMap2_beatsToTime(0, ref_points_t2_subt[1], i-1)
+                if ref_points_t2_subt[1] > cml then
+                  ref_pos_time = reaper.TimeMap2_beatsToTime(0, ref_points_t2_subt[1] - cml, i-1)
+                end  
+                table.insert(ref_points_t, {ref_pos_time, ref_points_t2_subt[2]} )
+              end  
+            end   -- generate ref point over timeline
+              
+          
+     end       
  end 
    
  ---------------------------------------------------------------------------------------------------------------
@@ -1780,7 +1856,7 @@ end
             item = reaper.GetMediaItemTake_Item(take)
             --1take_guid, 2posOut, 3srcpos, 4item_pos, 5takerate, 6item_len,7takeoffset
             reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])
-            reaper.SetTakeStretchMarker(take, -1, 0, 0)
+--            reaper.SetTakeStretchMarker(take, -1, 0, 0)
             true_sm_pos = dest_sm_subt[4] + dest_sm_subt[2]/ dest_sm_subt[5]
             if sm_timesel_dest_values_t[1] == 1 then            
               new_sm_pos = ENGINE3_quantize_compare(true_sm_pos,0)
@@ -1952,13 +2028,15 @@ end
       end    
     end --dest_notes_t ~= nil and restore_button_state == false  
    end     --if quantize_dest_values_t[4] == 1 then 
+   if last_LMB_state ~= true then
+     reaper.Undo_OnStateChange('mpl QuantizeTool '..math.floor(strenght_value*100)..'%') end
    reaper.UpdateArrange()
   end -- func
   
         
  ---------------------------------------------------------------------------------------------------------------  
  
- function ENGINE3_restore_dest_sm()
+ function ENGINE3_restore_dest_sm(sm_timesel_bool,to1x)
     -- restore  
       if dest_sm_t ~= nil then
         for i = 1, #dest_sm_t do
@@ -1978,9 +2056,22 @@ end
         for i = 1, #dest_sm_t do
           dest_sm_subt = dest_sm_t[i]  
           take = reaper.GetMediaItemTakeByGUID(0,dest_sm_subt[1])
+          reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])
           if take ~= nil then  
-            reaper.SetMediaItemTakeInfo_Value(take, 'D_PLAYRATE', dest_sm_subt[5])
-            reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[3]-dest_sm_subt[7], dest_sm_subt[3])            
+            if sm_timesel_bool ~= nil and sm_timesel_bool then
+              if dest_sm_subt[2]+dest_sm_subt[4] > timesel_st and 
+                dest_sm_subt[2]+dest_sm_subt[4] < timesel_end then 
+                 reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[3]-dest_sm_subt[7], dest_sm_subt[3]) 
+                else
+                 reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[2], dest_sm_subt[3])                              
+              end
+             else
+              if to1x ~= nil and to1x then
+                reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[3]-dest_sm_subt[7], dest_sm_subt[3])            
+               else
+                reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[2], dest_sm_subt[3])            
+              end  
+            end  
           end  
         end
       end 
@@ -2187,6 +2278,7 @@ end
 --[[[    LMB_state = gfx.mouse_cap&1 == 1 
     RMB_state = gfx.mouse_cap&2 == 2
     MMB_state = gfx.mouse_cap&64 == 64 ]]
+    if last_LMB_state == false then last_mouse_object = nil end
     
     if gfx.mouse_cap == 1 or gfx.mouse_cap == 5 then LMB_state = true else LMB_state = false end 
     if gfx.mouse_cap == 2 then RMB_state = true else RMB_state = false end
@@ -2204,42 +2296,67 @@ end
        
      if snap_mode_values_t[2] == 1 then 
        --items
+       if MOUSE_match_xy(quantize_ref_xywh_buttons_t,0) then 
+         show_get_item = true else show_get_item = false end
+       if MOUSE_LB_gate(get_item_button_xywh_t,0) then
+         count_reference_item_positions = ENGINE1_get_reference_item_positions() end              
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,0) then 
          quantize_ref_values_t = {1, 0, 0, 0, 0, 0, 0} 
-         count_reference_item_positions = ENGINE1_get_reference_item_positions() 
          ENGINE1_get_reference_FORM_points()end
        -- sm  
+       if MOUSE_match_xy(quantize_ref_xywh_buttons_t,4) then 
+         show_get_sm = true else show_get_sm = false end
+       if MOUSE_LB_gate(get_sm_button_xywh_t,0) then
+         count_reference_sm_positions = ENGINE1_get_reference_SM_positions() end              
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,4) then 
          quantize_ref_values_t = {0, 1, 0, 0, 0, 0, 0} 
-         count_reference_sm_positions = ENGINE1_get_reference_SM_positions() 
          ENGINE1_get_reference_FORM_points() end
        -- ep  
+       if MOUSE_match_xy(quantize_ref_xywh_buttons_t,8) then 
+         show_get_ep = true else show_get_ep = false end
+       if MOUSE_LB_gate(get_ep_button_xywh_t,0) then
+          count_reference_ep_positions = ENGINE1_get_reference_EP_positions() end  
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,8) then 
          quantize_ref_values_t = {0, 0, 1, 0, 0, 0, 0} 
-         count_reference_ep_positions = ENGINE1_get_reference_EP_positions() 
          ENGINE1_get_reference_FORM_points() end
        -- notes  
+       if MOUSE_match_xy(quantize_ref_xywh_buttons_t,12) then 
+         show_get_note = true else show_get_note = false end
+       if MOUSE_LB_gate(get_note_button_xywh_t,0) then
+           count_reference_notes_positions = ENGINE1_get_reference_notes_positions() end
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,12) then 
-         quantize_ref_values_t = {0, 0, 0, 1, 0, 0, 0} 
-         count_reference_notes_positions = ENGINE1_get_reference_notes_positions() 
+         quantize_ref_values_t = {0, 0, 0, 1, 0, 0, 0}          
          ENGINE1_get_reference_FORM_points() end  
+         
        -- user groove--             
+       if MOUSE_match_xy(usergroove_line_xywh_t,0) then show_groove_buttons = true else show_groove_buttons = false end
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,16) then 
          quantize_ref_values_t = {0, 0, 0, 0, 1, 0, 0} 
          ENGINE1_get_reference_FORM_points() end  
        if MOUSE_RB_gate(quantize_ref_xywh_buttons_t,16) or MOUSE_LB_gate(add_groove_button_xywh_t,0)then         
           ENGINE1_get_reference_usergroove() 
           ENGINE1_get_reference_FORM_points() end
-       -- grid --             
+       prev_groove_button = MOUSE_LB_trigger(prev_groove_button_xywh_t,0,prev_groove_button,0.5)   
+       if prev_groove_button then
+          ENGINE1_get_reference_usergroove(-1) 
+          ENGINE1_get_reference_FORM_points()
+          ENGINE3_quantize_objects() end   
+       next_groove_button = MOUSE_LB_trigger(next_groove_button_xywh_t,0,next_groove_button,0.5)   
+       if next_groove_button then
+          ENGINE1_get_reference_usergroove(1) 
+          ENGINE1_get_reference_FORM_points()
+          ENGINE3_quantize_objects() end   
+          
+       -- grid --      
+       if MOUSE_match_xy(grid_line_xywh_t, 0) then 
+         show_grid_slider = true else 
+         show_grid_slider = false end       
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,20) or MOUSE_LB_gate(grid_value_slider_xywh_t, 0) then 
          quantize_ref_values_t = {0, 0, 0, 0, 0, 1, 0}
-         display_grid_value_slider = true
          if grid_value_slider_xywh_t ~= nil then grid_value = (mx - grid_value_slider_xywh_t[1])/grid_value_slider_xywh_t[3] end
          ENGINE1_get_reference_grid()
          ENGINE1_get_reference_FORM_points() 
          ENGINE3_quantize_objects()
-        else
-         display_grid_value_slider = false
        end
              -- (restore grid to project grid)
              if MOUSE_RB_gate(quantize_ref_xywh_buttons_t,20) or MOUSE_RB_gate(grid_value_slider_xywh_t, 0) then 
@@ -2250,9 +2367,10 @@ end
                ENGINE3_quantize_objects()
              end     
        -- swing --
-       
-         if MOUSE_LB_gate(swing_grid_value_slider_xywh_t,0) or  
-           MOUSE_LB_gate(quantize_ref_xywh_buttons_t,24) then 
+         if MOUSE_match_xy(swing_line_xywh_t,0) then show_swing_slider = true 
+         else show_swing_slider = false end
+         if MOUSE_LB_gate(swing_grid_value_slider_xywh_t,0)  then
+           if  last_mouse_object== nil or last_mouse_object=='swing_slider' then
             quantize_ref_values_t = {0, 0, 0, 0, 0, 0, 1} 
             if Ctrl_state == true then
               swing_value = swing_value+(((mx - swing_grid_value_slider_xywh_t[1])/swing_grid_value_slider_xywh_t[3])*2-1)*0.001
@@ -2262,44 +2380,63 @@ end
             ENGINE1_get_reference_swing_grid()
             ENGINE1_get_reference_FORM_points()
             ENGINE3_quantize_objects()
+            last_mouse_object='swing_slider'
+           end
           end
              -- (type swing value)
              if MOUSE_RB_gate(quantize_ref_xywh_buttons_t,24) or MOUSE_RB_gate(swing_grid_value_slider_xywh_t, 0) 
               or MOUSE_LB_gate(type_swing_button_xywh_t,0) then
-               swing_value_retval, swing_value_return_s =  reaper.GetUserInputs("Swing value", 1, "Swing", "") 
-               if swing_value_retval ~= nil then 
-                 swing_value_return = tonumber(swing_value_return_s)           
-                 if swing_value_return == nil then swing_value = 0 else swing_value = swing_value_return / 100 end       
-                 if swing_value > 1 then swing_value = 1 end
-                 if swing_value < -1 then swing_value = -1 end
-                 ENGINE1_get_reference_swing_grid()
-                 ENGINE1_get_reference_FORM_points() 
-               end 
+                if last_mouse_object == nil or  last_mouse_object == 'type_swing' then
+                 swing_value_retval, swing_value_return_s =  reaper.GetUserInputs("Swing value", 1, "Swing", "") 
+                 if swing_value_retval ~= nil then 
+                   swing_value_return = tonumber(swing_value_return_s)           
+                   if swing_value_return == nil then swing_value = 0 else swing_value = swing_value_return / 100 end       
+                   if swing_value > 1 then swing_value = 1 end
+                   if swing_value < -1 then swing_value = -1 end
+                   ENGINE1_get_reference_swing_grid()
+                   ENGINE1_get_reference_FORM_points()
+                   last_mouse_object = 'type_swing' 
+                 end 
+               end  
              end -- rb mouse on swing   
              
              
      else -- if global mode (snap_mode_values_t[1] == 1)
        
-       -- items
+       --items
+       if MOUSE_match_xy(quantize_ref_xywh_buttons_t,0) then 
+         show_get_item = true else show_get_item = false end
+       if MOUSE_LB_gate(get_item_button_xywh_t,0) then
+         count_reference_item_positions = ENGINE1_get_reference_item_positions() end              
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,0) then 
          quantize_ref_values_t = {1, 0, 0, 0} 
-         count_reference_item_positions = ENGINE1_get_reference_item_positions() 
-         ENGINE1_get_reference_FORM_points() end
+         ENGINE1_get_reference_FORM_points()end
        -- sm  
+       if MOUSE_match_xy(quantize_ref_xywh_buttons_t,4) then 
+         show_get_sm = true else show_get_sm = false end
+       if MOUSE_LB_gate(get_sm_button_xywh_t,0) then
+         count_reference_sm_positions = ENGINE1_get_reference_SM_positions() end              
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,4) then 
          quantize_ref_values_t = {0, 1, 0, 0} 
-         count_reference_sm_positions = ENGINE1_get_reference_SM_positions() 
          ENGINE1_get_reference_FORM_points() end
-       -- ep
+       -- ep  
+       if MOUSE_match_xy(quantize_ref_xywh_buttons_t,8) then 
+         show_get_ep = true else show_get_ep = false end
+       if MOUSE_LB_gate(get_ep_button_xywh_t,0) then
+          count_reference_ep_positions = ENGINE1_get_reference_EP_positions() end  
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,8) then 
          quantize_ref_values_t = {0, 0, 1, 0} 
-         count_reference_ep_positions = ENGINE1_get_reference_EP_positions() 
          ENGINE1_get_reference_FORM_points() end
-       -- notes   
+       -- notes  
+       if MOUSE_match_xy(quantize_ref_xywh_buttons_t,12) then 
+         show_get_note = true else show_get_note = false end
+       if MOUSE_LB_gate(get_note_button_xywh_t,0) then
+           count_reference_notes_positions = ENGINE1_get_reference_notes_positions() end
        if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,12) then 
-         quantize_ref_values_t = {0, 0, 0, 1} 
-         count_reference_notes_positions = ENGINE1_get_reference_notes_positions() 
-         ENGINE1_get_reference_FORM_points() end                
+         quantize_ref_values_t = {0, 0, 0, 1}          
+         ENGINE1_get_reference_FORM_points() end  
+         
+         
      end -- for reference menu items depending on mode
             
              
@@ -2310,22 +2447,27 @@ end
        if MOUSE_LB_gate(quantize_dest_xywh_buttons_t,0) then 
          quantize_dest_values_t = {1, 0, 0, 0} 
          count_dest_item_positions = ENGINE2_get_dest_items() 
-         ENGINE2_get_dest_FORM_points() end
+         ENGINE2_get_dest_FORM_points() 
+         ENGINE1_get_reference_FORM_points() end
        -- sm  
        if MOUSE_LB_gate(quantize_dest_xywh_buttons_t,4) then 
          quantize_dest_values_t = {0, 1, 0, 0} 
          count_dest_sm_positions = ENGINE2_get_dest_sm() 
-         ENGINE2_get_dest_FORM_points() end
+         ENGINE2_get_dest_FORM_points() 
+         ENGINE1_get_reference_FORM_points() 
+         end
        -- ep  
        if MOUSE_LB_gate(quantize_dest_xywh_buttons_t,8) then 
          quantize_dest_values_t = {0, 0, 1, 0} 
          count_dest_ep_positions = ENGINE2_get_dest_ep()  
-         ENGINE2_get_dest_FORM_points()   end
+         ENGINE2_get_dest_FORM_points()
+         ENGINE1_get_reference_FORM_points() end
        -- notes  
        if MOUSE_LB_gate(quantize_dest_xywh_buttons_t,12) then 
          quantize_dest_values_t = {0, 0, 0, 1} 
          count_dest_notes_positions = ENGINE2_get_dest_notes() 
-         ENGINE2_get_dest_FORM_points() end 
+         ENGINE2_get_dest_FORM_points() 
+         ENGINE1_get_reference_FORM_points()end 
        
        ------------------------------
        -----------SLIDERS------------
@@ -2366,12 +2508,13 @@ end
        
        -- set LB
        if MOUSE_LB_gate(apply_slider_xywh_t,0) then 
-         strenght_value = (mx - apply_slider_xywh_t[1])/apply_slider_xywh_t[3]/0.93
+         strenght_value = (mx - apply_slider_xywh_t[1])/apply_slider_xywh_t[3]/0.7-0.2
          if strenght_value >1 then strenght_value = 1 end      
+         if strenght_value <0 then strenght_value = 0 end           
          ENGINE3_quantize_objects()
        end        
        -- restore  RB   
-       if MOUSE_RB_gate(apply_slider_xywh_t,0) then 
+       if MOUSE_RB_gate(apply_slider_xywh_t,0) or MOUSE_LB_gate(restore_button_xywh_t, 0 )then 
          restore_button_state = true 
          ENGINE3_quantize_objects()
         else  
@@ -2417,7 +2560,9 @@ end
        menu_t = {}
        table.insert(menu_t, table.concat(actions_menu_t, "|")) 
        table.insert(menu_t, table.concat(snap_ref_menu_t, "|")) 
-       if MOUSE_LB_gate(options2_button_xywh_t,0) or MOUSE_RB_gate(options2_button_xywh_t,0) then
+       if MOUSE_LB_gate(options2_button_xywh_t,0) and last_mouse_object == nil or 
+        MOUSE_LB_gate(options2_button_xywh_t,0) and last_mouse_object == 'left_menu' then
+         last_mouse_object = 'left_menu'
          menu_string = table.concat(menu_t, "|")
          gfx.x, gfx.y = mx, my 
          menu_ret = gfx.showmenu(menu_string)
@@ -2495,11 +2640,12 @@ end
          menu_ret2 = gfx.showmenu(menu_string2)
          
          if menu_ret2 == 2 then -- reset str.markers to 1.0
-           ENGINE2_get_dest_sm(true)
-           ENGINE3_restore_dest_sm() end
+           ENGINE3_restore_dest_sm(false,true) 
+           reaper.Undo_OnStateChange('mpl QT reset str.markers')
+           end
          if menu_ret2 == 3 then -- reset str.markers to 1.0 in timesel
-           ENGINE2_get_dest_sm(true,true)
-           ENGINE3_restore_dest_sm() end           
+           ENGINE3_restore_dest_sm(true,true) 
+           reaper.Undo_OnStateChange('mpl QT reset str.markers in timesel') end           
          if menu_ret2 == 4 and snap_mode_values_t[1] == 1 then -- sync item pos
            ENGINE3_sync_items_to_points() end
            
@@ -2645,6 +2791,7 @@ end
    test_var(test)
    char = gfx.getchar()  
    --ENGINE4_save_preset()
+   if char == 32 then reaper.Main_OnCommandEx(40044, 0,0) end
    if char == 27 then MAIN_exit() end     
    if char ~= -1 then reaper.defer(MAIN_run) else MAIN_exit() end
  end 
@@ -2652,19 +2799,13 @@ end
  
  ---------------------------------------
  OS=reaper.GetOS()
+ exepath = reaper.GetResourcePath()
  
  reaper_vrs = reaper.GetAppVersion()
  reaper_vrs_num = tonumber(string.sub(reaper_vrs, 1,4))
- 
- if OS=="OSX32" or OS=="OSX64" then
-   sws_whatsnew = reaper.GetResourcePath()..'/REAPER/Plugins/reaper_sws_whatsnew.txt'
-  else
-   sws_whatsnew = reaper.GetExePath()..'\\Plugins\\reaper_sws_whatsnew.txt'
- end
-   
+ sws_whatsnew = exepath..'/Plugins/reaper_sws_whatsnew.txt'
  file = io.open(sws_whatsnew, "r")
  if file ~= nil then sws_version = tonumber(string.sub(file:read("*all"), 3, 5)) file:close() end
- 
  if sws_version == nil then sws_version = 2.8 end
  if reaper_vrs_num >= 5.03 and sws_version >= 2.8 then
    main_w = 440
