@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.5 build 1"
+ vrs = "1.5 build 2"
  
 changelog =                   
 [===[
@@ -21,7 +21,7 @@ changelog =
    ==========
    Changelog:
    ==========   
-01.10.2015  1.5 build 1  - need REAPER 5.03+ SWS 2.8.1+
+01.10.2015  1.5 build 2  - need REAPER 5.03+ SWS 2.8.1+
           New
             Show QT in actions info line (main menu right item)
             Added undo points to some operations
@@ -29,12 +29,13 @@ changelog =
             highlight grid and swing slider under mouse cursor
             stretch markers restore/quantize code improvements
             space key pass through and run Transport:Play/Stop
-            prevent opening left menu and type swing whe drag swing slider
+            prevent opening left menu and type swing window when drag swing slider
           Bugfixes
             fixed wrong groove name
             fixed properly 'Groove' path finding both on OSX and Windows
             fixed add null stretch markers when quantize/restore
             fixed new restore button doesn`t work
+            Save as rgt groove works also on OSX
           Performance
             'reference grid' generated only where destination points placed +-1bar
               
@@ -2117,7 +2118,7 @@ end
      --write file
      retval, ret_groove_user_input = reaper.GetUserInputs("Save groove", 1, "Name of groove", "")
      if retval ~= nil or ret_groove_user_input ~= "" then     
-       ret_filename = exepath.."\\Grooves\\"..ret_groove_user_input..".rgt"
+       ret_filename = exepath.."/Grooves/"..ret_groove_user_input..".rgt"
        
        file = io.open(ret_filename,"w")   
        if   file~= nil then  
