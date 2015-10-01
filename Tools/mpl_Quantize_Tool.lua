@@ -13,7 +13,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.5 build 3"
+ vrs = "1.5 build 4"
  
 changelog =                   
 [===[
@@ -21,7 +21,7 @@ changelog =
    ==========
    Changelog:
    ==========   
-01.10.2015  1.5 build 3  - need REAPER 5.03+ SWS 2.8.1+
+01.10.2015  1.5 build 4  - need REAPER 5.03+ SWS 2.8.1+
           New
             Show QT in actions info line (main menu right item)
             Added undo points to some operations
@@ -2338,8 +2338,10 @@ end
          quantize_ref_values_t = {0, 0, 0, 0, 1, 0, 0} 
          ENGINE1_get_reference_FORM_points() end  
        if MOUSE_RB_gate(quantize_ref_xywh_buttons_t,16) or MOUSE_LB_gate(add_groove_button_xywh_t,0)then         
-          ENGINE1_get_reference_usergroove() 
-          ENGINE1_get_reference_FORM_points() end
+          if last_mouse_object=='groove_button' or
+          last_mouse_object==nil then ENGINE1_get_reference_usergroove() 
+          ENGINE1_get_reference_FORM_points() 
+          last_mouse_object='groove_button' end end
        prev_groove_button = MOUSE_LB_trigger(prev_groove_button_xywh_t,0,prev_groove_button,0.5)   
        if prev_groove_button then
           ENGINE1_get_reference_usergroove(-1) 
@@ -2361,6 +2363,7 @@ end
          ENGINE1_get_reference_grid()
          ENGINE1_get_reference_FORM_points() 
          ENGINE3_quantize_objects()
+         last_mouse_object='swing_slider'
        end
              -- (restore grid to project grid)
              if MOUSE_RB_gate(quantize_ref_xywh_buttons_t,20) or MOUSE_RB_gate(grid_value_slider_xywh_t, 0) then 
