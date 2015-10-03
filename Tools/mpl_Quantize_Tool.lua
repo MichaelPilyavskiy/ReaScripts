@@ -2661,7 +2661,7 @@ end
                            menu_entry_ret(swing_scale_values_t,1)..'Swing 100% is next grid|',
                            menu_entry_ret(sel_notes_mode_values_at,1)..'Quantize only selected notes in MIDI item|',
                            menu_entry_ret(sm_timesel_dest_values_t,2)..'Quantize only str. markers only within time selection|',
-                           menu_entry_ret(sm_is_transients_t,1)..'Stretch area around stretch marker (experimental)'}
+                           menu_entry_ret(sm_is_transients_t,1)..'Quantize stretch marker area (could BREAK your project!)'}
                            
        
                  
