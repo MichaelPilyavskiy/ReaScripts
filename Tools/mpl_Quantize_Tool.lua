@@ -12,7 +12,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.6 build 3"
+ vrs = "1.6 build 4"
  
 changelog =                   
 [===[
@@ -20,7 +20,7 @@ changelog =
    ==========
    Changelog:
    ==========   
-03.10.2015  1.6 build 3  - need REAPER 5.03+ SWS 2.8.1+
+03.10.2015  1.6 build 4  - need REAPER 5.03+ SWS 2.8.1+
           New
             option to stretch area around stretch marker
           Improvements
@@ -272,7 +272,8 @@ Michael.
    
    
    settings_filename = exepath.."\\Scripts\\mpl_Quantize_Tool_settings.txt"
-   settings_file = io.open(settings_filename,"r")
+   --settings_file = io.open(settings_filename,"r")
+   settings_file = nil
    if settings_file ~= nil then 
       settings_temp_t = {}  
       settings_content = settings_file:read("*all")
