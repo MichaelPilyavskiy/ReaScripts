@@ -12,7 +12,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.6 build 2"
+ vrs = "1.6 build 3"
  
 changelog =                   
 [===[
@@ -20,7 +20,9 @@ changelog =
    ==========
    Changelog:
    ==========   
-03.10.2015  1.6 build 2  - need REAPER 5.03+ SWS 2.8.1+
+03.10.2015  1.6 build 3  - need REAPER 5.03+ SWS 2.8.1+
+          New
+            option to stretch area around stretch marker
           Improvements
             improved mouse tracking, thanks to spk77!
           Bugfixes
@@ -307,6 +309,7 @@ Michael.
       sel_notes_mode_values_at = {0,1}   
       sm_timesel_dest_values_t = {1,0}
       enable_display_t={1}
+      sm_is_transients_t={0}
    end
   
    
@@ -1814,7 +1817,7 @@ end
             reaper.SetMediaItemInfo_Value(item, "D_POSITION", item_newpos)
             reaper.SetMediaItemInfo_Value(item, "D_VOL", item_newvol)
           end
-          reaper.UpdateItemInProject(item)
+         -- reaper.UpdateItemInProject(item)
         end
       end
     end -- if quantize items  
@@ -1871,15 +1874,23 @@ end
                else
                 new_sm_pos = true_sm_pos
               end
-            end            
+            end
             new_sm_pos_rev = (new_sm_pos - dest_sm_subt[4])*dest_sm_subt[5] 
             if new_sm_pos_rev > 0 and new_sm_pos_rev < dest_sm_subt[6] then 
-              reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev, dest_sm_subt[3])
+              if sm_is_transients_t[1] == 0 then
+                reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev, dest_sm_subt[3]) 
+               else
+                d = 0.02
+                reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev-d, dest_sm_subt[3]-d)
+                reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev+d, dest_sm_subt[3]+d)
+              end
+              
+              
             end
             reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[6]*dest_sm_subt[5], dest_sm_subt[7]+dest_sm_subt[6]*dest_sm_subt[5])
           end--take not nil 
-          item = reaper.GetMediaItemTake_Item(take) 
-          reaper.UpdateItemInProject(item)
+          --item = reaper.GetMediaItemTake_Item(take) 
+          --reaper.UpdateItemInProject(item)
         end -- for loop
       end --dest_sm_t ~= nil and restore_button_state == false
       
@@ -2038,7 +2049,7 @@ end
    end     --if quantize_dest_values_t[4] == 1 then 
    if last_LMB_state ~= true then
      reaper.Undo_OnStateChange('mpl QuantizeTool '..math.floor(strenght_value*100)..'%') end
-   reaper.UpdateArrange()
+   --reaper.UpdateArrange()
   end -- func
   
         
@@ -2083,7 +2094,7 @@ end
           end  
         end
       end 
-      reaper.UpdateArrange()  
+     -- reaper.UpdateArrange()  
     end 
 
  ---------------------------------------------------------------------------------------------------------------    
@@ -2284,14 +2295,14 @@ end
   function MOUSE_get() 
     cur_time = os.clock()
     timer = 0.5
---[[[    LMB_state = gfx.mouse_cap&1 == 1 
+    LMB_state = gfx.mouse_cap&1 == 1 
     RMB_state = gfx.mouse_cap&2 == 2
-    MMB_state = gfx.mouse_cap&64 == 64 ]]
-    if last_LMB_state == false then last_mouse_object = nil end
+    MMB_state = gfx.mouse_cap&64 == 64
     
-    if gfx.mouse_cap == 1 or gfx.mouse_cap == 5 then LMB_state = true else LMB_state = false end 
-    if gfx.mouse_cap == 2 then RMB_state = true else RMB_state = false end
-    if gfx.mouse_cap == 64 then MMB_state = true else MMB_state = false end
+    
+    if LMB_state or RMB_state or MMB_state then reaper.UpdateArrange() end
+    
+    if last_LMB_state == false then last_mouse_object = nil end
     
     if gfx.mouse_cap == 5 then Ctrl_state = true else Ctrl_state = false end
     mx, my = gfx.mouse_x, gfx.mouse_y  
@@ -2648,7 +2659,9 @@ end
                            menu_entry_ret(snap_dir_values_t,3)..'Snap direction: to next ref.point|',
                            menu_entry_ret(swing_scale_values_t,1)..'Swing 100% is next grid|',
                            menu_entry_ret(sel_notes_mode_values_at,1)..'Quantize only selected notes in MIDI item|',
-                           menu_entry_ret(sm_timesel_dest_values_t,2)..'Quantize only str. markers only within time selection|'}
+                           menu_entry_ret(sm_timesel_dest_values_t,2)..'Quantize only str. markers only within time selection|',
+                           menu_entry_ret(sm_is_transients_t,1)..'Stretch area around stretch marker (experimental)'}
+                           
        
                  
        menu_t2 = {}
@@ -2695,6 +2708,12 @@ end
            if sm_timesel_dest_values_t[1] == 1 then 
              sm_timesel_dest_values_t = {0, 1} ENGINE3_quantize_objects() 
             else sm_timesel_dest_values_t = {1, 0} ENGINE3_quantize_objects() end end
+            
+         if menu_ret2 == 9 + #actions1_menu_t then   
+            if sm_is_transients_t[1] == 0 then sm_is_transients_t = {1} else
+              sm_is_transients_t[1] = 0 end end
+             
+            
        end -- mouse click on menu
        -----------------------------------------------------------  
        
