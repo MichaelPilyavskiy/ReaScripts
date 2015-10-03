@@ -12,7 +12,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.6 build 1"
+ vrs = "1.6 build 2"
  
 changelog =                   
 [===[
@@ -20,9 +20,11 @@ changelog =
    ==========
    Changelog:
    ==========   
-03.10.2015  1.6 build 1  - need REAPER 5.03+ SWS 2.8.1+
+03.10.2015  1.6 build 2  - need REAPER 5.03+ SWS 2.8.1+
           Improvements
             improved mouse tracking, thanks to spk77!
+          Bugfixes
+            properly adding last stretch marker on items with different takerate
 01.10.2015  1.5 build 4  - need REAPER 5.03+ SWS 2.8.1+
           New
             Show QT in actions info line (main menu right item)
@@ -1874,7 +1876,7 @@ end
             if new_sm_pos_rev > 0 and new_sm_pos_rev < dest_sm_subt[6] then 
               reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev, dest_sm_subt[3])
             end
-            reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[6]/dest_sm_subt[5], dest_sm_subt[7]+dest_sm_subt[6]/dest_sm_subt[5])            
+            reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[6]*dest_sm_subt[5], dest_sm_subt[7]+dest_sm_subt[6]*dest_sm_subt[5])
           end--take not nil 
           item = reaper.GetMediaItemTake_Item(take) 
           reaper.UpdateItemInProject(item)
