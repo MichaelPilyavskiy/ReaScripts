@@ -4,7 +4,6 @@ fontsize_menu_name  = 16
 todo= 
 [===[ To do list / requested features:
   -- rebuild generate grid from ref_points_t2 for different timesigs/tempo
-  -- rebuild generate grid only for dest objects area (save cpu usage)
   -- prevent transients stretch markers quantize
 ]===]  
  
@@ -13,7 +12,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.5 build 4"
+ vrs = "1.6 build 1"
  
 changelog =                   
 [===[
@@ -21,6 +20,9 @@ changelog =
    ==========
    Changelog:
    ==========   
+03.10.2015  1.6 build 1  - need REAPER 5.03+ SWS 2.8.1+
+          Improvements
+            improved mouse tracking, thanks to spk77!
 01.10.2015  1.5 build 4  - need REAPER 5.03+ SWS 2.8.1+
           New
             Show QT in actions info line (main menu right item)
@@ -2197,7 +2199,7 @@ end
     local state
     if selfstate == nil then selfstate = false end
     if set_click_time == nil then set_click_time = 0 end
-    if MOUSE_match_xy(b, offset) == true and LMB_state and selfstate == false and cur_time - set_click_time > timer then 
+    if MOUSE_match_xy(b, offset) == true and LMB_state and not last_LMB_state and selfstate == false and cur_time - set_click_time > timer then 
       set_click_time = cur_time
       state = true
     end  
@@ -2216,13 +2218,14 @@ end
    ---------------------------------------------------------------------------------------------------------------  
   function MOUSE_LB_gate(b, offset)
     local state
-    if MOUSE_match_xy(b, offset) == true and LMB_state then 
+    if not last_LMB_state and LMB_state and MOUSE_match_xy(b, offset) == true then 
       state = true    
      else 
       state = false  
     end
     return state
   end
+
   
  ---------------------------------------------------------------------------------------------------------------   
   function MOUSE_RB_gate(b, offset)
@@ -2357,13 +2360,14 @@ end
        if MOUSE_match_xy(grid_line_xywh_t, 0) then 
          show_grid_slider = true else 
          show_grid_slider = false end       
-       if MOUSE_LB_gate(quantize_ref_xywh_buttons_t,20) or MOUSE_LB_gate(grid_value_slider_xywh_t, 0) then 
+       if MOUSE_LB_gate(grid_value_slider_xywh_t, 0) then 
+         last_mouse_object='grid_slider' end
+       if last_mouse_object=='grid_slider' then  
          quantize_ref_values_t = {0, 0, 0, 0, 0, 1, 0}
          if grid_value_slider_xywh_t ~= nil then grid_value = (mx - grid_value_slider_xywh_t[1])/grid_value_slider_xywh_t[3] end
          ENGINE1_get_reference_grid()
          ENGINE1_get_reference_FORM_points() 
-         ENGINE3_quantize_objects()
-         last_mouse_object='swing_slider'
+         ENGINE3_quantize_objects()         
        end
              -- (restore grid to project grid)
              if MOUSE_RB_gate(quantize_ref_xywh_buttons_t,20) or MOUSE_RB_gate(grid_value_slider_xywh_t, 0) then 
@@ -2374,10 +2378,11 @@ end
                ENGINE3_quantize_objects()
              end     
        -- swing --
-         if MOUSE_match_xy(swing_line_xywh_t,0) then show_swing_slider = true 
-         else show_swing_slider = false end
+         if MOUSE_match_xy(swing_line_xywh_t,0) then 
+           show_swing_slider = true else show_swing_slider = false end
          if MOUSE_LB_gate(swing_grid_value_slider_xywh_t,0)  then
-           if  last_mouse_object== nil or last_mouse_object=='swing_slider' then
+           last_mouse_object='swing_slider' end
+         if last_mouse_object=='swing_slider' then
             quantize_ref_values_t = {0, 0, 0, 0, 0, 0, 1} 
             if Ctrl_state == true then
               swing_value = swing_value+(((mx - swing_grid_value_slider_xywh_t[1])/swing_grid_value_slider_xywh_t[3])*2-1)*0.001
@@ -2387,9 +2392,8 @@ end
             ENGINE1_get_reference_swing_grid()
             ENGINE1_get_reference_FORM_points()
             ENGINE3_quantize_objects()
-            last_mouse_object='swing_slider'
-           end
-          end
+         end
+          
              -- (type swing value)
              if MOUSE_RB_gate(quantize_ref_xywh_buttons_t,24) or MOUSE_RB_gate(swing_grid_value_slider_xywh_t, 0) 
               or MOUSE_LB_gate(type_swing_button_xywh_t,0) then
@@ -2480,15 +2484,20 @@ end
        -----------SLIDERS------------
        ------------------------------
        if use_vel_slider_xywh_t ~= nil and use_vel_values_t[1] == 1 then
-         if MOUSE_LB_gate(use_vel_slider_xywh_t,0) == true then 
+         if MOUSE_LB_gate(use_vel_slider_xywh_t,0) then
+           last_mouse_object = 'use_vel' end
+         if   last_mouse_object == 'use_vel' then
            use_vel_value = (mx - use_vel_slider_xywh_t[1])/use_vel_slider_xywh_t[3]*2 
            if use_vel_value > 1 then use_vel_value = 1 end
+           if use_vel_value < 0 then use_vel_value = 0 end
            ENGINE3_quantize_objects()
          end                    
        end  
               
        if gravity_slider_xywh_t ~= nil and snap_area_values_t[1] == 1 then
          if MOUSE_LB_gate(gravity_slider_xywh_t,0) == true then 
+           last_mouse_object = 'gravity' end
+         if last_mouse_object == 'gravity' then  
            if Ctrl_state == true then 
                gravity_value = gravity_value + ((mx - gravity_slider_xywh_t[1])/gravity_slider_xywh_t[3]*2-1)*0.001
              else gravity_value = (mx - gravity_slider_xywh_t[1])/gravity_slider_xywh_t[3]*2 end 
@@ -2515,6 +2524,8 @@ end
        
        -- set LB
        if MOUSE_LB_gate(apply_slider_xywh_t,0) then 
+         last_mouse_object = 'apply' end
+       if last_mouse_object == 'apply' then  
          strenght_value = (mx - apply_slider_xywh_t[1])/apply_slider_xywh_t[3]/0.7-0.2
          if strenght_value >1 then strenght_value = 1 end      
          if strenght_value <0 then strenght_value = 0 end           
