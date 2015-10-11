@@ -23,11 +23,13 @@ enable_display_graph = 1
   -- stretch beats to grid by markers index
 
 
-  vrs = "0.1"
+  vrs = "0.11"
  
   ---------------------------------------------------------------------------------------------------------------              
   changelog =                              
 [===[ Changelog:
+12.10.2015  0.11
+            area knob
 11.10.2015  0.1
             gui, displays, get item data, get potential stretch markers
 01.09.2015  0.01 
@@ -40,18 +42,61 @@ enable_display_graph = 1
       if test ~= nil then  reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(test) end
    end
 
+  ---------------------------------------------------------------------------------------------------------------    
+  function limit(var,lim_min,lim_max)  
+    if var < lim_min then var = lim_min end
+    if var > lim_max then var = lim_max end
+    return var
+  end
+  
+  ---------------------------------------------------------------------------------------------------------------  
+  function extract_table(table,color_set)
+    if table ~= nil then
+      a = table[1]
+      b = table[2]
+      c = table[3]
+      d = table[4]
+    end  
+    if color_set then gfx.r,gfx.g,gfx.b = a,b,c end
+    return a,b,c,d
+  end  
+ 
+ ---------------------------------------------------------------------------------------------------------------    
+  function conv_val2norm(v,v_min,v_max,inv)
+    if inv then
+      v_ret = ((v-v_max)/math.abs(v_min-v_max))+1 
+     else 
+      v_ret = (v - v_min) / (v_max-v_min)
+    end
+    return v_ret
+  end
+
+ ---------------------------------------------------------------------------------------------------------------    
+  function conv_norm2val(v_norm,v_min,v_max, inv)
+    if inv then
+      v = ((v_norm-1)*math.abs(v_min-v_max))+v_max
+     else
+      v = v_norm*(v_max-v_min)+v_min  
+    end
+    return v
+  end
+  
  ---------------------------------------------------------------------------------------------------------------    
   function DEFINE_default_variables()
     sel_items_t ={}
     cur_item = 1 
-    window_time = 0.3 -- sec
+    
+    window_time = 0.085 -- sec
     window_time_min = 0.02
     window_time_max = 0.4
-    
-    
-    threshold = -40
-    threshold_min = -60
+        
+    threshold = -55
+    threshold_min = -80
     threshold_max = -10    
+    
+    s_area = 10
+    s_area_min = 2
+    s_area_max = 30
     
     mouse_res = 200 -- for knobs resolution
     
@@ -62,24 +107,6 @@ enable_display_graph = 1
     
   end  
 
-  ---------------------------------------------------------------------------------------------------------------    
-  function limit(var,lim_min,lim_max)  
-    if var < lim_min then var = lim_min end
-    if var > lim_max then var = lim_max end
-    return var
-  end
-  
-  ---------------------------------------------------------------------------------------------------------------  
-  function extract_table(table)
-    if table ~= nil then
-      a = table[1]
-      b = table[2]
-      c = table[3]
-      d = table[4]
-    end  
-    return a,b,c,d
-  end  
- 
   ---------------------------------------------------------------------------------------------------------------    
   function DEFINE_default_variables_GUI()
     main_w = 440
@@ -95,6 +122,7 @@ enable_display_graph = 1
     
     frame = 0.15
     frame_knob = 0.02
+    frame_knob_outarc = 0.7
     fontsize2 = fontsize+1
     fontsize3 = fontsize -2
     
@@ -133,16 +161,24 @@ enable_display_graph = 1
             w2_knob2_xywh_t = {window_m2_xywh_t[1] + offset*2 + knob_w,
                                window_m2_xywh_t[2] + offset,
                                knob_w, knob_h}
+          -- search area knob
+            w2_knob3_xywh_t = {window_m2_xywh_t[1] + offset*3 + knob_w*2,
+                               window_m2_xywh_t[2] + offset,
+                               knob_w, knob_h}
+                                                              
         --get2 button
         window_m1_xywh_t = {window0_xywh_t [1]+window0_xywh_t [3]+offset, window1_xywh_t[2]+window1_xywh_t[4]+offset, 
           nav_button_w, window_m2_xywh_t[4]}                  
                                 
     -- colors
+      color5_t = {0.2, 0.2, 0.2} -- back1
+      color6_t = {0.2, 0.22, 0.22} -- back2
+      
       color1_t = {0.4, 1, 0.4} -- green
       color2_t = {0.5, 0.8, 1} -- blue      
       color3_t = {1, 1, 1}-- white
       color4_t = {0.8, 0.5, 0.2} -- red
-      
+
       rms_color_t = {0.9, 0.3, 0.0}
   end
 
@@ -335,20 +371,20 @@ end
 
   ---------------------------------------------------------------------------------------------------------------       
   function ENGINE2_get_stretch_markers(data_t)
-    search_area = 3 -- windows
     sm_data_t = {}
     -- 1 check couple of windows
-      for i = 1, #data_t, search_area do
-        if i+search_area-1 < #data_t then
+      for i = 1, #data_t, s_area do
+        if i+s_area-1 < #data_t then
           -- 2 search max point value in window
           local max_point = 0
-          for j =0, search_area-1 do
+          for j =0, s_area-1 do
             data_t_item = data_t[i+j]
             max_point = math.max(max_point, data_t_item)
           end                    
-          
-          for j =0, search_area-1 do
+          --search max point around couple of windows
+          for j =0, s_area-1 do
             data_t_item = data_t[i+j]
+            -- check if max point around couple of windows more than thresold
             if data_t_item == max_point and 20*math.log(max_point) > threshold then
               table.insert(sm_data_t,1)
              else table.insert(sm_data_t,0)
@@ -386,7 +422,7 @@ end
         x0 = X0 + (W0- measurestrname)/2
         y0 = Y + H + 2
         gfx.x, gfx.y = x0,y0
-        gfx.r, gfx.g, gfx.b = extract_table(color_t)
+        extract_table(color_t,true)
         gfx.a = 1
         gfx.drawstr(data_t[1]) end 
           
@@ -394,7 +430,7 @@ end
       local com_val_t = data_t[6]
       if com_val_t ~= nil then
         gfx.x, gfx.y = X,Y
-        gfx.r, gfx.g, gfx.b = extract_table(color_t)  
+        extract_table(color_t,true)
         gfx.a = 0.9
         for i =2, #com_val_t do
           prev_com_peak = com_val_t[i-1]
@@ -408,7 +444,7 @@ end
       
       -- draw sm
         local sm_t = data_t[7]
-        gfx.r, gfx.g, gfx.b = extract_table(color4_t)  
+        extract_table(color4_t,true)
         gfx.a = 0.9
         for i=1,#sm_t do
           sm_t_item = sm_t[i]
@@ -422,7 +458,8 @@ end
     
     -- frame -- 
       x,y,w,h = extract_table(xywh_t0)
-      gfx.r, gfx.g, gfx.b, gfx.a = 1,1,1,frame
+      extract_table(color_t,true)
+      gfx.a = frame
       gfx.roundrect(x-1,y,w,h,0.1, true)
   end
   
@@ -431,7 +468,8 @@ end
       x,y,w,h = extract_table(xywh_t)      
       gfx.x, gfx.y = x, y      
       --fill background
-      gfx.r, gfx.g, gfx.b, gfx.a = 0.2, 0.22, 0.22, 0.92
+      extract_table(color6_t, true)
+      gfx.a = 0.92
       gfx.rect(x,y,w,h)
            
       -- draw name -- 
@@ -440,12 +478,13 @@ end
       x0 = x + (w - measurestrname)/2
       y0 = y + (h - fontsize)/2
       gfx.x, gfx.y = x0,y0
-      gfx.r, gfx.g, gfx.b = extract_table(font_color)
+      extract_table(font_color,true)
       gfx.a = 1
       gfx.drawstr(name)
       
       -- help frame -- 
-      gfx.r, gfx.g, gfx.b, gfx.a = 1,1,1,frame_alpha
+      extract_table(color3_t, true)
+      gfx.a = frame_alpha
       gfx.roundrect(x,y,w,h,0.1, true)
   end
 
@@ -454,14 +493,16 @@ end
     local x,y,w,h = extract_table(xywh_t)
     
     -- frame -- 
-      gfx.r, gfx.g, gfx.b, gfx.a = 1,1,1,frame_knob
+      extract_table(color3_t, true)
+      gfx.a = frame_knob
       gfx.roundrect(x,y,w,h,0.1, true)
     -- out arc
-      gfx.r, gfx.g, gfx.b, gfx.a = 1,1,1,0.7
+      extract_table(color3_t, true)
+      gfx.a = frame_knob_outarc
       gfx.x,gfx.y = x,y
       gfx.arc(x+w/2,y+knob_r+offset,knob_r,math.rad(-130),math.rad(130),1)
     -- circ
-      gfx.r, gfx.g, gfx.b = extract_table(color1_t)
+      extract_table(color1_t, true)
       gfx.a = 1
       if val ~= nil then
         val_grad = val*240-30
@@ -473,14 +514,14 @@ end
       gfx.setfont(1, font, fontsize3)
       local measurestrname = gfx.measurestr(knob_val)  
       gfx.x, gfx.y = x+w/2-measurestrname/2, y+knob_r-2
-      gfx.r, gfx.g, gfx.b = extract_table(color3_t)
+      extract_table(color3_t, true)
       gfx.a = 1
       gfx.drawstr(knob_val)
     -- name
       gfx.setfont(1, font, fontsize3)
       local measurestrname = gfx.measurestr(knob_name)  
       gfx.x, gfx.y = x+w/2-measurestrname/2, y+h-fontsize3
-      gfx.r, gfx.g, gfx.b = extract_table(color3_t)
+      extract_table(color3_t, true)
       gfx.a = 1
       gfx.drawstr(knob_name)
       
@@ -490,7 +531,8 @@ end
   ---------------------------------------------------------------------------------------------------------------     
   function GUI_DRAW()
     -- background
-      gfx.r, gfx.g, gfx.b, gfx.a = 0.2, 0.2, 0.2, 1
+      extract_table(color5_t, true)
+      gfx.a = 1
       gfx.rect(0,0,main_w,main_h)
     
     -- top window            
@@ -504,7 +546,7 @@ end
             gfx.setfont(1, font, fontsize)
             measurestrname = gfx.measurestr('Item RMS / FFT graphs are disabled')  
             gfx.x, gfx.y = x+(w-measurestrname)/2,y+offset
-            gfx.r, gfx.g, gfx.b = extract_table(color3_t)
+            extract_table(color3_t, true)
             gfx.a = 1
             gfx.drawstr('Item RMS / FFT graphs are disabled')
           end  
@@ -526,7 +568,7 @@ end
         if #sel_items_t > 0 then 
           -- settings com frame -- 
           x,y,w,h = extract_table(window_m2_xywh_t)
-          gfx.r, gfx.g, gfx.b = extract_table(color0_t)
+          extract_table(color3_t, true)
           gfx.a = frame
           gfx.roundrect(x,y,w,h,0.1, true)
           -- settings gradrect
@@ -535,7 +577,7 @@ end
           gfx.setfont(1, font, fontsize)
           measurestrname = gfx.measurestr('Stretch markers detection settings')  
           gfx.x, gfx.y = x+(w-measurestrname)/2,y+h-fontsize-2
-          gfx.r, gfx.g, gfx.b = extract_table(color3_t)
+          extract_table(color3_t, true)
           gfx.a = 1
           gfx.drawstr('Stretch markers detection settings')
           
@@ -545,6 +587,8 @@ end
             GUI_knob(w2_knob1_xywh_t, k1_val_norm, k1_val, "Window")                   
           k2_val = math.floor(threshold)..' dB'
             GUI_knob(w2_knob2_xywh_t, k2_val_norm, k2_val, "Threshold")
+          k3_val = math.floor(s_area*window_time*1000)..' ms'
+            GUI_knob(w2_knob3_xywh_t, k3_val_norm, k3_val, "Area")            
           
         end -- if sel items table size > 0  
         
@@ -630,7 +674,8 @@ end
     --release behaviour
       if last_LMB_state and not MB_state then
         if last_mouse_obj == 'k1_windowsize' or 
-          last_mouse_obj == 'k2_threshold' then
+          last_mouse_obj == 'k2_threshold' or 
+          last_mouse_obj == 'k3_search_area'then
           ref_item_data_t = ENGINE1_get_item_data(1)
           item_data_t = ENGINE1_get_item_data(cur_item)
         end
@@ -682,45 +727,27 @@ end
             show_get_button2 = true 
           else show_get_button2 = false end
         -- knob1 window size
-          k1_val_norm = (window_time - window_time_min) / (window_time_max-window_time_min)
+          k1_val_norm = conv_val2norm(window_time, window_time_min, window_time_max,false)
           last_mouse_obj, k1_val_norm0, k1_val_norm = 
             MOUSE_knob(w2_knob1_xywh_t, 'k1_windowsize',k1_val_norm0, k1_val_norm)
-          window_time = k1_val_norm*(window_time_max-window_time_min)+window_time_min 
+          window_time = conv_norm2val(k1_val_norm,window_time_min, window_time_max,false)
          
         -- knob2 threshold
-          k2_val_norm = ((threshold-threshold_max)/math.abs(threshold_min-threshold_max))+1
+          k2_val_norm = conv_val2norm(threshold,threshold_min,threshold_max, true)
           last_mouse_obj, k2_val_norm0, k2_val_norm = 
             MOUSE_knob(w2_knob2_xywh_t, 'k2_threshold', k2_val_norm0, k2_val_norm)
-          threshold = ((k2_val_norm-1)*math.abs(threshold_min-threshold_max))+threshold_max
+          threshold = conv_norm2val(k2_val_norm,threshold_min,threshold_max, true)
+                  
+        -- knob3 search area
+          k3_val_norm = conv_val2norm(s_area,s_area_min,s_area_max, false)
+          last_mouse_obj, k3_val_norm0, k3_val_norm = 
+            MOUSE_knob(w2_knob3_xywh_t, 'k3_search_area', k3_val_norm0, k3_val_norm)
+          s_area = math.floor(conv_norm2val(k3_val_norm,s_area_min,s_area_max, false))
+
+           
          function JUMP() end
         
           
-        --[[ knob2 threshold   
-          
-          last_mouse_obj, threshold_knob_val_norm, set_k2,threshold_time_knob_val0 = 
-            MOUSE_knob(w2_knob2_xywh_t, 'knob2_threshold',threshold_knob_val_norm0,threshold_knob_val0)       
-          if set_k2 then 
-            threshold = math.floor(100*math.log(threshold_knob_val_norm0)) 
-           -- if threshold < threshold_min then threshold = threshold_min end 
-            --if threshold > threshold_max then threshold = threshold_max end 
-            end]]
-                      
-                      
-            --ref_item_data_t = ENGINE1_get_item_data(1)
-            --item_data_t = ENGINE1_get_item_data(cur_item)
-            --window_time_return = nil
-          --end  
-        --[[ threshold
-          last_mouse_obj, threshold_knob_val_norm, threshold_return, perform = 
-            MOUSE_knob(w2_knob2_xywh_t, 'knob2_threshold', "Threshold", 
-              'in decibels',-100,-10)
-          if threshold_knob_val_norm ~= nil then threshold = window_time_knob_val_norm*0.28+0.02 end
-          if perform then
-            window_time = window_time_return/1000                
---            window_time_knob_val_norm = (window_time - 0.02) / 0.28
-            ref_item_data_t = ENGINE1_get_item_data(1)
-            item_data_t = ENGINE1_get_item_data(cur_item)
-          end  ]]
           
       end -- end MID window        
             
