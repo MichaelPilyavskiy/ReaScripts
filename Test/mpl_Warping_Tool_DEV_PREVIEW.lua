@@ -28,7 +28,7 @@ enable_display_graph = 1
   ---------------------------------------------------------------------------------------------------------------              
   changelog =                              
 [===[ Changelog:
-12.10.2015  0.11
+11.10.2015  0.11
             area knob
 11.10.2015  0.1
             gui, displays, get item data, get potential stretch markers
