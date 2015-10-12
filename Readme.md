@@ -1,11 +1,14 @@
 #Michael Pilyavskiy's ReaScripts
 
 #Scripts for [Cockos REAPER](http://reaper.fm) 
-##Don`t forget to install last release of REAPER and SWS before using.
+
+###Don`t forget to install last release of REAPER and SWS/S&M Extension before using.
 
 ##How to download:
-- For one script: click on one script, then click on the Raw button, then File > Save (via Menu, Right Click or CTRL/CMD +S) > Delete ".txt" extension
-- For the whole archive: click on [Download Zip](https://github.com/MichaelPilyavskiy/ReaScripts/archive/master.zip) button on right side
+- For one script: open script page, click "Raw" button, then open context menu in your browser and do File > Save > Delete ".txt" extension when saving > open Reaper > open Actions List > ReaScript > Load
+- For the whole archive: click on [Download Zip](https://github.com/MichaelPilyavskiy/ReaScripts/archive/master.zip) button on right side > open Reaper > open Actions List > ReaScript - Load
+
+It is better for you to save all scripts to REAPER/Scripts folder, so you willn`t lost them while saving you REAPER configuration.
 
 ##Contact:
 - [VK](https://vk.com/michael_pilyavskiy)
