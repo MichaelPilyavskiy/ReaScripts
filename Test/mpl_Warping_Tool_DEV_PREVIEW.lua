@@ -1,7 +1,7 @@
   ------  Michael Pilyavskiy ------
   ---------- Warping tool ---------
   
-  fontsize = 16
+fontsize = 16
 enable_display_graph = 1
 
 -- warping if 2 or more items
@@ -23,12 +23,20 @@ enable_display_graph = 1
   -- stretch beats to grid by markers index
 
 
-  vrs = "0.11"
+  vrs = "0.12"
  
   ---------------------------------------------------------------------------------------------------------------              
   changelog =                              
 [===[ Changelog:
-11.10.2015  0.11
+13.10.2015  0.12
+            fft rise envelope instead rms envelope
+            fft size is 128bins as optimal for good detection better performance
+            fft range is full range (for now)
+            window size knob hidden
+            window size fixed to 20ms as optimal for basic detection envelope
+            area1 define area for search max peak            
+            
+12.10.2015  0.11
             area knob
 11.10.2015  0.1
             gui, displays, get item data, get potential stretch markers
@@ -86,7 +94,7 @@ enable_display_graph = 1
     sel_items_t ={}
     cur_item = 1 
     
-    window_time = 0.085 -- sec
+    window_time = 0.02 -- sec
     window_time_min = 0.02
     window_time_max = 0.4
         
@@ -97,6 +105,11 @@ enable_display_graph = 1
     s_area = 10
     s_area_min = 2
     s_area_max = 30
+    
+    fft_size = 128
+    fft_start = 1 -- hp
+    fft_end = 128 -- lp
+    
     
     mouse_res = 200 -- for knobs resolution
     
@@ -153,16 +166,16 @@ enable_display_graph = 1
         --detection params
         window_m2_xywh_t = {window1_xywh_t[1], window1_xywh_t[2]+window1_xywh_t[4]+offset,
           window0_xywh_t[3],window1_xywh_t[4]-20}
-          -- window size knob
+          --[[ window size knob
             w2_knob1_xywh_t = {window_m2_xywh_t[1] + offset,
                                window_m2_xywh_t[2] + offset,
-                               knob_w, knob_h}
+                               knob_w, knob_h}]]
           -- threshold knob
-            w2_knob2_xywh_t = {window_m2_xywh_t[1] + offset*2 + knob_w,
+            w2_knob2_xywh_t = {window_m2_xywh_t[1] + offset,
                                window_m2_xywh_t[2] + offset,
                                knob_w, knob_h}
           -- search area knob
-            w2_knob3_xywh_t = {window_m2_xywh_t[1] + offset*3 + knob_w*2,
+            w2_knob3_xywh_t = {window_m2_xywh_t[1] + offset*2 + knob_w,
                                window_m2_xywh_t[2] + offset,
                                knob_w, knob_h}
                                                               
@@ -243,6 +256,7 @@ enable_display_graph = 1
                     
           --get accesor samples values+rms
           rms_val_t = {}
+          fft_val_t = {}
           audio_accessor = reaper.CreateTakeAudioAccessor(take)
             src = reaper.GetMediaItemTake_Source(take)
             src_num_ch = 1--reaper.GetMediaSourceNumChannels(src)
@@ -253,7 +267,8 @@ enable_display_graph = 1
             item_rel_offset1 = item_pos - ref_item_pos
             if item_rel_offset1 > 0 then 
               for i = 0, item_rel_offset1-window_time, window_time do
-                table.insert(rms_val_t, 0) end
+                table.insert(rms_val_t, 0) 
+                table.insert(fft_val_t, 0)  end
             end
             
             --loop through windows
@@ -261,7 +276,8 @@ enable_display_graph = 1
               if read_pos+item_pos > ref_item_pos and read_pos+item_pos < ref_item_pos+ref_item_len then
                 audio_accessor_buffer = reaper.new_array(window_samples)
                 reaper.GetAudioAccessorSamples(audio_accessor,src_rate,src_num_ch,read_pos,window_samples,audio_accessor_buffer)
-                -- read window rms
+                
+                --[[ read window rms
                   rms = 0
                   audio_accessor_buffer_t = audio_accessor_buffer.table(1, window_samples)
                   for i = 1, window_samples do
@@ -271,6 +287,20 @@ enable_display_graph = 1
                   end
                   rms = rms / window_samples
                   table.insert(rms_val_t, rms)             
+                  ]]
+                  
+                -- fft aa buffer                  
+                  audio_accessor_buffer.fft(fft_size, true, 1)
+                  fft_sum = 0
+                  audio_accessor_buffer_fft_t = audio_accessor_buffer.table(1, fft_size)
+                  for i = fft_start, fft_end  do
+                    value = audio_accessor_buffer_fft_t[i]
+                    value_abs = math.abs(value)
+                    fft_sum = fft_sum + value_abs
+                  end
+                  fft_sum = fft_sum / fft_size
+                  table.insert(fft_val_t, fft_sum)
+                 
                 audio_accessor_buffer_t = {}
                 audio_accessor_buffer.clear()                              
               end -- check if inside ref_item  
@@ -280,7 +310,7 @@ enable_display_graph = 1
             item_rel_offset2 = ref_item_pos+ref_item_len - (item_pos+item_len)
             if item_rel_offset2 > 0 then 
               for i = 0, item_rel_offset2, window_time do
-                table.insert(rms_val_t, 0) end
+                table.insert(fft_val_t, 0)end
             end
                     
           reaper.DestroyAudioAccessor(audio_accessor)     
@@ -288,28 +318,31 @@ enable_display_graph = 1
       end -- if item ~= nil
       
       
-      com_val_t={}
-      if rms_val_t ~= nil then data_table_size = #rms_val_t end
---      if fft_val_t ~= nil then data_table_size = #fft_val_t end
+      --[[com_val_t={}
+      if fft_val_t ~= nil then data_table_size = #fft_val_t end
       for i=1, data_table_size do
-        rms_val_t_item = rms_val_t[i]
-        table.insert(com_val_t, rms_val_t_item)  
-      end
+        fft_val_t_item = fft_val_t[i]
+        table.insert(com_val_t, fft_val_t_item)  
+      end]]
       
       -- normalize table
-      local max_com = 0
-      for i =1, #com_val_t do max_com = math.max(max_com, com_val_t[i]) end
-      com_mult = 1/max_com      
-      for i =1, #com_val_t do com_val_t[i]= com_val_t[i]*com_mult  end
+        local max_com = 0
+        for i =1, #fft_val_t do max_com = math.max(max_com, fft_val_t[i]) end
+        com_mult = 1/max_com      
+        for i =1, #fft_val_t do fft_val_t[i]= fft_val_t[i]*com_mult  end
       
-      sm_t = ENGINE2_get_stretch_markers(com_val_t)
+      
+      
+      
+      -- generate stretch markers  
+        sm_t = ENGINE2_get_stretch_markers(fft_val_t)
       
       data_t = {displayed_item_name, --1
                 displayed_item_name2, --2
                 item_pos, --3
                 item_pos, --4
                 read_pos0,
-                com_val_t, --5
+                fft_val_t, --5
                 sm_t}    
           
       return data_t    
@@ -380,7 +413,8 @@ end
           for j =0, s_area-1 do
             data_t_item = data_t[i+j]
             max_point = math.max(max_point, data_t_item)
-          end                    
+          end  
+                            
           --search max point around couple of windows
           for j =0, s_area-1 do
             data_t_item = data_t[i+j]
@@ -583,12 +617,12 @@ end
           
           --knobs
           
-          k1_val = math.floor(window_time*1000)..' ms'          
-            GUI_knob(w2_knob1_xywh_t, k1_val_norm, k1_val, "Window")                   
+          --[[k1_val = math.floor(window_time*1000)..' ms'          
+            GUI_knob(w2_knob1_xywh_t, k1_val_norm, k1_val, "Window") ]]                  
           k2_val = math.floor(threshold)..' dB'
             GUI_knob(w2_knob2_xywh_t, k2_val_norm, k2_val, "Threshold")
           k3_val = math.floor(s_area*window_time*1000)..' ms'
-            GUI_knob(w2_knob3_xywh_t, k3_val_norm, k3_val, "Area")            
+            GUI_knob(w2_knob3_xywh_t, k3_val_norm, k3_val, "Area1")            
           
         end -- if sel items table size > 0  
         
@@ -726,11 +760,11 @@ end
           if MOUSE_match_xy(window_m1_xywh_t) then 
             show_get_button2 = true 
           else show_get_button2 = false end
-        -- knob1 window size
+        --[[ knob1 window size
           k1_val_norm = conv_val2norm(window_time, window_time_min, window_time_max,false)
           last_mouse_obj, k1_val_norm0, k1_val_norm = 
             MOUSE_knob(w2_knob1_xywh_t, 'k1_windowsize',k1_val_norm0, k1_val_norm)
-          window_time = conv_norm2val(k1_val_norm,window_time_min, window_time_max,false)
+          window_time = conv_norm2val(k1_val_norm,window_time_min, window_time_max,false)]]
          
         -- knob2 threshold
           k2_val_norm = conv_val2norm(threshold,threshold_min,threshold_max, true)
