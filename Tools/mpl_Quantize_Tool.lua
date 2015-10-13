@@ -12,7 +12,7 @@ bugs  =
  ]===]
  
  
- vrs = "1.6 build 4"
+ vrs = "1.6 build 5"
  
 changelog =                   
 [===[
@@ -20,13 +20,16 @@ changelog =
    ==========
    Changelog:
    ==========   
-03.10.2015  1.6 build 4  - need REAPER 5.03+ SWS 2.8.1+
-          New
-            option to stretch area around stretch marker
+
+13.10.2015  1.6 build 5  - need REAPER 5.03+ SWS 2.8.1+
           Improvements
             improved mouse tracking, thanks to spk77!
+            Help button redirected to Cockos Wiki related page
           Bugfixes
             properly adding last stretch marker on items with different takerate
+          
+          Option to stretch area around stretch marker (HIDDEN, have a lot of bugs)
+            
 01.10.2015  1.5 build 4  - need REAPER 5.03+ SWS 2.8.1+
           New
             Show QT in actions info line (main menu right item)
@@ -151,79 +154,6 @@ about = 'Quantize tool by Michael Pilyavskiy (Russia, Oryol)'..'\n'..'Version '.
             GitHub -  http://github.com/MichaelPilyavskiy/ReaScripts
             ReaperForum - http://forum.cockos.com/member.php?u=70694
   
- ]===]
-  
-help1 = 
-[===[1. What is this?
-It`s LUA script for REAPER. I suppose you to have installed last version of REAPER and SWS/S&M extension.
-
-2. What it was created for?It was created because of limitation of REAPER snap/grid settings for main arrangement, especially  around swing grid context. Early times it was small script with simple GUI called "Swing Items". Also there was some limitations in Groove Tool from SWS/S&M extension, which is also very  powerful tool. So, I decided to build something that combines some useful features in case of snap and groove contexts.
-
-3. Disclaimer. This could a very useful stuff. But it is still very rough-coded. So, just don`t forget to save you projects before using this tool.
-
-4. How to use this? Ok there is actually two windows. First window is main and contain one selector for objects you wanna get 'groove points' from and another selector for choosing object you wanna quantize. Second window contains settings and link to information about me and 'readme' info, you watching now.
-
-5. Reference section. Here we somehow get 'groove points'. Count of reference points is in parentheses.
-5.1 Items. To get reference points from items select items in your project and click on 'items'. 
-5.2 Stretch Markers. To get reference points from stretch markers select items with stretch markers in your project and click on 'stretch markers'.
-5.3 Envelope Points. To get reference points from envelope points select envelope points in any envelope (as track as take shold works) and click on 'envelope points'. 
-5.4 Notes. To get reference points from notes select items with notes in your project or open take in midi editor and select notes and click on 'notes'. 
-5.5 User Groove. Here you can manually select SWS Fingers Groove Tool File.
-5.6 Project Grid / Custom Grid - is a slider with grid selector. Project Grid is leftmost value. It is also apply button. Works only in Local (Pattern) mode.
-5.7 Swing Grid is also a slider / apply button, so can listen what you swing on the fly.
-
-6.0 Destination section. Here we store objects and their positions. Note! If you stored object to script by clicking this area, and move it to somewhere (so you manually change position), after every click on any 'Apply' action their positions and volumes will be firstly restored! This done to prevent feedback (store and snap->store and snap once again -> etc). Also count of objects placed  in parentheses
-6.1 Items. Select items in project you wanna quantize and click 'Items' button. Number of items should be shown in parentheses. 
-6.2 Stretch markers. Select stretch markers in item you wanna quantize and click 'Stretch markers' button. Also to be clear - be careful with stretch markers, because they could be very buggy and even crash Reaper if you will do something extreme. Of course I will fix something in future, but for now just be carefull and always save your current project state before using!.
-6.3 Envelope Points. Select envelope points (as track as take envelope shold works) in project you wanna quantize and click 'Envelope points' button. 
-6.4 Notes. Select notes or items with notes in project you wanna quantize and click 'Notes' button. 
-
-7. Display. Could be disabled from top menu to free some CPU.
-7.1 Green lines represent reference groove points and values (if any).
-7.2 Blue lines represent quantized objectspositions and their values (if any).
-7.3 White lines represent bars and beats.
-7.4 Yellow line is play cursor. 
-7.5 Red line is edit cursor.
-7.6 Right click on display can save current groove to REAPER/Grooves folder.
-
-8. Main 'Apply' slider
-8.1 Left click on this slider set quantize parameters and snap objects positions and values (if any) to reference points. 
-8.2 It is also strength slider, so if slider is 50%, snap is 50% stronger, 0% - nothing happened with objects, 100% solid snap to points.
-8.3 Right click or 'R' buttom from left restore objects positions to the moment when you stored them.
-
-9.0 Reference settings menu (right menu)
-9.1 Save current groove to .rgt file in REAPER/Grooves, compatible with SWS Fingers Groove Tool.
-9.2 Snap reference mode. When 'Global' is selected, snap points is writed to the memory directly with their positions.When pattern mode is on, script firstly convert position of point in seconds to position in bar/beats. When it convert all of reference points, generates pattern and multiply this pattern to all project timeline. It is like 'new ghost grid generator'.
-9.3 Pattern length. Starts from first reference point.
-9.4 Pattern edges. Add edges to start and end of pattern.
-9.5 Using reference velocity. When quantize, use also velocity/value/gain of selected reference objects if possible.
-9.6 How to get reference notes. You can set option if you wanna get only selected notes in selected items or all notes in selected items.
-9.7 How to get reference stretch markers. You can setup how do you wanna get stretch markers positions - relative to grid or relative to bar of first item of first stretch marker. 
-9.8 Allow to get stretch markers only within time selection.
-
-10. Quantize objects settings (left menu)
-10.1 Reset stored stretch markers.
-10.2 Same, but for marker within time selection.
-10.3 Sync stored items to reference positions. Works only in Global mode.
-10.4 Use gravity. If this selector is on 'Use gravity', then objects are quantized only if their positions are closer (area in seconds) to reference points. 'Snap everything' means every object you selected will be snapped to reference point. Be carefull with this when using with stretch markers.
-10.5 Snap direction. That means if destination object position is right beetween two points, it will snap to point defined in this selector.
-10.6 Swing scaling is made because of my previously misunderstanding REAPER setting of MIDI Editor, so when unchecked, 0.5x is half-grid, that`s REAPER native behaviour.
-10.7 Quantize notes. Select this if you wanna quantize all notes in item or only selected. You can also select notes in MIDI Editor, close it and select item.
-10.8 Allow to stretch stretch marker which are placed only within time selection. Other markers will be stayed at their place. If you wanna change markers selection, again set time selection and store destionation stretch markers (see 5.2.0)
-
-11 Top menu
-11.1 About. Info about me, version (should be same as title).
-11.2 Show changelog in console
-11.3 Current Help.
-11.4 Donate button opens paypal donate link in default browser
-11.5 Sometimes display take a lot of CPU. You can disable it.
-
-7. Control.
-7.1 Use mpl_Quantize_tool_set_swing.lua to control swing value via OSC or MIDI CC. Check TopMenu - GitHub/Tools/
-7.2 Use mpl_Quantize_tool_set_strength.lua to control strength value via OSC or MIDI CC. Check TopMenu - GitHub/Tools/
-
-
-Michael.
  ]===]
  --------------------
  ------- Code -------
@@ -1878,20 +1808,24 @@ end
             end
             new_sm_pos_rev = (new_sm_pos - dest_sm_subt[4])*dest_sm_subt[5] 
             if new_sm_pos_rev > 0 and new_sm_pos_rev < dest_sm_subt[6] then 
+            
               if sm_is_transients_t[1] == 0 then
                 reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev, dest_sm_subt[3]) 
                else
-                d = 0.02
+                reaper.UpdateItemInProject(item)
+                d = 0.05
                 reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev-d, dest_sm_subt[3]-d)
+                reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev, dest_sm_subt[3])
                 reaper.SetTakeStretchMarker(take, -1, new_sm_pos_rev+d, dest_sm_subt[3]+d)
+                reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[6]*dest_sm_subt[5], dest_sm_subt[7]+dest_sm_subt[6]*dest_sm_subt[5])
               end
-              
-              
+                          
             end
             reaper.SetTakeStretchMarker(take, -1, dest_sm_subt[6]*dest_sm_subt[5], dest_sm_subt[7]+dest_sm_subt[6]*dest_sm_subt[5])
+            reaper.UpdateItemInProject(item)
           end--take not nil 
-          --item = reaper.GetMediaItemTake_Item(take) 
-          --reaper.UpdateItemInProject(item)
+          -- 
+          --
         end -- for loop
       end --dest_sm_t ~= nil and restore_button_state == false
       
@@ -2660,8 +2594,8 @@ end
                            menu_entry_ret(snap_dir_values_t,3)..'Snap direction: to next ref.point|',
                            menu_entry_ret(swing_scale_values_t,1)..'Swing 100% is next grid|',
                            menu_entry_ret(sel_notes_mode_values_at,1)..'Quantize only selected notes in MIDI item|',
-                           menu_entry_ret(sm_timesel_dest_values_t,2)..'Quantize only str. markers only within time selection|',
-                           menu_entry_ret(sm_is_transients_t,1)..'Quantize stretch marker area (could BREAK your project!)'}
+                           menu_entry_ret(sm_timesel_dest_values_t,2)..'Quantize only str. markers only within time selection|'}
+                           --menu_entry_ret(sm_is_transients_t,1)..'Quantize stretch marker area (could BREAK your project!)'}
                            
        
                  
@@ -2720,8 +2654,8 @@ end
        
        -- top menu
        menu_t3 = {'About',
-                   'Changelog',
-                   'Help',
+                   'ChangeLog',
+                   'Cockos Wiki help page',
                    "GitHub (old versions and related scripts)",
                    'Donate (paypal.me)|',
                    menu_entry_ret(enable_display_t,1)..'Enable display|'}
@@ -2734,7 +2668,7 @@ end
          if menu_ret3 == 2 then 
            reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(changelog) end
          if menu_ret3 == 3 then 
-           reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(help1) end  
+           open_URL("http://wiki.cockos.com/wiki/index.php/Quantize_tool_by_mpl")end  
          if menu_ret3 == 4 then 
            open_URL("http://github.com/MichaelPilyavskiy/ReaScripts/tree/master/Tools") end    
          if menu_ret3 == 5 then 
