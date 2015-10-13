@@ -23,18 +23,20 @@ enable_display_graph = 1
   -- stretch beats to grid by markers index
 
 
-  vrs = "0.12"
+  vrs = "0.13"
  
   ---------------------------------------------------------------------------------------------------------------              
   changelog =                              
 [===[ Changelog:
-13.10.2015  0.12
+13.10.2015  0.13
             fft rise envelope instead rms envelope
-            fft size is 128bins as optimal for good detection better performance
+            fft size is 128bins as optimal for good detection / performance
             fft range is full range (for now)
             window size knob hidden
             window size fixed to 20ms as optimal for basic detection envelope
-            area1 define area for search max peak            
+            area1 search max peak around searching window
+            area2 define searching max peak marker within area of current searching marker       
+            tempo average
             
 12.10.2015  0.11
             area knob
@@ -103,8 +105,12 @@ enable_display_graph = 1
     threshold_max = -10    
     
     s_area = 10
-    s_area_min = 2
+    s_area_min = 1
     s_area_max = 30
+    
+    s_area2 = 7
+    s_area2_min = 1
+    s_area2_max = 30
     
     fft_size = 128
     fft_start = 1 -- hp
@@ -178,7 +184,11 @@ enable_display_graph = 1
             w2_knob3_xywh_t = {window_m2_xywh_t[1] + offset*2 + knob_w,
                                window_m2_xywh_t[2] + offset,
                                knob_w, knob_h}
-                                                              
+          -- search area2 knob
+            w2_knob4_xywh_t = {window_m2_xywh_t[1] + offset*3 + knob_w*2,
+                               window_m2_xywh_t[2] + offset,
+                               knob_w, knob_h}
+                                                                        
         --get2 button
         window_m1_xywh_t = {window0_xywh_t [1]+window0_xywh_t [3]+offset, window1_xywh_t[2]+window1_xywh_t[4]+offset, 
           nav_button_w, window_m2_xywh_t[4]}                  
@@ -250,6 +260,7 @@ enable_display_graph = 1
         track = reaper.GetMediaItem_Track(item)
         retval, trackname = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME','', false)
         if not reaper.TakeIsMIDI(take) then
+          if trackname == '' then trackname = '(no name)' end
           displayed_item_name = trackname..'   /   '..reaper.GetTakeName(take)
           displayed_item_name2 = 'Item '..math.floor(item_id)..' of '..#sel_items_t
           if item_id == 1 then displayed_item_name2 = displayed_item_name2..' (reference item)' end
@@ -327,9 +338,9 @@ enable_display_graph = 1
       
       -- normalize table
         local max_com = 0
-        for i =1, #fft_val_t do max_com = math.max(max_com, fft_val_t[i]) end
+        for i =1, #fft_val_t-1 do max_com = math.max(max_com, fft_val_t[i]) end
         com_mult = 1/max_com      
-        for i =1, #fft_val_t do fft_val_t[i]= fft_val_t[i]*com_mult  end
+        for i =1, #fft_val_t-1 do fft_val_t[i]= fft_val_t[i]*com_mult  end
       
       
       
@@ -337,75 +348,91 @@ enable_display_graph = 1
       -- generate stretch markers  
         sm_t = ENGINE2_get_stretch_markers(fft_val_t)
       
+      -- calculate tempo average
+        -- get tempo for each marker
+          tempo_t0 = {}
+          tempo_t0_sum = 0
+          count0 = 1
+          last_id0 = 0
+          last_id = 0
+          for i = 2, #sm_t do
+            sm_it = sm_t[i]
+            if sm_it == 1 then last_id = i end
+            tempo_v = last_id - last_id0
+            if tempo_v > 0 then 
+              tempo_t0_sum = (tempo_t0_sum+tempo_v)
+              table.insert(tempo_t0, tempo_v)
+              count0 = count0 +1
+            end            
+            last_id0 = last_id
+          end
+          
+          tempo_average0 = tempo_t0_sum / count0
+          
+          average_lim_per = 10
+          average_lim =average_lim_per /100 -- %
+          
+        -- filter from 10% average0    
+          tempo_average_sum = 0   
+          count = 1
+          for i = 1, #tempo_t0 do
+            tempo_t0_it = tempo_t0[i]
+            diff = tempo_average0 / tempo_t0_it
+            if diff > (1-average_lim) and diff <(1+average_lim) then
+              tempo_average_sum = tempo_average_sum+tempo_t0_it
+              count = count +1
+            end
+          end
+          tempo_average_calc = 60/((tempo_average_sum/count)*window_time)
+      
+  
       data_t = {displayed_item_name, --1
                 displayed_item_name2, --2
                 item_pos, --3
                 item_pos, --4
                 read_pos0,
                 fft_val_t, --5
-                sm_t}    
+                sm_t,
+                tempo_average_calc}    
           
       return data_t    
     end -- sel_items_t ~= nil        
-    
-    
-              --[[
-              
-              
-            
         
-              -- get peaks table          
-              -- get rms table           
-                item_peaks_t = {}
-                rms_val_t = {}
-                
-                  
-                  peaks_in_window = 1         
-                  for i =1, peaks_in_window do
-                    table.insert(item_peaks_t, audio_accessor_buffer_t[i])
-                    if window_samples / peaks_in_window > 2 then
-                      table.insert(item_peaks_t, audio_accessor_buffer_t[math.floor(window_samples/i)])
-                    end
-                  end            
-                  
-                end
-                
-              -- get fft sum table 
-                fft_sum_t = {}    
-                for read_pos = 0, item_len-window_time, window_time do
-                  audio_accessor_buffer = reaper.new_array(window_samples*2)
-                  reaper.GetAudioAccessorSamples(audio_accessor, src_rate, src_num_ch, read_pos, window_samples*2, audio_accessor_buffer)
-                         fft_size = fft_size0*2
-                  repeat fft_size = fft_size/2 until fft_size < window_samples             
-                  audio_accessor_buffer.fft(fft_size, true, 1)
-                  fft_sum = 0
-                  audio_accessor_buffer_fft_t = audio_accessor_buffer.table(1, fft_size)                          
-                  fft_end_index1 = fft_end_index / (fft_size0/fft_size)
-                  for i = fft_start_index, fft_end_index1  do
-                    value = audio_accessor_buffer_fft_t[i]
-                    value_abs = math.abs(value)
-                    fft_sum = fft_sum + value_abs
-                  end
-                  fft_sum = fft_sum / window_samples
-                  table.insert(fft_sum_t, fft_sum)             
-                  audio_accessor_buffer.clear()
-                end        
-              
-            end
-          end  
-        end  
-         
-        -- generate com table   
-          com_val_t = {}   
-          for i = 1, math.ceil((item_len-window_time) / window_time) do
-            table.insert(com_val_t, fft_sum_t[i]  +  rms_val_t[i] ) end
-        ]]
 end
 
   ---------------------------------------------------------------------------------------------------------------       
   function ENGINE2_get_stretch_markers(data_t)
     sm_data_t = {}
-    -- 1 check couple of windows
+    
+    
+  --[[   -- 1 check couple of windows
+      -- fill start sm table
+      for i = 1, s_area do
+        table.insert(sm_data_t,0)
+      end
+      
+      for i = s_area+1,50 do --- #data_t do
+       data_t_item = data_t[i]
+        data_t_item_area_max = 0
+        for j = i - s_area, s_area do
+          data_t_item_area = data_t[j]          
+          data_t_item_area_max = math.max(data_t_item_area_max,data_t_item_area)
+          if sm_data_t[j] == 1 then data_t_item_area = data_t_item_area_max end
+        end  
+        
+        if data_t_item >= data_t_item_area_max then
+          table.insert(sm_data_t,1)
+          for k = i-s_area, s_area do
+           table.insert(sm_data_t,k,0)
+          end
+         else table.insert(sm_data_t,i,0)
+        end
+         
+      end     ]]    
+      
+       
+    
+    --search max point around couple of windows + add to table
       for i = 1, #data_t, s_area do
         if i+s_area-1 < #data_t then
           -- 2 search max point value in window
@@ -413,20 +440,37 @@ end
           for j =0, s_area-1 do
             data_t_item = data_t[i+j]
             max_point = math.max(max_point, data_t_item)
-          end  
-                            
-          --search max point around couple of windows
+          end           
           for j =0, s_area-1 do
             data_t_item = data_t[i+j]
             -- check if max point around couple of windows more than thresold
             if data_t_item == max_point and 20*math.log(max_point) > threshold then
-              table.insert(sm_data_t,1)
-             else table.insert(sm_data_t,0)
+              table.insert(sm_data_t,i+j,1)              
+             else table.insert(sm_data_t,i+j,0)
             end
-          end
-            
+          end            
         end
+      end   
+    
+  
+    -- search closer sm, delete lower
+    for i = 1+s_area2, #sm_data_t-s_area2 do
+      sm_it = sm_data_t[i]
+      if sm_it == 1 then
+        data_t_it = data_t[i]
+        data_t_area2_max = 0        
+        for j = i -s_area2, i + s_area2*2+1 do
+          if sm_data_t[j] == 1 then
+            data_t_area2 = data_t[j]
+            data_t_area2_max = math.max(data_t_area2_max , data_t_area2 )
+          end  
+        end 
+        if data_t_it < data_t_area2_max  then 
+          table.insert(sm_data_t,i,0)
+          table.remove(sm_data_t,i+1)end
       end
+    end 
+           
     
     return sm_data_t
   end
@@ -440,6 +484,7 @@ end
     -- 5 offset rel to ref item pos
     -- 6 com_val_t
     -- 7 sm table
+    -- 8 tempo
     local X0,Y,W0,H0 = extract_table(xywh_t0)
     X=X0+1
     W = W0-1
@@ -488,6 +533,18 @@ end
           end
         end--end draw sm
       
+      -- draw tempo
+        --fill background
+        extract_table(color6_t, true)
+        gfx.a = 0.92
+        gfx.rect(15,20,50,20)
+        gfx.x,gfx.y = 20,20
+        --draw val
+        extract_table(color4_t, true)
+        gfx.a = 0.92
+        tempo = data_t[8]
+        gfx.drawstr(tostring(tempo))
+        
     end--if data~= nil
     
     -- frame -- 
@@ -623,7 +680,8 @@ end
             GUI_knob(w2_knob2_xywh_t, k2_val_norm, k2_val, "Threshold")
           k3_val = math.floor(s_area*window_time*1000)..' ms'
             GUI_knob(w2_knob3_xywh_t, k3_val_norm, k3_val, "Area1")            
-          
+          k4_val = math.floor(s_area2*window_time*1000)..' ms'
+            GUI_knob(w2_knob4_xywh_t, k4_val_norm, k4_val, "Area2")           
         end -- if sel items table size > 0  
         
         
@@ -709,7 +767,8 @@ end
       if last_LMB_state and not MB_state then
         if last_mouse_obj == 'k1_windowsize' or 
           last_mouse_obj == 'k2_threshold' or 
-          last_mouse_obj == 'k3_search_area'then
+          last_mouse_obj == 'k3_search_area' or 
+          last_mouse_obj == 'k4_search_area2'  then
           ref_item_data_t = ENGINE1_get_item_data(1)
           item_data_t = ENGINE1_get_item_data(cur_item)
         end
@@ -777,6 +836,12 @@ end
           last_mouse_obj, k3_val_norm0, k3_val_norm = 
             MOUSE_knob(w2_knob3_xywh_t, 'k3_search_area', k3_val_norm0, k3_val_norm)
           s_area = math.floor(conv_norm2val(k3_val_norm,s_area_min,s_area_max, false))
+
+        -- knob4 search area2
+          k4_val_norm = conv_val2norm(s_area2,s_area2_min,s_area2_max, false)
+          last_mouse_obj, k4_val_norm0, k4_val_norm = 
+            MOUSE_knob(w2_knob4_xywh_t, 'k4_search_area2', k4_val_norm0, k4_val_norm)
+          s_area2 = math.floor(conv_norm2val(k4_val_norm,s_area2_min,s_area2_max, false))
 
            
          function JUMP() end
