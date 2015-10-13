@@ -45,7 +45,6 @@ if tracks_t ~= nil then
               main(40297) -- unselect all tracks
               reaper.SetTrackSelected(tr2, true)
               main(40337) -- cut track
-              reaper.SetMediaTrackInfo_Value(tr, 'D_PAN', 1) 
             end
           end  
         end  
