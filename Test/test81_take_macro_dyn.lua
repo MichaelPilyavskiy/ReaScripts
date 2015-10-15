@@ -6,8 +6,10 @@
   release = 0.4 -- sec
   
   --press
-  window_time2 = 0.02 -- sec
-  threshold2 = -30 -- db
+  window_time2 = 0.005 -- sec
+  threshold2 = -0 -- db
+  --attack2 = 0.02 -- sec
+  --release2 = 0.05 -- sec
   ratio = 0.95
 
 
