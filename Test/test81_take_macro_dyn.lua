@@ -8,8 +8,6 @@
   --press
   window_time2 = 0.02 -- sec
   threshold2 = -30 -- db
-  --attack2 = 0.02 -- sec
-  --release2 = 0.05 -- sec
   ratio = 0.95
 
 
