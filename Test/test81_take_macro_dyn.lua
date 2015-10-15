@@ -1,16 +1,9 @@
   
   --gate
-  window_time = 0.2 -- sec
-  threshold = -80 -- db
-  attack = 0.5 -- sec
-  release = 0.4 -- sec
-  
-  --press
-  window_time2 = 0.005 -- sec
-  threshold2 = -0 -- db
-  --attack2 = 0.02 -- sec
-  --release2 = 0.05 -- sec
-  ratio = 0.95
+  window_time = 0.1 -- sec
+  threshold = -100 -- db
+  attack = 0.2 -- sec
+  release = 0.2 -- sec
 
 
 function create_point (time,val)
@@ -46,9 +39,7 @@ end
             src = reaper.GetMediaItemTake_Source(take)
             src_num_ch = 1--reaper.GetMediaSourceNumChannels(src)
             src_rate = reaper.GetMediaSourceSampleRate(src)              
-            
- --gate
-                        
+             
             --loop through windows
             rms_val_t = {}
             window_samples = math.floor(src_rate * window_time)
@@ -69,6 +60,9 @@ end
                 audio_accessor_buffer_t = {}
                 audio_accessor_buffer.clear()                                              
             end -- loop every window
+            reaper.DestroyAudioAccessor(audio_accessor)  
+            
+       --gate     
             
            
             for i = 2, #rms_val_t-1 do
@@ -81,69 +75,18 @@ end
               next_rms_val_it_db = 20*math.log(next_rms_val_it)
               
               if rms_val_it_db < threshold then
-                if prev_rms_val_it_db > threshold then
-                  create_point(i*window_time,1)
-                  create_point(i*window_time+release,0)
+                if prev_rms_val_it_db < threshold then
+                 create_point((i-1)*window_time,0)
                 end
-                if next_rms_val_it_db > threshold then
-                  create_point(i*window_time-attack,0)
-                  create_point(i*window_time,1)                  
-                end                                      
-              end
-            end  
+               else
+                if prev_rms_val_it > threshold then
+                  create_point((i-1)*window_time,1)
+                end
+              end              
+            end              
+                 
+           reaper.UpdateItemInProject(item)
             
-            
- -- compressor               
-              
-             rms_val_t2 = {} 
-            --loop through windows
-             window_samples2 = math.floor(src_rate * window_time2)
-             for read_pos = 0, item_len, window_time2 do        
-                 audio_accessor_buffer = reaper.new_array(window_samples2)
-                 reaper.GetAudioAccessorSamples
-                  (audio_accessor,src_rate,src_num_ch,read_pos,window_samples2,audio_accessor_buffer)                
-                 -- read window rms
-                   rms = 0
-                   audio_accessor_buffer_t = audio_accessor_buffer.table(1, window_samples2)
-                   for i = 1, window_samples2 do
-                     sample_value = audio_accessor_buffer_t[i]
-                     sample_value_abs = math.abs(sample_value)
-                     rms = rms + sample_value_abs
-                   end
-                   rms = rms / window_samples2
-                   table.insert(rms_val_t2, rms)                    
-                 audio_accessor_buffer_t = {}
-                 audio_accessor_buffer.clear()                                              
-             end -- loop every window 
-             
-                           
-            for i = 2, #rms_val_t2-1 do
-              rms_val_it = rms_val_t2[i]
-              prev_rms_val_it = rms_val_t2[i-1]
-              next_rms_val_it = rms_val_t2[i+1]
-              
-              rms_val_it_db = 20*math.log(rms_val_it)
-              prev_rms_val_it_db = 20*math.log(prev_rms_val_it)
-              next_rms_val_it_db = 20*math.log(next_rms_val_it)
-                                      
-              if rms_val_it_db > threshold2 then
-                create_point(i*window_time2,ratio)
-                if prev_rms_val_it_db < threshold2 then
-                  create_point((i-1)*window_time2,1)
-                end
-                if next_rms_val_it_db < threshold2 then
-                  create_point((i+1)*window_time2,1)
-                end  
-                if next_rms_val_it_db > threshold2 and
-                   prev_rms_val_it_db > threshold2 then
-                    delete_point (i*window_time2)
-                end
-                   
-              end
-   
-            end
-                                
-          reaper.DestroyAudioAccessor(audio_accessor)     
         end -- if not midi 
-        reaper.UpdateItemInProject(item)         
+                
       end -- if item ~= nil
