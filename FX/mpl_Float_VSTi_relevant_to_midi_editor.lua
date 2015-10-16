@@ -10,8 +10,6 @@ if act_editor ~= nil then
     if vsti_id ~= nil then 
       reaper.TrackFX_Show(take_track, vsti_id, 3) -- float
     end
-    
-    -- up level 1
     repeat
       parent_track = reaper.GetParentTrack(take_track)
       if parent_track ~= nil then
