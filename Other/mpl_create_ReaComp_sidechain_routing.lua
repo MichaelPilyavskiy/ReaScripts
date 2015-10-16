@@ -1,4 +1,8 @@
-  script_title = "create_ReaComp_sc_routing"
+  script_title = "create_ReaComp_sidechain_routing"
+  -- create_ReaComp_sidechain_routing
+  -- source - selected track
+  -- destination - destination
+  
   reaper.Undo_BeginBlock()
 
 -- get source tracks id`s--
@@ -14,7 +18,7 @@
       end
     end  
   end
-
+if reaper.CountSelectedTracks(0) == 1 then 
 -- get dest track info
   window, segment, details = reaper.BR_GetMouseCursorContext()
   if segment == "track" then
@@ -43,7 +47,7 @@
     reaper.TrackFX_SetParam(dest_track, fx_id, 1, 0.06)    
     reaper.TrackFX_SetParam(dest_track, fx_id, 8, (1/1084)*2)    
   end  
-  
+ end 
 --  reaper.ShowConsoleMsg(track_state_chunk)
 
 reaper.UpdateArrange()
