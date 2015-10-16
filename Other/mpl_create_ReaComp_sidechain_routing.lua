@@ -1,7 +1,7 @@
   script_title = "create_ReaComp_sidechain_routing"
   -- create_ReaComp_sidechain_routing
   -- source - selected track
-  -- destination - destination
+  -- destination - track under mouse cursor
   
   reaper.Undo_BeginBlock()
 
