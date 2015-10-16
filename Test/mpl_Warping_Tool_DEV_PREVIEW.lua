@@ -1,3 +1,5 @@
+         function _JUMP() end
+         
   ------  Michael Pilyavskiy ------
   ---------- Warping tool ---------
   
@@ -23,11 +25,17 @@ enable_display_graph = 1
   -- stretch beats to grid by markers index
 
 
-  vrs = "0.13"
+  vrs = "0.15"
  
   ---------------------------------------------------------------------------------------------------------------              
   changelog =                              
 [===[ Changelog:
+16.10.2015  0.15
+            engine: another search markers algorithm test
+            gui: mirror env views
+14.10.2015  0.14
+            engine: area2 search 2 directions
+            gui: potential marker points on top
 13.10.2015  0.13
             fft rise envelope instead rms envelope
             fft size is 128bins as optimal for good detection / performance
@@ -96,33 +104,29 @@ enable_display_graph = 1
     sel_items_t ={}
     cur_item = 1 
     
-    window_time = 0.02 -- sec
+    window_time = 0.03 -- sec
     window_time_min = 0.02
     window_time_max = 0.4
         
-    threshold = -55
-    threshold_min = -80
+    threshold = -50
+    threshold_min = -70
     threshold_max = -10    
     
-    s_area = 10
+    s_area = 1
     s_area_min = 1
     s_area_max = 30
     
-    s_area2 = 7
-    s_area2_min = 1
+    s_area2 = 6
+    s_area2_min = 5
     s_area2_max = 30
     
     fft_size = 128
     fft_start = 1 -- hp
     fft_end = 128 -- lp
     
+    env_t_smooth_ratio = 0.01
     
     mouse_res = 200 -- for knobs resolution
-    
-    
---[[    fft_size0 = 512              -- fft size
-    fft_start_index = 1          -- =highpass
-    fft_end_index = 512 -- = lowpass]]
     
   end  
 
@@ -137,7 +141,7 @@ enable_display_graph = 1
     knob_h = 65
     knob_r = knob_w/2-2
     nav_button_w = 50
-    displ_h = 55
+    displ_h = 57
     
     frame = 0.15
     frame_knob = 0.02
@@ -153,7 +157,7 @@ enable_display_graph = 1
         --1st item display
         window0_xywh_t = {x_offset, y_offset, main_w-nav_button_w-x_offset*3, displ_h}
         --2nd item display
-        window2_xywh_t = {x_offset, y_offset+displ_h+offset, main_w-nav_button_w-x_offset*3, displ_h}
+        window2_xywh_t = {x_offset, y_offset+displ_h, main_w-nav_button_w-x_offset*3, displ_h}
         text1_xywh_t = {x_offset, y_offset+40, main_w-nav_button_w-x_offset*3, 20}
         text2_xywh_t = {x_offset, y_offset+100, main_w-nav_button_w-x_offset*3, 20}        
         nav_button2_xywh_t = {window0_xywh_t[1]+window0_xywh_t[3]+x_offset,
@@ -336,14 +340,17 @@ enable_display_graph = 1
         table.insert(com_val_t, fft_val_t_item)  
       end]]
       
+      -- smooth table  
+      for i =2, #fft_val_t do
+        if fft_val_t[i]>fft_val_t[i-1] then fft_val_t[i] = fft_val_t[i]*(1-env_t_smooth_ratio) end
+        if fft_val_t[i]<fft_val_t[i-1] then fft_val_t[i] = fft_val_t[i]*(1+env_t_smooth_ratio) end
+      end  
+      
       -- normalize table
         local max_com = 0
         for i =1, #fft_val_t-1 do max_com = math.max(max_com, fft_val_t[i]) end
         com_mult = 1/max_com      
         for i =1, #fft_val_t-1 do fft_val_t[i]= fft_val_t[i]*com_mult  end
-      
-      
-      
       
       -- generate stretch markers  
         sm_t = ENGINE2_get_stretch_markers(fft_val_t)
@@ -351,14 +358,30 @@ enable_display_graph = 1
       -- calculate tempo average
         -- get tempo for each marker
           tempo_t0 = {}
+          for i =1, #sm_t do
+            sm_it = sm_t[i]
+            if sm_it == 1 then 
+              if last_sm_id ~= nil then
+                tempo_v = 60/((i - last_sm_id)*window_time)
+                table.insert(tempo_t0, tempo_v)
+              end              
+              last_sm_id = i                
+            end
+          end
+          
+          -- filter by average
+          for i = 1, 3 do
+            
+          end
+        --[[
           tempo_t0_sum = 0
           count0 = 1
-          last_id0 = 0
-          last_id = 0
+          last_id0 = 1
+          last_id = 1
           for i = 2, #sm_t do
             sm_it = sm_t[i]
             if sm_it == 1 then last_id = i end
-            tempo_v = last_id - last_id0
+            tempo_v = 60/(last_id - last_id0)
             if tempo_v > 0 then 
               tempo_t0_sum = (tempo_t0_sum+tempo_v)
               table.insert(tempo_t0, tempo_v)
@@ -369,7 +392,7 @@ enable_display_graph = 1
           
           tempo_average0 = tempo_t0_sum / count0
           
-          average_lim_per = 10
+          average_lim_per = 5
           average_lim =average_lim_per /100 -- %
           
         -- filter from 10% average0    
@@ -383,8 +406,8 @@ enable_display_graph = 1
               count = count +1
             end
           end
-          tempo_average_calc = 60/((tempo_average_sum/count)*window_time)
-      
+          tempo_average_calc = 60/((tempo_average_sum/count)*window_time)]]
+      tempo = 120
   
       data_t = {displayed_item_name, --1
                 displayed_item_name2, --2
@@ -393,7 +416,7 @@ enable_display_graph = 1
                 read_pos0,
                 fft_val_t, --5
                 sm_t,
-                tempo_average_calc}    
+                tempo}    
           
       return data_t    
     end -- sel_items_t ~= nil        
@@ -403,36 +426,39 @@ end
   ---------------------------------------------------------------------------------------------------------------       
   function ENGINE2_get_stretch_markers(data_t)
     sm_data_t = {}
+    rise_percent =200 -- percent
     
-    
-  --[[   -- 1 check couple of windows
-      -- fill start sm table
+    --if rise more than % of min point in search area
       for i = 1, s_area do
         table.insert(sm_data_t,0)
       end
-      
-      for i = s_area+1,50 do --- #data_t do
-       data_t_item = data_t[i]
-        data_t_item_area_max = 0
-        for j = i - s_area, s_area do
-          data_t_item_area = data_t[j]          
-          data_t_item_area_max = math.max(data_t_item_area_max,data_t_item_area)
-          if sm_data_t[j] == 1 then data_t_item_area = data_t_item_area_max end
-        end  
-        
-        if data_t_item >= data_t_item_area_max then
-          table.insert(sm_data_t,1)
-          for k = i-s_area, s_area do
-           table.insert(sm_data_t,k,0)
-          end
-         else table.insert(sm_data_t,i,0)
+      for i = 2+s_area, #data_t do
+        data_t_item = data_t[i]
+        data_t_item_area_min = math.huge
+        for j = i-s_area-1, i-1 do
+          data_t_item_area = data_t[j]
+          
+         --[[ if data_t_item_area_min == nil then 
+            data_t_item_area_min = data_t_item_area end]]
+          data_t_item_area_min = math.min(data_t_item_area,data_t_item_area_min)
         end
-         
-      end     ]]    
-      
-       
+        --test = data_t_item/data_t_item_area_min
+        if (data_t_item/data_t_item_area_min)*100 > rise_percent then
+         if sm_data_t[#sm_data_t] == 0 then
+           table.insert(sm_data_t,1)
+          else
+           table.remove(sm_data_t,#sm_data_t)
+           table.insert(sm_data_t,0)
+           table.insert(sm_data_t,1)
+         end
+         else
+          table.insert(sm_data_t,0)
+        end
+      end
     
-    --search max point around couple of windows + add to table
+    
+    -- filt 1
+    --[[search max point around couple of windows + add to table
       for i = 1, #data_t, s_area do
         if i+s_area-1 < #data_t then
           -- 2 search max point value in window
@@ -450,33 +476,63 @@ end
             end
           end            
         end
-      end   
+      end   ]]
+      
     
-  
-    -- search closer sm, delete lower
-    for i = 1+s_area2, #sm_data_t-s_area2 do
+        
+    -- filt 2    
+    --[[area2 search closer sm, delete lower
+    for i = 1, #sm_data_t do
       sm_it = sm_data_t[i]
       if sm_it == 1 then
         data_t_it = data_t[i]
-        data_t_area2_max = 0        
-        for j = i -s_area2, i + s_area2*2+1 do
-          if sm_data_t[j] == 1 then
-            data_t_area2 = data_t[j]
-            data_t_area2_max = math.max(data_t_area2_max , data_t_area2 )
-          end  
-        end 
-        if data_t_it < data_t_area2_max  then 
-          table.insert(sm_data_t,i,0)
-          table.remove(sm_data_t,i+1)end
+        -- search further area
+          data_t_area2_max = 0
+          for j = i + 1, i + s_area2 do
+            if j > #sm_data_t then j = #sm_data_t end
+            if sm_data_t[j] == 1 then
+              data_t_area2 = data_t[j]
+              data_t_area2_max = math.max(data_t_area2_max , data_t_area2 )
+            end  
+          end 
+          if data_t_it < data_t_area2_max  then 
+            table.insert(sm_data_t,i,0)
+            table.remove(sm_data_t,i+1)
+          end
+        -- search prev area
+          data_t_area2_max = 0
+          for j = i-s_area2 , i -1 do
+            if j < 1 then j = 1 end
+            if sm_data_t[j] == 1 then
+              data_t_area2 = data_t[j]
+              data_t_area2_max = math.max(data_t_area2_max , data_t_area2 )
+            end  
+          end 
+          if data_t_it < data_t_area2_max  then 
+            table.insert(sm_data_t,i,0)
+            table.remove(sm_data_t,i+1)
+          end        
+      end      
+    end]]
+    
+    
+    -- threshold filter
+    for i = 1, #sm_data_t do
+      sm_data_it = sm_data_t[i]
+      if sm_data_it == 1 then
+        if 20*math.log(data_t[i]) < threshold then
+          sm_data_t[i] = 0
+        end
       end
-    end 
-           
+    end
+    
+    
     
     return sm_data_t
   end
         
   ---------------------------------------------------------------------------------------------------------------       
-  function GUI_item_display(data_t, xywh_t0,show_name, color_t,text_xywh_t)
+  function GUI_item_display(data_t, xywh_t0,show_name, color_t,text_xywh_t,is_ref)
     -- 1 displayed_item_name
     -- 2 displayed_item_name2
     -- 3 item_pos
@@ -486,41 +542,57 @@ end
     -- 7 sm table
     -- 8 tempo
     local X0,Y,W0,H0 = extract_table(xywh_t0)
-    X=X0+1
+    X=X0
     W = W0-1
-    H = H0-20
-
+    H = H0-20 -- displae gradient
+    if is_ref then Y = Y +20 end  
+    Y1 = Y
+    if not is_ref then Y1 = Y + 0.2*H end
+    H1 = (H0-20)*0.8
+    
     if data_t ~= nil then
       --draw display back
-        gfx.gradrect(X,Y,W,H, 1,1,1,0.001, 0,0,0,0.0001, 0,0,0,0.001)    
+        if is_ref then gfx.gradrect(X,Y,W,H, 1,1,1,0.08, 0,0,0,-0.00001, 0,0,0,-0.0022)
+         else gfx.gradrect(X,Y,W,H, 1,1,1,0.001, 0,0,0,0.00001, 0,0,0,0.0012)end
 
       --draw take name
       if data_t[2] ~= nil then
         gfx.setfont(1, font, fontsize)
         measurestrname = gfx.measurestr(data_t[1])  
         x0 = X0 + (W0- measurestrname)/2
-        y0 = Y + H + 2
+        y0 = Y + H + 2 
+        if is_ref then y0 = Y - 18 end  
         gfx.x, gfx.y = x0,y0
         extract_table(color_t,true)
         gfx.a = 1
         gfx.drawstr(data_t[1]) end 
-          
-      --draw rms envelope
+      
+      --draw envelope
       local com_val_t = data_t[6]
       if com_val_t ~= nil then
-        gfx.x, gfx.y = X,Y
+        gfx.x, gfx.y = X,Y1
         extract_table(color_t,true)
-        gfx.a = 0.9
+        gfx.a = 0.3  
+        if is_ref then 
+          gfx.line( X,Y1-1,X+W,Y1-1,1)
+         else
+          gfx.line( X,Y1+H1+1,X+W,Y1+H1+1,1)
+        end
+        gfx.a = 0.9        
         for i =2, #com_val_t do
           prev_com_peak = com_val_t[i-1]
           com_peak = com_val_t[i]
-          y1 = Y+H-(prev_com_peak*H)
-          y2 = Y+H-(com_peak*H)
+          y1 = Y1+H1-(prev_com_peak*H1)
+          y2 = Y1+H1-(com_peak*H1)
+          if is_ref then 
+            y1 = Y1+(prev_com_peak*H1)
+            y2 = Y1+(com_peak*H1)
+          end
           gfx.line( X+(W/#com_val_t) * (i-1)-(W/#com_val_t+1)+1, y1,
             X+(W/#com_val_t) * i -(W/#com_val_t+1)+1, y2,1) end --for loop
         gfx.line( X+(W/#com_val_t) * (#com_val_t)-(W/#com_val_t+1), y2,
-          X+W-1, y2,0.5) end -- rms
-      
+          X+W-1, y2,1) end -- rms
+        
       -- draw sm
         local sm_t = data_t[7]
         extract_table(color4_t,true)
@@ -528,12 +600,14 @@ end
         for i=1,#sm_t do
           sm_t_item = sm_t[i]
           if sm_t_item == 1 then
-            gfx.line(X+W/#com_val_t*(i-1), Y+H-1,
-                     X+W/#com_val_t*(i-1), Y+H-H*com_val_t[i], 1)
+            if is_ref then
+              gfx.line(   X+W/#com_val_t*(i-1),  Y+H,    X+W/#com_val_t*(i-1),   Y+H-H*0.15,1)
+             else gfx.line(   X+W/#com_val_t*(i-1),  Y,    X+W/#com_val_t*(i-1),   Y+H*0.15,1)
+            end
           end
         end--end draw sm
       
-      -- draw tempo
+      --[[ draw tempo
         --fill background
         extract_table(color6_t, true)
         gfx.a = 0.92
@@ -543,7 +617,7 @@ end
         extract_table(color4_t, true)
         gfx.a = 0.92
         tempo = data_t[8]
-        gfx.drawstr(tostring(tempo))
+        gfx.drawstr(tostring(tempo))]]
         
     end--if data~= nil
     
@@ -551,7 +625,7 @@ end
       x,y,w,h = extract_table(xywh_t0)
       extract_table(color_t,true)
       gfx.a = frame
-      gfx.roundrect(x-1,y,w,h,0.1, true)
+      --gfx.roundrect(x-1,y,w,h,0.1, true)
   end
   
   ---------------------------------------------------------------------------------------------------------------     
@@ -629,8 +703,8 @@ end
     -- top window            
       -- show item peaks
         if enable_display_graph == 1 then 
-          GUI_item_display(ref_item_data_t,window0_xywh_t,true,color1_t,text1_xywh_t)
-          if #sel_items_t > 1 then GUI_item_display(item_data_t,window2_xywh_t,true,color2_t,text2_xywh_t) end
+          GUI_item_display(ref_item_data_t,window0_xywh_t,true,color1_t,text1_xywh_t,true)
+          if #sel_items_t > 1 then GUI_item_display(item_data_t,window2_xywh_t,true,color2_t,text2_xywh_t,false) end
          else
           if #sel_items_t > 0 then 
             x,y,w,h = extract_table(window1_xywh_t)
@@ -844,7 +918,6 @@ end
           s_area2 = math.floor(conv_norm2val(k4_val_norm,s_area2_min,s_area2_max, false))
 
            
-         function JUMP() end
         
           
           
