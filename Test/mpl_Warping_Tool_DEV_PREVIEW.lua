@@ -25,13 +25,14 @@ enable_display_graph = 1
   -- stretch beats to grid by markers index
 
 
-  vrs = "0.16"
+  vrs = "0.17"
  
   ---------------------------------------------------------------------------------------------------------------              
   changelog =                              
 [===[ Changelog:
-17.10.2015  0.16
+17.10.2015  0.17
             engine: search markers algorithm test2
+            gui: rise percent
 16.10.2015  0.15
             engine: another search markers algorithm test
             gui: mirror env views
@@ -106,27 +107,47 @@ enable_display_graph = 1
     sel_items_t ={}
     cur_item = 1 
     
+    ------------------------- 
+    
     window_time = 0.01 -- sec
     window_time_min = 0.01
     window_time_max = 0.3
+    
+    -------------------------    
         
-    threshold = -70
+    threshold = -25
     threshold_min = -70
     threshold_max = -10    
     
-    s_area = 1
+    ------------------------- 
+    
+    s_area = 1 -- windows
     s_area_min = 1
     s_area_max = 30
     
-    s_area2 = 10
-    s_area2_min = 5
-    s_area2_max = 30
+    ------------------------- 
     
-    fft_size = 128
+    s_area2 = 30 -- windows
+    s_area2_min = 3
+    s_area2_max = 40
+    
+    ------------------------- 
+    
+    rise_percent = 140 -- percent
+    rise_percent_min = 101
+    rise_percent_max = 500    
+    
+    ------------------------- 
+    
+    fft_size = 128 -- bins
     fft_start = 1 -- hp
     fft_end = 128 -- lp
     
+    ------------------------- 
+    
     env_t_smooth_ratio = 0.0
+    
+    ------------------------- 
     
     mouse_res = 200 -- for knobs resolution
     
@@ -176,8 +197,10 @@ enable_display_graph = 1
                               window1_xywh_t[4]/3-offset/2} 
       -- middle window
         --detection params
+    
         window_m2_xywh_t = {window1_xywh_t[1], window1_xywh_t[2]+window1_xywh_t[4]+offset,
           window0_xywh_t[3],window1_xywh_t[4]-20}
+          
           --[[ window size knob
             w2_knob1_xywh_t = {window_m2_xywh_t[1] + offset,
                                window_m2_xywh_t[2] + offset,
@@ -186,14 +209,25 @@ enable_display_graph = 1
             w2_knob2_xywh_t = {window_m2_xywh_t[1] + offset,
                                window_m2_xywh_t[2] + offset,
                                knob_w, knob_h}
-          -- search area knob
-            w2_knob3_xywh_t = {window_m2_xywh_t[1] + offset*2 + knob_w,
+          --[[ search area knob
+            knob_x_offset_m = 2
+            w2_knob3_xywh_t = {window_m2_xywh_t[1] +  offset*knob_x_offset_m + knob_w*(knob_x_offset_m-1),
                                window_m2_xywh_t[2] + offset,
-                               knob_w, knob_h}
+                               knob_w, knob_h}]]
+
+          -- percent knob
+            knob_x_offset_m = 2
+            w2_knob5_xywh_t = {window_m2_xywh_t[1] + offset*knob_x_offset_m + knob_w*(knob_x_offset_m-1),
+                               window_m2_xywh_t[2] + offset,
+                               knob_w, knob_h}  
+                                          
           -- search area2 knob
-            w2_knob4_xywh_t = {window_m2_xywh_t[1] + offset*3 + knob_w*2,
+            knob_x_offset_m = 3 
+            w2_knob4_xywh_t = {window_m2_xywh_t[1] + offset*knob_x_offset_m + knob_w*(knob_x_offset_m-1),
                                window_m2_xywh_t[2] + offset,
                                knob_w, knob_h}
+                               
+                             
                                                                         
         --get2 button
         window_m1_xywh_t = {window0_xywh_t [1]+window0_xywh_t [3]+offset, window1_xywh_t[2]+window1_xywh_t[4]+offset, 
@@ -428,7 +462,7 @@ end
   ---------------------------------------------------------------------------------------------------------------       
   function ENGINE2_get_stretch_markers(data_t)
     sm_data_t = {}
-    rise_percent =150 -- percent
+    
     
     --if rise more than % of min point in prev search area then >
     -- > search further area for max point
@@ -797,10 +831,12 @@ end
             GUI_knob(w2_knob1_xywh_t, k1_val_norm, k1_val, "Window") ]]                  
           k2_val = math.floor(threshold)..' dB'
             GUI_knob(w2_knob2_xywh_t, k2_val_norm, k2_val, "Threshold")
-          k3_val = math.floor(s_area*window_time*1000)..' ms'
-            GUI_knob(w2_knob3_xywh_t, k3_val_norm, k3_val, "Area1")            
+          --[[k3_val = math.floor(s_area*window_time*1000)..' ms'
+            GUI_knob(w2_knob3_xywh_t, k3_val_norm, k3_val, "Area1") ]]           
           k4_val = math.floor(s_area2*window_time*1000)..' ms'
-            GUI_knob(w2_knob4_xywh_t, k4_val_norm, k4_val, "Area2")           
+            GUI_knob(w2_knob4_xywh_t, k4_val_norm, k4_val, "Area2")       
+          k5_val = math.floor(rise_percent)..' %'
+            GUI_knob(w2_knob5_xywh_t, k5_val_norm, k5_val, "Rise")                  
         end -- if sel items table size > 0  
         
         
@@ -887,7 +923,8 @@ end
         if last_mouse_obj == 'k1_windowsize' or 
           last_mouse_obj == 'k2_threshold' or 
           last_mouse_obj == 'k3_search_area' or 
-          last_mouse_obj == 'k4_search_area2'  then
+          last_mouse_obj == 'k4_search_area2' or
+          last_mouse_obj == 'k5_rise_percent' then
           ref_item_data_t = ENGINE1_get_item_data(1)
           item_data_t = ENGINE1_get_item_data(cur_item)
         end
@@ -950,11 +987,11 @@ end
             MOUSE_knob(w2_knob2_xywh_t, 'k2_threshold', k2_val_norm0, k2_val_norm)
           threshold = conv_norm2val(k2_val_norm,threshold_min,threshold_max, true)
                   
-        -- knob3 search area
+        --[[ knob3 search area
           k3_val_norm = conv_val2norm(s_area,s_area_min,s_area_max, false)
           last_mouse_obj, k3_val_norm0, k3_val_norm = 
             MOUSE_knob(w2_knob3_xywh_t, 'k3_search_area', k3_val_norm0, k3_val_norm)
-          s_area = math.floor(conv_norm2val(k3_val_norm,s_area_min,s_area_max, false))
+          s_area = math.floor(conv_norm2val(k3_val_norm,s_area_min,s_area_max, false))]]
 
         -- knob4 search area2
           k4_val_norm = conv_val2norm(s_area2,s_area2_min,s_area2_max, false)
@@ -962,7 +999,11 @@ end
             MOUSE_knob(w2_knob4_xywh_t, 'k4_search_area2', k4_val_norm0, k4_val_norm)
           s_area2 = math.floor(conv_norm2val(k4_val_norm,s_area2_min,s_area2_max, false))
 
-           
+        -- knob5 percent
+          k5_val_norm = conv_val2norm(rise_percent,rise_percent_min,rise_percent_max, false)
+          last_mouse_obj, k5_val_norm0, k5_val_norm = 
+            MOUSE_knob(w2_knob5_xywh_t, 'k5_rise_percent', k5_val_norm0, k5_val_norm)
+          rise_percent = math.floor(conv_norm2val(k5_val_norm,rise_percent_min,rise_percent_max, false))           
         
           
           
