@@ -25,13 +25,14 @@ enable_display_graph = 1
   -- stretch beats to grid by markers index
 
 
-  vrs = "0.17"
+  vrs = "0.18"
  
   ---------------------------------------------------------------------------------------------------------------              
   changelog =                              
 [===[ Changelog:
-17.10.2015  0.17
+17.10.2015  0.18
             engine: search markers algorithm test2
+            engine: fft tables sesrch for coincidence test
             gui: rise percent
 16.10.2015  0.15
             engine: another search markers algorithm test
@@ -129,7 +130,7 @@ enable_display_graph = 1
     
     s_area2 = 30 -- windows
     s_area2_min = 3
-    s_area2_max = 40
+    s_area2_max = 100
     
     ------------------------- 
     
@@ -260,7 +261,7 @@ enable_display_graph = 1
     end 
     
     if show_get_button == true then get_button_name = '[ Store selected items ]' else get_button_name = 'Store selected items' end
-    if show_get_button2 == true then get_button_name2 = '[ Add ]' else get_button_name2 = 'Add' end
+    if show_get_button2 == true then get_button_name2 = '[ test ]' else get_button_name2 = 'test' end
     
     
   end
@@ -387,7 +388,9 @@ enable_display_graph = 1
         for i =1, #fft_val_t-1 do max_com = math.max(max_com, fft_val_t[i]) end
         com_mult = 1/max_com      
         for i =1, #fft_val_t-1 do fft_val_t[i]= fft_val_t[i]*com_mult  end
-      
+        fft_val_t[1], fft_val_t[#fft_val_t] = 0,0
+        
+        
       -- generate stretch markers  
         sm_t = ENGINE2_get_stretch_markers(fft_val_t)
       
@@ -449,10 +452,10 @@ enable_display_graph = 1
                 displayed_item_name2, --2
                 item_pos, --3
                 item_pos, --4
-                read_pos0,
-                fft_val_t, --5
-                sm_t,
-                tempo}    
+                read_pos0, --5
+                fft_val_t, --6
+                sm_t, --7
+                tempo}  --8 
           
       return data_t    
     end -- sel_items_t ~= nil        
@@ -486,15 +489,24 @@ end
                 data_t_item_area = data_t[k]
                 data_t_item_area_max = math.max(data_t_item_area_max,data_t_item_area)
                 data_t_item_area_max1 = data_t_item_area_max
-                if data_t_item_area_max0 ~= data_t_item_area_max1 then
+                if data_t_item_area_max0 ~= data_t_item_area_max1 then                
                   current_max_id = k
                 end
               end
             end
-            for m = 1, current_max_id-i do
-              table.insert(sm_data_t,0)
+            rise_percent2 = 150
+            if (data_t[current_max_id]/data_t[i])*100 > rise_percent2 then
+              current_max_id = i 
             end
-            table.insert(sm_data_t,1)
+             
+            if current_max_id ~= i then  
+              for m = 1, current_max_id-i do
+                table.insert(sm_data_t,0)
+              end
+              table.insert(sm_data_t,1)
+             else
+              --table.insert(sm_data_t,1)
+            end
            else
             table.insert(sm_data_t,0)
           end
@@ -608,6 +620,42 @@ end
     
     
     return sm_data_t
+  end
+
+  ---------------------------------------------------------------------------------------------------------------         
+  function ENGINE2_test()
+    data_t_temp1 = ENGINE1_get_item_data(1)
+    data_t_temp1 = data_t_temp1[6]
+      
+    data_t_temp2 = ENGINE1_get_item_data(2)
+    data_t_temp2 = data_t_temp2[6]
+    --search table coincidence
+    diff_t = {}
+    for offset = 100, -100,-1 do
+      diff_com = 0
+      for i = 1, #data_t_temp1 do
+        if i+offset < 0 or i+offset > #data_t_temp2 then
+         t2_val = 0 else t2_val = data_t_temp2[i+offset] end
+        if t2_val == nil then t2_val = 0 end
+        diff = math.abs(data_t_temp1[i] - t2_val)
+        diff_com = diff + diff_com
+      end
+      table.insert(diff_t, diff_com)
+    end
+    
+    diff_t_min = math.huge
+    for i = 1, #diff_t do
+      diff_t_min0 = diff_t_min
+      diff_t_it = diff_t[i]
+      diff_t_min = math.min(diff_t_it, diff_t_min)
+      
+      if diff_t_min0 ~= diff_t_min then diff_t_min_id = i end
+    end
+    item = reaper.BR_GetMediaItemByGUID(0, sel_items_t[2])
+    item_pos = reaper.GetMediaItemInfo_Value(item,"D_POSITION")
+    reaper.SetMediaItemInfo_Value(item,"D_POSITION", 
+      item_pos + (diff_t_min_id - 100)*window_time)
+      reaper.UpdateArrange()
   end
         
   ---------------------------------------------------------------------------------------------------------------       
@@ -1005,7 +1053,10 @@ end
             MOUSE_knob(w2_knob5_xywh_t, 'k5_rise_percent', k5_val_norm0, k5_val_norm)
           rise_percent = math.floor(conv_norm2val(k5_val_norm,rise_percent_min,rise_percent_max, false))           
         
-          
+        -- apply
+          if MOUSE_gate(1, window_m1_xywh_t) then   
+            ENGINE2_test()
+          end
           
       end -- end MID window        
             
