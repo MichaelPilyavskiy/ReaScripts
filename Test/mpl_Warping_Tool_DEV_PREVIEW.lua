@@ -25,11 +25,13 @@ enable_display_graph = 1
   -- stretch beats to grid by markers index
 
 
-  vrs = "0.15"
+  vrs = "0.16"
  
   ---------------------------------------------------------------------------------------------------------------              
   changelog =                              
 [===[ Changelog:
+17.10.2015  0.16
+            engine: search markers algorithm test2
 16.10.2015  0.15
             engine: another search markers algorithm test
             gui: mirror env views
@@ -104,11 +106,11 @@ enable_display_graph = 1
     sel_items_t ={}
     cur_item = 1 
     
-    window_time = 0.03 -- sec
-    window_time_min = 0.02
-    window_time_max = 0.4
+    window_time = 0.01 -- sec
+    window_time_min = 0.01
+    window_time_max = 0.3
         
-    threshold = -50
+    threshold = -70
     threshold_min = -70
     threshold_max = -10    
     
@@ -116,7 +118,7 @@ enable_display_graph = 1
     s_area_min = 1
     s_area_max = 30
     
-    s_area2 = 6
+    s_area2 = 10
     s_area2_min = 5
     s_area2_max = 30
     
@@ -124,7 +126,7 @@ enable_display_graph = 1
     fft_start = 1 -- hp
     fft_end = 128 -- lp
     
-    env_t_smooth_ratio = 0.01
+    env_t_smooth_ratio = 0.0
     
     mouse_res = 200 -- for knobs resolution
     
@@ -426,35 +428,78 @@ end
   ---------------------------------------------------------------------------------------------------------------       
   function ENGINE2_get_stretch_markers(data_t)
     sm_data_t = {}
-    rise_percent =200 -- percent
+    rise_percent =150 -- percent
     
-    --if rise more than % of min point in search area
+    --if rise more than % of min point in prev search area then >
+    -- > search further area for max point
       for i = 1, s_area do
         table.insert(sm_data_t,0)
       end
-      for i = 2+s_area, #data_t do
-        data_t_item = data_t[i]
-        data_t_item_area_min = math.huge
-        for j = i-s_area-1, i-1 do
-          data_t_item_area = data_t[j]
-          
-         --[[ if data_t_item_area_min == nil then 
-            data_t_item_area_min = data_t_item_area end]]
-          data_t_item_area_min = math.min(data_t_item_area,data_t_item_area_min)
-        end
-        --test = data_t_item/data_t_item_area_min
-        if (data_t_item/data_t_item_area_min)*100 > rise_percent then
-         if sm_data_t[#sm_data_t] == 0 then
-           table.insert(sm_data_t,1)
-          else
-           table.remove(sm_data_t,#sm_data_t)
-           table.insert(sm_data_t,0)
-           table.insert(sm_data_t,1)
-         end
-         else
-          table.insert(sm_data_t,0)
+      for i = 2+s_area, #data_t-1 do
+        if sm_data_t[i] == nil then
+          data_t_item = data_t[i]
+          data_t_item_area_min = math.huge
+          for j = i-s_area-1, i-1 do
+            data_t_item_area = data_t[j]
+            data_t_item_area_min = math.min(data_t_item_area,data_t_item_area_min)
+          end
+          if (data_t_item/data_t_item_area_min)*100 > rise_percent then
+            -- check further area max point
+            data_t_item_area_max = 0
+            for k = i, i + s_area2 do
+              if k < #data_t then
+                data_t_item_area_max0 = data_t_item_area_max
+                data_t_item_area = data_t[k]
+                data_t_item_area_max = math.max(data_t_item_area_max,data_t_item_area)
+                data_t_item_area_max1 = data_t_item_area_max
+                if data_t_item_area_max0 ~= data_t_item_area_max1 then
+                  current_max_id = k
+                end
+              end
+            end
+            for m = 1, current_max_id-i do
+              table.insert(sm_data_t,0)
+            end
+            table.insert(sm_data_t,1)
+           else
+            table.insert(sm_data_t,0)
+          end
         end
       end
+    
+        
+    --[[if rise more than % of min point in search area
+      for i = 1, s_area do
+        table.insert(sm_data_t,0)
+      end
+      for i = 2+s_area, #data_t-1 do
+        if sm_data_t[i] == nil then
+          data_t_item = data_t[i]
+          data_t_item_area_min = math.huge
+          for j = i-s_area-1, i-1 do
+            data_t_item_area = data_t[j]            
+            data_t_item_area_min = math.min(data_t_item_area,data_t_item_area_min)
+          end
+          --test = data_t_item/data_t_item_area_min
+          if (data_t_item/data_t_item_area_min)*100 > rise_percent then
+           --if sm_data_t[#sm_data_t] == 0 then
+             table.insert(sm_data_t,1)
+            else
+             table.remove(sm_data_t,#sm_data_t)
+             table.insert(sm_data_t,0)
+             if data_t[i] > data_t[i+1] then
+               table.insert(sm_data_t,1)
+              else
+               table.insert(sm_data_t,0)
+               table.insert(sm_data_t,#sm_data_t, 1)
+             end
+           else
+            table.insert(sm_data_t,0)
+          end
+          
+          
+        end
+      end]]
     
     
     -- filt 1
