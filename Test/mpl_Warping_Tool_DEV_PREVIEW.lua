@@ -26,17 +26,24 @@ get_selected_items_on_start = 1
   -- stretch beats to grid by markers index
 
 
-  vrs = "0.2"
+  vrs = "0.21"
  
   ---------------------------------------------------------------------------------------------------------------              
   changelog =                              
 [===[ Changelog:
+21.10.2015  0.21
+            action: match items positions by RMS
+            code: HP/LP FFT filters
+            gui: fixed display relative item positions
+            gui: action related knobs
+            gui: show action info 
+            gui: slider       
 20.10.2015  0.20
             code: structure improvements
             code: optionally get items on start
             gui: structure improvements
             gui: action selector(hidden)
-            gui: gfxblit graphics - saves cpu A LOT, thanks James HE!
+            performance: blitting graphics - saves cpu A LOT, thanks James HE!
 17.10.2015  0.18
             code: search markers algorithm test2
             code: fft tables sesrch for coincidence test
@@ -103,19 +110,39 @@ get_selected_items_on_start = 1
     if use == 'xywh' then x,y,w,h = a,b,c,d end
     return a,b,c,d
   end 
- 
+  
+-----------------------------------------------------------------------  
+  function F_round(num, mult)
+     local mult = 10^(idp or 0)
+     return math.floor(num * mult + 0.5) / mult
+  end
+  
 -----------------------------------------------------------------------
   function DEFINE_default_variables()
     sel_items_t ={}
     ------------------------- 
-    window_time = 0.01 -- sec
+    window_time = 0.02 -- sec
     ------------------------- 
-    fft_size = 128 -- bins
+    fft_size = 256 -- bins
+    ------------------------- 
+    fft_start_min = 1
     fft_start = 1 -- hp
-    fft_end = 128 -- lp
+    fft_start_max = 10
+    ------------------------- 
+    fft_end_min =  11
+    fft_end = 256 -- lp
+    fft_end_max = 256
     ------------------------- 
     env_t_smooth_ratio = 0.1
     ------------------------- 
+    mouse_res = 100 -- for knobs resolution
+    mouse_res2 = 200 -- for sliders
+    ------------------------- 
+    strenght = 0
+    -------------------------
+    s_area1_min = 5 -- for RMS matching
+    s_area1 = 20 --windows
+    s_area1_max = 200
     
   end 
   
@@ -136,7 +163,9 @@ get_selected_items_on_start = 1
           take = reaper.GetActiveTake(item)
           if not reaper.TakeIsMIDI(take) then
             item_guid = reaper.BR_GetMediaItemGUID(item)
-            table.insert(sel_items_t, item_guid)
+            item_pos = reaper.GetMediaItemInfo_Value(item,"D_POSITION")
+            item_len = reaper.GetMediaItemInfo_Value(item,"D_LENGTH")
+            table.insert(sel_items_t, {item_guid,item_pos,reaper.GetTakeName(take)})
           end
         end    
       end        
@@ -144,13 +173,12 @@ get_selected_items_on_start = 1
   end
 
 -----------------------------------------------------------------------
-  function ENGINE1_get_item_data(guid, is_ref1, for_gui)
+  function ENGINE1_get_item_data(guid, is_ref1)
     if #sel_items_t > 0 then
-      item = reaper.BR_GetMediaItemByGUID(0, guid)
+      item = reaper.BR_GetMediaItemByGUID(0, guid[1])
       if item ~= nil then
         item_pos = reaper.GetMediaItemInfo_Value(item,"D_POSITION")
-        item_len = reaper.GetMediaItemInfo_Value(item,"D_LENGTH")
-                
+        item_len = reaper.GetMediaItemInfo_Value(item,"D_LENGTH")                
         take = reaper.GetActiveTake(item) 
         track = reaper.GetMediaItem_Track(item)        
         if not reaper.TakeIsMIDI(take) then
@@ -161,13 +189,13 @@ get_selected_items_on_start = 1
             src_rate = reaper.GetMediaSourceSampleRate(src)              
 
             window_samples = math.floor(src_rate * window_time)
-            --loop through windows
+    --loop through windows
             for read_pos = 0, item_len, window_time do              
               if read_pos+item_pos > ref_item_pos and read_pos+item_pos < ref_item_pos+ref_item_len then
                 audio_accessor_buffer = reaper.new_array(window_samples)
                 reaper.GetAudioAccessorSamples(audio_accessor,src_rate,src_num_ch,read_pos,window_samples,audio_accessor_buffer)
                 
-                -- fft aa buffer                  
+    -- fft aa buffer                  
                   audio_accessor_buffer.fft(fft_size, true, 1)
                   fft_sum = 0
                   audio_accessor_buffer_fft_t = audio_accessor_buffer.table(1, fft_size)
@@ -185,17 +213,24 @@ get_selected_items_on_start = 1
             end -- loop every window                    
           reaper.DestroyAudioAccessor(audio_accessor)  
           
-          if for_gui then
+    -- full edges
             if not is_ref1 then 
+              -- fill table beginning
               offset1 = (item_pos - ref_item_pos)
               if offset1 > 0 then 
-                -- fill table beginning
                 for i = 1, math.floor(offset1/window_time) do
                   table.insert(fft_val_t, 1, 0)
                 end
-              end
+              end 
+              -- fill table end
+              offset2 = (item_pos + item_len - ref_item_pos - ref_item_len)
+              if offset2 < 0 then 
+                for i = 1, math.floor(math.abs(offset2)/window_time) do
+                  table.insert(fft_val_t, 0)
+                end
+              end                           
             end
-          end
+          
           
           _, trackname = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME','', false)
           if trackname == '' then trackname = '(no name)' end
@@ -219,17 +254,16 @@ get_selected_items_on_start = 1
         fft_val_t[1], fft_val_t[#fft_val_t] = 0,0
         
          
-      return fft_val_t,ret_name, item_pos, item_len
+      return fft_val_t, ret_name, item_pos, item_len
     end -- sel_items_t ~= nil            
   end
 
 -----------------------------------------------------------------------
-  function ENGINE1_update_gui_data()
+  function ENGINE1_update_gui_data(cur_item)
     gui_ref_item_data_t, ref_item_name = 
-      ENGINE1_get_item_data(sel_items_t[1],true,true)
-    if #sel_items_t < 2 then cur_item = 1 else cur_item = 2 end
+      ENGINE1_get_item_data(sel_items_t[1],true)
     gui_cur_item_data_t, cur_item_name = 
-      ENGINE1_get_item_data(sel_items_t[cur_item],false,true)
+      ENGINE1_get_item_data(sel_items_t[cur_item],false)
     update_gui_disp1 = true
     update_gui_disp2 = true
     gfx.setimgdim(1,-1,-1)
@@ -237,14 +271,68 @@ get_selected_items_on_start = 1
   end
   
 -----------------------------------------------------------------------
-  function ENGINE2_action_list()
+  function ENGINE2_action_list(gui_params_set)
     if #sel_items_t < 2 then act='#'else act='' end
-    actions_table = {act..'Match item positions by fitting RMS',
+    actions_table = {'#Actions:|',
+                    act..'Match item positions by fitting RMS',
                     }
     ret = gfx.showmenu(table.concat(actions_table, '|'))    
-    if ret == 0 then action_name = action_b_name 
-      else action_name = actions_table[ret] end
+    if ret == 0 then 
+      action_name = action_b_name 
+      ret=gui_params_set
+     else action_name = actions_table[ret] 
+    end
     return action_name, ret
+  end
+  
+-----------------------------------------------------------------------  
+  function ENGINE3_find_offsets_by_RMS(set)
+    
+    offset_l = -s_area1 -- windows
+    offset_r = s_area1
+    if not set then
+      if #sel_items_t > 1 then
+        ref_RMS_t, _, ref_pos, ref_len = ENGINE1_get_item_data(sel_items_t[1], true)
+        offsets_t = {0}
+        for i = 2, #sel_items_t do
+          cur_RMS_t, _, cur_pos = ENGINE1_get_item_data(sel_items_t[i], false)
+          
+          --create diff table
+          diff_t = {}
+          for offset = offset_l, offset_r, 1 do
+            diff_com = 0
+            for i = 1, #ref_RMS_t do
+              if i+offset < 1 or i+offset > #cur_RMS_t then
+               t2_val = 0 else t2_val = cur_RMS_t[i+offset] end
+              diff = math.abs(ref_RMS_t[i] - t2_val)
+              diff_com = diff + diff_com
+            end
+            table.insert(diff_t, diff_com)
+          end
+          
+          -- find min diff id
+          diff_t_min = math.huge
+          for i = 1, #diff_t do
+            diff_t_min0 = diff_t_min
+            diff_t_it = diff_t[i]
+            diff_t_min = math.min(diff_t_it, diff_t_min)
+            if diff_t_min0 ~= diff_t_min then diff_t_min_id = i end
+          end
+          test1 = -(offset_l + diff_t_min_id)*window_time
+          --create offset table
+          table.insert(offsets_t, -(offset_l + diff_t_min_id)*window_time)
+        end
+      end
+      
+     else -- apply matching
+      for i = 2, #sel_items_t do
+        item = reaper.BR_GetMediaItemByGUID(0, sel_items_t[i][1])
+        if item ~= nil then
+          reaper.SetMediaItemInfo_Value(item,"D_POSITION",sel_items_t[i][2]+(offsets_t[i]*strenght))
+          reaper.UpdateItemInProject(item)
+        end
+      end
+    end
   end
   
 -----------------------------------------------------------------------
@@ -254,17 +342,24 @@ get_selected_items_on_start = 1
     -- gfx buf3 - gradient back
     
     main_w = 440
-    main_h = 355
+    main_h = 340
     offset = 5
+    offset2 = 2
     main_buttons_h = 22
     display_h = 40
     nav_button_h = 30
     max_display_time = 30 -- seconds    
-    fontsize_b = fontsize        
+    fontsize_b = fontsize   -- button
+    fontsize_k = fontsize-2   -- knob
+    
     get_b_name = 'Get selected items'
     action_b_name = 'Select action'
+    info_b_name = 'Show action info'
+    
     update_gui_disp1 = true 
     update_gui_disp2 = true -- fill blit buffer on start
+    
+    
     -- colors
       color5_t = {0.2, 0.2, 0.2} -- back1
       color6_t = {0.2, 0.25, 0.22} -- back2
@@ -273,7 +368,7 @@ get_selected_items_on_start = 1
       color2_t = {0.5, 0.8, 1} -- blue      
       color3_t = {1, 1, 1}-- white
       color4_t = {0.8, 0.5, 0.2} -- red
-
+      color7_t = {0.4, 0.6, 0.4} -- green dark
     --coordinates
       --get items button
         get_b_xywh_t = {offset, offset, main_w-offset*2, main_buttons_h}
@@ -312,8 +407,56 @@ get_selected_items_on_start = 1
           peak_display2_xywh_t[2]+peak_display2_xywh_t[4]+offset,
           main_w-offset*2,
           main_buttons_h}
-              
-                                
+      -- knobs frame
+        knobs_frame_xywh_t = {offset,   
+          action_b_xywh_t[2]+action_b_xywh_t[4]+offset,
+          main_w-offset*2,
+          display_h*2}
+          
+           k_w =  (knobs_frame_xywh_t[3]-2*offset2)/7
+           k_h = knobs_frame_xywh_t[4]-offset2*2
+           knob_r = k_w/2-4
+        -- knob 1
+          k1_xywh_t = {offset+offset2,
+           knobs_frame_xywh_t[2]+offset2,
+           k_w,
+           k_h }
+        -- knob 2
+          k2_xywh_t = {offset+offset2+k_w,
+           knobs_frame_xywh_t[2]+offset2,
+           k_w,k_h }
+        -- knob 3
+          k3_xywh_t = {offset+offset2+2*k_w,
+           knobs_frame_xywh_t[2]+offset2,
+           k_w,k_h }
+        -- knob 4
+          k4_xywh_t = {offset+offset2+3*k_w,
+           knobs_frame_xywh_t[2]+offset2,
+           k_w,k_h }
+        -- knob 5
+          k5_xywh_t = {offset+offset2+4*k_w,
+           knobs_frame_xywh_t[2]+offset2,
+           k_w,k_h }
+        -- knob 6
+          k6_xywh_t = {offset+offset2+5*k_w,
+           knobs_frame_xywh_t[2]+offset2,
+           k_w,k_h }
+        -- knob 7
+          k7_xywh_t = {offset+offset2+6*k_w,
+           knobs_frame_xywh_t[2]+offset2,
+           k_w,k_h }
+           
+      -- info button
+        info_b_xywh_t = {offset,
+          knobs_frame_xywh_t[2]+knobs_frame_xywh_t[4]+offset,
+          main_w-offset*2,
+          main_buttons_h}
+          
+      -- apply slider
+        slider_xywh_t = {offset,
+          info_b_xywh_t[2]+info_b_xywh_t[4]+offset,
+          main_w-offset*2,
+          display_h*2}
   end
   
 -----------------------------------------------------------------------  
@@ -323,6 +466,17 @@ get_selected_items_on_start = 1
 
 -----------------------------------------------------------------------
   function GUI_item_display(data_t, xywh_t, color_t, is_ref,update_gui_disp)
+    -- draw item back gradient to buffer#3
+    if is_1_time == nil then
+       gfx.dest = 3
+       F_extract_table(peak_display1_xywh_t, 'xywh')
+       F_extract_table(color3_t, 'rgb')
+       gfx.x,gfx.y, gfx.a = x,y, 1      
+       gfx.setimgdim(3,w+x,h+y)
+       gfx.gradrect(x,y,w,h, 1,1,1,0.4, 0,0,0,0.0001, 0,0,0,-0.01)
+       is_1_time = 1
+    end
+     
     if data_t ~= nil then
       -- gradient
         if is_ref then 
@@ -368,6 +522,8 @@ get_selected_items_on_start = 1
                          x+i*w/#data_t,    y )   
             end                    
           end -- envelope building
+          gfx.x,gfx.y = x,y
+          gfx.blurto(x+w,y+h)
           update_gui_disp = false
          else
           gfx.x,gfx.y,gfx.a = x,y,0.7
@@ -384,20 +540,20 @@ get_selected_items_on_start = 1
 -----------------------------------------------------------------------
   function GUI_button(xywh_t, name, b_mouse_state, font_color_t)      
       --fill background
-      F_extract_table(color3_t, 'rgb')
-      F_extract_table(xywh_t, 'xywh')
-      if b_mouse_state == 2 then gfx.a = 0.5 else gfx.a = 0.04 end
-      gfx.rect(x,y,w,h)
+        F_extract_table(color3_t, 'rgb')
+        F_extract_table(xywh_t, 'xywh')
+        if b_mouse_state == 2 then gfx.a = 0.5 else gfx.a = 0.04 end
+        gfx.rect(x,y,w,h)
            
       -- draw name -- 
-      gfx.setfont(1, font, fontsize_b)
-      measurestrname = gfx.measurestr(name)  
-      x0 = x + (w - measurestrname)/2
-      y0 = y + (h - fontsize)/2
-      gfx.x, gfx.y = x0,y0
-      F_extract_table(font_color_t, 'rgb')
-      gfx.a = 1
-      gfx.drawstr(name)
+        gfx.setfont(1, font, fontsize_b)
+        measurestrname = gfx.measurestr(name)  
+        x0 = x + (w - measurestrname)/2
+        y0 = y + (h - fontsize)/2
+        gfx.x, gfx.y = x0,y0
+        F_extract_table(font_color_t, 'rgb')
+        gfx.a = 1
+        gfx.drawstr(name)
       
       --b_mouse_state 
         -- 0 - not active
@@ -415,44 +571,160 @@ get_selected_items_on_start = 1
 
 -----------------------------------------------------------------------
   function GUI_knob(xywh_t,val,knob_val,knob_name)
-    local x,y,w,h = extract_table(xywh_t)
-    
+      
     -- frame -- 
-      extract_table(color3_t, true)
-      gfx.a = frame_knob
-      gfx.roundrect(x,y,w,h,0.1, true)
+      F_extract_table(xywh_t,'xywh')
+      F_extract_table(color3_t, 'rgb')
+      gfx.a = 0.0
+      gfx.rect(x,y,w,h, false)
+      
     -- out arc
-      extract_table(color3_t, true)
-      gfx.a = frame_knob_outarc
+      F_extract_table(color3_t, 'rgb')
+      gfx.a = 0.5
       gfx.x,gfx.y = x,y
-      gfx.arc(x+w/2,y+knob_r+offset,knob_r,math.rad(-130),math.rad(130),1)
+      gfx.arc(x+w/2-1,y+knob_r+offset,knob_r,math.rad(-135),math.rad(135),0.9)
+      
     -- circ
-      extract_table(color1_t, true)
+      F_extract_table(color1_t, 'rgb')
       gfx.a = 1
       if val ~= nil then
         val_grad = val*240-30
-        circ_x = x+w/2 - knob_r*math.cos(math.rad(val_grad))
+        circ_x = x+w/2 - knob_r*math.cos(math.rad(val_grad))-1
         circ_y = y+knob_r+offset - knob_r*math.sin(math.rad(val_grad))
         gfx.circle(circ_x,circ_y,3,1,2)
       end 
+      
+    --[[ pointer
+      gfx.dest = -1
+      gfx.a = 1
+      x1,y1,w1,h1 = F_extract_table(k1_xywh_t)
+      F_extract_table(xywh_t,'xywh')
+      gfx.x,gfx.y = x,y
+      gfx.blit(5,1,0,x,y,w,h)]]
+      
     -- val
-      gfx.setfont(1, font, fontsize3)
+      gfx.setfont(1, font, fontsize_k)
       local measurestrname = gfx.measurestr(knob_val)  
       gfx.x, gfx.y = x+w/2-measurestrname/2, y+knob_r-2
-      extract_table(color3_t, true)
+      F_extract_table(color3_t, 'rgb')
       gfx.a = 1
       gfx.drawstr(knob_val)
-    -- name
-      gfx.setfont(1, font, fontsize3)
-      local measurestrname = gfx.measurestr(knob_name)  
-      gfx.x, gfx.y = x+w/2-measurestrname/2, y+h-fontsize3
-      extract_table(color3_t, true)
-      gfx.a = 1
-      gfx.drawstr(knob_name)
-  end
       
+    -- name
+      gfx.setfont(1, font, fontsize_k)
+      F_extract_table(color3_t, 'rgb')
+      gfx.a = 1
+      if gfx.measurestr(knob_name) > w then
+        for word,word2 in string.gmatch(knob_name, "(%w+) (%w+)") do w1= word w2= word2  end
+        gfx.x, gfx.y = x+w/2-gfx.measurestr(w1)/2+1, y+h-fontsize_k*2+2
+        gfx.drawstr(w1)
+        gfx.x, gfx.y = x+w/2-gfx.measurestr(w2)/2+1, y+h-fontsize_k
+        gfx.drawstr(w2)
+       else
+        gfx.x, gfx.y = x+w/2-gfx.measurestr(knob_name)/2+1, y+h-fontsize_k*1.5
+        gfx.drawstr(knob_name)
+      end
+  end
+  
+-----------------------------------------------------------------------  
+  function GUI_params(gui_params_set)
+    if gui_params_set ~= nil then
+      -- draw frame    
+        F_extract_table(knobs_frame_xywh_t, 'xywh') 
+        F_extract_table(color3_t,'rgb') 
+        gfx.a = 0.05
+        gfx.roundrect(x,y,w,h,0.1, true)    
+                    
+      -- match positions by rms    
+        if gui_params_set == 2 then        
+          -- k1
+            k1_val = math.floor((fft_start-1)*22050/fft_size)..'Hz'
+              GUI_knob(k1_xywh_t, k1_val_norm, k1_val, "HP")
+          -- k2  
+            k2_val =   fft_end*22050/fft_size
+              if k2_val > 1000 then k2_val = math.floor(k2_val/1000)..'kHz'
+              else k2_val = math.floor(k2_val)..'Hz' end
+              GUI_knob(k2_xywh_t, k2_val_norm, k2_val, "LP")
+          -- k3
+            k3_val = math.floor(s_area1*window_time*1000)..'ms'
+              GUI_knob(k3_xywh_t, k3_val_norm, k3_val, "Search Area")  
+            
+          -- show action info  
+              GUI_button(info_b_xywh_t, info_b_name, info_b_mouse_state,color3_t)
+              
+          -- s1
+            s1_val = 'Apply matching: '..math.floor(strenght*100)..' %'
+            GUI_slider(slider_xywh_t, s1_val_norm, s1_val)  
+            
+        end   
+          
+                 
+    end -- draw knobs
+  end
+  
+-----------------------------------------------------------------------  
+  function GUI_slider (xywh_t,val_norm, s1_val)
+    -- draw slider gradient to buffer#4
+    if is_1_time2 == nil then
+      gfx.dest = 4
+      F_extract_table(slider_xywh_t, 'xywh')
+      r,g,b = F_extract_table(color3_t,'rgb')
+      gfx.setimgdim(4,w+x,h+y)
+      gfx.a, a = 1, 0  
+      gfx.gradrect(x,y,w,h, r,g,b,a, 
+      0, 0.002, 0, 0.001, 
+      0, 0.002, 0, 0.005) 
+      is_1_time2 = 1
+    end 
+    
+    gfx.dest = -1
+    --draw frame
+      -- draw frame    
+        F_extract_table(xywh_t, 'xywh') 
+        F_extract_table(color3_t,'rgb') 
+        gfx.a = 0.05
+        gfx.roundrect(x,y,w,h,0.1, true) 
+        
+      --  blit from buffer 4
+        gfx.x,gfx.y,gfx.a = x,y,0.7
+        gfx.dest = -1
+        gfx.blit(4,1,0, x,y,w*val_norm,h,x,y,w*val_norm,h)
+     
+      -- draw name -- 
+        gfx.setfont(1, font, fontsize_b)
+        measurestrname = gfx.measurestr(s1_val)  
+        x0 = x + (w - measurestrname)/2
+        y0 = y + (h - fontsize)/2
+        gfx.x, gfx.y = x0,y0
+        F_extract_table(font_color_t, 'rgb')
+        gfx.a = 1
+        gfx.drawstr(s1_val)    
+      
+  end 
+  
+                
 -----------------------------------------------------------------------
   function GUI_DRAW()
+    --[[ dest
+    1 - item1wave // update_gui_disp1
+    2 - item2 wave // update_gui_disp2
+    3 - backgr item display // is_1_time
+    4 - slider backgr // is_1_time2
+    -- rotation trouble 5 - knob pointer // is_1_time3]]
+    
+    --[[ pointer to buffer
+      if is_1_time3 == nil then
+        gfx.dest = 5
+        F_extract_table(k1_xywh_t,'xywh')
+        gfx.setimgdim(5,w+x,h+y)        
+        F_extract_table(color3_t, 'rgb')
+        
+        gfx.a = 1
+        gfx.rect(x+5,y+5,w-10,h-10)
+        --gfx.triangle(x+w/2, y+8,  x+w/2+1,y+4,  x+w/2-1,y+4)
+        is_1_time3 = 1 
+      end      ]]
+    
     gfx.dest = -1
     -- background
       F_extract_table(color5_t,'rgb')
@@ -462,24 +734,14 @@ get_selected_items_on_start = 1
     -- get items
       GUI_button(get_b_xywh_t, get_b_name, get_b_mouse_state,get_b_name_col) 
        
-      -- gradient
-      if is_1_time == nil then
-         gfx.dest = 3
-         F_extract_table(peak_display1_xywh_t, 'xywh')
-         F_extract_table(color3_t, 'rgb')
-         gfx.x,gfx.y, gfx.a = x,y, 1      
-         gfx.setimgdim(3,w+x,h+y)
-         gfx.gradrect(x,y,w,h, 1,1,1,0.4, 0,0,0,0.0001, 0,0,0,-0.01)
-         is_1_time = 1
-      end
-      
-      
-             
+         
     -- items display
       if #sel_items_t > 0  then 
         -- first display
         update_gui_disp1 = 
           GUI_item_display(gui_ref_item_data_t,peak_display1_xywh_t,color1_t,true,update_gui_disp1)
+        if #sel_items_t == 1 then  
+          update_gui_disp2 = GUI_item_display(gui_ref_item_data_t,peak_display2_xywh_t,color7_t,false,update_gui_disp2) end
         if #sel_items_t > 1 then
           -- second display
           update_gui_disp2 = 
@@ -498,13 +760,12 @@ get_selected_items_on_start = 1
         end --if sel item > 1
         
       -- select action button
-        --GUI_button(action_b_xywh_t, action_b_name, action_b_mouse_state,color3_t)
+        GUI_button(action_b_xywh_t, action_b_name, action_b_mouse_state,color3_t)
         
-      -- param set
-        -- match positions by rms    
-          if gui_params_set == 1 then
-            
-          end
+      -- parameters set
+        GUI_params(gui_params_set)
+          
+          
       end --  if sel item > 0
       
     gfx.update()    
@@ -519,12 +780,27 @@ get_selected_items_on_start = 1
     
     if LMB_state and last_mouse_obj == last_mouse_obj_name and knob_val_norm0 ~= nil then
       knob_val_norm = my_rel/mouse_res + knob_val_norm0
-      knob_val_norm = limit(knob_val_norm, 0, 1) 
+      knob_val_norm = F_limit(knob_val_norm, 0, 1) 
     end
     
     return last_mouse_obj, knob_val_norm0, knob_val_norm  
   end
-
+  
+-----------------------------------------------------------------------
+  function MOUSE_slider(xywh_t,last_mouse_obj_name,s_val_norm0 , s_val_norm)
+    if MOUSE_gate(1, xywh_t) and not last_LMB_state then
+      s_val_norm0 = s_val_norm
+      last_mouse_obj = last_mouse_obj_name
+    end
+    
+    if LMB_state and last_mouse_obj == last_mouse_obj_name and s_val_norm0 ~= nil then
+      s_val_norm =  s_val_norm0 - mx_rel/mouse_res2
+      s_val_norm = F_limit(s_val_norm, 0, 1) 
+    end
+    
+    return last_mouse_obj, s_val_norm0, s_val_norm  
+  end
+  
 -----------------------------------------------------------------------
   function MOUSE_gate2(mb, b)
     local state    
@@ -556,7 +832,90 @@ get_selected_items_on_start = 1
      return true 
     end 
   end
+  
+-----------------------------------------------------------------------  
+  function MOUSE_param_set()
+    if gui_params_set ~= nil then
     
+      -- Match by RMS
+        if gui_params_set == 2 then       
+          -- HP
+            k1_val_norm = F_conv_val2norm(fft_start, fft_start_min, fft_start_max,false)
+            last_mouse_obj, k1_val_norm0, k1_val_norm = 
+              MOUSE_knob(k1_xywh_t, 'k1',k1_val_norm0, k1_val_norm)
+            fft_start = math.floor(F_conv_norm2val(k1_val_norm,fft_start_min, fft_start_max,false))
+          -- LP
+            k2_val_norm = F_conv_val2norm(fft_end, fft_end_min, fft_end_max,false)
+            last_mouse_obj, k2_val_norm0, k2_val_norm = 
+              MOUSE_knob(k2_xywh_t, 'k2',k2_val_norm0, k2_val_norm)
+            fft_end = math.floor(F_conv_norm2val(k2_val_norm,fft_end_min, fft_end_max,false))  
+          -- search area
+            k3_val_norm = F_conv_val2norm(s_area1, s_area1_min, s_area1_max,false)
+            last_mouse_obj, k3_val_norm0, k3_val_norm = 
+              MOUSE_knob(k3_xywh_t, 'k3',k3_val_norm0, k3_val_norm)
+            s_area1 = math.floor(F_conv_norm2val(k3_val_norm,s_area1_min, s_area1_max,false))              
+          -- APPLY
+            s1_val_norm = strenght
+            last_mouse_obj, s1_val_norm0, s1_val_norm = 
+              MOUSE_slider(slider_xywh_t, 's1',s1_val_norm0, s1_val_norm)
+            strenght = s1_val_norm
+            if last_mouse_obj == 's1' and LMB_state then
+              ENGINE3_find_offsets_by_RMS(true) end
+          -- analize when selecting action
+            if last_gui_params_set == nil then ENGINE3_find_offsets_by_RMS(false) end
+        end
+      
+    end
+    
+    
+    -- info button     
+      if MOUSE_gate2(1, info_b_xywh_t) then -- gui state
+        info_b_mouse_state = 2          
+        elseif MOUSE_match_xy(info_b_xywh_t) then 
+        info_b_mouse_state = 1 
+        else info_b_mouse_state = 0 end
+      if MOUSE_gate(1, info_b_xywh_t) then
+        -- Match by RMS
+        if gui_params_set == 2 then
+          reaper.ShowConsoleMsg('')
+          str_info = 
+[===[
+  Match item positions by RMS
+  
+  Find "best fit" beetween windowed RMS envelopes of selected slave items and reference (topmost) item.
+  Measured signal is FFT filtered via HP and LP cutoff knobs.
+  Search area means area for searching "best fit", so if search area is 400 ms and slave item position is 2seconds from project start, script will searching for "best fit" beetween 1.6sec and 2.4seconds possible item position. 
+          
+  Current offsets:
+  
+]===]
+          for i = 2, #sel_items_t do
+            str_info = str_info ..'  '..sel_items_t[i][3]..'\n'..
+                 '              Offset '..offsets_t[i]..'ms'..'\n'
+          end
+          reaper.ShowConsoleMsg(str_info)
+        end
+      end 
+    
+  end  
+  
+----------------------------------------------------------------------- 
+  function MOUSE_param_set_on_release()
+  -- release actions
+    if last_LMB_state and not MB_state then
+    
+      if gui_params_set == 2 then -- if match RMS
+        if last_mouse_obj == 'k1' or  -- HP
+           last_mouse_obj == 'k2' or -- LP
+           last_mouse_obj == 'k3' then -- search
+          ENGINE1_update_gui_data(cur_item)
+          ENGINE3_find_offsets_by_RMS(false)
+        end
+      end
+      
+    end -- release actions   
+  end
+  
 -----------------------------------------------------------------------
   function MOUSE_get()
     cur_time = os.clock()
@@ -570,18 +929,8 @@ get_selected_items_on_start = 1
     if LMB_state and not last_LMB_state then mx0,my0 = mx,my else  end
     if mx0 ~= nil and my0 ~= nil then    mx_rel,my_rel = mx0-mx, my0-my end
     
-    --[[release behaviour
-      if last_LMB_state and not MB_state then
-        if last_mouse_obj == 'k1_windowsize' or 
-          last_mouse_obj == 'k2_threshold' or 
-          last_mouse_obj == 'k3_search_area' or 
-          last_mouse_obj == 'k4_search_area2' or
-          last_mouse_obj == 'k5_rise_percent' then
-          ref_item_data_t = ENGINE1_get_item_data(1)
-          item_data_t = ENGINE1_get_item_data(cur_item)
-        end
-      end -- release actions]]    
-  
+    MOUSE_param_set_on_release()
+    
     if not last_LMB_state then last_mouse_obj = nil end
     
     -- get items button     
@@ -592,7 +941,9 @@ get_selected_items_on_start = 1
         else get_b_mouse_state = 0 end
       if MOUSE_gate(1, get_b_xywh_t) then --action
         ENGINE1_get_items()
-        ENGINE1_update_gui_data()
+        ENGINE1_update_gui_data(cur_item)
+        gui_params_set = nil
+        action_b_name = 'Select action'
       end  
       
     -- show item names
@@ -613,7 +964,7 @@ get_selected_items_on_start = 1
         if MOUSE_gate(1, nav1_b_xywh_t) then --action
           cur_item = cur_item - 1 
           if cur_item <2 then cur_item = 2 end
-          gui_cur_item_data_t, cur_item_name = ENGINE1_get_item_data(sel_items_t[cur_item])
+          ENGINE1_update_gui_data(cur_item)
         end       
       -- next nav button
         if MOUSE_gate2(1, nav2_b_xywh_t) then -- gui state
@@ -624,8 +975,9 @@ get_selected_items_on_start = 1
         if MOUSE_gate(1, nav2_b_xywh_t) then --action
           cur_item = cur_item + 1 
           if cur_item > #sel_items_t then cur_item = #sel_items_t end 
-          gui_cur_item_data_t, cur_item_name = ENGINE1_get_item_data(sel_items_t[cur_item])
+          ENGINE1_update_gui_data(cur_item)
         end         
+        
       -- select item button
         if MOUSE_gate2(1, nav3_b_xywh_t) then -- gui state
           nav3_b_mouse_state = 2          
@@ -635,7 +987,7 @@ get_selected_items_on_start = 1
         if MOUSE_gate(1, nav3_b_xywh_t) then --action
           menustring = ""             
           for i = 1, #sel_items_t do 
-            item = reaper.BR_GetMediaItemByGUID(0, sel_items_t[i])
+            item = reaper.BR_GetMediaItemByGUID(0, sel_items_t[i][1])
             track = reaper.GetMediaItem_Track(item)
             retval, trackname = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME','', false)
             take = reaper.GetActiveTake(item) 
@@ -644,22 +996,26 @@ get_selected_items_on_start = 1
             if i == 1 then menustring = menustring .."|" end end  
             menu_ret = gfx.showmenu(menustring) 
             if menu_ret ~= 0 and menu_ret ~= 1 then cur_item = math.floor(menu_ret) end          
-          gui_cur_item_data_t, cur_item_name = ENGINE1_get_item_data(sel_items_t[cur_item])
+          ENGINE1_update_gui_data(cur_item)
         end  
+        
       -- select action button
         if MOUSE_gate2(1, action_b_xywh_t) then -- gui state
         action_b_mouse_state = 2          
         elseif MOUSE_match_xy(action_b_xywh_t) then 
         action_b_mouse_state = 1 
         else action_b_mouse_state = 0 end
-      if MOUSE_gate(1, action_b_xywh_t) then --action
-        action_b_name, gui_params_set = ENGINE2_action_list()        
-      end         
+        if MOUSE_gate(1, action_b_xywh_t) then --action
+          gfx.x,gfx.y = mx,my
+          action_b_name, gui_params_set = ENGINE2_action_list(gui_params_set)        
+        end         
       
-            
+      MOUSE_param_set()
+        
     last_LMB_state = LMB_state    
     last_RMB_state = RMB_state
-    last_MMB_state = MMB_state    
+    last_MMB_state = MMB_state 
+    last_gui_params_set = gui_params_set   
   end        
   
 -----------------------------------------------------------------------
@@ -684,7 +1040,8 @@ get_selected_items_on_start = 1
   
   if get_selected_items_on_start == 1 then
     ENGINE1_get_items()
-    ENGINE1_update_gui_data()
+    cur_item=2
+    ENGINE1_update_gui_data(cur_item)
   end
   
   MAIN_run()   
@@ -711,8 +1068,6 @@ get_selected_items_on_start = 1
   ---------------------------------------------------------------------------------------------------------------       
   unction ENGINE2_get_stretch_markers(data_t)
     sm_data_t = {}
-    
-    
     --if rise more than % of min point in prev search area then >
     -- > search further area for max point
       for i = 1, s_area do
@@ -758,8 +1113,6 @@ get_selected_items_on_start = 1
           end
         end
       end
-    
-        
     --[[if rise more than % of min point in search area
       for i = 1, s_area do
         table.insert(sm_data_t,0)
@@ -788,12 +1141,8 @@ get_selected_items_on_start = 1
            else
             table.insert(sm_data_t,0)
           end
-          
-          
         end
       end]]
-    
-    
     -- filt 1
     --[[search max point around couple of windows + add to table
       for i = 1, #data_t, s_area do
@@ -814,9 +1163,6 @@ get_selected_items_on_start = 1
           end            
         end
       end   ]]
-      
-    
-        
     -- filt 2    
     --[[area2 search closer sm, delete lower
     for i = 1, #sm_data_t do
@@ -851,8 +1197,6 @@ get_selected_items_on_start = 1
           end        
       end      
     end]]
-    
-    
     -- threshold filter
     for i = 1, #sm_data_t do
       sm_data_it = sm_data_t[i]
@@ -863,51 +1207,12 @@ get_selected_items_on_start = 1
       end
     end
     
-    
-    
-    return sm_data_t
-  end
-
-  ---------------------------------------------------------------------------------------------------------------         
-  unction ENGINE2_test()
-    data_t_temp1 = ENGINE1_get_item_data(1)
-    data_t_temp1 = data_t_temp1[6]
-      
-    data_t_temp2 = ENGINE1_get_item_data(2)
-    data_t_temp2 = data_t_temp2[6]
-    --search table coincidence
-    diff_t = {}
-    for offset = 100, -100,-1 do
-      diff_com = 0
-      for i = 1, #data_t_temp1 do
-        if i+offset < 0 or i+offset > #data_t_temp2 then
-         t2_val = 0 else t2_val = data_t_temp2[i+offset] end
-        if t2_val == nil then t2_val = 0 end
-        diff = math.abs(data_t_temp1[i] - t2_val)
-        diff_com = diff + diff_com
-      end
-      table.insert(diff_t, diff_com)
-    end
-    
-    diff_t_min = math.huge
-    for i = 1, #diff_t do
-      diff_t_min0 = diff_t_min
-      diff_t_it = diff_t[i]
-      diff_t_min = math.min(diff_t_it, diff_t_min)
-      
-      if diff_t_min0 ~= diff_t_min then diff_t_min_id = i end
-    end
-    item = reaper.BR_GetMediaItemByGUID(0, sel_items_t[2])
-    item_pos = reaper.GetMediaItemInfo_Value(item,"D_POSITION")
-    reaper.SetMediaItemInfo_Value(item,"D_POSITION", 
-      item_pos + (diff_t_min_id - 100)*window_time)
-      reaper.UpdateArrange()
-  end
         
-   
-    
-  --[[ generate stretch markers  
-    sm_t = ENGINE2_get_stretch_markers(fft_val_t)
+ 
+  
+  
+  
+  
   
   -- calculate tempo average
     -- get tempo for each marker
@@ -922,12 +1227,6 @@ get_selected_items_on_start = 1
           last_sm_id = i                
         end
       end
-      
-      -- filter by average
-      for i = 1, 3 do
-        
-      end
-    --[[
       tempo_t0_sum = 0
       count0 = 1
       last_id0 = 1
@@ -942,13 +1241,10 @@ get_selected_items_on_start = 1
           count0 = count0 +1
         end            
         last_id0 = last_id
-      end
-      
-      tempo_average0 = tempo_t0_sum / count0
-      
+      end      
+      tempo_average0 = tempo_t0_sum / count0      
       average_lim_per = 5
-      average_lim =average_lim_per /100 -- %
-      
+      average_lim =average_lim_per /100 -- %      
     -- filter from 10% average0    
       tempo_average_sum = 0   
       count = 1
@@ -961,151 +1257,35 @@ get_selected_items_on_start = 1
         end
       end
       tempo_average_calc = 60/((tempo_average_sum/count)*window_time)
-  tempo = 120
   
-  data_t = {displayed_item_name, --1
-            displayed_item_name2, --2
-            item_pos, --3
-            item_pos, --4
-            read_pos0, --5
-            fft_val_t, --6
-            sm_t, --7
-            tempo}  --8 ]]
-
+  
+  
+  
          
-         
-         
-         
-         --[[x_offset = 5
-         y_offset = 5
-         
-         knob_w = 55
-         knob_h = 65
-         knob_r = knob_w/2-2
-         nav_button_w = 50
-         displ_h = 57
-         
-         frame = 0.15
-         frame_knob = 0.02
-         frame_knob_outarc = 0.7
-         fontsize2 = fontsize+1
-         fontsize3 = fontsize -2
-         
-         
-           -- middle window
-             --detection params
-         
-             window_m2_xywh_t = {window1_xywh_t[1], window1_xywh_t[2]+window1_xywh_t[4]+offset,
-               window0_xywh_t[3],window1_xywh_t[4]-20}
-               
-               --[[ window size knob
-                 w2_knob1_xywh_t = {window_m2_xywh_t[1] + offset,
-                                    window_m2_xywh_t[2] + offset,
-                                    knob_w, knob_h}
-               -- threshold knob
-                 w2_knob2_xywh_t = {window_m2_xywh_t[1] + offset,
-                                    window_m2_xywh_t[2] + offset,
-                                    knob_w, knob_h}
-               --[[ search area knob
-                 knob_x_offset_m = 2
-                 w2_knob3_xywh_t = {window_m2_xywh_t[1] +  offset*knob_x_offset_m + knob_w*(knob_x_offset_m-1),
-                                    window_m2_xywh_t[2] + offset,
-                                    knob_w, knob_h}
-         
-               -- percent knob
-                 knob_x_offset_m = 2
-                 w2_knob5_xywh_t = {window_m2_xywh_t[1] + offset*knob_x_offset_m + knob_w*(knob_x_offset_m-1),
-                                    window_m2_xywh_t[2] + offset,
-                                    knob_w, knob_h}  
-                                               
-               -- search area2 knob
-                 knob_x_offset_m = 3 
-                 w2_knob4_xywh_t = {window_m2_xywh_t[1] + offset*knob_x_offset_m + knob_w*(knob_x_offset_m-1),
-                                    window_m2_xywh_t[2] + offset,
-                                    knob_w, knob_h}
-                                    
-                                  
-                                                                             
-             --get2 button
-             window_m1_xywh_t = {window0_xywh_t [1]+window0_xywh_t [3]+offset, window1_xywh_t[2]+window1_xywh_t[4]+offset, 
-               nav_button_w, window_m2_xywh_t[4]}   ]]              
-               
                 
                --[[ cur_item = 1 
-                
-                ------------------------- 
-                    
+                -------------------------                     
                 window_time_min = 0.01
-                window_time_max = 0.3
-                
-                -------------------------    
-                    
+                window_time_max = 0.3                
+                -------------------------                     
                 threshold = -25
                 threshold_min = -70
                 threshold_max = -10    
-                
                 ------------------------- 
-                
                 s_area = 1 -- windows
                 s_area_min = 1
                 s_area_max = 30
-                
                 ------------------------- 
-                
                 s_area2 = 30 -- windows
                 s_area2_min = 3
                 s_area2_max = 100
-                
                 ------------------------- 
-                
                 rise_percent = 140 -- percent
                 rise_percent_min = 101
                 rise_percent_max = 500    
-                 
                 ------------------------- 
                 
-                mouse_res = 200 -- for knobs resolution]]
-                
-                
-                
-    
-    --[[ one or two displays on top
-    if #sel_items_t <2 then 
-      window1_xywh_t = {x_offset-1, y_offset, main_w-x_offset*2, displ_h*2+offset}
-      window0_xywh_t = {x_offset, y_offset, main_w-x_offset*2, displ_h*2 + offset}
-      text1_xywh_t = {x_offset, y_offset+100, main_w-nav_button_w-x_offset*3, 20}
-     else
-      window1_xywh_t = {x_offset-1, y_offset, main_w-x_offset*3-nav_button_w, displ_h*2+offset}
-      window0_xywh_t = {x_offset, y_offset, main_w-nav_button_w-x_offset*3, displ_h}
-      text1_xywh_t = {x_offset, y_offset+40, main_w-nav_button_w-x_offset*3, 20}
-    end 
-    
-    if show_get_button == true then get_button_name = '[ Store selected items ]' else get_button_name = 'Store selected items' end
-    if show_get_button2 == true then get_button_name2 = '[ test ]' else get_button_name2 = 'test' end
-    ]]
-    
-    
-      
-    
-    --[[displayed_item_name
-    -- 2 displayed_item_name2
-    -- 3 item_pos
-    -- 4 item_len
-    -- 5 offset rel to ref item pos
-    -- 6 com_val_t
-    -- 7 sm table
-    -- 8 tempo
-    local X0,Y,W0,H0 = extract_table(xywh_t0)
-    X=X0
-    W = W0-1
-    H = H0-20 -- displae gradient
-    if is_ref then Y = Y +20 end  
-    Y1 = Y
-    if not is_ref then Y1 = Y + 0.2*H end
-    H1 = (H0-20)*0.8
-    
-    if data_t ~= nil then
-        
+       
       -- draw sm
         local sm_t = data_t[7]
         extract_table(color4_t,true)
@@ -1119,6 +1299,8 @@ get_selected_items_on_start = 1
             end
           end
         end--end draw sm
+        
+        
       
       --[[ draw tempo
         --fill background
@@ -1131,80 +1313,7 @@ get_selected_items_on_start = 1
         gfx.a = 0.92
         tempo = data_t[8]
         gfx.drawstr(tostring(tempo))
-        
-    end--if data~= nil
-    
-    -- frame -- 
-      x,y,w,h = extract_table(xywh_t0)
-      extract_table(color_t,true)
-      gfx.a = frame
-      --gfx.roundrect(x-1,y,w,h,0.1, true)]]
-      
- 
- 
- 
-   
- --[[ top window            
-   -- show item peaks
-     if enable_display_graph == 1 then 
-       GUI_item_display(ref_item_data_t,window0_xywh_t,true,color1_t,text1_xywh_t,true)
-       if #sel_items_t > 1 then GUI_item_display(item_data_t,window2_xywh_t,true,color2_t,text2_xywh_t,false) end
-      else
-       if #sel_items_t > 0 then 
-         x,y,w,h = extract_table(window1_xywh_t)
-         gfx.setfont(1, font, fontsize)
-         measurestrname = gfx.measurestr('Item RMS / FFT graphs are disabled')  
-         gfx.x, gfx.y = x+(w-measurestrname)/2,y+offset
-         extract_table(color3_t, true)
-         gfx.a = 1
-         gfx.drawstr('Item RMS / FFT graphs are disabled')
-       end  
-     end
-   -- nav buttons                  
-     if #sel_items_t > 1 then  
-       GUI_button(nav_button3_xywh_t, '<', frame, color2_t, fontsize)
-       GUI_button(nav_button4_xywh_t, '>', frame, color2_t, fontsize)
-       GUI_button(nav_button2_xywh_t, math.floor(cur_item)..' / '..#sel_items_t, 0.1, color2_t,fontsize) end      
-   -- get button
-     if #sel_items_t == 0 then show_get_button=true end
-     if show_get_button then 
-       GUI_button(window1_xywh_t, get_button_name , 0.8, color3_t,fontsize2)  end     
-        
- -- middle window
-   -- get button
-     if #sel_items_t > 0 then GUI_button(window_m1_xywh_t, get_button_name2, 0.8, color3_t,fontsize2) end
-   -- detection settings 
-     if #sel_items_t > 0 then 
-       -- settings com frame -- 
-       x,y,w,h = extract_table(window_m2_xywh_t)
-       extract_table(color3_t, true)
-       gfx.a = frame
-       gfx.roundrect(x,y,w,h,0.1, true)
-       -- settings gradrect
-       gfx.gradrect(x,y,w,h-20, 1,1,1,0.0005, 0,0,0,0.00005, 0,0,0,0.00009) 
-       -- name
-       gfx.setfont(1, font, fontsize)
-       measurestrname = gfx.measurestr('Stretch markers detection settings')  
-       gfx.x, gfx.y = x+(w-measurestrname)/2,y+h-fontsize-2
-       extract_table(color3_t, true)
-       gfx.a = 1
-       gfx.drawstr('Stretch markers detection settings')
-       
-       --knobs
-       
-       --[[k1_val = math.floor(window_time*1000)..' ms'          
-         GUI_knob(w2_knob1_xywh_t, k1_val_norm, k1_val, "Window")                  
-       k2_val = math.floor(threshold)..' dB'
-         GUI_knob(w2_knob2_xywh_t, k2_val_norm, k2_val, "Threshold")
-       --[[k3_val = math.floor(s_area*window_time*1000)..' ms'
-         GUI_knob(w2_knob3_xywh_t, k3_val_norm, k3_val, "Area1")           
-       k4_val = math.floor(s_area2*window_time*1000)..' ms'
-         GUI_knob(w2_knob4_xywh_t, k4_val_norm, k4_val, "Area2")       
-       k5_val = math.floor(rise_percent)..' %'
-         GUI_knob(w2_knob5_xywh_t, k5_val_norm, k5_val, "Rise")                  
-     end -- if sel items table size > 0  ]]
           
-                   
  
  --[[if MOUSE_gate(2, xywh_t) then
    local knob_retval, knob_return_s = reaper.GetUserInputs(inputname1, 1, inputname2, "") 
@@ -1219,48 +1328,7 @@ get_selected_items_on_start = 1
    end
  end
  ]]
- 
- 
- --[[ 
-     --[[ knob1 window size
-       k1_val_norm = conv_val2norm(window_time, window_time_min, window_time_max,false)
-       last_mouse_obj, k1_val_norm0, k1_val_norm = 
-         MOUSE_knob(w2_knob1_xywh_t, 'k1_windowsize',k1_val_norm0, k1_val_norm)
-       window_time = conv_norm2val(k1_val_norm,window_time_min, window_time_max,false)
-      
-     -- knob2 threshold
-       k2_val_norm = conv_val2norm(threshold,threshold_min,threshold_max, true)
-       last_mouse_obj, k2_val_norm0, k2_val_norm = 
-         MOUSE_knob(w2_knob2_xywh_t, 'k2_threshold', k2_val_norm0, k2_val_norm)
-       threshold = conv_norm2val(k2_val_norm,threshold_min,threshold_max, true)
-               
-     --[[ knob3 search area
-       k3_val_norm = conv_val2norm(s_area,s_area_min,s_area_max, false)
-       last_mouse_obj, k3_val_norm0, k3_val_norm = 
-         MOUSE_knob(w2_knob3_xywh_t, 'k3_search_area', k3_val_norm0, k3_val_norm)
-       s_area = math.floor(conv_norm2val(k3_val_norm,s_area_min,s_area_max, false))
- 
-     -- knob4 search area2
-       k4_val_norm = conv_val2norm(s_area2,s_area2_min,s_area2_max, false)
-       last_mouse_obj, k4_val_norm0, k4_val_norm = 
-         MOUSE_knob(w2_knob4_xywh_t, 'k4_search_area2', k4_val_norm0, k4_val_norm)
-       s_area2 = math.floor(conv_norm2val(k4_val_norm,s_area2_min,s_area2_max, false))
- 
-     -- knob5 percent
-       k5_val_norm = conv_val2norm(rise_percent,rise_percent_min,rise_percent_max, false)
-       last_mouse_obj, k5_val_norm0, k5_val_norm = 
-         MOUSE_knob(w2_knob5_xywh_t, 'k5_rise_percent', k5_val_norm0, k5_val_norm)
-       rise_percent = math.floor(conv_norm2val(k5_val_norm,rise_percent_min,rise_percent_max, false))           
-     
-     -- apply
-       if MOUSE_gate(1, window_m1_xywh_t) then   
-         ENGINE2_test()
-       end
-       
-   end -- end MID window        ]]
-   
-   
                
  ]===]
  
- 
+   
