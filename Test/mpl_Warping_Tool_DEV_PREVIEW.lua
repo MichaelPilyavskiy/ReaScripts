@@ -26,12 +26,12 @@ get_selected_items_on_start = 1
   -- stretch beats to grid by markers index
 
 
-  vrs = "0.21"
+  vrs = "0.211"
  
   ---------------------------------------------------------------------------------------------------------------              
   changelog =                              
 [===[ Changelog:
-21.10.2015  0.21
+21.10.2015  0.211
             action: match items positions by RMS
             code: HP/LP FFT filters
             gui: fixed display relative item positions
@@ -891,7 +891,7 @@ get_selected_items_on_start = 1
 ]===]
           for i = 2, #sel_items_t do
             str_info = str_info ..'  '..sel_items_t[i][3]..'\n'..
-                 '              Offset '..offsets_t[i]..'ms'..'\n'
+                 '              Offset '..math.floor(offsets_t[i]*1000)..'ms'..'\n'
           end
           reaper.ShowConsoleMsg(str_info)
         end
