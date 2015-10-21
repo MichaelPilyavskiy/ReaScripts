@@ -26,18 +26,18 @@ get_selected_items_on_start = 1
   -- stretch beats to grid by markers index
 
 
-  vrs = "0.211"
+  vrs = "0.212"
  
   ---------------------------------------------------------------------------------------------------------------              
   changelog =                              
 [===[ Changelog:
-21.10.2015  0.211
+21.10.2015  0.212
             action: match items positions by RMS
             code: HP/LP FFT filters
             gui: fixed display relative item positions
             gui: action related knobs
             gui: show action info 
-            gui: slider       
+            gui: slider  
 20.10.2015  0.20
             code: structure improvements
             code: optionally get items on start
@@ -941,6 +941,7 @@ get_selected_items_on_start = 1
         else get_b_mouse_state = 0 end
       if MOUSE_gate(1, get_b_xywh_t) then --action
         ENGINE1_get_items()
+        if #sel_items_t > 1 then cur_item = 2 else cur_item=1 end
         ENGINE1_update_gui_data(cur_item)
         gui_params_set = nil
         action_b_name = 'Select action'
@@ -1040,7 +1041,7 @@ get_selected_items_on_start = 1
   
   if get_selected_items_on_start == 1 then
     ENGINE1_get_items()
-    cur_item=2
+    if #sel_items_t > 1 then cur_item = 2 else cur_item=1 end
     ENGINE1_update_gui_data(cur_item)
   end
   
