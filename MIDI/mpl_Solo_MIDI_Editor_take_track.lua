@@ -1,4 +1,4 @@
-script_title = 'Solo MIDI Editor take track '
+script_title = 'Solo MIDI Editor active take track '
 
 reaper.Undo_BeginBlock()
 act_editor = reaper.MIDIEditor_GetActive()
@@ -7,9 +7,9 @@ if act_editor ~= nil then
   if take ~= nil then    
     take_track = reaper.GetMediaItemTake_Track(take)
     is_solo = reaper.GetMediaTrackInfo_Value(take_track, 'I_SOLO')
-    reaper.Main_OnCommand(40340,0)
+    
     if is_solo == 1 then reaper.SetMediaTrackInfo_Value(take_track, 'I_SOLO',0)
-                    else reaper.SetMediaTrackInfo_Value(take_track, 'I_SOLO',1) end
+                    else reaper.Main_OnCommand(40340,0) reaper.SetMediaTrackInfo_Value(take_track, 'I_SOLO',1) end
     repeat
       parent_track = reaper.GetParentTrack(take_track)
       if parent_track ~= nil then
