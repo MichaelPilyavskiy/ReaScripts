@@ -26,13 +26,17 @@ get_selected_items_on_start = 1
   -- stretch beats to grid by markers index
 
 
-  vrs = "0.212"
+  vrs = "0.22"
  
   ---------------------------------------------------------------------------------------------------------------              
   changelog =                              
 [===[ Changelog:
+23.10.2015  0.22
+            code: match items content by RMS
+            code: match items positions by peaks
+            code: match items content by peaks
 21.10.2015  0.212
-            action: match items positions by RMS
+            code: match items positions by RMS
             code: HP/LP FFT filters
             gui: fixed display relative item positions
             gui: action related knobs
@@ -112,7 +116,7 @@ get_selected_items_on_start = 1
   end 
   
 -----------------------------------------------------------------------  
-  function F_round(num, mult)
+  function F_round(num, idp)
      local mult = 10^(idp or 0)
      return math.floor(num * mult + 0.5) / mult
   end
@@ -140,12 +144,27 @@ get_selected_items_on_start = 1
     ------------------------- 
     strenght = 0
     -------------------------
-    s_area1_min = 5 -- for RMS matching
-    s_area1 = 20 --windows
-    s_area1_max = 200
-    
+    s_area1_min = 5 -- windows for RMS matching
+    s_area1 = 20 -- windows for RMS matching
+    s_area1_max = 300 -- windows for RMS matching
+    -------------------------
+    max_timesel_smpls = 1000 -- max samples for peak matching
   end 
   
+-----------------------------------------------------------------------  
+  function DEFINE_dynamic_variables()
+    timesel_st,timesel_end = 
+      reaper.GetSet_LoopTimeRange2(0, false, false, 0, 0, false)
+    timesel_smpls = math.floor((timesel_end - timesel_st)*44100)
+    
+    if gui_params_set == 4 or gui_params_set == 5 then -- if match peaks
+      if last_timesel_smpls ~= timesel_smpls then
+        ENGINE3_find_offsets_by_peaks(false)
+      end
+    end 
+    
+  end
+    
 -----------------------------------------------------------------------  
   function ENGINE1_get_items()
     sel_items_t = {}
@@ -165,7 +184,9 @@ get_selected_items_on_start = 1
             item_guid = reaper.BR_GetMediaItemGUID(item)
             item_pos = reaper.GetMediaItemInfo_Value(item,"D_POSITION")
             item_len = reaper.GetMediaItemInfo_Value(item,"D_LENGTH")
-            table.insert(sel_items_t, {item_guid,item_pos,reaper.GetTakeName(take)})
+            take = reaper.GetActiveTake(item)
+            s_offs = reaper.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
+            table.insert(sel_items_t, {item_guid,item_pos,reaper.GetTakeName(take),s_offs})
           end
         end    
       end        
@@ -173,7 +194,7 @@ get_selected_items_on_start = 1
   end
 
 -----------------------------------------------------------------------
-  function ENGINE1_get_item_data(guid, is_ref1)
+  function ENGINE1_get_item_data(guid, is_ref1, get_peaks)
     if #sel_items_t > 0 then
       item = reaper.BR_GetMediaItemByGUID(0, guid[1])
       if item ~= nil then
@@ -210,7 +231,48 @@ get_selected_items_on_start = 1
                 audio_accessor_buffer_t = {}
                 audio_accessor_buffer.clear()                              
               end -- check if inside ref_item  
-            end -- loop every window                    
+            end -- loop every window
+            
+    -- stream item peaks within timeselection to table 
+    
+    
+          if timesel_smpls > 0 and timesel_smpls < max_timesel_smpls and get_peaks then            
+              pos_delta = item_pos - timesel_st -- if item pos more than time selection start
+              if pos_delta > 0 or pos_delta == 0 then -- if item pos = time selection start
+                read_pos = 0
+               elseif pos_delta < 0 then -- if item pos less time selection start
+                read_pos = math.abs(pos_delta)
+              end
+              
+              if item_pos + item_len < timesel_end or item_pos + item_len == timesel_end then
+                if pos_delta < 0 then pos_delta = 0 end
+                buffer_smpls = math.floor((item_pos + item_len - timesel_st - pos_delta)*44100)
+               elseif item_pos + item_len > timesel_end then
+                buffer_smpls = math.floor((timesel_end - timesel_st - pos_delta)*44100)
+              end
+              buffer_smpls = timesel_smpls
+          
+              audio_accessor_buffer = reaper.new_array(buffer_smpls)
+              reaper.GetAudioAccessorSamples(audio_accessor,
+                src_rate,src_num_ch,read_pos,buffer_smpls,audio_accessor_buffer)    
+              peaks_t = audio_accessor_buffer.table(1, buffer_smpls) 
+              
+              -- fill empty space           
+                if pos_delta > 0 then
+                  for i = 1, math.floor(pos_delta*44100) do
+                    table.insert(peaks_t, 1, 0)
+                  end       
+                end
+                
+                if item_pos + item_len < timesel_end then
+                  for i = 1, math.floor((timesel_end - item_pos - item_len)*44100) do
+                    table.insert(peaks_t, #peaks_t, 0)
+                  end       
+                end     
+                         
+              -- abs table values
+              for i = 1, #peaks_t do peaks_t[i]= math.abs(peaks_t[i]) end    
+          end
           reaper.DestroyAudioAccessor(audio_accessor)  
           
     -- full edges
@@ -254,16 +316,16 @@ get_selected_items_on_start = 1
         fft_val_t[1], fft_val_t[#fft_val_t] = 0,0
         
          
-      return fft_val_t, ret_name, item_pos, item_len
+      return fft_val_t, ret_name, item_pos, item_len, peaks_t
     end -- sel_items_t ~= nil            
   end
 
 -----------------------------------------------------------------------
   function ENGINE1_update_gui_data(cur_item)
     gui_ref_item_data_t, ref_item_name = 
-      ENGINE1_get_item_data(sel_items_t[1],true)
+      ENGINE1_get_item_data(sel_items_t[1],true, false)
     gui_cur_item_data_t, cur_item_name = 
-      ENGINE1_get_item_data(sel_items_t[cur_item],false)
+      ENGINE1_get_item_data(sel_items_t[cur_item],false,false)
     update_gui_disp1 = true
     update_gui_disp2 = true
     gfx.setimgdim(1,-1,-1)
@@ -274,8 +336,10 @@ get_selected_items_on_start = 1
   function ENGINE2_action_list(gui_params_set)
     if #sel_items_t < 2 then act='#'else act='' end
     actions_table = {'#Actions:|',
-                    act..'Match item positions by fitting RMS',
-                    }
+                    act..'Match items positions by fitting RMS',
+                    act..'Match items content by fitting RMS',
+                    act..'Match items positions by fitting peaks, detect time selection',
+                    act..'Match items content by fitting peaks, detect time selection'}
     ret = gfx.showmenu(table.concat(actions_table, '|'))    
     if ret == 0 then 
       action_name = action_b_name 
@@ -286,16 +350,16 @@ get_selected_items_on_start = 1
   end
   
 -----------------------------------------------------------------------  
-  function ENGINE3_find_offsets_by_RMS(set)
+  function ENGINE3_find_offsets_by_RMS(set,source)
     
     offset_l = -s_area1 -- windows
     offset_r = s_area1
     if not set then
       if #sel_items_t > 1 then
-        ref_RMS_t, _, ref_pos, ref_len = ENGINE1_get_item_data(sel_items_t[1], true)
+        ref_RMS_t, _, ref_pos, ref_len = ENGINE1_get_item_data(sel_items_t[1], true, false)
         offsets_t = {0}
         for i = 2, #sel_items_t do
-          cur_RMS_t, _, cur_pos = ENGINE1_get_item_data(sel_items_t[i], false)
+          cur_RMS_t, _, cur_pos = ENGINE1_get_item_data(sel_items_t[i], false, false)
           
           --create diff table
           diff_t = {}
@@ -323,17 +387,94 @@ get_selected_items_on_start = 1
           table.insert(offsets_t, -(offset_l + diff_t_min_id)*window_time)
         end
       end
-      
      else -- apply matching
-      for i = 2, #sel_items_t do
-        item = reaper.BR_GetMediaItemByGUID(0, sel_items_t[i][1])
-        if item ~= nil then
-          reaper.SetMediaItemInfo_Value(item,"D_POSITION",sel_items_t[i][2]+(offsets_t[i]*strenght))
-          reaper.UpdateItemInProject(item)
+     
+      if not source then
+        for i = 2, #sel_items_t do
+          item = reaper.BR_GetMediaItemByGUID(0, sel_items_t[i][1])
+          if item ~= nil then
+            reaper.SetMediaItemInfo_Value(item,"D_POSITION",sel_items_t[i][2]+(offsets_t[i]*strenght))
+            reaper.UpdateItemInProject(item)
+          end
         end
+       else
+        for i = 2, #sel_items_t do
+          item = reaper.BR_GetMediaItemByGUID(0, sel_items_t[i][1])
+          if item ~= nil then
+            take = reaper.GetActiveTake(item)
+            reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS',sel_items_t[i][4]-(offsets_t[i]*strenght))
+            reaper.UpdateItemInProject(item)
+          end
+        end        
       end
+      
     end
   end
+  
+-----------------------------------------------------------------------  
+  function ENGINE3_find_offsets_by_peaks(set,source)
+    if timesel_smpls > 0 and timesel_smpls < max_timesel_smpls then  
+      offset_smpl_L = -timesel_smpls
+      offset_smpl_R = timesel_smpls
+      if not set then
+        if #sel_items_t > 1 then
+          _, _, ref_pos, ref_len, ref_peaks_t = ENGINE1_get_item_data(sel_items_t[1], false, true)
+          offsets_t = {0}
+          for i = 2, #sel_items_t do
+            _, _, cur_pos,_,cur_peaks_t = ENGINE1_get_item_data(sel_items_t[i], false, true)
+            
+            -- create diff table
+            diff_t = {}
+            for offset_smpl = offset_smpl_R, offset_smpl_L,-1 do
+              diff_com = 0
+              for i = 1, #ref_peaks_t do
+                if i + offset_smpl < 1 or i + offset_smpl > #ref_peaks_t then
+                  t3_val = 0 else t3_val = cur_peaks_t[i + offset_smpl] end
+                if t3_val == nil then t3_val = 0 end
+                diff = math.abs(ref_peaks_t[i] - t3_val)
+                diff_com = diff + diff_com
+              end
+              table.insert(diff_t, diff_com)
+            end
+            
+            -- find min diff id
+              diff_t_min = math.huge
+              for i = 1, #diff_t do
+                diff_t_min0 = diff_t_min
+                diff_t_it = diff_t[i]
+                diff_t_min = math.min(diff_t_it, diff_t_min)
+                if diff_t_min0 ~= diff_t_min then diff_t_min_id = i-1 end
+              end
+              
+            --create offset table
+              table.insert(offsets_t,
+                 (offset_smpl_L+diff_t_min_id)/44100)
+          end
+        end
+        
+       else -- apply matching
+       
+        if not source then
+          for i = 2, #sel_items_t do
+            item = reaper.BR_GetMediaItemByGUID(0, sel_items_t[i][1])
+            if item ~= nil then
+              reaper.SetMediaItemInfo_Value(item,"D_POSITION",sel_items_t[i][2]+(offsets_t[i]*strenght))
+              reaper.UpdateItemInProject(item)
+            end
+          end
+         else
+          for i = 2, #sel_items_t do
+            item = reaper.BR_GetMediaItemByGUID(0, sel_items_t[i][1])
+            if item ~= nil then
+              take = reaper.GetActiveTake(item)
+              reaper.SetMediaItemTakeInfo_Value(take, 'D_STARTOFFS',sel_items_t[i][4]-(offsets_t[i]*strenght))
+              reaper.UpdateItemInProject(item)
+            end
+          end        
+        end
+              
+      end
+    end  end
   
 -----------------------------------------------------------------------
   function DEFINE_default_variables_GUI()
@@ -351,10 +492,12 @@ get_selected_items_on_start = 1
     max_display_time = 30 -- seconds    
     fontsize_b = fontsize   -- button
     fontsize_k = fontsize-2   -- knob
+    fontsize_t = fontsize -- text
     
     get_b_name = 'Get selected items'
     action_b_name = 'Select action'
     info_b_name = 'Show action info'
+    indent = '              '
     
     update_gui_disp1 = true 
     update_gui_disp2 = true -- fill blit buffer on start
@@ -367,8 +510,9 @@ get_selected_items_on_start = 1
       color1_t = {0.4, 1, 0.4} -- green
       color2_t = {0.5, 0.8, 1} -- blue      
       color3_t = {1, 1, 1}-- white
-      color4_t = {0.8, 0.5, 0.2} -- red
+      color4_t = {0.8, 0.3, 0.2} -- red
       color7_t = {0.4, 0.6, 0.4} -- green dark
+      
     --coordinates
       --get items button
         get_b_xywh_t = {offset, offset, main_w-offset*2, main_buttons_h}
@@ -457,6 +601,9 @@ get_selected_items_on_start = 1
           info_b_xywh_t[2]+info_b_xywh_t[4]+offset,
           main_w-offset*2,
           display_h*2}
+      -- text - time selection samples for peaks matching
+        text1_xywh_t = knobs_frame_xywh_t
+           
   end
   
 -----------------------------------------------------------------------  
@@ -549,7 +696,7 @@ get_selected_items_on_start = 1
         gfx.setfont(1, font, fontsize_b)
         measurestrname = gfx.measurestr(name)  
         x0 = x + (w - measurestrname)/2
-        y0 = y + (h - fontsize)/2
+        y0 = y + (h - fontsize_b)/2
         gfx.x, gfx.y = x0,y0
         F_extract_table(font_color_t, 'rgb')
         gfx.a = 1
@@ -627,7 +774,7 @@ get_selected_items_on_start = 1
   end
   
 -----------------------------------------------------------------------  
-  function GUI_params(gui_params_set)
+  function GUI_param_set(gui_params_set)
     if gui_params_set ~= nil then
       -- draw frame    
         F_extract_table(knobs_frame_xywh_t, 'xywh') 
@@ -636,7 +783,7 @@ get_selected_items_on_start = 1
         gfx.roundrect(x,y,w,h,0.1, true)    
                     
       -- match positions by rms    
-        if gui_params_set == 2 then        
+        if gui_params_set == 2 or gui_params_set == 3 then        
           -- k1
             k1_val = math.floor((fft_start-1)*22050/fft_size)..'Hz'
               GUI_knob(k1_xywh_t, k1_val_norm, k1_val, "HP")
@@ -647,17 +794,26 @@ get_selected_items_on_start = 1
               GUI_knob(k2_xywh_t, k2_val_norm, k2_val, "LP")
           -- k3
             k3_val = math.floor(s_area1*window_time*1000)..'ms'
-              GUI_knob(k3_xywh_t, k3_val_norm, k3_val, "Search Area")  
-            
+              GUI_knob(k3_xywh_t, k3_val_norm, k3_val, "Search Area")              
           -- show action info  
-              GUI_button(info_b_xywh_t, info_b_name, info_b_mouse_state,color3_t)
-              
+              GUI_button(info_b_xywh_t, info_b_name, info_b_mouse_state,color3_t)              
           -- s1
             s1_val = 'Apply matching: '..math.floor(strenght*100)..' %'
-            GUI_slider(slider_xywh_t, s1_val_norm, s1_val)  
-            
+            GUI_slider(slider_xywh_t, s1_val_norm, s1_val)              
         end   
-          
+        
+      -- match positions by peaks    
+        if gui_params_set == 4 or gui_params_set == 5 then 
+          -- draw time selection
+            if timesel_smpls > 0 and timesel_smpls < max_timesel_smpls then t_col = color2_t else t_col = color4_t end
+            GUI_text('Time selection: '..timesel_smpls..' samples (max '..max_timesel_smpls..' samples allowed)',
+              text1_xywh_t,t_col )          
+          -- show action info  
+              GUI_button(info_b_xywh_t, info_b_name, info_b_mouse_state,color3_t)              
+          -- s1
+            s1_val = 'Apply matching: '..math.floor(strenght*100)..' %'
+            GUI_slider(slider_xywh_t, s1_val_norm, s1_val)              
+        end           
                  
     end -- draw knobs
   end
@@ -702,7 +858,19 @@ get_selected_items_on_start = 1
       
   end 
   
-                
+-----------------------------------------------------------------------  
+  function GUI_text(str, xywh_t,color_t)          
+      F_extract_table(xywh_t)
+        gfx.setfont(1, font, fontsize_b)
+        measurestrname = gfx.measurestr(str)  
+        x0 = x + (w - measurestrname)/2
+        y0 = y + (h - fontsize_b)/2
+        gfx.x, gfx.y = x0,y0
+        F_extract_table(color_t, 'rgb')
+        gfx.a = 1
+        gfx.drawstr(str)
+  end
+      
 -----------------------------------------------------------------------
   function GUI_DRAW()
     --[[ dest
@@ -763,7 +931,7 @@ get_selected_items_on_start = 1
         GUI_button(action_b_xywh_t, action_b_name, action_b_mouse_state,color3_t)
         
       -- parameters set
-        GUI_params(gui_params_set)
+        GUI_param_set(gui_params_set)
           
           
       end --  if sel item > 0
@@ -838,7 +1006,7 @@ get_selected_items_on_start = 1
     if gui_params_set ~= nil then
     
       -- Match by RMS
-        if gui_params_set == 2 then       
+        if gui_params_set == 2 or gui_params_set == 3 then       
           -- HP
             k1_val_norm = F_conv_val2norm(fft_start, fft_start_min, fft_start_max,false)
             last_mouse_obj, k1_val_norm0, k1_val_norm = 
@@ -859,43 +1027,41 @@ get_selected_items_on_start = 1
             last_mouse_obj, s1_val_norm0, s1_val_norm = 
               MOUSE_slider(slider_xywh_t, 's1',s1_val_norm0, s1_val_norm)
             strenght = s1_val_norm
-            if last_mouse_obj == 's1' and LMB_state then
-              ENGINE3_find_offsets_by_RMS(true) end
+            
+            if gui_params_set == 2 then 
+              if last_mouse_obj == 's1' and LMB_state then
+                ENGINE3_find_offsets_by_RMS(true,false) end end
+            if gui_params_set == 3 then 
+              if last_mouse_obj == 's1' and LMB_state then
+                ENGINE3_find_offsets_by_RMS(true,true) end end
+                              
           -- analize when selecting action
             if last_gui_params_set == nil then ENGINE3_find_offsets_by_RMS(false) end
         end
-      
-    end
-    
-    
-    -- info button     
-      if MOUSE_gate2(1, info_b_xywh_t) then -- gui state
-        info_b_mouse_state = 2          
-        elseif MOUSE_match_xy(info_b_xywh_t) then 
-        info_b_mouse_state = 1 
-        else info_b_mouse_state = 0 end
-      if MOUSE_gate(1, info_b_xywh_t) then
-        -- Match by RMS
-        if gui_params_set == 2 then
-          reaper.ShowConsoleMsg('')
-          str_info = 
-[===[
-  Match item positions by RMS
-  
-  Find "best fit" beetween windowed RMS envelopes of selected slave items and reference (topmost) item.
-  Measured signal is FFT filtered via HP and LP cutoff knobs.
-  Search area means area for searching "best fit", so if search area is 400 ms and slave item position is 2seconds from project start, script will searching for "best fit" beetween 1.6sec and 2.4seconds possible item position. 
+        
+        
+      -- Match by peaks
+        if gui_params_set == 4 or gui_params_set == 5 then  
+          -- APPLY
+            s1_val_norm = strenght
+            last_mouse_obj, s1_val_norm0, s1_val_norm = 
+              MOUSE_slider(slider_xywh_t, 's1',s1_val_norm0, s1_val_norm)
+            strenght = s1_val_norm
+            
+            if gui_params_set == 4 then
+              if last_mouse_obj == 's1' and LMB_state then 
+                ENGINE3_find_offsets_by_peaks(true,false) end end
+            if gui_params_set == 5 then
+              if last_mouse_obj == 's1' and LMB_state then 
+                ENGINE3_find_offsets_by_peaks(true,true) end   end
+                
+          -- analize when selecting action
+            if last_gui_params_set == nil then ENGINE3_find_offsets_by_peaks(false) end
+        end    
           
-  Current offsets:
-  
-]===]
-          for i = 2, #sel_items_t do
-            str_info = str_info ..'  '..sel_items_t[i][3]..'\n'..
-                 '              Offset '..math.floor(offsets_t[i]*1000)..'ms'..'\n'
-          end
-          reaper.ShowConsoleMsg(str_info)
-        end
-      end 
+    end --if gui_params_set ~= nil then
+    
+    
     
   end  
   
@@ -904,7 +1070,7 @@ get_selected_items_on_start = 1
   -- release actions
     if last_LMB_state and not MB_state then
     
-      if gui_params_set == 2 then -- if match RMS
+      if gui_params_set == 2 or gui_params_set == 3 then -- if match RMS
         if last_mouse_obj == 'k1' or  -- HP
            last_mouse_obj == 'k2' or -- LP
            last_mouse_obj == 'k3' then -- search
@@ -913,7 +1079,110 @@ get_selected_items_on_start = 1
         end
       end
       
+  
+         
     end -- release actions   
+  end
+
+-----------------------------------------------------------------------
+  function MOUSE_param_set_get_info_button()
+  
+  -- info button     
+    if MOUSE_gate2(1, info_b_xywh_t) then -- gui state
+      info_b_mouse_state = 2          
+     elseif MOUSE_match_xy(info_b_xywh_t) then 
+      info_b_mouse_state = 1 
+     else info_b_mouse_state = 0 end
+    if MOUSE_gate(1, info_b_xywh_t) then
+        
+        
+------- Match by RMS / pos
+    if gui_params_set == 2 then
+      reaper.ShowConsoleMsg('')
+      str_info = 
+  [===[
+    Match items positions by fitting RMS
+    
+    Find "best fit" beetween windowed RMS envelopes of selected slave items and reference (topmost) item.
+    Measured signal is FFT filtered via HP and LP cutoff knobs.
+    Search area means area for searching "best fit", so if search area is 400 ms and slave item position is 2seconds from project start, script will searching for "best fit" beetween 1.6sec and 2.4seconds possible item position. 
+            
+    Current offsets:
+    
+  ]===]
+      for i = 2, #sel_items_t do
+        str_info = str_info ..'  '..sel_items_t[i][3]..'\n'..
+        indent..'Offset '..math.floor(offsets_t[i]*1000)..'ms'..'\n'
+      end
+      reaper.ShowConsoleMsg(str_info)
+    end
+    
+------- Match by RMS / src
+    if gui_params_set == 3 then
+      reaper.ShowConsoleMsg('')
+      str_info = 
+  [===[
+    Match items content by fitting RMS
+    
+    Find "best fit" beetween windowed RMS envelopes of selected slave items and reference (topmost) item.
+    Measured signal is FFT filtered via HP and LP cutoff knobs.
+    Search area means area for searching "best fit", so if search area is 400 ms and slave item position is 2seconds from project start, script will searching for "best fit" beetween 1.6sec and 2.4seconds possible item position. 
+            
+    Current offsets:
+    
+  ]===]
+      for i = 2, #sel_items_t do
+        str_info = str_info ..'  '..sel_items_t[i][3]..'\n'..
+        indent..'Offset '..math.floor(offsets_t[i]*1000)..'ms'..'\n'
+      end
+      reaper.ShowConsoleMsg(str_info)
+    end
+            
+------- Match by peaks / pos     
+    if gui_params_set == 4 then
+      reaper.ShowConsoleMsg('')
+      str_info = 
+  [===[
+    Match items positions by fitting peaks
+    
+    Find "best fit" beetween peaks of selected slave items and reference (topmost) item within time selection.
+    Area is limited to time_selection / 2, because comparing peaks in LUA seems very CPU hungry. 
+    If you a brave man, you can set 'max_timesel_smpls' variable to upper value, but don`t be surprised if REAPER will take a lot of time to calculate "best fit".
+            
+    Current offsets:
+    
+  ]===]
+    for i = 2, #sel_items_t do
+      str_info = str_info ..'  '..sel_items_t[i][3]..'\n'..
+      indent..'Offset '..offsets_t[i]..'ms'..'\n'
+    end
+    reaper.ShowConsoleMsg(str_info)
+  end
+          
+------- Match by peaks / src     
+    if gui_params_set == 5 then
+      reaper.ShowConsoleMsg('')
+      str_info = 
+  [===[
+    Match items source by fitting peaks
+    
+    Find "best fit" beetween peaks of selected slave items and reference (topmost) item within time selection.
+    Area is limited to time_selection / 2, because comparing peaks in LUA seems very CPU hungry. 
+    If you a brave man, you can set 'max_timesel_smpls' variable to upper value, but don`t be surprised if REAPER will take a lot of time to calculate "best fit".
+            
+    Current offsets:
+    
+  ]===]
+    for i = 2, #sel_items_t do
+      str_info = str_info ..'  '..sel_items_t[i][3]..'\n'..
+      indent..'Offset '..offsets_t[i]..'ms'..'\n'
+    end
+    reaper.ShowConsoleMsg(str_info)
+  end
+            
+          
+ -------- end mouse gate         
+        end         
   end
   
 -----------------------------------------------------------------------
@@ -1012,6 +1281,7 @@ get_selected_items_on_start = 1
         end         
       
       MOUSE_param_set()
+      MOUSE_param_set_get_info_button()
         
     last_LMB_state = LMB_state    
     last_RMB_state = RMB_state
@@ -1024,10 +1294,12 @@ get_selected_items_on_start = 1
   
 -----------------------------------------------------------------------
   function MAIN_run()
+    DEFINE_dynamic_variables()
     DEFINE_dynamic_variables_GUI()
     GUI_DRAW()
     MOUSE_get()
     char = gfx.getchar()
+    last_timesel_smpls = timesel_smpls
     if char == 27 then MAIN_exit() end     
     if char ~= -1 then reaper.defer(MAIN_run) else MAIN_exit() end
   end 
@@ -1040,6 +1312,7 @@ get_selected_items_on_start = 1
   
   
   if get_selected_items_on_start == 1 then
+    DEFINE_dynamic_variables()
     ENGINE1_get_items()
     if #sel_items_t > 1 then cur_item = 2 else cur_item=1 end
     ENGINE1_update_gui_data(cur_item)
