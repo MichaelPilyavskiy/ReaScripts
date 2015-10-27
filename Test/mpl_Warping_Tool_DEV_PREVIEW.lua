@@ -4,33 +4,15 @@
 fontsize = 16
 get_selected_items_on_start = 1
 
-
-
-
--- warping if 2 or more items
-  -- (check for rms matching (currently have no idea how to implement this))
-  -- get rms envelope
-  -- get fft rise envelope
-  -- get stretch markers in selected items 
-  -- quantize stretch markers of lower items to stretch markers of first item
-
--- tempo warp if one item
-  -- get stretch markers in selected item (settings)
-  -- calculate true beat markers
-  -- average tempo
-  -- delete wrong markers
-  -- add approximately markers on every potential area  
-  
--- actions
-  -- add tempo envelope from bar/beat markers
-  -- stretch beats to grid by markers index
-
-
-  vrs = "0.22"
+  vrs = "0.23"
  
   ---------------------------------------------------------------------------------------------------------------              
   changelog =                              
 [===[ Changelog:
+27.10.2015  0.23
+            fix: crash when item out of time selection while matching peaks
+            code: hp/lp crossing fix
+            code: rise points detection test 1
 23.10.2015  0.22
             code: match items content by RMS
             code: match items positions by peaks
@@ -75,6 +57,12 @@ get_selected_items_on_start = 1
             alignment/warping/tempomatching tool idea 
     
  ]===]
+ 
+ -- main data t
+ -- 1 guid
+ -- 2 item_pos
+ -- 3 TakeName
+ -- 4 s_offs
 ----------------------------------------------------------------------- 
    function F_JUMP() end
 -----------------------------------------------------------------------
@@ -120,6 +108,33 @@ get_selected_items_on_start = 1
      local mult = 10^(idp or 0)
      return math.floor(num * mult + 0.5) / mult
   end
+
+-----------------------------------------------------------------------    
+  function F_get_table_increments(table)
+    if table ~= nil then
+      t_incr = {0}
+      val = 0
+      for i =2, #table do
+        t_val = table[i]
+        t_val_prev = table[i-1]
+        
+        --
+        if i > 2 then  t_val_prev2 = table[i-2] end
+        if t_val > t_val_prev then incr_state = 1 else incr_state = -1 end
+        if i > 2 then  
+          if incr_state == 1 then 
+            if t_val_prev > t_val_prev2 then val = val + 1 else val = 1 end end
+          if incr_state == -1 then 
+            if t_val_prev < t_val_prev2 then val = val - 1 else val = -1 end end    
+         else
+          if t_val > t_val_prev then val = 1 else val = -1 end
+        end
+        if val == nil then val = 0 end
+        t_incr[i] = val        
+      end
+      return t_incr
+    end    
+  end
   
 -----------------------------------------------------------------------
   function DEFINE_default_variables()
@@ -133,11 +148,11 @@ get_selected_items_on_start = 1
     fft_start = 1 -- hp
     fft_start_max = 10
     ------------------------- 
-    fft_end_min =  11
-    fft_end = 256 -- lp
-    fft_end_max = 256
+    fft_end_min =  2
+    fft_end = fft_size -- lp
+    fft_end_max = fft_size
     ------------------------- 
-    env_t_smooth_ratio = 0.1
+    env_t_smooth_ratio = 0.0
     ------------------------- 
     mouse_res = 100 -- for knobs resolution
     mouse_res2 = 200 -- for sliders
@@ -148,7 +163,16 @@ get_selected_items_on_start = 1
     s_area1 = 20 -- windows for RMS matching
     s_area1_max = 300 -- windows for RMS matching
     -------------------------
-    max_timesel_smpls = 1000 -- max samples for peak matching
+    s_area2_min = 1 -- windows for detecting points /attack
+    s_area2 = 1 -- windows for detecting points /attack
+    s_area2_max = 100 -- windows for detecting points /attack  
+    -------------------------
+    max_timesel_smpls = 4410 -- max samples for peak matching
+    -------------------------
+    db_diff_min = 1 -- db difference for checking point rise within s_area2
+    db_diff = 20
+    db_diff_max = 40
+    -------------------------
   end 
   
 -----------------------------------------------------------------------  
@@ -162,13 +186,12 @@ get_selected_items_on_start = 1
         ENGINE3_find_offsets_by_peaks(false)
       end
     end 
-    
+    if fft_start > fft_end then fft_start = fft_end -1 end
   end
     
 -----------------------------------------------------------------------  
   function ENGINE1_get_items()
     sel_items_t = {}
-    item_data_t = {}
     count_items = reaper.CountSelectedMediaItems()
     if count_items ~= nil then 
       ref_item = reaper.GetSelectedMediaItem(0, 0)
@@ -194,9 +217,9 @@ get_selected_items_on_start = 1
   end
 
 -----------------------------------------------------------------------
-  function ENGINE1_get_item_data(guid, is_ref1, get_peaks)
+  function ENGINE1_get_item_data(items_t, is_ref1, get_peaks)
     if #sel_items_t > 0 then
-      item = reaper.BR_GetMediaItemByGUID(0, guid[1])
+      item = reaper.BR_GetMediaItemByGUID(0, items_t[1])
       if item ~= nil then
         item_pos = reaper.GetMediaItemInfo_Value(item,"D_POSITION")
         item_len = reaper.GetMediaItemInfo_Value(item,"D_LENGTH")                
@@ -234,9 +257,16 @@ get_selected_items_on_start = 1
             end -- loop every window
             
     -- stream item peaks within timeselection to table 
-    
-    
-          if timesel_smpls > 0 and timesel_smpls < max_timesel_smpls and get_peaks then            
+      -- check for existing in time selection
+        exists = true
+        if item_pos < timesel_st and item_pos + item_len < timesel_st then exists = false end
+        if item_pos + item_len > timesel_end and item_pos > timesel_end then exists = false end
+          
+      
+      
+          if timesel_smpls > 0 and timesel_smpls < max_timesel_smpls and get_peaks then 
+            if exists then
+                     
               pos_delta = item_pos - timesel_st -- if item pos more than time selection start
               if pos_delta > 0 or pos_delta == 0 then -- if item pos = time selection start
                 read_pos = 0
@@ -272,7 +302,10 @@ get_selected_items_on_start = 1
                          
               -- abs table values
               for i = 1, #peaks_t do peaks_t[i]= math.abs(peaks_t[i]) end    
+              
+            end  
           end
+          
           reaper.DestroyAudioAccessor(audio_accessor)  
           
     -- full edges
@@ -330,23 +363,216 @@ get_selected_items_on_start = 1
     update_gui_disp2 = true
     gfx.setimgdim(1,-1,-1)
     gfx.setimgdim(2,-1,-1)
+    gfx.setimgdim(6,-1,-1)
+  end
+  
+-----------------------------------------------------------------------  
+  function ENGINE3_get_points(item_data_t)
+    points_t = {}
+    if item_data_t ~= nil then
+      -- turn item_data_t into db values
+        item_data_t_db = {}
+        for i = 1, #item_data_t do item_data_t_db[i] = 20*math.log(item_data_t[i]) end
+      -- if rise more than % of min point in 's_area2' windows
+        -- fill start
+          for i = 1, s_area2 do table.insert(points_t,0) end
+        -- check for rise
+          for i = 1+s_area2, #item_data_t_db do
+            db_val_min = math.huge
+            for j = i-s_area2, i-1 do
+              db_val_min = math.min(db_val_min,item_data_t_db[j])
+            end
+            if math.abs(db_val_min - item_data_t_db[i]) > db_diff then
+              points_t[i] = 1 else points_t[i] = 0 end
+          end
+    end
+    return points_t  
+      
+      --[[
+              
+              for i = 2+s_area, #data_t-1 do
+                if sm_data_t[i] == nil then
+                  data_t_item = data_t[i]
+                  data_t_item_area_min = math.huge
+                  for j = i-s_area-1, i-1 do
+                    data_t_item_area = data_t[j]            
+                    data_t_item_area_min = math.min(data_t_item_area,data_t_item_area_min)
+                  end
+                  --test = data_t_item/data_t_item_area_min
+                  if (data_t_item/data_t_item_area_min)*100 > rise_percent then
+                   --if sm_data_t[#sm_data_t] == 0 then
+                     table.insert(sm_data_t,1)
+                    else
+                     table.remove(sm_data_t,#sm_data_t)
+                     table.insert(sm_data_t,0)
+                     if data_t[i] > data_t[i+1] then
+                       table.insert(sm_data_t,1)
+                      else
+                       table.insert(sm_data_t,0)
+                       table.insert(sm_data_t,#sm_data_t, 1)
+                     end
+                   else
+                    table.insert(sm_data_t,0)
+                  end
+                end
+              end]]
+      
+      
+    
+      
+      --[[fft_val_t2 = ENGINE1_get_item_data(item_guid, true, false)
+      fft_val_t2_inc = F_get_table_increments(fft_val_t2)
+      
+      for i = 1, #fft_val_t2_inc do
+        if fft_val_t2_inc[i] >= 4 then points_t[i] = 1 else points_t[i] = 0 end         
+      end]]
+      -- if rise area
+      
+        --[[for i = 1, s_area do
+          table.insert(sm_data_t,0)
+        end
+        for i = 2+s_area, #data_t-1 do
+          if sm_data_t[i] == nil then
+            data_t_item = data_t[i]
+            data_t_item_area_min = math.huge
+            for j = i-s_area-1, i-1 do
+              data_t_item_area = data_t[j]
+              data_t_item_area_min = math.min(data_t_item_area,data_t_item_area_min)
+            end
+            if (data_t_item/data_t_item_area_min)*100 > rise_percent then
+              -- check further area max point
+              data_t_item_area_max = 0
+              for k = i, i + s_area2 do
+                if k < #data_t then
+                  data_t_item_area_max0 = data_t_item_area_max
+                  data_t_item_area = data_t[k]
+                  data_t_item_area_max = math.max(data_t_item_area_max,data_t_item_area)
+                  data_t_item_area_max1 = data_t_item_area_max
+                  if data_t_item_area_max0 ~= data_t_item_area_max1 then                
+                    current_max_id = k
+                  end
+                end
+              end
+              rise_percent2 = 150
+              if (data_t[current_max_id]/data_t[i])*100 > rise_percent2 then
+                current_max_id = i 
+              end
+               
+              if current_max_id ~= i then  
+                for m = 1, current_max_id-i do
+                  table.insert(sm_data_t,0)
+                end
+                table.insert(sm_data_t,1)
+               else
+                --table.insert(sm_data_t,1)
+              end
+             else
+              table.insert(sm_data_t,0)
+            end
+          end
+        end]]
+    --unction ENGINE2_get_stretch_markers(data_t)
+      --[[]]
+        
+        
+      -- filt 1
+      --[[search max point around couple of windows + add to table
+        for i = 1, #data_t, s_area do
+          if i+s_area-1 < #data_t then
+            -- 2 search max point value in window
+            local max_point = 0
+            for j =0, s_area-1 do
+              data_t_item = data_t[i+j]
+              max_point = math.max(max_point, data_t_item)
+            end           
+            for j =0, s_area-1 do
+              data_t_item = data_t[i+j]
+              -- check if max point around couple of windows more than thresold
+              if data_t_item == max_point and 20*math.log(max_point) > threshold then
+                table.insert(sm_data_t,i+j,1)              
+               else table.insert(sm_data_t,i+j,0)
+              end
+            end            
+          end
+        end   ]]
+      -- filt 2    
+      --[[area2 search closer sm, delete lower
+      for i = 1, #sm_data_t do
+        sm_it = sm_data_t[i]
+        if sm_it == 1 then
+          data_t_it = data_t[i]
+          -- search further area
+            data_t_area2_max = 0
+            for j = i + 1, i + s_area2 do
+              if j > #sm_data_t then j = #sm_data_t end
+              if sm_data_t[j] == 1 then
+                data_t_area2 = data_t[j]
+                data_t_area2_max = math.max(data_t_area2_max , data_t_area2 )
+              end  
+            end 
+            if data_t_it < data_t_area2_max  then 
+              table.insert(sm_data_t,i,0)
+              table.remove(sm_data_t,i+1)
+            end
+          -- search prev area
+            data_t_area2_max = 0
+            for j = i-s_area2 , i -1 do
+              if j < 1 then j = 1 end
+              if sm_data_t[j] == 1 then
+                data_t_area2 = data_t[j]
+                data_t_area2_max = math.max(data_t_area2_max , data_t_area2 )
+              end  
+            end 
+            if data_t_it < data_t_area2_max  then 
+              table.insert(sm_data_t,i,0)
+              table.remove(sm_data_t,i+1)
+            end        
+        end      
+      end
+      -- threshold filter
+      for i = 1, #sm_data_t do
+        sm_data_it = sm_data_t[i]
+        if sm_data_it == 1 then
+          if 20*math.log(data_t[i]) < threshold then
+            sm_data_t[i] = 0
+          end
+        end
+      end]]
   end
   
 -----------------------------------------------------------------------
   function ENGINE2_action_list(gui_params_set)
     if #sel_items_t < 2 then act='#'else act='' end
-    actions_table = {'#Actions:|',
+    if #sel_items_t == 1 then act1=''else act1='#' end
+    count_match_actions = 5
+    
+    count_tempo_actions = 1
+    
+    actions_table = {'#Action List|',
+                  -- 2
                     act..'Match items positions by fitting RMS',
+                  -- 3
                     act..'Match items content by fitting RMS',
+                  -- 4
                     act..'Match items positions by fitting peaks, detect time selection',
-                    act..'Match items content by fitting peaks, detect time selection'}
+                  -- 5
+                    act..'Match items content by fitting peaks, detect time selection|',
+                    
+                    
+                  --11                   
+                    act1..'test detect points'}
+                    
     ret = gfx.showmenu(table.concat(actions_table, '|'))    
     if ret == 0 then 
       action_name = action_b_name 
-      ret=gui_params_set
-     else action_name = actions_table[ret] 
+      ret_num=gui_params_set
+     else 
+      action_name = actions_table[ret] 
+      if ret <= count_match_actions then ret_num = ret end 
+      if ret > count_match_actions and ret <= count_match_actions + count_tempo_actions then
+        ret_num = ret + (10 - count_match_actions) end
     end
-    return action_name, ret
+    return action_name, ret_num
   end
   
 -----------------------------------------------------------------------  
@@ -413,7 +639,7 @@ get_selected_items_on_start = 1
   
 -----------------------------------------------------------------------  
   function ENGINE3_find_offsets_by_peaks(set,source)
-    if timesel_smpls > 0 and timesel_smpls < max_timesel_smpls then  
+    if timesel_smpls > 0 and timesel_smpls < max_timesel_smpls and exists then  
       offset_smpl_L = -timesel_smpls
       offset_smpl_R = timesel_smpls
       if not set then
@@ -478,9 +704,6 @@ get_selected_items_on_start = 1
   
 -----------------------------------------------------------------------
   function DEFINE_default_variables_GUI()
-    -- gfx buf1 - item env 1
-    -- gfx buf2 - item env 2
-    -- gfx buf3 - gradient back
     
     main_w = 440
     main_h = 340
@@ -493,6 +716,8 @@ get_selected_items_on_start = 1
     fontsize_b = fontsize   -- button
     fontsize_k = fontsize-2   -- knob
     fontsize_t = fontsize -- text
+    triangle_size = 6
+    
     
     get_b_name = 'Get selected items'
     action_b_name = 'Select action'
@@ -608,7 +833,6 @@ get_selected_items_on_start = 1
   
 -----------------------------------------------------------------------  
   function DEFINE_dynamic_variables_GUI()
-    
   end
 
 -----------------------------------------------------------------------
@@ -669,6 +893,10 @@ get_selected_items_on_start = 1
                          x+i*w/#data_t,    y )   
             end                    
           end -- envelope building
+          
+          --points build
+           -- points1_t
+          
           gfx.x,gfx.y = x,y
           gfx.blurto(x+w,y+h)
           update_gui_disp = false
@@ -813,7 +1041,27 @@ get_selected_items_on_start = 1
           -- s1
             s1_val = 'Apply matching: '..math.floor(strenght*100)..' %'
             GUI_slider(slider_xywh_t, s1_val_norm, s1_val)              
-        end           
+        end  
+        
+      -- detect tempo
+        if gui_params_set == 11 then 
+          -- k1
+            k1_val = math.floor((fft_start-1)*22050/fft_size)..'Hz'
+              GUI_knob(k1_xywh_t, k1_val_norm, k1_val, "HP")
+          -- k2  
+            k2_val =   fft_end*22050/fft_size
+              if k2_val > 1000 then k2_val = math.floor(k2_val/1000)..'kHz'
+              else k2_val = math.floor(k2_val)..'Hz' end
+              GUI_knob(k2_xywh_t, k2_val_norm, k2_val, "LP")
+          -- k3
+            k3_val = db_diff..'dB'
+              GUI_knob(k3_xywh_t, k3_val_norm, k3_val, "Difference")
+              
+            --[[GUI_text('Time selection: '..timesel_smpls..' samples (max '..max_timesel_smpls..' samples allowed)',
+              text1_xywh_t,t_col )          
+          -- show action info  
+              GUI_button(info_b_xywh_t, info_b_name, info_b_mouse_state,color3_t)   ]]
+        end                   
                  
     end -- draw knobs
   end
@@ -870,15 +1118,47 @@ get_selected_items_on_start = 1
         gfx.a = 1
         gfx.drawstr(str)
   end
-      
+  
+-----------------------------------------------------------------------  
+  function GUI_points(points_t, xywh_t, update_gui_disp1_points)
+    if points_t ~= nil then
+      F_extract_table(xywh_t, 'xywh')
+      if update_gui_disp1_points == true then  
+        gfx.dest = 6   
+        gfx.setimgdim(6, -1,-1)
+        gfx.setimgdim(6, w,h)
+        F_extract_table(color4_t, "rgb")
+        gfx.x,gfx.y,gfx.a = 0, 0, 1
+        -- build table points
+                  
+          for i = 1, #points_t do
+            if points_t[i] == 1 then
+              gfx.triangle(i*w/#points_t, 0,
+                         i*w/#points_t, 0+triangle_size,
+                         i*w/#points_t+triangle_size,0) 
+            end
+          end
+        -- end build table points
+        update_gui_disp1_points = false
+       else
+        gfx.x,gfx.y,gfx.a = x,y,0.7
+        gfx.dest = -1
+        gfx.blit(6, 1, 0, 0, 0, w,h, x, y, w,h)
+      end
+    end 
+    return update_gui_disp1_points
+  end
+  
 -----------------------------------------------------------------------
   function GUI_DRAW()
-    --[[ dest
+    --[[ dest - gfx buffer
     1 - item1wave // update_gui_disp1
     2 - item2 wave // update_gui_disp2
     3 - backgr item display // is_1_time
     4 - slider backgr // is_1_time2
-    -- rotation trouble 5 - knob pointer // is_1_time3]]
+    -- rotation trouble 5 - knob pointer // is_1_time3
+    6 - points // update_gui_disp1_points ]]
+    
     
     --[[ pointer to buffer
       if is_1_time3 == nil then
@@ -926,6 +1206,9 @@ get_selected_items_on_start = 1
               GUI_button(nav3_b_xywh_t, cur_item..' / '..#sel_items_t, nav3_b_mouse_state ,color2_t)
           end
         end --if sel item > 1
+      
+      -- points
+        update_gui_disp1_points = GUI_points(gui_points_t,peak_display1_xywh_t,update_gui_disp1_points)
         
       -- select action button
         GUI_button(action_b_xywh_t, action_b_name, action_b_mouse_state,color3_t)
@@ -1055,10 +1338,35 @@ get_selected_items_on_start = 1
               if last_mouse_obj == 's1' and LMB_state then 
                 ENGINE3_find_offsets_by_peaks(true,true) end   end
                 
-          -- analize when selecting action
             if last_gui_params_set == nil then ENGINE3_find_offsets_by_peaks(false) end
         end    
-          
+        
+      -- detect tempo
+        if gui_params_set == 11 then
+          -- HP
+            k1_val_norm = F_conv_val2norm(fft_start, fft_start_min, fft_start_max,false)
+            last_mouse_obj, k1_val_norm0, k1_val_norm = 
+              MOUSE_knob(k1_xywh_t, 'k1',k1_val_norm0, k1_val_norm)
+            fft_start = math.floor(F_conv_norm2val(k1_val_norm,fft_start_min, fft_start_max,false))
+          -- LP
+            k2_val_norm = F_conv_val2norm(fft_end, fft_end_min, fft_end_max,false)
+            last_mouse_obj, k2_val_norm0, k2_val_norm = 
+              MOUSE_knob(k2_xywh_t, 'k2',k2_val_norm0, k2_val_norm)
+            fft_end = math.floor(F_conv_norm2val(k2_val_norm,fft_end_min, fft_end_max,false)) 
+          -- db difference
+            k3_val_norm = F_conv_val2norm(db_diff, db_diff_min, db_diff_max,false)
+            last_mouse_obj, k3_val_norm0, k3_val_norm = 
+              MOUSE_knob(k3_xywh_t, 'k3',k3_val_norm0, k3_val_norm)
+            db_diff = math.floor(F_conv_norm2val(k3_val_norm,db_diff_min, db_diff_max,false))                      
+            
+          if last_gui_params_set == nil then             
+            gui_points_t = ENGINE3_get_points(gui_ref_item_data_t)
+            update_gui_disp1_points = true
+          end
+        end
+        
+        
+        
     end --if gui_params_set ~= nil then
     
     
@@ -1079,7 +1387,15 @@ get_selected_items_on_start = 1
         end
       end
       
-  
+      if gui_params_set == 11 then -- detect points
+        if last_mouse_obj == 'k1' or  -- HP
+           last_mouse_obj == 'k2' or -- LP
+           last_mouse_obj == 'k3' then -- difference
+           ENGINE1_update_gui_data(cur_item)
+           gui_points_t = ENGINE3_get_points(gui_ref_item_data_t)
+           update_gui_disp1_points = true
+        end
+      end
          
     end -- release actions   
   end
@@ -1340,153 +1656,10 @@ get_selected_items_on_start = 1
   ---------------------------------------------------------------------------------------------------------------         
 
   ---------------------------------------------------------------------------------------------------------------       
-  unction ENGINE2_get_stretch_markers(data_t)
-    sm_data_t = {}
-    --if rise more than % of min point in prev search area then >
-    -- > search further area for max point
-      for i = 1, s_area do
-        table.insert(sm_data_t,0)
-      end
-      for i = 2+s_area, #data_t-1 do
-        if sm_data_t[i] == nil then
-          data_t_item = data_t[i]
-          data_t_item_area_min = math.huge
-          for j = i-s_area-1, i-1 do
-            data_t_item_area = data_t[j]
-            data_t_item_area_min = math.min(data_t_item_area,data_t_item_area_min)
-          end
-          if (data_t_item/data_t_item_area_min)*100 > rise_percent then
-            -- check further area max point
-            data_t_item_area_max = 0
-            for k = i, i + s_area2 do
-              if k < #data_t then
-                data_t_item_area_max0 = data_t_item_area_max
-                data_t_item_area = data_t[k]
-                data_t_item_area_max = math.max(data_t_item_area_max,data_t_item_area)
-                data_t_item_area_max1 = data_t_item_area_max
-                if data_t_item_area_max0 ~= data_t_item_area_max1 then                
-                  current_max_id = k
-                end
-              end
-            end
-            rise_percent2 = 150
-            if (data_t[current_max_id]/data_t[i])*100 > rise_percent2 then
-              current_max_id = i 
-            end
-             
-            if current_max_id ~= i then  
-              for m = 1, current_max_id-i do
-                table.insert(sm_data_t,0)
-              end
-              table.insert(sm_data_t,1)
-             else
-              --table.insert(sm_data_t,1)
-            end
-           else
-            table.insert(sm_data_t,0)
-          end
-        end
-      end
-    --[[if rise more than % of min point in search area
-      for i = 1, s_area do
-        table.insert(sm_data_t,0)
-      end
-      for i = 2+s_area, #data_t-1 do
-        if sm_data_t[i] == nil then
-          data_t_item = data_t[i]
-          data_t_item_area_min = math.huge
-          for j = i-s_area-1, i-1 do
-            data_t_item_area = data_t[j]            
-            data_t_item_area_min = math.min(data_t_item_area,data_t_item_area_min)
-          end
-          --test = data_t_item/data_t_item_area_min
-          if (data_t_item/data_t_item_area_min)*100 > rise_percent then
-           --if sm_data_t[#sm_data_t] == 0 then
-             table.insert(sm_data_t,1)
-            else
-             table.remove(sm_data_t,#sm_data_t)
-             table.insert(sm_data_t,0)
-             if data_t[i] > data_t[i+1] then
-               table.insert(sm_data_t,1)
-              else
-               table.insert(sm_data_t,0)
-               table.insert(sm_data_t,#sm_data_t, 1)
-             end
-           else
-            table.insert(sm_data_t,0)
-          end
-        end
-      end]]
-    -- filt 1
-    --[[search max point around couple of windows + add to table
-      for i = 1, #data_t, s_area do
-        if i+s_area-1 < #data_t then
-          -- 2 search max point value in window
-          local max_point = 0
-          for j =0, s_area-1 do
-            data_t_item = data_t[i+j]
-            max_point = math.max(max_point, data_t_item)
-          end           
-          for j =0, s_area-1 do
-            data_t_item = data_t[i+j]
-            -- check if max point around couple of windows more than thresold
-            if data_t_item == max_point and 20*math.log(max_point) > threshold then
-              table.insert(sm_data_t,i+j,1)              
-             else table.insert(sm_data_t,i+j,0)
-            end
-          end            
-        end
-      end   ]]
-    -- filt 2    
-    --[[area2 search closer sm, delete lower
-    for i = 1, #sm_data_t do
-      sm_it = sm_data_t[i]
-      if sm_it == 1 then
-        data_t_it = data_t[i]
-        -- search further area
-          data_t_area2_max = 0
-          for j = i + 1, i + s_area2 do
-            if j > #sm_data_t then j = #sm_data_t end
-            if sm_data_t[j] == 1 then
-              data_t_area2 = data_t[j]
-              data_t_area2_max = math.max(data_t_area2_max , data_t_area2 )
-            end  
-          end 
-          if data_t_it < data_t_area2_max  then 
-            table.insert(sm_data_t,i,0)
-            table.remove(sm_data_t,i+1)
-          end
-        -- search prev area
-          data_t_area2_max = 0
-          for j = i-s_area2 , i -1 do
-            if j < 1 then j = 1 end
-            if sm_data_t[j] == 1 then
-              data_t_area2 = data_t[j]
-              data_t_area2_max = math.max(data_t_area2_max , data_t_area2 )
-            end  
-          end 
-          if data_t_it < data_t_area2_max  then 
-            table.insert(sm_data_t,i,0)
-            table.remove(sm_data_t,i+1)
-          end        
-      end      
-    end]]
-    -- threshold filter
-    for i = 1, #sm_data_t do
-      sm_data_it = sm_data_t[i]
-      if sm_data_it == 1 then
-        if 20*math.log(data_t[i]) < threshold then
-          sm_data_t[i] = 0
-        end
-      end
-    end
+
+
     
-        
- 
-  
-  
-  
-  
+   
   
   -- calculate tempo average
     -- get tempo for each marker
@@ -1531,78 +1704,7 @@ get_selected_items_on_start = 1
         end
       end
       tempo_average_calc = 60/((tempo_average_sum/count)*window_time)
-  
-  
-  
-  
-         
                 
-               --[[ cur_item = 1 
-                -------------------------                     
-                window_time_min = 0.01
-                window_time_max = 0.3                
-                -------------------------                     
-                threshold = -25
-                threshold_min = -70
-                threshold_max = -10    
-                ------------------------- 
-                s_area = 1 -- windows
-                s_area_min = 1
-                s_area_max = 30
-                ------------------------- 
-                s_area2 = 30 -- windows
-                s_area2_min = 3
-                s_area2_max = 100
-                ------------------------- 
-                rise_percent = 140 -- percent
-                rise_percent_min = 101
-                rise_percent_max = 500    
-                ------------------------- 
-                
-       
-      -- draw sm
-        local sm_t = data_t[7]
-        extract_table(color4_t,true)
-        gfx.a = 0.9
-        for i=1,#sm_t do
-          sm_t_item = sm_t[i]
-          if sm_t_item == 1 then
-            if is_ref then
-              gfx.line(   X+W/#com_val_t*(i-1),  Y+H,    X+W/#com_val_t*(i-1),   Y+H-H*0.15,1)
-             else gfx.line(   X+W/#com_val_t*(i-1),  Y,    X+W/#com_val_t*(i-1),   Y+H*0.15,1)
-            end
-          end
-        end--end draw sm
-        
-        
-      
-      --[[ draw tempo
-        --fill background
-        extract_table(color6_t, true)
-        gfx.a = 0.92
-        gfx.rect(15,20,50,20)
-        gfx.x,gfx.y = 20,20
-        --draw val
-        extract_table(color4_t, true)
-        gfx.a = 0.92
-        tempo = data_t[8]
-        gfx.drawstr(tostring(tempo))
-          
- 
- --[[if MOUSE_gate(2, xywh_t) then
-   local knob_retval, knob_return_s = reaper.GetUserInputs(inputname1, 1, inputname2, "") 
-   if knob_retval ~= nil then
-     knob_return = tonumber(knob_return_s)
-     if knob_return ~= nil then
-       knob_user_return = limit(knob_return,lim1,lim2)
-       last_mouse_obj = last_mouse_obj_name
-       LMB_state = true
-       return last_mouse_obj, knob_val_norm, knob_user_return
-     end
-   end
- end
- ]]
+  
                
  ]===]
- 
-   
