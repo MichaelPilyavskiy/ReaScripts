@@ -1,4 +1,4 @@
-  script_title = "Normalize selected tracks faders"
+  script_title = "Trim selected tracks faders to 0dB"
   reaper.Undo_BeginBlock()
   
   counttracks = reaper.CountSelectedTracks(0)
