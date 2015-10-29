@@ -1,4 +1,4 @@
-  script_title = "Normalize master fader"
+  script_title = "Trim master fader to 0dB"
   reaper.Undo_BeginBlock()
   
   track = reaper.GetMasterTrack(0)
