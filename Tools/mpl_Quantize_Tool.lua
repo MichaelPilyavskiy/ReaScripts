@@ -1,18 +1,8 @@
 ------  Michael Pilyavskiy Quantize tool  ----
+
 fontsize_menu_name  = 16
 
-todo= 
-[===[ To do list / requested features:
-  -- rebuild generate grid from ref_points_t2 for different timesigs/tempo
-  -- prevent transients stretch markers quantize
-]===]  
- 
-bugs  =
-[===[ Expected bugs which could not be fixed for this release: 
- ]===]
- 
- 
- vrs = "1.6 build 5"
+vrs = "1.7"
  
 changelog =                   
 [===[
@@ -20,7 +10,11 @@ changelog =
    ==========
    Changelog:
    ==========   
-
+02.11.2015  1.7 build 1 - need REAPER 5.03+ SWS 2.8.1+
+          GUI
+            optimized performance by blitting display
+          Bugfixes
+            Disabled REAPER/SWS version checking on start
 13.10.2015  1.6 build 5  - need REAPER 5.03+ SWS 2.8.1+
           Improvements
             improved mouse tracking, thanks to spk77!
@@ -191,41 +185,8 @@ about = 'Quantize tool by Michael Pilyavskiy (Russia, Oryol)'..'\n'..'Version '.
  end 
        
  ---------------------------------------------------------------------------------------------------------------   
- function s_value(table_line, value_num)
-    local value = tonumber(string.sub(settings_temp_t[table_line],value_num,value_num))
-    if value == nil then value = 0 end
-    return value
- end
-       
- ---------------------------------------------------------------------------------------------------------------   
  function DEFINE_default_variables()    
-   
-   
-   settings_filename = exepath.."\\Scripts\\mpl_Quantize_Tool_settings.txt"
-   --settings_file = io.open(settings_filename,"r")
-   settings_file = nil
-   if settings_file ~= nil then 
-      settings_temp_t = {}  
-      settings_content = settings_file:read("*all")
-      for settings_line in io.lines(settings_filename) do
-        table.insert(settings_temp_t, settings_line)  
-      end
-      settings_file:close()
-      
-      snap_mode_values_t = {s_value(1,1),s_value(1,2)} 
-      pat_len_values_t = {s_value(2,1),s_value(2,2),s_value(2,3)}
-      pat_edge_values_t = {s_value(3,1),s_value(3,2)} 
-      use_vel_values_t = {s_value(4,1),s_value(4,2)} 
-      sel_notes_mode_values_t = {s_value(5,1),s_value(5,2)} 
-      sm_rel_ref_values_t = {s_value(6,1),s_value(6,2)} 
-      sm_timesel_ref_values_t = {s_value(7,1),s_value(7,2)} 
-      
-      snap_area_values_t = {s_value(8,1),s_value(8,2)} 
-      snap_dir_values_t = {s_value(9,1),s_value(9,2),s_value(9,3)}
-      swing_scale_values_t = {s_value(10,1),s_value(10,2)} 
-      sel_notes_mode_values_at = {s_value(11,1),s_value(11,2)}   
-      sm_timesel_dest_values_t = {s_value(12,1),s_value(12,2)} 
-     else
+     
       snap_mode_values_t = {0,1} 
       pat_len_values_t = {1,0,0}
       pat_edge_values_t = {0,1}
@@ -240,9 +201,7 @@ about = 'Quantize tool by Michael Pilyavskiy (Russia, Oryol)'..'\n'..'Version '.
       sel_notes_mode_values_at = {0,1}   
       sm_timesel_dest_values_t = {1,0}
       enable_display_t={1}
-      sm_is_transients_t={0}
-   end
-  
+      sm_is_transients_t={0}  
    
    
    
@@ -386,6 +345,8 @@ about = 'Quantize tool by Michael Pilyavskiy (Russia, Oryol)'..'\n'..'Version '.
     
   display_end = 1 -- 0..1
   display_start = 0 -- 0..1
+  
+  update_display = true
   
   -- main menu windows
   quantize_ref_menu_xywh_t = {x_offset+gui_offset+options_button_width, y_offset, 
@@ -609,65 +570,80 @@ end
  ---------------------------------------------------------------------------------------------------------------
  
  function GUI_display() 
-   
-   gui_display_offset = first_measure_dest_time
-   gui_display_length = last_measure_dest_time - first_measure_dest_time
-   
-   -- display main rectangle -- 
-   gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1,frame_alpha_default
-   gfx.roundrect(display_rect_xywh_t[1], display_rect_xywh_t[2],display_rect_xywh_t[3], display_rect_xywh_t[4],0.1, true)
-   
-   -- center line
-   gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, 0.03
-   gfx.line(display_rect_xywh_t[1], 
-            display_rect_xywh_t[2]+display_rect_xywh_t[4]/2, 
-            display_rect_xywh_t[1]+display_rect_xywh_t[3], 
-            display_rect_xywh_t[2]+display_rect_xywh_t[4]/2, 0.9)   
-         
-   GUI_display_pos(editpos, editpos_rgba_t, "full")
-   GUI_display_pos(playpos, playpos_rgba_t, "full")
-   
-   -- ref points positions
-   if ref_points_t ~= nil then
-     for i = 1, #ref_points_t do
-       ref_point = ref_points_t[i]
-       val = ref_point[2]
-       if val == nil then val = 1 end       
-       if use_vel_values_t[1] == 1 then
-         GUI_display_pos(ref_point[1], ref_points_rgba_t, "top", ref_point[2])
-        else  
-         GUI_display_pos(ref_point[1], ref_points_rgba_t, "top", 1)
-       end       
-     end
-   end  
-   
-   -- dest points positions
-   if dest_points_t ~= nil then
-     for i = 1, #dest_points_t do
-       dest_point = dest_points_t[i]       
-       if dest_point[2] == nil then val = 1 else val = dest_point[2] end
-       GUI_display_pos(dest_point[1], dest_points_rgba_t, "bottom", val)
-     end
-   end 
-   
-   -- bars
-   _, gui_display_length_bars = reaper.TimeMap2_timeToBeats(0, gui_display_length)
-   _, gui_display_offset_bars = reaper.TimeMap2_timeToBeats(0, gui_display_offset)
-   for i = 0, gui_display_length_bars+1 do      
-     bar_time = reaper.TimeMap2_beatsToTime(0, 0, i+gui_display_offset_bars)  
-     GUI_display_pos(0, bar_points_rgba_t, "centered", 0.1)   
-     GUI_display_pos(bar_time, bar_points_rgba_t, "centered", 0.1)  
-   end    
-   
-   -- beats
-   if gui_display_length_bars <= 10 then
-     for i = 1, cml*gui_display_length_bars do
-       if i%cml ~= 0 then
-         beat_time = reaper.TimeMap2_beatsToTime(0, i)
-         GUI_display_pos(beat_time+gui_display_offset, bar_points_rgba_t, "centered", 0.01)
-       end  
+   if update_display == true then
+     gfx.dest = 2   
+     gfx.setimgdim(2,-1,-1)
+     gfx.setimgdim(2, display_rect_xywh_t[1]+display_rect_xywh_t[3], 
+      display_rect_xywh_t[2]+display_rect_xywh_t[4])
+                   
+     gui_display_offset = first_measure_dest_time
+     gui_display_length = last_measure_dest_time - first_measure_dest_time
+     
+     -- display main rectangle -- 
+     gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1,frame_alpha_default
+     gfx.roundrect(display_rect_xywh_t[1], display_rect_xywh_t[2],display_rect_xywh_t[3], display_rect_xywh_t[4],0.1, true)
+     
+     -- center line
+     gfx.r, gfx.g, gfx.b, gfx.a = 1, 1, 1, 0.03
+     gfx.line(display_rect_xywh_t[1], 
+              display_rect_xywh_t[2]+display_rect_xywh_t[4]/2, 
+              display_rect_xywh_t[1]+display_rect_xywh_t[3], 
+              display_rect_xywh_t[2]+display_rect_xywh_t[4]/2, 0.9)   
+           
+     GUI_display_pos(editpos, editpos_rgba_t, "full")
+     GUI_display_pos(playpos, playpos_rgba_t, "full")
+     
+     -- ref points positions
+     if ref_points_t ~= nil then
+       for i = 1, #ref_points_t do
+         ref_point = ref_points_t[i]
+         val = ref_point[2]
+         if val == nil then val = 1 end       
+         if use_vel_values_t[1] == 1 then
+           GUI_display_pos(ref_point[1], ref_points_rgba_t, "top", ref_point[2])
+          else  
+           GUI_display_pos(ref_point[1], ref_points_rgba_t, "top", 1)
+         end       
+       end
      end  
-   end 
+     
+     -- dest points positions
+     if dest_points_t ~= nil then
+       for i = 1, #dest_points_t do
+         dest_point = dest_points_t[i]       
+         if dest_point[2] == nil then val = 1 else val = dest_point[2] end
+         GUI_display_pos(dest_point[1], dest_points_rgba_t, "bottom", val)
+       end
+     end 
+     
+     -- bars
+     _, gui_display_length_bars = reaper.TimeMap2_timeToBeats(0, gui_display_length)
+     _, gui_display_offset_bars = reaper.TimeMap2_timeToBeats(0, gui_display_offset)
+     for i = 0, gui_display_length_bars+1 do      
+       bar_time = reaper.TimeMap2_beatsToTime(0, 0, i+gui_display_offset_bars)  
+       GUI_display_pos(0, bar_points_rgba_t, "centered", 0.1)   
+       GUI_display_pos(bar_time, bar_points_rgba_t, "centered", 0.1)  
+     end    
+     
+     -- beats
+     if gui_display_length_bars <= 10 then
+       for i = 1, cml*gui_display_length_bars do
+         if i%cml ~= 0 then
+           beat_time = reaper.TimeMap2_beatsToTime(0, i)
+           GUI_display_pos(beat_time+gui_display_offset, bar_points_rgba_t, "centered", 0.01)
+         end  
+       end  
+     end 
+     update_display = false
+     gfx.dest = -1 
+    else -- update display
+     gfx.a = 1
+     gfx.dest = -1
+     gfx.blit(2, 1, 0, display_rect_xywh_t[1], display_rect_xywh_t[2],display_rect_xywh_t[3], display_rect_xywh_t[4],
+                       display_rect_xywh_t[1], display_rect_xywh_t[2],display_rect_xywh_t[3], display_rect_xywh_t[4])
+   end
+               
+     
  end  
  
 ---------------------------------------------------------------------------------------------------------------
@@ -2233,7 +2209,7 @@ end
     LMB_state = gfx.mouse_cap&1 == 1 
     RMB_state = gfx.mouse_cap&2 == 2
     MMB_state = gfx.mouse_cap&64 == 64
-    
+    if LMB_state or RMB_state or MMB_state then MB_state =true else MB_state = false end
     
     if LMB_state or RMB_state or MMB_state then reaper.UpdateArrange() end
     
@@ -2242,6 +2218,7 @@ end
     if gfx.mouse_cap == 5 then Ctrl_state = true else Ctrl_state = false end
     mx, my = gfx.mouse_x, gfx.mouse_y  
     
+    if last_MB_state and not MB_state then update_display = true end
     
    if project_grid_measures < 1 then   
        
@@ -2354,7 +2331,8 @@ end
                    if swing_value < -1 then swing_value = -1 end
                    ENGINE1_get_reference_swing_grid()
                    ENGINE1_get_reference_FORM_points()
-                   last_mouse_object = 'type_swing' 
+                   last_mouse_object = 'type_swing'   
+                   update_display = true                 
                  end 
                end  
              end -- rb mouse on swing   
@@ -2686,6 +2664,7 @@ end
    last_LMB_state = LMB_state
    last_RMB_state = RMB_state
    last_MMB_state = MMB_state
+   if last_LMB_state or last_RMB_state or last_MMB_state then last_MB_state = true else last_MB_state = false end
  end
         
 ---------------------------------------------------------------------------------------------------------------
@@ -2775,13 +2754,6 @@ end
  OS=reaper.GetOS()
  exepath = reaper.GetResourcePath()
  
- reaper_vrs = reaper.GetAppVersion()
- reaper_vrs_num = tonumber(string.sub(reaper_vrs, 1,4))
- sws_whatsnew = exepath..'/Plugins/reaper_sws_whatsnew.txt'
- file = io.open(sws_whatsnew, "r")
- if file ~= nil then sws_version = tonumber(string.sub(file:read("*all"), 3, 5)) file:close() end
- if sws_version == nil then sws_version = 2.8 end
- if reaper_vrs_num >= 5.03 and sws_version >= 2.8 then
    main_w = 440
    main_h = 355
    
@@ -2792,9 +2764,3 @@ end
    DEFINE_default_variables_GUI() 
    
    MAIN_run()
-  else
-   err_ret = reaper.MB("This script requires REAPER 5.03+ and SWS 2.8.1+"..'\n'..'\n'..'You know where to find new REAPER. So do you wanna procced to SWS S&M extension download?', "Error", 4)
-   if err_ret ==6 then 
-     open_URL("http://sws.mj-s.com/")
-   end  
- end
