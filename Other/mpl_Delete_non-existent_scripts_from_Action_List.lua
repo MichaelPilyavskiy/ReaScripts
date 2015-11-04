@@ -1,6 +1,6 @@
     
   ret = reaper.MB('Delete non-existent scripts from Action List - NO UNDO!'..'\n'..
-    'If you have unicode characters in script address, script will be ALSO DELETED!',
+    'If you have non-unicode characters in script address, script will be ALSO DELETED!',
      'Delete non-existent scripts', 1)
   
   if ret == 1 then  
