@@ -10,11 +10,12 @@ changelog =
    ==========
    Changelog:
    ==========   
-02.11.2015  1.7 build 1 - need REAPER 5.03+ SWS 2.8.1+
+02.11.2015  1.7 build 2 - need REAPER 5.03+ SWS 2.8.1+
           GUI
             optimized performance by blitting display
           Bugfixes
             Disabled REAPER/SWS version checking on start
+            Fixed negative ref.points
 13.10.2015  1.6 build 5  - need REAPER 5.03+ SWS 2.8.1+
           Improvements
             improved mouse tracking, thanks to spk77!
@@ -1272,7 +1273,9 @@ end
                 if ref_points_t2_subt[1] > cml then
                   ref_pos_time = reaper.TimeMap2_beatsToTime(0, ref_points_t2_subt[1] - cml, i-1)
                 end  
-                table.insert(ref_points_t, {ref_pos_time, ref_points_t2_subt[2]} )
+                if ref_pos_time > 0 and  ref_points_t2_subt[2] > 0 then 
+                  table.insert(ref_points_t, {ref_pos_time, ref_points_t2_subt[2]} )
+                end
               end  
             end   -- generate ref point over timeline
               
