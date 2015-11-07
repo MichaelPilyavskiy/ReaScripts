@@ -1,4 +1,4 @@
--- Select track with instruments
+-- Select tracks with instruments
 
 c_tracks = reaper.CountTracks(0)
 if c_tracks ~= nil then
