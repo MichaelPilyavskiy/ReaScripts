@@ -1,7 +1,7 @@
-  script_title = "Delete all MIDI OSC learn from last touched fx"
+  script_title = "Delete all MIDI OSC learn from focused fx"
   reaper.Undo_BeginBlock()
   
-  retval, tracknumber, fxnumber = reaper.GetLastTouchedFX()
+  _, tracknumber, _, fxnumber = reaper.GetFocusedFX()
   track = reaper.GetTrack(0,tracknumber-1)
   if track ~= nil and fxnumber ~= nil then 
     _, trackname = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
