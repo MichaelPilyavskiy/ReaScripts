@@ -2,7 +2,7 @@
   reaper.Undo_BeginBlock()
 
   ret = reaper.MB('Do you want to sort current project folder garbage (NO UNDO) ?',
-     'Collect project folder garbage', 1)
+     'Sort project folder garbage', 1)
   -----------------------------------------------
   
     function cut_file(src_path, dest_path)    
@@ -63,18 +63,24 @@
     for i = 1, #files do
       
       -- Reaper stuff
-        move_by_ext(files[i], 'reapeaks', '/Peaks')
+        move_by_ext(files[i], '.reapeaks', '/Peaks')
         move_by_ext(files[i], '-bak', '/Backup')
         if project_path..'/'..files[i] ~= project_name then
           move_by_ext(files[i], '.RPP', '/Old versions') end
         
       -- Other stuff
-        move_by_ext(files[i], '.wav', '/Audio')
-        move_by_ext(files[i], '.flac','/Audio') 
-        move_by_ext(files[i], '.ogg', '/Audio')  
-        move_by_ext(files[i], '.mp3', '/Audio')      
-        move_by_ext(files[i], '.mid', '/MIDI')
-        move_by_ext(files[i], '.midi','/MIDI')
+        move_by_ext(files[i], '.wav',  '/Audio')
+        move_by_ext(files[i], '.wave', '/Audio')
+        move_by_ext(files[i], '.flac', '/Audio') 
+        move_by_ext(files[i], '.ogg',  '/Audio')  
+        move_by_ext(files[i], '.mp3',  '/Audio') 
+        move_by_ext(files[i], '.aiff', '/Audio') 
+        move_by_ext(files[i], '.aiff', '/Audio') 
+        move_by_ext(files[i], '.aifc', '/Audio') 
+        move_by_ext(files[i], '.aif',  '/Audio') 
+        
+        move_by_ext(files[i], '.mid',  '/MIDI')
+        move_by_ext(files[i], '.midi', '/MIDI')
     end
   end
   
