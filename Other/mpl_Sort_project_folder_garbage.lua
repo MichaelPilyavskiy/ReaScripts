@@ -1,7 +1,7 @@
-  script_title = "mpl Collect project folder garbage"  
+  script_title = "mpl Sort project folder garbage"  
   reaper.Undo_BeginBlock()
 
-  ret = reaper.MB('Do you want to collect current project folder garbage (NO UNDO) ?',
+  ret = reaper.MB('Do you want to sort current project folder garbage (NO UNDO) ?',
      'Collect project folder garbage', 1)
   -----------------------------------------------
   
