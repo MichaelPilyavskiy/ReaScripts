@@ -2,13 +2,13 @@
 
 fontsize  = 16
 
-vrs = "0.013"
+vrs = "0.014"
  
 changelog =                   
 [===[
             Changelog:
             
-15.11.2015  0.013 early alpha
+15.11.2015  0.014 early alpha
             extracting data from chunk, basic gui
 04.11.2015  Request from RMM to GUI for FX Chain
             http://rmmedia.ru/threads/118091/page-4#post-1936560
@@ -29,21 +29,24 @@ about = 'FX Chain Tool by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
  
 -----------------------------------------------------------------------
  
- function F_dec(data)
-     data = string.gsub(data, '[^'..b..'=]', '')
-     return (data:gsub('.', function(x)
-         if (x == '=') then return '' end
-         local r,f='',(b:find(x)-1)
-         for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
-         return r;
-     end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
-         if (#x ~= 8) then return '' end
-         local c=0
-         for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
-         return string.char(c)
-     end))
- end
- 
+  function F_dec(data)
+    b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    data = string.gsub(data, '[^'..b..'=]', '')
+    return (data:gsub('.', function(x)
+        if (x == '=') then return '' end
+        local r,f='',(b:find(x)-1)
+        for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+        return r;
+    end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+        if (#x ~= 8) then return '' end
+        local c=0
+        for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+        return string.char(c)
+    end))
+  end 
+
+-----------------------------------------------------------------------
+
  function VAR_default_GUI()
     main_w = 440
     main_h = 600
@@ -267,8 +270,38 @@ about = 'FX Chain Tool by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
                 until chunk_t[vst_data_t[1].id+k] ~= '>'
              end
           end
-        end
+        end -- loop
         
+      -- get readable routing from base64
+      
+        for i = 1, #vst_data_t do
+          if vst_data_t[i].base64 == nil then
+            vst_data_t[i].routing = string.rep('0', num_channels^2) 
+           else
+            
+            hex = {}
+            str_src = vst_data_t[i].base64
+            string_ret = F_dec(vst_data_t[i].base64)
+            
+            for m = 1, string.len(string_ret),4 do
+            
+              -- cut every 4 chars
+              string_ret_cut = string.sub(string_ret, m,m+3)
+        
+              -- string to integer
+              if string.len(string_ret_cut) == 4 then
+                int = (string.byte(string_ret_cut,1) <<  0) | 
+                    (string.byte(string_ret_cut,2) <<  8) |
+                    (string.byte(string_ret_cut,3) << 16) | 
+                    (string.byte(string_ret_cut,4) << 24)
+              end        
+                  
+              -- integer to hex
+              if int ~= nil then hex[m] = string.format('%X',int) end
+            end
+          end
+        end
+      
         
         
       end -- if track not null
