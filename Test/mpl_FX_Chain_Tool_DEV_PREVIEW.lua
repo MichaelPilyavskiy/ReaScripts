@@ -2,13 +2,13 @@
 
 fontsize  = 16
 
-vrs = "0.011"
+vrs = "0.012"
  
 changelog =                   
 [===[
             Changelog:
             
-15.11.2015  0.011
+15.11.2015  0.012
             early alpha
 04.11.2015  Request from RMM to GUI for FX Chain
             http://rmmedia.ru/threads/118091/page-4#post-1936560
@@ -171,8 +171,9 @@ about = 'FX Chain viewer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
           
         fx_chain_end_i = #chunk_t
         for j = 1, #chunk_t do
-          -- track fx chain search
+          -- search track fx chain exists
             st_find0 = string.find(chunk_t[j], '<FXCHAIN')
+          -- search track fx chain edges
             if st_find0 ~= nil then chain_exists = true fx_chain_start_i =j end
             st_find1 = string.find(chunk_t[j], '<FXCHAIN_REC')          
             st_find2 = string.find(chunk_t[j], '<ITEM')
@@ -181,52 +182,74 @@ about = 'FX Chain viewer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
             st_find3 = string.find(chunk_t[j], 'NCHAN')
             if st_find3 ~= nil then num_channels = tonumber(string.sub(chunk_t[j],6))end
         end
+        
+        -- add fx chunk id into table
+        -- add fx chunk into table
+        vst_data_t = {}
+        if chain_exists and fx_chain_start_i ~= nil and fx_chain_end_i ~= nil then
+          search_from = 1
+          while search_from ~= nil and search_from < fx_chain_end_i do 
+            vst_data, search_from, start_id = F_find_chain(chunk_t, search_from)
+            if vst_data ~= nil and start_id < fx_chain_end_i then 
+              table.insert(vst_data_t, {['id']=start_id, ['id_end']=search_from-1, ['fullchunk']=vst_data}) 
+            end
+          end
+        end
+        
+        -- add plugin names into table
+        
+        fx_count = reaper.TrackFX_GetCount(track)
+        if fx_count ~= nil then
+          for i = 1, fx_count do
+            _, vst_data_t[i].name = reaper.TrackFX_GetFXName(track, i-1, '')
+          end
+        end
+           
+        -- extract base64 from JS and VST
+        
+        for i=1, #vst_data_t do
+          st_find_10 = string.find(chunk_t[vst_data_t[i].id+1], '<VST')
+          if st_find_10 ~= nil then
+            k = 2
+            vst_data_t[i].base64=''
+            repeat
+              vst_data_t[i].base64 = vst_data_t[i].base64..chunk_t[vst_data_t[i].id+k]
+              k = k + 1
+              until chunk_t[vst_data_t[1].id+k] ~= '>'
+          end
+        end
+        --<JS_PINMAP
+        
       end -- if track not null
+     else
+      track = nil
+      vst_data_t = {}
     end -- if track chain
     
   end
   
-----------------------------------------------------------------------  
-  function ENGINE1_get_chain_plugins()
-    vst_data_t = {}
-    if chain_exists and fx_chain_start_i ~= nil and fx_chain_end_i ~= nil then
-      search_from = 1
-      while search_from ~= nil and search_from < fx_chain_end_i do 
-        vst_data, search_from, start_id = F_find_chain(chunk_t, search_from)
-        if vst_data ~= nil and start_id < fx_chain_end_i then 
-          table.insert(vst_data_t, {vst_data}) 
-        end
-      end
-    end
-    
-    if track ~= nil then
-      fx_count = reaper.TrackFX_GetCount(track)
-      if fx_count ~= nil then
-        for i = 1, fx_count do
-          _, vst_data_t[i].name = reaper.TrackFX_GetFXName(track, i-1, '')
-        end
-      end
-    end
-    
-  end
-  
+-----------------------------------------------------------------------  
   function ENGINE2_get_xywh(idx)
     w = gfx.measurestr(vst_data_t[idx].name) + 10
     h = fontsize_objects + 5
-    x,y = 10,(fontsize_objects+15)*idx
+    x = 10
+    y = 30+(fontsize_objects+30)*idx
     
     return {x,y,w,h}
   end
 -----------------------------------------------------------------------
   function F_exit() gfx.quit() end
 -----------------------------------------------------------------------
-  function run()     
+  function run()      
     ENGINE1_get_data()
-    ENGINE1_get_chain_plugins()
     GUI_DRAW()
     char = gfx.getchar() 
+    
+    --reaper.ShowConsoleMsg("")
+    --reaper.ShowConsoleMsg(vst_data_t[1][1])
+        
     if char == 27 then exit() end     
-    if char ~= -1 then reaper.defer(run) else exit() end
+    if char ~= -1 then reaper.defer(run) else F_exit() end
   end 
   
 -----------------------------------------------------------------------
@@ -238,5 +261,3 @@ about = 'FX Chain viewer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
   run()
   
   
-  --reaper.ShowConsoleMsg("")
-  --reaper.ShowConsoleMsg(chunk)
