@@ -1,21 +1,21 @@
---  Michael Pilyavskiy FX Chain Viewer --
+--  Michael Pilyavskiy FX Chain Tool --
 
 fontsize  = 16
 
-vrs = "0.012"
+vrs = "0.013"
  
 changelog =                   
 [===[
             Changelog:
             
-15.11.2015  0.012
-            early alpha
+15.11.2015  0.013 early alpha
+            extracting data from chunk, basic gui
 04.11.2015  Request from RMM to GUI for FX Chain
             http://rmmedia.ru/threads/118091/page-4#post-1936560
 ]===]
 
 
-about = 'FX Chain viewer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
+about = 'FX Chain Tool by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
 [===[    
             Contacts:
    
@@ -46,7 +46,7 @@ about = 'FX Chain viewer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
  
  function VAR_default_GUI()
     main_w = 440
-    main_h = 355
+    main_h = 600
     
     offset = 5
     
@@ -57,6 +57,12 @@ about = 'FX Chain viewer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
     COL2 = {0.4, 1, 0.4} -- green
     COL3 = {1, 1, 1} -- white
     
+    b_get = {10,10,100,25}
+    b_get_name = "Get FX chain"
+    
+    b_set = {10,main_h - 10 - 25,100,25}
+    b_set_name = "Set FX chain"
+        
     --[[color6_t = {0.2, 0.25, 0.22} -- back2
           color2_t = {0.5, 0.8, 1} -- blue      
           color3_t = {1, 1, 1}-- white
@@ -95,21 +101,6 @@ about = 'FX Chain viewer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
   
 -----------------------------------------------------------------------  
   function GUI_chain()
-    if vst_data_t ~= nil then      
-      for i = 1, #vst_data_t do
-        xywh = ENGINE2_get_xywh(i)
-        GUI_plugrect(vst_data_t[i].name, xywh)
-      end
-    end
-  end
-  
------------------------------------------------------------------------
-  function GUI_DRAW()
-    -- background --
-      gfx.a = 1
-      F_extract_table(COL1,'rgb')
-      gfx.rect(0,0,main_w,main_h)
-      
     -- track
       if track ~= nil then
         F_extract_table(COL3,'rgb')
@@ -123,12 +114,57 @@ about = 'FX Chain viewer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
          else
           str = 'FX Chain of Master Track'
         end
-        strlen = gfx.measurestr(str)
-        gfx.x,gfx.y = (main_w-strlen)/2,10
+        --strlen = gfx.measurestr(str)
+        gfx.x,gfx.y = b_get[1]+ b_get[3] + 10,  b_get[2] +  (b_get[4]-fontsize)/2
         gfx.drawstr(str)         
       end
+    
+    -- blocks
+      
+    if vst_data_t ~= nil then      
+      for i = 1, #vst_data_t do
+        xywh = ENGINE2_get_xywh(i)
+        GUI_plugrect(vst_data_t[i].name, xywh)
+      end
+    end
+  end
+  
+ ----------------------------------------------------------------------- 
+  function GUI_button(b_name,xywh_t, frame)
+    gfx.a = 0.1
+    F_extract_table(COL3,'rgb')
+    F_extract_table(xywh_t,'xywh')
+    gfx.rect(x,y,w,h)
+    
+    F_extract_table(xywh_t,'xywh')
+    gfx.setfont(1,font,fontsize)
+    gfx.x = x + (w - gfx.measurestr(b_name))/2
+    gfx.y = y + (h - fontsize_objects)/2
+    gfx.a = 1    
+    gfx.drawstr(b_name)
+    
+    if frame then
+      gfx.a = 1
+      F_extract_table(COL2,'rgb')
+      F_extract_table(xywh_t,'xywh')
+      gfx.roundrect(x,y,w,h,false,1)
+    end
+    
+  end
+  
+-----------------------------------------------------------------------
+  function GUI_DRAW()
+    -- background --
+      gfx.a = 1
+      F_extract_table(COL1,'rgb')
+      gfx.rect(0,0,main_w,main_h)
+    
+    -- buttons
+      GUI_button(b_get_name, b_get, b_get_frame)
+      GUI_button(b_set_name, b_set, b_set_frame)
       
       GUI_chain()
+      
     gfx.update()
   end
   
@@ -208,8 +244,10 @@ about = 'FX Chain viewer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
         -- extract base64 from JS and VST
         
         for i=1, #vst_data_t do
+          -- if VST/DX
           st_find_10 = string.find(chunk_t[vst_data_t[i].id+1], '<VST')
-          if st_find_10 ~= nil then
+          st_find_11 = string.find(chunk_t[vst_data_t[i].id+1], '<DX')
+          if st_find_10 ~= nil or st_find_11 then
             k = 2
             vst_data_t[i].base64=''
             repeat
@@ -217,8 +255,21 @@ about = 'FX Chain viewer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
               k = k + 1
               until chunk_t[vst_data_t[1].id+k] ~= '>'
           end
+          -- if JS
+          st_find_13 = string.find(chunk_t[vst_data_t[i].id+1], '<JS')
+          if st_find_13 ~= nil then
+             if string.find(chunk_t[vst_data_t[i].id+4], '<JS_PINMAP') ~= nil then
+               k = 5
+               vst_data_t[i].base64=''
+               repeat
+                vst_data_t[i].base64 = vst_data_t[i].base64..chunk_t[vst_data_t[i].id+k]
+                k = k + 1
+                until chunk_t[vst_data_t[1].id+k] ~= '>'
+             end
+          end
         end
-        --<JS_PINMAP
+        
+        
         
       end -- if track not null
      else
@@ -237,17 +288,59 @@ about = 'FX Chain viewer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
     
     return {x,y,w,h}
   end
+  
+  -----------------------------------------------------------------------
+    function MOUSE_gate(mb, b)
+      local state    
+      if MOUSE_match_xy(b) then       
+       if mb == 1 then if LMB_state and not last_LMB_state then state = true else state = false end end
+       if mb == 2 then if RMB_state and not last_RMB_state then state = true else state = false end end 
+       if mb == 64 then if MMB_state and not last_MMB_state then state = true else state = false end end        
+      end   
+      return state
+    end
+  -----------------------------------------------------------------------
+  function MOUSE_match_xy(b)
+    if    mx > b[1] 
+      and mx < b[1]+b[3]
+      and my > b[2]
+      and my < b[2]+b[4] then
+     return true 
+    end 
+  end
+      
+  -----------------------------------------------------------------------  
+  function MOUSE_get()
+      LMB_state = gfx.mouse_cap&1 == 1 
+      RMB_state = gfx.mouse_cap&2 == 2 
+      MMB_state = gfx.mouse_cap&64 == 64  
+      mx, my = gfx.mouse_x, gfx.mouse_y
+          if LMB_state and not last_LMB_state then mx0,my0 = mx,my else  end
+          if mx0 ~= nil and my0 ~= nil then    mx_rel,my_rel = mx0-mx, my0-my end
+          
+      if MOUSE_gate(1, b_get) then ENGINE1_get_data() end
+      if MOUSE_match_xy(b_get) then b_get_frame = true else b_get_frame = false end
+      
+      if MOUSE_match_xy(b_set) then b_set_frame = true else b_set_frame = false end
+      
+      last_LMB_state = LMB_state    
+      last_RMB_state = RMB_state
+      last_MMB_state = MMB_state 
+  end
+  
 -----------------------------------------------------------------------
   function F_exit() gfx.quit() end
+  
 -----------------------------------------------------------------------
-  function run()      
-    ENGINE1_get_data()
+  function run()    
     GUI_DRAW()
-    char = gfx.getchar() 
+    MOUSE_get()
+     
     
     --reaper.ShowConsoleMsg("")
     --reaper.ShowConsoleMsg(vst_data_t[1][1])
-        
+    
+    char = gfx.getchar()
     if char == 27 then exit() end     
     if char ~= -1 then reaper.defer(run) else F_exit() end
   end 
@@ -255,7 +348,7 @@ about = 'FX Chain viewer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
 -----------------------------------------------------------------------
   
   VAR_default_GUI()
-  gfx.init("mpl FX Chain viewer // ".."Version "..vrs..' DEVELOPER PREVIEW', main_w, main_h)
+  gfx.init("mpl FX Chain Tool // ".."Version "..vrs..' DEVELOPER PREVIEW', main_w, main_h)
   reaper.atexit(F_exit) 
   
   run()
