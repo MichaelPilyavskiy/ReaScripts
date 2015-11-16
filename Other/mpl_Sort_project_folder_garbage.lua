@@ -1,90 +1,113 @@
   script_title = "mpl Sort project folder garbage"  
-  reaper.Undo_BeginBlock()
 
-  ret = reaper.MB('Do you want to sort current project folder garbage (NO UNDO) ?',
-     'Sort project folder garbage', 1)
-  -----------------------------------------------
+  ---------------- Action -----------------------  
   
-    function cut_file(src_path, dest_path)    
-    -- get src
-    file = io.open (src_path, 'r')
-    if file ~= nil then
-      content = file:read("*all")
-      io.close (file)
-      -- write copy to dst
-      file = io.open (dest_path, 'w')
-      file:write(content)
-      io.close (file)
-      -- remove
-      os.remove(src_path)
-    end
-  end
+  action = 'copy'
+  --action = 'move'
   
-  -----------------------------------------------
-  
-  function move_by_ext(filename, ext, dest_folder)
-    if filename ~= nil then
-      filename_len = string.len(filename)
-      filename_L = string.lower(filename)
-      ext_L = string.lower(ext)
-      st_find0, st_find = string.find(filename_L, ext_L)
-      
-      if st_find == filename_len then
-        cut_file(project_path..'/'..filename, project_path..dest_folder..'/'..filename) 
-      end
-    end    
-  end
-  
-  -----------------------------------------------
+  -------------- Main Folder --------------------
     
-  project_path = reaper.GetProjectPath("")
-  _, project_name = reaper.EnumProjects(-1, '')
-  project_path = string.gsub(project_path, "\\", '/')
-  project_name = string.gsub(project_name, "\\", '/')
-    reaper.RecursiveCreateDirectory(project_path..'/Backup/', 1)
-    reaper.RecursiveCreateDirectory(project_path..'/Audio/', 1)
-    reaper.RecursiveCreateDirectory(project_path..'/MIDI/', 1)
-    reaper.RecursiveCreateDirectory(project_path..'/Old versions/', 1)
-    reaper.RecursiveCreateDirectory(project_path..'/Peaks/', 1)
-        
-  -----------------------------------------------
+  common_folder = 'C:/projects_stuff/<project_name>'
+  --common_folder = '<project_path>'
   
-  i = 1
-  files = {}
-  repeat
-    str_address = reaper.EnumerateFiles(project_path, i-1)
-    files[i] = str_address
-    i = i + 1
-  until str_address == nil
+  ------------- Custom folders ------------------
   
-  -----------------------------------------------
-  t1 = {}
-  if files ~= nil then
-    for i = 1, #files do
+  folders = { [1] = {
+              ['path'] = common_folder..'/Audio',
+              ['ext']  = '.wav .wave .flac .ogg .mp3 .aiff .aifc .aif'},
+              [2] = {
+              ['path'] = common_folder..'/MIDI',
+              ['ext']  = '.mid .midi'},
+              [3] = {
+              ['path'] = common_folder..'/Peaks',
+              ['ext']  = '.reapeaks' }, 
+              [4] = {
+              ['path'] = common_folder..'/BackUp',
+              ['ext']  = '.RPP-bak' },  
+              [5] = {
+              ['path'] = common_folder..'/Old_Versions',
+              ['ext']  = '.RPP' },              
+            }
+            
+  -----------------------------------------------  
+  
+  ret = reaper.MB('Do you want to sort current project folder garbage to'..
+    '\n'..common_folder..' (NO UNDO) ?',
+   'Sort project folder garbage', 1)
+  
+  if ret == 1 then
+  
+    reaper.Undo_BeginBlock()
+    -----------------------------------------------
+    OS = reaper.GetOS()
+    if OS == "Win32" or OS == "Win64" then slash = '\\' else slash = '/' end
+    project_path = reaper.GetProjectPath("")  
+    _, project_name = reaper.EnumProjects(-1, '')
+    project_name0 = project_name
+    repeat
+      st1 = string.find(project_name,'\\') if st1 == nil then st1 = 0 end
+      st2 = string.find(project_name,'/') if st2 == nil then st2 = 0 end
+      st = math.max(st1,st2)    
+      project_name = string.sub(project_name, st+1)
+    until st == 0
+    project_name = string.sub(project_name, 0, -5)
+    if project_name == "" then project_name = os.date():gsub(':','.'):gsub(' ', '-') end
+    
+    -----------------------------------------------
       
-      -- Reaper stuff
-        move_by_ext(files[i], '.reapeaks', '/Peaks')
-        move_by_ext(files[i], '-bak', '/Backup')
-        if project_path..'/'..files[i] ~= project_name then
-          move_by_ext(files[i], '.RPP', '/Old versions') end
-        
-      -- Other stuff
-        move_by_ext(files[i], '.wav',  '/Audio')
-        move_by_ext(files[i], '.wave', '/Audio')
-        move_by_ext(files[i], '.flac', '/Audio') 
-        move_by_ext(files[i], '.ogg',  '/Audio')  
-        move_by_ext(files[i], '.mp3',  '/Audio') 
-        move_by_ext(files[i], '.aiff', '/Audio') 
-        move_by_ext(files[i], '.aiff', '/Audio') 
-        move_by_ext(files[i], '.aifc', '/Audio') 
-        move_by_ext(files[i], '.aif',  '/Audio') 
-        
-        move_by_ext(files[i], '.mid',  '/MIDI')
-        move_by_ext(files[i], '.midi', '/MIDI')
+    i = 1
+    files = {}
+    repeat
+      str_address = reaper.EnumerateFiles(project_path, i-1)
+      if str_address ~= nil and project_path..slash..str_address ~= project_name0 then
+        ext = string.sub(str_address, -(str_address:reverse()):find('[.]')) :lower()
+        files[i] = {}
+        files[i].path = project_path..'/'..str_address
+        files[i].ext = ext:lower()
+      end
+      i = i + 1
+    until str_address == nil
+  
+    -----------------------------------------------
+    
+    if action == 'move' then if OS == "Win32" or OS == "Win64" then cmd = 'move' else cmd = 'mv' end end
+    if action == 'copy' then if OS == "Win32" or OS == "Win64" then cmd = 'copy' else cmd = 'cp' end end
+    if OS == "Win32" or OS == "Win64" then mkdir_cmd = 'md' else mkdir_cmd = 'mkdir' end 
+         
+    function sort(src_path, dest_fold)  
+      dest_fold = dest_fold:gsub('<project_name>',project_name):gsub('<project_path>',project_path) 
+      if OS == "Win32" or OS == "Win64" then       
+        dest_fold = dest_fold:gsub('/','\\')
+        src_path = src_path:gsub('/','\\')
+       else 
+        dest_fold = dest_fold:gsub('\\','/') 
+        src_path = src_path:gsub('/','\\') 
+      end
+      
+      os.execute(mkdir_cmd..' '..dest_fold)
+      os.execute(cmd..' '..src_path..' '..dest_fold)
     end
+    
+    ----------------------------------------------- 
+    t1 = {}
+    for i = 1, #files do
+      for j = 1, #folders do 
+        --table.insert(t1,{folders[j].ext:lower(), files[i].ext,i} )
+        --[[if folders[j].ext ~= nil and ]]
+        if files[i] ~= nil then
+          s_find1,s_find2 = folders[j].ext:lower():find (files[i].ext)
+          ext_len = files[i].ext:len() - 1
+          if s_find1 ~= nil and s_find2 ~= nil then      
+            if s_find2 - s_find1 == ext_len then           
+              sort(files[i].path, folders[j].path)
+            end
+          end
+        end
+      end
+    end
+  
+    ----------------------------------------------- 
+    
+    reaper.Undo_EndBlock(script_title, 1)
+    
   end
-  
-  -----------------------------------------------
-  
-  reaper.Undo_EndBlock(script_title, 1)
-  
