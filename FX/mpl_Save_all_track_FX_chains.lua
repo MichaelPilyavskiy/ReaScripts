@@ -1,4 +1,4 @@
-  script_title = "Save all tracks FX chains to project path"  
+  script_title = "Save all tracks FX chains"  
   
   ----------------------------------------------------------------------
   ----------------------------------------------------------------------
