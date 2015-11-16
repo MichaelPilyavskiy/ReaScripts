@@ -1,13 +1,14 @@
 --  Michael Pilyavskiy FX Chain Tool --
-
+test_t = {}
+function test(x) table.insert(test_t, x) end
 fontsize  = 16
 
-vrs = "0.014"
+vrs = "0.015"
  
 changelog =                   
 [===[
             Changelog:
-            
+16.11.2015  0.015 properly hex format           
 15.11.2015  0.014 early alpha
             extracting data from chunk, basic gui
 04.11.2015  Request from RMM to GUI for FX Chain
@@ -44,7 +45,22 @@ about = 'FX Chain Tool by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
         return string.char(c)
     end))
   end 
-
+  
+-----------------------------------------------------------------------  
+  function F_wrap_txt(str, limit, indent, indent1)
+    indent = indent or ""
+    indent1 = indent1 or indent
+    limit = limit or 72
+    local here = 1-#indent1
+    return indent1..str:gsub("(%s+)()(%S+)()",
+                            function(sp, st, word, fi)
+                              if fi-here > limit then
+                                here = st - #indent
+                                return "\n"..indent..word
+                              end
+                            end)
+  end
+  
 -----------------------------------------------------------------------
 
  function VAR_default_GUI()
@@ -286,18 +302,18 @@ about = 'FX Chain Tool by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
             for m = 1, string.len(string_ret),4 do
             
               -- cut every 4 chars
-              string_ret_cut = string.sub(string_ret, m,m+3)
-        
+              string_ret_cut = string.sub(string_ret, m,m+3)              
+              
               -- string to integer
               if string.len(string_ret_cut) == 4 then
                 int = (string.byte(string_ret_cut,1) <<  0) | 
                     (string.byte(string_ret_cut,2) <<  8) |
                     (string.byte(string_ret_cut,3) << 16) | 
-                    (string.byte(string_ret_cut,4) << 24)
-              end        
-                  
-              -- integer to hex
-              if int ~= nil then hex[m] = string.format('%X',int) end
+                    (string.byte(string_ret_cut,4) << 24) 
+              end   
+              if int ~= nil then hex[m] = string.format('%08X',int) end
+              
+              
             end
           end
         end
