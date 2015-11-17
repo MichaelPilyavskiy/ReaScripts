@@ -1,5 +1,4 @@
   script_title = "mpl Sort project folder garbage"  
-
   ---------------- Action -----------------------  
   
   action = 'copy'
@@ -7,8 +6,8 @@
   
   -------------- Main Folder --------------------
     
-  common_folder = 'C:/projects_stuff/<project_name>'
-  --common_folder = '<project_path>'
+  --common_folder = 'C:/projects_stuff/<project_name>'
+  common_folder = '<project_path>'
   
   ------------- Custom folders ------------------
   
@@ -31,7 +30,7 @@
             
   -----------------------------------------------  
   
-  ret = reaper.MB('Do you want to sort current project folder garbage to'..
+  ret = reaper.MB('Do you want to '..action..' current project folder garbage to'..
     '\n'..common_folder..' (NO UNDO) ?',
    'Sort project folder garbage', 1)
   
@@ -72,8 +71,8 @@
     
     if action == 'move' then if OS == "Win32" or OS == "Win64" then cmd = 'move' else cmd = 'mv' end end
     if action == 'copy' then if OS == "Win32" or OS == "Win64" then cmd = 'copy' else cmd = 'cp' end end
-    if OS == "Win32" or OS == "Win64" then mkdir_cmd = 'md' else mkdir_cmd = 'mkdir' end 
-         
+    if OS == "Win32" or OS == "Win64" then mkdir_cmd = 'md' else mkdir_cmd = 'mkdir -p' end 
+       
     function sort(src_path, dest_fold)  
       dest_fold = dest_fold:gsub('<project_name>',project_name):gsub('<project_path>',project_path) 
       if OS == "Win32" or OS == "Win64" then       
@@ -81,25 +80,30 @@
         src_path = src_path:gsub('/','\\')
        else 
         dest_fold = dest_fold:gsub('\\','/') 
-        src_path = src_path:gsub('/','\\') 
+        src_path = src_path:gsub('\\','/') 
       end
       
       os.execute(mkdir_cmd..' '..dest_fold)
       os.execute(cmd..' '..src_path..' '..dest_fold)
+
+      count = count + 1
+      ret_string = '#'..count..'\n'..
+                 'source '..src_path..'\n'..
+                 'destination '..dest_fold..'\n'
+      return ret_string
     end
     
     ----------------------------------------------- 
-    t1 = {}
+    ret_msg = ''
+    count = 0
     for i = 1, #files do
       for j = 1, #folders do 
-        --table.insert(t1,{folders[j].ext:lower(), files[i].ext,i} )
-        --[[if folders[j].ext ~= nil and ]]
         if files[i] ~= nil then
           s_find1,s_find2 = folders[j].ext:lower():find (files[i].ext)
           ext_len = files[i].ext:len() - 1
           if s_find1 ~= nil and s_find2 ~= nil then      
             if s_find2 - s_find1 == ext_len then           
-              sort(files[i].path, folders[j].path)
+              ret_msg = ret_msg..sort(files[i].path, folders[j].path)
             end
           end
         end
@@ -107,7 +111,7 @@
     end
   
     ----------------------------------------------- 
-    
+    reaper.ShowConsoleMsg('Log'..'\n'..ret_msg)
     reaper.Undo_EndBlock(script_title, 1)
     
   end
