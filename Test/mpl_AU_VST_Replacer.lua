@@ -9,7 +9,10 @@ vrs = "0.1"
  
 changelog =                   
 [===[
-            Changelog:          
+            Changelog:  
+18.11.2015  0.2 
+            dump AU data to project  
+            proper fonts on OSX      
 15.11.2015  0.1 alpha 
 ]===]
 
@@ -41,11 +44,10 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
     main_w = 320
     main_h = 240
     
-    offset = 5
-    
+    offset = 5         
+    if OS == "OSX32" or OS == "OSX64" then fontsize = fontsize - 3 end    
     font = 'Arial'
-    fontsize_objects = fontsize - 2
-    
+    fontsize_objects = fontsize - 2    
     COL1 = {0.2, 0.2, 0.2}
     COL2 = {0.4, 1, 0.4} -- green
     COL3 = {1, 1, 1} -- white
@@ -143,15 +145,17 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
               if s_find1 == 1 and s_find2 == 2 then
                 params_count = reaper.TrackFX_GetNumParams(tr, j-1)
                 if params_count ~= nil then
+                  val_com = ""
                   for k =1, params_count do
-                    val = reaper.TrackFX_GetParam(tr, j-1, k-1)
-                    val = val..' '..tostring(val)..' '
+                    val = reaper.TrackFX_GetParamNormalized(tr, j-1, k-1)
+                    val_s = string.format('%s',val)
+                    val_com = val_com..' '..val_s
                   end
                   div = "||"
                   outstr = tr_guid..div..
-                           (j-1)..div..
+                           (j)..div..
                            fx_name:sub(5)..div..
-                           val
+                           val_com
                   table.insert(plugdata, outstr)
                 end
               end
@@ -172,7 +176,7 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
     -- show info message 
     
       if #plugdata > 0 then
-        reaper.MB(plug_count..' AU plugin parameter sets dumped to project file:', 'AU VST Replacer', 0)
+        reaper.MB(plug_count..' AU plugin parameter sets dumped to project file', 'AU VST Replacer', 0)
        else
         reaper.MB('There is no any AU plugins in this project', 'AU VST Replacer Error', 0)
       end
@@ -317,7 +321,7 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
   end 
   
 -----------------------------------------------------------------------
-  
+  OS = reaper.GetOS()
   VAR_default_GUI()
   gfx.init("mpl AU VST Replacer // ".."Version "..vrs, main_w, main_h)
   reaper.atexit(F_exit) 
