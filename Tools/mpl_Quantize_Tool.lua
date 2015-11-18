@@ -10,9 +10,10 @@ changelog =
    ==========
    Changelog:
    ==========   
-02.11.2015  1.7 build 2 - need REAPER 5.03+ SWS 2.8.1+
+18.11.2015  1.7 build 3 - need REAPER 5.03+ SWS 2.8.1+
           GUI
             optimized performance by blitting display
+            font fix for OSX users
           Bugfixes
             Disabled REAPER/SWS version checking on start
             Fixed negative ref.points
@@ -310,6 +311,7 @@ about = 'Quantize tool by Michael Pilyavskiy (Russia, Oryol)'..'\n'..'Version '.
  --------------------------------------------------------------------------------------------------------------- 
  
  function DEFINE_default_variables_GUI()
+  if OS == "OSX32" or OS == "OSX64" then fontsize_menu_name = fontsize_menu_name - 3 end
   gui_offset = 5
   x_offset = 5
   y_offset = 5
