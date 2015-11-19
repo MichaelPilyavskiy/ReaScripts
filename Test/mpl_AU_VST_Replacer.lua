@@ -5,11 +5,14 @@ function test(x) table.insert(test_t, x) end
 
 fontsize  = 16
 
-vrs = "0.1"
+vrs = "0.5"
  
 changelog =                   
 [===[
             Changelog:  
+19.11.2015  0.5
+            replacing plugins + params
+            matching names
 18.11.2015  0.2 
             dump AU data to project  
             proper fonts on OSX      
@@ -28,7 +31,39 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
             ReaperForum - http://forum.cockos.com/member.php?u=70694
   
  ]===]
-   
+ 
+  ----------------------------------------------------------------------- 
+  function F_find_VST_analog(au_name,dumped_ini_pluglist)
+    -- split by words
+      au_name = au_name:gsub('%p', '')
+      au_name_words = {}
+      for word in string.gmatch(au_name, '[^%s]+') do table.insert(au_name_words, word) end
+      
+    -- find closest matching in pluglist
+      matched_words = {}
+      for i = 1, #dumped_ini_pluglist do
+        matched_words_int = 0
+        for j = 1, #au_name_words do
+          if string.find(dumped_ini_pluglist[i]:gsub('%p', ''), au_name_words[j]) ~= nil then matched_words_int = matched_words_int+1 end
+        end
+        matched_words[i] = matched_words_int
+      end
+      
+      max_match = 0
+      max_i = 0
+      for i = 1, #matched_words do
+        max_match0 = max_match
+        max_match = math.max(max_match, tonumber(matched_words[i]))
+        if max_match > max_match0 then max_i = i end
+      end
+      
+      vst_name_line = dumped_ini_pluglist[max_i]:gsub('!!!VSTi','')
+      cut = string.find(string.reverse(vst_name_line), ',')
+      vst_name = vst_name_line:sub(-cut+1)
+      
+    return vst_name
+  end
+  
   -----------------------------------------------------------------------
   function F_add_to_list(config_path)
     file = io.open (config_path, 'r')
@@ -225,26 +260,43 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
         ret_user = reaper.MB('Are you REALLY SURE you have VST analogs of this AU plugins'..'\n'..
         '(otherwise THEY WILL BE DELETED):'..'\n'..
         has_plugins..'?', '', 4)
-        
-        if ret_user == 6 then          
+   
+        if ret_user == 6 then       
+          reaper.PreventUIRefresh(1)   
           reaper.Undo_BeginBlock2(0)
 ---vvvvvvvvvv----------------------------------------------          
           if reaper.CountTracks(0) ~= nil then
             for i = 1, #plugdata_AU_ret do
             
-              t_track_guid = plugdata_AU_ret[i][1]
-              t_fx_id = tonumber(plugdata_AU_ret[i][2])
+              t_track_guid = plugdata_AU_ret[i][1]              
               t_fx_name = plugdata_AU_ret[i][3]
               t_fx_params = plugdata_AU_ret[i][4]
+              t_fx_id = tonumber(plugdata_AU_ret[i][2])
               
-              insert_fx = find_insert(t_fx_name)
-              test({insert_fx,t_fx_name})
               for j=1, reaper.CountTracks(0) do
                 track = reaper.GetTrack(0,j-1)
                 trackguid = reaper.GetTrackGUID(track)
-                --)
                 if t_track_guid == trackguid then
-                  --reaper.SNM_MoveOrRemoveTrackFX(track, t_fx_id, 0)
+                  
+                  -- remove AU                  
+                    reaper.SNM_MoveOrRemoveTrackFX(track, t_fx_id-1, 0)                   
+                  -- get VST analog name
+                    insert_fx = F_find_VST_analog(t_fx_name,plugins_list)
+                  -- insert by name 
+                    reaper.TrackFX_GetByName(track, insert_fx, true)
+                  -- move from end of chain
+                    fxcount = reaper.TrackFX_GetCount(track)                  
+                    reaper.SNM_MoveOrRemoveTrackFX(track, fxcount-1, t_fx_id-fxcount)
+                  -- apply parameters
+                    t_fx_params_extracted_t = {}
+                    for word in string.gmatch(t_fx_params, '[^%s]+') do 
+                      table.insert(t_fx_params_extracted_t, word) end
+                      
+                    for k = 1, #t_fx_params_extracted_t do
+                      reaper.TrackFX_SetParamNormalized(track, t_fx_id-1, k-1, t_fx_params_extracted_t[k])
+                    end
+                    test({fxcount, t_fx_id})
+                    
                 end
               end  
                           
@@ -252,6 +304,7 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
           end -- if cnt tracks ~= nil
 --^^^^^^^^^----------------------------------------------- 
           reaper.Undo_EndBlock2(0, 'AU VST replacer - NO UNDO', 1)
+          reaper.PreventUIRefresh(-1)
         end --ret user 6
         
       end -- if # ret AU data > 0
