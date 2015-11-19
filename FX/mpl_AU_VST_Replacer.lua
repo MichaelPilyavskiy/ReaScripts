@@ -1,17 +1,19 @@
 --  Michael Pilyavskiy AU VST Replacer --
 
-test_t = {}
-function test(x) table.insert(test_t, x) end
-
 fontsize  = 16
-
-vrs = "0.6"
+min_characters_compare = 1
+ 
+ 
+vrs = "1.0"
  
 changelog =                   
 [===[
-            Changelog:  
-19.11.2015  0.6
+            Changelog: 
+19.11.2015  1.0
+            public release
             support for master track
+            Log
+            minimum characters to compare option
 19.11.2015  0.5
             replacing plugins + params
             matching names
@@ -33,7 +35,11 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
             ReaperForum - http://forum.cockos.com/member.php?u=70694
   
  ]===]
- 
+  ----------------------------------------------------------------------- 
+  function msg(str)
+    reaper.ShowConsoleMsg(str..'\n')
+  end
+  
   ----------------------------------------------------------------------- 
   function F_find_VST_analog(au_name,dumped_ini_pluglist)
     -- split by words
@@ -46,7 +52,7 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
       for i = 1, #dumped_ini_pluglist do
         matched_words_int = 0
         for j = 1, #au_name_words do
-          if string.find(dumped_ini_pluglist[i]:gsub('%p', ''), au_name_words[j]) ~= nil then matched_words_int = matched_words_int+1 end
+          if string.find(dumped_ini_pluglist[i]:gsub('%p', ''):lower(), au_name_words[j]:lower()) ~= nil then matched_words_int = matched_words_int+1 end
         end
         matched_words[i] = matched_words_int
       end
@@ -59,18 +65,19 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
         if max_match > max_match0 then max_i = i end
       end
       
-      vst_name_line = dumped_ini_pluglist[max_i]:gsub('!!!VSTi','')
-      cut = string.find(string.reverse(vst_name_line), ',')
-      vst_name = vst_name_line:sub(-cut+1)
-      
-    return vst_name
+      if max_i ~= 0 then
+        vst_name_line = dumped_ini_pluglist[max_i]:gsub('!!!VSTi','')
+        cut = string.find(string.reverse(vst_name_line), ',')
+        vst_name = vst_name_line:sub(-cut+1)
+      end
+    return vst_name, #au_name_words, max_match
   end
   
   -----------------------------------------------------------------------
   function F_add_to_list(config_path)
     file = io.open (config_path, 'r')
     if file ~= nil then 
-      for line in io.lines(reaper.GetResourcePath()..'/reaper-vstplugins.ini') do 
+      for line in io.lines(config_path) do 
         if string.find(line, '[[]') ~= 1 then table.insert(plugins_list, line) end
       end
     end
@@ -79,7 +86,7 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
  ----------------------------------------------------------------------- 
  function VAR_default_GUI()
     main_w = 320
-    main_h = 240
+    main_h = 120--240
     
     offset = 5         
     if OS == "OSX32" or OS == "OSX64" then fontsize = fontsize - 3 end    
@@ -89,7 +96,7 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
     COL2 = {0.4, 1, 0.4} -- green
     COL3 = {1, 1, 1} -- white
     
-    h_b = (main_h)/4-6
+    h_b = main_h/2-8---(main_h)/4-6
     b_1 = {offset,offset,main_w-offset*2,h_b}
     b_2 = {offset,offset+h_b+5,main_w-offset*2,h_b}
     b_3 = {offset,offset+h_b*2+10,main_w-offset*2,h_b}
@@ -97,18 +104,9 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
         
     b_1_name = "Dump AU plugins parameters to project file"
     b_2_name = "Replace VST from stored AU parameters"
-    --[[
-    
+    --[[    
     Dump VST plugins parameters to project file
     Replace AU from stored VST parameters]]
-    
-    
-        
-    --[[color6_t = {0.2, 0.25, 0.22} -- back2
-          color2_t = {0.5, 0.8, 1} -- blue      
-          color3_t = {1, 1, 1}-- white
-          color4_t = {0.8, 0.3, 0.2} -- red
-          color7_t = {0.4, 0.6, 0.4} -- green dark]]
   end
 
 -----------------------------------------------------------------------
@@ -166,7 +164,7 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
   function ENGINE1_dump_AU_to_project()
   
     -- get data
-    
+      
       plugdata = {}  
       counttracks = reaper.CountTracks(0)
       for i = 0, counttracks do
@@ -263,13 +261,20 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
         end
         
         ret_user = reaper.MB('Are you REALLY SURE you have VST analogs of this AU plugins'..'\n'..
-        '(otherwise THEY WILL BE DELETED):'..'\n'..
+        'and you DID NOT TOUCH this project after dumping AU data (otherwise EVERYTHING WILL BE DELETED):'..'\n'..
         has_plugins..'?', '', 4)
    
         if ret_user == 6 then       
           reaper.PreventUIRefresh(1)   
           reaper.Undo_BeginBlock2(0)
----vvvvvvvvvv----------------------------------------------          
+---vvvvvvvvvv----------------------------------------------   
+          msg("")
+          msg('AU VST Replacer Log')
+          msg('===================') 
+          msg('If you sure you have VST analog, but it wasn`t replaced and its name contains only ONE word, '..'\n'..
+          'then change variable min_characters_compare to zero')
+          msg('Also to prevent some errors do re-scan/clear cache of your plugins - Preferences/VST')
+          msg('===================') 
           if reaper.CountTracks(0) ~= nil then
             for i = 1, #plugdata_AU_ret do
             
@@ -282,29 +287,47 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
                 if j ==0 then track = reaper.GetMasterTrack(0)
                  else
                   track = reaper.GetTrack(0,j-1)
-                  trackguid = reaper.GetTrackGUID(track)
-                  if t_track_guid == trackguid then
-                    
-                    -- remove AU                  
-                      reaper.SNM_MoveOrRemoveTrackFX(track, t_fx_id-1, 0)                   
-                    -- get VST analog name
-                      insert_fx = F_find_VST_analog(t_fx_name,plugins_list)
-                    -- insert by name 
-                      reaper.TrackFX_GetByName(track, insert_fx, true)
-                    -- move from end of chain
-                      fxcount = reaper.TrackFX_GetCount(track)                  
-                      reaper.SNM_MoveOrRemoveTrackFX(track, fxcount-1, t_fx_id-fxcount)
-                    -- apply parameters
-                      t_fx_params_extracted_t = {}
-                      for word in string.gmatch(t_fx_params, '[^%s]+') do 
-                        table.insert(t_fx_params_extracted_t, word) end
+                  if track ~= nil then
+                    trackguid = reaper.GetTrackGUID(track)
+                    _, tr_name = reaper.GetSetMediaTrackInfo_String(track, "P_NAME", "", false)
+                    if t_track_guid == trackguid then
+                      msg('Track '..j..' '..tr_name)
+                      -- get VST analog name
+                         insert_fx, count_orig_words, matched_words = F_find_VST_analog(t_fx_name,plugins_list)                         
+                         if insert_fx ~= nil and matched_words >  min_characters_compare then                            
+                            msg('   Found match: (AU) '..t_fx_name..' / (VST) '..insert_fx)           
+                            fxcount = reaper.TrackFX_GetCount(track)
+                              
+                            -- insert by name 
+                              reaper.TrackFX_GetByName(track, insert_fx, true) 
+                              _, fx_name =  reaper.TrackFX_GetFXName(track, fxcount, "") 
+                              msg('   '..insert_fx..' inserted at the end of chain')
+                            
+                            -- remove old AU                  
+                              reaper.SNM_MoveOrRemoveTrackFX(track, t_fx_id-1, 0)                   
+                              msg('   AU #'..t_fx_id..' removed')
+                                  
+                            -- move new VST  
+                              reaper.SNM_MoveOrRemoveTrackFX(track, fxcount-1, t_fx_id-fxcount)
+                              msg('   '..insert_fx..' moved '..t_fx_id-fxcount..' positions in chain')
+                                  
+                            -- extract/apply parameters
+                              t_fx_params_extracted_t = {}
+                              for word in string.gmatch(t_fx_params, '[^%s]+') do 
+                                table.insert(t_fx_params_extracted_t, word) end   
+                              msg('   '..#t_fx_params_extracted_t..' parameters extracted')
+                            -- apply                        
+                              for k = 1, #t_fx_params_extracted_t do
+                                reaper.TrackFX_SetParamNormalized(track, t_fx_id-1, k-1, t_fx_params_extracted_t[k])
+                              end
+                            else -- vst not found
+                             msg('    VST analog of <'..t_fx_name..'> not found')
+                          end -- if insert fx ~= nil
+                          
+                          
+                        end
                         
-                      for k = 1, #t_fx_params_extracted_t do
-                        reaper.TrackFX_SetParamNormalized(track, t_fx_id-1, k-1, t_fx_params_extracted_t[k])
-                      end
-                      test({fxcount, t_fx_id})
-                      
-                  end
+                    end
                 end
               end  
                           
@@ -317,17 +340,8 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
         
       end -- if # ret AU data > 0
       
-    --[[ search for
       --reaper.ShowConsoleMsg(content)
       
-      Lua: boolean 
-      
-      Python: Boolean SNM_MoveOrRemoveTrackFX(MediaTrack tr, Int fxId, Int what)
-      
-      [S&M] Move or removes a track FX. Returns true if tr has been updated.
-      fxId: fx index in chain or -1 for the selected fx. what: 0 to remove, -1 to move fx up in chain, 1 to move fx down in chain.
-      
-      ]]
   end
   
   -----------------------------------------------------------------------
