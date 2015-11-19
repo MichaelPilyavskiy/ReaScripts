@@ -5,11 +5,13 @@ function test(x) table.insert(test_t, x) end
 
 fontsize  = 16
 
-vrs = "0.5"
+vrs = "0.6"
  
 changelog =                   
 [===[
             Changelog:  
+19.11.2015  0.6
+            support for master track
 19.11.2015  0.5
             replacing plugins + params
             matching names
@@ -167,36 +169,39 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
     
       plugdata = {}  
       counttracks = reaper.CountTracks(0)
-      for i = 1, counttracks do
-        tr = reaper.GetTrack(0,i-1)
-        if tr ~= nil then
-          tr_guid = reaper.GetTrackGUID(tr)
-          fx_count = reaper.TrackFX_GetCount(tr)        
-          if fx_count ~= nil then
-            for j = 1, fx_count do
-              _, fx_name = reaper.TrackFX_GetFXName(tr, j-1, '')
-              fx_guid = reaper.TrackFX_GetFXGUID(tr, j-1)
-              s_find1,s_find2 = fx_name:find('AU')
-              if s_find1 == 1 and s_find2 == 2 then
-                params_count = reaper.TrackFX_GetNumParams(tr, j-1)
-                if params_count ~= nil then
-                  val_com = ""
-                  for k =1, params_count do
-                    val = reaper.TrackFX_GetParamNormalized(tr, j-1, k-1)
-                    val_s = string.format('%s',val)
-                    val_com = val_com..' '..val_s
+      for i = 0, counttracks do
+        if i == 0 then tr = reaper.GetMasterTrack(0)
+         else
+          tr = reaper.GetTrack(0,i-1)
+          if tr ~= nil then
+            tr_guid = reaper.GetTrackGUID(tr)
+            fx_count = reaper.TrackFX_GetCount(tr)        
+            if fx_count ~= nil then
+              for j = 1, fx_count do
+                _, fx_name = reaper.TrackFX_GetFXName(tr, j-1, '')
+                fx_guid = reaper.TrackFX_GetFXGUID(tr, j-1)
+                s_find1,s_find2 = fx_name:find('AU')
+                if s_find1 == 1 and s_find2 == 2 then
+                  params_count = reaper.TrackFX_GetNumParams(tr, j-1)
+                  if params_count ~= nil then
+                    val_com = ""
+                    for k =1, params_count do
+                      val = reaper.TrackFX_GetParamNormalized(tr, j-1, k-1)
+                      val_s = string.format('%s',val)
+                      val_com = val_com..' '..val_s
+                    end
+                    div = "||"
+                    outstr = tr_guid..div..
+                             (j)..div..
+                             fx_name:sub(5)..div..
+                             val_com
+                    table.insert(plugdata, outstr)
                   end
-                  div = "||"
-                  outstr = tr_guid..div..
-                           (j)..div..
-                           fx_name:sub(5)..div..
-                           val_com
-                  table.insert(plugdata, outstr)
                 end
               end
             end
-          end
-        end 
+          end 
+        end
       end
     
     -- send data to proj ext state
@@ -273,30 +278,33 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
               t_fx_params = plugdata_AU_ret[i][4]
               t_fx_id = tonumber(plugdata_AU_ret[i][2])
               
-              for j=1, reaper.CountTracks(0) do
-                track = reaper.GetTrack(0,j-1)
-                trackguid = reaper.GetTrackGUID(track)
-                if t_track_guid == trackguid then
-                  
-                  -- remove AU                  
-                    reaper.SNM_MoveOrRemoveTrackFX(track, t_fx_id-1, 0)                   
-                  -- get VST analog name
-                    insert_fx = F_find_VST_analog(t_fx_name,plugins_list)
-                  -- insert by name 
-                    reaper.TrackFX_GetByName(track, insert_fx, true)
-                  -- move from end of chain
-                    fxcount = reaper.TrackFX_GetCount(track)                  
-                    reaper.SNM_MoveOrRemoveTrackFX(track, fxcount-1, t_fx_id-fxcount)
-                  -- apply parameters
-                    t_fx_params_extracted_t = {}
-                    for word in string.gmatch(t_fx_params, '[^%s]+') do 
-                      table.insert(t_fx_params_extracted_t, word) end
-                      
-                    for k = 1, #t_fx_params_extracted_t do
-                      reaper.TrackFX_SetParamNormalized(track, t_fx_id-1, k-1, t_fx_params_extracted_t[k])
-                    end
-                    test({fxcount, t_fx_id})
+              for j=0, reaper.CountTracks(0) do
+                if j ==0 then track = reaper.GetMasterTrack(0)
+                 else
+                  track = reaper.GetTrack(0,j-1)
+                  trackguid = reaper.GetTrackGUID(track)
+                  if t_track_guid == trackguid then
                     
+                    -- remove AU                  
+                      reaper.SNM_MoveOrRemoveTrackFX(track, t_fx_id-1, 0)                   
+                    -- get VST analog name
+                      insert_fx = F_find_VST_analog(t_fx_name,plugins_list)
+                    -- insert by name 
+                      reaper.TrackFX_GetByName(track, insert_fx, true)
+                    -- move from end of chain
+                      fxcount = reaper.TrackFX_GetCount(track)                  
+                      reaper.SNM_MoveOrRemoveTrackFX(track, fxcount-1, t_fx_id-fxcount)
+                    -- apply parameters
+                      t_fx_params_extracted_t = {}
+                      for word in string.gmatch(t_fx_params, '[^%s]+') do 
+                        table.insert(t_fx_params_extracted_t, word) end
+                        
+                      for k = 1, #t_fx_params_extracted_t do
+                        reaper.TrackFX_SetParamNormalized(track, t_fx_id-1, k-1, t_fx_params_extracted_t[k])
+                      end
+                      test({fxcount, t_fx_id})
+                      
+                  end
                 end
               end  
                           
