@@ -1,19 +1,21 @@
 --  Michael Pilyavskiy AU VST Replacer --
 
 fontsize  = 16
-min_characters_compare = 1
+min_words_compare = 1
  
  
-vrs = "1.0"
+vrs = "1.1"
  
 changelog =                   
 [===[
             Changelog: 
+20.11.2015  1.1
+            check for AU plugins moved/renamed/deleted from original project
 19.11.2015  1.0
             public release
             support for master track
             Log
-            minimum characters to compare option
+            minimum words to compare option
 19.11.2015  0.5
             replacing plugins + params
             matching names
@@ -35,6 +37,12 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
             ReaperForum - http://forum.cockos.com/member.php?u=70694
   
  ]===]
+ 
+  test_t = {}
+  function test(str)
+    table.insert(test_t,str)
+  end
+  
   ----------------------------------------------------------------------- 
   function msg(str)
     reaper.ShowConsoleMsg(str..'\n')
@@ -271,9 +279,7 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
           msg("")
           msg('AU VST Replacer Log')
           msg('===================') 
-          msg('If you sure you have VST analog, but it wasn`t replaced and its name contains only ONE word, '..'\n'..
-          'then change variable min_characters_compare to zero')
-          msg('Also to prevent some errors do re-scan/clear cache of your plugins - Preferences/VST')
+          msg([[If you sure you have VST analog, but it wasn`t replaced and its name contains only ONE word, then change variable <min_words_compare> to zero (it placed in first lines of this script).  Also if something is not OK, do re-scan/clear cache of your plugins - Preferences/VST. If you found a bug, please contact me (list of conacts is inside script under changelog section.]])
           msg('===================') 
           if reaper.CountTracks(0) ~= nil then
             for i = 1, #plugdata_AU_ret do
@@ -294,32 +300,41 @@ about = 'AU VST Replacer by Michael Pilyavskiy'..'\n'..'Version '..vrs..'\n'..
                       msg('Track '..j..' '..tr_name)
                       -- get VST analog name
                          insert_fx, count_orig_words, matched_words = F_find_VST_analog(t_fx_name,plugins_list)                         
-                         if insert_fx ~= nil and matched_words >  min_characters_compare then                            
+                         if insert_fx ~= nil and matched_words >  min_words_compare then                            
                             msg('   Found match: (AU) '..t_fx_name..' / (VST) '..insert_fx)           
                             fxcount = reaper.TrackFX_GetCount(track)
                               
-                            -- insert by name 
-                              reaper.TrackFX_GetByName(track, insert_fx, true) 
-                              _, fx_name =  reaper.TrackFX_GetFXName(track, fxcount, "") 
-                              msg('   '..insert_fx..' inserted at the end of chain')
-                            
-                            -- remove old AU                  
-                              reaper.SNM_MoveOrRemoveTrackFX(track, t_fx_id-1, 0)                   
-                              msg('   AU #'..t_fx_id..' removed')
-                                  
-                            -- move new VST  
-                              reaper.SNM_MoveOrRemoveTrackFX(track, fxcount-1, t_fx_id-fxcount)
-                              msg('   '..insert_fx..' moved '..t_fx_id-fxcount..' positions in chain')
-                                  
-                            -- extract/apply parameters
-                              t_fx_params_extracted_t = {}
-                              for word in string.gmatch(t_fx_params, '[^%s]+') do 
-                                table.insert(t_fx_params_extracted_t, word) end   
-                              msg('   '..#t_fx_params_extracted_t..' parameters extracted')
-                            -- apply                        
-                              for k = 1, #t_fx_params_extracted_t do
-                                reaper.TrackFX_SetParamNormalized(track, t_fx_id-1, k-1, t_fx_params_extracted_t[k])
-                              end
+                            -- check if AU lpugin was not touched
+                              _, au_name = reaper.TrackFX_GetFXName(track, t_fx_id-1, '')
+                              if au_name:gsub('%p',''):find(t_fx_name:gsub('%p','')) ~= nil then     
+                                msg('   Status: OK. AU wasn`t touched')                         
+                                -- insert by name 
+                                  reaper.TrackFX_GetByName(track, insert_fx, true) 
+                                  _, fx_name =  reaper.TrackFX_GetFXName(track, fxcount, "") 
+                                  msg('   '..insert_fx..' inserted at the end of chain')
+                                
+                                -- remove old AU                  
+                                  reaper.SNM_MoveOrRemoveTrackFX(track, t_fx_id-1, 0)                   
+                                  msg('   AU #'..t_fx_id..' removed')
+                                      
+                                -- move new VST  
+                                  reaper.SNM_MoveOrRemoveTrackFX(track, fxcount-1, t_fx_id-fxcount)
+                                  msg('   '..insert_fx..' moved '..t_fx_id-fxcount..' positions in chain')
+                                      
+                                -- extract/apply parameters
+                                  t_fx_params_extracted_t = {}
+                                  for word in string.gmatch(t_fx_params, '[^%s]+') do 
+                                    table.insert(t_fx_params_extracted_t, word) end   
+                                  msg('   '..#t_fx_params_extracted_t..' parameters extracted')
+                                -- apply                        
+                                  for k = 1, #t_fx_params_extracted_t do
+                                    reaper.TrackFX_SetParamNormalized(track, t_fx_id-1, k-1, t_fx_params_extracted_t[k])
+                                  end
+                                else
+                                 msg('   Status: Error. AU was touched (moved, deleted, renamed).'..'\n'.. 
+                                 '   Please dump AU plugins again (or run original project again) and DONT DO anything with project before running this script')
+                              end -- if au stored==au current
+                              
                             else -- vst not found
                              msg('    VST analog of <'..t_fx_name..'> not found')
                           end -- if insert fx ~= nil
