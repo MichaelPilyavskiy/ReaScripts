@@ -1,25 +1,3 @@
-  --[[
-   * ReaScript Name: Show instrument in FX chain on selected track
-   * Description: 
-   * Instructions:
-   * Author: Michael Pilyavskiy
-   * Author URl: http://forum.cockos.com/member.php?u=70694
-   * Repository: 
-   * Repository URl: 
-   * File URl:
-   * Licence: GPL v3
-   * Forum Thread: 
-   * Forum Thread URl: 
-   * REAPER: 5.0 
-   * Extensions: 
-   --]]
- 
- --[[
-  * Changelog:
-  * v1.0 (2015-11-01)
-   + Initial Release
-  --]] 
-
   script_title = "Show instrument in FX chain on selected track"
   reaper.Undo_BeginBlock() 
   

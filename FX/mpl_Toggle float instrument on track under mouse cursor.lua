@@ -1,24 +1,3 @@
---[[  
-   * ReaScript Name: Toggle float instrument on track under mouse cursor
-   * Description: Toggle float instrument on track under mouse cursor, show add fx if not exists
-   * Instructions: 
-   * Author: Michael Pilyavskiy
-   * Author URl: http://forum.cockos.com/member.php?u=70694
-   * Repository: 
-   * Repository URl: 
-   * File URl:
-   * Licence: GPL v3
-   * Forum Thread: Script (EEL) Show VSTis on selected track
-   * Forum Thread URl: http://forum.cockos.com/showthread.php?t=158987
-   * REAPER: 5.0 
-   * Extensions: SWS 2.7.1+
---]]
---[[
-  * Changelog:
-  * v1.0 (2015-04-19)
-   + Initial Release
---]]
-
 script_title = "Toggle float instrument on track under mouse cursor"
 reaper.Undo_BeginBlock()
 
