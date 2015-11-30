@@ -1,9 +1,9 @@
-#Scripts for [Cockos REAPER](http://reaper.fm) by Michael Pilyavskiy (mpl)
+##Scripts for [Cockos REAPER](http://reaper.fm) by Michael Pilyavskiy (mpl)
 There also other user written scripts for REAPER, check here:
 - [common repo] (https://github.com/ReaTeam/ReaScripts)
 - [X-Raym repo] (https://github.com/X-Raym/REAPER-ReaScripts)
 
-##Don`t forget to install last release of REAPER and SWS/S&M Extension before using.
+###Don`t forget to install last release of REAPER and SWS/S&M Extension before using.
 
 ##How to download:
 - For one script: open script page, click "Raw" button, then open context menu in your browser and do File > Save > Delete ".txt" extension when saving > open Reaper > open Actions List > ReaScript > Load
