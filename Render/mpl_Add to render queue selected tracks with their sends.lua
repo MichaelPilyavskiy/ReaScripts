@@ -1,3 +1,12 @@
+--[[
+   * Add to render queue selected tracks with their sends
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
 --mpl_Add_to_render_queue_selected_tracks_with_their_sends
 
 -- 1. make sure that "silently increment filenames" is CHECKED

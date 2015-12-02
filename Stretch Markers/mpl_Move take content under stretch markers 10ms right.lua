@@ -1,4 +1,13 @@
-script_title = "Move item contents under stretch markers"
+--[[
+   * Move take content under stretch markers 10ms right
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
+script_title = "Move take content under stretch markers 10ms right"
 delta = -0.01
 
 reaper.Undo_BeginBlock()

@@ -1,4 +1,13 @@
-  script_title = "Show instrument in FX chain on selected track"
+--[[
+   * Show instrument in FX chain on selected track
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
+    script_title = "Show instrument in FX chain on selected track"
   reaper.Undo_BeginBlock() 
   
   selected_tracks_count = reaper.CountSelectedTracks(0);

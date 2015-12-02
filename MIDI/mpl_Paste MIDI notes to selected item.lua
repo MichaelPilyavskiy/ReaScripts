@@ -1,3 +1,12 @@
+--[[
+   * Paste MIDI notes to selected item
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
 script_title = "Paste notes to selected item"
 reaper.Undo_BeginBlock()
 

@@ -1,4 +1,13 @@
-  script_title = "create_ReaComp_sidechain_routing"
+--[[
+   * Create ReaComp sidechain routing from selected track and track under mouse cursor
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
+  script_title = "Create ReaComp sidechain routing"
   
   threshold = 0.25
   ratio = 0.06

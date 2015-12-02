@@ -1,3 +1,12 @@
+--[[
+   * Duplicate selected MIDI notes
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
 script_title = "Duplicate selected notes"
 -- Alternative to internal duplicate action which is buggy especially with multichannel midi
 

@@ -1,4 +1,13 @@
-function expand_selected_items_to_edit_cursor_preserve_snapoffset()
+/*
+   * Stretch selected items to edit cursor preserve snapoffset
+   * EEL script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  function expand_selected_items_to_edit_cursor_preserve_snapoffset()
 (
 Undo_BeginBlock();
 itemcount = CountSelectedMediaItems(0);
@@ -99,7 +108,7 @@ numstrmakrks0 == 0 ? (
  ):(
  ShowConsoleMsg("Remove ALL stretch markers from items before running script!");
  );
-Undo_EndBlock("expand_selected_items_to_edit_cursor_preserve_snapoffset", 0);
+Undo_EndBlock("Stretch selected items to edit cursor preserve snapoffset", 0);
 );
 
 expand_selected_items_to_edit_cursor_preserve_snapoffset();

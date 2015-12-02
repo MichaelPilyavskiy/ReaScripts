@@ -1,3 +1,12 @@
+--[[
+   * Delete non-existent scripts from Action List
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
     
   ret = reaper.MB('Delete non-existent scripts from Action List - NO UNDO!'..'\n'..
     'If you have non-unicode characters in script address, script will be ALSO DELETED!',

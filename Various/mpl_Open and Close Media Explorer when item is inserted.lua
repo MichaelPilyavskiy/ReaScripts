@@ -1,3 +1,12 @@
+--[[
+   * Open and Close Media Explorer when item is inserted
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
 -- mpl_Open_and_Close_Media_Explorer_when_item_is_inserted.lua
 
 function run()

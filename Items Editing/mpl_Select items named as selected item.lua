@@ -1,3 +1,12 @@
+--[[
+   * Select items named as selected item
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
 item = reaper.GetSelectedMediaItem(0, 0)
 if item ~= nil then
   take = reaper.GetActiveTake(item)

@@ -1,5 +1,12 @@
--- Michael Pilyavskiy: Unlock Selected Items for 30 seconds
-
+--[[
+   * Unlock selected items for 30 seconds
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
 time = 30 -- time in seconds you need for pause
 
 function unlock_item() -- store item_t table

@@ -1,4 +1,13 @@
-script_title = "Fit selected midi takes to their notes"
+--[[
+   * Fit selected items to MIDI notes boundaries
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
+  script_title = "Fit selected items to MIDI notes boundaries"
 reaper.Undo_BeginBlock()
 
   itemcount = reaper.CountSelectedMediaItems(0)

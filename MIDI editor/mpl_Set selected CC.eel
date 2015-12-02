@@ -1,4 +1,13 @@
-function set_cc_value() 
+/*
+   * Set selected CC
+   * EEL script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+  function set_cc_value() 
 ( 
    GetUserInputs("Set CC value", 1, "Value", #dialog_ret_val); 
    match("%f", #dialog_ret_val, valueIn);

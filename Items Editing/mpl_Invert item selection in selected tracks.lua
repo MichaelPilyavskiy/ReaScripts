@@ -1,4 +1,13 @@
-script_title = "Invert item selection in selected tracks"
+--[[
+   * Invert item selection in selected tracks
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
+  script_title = "Invert item selection in selected tracks"
 
 reaper.Undo_BeginBlock()
 

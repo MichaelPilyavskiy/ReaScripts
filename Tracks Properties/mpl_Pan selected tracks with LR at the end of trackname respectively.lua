@@ -1,3 +1,12 @@
+--[[
+   * Pan selected tracks with LR at the end of trackname respectively
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
 script_title = "Pan selected tracks with LR at the trackname end respectively"
  reaper.Undo_BeginBlock()
 

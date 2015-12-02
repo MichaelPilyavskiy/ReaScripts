@@ -1,4 +1,13 @@
- 
+/*
+   * Float instrument on track under mouse cursor
+   * EEL script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+   */
+  
+   
 function main() local(tr, vsti_id)
 ( 
   extension_api("BR_GetMouseCursorContext", #window, #segment, #details, 50);

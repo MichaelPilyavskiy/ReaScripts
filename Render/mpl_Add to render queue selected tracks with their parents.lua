@@ -1,3 +1,12 @@
+--[[
+   * Add to render queue selected tracks with their parents
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
 -- 1. make sure that "silently increment filenames" is CHECKED
 -- 2. Render settings: 
 --    Render Master mix

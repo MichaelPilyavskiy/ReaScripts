@@ -1,4 +1,13 @@
-  script_title = "Trim master fader to 0dB"
+--[[
+   * Trim master fader to 0dB signal
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
+  script_title = "Trim master fader to 0dB signal"
   reaper.Undo_BeginBlock()
   
   track = reaper.GetMasterTrack(0)

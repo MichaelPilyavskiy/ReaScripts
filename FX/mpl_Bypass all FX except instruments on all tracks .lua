@@ -1,4 +1,13 @@
-  script_title = "Bypass all FX except instruments on all tracks"
+--[[
+   * Bypass all FX except instruments on all tracks 
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
+    script_title = "Bypass all FX except instruments on all tracks"
   reaper.Undo_BeginBlock()
   
   counttracks = reaper.CountTracks(0)

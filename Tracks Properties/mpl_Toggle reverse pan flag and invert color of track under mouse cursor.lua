@@ -1,4 +1,13 @@
-script_title = "mpl Toggle 'Reverse pan' flag on group settings and invert color of track under mouse cursor"
+--[[
+   * Toggle reverse pan flag and invert color of track under mouse cursor
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
+  
+script_title = "Toggle reverse pan flag and invert color of track under mouse cursor"
 
 reaper.Undo_BeginBlock()  
   
