@@ -1,11 +1,12 @@
 --[[
-   * AU VST Replacer
+   * ReaScript Name: AU VST Replacer
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
-   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
    * Version: 1.1
   ]]
+  
 
 fontsize  = 16
 min_words_compare = 1

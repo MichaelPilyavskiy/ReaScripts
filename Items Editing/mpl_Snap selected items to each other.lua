@@ -1,8 +1,8 @@
 --[[
-   * Snap selected items to each other
+   * ReaScript Name: Snap selected items to each other
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
-   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
    * Version: 1.0
   ]]

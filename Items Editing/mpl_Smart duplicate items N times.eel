@@ -1,8 +1,8 @@
 /*
-   * Smart duplicate items N times
+   * ReaScript Name: Smart duplicate items N times
    * EEL script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
-   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
    * Version: 1.0
    */
@@ -39,7 +39,7 @@
    com_len_round_qn = ceil (com_len_qn);     
       
    ApplyNudge(0, 0, 5, 16, com_len_round_qn, 0, Nval);
-   Undo_EndBlock("Smart duplicate items N times", 0);
+   Undo_EndBlock("smart_duplicate_items_inputvrs", 0);
 );
 
 PreventUIRefresh(1);

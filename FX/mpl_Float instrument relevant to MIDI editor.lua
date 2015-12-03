@@ -1,13 +1,13 @@
 --[[
-   * Float instrument relevant to MIDI editor
+   * ReaScript Name:Float instrument relevant to MIDI editor
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
-   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
    * Version: 1.0
   ]]
   
-  script_title = 'Float instrument relevant to MIDI Editor'
+script_title = 'Float instrument relevant to MIDI Editor'
 
 reaper.Undo_BeginBlock()
 act_editor = reaper.MIDIEditor_GetActive()

@@ -1,13 +1,13 @@
 --[[
-   * Copy MIDI notes from selected item
+   * ReaScript Name: Copy MIDI notes from selected item
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
-   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
    * Version: 1.0
   ]]
   
-script_title = "Copy MIDI notes from selected item"
+script_title = "Copy notes from selected item"
 reaper.Undo_BeginBlock()
 
 item = reaper.GetSelectedMediaItem(0, 0)

@@ -1,13 +1,13 @@
 --[[
-   * Cubase AB floating FX make equal
+   * ReaScript Name:Cubase AB floating FX make equal
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
-   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
    * Version: 1.0
   ]]
   
-  -- implementation of "equal" button in Cubase 7+ plugin window
+-- implementation of "equal" button in Cubase 7+ plugin window
 
  retval, track, item, fxnum = reaper.GetFocusedFX()
   track = reaper.GetTrack(0, track-1)

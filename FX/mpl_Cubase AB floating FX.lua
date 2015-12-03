@@ -1,13 +1,13 @@
 --[[
-   * Cubase AB floating FX
+   * ReaScript Name:Cubase AB floating FX
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
-   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
    * Version: 1.0
   ]]
   
-    --[[
+  --[[
    * Description: implementation of "AB" button in Cubase 7+ plugin window
    * Instructions: float FX, changes params, run script, change params again and run script again. 
    It will change plugin parameters beetween two states. Use mpl_Cubase AB floating FX make equal to make two states same.

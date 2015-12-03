@@ -1,13 +1,13 @@
 --[[
-   * Implode mono track session to stereo items relative to LR at the trackname end
+   * ReaScript Name: Implode mono track session to stereo items relative to LR at the trackname end
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
-   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
    * Version: 1.0
   ]]
   
-script_title = "Implode mono track session to stereo items relative to LR at the trackname end"
+script_title = "Implode mono tracks session to stereo items"
  reaper.Undo_BeginBlock()
 
 function main(x) reaper.Main_OnCommand(x,0) end

@@ -1,13 +1,13 @@
 --[[
-   * Delete all MIDI OSC learn from selected track
+   * ReaScript Name:Delete all MIDI OSC learn from selected track
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
-   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
    * Version: 1.0
   ]]
   
-   script_title = "Delete all MIDI OSC learn from selected track"
+  script_title = "Delete all MIDI OSC learn from selected track"
    reaper.Undo_BeginBlock()
    
    track = reaper.GetSelectedTrack(0,0)

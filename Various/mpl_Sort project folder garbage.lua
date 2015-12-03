@@ -1,13 +1,13 @@
 --[[
-   * Sort project folder garbage
+   * ReaScript Name: Sort project folder garbage
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
-   * Author URL: http://forum.cockos.com/member.php?u=70694
+   * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
    * Version: 1.0
   ]]
 
-  script_title = "Sort project folder garbage"  
+  script_title = "mpl Sort project folder garbage"  
   ---------------- Action -----------------------  
   
   action = 'copy'
