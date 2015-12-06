@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<index version="1" commit="5d280c1b6e41afd527d4df6ea545fc45e36f47ce">
+<index version="1" commit="796d6ab1f0a99ddaecb3fd71e62aab7022e1ad73">
   <category name="FX">
     <reapack name="mpl_AU VST Replacer.lua" type="script">
       <version name="1.1">
@@ -338,11 +338,6 @@
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6caed9225c6810020c093f472df171c6e0464de4/Various/mpl_Quantize%20Tool%20set%20swing%20(MIDI%20CC%20and%20OSC%20only).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Quantize Tool.lua" type="script">
-      <version name="1.7">
-        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6caed9225c6810020c093f472df171c6e0464de4/Various/mpl_Quantize%20Tool.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Sort project folder garbage.lua" type="script">
       <version name="1.0">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6caed9225c6810020c093f472df171c6e0464de4/Various/mpl_Sort%20project%20folder%20garbage.lua</source>
@@ -351,6 +346,14 @@
     <reapack name="mpl_Create ReaComp sidechain routing.lua" type="script">
       <version name="1.0">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6caed9225c6810020c093f472df171c6e0464de4/Various/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Quantize Tool.lua" type="script">
+      <version name="1.7">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8f48a4ba32b84772de6a5f5d2e2bcbe7c668b92e/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
+      <version name="1.8">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/796d6ab1f0a99ddaecb3fd71e62aab7022e1ad73/Various/mpl_Quantize%20Tool.lua</source>
       </version>
     </reapack>
   </category>
