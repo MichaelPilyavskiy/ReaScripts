@@ -4,14 +4,12 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.7
+   * Version: 1.8
   ]]
 
 ------  Michael Pilyavskiy Quantize tool  ----
 
-fontsize_menu_name  = 16
-
-vrs = "1.7"
+vrs = "1.8"
  
 changelog =                   
 [===[
@@ -19,6 +17,11 @@ changelog =
    ==========
    Changelog:
    ==========   
+06.12.2015  1.8 build 1 - need REAPER 5.03+ SWS 2.8.1+
+          New
+            Randomize final positions
+          Bugfixes
+            Fixed GitHub link
 18.11.2015  1.7 build 3 - need REAPER 5.03+ SWS 2.8.1+
           GUI
             optimized performance by blitting display
@@ -213,6 +216,7 @@ about = 'Quantize tool by Michael Pilyavskiy (Russia, Oryol)'..'\n'..'Version '.
       sm_timesel_dest_values_t = {1,0}
       enable_display_t={1}
       sm_is_transients_t={0}  
+      rand_pos_values_t={0,1}
    
    
    
@@ -236,6 +240,7 @@ about = 'Quantize tool by Michael Pilyavskiy (Russia, Oryol)'..'\n'..'Version '.
    last_strenght_value_s = ""
    gravity_value = 0.5
    gravity_mult_value = 0.3 -- second
+   rand_pos = 0.2 -- second
    use_vel_value = 0
    if swing_scale_values_t[1]&1 then swing_scale = 1.0 end
    if swing_scale_values_t[2]&1 then swing_scale = 0.5 end
@@ -253,9 +258,12 @@ about = 'Quantize tool by Michael Pilyavskiy (Russia, Oryol)'..'\n'..'Version '.
    quantize_ref_menu_xywh_t = {x_offset+gui_offset+options_button_width, y_offset, 
      main_w/2-options_button_width-gui_offset*1.5-x_offset, y_offset1-y_offset-(use_vel_values_t[1]*30)}
    quantize_dest_menu_xywh_t = {main_w/2+gui_offset/2, y_offset, 
-     main_w/2-options_button_width-gui_offset*1.5-x_offset, y_offset1-y_offset-(snap_area_values_t[1]*30)}  
+     main_w/2-options_button_width-gui_offset*1.5-x_offset, y_offset1-y_offset-(snap_area_values_t[1]*30)-(rand_pos_values_t[1]*30)}  
    --Other  
-     
+   rand_pos_slider_xywh_t = {quantize_dest_menu_xywh_t[1], 
+      quantize_dest_menu_xywh_t[2]+quantize_dest_menu_xywh_t[4]+5,
+      quantize_dest_menu_xywh_t[3],
+      25}  
    max_object_position, first_measure, last_measure, cml, first_measure_dest_time, last_measure_dest_time, last_measure_dest  = GET_project_len()
    
   --[[ timesig_error = GET_timesigs()
@@ -320,6 +328,7 @@ about = 'Quantize tool by Michael Pilyavskiy (Russia, Oryol)'..'\n'..'Version '.
  --------------------------------------------------------------------------------------------------------------- 
  
  function DEFINE_default_variables_GUI()
+  fontsize_menu_name  = 16
   if OS == "OSX32" or OS == "OSX64" then fontsize_menu_name = fontsize_menu_name - 3 end
   gui_offset = 5
   x_offset = 5
@@ -372,7 +381,9 @@ about = 'Quantize tool by Michael Pilyavskiy (Russia, Oryol)'..'\n'..'Version '.
    
   gravity_slider_xywh_t = {quantize_dest_menu_xywh_t[1], quantize_dest_menu_xywh_t[2]+quantize_dest_menu_xywh_t[4]+5-30,
    quantize_dest_menu_xywh_t[3]-25,25}  
+    
   
+  --
   -- display
   display_rect_xywh_t = {x_offset, y_offset1+gui_offset+5, main_w-gui_offset*2, 35}  
   
@@ -387,6 +398,8 @@ about = 'Quantize tool by Michael Pilyavskiy (Russia, Oryol)'..'\n'..'Version '.
     
     type_gravity_button_xywh_t = {gravity_slider_xywh_t[1]+gravity_slider_xywh_t[3]+5,gravity_slider_xywh_t[2],
       20, gravity_slider_xywh_t[4]}
+    
+      
  end
  
  ---------------------------------------------------------------------------------------------------------------
@@ -849,6 +862,10 @@ end
        GUI_slider_gradient(gravity_slider_xywh_t, "Gravity "..math.floor(gravity_value*gravity_mult_value*1000)..' ms', gravity_value, "mirror") 
        GUI_button(type_gravity_button_xywh_t, ">", "<<", _, true) end -- if gravity
      
+     if rand_pos_values_t[1] == 1 then
+       GUI_slider_gradient(rand_pos_slider_xywh_t, "Randomize "..math.floor(rand_pos*1000)..' ms', 
+        rand_pos, "mirror")  end 
+       
      GUI_button(options_button_xywh_t, "<<", "<<", _, true)
      GUI_button(options2_button_xywh_t, ">>", ">>", _, true)
      GUI_button(options3_button_xywh_t, 'Menu', "Menu", _, true)
@@ -1694,7 +1711,12 @@ end
     
     if newval ~= nil then 
       pos_ret = newval[1] 
-      pos_ret = pos - (pos - newval[1]) * strenght_value
+      if rand_pos_values_t[1]==1 then
+        rand = math.random()*rand_pos
+        pos_ret = pos - (pos - newval[1]) * strenght_value + rand
+       else
+        pos_ret = pos - (pos - newval[1]) * strenght_value
+      end
       if newval[2] ~= nil then 
         vol_ret = newval[2] 
         vol_ret = vol - (vol - newval[2]) * use_vel_value
@@ -2457,7 +2479,17 @@ end
          end
         end       
        
-       
+       if rand_pos_slider_xywh_t ~= nil and rand_pos_values_t[1] == 1 then
+         if MOUSE_LB_gate(rand_pos_slider_xywh_t,0) then
+           last_mouse_object = 'rand_pos' end
+         if   last_mouse_object == 'rand_pos' then
+           rand_pos = (mx - rand_pos_slider_xywh_t[1])/rand_pos_slider_xywh_t[3]
+           if rand_pos > 1 then rand_pos = 1 end
+           if rand_pos < 0 then rand_pos = 0 end
+           ENGINE3_quantize_objects()
+         end                    
+       end 
+                      
        ------------------------------
        --- APPLY BUTTON / SLIDER ----
        ------------------------------  
@@ -2586,7 +2618,8 @@ end
                            menu_entry_ret(snap_dir_values_t,3)..'Snap direction: to next ref.point|',
                            menu_entry_ret(swing_scale_values_t,1)..'Swing 100% is next grid|',
                            menu_entry_ret(sel_notes_mode_values_at,1)..'Quantize only selected notes in MIDI item|',
-                           menu_entry_ret(sm_timesel_dest_values_t,2)..'Quantize only str. markers only within time selection|'}
+                           menu_entry_ret(sm_timesel_dest_values_t,2)..'Quantize only str. markers only within time selection|',
+                           menu_entry_ret(rand_pos_values_t,1)..'Randomize final positions'}
                            --menu_entry_ret(sm_is_transients_t,1)..'Quantize stretch marker area (could BREAK your project!)'}
                            
        
@@ -2637,8 +2670,12 @@ end
             else sm_timesel_dest_values_t = {1, 0} ENGINE3_quantize_objects() end end
             
          if menu_ret2 == 9 + #actions1_menu_t then   
+                     if rand_pos_values_t[1] == 1 then rand_pos_values_t = {0,1} else
+                       rand_pos_values_t = {1,0} end end
+                          
+         --[[if menu_ret2 == 9 + #actions1_menu_t then   
             if sm_is_transients_t[1] == 0 then sm_is_transients_t = {1} else
-              sm_is_transients_t[1] = 0 end end
+              sm_is_transients_t[1] = 0 end end]]
              
             
        end -- mouse click on menu
@@ -2662,7 +2699,7 @@ end
          if menu_ret3 == 3 then 
            open_URL("http://wiki.cockos.com/wiki/index.php/Quantize_tool_by_mpl")end  
          if menu_ret3 == 4 then 
-           open_URL("http://github.com/MichaelPilyavskiy/ReaScripts/tree/master/Tools") end    
+           open_URL("http://github.com/MichaelPilyavskiy/ReaScripts") end    
          if menu_ret3 == 5 then 
            open_URL("http://paypal.me/donate2mpl") end  
          if menu_ret3 == 6 then 
@@ -2778,3 +2815,4 @@ end
    DEFINE_default_variables_GUI() 
    
    MAIN_run()
+
