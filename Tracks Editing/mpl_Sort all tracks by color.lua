@@ -84,7 +84,7 @@ if reaper.CountTracks(0) ~= nil then
         send_track = reaper.BR_GetMediaTrackByGUID(0,tracks_t[i][3][k][1])
         if send_track ~= nil then
           reaper.SNM_AddReceive(track, send_track, -1)
-          function setsendinfo(send_track,param,value) reaper.BR_GetSetTrackSendInfo(send_track, 0, k-1, param, true, value) end
+          function setsendinfo(send_track,param,value) reaper.BR_GetSetTrackSendInfo(send_track,0, k-1, param, true, value) end
             setsendinfo(send_track,'B_MUTE',tracks_t[i][3][k][2])
             setsendinfo(send_track,'B_PHASE',tracks_t[i][3][k][3])
             setsendinfo(send_track,'B_MONO',tracks_t[i][3][k][4])
