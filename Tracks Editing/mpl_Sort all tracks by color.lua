@@ -66,12 +66,19 @@ if reaper.CountTracks(0) ~= nil then
   
   table.sort(tracks_t, function(a,b) return a[2]<b[2] end )
   
+  --[[reaper.Main_OnCommand(40296, 0) -- select all tracks
+  reaper.Main_OnCommand(reaper.NamedCommandLookup('_S&M_SENDS6'),0)]]
+  
   for i = 1, #tracks_t do
     track = reaper.GetTrack(0,i-1)
-    reaper.SetTrackStateChunk(track, tracks_t[i][1], true)
-    reaper.SetTrackSelected(track, true)
-    reaper.Main_OnCommand(reaper.NamedCommandLookup('_S&M_SENDS6'),1)
-    reaper.SetTrackSelected(track, false)
+    
+    chunk_t = {}
+    for line in string.gmatch(tracks_t[i][1], "[^\r\n]+") do 
+      if string.find(line, 'AUXRECV') == nil then  table.insert(chunk_t, line) end
+    end
+    
+    reaper.SetTrackStateChunk(track, table.concat(chunk_t, '\n'), true)
+    
     if tracks_t[i][3] ~= nil then
       for k = 1, #tracks_t[i][3] do
         send_track = reaper.BR_GetMediaTrackByGUID(0,tracks_t[i][3][k][1])
@@ -98,7 +105,7 @@ if reaper.CountTracks(0) ~= nil then
   end
   
 end
-reaper.TrackList_AdjustWindows(false)
+reaper.TrackList_AdjustWindows(true)
 reaper.UpdateArrange()
 reaper.PreventUIRefresh(-1)
 reaper.Undo_EndBlock(script_title,0)
