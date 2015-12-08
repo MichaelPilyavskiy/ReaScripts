@@ -4,9 +4,12 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.0
+   * Version: 1.1
   ]]
-  
+ 
+ -- changelog:
+ -- 1.1 - 8.12.2015 - rewrited from native copy paste actions to getset chunks
+ 
  script_title = "Sort all tracks by color"
  
   reaper.Undo_BeginBlock()
@@ -26,33 +29,20 @@ reaper.PreventUIRefresh(1)
     
 if reaper.CountTracks(0) ~= nil then
   tracks_t = {}
-  tr_colors_t = {}
   for i = 1,  reaper.CountTracks(0) do
     tr = reaper.GetTrack(0,i-1)
     reaper.SetMediaTrackInfo_Value(tr,'I_FOLDERDEPTH', 0) 
-    tr_guid = reaper.GetTrackGUID(tr)
-    table.insert(tracks_t,tr_guid )    
-    tr_col0 = reaper.GetMediaTrackInfo_Value(tr, 'I_CUSTOMCOLOR')
-    if not check(tr_col0) then table.insert(tr_colors_t, tr_col0) end   
+    _, chunk = reaper.GetTrackStateChunk(tr, '', false)
+    table.insert(tracks_t, {chunk,reaper.GetMediaTrackInfo_Value(tr, 'I_CUSTOMCOLOR')})        
   end
-  for i = 1, #tr_colors_t do
-    reaper.Main_OnCommandEx(40297, 0,0) -- unselect tracks
-    tr_color = tr_colors_t[i]
-    for j = 1, #tracks_t do
-      guid = tracks_t[j]
-      tr = reaper.BR_GetMediaTrackByGUID(0,guid)
-      if tr ~= nil then
-        tr_col0 = reaper.GetMediaTrackInfo_Value(tr, 'I_CUSTOMCOLOR')
-        if tr_col0 == tr_color then 
-          reaper.SetMediaTrackInfo_Value(tr,'I_SELECTED', 1) 
-        end   
-      end       
-    end
-    reaper.Main_OnCommandEx(40337, 0,0) -- cut tracks 
-    tr = reaper.GetTrack(0,reaper.CountTracks(0)-1)
-    reaper.SetMediaTrackInfo_Value(tr,'I_SELECTED', 1) 
-    reaper.Main_OnCommandEx(40058, 0,0) -- paste tracks    
+  
+  table.sort(tracks_t, function(a,b) return a[2]<b[2] end )
+  
+  for i = 1, #tracks_t do
+    track = reaper.GetTrack(0,i-1)
+    reaper.SetTrackStateChunk(track, tracks_t[i][1],true)
   end
+  
 end
 reaper.UpdateArrange()
 reaper.PreventUIRefresh(-1)
