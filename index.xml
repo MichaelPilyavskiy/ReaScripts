@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<index version="1" commit="796d6ab1f0a99ddaecb3fd71e62aab7022e1ad73">
+<index version="1" commit="b76be059f4a18d024795d60cd81be9c7fa03e5ee">
   <category name="FX">
     <reapack name="mpl_AU VST Replacer.lua" type="script">
       <version name="1.1">
@@ -245,6 +245,12 @@
     <reapack name="mpl_Sort all tracks by color.lua" type="script">
       <version name="1.0">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6caed9225c6810020c093f472df171c6e0464de4/Tracks%20Editing/mpl_Sort%20all%20tracks%20by%20color.lua</source>
+      </version>
+      <version name="1.1">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d5fdf8c973b59f7a940d1c482bdf234f9a665667/Tracks%20Editing/mpl_Sort%20all%20tracks%20by%20color.lua</source>
+      </version>
+      <version name="1.2">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf0e22d948746719d62c53c276498a1d018974ac/Tracks%20Editing/mpl_Sort%20all%20tracks%20by%20color.lua</source>
       </version>
     </reapack>
   </category>
