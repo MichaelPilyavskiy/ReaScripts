@@ -17,8 +17,10 @@
       if item ~= nil then
         take = reaper.GetActiveTake(item)
         if take ~= nil then
-          retval, name = reaper.GetSetMediaItemTakeInfo_String(take, 'P_NAME','', false)          
-          reaper.GetSetMediaItemTakeInfo_String(take, 'P_NAME', name:sub(0,-name:reverse():find('[.]')-1 ), true)        
+          retval, name = reaper.GetSetMediaItemTakeInfo_String(take, 'P_NAME','', false)       
+          if name:find('[.]') ~= nil then
+           reaper.GetSetMediaItemTakeInfo_String(take, 'P_NAME', name:sub(0,-name:reverse():find('[.]')-1 ), true)        
+          end
         end
       end
       reaper.UpdateItemInProject(item)
