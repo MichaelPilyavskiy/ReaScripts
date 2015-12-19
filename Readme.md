@@ -1,5 +1,5 @@
 ##Scripts for [Cockos REAPER](http://reaper.fm) by Michael Pilyavskiy
-There also other repositoties of user written scripts for REAPER, check here:
+There are also other repositories of user written scripts for REAPER, check here:
 - [common repo] (https://github.com/ReaTeam/ReaScripts)
 - [X-Raym repo] (https://github.com/X-Raym/REAPER-ReaScripts)
 
