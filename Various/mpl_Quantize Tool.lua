@@ -17,135 +17,95 @@ changelog =
    ==========
    Changelog:
    ==========   
-06.12.2015  1.8 build 1 - need REAPER 5.03+ SWS 2.8.1+
-          New
-            Randomize final positions
-          Bugfixes
-            Fixed GitHub link
+06.12.2015  1.8 build 2 - need REAPER 5.03+ SWS 2.8.1+
+          + Randomize final positions
+          # Fixed GitHub link
+          # better changelog view
 18.11.2015  1.7 build 3 - need REAPER 5.03+ SWS 2.8.1+
-          GUI
-            optimized performance by blitting display
-            font fix for OSX users
-          Bugfixes
-            Disabled REAPER/SWS version checking on start
-            Fixed negative ref.points
+          # optimized performance by blitting display
+          # font fix for OSX users
+          - Disabled REAPER/SWS version checking on start
+          # Fixed negative ref.points
 13.10.2015  1.6 build 5  - need REAPER 5.03+ SWS 2.8.1+
-          Improvements
-            improved mouse tracking, thanks to spk77!
-            Help button redirected to Cockos Wiki related page
-          Bugfixes
-            properly adding last stretch marker on items with different takerate
-          
-          Option to stretch area around stretch marker (HIDDEN, have a lot of bugs)
-            
+          # improved mouse tracking, thanks to spk77!
+          # Help button redirected to Cockos Wiki related page
+          # properly adding last stretch marker on items with different takerate
+          - Option to stretch area around stretch marker (HIDDEN, have a lot of bugs)
 01.10.2015  1.5 build 4  - need REAPER 5.03+ SWS 2.8.1+
-          New
-            Show QT in actions info line (main menu right item)
-            Added undo points to some operations
-          Improvements
-            highlight grid and swing slider under mouse cursor
-            stretch markers restore/quantize code improvements
-            space key pass through and run Transport:Play/Stop
-            prevent opening left menu and type swing window when drag swing slider
-          Bugfixes
-            fixed wrong groove name
-            fixed properly 'Groove' path finding both on OSX and Windows
-            fixed add null stretch markers when quantize/restore
-            fixed new restore button doesn`t work
-            Save as rgt groove works also on OSX
-          Performance
-            'reference grid' generated only where destination points placed +-1bar
-              
+          + Show QT in actions info line (main menu right item)
+          + Added undo points to some operations
+          # highlight grid and swing slider under mouse cursor
+          # stretch markers restore/quantize code improvements
+          + space key pass through and run Transport:Play/Stop
+          # prevent opening left menu and type swing window when drag swing slider
+          # fixed wrong groove name
+          # fixed properly 'Groove' path finding both on OSX and Windows
+          # fixed add null stretch markers when quantize/restore
+          # fixed new restore button doesn`t work
+          # Save as rgt groove works also on OSX
+          # 'reference grid' generated only where destination points placed +-1bar
 30.09.2015  1.4 build 9 - need REAPER 5.03+ SWS 2.8.1+
-          New
-            additional buttons simulate right click for tablet users
-            check for SWS version on startup (win only)
-          Bugfixes
-            disabled get grid on start could make script buggy on start
-            fixed loop sourced item stretch markers restore/quantize
-          Improvements
-            font size param. moved to the top for OSX users who have problems with gui
+          + additional buttons simulate right click for tablet users
+          + check for SWS version on startup (win only)
+          # disabled get grid on start could make script buggy on start
+          # fixed loop sourced item stretch markers restore/quantize
+          # font size param. moved to the top for OSX users who have problems with gui
             
 29.09.2015  1.3 build 10  - need REAPER 5.03+ SWS 2.8.1+
-          New
-            rightclick on user groove open REAPER\Grooves list
-            Check for REAPER compatibility on startup
-            GUI - options window deprecated and splitted to 3 menus on main page
-            GUI - options sliders dynamically shown when relevant
-            Store current groove to midi item (notes length = 120ppq)
-            Match items positions to ref.points
-            Ctrl+LMB click add/subtract value from swing/gravity slider depending on position within slider
-          Improvements          
-            right click on gravity - type value in ms  
-            apply slider position more closer to mouse cursor
-          Performance
-            Option to disable display (reduce CPU usage a lot in some situations)
-            Improved GUI updates
-          Bugfixes
-            fixed stretch markers quantize for loop sourced items  
-            
-          Presets temporatory disabled
-          
+          + rightclick on user groove open REAPER\Grooves list
+          + Check for REAPER compatibility on startup
+          # GUI - options window deprecated and splitted to 3 menus on main page
+          # GUI - options sliders dynamically shown when relevant
+          + Store current groove to midi item (notes length = 120ppq)
+          + Match items positions to ref.points
+          # Ctrl+LMB click add/subtract value from swing/gravity slider depending on position within slider
+          + right click on gravity - type value in ms  
+          # apply slider position more closer to mouse cursor
+          + Option to disable display (reduce CPU usage a lot in some situations)
+          # Improved GUI updates
+          # fixed stretch markers quantize for loop sourced items  
+          - Presets temporatory disabled
 14.09.2015  1.2  build 8
-          New
-            middle mouse button click on apply slider to set strength value
-            right click on custom grid select/form project grid
-            added reference actions:
-                save as rgt groove (moved from display)
-            added quantize actions:
-                reset stored str.markers
-                reset stored str..markers at time selection
-                
-          Improvements:
-            project grid is default, form points on start                        
-            strength slider shows its value
-            
-          Bugfixes:
-            fix wrong formed points in pattern mode for project with different tempo
-            fixed preset system dont store dest str.marker settings
-            display issues
-            grid, swing reference issues
-        
+          + middle mouse button click on apply slider to set strength value
+          + right click on custom grid select/form project grid
+          + save as rgt groove (moved from display)
+          + reset stored str.markers
+          + reset stored str..markers at time selection
+          # project grid is default, form points on start                        
+          + strength slider shows its value
+          # fix wrong formed points in pattern mode for project with different tempo
+          # fixed preset system dont store dest str.marker settings
+          # display issues
+          # grid, swing reference issues
 13.09.2015  1.1  build 3      
-          New: 
-            get reference str.marker from selected item/time selection of selected item
-            quantize str.marker from selected item/time selection of selected item
-            User Groove (import .rgt files for SWS Fingers Groove Tool)
-            rmb click on display save current groove to rgt (SWS Fingers Groove Tool) file
-            swing value support decimals (only if user type)
-            store and recall preset - \REAPER\Scripts\mpl_Quantize_Tool_settings.txt
-            set strength/swing/grid via CC and OSC with
+          + get reference str.marker from selected item/time selection of selected item
+          + quantize str.marker from selected item/time selection of selected item
+          + User Groove (import .rgt files for SWS Fingers Groove Tool)
+          + rmb click on display save current groove to rgt (SWS Fingers Groove Tool) file
+          + swing value support decimals (only if user type)
+          + store and recall preset - \REAPER\Scripts\mpl_Quantize_Tool_settings.txt
+          + set strength/swing/grid via CC and OSC with
               mpl_Quantize_Tool_set_strength.lua
               mpl_Quantize_Tool_set_swing.lua (beetween 0-100%)
               mpl_Quantize_Tool_set_grid.lua
               check in http://github.com/MichaelPilyavskiy/ReaScripts/tree/master/Tools
-
-          Improvements:
-            cutted options button (to prevent trigger options page)
-            count ref/dest objects
-            disable set 'Use Gravity' when choosing destination stretch markers
-            Changing global/local mode form relevant mode points and leave previously got points
-            Every menu changing also form ref.points or quantize objects to quick preview
-
-          Performance:
-            removed display bar lines. -10% CPU
-            UpdateArrange() moved to main quantize function: 10%-20% less CPU, depending on how project is big
-
-          Bugfixes: 
-            incorrect project/custom grid values
-            swing grid tempo bug, project grid tempo bug
-            -1 tick midi notes position when quantize/restore
-            display issues
-            error if project is empty
-
-          Info:
-            improved syntax of info strings, thanks to heda!
-            donate button
-            manual updated           
-            
+          # cutted options button (to prevent trigger options page)
+          # count ref/dest objects
+          # disable set 'Use Gravity' when choosing destination stretch markers
+          # Changing global/local mode form relevant mode points and leave previously got points
+          # Every menu changing also form ref.points or quantize objects to quick preview
+          # removed display bar lines. -10% CPU
+          # UpdateArrange() moved to main quantize function: 10%-20% less CPU, depending on how project is big
+          # incorrect project/custom grid values
+          # swing grid tempo bug, project grid tempo bug
+          # -1 tick midi notes position when quantize/restore
+          # display issues
+          # error if project is empty
+          # improved syntax of info strings, thanks to heda!
+          + donate button
+          + manual updated   
 28.08.2015  1.0 
-            Public release     
-            
+            Public release   
 23.06.2015  0.01 'swing items' idea
     
  ]===]
