@@ -7,13 +7,14 @@
    * Version: 1.0
   ]]
 
-  vrs = 1.0
+  local vrs = 1.0
   local changelog =
 [===[ 
 06.01.2016  1.0
             Official release
 06.01.2016  0.68
             + Actions: RoutingSetup/Formula templates/match(x,curve)
+            # OSX font issues
             # Blitted graph
             # Fixed wrong slider menu items
 05.01.2016  0.66
@@ -847,8 +848,11 @@
                   end
                 end
                 
-                                
-                gfx.setfont(1, data.fontname, data.slider_fontsize)
+                if OS == "OSX32" or OS == "OSX64" then  
+                  gfx.setfont(1, data.fontname, data.slider_fontsize-3)  
+                 else
+                  gfx.setfont(1, data.fontname, data.slider_fontsize)
+                end
                 text_len = gfx.measurestr(text)
                 gfx.x = (w+obj_w2*data.tablet_optimised-text_len)/2
                 gfx.y = y + (h - button_fontsize)/2 - 1 
