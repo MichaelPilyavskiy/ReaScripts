@@ -13,7 +13,7 @@ task :test do
     end
   end
 
-  Dir.glob('../**/*.{lua,eel}').each {|file|
+  Dir.glob('**/*.{lua,eel}').each {|file|
     mangled_file = file.downcase
     mangled_file.gsub! /[^\w]+/, '_'
 
@@ -34,7 +34,7 @@ end
 task :index do
   args = ARGV.dup
   args.delete_at 1 if args[1] == '--'
-  args << '--' << File.dirname(Dir.pwd)
+  args << '--' << Dir.pwd
 
   indexer = ReaPack::Index::Indexer.new args
   indexer.run
