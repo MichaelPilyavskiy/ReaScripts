@@ -4,13 +4,14 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.0
+   * Version: 1.02
   ]]
 
-  local vrs = 1.01
+  local vrs = 1.02
   local changelog =
 [===[ 
-07.01.2016  1.01
+07.01.2016  1.02
+            # Show FixedLearn on empty sliders if FixedLearn is active
             # Slider/Clear slider also delete learn from linked parameter
             # Improved curve resolution
 06.01.2016  1.0
@@ -1079,7 +1080,7 @@
                   gfx.x, gfx.y = x_offset,text_offset*5
                   gfx.drawstr(param_name)  
                 -- midi
-                  if data.learn ~= nil and data.learn[data.bottom_info_slider] ~= nil then
+                  if data.learn ~= nil and data.use_learn == 1 and data.learn[data.bottom_info_slider] ~= nil then
                     
                     if data.learn[data.bottom_info_slider].midich ~= nil 
                       and data.learn[data.bottom_info_slider].midicc ~= nil 
@@ -1102,7 +1103,26 @@
                    gfx.a = 0.4
                    gfx.x, gfx.y = x_offset,0
                    gfx.drawstr('Map '..data.bottom_info_map..' Slider '..data.bottom_info_slider..'\nEmpty')
-                  
+                   
+                  -- midi
+                    if data.learn ~= nil and data.use_learn == 1 and data.learn[data.bottom_info_slider] ~= nil then
+                      
+                      if data.learn[data.bottom_info_slider].midich ~= nil 
+                        and data.learn[data.bottom_info_slider].midicc ~= nil 
+                        and data.learn[data.bottom_info_slider].flags ~= nil then
+                        if data.learn[data.bottom_info_slider].flags == 2 then 
+                          flags = ' (soft takeover)]' else flags = ']' end
+                          midi = '[MIDI: Ch '..data.learn[data.bottom_info_slider].midich..
+                        ' CC '..data.learn[data.bottom_info_slider].midicc..flags..' '
+                       else 
+                        midi = ''  
+                      end
+                      
+                        if data.learn[data.bottom_info_slider].osc ~= nil then 
+                          osc = '[OSC: '..data.learn[data.bottom_info_slider].osc..']' else osc = '' end
+                      gfx.x, gfx.y = x_offset,text_offset*2
+                      gfx.drawstr(midi..osc)       
+                    end                 
               end
             end
         end
