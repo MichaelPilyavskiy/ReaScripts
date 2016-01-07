@@ -7,9 +7,12 @@
    * Version: 1.0
   ]]
 
-  local vrs = 1.0
+  local vrs = 1.01
   local changelog =
 [===[ 
+07.01.2016  1.01
+            # Slider/Clear slider also delete learn from linked parameter
+            # Improved curve resolution
 06.01.2016  1.0
             Official release
 06.01.2016  0.68
@@ -2552,6 +2555,10 @@
       
     -- remove
       if ret_rb_slider == 3 then
+        
+        _,_,_,_, track, fx_guid_act_id = ENGINE_GetSetParamValue(map, slider, false)
+        ENGINE_GetSetMIDIOSCLearn(track, fx_guid_act_id, 
+          data.map[map][slider].paramnumber, -1)
         data.map[map][slider] = nil
         ENGINE_return_data_to_projextstate2(false)
         ENGINE_get_params_from_ext_state(false) 
@@ -2659,22 +2666,20 @@
       table.insert(curve_table, {num1,num2}) 
     end
     
-    --[[
-    local x = tonumber (tostring((mouse.mx - graph_rect[1])/graph_rect[3]):sub(1,3))
-    local y = (1- tonumber (tostring((mouse.my - graph_rect[2])/graph_rect[4]):sub(1,3)))
-    ]]
-    
+    resolutionx = 20
+    resolutiony = 60
+        
     local loc_x,int, fract, x
-    loc_x = (mouse.mx - graph_rect[1])/graph_rect[3] * 10
+    loc_x = (mouse.mx - graph_rect[1])/graph_rect[3] * resolutionx
     int, fract = math.modf(loc_x)
     if fract < 0.5 then loc_x = math.floor(loc_x) else loc_x = math.ceil(loc_x) end
-    x = loc_x/10
+    x = loc_x/resolutionx
     
     local loc_y,int, fract, y
-    loc_y = (mouse.my - graph_rect[2])/graph_rect[4] * 10
+    loc_y = (mouse.my - graph_rect[2])/graph_rect[4] * resolutiony
     int, fract = math.modf(loc_y)
     if fract < 0.5 then loc_y = math.floor(loc_y) else loc_y = math.ceil(loc_y) end
-    y = 1-loc_y/10
+    y = 1-loc_y/resolutiony
     
     
     
