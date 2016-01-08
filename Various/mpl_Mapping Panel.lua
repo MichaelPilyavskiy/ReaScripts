@@ -4,12 +4,15 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.02
+   * Version: 1.03
   ]]
 
-  local vrs = 1.02
+  local vrs = 1.03
   local changelog =
 [===[ 
+08.01.2016  1.03
+            # Error when get last touched from renamed FX instamce
+            # Show last touched in slider menu
 07.01.2016  1.02
             # Show FixedLearn on empty sliders if FixedLearn is active
             # Slider/Clear slider also delete learn from linked parameter
@@ -2484,17 +2487,43 @@
     
     return rout, table_menu
   end
-     
+
+-----------------------------------------------------------------------   
+  function ENGINE_Get_last_touched_value()
+    _, trackid, fxid, paramid = reaper.GetLastTouchedFX()
+    if trackid == nil or fxid == nil or paramid == nil then return end
+    -- get track
+      if trackid == 0 then track = reaper.GetMasterTrack(0) 
+        else track = reaper.GetTrack(0,trackid-1) end
+      if track == nil then return end
+      track_guid = reaper.GetTrackGUID(track)
+      
+    -- get FX
+      FX_guid = reaper.TrackFX_GetFXGUID(track, fxid)
+      if FX_guid == nil then return end
+      
+    -- get param name
+      _, fxname = reaper.TrackFX_GetFXName(track, fxid, '')
+      _, param_name = reaper.TrackFX_GetParamName(track, fxid, paramid, '')
+          
+    -- form gfx name
+      gfx_name = fxname:gsub('[%p ]','')..' / '..param_name:gsub('[%p ]','')
+    
+    return track_guid, FX_guid, paramid, fxname, param_name, gfx_name
+  end
+  
+  
 -----------------------------------------------------------------------  
   function GUI_slider_menu(map, slider) --local remove_t,rout_actions_count
     local slider_actions,ret_rb_slider,newname,fx_name,fx_name_out,gfx_name,
-      par_name_out,par_name,colorOut,r,g,b
+      par_name_out,par_name,colorOut,r,g,b, state
     gfx.x,gfx.y = mouse.mx, mouse.my
     gfx.setfont(1, data.fontname, data.slider_fontsize)
     
     routing_slider_actions, menu_table = F_build_slider_routing_menu(map, slider)
     rout_actions_count = 11
-    if data.map[map] ~= nil and data.map[map][slider] ~= nil then       
+    if data.map[map] ~= nil and data.map[map][slider] ~= nil then 
+      state = 0
       slider_actions = 
         'Get last touched parameter' ..
         '||Rename slider'..
@@ -2510,60 +2539,38 @@
         
         --'||MIDI OSC learn/test'
      else
-      slider_actions = 'Get last touched parameter'
+      state = 1
+      track_guid, FX_guid, paramid, fxname, param_name, gfx_name = ENGINE_Get_last_touched_value()
+      slider_actions = 
+        '#Last: '..fxname..' / '..param_name..
+        '|Get last touched parameter'
     end
     
     ret_rb_slider = gfx.showmenu(slider_actions)  
     
     -- get last touched
-      if ret_rb_slider == 1 then
-        local trackid, fxid, paramid
-        -- get params
-          _, trackid, fxid, paramid = reaper.GetLastTouchedFX()
-          if trackid == nil or fxid == nil or paramid == nil then return end
-          if trackid == 0 then track = reaper.GetMasterTrack(0) 
-            else track = reaper.GetTrack(0,trackid-1) 
-          end
-          if track == nil then return end
-          if reaper.TrackFX_GetFXGUID(track, fxid) == nil then return end
-          
+      if ret_rb_slider == 1 and state == 0 
+        or ret_rb_slider == 2 and state == 1  then 
+  
+        track_guid, FX_guid, paramid, fxname, param_name, gfx_name = ENGINE_Get_last_touched_value()
+        if gfx_name ~= nil then
           if data.map[map] == nil then data.map[map] = {} end
           if data.map[map][slider] == nil then data.map[map][slider] = {} end
-          
-            data.map[map][slider]['track_guid'] = reaper.GetTrackGUID(track)
-            data.map[map][slider]['fx_guid'] = reaper.TrackFX_GetFXGUID(track, fxid)
-            data.map[map][slider]['paramnumber'] = tostring(paramid)
-        
-        
-        -- get gfx slider name
-          --local gfx_name = 'Slider '..slider
-          _, _, fx_name, par_name = ENGINE_GetSetParamValue(map, slider, false)
-          if par_name == nil then return end
-          par_name_out = par_name:match('[^%s]+ [^%s]+')
-          if par_name_out == nil then par_name_out = par_name:match('[^%s]+') end
-          if par_name_out == nil then par_name_out = 'Parameter #'..data.map[map][slider].paramnumber end
-          
-          fx_name_out = fx_name:match('[%:].*'):sub(2):match('[^%s]+ [^%s]+')
-          if fx_name_out == nil then fx_name_out = fx_name:match('[%:].*'):sub(2):match('[^%s]+') end
-          
-          gfx_name = fx_name_out:gsub('[%p]','')..' / '..par_name_out
-          if gfx.measurestr(gfx_name) > control_area_xywh[3]+obj_w2 then 
-            fx_name_out = fx_name_out:match('[^%s]+')
-            gfx_name = fx_name_out:gsub('[%p]','')..' / '..par_name_out
-            if gfx.measurestr(gfx_name) > control_area_xywh[3]+obj_w2 then
-              gfx_name = '...'..gfx_name:sub(gfx_name:len() - max_symb) 
-            end
-          end
-          
+                    
+          data.map[map][slider]['track_guid'] = track_guid
+          data.map[map][slider]['fx_guid'] = FX_guid
+          data.map[map][slider]['paramnumber'] = paramid
           data.map[map][slider]['gfx_name'] = gfx_name
           r,g,b = F_SetCol(color_t.green)
-          data.map[map][slider].color = r..' '..g..' '..b..' '
-        if data.use_learn == 1 then set_learn = true end
-        ENGINE_return_data_to_projextstate2(false)        
+          data.map[map][slider].color = r..' '..g..' '..b..' ' 
+           
+          if data.use_learn == 1 then set_learn = true end
+          ENGINE_return_data_to_projextstate2(false)     
+        end   
       end
  
  -- ====== separator ===========  
-   
+   if state == 0 then
     -- rename
       if ret_rb_slider == 2 then
         _, newname = reaper.GetUserInputs('Rename slider '..slider, 
@@ -2673,7 +2680,7 @@
         ENGINE_GetSetParamValue(map, slider, true,val)   
         reaper.Main_OnCommand(41144,0)
       end  ]]
-      
+    end
   end      
   
   -----------------------------------------------------------------------  
