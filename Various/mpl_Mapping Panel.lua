@@ -4,14 +4,15 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.03
+   * Version: 1.04
   ]]
 
-  local vrs = 1.03
+  local vrs = 1.04
   local changelog =
 [===[ 
-08.01.2016  1.03
-            # Error when get last touched from renamed FX instamce
+08.01.2016  1.04
+            # Improved formula formatting
+            # Fixed error when get last touched from renamed FX instamce
             # Show last touched in slider menu
 07.01.2016  1.02
             # Show FixedLearn on empty sliders if FixedLearn is active
@@ -2253,6 +2254,7 @@
       
       ------------------------------
       function F_set_formula(form, conf_id,id)  
+        form = form:gsub("%(x%)", 'x')
         if load("local x = ... return "..form) ~= nil then
           if form == '' then form = 'x' end
           data.routing[conf_id][id].str = 
