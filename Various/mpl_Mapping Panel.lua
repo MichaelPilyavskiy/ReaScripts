@@ -4,16 +4,18 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.04
+   * Version: 1.05
   ]]
 
-  local vrs = 1.04
+  local vrs = 1.05
   local changelog =
 [===[ 
-08.01.2016  1.04
+08.01.2016  1.05
             # Improved formula formatting
             # Fixed error when get last touched from renamed FX instamce
+            # AutoRemove VST/AU/JS prefixes when get last touched
             # Show last touched in slider menu
+            + Developer mode
 07.01.2016  1.02
             # Show FixedLearn on empty sliders if FixedLearn is active
             # Slider/Clear slider also delete learn from linked parameter
@@ -155,7 +157,7 @@
 ]===]
   
   function fdebug(str)
-    if debug_mode then msg(os.date()..' '..str) end
+    if data.dev_mode ~= nil and data.dev_mode == 1 then msg(os.date()..' '..str) end
   end  
  -----------------------------------------------------------------------   
  ----------------------------------------------------------------------- 
@@ -364,6 +366,8 @@
 -----------------------------------------------------------------------    
   function DEFINE_dynamic_variables2()
     time = os.clock()
+    if last_time == nil then last_time = time end
+    timediff = time - last_time
     local slow = 1
     time_gfx = (time % slow) / slow
     -- values to compare
@@ -479,6 +483,7 @@
       update_gfx = true
     end
     
+    last_time = time
     last_current_map = data.current_map
     last_last_touched_track_guid = last_touched_track_guid
     last_last_touched_fx = last_touched_fx
@@ -1383,14 +1388,18 @@
                       gfx.a = 0.15
                       gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
                       F_wire_arrow(x1,y1,x2,y2)
-                      --F_draw_cable_by_DarkStar(x1,y1,x2,y2)
+                      if data.dev_mode ~= nil and data.dev_mode == 1 then
+                        F_draw_cable_by_DarkStar(x1,y1,x2,y2)
+                      end
                     end
                                         
                     if tonumber(out_link[3]) == data.bottom_info_map and tonumber(out_link[4]) == data.bottom_info_slider then
                       gfx.a = 0.3
                       gfx.r, gfx.g, gfx.b = F_SetCol(color_t['blue'])
                       F_wire_arrow(x1,y1,x2,y2)
-                      --F_draw_cable_by_DarkStar(x1,y1,x2,y2)
+                      if data.dev_mode ~= nil and data.dev_mode == 1 then
+                        F_draw_cable_by_DarkStar(x1,y1,x2,y2)
+                      end
                     end                    
                     
                     gfx.a = 0.1
@@ -1889,7 +1898,7 @@
     if data.use_learn == 1 then menu_switch['use_learn'] = "!" else menu_switch['use_learn']="" end
     if data.use_learn == 0 then menu_switch['use_learn_setup'] = "#" else menu_switch['use_learn_setup']="" end
     if data.use_ext_actions == 1 then menu_switch['use_ext_actions'] = "!" else menu_switch['use_ext_actions']="" end
-    
+    if data.dev_mode == 1 then menu_switch['dev_mode'] = "!" else menu_switch['dev_mode']="" end
     
     local main_actions = 
       'Routing matrix'..
@@ -1901,8 +1910,8 @@
       '|'..menu_switch['run_docked']..'Run docked'..
       '||Save config to external file'..
       '|Load config from external file'..
-      '||'..menu_switch['use_ext_actions']..'Use external actions'
-      
+      '||'..menu_switch['use_ext_actions']..'Use external actions'..
+      '||'..menu_switch['dev_mode']..'Developer mode'
       
     local ret_main_act = gfx.showmenu(main_actions)
     
@@ -1982,6 +1991,16 @@
         data.use_ext_actions = math.floor(math.abs(data.use_ext_actions-1))
         ENGINE_return_data_to_projextstate2(false)
       end    
+      
+    ------------  
+    -- separator 
+    ------------
+          
+    -- dev_mode
+      if ret_main_act == 10 then 
+        data.dev_mode = math.floor(math.abs(data.dev_mode-1))
+        ENGINE_return_data_to_projextstate2(false)
+      end       
                 
   end
   
@@ -2510,7 +2529,10 @@
           
     -- form gfx name
       gfx_name = fxname:gsub('[%p ]','')..' / '..param_name:gsub('[%p ]','')
-    
+      gfx_name = gfx_name:gsub('VST', '')
+      gfx_name = gfx_name:gsub('AU', '')
+      gfx_name = gfx_name:gsub('JS', '')
+      
     return track_guid, FX_guid, paramid, fxname, param_name, gfx_name
   end
   
@@ -2776,6 +2798,17 @@
           
       end
       
+      if data.dev_mode ~= nil and data.dev_mode == 1 then
+        gfx.x, gfx.y = 10,10
+        gfx.r, gfx.g, gfx.b, gfx.a = 1,1,1,0.7
+        gfx.rect(10,10,200,100,true)
+        gfx.r, gfx.g, gfx.b, gfx.a = 0,0,0,0.8
+        if extst_len == nil then extst_len = 0 end
+        gfx.drawstr('DevMode:\n'..
+          'defer_time '..timediff..'\n'..
+          'extstate_len '..extst_len)
+        
+      end
       --x,y,w,h = F_extract_table(bigknob1_xywh)
       --gfx.rect(x,y,w,h)
       
@@ -2821,6 +2854,7 @@
           data.use_ext_actions = tonumber(F_get_beetween(extstate_s,"use_ext_actions",'\n'))
           main_xywh[3] = tonumber(F_get_beetween(extstate_s,"window_w",'\n'))
           main_xywh[4] = tonumber(F_get_beetween(extstate_s,"window_h",'\n'))
+          data.dev_mode = tonumber(F_get_beetween(extstate_s,"dev_mode",'\n'))
           
           
           if data.current_window ==4 then data.current_window = 2 end  
@@ -2985,6 +3019,9 @@
     indent4 = '    '
     
     if data.project_name == nil then data.project_name = 'Untitled' end
+    -- from 1.04
+      if data.dev_mode == nil then data.dev_mode = 0 end
+      
     -- MAIN SECTION
     string_ret = '[Global_variables]'..'\n'..
                  'tablet_optimised '..data.tablet_optimised..'\n'..
@@ -3006,7 +3043,9 @@
                  'current_fixedlearn '..data.current_fixedlearn..'\n'..
                  'use_ext_actions '..data.use_ext_actions..'\n'..
                  'window_w '..gfx.w..'\n'..
-                 'window_h '..gfx.h..'\n'
+                 'window_h '..gfx.h..'\n'..
+                 'dev_mode '..data.dev_mode..'\n'
+                 
                  
     if data.map ~= nil and #data.map > 0 then string_ret = string_ret..'[maps_configuration] \n' end
                  
@@ -3091,6 +3130,7 @@
     -- OUT
     if to_ext_file == nil or to_ext_file == false then
       reaper.SetProjExtState(0, 'MPL_PANEL_MAPPINGS', 'MPL_PM_DATA',string_ret)
+      extst_len = string_ret:len()
       fdebug('\n'..'RETURN'..'\n'..string_ret)
      else      
       file = io.open(config_path,'w')
@@ -3706,8 +3746,6 @@
   
 -----------------------------------------------------------------------  
   function DEFINE_global_variables()
-    debug_mode = true
-    debug_mode = false
     
     data = {}
     data.map = {}
@@ -3730,6 +3768,7 @@
     data.use_learn = 0
     data.current_fixedlearn = 0 -- 0 - midi 1 - osc
     data.use_ext_actions = 0 
+    data.dev_mode = 0
     
     set_learn = true
     
