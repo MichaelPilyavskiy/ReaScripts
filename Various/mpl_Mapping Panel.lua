@@ -7,11 +7,10 @@
    * Version: 1.05
   ]]
 
-  local vrs = 1.05
+  local vrs = 1.06
   local changelog =
 [===[ 
-08.01.2016  1.05
-            # Improved formula formatting
+08.01.2016  1.06
             # Fixed error when get last touched from renamed FX instamce
             # AutoRemove VST/AU/JS prefixes when get last touched
             # Show last touched in slider menu
@@ -1746,7 +1745,7 @@
           -- formula text
                 gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
                 gfx.setfont(1, data.fontname, button_fontsize+2)  
-                local str = 'y = '..data.routing[data.current_routing][rout_id].str:match('[%[].*'):sub(2,-2)
+                local str = 'Formula: '..data.routing[data.current_routing][rout_id].str:match('[%[].*'):sub(2,-2)
                 gfx.x = graph_rect[1]+(graph_rect[3]-gfx.measurestr(str))/2+1
                 gfx.y = graph_rect[2] + graph_rect[4] + form_text_h/3
                 gfx.a = 0.8 
@@ -2273,7 +2272,6 @@
       
       ------------------------------
       function F_set_formula(form, conf_id,id)  
-        form = form:gsub("%(x%)", 'x')
         if load("local x = ... return "..form) ~= nil then
           if form == '' then form = 'x' end
           data.routing[conf_id][id].str = 
@@ -2907,9 +2905,10 @@
                     end
                   -- extract function and curve
                     t1 = {}
-                    for word in line:gmatch('%[(.-)%]') do 
+                    for word in line:gmatch('%[.*%]') do 
                       table.insert(t1, word) 
                     end    
+                    msg(line)
                     t1[1] = '['..t1[1]..']'
                     if t1[2] == nil then t1[2] = '' end
                     if t1[2] == '[]' then t1[2] = '' end
@@ -2981,9 +2980,15 @@
               codestring = data.routing[i][k].str:match('%[(.-)%]')--:sub(2,-2)
               if data.routing[i][k].curve == nil then data.routing[i][k].curve = '' end
               curve = data.routing[i][k].curve 
-              codestring = codestring:gsub('curve','"'..curve..'"')
-              --msg(codestring)
-              data.routing[i][k].func = load('local x = ... return '..codestring)
+              -- check for formula type             
+                if codestring:gsub(' ', ''):find('y') == nil then   
+                  codestring = codestring:gsub('curve','"'..curve..'"')
+                  data.routing[i][k].func = load('local x = ... return '..codestring)
+                 else
+                  codestring = codestring:gsub('curve','"'..curve..'"')
+                  data.routing[i][k].func = load('local x = ... '..codestring..
+                    ' if y == nil then y = 0 end return y')
+                end
             end
           end
         end
@@ -3700,9 +3705,10 @@
         -- change func
           if MOUSE_match({graph_rect[1],graph_rect[2]+graph_rect[4]+y_offset, 
             graph_rect[3],17}) and mouse.LMB_state and not mouse.last_LMB_state then
-            _, form = reaper.GetUserInputs('Change formula', 1, 'y = ', 
+            _, form = reaper.GetUserInputs('Change formula', 1, 'Type formula', 
               data.routing[data.current_routing][rout_id].str:match('[%[].*'):sub(2,-2))
-            if load("local x = ... return "..form) ~= nil then
+            if load("local x = ... return "..form) ~= nil 
+              or load('local x = ... '..form..' if y == nil then y = 0 end return y') ~= nil  then
               if form == '' then form = 'x' end
               data.routing[data.current_routing][rout_id].str = 
                 data.routing[data.current_routing][rout_id].str:match('%d+ %d+ %d+ %d+ ')..'['..form..']'
