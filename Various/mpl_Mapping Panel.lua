@@ -4,13 +4,13 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.05
+   * Version: 1.07
   ]]
 
-  local vrs = 1.06
+  local vrs = 1.07
   local changelog =
 [===[ 
-08.01.2016  1.06
+08.01.2016  1.07
             # Fixed error when get last touched from renamed FX instamce
             # AutoRemove VST/AU/JS prefixes when get last touched
             # Show last touched in slider menu
@@ -2563,9 +2563,14 @@
      else
       state = 1
       track_guid, FX_guid, paramid, fxname, param_name, gfx_name = ENGINE_Get_last_touched_value()
-      slider_actions = 
-        '#Last: '..fxname..' / '..param_name..
-        '|Get last touched parameter'
+      if fxname ~= nil and param_name ~= nil then
+        slider_actions = 
+          '#Last: '..fxname..' / '..param_name..
+          '|Get last touched parameter'
+       else
+        slider_actions = '#There is no last touched parameter'
+      end
+        
     end
     
     ret_rb_slider = gfx.showmenu(slider_actions)  
@@ -2908,7 +2913,7 @@
                     for word in line:gmatch('%[.*%]') do 
                       table.insert(t1, word) 
                     end    
-                    msg(line)
+                   -- msg(line)
                     t1[1] = '['..t1[1]..']'
                     if t1[2] == nil then t1[2] = '' end
                     if t1[2] == '[]' then t1[2] = '' end
