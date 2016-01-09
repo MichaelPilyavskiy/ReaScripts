@@ -4,13 +4,13 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.1
+   * Version: 1.11
   ]]
 
-  local vrs = 1.1
+  local vrs = 1.11
   local changelog =
 [===[ 
-09.01.2016  1.1
+09.01.2016  1.11
             # Caching function improvements. Still need testing. Any feedback welcome.
             + Expert mode for editing formula as Lua code
             + Expert mode / Formula templates / Condition (triangle)
@@ -644,6 +644,7 @@
    
    -- return midichan,midicc, osclearn
    -- if in_chan == -1 then remove learn for current param
+   if fx_index == nil then return end
    fx_index = fx_index+1 -- 0-based    
                  --param_id 0-based
                  
