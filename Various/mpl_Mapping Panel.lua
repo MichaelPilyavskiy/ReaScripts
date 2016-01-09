@@ -4,12 +4,24 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.07
+   * Version: 1.1
   ]]
 
-  local vrs = 1.07
+  local vrs = 1.1
   local changelog =
 [===[ 
+09.01.2016  1.1
+            # Caching function improvements. Still need testing. Any feedback welcome.
+            + Expert mode for editing formula as Lua code
+            + Expert mode / Formula templates / Condition (triangle)
+            + Expert mode / Formula templates / Mouse
+            + Expert mode / Formula templates / LFO
+            + Expert mode / Formula templates / Cycle
+            + Expert mode / Formula templates / Track Vol (0...2)
+            + Expert mode / Formula templates / Track Pan (-1...+1)
+            + Expert mode / Formula templates / Track Peak (Meter value)(0...2)
+            + Expert mode / Formula templates / MasterRate
+            + Add last touched to bottom info and to every empty slider
 08.01.2016  1.07
             # Fixed error when get last touched from renamed FX instamce
             # AutoRemove VST/AU/JS prefixes when get last touched
@@ -167,6 +179,7 @@
   function sqr(x) if x ~= nil then return math.sqrt(x) end end
   function sin(x) if x ~= nil then return math.sin(x) end end
   function abs(x) if x ~= nil then return math.abs(x) end end
+  
   function match(x, curve1)
     local t, num, num1, num2
     if curve1 == nil or curve1 == '' then return x
@@ -188,6 +201,52 @@
         end
     end
     return 0
+  end
+  
+  function lfo(per) 
+    ret = (time % per) / per
+    if ret > 0.5 then ret = 1 - ret end
+    ret = ret * 2
+    return ret
+  end
+  
+  function cycle(per) 
+    ret = (time % per) / per
+    return ret
+  end
+  
+  function track_vol(m,sl)
+    --msg(m)
+    --msg(sl)
+    if data.map[m] == nil or data.map[m][sl] == nil then return 0.1 end
+    local guid = data.map[m][sl].track_guid
+    local track = reaper.BR_GetMediaTrackByGUID(0, guid)
+    track_vol_ret = reaper.GetMediaTrackInfo_Value(track, 'D_VOL')
+    return track_vol_ret
+  end
+  
+  function track_pan(m,sl)
+    --msg(m)
+    --msg(sl)
+    if data.map[m] == nil or data.map[m][sl] == nil then return 0.1 end
+    local guid = data.map[m][sl].track_guid
+    local track = reaper.BR_GetMediaTrackByGUID(0, guid)
+    local track_pan_ret = reaper.GetMediaTrackInfo_Value(track, 'D_PAN')
+    return track_pan_ret
+  end
+
+  function track_peak(m,sl)
+    --msg(m)
+    --msg(sl)
+    if data.map[m] == nil or data.map[m][sl] == nil then return 0.1 end
+    local guid = data.map[m][sl].track_guid
+    local track = reaper.BR_GetMediaTrackByGUID(0, guid)
+    local peak_ret = (reaper.Track_GetPeakInfo(track, 1) + reaper.Track_GetPeakInfo(track, 1))  /2 
+    return peak_ret
+  end  
+  
+  function master_rate()
+    return reaper.Master_GetPlayRate(0)
   end
 
  -----------------------------------------------------------------------         
@@ -276,8 +335,9 @@
 
 -----------------------------------------------------------------------
   function F_limit(val,min,max,retnil)
+    if val == nil or min == nil or max == nil then return 0 end
     local val_out = val 
-    if val == nil then val =  0 end
+    if val == nil then val = 0 end
     if val < min then 
       val_out = min 
       if retnil then return nil end
@@ -369,6 +429,9 @@
     timediff = time - last_time
     local slow = 1
     time_gfx = (time % slow) / slow
+    
+    _, _, _, lt_fxname, lt_param_name, _ = ENGINE_Get_last_touched_value()
+    
     -- values to compare
       values = ENGINE_GetSet_values(false)    
         if last_values == nil then 
@@ -388,7 +451,15 @@
         end
     
     -- apply routing from last touched
+    if data.expert_mode == 0 then
       ENGINE_apply_routing(last_touched_map,last_touched_slider)
+     else
+      for i = 1, data.map_count do
+        for k = 1, data.slider_count do
+          ENGINE_apply_routing(i,k)
+        end
+      end
+    end
     
     -- apply learn to current map
       if set_learn and data.use_learn == 1 then ENGINE_set_learn() set_learn = false end      
@@ -745,7 +816,7 @@
   function DEFINE_GUI_buffers()   
                 
     local mapname, val, text_len, bottom_info_h,text_offset, x,y,w,h, val,obj_w, x1,y1,x2,y2,text, flags,
-      map, slider
+      map, slider,str0
       --fdebug('DEFINE_GUI_buffers')
       -------------------------------------------
       -- variables
@@ -845,7 +916,11 @@
                    
                 if val == -1 then 
                   gfx.a = 0.2
-                  text = 'empty'
+                  if lt_fxname ~= nil and lt_param_name ~= nil then
+                    text = lt_fxname..' / '.. lt_param_name
+                   else
+                    text = 'empty'
+                  end
                   gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
                  elseif val == -2 then 
                   text = 'Not found' 
@@ -963,7 +1038,8 @@
               gfx.setimgdim(2, main_xywh[3], main_xywh[4]) 
                 
                 --main
-                  GUI_button(b_1_fix_xywh, 'Project: '..data.project_name,1)               
+                  GUI_button(b_1_fix_xywh, 'Project: '..data.project_name,1)   
+                  --GUI_button(b_1_fix_xywh, 'Last: '..lt_fxname..' / '.. lt_param_name ,1)             
                   GUI_lamp(lamp_xywh, dirty_state)
                   GUI_button(b_close_xywh, '>')
                 --map
@@ -1111,7 +1187,12 @@
                    gfx.a = 0.4
                    gfx.x, gfx.y = x_offset,0
                    gfx.drawstr('Map '..data.bottom_info_map..' Slider '..data.bottom_info_slider..'\nEmpty')
-                   
+                 -- LT
+                   if lt_fxname ~= nil and lt_param_name ~= nil then
+                     gfx.a = 0.4
+                     gfx.x, gfx.y = x_offset,text_offset*2
+                     gfx.drawstr('Last touched: '..lt_fxname..' / '.. lt_param_name)
+                    end
                   -- midi
                     if data.learn ~= nil and data.use_learn == 1 and data.learn[data.bottom_info_slider] ~= nil then
                       
@@ -1128,7 +1209,7 @@
                       
                         if data.learn[data.bottom_info_slider].osc ~= nil then 
                           osc = '[OSC: '..data.learn[data.bottom_info_slider].osc..']' else osc = '' end
-                      gfx.x, gfx.y = x_offset,text_offset*2
+                      gfx.x, gfx.y = x_offset,text_offset*3
                       gfx.drawstr(midi..osc)       
                     end                 
               end
@@ -1520,10 +1601,12 @@
             func = data.routing[data.current_routing][rout_id].func
             
             for x = 0, 1, 0.001 do
-              k = F_limit(func(x),0,1)
-              if k == nil then k = 0 end
-              gfx.lineto(graph_rect[1]+graph_rect[3]*x, 
-                graph_rect[2]+graph_rect[4] - k*graph_rect[4])
+              if func ~= nil then
+                k = F_limit(func(x),0,1)
+                if k == nil then k = 0 end
+                gfx.lineto(graph_rect[1]+graph_rect[3]*x, 
+                  graph_rect[2]+graph_rect[4] - k*graph_rect[4])
+              end
             end
 
           -- graph grid
@@ -1685,10 +1768,12 @@
               gfx.a = 0.9
               gfx.r, gfx.g, gfx.b = F_SetCol(color_t['red']) 
               val = data.map[last_routing_config_map][last_routing_config_sl].value
-              val2 = F_limit(func(val),0,1)
-              if val2 == nil then val2 = 0 end
-              gfx.circle(graph_rect[1]+graph_rect[3]*val,
-                        graph_rect[2]+graph_rect[4]-graph_rect[4]*val2, 5 , 1 ,aa)  
+              if func ~= nil then
+                val2 = F_limit(func(val),0,1)
+                if val2 == nil then val2 = 0 end
+                gfx.circle(graph_rect[1]+graph_rect[3]*val,
+                          graph_rect[2]+graph_rect[4]-graph_rect[4]*val2, 5 , 1 ,aa)  
+              end
              
               
           end
@@ -1743,9 +1828,16 @@
                   graph_rect[3],form_text_h,0) 
                   
           -- formula text
-                gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
+            if data.expert_mode ~= nil and data.expert_mode == 1 then
+              gfx.r, gfx.g, gfx.b = F_SetCol(color_t['red'])
+              str0 = ''
+             else
+              str0 = 'Formula: '
+              gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
+            end
+                
                 gfx.setfont(1, data.fontname, button_fontsize+2)  
-                local str = 'Formula: '..data.routing[data.current_routing][rout_id].str:match('[%[].*'):sub(2,-2)
+                local str = str0..data.routing[data.current_routing][rout_id].form
                 gfx.x = graph_rect[1]+(graph_rect[3]-gfx.measurestr(str))/2+1
                 gfx.y = graph_rect[2] + graph_rect[4] + form_text_h/3
                 gfx.a = 0.8 
@@ -1876,7 +1968,7 @@
       ENGINE_return_data_to_projextstate2(false)
     end
     
-    if ret_main_act == 2 then --Clear all routing configs
+    if ret_main_act == 2 then --Clear all routing configs / clear when expert mode switch
       local ret = reaper.MB('Clear all routing configurations?','mpl Mapping Panel',4)
       if ret == 6 then 
         for i = 1, data.routing_count do
@@ -1898,6 +1990,7 @@
     if data.use_learn == 0 then menu_switch['use_learn_setup'] = "#" else menu_switch['use_learn_setup']="" end
     if data.use_ext_actions == 1 then menu_switch['use_ext_actions'] = "!" else menu_switch['use_ext_actions']="" end
     if data.dev_mode == 1 then menu_switch['dev_mode'] = "!" else menu_switch['dev_mode']="" end
+    if data.expert_mode == 1 then menu_switch['expert_mode'] = "!" else menu_switch['expert_mode']="" end
     
     local main_actions = 
       'Routing matrix'..
@@ -1910,7 +2003,9 @@
       '||Save config to external file'..
       '|Load config from external file'..
       '||'..menu_switch['use_ext_actions']..'Use external actions'..
-      '||'..menu_switch['dev_mode']..'Developer mode'
+      '||'..menu_switch['dev_mode']..'Developer mode'..
+      '|'..menu_switch['expert_mode']..'Expert mode'
+      
       
     local ret_main_act = gfx.showmenu(main_actions)
     
@@ -1999,7 +2094,17 @@
       if ret_main_act == 10 then 
         data.dev_mode = math.floor(math.abs(data.dev_mode-1))
         ENGINE_return_data_to_projextstate2(false)
-      end       
+      end   
+      
+    -- expert mode
+      if ret_main_act == 11 then 
+        ret = reaper.MB('This also erase existing routing configs','Switch expert mode',1)
+        if ret == 1 then 
+          data.expert_mode = math.floor(math.abs(data.expert_mode-1))
+          data.routing = {}
+          ENGINE_return_data_to_projextstate2(false)
+        end
+      end           
                 
   end
   
@@ -2254,28 +2359,47 @@
   end            
   
 -----------------------------------------------------------------------    
-  function GUI_formula_menu() local str, str1, str2, str3, str4, str5, str6, str7, str8
+  function GUI_formula_menu() local ret
     gfx.x,gfx.y = mouse.mx, mouse.my
-    formula_actions = 
-      '#Formula templates'..
-      '||Default'..
-      '|sin(x*a)'..
-      '|lim(x,limit_min,limit_max)'..
-      '|wrap(x)'..
-      '|sqr(x)'..
-      '|invert(x)'..
-      '|abs(x)'..
-      '|scaleto(x,limit_min,limit_max)'..
-      '|x^a'..
-      '|match(x,curve)'
-      
+    
+    if data.expert_mode == 0 then
+      formula_actions = 
+        '#Formula templates'..
+        '||Default'..
+        '|sin(x*a)'..
+        '|lim(x,limit_min,limit_max)'..
+        '|wrap(x)'..
+        '|sqr(x)'..
+        '|invert(x)'..
+        '|abs(x)'..
+        '|scaleto(x,limit_min,limit_max)'..
+        '|x^a'..
+        '|match(x,curve)'
+     else
+      formula_actions = 
+       '#Formula templates'..
+       '|Default'..
+       '|Triangle'..
+       '|Mouse'..
+       '|LFO(period)'..
+       '|Cycle(period)'..
+       '|track_vol(map,slider)'..
+       '|track_pan(map,slider)'..
+       '|track_peak(map,slider)'..
+       '|Master playrate'
+    end
       
       ------------------------------
-      function F_set_formula(form, conf_id,id)  
-        if load("local x = ... return "..form) ~= nil then
+      function F_set_formula(form, conf_id,id)  local test_func
+        test_func = load("local x = ... return "..form)
+        if data.expert_mode == 1 then
+          data.routing[conf_id][id].form = form
+          ENGINE_return_data_to_projextstate2(false)
+          ENGINE_dump_functions_to_routing_table()
+        end
+        if test_func ~= nil and data.expert_mode == 0 then
           if form == '' then form = 'x' end
-          data.routing[conf_id][id].str = 
-            data.routing[conf_id][id].str:match('%d+ %d+ %d+ %d+ ')..'['..form..']'
+          data.routing[conf_id][id].form = form
           ENGINE_return_data_to_projextstate2(false)
           ENGINE_dump_functions_to_routing_table()
         end
@@ -2283,100 +2407,155 @@
       ------------------------------
         
     -- draw
-      ret_formula_act = gfx.showmenu(formula_actions)         
+      ret_formula_act = gfx.showmenu(formula_actions)  
+    if data.expert_mode == 1 then
+    
+      local t = {}
+      for num in data.routing[data.current_routing][rout_id].str:gmatch('[%d]+') do
+        table.insert(t, tonumber(num)) end
+      local m = t[1]
+      local sl = t[2]
+      
+      -- def
+        if ret_formula_act == 2 then 
+          F_set_formula('y = x', data.current_routing, rout_id) 
+        end      
+      -- tri
+        if ret_formula_act == 3 then 
+          F_set_formula('if x < 0.5 then y = x else y = 1-x end', data.current_routing, rout_id) 
+        end
+      -- mouse
+        if ret_formula_act == 4 then 
+          F_set_formula('y = mouse.mx/1000', data.current_routing, rout_id) 
+        end   
+      -- lfo
+        if ret_formula_act == 5 then 
+          F_set_formula('y = lfo(5)', data.current_routing, rout_id) 
+        end       
+      -- cycle
+        if ret_formula_act == 6 then 
+          F_set_formula('y = cycle(5)', data.current_routing, rout_id) 
+        end                 
+      -- track vol        
+        if ret_formula_act == 7 then   
+          F_set_formula('y = track_vol('..m..','..sl..')', data.current_routing, rout_id) 
+        end 
+      -- track pan        
+        if ret_formula_act == 8 then   
+          F_set_formula('y = track_pan('..m..','..sl..')', data.current_routing, rout_id) 
+        end     
+      -- track peak        
+        if ret_formula_act == 9 then   
+          F_set_formula('y = track_peak('..m..','..sl..')', data.current_routing, rout_id) 
+        end 
+      -- master rate      
+        if ret_formula_act == 10 then   
+          F_set_formula('y = master_rate()', data.current_routing, rout_id) 
+        end                                
+        
+    end
+    
+    if data.expert_mode == 0 then       
       if ret_formula_act ~= nil and ret_formula_act ~= 0 then
+      
+        current_form = data.routing[data.current_routing][rout_id].form
+        
       -- default
         if ret_formula_act == 2 then F_set_formula('x',data.current_routing,rout_id) end    
+        
       -- sin      
         if ret_formula_act == 3 then 
-          _, str1 = reaper.GetUserInputs('Set x coeff.', 1, '','')
-          if tonumber(str1) ~= nil then
-            if str1:find('y=') == 1 then str1 = str1:sub(3) end
-            F_set_formula('sin(x*('..str1..'))*0.5+0.5',data.current_routing,rout_id) 
+          ret, ret_str = reaper.GetUserInputs('Set x coeff.', 1, '','1')
+          if ret ~= nil and ret_str ~= '' and tonumber(ret_str) ~= nil then 
+            F_set_formula('sin(('..current_form..')*'..ret_str..')*0.5+0.5',data.current_routing,rout_id) 
           end
         end
+        
       -- lim   
         if ret_formula_act == 4 then 
-          _, str = reaper.GetUserInputs('Set limits', 3, 'Min Limit,Max Limit,Func','0,1,'..
-            data.routing[data.current_routing][rout_id].str:match('[%[].*'):sub(2,-2))
+          ret, ret_str = reaper.GetUserInputs('Set limits', 3, 'Min Limit,Max Limit,Func','0,1,'..current_form)
+          if ret ~= nil and ret_str ~= '' then 
+            local lim_str_t = {}
+            for value in ret_str:gmatch('[^%,]+') do
+              if tonumber(value) ~= nil then value = tonumber(value) end
+              table.insert(lim_str_t, value)
+            end
           
-          local lim_str_t = {}
-          for value in str:gmatch('[^%,]+') do
-            if tonumber(value) ~= nil then value = tonumber(value) end
-            table.insert(lim_str_t, value)
-          end
-          
-          if lim_str_t[1] ~= nil and lim_str_t[2] ~= nil then          
-            F_set_formula('lim('..lim_str_t[3]..','..lim_str_t[1]..','..lim_str_t[2]..')',
-              data.current_routing,rout_id) 
+            if lim_str_t[1] ~= nil and lim_str_t[2] ~= nil then          
+              F_set_formula('lim('..lim_str_t[3]..','..lim_str_t[1]..','..lim_str_t[2]..')',
+                data.current_routing,rout_id) 
+            end
           end
         end
+        
       -- wrap        
         if ret_formula_act == 5 then 
-          _, str2 = reaper.GetUserInputs('Type funct for wrap', 1, '',
-            data.routing[data.current_routing][rout_id].str:match('[%[].*'):sub(2,-2))
-          if str2 ~= '' then
-            if str2:find('y=') == 1 then str2 = str2:sub(3) end
-            F_set_formula('wrap('..str2..')',data.current_routing,rout_id) 
+          ret, ret_str = reaper.GetUserInputs('Type funct for wrap', 1, '', current_form)
+          if ret ~= nil and ret_str ~= '' then 
+            F_set_formula('wrap('..ret_str..')',data.current_routing,rout_id) 
           end
         end
+        
       -- sqr
-        if ret_formula_act == 6 then F_set_formula('sqr(x)',data.current_routing,rout_id) end
+        if ret_formula_act == 6 then F_set_formula('sqr('..current_form..')',data.current_routing,rout_id) end
+        
       -- inv
         if ret_formula_act == 7 then 
-          _, str4 = reaper.GetUserInputs('Type func for invert', 1, '',
-            data.routing[data.current_routing][rout_id].str:match('[%[].*'):sub(2,-2))
-          if str4 ~= '' then
-            if str4:find('y=') == 1 then str4 = str1:sub(3) end
-            F_set_formula('1-('..str4..')',data.current_routing,rout_id)
+          ret, ret_str = reaper.GetUserInputs('Type func for invert', 1, '', current_form)
+          if ret ~= nil and ret_str ~= '' then 
+            F_set_formula('1-('..ret_str..')',data.current_routing,rout_id)
           end
         end
+        
       -- abs
         if ret_formula_act == 8 then 
-          _, str3 = reaper.GetUserInputs('Type func for take absolute', 1, '',
-            data.routing[data.current_routing][rout_id].str:match('[%[].*'):sub(2,-2))
-          if str3 ~= '' then
-            if str3:find('y=') == 1 then str3 = str1:sub(3) end
-            F_set_formula('abs('..str3..')',data.current_routing,rout_id)
+          ret, ret_str = reaper.GetUserInputs('Type func for take absolute', 1, '', current_form)
+          if ret ~= nil and ret_str ~= '' then 
+            F_set_formula('abs('..ret_str..')',data.current_routing,rout_id)
           end
-        end        
+        end      
+          
       -- scaleto   
         if ret_formula_act == 9 then 
-          _, str6 = reaper.GetUserInputs('Set scale', 3, 'Min scale limit,Max scale limit,Func','0,1,'..
-            data.routing[data.current_routing][rout_id].str:match('[%[].*'):sub(2,-2))
-          
-          local lim_str_t = {}
-          for value in str6:gmatch('[^%,]+') do
-            if tonumber(value) ~= nil then value = tonumber(value) end
-            table.insert(lim_str_t, value)
-          end
-          
-          if lim_str_t[1] ~= nil and lim_str_t[2] ~= nil then          
-            F_set_formula('scaleto('..lim_str_t[3]..','..lim_str_t[1]..','..lim_str_t[2]..')',data.current_routing,rout_id) 
+          ret, ret_str = reaper.GetUserInputs('Set scale', 3, 'Min scale limit,Max scale limit,Func','0,1,'..current_form)
+          if ret ~= nil and ret_str ~= '' then 
+            local lim_str_t = {}
+            for value in ret_str:gmatch('[^%,]+') do
+              if tonumber(value) ~= nil then value = tonumber(value) end
+              table.insert(lim_str_t, value)
+            end
+            local lim_min = lim_str_t[1]
+            local lim_max = lim_str_t[2]
+            if lim_min ~= nil and lim_max ~= nil then          
+              F_set_formula('scaleto('..lim_str_t[3]..','..lim_min..','..lim_max..')',data.current_routing,rout_id) 
+            end
           end
         end        
+        
       -- pow   
         if ret_formula_act == 10 then 
-          _, str7 = reaper.GetUserInputs('Set scale', 2, 'pow,Func','1,'..
-            data.routing[data.current_routing][rout_id].str:match('[%[].*'):sub(2,-2))
-          
-          local str_t = {}
-          for value in str7:gmatch('[^%,]+') do
-            if tonumber(value) ~= nil then value = tonumber(value) end
-            table.insert(str_t, value)
-          end
-          
-          if str_t[1] ~= nil and str_t[2] ~= nil then          
-            F_set_formula('('..str_t[2]..')^'..str_t[1],data.current_routing,rout_id) 
+          ret, ret_str = reaper.GetUserInputs('Set scale', 2, 'pow,Func','1,'..current_form)
+          if ret ~= nil and ret_str ~= '' then 
+            local str_t = {}
+            for value in str7:gmatch('[^%,]+') do
+              if tonumber(value) ~= nil then value = tonumber(value) end
+              table.insert(str_t, value)
+            end
+            local deg = str_t[1]
+            local fun = str_t[2]
+            if deg ~= nil and fun ~= nil then          
+              F_set_formula('('..fun..')^'..deg, data.current_routing,rout_id) 
+            end
           end
         end 
+        
       -- match   
         if ret_formula_act == 11 then 
-          F_set_formula(
-            'match(x,curve)',data.current_routing,rout_id) 
+          F_set_formula('match(x,curve)',data.current_routing,rout_id) 
         end         
                
-      end         
+      end 
+    end        
     
   
   end
@@ -2475,20 +2654,20 @@
       and data.routing[data.current_routing] ~= nil then
       for i = 1, #data.routing[data.current_routing] do
         -- receive
-          if data.routing[data.current_routing][i].str:match('[%d]+ [%d]+ '..map_id..' '..slider_id..' .*') ~= nil then
+          if data.routing[data.current_routing][i].str:match('[%d]+ [%d]+ '..map_id..' '..slider_id) ~= nil then
             local out_link = {}
             for num in data.routing[data.current_routing][i].str:gmatch('[^%s]+') do table.insert(out_link,num) end
             table.insert(table_menu, {i,1,
               data.map[tonumber(out_link[1])][tonumber(out_link[2])].gfx_name..', Map'..
-                out_link[1]..' Slider'..out_link[2]..', Formula y='..out_link[5]})
+                out_link[1]..' Slider'..out_link[2]..', Formula y='..data.routing[data.current_routing][i].form})
           end
         -- receive
-          if data.routing[data.current_routing][i].str:match(map_id..' '..slider_id..' [%d]+ [%d]+ .*') ~= nil then
+          if data.routing[data.current_routing][i].str:match(map_id..' '..slider_id..' [%d]+ [%d]+') ~= nil then
             local out_link = {}
             for num in data.routing[data.current_routing][i].str:gmatch('[^%s]+') do table.insert(out_link,num) end
             table.insert(table_menu, {i,0,
               data.map[tonumber(out_link[3])][tonumber(out_link[4])].gfx_name..', Map'..
-                out_link[3]..' Slider'..out_link[4]..', Formula y='..out_link[5]})
+                out_link[3]..' Slider'..out_link[4]..', Formula y='..data.routing[data.current_routing][i].form})
           end        
       end
     end
@@ -2653,23 +2832,23 @@
                    
             if ret_rb_slider == 7 then
               if data.routing[data.current_routing][i].str:
-                  match('[%d]+ [%d]+ '..map..' '..slider..' .*') ~= nil then            
+                  match('[%d]+ [%d]+ '..map..' '..slider) ~= nil then            
                 table.insert(remove_t, i) 
               end
             end
 
             if ret_rb_slider == 8 then
               if data.routing[data.current_routing][i].str:
-                match(map..' '..slider..' [%d]+ [%d]+ .*') ~= nil then            
+                match(map..' '..slider..' [%d]+ [%d]+') ~= nil then            
                 table.insert(remove_t, i) 
               end
             end         
             
             if ret_rb_slider == 9 then 
               if data.routing[data.current_routing][i].str:
-                  match(map..' '..slider..' [%d]+ [%d]+ .*') ~= nil or 
+                  match(map..' '..slider..' [%d]+ [%d]+') ~= nil or 
                 data.routing[data.current_routing][i].str:
-                  match('[%d]+ [%d]+ '..map..' '..slider..' .*') ~= nil
+                  match('[%d]+ [%d]+ '..map..' '..slider) ~= nil
                then            
                 table.insert(remove_t, i) 
               end
@@ -2720,8 +2899,8 @@
       table.insert(curve_table, {num1,num2}) 
     end
     
-    resolutionx = 20
-    resolutiony = 60
+    resolutionx = 25
+    resolutiony = 50
         
     local loc_x,int, fract, x
     loc_x = (mouse.mx - graph_rect[1])/graph_rect[3] * resolutionx
@@ -2858,6 +3037,7 @@
           main_xywh[3] = tonumber(F_get_beetween(extstate_s,"window_w",'\n'))
           main_xywh[4] = tonumber(F_get_beetween(extstate_s,"window_h",'\n'))
           data.dev_mode = tonumber(F_get_beetween(extstate_s,"dev_mode",'\n'))
+          data.expert_mode = tonumber(F_get_beetween(extstate_s,"expert_mode",'\n'))
           
           
           if data.current_window ==4 then data.current_window = 2 end  
@@ -2895,37 +3075,36 @@
           -- routing
           data.routing = {}
           for m = 1, data.routing_count do
-            local cur_config = F_get_beetween(extstate_s, '<R_CONF_'..m, '>', true)
+            local cur_config = F_get_beetween(extstate_s, '<R_CONF_'..m, 'ENDR_CONF>', true)
             if cur_config ~= nil then
               
               data.routing[m] = {}
               for line in cur_config:gmatch("[^\r\n]+") do
-                --msg(line)
-                if line ~= '' then 
-                  -- extract 
+                if line ~= nil and line ~= '' then
+                  -- extract map slider
                     t = {}
-                    for word in line:gmatch('[^%s]+') do 
-                      if tonumber(word) ~= nil then word = tonumber(word) end
-                      table.insert(t, word) 
-                    end
-                  -- extract function and curve
+                    for num in line:gmatch("[%d]+") do table.insert(t, tonumber(num)) end
                     t1 = {}
-                    for word in line:gmatch('%[.*%]') do 
-                      table.insert(t1, word) 
-                    end    
-                   -- msg(line)
-                    t1[1] = '['..t1[1]..']'
-                    if t1[2] == nil then t1[2] = '' end
-                    if t1[2] == '[]' then t1[2] = '' end
-                  if data.map[t[1]] ~= nil and data.map[t[3]] ~= nil and
-                    data.map[t[1]][t[2]] ~= nil and data.map[t[3]][t[4]] ~= nil then
-                    table.insert(data.routing[m], 
-                      {['str']=t[1]..' '..t[2]..' '..t[3]..' '..t[4]..' '..t1[1], 
-                       ['curve'] = t1[2]}) 
-                  end
+                    --msg(line)
+                    for str in line:gmatch("%[(.-)%]") do table.insert(t1, str) end
+                    m1 = t[1]
+                    sl1 = t[2]
+                    m2 = t[3]
+                    sl2 = t[4]
+                    --msg('test'..table.concat(t, ','))
+                    if data.map[m1] ~= nil and data.map[m1][sl1] ~= nil and
+                       data.map[m2] ~= nil and data.map[m2][sl2] ~= nil then
+                       
+                       rout_ids = m1..' '..sl1..' '..m2..' '..sl2
+                       
+                       if t1[1] == nil or t1[2] == nil then t1 = {'x','0 0'} end
+                       
+                       table.insert(data.routing[m], 
+                          {['str'] = rout_ids, 
+                           ['form'] = t1[1],--:sub(2,-2)
+                           ['curve'] = t1[2]}) 
+                    end
                 end
-                
-                
               end
             end
           end
@@ -2979,21 +3158,43 @@
         if data.routing[i] ~= nil then
           for k = 1, #data.routing[i] do
             if data.routing[i][k] ~= nil then
-              data.routing[i][k].func = nil
-              local t2 = {}
-              for word in data.routing[i][k].str:gmatch('%[(.-)%]') do table.insert(t2, word) end           
-              codestring = data.routing[i][k].str:match('%[(.-)%]')--:sub(2,-2)
+              data.routing[i][k].func = nil        
+              codestring = data.routing[i][k].form
               if data.routing[i][k].curve == nil then data.routing[i][k].curve = '' end
               curve = data.routing[i][k].curve 
-              -- check for formula type             
-                if codestring:gsub(' ', ''):find('y') == nil then   
-                  codestring = codestring:gsub('curve','"'..curve..'"')
-                  data.routing[i][k].func = load('local x = ... return '..codestring)
+              codestring = codestring:gsub('curve','"'..curve..'"')
+              
+              --[[t1 = {}
+              for num in data.routing[i][k].str:gmatch('[%d]+') do
+                table.insert(t1, tonumber(num))
+              end
+              local m = t1[1]
+              local sl = t1[2]]
+              
+              if data.expert_mode == nil or data.expert_mode == 0 then
+                -- check for other variables
+                  local t = {}
+                  for let in codestring:gmatch('[%a]+') do
+                    if let:len() == 1 and let ~= 'x' then table.insert(t, let) end
+                  end
+                  if #t > 0 then 
+                    codestring = 'x' 
+                    clear = 1 
+                  end
+              end
+              
+                if data.expert_mode == nil or data.expert_mode == 0 then
+                  data.routing[i][k].func = load
+                    (' local x = ... y='..codestring..' return y')
                  else
-                  codestring = codestring:gsub('curve','"'..curve..'"')
-                  data.routing[i][k].func = load('local x = ... '..codestring..
-                    ' if y == nil then y = 0 end return y')
+                  data.routing[i][k].func = load
+                     ('local x = ... m = ... sl = ... '..codestring..' return y')
                 end
+               
+                
+              -- clear if bad
+                if clear == 1 then data.routing[i][k].form = 'x' end
+                
             end
           end
         end
@@ -3013,7 +3214,11 @@
           if tonumber(t2[1]) == map and tonumber(t2[2]) == sl then
             x = ENGINE_GetSetParamValue(tonumber(t2[1]),tonumber(t2[2]), false)
             local func = data.routing[data.current_routing][i].func
-            ENGINE_GetSetParamValue(tonumber(t2[3]),tonumber(t2[4]), true, F_limit(func(x),0,1))
+            if func ~= nil then
+              local m = tonumber(t2[3])
+              local sl = tonumber(t2[4])
+              ENGINE_GetSetParamValue(m,sl, true, F_limit(func(x, m, sl),0,1))
+            end
           end
         end
       end
@@ -3029,8 +3234,10 @@
     indent4 = '    '
     
     if data.project_name == nil then data.project_name = 'Untitled' end
+    
     -- from 1.04
       if data.dev_mode == nil then data.dev_mode = 0 end
+      if data.expert_mode == nil then data.expert_mode = 0 end
       
     -- MAIN SECTION
     string_ret = '[Global_variables]'..'\n'..
@@ -3054,8 +3261,8 @@
                  'use_ext_actions '..data.use_ext_actions..'\n'..
                  'window_w '..gfx.w..'\n'..
                  'window_h '..gfx.h..'\n'..
-                 'dev_mode '..data.dev_mode..'\n'
-                 
+                 'dev_mode '..data.dev_mode..'\n'..
+                 'expert_mode '..data.expert_mode..'\n'
                  
     if data.map ~= nil and #data.map > 0 then string_ret = string_ret..'[maps_configuration] \n' end
                  
@@ -3101,15 +3308,15 @@
             if #data.routing[m] >= 1 then
               for n = 1, #data.routing[m] do
                 if data.routing[m][n] ~= nil then
-                
-                  if data.routing[m][n].curve == nil and data.routing[m][n].curve ~= '' then curve = '' 
-                   else curve = ' ['..data.routing[m][n].curve..']' end
-                  if curve == ' []' then curve = '' end
-                  routing_out_temp = routing_out_temp..indent2..data.routing[m][n].str..curve..'\n'
+                  routing_out_temp = routing_out_temp..indent2..
+                    data.routing[m][n].str..' '..
+                    '['..data.routing[m][n].form..'] '..
+                    '['..data.routing[m][n].curve..']'..'\n'
                 end
               end
             end
-            routing_out_temp = routing_out_temp..'>\n'
+            routing_out_temp = routing_out_temp:gsub('[%[]+','['):gsub('[%]]+',']')
+            routing_out_temp = routing_out_temp..'ENDR_CONF>\n'
           end
         end
        else
@@ -3552,7 +3759,7 @@
                 -- check for already existing - 2 directions
                   for i = 1, #data.routing[data.current_routing] do
                     if data.routing[data.current_routing][i].str:
-                      find(r_map_out..' '..r_slider_out..' '..r_map_in..' '..r_slider_in..' ') 
+                      find(r_map_out..' '..r_slider_out..' '..r_map_in..' '..r_slider_in) 
                      --or data.routing[data.current_routing][i].str:
                      -- find(r_map_in..' '..r_slider_in..' '..r_map_out..' '..r_slider_out..' ') 
                      then
@@ -3562,11 +3769,19 @@
                   end
                 
                 -- if not exists -> create
-                  if exists == nil then                    
-                    table.insert(data.routing[data.current_routing], 
-                      {['str'] = r_map_out..' '..r_slider_out..' '..r_map_in..' '..r_slider_in..' '..'[x]',
-                       ['func'] = func})
-                       --msg(data.routing[data.current_routing][#(data.routing[data.current_routing])].func)
+                  if exists == nil then  
+                    if data.expert_mode == nil or data.expert_mode == 0 then                 
+                      table.insert(data.routing[data.current_routing], 
+                        {['str'] = r_map_out..' '..r_slider_out..' '..r_map_in..' '..r_slider_in,
+                         ['form'] = 'x',
+                         ['curve'] = '0 0'})
+                     else
+                      table.insert(data.routing[data.current_routing], 
+                        {['str'] = r_map_out..' '..r_slider_out..' '..r_map_in..' '..r_slider_in,
+                         ['form'] = 'y = x',
+                         ['curve'] = '0 0'})
+                    end
+                                           
                     ENGINE_return_data_to_projextstate2(false)
                     ENGINE_dump_functions_to_routing_table()
                   end
@@ -3711,15 +3926,19 @@
           if MOUSE_match({graph_rect[1],graph_rect[2]+graph_rect[4]+y_offset, 
             graph_rect[3],17}) and mouse.LMB_state and not mouse.last_LMB_state then
             _, form = reaper.GetUserInputs('Change formula', 1, 'Type formula', 
-              data.routing[data.current_routing][rout_id].str:match('[%[].*'):sub(2,-2))
-            if load("local x = ... return "..form) ~= nil 
-              or load('local x = ... '..form..' if y == nil then y = 0 end return y') ~= nil  then
+              data.routing[data.current_routing][rout_id].form)
               if form == '' then form = 'x' end
-              data.routing[data.current_routing][rout_id].str = 
-                data.routing[data.current_routing][rout_id].str:match('%d+ %d+ %d+ %d+ ')..'['..form..']'
-              ENGINE_return_data_to_projextstate2(false)
-              ENGINE_dump_functions_to_routing_table()
-            end
+              --[[local test_func1= load("local x = ... return "..form)
+              local test_func2= load('local x = ... '..form..' if y == nil then y = 0 end return y')
+            if test_func1 ~= nil or test_func2 ~= nil then
+              test_y1 = test_func1(0)
+              test_y2 = test_func2(0)
+              if test_y1 ~= nil or test_y2 ~= 0  then]]
+                data.routing[data.current_routing][rout_id].form = form
+                ENGINE_return_data_to_projextstate2(false)
+                ENGINE_dump_functions_to_routing_table()
+              --[[end
+            end]]
           end
           
         -- draw func
@@ -3780,6 +3999,7 @@
     data.current_fixedlearn = 0 -- 0 - midi 1 - osc
     data.use_ext_actions = 0 
     data.dev_mode = 0
+    data.expert_mode = 0
     
     set_learn = true
     
@@ -3815,29 +4035,51 @@
     if char ~= -1 then reaper.defer(MAIN_defer) else MAIN_exit() end
   end
   
------------------------------------------------------------------------  
-  function MAIN_run2()
-    DEFINE_global_variables()
+  function MAIN_f_run()
+    reaper.SetProjExtState(0, 'MPL_PANEL_MAPPINGS', 'MPL_PM_DATA','')
+    DEFINE_dynamic_variables2()
+    ENGINE_return_data_to_projextstate2()
+    gfx.init("mpl Mapping Panel // "..vrs..'',300, 600,0)
+    gfx.ext_retina = 1
+    update_gfx = true
+    MAIN_defer()   
+  end
+  
+  function MAIN_exist_run()
     extstate_ret = ENGINE_get_params_from_ext_state()
-    if extstate_ret == 0 then
-      main_ret = reaper.MB('There is no maps for current project. Do you want to create it?','mpl Mapping Panel',1)
-      if main_ret == 1 then
-        DEFINE_dynamic_variables2()
-        ENGINE_return_data_to_projextstate2()
-        gfx.init("mpl Mapping Panel // "..vrs..' beta',300, 600,0)
-        gfx.ext_retina = 1
-        update_gfx = true
-        MAIN_defer()
-        
-      end -- if agree to create  
-     else -- there is data already
-      
-      gfx.init("mpl Mapping Panel // "..vrs, main_xywh[3], main_xywh[4], data.run_docked)
-      gfx.ext_retina = 1
-      update_gfx = true
-      MAIN_defer()
+    gfx.init("mpl Mapping Panel // "..vrs, main_xywh[3], main_xywh[4], data.run_docked)
+    gfx.ext_retina = 1
+    update_gfx = true
+    MAIN_defer()
+  end
+-----------------------------------------------------------------------  
+  function MAIN_run2() --local main_ret1,main_ret
+    local extstate_s2
+    DEFINE_global_variables()
+    retval2, extstate_s2 = reaper.GetProjExtState(0, 'MPL_PANEL_MAPPINGS', 'VRS')
+    ext_vrs = tonumber(extstate_s2)
+    if retval == 0 or ext_vrs == nil then 
+      -- create
+        reaper.SetProjExtState(0, 'MPL_PANEL_MAPPINGS', 'VRS',vrs)        
+        main_ret = reaper.MB('It is first run OR current version is newer than previous.\n'..
+                'Config will be erased for current project.','mpl Mapping Panel',1)        
+        if main_ret == 1 then MAIN_f_run() end -- if agree to create 
+     else
+      -- check is current newer
+          if ext_vrs < vrs then
+            -- if current newer
+              reaper.SetProjExtState(0, 'MPL_PANEL_MAPPINGS', 'VRS', vrs)  
+              main_ret1 = reaper.MB('Current version is newer than previous.\n'..
+                'For better compatibility config will be erased for current project.','mpl Mapping Panel',1)
+              if main_ret1 == 1 then MAIN_f_run() end
+           else
+            -- if cuurent == extstate
+              MAIN_exist_run()
+          end
     end
   end
+    
+    
   
 -----------------------------------------------------------------------    
   reaper.atexit(MAIN_exit)
