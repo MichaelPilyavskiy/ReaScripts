@@ -8,3 +8,4 @@
   ]]
   
   reaper.SetProjExtState(0, 'MPL_PANEL_MAPPINGS', 'MPL_PM_DATA','')
+  reaper.SetProjExtState(0, 'MPL_PANEL_MAPPINGS', 'VRS','')
