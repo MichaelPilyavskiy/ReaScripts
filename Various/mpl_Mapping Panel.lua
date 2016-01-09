@@ -4,13 +4,13 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.11
+   * Version: 1.12
   ]]
 
-  local vrs = 1.11
+  local vrs = 1.12
   local changelog =
 [===[ 
-09.01.2016  1.11
+09.01.2016  1.12
             # Caching function improvements. Still need testing. Any feedback welcome.
             + Expert mode for editing formula as Lua code
             + Expert mode / Formula templates / Condition (triangle)
@@ -22,6 +22,8 @@
             + Expert mode / Formula templates / Track Peak (Meter value)(0...2)
             + Expert mode / Formula templates / MasterRate
             + Add last touched to bottom info and to every empty slider
+            # Fixed FixedLearn indicator not shown in slider when bypass not defined
+            # Config for new version erased only if version < 1.11
 08.01.2016  1.07
             # Fixed error when get last touched from renamed FX instamce
             # AutoRemove VST/AU/JS prefixes when get last touched
@@ -877,10 +879,12 @@
               
               -- draw fixedlearn ind
               if data.use_learn == 1 then
-                if data.map[data.current_map] ~= nil and data.map[data.current_map].bypass_learn == 0 then
-                  gfx.a = 0.8
-                  gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
-                  gfx.rect(x,y,5,h)
+                if data.map[data.current_map] ~= nil then
+                  if data.map[data.current_map].bypass_learn ~= nil and data.map[data.current_map].bypass_learn == 1 then
+                   else gfx.a = 0.8
+                    gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
+                    gfx.rect(x,y,5,h)
+                  end
                 end
               end
               
@@ -4067,7 +4071,7 @@
         if main_ret == 1 then MAIN_f_run() end -- if agree to create 
      else
       -- check is current newer
-          if ext_vrs < vrs then
+          if ext_vrs <= 1.11 then
             -- if current newer
               reaper.SetProjExtState(0, 'MPL_PANEL_MAPPINGS', 'VRS', vrs)  
               main_ret1 = reaper.MB('Current version is newer than previous.\n'..
