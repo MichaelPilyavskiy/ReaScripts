@@ -4,12 +4,19 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.12
+   * Version: 1.13
   ]]
 
-  local vrs = 1.12
+  local vrs = 1.13
   local changelog =
 [===[ 
+11.01.2016  1.13
+            + Basic functions examples in expert mode
+            + DoubleClick on knob open first connection setup
+            + GUI: Shortcut for Routing matrix
+            + GUI: Shortcut for FixedLearn
+            # FixedLearn data storing to global extstate by default
+            + Actions: FixedLearn/Use exclusive learn for current instance
 09.01.2016  1.12
             # Caching function improvements. Still need testing. Any feedback welcome.
             + Expert mode for editing formula as Lua code
@@ -23,7 +30,7 @@
             + Expert mode / Formula templates / MasterRate
             + Add last touched to bottom info and to every empty slider
             # Fixed FixedLearn indicator not shown in slider when bypass not defined
-            # Config for new version erased only if version < 1.11
+            # Config for new version erased only if version <= 1.11            
 08.01.2016  1.07
             # Fixed error when get last touched from renamed FX instamce
             # AutoRemove VST/AU/JS prefixes when get last touched
@@ -555,6 +562,7 @@
       update_gfx = true
     end
     
+    data.last_use_learn = data.use_learn
     last_time = time
     last_current_map = data.current_map
     last_last_touched_track_guid = last_touched_track_guid
@@ -779,11 +787,11 @@
       y_offset = 5  
       local obj_w = main_xywh[3] - x_offset*2
       obj_w2 = 30
+      --obj_w2 = 
       local obj_h = 25
 
       b_close_xywh = {x_offset + obj_w - obj_w2, y_offset, obj_w2, obj_h}
-      b_top_full_xywh = {x_offset,y_offset, obj_w, obj_h}
-      
+      b_top_full_xywh = {x_offset,y_offset, obj_w, obj_h}     
       b_1_xywh = {x_offset,y_offset, obj_w-obj_w2*data.tablet_optimised, obj_h}
       b_1_fix_xywh = {x_offset,y_offset, obj_w-obj_w2, obj_h}
       b_2_xywh = {x_offset,y_offset*2 + obj_h , obj_w-obj_w2*data.tablet_optimised, obj_h} -- map slider 
@@ -794,6 +802,10 @@
       b_2_oscsetup = {b_2_xywh[1]+b_2_xywh[3]/2,b_2_xywh[2],b_2_xywh[3]/2,b_2_xywh[4]}
       control_area_xywh = {x_offset,y_offset*3.2+obj_h*2,obj_w-obj_w2*data.tablet_optimised, obj_h * data.slider_count / (600 / main_xywh[4])  }
       lamp_xywh = {x_offset,y_offset,10,obj_h}
+      
+      b_new_proj = {x_offset, y_offset, obj_w -  obj_w2*3, obj_h}
+      b_new_shcut_rout = {x_offset + obj_w-obj_w2*3, y_offset, obj_w2, obj_h}
+      b_new_shcut_flearn = {x_offset + obj_w-obj_w2*2, y_offset, obj_w2, obj_h}
       
       local bigknob_w = 70
       bigknob1_xywh = {(main_xywh[3]-bigknob_w)/2,
@@ -819,7 +831,7 @@
   function DEFINE_GUI_buffers()   
                 
     local mapname, val, text_len, bottom_info_h,text_offset, x,y,w,h, val,obj_w, x1,y1,x2,y2,text, flags,
-      map, slider,str0
+      map, slider,str0,lrn_alpha
       --fdebug('DEFINE_GUI_buffers')
       -------------------------------------------
       -- variables
@@ -844,19 +856,23 @@
                          
         
             --vv-----------------------------------------
-            function GUI_button(xywh, name,compensated) local x,y,w,h,measurestrname, x0, y0
+            function GUI_button(xywh, name,compensated, alpha) local x,y,w,h,measurestrname, x0, y0
               gfx.y,gfx.x = 0,0
               x,y,w,h = F_extract_table(xywh, 'xywh')
              
               --fill background
                   gfx.r, gfx.g, gfx.b= F_SetCol(color_t['white'])
                   gfx.a  = buttons_back_alpha
-                  gfx.rect(x,y,w,h)
-                  
+                  if data.dev_mode == 1 then
+                    gfx.rect(x,y,w,h,0)
+                   else
+                    gfx.rect(x,y,w,h,1)
+                  end
               if compensated == 1 then w = w + obj_w2 end   
               --if compensated == 2 then w = 10 end
               --text
                 gfx.a = button_text_alpha
+                if alpha ~= nil then gfx.a = alpha end
                 gfx.setfont(1, data.fontname, button_fontsize)
                 F_SetCol(color_t['white'])  
                 measurestrname = gfx.measurestr(name)
@@ -1023,10 +1039,10 @@
                gfx.gradrect(0,0,control_area_xywh[3], control_area_xywh[4], 
                              r,g,b,a, 
                              drdx, dgdx, dbdx, dadx, 
-                             drdy, dgdy, dbdy, dady) 
-            -- frame 
-              gfx.a = 0.05         
-              gfx.rect(0,0,control_area_xywh[3], control_area_xywh[4],false) 
+                             drdy, dgdy, dbdy, dady)
+            -- frame
+              gfx.a = 0.05
+              gfx.rect(0,0,control_area_xywh[3], control_area_xywh[4],false)
               gfx.a = 0.3
               gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
               gfx.rect(0,0,control_area_xywh[3], control_area_xywh[4], true)
@@ -1041,10 +1057,17 @@
               gfx.dest = 2    
               gfx.setimgdim(2, -1, -1)  
               gfx.setimgdim(2, main_xywh[3], main_xywh[4]) 
-                
                 --main
-                  GUI_button(b_1_fix_xywh, 'Project: '..data.project_name,1)   
-                  --GUI_button(b_1_fix_xywh, 'Last: '..lt_fxname..' / '.. lt_param_name ,1)             
+                  if data.project_name == '' then data.project_name = 'Untitled' end
+                  GUI_button(b_new_proj, 'Project: '..data.project_name:sub(0,20),1)   
+                  --GUI_button(b_1_fix_xywh, 'Last: '..lt_fxname..' / '.. lt_param_name ,1)
+                  GUI_button(b_new_shcut_rout, 'R') 
+                  if data.use_learn == 1 or data.use_learn == 2    then 
+                    lrn_alpha = button_text_alpha
+                   else
+                    lrn_alpha = 0.4
+                  end
+                    GUI_button(b_new_shcut_flearn, 'FL',0,lrn_alpha)
                   GUI_lamp(lamp_xywh, dirty_state)
                   GUI_button(b_close_xywh, '>')
                 --map
@@ -1097,11 +1120,11 @@
                gfx.x, gfx.y = 0,0
                local drdx = 0
                local drdy = 0
-               local dgdx = 0.0002
-               local dgdy = 0.002     
-               local dbdx = 0
+               local dgdx = 0.001
+               local dgdy = 0.008   
+               local dbdx = 0.0005
                local dbdy = 0
-               local dadx = 0.0025
+               local dadx = 0.0020
                local dady = 0.00001       
                gfx.gradrect(0,0,300,100, 
                             r,g,b,a, 
@@ -1299,7 +1322,7 @@
               GUI_button(b_1_fix_xywh, 'Routing', 1)
               GUI_button(b_close_xywh, 'X')
               
-              GUI_button(b_2_xywh, 'Config # '..data.current_routing)
+              GUI_button(b_2_xywh, 'Config # '..data.current_routing.. ' (Ctrl - write mode)')
               if data.tablet_optimised == 1 then GUI_button(b_2_1_xywh, '>',2) end
               
               gfx.a = 0.5
@@ -1991,7 +2014,7 @@
     if data.tablet_optimised == 1 then menu_switch['tablet'] = "!" else menu_switch['tablet']="" end
     if data.slider_mode == 1 then menu_switch['slider_mode'] = "!" else menu_switch['slider_mode']="" end
     if data.run_docked == 1 then menu_switch['run_docked'] = "!" else menu_switch['run_docked']="" end
-    if data.use_learn == 1 then menu_switch['use_learn'] = "!" else menu_switch['use_learn']="" end
+    if data.use_learn == 1 or data.use_learn == 2 then menu_switch['use_learn'] = "!" else menu_switch['use_learn']="" end
     if data.use_learn == 0 then menu_switch['use_learn_setup'] = "#" else menu_switch['use_learn_setup']="" end
     if data.use_ext_actions == 1 then menu_switch['use_ext_actions'] = "!" else menu_switch['use_ext_actions']="" end
     if data.dev_mode == 1 then menu_switch['dev_mode'] = "!" else menu_switch['dev_mode']="" end
@@ -2036,8 +2059,16 @@
       
     -- use_learn
       if ret_main_act == 4 then 
-        data.use_learn = math.floor(math.abs(data.use_learn-1))
-        ENGINE_return_data_to_projextstate2(false)
+        if data.use_learn == 0 then 
+          data.use_learn = 1 
+          ENGINE_return_data_to_projextstate2(false, false)
+          ENGINE_get_params_from_ext_state(false) 
+          return end
+        if data.use_learn == 1 or data.use_learn == 2 then 
+          data.use_learn = 0 
+          ENGINE_return_data_to_projextstate2(false, false)
+        end
+        
       end 
             
     --[[ run with table optimised
@@ -2366,10 +2397,9 @@
 -----------------------------------------------------------------------    
   function GUI_formula_menu() local ret
     gfx.x,gfx.y = mouse.mx, mouse.my
-    
-    if data.expert_mode == 0 then
-      formula_actions = 
-        '#Formula templates'..
+
+      local basic_formula_actions = 
+        'Basic Formula templates'..
         '||Default'..
         '|sin(x*a)'..
         '|lim(x,limit_min,limit_max)'..
@@ -2379,10 +2409,14 @@
         '|abs(x)'..
         '|scaleto(x,limit_min,limit_max)'..
         '|x^a'..
-        '|match(x,curve)'
+        '|<match(x,curve)'
+        
+                   
+    if data.expert_mode == 0 then
+      formula_actions ='#'.. basic_formula_actions
      else
       formula_actions = 
-       '#Formula templates'..
+       '#Expert Formula templates'..
        '|Default'..
        '|Triangle'..
        '|Mouse'..
@@ -2391,7 +2425,8 @@
        '|track_vol(map,slider)'..
        '|track_pan(map,slider)'..
        '|track_peak(map,slider)'..
-       '|Master playrate'
+       '|Master playrate'..
+       '||>'..basic_formula_actions..'||Lua Math'
     end
       
       ------------------------------
@@ -2422,42 +2457,35 @@
       local sl = t[2]
       
       -- def
-        if ret_formula_act == 2 then 
-          F_set_formula('y = x', data.current_routing, rout_id) 
-        end      
+        if ret_formula_act == 2 then F_set_formula('y = x', data.current_routing, rout_id)  end      
       -- tri
-        if ret_formula_act == 3 then 
-          F_set_formula('if x < 0.5 then y = x else y = 1-x end', data.current_routing, rout_id) 
-        end
+        if ret_formula_act == 3 then F_set_formula('if x < 0.5 then y = x else y = 1-x end', data.current_routing, rout_id) end
       -- mouse
-        if ret_formula_act == 4 then 
-          F_set_formula('y = mouse.mx/1000', data.current_routing, rout_id) 
-        end   
+        if ret_formula_act == 4 then  F_set_formula('y = mouse.mx/1000', data.current_routing, rout_id) end   
       -- lfo
-        if ret_formula_act == 5 then 
-          F_set_formula('y = lfo(5)', data.current_routing, rout_id) 
-        end       
+        if ret_formula_act == 5 then F_set_formula('y = lfo(5)', data.current_routing, rout_id) end       
       -- cycle
-        if ret_formula_act == 6 then 
-          F_set_formula('y = cycle(5)', data.current_routing, rout_id) 
-        end                 
+        if ret_formula_act == 6 then F_set_formula('y = cycle(5)', data.current_routing, rout_id) end                 
       -- track vol        
-        if ret_formula_act == 7 then   
-          F_set_formula('y = track_vol('..m..','..sl..')', data.current_routing, rout_id) 
-        end 
+        if ret_formula_act == 7 then  F_set_formula('y = track_vol('..m..','..sl..')', data.current_routing, rout_id)  end 
       -- track pan        
-        if ret_formula_act == 8 then   
-          F_set_formula('y = track_pan('..m..','..sl..')', data.current_routing, rout_id) 
-        end     
+        if ret_formula_act == 8 then F_set_formula('y = track_pan('..m..','..sl..')', data.current_routing, rout_id)  end     
       -- track peak        
-        if ret_formula_act == 9 then   
-          F_set_formula('y = track_peak('..m..','..sl..')', data.current_routing, rout_id) 
-        end 
+        if ret_formula_act == 9 then F_set_formula('y = track_peak('..m..','..sl..')', data.current_routing, rout_id) end 
       -- master rate      
-        if ret_formula_act == 10 then   
-          F_set_formula('y = master_rate()', data.current_routing, rout_id) 
-        end                                
-        
+        if ret_formula_act == 10 then F_set_formula('y = master_rate()', data.current_routing, rout_id) end                                
+      -- basic templates 
+        if ret_formula_act == 11 then F_set_formula('y = x', data.current_routing, rout_id) end 
+        if ret_formula_act == 12 then F_set_formula('y = math.sin(x)', data.current_routing, rout_id) end 
+        if ret_formula_act == 13 then F_set_formula('y = lim(x, 0, 1)', data.current_routing, rout_id) end 
+        if ret_formula_act == 14 then F_set_formula('y = x % 1', data.current_routing, rout_id) end 
+        if ret_formula_act == 15 then F_set_formula('y = math.sqrt(x)', data.current_routing, rout_id) end 
+        if ret_formula_act == 16 then F_set_formula('y = 1-x', data.current_routing, rout_id) end 
+        if ret_formula_act == 17 then F_set_formula('y = math.abs(x)', data.current_routing, rout_id) end 
+        if ret_formula_act == 18 then F_set_formula('y = scaleto(x, 0, 1)', data.current_routing, rout_id) end 
+        if ret_formula_act == 19 then F_set_formula('y = x ^ 1', data.current_routing, rout_id) end 
+        if ret_formula_act == 20 then F_set_formula('y = match(x, curve)', data.current_routing, rout_id) end 
+        if ret_formula_act == 21 then F_open_URL('http://lua-users.org/wiki/MathLibraryTutorial') end
     end
     
     if data.expert_mode == 0 then       
@@ -2570,11 +2598,15 @@
     gfx.x,gfx.y = mouse.mx, mouse.my
     local ret_flearn_act
     gfx.x,gfx.y = mouse.mx, mouse.my
+    local menu_switch = {}
+    if data.use_learn == 2 then menu_switch['use_learn'] = "!" else menu_switch['use_learn']="" end
+        
     fixedlearn_actions = 
       'AutoLearn MIDI CC'..
       '||Clean MIDI Learn'..
       '|Clean OSC Learn'..
-      '|Clean all Learn'
+      '|Clean all Learn'..
+      '||'..menu_switch['use_learn']..'Use exclusive learn for current instance'
       
     -- draw
       ret_flearn_act = gfx.showmenu(fixedlearn_actions)
@@ -2648,7 +2680,20 @@
         ENGINE_return_data_to_projextstate2(false)
         set_learn = true 
       end
-                  
+    
+    -- Use exclusive learn for this instance
+      if ret_flearn_act == 5 then   
+        if data.use_learn == 1 then 
+          data.use_learn = 2 
+          ENGINE_return_data_to_projextstate2(false)
+          return 
+        end
+        if data.use_learn == 2 then 
+          data.use_learn = 1 
+          ENGINE_return_data_to_projextstate2(false)
+          return 
+        end
+      end     
   end
 
 -----------------------------------------------------------------------    
@@ -3116,38 +3161,43 @@
           
           ENGINE_dump_functions_to_routing_table()
           
-          -- learn          
-            temp_learn_s = F_get_beetween(extstate_s,"LEARNSTR",'ENDLEARNSTR>',true) 
-            if temp_learn_s ~= nil then
-              for line in temp_learn_s:gmatch("[^\n]+") do
-                local t = {}
-                for word in line:gmatch('[^%s]+') do table.insert(t, word) end
-                --msg('tcon'..table.concat(t,'\n'))
-                sl_id = tonumber(t[1])
-                midinum = tonumber(t[2])
-                flags = tonumber(t[3])
-                osc = t[4]
-                
-                if data.learn == nil then data.learn = {} end                
-                if data.learn[sl_id] == nil then data.learn[sl_id] = {} end
-                
-                if midinum == 0 and flags == 0 then 
-                  data.learn[sl_id].midich = nil
-                  data.learn[sl_id].midicc = nil
-                 else
-                  data.learn[sl_id].midich = (midinum & 0x0F) + 1
-                  data.learn[sl_id].midicc = midinum >> 8
-                  data.learn[sl_id].flags = flags
-                end
-                
-                if osc ~= nil then data.learn[sl_id].osc = osc end
-                
-                F_form_learnstr(sl_id)
-                
-              end              
+          
+          function ENGINE_get_learn_from_extstate(extstate_s1)
+            -- learn          
+              temp_learn_s = F_get_beetween(extstate_s1,"LEARNSTR",'ENDLEARNSTR>',true) 
+              if temp_learn_s ~= nil then
+                for line in temp_learn_s:gmatch("[^\n]+") do
+                  local t = {}
+                  for word in line:gmatch('[^%s]+') do table.insert(t, word) end
+                  sl_id = tonumber(t[1])
+                  midinum = tonumber(t[2])
+                  flags = tonumber(t[3])
+                  osc = t[4]                
+                  if data.learn == nil then data.learn = {} end                
+                  if data.learn[sl_id] == nil then data.learn[sl_id] = {} end                
+                  if midinum == 0 and flags == 0 then 
+                    data.learn[sl_id].midich = nil
+                    data.learn[sl_id].midicc = nil
+                   else
+                    data.learn[sl_id].midich = (midinum & 0x0F) + 1
+                    data.learn[sl_id].midicc = midinum >> 8
+                    data.learn[sl_id].flags = flags
+                  end                
+                  if osc ~= nil then data.learn[sl_id].osc = osc end                
+                  F_form_learnstr(sl_id)                
+                end              
+              end
+          end
+          
+          if data.use_learn == 1 then 
+            extstate_glob = reaper.GetExtState('MPL_PANEL_MAPPINGS', 'FIXEDLEARN')
+            --msg(extstate_glob)
+            if extstate_glob ~= nil and extstate_glob ~= '' then
+              ENGINE_get_learn_from_extstate(extstate_glob) 
             end
-                       
-            
+          end             
+          if data.use_learn == 2 then ENGINE_get_learn_from_extstate(extstate_s) end
+          
             
             
        end -- if retval ~= nil
@@ -3229,9 +3279,27 @@
       end
     end
   end
-  
+
+----------------------------------------------------------------------- 
+  function ENGINE_form_learnstr() local learn_out_temp     
+    -- Learn
+    if data.learn ~= nil then
+      learn_out_temp = '[learn]\n<LEARNSTR\n'
+        for i = 1, data.slider_count do
+          F_form_learnstr(i)
+          if data.learn[i] ~= nil and data.learn[i].outstr ~= nil then
+            learn_out_temp = learn_out_temp..i..indent..data.learn[i].outstr..'\n'
+          end
+        end
+      learn_out_temp = learn_out_temp..'ENDLEARNSTR>\n'
+     else
+      learn_out_temp = ''
+    end
+    return learn_out_temp
+  end
+    
 -----------------------------------------------------------------------  
-  function ENGINE_return_data_to_projextstate2(to_ext_file)
+  function ENGINE_return_data_to_projextstate2(to_ext_file, set_ext_learn)
     local routing_out_temp,learn_out_temp,learn_out_temp1
     indent =  ' '
     indent2 = '  '
@@ -3328,26 +3396,20 @@
         routing_out_temp = ''
       end
       
-    string_ret = string_ret..routing_out_temp                 
+    string_ret = string_ret..routing_out_temp  
+                   
+    learn_out_temp = ENGINE_form_learnstr()
     
-                
-                
-    -- Learn
-    if data.learn ~= nil then
-      learn_out_temp = '[learn]\n<LEARNSTR\n'
-        for i = 1, data.slider_count do
-          F_form_learnstr(i)
-          if data.learn[i] ~= nil and data.learn[i].outstr ~= nil then
-            learn_out_temp = learn_out_temp..i..indent..data.learn[i].outstr..'\n'
-          end
-        end
-      learn_out_temp = learn_out_temp..'ENDLEARNSTR>\n'
-     else
-      learn_out_temp = ''
+    if data.use_learn == 1 and data.last_use_learn ~=0 then -- use global learn
+      -- store to ext state
+        reaper.SetExtState('MPL_PANEL_MAPPINGS', 'FIXEDLEARN', learn_out_temp, true)
     end
-        
-        
-    string_ret = string_ret..learn_out_temp
+    
+    if data.use_learn == 2 then -- use global learn
+      string_ret = string_ret..learn_out_temp
+    end    
+    
+    
                 
     -- OUT
     if to_ext_file == nil or to_ext_file == false then
@@ -3366,7 +3428,6 @@
   
 -----------------------------------------------------------------------    
   function ENGINE_set_learn()
-    --              if data.map[i].bypass_learn ~= 1 then
     if data.use_learn == 1 then
       if data.map[data.current_map] ~= nil and data.map[data.current_map].bypass_learn ~= 1 then
         fdebug('ENGINE_set_learn')
@@ -3412,24 +3473,45 @@
      return true 
     end 
   end 
- 
+
+-----------------------------------------------------------------------
+  function MOUSE_get_map_sl()
+    local slider = 
+      F_limit(math.floor(((mouse.my - control_area_xywh[2]) / control_area_xywh[4])*data.slider_count)+1, 1, 
+        data.slider_count,true)  
+    local map = 
+      F_limit(math.floor(((mouse.mx - control_area_xywh[1]) / control_area_xywh[3])*data.map_count)+1, 1, 
+        data.map_count,true)
+    return slider, map
+  end
+   
 -----------------------------------------------------------------------    
-  function MOUSE_get2() local exists,form
+  function MOUSE_get2() local exists,form,map_temp
     -- collect mouse info
       mouse.mx = gfx.mouse_x
       mouse.my = gfx.mouse_y
       mouse.LMB_state = gfx.mouse_cap&1 == 1 
       mouse.RMB_state = gfx.mouse_cap&2 == 2 
       mouse.MMB_state = gfx.mouse_cap&64 == 64
+      mouse.LMB_state_doubleclick = false
       mouse.Ctrl_LMB_state = gfx.mouse_cap&5 == 5 
       mouse.Ctrl_state = gfx.mouse_cap&4 == 4 
       mouse.Alt_state = gfx.mouse_cap&17 == 17 -- alt + LB
       mouse.wheel = gfx.mouse_wheel
       
-      if  mouse.LMB_state and not mouse.last_LMB_state then
+            
+      if mouse.LMB_state and not mouse.last_LMB_state then
+        mouse.LMB_state_stamp = time
+        if mouse.last_LMB_state_stamp == nil then 
+          mouse.last_LMB_state_stamp = mouse.LMB_state_stamp + 10 end
+        if mouse.LMB_state_stamp - mouse.last_LMB_state_stamp < d_click_time then
+          mouse.LMB_state_doubleclick = true
+        end
+        if mouse.last_LMB_state_stamp ~= nil then mouse.last_LMB_state_stamp = mouse.LMB_state_stamp end        
         mouse.last_mx = mouse.mx
         mouse.last_my = mouse.my
       end
+      
       
       if mouse.last_mx ~= nil and mouse.last_my ~= nil then
         mouse.dx = mouse.mx - mouse.last_mx
@@ -3466,6 +3548,21 @@
             GUI_main_menu() 
             mouse.mx,mouse.my = -100,-100
           end
+          
+        -- routing shortcut
+          if MOUSE_match(b_new_shcut_rout) and mouse.LMB_state and not mouse.last_LMB_state 
+            then 
+            data.current_window = 2
+            ENGINE_return_data_to_projextstate2(false)
+          end
+          
+        -- fixedlearn shortcut
+          if MOUSE_match(b_new_shcut_flearn) and mouse.LMB_state and not mouse.last_LMB_state then
+            if data.use_learn == 1 or data.use_learn == 2    then 
+              data.current_window = 3
+              ENGINE_return_data_to_projextstate2(false)
+            end
+          end          
           
         -- lamp tooltip
           if MOUSE_match(lamp_xywh) then 
@@ -3504,16 +3601,12 @@
               if MOUSE_match(control_area_xywh) and mouse.LMB_state and not mouse.last_LMB_state or 
                 MOUSE_match(control_area_xywh) and mouse.RMB_state and not mouse.last_RMB_state or 
                 MOUSE_match(control_area_xywh) and mouse.dwheel ~= 0  then
-                mouse.last_touched_slider = 
-                  F_limit(math.floor(((mouse.my - control_area_xywh[2]) / control_area_xywh[4])*data.slider_count)+1, 1, 
-                    data.slider_count,true)  
+                mouse.last_touched_slider, map_temp = MOUSE_get_map_sl()
                 if data.current_window == 0 then mouse.last_touched_map = data.current_map end
-                if data.current_window == 2 then mouse.last_touched_map = 
-                  F_limit(math.floor(((mouse.mx - control_area_xywh[1]) / control_area_xywh[3])*data.map_count)+1, 1, 
-                    data.map_count,true)
-                end 
+                if data.current_window == 2 then mouse.last_touched_map = map_temp         end 
               end
-                          
+          
+                         
           -- left hold abs
             if data.current_window == 0  and data.slider_mode == 0 then
               if mouse.last_touched_slider ~= nil and mouse.LMB_state then 
@@ -3574,10 +3667,7 @@
                   control_area_xywh[4] / data.slider_count}
               if MOUSE_match(tablet_control_area_xywh) then
                 mouse.last_touched_map = data.current_map
-                mouse.last_touched_slider = 
-                                F_limit(math.floor(((mouse.my - control_area_xywh[2]) / 
-                                control_area_xywh[4])*data.slider_count)+1, 1, 
-                                  data.slider_count,true)  
+                mouse.last_touched_slider = MOUSE_get_map_sl()
                 GUI_slider_menu(mouse.last_touched_map, mouse.last_touched_slider)
                 mouse.mx, mouse.my = -100,-100
               end
@@ -3587,9 +3677,7 @@
             if mouse.last_touched_slider ~= nil and mouse.RMB_state and data.current_window ~= 3
              then 
               if data.current_window == 0 then
-                mouse.last_touched_slider = 
-                  F_limit(math.floor(((mouse.my - control_area_xywh[2]) / control_area_xywh[4])*data.slider_count)+1, 1, 
-                  data.slider_count,true) 
+                mouse.last_touched_slider = MOUSE_get_map_sl()
                 mouse.last_touched_map = data.current_map
               end 
               GUI_slider_menu(mouse.last_touched_map, mouse.last_touched_slider)
@@ -3689,22 +3777,30 @@
       
     -----------------------
     -----------------------  
-          
     -- routing window
       if data.current_window == 2 then
         -- get knob under cursor
           if MOUSE_match(control_area_xywh) and not mouse.LMB_state and not mouse.last_LMB_state 
             or MOUSE_match(control_area_xywh) and mouse.Ctrl_LMB_state 
             or MOUSE_match(control_area_xywh) and mouse.Ctrl_state then
-            mouse.last_touched_slider = 
-              F_limit(math.floor(((mouse.my - control_area_xywh[2]) / control_area_xywh[4])*data.slider_count)+1, 1, 
-                data.slider_count,true)  
-            mouse.last_touched_map = 
-              F_limit(math.floor(((mouse.mx - control_area_xywh[1]) / control_area_xywh[3])*data.map_count)+1, 1, 
-                data.map_count,true)
+            mouse.last_touched_slider, mouse.last_touched_map = MOUSE_get_map_sl()
             data.bottom_info_slider = mouse.last_touched_slider
             data.bottom_info_map = mouse.last_touched_map
           end
+
+        -- doubleclick open first wire
+          if MOUSE_match(control_area_xywh) and mouse.LMB_state_doubleclick then
+            _, inf_t = F_build_slider_routing_menu(mouse.last_touched_map, mouse.last_touched_slider)
+            if inf_t ~= nil and inf_t[1]~= nil and inf_t[1][1] ~= nil then
+              rout_id = inf_t[1][1]
+              last_routing_config_map = mouse.last_touched_map
+              last_routing_config_sl = mouse.last_touched_slider
+              data.current_window = 4
+              update_gfx = true
+              mouse.last_LMB_state_stamp = mouse.LMB_state_stamp
+              return
+            end
+          end        
         
         -- config left slider
           if MOUSE_match(b_2_xywh) and mouse.LMB_state and not mouse.last_LMB_state then mouse.last_object = 'config_sl' end
@@ -3856,9 +3952,7 @@
           
         -- get bottom info
           if MOUSE_match(control_area_xywh)  then
-            data.bottom_info_slider = 
-              F_limit(math.floor(((mouse.my - control_area_xywh[2]) / control_area_xywh[4])*data.slider_count)+1, 1, 
-                data.slider_count,true)  
+            data.bottom_info_slider = MOUSE_get_map_sl()
             data.bottom_info_map = data.current_map
           end
           
@@ -3965,12 +4059,10 @@
             mouse.mx,mouse.my = -100,-100
           end
       end
-      
-          
           
                 
     -- collect mouse for loop
-      mouse.last_LMB_state = mouse.LMB_state    
+      mouse.last_LMB_state = mouse.LMB_state  
       mouse.last_RMB_state = mouse.RMB_state
       mouse.last_MMB_state = mouse.MMB_state 
       mouse.last_Ctrl_LMB_state = mouse.Ctrl_LMB_state
@@ -4000,18 +4092,17 @@
     data.routing_mode = 0 -- 0 read -- 1 write
     data.routing_count = 8
     data.current_routing = 1
-    data.use_learn = 0
+    data.use_learn = 0 -- 0 not use -- 1 global -- 2 local
     data.current_fixedlearn = 0 -- 0 - midi 1 - osc
     data.use_ext_actions = 0 
     data.dev_mode = 0
     data.expert_mode = 0
-    
     set_learn = true
     
     main_xywh = {0,0,300,600}
     
     mouse = {} 
-    
+    d_click_time = 0.2
     knob_sens = 8
     
     OS = reaper.GetOS()
@@ -4071,7 +4162,7 @@
         if main_ret == 1 then MAIN_f_run() end -- if agree to create 
      else
       -- check is current newer
-          if ext_vrs <= 1.11 then
+          if ext_vrs < 1.11 then
             -- if current newer
               reaper.SetProjExtState(0, 'MPL_PANEL_MAPPINGS', 'VRS', vrs)  
               main_ret1 = reaper.MB('Current version is newer than previous.\n'..
