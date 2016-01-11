@@ -4,13 +4,13 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.16
+   * Version: 1.17
   ]]
 
-  local vrs = 1.16
+  local vrs = 1.17
   local changelog =
 [===[ 
-11.01.2016  1.16
+11.01.2016  1.17
             + Basic functions examples in expert mode
             + DoubleClick on knob open first connection setup
             + GUI: Shortcut for Routing matrix
@@ -19,6 +19,8 @@
             + Actions: FixedLearn/Use exclusive learn for current instance
             # Lowest value limited to 0.0000001 (this fix issues with -inf Freq params in ReaEQ)
             # Small performance improvements
+            # Fixed Led state
+            # Improved FixedLearn indication for sliders
 09.01.2016  1.12
             # Caching function improvements. Still need testing. Any feedback welcome.
             + Expert mode for editing formula as Lua code
@@ -482,13 +484,22 @@
     
     -- get last touched fx
       local retval, tracknumber, fxnumber, paramnumber
-      _, tracknumber, fxnumber = reaper.GetLastTouchedFX()
+      _, tracknumber, fxnumber, paramnumber = reaper.GetLastTouchedFX()
+      if tracknumber == nil or fxnumber == nil or paramnumber == nil then LT_id = 1000 
+        else LT_id = tracknumber + fxnumber + paramnumber end
       if tracknumber == 0 then track = reaper.GetMasterTrack(0) else track = reaper.GetTrack(0,tracknumber-1) end
       if track ~= nil then last_touched_fx = reaper.TrackFX_GetFXGUID(track, fxnumber) end
       
+      
+      if LT_id ~= nil then 
+        if last_LT_id == nil then last_LT_id = LT_id update_gfx_minor = true update_gfx = true  end
+        if last_LT_id ~= LT_id then update_gfx_minor = true update_gfx = true  end
+        last_LT_id = LT_id         
+      end
+      
+      
     if last_last_touched_fx == nil then last_last_touched_fx = last_touched_fx end
-    if last_last_touched_track_guid == nil then last_last_touched_track_guid = last_touched_track_guid end
-    
+    if last_last_touched_track_guid == nil then last_last_touched_track_guid = last_touched_track_guid end    
     if last_touched_fx ~= last_last_touched_fx or last_touched_track_guid ~= last_last_touched_track_guid then
       -- check for track links
         for i = 1, data.map_count do
@@ -515,7 +526,10 @@
       end
       
     --update_gfx_minor = true
+    
+    if last_dirty_state == nil then last_dirty_state = dirty_state update_gfx_minor = true update_gfx = true end
     dirty_state = reaper.IsProjectDirty(0)
+    if last_dirty_state ~= dirty_state then update_gfx_minor = true update_gfx = true end
     
     StateChangeCount = reaper.GetProjectStateChangeCount(0)
     
@@ -566,6 +580,7 @@
       update_gfx = true
     end
     
+    last_dirty_state = dirty_state
     data.last_use_learn = data.use_learn
     last_time = time
     last_current_map = data.current_map
@@ -973,7 +988,7 @@
             
 -----------------------------------------------------------------------
             function GUI_slider(n, val) -- text, color,alpha) 
-              local x,y,w,h,text,color
+              local x,y,w,h,text,color,midi_offs
               
              -- if val == nil then val = 0 end
               x = 0
@@ -986,9 +1001,21 @@
               if data.use_learn == 1 then
                 if data.map[data.current_map] ~= nil then
                   if data.map[data.current_map].bypass_learn ~= nil and data.map[data.current_map].bypass_learn == 1 then
-                   else gfx.a = 0.8
-                    gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
-                    gfx.rect(x,y,5,h)
+                   else 
+                    if data.learn[n] ~= nil then
+                      midi_offs = 0
+                      if data.learn[n].midich ~= nil then
+                        gfx.a = 0.8
+                        gfx.r, gfx.g, gfx.b = F_SetCol(color_t['blue'])
+                        gfx.rect(x,y,5,h)
+                        midi_offs = 7
+                      end
+                      if data.learn[n].osc ~= nil then
+                        gfx.a = 0.8
+                        gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
+                        gfx.rect(x+midi_offs,y,5,h)
+                      end                      
+                    end
                   end
                 end
               end
@@ -1637,8 +1664,11 @@
           -- buttons and midi/osc selector
             gfx.dest = 11
             gfx.setimgdim(11, -1, -1)  
-            gfx.setimgdim(11, main_xywh[3], main_xywh[4])
-              GUI_button(b_1_fix_xywh, 'FixedLearn settings',1)
+            gfx.setimgdim(11, main_xywh[3], main_xywh[4]) 
+              local md
+              if data.use_learn == 1 then md = ' (Global)' end
+              if data.use_learn == 2 then md = ' (Local)' end
+              GUI_button(b_1_fix_xywh, 'FixedLearn settings'..md,1)
               GUI_button(b_close_xywh, 'X') 
               GUI_button(b_2_midisetup, 'MIDI') 
               GUI_button(b_2_oscsetup, 'OSC')
