@@ -7,16 +7,17 @@
    * Version: 1.14
   ]]
 
-  local vrs = 1.14
+  local vrs = 1.15
   local changelog =
 [===[ 
-11.01.2016  1.14
+11.01.2016  1.15
             + Basic functions examples in expert mode
             + DoubleClick on knob open first connection setup
             + GUI: Shortcut for Routing matrix
             + GUI: Shortcut for FixedLearn
             # FixedLearn data storing to global extstate by default
             + Actions: FixedLearn/Use exclusive learn for current instance
+            # Lowest value limited to 0.0000001 (this fix issues with -inf Freq params in ReaEQ)
 09.01.2016  1.12
             # Caching function improvements. Still need testing. Any feedback welcome.
             + Expert mode for editing formula as Lua code
@@ -578,7 +579,7 @@
 ----------------------------------------------------------------------- 
   function ENGINE_GetSetParamValue(i,k, is_set, in_value)
     local track, fx_count,fx_guid,fx_guid_act_id,value, ret, trackname, 
-      fxname  ,param_name,out_value
+      fxname  ,param_name,out_value, value
     local empty = -1
     local not_found = -2
     local max_len = 40
@@ -616,7 +617,7 @@
     
     if is_set then       
       if in_value == nil then fdebug('Set param value not found') value = 0 end
-      value = F_limit(in_value , 0, 1)
+      value = F_limit(in_value , 0.0000001, 1)
       ret = reaper.TrackFX_SetParamNormalized(track, fx_guid_act_id, data.map[i][k].paramnumber, value)
       return ret
      else
@@ -3266,6 +3267,8 @@
           for num in data.routing[data.current_routing][i].str:gmatch('[^%s]+') do
             table.insert(t2, num)
           end
+          
+          
           if tonumber(t2[1]) == map and tonumber(t2[2]) == sl then
             x = ENGINE_GetSetParamValue(tonumber(t2[1]),tonumber(t2[2]), false)
             local func = data.routing[data.current_routing][i].func
@@ -3503,7 +3506,7 @@
       if mouse.LMB_state and not mouse.last_LMB_state then
         mouse.LMB_state_stamp = time
         if mouse.last_LMB_state_stamp == nil then 
-          mouse.last_LMB_state_stamp = mouse.LMB_state_stamp + 10 end
+          mouse.last_LMB_state_stamp = mouse.LMB_state_stamp - 10 end
         if mouse.LMB_state_stamp - mouse.last_LMB_state_stamp < d_click_time then
           mouse.LMB_state_doubleclick = true
         end
