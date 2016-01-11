@@ -4,13 +4,13 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.13
+   * Version: 1.14
   ]]
 
-  local vrs = 1.13
+  local vrs = 1.14
   local changelog =
 [===[ 
-11.01.2016  1.13
+11.01.2016  1.14
             + Basic functions examples in expert mode
             + DoubleClick on knob open first connection setup
             + GUI: Shortcut for Routing matrix
@@ -2570,7 +2570,7 @@
           ret, ret_str = reaper.GetUserInputs('Set scale', 2, 'pow,Func','1,'..current_form)
           if ret ~= nil and ret_str ~= '' then 
             local str_t = {}
-            for value in str7:gmatch('[^%,]+') do
+            for value in ret_str:gmatch('[^%,]+') do
               if tonumber(value) ~= nil then value = tonumber(value) end
               table.insert(str_t, value)
             end
