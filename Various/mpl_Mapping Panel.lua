@@ -4,19 +4,20 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.18
+   * Version: 1.19
   ]]
 
-  local vrs = 1.18
+  local vrs = 1.19
   local changelog =
 [===[ 
-11.01.2016  1.18
+11.01.2016  1.19
             + Basic functions examples in expert mode
             + DoubleClick on knob open first connection setup
             + GUI: Shortcut for Routing matrix
             + GUI: Shortcut for FixedLearn
             # FixedLearn data storing to global extstate by default
             + Actions: FixedLearn/Use exclusive learn for current instance
+            + Actions: FixedLearn/Slider/Clear learn
             # Lowest value limited to 0.0000001 (this fix issues with -inf Freq params in ReaEQ)
             # Small performance improvements
             # Fixed Led state
@@ -3986,6 +3987,29 @@
             data.bottom_info_slider = MOUSE_get_map_sl()
             data.bottom_info_map = data.current_map
           end
+          
+        -- remove        
+        if MOUSE_match(control_area_xywh) 
+            and data.bottom_info_slider ~= nil 
+            and mouse.RMB_state 
+            and not mouse.last_RMB_state then
+            gfx.x, gfx.y = mouse.mx, mouse.my
+            ret_learn = gfx.showmenu('Clear learn') 
+            if ret_learn == 1 then
+              if data.current_fixedlearn == 0 then 
+                data.learn[data.bottom_info_slider].midicc = nil
+                data.learn[data.bottom_info_slider].midich = nil
+                data.learn[data.bottom_info_slider].flags = nil
+                ENGINE_return_data_to_projextstate2(false)
+                set_learn = true   
+              end
+              if data.current_fixedlearn == 1 then 
+                data.learn[data.bottom_info_slider].osc = nil
+                ENGINE_return_data_to_projextstate2(false)
+                set_learn = true   
+              end        
+            end            
+        end
           
         -- set midi learn
           if MOUSE_match(control_area_xywh) 
