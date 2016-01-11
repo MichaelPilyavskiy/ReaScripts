@@ -4,13 +4,13 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.17
+   * Version: 1.18
   ]]
 
-  local vrs = 1.17
+  local vrs = 1.18
   local changelog =
 [===[ 
-11.01.2016  1.17
+11.01.2016  1.18
             + Basic functions examples in expert mode
             + DoubleClick on knob open first connection setup
             + GUI: Shortcut for Routing matrix
@@ -3534,6 +3534,8 @@
         if mouse.last_LMB_state_stamp ~= nil then mouse.last_LMB_state_stamp = mouse.LMB_state_stamp end        
         mouse.last_mx = mouse.mx
         mouse.last_my = mouse.my
+        update_gfx = true
+        update_gfx_minor = true
       end
       
       
