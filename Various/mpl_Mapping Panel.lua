@@ -4,13 +4,13 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.14
+   * Version: 1.16
   ]]
 
-  local vrs = 1.15
+  local vrs = 1.16
   local changelog =
 [===[ 
-11.01.2016  1.15
+11.01.2016  1.16
             + Basic functions examples in expert mode
             + DoubleClick on knob open first connection setup
             + GUI: Shortcut for Routing matrix
@@ -18,6 +18,7 @@
             # FixedLearn data storing to global extstate by default
             + Actions: FixedLearn/Use exclusive learn for current instance
             # Lowest value limited to 0.0000001 (this fix issues with -inf Freq params in ReaEQ)
+            # Small performance improvements
 09.01.2016  1.12
             # Caching function improvements. Still need testing. Any feedback welcome.
             + Expert mode for editing formula as Lua code
@@ -454,6 +455,7 @@
               if values[i][1] ~= last_values[i][1] then 
                 last_touched_map = values[i][2] 
                 last_touched_slider = values[i][3]
+                update_gfx_minor = true
                 break
               end
             end
@@ -512,7 +514,7 @@
         end
       end
       
-    update_gfx_minor = true
+    --update_gfx_minor = true
     dirty_state = reaper.IsProjectDirty(0)
     
     StateChangeCount = reaper.GetProjectStateChangeCount(0)
@@ -537,6 +539,7 @@
       if main_xywh[3] < 150 then main_xywh[3] = 150 end
       if main_xywh[4] < 600 then main_xywh[4] = 600 end
     --end
+    if data.current_window == 1 then update_gfx_minor = true end
   end
   
 -----------------------------------------------------------------------     
@@ -828,35 +831,119 @@
     end
   end
   
------------------------------------------------------------------------
-  function DEFINE_GUI_buffers()   
+------------- --------------------------------------------
+          function GUI_knob2(xywh, map, sl, val, state)
+            --fdebug('GUI_knob2')
+            -- state 0 send / state 1 receive
+            x,y,w,h = F_extract_table(xywh)
+            x= x+w/2
+            --gfx.rect(x,y,w,h)
+            
+            
+             if data.map[map] ~= nil 
+               and data.map[map][sl] ~= nil 
+               and data.map[map][sl].color ~= nil  then
+                color = data.map[map][sl].color
+                local t = {}
+                for num in color:gmatch('[^%s]+') do table.insert(t, tonumber(num)) end
+                c_r = t[1]
+                c_g = t[2]
+                c_b = t[3]
+            end
+            
+            
+            -- arrow
+              if state ~= nil then
+                local heigh_arrow = 20
+                local wide_arrow = 15
+                local length_arrow = 60
+                local arr_tri_length = 20
+                local arr_tri_h = 12
+                local arr_tri_w = 22
+                local arr_x_offs = 10
+                gfx.a = 0.45
+                gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
                 
-    local mapname, val, text_len, bottom_info_h,text_offset, x,y,w,h, val,obj_w, x1,y1,x2,y2,text, flags,
-      map, slider,str0,lrn_alpha
-      --fdebug('DEFINE_GUI_buffers')
-      -------------------------------------------
-      -- variables
-        local aa = 1 -- aliasing
-        gfx.mode = 0
-        local fontsize = data.fontsize        
-        if OS == "OSX32" or OS == "OSX64" then fontsize = fontsize - 5 end   
-        local button_fontsize = fontsize   -- button
-        local info_fontsize = fontsize - 2
-        
-        local buttons_back_alpha = 0.4
-        local button_text_alpha = 0.8
-        color_t = {['back'] = '51 51 51',
-                         ['back2'] = '51 63 56',
-                         ['black'] = '10 2 7',
-                         ['green'] = '102 255 102',
-                         ['blue'] = '127 204 255',
-                         ['white'] = '255 255 255',
-                         ['red'] = '204 76 51',
-                         ['green_dark'] = '102 153 102'
-                         }
-                         
-        
-            --vv-----------------------------------------
+                -- if send
+                  if state == 0 then
+                    gfx.rect(x-wide_arrow/2+1,y+h/2,wide_arrow,heigh_arrow,aa)
+                    gfx.a = 0.35
+                    gfx.triangle(x-arr_tri_w/2,y+h/2+heigh_arrow,
+                                 x+arr_tri_w/2,y+h/2+heigh_arrow,
+                                 x,            y+h/2+heigh_arrow+arr_tri_h)
+                  end
+                  
+                -- if receive
+                  if state == 1 then
+                    gfx.rect(x-wide_arrow/2+1,y+h/2+arr_tri_h+1,wide_arrow,heigh_arrow,aa)
+                    gfx.a = 0.35
+                    gfx.triangle(x-arr_tri_w/2,y+h/2+arr_tri_h,
+                                 x+arr_tri_w/2,y+h/2+arr_tri_h,
+                                 x,             y+h/2)
+                  end
+                end
+                
+                          
+            -- outarc
+              gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
+              local outarc_angle = 50
+              gfx.a = 0.2
+              for i = 1, 3,0.1 do
+                gfx.arc(x, y+h/2,
+                  w/2-i+2, math.rad(-180 + outarc_angle), math.rad((360-outarc_angle*2)-180+outarc_angle),aa)                
+              end 
+                
+            -- arc val          
+              if val >= 0 then
+                gfx.a = 0.25
+                
+                  if c_r ~= nil and  c_g ~= nil and c_b ~= nil then
+                    gfx.r, gfx.g, gfx.b = c_r,c_g,c_b
+                   else
+                    gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
+                  end
+                                  for i = 1, 10,0.1 do
+                  gfx.arc(x, y+h/2,
+                  w/2-1-i, math.rad(-180 + outarc_angle), math.rad(val*(360-outarc_angle*2)-180+outarc_angle),aa)
+                end 
+              end 
+              
+              
+            -- blur
+              --gfx.x,gfx.y = x-w/2,y-h/2
+             -- gfx.blurto(x+w/2,y+h/2) 
+              
+            -- mapsl
+              gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
+              gfx.setfont(1, data.fontname, button_fontsize)  
+              local str = 'Map '..map..' Slider '..sl          
+              gfx.x,gfx.y = x-gfx.measurestr(str)/2+1,y+h
+              gfx.a = 0.8 
+              gfx.drawstr(str)
+              
+            -- gfxname
+              gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
+              gfx.setfont(1, data.fontname, button_fontsize)  
+              local str = data.map[map][sl].gfx_name  
+              gfx.x,gfx.y = x-gfx.measurestr(str)/2+1,y+h+15
+              gfx.a = 0.8 
+              gfx.drawstr(str)
+              
+            -- graph val
+              gfx.a = 0.9
+              gfx.r, gfx.g, gfx.b = F_SetCol(color_t['red']) 
+              val = data.map[last_routing_config_map][last_routing_config_sl].value
+              if func ~= nil then
+                val2 = F_limit(func(val),0,1)
+                if val2 == nil then val2 = 0 end
+                gfx.circle(graph_rect[1]+graph_rect[3]*val,
+                          graph_rect[2]+graph_rect[4]-graph_rect[4]*val2, 5 , 1 ,aa)  
+              end
+             
+              
+          end
+          
+--vv--------------------------------------------------------------------
             function GUI_button(xywh, name,compensated, alpha) local x,y,w,h,measurestrname, x0, y0
               gfx.y,gfx.x = 0,0
               x,y,w,h = F_extract_table(xywh, 'xywh')
@@ -881,9 +968,10 @@
                 y0 = y + (h - button_fontsize)/2
                 gfx.x, gfx.y = x0,y0 
                 gfx.drawstr(name)      
-            end
+            end            
+
             
-          --vv-----------------------------------------
+-----------------------------------------------------------------------
             function GUI_slider(n, val) -- text, color,alpha) 
               local x,y,w,h,text,color
               
@@ -967,9 +1055,9 @@
                 gfx.y = y + (h - button_fontsize)/2 - 1 
                 gfx.drawstr(text)
               
-            end   
-            
-            ----vvvv-------------------------------------
+            end  
+
+----------------------------------------------------------------------
             function GUI_lamp(xywh, state)
               if state == 0 then 
                 gfx.r,gfx.g,gfx.b = F_SetCol(color_t['green'])
@@ -980,9 +1068,76 @@
               x,y,w,h = F_extract_table(xywh)
               gfx.rect(x,y,w,h, true)
             end
-            --------vvvvv---------------------------------
+
+----------------------------------------------------------------
+          function GUI_knob(map, sl, val) local color
+            local x = (map-1)*(control_area_xywh[3])/data.map_count 
+            local y = (sl-1)*control_area_xywh[4]/data.slider_count 
+            local w = (control_area_xywh[3]+obj_w2*math.abs(data.tablet_optimised-1))/data.map_count - 2
+            local h = control_area_xywh[4]/(data.slider_count )
+                
+                --gfx.rect(x,y+1,w-2,h-2)
             
-           
+             if data.map[map] ~= nil 
+               and data.map[map][sl] ~= nil 
+               and data.map[map][sl].color ~= nil  then
+                color = data.map[map][sl].color
+                local t = {}
+                for num in color:gmatch('[^%s]+') do table.insert(t, tonumber(num)) end
+                c_r = t[1]
+                c_g = t[2]
+                c_b = t[3]
+            end
+            
+            
+            -- outarc
+              local outarc_angle = 50
+              if val >= 0 then
+                gfx.a = 1
+                
+                  if c_r ~= nil and  c_g ~= nil and c_b ~= nil then
+                    gfx.r, gfx.g, gfx.b = c_r,c_g,c_b
+                   else
+                    gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
+                  end
+                min_dim = math.min(
+                control_area_xywh[3]/data.map_count,
+                control_area_xywh[4]/data.slider_count)
+                for i = 1, 4,0.3 do
+                  gfx.arc(x+w/2-1, y+h/2,
+                  min_dim/2-i-1, math.rad(-180 + outarc_angle), math.rad(val*(360-outarc_angle*2)-180+outarc_angle),aa)
+                end 
+              end 
+            
+              gfx.x,gfx.y = x,y
+              gfx.blurto(x+w,y+h) 
+                     
+            -- center circle
+              if val >= 0 then
+                gfx.a = 0.8
+                
+                  if c_r ~= nil and  c_g ~= nil and c_b ~= nil then
+                    gfx.r, gfx.g, gfx.b = c_r,c_g,c_b
+                   else
+                    gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
+                  end
+                                  gfx.circle(x+w/2-1, y+h/2, 3,  1, aa) 
+               else
+                gfx.a = 0.4
+                gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
+                gfx.circle(x+w/2-1, y+h/2, 2,  1, aa) 
+              end    
+              
+              --gfx.rect(x,y,w,h, 0)
+          end
+                                  
+-----------------------------------------------------------------------
+  function DEFINE_GUI_buffers()   
+    if update_gfx_minor or update_gfx then
+      --msg('test')
+      local mapname, val, text_len, bottom_info_h,text_offset, x,y,w,h, val,obj_w, x1,y1,x2,y2,text, flags,
+      map, slider,str0,lrn_alpha
+      --fdebug('DEFINE_GUI_buffers')
             
       --------------------------------------------       
       -- reset buffers
@@ -1366,65 +1521,6 @@
           end
         
         
-        --------------------------------------------
-          function GUI_knob(map, sl, val) local color
-            local x = (map-1)*(control_area_xywh[3])/data.map_count 
-            local y = (sl-1)*control_area_xywh[4]/data.slider_count 
-            local w = (control_area_xywh[3]+obj_w2*math.abs(data.tablet_optimised-1))/data.map_count - 2
-            local h = control_area_xywh[4]/(data.slider_count )
-                
-                --gfx.rect(x,y+1,w-2,h-2)
-            
-             if data.map[map] ~= nil 
-               and data.map[map][sl] ~= nil 
-               and data.map[map][sl].color ~= nil  then
-                color = data.map[map][sl].color
-                local t = {}
-                for num in color:gmatch('[^%s]+') do table.insert(t, tonumber(num)) end
-                c_r = t[1]
-                c_g = t[2]
-                c_b = t[3]
-            end
-            
-            
-            -- outarc
-              local outarc_angle = 50
-              if val >= 0 then
-                gfx.a = 1
-                
-                  if c_r ~= nil and  c_g ~= nil and c_b ~= nil then
-                    gfx.r, gfx.g, gfx.b = c_r,c_g,c_b
-                   else
-                    gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
-                  end
-
-                for i = 1, 4,0.3 do
-                  gfx.arc(x+w/2-1, y+h/2,
-                  30/2-i-4, math.rad(-180 + outarc_angle), math.rad(val*(360-outarc_angle*2)-180+outarc_angle),aa)
-                end 
-              end 
-            
-          --gfx.x,gfx.y = x,y
-          --gfx.blurto(x+w,y+h) 
-                     
-            -- center circle
-              if val >= 0 then
-                gfx.a = 0.8
-                
-                  if c_r ~= nil and  c_g ~= nil and c_b ~= nil then
-                    gfx.r, gfx.g, gfx.b = c_r,c_g,c_b
-                   else
-                    gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
-                  end
-                                  gfx.circle(x+w/2-1, y+h/2, 3,  1, aa) 
-               else
-                gfx.a = 0.4
-                gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
-                gfx.circle(x+w/2-1, y+h/2, 2,  1, aa) 
-              end    
-              
-              --gfx.rect(x,y,w,h, 0)
-          end
           
         --------------------------------------------          
         -- buf9 knob matrix
@@ -1658,7 +1754,7 @@
  -----------------------------------------------------       
         
         if update_gfx_minor then
-          -- buttons and midi/osc selector
+          -- routing setup
             gfx.dest = 13
             gfx.setimgdim(13, -1, -1)  
             gfx.setimgdim(13, main_xywh[3], main_xywh[4])
@@ -1695,117 +1791,6 @@
             --last_routing_config_state
             
             
-        --------------------------------------------
-          function GUI_knob2(xywh, map, sl, val, state)
-            --fdebug('GUI_knob2')
-            -- state 0 send / state 1 receive
-            x,y,w,h = F_extract_table(xywh)
-            x= x+w/2
-            --gfx.rect(x,y,w,h)
-            
-            
-             if data.map[map] ~= nil 
-               and data.map[map][sl] ~= nil 
-               and data.map[map][sl].color ~= nil  then
-                color = data.map[map][sl].color
-                local t = {}
-                for num in color:gmatch('[^%s]+') do table.insert(t, tonumber(num)) end
-                c_r = t[1]
-                c_g = t[2]
-                c_b = t[3]
-            end
-            
-            
-            -- arrow
-              if state ~= nil then
-                local heigh_arrow = 20
-                local wide_arrow = 15
-                local length_arrow = 60
-                local arr_tri_length = 20
-                local arr_tri_h = 12
-                local arr_tri_w = 22
-                local arr_x_offs = 10
-                gfx.a = 0.45
-                gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
-                
-                -- if send
-                  if state == 0 then
-                    gfx.rect(x-wide_arrow/2+1,y+h/2,wide_arrow,heigh_arrow,aa)
-                    gfx.a = 0.35
-                    gfx.triangle(x-arr_tri_w/2,y+h/2+heigh_arrow,
-                                 x+arr_tri_w/2,y+h/2+heigh_arrow,
-                                 x,            y+h/2+heigh_arrow+arr_tri_h)
-                  end
-                  
-                -- if receive
-                  if state == 1 then
-                    gfx.rect(x-wide_arrow/2+1,y+h/2+arr_tri_h+1,wide_arrow,heigh_arrow,aa)
-                    gfx.a = 0.35
-                    gfx.triangle(x-arr_tri_w/2,y+h/2+arr_tri_h,
-                                 x+arr_tri_w/2,y+h/2+arr_tri_h,
-                                 x,             y+h/2)
-                  end
-                end
-                
-                          
-            -- outarc
-              gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
-              local outarc_angle = 50
-              gfx.a = 0.2
-              for i = 1, 3,0.1 do
-                gfx.arc(x, y+h/2,
-                  w/2-i+2, math.rad(-180 + outarc_angle), math.rad((360-outarc_angle*2)-180+outarc_angle),aa)                
-              end 
-                
-            -- arc val          
-              if val >= 0 then
-                gfx.a = 0.25
-                
-                  if c_r ~= nil and  c_g ~= nil and c_b ~= nil then
-                    gfx.r, gfx.g, gfx.b = c_r,c_g,c_b
-                   else
-                    gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
-                  end
-                                  for i = 1, 10,0.1 do
-                  gfx.arc(x, y+h/2,
-                  w/2-1-i, math.rad(-180 + outarc_angle), math.rad(val*(360-outarc_angle*2)-180+outarc_angle),aa)
-                end 
-              end 
-              
-              
-            -- blur
-              --gfx.x,gfx.y = x-w/2,y-h/2
-             -- gfx.blurto(x+w/2,y+h/2) 
-              
-            -- mapsl
-              gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
-              gfx.setfont(1, data.fontname, button_fontsize)  
-              local str = 'Map '..map..' Slider '..sl          
-              gfx.x,gfx.y = x-gfx.measurestr(str)/2+1,y+h
-              gfx.a = 0.8 
-              gfx.drawstr(str)
-              
-            -- gfxname
-              gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white'])
-              gfx.setfont(1, data.fontname, button_fontsize)  
-              local str = data.map[map][sl].gfx_name  
-              gfx.x,gfx.y = x-gfx.measurestr(str)/2+1,y+h+15
-              gfx.a = 0.8 
-              gfx.drawstr(str)
-              
-            -- graph val
-              gfx.a = 0.9
-              gfx.r, gfx.g, gfx.b = F_SetCol(color_t['red']) 
-              val = data.map[last_routing_config_map][last_routing_config_sl].value
-              if func ~= nil then
-                val2 = F_limit(func(val),0,1)
-                if val2 == nil then val2 = 0 end
-                gfx.circle(graph_rect[1]+graph_rect[3]*val,
-                          graph_rect[2]+graph_rect[4]-graph_rect[4]*val2, 5 , 1 ,aa)  
-              end
-             
-              
-          end
           ---------------------------------
                          
               GUI_knob2(bigknob1_xywh,
@@ -1981,6 +1966,8 @@
       --------------------------------------------
       
       update_gfx = false
+      update_gfx_minor = false
+    end
   end
 
 -----------------------------------------------------------------------       
@@ -2056,6 +2043,8 @@
     -- about
       if ret_main_act == 3 then 
         data.current_window = 1
+        update_gfx = true
+        update_gfx_minor = true
       end
       
     -- use_learn
@@ -3303,6 +3292,8 @@
     
 -----------------------------------------------------------------------  
   function ENGINE_return_data_to_projextstate2(to_ext_file, set_ext_learn)
+    update_gfx_minor = true
+    update_gfx = true
     local routing_out_temp,learn_out_temp,learn_out_temp1
     indent =  ' '
     indent2 = '  '
@@ -3743,6 +3734,8 @@
         -- about close
           if MOUSE_match(b_close_xywh) and mouse.LMB_state and not mouse.last_LMB_state then
             data.current_window = 0
+            update_gfx_minor = true
+            update_gfx = true
             mouse.mx,mouse.my = -100,-100 
           end
           
@@ -3782,6 +3775,9 @@
     -----------------------  
     -- routing window
       if data.current_window == 2 then
+        -- gfx
+          if MOUSE_match(control_area_xywh) then update_gfx_minor = true end
+            
         -- get knob under cursor
           if MOUSE_match(control_area_xywh) and not mouse.LMB_state and not mouse.last_LMB_state 
             or MOUSE_match(control_area_xywh) and mouse.Ctrl_LMB_state 
@@ -4102,14 +4098,33 @@
     data.expert_mode = 0
     set_learn = true
     
-    main_xywh = {0,0,300,600}
-    
+    main_xywh = {0,0,300,600}    
     mouse = {} 
     d_click_time = 0.2
-    knob_sens = 8
-    
+    knob_sens = 8    
     OS = reaper.GetOS()
-    config_path = debug.getinfo(2, "S").source:sub(2):sub(0,-5)..'_config.txt'    
+    config_path = debug.getinfo(2, "S").source:sub(2):sub(0,-5)..'_config.txt'   
+    
+    -- GUI variables
+      aa = 1 -- aliasing
+      gfx.mode = 0
+      fontsize = data.fontsize        
+      if OS == "OSX32" or OS == "OSX64" then fontsize = fontsize - 5 end   
+      button_fontsize = fontsize   -- button
+      info_fontsize = fontsize - 2
+      
+      buttons_back_alpha = 0.4
+      button_text_alpha = 0.8
+      color_t = {['back'] = '51 51 51',
+                       ['back2'] = '51 63 56',
+                       ['black'] = '10 2 7',
+                       ['green'] = '102 255 102',
+                       ['blue'] = '127 204 255',
+                       ['white'] = '255 255 255',
+                       ['red'] = '204 76 51',
+                       ['green_dark'] = '102 153 102'
+                       }
+                        
   end
      
 -----------------------------------------------------------------------
@@ -4141,6 +4156,7 @@
     gfx.init("mpl Mapping Panel // "..vrs..'',300, 600,0)
     gfx.ext_retina = 1
     update_gfx = true
+    update_gfx_minor = true
     MAIN_defer()   
   end
   
@@ -4149,6 +4165,7 @@
     gfx.init("mpl Mapping Panel // "..vrs, main_xywh[3], main_xywh[4], data.run_docked)
     gfx.ext_retina = 1
     update_gfx = true
+    update_gfx_minor = true
     MAIN_defer()
   end
 -----------------------------------------------------------------------  
