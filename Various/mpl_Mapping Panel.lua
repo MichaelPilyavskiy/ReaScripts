@@ -4,12 +4,14 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.19
+   * Version: 1.20
   ]]
 
-  local vrs = 1.19
+  local vrs = 1.20
   local changelog =
 [===[ 
+14.01.2016  1.20
+            # FL issues
 11.01.2016  1.19
             + Basic functions examples in expert mode
             + DoubleClick on knob open first connection setup
@@ -680,7 +682,7 @@
                  
    local out_midi_num, chunk,exists, guid_id,chunk_t,i,fx_chunks_t,fx_count,
      fx_guid,param_count,active_fx_chunk,active_fx_chunk_old,active_fx_chunk_t,
-     out_t,midiChannel,midiCC,insert_begin,insert_end,active_fx_chunk_new,main_chunk
+     out_t,midiChannel,midiCC,insert_begin,insert_end,active_fx_chunk_new,main_chunk,temp_s
      
    if track_in == nil then reaper.ReaScriptError('MediaTrack not found') return end
    _, chunk = reaper.GetTrackStateChunk(track, '')      
@@ -695,6 +697,7 @@
      
    -- get fx chunks
      chunk_t= {}
+     temp_s = nil
      i = 1
      for line in chunk:gmatch("[^\n]+") do 
        if temp_s ~= nil then temp_s = temp_s..'\n'..line end
