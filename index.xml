@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="df9a1468c65b3293d671dbab30d541f433a72175">
+<index version="1" commit="c3eaca78fa59d9795aba458cb4235c1ddf3d0a5c">
   <category name="FX">
     <reapack name="mpl_Bypass all FX except instruments on all tracks .lua" type="script">
       <version name="1.0">
@@ -126,6 +126,11 @@
     <reapack name="mpl_Cut extension from selected item names.lua" type="script">
       <version name="1.0">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f5e18404c99b12b6e287f2d25effe64498f54b26/Items%20Properties/mpl_Cut%20extension%20from%20selected%20item%20names.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set fadeout of item under cursor to mouse position.lua" type="script">
+      <version name="1.0">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b13a6f6b2e1c5f1f0292ab3f8c445c43b3cbd62f/Items%20Properties/mpl_Set%20fadeout%20of%20item%20under%20cursor%20to%20mouse%20position.lua</source>
       </version>
     </reapack>
   </category>
@@ -361,10 +366,57 @@
       <version name="1.0">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ecb585c1eede88f6d0b540472472b40d41ba897e/Various/mpl_Mapping%20Panel.lua</source>
       </version>
+      <version name="1.02">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79216a70605e1fcbf6b21c4feff8bdd153580701/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.03">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/62c799dd557b6e61ad5b6e4eca0fe5355f8e41b0/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.04">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c3613609a531909c5e6d280caab08f3c464d78b8/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.05">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eea28c8c8ab856a8336d9a39985bcb4dbbf0001d/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.07">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/91a8f8f1e9f9ba8258e6c3ca6e4428b1b826c6b6/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.1">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c3881b9633fcd652d65424eca1fd992e21e36bfb/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.11">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e081084d03ccde107e4a25d73f77f5c76a011fa/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.12">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/74be2faf4bd0d2be983b905840c47067fc8394ee/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.13">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55bff8e794489be86c3fa643425e535571a3cf1a/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.14">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/84a8f917e1369e7008e1da9cbd610fb5d74d1c74/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.16">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6fffc118d63ed7b2e126fa88bab7cfe69ce75639/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.17">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/764d760ca9d31177a27a0a39c5ec4861350df624/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.18">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8801e224f2ede6aa6b651a58967f93343dd1d1b5/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.19">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71fc81b2dde05bb4d1875303a720432069b3ec24/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua" type="script">
       <version name="1.0">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8bb9e572d71f9d589c7fecf149e7005658dd85a2/Various/mpl_Mapping%20Panel%20-%20change%20map%20(MIDI%20CC%20and%20OSC%20only).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Mapping Panel - remove config data.lua" type="script">
+      <version name="1.0">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6bbd9fd9acaebd5d4e64d65b712810bfc215fb2a/Various/mpl_Mapping%20Panel%20-%20remove%20config%20data.lua</source>
       </version>
     </reapack>
   </category>
