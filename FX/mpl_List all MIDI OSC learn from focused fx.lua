@@ -77,7 +77,7 @@
           
         end -- loop chunk
         if str ~= nil then 
-          if str == '' then str = 'No learn found' end
+          if str == '' then str = 'Learn not found' end
           reaper.MB(str, fxname..' learn', 0) 
         end  
       
