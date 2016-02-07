@@ -63,8 +63,9 @@
              else
               osc = ''
             end
+            
             str = 
-            str..' Parameter #'..out_t[1]..' - '..par_name
+            str..' Parameter #'..(out_t[1]+1)..' - '..par_name
             ..'\n'
             ..osc
             ..midi
