@@ -21,9 +21,16 @@ script_title = "Duplicate items bar relative"
     
     item0_st = reaper.GetMediaItemInfo_Value(item0, "D_POSITION")
     itemfin_end = reaper.GetMediaItemInfo_Value(item_fin, "D_POSITION")
-      +reaper.GetMediaItemInfo_Value(item_fin, "D_LENGTH")
-    itemfin_end_next = reaper.BR_GetNextGridDivision(itemfin_end)
-    reaper.ApplyNudge(2, 0, 5, 1, itemfin_end_next-item0_st, 0, 1)
+      +reaper.GetMediaItemInfo_Value(item_fin, "D_LENGTH") - 0.0001
+    
+    _, measures1 = reaper.TimeMap2_timeToBeats(0, item0_st)
+    _, measures2 = reaper.TimeMap2_timeToBeats(0, itemfin_end)
+    
+    offs = item0_st - reaper.TimeMap2_beatsToTime(0, 0, measures1)
+    
+    diff = reaper.TimeMap2_beatsToTime(0, 0, measures2+1)
+      - reaper.TimeMap2_beatsToTime(0, 0, measures1)
+    reaper.ApplyNudge(2, 0, 5, 1, diff, 0, 1)
   end     
       
       
