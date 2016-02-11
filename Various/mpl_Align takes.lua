@@ -1,5 +1,5 @@
 --[[
-   * ReaScript Name: mpl Alighn Takes
+   * ReaScript Name: mpl Align Takes
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
@@ -54,7 +54,7 @@
     if compact_view_trig then 
       objects.main_h = objects.main_h + data.compact_view*objects.set_wind_h
       gfx.quit()
-      gfx.init("mpl Alighn takes // "..vrs, objects.main_w, objects.main_h, 0)
+      gfx.init("mpl Align takes // "..vrs, objects.main_w, objects.main_h, 0)
       compact_view_trig = false
     end 
     
@@ -1232,7 +1232,7 @@ par_str =
 [[
 Algorithm based on the matching RMS envelopes of 2+ takes and use stretch markers to move points of syllables start/end to make them match some reference take.
 
-Green knobs are parameters for detection points. Note, RMS envelope of course have some window, so alighning for example drums with this tool is not a good idea. Basically points added when envelope rise/fall by some value in defined area.
+Green knobs are parameters for detection points. Note, RMS envelope of course have some window, so aligning for example drums with this tool is not a good idea. Basically points added when envelope rise/fall by some value in defined area.
 
 - Scaling. Detection syllables starts/ends easier with scaled envelopes, since scaling actually compress range. When comparing data, script also use scaled envelopes and not original ones. 
 - Threshold is linear "noise floor" for detected points. It represented on the graph.
@@ -1573,7 +1573,7 @@ Red knob is parameter of comparing part of this script.
     end
     
     outstr =      
-      '[MPL_Alighn_takes_config]\n'..outstr_data
+      '[MPL_Align_takes_config]\n'..outstr_data
       
     fdebug('ENGINE_set_ini >>>')    
     fdebug(outstr)
@@ -1616,7 +1616,7 @@ Red knob is parameter of comparing part of this script.
     fft_size = 256 -- deprecated / used for calc RMS size
     knob_coeff = 0.01 -- knob sensivity
               
-    -- syl alighn -- wind 2 settings
+    -- syl align -- wind 2 settings
       data.filter_area_norm = 0.1 -- filter closer points
       data.rise_area_norm = 0.2 -- detect rise on this area
       data.risefall_norm = 0.125 -- how much envelope rise/fall in rise area - for scaled env
@@ -1649,7 +1649,7 @@ Red knob is parameter of comparing part of this script.
   data,data2 = DEFINE_global_variables()
   MAIN_search_ini(data)
   objects = DEFINE_objects()
-  gfx.init("mpl Alighn takes // "..vrs, objects.main_w, objects.main_h, 0)
+  gfx.init("mpl Align takes // "..vrs, objects.main_w, objects.main_h, 0)
   objects = nil
   update_gfx = true
   compact_view_trig = true
