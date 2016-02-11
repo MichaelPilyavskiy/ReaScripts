@@ -4,12 +4,19 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.0
+   * Version: 1.01
   ]]
 
-  local vrs = '1.0'
+  local vrs = '1.01'
   local changelog =                           
 [===[ Changelog:
+11.02.2016  1.01
+            # Some settings limits extended
+            + Added selector RMS/FFT detection
+            + Added RMS window knob
+            + Added FFT size knob
+            + Added HP/LP FFT filters cutoff knobs
+            + Added smooth factor knob
 11.02.2016  1.0
             Public release
 25.01.2016  Split from Warping tool
@@ -41,14 +48,23 @@
 
 -----------------------------------------------------------------------   
   function DEFINE_dynamic_variables()
-    data2.filter_area = F_convert(data.filter_area_norm, 0.1,0.5)
+    data2.custom_window = F_convert(data.custom_window_norm, 0.005, 0.2)
+    
+    data2.fft_size = math.floor(2^math.floor(F_convert(data.fft_size_norm,7,10)))
+    if data2.fft_LP == nil then data2.fft_LP = data2.fft_size end
+    data2.fft_HP = F_limit(math.floor(F_convert(data.fft_HP_norm, 1, data2.fft_size)), 1, data2.fft_LP-1)
+    data2.fft_LP =  F_limit(math.floor(F_convert(data.fft_LP_norm, 1, data2.fft_size)), data2.fft_HP+1, data2.fft_size)
+    
+    data2.smooth = data.smooth_norm
+    
+    data2.filter_area = F_convert(data.filter_area_norm, 0.1,2)
     data2.rise_area = F_convert(data.rise_area_norm, 0.1,0.5)
     data2.risefall = F_convert(data.risefall_norm, 0.1,0.8)
-    data2.risefall2 = F_convert(data.risefall2_norm, 0.2,0.8)    
+    data2.risefall2 = F_convert(data.risefall2_norm, 0.05,0.8)    
     data2.threshold = F_convert(data.threshold_norm, 0.1,0.4)  
     data2.scaling_pow = F_convert(math.abs(1-data.scaling_pow_norm), 0.1, 0.75)
     
-    data2.search_area = F_convert(data.search_area_norm, 0.05, 1) 
+    data2.search_area = F_convert(data.search_area_norm, 0.05, 2) 
     
     local objects = DEFINE_objects()
     if compact_view_trig then 
@@ -179,9 +195,6 @@
   function ENGINE_get_take_data(take_id, scaling)
     local st_win_cnt,end_win_cnt
     
-    --local HP =  100
-    --local LP = fft_size
-    
     local aa = {}
     local sum_t = {}
     
@@ -195,45 +208,54 @@
         aa.numch = reaper.GetMediaSourceNumChannels(aa.src)
         aa.rate = reaper.GetMediaSourceSampleRate(aa.src) 
         
-          aa.window_sec = fft_size/aa.rate -- ms
-          data.global_window_sec = aa.window_sec
+          if data.mode == 0 then
+            aa.window_sec = data2.custom_window
+           else
+            aa.window_sec = data2.fft_size/aa.rate -- ms
+          end
           
+          data.global_window_sec = aa.window_sec
+          size = math.ceil(aa.window_sec*aa.rate)
           -- get fft_size samples buffer
             for read_pos = 0, item_len, aa.window_sec do 
             
-              aa.buffer = reaper.new_array(fft_size*2)
-              aa.buffer_com = reaper.new_array(fft_size*2)
+              aa.buffer = reaper.new_array(size*2)
+              aa.buffer_com = reaper.new_array(size*2)
                
               reaper.GetAudioAccessorSamples(
                     aa.accessor , --AudioAccessor
                     aa.rate, -- samplerate
                     2,--aa.numch, -- numchannels
                     read_pos, -- starttime_sec
-                    fft_size, -- numsamplesperchannel
+                    size, -- numsamplesperchannel
                     aa.buffer) --samplebuffer
                     
               -- merge buffers dy duplicating sum/2
-                for i = 1, fft_size*2 - 1, 2 do
+                for i = 1, size*2 - 1, 2 do
                   aa.buffer_com[i] = (aa.buffer[i] + aa.buffer[i+1])/2
                   aa.buffer_com[i+1] = 0
                 end
-                
-              --[[ Get FFT sum of bins in defined range
-                aa.buffer_com.fft(fft_size, true, 1)
-                aa.buffer_com_t = aa.buffer_com.table(1,fft_size, true)
-                sum_com = 0
-                for i = HP, LP do
-                  sum_com = sum_com + math.abs(aa.buffer_com_t[i])
-                end    
-                table.insert(sum_t, sum_com /(LP-HP))]]
+              
+              if data.mode == 1 then  
+                -- Get FFT sum of bins in defined range
+                  aa.buffer_com.fft(size, true, 1)
+                  aa.buffer_com_t = aa.buffer_com.table(1,size, true)
+                  sum_com = 0
+                  for i = data2.fft_HP, data2.fft_LP do
+                    sum_com = sum_com + math.abs(aa.buffer_com_t[i])
+                  end    
+                  table.insert(sum_t, sum_com /(data2.fft_LP-data2.fft_HP))
+                else
                                       
-             -- Get RMS sum in defined range
-                aa.buffer_com_t = aa.buffer_com.table(1,fft_size, true)
-                sum_com = 0
-                for i = 1, fft_size do
-                  sum_com = sum_com + math.abs(aa.buffer_com_t[i])
-                end    
-                table.insert(sum_t, sum_com)    
+               -- Get RMS sum in defined range
+                  aa.buffer_com_t = aa.buffer_com.table(1,size, true)
+                  sum_com = 0
+                  for i = 1, size do
+                    sum_com = sum_com + math.abs(aa.buffer_com_t[i])
+                  end    
+                  table.insert(sum_t, sum_com)
+              end
+               
                             
                 aa.buffer.clear()
                 aa.buffer_com.clear()              
@@ -837,8 +859,8 @@
             
         end
 -----------------------------------------------------------------------          
-  function GUI_knob(objects, xywh,gui, val, text,text_val, col)
-    
+  function GUI_knob(objects, xywh,gui, val, text,text_val, col, is_active)
+    if is_active == 0 then is_active = 0.3 end
     if val == nil then val = 0 end 
     x,y ,w, h = xywh[1],xywh[2],xywh[3],xywh[4]
     arc_r = w/2 * 0.8
@@ -847,7 +869,7 @@
     ang = math.rad(ang_gr)
     
     -- back
-      gfx.a = 0.3
+      gfx.a = 0.01+0.3*is_active
       F_Get_SSV(gui.color[col], true)
       gfx.rect(x,y ,w, h, 1)
       gfx.a = 0.2
@@ -859,11 +881,11 @@
       
     -- arc val
       for i = 0, 3, 0.5 do
-        gfx.a = 0.2
+        gfx.a = 0.01+0.2*is_active
         F_Get_SSV(gui.color.white, true)
         gfx.arc(x+w/2,y+h/2,arc_r-i,ang,-ang,gui.aa)
         
-        gfx.a = 1
+        gfx.a = 0.9*is_active
         F_Get_SSV(gui.color[col], true)
         gfx.arc(x+w/2,y+h/2,arc_r - i,-ang,ang_val,gui.aa)    
       end  
@@ -1065,40 +1087,76 @@
           gfx.dest = 9
           gfx.setimgdim(9, -1, -1)  
           gfx.setimgdim(9, objects.main_w, objects.main_h+objects.set_wind_h)
-
-          GUI_knob(objects, objects.knob1,gui, data.scaling_pow_norm, 'Scaling',
-            data.scaling_pow_norm, 'green')
-          GUI_knob(objects, objects.knob2,gui, data.threshold_norm, 'Threshold',
-            data2.threshold, 'green') 
-          GUI_knob(objects, objects.knob3,gui, data.rise_area_norm, 'Rise Area',
-            math.floor(data2.rise_area * 1000)..'ms', 'green')   
-          GUI_knob(objects, objects.knob4,gui, data.risefall_norm, 'Rise/Fall',
-            data2.risefall, 'green')     
-          GUI_knob(objects, objects.knob5,gui, data.risefall2_norm, 'Rise/Fall 2',
-            data2.risefall2, 'green')                                     
-          GUI_knob(objects, objects.knob6,gui, data.filter_area_norm, 'Filter Area',
-            math.floor(data2.filter_area * 1000)..'ms', 'green')           
+          
+          -- detect points
+            GUI_knob(objects, objects.knob1,gui, data.scaling_pow_norm, 'Scaling',
+              data.scaling_pow_norm, 'green',1)
+            GUI_knob(objects, objects.knob2,gui, data.threshold_norm, 'Threshold',
+              data2.threshold, 'green',1) 
+            GUI_knob(objects, objects.knob3,gui, data.rise_area_norm, 'Rise Area',
+              math.floor(data2.rise_area * 1000)..'ms', 'green', 1)   
+            GUI_knob(objects, objects.knob4,gui, data.risefall_norm, 'Rise/Fall',
+              data2.risefall, 'green', 1)     
+            GUI_knob(objects, objects.knob5,gui, data.risefall2_norm, 'Rise/Fall 2',
+              data2.risefall2, 'green', 1)                                     
+            GUI_knob(objects, objects.knob6,gui, data.filter_area_norm, 'Filter Area',
+              math.floor(data2.filter_area * 1000)..'ms', 'green', 1)           
+              
             
-          
-          gfx.a = 0.5
-          F_Get_SSV(gui.color.green_dark, true)
-          gfx.rect(objects.pref_rect1[1],
-            objects.pref_rect1[2],
-            objects.pref_rect1[3],
-            objects.pref_rect1[4],0)  
-            
-          GUI_knob(objects, objects.knob7, gui, data.search_area_norm, 'Search area',
-            math.floor(data2.search_area * 1000)..'ms', 'red')            
+            gfx.a = 0.5
+            F_Get_SSV(gui.color.green_dark, true)
+            gfx.rect(objects.pref_rect1[1],
+              objects.pref_rect1[2],
+              objects.pref_rect1[3],
+              objects.pref_rect1[4],0) 
+             
+         -- search area   
+            GUI_knob(objects, objects.knob7, gui, data.search_area_norm, 'Search area',
+              math.floor(data2.search_area * 1000)..'ms', 'red', 1)            
+  
+            gfx.a = 0.5
+            F_Get_SSV(gui.color.red, true)
+            gfx.rect(objects.pref_rect2[1],
+              objects.pref_rect2[2],
+              objects.pref_rect2[3],
+              objects.pref_rect2[4],0)  
 
-          gfx.a = 0.5
-          F_Get_SSV(gui.color.red, true)
-          gfx.rect(objects.pref_rect2[1],
-            objects.pref_rect2[2],
-            objects.pref_rect2[3],
-            objects.pref_rect2[4],0)  
+          -- selector
+            F_Get_SSV(gui.color.blue, true)
+            gfx.a = 0.3
+            gfx.rect(objects.selector[1],
+                      objects.selector[2],
+                      objects.selector[3],
+                      objects.selector[4],0,gui.aa)
+            
+            gfx.a = 0.7
+            gfx.rect(objects.selector[1] + 2,
+                     objects.selector[2]+2+
+                     (objects.selector[4]/2-2)*data.mode,
+                     objects.selector[3]-4,
+                     (objects.selector[4]-4)/2,1,gui.aa)              
           
-          
-                                               
+          -- rms/fft  
+            gfx.a = 0.5
+            F_Get_SSV(gui.color.blue, true)
+            gfx.rect(objects.pref_rect3[1],
+              objects.pref_rect3[2],
+              objects.pref_rect3[3],
+              objects.pref_rect3[4],0)  
+
+            local bin = 22050/data2.fft_size
+            GUI_knob(objects, objects.knob9,gui, data.custom_window_norm, 'RMS wind.',
+              math.floor(data2.custom_window * 1000)..'ms', 'blue', math.abs(1-data.mode))
+            GUI_knob(objects, objects.knob10,gui, data.fft_size_norm, 'FFT size',
+              data2.fft_size, 'blue', math.abs(data.mode))
+            GUI_knob(objects, objects.knob11,gui, data.fft_HP_norm, 'HP',
+              math.floor((data2.fft_HP-1)*bin)..'Hz', 'blue', math.abs(data.mode))            
+            GUI_knob(objects, objects.knob12,gui, data.fft_LP_norm, 'LP',
+              math.floor((data2.fft_LP-1)*bin)..'Hz', 'blue', math.abs(data.mode))                      
+            GUI_knob(objects, objects.knob13,gui, data.smooth_norm, 'Smooth',
+              (data2.smooth*100)..'%', 'blue', 1)                      
+                      
+                                              
       end    
     
     --[[if debug_mode == 1 then 
@@ -1186,6 +1244,8 @@
     local menuret = gfx.showmenu(
       '#Actions'
       ..'|Restore defaults'
+      ..'|Preset 1 : macro alignment'
+      ..'|Preset 2 : tiny alignment'
       
       ..'||#Links'
       ..'|MPL on Cockos Forum'
@@ -1199,13 +1259,32 @@
       )
       
       -- actions 
-      local act_count = 1
+      local act_count = 3
       if menuret == 2 then -- restore defaults
         data = DEFINE_global_variables()
         ENGINE_set_ini(data, config_path)
         updata_gfx = true
       end
+      
+      if menuret == 3 then -- preset1      
+          data = DEFINE_global_variables()    
+          data.filter_area_norm = 0.58 
+          data.rise_area_norm = 0.42
+          data.risefall_norm = 0.115 
+          data.risefall2_norm = 0.3
+          data.search_area_norm = 0.9  
+        ENGINE_set_ini(data, config_path)
+        updata_gfx = true
+      end      
             
+      if menuret == 4 then -- preset1  
+          data = DEFINE_global_variables()
+          data.filter_area_norm = 0.01
+          data.search_area_norm = 0.01  
+        ENGINE_set_ini(data, config_path)
+        updata_gfx = true
+      end  
+                  
       -- links 
       
       if menuret == 3+act_count then
@@ -1244,6 +1323,14 @@ Green knobs are parameters for detection points. Note, RMS envelope of course ha
 Red knob is parameter of comparing part of this script.
 
 - Search area. This defines searcing area for every found point when finding best RMS fit.
+
+Blue knobs related to building envelope
+
+- Blue selector allow to change type envelope beetween RMS envelope and FFT (sum of bin values) envelope.
+- RMS window is how much samples taken to calculate average for every envelope point.
+- FFT size is number of FFT bins.
+- HP and LP are FFT filter cutoff controls.
+- Smooth knob control smoothing final envelope.
 ]]
       
       -- info
@@ -1349,8 +1436,17 @@ Red knob is parameter of comparing part of this script.
             gfx.x, gfx.y = mouse.mx, mouse.my    
             GUI_menu_settings()
           end
+        
+        -- selector
+          if MOUSE_match(objects.selector)
+            and mouse.LMB_state 
+            and not mouse.last_LMB_state then
+            data.mode = math.abs(1 - data.mode)
+            ENGINE_set_ini(data, config_path)
+            update_gfx = true
+          end
 
-        -- danate
+        -- donate
           if MOUSE_match(objects.pref_donate) then mouse.context = 'pref_donate' end
           if MOUSE_match(objects.pref_donate) 
             and mouse.LMB_state 
@@ -1433,8 +1529,12 @@ Red knob is parameter of comparing part of this script.
           MOUSE_knob(objects, 6, 'filter_area_norm')
                               
           MOUSE_knob(objects, 7, 'search_area_norm')   
-           
           
+          MOUSE_knob(objects, 9, 'custom_window_norm')    
+          MOUSE_knob(objects, 10, 'fft_size_norm') 
+          MOUSE_knob(objects, 11, 'fft_HP_norm') 
+          MOUSE_knob(objects, 12, 'fft_LP_norm') 
+          MOUSE_knob(objects, 13, 'smooth_norm') 
     
     mouse.last_LMB_state = mouse.LMB_state  
     mouse.last_RMB_state = mouse.RMB_state
@@ -1458,12 +1558,13 @@ Red knob is parameter of comparing part of this script.
   function DEFINE_objects()
     -- GUI global
       local objects = {}
-      objects.x_offset = 10
-      objects.y_offset = 10
-      objects.main_h = 250
+      objects.x_offset = 5
+      objects.y_offset = 5
+      objects.main_h = 237
       objects.main_w_nav = 130 -- width navigation zone
-      objects.takes_name_h = 70 -- display H
+      objects.takes_name_h = 60 -- display H
       objects.takes_name_h2 = 20 -- display names
+      objects.disp_item_h = 80
       objects.slider_h = 60
       objects.get_b_h = 70
       objects.get_b_h2 = 50
@@ -1473,34 +1574,34 @@ Red knob is parameter of comparing part of this script.
       objects.knob_count = 7
       objects.knob_w = 65
       objects.main_w = objects.knob_count*objects.knob_w + objects.x_offset*12
-      objects.set_wind_h = 140
-      objects.knob_h = 100
+      
+      objects.knob_h = 90
       objects.pref_actions_w = 400
       
     -- GUI main window
       objects.disp_ref = {objects.x_offset, 
                           objects.y_offset,
                           objects.main_w-(objects.x_offset*2), 
-                          objects.main_h/2-objects.y_offset*1.5-objects.slider_h/2}
+                          objects.disp_item_h}
       objects.disp_dub = {objects.x_offset, 
-                          objects.main_h/2-objects.slider_h/2-objects.y_offset*0.5,
+                          objects.y_offset+objects.disp_item_h,
                           objects.main_w-(objects.x_offset*2), 
-                          objects.main_h/2-objects.y_offset*1.5-objects.slider_h/2} 
+                          objects.disp_item_h} 
       objects.disp = {objects.disp_ref[1], 
                       objects.disp_ref[2],
                       objects.disp_ref[3], 
                       objects.disp_ref[4]*2}
                        
       objects.b_get = {objects.x_offset, 
-                        objects.main_h-objects.y_offset-objects.slider_h,
+                        objects.disp[2]+objects.disp[4]+objects.y_offset,
                         objects.get_b_w, 
                         objects.slider_h/2-2}                           
       objects.b_setup = {objects.x_offset,
-                         objects.main_h-objects.y_offset-objects.slider_h/2,
+                         objects.b_get[2]+objects.b_get[4]+objects.y_offset,
                          objects.get_b_w,
                          objects.slider_h/2}
       objects.b_slider = {(objects.x_offset*2+objects.get_b_w), 
-                           objects.main_h-objects.slider_h-objects.y_offset,
+                           objects.b_get[2],
                            objects.main_w-(objects.x_offset*3+objects.get_b_w), 
                            objects.slider_h}                   
        objects.disp_ref_text = {objects.disp_ref[1],
@@ -1513,37 +1614,57 @@ Red knob is parameter of comparing part of this script.
                                  objects.takes_name_h2}  
                                  
       -- GUI settings
-        for i = 0, 7 do
-          if i >= 6 then offs = 2 else  offs = 0 end
+        for i = 0, 16 do
+          if i == 6 then offs = 2 else  offs = 0 end
+          if i > 6 then 
+            x_comp = objects.main_w-objects.x_offset*5
+            y_offs = objects.knob_h 
+           else 
+            x_comp = 0
+            y_offs = 0 
+          end
           objects['knob'..(i+1)] = {objects.x_offset*2 + 
                                     objects.knob_w * i + 
                                     objects.x_offset*i + 
-                                    objects.x_offset*offs,
-                         objects.main_h+objects.y_offset,
+                                    objects.x_offset*offs-x_comp,
+                         objects.b_setup[2]+objects.b_setup[4]+objects.y_offset*2+y_offs,
                          objects.knob_w,
                          objects.knob_h-objects.y_offset*3}
         end
         
+      -- seleector
+        local selector_w = 20
+        local selector_h = 40
+        objects.selector = {objects.knob8[1]+(objects.knob8[3]-selector_w)/2,
+                                objects.knob8[2]+(objects.knob8[4]-selector_h)/2,
+                                selector_w,
+                                selector_h  }
+        
       -- pref rect
         objects.pref_rect1 = {objects.x_offset,
-                              objects.main_h+1,
+                              objects.b_setup[2]+objects.b_setup[4]+objects.y_offset,
                               objects.knob_w*6+objects.x_offset*7,
                               objects.knob_h-objects.y_offset}
         objects.pref_rect2 = {objects.x_offset*9 + objects.knob_w*6,
-                              objects.main_h+1,
+                              objects.b_setup[2]+objects.b_setup[4]+objects.y_offset,
                               objects.knob_w+objects.x_offset*2,
                               objects.knob_h-objects.y_offset}    
-                              
-        objects.pref_actions = {objects.x_offset,
-                              objects.main_h+objects.knob_h,
-                              objects.pref_actions_w,
-                              objects.set_wind_h - objects.knob_h - objects.y_offset}
+        objects.pref_rect3 = {objects.x_offset,
+                              objects.pref_rect2[2]+objects.pref_rect2[4]+objects.y_offset,
+                              objects.knob_w*6+objects.x_offset*7,
+                              objects.knob_h-objects.y_offset} 
+                                                            
+        objects.pref_actions = {objects.x_offset*9 + objects.knob_w*6,
+                              objects.pref_rect2[2]+objects.pref_rect2[4]+objects.y_offset,
+                              objects.knob_w+objects.x_offset*2,
+                              objects.knob_h/2-objects.y_offset}
 
-        objects.pref_donate = {objects.x_offset*2+objects.pref_actions_w,
-                              objects.main_h+objects.knob_h,
-                              objects.main_w-objects.x_offset*3 - objects.pref_actions_w,
-                              objects.set_wind_h - objects.knob_h - objects.y_offset}                              
-                              
+        objects.pref_donate = {objects.x_offset*9 + objects.knob_w*6,
+                              objects.pref_rect2[2]+objects.pref_rect2[4]+objects.knob_h/2+objects.y_offset,
+                              objects.knob_w+objects.x_offset*2,
+                              objects.knob_h/2-objects.y_offset}                              
+        
+        objects.set_wind_h = 180              
                                                                                         
     return objects
   end
@@ -1613,10 +1734,17 @@ Red knob is parameter of comparing part of this script.
     local data = {}
     local data2 = {}
     data.current_take = 2 -- show second take as dub
-    fft_size = 256 -- deprecated / used for calc RMS size
     knob_coeff = 0.01 -- knob sensivity
               
-    -- syl align -- wind 2 settings
+    data.mode = 0 -- 0 - RMS / 1 - FFT
+    
+      data.custom_window_norm = 0 -- rms window    
+      data.fft_size_norm = 0.5
+      data.fft_HP_norm = 0
+      data.fft_LP_norm = 1
+    
+    data.smooth_norm = 0
+    
       data.filter_area_norm = 0.1 -- filter closer points
       data.rise_area_norm = 0.2 -- detect rise on this area
       data.risefall_norm = 0.125 -- how much envelope rise/fall in rise area - for scaled env
