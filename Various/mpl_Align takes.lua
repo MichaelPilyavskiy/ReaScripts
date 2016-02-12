@@ -4,12 +4,14 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.01
+   * Version: 1.02
   ]]
 
-  local vrs = '1.01'
+  local vrs = '1.02'
   local changelog =                           
 [===[ Changelog:
+12.02.2016  1.02
+            #OSX font issues
 11.02.2016  1.01
             # Some settings limits extended
             + Added selector RMS/FFT detection
@@ -922,7 +924,10 @@
         gui.b_sel_fontsize = gui.fontsize - 1
         gui.b_sel_text_alpha = 1
         gui.b_sel_text_alpha_unset = 0.7
-        gui.knob_txt = gui.fontsize - 8
+        if OS == "OSX32" or OS == "OSX64" then 
+          gui.knob_txt = gui.fontsize - 5
+         else gui.knob_txt = gui.fontsize - 8
+        end
         
       -- reg buttons
         gui.b_text_alpha = 0.8
