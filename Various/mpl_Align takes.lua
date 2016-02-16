@@ -4,12 +4,14 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.02
+   * Version: 1.03
   ]]
-
-  local vrs = '1.02'
+  function bmrk() end
+  local vrs = '1.03'
   local changelog =                           
 [===[ Changelog:
+16.02.2016  1.03
+            + Algorithm selector, check Menu/Parameters description
 12.02.2016  1.02
             #OSX font issues
 11.02.2016  1.01
@@ -55,7 +57,7 @@
     data2.fft_size = math.floor(2^math.floor(F_convert(data.fft_size_norm,7,10)))
     if data2.fft_LP == nil then data2.fft_LP = data2.fft_size end
     data2.fft_HP = F_limit(math.floor(F_convert(data.fft_HP_norm, 1, data2.fft_size)), 1, data2.fft_LP-1)
-    data2.fft_LP =  F_limit(math.floor(F_convert(data.fft_LP_norm, 1, data2.fft_size)), data2.fft_HP+1, data2.fft_size)
+    data2.fft_LP =  1+F_limit(math.floor(F_convert(data.fft_LP_norm, 1, data2.fft_size)), data2.fft_HP+1, data2.fft_size)
     
     data2.smooth = data.smooth_norm
     
@@ -403,9 +405,7 @@
           max_sa = i + 1 + filter_area_wind
           if max_sa > arr_size then max_sa = arr_size end
           for k = i + 1, max_sa do
-            if points[k] == 1 then 
-              points[k] = 0
-            end
+            if points[k] == 1 then points[k] = 0 end
           end       
         end
       end 
@@ -422,10 +422,10 @@
   end
  
 -----------------------------------------------------------------------    
-  function F_find_arrays_com_diff(ref_array, ref_array_offset, dub_array)
+  function F_find_arrays_com_diff(ref_array, ref_array_offset, dub_array, get_ref_block_rms)
     local dub_array_size = dub_array.get_alloc()
     local ref_array_size = ref_array.get_alloc()
-    local endpoint
+    local endpoint,ref_rms
     local com_difference = 0
     if ref_array_offset + dub_array_size > ref_array_size then endpoint = ref_array_size - ref_array_offset
       else endpoint = dub_array_size end
@@ -433,7 +433,16 @@
     for i = 1, endpoint do
       com_difference = com_difference + math.abs(ref_array[i + ref_array_offset - 1 ]-dub_array[i])
     end
-    return com_difference
+    
+    if get_ref_block_rms ~= nil and get_ref_block_rms then
+      ref_rms = 0
+      for i = 1, endpoint do
+        ref_rms = ref_rms + math.abs(ref_array[i + ref_array_offset - 1 ])
+      end
+      ref_rms = ref_rms / endpoint
+    end
+    
+    return com_difference, ref_rms
   end   
    
 -----------------------------------------------------------------------   
@@ -449,7 +458,21 @@
     end
     return min_val_id
   end
-    
+
+-----------------------------------------------------------------------   
+  function F_find_max_value(t)
+    local max_val_id, max_val, max_val0
+    max_val0 =0
+    for i = 1, #t do
+      max_val = math.max(max_val0, t[i])
+      if max_val ~= max_val0 then 
+        max_val0 = max_val
+        max_val_id = i
+      end
+    end
+    return max_val_id
+  end
+      
 -----------------------------------------------------------------------   
     function F_stretch_array(src_array, new_size)
       local src_array_size = src_array.get_alloc()
@@ -457,7 +480,10 @@
       local out_array = reaper.new_array(new_size)
       if new_size < src_array_size or new_size > src_array_size then
         for i = 0, new_size - 1 do 
-          out_array[i+1] = src_array[math.floor(i * coeff) + 1]
+          src_idx = math.floor(i * coeff) + 1
+          src_idx = math.floor(F_limit(src_idx, 1, src_array_size))
+          out_array[i+1] = 
+            src_array[src_idx]
         end
         return out_array
        elseif new_size == src_array_size then 
@@ -502,85 +528,329 @@
   end  
 
 
------------------------------------------------------------------------      
-  function ENGINE_compare_data2(ref_arr_orig, dub_arr_orig, points, window_sec)
-    
-    local st_search, end_search
-    
-    if ref_arr_orig == nil then return end
-    if dub_arr_orig == nil then return end
-    if points == nil then return end
-    
-    local ref_arr_size = ref_arr_orig.get_alloc()  
-    local dub_arr_size = dub_arr_orig.get_alloc() 
-    
-    ref_arr = reaper.new_array(ref_arr_size)
-    for i = 1, ref_arr_size do ref_arr[i] = ref_arr_orig[i]^data2.scaling_pow end
-    
-    dub_arr = reaper.new_array(dub_arr_size)
-    for i = 1, dub_arr_size do dub_arr[i] = dub_arr_orig[i]^data2.scaling_pow end
-    
-    
-    local sm_table = {}    
-        
-    search_area = math.floor(data2.search_area / window_sec)
-            
-    -- get blocks
-      local block_ids = {}
-      for i = 1, dub_arr_size do
-        if points[i] == 1 then block_ids[#block_ids+1] = i end
-      end    
+-----------------------------------------------------------------------          
+  function ENGINE_compare_data2_alg1(ref_arr_orig, dub_arr_orig, points, window_sec) 
+      local st_search, end_search
       
-    -- loop blocks
-      for i = 1, #block_ids - 2 do
-        -- create fixed block
-          fantom_arr_size = block_ids[i+2] - block_ids[i] + 1
+      if ref_arr_orig == nil then return end
+      if dub_arr_orig == nil then return end
+      if points == nil then return end
+      
+      local ref_arr_size = ref_arr_orig.get_alloc()  
+      local dub_arr_size = dub_arr_orig.get_alloc() 
+      
+      ref_arr = reaper.new_array(ref_arr_size)
+      for i = 1, ref_arr_size do ref_arr[i] = ref_arr_orig[i]^data2.scaling_pow end
+      
+      dub_arr = reaper.new_array(dub_arr_size)
+      for i = 1, dub_arr_size do dub_arr[i] = dub_arr_orig[i]^data2.scaling_pow end
+      
+      
+      local sm_table = {}    
           
-          local fantom_arr = reaper.new_array(fantom_arr_size)
-          fantom_arr.copy(dub_arr,--src, 
-                          block_ids[i],--srcoffs, 
-                          fantom_arr_size,--size, 
-                          1)--destoffs])
-                          
-        -- loop possible positions
-          local min_block_len = 2
-          search_pos_start = block_ids[i+1] - search_area
-          if search_pos_start < block_ids[i] + min_block_len then
-            search_pos_start = block_ids[i] + min_block_len end
-          search_pos_end = block_ids[i+1] + search_area
-          if search_pos_end > block_ids[i+2] - min_block_len then
-            search_pos_end = block_ids[i+2] - min_block_len end    
-          if (search_pos_end-search_pos_start+1) > min_block_len then
-            --search_pos_start = block_ids[i] + 2
-            --search_pos_end = block_ids[i+2] - 2 
+      search_area = math.floor(data2.search_area / window_sec)
+              
+      -- get blocks
+         block_ids = {}
+        for i = 1, dub_arr_size do
+          if points[i] == 1 then 
+            block_ids[#block_ids+1] = {['orig']=i} end
+        end    
+        
+      -- loop blocks
+        for i = 1, #block_ids - 2 do
+          -- create fixed block
             
-            diff = reaper.new_array(search_pos_end-search_pos_start+1)
+            point1 = block_ids[i].orig
+            point2 = block_ids[i+1].orig
+            point3 = block_ids[i+2].orig
             
-            for k = search_pos_start, search_pos_end do
-              local orig_block = block_ids[i+1]-block_ids[i]+ 1
-              local str_block = k - block_ids[i] +1
-              --msg(orig_block)
-              --msg(str_block)
-              fantom_arr_stretched = 
-                F_stretch_array2(fantom_arr,  orig_block, str_block)
-              diff[k - search_pos_start+1] = 
-                F_find_arrays_com_diff(ref_arr, block_ids[i], fantom_arr_stretched)
+              if i >= 1 then
+                P1_diff = 0
+                P2_fant = point2-point1+1
+                P3_fant = point3 - point1 + 1 -- arr size
+                fantom_arr = reaper.new_array(P3_fant)            
+                fantom_arr.copy(dub_arr,--src, 
+                                point1,--srcoffs, 
+                                P3_fant,--size, 
+                                1)--destoffs])
+              end
+         
+                            
+          -- loop possible positions
+            local min_block_len = 3
+            search_pos_start = P2_fant - search_area
+            if search_pos_start < min_block_len then search_pos_start = min_block_len end
+            search_pos_end = P2_fant + search_area
+            if search_pos_end > P3_fant - min_block_len then search_pos_end = P3_fant - min_block_len end    
+            if (search_pos_end-search_pos_start+1) > min_block_len then
+              
+              diff = reaper.new_array(search_pos_end-search_pos_start+1)
+              for k = search_pos_start, search_pos_end do
+                fantom_arr_stretched = F_stretch_array2(fantom_arr, P2_fant, k)
+                diff[k - search_pos_start+1] = F_find_arrays_com_diff(ref_arr, point1, fantom_arr_stretched)
+              end
+              block_ids[i+1].stretched = F_find_min_value(diff) + search_pos_start 
+                - 1 - P1_diff + point1
+              sm_table[#sm_table+1] =  
+                    {block_ids[i+1].stretched *  window_sec,
+                     (-1+block_ids[i+1].orig) * window_sec}
             end
-            min_id_diff = F_find_min_value(diff) + search_pos_start - 1
-            --[[msg('---------------') 
-            msg(min_id_diff)     
-            msg(block_ids[i+1])]]
-            sm_table[#sm_table+1] =  
-                {(min_id_diff) *  window_sec,
-                  (block_ids[i+1]) * window_sec}
-                  
-            --block_ids[i+1] = min_id_diff
+            fantom_arr.clear()
+        end -- end loop blocks
+        
+      return sm_table
+  end   
+
+----------------------------------------------------------------------- 
+  --[[ check by every block with relative diff / k / ref_rms
+  function ENGINE_compare_data2_alg2_test(ref_arr_orig, dub_arr_orig, points, window_sec) 
+      local st_search, end_search
+      
+      if ref_arr_orig == nil then return end
+      if dub_arr_orig == nil then return end
+      if points == nil then return end
+      
+      local ref_arr_size = ref_arr_orig.get_alloc()  
+      local dub_arr_size = dub_arr_orig.get_alloc()       
+      ref_arr = reaper.new_array(ref_arr_size)
+      for i = 1, ref_arr_size do ref_arr[i] = ref_arr_orig[i]^data2.scaling_pow end      
+      dub_arr = reaper.new_array(dub_arr_size)
+      for i = 1, dub_arr_size do dub_arr[i] = dub_arr_orig[i]^data2.scaling_pow end
+            
+      local sm_table = {}    
+      search_area = math.floor(data2.search_area / window_sec)
+              
+      -- get blocks
+         block_ids = {}
+        for i = 1, dub_arr_size do
+          if points[i] == 1 then 
+            block_ids[#block_ids+1] = {['orig']= i } end
+        end    
+      
+      -- loop blocks
+        block_ids[1].str = 1
+        for i = 2, #block_ids - 1 do
+          block_start = block_ids[i-1].orig
+          block_start_str = block_ids[i-1].str
+          block_end = block_ids[i].orig
+          block2_end = block_ids[i+1].orig
+          fantom_arr_sz = block_end - block_start
+        
+          fantom_arr = reaper.new_array(fantom_arr_sz)            
+          fantom_arr.copy(dub_arr,--src, 
+                              block_start,--srcoffs, 
+                              fantom_arr_sz,--size, 
+                              1)--destoffs])
+
+          min_block_len = 3
+          search_start = fantom_arr_sz - search_area
+            if search_start < min_block_len then search_start = min_block_len end
+          search_end = fantom_arr_sz + (block_start-block_start_str) + search_area
+            if search_end + block_start > dub_arr_size - min_block_len then 
+              search_end = dub_arr_size - min_block_len - block_start end                              
+            
+          diff_t = { }
+          for k = search_start, search_end do
+            fantom_arr_stretched = F_stretch_array(fantom_arr, k)
+            diff, ref_rms = F_find_arrays_com_diff(ref_arr, block_start_str, fantom_arr_stretched,true)
+            diff_t[#diff_t+1] = diff/k
           end
-      end -- end loop blocks
-    --msg('test')
-    return sm_table
-  end
-                                      
+          
+          --msg(table.concat(diff_t, '\n'))
+          
+          id_diff = F_find_min_value(diff_t)
+          
+          block_ids[i].str = id_diff + search_start + block_start_str
+          sm_table[#sm_table+1] =  {
+            block_ids[i].str * window_sec,
+            (-1+block_ids[i].orig) * window_sec }
+                                       
+          fantom_arr.clear()
+        end
+        
+      return sm_table       
+      
+  end]]
+              
+----------------------------------------------------------------------- 
+  function ENGINE_compare_data2_alg2(ref_arr_orig, dub_arr_orig, points, window_sec) 
+      local st_search, end_search
+      
+      if ref_arr_orig == nil then return end
+      if dub_arr_orig == nil then return end
+      if points == nil then return end
+      
+      local ref_arr_size = ref_arr_orig.get_alloc()  
+      local dub_arr_size = dub_arr_orig.get_alloc()       
+      ref_arr = reaper.new_array(ref_arr_size)
+      for i = 1, ref_arr_size do ref_arr[i] = ref_arr_orig[i]^data2.scaling_pow end      
+      dub_arr = reaper.new_array(dub_arr_size)
+      for i = 1, dub_arr_size do dub_arr[i] = dub_arr_orig[i]^data2.scaling_pow end
+            
+      local sm_table = {}    
+      search_area = math.floor(data2.search_area / window_sec)
+              
+      -- get blocks
+         block_ids = {}
+        for i = 1, dub_arr_size do
+          if points[i] == 1 then 
+            block_ids[#block_ids+1] = {['orig']=i} end
+        end    
+        
+      -- loop blocks
+        block_ids[1].str = 1
+        for i = 2, #block_ids - 1 do
+        -- create fixed block            
+          point1 = block_ids[i-1].str
+          point1_orig = block_ids[i-1].orig
+          point2 = block_ids[i].orig
+          point3 = block_ids[i+1].orig
+          
+          search_point = point2 - point1
+          
+        -- form fantom array
+          fantom_arr_sz = point3 - point1          
+          fantom_arr = reaper.new_array(fantom_arr_sz)          
+          fantom_arr_pt1 = reaper.new_array(point2 - point1_orig)          
+          fantom_arr_pt1.copy(dub_arr,--src,
+                              point1_orig,--srcoffs,
+                              point2 - point1_orig,--size,
+                              1)--destoffs]) 
+          fantom_arr_pt1_str = F_stretch_array(fantom_arr_pt1, point2-point1)                        
+          fantom_arr.copy(fantom_arr_pt1_str,--src,
+                          1,--srcoffs,
+                          point2-point1,--size,
+                          1)--destoffs])            
+          fantom_arr.copy(dub_arr,--src,
+                          point2,--srcoffs,
+                          point3-point2,--size,
+                          point2-point1+1)--destoffs])
+          
+        -- loop possible positions
+          filter_area_wind = math.floor(data2.filter_area / window_sec)
+          min_block_len = 20
+          if min_block_len > filter_area_wind then min_block_len = filter_area_wind - 3 end
+          search_start = search_point - search_area
+            if search_start < min_block_len then search_start = min_block_len end
+          search_end = search_point + search_area
+            if search_end > fantom_arr_sz - min_block_len then search_end = fantom_arr_sz - min_block_len end         
+        
+          diff_t = {}
+          for k = search_start, search_end do
+            fantom_arr_stretched = F_stretch_array2(fantom_arr, search_point, k)
+            diff_t[#diff_t+1] = F_find_arrays_com_diff(ref_arr, point1, fantom_arr_stretched)
+          end 
+          id_diff = F_find_min_value(diff_t)
+          block_ids[i].str = id_diff + search_start + point1
+          sm_table[#sm_table+1] =  {
+            block_ids[i].str * window_sec,
+            (-1+block_ids[i].orig) * window_sec }
+        end -- loop blocks
+      return sm_table       
+      
+  end          
+          --[[  
+          if i == 1 then
+            P2_fant = point2 - point1 + 1
+            P3_fant = point3 - point1 + 1 -- arr size
+            fantom_arr = reaper.new_array(P3_fant)            
+            fantom_arr.copy(dub_arr,--src, 
+                                point1,--srcoffs, 
+                                P3_fant,--size, 
+                                1)--destoffs])
+              
+              
+            -- 
+            min_bl_len = 3
+            min_search_diff = 3
+            search_start = P2_fant - search_area
+              if search_start < min_bl_len then search_start = min_bl_len end
+            search_end = P2_fant + search_area
+              if search_end > P3_fant - min_bl_len then search_end = P3_fant - min_bl_len end    
+            if search_end-search_start+1 > min_search_diff then
+              diff_t = {}
+              for k = search_start, search_end do
+                fantom_arr_stretched = F_stretch_array2(fantom_arr, P2_fant, k)
+                diff_t[#diff_t+1] = F_find_arrays_com_diff(ref_arr, point1, fantom_arr_stretched)
+              end
+              id_diff = F_find_min_value(diff_t)
+              block_ids[i+1].str = id_diff + search_start - 4 + point1
+              sm_table[#sm_table+1] =  {
+               block_ids[i+1].str * window_sec,
+               (-1+block_ids[i+1].orig) * window_sec }
+             else
+              sm_table[#sm_table+1] =  {
+               block_ids[i+1].orig * window_sec,
+               block_ids[i+1].orig * window_sec }
+              block_ids[i+1].str = block_ids[i+1].orig
+            end
+          end -- if first block
+          
+          if i > 1 and i < #block_ids - 2 then
+            last_block_diff = block_ids[i].orig - block_ids[i].str
+            
+            P2_fant = point2 - point1 + 1
+            P3_fant = point3 - point1 + 1 -- arr size
+            P2_fant_str = P2_fant + last_block_diff  
+            P3_fant_str = P3_fant + last_block_diff  
+            
+            fantom_arr = reaper.new_array(P3_fant_str)
+            fantom_arr_pt1 = reaper.new_array(P2_fant)
+            fantom_arr_pt1.copy(dub_arr,--src,
+                                point1,--srcoffs,
+                                P2_fant,--size,
+                                1)--destoffs])    
+            if P2_fant_str > 3 then
+              fantom_arr_pt1_str = F_stretch_array(fantom_arr_pt1, P2_fant_str)
+              
+  
+              fantom_arr.copy(fantom_arr_pt1_str,--src,
+                              1,--srcoffs,
+                              P2_fant_str,--size,
+                              1)--destoffs])
+  
+              fantom_arr.copy(dub_arr,--src,
+                              point2,--srcoffs,
+                              point3-point2+1,--size,
+                              P2_fant_str)--destoffs])
+              
+              
+              -- loop possible positions
+              min_bl_len = 3
+              min_search_diff = 3
+              search_start = P2_fant_str - search_area
+                if search_start < min_bl_len then search_start = min_bl_len end
+              search_end = P2_fant_str + search_area
+                if search_end > P3_fant_str - min_bl_len then search_end = P3_fant_str - min_bl_len end    
+              if search_end-search_start+1 > min_search_diff then
+                diff_t = {}
+                if search_end > P3_fant_str - min_bl_len then search_end = P3_fant_str - min_bl_len end
+                for k = search_start, search_end do
+                  fantom_arr_stretched = F_stretch_array2(fantom_arr, P2_fant, k)  
+                  diff_t[#diff_t+1] = F_find_arrays_com_diff(ref_arr, block_ids[i].str, fantom_arr_stretched)
+                end
+                id_diff = F_find_min_value(diff_t)
+                block_ids[i+1].str = id_diff + search_start + point1 -1--block_ids[i].str
+                sm_table[#sm_table+1] =  {
+                 block_ids[i+1].str * window_sec,
+                 block_ids[i+1].orig * window_sec }
+               else
+                sm_table[#sm_table+1] =  {
+                 block_ids[i+1].orig * window_sec,
+                 block_ids[i+1].orig * window_sec }
+                block_ids[i+1].str = block_ids[i+1].orig           
+              end
+            else
+             sm_table[#sm_table+1] =  {
+              block_ids[i+1].orig * window_sec,
+              block_ids[i+1].orig * window_sec }
+             block_ids[i+1].str = block_ids[i+1].orig  
+            end
+          end -- other blocks
+          ]]
+  
+                                        
 -----------------------------------------------------------------------   
   function ENGINE_set_stretch_markers2(take_id, str_mark_table, val)
     if str_mark_table == nil then return nil end
@@ -594,7 +864,7 @@
         for i = 1, #str_mark_table do
           
           set_pos = str_mark_table[i][1]-(takes_t[take_id].pos-takes_t[1].pos)
-          src_pos = str_mark_table[i][2]-(takes_t[take_id].pos-takes_t[1].pos)+takes_t[take_id].offset
+          src_pos = str_mark_table[i][2]-(takes_t[take_id].pos-takes_t[1].pos) + takes_t[take_id].offset
           set_pos = src_pos - takes_t[take_id].offset - ((src_pos - takes_t[take_id].offset) - set_pos)*val
           
           
@@ -663,9 +933,9 @@
                            end_x,y+h*data_t_it2*drawscale,
                            end_x,y,
                            st_x,    y )   
-              gfx.a = 0.4
+              gfx.a = 0.2
               F_Get_SSV(gui.color[col_peaks])
-              gfx.lineto(x+(i+1)*w/arr_size, y-h*data_t_it2*drawscale)
+              gfx.lineto(x+(i+1)*w/arr_size, y-h*data_t_it2^data2.scaling_pow*drawscale)
             end                     
             
             if is_ref then 
@@ -860,6 +1130,34 @@
           
             
         end
+
+-----------------------------------------------------------------------        
+            function GUI_selector(xywh,col,val,b1,b2 )             
+              F_Get_SSV(col, true)
+              gfx.a = 0.3
+              gfx.rect(xywh[1],
+                        xywh[2],
+                        xywh[3],
+                        xywh[4],0,1)
+              
+              gfx.a = 0.4
+              gfx.rect(xywh[1] + 2,
+                       xywh[2]+2+
+                       (xywh[4]/2-2)*val,
+                       xywh[3]-4,
+                       (xywh[4]-4)/2,1,1)
+              
+              gfx.a = 1
+              gfx.x = xywh[1] + (xywh[3]- gfx.measurestr(b1)) /2
+              gfx.y = xywh[2]   +2 
+              gfx.drawstr(b1)
+              
+              gfx.a = 1
+              gfx.x = xywh[1] + (xywh[3]- gfx.measurestr(b2)) /2
+              gfx.y = xywh[2] + 1+ xywh[4] /2
+              gfx.drawstr(b2)              
+            end
+                    
 -----------------------------------------------------------------------          
   function GUI_knob(objects, xywh,gui, val, text,text_val, col, is_active)
     if is_active == 0 then is_active = 0.3 end
@@ -1127,20 +1425,9 @@
               objects.pref_rect2[4],0)  
 
           -- selector
-            F_Get_SSV(gui.color.blue, true)
-            gfx.a = 0.3
-            gfx.rect(objects.selector[1],
-                      objects.selector[2],
-                      objects.selector[3],
-                      objects.selector[4],0,gui.aa)
-            
-            gfx.a = 0.7
-            gfx.rect(objects.selector[1] + 2,
-                     objects.selector[2]+2+
-                     (objects.selector[4]/2-2)*data.mode,
-                     objects.selector[3]-4,
-                     (objects.selector[4]-4)/2,1,gui.aa)              
-          
+            GUI_selector(objects.selector,gui.color.blue,data.mode,'RMS', 'FFT') 
+            GUI_selector(objects.selector2,gui.color.blue,data.alg,'Algo 1','Algo 2')
+                       
           -- rms/fft  
             gfx.a = 0.5
             F_Get_SSV(gui.color.blue, true)
@@ -1252,19 +1539,19 @@
       ..'|Preset 1 : macro alignment'
       ..'|Preset 2 : tiny alignment'
       
-      ..'||#Links'
+      ..'||>Links'
       ..'|MPL on Cockos Forum'
       ..'|MPL on VK'
       ..'|MPL on SoundCloud'
       ..'|Warping tool thread on Cockos forum'
-      ..'|Warping tool thread on RMM forum'
+      ..'|<Warping tool thread on RMM forum'
       
       ..'||#Info'
-      ..'|WTF are these parameters?'
+      ..'|Parameters description'
       )
       
       -- actions 
-      local act_count = 3
+      local act_count = 2
       if menuret == 2 then -- restore defaults
         data = DEFINE_global_variables()
         ENGINE_set_ini(data, config_path)
@@ -1331,7 +1618,8 @@ Red knob is parameter of comparing part of this script.
 
 Blue knobs related to building envelope
 
-- Blue selector allow to change type envelope beetween RMS envelope and FFT (sum of bin values) envelope.
+- First selector allow to change type envelope beetween RMS envelope and FFT (sum of bin values) envelope.
+- Second selector allow to change algorithm. First algo get every block and find best fit by moving center point using original block position. Second algo use same technique, but get blocks one-by one and find best fit relative to previously stretched blocks.
 - RMS window is how much samples taken to calculate average for every envelope point.
 - FFT size is number of FFT bins.
 - HP and LP are FFT filter cutoff controls.
@@ -1451,6 +1739,16 @@ Blue knobs related to building envelope
             update_gfx = true
           end
 
+        -- selector
+          if MOUSE_match(objects.selector2)
+            and mouse.LMB_state 
+            and not mouse.last_LMB_state then
+            data.alg = math.abs(1 -data.alg)
+            ENGINE_set_ini(data, config_path)
+            update_gfx = true
+          end          
+          
+
         -- donate
           if MOUSE_match(objects.pref_donate) then mouse.context = 'pref_donate' end
           if MOUSE_match(objects.pref_donate) 
@@ -1480,12 +1778,12 @@ Blue knobs related to building envelope
                 rates = {}        
                 for i = 1, #takes_t do 
                     takes_arrays[i] = ENGINE_get_take_data(i, data.scaling_pow2) 
-                    --if i > 1 then
+                    if i > 1 then
                       takes_points[i] = 
                         ENGINE_get_take_data_points2(takes_arrays[i],data.global_window_sec)
                       str_markers_t[i] = 
-                        ENGINE_compare_data2(takes_arrays[1], takes_arrays[i], takes_points[i],data.global_window_sec )
-                    --end
+                        _G['ENGINE_compare_data2_alg'..data.alg](takes_arrays[1], takes_arrays[i], takes_points[i],data.global_window_sec )
+                    end
                 end
               end
             end 
@@ -1505,7 +1803,8 @@ Blue knobs related to building envelope
             if mouse.context == 'w1_slider' then
               w1_slider = F_limit((mouse.mx - objects.b_slider[1]) / objects.b_slider[3],0,1 )
               for i = 1, #takes_t do 
-                ENGINE_set_stretch_markers2(i, str_markers_t[i], w1_slider)
+                if i == 1 then ENGINE_set_stretch_markers2(i, str_markers_t[i], 0) else
+                ENGINE_set_stretch_markers2(i, str_markers_t[i], w1_slider) end
               end
             end
             
@@ -1606,7 +1905,7 @@ Blue knobs related to building envelope
                          objects.get_b_w,
                          objects.slider_h/2}
       objects.b_slider = {(objects.x_offset*2+objects.get_b_w), 
-                           objects.b_get[2],
+                           objects.b_get[2]+1,
                            objects.main_w-(objects.x_offset*3+objects.get_b_w), 
                            objects.slider_h}                   
        objects.disp_ref_text = {objects.disp_ref[1],
@@ -1637,13 +1936,17 @@ Blue knobs related to building envelope
                          objects.knob_h-objects.y_offset*3}
         end
         
-      -- seleector
-        local selector_w = 20
-        local selector_h = 40
-        objects.selector = {objects.knob8[1]+(objects.knob8[3]-selector_w)/2,
-                                objects.knob8[2]+(objects.knob8[4]-selector_h)/2,
-                                selector_w,
-                                selector_h  }
+      -- seleector1
+        local selector_w = objects.knob8[3] - objects.x_offset*2
+        local selector_h = objects.knob8[4]/2-2
+        objects.selector = {objects.knob8[1]+objects.x_offset,
+                            objects.knob8[2],
+                            selector_w,
+                            selector_h  }
+        objects.selector2 = {objects.knob8[1]+objects.x_offset,
+                            objects.knob8[2]+selector_h+objects.y_offset,
+                            selector_w,
+                            selector_h  }                            
         
       -- pref rect
         objects.pref_rect1 = {objects.x_offset,
@@ -1699,7 +2002,7 @@ Blue knobs related to building envelope
     end
     
     outstr =      
-      '[MPL_Align_takes_config]\n'..outstr_data
+      '[MPL_Align_takes_config_current]\n'..outstr_data
       
     fdebug('ENGINE_set_ini >>>')    
     fdebug(outstr)
@@ -1720,7 +2023,9 @@ Blue knobs related to building envelope
 
     fdebug('ENGINE_get_ini <<< ') 
     fdebug(content)
-        
+    
+    --msg(content)
+    
     local default_data = DEFINE_global_variables()
     
     for i,v in pairs(data) do
@@ -1742,7 +2047,7 @@ Blue knobs related to building envelope
     knob_coeff = 0.01 -- knob sensivity
               
     data.mode = 0 -- 0 - RMS / 1 - FFT
-    
+    data.alg = 1
       data.custom_window_norm = 0 -- rms window    
       data.fft_size_norm = 0.5
       data.fft_HP_norm = 0
@@ -1757,7 +2062,7 @@ Blue knobs related to building envelope
       data.threshold_norm = 0.1 -- noise floor for scaled env
       data.scaling_pow_norm = 0.9 -- scaling - normalised RMS values scaled via power of this value (after convertion))
       data.search_area_norm = 0.1
-      
+            
       data.compact_view = 0 -- default mode
     return data,data2
   end
