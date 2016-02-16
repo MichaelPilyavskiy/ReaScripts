@@ -4,31 +4,34 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.03
+   * Version: 1.04
   ]]
+  
+--[[
+  * Changelog: 
+  * v1.04 (2016-02-17)
+    # ReaPack changelog synthax
+  * v1.03 (2016-02-16)
+    + Algorithm selector, check Menu/Parameters description
+  * v1.02 (2016-02-12)
+    #OSX font issues
+  * v1.01 (2016-02-11)
+    # Some settings limits extended
+    + Added selector RMS/FFT detection
+    + Added RMS window knob
+    + Added FFT size knob
+    + Added HP/LP FFT filters cutoff knobs
+    + Added smooth factor knob
+  * v1.00 (2016-02-11)    
+    + Public release
+  * v0.23 (2016-01-25)  
+    # Split from Warping tool
+  * v0.01 (2015-09-01) 
+    + Alignment / Warping / Tempomatching tool idea
+  --]]
+  
   function bmrk() end
-  local vrs = '1.03'
-  local changelog =                           
-[===[ Changelog:
-16.02.2016  1.03
-            + Algorithm selector, check Menu/Parameters description
-12.02.2016  1.02
-            #OSX font issues
-11.02.2016  1.01
-            # Some settings limits extended
-            + Added selector RMS/FFT detection
-            + Added RMS window knob
-            + Added FFT size knob
-            + Added HP/LP FFT filters cutoff knobs
-            + Added smooth factor knob
-11.02.2016  1.0
-            Public release
-25.01.2016  Split from Warping tool
-27.10.2015  0.23 Warping tool Early alpha            
-01.09.2015  0.01 Alignment / Warping / Tempomatching tool idea
- ]===]
-
-
+  local vrs = '1.04'
 ----------------------------------------------------------------------- 
   function msg(str)
     if type(str) == 'boolean' then if str then str = 'true' else str = 'false' end end
