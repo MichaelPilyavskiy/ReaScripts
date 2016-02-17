@@ -4,13 +4,13 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.22
+   * Version: 1.23
   ]]
 
-  local vrs = 1.22
+  local vrs = 1.23
   local changelog =
 [===[ 
-17.02.2016  1.22
+17.02.2016  1.23
             # Potential error with #1009
             + vca() for basic mode - beta
 14.01.2016  1.20
@@ -3318,7 +3318,7 @@
               if func ~= nil then
                 local m = tonumber(t2[3])
                 local sl = tonumber(t2[4])
-                msg(func(x, m, sl))
+                --msg(func(x, m, sl))
                 ENGINE_GetSetParamValue(m,sl, true, F_limit(func(x, m, sl), 0.0000001,1))
               end
             end
@@ -4148,7 +4148,7 @@
     
     data = {}
     
-    data.dev_mode = 1
+    data.dev_mode = 0
     data.expert_mode = 0
     
     data.map = {}
