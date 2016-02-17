@@ -4,12 +4,15 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.20
+   * Version: 1.21
   ]]
 
-  local vrs = 1.20
+  local vrs = 1.21
   local changelog =
 [===[ 
+17.02.2016  1.21
+            # Potential error with #1009
+            + vca() for basic mode (beta)
 14.01.2016  1.20
             # FL issues
 11.01.2016  1.19
@@ -189,6 +192,7 @@
  -----------------------------------------------------------------------   
  ----------------------------------------------------------------------- 
  -- formula functions
+  function vca() end 
   function lim(x, lim_s, lim_e) if x ~= nil then return F_limit(x,lim_s,lim_e) end end
   function scaleto(x, lim_s, lim_e) if x ~= nil then return x*(math.abs(lim_s-lim_e))+ lim_s end end
   function wrap(x) if x ~= nil then return x % 1 end end
@@ -264,6 +268,7 @@
   function master_rate()
     return reaper.Master_GetPlayRate(0)
   end
+  
 
  -----------------------------------------------------------------------         
  -----------------------------------------------------------------------   
@@ -440,6 +445,8 @@
   
 -----------------------------------------------------------------------    
   function DEFINE_dynamic_variables2()
+  local dy
+    dy = 0
     time = os.clock()
     if last_time == nil then last_time = time end
     timediff = time - last_time
@@ -460,20 +467,20 @@
               if values[i][1] ~= last_values[i][1] then 
                 last_touched_map = values[i][2] 
                 last_touched_slider = values[i][3]
+                dy = (values[i][1] - last_values[i][1])
                 update_gfx_minor = true
                 break
               end
             end
           end
-        end
-    
+        end 
     -- apply routing from last touched
     if data.expert_mode == 0 then
-      ENGINE_apply_routing(last_touched_map,last_touched_slider)
+      ENGINE_apply_routing(last_touched_map,last_touched_slider,dy)
      else
       for i = 1, data.map_count do
         for k = 1, data.slider_count do
-          ENGINE_apply_routing(i,k)
+          ENGINE_apply_routing(i,k,dy)
         end
       end
     end
@@ -1006,19 +1013,21 @@
                 if data.map[data.current_map] ~= nil then
                   if data.map[data.current_map].bypass_learn ~= nil and data.map[data.current_map].bypass_learn == 1 then
                    else 
-                    if data.learn[n] ~= nil then
-                      midi_offs = 0
-                      if data.learn[n].midich ~= nil then
-                        gfx.a = 0.8
-                        gfx.r, gfx.g, gfx.b = F_SetCol(color_t['blue'])
-                        gfx.rect(x,y,5,h)
-                        midi_offs = 7
+                    if data.learn ~= nil then
+                      if data.learn[n] ~= nil then
+                        midi_offs = 0
+                        if data.learn[n].midich ~= nil then
+                          gfx.a = 0.8
+                          gfx.r, gfx.g, gfx.b = F_SetCol(color_t['blue'])
+                          gfx.rect(x,y,5,h)
+                          midi_offs = 7
+                        end
+                        if data.learn[n].osc ~= nil then
+                          gfx.a = 0.8
+                          gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
+                          gfx.rect(x+midi_offs,y,5,h)
+                        end                      
                       end
-                      if data.learn[n].osc ~= nil then
-                        gfx.a = 0.8
-                        gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
-                        gfx.rect(x+midi_offs,y,5,h)
-                      end                      
                     end
                   end
                 end
@@ -1795,7 +1804,7 @@
             gfx.a = 1
               GUI_button(b_1_fix_xywh, 'Routing setup',1)
               GUI_button(b_close_xywh, 'X') 
-              GUI_button(b_2_xywh, 'Presets >')
+              GUI_button(b_2_xywh, 'Templates >')
             gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white']) 
             
             last_routing_config = data.routing[data.current_routing][rout_id].str
@@ -1857,12 +1866,14 @@
             gfx.a = 1
             gfx.r, gfx.g, gfx.b = F_SetCol(color_t['blue'])
             local val1 = data.map[last_routing_config_map][last_routing_config_sl].value
-            val1 = tostring(val1):sub(1,7)            
+            val1 = math.floor(val1*1000)/1000
+            --val1 = tostring(val1):sub(1,7)            
             gfx.drawstr(val1)
             gfx.x = graph_rect[1] + x_offset+val_x_offs
             gfx.y = graph_rect[2]-val_y_offs+15
             local val2 = data.map[last_routing_config_map2][last_routing_config_sl2].value
-            val2 = tostring(val2):sub(1,7)
+            val2 = math.floor(val2*1000)/1000
+            --val2 = tostring(val2):sub(1,7)
             gfx.drawstr(val2)
             
           -- formula
@@ -2433,7 +2444,8 @@
         '|abs(x)'..
         '|scaleto(x,limit_min,limit_max)'..
         '|x^a'..
-        '|<match(x,curve)'
+        '|match(x,curve)'..
+        '|<vca()'
         
                    
     if data.expert_mode == 0 then
@@ -2610,7 +2622,12 @@
         if ret_formula_act == 11 then 
           F_set_formula('match(x,curve)',data.current_routing,rout_id) 
         end         
-               
+
+      -- match   
+        if ret_formula_act == 12 then 
+          F_set_formula('vca()',data.current_routing,rout_id) 
+        end  
+                       
       end 
     end        
     
@@ -3239,40 +3256,37 @@
             if data.routing[i][k] ~= nil then
               data.routing[i][k].func = nil        
               codestring = data.routing[i][k].form
-              if data.routing[i][k].curve == nil then data.routing[i][k].curve = '' end
-              curve = data.routing[i][k].curve 
-              codestring = codestring:gsub('curve','"'..curve..'"')
-              
-              --[[t1 = {}
-              for num in data.routing[i][k].str:gmatch('[%d]+') do
-                table.insert(t1, tonumber(num))
-              end
-              local m = t1[1]
-              local sl = t1[2]]
-              
-              if data.expert_mode == nil or data.expert_mode == 0 then
-                -- check for other variables
-                  local t = {}
-                  for let in codestring:gmatch('[%a]+') do
-                    if let:len() == 1 and let ~= 'x' then table.insert(t, let) end
-                  end
-                  if #t > 0 then 
-                    codestring = 'x' 
-                    clear = 1 
-                  end
-              end
-              
+              if data.routing[i][k].form ~= 'vca()' then
+                if data.routing[i][k].curve == nil then data.routing[i][k].curve = '' end
+                curve = data.routing[i][k].curve 
+                codestring = codestring:gsub('curve','"'..curve..'"')
+                
                 if data.expert_mode == nil or data.expert_mode == 0 then
-                  data.routing[i][k].func = load
-                    (' local x = ... y='..codestring..' return y')
-                 else
-                  data.routing[i][k].func = load
-                     ('local x = ... m = ... sl = ... '..codestring..' return y')
+                  -- check for other variables
+                    local t = {}
+                    for let in codestring:gmatch('[%a]+') do
+                      if let:len() == 1 and let ~= 'x' then table.insert(t, let) end
+                    end
+                    if #t > 0 then 
+                      codestring = 'x' 
+                      clear = 1 
+                    end
+                end
+                
+                if data.expert_mode == nil or data.expert_mode == 0 then
+                  
+                    data.routing[i][k].func = load
+                      (' local x = ... val = ... y='..codestring..' return y')
+                    else
+                    data.routing[i][k].func = load
+                      ('local x = ... m = ... sl = ... val = ...  '..codestring..' return y')
+                  
                 end
                
                 
-              -- clear if bad
-                if clear == 1 then data.routing[i][k].form = 'x' end
+                -- clear if bad
+                  if clear == 1 then data.routing[i][k].form = 'x' end
+              end
                 
             end
           end
@@ -3282,23 +3296,30 @@
   end
   
 -----------------------------------------------------------------------     
-  function ENGINE_apply_routing(map,sl)
+  function ENGINE_apply_routing(map,sl,dy)
+    if dy == nil then dy = 0 end
     if map ~= nil and sl ~= nil then
       if data.routing[data.current_routing] ~= nil then
         for i = 1, #data.routing[data.current_routing] do
-          local t2 = {}
+          t2 = {}
           for num in data.routing[data.current_routing][i].str:gmatch('[^%s]+') do
             table.insert(t2, num)
           end
           
-          
           if tonumber(t2[1]) == map and tonumber(t2[2]) == sl then
             x = ENGINE_GetSetParamValue(tonumber(t2[1]),tonumber(t2[2]), false)
-            local func = data.routing[data.current_routing][i].func
-            if func ~= nil then
+            val = ENGINE_GetSetParamValue(tonumber(t2[3]),tonumber(t2[4]), false)
+            local func = data.routing[data.current_routing][i].func            
+            if data.routing[data.current_routing][i].form:find('vca()') ~= nil then
               local m = tonumber(t2[3])
               local sl = tonumber(t2[4])
-              ENGINE_GetSetParamValue(m,sl, true, F_limit(func(x, m, sl),0,1))
+              ENGINE_GetSetParamValue(m, sl, true, val+dy)
+             else
+              if func ~= nil then
+                local m = tonumber(t2[1])
+                local sl = tonumber(t2[2])
+                ENGINE_GetSetParamValue(m,sl, true, F_limit(func(x, m, sl), 0.0000001,1))
+              end
             end
           end
         end
@@ -3642,7 +3663,7 @@
               if mouse.last_touched_slider ~= nil and mouse.LMB_state then 
                 if data.current_window == 0 then 
                   local ret = ENGINE_GetSetParamValue(data.current_map, mouse.last_touched_slider, true, 
-                    (mouse.mx - control_area_xywh[1])/control_area_xywh[3] ,0,1) end
+                    (mouse.mx - control_area_xywh[1])/control_area_xywh[3] ,0.0000001,1) end
                 data.bottom_info_slider = mouse.last_touched_slider
                 data.bottom_info_map = mouse.last_touched_map
               end              
@@ -3681,7 +3702,7 @@
                 mouse.LMB_state then  
                 if not mouse.Ctrl_state and not mouse.Ctrl_state2 then
                     ENGINE_GetSetParamValue(mouse.last_touched_map, mouse.last_touched_slider, true, 
-                      F_limit((mouse.last_touched_value - mouse.dy/main_xywh[4]*knob_sens),0,1))
+                      F_limit((mouse.last_touched_value - mouse.dy/main_xywh[4]*knob_sens),0.0000001,1))
                 end                     
               end
             end    
@@ -4085,17 +4106,9 @@
             _, form = reaper.GetUserInputs('Change formula', 1, 'Type formula', 
               data.routing[data.current_routing][rout_id].form)
               if form == '' then form = 'x' end
-              --[[local test_func1= load("local x = ... return "..form)
-              local test_func2= load('local x = ... '..form..' if y == nil then y = 0 end return y')
-            if test_func1 ~= nil or test_func2 ~= nil then
-              test_y1 = test_func1(0)
-              test_y2 = test_func2(0)
-              if test_y1 ~= nil or test_y2 ~= 0  then]]
-                data.routing[data.current_routing][rout_id].form = form
-                ENGINE_return_data_to_projextstate2(false)
-                ENGINE_dump_functions_to_routing_table()
-              --[[end
-            end]]
+              data.routing[data.current_routing][rout_id].form = form
+              ENGINE_return_data_to_projextstate2(false)
+              ENGINE_dump_functions_to_routing_table()
           end
           
         -- draw func
@@ -4133,6 +4146,10 @@
   function DEFINE_global_variables()
     
     data = {}
+    
+    data.dev_mode = 1
+    data.expert_mode = 0
+    
     data.map = {}
     data.routing = {}
     data.slider_count = 16
@@ -4153,8 +4170,6 @@
     data.use_learn = 0 -- 0 not use -- 1 global -- 2 local
     data.current_fixedlearn = 0 -- 0 - midi 1 - osc
     data.use_ext_actions = 0 
-    data.dev_mode = 0
-    data.expert_mode = 0
     set_learn = true
     
     main_xywh = {0,0,300,600}    
