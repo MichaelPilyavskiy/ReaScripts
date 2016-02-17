@@ -4,15 +4,15 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.21
+   * Version: 1.22
   ]]
 
-  local vrs = 1.21
+  local vrs = 1.22
   local changelog =
 [===[ 
-17.02.2016  1.21
+17.02.2016  1.22
             # Potential error with #1009
-            + vca() for basic mode (beta)
+            + vca() for basic mode - beta
 14.01.2016  1.20
             # FL issues
 11.01.2016  1.19
@@ -3316,8 +3316,9 @@
               ENGINE_GetSetParamValue(m, sl, true, val+dy)
              else
               if func ~= nil then
-                local m = tonumber(t2[1])
-                local sl = tonumber(t2[2])
+                local m = tonumber(t2[3])
+                local sl = tonumber(t2[4])
+                msg(func(x, m, sl))
                 ENGINE_GetSetParamValue(m,sl, true, F_limit(func(x, m, sl), 0.0000001,1))
               end
             end
