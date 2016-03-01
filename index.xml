@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="36339ad4ea097afc77062f825945d93e6b36c52b">
+<index version="1" commit="714b9091eec20f9ed8fb33fe0e46224e0baedf59">
   <category name="FX">
     <reapack name="mpl_Bypass all FX except instruments on all tracks .lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
@@ -149,6 +149,13 @@
     <reapack name="mpl_Set fadeout of item under cursor to mouse position.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-11T12:16:41Z">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b13a6f6b2e1c5f1f0292ab3f8c445c43b3cbd62f/Items%20Properties/mpl_Set%20fadeout%20of%20item%20under%20cursor%20to%20mouse%20position.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Send midi source as channel x.lua" type="script">
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-17T09:33:10Z">
+        <changelog><![CDATA[(2016-02-17)
++ Initial Release]]></changelog>
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/062e91fb0a2b44e2605852d1244271e0e506b96f/Items%20Properties/mpl_Send%20midi%20source%20as%20channel%20x.lua</source>
       </version>
     </reapack>
   </category>
@@ -441,6 +448,15 @@
       <version name="1.20" author="Michael Pilyavskiy (mpl)" time="2016-01-14T06:27:14Z">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/21d027d729149aaa9c88c21ecee3b45cf38b608f/Various/mpl_Mapping%20Panel.lua</source>
       </version>
+      <version name="1.21" author="Michael Pilyavskiy (mpl)" time="2016-02-17T11:42:02Z">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb98b9f56e929a5915f9f6a2e9912f1f2175e655/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.22" author="Michael Pilyavskiy (mpl)" time="2016-02-17T11:56:41Z">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e78b392dfd885bb025417bb9d0568b05ef7c81b4/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.23" author="Michael Pilyavskiy (mpl)" time="2016-02-17T12:11:06Z">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4f98e477a45c9b47e6556cd7dfa7ef4d7f767c7a/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-06T06:37:48Z">
@@ -461,6 +477,9 @@
       </version>
       <version name="1.02" author="Michael Pilyavskiy (mpl)" time="2016-02-12T19:22:23Z">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15a795c41ff9ea04d17ce0ac693d8da2101e4275/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="1.04" author="Michael Pilyavskiy (mpl)" time="2016-02-16T22:31:31Z">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d5d4ca4ce375650f0363c06f9ba2682c3ee00138/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
   </category>
