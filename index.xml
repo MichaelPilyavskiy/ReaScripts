@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="714b9091eec20f9ed8fb33fe0e46224e0baedf59">
+<index version="1" commit="65fbf5cf8d1a18b817b4f4899ee54051ad257f6a">
   <category name="FX">
     <reapack name="mpl_Bypass all FX except instruments on all tracks .lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
@@ -67,6 +67,11 @@
     <reapack name="mpl_List all MIDI OSC learn from focused fx.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-07T07:10:56Z">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/602859da73409c42347ed21b136e96f1690f464f/FX/mpl_List%20all%20MIDI%20OSC%20learn%20from%20focused%20fx.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Show instrument in FX chain on track under mouse cursor.lua" type="script">
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-29T09:56:53Z">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/acc63acaffa51a079ee8c076cbe896501ffa582f/FX/mpl_Show%20instrument%20in%20FX%20chain%20on%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
   </category>
@@ -356,11 +361,6 @@
     </reapack>
   </category>
   <category name="Various">
-    <reapack name="mpl_Delete non-existent scripts from Action List.lua" type="script">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Various/mpl_Delete%20non-existent%20scripts%20from%20Action%20List.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Implode mono track session to stereo items relative to LR at the trackname end.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Various/mpl_Implode%20mono%20track%20session%20to%20stereo%20items%20relative%20to%20LR%20at%20the%20trackname%20end.lua</source>
