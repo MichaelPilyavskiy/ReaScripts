@@ -4,12 +4,14 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.23
+   * Version: 1.24
   ]]
 
-  local vrs = 1.23
+  local vrs = 1.24
   local changelog =
 [===[ 
+02.03.2016  1.24
+            + Developer mode: bezier curves
 17.02.2016  1.23
             # Potential error with #1009
             + vca() for basic mode - beta
@@ -284,37 +286,6 @@
     end    
   end
 
- -----------------------------------------------------------------------    
-  function F_draw_cable_by_DarkStar(SX, SY, EX, EY)
-    FX = 0.90
-    
-    --[[c1 = 1750
-    c2 = 0.95
-    c3 = 15
-    c4 = 200]]
-    
-    c1 = 1000
-    c2 = 0.99
-    c3 = 15
-    c4 = 200
-    
-    yy1 = math.floor(c1 * (EY - SY ) ^ -c2) -- from Excel trend line
-    FY  = math.floor(yy1/(c3 - (EY - SY )/c4)) -- nudging / fudging
-    
-    gfx.x = SX
-    gfx.y = SY
-    
-    pin =3
-   
-    for i = 0, 100*time_gfx do
-      gfx.a = 0.70
-      t = i/100
-      x = (1-t) * (1-t)* SX + 2 * (1-t) * t * (EX - SX)* FX + (t^2 * EX)
-      y = (1-t) * (1-t)* SY + 2 * (1-t) * t * (EY - SY)* FY + (t * t * EY)
-      gfx.lineto(x, y, 0)
-      gfx.a = 0.40
-    end
-  end
   
 -----------------------------------------------------------------------    
   function F_open_URL(url)    
@@ -1612,6 +1583,46 @@
                               y1 + (y2-y1)*time_gfx,aa)
                     end
                   end  
+               -----------------------------------   
+                  function F_wire_arrow2(r,g,b,a,x1,y1,x3,y3) 
+                 
+                    x1 = x1 +0.5
+                    x3 = x3 +0.5
+                    y1 = y1
+                    y3 = y3+ 0.5
+                    
+                    x2 = (x3 - x1)/2      
+                    y2 = y1 - (y3 - y1)/2
+                    
+                    function draw_curve(x_table, y_table)
+                      order = #x_table
+                      ----------------------------
+                      function fact(n) if n == 0 then return 1 else return n * fact(n-1) end end
+                      ----------------------------
+                      function bezier_eq(n, tab_xy, dt)
+                        local B = 0
+                        for i = 0, n-1 do
+                          B = B + 
+                            ( fact(n) / ( fact(i) * fact(n-i) ) ) 
+                            *  (1-dt)^(n-i)  
+                            * dt ^ i
+                            * tab_xy[i+1]
+                        end 
+                        return B
+                      end  
+                     
+                      for t = 0, 1, 0.001 do
+                        x_point = bezier_eq(order, x_table, t)+ t^order*x_table[order]
+                        y_point = bezier_eq(order, y_table, t)+ t^order*y_table[order] 
+                        gfx.x = x_point
+                        gfx.y = y_point
+                        gfx.a = a
+                        gfx.setpixel(r,g,b)
+                      end    
+                    end
+                    
+                    draw_curve({x1,x2,x3},{y1,y2,y3})
+                  end                    
                ----------------------------------- 
               if data.routing[data.current_routing] ~= nil then
                 for i = 1, #data.routing[data.current_routing] do                    
@@ -1630,26 +1641,34 @@
                     gfx.r, gfx.g, gfx.b = F_SetCol(color_t['white']) 
                     
                     if tonumber(out_link[1]) == data.bottom_info_map and tonumber(out_link[2]) == data.bottom_info_slider then
-                      gfx.a = 0.15
-                      gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
-                      F_wire_arrow(x1,y1,x2,y2)
+                      local alp= 0.15
+                      gfx.a = alp
                       if data.dev_mode ~= nil and data.dev_mode == 1 then
-                        F_draw_cable_by_DarkStar(x1,y1,x2,y2)
+                        r,g,b = F_SetCol(color_t['green'])
+                        F_wire_arrow2(r,g,b,0.3, x1,y1,x2,y2)
+                       else
+                        gfx.r, gfx.g, gfx.b = F_SetCol(color_t['green'])
+                        F_wire_arrow(x1,y1,x2,y2)
                       end
                     end
                                         
                     if tonumber(out_link[3]) == data.bottom_info_map and tonumber(out_link[4]) == data.bottom_info_slider then
-                      gfx.a = 0.3
-                      gfx.r, gfx.g, gfx.b = F_SetCol(color_t['blue'])
-                      F_wire_arrow(x1,y1,x2,y2)
+                      local alp= 0.3
+                      gfx.a = alp
                       if data.dev_mode ~= nil and data.dev_mode == 1 then
-                        F_draw_cable_by_DarkStar(x1,y1,x2,y2)
+                        r,g,b = F_SetCol(color_t['blue'])
+                        F_wire_arrow2(r,g,b,0.8, x1,y1,x2,y2)
+                       else
+                          gfx.r, gfx.g, gfx.b = F_SetCol(color_t['blue'])
+                          F_wire_arrow(x1,y1,x2,y2)
                       end
                     end                    
                     
                     gfx.a = 0.1
                     gfx.r, gfx.g, gfx.b = F_SetCol(color_t['back2']) 
-                    gfx.line(x1+0.5,y1,x2+0.5,y2,aa)
+                    if data.dev_mode ~= nil and data.dev_mode == 0 then
+                      gfx.line(x1+0.5,y1,x2+0.5,y2,aa)
+                    end
                     
                     
                   end
