@@ -35,4 +35,7 @@
     reaper.UpdateItemInProject(item)
   end
   
+  script_title = "Add CC64 on to channel 0 of active MIDI Editor take"
+  reaper.Undo_BeginBlock()
   main()
+  reaper.Undo_EndBlock(script_title, 0)
