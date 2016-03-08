@@ -4,11 +4,13 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.04
+   * Version: 1.05
   ]]
   
 --[[
   * Changelog: 
+  * v1.05 (2016-03-08)
+    # save/restore window position (Reaper 5.20pre16+)
   * v1.04 (2016-02-17)
     # ReaPack changelog synthax
   * v1.03 (2016-02-16)
@@ -31,7 +33,7 @@
   --]]
   
   function bmrk() end
-  local vrs = '1.04'
+  local vrs = '1.05'
 ----------------------------------------------------------------------- 
   function msg(str)
     if type(str) == 'boolean' then if str then str = 'true' else str = 'false' end end
@@ -77,13 +79,22 @@
     if compact_view_trig then 
       objects.main_h = objects.main_h + data.compact_view*objects.set_wind_h
       gfx.quit()
-      gfx.init("mpl Align takes // "..vrs, objects.main_w, objects.main_h, 0)
+      gfx.init("mpl Align takes // "..vrs, objects.main_w, objects.main_h, 0, data.xpos,data.ypos )
       compact_view_trig = false
     end 
     
     char = gfx.getchar()
     play_pos = reaper.GetPlayPosition(0)
     OS = reaper.GetOS()
+    
+    reaper_vrs = tonumber(reaper.GetAppVersion():match('[%d%.]+'))
+    if reaper_vrs >= 5.20 then
+      is_docked, xpos, ypos = gfx.dock(0,data.xpos,data.ypos)
+      if data.xpos ~= xpos or  data.ypos ~= ypos then 
+        data.xpos, data.ypos = xpos, ypos
+        ENGINE_set_ini(data, config_path) 
+      end
+    end
   end
   
 -----------------------------------------------------------------------  
@@ -607,7 +618,7 @@
 
 ----------------------------------------------------------------------- 
   --[[ check by every block with relative diff / k / ref_rms
-  function ENGINE_compare_data2_alg2_test(ref_arr_orig, dub_arr_orig, points, window_sec) 
+  function ENGINE_compare_data2_alg3_test(ref_arr_orig, dub_arr_orig, points, window_sec) 
       local st_search, end_search
       
       if ref_arr_orig == nil then return end
@@ -2067,6 +2078,10 @@ Blue knobs related to building envelope
       data.search_area_norm = 0.1
             
       data.compact_view = 0 -- default mode
+      
+      data.xpos = 200
+      data.ypos = 200
+      
     return data,data2
   end
 
@@ -2090,7 +2105,7 @@ Blue knobs related to building envelope
   data,data2 = DEFINE_global_variables()
   MAIN_search_ini(data)
   objects = DEFINE_objects()
-  gfx.init("mpl Align takes // "..vrs, objects.main_w, objects.main_h, 0)
+  gfx.init("mpl Align takes // "..vrs, objects.main_w, objects.main_h, 0, data.xpos, data.ypos)
   objects = nil
   update_gfx = true
   compact_view_trig = true
