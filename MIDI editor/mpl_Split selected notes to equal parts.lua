@@ -1,5 +1,5 @@
   --[[
-     * ReaScript Name: Split notes to equal parts
+     * ReaScript Name: Split selected notes to equal parts
      * Lua script for Cockos REAPER
      * Author: Michael Pilyavskiy (mpl)
      * Author URI: http://forum.cockos.com/member.php?u=70694
@@ -16,7 +16,7 @@
   
   function SplitNotes(div)
     if div == nil or div <= 0 then return end
-    local midieditor, take, notes, notes_t, len, len_div
+    local midieditor, take, notes, len, len_div--, notes_t
     midieditor = reaper.MIDIEditor_GetActive()
     if midieditor == nil then return end
     take = reaper.MIDIEditor_GetTake(midieditor)
@@ -32,27 +32,38 @@
       for i = 1, notes do reaper.MIDI_DeleteNote(take, 0) end
       
       for i = 1, #notes_t do
-        len = notes_t[i].ending - notes_t[i].start
-        len_div = len / div
-        for j = 1, div do
+        if notes_t[i].sel then
+          len = notes_t[i].ending - notes_t[i].start
+          len_div = len / div
+          for j = 1, div do
+            reaper.MIDI_InsertNote(take, 
+                                  notes_t[i].sel, 
+                                  notes_t[i].muted, 
+                                  notes_t[i].start + (j-1) * len_div , 
+                                  notes_t[i].start + (j-1) * len_div + len_div, 
+                                  notes_t[i].chan, 
+                                  notes_t[i].pitch, 
+                                  notes_t[i].vel)          
+          end
+          reaper.MIDI_Sort(take)
+         else
           reaper.MIDI_InsertNote(take, 
                                 notes_t[i].sel, 
                                 notes_t[i].muted, 
-                                notes_t[i].start + (j-1) * len_div , 
-                                notes_t[i].start + (j-1) * len_div + len_div, 
+                                notes_t[i].start, 
+                                notes_t[i].ending, 
                                 notes_t[i].chan, 
                                 notes_t[i].pitch, 
-                                notes_t[i].vel)          
+                                notes_t[i].vel)   
         end
-        reaper.MIDI_Sort(take)
       end    
       
     end
   end
   
-  script_title = "Split notes to equal parts"
+  script_title = "Split selected notes to equal parts"
   
-  _, div_ret = reaper.GetUserInputs('Split notes to equal parts', 1, 'Divide each notes by', '')
+  _, div_ret = reaper.GetUserInputs('Split selected notes to equal parts', 1, 'Divide each notes by', '')
   div = tonumber(div_ret)
   
   if div ~= nil then
@@ -60,3 +71,4 @@
     SplitNotes(div)
     reaper.Undo_EndBlock(script_title, 0)
   end
+  
