@@ -45,7 +45,6 @@
                                   notes_t[i].pitch, 
                                   notes_t[i].vel)          
           end
-          reaper.MIDI_Sort(take)
          else
           reaper.MIDI_InsertNote(take, 
                                 notes_t[i].sel, 
@@ -56,7 +55,8 @@
                                 notes_t[i].pitch, 
                                 notes_t[i].vel)   
         end
-      end    
+      end 
+      reaper.MIDI_Sort(take)   
       
     end
   end
