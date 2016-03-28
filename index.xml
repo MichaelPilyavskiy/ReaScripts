@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="09dd2087376277711bd0170d161249e5191ec658">
+<index version="1" commit="f3c1bbdeed53b928195278a0e7c99e748186fe92">
   <category name="FX">
     <reapack name="mpl_Bypass all FX except instruments on all tracks .lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
@@ -198,6 +198,11 @@
     <reapack name="mpl_Add CC64 off to channel 0 of active MIDI Editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T15:37:32Z">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/09dd2087376277711bd0170d161249e5191ec658/MIDI%20editor/mpl_Add%20CC64%20off%20to%20channel%200%20of%20active%20MIDI%20Editor%20take.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Split selected notes to equal parts.lua" type="script">
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-10T10:47:28Z">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5709e04c5222b5fbd6915f77dedb84f4f31f2519/MIDI%20editor/mpl_Split%20selected%20notes%20to%20equal%20parts.lua</source>
       </version>
     </reapack>
   </category>
@@ -493,6 +498,9 @@
       </version>
       <version name="1.04" author="Michael Pilyavskiy (mpl)" time="2016-02-16T22:31:31Z">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d5d4ca4ce375650f0363c06f9ba2682c3ee00138/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="1.05" author="Michael Pilyavskiy (mpl)" time="2016-03-08T08:49:30Z">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/145bc459ff10c7d54c14851780039c640d267936/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
   </category>
