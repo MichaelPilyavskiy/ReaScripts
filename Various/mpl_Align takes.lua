@@ -4,11 +4,13 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.05
+   * Version: 1.06
   ]]
   
 --[[
   * Changelog: 
+  * v1.06 (2016-03-31)
+    # Fixed alg=0 error
   * v1.05 (2016-03-08)
     # save/restore window position (Reaper 5.20pre16+)
   * v1.04 (2016-02-17)
@@ -33,7 +35,7 @@
   --]]
   
   function bmrk() end
-  local vrs = '1.05'
+  local vrs = '1.06'
 ----------------------------------------------------------------------- 
   function msg(str)
     if type(str) == 'boolean' then if str then str = 'true' else str = 'false' end end
@@ -2003,6 +2005,8 @@ Blue knobs related to building envelope
     end
     if out_str == nil or tonumber(out_str) == nil then out_str = default_data[var] end
     data[var] = tonumber(out_str)
+    
+    if data.alg == 0 then data.alg = 1 end -- 1.06 strange thing but should works
   end
   
 -----------------------------------------------------------------------  
