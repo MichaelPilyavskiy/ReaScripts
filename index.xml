@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f3c1bbdeed53b928195278a0e7c99e748186fe92">
+<index version="1" commit="0c5d6cf13921b9f2a2366c586bc8efec9a8e9839">
   <category name="FX">
     <reapack name="mpl_Bypass all FX except instruments on all tracks .lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
@@ -501,6 +501,9 @@
       </version>
       <version name="1.05" author="Michael Pilyavskiy (mpl)" time="2016-03-08T08:49:30Z">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/145bc459ff10c7d54c14851780039c640d267936/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="1.06" author="Michael Pilyavskiy (mpl)" time="2016-03-31T20:20:45Z">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c5d6cf13921b9f2a2366c586bc8efec9a8e9839/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
   </category>
