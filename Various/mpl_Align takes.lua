@@ -4,11 +4,13 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.06
+   * Version: 1.07
   ]]
   
 --[[
   * Changelog: 
+  * v1.07 (2016-04-01)
+    # Set slider to 0 when get takes
   * v1.06 (2016-03-31)
     # Fixed alg=0 error
   * v1.05 (2016-03-08)
@@ -35,7 +37,7 @@
   --]]
   
   function bmrk() end
-  local vrs = '1.06'
+  local vrs = '1.07'
 ----------------------------------------------------------------------- 
   function msg(str)
     if type(str) == 'boolean' then if str then str = 'true' else str = 'false' end end
@@ -1805,6 +1807,7 @@ Blue knobs related to building envelope
             end 
             update_gfx = true 
             trig_process = nil
+            w1_slider = 0
           end
           
           
