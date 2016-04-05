@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2af2f345e50b37e579aeec8ff54ce1c52398291f" name="MPL Scripts">
+<index version="1" commit="2417aeab81b2b18eee19705662ba33de091d6fec" name="MPL">
   <category name="Various">
     <reapack name="mpl_Align takes.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-11T10:12:56Z">
@@ -159,6 +159,9 @@
     <reapack name="mpl_Bypass all UAD FX on all tracks.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/FX/mpl_Bypass%20all%20UAD%20FX%20on%20all%20tracks.lua</source>
+      </version>
+      <version name="1.1" author="Michael Pilyavskiy (mpl)" time="2016-04-05T16:55:41Z">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78a4f0aadfc0833f9ce1fe1f3f3ec79390a34909/FX/mpl_Bypass%20all%20UAD%20FX%20on%20all%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Cubase AB floating FX make equal.lua" type="script">
