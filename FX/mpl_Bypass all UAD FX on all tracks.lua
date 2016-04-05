@@ -1,16 +1,17 @@
 --[[
-   * ReaScript Name:Bypass all UAD FX on all tracks
+   * Bypass all UAD FX on all tracks
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
-   * Author URI: http://forum.cockos.com/member.php?u=70694
+   * Author URL: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.0
+   * Version: 1.1
   ]]
   
-script_title = "Bypass all UAD FX on all tracks"
+  script_title = "Bypass all UAD FX on all tracks"
   reaper.Undo_BeginBlock()
   
   plug_name = "UAD"
+  enable = true
   
   trackcount = reaper.CountTracks(0)
   if trackcount ~= nil then
@@ -21,7 +22,7 @@ script_title = "Bypass all UAD FX on all tracks"
         for j = 1, fx_count do
           retval, fx_name = reaper.TrackFX_GetFXName(track, j-1, "")
           if string.find(fx_name, plug_name) ~= nil then
-            reaper.TrackFX_SetEnabled(track, j-1, false)
+            reaper.TrackFX_SetEnabled(track, j-1, enable)
           end
         end
       end  
@@ -34,7 +35,7 @@ script_title = "Bypass all UAD FX on all tracks"
       for j = 1, fx_count do
         retval, fx_name = reaper.TrackFX_GetFXName(track, j-1, "")
         if string.find(fx_name, plug_name) ~= nil then
-          reaper.TrackFX_SetEnabled(track, j-1, false)
+          reaper.TrackFX_SetEnabled(track, j-1, enable)
         end
       end
     end  
