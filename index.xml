@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2417aeab81b2b18eee19705662ba33de091d6fec" name="MPL">
+<index version="1" commit="af49922de4aa87a7dff126b444f57ab9c3bbcfe0" name="MPL Scripts">
   <category name="Various">
     <reapack name="mpl_Align takes.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-11T10:12:56Z">
