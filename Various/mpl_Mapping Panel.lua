@@ -4,12 +4,15 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.24
+   * Version: 1.25
   ]]
 
-  local vrs = 1.24
+  local vrs = 1.25
   local changelog =
+
 [===[ 
+18.04.2016  1.25
+            # Formatted values
 02.03.2016  1.24
             + Developer mode: bezier curves
 17.02.2016  1.23
@@ -550,8 +553,8 @@
   
 -----------------------------------------------------------------------   
   function DEFINE_dynamic_variables2_defer_release()
-    last_ReaProject = ReaProject
-    
+  
+    last_ReaProject = ReaProject        
     last_w = gfx.w
     last_h = gfx.h
     
@@ -573,6 +576,7 @@
     last_touched_map, last_touched_slider = nil,nil 
     last_StateChangeCount = StateChangeCount
     last_dirty_state = dirty_state
+    
   end
 
 ----------------------------------------------------------------------- 
@@ -584,8 +588,7 @@
     local max_len = 40
     
     if data.map[i] == nil then return empty end
-    if data.map[i][k] == nil then return empty end
-    
+    if data.map[i][k] == nil then return empty end    
     if data.map[i][k].track_guid == nil then return empty end
     if data.map[i][k].fx_guid == nil then return empty end
     if data.map[i][k].paramnumber == nil then return empty end
@@ -593,9 +596,7 @@
     track = reaper.BR_GetMediaTrackByGUID(0, data.map[i][k].track_guid)
     if track == nil then return not_found end
     _, trackname = reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', '', false)
-    if trackname == "" then 
-      trackname = '<Untitled track '..reaper.CSurf_TrackToID(track, false)..'>' 
-    end
+    if trackname == "" then trackname = '<Untitled track '..reaper.CSurf_TrackToID(track, false)..'>' end
     if trackname == '<Untitled track 0>' then trackname = '<Master track>' end
     
     fx_count = reaper.TrackFX_GetCount(track)
@@ -613,6 +614,8 @@
     _, param_name = reaper.TrackFX_GetParamName(track, fx_guid_act_id,data.map[i][k].paramnumber, '')
     
     out_value = reaper.TrackFX_GetParamNormalized(track, fx_guid_act_id, data.map[i][k].paramnumber)
+    _, out_value_formatted = 
+      reaper.TrackFX_GetFormattedParamValue(track, fx_guid_act_id, data.map[i][k].paramnumber, '')
     
     if is_set then       
       if in_value == nil then fdebug('Set param value not found') value = 0 end
@@ -626,7 +629,8 @@
         fxname,
         param_name,
         track,
-        fx_guid_act_id
+        fx_guid_act_id,
+        out_value_formatted
     end
   end    
   
@@ -1308,8 +1312,11 @@
             gfx.setimgdim(4, control_area_xywh[3], control_area_xywh[4]) 
             gfx.a = 1
             for k = 1, data.slider_count do
-              if data.map[data.current_map] == nil or data.map[data.current_map][k] == nil then val = -1 
-               else val = data.map[data.current_map][k].value end
+              if data.map[data.current_map] == nil or data.map[data.current_map][k] == nil then 
+                val = -1
+               else 
+                val = data.map[data.current_map][k].value
+              end
               GUI_slider(k, val)
             end
           end
@@ -1327,6 +1334,7 @@
           obj_w = main_xywh[3]-2*x_offset
           gfx.setfont(1, data.fontname, button_fontsize)
           local text_offset = gfx.texth
+          
         if update_gfx_minor and 
           (data.current_window == 0 or data.current_window == 2 or data.current_window == 3) then
           gfx.setimgdim(5, -1, -1)  
@@ -1337,7 +1345,7 @@
             gfx.rect(0,0,obj_w, bottom_info_h, true)
           -- info 
             if data.bottom_info_map ~= nil and data.bottom_info_slider ~= nil then
-              val, trackname, fxname, param_name = ENGINE_GetSetParamValue(data.bottom_info_map,data.bottom_info_slider, false)            
+              val, trackname, fxname, param_name, _, _, val_formatted = ENGINE_GetSetParamValue(data.bottom_info_map,data.bottom_info_slider, false)            
               if val >= 0 and val <= 1 then
                 gfx.a = 0.85
                 gfx.x, gfx.y = x_offset,0
@@ -1348,7 +1356,8 @@
                   gfx.drawstr(data.map[data.bottom_info_map][data.bottom_info_slider].gfx_name)                
                 -- value
                   gfx.x, gfx.y = x_offset,text_offset*2
-                  gfx.drawstr(val)
+                  --gfx.drawstr(val)
+                  gfx.drawstr(val_formatted)
                 -- track
                   gfx.x, gfx.y = x_offset,text_offset*3
                   gfx.drawstr(trackname)
