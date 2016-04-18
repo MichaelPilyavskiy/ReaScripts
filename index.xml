@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="af49922de4aa87a7dff126b444f57ab9c3bbcfe0" name="MPL Scripts">
+<index version="1" commit="9cb5e712cf38c6f1a78505ea04766f650749fb73" name="MPL Scripts">
   <category name="Various">
     <reapack name="mpl_Align takes.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-11T10:12:56Z">
@@ -104,6 +104,9 @@
       </version>
       <version name="1.24" author="Michael Pilyavskiy (mpl)" time="2016-03-02T07:31:07Z">
         <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/05427f57b4faafe406f93657794fc0343746efb1/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.25" author="Michael Pilyavskiy (mpl)" time="2016-04-18T19:00:18Z">
+        <source platform="all">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9cb5e712cf38c6f1a78505ea04766f650749fb73/Various/mpl_Mapping%20Panel.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted.lua" type="script">
