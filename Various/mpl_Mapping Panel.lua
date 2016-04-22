@@ -4,13 +4,15 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.25
+   * Version: 1.26
   ]]
 
-  local vrs = 1.25
+  local vrs = 1.26
   local changelog =
 
 [===[ 
+22.04.2016  1.26
+            + saw(x, period)
 18.04.2016  1.25
             # Formatted values
 02.03.2016  1.24
@@ -197,6 +199,11 @@
  -----------------------------------------------------------------------   
  ----------------------------------------------------------------------- 
  -- formula functions
+  function saw(x,period)
+    if x ~= nil and period ~= nil then return 
+      0.5-(math.atan(1/math.tan((x*math.pi)/period)))/math.pi
+    end
+  end
   function vca() end 
   function lim(x, lim_s, lim_e) if x ~= nil then return F_limit(x,lim_s,lim_e) end end
   function scaleto(x, lim_s, lim_e) if x ~= nil then return x*(math.abs(lim_s-lim_e))+ lim_s end end
@@ -2473,7 +2480,8 @@
         '|scaleto(x,limit_min,limit_max)'..
         '|x^a'..
         '|match(x,curve)'..
-        '|<vca()'
+        '|vca()'..
+        '|<saw(x,period)'
         
                    
     if data.expert_mode == 0 then
@@ -2549,7 +2557,9 @@
         if ret_formula_act == 18 then F_set_formula('y = scaleto(x, 0, 1)', data.current_routing, rout_id) end 
         if ret_formula_act == 19 then F_set_formula('y = x ^ 1', data.current_routing, rout_id) end 
         if ret_formula_act == 20 then F_set_formula('y = match(x, curve)', data.current_routing, rout_id) end 
-        if ret_formula_act == 21 then F_open_URL('http://lua-users.org/wiki/MathLibraryTutorial') end
+        if ret_formula_act == 21 then F_set_formula('y = vca()', data.current_routing, rout_id) end 
+        if ret_formula_act == 22 then F_set_formula('y = saw(x, period)', data.current_routing, rout_id) end 
+        if ret_formula_act == 23 then F_open_URL('http://lua-users.org/wiki/MathLibraryTutorial') end
     end
     
     if data.expert_mode == 0 then       
@@ -2655,7 +2665,12 @@
         if ret_formula_act == 12 then 
           F_set_formula('vca()',data.current_routing,rout_id) 
         end  
-                       
+
+      -- saw   
+        if ret_formula_act == 13 then 
+          F_set_formula('saw(x,period)',data.current_routing,rout_id) 
+        end  
+                               
       end 
     end        
     
