@@ -4,22 +4,24 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.26
+   * Version: 1.27
   ]]
 
-  local vrs = 1.26
+  local vrs = 1.27
   local changelog =
 
 [===[ 
+30.04.2016  1.27
+            + Actions: Slider/Link to all same parameters in all instances
 22.04.2016  1.26
-            + saw(x, period)
+            + Expert mode / Formula templates / saw(x, period)
 18.04.2016  1.25
             # Formatted values
 02.03.2016  1.24
             + Developer mode: bezier curves
 17.02.2016  1.23
             # Potential error with #1009
-            + vca() for basic mode - beta
+            + Formula templates / vca() for basic mode - beta
 14.01.2016  1.20
             # FL issues
 11.01.2016  1.19
@@ -587,6 +589,37 @@
   end
 
 ----------------------------------------------------------------------- 
+
+  function ENGINE_SetComParams(track0,fxname0,paramname0, value)
+    local c_tracks = reaper.CountTracks(0)
+    if c_tracks ~= nil then
+      for i = 0, c_tracks do
+        local tr = reaper.GetTrack(0,i-1)
+        if tr ~= nil then
+          local c_fx = reaper.TrackFX_GetCount(tr)
+          if c_fx > 0 then
+            for j = 0, c_fx do
+              local _, fx_name = reaper.TrackFX_GetFXName(tr, j-1, '')
+              if fx_name == fxname0 then
+                local c_par = reaper.TrackFX_GetNumParams(tr, j-1)
+                for k = 1, c_par do
+                  _, param_name = reaper.TrackFX_GetParamName(tr, j-1, k-1, '')
+                  if param_name == paramname0 then
+                    reaper.TrackFX_SetParamNormalized(tr, j-1, k-1, value) 
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+
+
+  end
+        
+        
+----------------------------------------------------------------------- 
   function ENGINE_GetSetParamValue(i,k, is_set, in_value)
     local track, fx_count,fx_guid,fx_guid_act_id,value, ret, trackname, 
       fxname  ,param_name,out_value, value
@@ -628,6 +661,10 @@
       if in_value == nil then fdebug('Set param value not found') value = 0 end
       value = F_limit(in_value , 0.0000001, 1)
       ret = reaper.TrackFX_SetParamNormalized(track, fx_guid_act_id, data.map[i][k].paramnumber, value)
+      if data.map[i][k].is_common ~= nil then 
+        local com_var = data.map[i][k].is_common
+        if tonumber(com_var) == 1 then ENGINE_SetComParams(track,fxname,param_name, value) end
+      end
       return ret
      else
       return 
@@ -980,7 +1017,7 @@
 
             
 -----------------------------------------------------------------------
-            function GUI_slider(n, val) -- text, color,alpha) 
+            function GUI_slider(n, val, is_com) -- text, color,alpha) 
               local x,y,w,h,text,color,midi_offs
               
              -- if val == nil then val = 0 end
@@ -1021,11 +1058,25 @@
                 gfx.rect(x,y,w,h,1)   
                 
               -- gradient
-                gfx.a = 1
-                gfx.blit(3, 1, 0, 
-                         0,0,300,50,
-                         x,y+1,w*val,h-2,
-                         0,0)    
+                if tonumber(is_com) == 0 then
+                  gfx.a = 1
+                  gfx.blit(3, 1, 0, 
+                           0,0,300,50,
+                           x,y+1,w*val,h-2,
+                           0,0)    
+                 else
+                  local temp_h = (h-2)/4
+                  for i = 0, 3 do
+                    gfx.a = 1
+                    gfx.blit(3, 1, 0, 
+                              0,0,300,50,
+                              x,
+                              y + 1 + i * temp_h,
+                              w*val, 
+                              temp_h-1,
+                              0,0)  
+                  end
+                end
                          
               --name
                 if data.map[data.current_map] ~= nil and 
@@ -1321,10 +1372,12 @@
             for k = 1, data.slider_count do
               if data.map[data.current_map] == nil or data.map[data.current_map][k] == nil then 
                 val = -1
+                is_com = 0
                else 
                 val = data.map[data.current_map][k].value
+                is_com = data.map[data.current_map][k].is_common
               end
-              GUI_slider(k, val)
+              GUI_slider(k, val, is_com)
             end
           end
         
@@ -2839,10 +2892,11 @@
       _, param_name = reaper.TrackFX_GetParamName(track, fxid, paramid, '')
           
     -- form gfx name
-      gfx_name = fxname:gsub('[%p ]','')..' / '..param_name:gsub('[%p ]','')
+      gfx_name = fxname..' / '..param_name
+      --[[gfx_name = fxname:gsub('[%p ]','')..' / '..param_name:gsub('[%p ]','')
       gfx_name = gfx_name:gsub('VST', '')
       gfx_name = gfx_name:gsub('AU', '')
-      gfx_name = gfx_name:gsub('JS', '')
+      gfx_name = gfx_name:gsub('JS', '')]]
       
     return track_guid, FX_guid, paramid, fxname, param_name, gfx_name
   end
@@ -2856,8 +2910,12 @@
     gfx.setfont(1, data.fontname, data.slider_fontsize)
     
     routing_slider_actions, menu_table = F_build_slider_routing_menu(map, slider)
-    rout_actions_count = 11
+    rout_actions_count = 12
     if data.map[map] ~= nil and data.map[map][slider] ~= nil then 
+      if data.map[map][slider].is_common ~= nil then
+        if data.map[map][slider].is_common == '0' then c_sl = '' else c_sl = '!' end
+       else c_sl = ''
+      end
       state = 0
       slider_actions = 
         'Get last touched parameter' ..
@@ -2869,6 +2927,7 @@
         '||Remove all input wires from slider'..
         '|Remove all output wires from slider'..
         '|Remove all wires from slider'..
+        '||'..c_sl..'Link to all same parameters in all instances'..
         routing_slider_actions
         
         
@@ -2901,6 +2960,7 @@
           data.map[map][slider]['fx_guid'] = FX_guid
           data.map[map][slider]['paramnumber'] = paramid
           data.map[map][slider]['gfx_name'] = gfx_name
+          data.map[map][slider]['is_common'] = '0'
           r,g,b = F_SetCol(color_t.green)
           data.map[map][slider].color = r..' '..g..' '..b..' ' 
            
@@ -3000,7 +3060,22 @@
           
           ENGINE_return_data_to_projextstate2(false)
         end
-      end      
+      end
+      
+      -- change common
+            if ret_rb_slider == 10 then
+              if data.map[map][slider].is_common == nil
+                or data.map[map][slider].is_common == ''
+                or data.map[map][slider].is_common == '0' then
+               data.map[map][slider].is_common = 1
+               else
+               data.map[map][slider].is_common = 0
+              end               
+              ENGINE_return_data_to_projextstate2(false)
+              ENGINE_get_params_from_ext_state(false)
+              update_gfx = true
+            end
+                  
  -- ====== separator =========== 
  
       if ret_rb_slider >= rout_actions_count and 
@@ -3200,6 +3275,9 @@
                   data.map[i][k]['fx_guid'] = temp_sl_s_t[3]:sub(ind_len)
                   data.map[i][k]['paramnumber'] = temp_sl_s_t[4]:sub(ind_len)
                   data.map[i][k]['color'] = temp_sl_s_t[5]:sub(ind_len)
+                  data.map[i][k]['is_common'] = temp_sl_s_t[6]:sub(ind_len)
+                  
+                  
                 end -- if slider exists
               end -- slider loop
             end -- if map exists
@@ -3456,6 +3534,8 @@
               string_ret = string_ret..indent2..data.map[i][k]['paramnumber']..'\n'
               if data.map[i][k]['color'] ~= nil then 
                 string_ret = string_ret..indent2..data.map[i][k]['color']..'\n' end
+              if data.map[i][k]['is_common'] ~= nil then 
+                string_ret = string_ret..indent2..data.map[i][k]['is_common']..'\n' end                
               string_ret = string_ret..indent..'ENDSL>'..'\n'
             end
           end
@@ -3708,6 +3788,7 @@
                 if data.current_window == 0 then 
                   local ret = ENGINE_GetSetParamValue(data.current_map, mouse.last_touched_slider, true, 
                     (mouse.mx - control_area_xywh[1])/control_area_xywh[3] ,0.0000001,1) end
+                
                 data.bottom_info_slider = mouse.last_touched_slider
                 data.bottom_info_map = mouse.last_touched_map
               end              
