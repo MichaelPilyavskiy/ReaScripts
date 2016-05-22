@@ -1,3 +1,11 @@
+--[[
+   * ReaScript Name: Toggle stretch selected items positions grid relative
+   * Lua script for Cockos REAPER
+   * Author: Michael Pilyavskiy (mpl)
+   * Author URI: http://forum.cockos.com/member.php?u=70694
+   * Licence: GPL v3
+   * Version: 1.0
+  ]]
   
   _, _, sec, cmd = reaper.get_action_context()
   state = reaper.GetToggleCommandStateEx( sec, cmd )
