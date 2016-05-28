@@ -1,11 +1,11 @@
   
   --[[
-     * ReaScript Name: Move selected items to tracks with same name as items
+     * ReaScript Name: Move items to tracks on same name as items
      * Lua script for Cockos REAPER
      * Author: Michael Pilyavskiy (mpl)
      * Author URI: http://forum.cockos.com/member.php?u=70694
      * Licence: GPL v3
-     * Version: 1.0
+     * Version: 1.01
     ]]
   
   
@@ -23,8 +23,14 @@
     
     c_items = reaper.CountSelectedMediaItems(0)
     if c_items == 0 then return end
+    items = {}
     for i = 1, c_items do
       item = reaper.GetSelectedMediaItem(0,i-1)
+      items[#items+1] = reaper.BR_GetMediaItemGUID(item)
+    end
+
+    for i = 1, #items do
+      item = reaper.BR_GetMediaItemByGUID(0,items[i])
       if item ~= nil then
         take = reaper.GetActiveTake(item)
         if take ~= nil then 
@@ -40,10 +46,10 @@
         end
       end
     end
-    
+        
     reaper.UpdateArrange()
   end
   
   reaper.Undo_BeginBlock()
   main()  
-  reaper.Undo_EndBlock('Move selected items to tracks with same name as items', 0)
+  reaper.Undo_EndBlock('Move items to tracks on same name as items', 0)
