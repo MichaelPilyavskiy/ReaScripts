@@ -4,7 +4,7 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.0
+   * Version: 1.01
   ]]
 
   _, _, sec, cmd = reaper.get_action_context()
@@ -74,13 +74,6 @@
     last_defer_sel_items = reaper.CountSelectedMediaItems(0)
   end 
   
-    --[[cur_count_sel_items = reaper.CountSelectedMediaItems(0) 
-    if cur_count_sel_items == count_sel_items then 
-      ]]
-   --[[  else 
-      reaper.atexit(SetButtonOFF) 
-    end]]
-  
   ----------------------------------------------
     
   if state == 0 then 
@@ -91,7 +84,3 @@
     t0, count_sel_items0 = nil, nil
     reaper.atexit(SetButtonOFF) 
   end
-  
-  ----------------------------------------------
-    
-  --reaper.ShowConsoleMsg(state)
