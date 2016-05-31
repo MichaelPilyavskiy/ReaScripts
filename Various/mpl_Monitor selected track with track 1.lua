@@ -1,5 +1,5 @@
     --[[
-   * ReaScript Name: Use track 1 for analysis of selected track
+   * ReaScript Name: Monitor selected track with track 1
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
