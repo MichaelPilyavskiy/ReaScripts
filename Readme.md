@@ -1,6 +1,6 @@
 ##Scripts for [Cockos REAPER](http://reaper.fm) written by Michael Pilyavskiy
 
-Ready to use with ReaPack extension.
+Ready to use with [ReaPack extension](http://forum.cockos.com/showthread.php?t=169127).
 
 ##Contacts:
 - [VK](https://vk.com/michael_pilyavskiy)
