@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="671bdb4694af970994926d1796f06018596c4398" name="MPL Scripts">
+<index version="1" commit="d3b865f577813b846661272abf51508d38877606" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -163,6 +163,9 @@
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-05-22T11:36:03Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/671bdb4694af970994926d1796f06018596c4398/Items%20Editing/mpl_Toggle%20stretch%20selected%20items%20positions.lua</source>
       </version>
+      <version name="1.01" author="Michael Pilyavskiy (mpl)" time="2016-05-29T19:44:18Z">
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0ca7f5852ffa6f1c3e78618d37b0751d7721c030/Items%20Editing/mpl_Toggle%20stretch%20selected%20items%20positions.lua</source>
+      </version>
     </reapack>
   </category>
   <category name="Items Properties">
@@ -297,6 +300,13 @@
     <reapack name="mpl_Color pooled MIDI takes as selected reference.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6caed9225c6810020c093f472df171c6e0464de4/Takes%20Properties/mpl_Color%20pooled%20MIDI%20takes%20as%20selected%20reference.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Tempo">
+    <reapack name="Import Cubase tempo map.lua" type="script">
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-05-27T22:18:34Z">
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4d0d1806bd37b350de0046c59d3b7a8459de6a0e/Tempo/Import%20Cubase%20tempo%20map.lua</source>
       </version>
     </reapack>
   </category>
@@ -517,6 +527,11 @@
       </version>
       <version name="1.27" author="Michael Pilyavskiy (mpl)" time="2016-04-30T08:51:59Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/baac8b86eaf54106db642ce59154e750eb596303/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Monitor selected track with track 1.lua" type="script">
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-05-31T12:03:57Z">
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d3b865f577813b846661272abf51508d38877606/Various/mpl_Monitor%20selected%20track%20with%20track%201.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted.lua" type="script">
