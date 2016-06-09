@@ -571,17 +571,12 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Scripts for {\field{\*\fldinst{HYPERLINK "http://reaper.fm"}}{\fldrslt{\ul
 Cockos REAPER
 }}}
- by Michael Pilyavskiy\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 There are also other repositories of user written scripts for REAPER, check here: - [common repo] (https://github.com/ReaTeam/ReaScripts) - [X-Raym repo] (https://github.com/X-Raym/REAPER-ReaScripts)\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Don`t forget to install last versions of REAPER and SWS/S&M Extension before using.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 How to download:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab For one script: open script page, click "Raw" button, then open context menu in your browser and do File > Save > Delete ".txt" extension when saving > open Reaper > open Actions List > ReaScript > Load\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab For the whole archive: click on {\field{\*\fldinst{HYPERLINK "https://github.com/MichaelPilyavskiy/ReaScripts/archive/master.zip"}}{\fldrslt{\ul
-Download Zip
+ written by Michael Pilyavskiy\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Ready to use with {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?t=169127"}}{\fldrslt{\ul
+ReaPack extension
 }}}
- button on right side > open Reaper > open Actions List > ReaScript - Load\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 It is better for you to save all scripts to REAPER/Scripts folder, so you willn`t lost them while saving your REAPER configuration.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contact:\par}
+.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contacts:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://vk.com/michael_pilyavskiy"}}{\fldrslt{\ul
 VK
 }}}
@@ -611,23 +606,20 @@ PayPal
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=58284"}}{\fldrslt{\ul
 X-Raym
 }}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=49553"}}{\fldrslt{\ul
+, {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=49553"}}{\fldrslt{\ul
 spk77
 }}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=27094"}}{\fldrslt{\ul
+, {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=27094"}}{\fldrslt{\ul
 Breeder
 }}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=47822"}}{\fldrslt{\ul
+, {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=47822"}}{\fldrslt{\ul
 heda
 }}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=3602"}}{\fldrslt{\ul
+, {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=3602"}}{\fldrslt{\ul
 Xenakios
 }}}
 \sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 There are also other big repositories of user written scripts for REAPER, check here: - [ReaTeam] (https://github.com/ReaTeam/ReaScripts) - [X-Raym] (https://github.com/X-Raym/REAPER-ReaScripts)\par}
 }
 ]]></description>
   </metadata>
