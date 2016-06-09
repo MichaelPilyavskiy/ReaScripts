@@ -572,10 +572,16 @@
 Cockos REAPER
 }}}
  written by Michael Pilyavskiy\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Ready to use with {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?t=169127"}}{\fldrslt{\ul
-ReaPack extension
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 ReaPack Download Instructions\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This repository is part of the ReaPack {\field{\*\fldinst{HYPERLINK "http://www.extremraym.com/reapack-extension/"}}{\fldrslt{\ul
+REAPER extension
 }}}
-.\par}
+. This means that you don't need to download and install the scripts manually anymore, you can simply use ReaPack to batch download all scripts or scripts of your choice right from REAPER!\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Feature requests and bug reports:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/MichaelPilyavskiy/ReaScripts/issues"}}{\fldrslt{\ul
+GitHub Issues
+}}}
+\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contacts:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://vk.com/michael_pilyavskiy"}}{\fldrslt{\ul
 VK
@@ -619,7 +625,6 @@ heda
 Xenakios
 }}}
 \sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 There are also other big repositories of user written scripts for REAPER, check here: - [ReaTeam] (https://github.com/ReaTeam/ReaScripts) - [X-Raym] (https://github.com/X-Raym/REAPER-ReaScripts)\par}
 }
 ]]></description>
     <link rel="website" href="http://vk.com/michael_pilyavskiy">VK</link>
