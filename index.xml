@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b0bbbc46b349837b79ac23c2661562de41a73639" name="MPL Scripts">
+<index version="1" commit="87c92c6346e7846d3269f308c7f88ef43cdfc4fd" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -436,6 +436,9 @@
       </version>
       <version name="1.07" author="Michael Pilyavskiy (mpl)" time="2016-04-01T07:28:13Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cac25c058e4fcddd932b7678930bf3ef0f5f9a9d/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="1.08" author="Michael Pilyavskiy (mpl)" time="2016-06-11T07:54:48Z">
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/87c92c6346e7846d3269f308c7f88ef43cdfc4fd/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing.lua" type="script">
