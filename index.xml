@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d3b865f577813b846661272abf51508d38877606" name="MPL Scripts">
+<index version="1" commit="b0bbbc46b349837b79ac23c2661562de41a73639" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -304,9 +304,9 @@
     </reapack>
   </category>
   <category name="Tempo">
-    <reapack name="Import Cubase tempo map.lua" type="script">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-05-27T22:18:34Z">
-        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4d0d1806bd37b350de0046c59d3b7a8459de6a0e/Tempo/Import%20Cubase%20tempo%20map.lua</source>
+    <reapack name="mpl_Import Cubase tempo map.lua" type="script">
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-06-11T07:29:01Z">
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b0bbbc46b349837b79ac23c2661562de41a73639/Tempo/mpl_Import%20Cubase%20tempo%20map.lua</source>
       </version>
     </reapack>
   </category>
