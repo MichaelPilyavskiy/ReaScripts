@@ -1,15 +1,19 @@
+-- @version 1.081
+-- @author mpl
+-- @changelog
+--   # Improved graphics for knob and selector
+
 --[[
    * ReaScript Name: mpl Align Takes
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.08
   ]]
   
 --[[
   * Changelog: 
-    * v1.08 (2016-06-11)
+    * v1.081 (2016-06-11)
       # Improved graphics for knob and selector
     * v1.07 (2016-04-01)
       # Set slider to 0 when get takes
