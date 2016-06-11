@@ -4,40 +4,42 @@
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.07
+   * Version: 1.08
   ]]
   
 --[[
   * Changelog: 
-  * v1.07 (2016-04-01)
-    # Set slider to 0 when get takes
-  * v1.06 (2016-03-31)
-    # Fixed alg=0 error
-  * v1.05 (2016-03-08)
-    # save/restore window position (Reaper 5.20pre16+)
-  * v1.04 (2016-02-17)
-    # ReaPack changelog synthax
-  * v1.03 (2016-02-16)
-    + Algorithm selector, check Menu/Parameters description
-  * v1.02 (2016-02-12)
-    #OSX font issues
-  * v1.01 (2016-02-11)
-    # Some settings limits extended
-    + Added selector RMS/FFT detection
-    + Added RMS window knob
-    + Added FFT size knob
-    + Added HP/LP FFT filters cutoff knobs
-    + Added smooth factor knob
-  * v1.00 (2016-02-11)    
-    + Public release
-  * v0.23 (2016-01-25)  
-    # Split from Warping tool
-  * v0.01 (2015-09-01) 
-    + Alignment / Warping / Tempomatching tool idea
+    * v1.08 (2016-06-11)
+      # Improved graphics for knob and selector
+    * v1.07 (2016-04-01)
+      # Set slider to 0 when get takes
+    * v1.06 (2016-03-31)
+      # Fixed alg=0 error
+    * v1.05 (2016-03-08)
+      # save/restore window position (Reaper 5.20pre16+)
+    * v1.04 (2016-02-17)
+      # ReaPack changelog synthax
+    * v1.03 (2016-02-16)
+      + Algorithm selector, check Menu/Parameters description
+    * v1.02 (2016-02-12)
+      #OSX font issues
+    * v1.01 (2016-02-11)
+      # Some settings limits extended
+      + Added selector RMS/FFT detection
+      + Added RMS window knob
+      + Added FFT size knob
+      + Added HP/LP FFT filters cutoff knobs
+      + Added smooth factor knob
+    * v1.00 (2016-02-11)    
+      + Public release
+    * v0.23 (2016-01-25)  
+      # Split from Warping tool
+    * v0.01 (2015-09-01) 
+      + Alignment / Warping / Tempomatching tool idea
   --]]
   
   function bmrk() end
-  local vrs = '1.07'
+  local vrs = '1.08'
 ----------------------------------------------------------------------- 
   function msg(str)
     if type(str) == 'boolean' then if str then str = 'true' else str = 'false' end end
@@ -1030,35 +1032,6 @@
   end
   
         ----------------------------------------------------------------------- 
-        function GUI_button(objects, gui, xywh, name, issel, font) local w1_sl_a
-          gfx.y,gfx.x = 0,0         
-          -- frame
-            gfx.a = 1
-            F_Get_SSV(gui.color.white, true)
-            --gfx.rect(xywh[1],xywh[2],xywh[3], xywh[4]+1, 0 , gui.aa)
-            
-          -- back
-            if issel then gfx.a = 0.8 else gfx.a = 0.2 end
-            gfx.blit(3, 1, 0, --backgr
-              0,0,objects.main_w, objects.main_h,
-              xywh[1],xywh[2],xywh[3],xywh[4], 0,0) 
-            
-          -- txt              
-            
-            gfx.setfont(1, gui.fontname, font)
-            if issel then
-              gfx.a = gui.b_sel_text_alpha
-              F_Get_SSV(gui.color.black, true)
-             else
-              gfx.a = gui.b_sel_text_alpha_unset
-              F_Get_SSV(gui.color.white, true)
-            end
-            local measurestrname = gfx.measurestr(name)
-            local x0 = xywh[1] + (xywh[3] - measurestrname)/2
-            local y0 = xywh[2] + (xywh[4] - gui.b_sel_fontsize)/2
-            gfx.x, gfx.y = x0,y0 
-            gfx.drawstr(name)  
-        end
 
         -----------------------------------------------------------------------         
         function GUI_button2(objects, gui, xywh, name, issel, font, text_alpha, color_str) local w1_sl_a
@@ -1148,16 +1121,27 @@
           
             
         end
-
------------------------------------------------------------------------        
+----------------------------------------------------------------------- 
+  function gfx_rect(x,y,w,h)
+    gfx.x, gfx.y = x,y
+    gfx.line(x,y, x+w-1, y)
+    gfx.line(x+w,y, x+w, y+h-2)
+    gfx.line(x+w,y+h-1, x-1, y+h-1)
+    gfx.line(x-1,y+h-2, x-1, y)
+  end
+  
+----------------------------------------------------------------------- 
+       
             function GUI_selector(xywh,col,val,b1,b2 )             
               F_Get_SSV(col, true)
               gfx.a = 0.3
-              gfx.rect(xywh[1],
+              
+              local x,y,w,h = xywh[1],
                         xywh[2],
                         xywh[3],
-                        xywh[4],0,1)
-              
+                        xywh[4]
+              gfx_rect(x,y,w,h)
+                       
               gfx.a = 0.4
               gfx.rect(xywh[1] + 2,
                        xywh[2]+2+
@@ -1194,20 +1178,53 @@
       gfx.blit(7, 1, math.rad(180), -- backgr
                0,0,objects.main_w, objects.main_h,
                x,y ,w, h, 0,0)
+      
+      -- arc back
+        for i = 0, 3, 0.4 do
+          if is_active then gfx.a = 0.03 else gfx.a = 0.005  end
+          F_Get_SSV(gui.color.white)
+          
+          -- why THE HELL original gfx.arc() looks like SHIT? -- 
+          
+          gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    gui.aa)
+          gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    gui.aa)
+          gfx.arc(x+w/2+1,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    gui.aa)
+          gfx.arc(x+w/2+1,y+h/2+1,arc_r-i,    math.rad(90),math.rad(ang_gr),    gui.aa)
+        end
+                
+      if is_active then gfx.a = 0.4 else gfx.a = 0.03 end
+      
+        local ang_val = math.rad(-ang_gr+ang_gr*2*val)
+        for i = 0, 3, 0.4 do
+          F_Get_SSV(gui.color[col], true)
+          if ang_val < math.rad(-90) then 
+            gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),ang_val, gui.aa)
+           else
+            if ang_val < math.rad(0) then 
+              gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90), gui.aa)
+              gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),ang_val,    gui.aa)
+             else
+              if ang_val < math.rad(90) then 
+                gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90), gui.aa)
+                gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    gui.aa)
+                gfx.arc(x+w/2+1,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    gui.aa)
+               else
+                if ang_val < math.rad(ang_gr) then 
+                  gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90), gui.aa)
+                  gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    gui.aa)
+                  gfx.arc(x+w/2+1,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    gui.aa)
+                  gfx.arc(x+w/2+1,y+h/2+1,arc_r-i,    math.rad(90),ang_val,    gui.aa)
+                 else
+                  gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    gui.aa)
+                  gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    gui.aa)
+                  gfx.arc(x+w/2+1,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    gui.aa)
+                  gfx.arc(x+w/2+1,y+h/2+1,arc_r-i,    math.rad(90),math.rad(ang_gr),    gui.aa)                  
+                end
+              end
+            end                
+          end
+        end
                
-    -- arc full
-      
-    -- arc val
-      for i = 0, 3, 0.5 do
-        gfx.a = 0.01+0.2*is_active
-        F_Get_SSV(gui.color.white, true)
-        gfx.arc(x+w/2,y+h/2,arc_r-i,ang,-ang,gui.aa)
-        
-        gfx.a = 0.9*is_active
-        F_Get_SSV(gui.color[col], true)
-        gfx.arc(x+w/2,y+h/2,arc_r - i,-ang,ang_val,gui.aa)    
-      end  
-      
     -- text
       gfx.setfont(1, gui.fontname, gui.knob_txt)
       text_len = gfx.measurestr(text)
@@ -1426,7 +1443,7 @@
             
             gfx.a = 0.5
             F_Get_SSV(gui.color.green_dark, true)
-            gfx.rect(objects.pref_rect1[1],
+            gfx_rect(objects.pref_rect1[1],
               objects.pref_rect1[2],
               objects.pref_rect1[3],
               objects.pref_rect1[4],0) 
@@ -1437,7 +1454,7 @@
   
             gfx.a = 0.5
             F_Get_SSV(gui.color.red, true)
-            gfx.rect(objects.pref_rect2[1],
+            gfx_rect(objects.pref_rect2[1],
               objects.pref_rect2[2],
               objects.pref_rect2[3],
               objects.pref_rect2[4],0)  
@@ -1449,7 +1466,7 @@
           -- rms/fft  
             gfx.a = 0.5
             F_Get_SSV(gui.color.blue, true)
-            gfx.rect(objects.pref_rect3[1],
+            gfx_rect(objects.pref_rect3[1],
               objects.pref_rect3[2],
               objects.pref_rect3[3],
               objects.pref_rect3[4],0)  
@@ -1469,14 +1486,6 @@
                                               
       end    
     
-    --[[if debug_mode == 1 then 
-      -- buf19 test
-        if update_gfx or update_gfx_minor then    
-          gfx.dest = 19
-          gfx.setimgdim(19, -1, -1)
-          gfx.setimgdim(19, objects.main_w, objects.main_h)
-        end
-      end]]
       
     
     ------------------
