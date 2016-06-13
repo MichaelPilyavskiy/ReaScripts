@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bfa330dd82b127a1a8cd9b954fba8b28fe603540">
+<index version="1" commit="dab03958c9d8f49b0819d46f6897f661aeb6d004">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -461,6 +461,10 @@
       <version name="1.0" author="mpl" time="2016-06-14T08:20:21Z">
         <changelog><![CDATA[+ init release, thanks to ReaperBlog for testing.]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ac36539999c6ecc8468e5c756a14a1c3d87734fc/Various/mpl_Delete%20nonexistent%20scripts%20from%20ActionList.lua</source>
+      </version>
+      <version name="1.01" author="mpl" time="2016-06-15T08:32:21Z">
+        <changelog><![CDATA[# backup msg]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/35a1bc84ae859c5765c7634cbf3b4e4d3f35f6a4/Various/mpl_Delete%20nonexistent%20scripts%20from%20ActionList.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Implode mono track session to stereo items relative to LR at the trackname end.lua" type="script">
