@@ -1,3 +1,8 @@
+-- @version 1.02
+-- @author mpl
+-- @changelog
+--   # Wrong file
+--   # Fix for takes without extension
   
   --[[
      * ReaScript Name: Move items to tracks on same name as items
@@ -5,7 +10,7 @@
      * Author: Michael Pilyavskiy (mpl)
      * Author URI: http://forum.cockos.com/member.php?u=70694
      * Licence: GPL v3
-     * Version: 1.01
+     * Version: 1.02
     ]]
   
   
@@ -35,7 +40,10 @@
         take = reaper.GetActiveTake(item)
         if take ~= nil then 
           take_name = reaper.GetTakeName(take)
-          take_name = take_name:sub(0, -take_name:reverse():find('%.')-1)
+          point_cut = take_name:reverse():find('%.')
+          if point_cut ~= nil then take_name = take_name:sub(0,-point_cut-1 )
+          end
+          
           for k = 1, #TR_names_t do
             if take_name == TR_names_t[k] then 
               reaper.MoveMediaItemToTrack(item, reaper.CSurf_TrackFromID(k, false)) 
