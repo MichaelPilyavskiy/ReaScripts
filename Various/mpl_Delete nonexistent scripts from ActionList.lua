@@ -72,7 +72,7 @@
           file:write(out_str)
           file:close()
           
-          reaper.MB(idx.." record(s) deleted. \nReload REAPER to affect changes\n\n".."Reaper/reaper.ini-backup is created", "",0)
+          reaper.MB(idx.." record(s) deleted. \nReload REAPER to affect changes\n\n".."REAPER/reaper-kb.ini-backup is created", "",0)
           
           file_BU = io.open(filename..'-backup', "w")
           file_BU:write(content)
