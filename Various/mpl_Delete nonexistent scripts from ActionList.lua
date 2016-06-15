@@ -1,7 +1,7 @@
--- @version 1.0
+-- @version 1.01
 -- @author mpl
 -- @changelog
---   + init release, thanks to ReaperBlog for testing.
+--   # backup msg
 
 --[[
    * ReaScript Name: Delete non-existent scripts from Action List
