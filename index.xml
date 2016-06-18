@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ee721a4c0432e3918fb4a9e572d8503a184a0432" name="MPL Scripts">
+<index version="1" commit="9afa9d94d8588573c58fc7bdba397b02f3a33f31" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -67,6 +67,12 @@
     <reapack name="mpl_List all MIDI OSC learn from focused fx.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-07T07:10:56Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/602859da73409c42347ed21b136e96f1690f464f/FX/mpl_List%20all%20MIDI%20OSC%20learn%20from%20focused%20fx.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Randomize Track FX parameters.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-06-20T19:40:13Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9afa9d94d8588573c58fc7bdba397b02f3a33f31/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Save all track FX chains.lua" type="script">
