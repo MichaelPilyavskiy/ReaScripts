@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dab03958c9d8f49b0819d46f6897f661aeb6d004" name="MPL Scripts">
+<index version="1" commit="164763496da490b3d8b89d51edcfb6372d81408a" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -371,6 +371,12 @@
     <reapack name="mpl_Sort all tracks by color.lua" type="script">
       <version name="1.2" author="Michael Pilyavskiy (mpl)" time="2016-01-15T07:07:25Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Sort%20all%20tracks%20by%20color.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle auto add last touched parameter to TCP.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-06-20T11:05:46Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/164763496da490b3d8b89d51edcfb6372d81408a/Tracks%20Properties/mpl_Toggle%20auto%20add%20last%20touched%20parameter%20to%20TCP.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle input quantize for selected track.lua" type="script">
