@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="164763496da490b3d8b89d51edcfb6372d81408a" name="MPL Scripts">
+<index version="1" commit="ee721a4c0432e3918fb4a9e572d8503a184a0432" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -249,6 +249,14 @@
     <reapack name="mpl_Split selected notes to equal parts.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-10T10:47:28Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5709e04c5222b5fbd6915f77dedb84f4f31f2519/MIDI%20editor/mpl_Split%20selected%20notes%20to%20equal%20parts.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Regions">
+    <reapack name="mpl_Generate CUE from project markers.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-06-20T14:20:43Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee721a4c0432e3918fb4a9e572d8503a184a0432/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
       </version>
     </reapack>
   </category>
