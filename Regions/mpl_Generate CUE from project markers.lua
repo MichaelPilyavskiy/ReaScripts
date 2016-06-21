@@ -1,4 +1,4 @@
--- @version 1.01
+-- @version 1.02
 -- @author mpl
 -- @changelog
 --   + fix split name
@@ -57,7 +57,7 @@
         
         local s_name  = nameOut:find('[%-]')
         if s_name ~=nil then
-          perf = nameOut:sub(0, s_name-1)
+          perf = nameOut:sub(0, s_name-2)
           nameOut1 = nameOut:sub(s_name+2)
         end
         
