@@ -1,7 +1,7 @@
--- @version 1.0
+-- @version 1.01
 -- @author mpl
 -- @changelog
---   + init release
+--   + fix split name
 
 --[[
    * ReaScript Name: Generate CUE from project markers
@@ -55,15 +55,15 @@
         perf = fields[3]
         posOut = table.concat(time,':',2)
         
-        local s_name,s_name_e  = nameOut:find(' - ')
+        local s_name  = nameOut:find('[%-]')
         if s_name ~=nil then
-          perf = nameOut:sub(0, -s_name-2)
-          nameOut = nameOut:sub(-s_name_e+2)
+          perf = nameOut:sub(0, s_name-1)
+          nameOut1 = nameOut:sub(s_name+2)
         end
         
-        if nameOut == '' then nameOut = 'Untitled '..("%02d"):format(markrgnindexnumber) end
+        if nameOut1 == nil or nameOut1 == '' then nameOut1 = 'Untitled '..("%02d"):format(markrgnindexnumber) end
         out_str = out_str..ind3..'TRACK '..("%02d"):format(markrgnindexnumber)..' AUDIO'..'\n'..
-                           ind5..'TITLE '..'"'..nameOut..'"'..'\n'..
+                           ind5..'TITLE '..'"'..nameOut1..'"'..'\n'..
                            ind5..'PERFORMER '..'"'..perf..'"'..'\n'..
                            ind5..'INDEX 01 '..posOut..'\n'
       end
