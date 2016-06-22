@@ -1,7 +1,7 @@
--- @version 1.0
+-- @version 1.01
 -- @author mpl
 -- @changelog
---   + init
+--   # limit parameters count to first 200 (ex. Spire with 754 params crash Reaper)
 
 --[[
    * ReaScript Name: Randomize Track FX parameters
@@ -230,6 +230,7 @@
     
   function ENGINE_GetParams()
     local params = {}
+     
     local retval, tracknumberOut, _, fxnumberOut = reaper.GetFocusedFX()
     local track = reaper.GetTrack(0, tracknumberOut-1)
     if track == nil then return end
@@ -240,7 +241,9 @@
     if retval ~= 1 or tracknumberOut <= 0 or params.fxnumberOut == nil then return end    
     local num_params = reaper.TrackFX_GetNumParams( track, params.fxnumberOut )
     if not num_params or num_params == 0 then return end    
-    for i = 1, num_params do params[i] =  reaper.TrackFX_GetParam( track, params.fxnumberOut, i ) end
+    for i = 1, num_params do 
+      params[i] =  reaper.TrackFX_GetParam( track, params.fxnumberOut, i ) 
+    end
     return params
   end
   
@@ -261,22 +264,23 @@
       and tracknumberOut > 0 
       and track ~= nil then
         
-      for i = 1, #def_params do
-        _, par_name = reaper.TrackFX_GetParamName( track, fxnumberOut, i, '' )
-        protect = false
-        for j = 1, #protected_table do
-          if par_name:lower():find(protected_table[j])~=nil then
-            protect = true
+       max_params_count = 200
+        for i = 1, math.min(#def_params, max_params_count) do
+          _, par_name = reaper.TrackFX_GetParamName( track, fxnumberOut, i, '' )
+          protect = false
+          for j = 1, #protected_table do
+            if par_name:lower():find(protected_table[j])~=nil then
+              protect = true
+            end
+          end
+          if not protect then
+            reaper.TrackFX_SetParamNormalized( track, fxnumberOut, i, 
+            def_params[i] + (rand_params[i] - def_params[i]) * morph_val
+            )
           end
         end
-        if not protect then
-          reaper.TrackFX_SetParamNormalized( track, fxnumberOut, i, 
-          def_params[i] + (rand_params[i] - def_params[i]) * morph_val
-          )
-        end
-      end
+        
     end
-    
   end 
   
   ------------------------------------------------------------
