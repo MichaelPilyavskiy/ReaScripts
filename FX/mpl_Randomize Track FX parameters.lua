@@ -1,7 +1,8 @@
--- @version 1.01
+-- @version 1.1
 -- @author mpl
 -- @changelog
---   # limit parameters count to first 200 (ex. Spire with 754 params crash Reaper)
+--   + Store only picked parameters
+--   - Ignore protected table
 
 --[[
    * ReaScript Name: Randomize Track FX parameters
@@ -14,7 +15,7 @@
   
   --------------------------------------------
   --------------------------------------------
-  protected_table = {
+  --[[protected_table = {
     "gain", 
     "vol", 
     "on" ,
@@ -46,7 +47,7 @@
     "velocity",
     "active",
     "master"
-    }
+    }]]
         
         
   ------------------------------------------------------------
@@ -55,7 +56,7 @@
     local obj = {}
       
       obj.sections = {}
-      local num = 5
+      local num = 6
       for i  =1, num do
         obj.sections[i] = {x = 0 ,
                            y = gfx1.main_h / num * (i-1),
@@ -118,6 +119,7 @@
   
   function GUI_draw(obj, gui)
     gfx.mode =4
+    
     if update_gfx then    
       gfx.dest = 1
       gfx.setimgdim(1, -1, -1)  
@@ -134,23 +136,23 @@
                     obj.sections[i].h
           gfx.rect (x,y,w,h,0, 1)
         end
-        GUI_text(gui, obj.sections[1], '1. Get parameters')
+        GUI_text(gui, obj.sections[1], '1. Get FX')
         
       -- gfx defaults
         if def_params ~= nil then
           for i = 1, #def_params do
-            gfx.a = 0.4
+            if def_params[i].is_act then gfx.a = 0.6 fill = 1 else  gfx.a = 0.2 fill = 0 end
             f_Get_SSV(gui.color.blue)  
             gfx.rect((i-1)*obj.sections[2].w / #def_params,
-             obj.sections[2].y + obj.sections[2].h * (1 - def_params[i]) + 1, 
+             obj.sections[2].y + obj.sections[2].h * (1 - def_params[i].val) + 1, 
              obj.sections[2].w / #def_params,
-             obj.sections[2].h * def_params[i] -2 )
+             obj.sections[2].h * def_params[i].val -2, fill, 1 )
           end
           GUI_text(gui, obj.sections[2], def_params.fx_name)
         end
       
       -- generate pattern
-        GUI_text(gui, obj.sections[3], '2. Generate random pattern')
+        GUI_text(gui, obj.sections[4], '3. Generate random pattern')
         
       -- gfx rand
         if rand_params ~= nil then
@@ -158,24 +160,45 @@
             gfx.a = 0.4
             f_Get_SSV(gui.color.green)  
             gfx.rect((i-1)*obj.sections[4].w / #rand_params,
-             obj.sections[4].y + obj.sections[4].h * (1 - rand_params[i]) + 1, 
-             obj.sections[4].w / #rand_params,
-             obj.sections[4].h * rand_params[i] -2 )
+             obj.sections[5].y + obj.sections[4].h * (1 - rand_params[i]) + 1, 
+             obj.sections[5].w / #rand_params,
+             obj.sections[5].h * rand_params[i] -2 )
           end
         end      
       
-      -- val
+      -- pick
+        
+        if not pick_state then 
+           gfx.a = time
+           GUI_text(gui, obj.sections[3], '2. Click and pick parameters from focused fx')
+          else 
+           GUI_text(gui, obj.sections[3], 'Move parameters to randomize. Click when finished')
+           
+        end
+        
+      -- val      
        if morph_val ~= nil then 
-        GUI_text(gui, obj.sections[5], '3. Morph: '.. math.floor(morph_val*100)..'%' ) 
+        GUI_text(gui, obj.sections[6], '4. Morph: '.. math.floor(morph_val*100)..'%' ) 
         f_Get_SSV(gui.color.red) 
         gfx.a = 0.5
-        gfx.rect(obj.sections[5].x,
-                  obj.sections[5].y,
-                  obj.sections[5].w *morph_val ,
-                  obj.sections[5].h, 1)
+        gfx.rect(obj.sections[6].x,
+                  obj.sections[6].y,
+                  obj.sections[6].w *morph_val ,
+                  obj.sections[6].h, 1)
+        else 
+         GUI_text(gui, obj.sections[6], '4. Morph')
        end
        
     end 
+    
+    if pick_state then 
+      gfx.a = time * 0.3
+      f_Get_SSV(gui.color.pink) 
+      gfx.rect(obj.sections[3].x,
+                obj.sections[3].y,
+                obj.sections[3].w  ,
+                obj.sections[3].h, 1)
+    end
     
     gfx.dest = -1
     gfx.a = 1
@@ -242,7 +265,8 @@
     local num_params = reaper.TrackFX_GetNumParams( track, params.fxnumberOut )
     if not num_params or num_params == 0 then return end    
     for i = 1, num_params do 
-      params[i] =  reaper.TrackFX_GetParam( track, params.fxnumberOut, i ) 
+      params[i] =  {val = reaper.TrackFX_GetParamNormalized( track, params.fxnumberOut, i-1 ) ,
+                    is_act = false}
     end
     return params
   end
@@ -253,6 +277,8 @@
     if def_params == nil then return end
     if rand_params == nil then return end
     if morph_val == nil then return end
+    
+    
     
     local retval, tracknumberOut, _, fxnumberOut = reaper.GetFocusedFX()
     track = reaper.GetTrack(0,tracknumberOut-1)
@@ -266,7 +292,14 @@
         
        max_params_count = 200
         for i = 1, math.min(#def_params, max_params_count) do
-          _, par_name = reaper.TrackFX_GetParamName( track, fxnumberOut, i, '' )
+          if def_params[i].is_act then
+             reaper.TrackFX_SetParamNormalized( track, fxnumberOut, i-1, 
+                      def_params[i].val + (rand_params[i] - def_params[i].val) * morph_val
+                      )
+          end
+          
+          
+          --[[_, par_name = reaper.TrackFX_GetParamName( track, fxnumberOut, i, '' )
           protect = false
           for j = 1, #protected_table do
             if par_name:lower():find(protected_table[j])~=nil then
@@ -275,9 +308,10 @@
           end
           if not protect then
             reaper.TrackFX_SetParamNormalized( track, fxnumberOut, i, 
-            def_params[i] + (rand_params[i] - def_params[i]) * morph_val
+            def_params[i].val + (rand_params[i] - def_params[i].val) * morph_val
             )
-          end
+          end]]
+          
         end
         
     end
@@ -298,6 +332,7 @@
   ------------------------------------------------------------
     
   function run()  
+    time = math.abs(math.sin( -1 + (os.clock() % 2)))
     local obj = GetObjects()
     local gui = GetGUI_vars()
     GUI_draw(obj, gui)
@@ -312,13 +347,27 @@
       end
     
     -- gen pattern
-      if MOUSE_click(obj.sections[3]) then 
+      if MOUSE_click(obj.sections[4]) then 
         rand_params = ENGINE_GenerateRandPatt() 
         update_gfx = true 
       end
       
+    -- pick
+      if MOUSE_click(obj.sections[3]) then 
+        pick_state = not pick_state
+        update_gfx = true 
+      end 
+    
+    if pick_state then
+      _, _, _, paramnumber =reaper.GetLastTouchedFX()
+      if def_params 
+        and paramnumber +1 <= #def_params  
+        and def_params[paramnumber+1] then  def_params[paramnumber+1].is_act = true
+      end
+    end  
+      
     -- morph
-      if MOUSE_click(obj.sections[5]) then mouse.context = 'slider' end
+      if MOUSE_click(obj.sections[6]) then mouse.context = 'slider' end
       if mouse.context and mouse.context == 'slider' then
          morph_val = F_limit(MOUSE_slider(obj.sections[5]),0,1)
          ENGINE_SetParams()
@@ -344,6 +393,7 @@
   
   ------------------------------------------------------------
   update_gfx = true
+  pick_state = false
   gfx1 = {main_w = 500, main_h = 200}  
   Lokasenna_Window_At_Center(gfx1.main_w,gfx1.main_h) 
   mouse = {}
