@@ -1,7 +1,7 @@
--- @version 1.081
+-- @version 1.082
 -- @author mpl
 -- @changelog
---   # Improved graphics for knob and selector
+--   # Fix: error on empty sm table
 
 --[[
    * ReaScript Name: mpl Align Takes
@@ -1834,9 +1834,11 @@ Blue knobs related to building envelope
             
             if mouse.context == 'w1_slider' then
               w1_slider = F_limit((mouse.mx - objects.b_slider[1]) / objects.b_slider[3],0,1 )
-              for i = 1, #takes_t do 
-                if i == 1 then ENGINE_set_stretch_markers2(i, str_markers_t[i], 0) else
-                ENGINE_set_stretch_markers2(i, str_markers_t[i], w1_slider) end
+              if str_markers_t then 
+                for i = 1, #takes_t do 
+                  if i == 1 then ENGINE_set_stretch_markers2(i, str_markers_t[i], 0) else
+                  ENGINE_set_stretch_markers2(i, str_markers_t[i], w1_slider) end
+                end
               end
             end
             
