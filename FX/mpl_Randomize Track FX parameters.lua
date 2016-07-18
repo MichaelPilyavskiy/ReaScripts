@@ -1,6 +1,7 @@
--- @version 1.1
+-- @version 1.11
 -- @author mpl
 -- @changelog
+--   # ReaPack verioning fix
 --   + Store only picked parameters
 --   - Ignore protected table
 
