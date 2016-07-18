@@ -80,10 +80,6 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9afa9d94d8588573c58fc7bdba397b02f3a33f31/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
       </version>
-      <version name="1.01" author="mpl" time="2016-06-22T14:53:20Z">
-        <changelog><![CDATA[# limit parameters count to first 200 (ex. Spire with 754 params crash Reaper)]]></changelog>
-        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94615c8e4c5be5039f0465160cd9199a7c64cde3/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
-      </version>
       <version name="1.1" author="mpl" time="2016-07-01T14:19:11Z">
         <changelog><![CDATA[+ Store only picked parameters
 - Ignore protected table]]></changelog>
