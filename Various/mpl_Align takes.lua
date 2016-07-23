@@ -1,4 +1,4 @@
--- @version 1.11
+-- @version 1.110
 -- @author mpl
 -- @changelog
 --    + Presets
@@ -8,6 +8,7 @@
 --    # Edit links/description
 --    # Brighter knobs
 --    # Swap points and envelope colors to match related settings
+--    # ReaPack versioning fix
 --[[
    * ReaScript Name: mpl Align Takes
    * Lua script for Cockos REAPER
@@ -18,7 +19,7 @@
   
 --[[
   * Changelog: 
-    * v1.11 (2016-06-23)
+    * v1.110 (2016-06-23)
       + Presets
       + Parameter to load current script instance with custom preset
       + About window
@@ -26,6 +27,7 @@
       # Edit links/description
       # Brighter knobs
       # Swap points and envelope colors to match related settings
+      # ReaPack versioning fix
     * v1.08 (2016-06-11)
       # Fix: error on empty sm table
       # Improved graphics for knob and selector
@@ -74,7 +76,7 @@
 ----------------------------------------------------------------------- 
 ----------------------------------------------------------------------- 
 -----------------------------------------------------------------------   
-  local vrs = '1.11'
+  local vrs = '1.110'
 ----------------------------------------------------------------------- 
   function msg(str)
     if type(str) == 'boolean' then if str then str = 'true' else str = 'false' end end
