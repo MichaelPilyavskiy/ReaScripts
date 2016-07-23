@@ -1,4 +1,4 @@
--- @version 1.110
+-- @version 1.111
 -- @author mpl
 -- @changelog
 --    + Presets
@@ -19,11 +19,11 @@
   
 --[[
   * Changelog: 
-    * v1.110 (2016-06-23)
+    * v1.111 (2016-06-23)
       + Presets
       + Parameter to load current script instance with custom preset
       + About window
-      + Dedicated thread on Cockos forum
+      + Dedicated thread on Cockos forum: http://forum.cockos.com/showthread.php?p=1709618
       # Edit links/description
       # Brighter knobs
       # Swap points and envelope colors to match related settings
@@ -1761,47 +1761,46 @@
      
 local info_str = 
 [[
-Align takes is a LUA script for REAPER written by Michael Pilyavskiy (Russian Federation). Algorithm is based on matching RMS envelopes of dub takes and some reference take using stretch markers.
+Align takes is a Lua script for REAPER written by Michael Pilyavskiy (Russian Federation). Its algorithm based on matching RMS envelopes of dub takes and some reference take using stretch markers.
 
-So how to use it? Ok you need to have at least 2 items placed on different tracks one under another. The reference item/take is upper take.
-You can also simultaneously work with any count of takes. The upper take will be also reference item/take for them.
+So how to use it?
+- select takes
+- press 'Get'
+- move slider
 
-"Can I give to this script any audio?"
-No. You need to prepare item/takes manually OR just click "Get" button and look what special "prepare" function will do.
+You need to have at least 2 items placed on different tracks one under another. The reference item/take is upper take. You can also simultaneously work with any count of takes. The upper take will be also reference item/take for them. "Can I give to this script any audio?" No. You need to prepare item/takes manually OR just click "Get" button and look what special "prepare" function will do.
 Perfect situation:
 - ref. and dub takes with takerate = 1
 - ref. and dub takes without stretch markers
 - ref. and dub takes without snap offset
 - ref. and dub takes are not loop sourced
 - reference take edges over dub takes edges (so every point of dub take is beetween ref.take position and ref.take end)
+After you pressed "Get" button, you should see ugly waveforms in script window. If you see vertical lines on syllables/transients, then congratulations - your takes ready to match each other. Move slider and see what happen. If you didn`t see then - try to play with settings, which are explained further. Press "+" button to extend window and change preferences.
 
-Ok you pressed "Get" button. Now you should see ugly waveforms in script window. What is next? If you see vertical lines on waveforms, then congratulations - your takes ready to match each other. Move slider and see what happen. If you didn`t see then - try to play with settings, which are explained next. Press "+" button to extend. With version 1.10+ you can also use your presets and share them to others (configuration is stored within script path).
-
-Don`t forget it is totally FREE native alternative to SyncroArts ( Vocalign / RevoicePro ) $150+ software. So please DONATE if you use it and like it. Donate button open [ www.paypal.me/donate2mpl ] in default browser.
+Don`t forget it is totally FREE "native" alternative to SyncroArts ( Vocalign / RevoicePro ) $150+ software. So please DONATE if you use it and like it. Donate button open www.paypal.me/donate2mpl in your default browser.
 
 ]]
 
 local info_str2 = 
 [[
-Green knobs are parameters for detection syllables and transients start/end positions (I call them 'points' further, they represented as vertical lines on the waveform graph). RMS envelope ('envelope' further) of course have some window, so aligning non-macro stuff like drums is not a good example for this tool. Basically points added when envelope rise/fall (envelope always rising/falling so green knobs let you define WHEN exactly to add points, i.e. define conditions for adding).
-- Scaling. Let you define how much do you wanna compress signal for detection.  It is NOT compress actual take audio. More compression = better detection.
+- Green knobs are parameters for detection syllables and transients start/end positions (I call them 'points' further, they represented as vertical lines on the waveform graph). RMS envelope ('envelope' further) of course have some window, so aligning non-macro stuff like drums is not a good example for this tool. Basically points added when envelope rise/fall (envelope always rising/falling so green knobs let you define WHEN exactly to add points, i.e. define conditions for adding).
+- Scaling. Let you define how much do you wanna compress signal for detection. It is NOT compress actual take audio. More compression = better detection.
 - Threshold is linear "noise floor" for detected points. It is represented on the graph. Lower threshold = more points.
 - Rise area. If signal rise/fall by value defined with Rise/Fall and Rise/Fall2 in this area, point will be added. Short time = more points.
-- Rise/Fall - gain/attenuation factor when checking Rise area for scaled envelope. Lower value = less points.
-- Rise/Fall2 - gain/attenuation factor when checking Rise area for original envelope. Lower value = less points.
+- Rise/Fall - linear gain/attenuation factor when checking Rise area for scaled envelope. Lower value = more points.
+- Rise/Fall2 - linear gain/attenuation factor when checking Rise area for original envelope. Lower value = more points.
 - Filter area - minimal space beetween detected points. Long time = less points.
 
 Red knob is a parameter for main algorithm.
-- Search area means how far possible stretch markers can be moved. Long time = harder segments stretching .
+- Search area means how far possible stretch markers can be moved. Short time = tiny alignment.
 
 Blue knobs are parameters for building envelope
-- First selector allow to change type envelope beetween RMS envelope and FFT (sum of whole spectrum bins values) envelope.
-- Second selector allow to change algorithm. First algo get every block beetween 3 points and find best fit by moving center point. Second algo use same technique, but get blocks one-by one and find best fit relative to previously stretched blocks.
+- First selector allow to change type envelope beetween RMS envelope and FFT (sum of spectrum bins values) envelope.
+- Second selector allow to change algorithm. First algo get every block beetween 3 closest points and find best fit by moving center point. Second algo use same technique, but get blocks one-by one and calculate best fit potential stretch markers position relative to previously stretched blocks.
 - RMS window is how much samples taken to calculate average for every envelope point.
 - FFT size is number of FFT bins.
-- HP and LP are FFT filter cutoff controls.
+- HP and LP control FFT edges.
 - Smooth knob control smoothing final envelope.
-
 ]]     
       if MOUSE_button(objects.about_b1, 'about_b1') then 
         reaper.MB(info_str,'MPL Align takes',0)
