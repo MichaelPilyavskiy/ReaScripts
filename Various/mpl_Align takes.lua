@@ -9,6 +9,7 @@
 --    # Brighter knobs
 --    # Swap points and envelope colors to match related settings
 --    # ReaPack versioning fix
+
 --[[
    * ReaScript Name: mpl Align Takes
    * Lua script for Cockos REAPER
