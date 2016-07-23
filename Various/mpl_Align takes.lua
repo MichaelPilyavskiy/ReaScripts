@@ -1,4 +1,4 @@
--- @version 1.10
+-- @version 1.11
 -- @author mpl
 -- @changelog
 --    + Presets
@@ -18,7 +18,7 @@
   
 --[[
   * Changelog: 
-    * v1.10 (2016-06-23)
+    * v1.11 (2016-06-23)
       + Presets
       + Parameter to load current script instance with custom preset
       + About window
@@ -60,7 +60,11 @@
 
 
  
-  local load_preset_on_start = 2
+  local load_preset_on_start = 'current'
+  
+    -- 'current' - load last config
+    -- 'default' - load default config
+    -- 3 - load preset #3
   
   
   
@@ -70,7 +74,7 @@
 ----------------------------------------------------------------------- 
 ----------------------------------------------------------------------- 
 -----------------------------------------------------------------------   
-  local vrs = '1.10'
+  local vrs = '1.11'
 ----------------------------------------------------------------------- 
   function msg(str)
     if type(str) == 'boolean' then if str then str = 'true' else str = 'false' end end
