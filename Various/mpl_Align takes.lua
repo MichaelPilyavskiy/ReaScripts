@@ -1,8 +1,13 @@
--- @version 1.082
+-- @version 1.10
 -- @author mpl
 -- @changelog
---   # Fix: error on empty sm table
-
+--    + Presets
+--    + Parameter to load current script instance with custom preset
+--    + About window
+--    + Dedicated thread on Cockos forum http://forum.cockos.com/showthread.php?p=1709618
+--    # Edit links/description
+--    # Brighter knobs
+--    # Swap points and envelope colors to match related settings
 --[[
    * ReaScript Name: mpl Align Takes
    * Lua script for Cockos REAPER
@@ -13,7 +18,16 @@
   
 --[[
   * Changelog: 
-    * v1.081 (2016-06-11)
+    * v1.10 (2016-06-23)
+      + Presets
+      + Parameter to load current script instance with custom preset
+      + About window
+      + Dedicated thread on Cockos forum
+      # Edit links/description
+      # Brighter knobs
+      # Swap points and envelope colors to match related settings
+    * v1.08 (2016-06-11)
+      # Fix: error on empty sm table
       # Improved graphics for knob and selector
     * v1.07 (2016-04-01)
       # Set slider to 0 when get takes
@@ -41,9 +55,22 @@
     * v0.01 (2015-09-01) 
       + Alignment / Warping / Tempomatching tool idea
   --]]
+-----------------------------------------------------------------------  
+
+
+
+ 
+  local load_preset_on_start = 2
   
-  function bmrk() end
-  local vrs = '1.08'
+  
+  
+  
+  
+  
+----------------------------------------------------------------------- 
+----------------------------------------------------------------------- 
+-----------------------------------------------------------------------   
+  local vrs = '1.10'
 ----------------------------------------------------------------------- 
   function msg(str)
     if type(str) == 'boolean' then if str then str = 'true' else str = 'false' end end
@@ -61,50 +88,44 @@
   
 ----------------------------------------------------------------------- 
   function MAIN_exit()
+    INI_set()
     reaper.atexit()
     gfx.quit()
   end  
-
------------------------------------------------------------------------   
-  function DEFINE_dynamic_variables()
-    data2.custom_window = F_convert(data.custom_window_norm, 0.005, 0.2)
-    
-    data2.fft_size = math.floor(2^math.floor(F_convert(data.fft_size_norm,7,10)))
-    if data2.fft_LP == nil then data2.fft_LP = data2.fft_size end
-    data2.fft_HP = F_limit(math.floor(F_convert(data.fft_HP_norm, 1, data2.fft_size)), 1, data2.fft_LP-1)
-    data2.fft_LP =  1+F_limit(math.floor(F_convert(data.fft_LP_norm, 1, data2.fft_size)), data2.fft_HP+1, data2.fft_size)
-    
-    data2.smooth = data.smooth_norm
-    
-    data2.filter_area = F_convert(data.filter_area_norm, 0.1,2)
-    data2.rise_area = F_convert(data.rise_area_norm, 0.1,0.5)
-    data2.risefall = F_convert(data.risefall_norm, 0.1,0.8)
-    data2.risefall2 = F_convert(data.risefall2_norm, 0.05,0.8)    
-    data2.threshold = F_convert(data.threshold_norm, 0.1,0.4)  
-    data2.scaling_pow = F_convert(math.abs(1-data.scaling_pow_norm), 0.1, 0.75)
-    
-    data2.search_area = F_convert(data.search_area_norm, 0.05, 2) 
-    
-    local objects = DEFINE_objects()
+-----------------------------------------------------------------------    
+  function MAIN_switch_compact_view(obj)
     if compact_view_trig then 
-      objects.main_h = objects.main_h + data.compact_view*objects.set_wind_h
+      obj.main_h = obj.main_h + data.current.compact_view*obj.set_wind_h
       gfx.quit()
-      gfx.init("mpl Align takes // "..vrs, objects.main_w, objects.main_h, 0, data.xpos,data.ypos )
+      gfx.init("mpl Align takes // "..vrs, obj.main_w, obj.main_h, 0, data.current.xpos,data.current.ypos )
       compact_view_trig = false
     end 
+  end
+-----------------------------------------------------------------------   
+  function A2_DEFINE_dynamic_variables()
+    if not data2.current_take then data2.current_take = 2 end
+
+    -- green / detection point  
+      data2.scaling_pow = F_convert(math.abs(1-data.current.scaling_pow_norm), 0.1, 0.75)
+      data2.threshold = F_convert(data.current.threshold_norm, 0.1,0.4)     
+      data2.rise_area = F_convert(data.current.rise_area_norm, 0.1,0.5)
+      data2.risefall = F_convert(data.current.risefall_norm, 0.1,0.8)
+      data2.risefall2 = F_convert(data.current.risefall2_norm, 0.05,0.8)    
+      data2.filter_area = F_convert(data.current.filter_area_norm, 0.1,2)
+          
+    -- blue / envelope
+      data2.custom_window = F_convert(data.current.custom_window_norm, 0.005, 0.2)
+      data2.fft_size = math.floor(2^math.floor(F_convert(data.current.fft_size_norm,7,10)))
+      if data2.fft_LP == nil then data2.fft_LP = data2.fft_size end
+      data2.fft_HP = F_limit(math.floor(F_convert(data.current.fft_HP_norm, 1, data2.fft_size)), 1, data2.fft_LP-1)
+      data2.fft_LP =  1+F_limit(math.floor(F_convert(data.current.fft_LP_norm, 1, data2.fft_size)), data2.fft_HP+1, data2.fft_size)
+      data2.smooth = data.current.smooth_norm
     
-    char = gfx.getchar()
-    play_pos = reaper.GetPlayPosition(0)
-    OS = reaper.GetOS()
-    
-    reaper_vrs = tonumber(reaper.GetAppVersion():match('[%d%.]+'))
-    if reaper_vrs >= 5.20 then
-      is_docked, xpos, ypos = gfx.dock(0,data.xpos,data.ypos)
-      if data.xpos ~= xpos or  data.ypos ~= ypos then 
-        data.xpos, data.ypos = xpos, ypos
-        ENGINE_set_ini(data, config_path) 
-      end
-    end
+    -- red / algo
+      data2.search_area = F_convert(data.current.search_area_norm, 0.05, 2) 
+      
+    --othert
+      data2.play_pos = reaper.GetPlayPosition(0)
   end
   
 -----------------------------------------------------------------------  
@@ -242,7 +263,7 @@
             aa.window_sec = data2.fft_size/aa.rate -- ms
           end
           
-          data.global_window_sec = aa.window_sec
+          data2.global_window_sec = aa.window_sec
           size = math.ceil(aa.window_sec*aa.rate)
           -- get fft_size samples buffer
             for read_pos = 0, item_len, aa.window_sec do 
@@ -312,10 +333,10 @@
     -- fill null to reference item
       if take_id > 1 then
         st_win_cnt = math.floor ((takes_t[take_id].pos - takes_t[1].pos) 
-        / data.global_window_sec)
+        / data2.global_window_sec)
         end_win_cnt = math.floor
           ((takes_t[1].pos + takes_t[1].len - takes_t[take_id].pos - takes_t[take_id].len) 
-          / data.global_window_sec)
+          / data2.global_window_sec)
         -- fill from start
           if takes_t[take_id].pos > takes_t[1].pos then            
             for i = 1, st_win_cnt do table.insert(out_t, 1, 0) end
@@ -575,7 +596,7 @@
       search_area = math.floor(data2.search_area / window_sec)
               
       -- get blocks
-         block_ids = {}
+        local block_ids = {}
         for i = 1, dub_arr_size do
           if points[i] == 1 then 
             block_ids[#block_ids+1] = {['orig']=i} end
@@ -999,7 +1020,7 @@
             local pointsarr_size = reaperarray.get_alloc(pointsarray)
             local tri_h = 5
             local tri_w = tri_h
-            F_Get_SSV(gui.color.blue, true) 
+            F_Get_SSV(gui.color.green, true) 
             gfx.a = 0.4
             for i = 1, pointsarr_size-1 do
               if pointsarray[i] == 1 then
@@ -1136,7 +1157,8 @@
   
 ----------------------------------------------------------------------- 
        
-            function GUI_selector(xywh,col,val,b1,b2 )             
+            function GUI_selector(xywh,col,val,b1,b2 )     
+              if not val then return end        
               F_Get_SSV(col, true)
               gfx.a = 0.3
               
@@ -1178,7 +1200,7 @@
       gfx.a = 0.01+0.3*is_active
       F_Get_SSV(gui.color[col], true)
       gfx.rect(x,y ,w, h, 1)
-      gfx.a = 0.2
+      gfx.a = 0.01
       gfx.blit(7, 1, math.rad(180), -- backgr
                0,0,objects.main_w, objects.main_h,
                x,y ,w, h, 0,0)
@@ -1196,40 +1218,42 @@
           gfx.arc(x+w/2+1,y+h/2+1,arc_r-i,    math.rad(90),math.rad(ang_gr),    gui.aa)
         end
                 
-      if is_active then gfx.a = 0.4 else gfx.a = 0.03 end
-      
-        local ang_val = math.rad(-ang_gr+ang_gr*2*val)
+      gfx.a = 0.5
+      local ang_val = math.rad(-ang_gr+ang_gr*2*val)
+      F_Get_SSV(gui.color[col], true)
+      if is_active == 1 then --gfx.a = 0.4 else gfx.a = 0.03 end
         for i = 0, 3, 0.4 do
-          F_Get_SSV(gui.color[col], true)
-          if ang_val < math.rad(-90) then 
-            gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),ang_val, gui.aa)
-           else
-            if ang_val < math.rad(0) then 
-              gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90), gui.aa)
-              gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),ang_val,    gui.aa)
+            if ang_val < math.rad(-90) then 
+              gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),ang_val, gui.aa)
              else
-              if ang_val < math.rad(90) then 
+              if ang_val < math.rad(0) then 
                 gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90), gui.aa)
-                gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    gui.aa)
-                gfx.arc(x+w/2+1,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    gui.aa)
+                gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),ang_val,    gui.aa)
                else
-                if ang_val < math.rad(ang_gr) then 
+                if ang_val < math.rad(90) then 
                   gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90), gui.aa)
                   gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    gui.aa)
-                  gfx.arc(x+w/2+1,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    gui.aa)
-                  gfx.arc(x+w/2+1,y+h/2+1,arc_r-i,    math.rad(90),ang_val,    gui.aa)
+                  gfx.arc(x+w/2+1,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    gui.aa)
                  else
-                  gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    gui.aa)
-                  gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    gui.aa)
-                  gfx.arc(x+w/2+1,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    gui.aa)
-                  gfx.arc(x+w/2+1,y+h/2+1,arc_r-i,    math.rad(90),math.rad(ang_gr),    gui.aa)                  
+                  if ang_val < math.rad(ang_gr) then 
+                    gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90), gui.aa)
+                    gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    gui.aa)
+                    gfx.arc(x+w/2+1,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    gui.aa)
+                    gfx.arc(x+w/2+1,y+h/2+1,arc_r-i,    math.rad(90),ang_val,    gui.aa)
+                   else
+                    gfx.arc(x+w/2-1,y+h/2+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    gui.aa)
+                    gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    gui.aa)
+                    gfx.arc(x+w/2+1,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    gui.aa)
+                    gfx.arc(x+w/2+1,y+h/2+1,arc_r-i,    math.rad(90),math.rad(ang_gr),    gui.aa)                  
+                  end
                 end
-              end
-            end                
+              end                
+            end
           end
         end
                
     -- text
+      gfx.a = 0.05+0.95*is_active
       gfx.setfont(1, gui.fontname, gui.knob_txt)
       text_len = gfx.measurestr(text)
       gfx.x, gfx.y = x+(w-text_len)/2,y+h-gfx.texth-2
@@ -1244,46 +1268,10 @@
   end
                 
 -----------------------------------------------------------------------   
-  function DEFINE_GUI_buffers()
+  function A4_DEFINE_GUI_buffers(gui, obj)
     local is_sel
-    local objects = DEFINE_objects()
+    local OS = reaper.GetOS()
     update_gfx_minor = true
-    
-    -- GUI variables 
-      local gui = {}
-      gui.aa = 1
-      gfx.mode = 0
-      gui.fontname = 'Calibri'
-      gui.fontsize = 23      
-      if OS == "OSX32" or OS == "OSX64" then gui.fontsize = gui.fontsize - 7 end
-      
-      -- selector buttons
-        gui.b_sel_fontsize = gui.fontsize - 1
-        gui.b_sel_text_alpha = 1
-        gui.b_sel_text_alpha_unset = 0.7
-        if OS == "OSX32" or OS == "OSX64" then 
-          gui.knob_txt = gui.fontsize - 5
-         else gui.knob_txt = gui.fontsize - 8
-        end
-        
-      -- reg buttons
-        gui.b_text_alpha = 0.8
-        gui.b3_text_alpha = 0.8
-      -- takenames
-        gui.b_takenames_fontsize = gui.fontsize - 3
-      
-      gui.color = {['back'] = '51 51 51',
-                    ['back2'] = '51 63 56',
-                    ['black'] = '0 0 0',
-                    ['green'] = '102 255 102',
-                    ['blue'] = '127 204 255',
-                    ['white'] = '255 255 255',
-                    ['red'] = '204 76 51',
-                    ['green_dark'] = '102 153 102',
-                    ['yellow'] = '200 200 0',
-                    ['pink'] = '200 150 200',
-                  }        
-      
     
       ----------------------------------------------------------------------- 
           
@@ -1294,27 +1282,29 @@
       -- 4 wind 1
       -- 5 wait window
       -- 6 envelopes
-      -- 7 buffer back
+      -- 7 item envelope gradient
       -- 8 about
       -- 9 knobs
         
+        
     -- buf1 background   
       if update_gfx then    
-        fdebug('DEFINE_GUI_buffers_1-mainback')  
+        --fdebug('DEFINE_GUI_buffers_1-mainback')  
         gfx.dest = 1
         gfx.setimgdim(1, -1, -1)  
-        gfx.setimgdim(1, objects.main_w, objects.main_h+objects.set_wind_h) 
+        gfx.setimgdim(1, obj.main_w, obj.main_h+obj.set_wind_h) 
         gfx.a = 0.92
         F_Get_SSV(gui.color.back, true)
-        gfx.rect(0,0, objects.main_w, objects.main_h+objects.set_wind_h,1)
+        gfx.rect(0,0, obj.main_w, obj.main_h+obj.set_wind_h,1)
       end
+    
     
     -- buf3 -- buttons back gradient
       if update_gfx then    
-        fdebug('DEFINE_GUI_buffers_3-buttons back')  
+        --fdebug('DEFINE_GUI_buffers_3-buttons back')  
         gfx.dest = 3
         gfx.setimgdim(3, -1, -1)  
-        gfx.setimgdim(3, objects.main_w, objects.main_h)  
+        gfx.setimgdim(3, obj.main_w, obj.main_h)  
            gfx.a = 1
            local r,g,b,a = 0.9,0.9,1,0.6
            gfx.x, gfx.y = 0,0
@@ -1326,222 +1316,186 @@
            local dbdy = 0
            local dadx = 0.0003
            local dady = 0.0004       
-           gfx.gradrect(0,0,objects.main_w, objects.main_h, 
+           gfx.gradrect(0,0,obj.main_w, obj.main_h, 
                         r,g,b,a, 
                         drdx, dgdx, dbdx, dadx, 
                         drdy, dgdy, dbdy, dady)
       end  
   
+  
     -- buf 4 -- general buttons / sliders / info
       if update_gfx_minor then
-          gfx.dest = 4
-          gfx.setimgdim(4, -1, -1)  
-          gfx.setimgdim(4, objects.main_w, objects.main_h+objects.set_wind_h)
-          
-          if data.compact_view == 0 then
-            mode_name = '+'
-           else
-            mode_name = '-'
-          end
-          
-          GUI_button2(objects, gui, objects.b_setup,mode_name, mouse.context == 'w1_settings_b', gui.b_sel_fontsize, 0.7, 'white')
-          
-          GUI_button2(objects, gui, objects.b_get, 'Get', 
-            mouse.context == 'w1_get_b',    gui.b_sel_fontsize, 0.8, 'green') 
-            
-          GUI_button2(objects, gui, objects.pref_actions,'Menu', 
-            mouse.context == 'settings_actions', gui.b_sel_fontsize, 0.8, 'green')
-
-          GUI_button2(objects, gui, objects.pref_donate,'Donate', 
-            mouse.context == 'pref_donate', gui.b_sel_fontsize, 0.8, 'green')
-                                    
-          GUI_slider(objects, gui, objects.b_slider, w1_slider, 1,'green', takes_t)
-          if data.current_window == 4  then
-            GUI_slider(objects, gui, objects.b_slider2, w2_slider, 1,'green', takes_t)
-          end
-          
+        gfx.dest = 4
+        gfx.setimgdim(4, -1, -1)  
+        gfx.setimgdim(4, obj.main_w, obj.main_h+obj.set_wind_h) 
+        
+        -- compact buttons
+          if data.current.compact_view == 0 then mode_name = '+' else mode_name = '-' end
+          GUI_button2(obj, gui, obj.b_setup, mode_name, mouse.context == 'w1_settings_b', gui.b_sel_fontsize, 0.7, 'white')
+          GUI_button2(obj, gui, obj.b_get, 'Get', mouse.context == 'w1_get_b', gui.b_sel_fontsize, 0.8, 'green') 
+              
+        -- full view right buttons    
+          GUI_button2(obj, gui, obj.pref_b1,'Presets', mouse.context == 'pref1', gui.b_sel_fontsize, 0.8, 'green')
+          GUI_button2(obj, gui, obj.pref_b2,'About', mouse.context == 'pref2', gui.b_sel_fontsize, 0.8, 'green')
+          GUI_button2(obj, gui, obj.pref_b3,'Donate',mouse.context == 'pref3', gui.b_sel_fontsize, 0.8, 'green')
+                          
+        -- slider                   
+          GUI_slider(obj, gui, obj.b_slider, w1_slider, 1,'green', takes_t)
+        
+        -- display  
           if takes_t ~= nil and takes_t[2] ~= nil then
-          -- display navigation
-            if mouse.context == 'w1_disp' then
-              -- take names
-              GUI_text(objects.disp_ref_text, gui, objects, 
-                  gui.fontname, gui.b_takenames_fontsize, 'Reference: '..takes_t[1].name:sub(0,30), true)              
+            -- take names
+              if mouse.context == 'w1_disp' then
+                GUI_text(obj.disp_ref_text, gui, obj,gui.fontname, gui.b_takenames_fontsize, 'Reference: '..takes_t[1].name:sub(0,30), true)              
                 local d_name = 'Dub: '
-                if takes_t[3] ~= nil then d_name = 'Dubs ('..math.floor(data.current_take-1)..'/'..(#takes_t - 1)..'): ' end
-                GUI_text(objects.disp_dub_text, gui, objects, 
-                  gui.fontname, gui.b_takenames_fontsize, d_name..takes_t[data.current_take].name:sub(0,30), true)
+                if takes_t[3] ~= nil then d_name = 'Dubs ('..math.floor(data2.current_take-1)..'/'..(#takes_t - 1)..'): ' end
+                GUI_text(obj.disp_dub_text, gui, obj, gui.fontname, gui.b_takenames_fontsize, d_name..takes_t[data2.current_take].name:sub(0,30), true)
               end
             -- display cursor position
               gfx.a = 0.9
               F_Get_SSV(gui.color.red, true)
-              gfx.line(F_limit(objects.disp[1] + objects.disp[3] / takes_t[1].len * (play_pos - takes_t[1].pos), 
-                        objects.disp[1], objects.disp[1] + objects.disp[3]),
-                        objects.disp[2],
-                       F_limit(objects.disp[1] + objects.disp[3] / takes_t[1].len * (play_pos - takes_t[1].pos), 
-                        objects.disp[1], objects.disp[1] + objects.disp[3]),
-                        objects.disp[2]+objects.disp[4])
+              gfx.line(F_limit(obj.disp[1] + obj.disp[3] / takes_t[1].len * (data2.play_pos - takes_t[1].pos), 
+                        obj.disp[1], obj.disp[1] + obj.disp[3]), obj.disp[2],
+                       F_limit(obj.disp[1] + obj.disp[3] / takes_t[1].len * (data2.play_pos - takes_t[1].pos), 
+                        obj.disp[1], obj.disp[1] + obj.disp[3]), obj.disp[2]+obj.disp[4])
           end
- 
       end
 
-    -- item envelope gradient
+
+    -- buf 7 -- item envelope gradient
       if update_gfx then 
           gfx.dest = 7  
           gfx.setimgdim(7, -1, -1)
-          gfx.setimgdim(7, objects.main_w, objects.main_h)
-          gfx.gradrect(0,0, objects.main_w, objects.main_h, 1,1,1,0.9, 0,0,0,0.00001, 0,0,0,-0.005)
+          gfx.setimgdim(7, obj.main_w, obj.main_h)
+          gfx.gradrect(0,0, obj.main_w, obj.main_h, 1,1,1,0.9, 0,0,0,0.00001, 0,0,0,-0.005)
       end
       
-    -- buf 6 static envelopes buttons
+      
+    -- buf 6 -- envelopes 
       if update_gfx then 
-          fdebug('DEFINE_GUI_buffers_6-envelopes')      
+          --fdebug('DEFINE_GUI_buffers_6-envelopes')      
           gfx.dest = 6
           gfx.setimgdim(6, -1, -1)  
-          gfx.setimgdim(6, objects.main_w, objects.main_h)
-          GUI_item_display
-            (objects, gui, objects.disp_ref , takes_arrays[1],                 true, 
-            takes_points[1], 'green' ) 
-          GUI_item_display
-            (objects, gui, objects.disp_dub , takes_arrays[data.current_take], false ,
-            takes_points[data.current_take], 'green')
+          gfx.setimgdim(6, obj.main_w, obj.main_h)
+          GUI_item_display(obj, gui, obj.disp_ref , takes_arrays[1], true,takes_points[1], 'blue' ) 
+          GUI_item_display(obj, gui, obj.disp_dub , takes_arrays[data2.current_take], false , takes_points[data2.current_take], 'blue')
       end
     
     
-    -- buf 5 wait
+    -- buf 5 -- wait
       if trig_process ~= nil and trig_process == 1 then
         gfx.dest = 5
         gfx.setimgdim(5, -1, -1)  
-        gfx.setimgdim(5, objects.main_w, objects.main_h+objects.set_wind_h) 
+        gfx.setimgdim(5, obj.main_w, obj.main_h+obj.set_wind_h) 
         gfx.a = 0.93
         F_Get_SSV(gui.color.back, true)
-        gfx.rect(0,0, objects.main_w, objects.main_h+objects.set_wind_h,1)  
+        gfx.rect(0,0, obj.main_w, obj.main_h+obj.set_wind_h,1)  
         F_Get_SSV(gui.color.white, true)    
         local str = 'Analyzing takes. Please wait...'
         gfx.setfont(1, gui.fontname, gui.fontsize)
-        gfx.x = (objects.main_w - gfx.measurestr(str))/2
-        gfx.y = (objects.main_h-gfx.texth)/2
+        gfx.x = (obj.main_w - gfx.measurestr(str))/2
+        gfx.y = (obj.main_h-gfx.texth)/2
         gfx.drawstr(str)
       end
       
-    -- buf 9 knobs
-      if update_gfx then 
-          fdebug('DEFINE_GUI_buffers_9-knobs')      
-          gfx.dest = 9
-          gfx.setimgdim(9, -1, -1)  
-          gfx.setimgdim(9, objects.main_w, objects.main_h+objects.set_wind_h)
+  -- buf 9 -- knobs
+    if update_gfx then 
+      --fdebug('DEFINE_GUI_buffers_9-knobs')      
+      gfx.dest = 9
+      gfx.setimgdim(9, -1, -1)  
+      gfx.setimgdim(9, obj.main_w, obj.main_h+obj.set_wind_h)
           
-          -- detect points
-            GUI_knob(objects, objects.knob1,gui, data.scaling_pow_norm, 'Scaling',
-              data.scaling_pow_norm, 'green',1)
-            GUI_knob(objects, objects.knob2,gui, data.threshold_norm, 'Threshold',
-              data2.threshold, 'green',1) 
-            GUI_knob(objects, objects.knob3,gui, data.rise_area_norm, 'Rise Area',
-              math.floor(data2.rise_area * 1000)..'ms', 'green', 1)   
-            GUI_knob(objects, objects.knob4,gui, data.risefall_norm, 'Rise/Fall',
-              data2.risefall, 'green', 1)     
-            GUI_knob(objects, objects.knob5,gui, data.risefall2_norm, 'Rise/Fall 2',
-              data2.risefall2, 'green', 1)                                     
-            GUI_knob(objects, objects.knob6,gui, data.filter_area_norm, 'Filter Area',
-              math.floor(data2.filter_area * 1000)..'ms', 'green', 1)           
-              
-            
-            gfx.a = 0.5
-            F_Get_SSV(gui.color.green_dark, true)
-            gfx_rect(objects.pref_rect1[1],
-              objects.pref_rect1[2],
-              objects.pref_rect1[3],
-              objects.pref_rect1[4],0) 
-             
-         -- search area   
-            GUI_knob(objects, objects.knob7, gui, data.search_area_norm, 'Search area',
-              math.floor(data2.search_area * 1000)..'ms', 'red', 1)            
-  
-            gfx.a = 0.5
-            F_Get_SSV(gui.color.red, true)
-            gfx_rect(objects.pref_rect2[1],
-              objects.pref_rect2[2],
-              objects.pref_rect2[3],
-              objects.pref_rect2[4],0)  
-
-          -- selector
-            GUI_selector(objects.selector,gui.color.blue,data.mode,'RMS', 'FFT') 
-            GUI_selector(objects.selector2,gui.color.blue,data.alg,'Algo 1','Algo 2')
-                       
-          -- rms/fft  
-            gfx.a = 0.5
-            F_Get_SSV(gui.color.blue, true)
-            gfx_rect(objects.pref_rect3[1],
-              objects.pref_rect3[2],
-              objects.pref_rect3[3],
-              objects.pref_rect3[4],0)  
-
-            local bin = 22050/data2.fft_size
-            GUI_knob(objects, objects.knob9,gui, data.custom_window_norm, 'RMS wind.',
-              math.floor(data2.custom_window * 1000)..'ms', 'blue', math.abs(1-data.mode))
-            GUI_knob(objects, objects.knob10,gui, data.fft_size_norm, 'FFT size',
-              data2.fft_size, 'blue', math.abs(data.mode))
-            GUI_knob(objects, objects.knob11,gui, data.fft_HP_norm, 'HP',
-              math.floor((data2.fft_HP-1)*bin)..'Hz', 'blue', math.abs(data.mode))            
-            GUI_knob(objects, objects.knob12,gui, data.fft_LP_norm, 'LP',
-              math.floor((data2.fft_LP-1)*bin)..'Hz', 'blue', math.abs(data.mode))                      
-            GUI_knob(objects, objects.knob13,gui, data.smooth_norm, 'Smooth',
-              (data2.smooth*100)..'%', 'blue', 1)                      
-                      
-                                              
-      end    
+      -- green knobs
+        GUI_knob(obj, obj.knob1,gui, data.current.scaling_pow_norm, 'Scaling', data.current.scaling_pow_norm, 'green',1)
+        GUI_knob(obj, obj.knob2,gui, data.current.threshold_norm, 'Threshold',data2.threshold, 'green',1) 
+        GUI_knob(obj, obj.knob3,gui, data.current.rise_area_norm, 'Rise Area',math.floor(data2.rise_area * 1000)..'ms', 'green', 1)   
+        GUI_knob(obj, obj.knob4,gui, data.current.risefall_norm, 'Rise/Fall',data2.risefall, 'green', 1)     
+        GUI_knob(obj, obj.knob5,gui, data.current.risefall2_norm, 'Rise/Fall 2',data2.risefall2, 'green', 1)                                     
+        GUI_knob(obj, obj.knob6,gui, data.current.filter_area_norm, 'Filter Area',math.floor(data2.filter_area * 1000)..'ms', 'green', 1)           
+        -- frame
+        gfx.a = 0.5
+        F_Get_SSV(gui.color.green_dark, true)
+        gfx_rect(obj.pref_rect1[1],obj.pref_rect1[2],obj.pref_rect1[3],obj.pref_rect1[4],0) 
+      -- red knob   
+        GUI_knob(obj, obj.knob7, gui, data.current.search_area_norm, 'Search area',math.floor(data2.search_area * 1000)..'ms', 'red', 1)            
+        --frame
+        gfx.a = 0.5
+        F_Get_SSV(gui.color.red, true)
+        gfx_rect(obj.pref_rect2[1],obj.pref_rect2[2],obj.pref_rect2[3],obj.pref_rect2[4],0)  
+      -- selectors
+        GUI_selector(obj.selector,gui.color.blue,data.current.mode,'RMS', 'FFT') 
+        GUI_selector(obj.selector2,gui.color.blue,data.current.alg,'Algo 1','Algo 2')
+        -- frame 
+        gfx.a = 0.5
+        F_Get_SSV(gui.color.blue, true)
+        gfx_rect(obj.pref_rect3[1],obj.pref_rect3[2],obj.pref_rect3[3],obj.pref_rect3[4],0) 
+      -- blue knobs 
+        local bin = 22050/data2.fft_size
+        GUI_knob(obj, obj.knob9,gui, data.current.custom_window_norm, 'RMS wind.', math.floor(data2.custom_window * 1000)..'ms', 'blue', math.abs(1-data.current.mode))
+        GUI_knob(obj, obj.knob10,gui, data.current.fft_size_norm, 'FFT size',data2.fft_size, 'blue', math.abs(data.current.mode))
+        GUI_knob(obj, obj.knob11,gui, data.current.fft_HP_norm, 'HP',math.floor((data2.fft_HP-1)*bin)..'Hz', 'blue', math.abs(data.current.mode))            
+        GUI_knob(obj, obj.knob12,gui, data.current.fft_LP_norm, 'LP',math.floor((data2.fft_LP-1)*bin)..'Hz', 'blue', math.abs(data.current.mode))                      
+        GUI_knob(obj, obj.knob13,gui, data.current.smooth_norm, 'Smooth',(data2.smooth*100)..'%', 'blue', 1)  
+    end    
     
       
+    gfx.dest = -1   
+    gfx.x,gfx.y = 0,0
+    gfx.a = 1
     
-    ------------------
-    -- common buf20 --
-    ------------------
-      gfx.dest = 20   
-      gfx.setimgdim(20, -1,-1)
-      gfx.setimgdim(20, objects.main_w, objects.main_h+objects.set_wind_h)
-      
-      -- common
-        gfx.a = 1
-        gfx.blit(1, 1, 0, -- backgr
-          0,0,objects.main_w, objects.main_h+objects.set_wind_h,
-          0,0,objects.main_w, objects.main_h+objects.set_wind_h, 0,0)           
-        gfx.blit(6, 1, 0, -- main window  static
-            0,0,objects.main_w, objects.main_h,
-            0,0,objects.main_w, objects.main_h, 0,0) 
-        gfx.blit(4, 1, 0, -- main window dynamic
-            0,0,objects.main_w, objects.main_h+objects.set_wind_h,
-            0,0,objects.main_w, objects.main_h+objects.set_wind_h, 0,0) 
-        gfx.blit(9, 1, 0, -- main window dynamic
-            0,0,objects.main_w, objects.main_h+objects.set_wind_h,
-            0,0,objects.main_w, objects.main_h+objects.set_wind_h, 0,0)                        
-          if  trig_process ~= nil and trig_process == 1 then
-            gfx.blit(5, 1, 0, --wait
-            0,0,objects.main_w, objects.main_h+objects.set_wind_h,
-            0,0,objects.main_w, objects.main_h+objects.set_wind_h, 0,0)   
-          end
+    gfx.blit(1, 1, 0, -- backgr
+          0,0,obj.main_w, obj.main_h+obj.set_wind_h,
+          0,0,obj.main_w, obj.main_h+obj.set_wind_h, 0,0)           
+    gfx.blit(6, 1, 0, -- main window  static
+            0,0,obj.main_w, obj.main_h,
+            0,0,obj.main_w, obj.main_h, 0,0) 
+    gfx.blit(4, 1, 0, -- main window dynamic
+            0,0,obj.main_w, obj.main_h+obj.set_wind_h,
+            0,0,obj.main_w, obj.main_h+obj.set_wind_h, 0,0) 
+    gfx.blit(9, 1, 0, -- main window dynamic
+            0,0,obj.main_w, obj.main_h+obj.set_wind_h,
+            0,0,obj.main_w, obj.main_h+obj.set_wind_h, 0,0)                        
         
-        gfx.blit(19, 1, 0, --TEST
-          0,0,objects.main_w, objects.main_h,
-          0,0,objects.main_w, objects.main_h, 0,0)  
+    if trig_process ~= nil and trig_process == 1 then
+        gfx.blit(5, 1, 0, --wait
+            0,0,obj.main_w, obj.main_h+obj.set_wind_h,
+            0,0,obj.main_w, obj.main_h+obj.set_wind_h, 0,0)   
+    end
+    
+    
+    if run_about then
+      GUI_run_about(obj, gui)
+    end
+ 
               
     update_gfx = false
-  end
-
------------------------------------------------------------------------    
-  function GUI_DRAW()
-    local objects = DEFINE_objects()
-    --fdebug('GUI_DRAW')
-     
-    -- common buffer
-      gfx.dest = -1   
-      gfx.a = 1
-      gfx.x,gfx.y = 0,0
-      gfx.blit(20, 1, 0, 
-        0,0, objects.main_w, objects.main_h+objects.set_wind_h,
-        0,0, objects.main_w, objects.main_h+objects.set_wind_h, 0,0)
-        
     gfx.update()
+  end  
+-----------------------------------------------------------------------    
+  function GUI_run_about(obj, gui)
+    
+    
+    
+    gfx.a = 0.88
+    F_Get_SSV(gui.color.black, true)
+    gfx.rect(       0,--x,
+                    0, -- y,
+                    obj.main_w, --w,
+                    obj.main_h+obj.set_wind_h, --h,
+                    1)
+                    
+    GUI_text(obj.about_b0, gui, obj,'Calibri' , 35, 'MPL Align Takes', false)
+    
+    GUI_button2(obj, gui, obj.about_b1, 'How to use', mouse.context == 'about_b1', gui.b_sel_fontsize, 0.7, 'white')
+    GUI_button2(obj, gui, obj.about_b6, 'Parameters description', mouse.context == 'about_b6', gui.b_sel_fontsize, 0.7, 'white')
+    
+    GUI_button2(obj, gui, obj.about_b2, 'VK', mouse.context == 'about_b2', gui.b_sel_fontsize, 0.7, 'green')
+    GUI_button2(obj, gui, obj.about_b3, 'SoundCloud', mouse.context == 'about_b3', gui.b_sel_fontsize, 0.7, 'green')
+    GUI_button2(obj, gui, obj.about_b4, 'CockosForum', mouse.context == 'about_b4', gui.b_sel_fontsize, 0.7, 'green')
+    GUI_button2(obj, gui, obj.about_b5, 'RMM thread', mouse.context == 'about_b5', gui.b_sel_fontsize, 0.7, 'green')
+    
+    GUI_button2(obj, gui, obj.about_b7, 'Close [X]', mouse.context == 'about_b7', gui.b_sel_fontsize, 0.7, 'red')
   end
-  
 -----------------------------------------------------------------------     
   function MOUSE_match(b)
     if mouse.mx > b[1] and mouse.mx < b[1]+b[3]
@@ -1549,121 +1503,69 @@
      return true 
     end 
   end 
-
 -----------------------------------------------------------------------    
- function F_open_URL(url)    
+ function F_open_URL(url)  
+  local OS = reaper.GetOS()  
     if OS=="OSX32" or OS=="OSX64" then
       os.execute("open ".. url)
      else
       os.execute("start ".. url)
     end
   end
-  
 -----------------------------------------------------------------------   
-  function GUI_menu_settings() local menuret 
-    local default_data = DEFINE_global_variables()
-    
-    
-    local menuret = gfx.showmenu(
-      '#Actions'
-      ..'|Restore defaults'
-      ..'|Preset 1 : macro alignment'
-      ..'|Preset 2 : tiny alignment'
-      
-      ..'||>Links'
-      ..'|MPL on Cockos Forum'
-      ..'|MPL on VK'
-      ..'|MPL on SoundCloud'
-      ..'|Warping tool thread on Cockos forum'
-      ..'|<Warping tool thread on RMM forum'
-      
-      ..'||#Info'
-      ..'|Parameters description'
-      )
-      
-      -- actions 
-      local act_count = 2
-      if menuret == 2 then -- restore defaults
-        data = DEFINE_global_variables()
-        ENGINE_set_ini(data, config_path)
-        updata_gfx = true
+  function App_def_to_currrent(preset_str, src_preset_str)
+    for key in pairs (data[src_preset_str]) do 
+      if data[src_preset_str][key] and type(data[src_preset_str][key]) ~= 'table' then
+        local temp_t = data[src_preset_str][key]
+        data[preset_str][key] = temp_t
       end
-      
-      if menuret == 3 then -- preset1      
-          data = DEFINE_global_variables()    
-          data.filter_area_norm = 0.58 
-          data.rise_area_norm = 0.42
-          data.risefall_norm = 0.115 
-          data.risefall2_norm = 0.3
-          data.search_area_norm = 0.9  
-        ENGINE_set_ini(data, config_path)
-        updata_gfx = true
-      end      
-            
-      if menuret == 4 then -- preset1  
-          data = DEFINE_global_variables()
-          data.filter_area_norm = 0.01
-          data.search_area_norm = 0.01  
-        ENGINE_set_ini(data, config_path)
-        updata_gfx = true
-      end  
-                  
-      -- links 
-      
-      if menuret == 3+act_count then
-        F_open_URL('http://forum.cockos.com/member.php?u=70694')
-      end
-
-      if menuret == 4+act_count then
-        F_open_URL('http://vk.com/michael_pilyavskiy')
-      end      
-
-      if menuret == 5+act_count then
-        F_open_URL('http://soundcloud.com/mp57')
-      end       
-            
-      if menuret == 6+act_count then
-        F_open_URL('http://forum.cockos.com/showthread.php?t=171658')
-      end
-
-      if menuret == 7+act_count then
-        F_open_URL('http://rmmedia.ru/threads/121230/')
-      end
-
-par_str = 
-[[
-Algorithm based on the matching RMS envelopes of 2+ takes and use stretch markers to move points of syllables start/end to make them match some reference take.
-
-Green knobs are parameters for detection points. Note, RMS envelope of course have some window, so aligning for example drums with this tool is not a good idea. Basically points added when envelope rise/fall by some value in defined area.
-
-- Scaling. Detection syllables starts/ends easier with scaled envelopes, since scaling actually compress range. When comparing data, script also use scaled envelopes and not original ones. 
-- Threshold is linear "noise floor" for detected points. It represented on the graph.
-- Rise area. If signal rise/fall by value defined with Rise/Fall and Rise/Fall2 in this area, point (=stretch marker) will be created.
-- Rise/Fall is gain/attenuation when checking Rise area for scaled envelope.
-- Rise/Fall is gain/attenuation when checking Rise area for original envelope.
-- Filter area - is minimal space beetween detected points.
-
-Red knob is parameter of comparing part of this script.
-
-- Search area. This defines searcing area for every found point when finding best RMS fit.
-
-Blue knobs related to building envelope
-
-- First selector allow to change type envelope beetween RMS envelope and FFT (sum of bin values) envelope.
-- Second selector allow to change algorithm. First algo get every block and find best fit by moving center point using original block position. Second algo use same technique, but get blocks one-by one and find best fit relative to previously stretched blocks.
-- RMS window is how much samples taken to calculate average for every envelope point.
-- FFT size is number of FFT bins.
-- HP and LP are FFT filter cutoff controls.
-- Smooth knob control smoothing final envelope.
-]]
-      
-      -- info
-      if menuret == 9+act_count then
-        reaper.MB(par_str, 'Parameters',0)
-      end
-                
+    end
   end
-
+  -----------------------------------------------------------------------   
+  function GUI_menu1(obj) local menuret  --  presets
+    
+    local formedstr = '|'
+    local formedstr2 = ''
+    for i = 1, data.count_presets do
+      formedstr = formedstr
+        ..'|'..'Preset '..i..' - '..data[i].name
+      formedstr2 = formedstr2
+        ..'|'..i..': '..data[i].name
+    end
+    
+    local menuret1 = gfx.showmenu(
+        'Restore defaults'
+      ..'|>Save preset to slot'
+      ..formedstr2
+      
+      ..'|<'..formedstr)
+    
+    --reset to defaults 
+      if menuret1 == 1 then
+        local c_view = data.current.compact_view -- preserve reset to compact view save
+        App_def_to_currrent('current', 'default')
+        data.current.compact_view = c_view -- preserve reset to compact view restore
+        update_gfx = true 
+      end
+      
+    -- save new preset
+      if menuret1 >=2 and menuret1 <=  data.count_presets + 1 then 
+        slot = math.floor(menuret1 - 1)
+        local ret1, user_typed_name = reaper.GetUserInputs( 'New preset name', 1, '', data[menuret1 - 1].name )      
+        if ret1 then 
+          --for key in pairs (data.current) do data[slot].key = data.current.key end
+          App_def_to_currrent(slot, 'current')
+          data[slot].name = user_typed_name
+          update_gfx = true 
+        end
+      end
+      
+    -- load
+      if menuret1 >=data.count_presets + 2  then 
+        for key in pairs (data.current) do data.current = data[menuret1 - data.count_presets - 1] end
+        update_gfx = true 
+      end      
+    end
       
 -----------------------------------------------------------------------    
   function GUI_menu_display(takes_t)
@@ -1679,7 +1581,7 @@ Blue knobs related to building envelope
               
               local ret_menu = gfx.showmenu(takesstr)
               if ret_menu >1 then 
-                data.current_take = ret_menu
+                data2.current_take = ret_menu
                 update_gfx = true
               end 
   end
@@ -1692,11 +1594,50 @@ Blue knobs related to building envelope
           takes_points = {}
           str_markers_t = {}
   end
-  
+-----------------------------------------------------------------------      
+  function MOUSE_button(object, context)
+    if MOUSE_match(object) then mouse.context = context end
+    if MOUSE_match(object) and mouse.LMB_state and not mouse.last_LMB_state then return true end  
+  end
+-----------------------------------------------------------------------
+  function MOUSE_slider(obj, context)
+    if MOUSE_match(obj) and mouse.LMB_state and not mouse.last_LMB_state then mouse.context = context  end 
+    if mouse.context == context then return true end
+  end
+----------------------------------------------------------------------- 
+  function ENGINE_ProcessGet()
+    local ret
+    if trig_process and trig_process == 1 and not mouse.LMB_state then 
+      ret = ENGINE_prepare_takes()
+      if ret == 1 then
+        takes_t = ENGINE_get_takes()
+        if #takes_t ~= 1 and #takes_t >= 2 then
+          str_markers_t = {} 
+          pos_offsets = {}  
+          rates = {}        
+          
+          for i = 1, #takes_t do 
+            takes_arrays[i] = ENGINE_get_take_data(i, data.scaling_pow2) 
+            if i > 1 then
+              takes_points[i] = ENGINE_get_take_data_points2(takes_arrays[i],data2.global_window_sec)
+              alg_num = data.current.alg + 1
+              str_markers_t[i] = _G[ 'ENGINE_compare_data2_alg'..alg_num ]
+                            (takes_arrays[1], 
+                            takes_arrays[i], 
+                            takes_points[i],
+                            data2.global_window_sec )
+            end
+          end
+        end
+      end 
+      
+      update_gfx = true 
+      trig_process = nil
+      w1_slider = 0
+    end    
+  end
 -----------------------------------------------------------------------   
-  function MOUSE_get()
-    local objects = DEFINE_objects()
-    local ret -- ENGINE_prepare_takes response
+  function A5_MOUSE_get(objects)
     mouse.mx = gfx.mouse_x
     mouse.my = gfx.mouse_y
     mouse.LMB_state = gfx.mouse_cap&1 == 1 
@@ -1708,172 +1649,197 @@ Blue knobs related to building envelope
     mouse.Alt_state = gfx.mouse_cap&17 == 17 -- alt + LB
     mouse.wheel = gfx.mouse_wheel
     
-    if mouse.LMB_state and not mouse.last_LMB_state then    
-      mouse.last_mx_onclick = mouse.mx
-      mouse.last_my_onclick = mouse.my
-    end
-           
-    if mouse.last_mx_onclick ~= nil and mouse.last_my_onclick ~= nil then
-      mouse.dx = mouse.mx - mouse.last_mx_onclick
-      mouse.dy = mouse.my - mouse.last_my_onclick
+    -------------------------------------------------------- mouse vars
+    -- get value on click
+      if mouse.LMB_state and not mouse.last_LMB_state then    
+        mouse.last_mx_onclick = mouse.mx     mouse.last_my_onclick = mouse.my
+      end    
+    -- get difference is click+holding
+      if mouse.last_mx_onclick and mouse.last_my_onclick then
+        mouse.dx = mouse.mx - mouse.last_mx_onclick  mouse.dy = mouse.my - mouse.last_my_onclick
+       else mouse.dx, mouse.dy = 0,0
+      end
+    
+    -- reset button/knob context    
+      if not mouse.LMB_state  then mouse.context = nil end
+    -- reset mouseover context
+      if not mouse.LMB_state  then mouse.context2 = nil end
+    
+    
+    if not run_about then
+    -------------------------------------------------------- main window
+    -- items display context menu
+      if takes_t and takes_t[2] and MOUSE_button(objects.disp, 'w1_disp') then
+        gfx.x = mouse.mx
+        gfx.y = mouse.my
+        GUI_menu_display(takes_t)
+      end    
+    -- compact view +/- 
+      if MOUSE_button(objects.b_setup, 'w1_settings_b') then            
+        compact_view_trig = true
+        data.current.compact_view = math.abs(data.current.compact_view-1)
+      end
+    -- GET button 
+      if MOUSE_button(objects.b_get, 'w1_get_b') then 
+        if trig_process == nil then trig_process = 1 end
+      end
+    -- Slider
+      if takes_t and MOUSE_slider(objects.b_slider, 'w1_slider') and str_markers_t then
+        w1_slider = F_limit((mouse.mx -objects.b_slider[1]) / objects.b_slider[3],0,1 )
+        for i = 1, #takes_t do 
+          if i == 1 then 
+                 ENGINE_set_stretch_markers2(i, str_markers_t[i], 0) 
+            else ENGINE_set_stretch_markers2(i, str_markers_t[i], w1_slider) 
+          end
+        end
+      end
+    ---------------------------------------------------------  config
+    -- selector mode
+      if MOUSE_button(objects.selector, 'selector') then
+        data.current.mode = math.abs(1 - data.current.mode)
+        update_gfx = true
+      end 
+    -- selector alg
+      if MOUSE_button(objects.selector2, 'selector2') then
+        data.current.alg = math.abs(1 -data.current.alg)
+        update_gfx = true
+      end          
+          
+    -- knobs  
+      
+    function MOUSE_knob(mouse, obj1, k, var)
+      if MOUSE_match(obj1['knob'..k]) and mouse.LMB_state and not mouse.last_LMB_state 
+       then 
+        mouse.context2 = 'knob'..k 
+        abs_var = data.current[var]
+      end       
+      if mouse.context2 == 'knob'..k then
+        data.current[var] = F_limit(abs_var + data.current.knob_coeff * -mouse.dy,0,1)
+        update_gfx = true
+      end
+    end 
+       
+      MOUSE_knob(mouse, objects, 1, 'scaling_pow_norm')
+      MOUSE_knob(mouse, objects, 2, 'threshold_norm')
+      MOUSE_knob(mouse, objects, 3, 'rise_area_norm') 
+      MOUSE_knob(mouse, objects, 4, 'risefall_norm')  
+      MOUSE_knob(mouse, objects, 5, 'risefall2_norm') 
+      MOUSE_knob(mouse, objects, 6, 'filter_area_norm') 
+      MOUSE_knob(mouse, objects, 7, 'search_area_norm')
+      MOUSE_knob(mouse, objects, 9, 'custom_window_norm')    
+      MOUSE_knob(mouse, objects, 10, 'fft_size_norm') 
+      MOUSE_knob(mouse, objects, 11, 'fft_HP_norm') 
+      MOUSE_knob(mouse, objects, 12, 'fft_LP_norm') 
+      MOUSE_knob(mouse, objects, 13, 'smooth_norm') 
+    
+    
+    
+    -- presets
+      if MOUSE_button(objects.pref_b1, 'pref1') then
+        gfx.x, gfx.y = mouse.mx, mouse.my    
+        GUI_menu1(objects)
+      end
+      
+    -- about
+      if MOUSE_button(objects.pref_b2, 'pref2') then
+        run_about = true
+      end
+      
+    -- donate
+      if MOUSE_button(objects.pref_b3, 'pref3') then
+        F_open_URL('http://www.paypal.me/donate2mpl')
+      end 
+      
+      --------------------------------------------------------
      else
-      mouse.dx, mouse.dy = 0,0
-    end
-          
-    if not mouse.LMB_state  then mouse.context = nil end
-    if not mouse.LMB_state  then mouse.context2 = nil end
-    
-    if mouse.last_LMB_state and not mouse.LMB_state then mouse.last_touched = nil end
-    
-    mouse.last_mx = 0
-    mouse.last_my = 0
-        
-    -- get takes
      
-        -- display
-          if MOUSE_match(objects.disp) then mouse.context = 'w1_disp' end
-          if takes_t~= nil and takes_t[2] ~= nil then 
-            if MOUSE_match(objects.disp) and mouse.LMB_state and not mouse.last_LMB_state then
-              gfx.x = mouse.mx
-              gfx.y = mouse.my
-              GUI_menu_display(takes_t)
-            end
-          end
-          
-        -- settings button 
-          if MOUSE_match(objects.b_setup) then mouse.context = 'w1_settings_b' end
-          if MOUSE_match(objects.b_setup) 
-            and mouse.LMB_state 
-            and not mouse.last_LMB_state 
-            then            
-            compact_view_trig = true
-            data.compact_view = math.abs(data.compact_view-1)
-            ENGINE_set_ini(data, config_path)
-          end
-  
-        -- actions
-          if MOUSE_match(objects.pref_actions) then mouse.context = 'settings_actions' end
-          if MOUSE_match(objects.pref_actions) 
-            and mouse.LMB_state 
-            and not mouse.last_LMB_state 
-            then
-            gfx.x, gfx.y = mouse.mx, mouse.my    
-            GUI_menu_settings()
-          end
-        
-        -- selector
-          if MOUSE_match(objects.selector)
-            and mouse.LMB_state 
-            and not mouse.last_LMB_state then
-            data.mode = math.abs(1 - data.mode)
-            ENGINE_set_ini(data, config_path)
-            update_gfx = true
-          end
+local info_str = 
+[[
+Align takes is a LUA script for REAPER written by Michael Pilyavskiy (Russian Federation). Algorithm is based on matching RMS envelopes of dub takes and some reference take using stretch markers.
 
-        -- selector
-          if MOUSE_match(objects.selector2)
-            and mouse.LMB_state 
-            and not mouse.last_LMB_state then
-            data.alg = math.abs(1 -data.alg)
-            ENGINE_set_ini(data, config_path)
-            update_gfx = true
-          end          
-          
+So how to use it? Ok you need to have at least 2 items placed on different tracks one under another. The reference item/take is upper take.
+You can also simultaneously work with any count of takes. The upper take will be also reference item/take for them.
 
-        -- donate
-          if MOUSE_match(objects.pref_donate) then mouse.context = 'pref_donate' end
-          if MOUSE_match(objects.pref_donate) 
-            and mouse.LMB_state 
-            and not mouse.last_LMB_state 
-            then
-            F_open_URL('http://www.paypal.me/donate2mpl')
-          end          
-          
-        -- get button 
-          if MOUSE_match(objects.b_get) then mouse.context = 'w1_get_b' end
-          if MOUSE_match(objects.b_get) 
-            and mouse.LMB_state 
-            and not mouse.last_LMB_state 
-           then
-            if trig_process == nil then trig_process = 1 end
-            
-          end
-          
-          if trig_process ~= nil and trig_process == 1 and not mouse.LMB_state then 
-            ret = ENGINE_prepare_takes()
-            if ret == 1 then
-              takes_t = ENGINE_get_takes()
-              if #takes_t ~= 1 and #takes_t >= 2 then
-                str_markers_t = {} 
-                pos_offsets = {}  
-                rates = {}        
-                for i = 1, #takes_t do 
-                    takes_arrays[i] = ENGINE_get_take_data(i, data.scaling_pow2) 
-                    if i > 1 then
-                      takes_points[i] = 
-                        ENGINE_get_take_data_points2(takes_arrays[i],data.global_window_sec)
-                      str_markers_t[i] = 
-                        _G['ENGINE_compare_data2_alg'..data.alg](takes_arrays[1], takes_arrays[i], takes_points[i],data.global_window_sec )
-                    end
-                end
-              end
-            end 
-            update_gfx = true 
-            trig_process = nil
-            w1_slider = 0
-          end
-          
-          
-        -- strength / apply slider 1 
-          if takes_t ~= nil then 
-            if MOUSE_match(objects.b_slider)
-              and mouse.LMB_state 
-              and not mouse.last_LMB_state then 
-                mouse.context = 'w1_slider' 
-            end 
-            
-            if mouse.context == 'w1_slider' then
-              w1_slider = F_limit((mouse.mx - objects.b_slider[1]) / objects.b_slider[3],0,1 )
-              if str_markers_t then 
-                for i = 1, #takes_t do 
-                  if i == 1 then ENGINE_set_stretch_markers2(i, str_markers_t[i], 0) else
-                  ENGINE_set_stretch_markers2(i, str_markers_t[i], w1_slider) end
-                end
-              end
-            end
-            
-          end
-          
-        -- knobs
-          function MOUSE_knob(objects, i, var)
-            if MOUSE_match(objects['knob'..i]) and mouse.LMB_state 
-              and not mouse.last_LMB_state 
-              then 
-                mouse.context2 = 'knob'..i 
-                abs_var = data[var]
-            end 
-            
-            if mouse.context2 == 'knob'..i then
-              data[var] = F_limit(abs_var + knob_coeff * -mouse.dy,0,1)
-              ENGINE_set_ini(data, config_path)
-            end
-          end
-          
-          MOUSE_knob(objects, 1, 'scaling_pow_norm')
-          MOUSE_knob(objects, 2, 'threshold_norm')
-          MOUSE_knob(objects, 3, 'rise_area_norm') 
-          MOUSE_knob(objects, 4, 'risefall_norm')  
-          MOUSE_knob(objects, 5, 'risefall2_norm') 
-          MOUSE_knob(objects, 6, 'filter_area_norm')
-                              
-          MOUSE_knob(objects, 7, 'search_area_norm')   
-          
-          MOUSE_knob(objects, 9, 'custom_window_norm')    
-          MOUSE_knob(objects, 10, 'fft_size_norm') 
-          MOUSE_knob(objects, 11, 'fft_HP_norm') 
-          MOUSE_knob(objects, 12, 'fft_LP_norm') 
-          MOUSE_knob(objects, 13, 'smooth_norm') 
+"Can I give to this script any audio?"
+No. You need to prepare item/takes manually OR just click "Get" button and look what special "prepare" function will do.
+Perfect situation:
+- ref. and dub takes with takerate = 1
+- ref. and dub takes without stretch markers
+- ref. and dub takes without snap offset
+- ref. and dub takes are not loop sourced
+- reference take edges over dub takes edges (so every point of dub take is beetween ref.take position and ref.take end)
+
+Ok you pressed "Get" button. Now you should see ugly waveforms in script window. What is next? If you see vertical lines on waveforms, then congratulations - your takes ready to match each other. Move slider and see what happen. If you didn`t see then - try to play with settings, which are explained next. Press "+" button to extend. With version 1.10+ you can also use your presets and share them to others (configuration is stored within script path).
+
+Don`t forget it is totally FREE native alternative to SyncroArts ( Vocalign / RevoicePro ) $150+ software. So please DONATE if you use it and like it. Donate button open [ www.paypal.me/donate2mpl ] in default browser.
+
+]]
+
+local info_str2 = 
+[[
+Green knobs are parameters for detection syllables and transients start/end positions (I call them 'points' further, they represented as vertical lines on the waveform graph). RMS envelope ('envelope' further) of course have some window, so aligning non-macro stuff like drums is not a good example for this tool. Basically points added when envelope rise/fall (envelope always rising/falling so green knobs let you define WHEN exactly to add points, i.e. define conditions for adding).
+- Scaling. Let you define how much do you wanna compress signal for detection.  It is NOT compress actual take audio. More compression = better detection.
+- Threshold is linear "noise floor" for detected points. It is represented on the graph. Lower threshold = more points.
+- Rise area. If signal rise/fall by value defined with Rise/Fall and Rise/Fall2 in this area, point will be added. Short time = more points.
+- Rise/Fall - gain/attenuation factor when checking Rise area for scaled envelope. Lower value = less points.
+- Rise/Fall2 - gain/attenuation factor when checking Rise area for original envelope. Lower value = less points.
+- Filter area - minimal space beetween detected points. Long time = less points.
+
+Red knob is a parameter for main algorithm.
+- Search area means how far possible stretch markers can be moved. Long time = harder segments stretching .
+
+Blue knobs are parameters for building envelope
+- First selector allow to change type envelope beetween RMS envelope and FFT (sum of whole spectrum bins values) envelope.
+- Second selector allow to change algorithm. First algo get every block beetween 3 points and find best fit by moving center point. Second algo use same technique, but get blocks one-by one and find best fit relative to previously stretched blocks.
+- RMS window is how much samples taken to calculate average for every envelope point.
+- FFT size is number of FFT bins.
+- HP and LP are FFT filter cutoff controls.
+- Smooth knob control smoothing final envelope.
+
+]]     
+      if MOUSE_button(objects.about_b1, 'about_b1') then 
+        reaper.MB(info_str,'MPL Align takes',0)
+      end
+      if MOUSE_button(objects.about_b6, 'about_b6') then 
+        reaper.MB(info_str2,'MPL Align takes',0)
+      end
+
+      if MOUSE_button(objects.about_b2, 'about_b2') then -- VK
+        F_open_URL('http://vk.com/michael_pilyavskiy')
+      end           
+      if MOUSE_button(objects.about_b3, 'about_b3') then -- soundcloud
+        F_open_URL('http://soundcloud.com/mp57')
+      end  
+      if MOUSE_button(objects.about_b4, 'about_b4') then -- cockos forum
+        F_open_URL('http://forum.cockos.com/showthread.php?p=1709618')
+      end  
+      if MOUSE_button(objects.about_b5, 'about_b5') then 
+        F_open_URL('http://rmmedia.ru/threads/121230/')
+      end   
+      
+      if MOUSE_button(objects.about_b7, 'about_b7') then 
+        run_about = false
+      end      
+      
+    end -- run_about
+      
+      
+      
+    -- for xy position store
+      local reaper_vrs = tonumber(reaper.GetAppVersion():match('[%d%.]+'))
+      if reaper_vrs >= 5.20 then
+        _, xpos, ypos = gfx.dock(0,0,0)
+        if (not last_xpos or last_xpos ~= xpos or 
+           not last_ypos or not last_ypos ~= ypos)
+           and mouse.last_LMB_state and not mouse.LMB_state
+          then 
+           data.current.xpos, data.current.ypos = xpos, ypos
+        end
+      end
     
+    -- set ini on release
+      if  mouse.last_LMB_state and not mouse.LMB_state  then INI_set() end
+      
     mouse.last_LMB_state = mouse.LMB_state  
     mouse.last_RMB_state = mouse.RMB_state
     mouse.last_MMB_state = mouse.MMB_state 
@@ -1881,19 +1847,66 @@ Blue knobs related to building envelope
     mouse.last_Ctrl_state = mouse.Ctrl_state
     mouse.last_wheel = mouse.wheel      
   end
-  
+-----------------------------------------------------------------------   
+  function A3_DEFINE_GUI_vars()
+      local gui = {}
+      -- global
+        gui.aa = 1
+        gfx.mode = 0
+        gui.fontname = 'Calibri'
+        gui.fontsize = 23      
+        if OS == "OSX32" or OS == "OSX64" then gui.fontsize = gui.fontsize - 7 end
+        
+      -- selector buttons
+        gui.b_sel_fontsize = gui.fontsize - 1
+        gui.b_sel_text_alpha = 1
+        gui.b_sel_text_alpha_unset = 0.7
+        if OS == "OSX32" or OS == "OSX64" then 
+          gui.knob_txt = gui.fontsize - 5
+         else 
+          gui.knob_txt = gui.fontsize - 8
+        end
+        
+      -- reg buttons
+        gui.b_text_alpha = 0.8
+        gui.b3_text_alpha = 0.8
+        
+      -- takenames
+        gui.b_takenames_fontsize = gui.fontsize - 3
+      
+      gui.color = {['back'] = '51 51 51',
+                    ['back2'] = '51 63 56',
+                    ['black'] = '0 0 0',
+                    ['green'] = '102 255 102',
+                    ['blue'] = '127 204 255',
+                    ['white'] = '255 255 255',
+                    ['red'] = '204 76 51',
+                    ['green_dark'] = '102 153 102',
+                    ['yellow'] = '200 200 0',
+                    ['pink'] = '200 150 200',
+                  }    
+    return gui    
+  end
 ----------------------------------------------------------------------- 
-  function MAIN_defer()
-    DEFINE_dynamic_variables()
-    DEFINE_GUI_buffers()
-    GUI_DRAW()
-    MOUSE_get()
-    if char == 27 then MAIN_exit() end  --escape
-    if char == 32 then reaper.Main_OnCommandEx(40044, 0,0) end -- space-> transport play   
-    if char ~= -1 then reaper.defer(MAIN_defer) else MAIN_exit() end
-  end 
+  function A0_MAIN_defer()
   
-  function DEFINE_objects()
+    local obj = A1_DEFINE_objects() -- define GUI xywh stuff
+    MAIN_switch_compact_view(obj) -- switch beetween compact/full view      
+    A2_DEFINE_dynamic_variables() -- from data table to internal data2 table
+    
+    ENGINE_ProcessGet() -- runs on "Get" button click
+    
+    local gui = A3_DEFINE_GUI_vars()
+    A4_DEFINE_GUI_buffers(gui, obj)
+    
+    A5_MOUSE_get(obj)
+    local char = gfx.getchar()
+    if char == 27 then MAIN_exit() end                               -- escape
+    if char == 32 then reaper.Main_OnCommandEx(40044, 0,0) end       -- space -> transport play   
+    if char ~= -1 then reaper.defer(A0_MAIN_defer) else MAIN_exit() end -- stop on close 
+  end 
+-----------------------------------------------------------------------   
+  function A1_DEFINE_objects()
     -- GUI global
       local objects = {}
       objects.x_offset = 5
@@ -1950,7 +1963,55 @@ Blue knobs related to building envelope
                                  objects.disp_dub[2],
                                  objects.disp_dub[3],
                                  objects.takes_name_h2}  
-                                 
+       
+       
+    -- about
+      about_b_w = 435
+      about_b_cnt = 3
+      about_b_h = 30
+      
+      objects.about_b0  = { (objects.main_w - about_b_w)/2,--text
+                            objects.main_h /2 - 100,
+                            about_b_w,
+                            about_b_h} 
+                                  
+      objects.about_b1  = { (objects.main_w - about_b_w)/2,-- how to use
+                            objects.main_h /2,
+                            about_b_w,
+                            about_b_h} 
+      objects.about_b6  = { (objects.main_w - about_b_w)/2,-- params
+                            objects.main_h /2 +about_b_h+ objects.y_offset,
+                            about_b_w,
+                            about_b_h}                                            
+                                         
+                                                                     
+      objects.about_b2  = { (objects.main_w - about_b_w)/2, -- vk
+                            objects.main_h /2 + about_b_h*4 + objects.y_offset,
+                            60,
+                            about_b_h  }     
+      objects.about_b3  = { (objects.main_w - about_b_w)/2 + 60 + objects.x_offset, -- soundcloud
+                            objects.main_h /2 + about_b_h*4 + objects.y_offset,
+                            120,
+                            about_b_h  }  
+      objects.about_b4  = { (objects.main_w - about_b_w)/2 + 180 + objects.x_offset*2, -- vk
+                            objects.main_h /2 + about_b_h*4 + objects.y_offset,
+                            120,
+                            about_b_h  }  
+      objects.about_b5  = { (objects.main_w - about_b_w)/2 + 300 + objects.x_offset*3, -- vk
+                            objects.main_h /2 + about_b_h*4 + objects.y_offset,
+                            120,
+                            about_b_h  }       
+                            
+                            
+      objects.about_b7  = { (objects.main_w - about_b_w)/2, -- close
+                            objects.main_h /2 + 220,
+                            about_b_w,
+                            about_b_h  }                                                                      
+                                                  
+                          
+                          
+                          
+                                        
       -- GUI settings
         for i = 0, 16 do
           if i == 6 then offs = 2 else  offs = 0 end
@@ -1995,140 +2056,165 @@ Blue knobs related to building envelope
                               objects.pref_rect2[2]+objects.pref_rect2[4]+objects.y_offset,
                               objects.knob_w*6+objects.x_offset*7,
                               objects.knob_h-objects.y_offset} 
-                                                            
-        objects.pref_actions = {objects.x_offset*9 + objects.knob_w*6,
+                                            
+        local b_cnt = 3                                   
+        local b_h = objects.knob_h/b_cnt -   objects.y_offset
+                                     
+        objects.pref_b1 = {objects.x_offset*9 + objects.knob_w*6,
                               objects.pref_rect2[2]+objects.pref_rect2[4]+objects.y_offset,
                               objects.knob_w+objects.x_offset*2,
-                              objects.knob_h/2-objects.y_offset}
+                              b_h}
 
-        objects.pref_donate = {objects.x_offset*9 + objects.knob_w*6,
-                              objects.pref_rect2[2]+objects.pref_rect2[4]+objects.knob_h/2+objects.y_offset,
+        objects.pref_b2 = {objects.x_offset*9 + objects.knob_w*6,
+                              objects.pref_rect2[2]+objects.pref_rect2[4]+b_h+objects.y_offset*2,
                               objects.knob_w+objects.x_offset*2,
-                              objects.knob_h/2-objects.y_offset}                              
+                              b_h}     
+                              
+        objects.pref_b3 = {objects.x_offset*9 + objects.knob_w*6,
+                              objects.pref_rect2[2]+objects.pref_rect2[4]+b_h*2+objects.y_offset*3,
+                              objects.knob_w+objects.x_offset*2,
+                              b_h}                                                        
         
         objects.set_wind_h = 180              
-                                                                                        
+                                                                         
     return objects
   end
-    
------------------------------------------------------------------------   
-  function F_ret_ini_val2(content, ini_key, var, default_data)  
-    local out_str ,str
-    for line in content:gmatch("[^\r\n]+") do
-      str = line:match(ini_key..'=.*')
-      if str ~= nil then
-        out_str = str:gsub(ini_key..'=','')
-        break
-      end
-    end
-    if out_str == nil or tonumber(out_str) == nil then out_str = default_data[var] end
-    data[var] = tonumber(out_str)
-    
-    if data.alg == 0 then data.alg = 1 end -- 1.06 strange thing but should works
-  end
-  
------------------------------------------------------------------------  
-  function ENGINE_set_ini(data, config_path)
-    
-    -------- LINK TO INI
-    outstr_data = ''
-    for i,v in pairs(data) do
-      outstr_data = outstr_data..'\n'
-        ..i..'='..data[i]
-    end
-    
-    outstr =      
-      '[MPL_Align_takes_config_current]\n'..outstr_data
-      
-    fdebug('ENGINE_set_ini >>>')    
-    fdebug(outstr)
-    
-    local file = io.open(config_path,'w')
-    file:write(outstr)
-    file:close()
-    
-    update_gfx = true
-  end   
-       
------------------------------------------------------------------------  
-  function ENGINE_get_ini(config_path) --local ret, str
-    update_gfx = true
-    local file = io.open(config_path, 'r')
-    content = file:read('*all')
-    file:close()
-
-    fdebug('ENGINE_get_ini <<< ') 
-    fdebug(content)
-    
-    --msg(content)
-    
-    local default_data = DEFINE_global_variables()
-    
-    for i,v in pairs(data) do
-      F_ret_ini_val2(content, i, i, default_data)
-    end 
-        
-  end
-  
 -----------------------------------------------------------------------
-  function DEFINE_global_variables()    
+  function DEFINE_defaults()    
+    local default = 
+                  { 
+                    name = 'Default',
+                    knob_coeff = 0.01, -- knob sensivity
+                    xpos = 100,
+                    ypos = 100,
+                    compact_view = 0, -- default mode
+                    mode = 0, -- 0 - RMS / 1 - FFT
+                    alg = 0,
+                    custom_window_norm = 0, -- rms window    
+                    fft_size_norm = 0.5,
+                    fft_HP_norm = 0,
+                    fft_LP_norm = 1,
+                    smooth_norm = 0,
+                    filter_area_norm =  0.1, -- filter closer points
+                    rise_area_norm =    0.2, -- detect rise on this area
+                    risefall_norm =     0.125, -- how much envelope rise/fall in rise area - for scaled env
+                    risefall2_norm =    0.3, -- how much envelope rise/fall in rise area - for original env
+                    threshold_norm =    0.1, -- noise floor for scaled env
+                    scaling_pow_norm =  0.9, -- normalised RMS values scaled via power of this value (after convertion))
+                    search_area_norm =  0.1
+                  }
     
-    takes_arrays = {}
-    takes_points = {}
-    
-    -------- DEFINE VARS
-    local data = {}
-    local data2 = {}
-    data.current_take = 2 -- show second take as dub
-    knob_coeff = 0.01 -- knob sensivity
-              
-    data.mode = 0 -- 0 - RMS / 1 - FFT
-    data.alg = 1
-      data.custom_window_norm = 0 -- rms window    
-      data.fft_size_norm = 0.5
-      data.fft_HP_norm = 0
-      data.fft_LP_norm = 1
-    
-    data.smooth_norm = 0
-    
-      data.filter_area_norm = 0.1 -- filter closer points
-      data.rise_area_norm = 0.2 -- detect rise on this area
-      data.risefall_norm = 0.125 -- how much envelope rise/fall in rise area - for scaled env
-      data.risefall2_norm = 0.3 -- how much envelope rise/fall in rise area - for original env
-      data.threshold_norm = 0.1 -- noise floor for scaled env
-      data.scaling_pow_norm = 0.9 -- scaling - normalised RMS values scaled via power of this value (after convertion))
-      data.search_area_norm = 0.1
-            
-      data.compact_view = 0 -- default mode
+    local top_t = {    
+      count_presets = 8}
       
-      data.xpos = 200
-      data.ypos = 200
-      
-    return data,data2
+    return default, top_t
   end
-
+----------------------------------------------------------------------- 
+  function F_pairsByKeys (t, f) 
+  -- http://stackoverflow.com/questions/1146686/lua-sorting-a-table-alphabetically
+      local a = {}
+      for n in pairs(t) do
+        table.insert(a, n)
+      end
+      table.sort(a, f)
+      local i = 0      -- iterator variable
+      local iter = function ()   -- iterator function
+        i = i + 1
+        if a[i] == nil then
+          return nil
+        else
+          return a[i], t[a[i]]
+        end
+      end
+      return iter
+  end
+----------------------------------------------------------------------- 
+  function INI_get()
+    local def_t, top_t = DEFINE_defaults()
+    
+    for key in pairs(top_t) do
+      if type(top_t[key]) ~= 'table' then
+        ret, val = reaper.BR_Win32_GetPrivateProfileString( 'Global', key, top_t[key], config_path )
+        data[key] = tonumber(val) and tonumber(val) or val
+      end  
+    end
+    
+    data.default = def_t
+    
+    for i = 1, data.count_presets + 1 do      
+      if i == data.count_presets + 1 then i = 'current' end
+      data[i] = {}
+      if def_t then
+        for key in pairs (def_t) do
+          ret, val = reaper.BR_Win32_GetPrivateProfileString( 'preset'..i, key, def_t[key], config_path )
+          data[i][key] = tonumber(val) and tonumber(val) or val
+        end 
+      end 
+    end
+        
+  end  
+----------------------------------------------------------------------- 
+  function INI_set() 
+    local val, top_str    
+    local def_data, def_top = DEFINE_defaults()    
+    -- write top values data.nnn
+      fdebug('INI_set')
+      for key in pairs (def_top) do
+        if type(def_top[key]) ~= 'table' then
+          if not data or not data[key] then top_str = def_top[key] else top_str = data[key] end
+          reaper.BR_Win32_WritePrivateProfileString( 'Global', key, top_str, config_path )
+        end
+      end        
+    -- write tables   
+      for i = 1, data.count_presets + 2 do
+        for key in F_pairsByKeys(def_data) do          
+          if i == data.count_presets + 1 then i = 'current' end
+          if i == data.count_presets + 2 then i = 'default' end          
+          if not data[i] or not data[i][key] then val = def_data[key] else val = data[i][key] end
+          reaper.BR_Win32_WritePrivateProfileString( 'preset'..i, key, val, config_path )
+        end
+      end      
+    -- write timestamp
+      reaper.BR_Win32_WritePrivateProfileString( 'Debug', 'LastSave', os.date(), config_path )
+  end
 -----------------------------------------------------------------------    
-  function MAIN_search_ini(data)
-    fdebug('MAIN_search_ini') 
-    local reapath = reaper.GetResourcePath():gsub('\\','/')
-    local t = debug.getinfo(1)
-    config_path = t.source:gsub('.lua', '.ini'):sub(2)
+  function INIT_data_t() 
+    -- startup, check for ini/create if not exists
+    data = {}
+    fdebug('MAIN_LoadConfig') 
     local file = io.open(config_path, 'r')
-    if file == nil then ENGINE_set_ini(data, config_path) else 
-      ENGINE_get_ini(config_path) 
-      file:close()
+    if not file then 
+      local default, top_t = DEFINE_defaults()
+      data.current = default
+      data.default = default
+      for i = 1, top_t.count_presets do data[i] = default end  
+      for key in pairs (top_t) do data[key] = top_t[key] end
+      INI_set()    
+     else 
+      file:close()    
+      INI_get() 
+      INI_set() 
     end    
-  end
-      
+  end      
 -----------------------------------------------------------------------  
-  debug_mode = 0
-  if debug_mode == 1 then msg("") end    
-  mouse = {}
-  data,data2 = DEFINE_global_variables()
-  MAIN_search_ini(data)
-  objects = DEFINE_objects()
-  gfx.init("mpl Align takes // "..vrs, objects.main_w, objects.main_h, 0, data.xpos, data.ypos)
-  objects = nil
+  debug_mode =0
+  if debug_mode == 1 then msg("") end  
+  
+  local t = debug.getinfo(1)
+  config_path = t.source:gsub('.lua', '-config.ini'):sub(2)
+  
+  INIT_data_t()
+  local obj = A1_DEFINE_objects()
+  gfx.init("mpl Align takes // "..vrs, obj.main_w, obj.main_h, 0, data.current.xpos, data.current.ypos)
   update_gfx = true
   compact_view_trig = true
-  MAIN_defer()
+  
+  data2 = {}
+  mouse = {}
+  takes_arrays = {}
+  takes_points = {}
+  
+  if load_preset_on_start then
+    data.current = data[load_preset_on_start]
+  end
+  A0_MAIN_defer()
