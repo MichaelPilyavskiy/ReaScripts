@@ -489,14 +489,7 @@
       <version name="1.07" author="Michael Pilyavskiy (mpl)" time="2016-04-01T07:28:13Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cac25c058e4fcddd932b7678930bf3ef0f5f9a9d/Various/mpl_Align%20takes.lua</source>
       </version>
-      <version name="1.08" author="Michael Pilyavskiy (mpl)" time="2016-06-11T07:54:48Z">
-        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/87c92c6346e7846d3269f308c7f88ef43cdfc4fd/Various/mpl_Align%20takes.lua</source>
-      </version>
-      <version name="1.081" author="mpl" time="2016-06-11T08:01:01Z">
-        <changelog><![CDATA[# Improved graphics for knob and selector]]></changelog>
-        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1507183c89c835630320d0d19f48754fd5574dd2/Various/mpl_Align%20takes.lua</source>
-      </version>
-      <version name="1.082" author="mpl" time="2016-07-03T07:51:47Z">
+      <version name="1.08" author="mpl" time="2016-07-03T07:51:47Z">
         <changelog><![CDATA[# Fix: error on empty sm table]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/590c2a21111a6f4de503cc796791c5b55a6945e7/Various/mpl_Align%20takes.lua</source>
       </version>
