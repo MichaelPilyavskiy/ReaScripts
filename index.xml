@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a2d546182a97e8bcca2f9d537fac2653dbac6773" name="MPL Scripts">
+<index version="1" commit="e738ac738feb5b921e077a7954b2f496f8650737" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -63,11 +63,6 @@
     <reapack name="mpl_Float instrument on track under mouse cursor.eel" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/FX/mpl_Float%20instrument%20on%20track%20under%20mouse%20cursor.eel</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Float instrument relevant to MIDI editor.lua" type="script">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/FX/mpl_Float%20instrument%20relevant%20to%20MIDI%20editor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_List all MIDI OSC learn from focused fx.lua" type="script">
@@ -269,6 +264,11 @@
     <reapack name="mpl_Duplicate selected MIDI notes.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/MIDI%20editor/mpl_Duplicate%20selected%20MIDI%20notes.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Float instrument relevant to MIDI editor.lua" type="script">
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-07-23T14:23:24Z">
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e738ac738feb5b921e077a7954b2f496f8650737/MIDI%20editor/mpl_Float%20instrument%20relevant%20to%20MIDI%20editor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Select high pitch MIDI notes.lua" type="script">
