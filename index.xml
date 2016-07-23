@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a52e121e581a217579842a35aab28f1af8cd867b" name="MPL Scripts">
+<index version="1" commit="7351b2b62d63bf753bc0c970b0629b08403198b6" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -73,6 +73,12 @@
     <reapack name="mpl_List all MIDI OSC learn from focused fx.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-07T07:10:56Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/602859da73409c42347ed21b136e96f1690f464f/FX/mpl_List%20all%20MIDI%20OSC%20learn%20from%20focused%20fx.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Move focused Track FX to screen center.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-07-23T04:51:54Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0dc278d52ea804274a91ee710161b1fd5139e224/FX/mpl_Move%20focused%20Track%20FX%20to%20screen%20center.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Randomize Track FX parameters.lua" type="script">
@@ -204,6 +210,12 @@
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f5e18404c99b12b6e287f2d25effe64498f54b26/Items%20Properties/mpl_Cut%20extension%20from%20selected%20item%20names.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Samplitude object mini.lua" type="script">
+      <version name="0.1" author="mpl" time="2016-07-23T05:07:42Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5596982ebbbbfa0abb5db93bc0fca50513762d28/Items%20Properties/mpl_Samplitude%20object%20mini.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Send midi source as channel x.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-17T09:33:10Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
@@ -225,6 +237,12 @@
     <reapack name="mpl_Copy MIDI notes from selected item.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/MIDI/mpl_Copy%20MIDI%20notes%20from%20selected%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Generate MIDICC from audio take.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-07-23T05:16:37Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7351b2b62d63bf753bc0c970b0629b08403198b6/MIDI/mpl_Generate%20MIDICC%20from%20audio%20take.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Paste MIDI notes to selected item.lua" type="script">
@@ -523,6 +541,17 @@
 # Swap points and envelope colors to match related settings
 # ReaPack versioning fix]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a52e121e581a217579842a35aab28f1af8cd867b/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="1.111" author="Michael Pilyavskiy (mpl)" time="2016-07-23T04:47:51Z">
+        <changelog><![CDATA[+ Presets
++ Parameter to load current script instance with custom preset
++ About window
++ Dedicated thread on Cockos forum http://forum.cockos.com/showthread.php?p=1709618
+# Edit links/description
+# Brighter knobs
+# Swap points and envelope colors to match related settings
+# ReaPack versioning fix]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/43aacc97c8cf83fa5ce14089f74aff9fb04f7c5a/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing.lua" type="script">
