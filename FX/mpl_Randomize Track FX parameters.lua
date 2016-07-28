@@ -1,9 +1,9 @@
--- @version 1.11
+-- @version 1.20
 -- @author mpl
 -- @changelog
---   # ReaPack verioning fix
---   + Store only picked parameters
---   - Ignore protected table
+--   + Add 'Get all parameters' button
+--   + Add 'Get all parameters except protected' button
+--   + Add 'render', "upsampl" to protected table
 
 --[[
    * ReaScript Name: Randomize Track FX parameters
@@ -14,17 +14,35 @@
   ]]
   
   
+--[[ changelog
+    - 1.20
+      + Add 'Get all parameters' button
+      + Add 'Get all parameters except protected' button
+      + Add 'render', "upsampl" to protected table
+    - 1.11
+       # ReaPack verioning fix
+       + Store only picked parameters
+       - Ignore protected table
+    - 1.0
+      + init release
+    - 0.1
+      + alpha without GUI
+]]
+  
   --------------------------------------------
   --------------------------------------------
-  --[[protected_table = {
+  protected_table = {
+    "upsmpl",
+    "upsampl",
+    "render",
     "gain", 
     "vol", 
     "on" ,
     "off",
     "wet",
     "dry",
-    "oversampling",
-    "aliasing",
+    "oversamp",
+    "alias",
     "input",
     "power",
     "solo",
@@ -48,7 +66,7 @@
     "velocity",
     "active",
     "master"
-    }]]
+    }
         
         
   ------------------------------------------------------------
@@ -64,6 +82,17 @@
                            w = gfx1.main_w,
                            h = gfx1.main_h / num}
       end
+      
+      obj.sections[3].w = 200
+      
+      obj.sections[10] = {x = 210 ,
+                          y = obj.sections[3].y,
+                          w = 80,
+                          h = obj.sections[3].h}
+      obj.sections[11] = {x = 300 ,
+                          y = obj.sections[3].y,
+                          w = gfx.w - 300,
+                          h = obj.sections[3].h}                          
     return obj
   end
   
@@ -108,6 +137,7 @@
   ------------------------------------------------------------
     
   function GUI_text(gui, xywh, text)
+    --gfx.rect(xywh.x,xywh.y, xywh.w, xywh.h)
         f_Get_SSV(gui.color.white)  
         gfx.a = 1 
         gfx.setfont(1, gui.fontname, gui.fontsz_knob)
@@ -133,11 +163,11 @@
         for i = 1, #obj.sections do
           local x,y,w,h = obj.sections[i].x,
                     obj.sections[i].y,
-                    obj.sections[i].w,
+                    gfx.w,
                     obj.sections[i].h
-          gfx.rect (x,y,w,h,0, 1)
+          gfx.line (x,y,x+w,y,0, 1)
         end
-        GUI_text(gui, obj.sections[1], '1. Get FX')
+        GUI_text(gui, obj.sections[1], '1. Get focused FX')
         
       -- gfx defaults
         if def_params ~= nil then
@@ -171,11 +201,15 @@
         
         if not pick_state then 
            gfx.a = time
-           GUI_text(gui, obj.sections[3], '2. Click and pick parameters from focused fx')
+           GUI_text(gui, obj.sections[3], '2. Click and pick parameters')
           else 
-           GUI_text(gui, obj.sections[3], 'Move parameters to randomize. Click when finished')
+            if not pick_state_cnt then pick_state_cnt = 0 end
+           GUI_text(gui, obj.sections[3], 'Stored :'..pick_state_cnt)
            
         end
+        
+        GUI_text(gui, obj.sections[10], '/2a Get all')
+        GUI_text(gui, obj.sections[11], '/2b Get all except protected')
         
       -- val      
        if morph_val ~= nil then 
@@ -250,6 +284,21 @@
     end 
   end
   
+  function GetProtectedState(track, fx, param)
+    local _, buf = reaper.TrackFX_GetParamName( track, fx, param, '' )
+    local t = {}
+    for word in buf:gmatch('[%a]+') do t [#t+1] = word end
+    if #t == 0 then return false end
+    for i = 1, #t do
+      local par_name = t[i]
+      protect = false
+      for j = 1, #protected_table do
+        if par_name:lower():find(protected_table[j])~=nil then return true end
+      end
+    end 
+    return false
+  end
+  
   ------------------------------------------------------------
     
   function ENGINE_GetParams()
@@ -265,9 +314,13 @@
     if retval ~= 1 or tracknumberOut <= 0 or params.fxnumberOut == nil then return end    
     local num_params = reaper.TrackFX_GetNumParams( track, params.fxnumberOut )
     if not num_params or num_params == 0 then return end    
+    
+    
     for i = 1, num_params do 
+      local  is_prot = GetProtectedState(track, params.fxnumberOut, i-1 )
       params[i] =  {val = reaper.TrackFX_GetParamNormalized( track, params.fxnumberOut, i-1 ) ,
-                    is_act = false}
+                    is_act = false,
+                    is_protected = is_prot}
     end
     return params
   end
@@ -298,20 +351,6 @@
                       def_params[i].val + (rand_params[i] - def_params[i].val) * morph_val
                       )
           end
-          
-          
-          --[[_, par_name = reaper.TrackFX_GetParamName( track, fxnumberOut, i, '' )
-          protect = false
-          for j = 1, #protected_table do
-            if par_name:lower():find(protected_table[j])~=nil then
-              protect = true
-            end
-          end
-          if not protect then
-            reaper.TrackFX_SetParamNormalized( track, fxnumberOut, i, 
-            def_params[i].val + (rand_params[i] - def_params[i].val) * morph_val
-            )
-          end]]
           
         end
         
@@ -347,25 +386,55 @@
         update_gfx = true 
       end
     
-    -- gen pattern
-      if MOUSE_click(obj.sections[4]) then 
-        rand_params = ENGINE_GenerateRandPatt() 
-        update_gfx = true 
-      end
-      
-    -- pick
+    -- 2 pick
       if MOUSE_click(obj.sections[3]) then 
         pick_state = not pick_state
         update_gfx = true 
       end 
-    
+
     if pick_state then
       _, _, _, paramnumber =reaper.GetLastTouchedFX()
       if def_params 
         and paramnumber +1 <= #def_params  
         and def_params[paramnumber+1] then  def_params[paramnumber+1].is_act = true
       end
-    end  
+      
+      pick_state_cnt = 0
+      if def_params then 
+        for i = 1, #def_params do
+          if def_params[i].is_act then pick_state_cnt = pick_state_cnt + 1 end
+        end
+      end
+      update_gfx = true 
+    end
+    
+    -- 2a get all
+      if MOUSE_click(obj.sections[10]) then 
+        if def_params  then  
+          for i = 1, #def_params do def_params[i].is_act = true end
+        end
+        update_gfx = true 
+      end 
+      
+    -- 2a get all except protected
+      if MOUSE_click(obj.sections[11]) then 
+        if def_params  then  
+          for i = 1, #def_params do def_params[i].is_act = false end
+          for i = 1, #def_params do 
+            if not def_params[i].is_protected then def_params[i].is_act = true end 
+          end
+        end
+        update_gfx = true 
+      end 
+                          
+    -- gen pattern
+      if MOUSE_click(obj.sections[4]) then 
+        rand_params = ENGINE_GenerateRandPatt() 
+        update_gfx = true 
+      end
+      
+    
+  
       
     -- morph
       if MOUSE_click(obj.sections[6]) then mouse.context = 'slider' end
