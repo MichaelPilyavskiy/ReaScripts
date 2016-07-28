@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e738ac738feb5b921e077a7954b2f496f8650737" name="MPL Scripts">
+<index version="1" commit="fc6ca45d2fd9634679bd15e71a5817c6aef5df43" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -91,6 +91,12 @@
 + Store only picked parameters
 - Ignore protected table]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8be803e61a540a42bef17b8fc2e609386ddf2750/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
+      </version>
+      <version name="1.20" author="mpl" time="2016-07-28T11:02:53Z">
+        <changelog><![CDATA[+ Add 'Get all parameters' button
++ Add 'Get all parameters except protected' button
++ Add 'render', "upsampl" to protected table]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fc6ca45d2fd9634679bd15e71a5817c6aef5df43/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Save all track FX chains.lua" type="script">
