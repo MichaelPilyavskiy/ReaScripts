@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fc6ca45d2fd9634679bd15e71a5817c6aef5df43" name="MPL Scripts">
+<index version="1" commit="60930572d15a62ecf221774c57cc72a7644d5b43" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -350,6 +350,12 @@
     <reapack name="mpl_Move take content under stretch markers 10ms right.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Stretch%20Markers/mpl_Move%20take%20content%20under%20stretch%20markers%2010ms%20right.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Randomize stretch markers.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-07-28T14:37:29Z">
+        <changelog><![CDATA[init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/60930572d15a62ecf221774c57cc72a7644d5b43/Stretch%20Markers/mpl_Randomize%20stretch%20markers.lua</source>
       </version>
     </reapack>
   </category>
