@@ -1,15 +1,20 @@
+-- @version 1.8.2
+-- @author mpl
+-- @changelog
+--   # temporary fix for <get stretch markers> in pattern mode
+--   # Change reference list title to match current mode
+
+
+
 --[[
    * ReaScript Name: Quantize tool
    * Lua script for Cockos REAPER
    * Author: Michael Pilyavskiy (mpl)
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
-   * Version: 1.8
   ]]
 
-------  Michael Pilyavskiy Quantize tool  ----
-
-vrs = "1.8"
+vrs = "1.8.2"
  
 changelog =                   
 [===[
@@ -17,21 +22,23 @@ changelog =
    ==========
    Changelog:
    ==========   
-06.12.2015  1.8 build 2 - need REAPER 5.03+ SWS 2.8.1+
+31.07.2016  1.8.2 
+          # temporary fix for <get stretch markers> in pattern mode
+          # Change reference list title to match current mode
+06.12.2015  1.8.1
           + Randomize final positions
           # Fixed GitHub link
-          # better changelog view
-18.11.2015  1.7 build 3 - need REAPER 5.03+ SWS 2.8.1+
-          # optimized performance by blitting display
+18.11.2015  1.7.3
+          # optimized performance
           # font fix for OSX users
           - Disabled REAPER/SWS version checking on start
           # Fixed negative ref.points
-13.10.2015  1.6 build 5  - need REAPER 5.03+ SWS 2.8.1+
+13.10.2015  1.6.5
           # improved mouse tracking, thanks to spk77!
           # Help button redirected to Cockos Wiki related page
           # properly adding last stretch marker on items with different takerate
-          - Option to stretch area around stretch marker (HIDDEN, have a lot of bugs)
-01.10.2015  1.5 build 4  - need REAPER 5.03+ SWS 2.8.1+
+          + Option to stretch area around stretch marker (HIDDEN, have a lot of bugs)            
+01.10.2015  1.5.4
           + Show QT in actions info line (main menu right item)
           + Added undo points to some operations
           # highlight grid and swing slider under mouse cursor
@@ -43,57 +50,51 @@ changelog =
           # fixed add null stretch markers when quantize/restore
           # fixed new restore button doesn`t work
           # Save as rgt groove works also on OSX
-          # 'reference grid' generated only where destination points placed +-1bar
-30.09.2015  1.4 build 9 - need REAPER 5.03+ SWS 2.8.1+
+          # 'reference grid' generated only where destination points placed +-1bar              
+30.09.2015  1.4.9 - need REAPER 5.03+ SWS 2.8.1+
           + additional buttons simulate right click for tablet users
           + check for SWS version on startup (win only)
           # disabled get grid on start could make script buggy on start
-          # fixed loop sourced item stretch markers restore/quantize
-          # font size param. moved to the top for OSX users who have problems with gui
-            
-29.09.2015  1.3 build 10  - need REAPER 5.03+ SWS 2.8.1+
+          # fixed loop sourced item stretch markers restore/quantize            
+29.09.2015  1.3.10  - need REAPER 5.03+ SWS 2.8.1+
           + rightclick on user groove open REAPER\Grooves list
           + Check for REAPER compatibility on startup
-          # GUI - options window deprecated and splitted to 3 menus on main page
-          # GUI - options sliders dynamically shown when relevant
+          + GUI - options window deprecated and splitted to 3 menus on main page
+          + GUI - options sliders dynamically shown when relevant
           + Store current groove to midi item (notes length = 120ppq)
           + Match items positions to ref.points
-          # Ctrl+LMB click add/subtract value from swing/gravity slider depending on position within slider
+          + Ctrl+LMB click add/subtract value from swing/gravity slider depending on position within slider
           + right click on gravity - type value in ms  
           # apply slider position more closer to mouse cursor
           + Option to disable display (reduce CPU usage a lot in some situations)
           # Improved GUI updates
-          # fixed stretch markers quantize for loop sourced items  
+          # fixed stretch markers quantize for loop sourced items
           - Presets temporatory disabled
-14.09.2015  1.2  build 8
+14.09.2015  1.2.8
           + middle mouse button click on apply slider to set strength value
           + right click on custom grid select/form project grid
-          + save as rgt groove (moved from display)
-          + reset stored str.markers
-          + reset stored str..markers at time selection
-          # project grid is default, form points on start                        
+          + Actions: save as rgt groove (moved from display)
+          + Actions: reset stored str.markers
+          + Actions: reset stored str..markers at time selection
+          + project grid is default, form points on start                        
           + strength slider shows its value
           # fix wrong formed points in pattern mode for project with different tempo
           # fixed preset system dont store dest str.marker settings
           # display issues
-          # grid, swing reference issues
-13.09.2015  1.1  build 3      
+          # grid, swing reference issues        
+13.09.2015  1.1.3      
           + get reference str.marker from selected item/time selection of selected item
           + quantize str.marker from selected item/time selection of selected item
           + User Groove (import .rgt files for SWS Fingers Groove Tool)
           + rmb click on display save current groove to rgt (SWS Fingers Groove Tool) file
           + swing value support decimals (only if user type)
           + store and recall preset - \REAPER\Scripts\mpl_Quantize_Tool_settings.txt
-          + set strength/swing/grid via CC and OSC with
-              mpl_Quantize_Tool_set_strength.lua
-              mpl_Quantize_Tool_set_swing.lua (beetween 0-100%)
-              mpl_Quantize_Tool_set_grid.lua
-              check in http://github.com/MichaelPilyavskiy/ReaScripts/tree/master/Tools
+          + set strength/swing/grid via CC and OSC
           # cutted options button (to prevent trigger options page)
-          # count ref/dest objects
-          # disable set 'Use Gravity' when choosing destination stretch markers
-          # Changing global/local mode form relevant mode points and leave previously got points
-          # Every menu changing also form ref.points or quantize objects to quick preview
+          + count ref/dest objects
+          + disable set 'Use Gravity' when choosing destination stretch markers
+          + Changing global/local mode form relevant mode points and leave previously got points
+          + Every menu changing also form ref.points or quantize objects to quick preview
           # removed display bar lines. -10% CPU
           # UpdateArrange() moved to main quantize function: 10%-20% less CPU, depending on how project is big
           # incorrect project/custom grid values
@@ -103,10 +104,10 @@ changelog =
           # error if project is empty
           # improved syntax of info strings, thanks to heda!
           + donate button
-          + manual updated   
+          + manual updated  
 28.08.2015  1.0 
-            Public release   
-23.06.2015  0.01 'swing items' idea
+          + Public release  
+23.06.2015  0.0.1 'swing items' idea
     
  ]===]
 
@@ -260,12 +261,12 @@ about = 'Quantize tool by Michael Pilyavskiy (Russia, Oryol)'..'\n'..'Version '.
    quantize_ref_menu_swing_name = "swing grid "..math.round(swing_value*100, 2).."%"   
          
    if snap_mode_values_t[2] == 1 then        
-     quantize_ref_menu_names_t = {"Reference points ("..count_ref_positions..") :", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
+     quantize_ref_menu_names_t = {"Pattern ref. points ("..count_ref_positions..") :", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
                                 quantize_ref_menu_ep_name, quantize_ref_menu_notes_name, quantize_ref_menu_groove_name,
                                 quantize_ref_menu_grid_name,
                                 quantize_ref_menu_swing_name}
     else
-     quantize_ref_menu_names_t = {"Reference points ("..count_ref_positions..") :", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
+     quantize_ref_menu_names_t = {"Global ref. points ("..count_ref_positions..") :", quantize_ref_menu_item_name, quantize_ref_menu_sm_name,
                                 quantize_ref_menu_ep_name, quantize_ref_menu_notes_name}
    end
    -----------------------                             
@@ -1261,9 +1262,14 @@ end
                 if ref_points_t2_subt[1] > cml then
                   ref_pos_time = reaper.TimeMap2_beatsToTime(0, ref_points_t2_subt[1] - cml, i-1)
                 end  
-                if ref_pos_time > 0 and  ref_points_t2_subt[2] > 0 then 
+                --[[if ref_points_t2_subt 
+                  and ref_pos_time 
+                  and ref_points_t2_subt[2]
+                  and ref_pos_time > 0 
+                  and ref_points_t2_subt[2] > 0 
+                  then ]]
                   table.insert(ref_points_t, {ref_pos_time, ref_points_t2_subt[2]} )
-                end
+                --end
               end  
             end   -- generate ref point over timeline
               
@@ -2775,4 +2781,3 @@ end
    DEFINE_default_variables_GUI() 
    
    MAIN_run()
-
