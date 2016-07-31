@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="60930572d15a62ecf221774c57cc72a7644d5b43" name="MPL Scripts">
+<index version="1" commit="5c308ad078876d2fe41f23c258670050ed07a0f9" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -702,6 +702,11 @@
       </version>
       <version name="1.8" author="Michael Pilyavskiy (mpl)" time="2015-12-06T14:38:03Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/796d6ab1f0a99ddaecb3fd71e62aab7022e1ad73/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
+      <version name="1.8.2" author="mpl" time="2016-07-31T10:12:05Z">
+        <changelog><![CDATA[# temporary fix for <get stretch markers> in pattern mode
+# Change reference list title to match current mode]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5c308ad078876d2fe41f23c258670050ed07a0f9/Various/mpl_Quantize%20Tool.lua</source>
       </version>
     </reapack>
   </category>
