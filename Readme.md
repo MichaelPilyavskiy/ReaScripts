@@ -1,7 +1,7 @@
 ##Scripts for [Cockos REAPER](http://reaper.fm) written by Michael Pilyavskiy
 
 ##ReaPack Download Instructions
-This repository is part of the ReaPack [REAPER extension](http://www.extremraym.com/reapack-extension/).
+This repository is part of the ReaPack [REAPER extension](http://reapack.com/).
 This means that you don't need to download and install the scripts manually anymore, you can simply use ReaPack to batch download all scripts or scripts of your choice right from REAPER!
 
 
@@ -11,9 +11,9 @@ This means that you don't need to download and install the scripts manually anym
 ##Contacts:
 - [VK](https://vk.com/michael_pilyavskiy)
 - [SoundCloud](https://soundcloud.com/mp57)
+- [PromoDJ](http://promodj.com/michaelpilyavskiy)
 - [Cockos Forum](http://forum.cockos.com/member.php?u=70694)
 - [RMM forum](http://rmmedia.ru/members/69811/)
-- [PromoDJ](http://promodj.com/michaelpilyavskiy)
 
 ##Donations:
 - [PayPal](http://paypal.me/donate2mpl)
