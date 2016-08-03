@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e940e5111272af87c3cf63455cd983163347cef2" name="MPL Scripts">
+<index version="1" commit="fa6f22285ffa69136dcfe9449255eff8e85ccdd2" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -437,6 +437,12 @@
     <reapack name="mpl_Select tracks with instruments.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-15T07:07:25Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Select%20tracks%20with%20instruments.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Select tracks with SWS Notes.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-08-03T14:15:09Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa6f22285ffa69136dcfe9449255eff8e85ccdd2/Tracks%20Properties/mpl_Select%20tracks%20with%20SWS%20Notes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Send selected tracks to track under mouse cursor (channel 3-4).lua" type="script">
