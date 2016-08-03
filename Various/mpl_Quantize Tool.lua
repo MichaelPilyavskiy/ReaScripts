@@ -1,29 +1,25 @@
--- @version 1.8.2
+-- @version 1.8.3
 -- @author mpl
+-- @description Quantize Tool
+-- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---   # temporary fix for <get stretch markers> in pattern mode
---   # Change reference list title to match current mode
+--   # Improved parsing GrooveTool patterns
 
 
 
---[[
-   * ReaScript Name: Quantize tool
-   * Lua script for Cockos REAPER
-   * Author: Michael Pilyavskiy (mpl)
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-  ]]
 
-vrs = "1.8.2"
+vrs = "1.8.3"
  
 changelog =                   
 [===[
 
    ==========
    Changelog:
-   ==========   
+   ==========  
+03.08.2016  1.8.3
+          # Improved parsing GrooveTool patterns
 31.07.2016  1.8.2 
-          # temporary fix for <get stretch markers> in pattern mode
+          # Fixed <get stretch markers> in pattern mode
           # Change reference list title to match current mode
 06.12.2015  1.8.1
           + Randomize final positions
@@ -1102,7 +1098,7 @@ end
              table.insert(ref_groove_t, 0)
              for i = 1, #content_temp_t do
                 if i>=5 then
-                  temp_var = tonumber(content_temp_t[i])
+                  temp_var = tonumber(content_temp_t[i]:match('[%d%p]+'))
                   temp_var_conv = reaper.TimeMap2_beatsToTime(0, temp_var)
                   table.insert(ref_groove_t, temp_var_conv)
                 end  
