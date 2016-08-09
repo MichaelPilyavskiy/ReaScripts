@@ -1,25 +1,14 @@
--- @version 1.111
+-- @description Align Takes
+-- @version 1.120
 -- @author mpl
 -- @changelog
---    + Presets
---    + Parameter to load current script instance with custom preset
---    + About window
---    + Dedicated thread on Cockos forum http://forum.cockos.com/showthread.php?p=1709618
---    # Edit links/description
---    # Brighter knobs
---    # Swap points and envelope colors to match related settings
---    # ReaPack versioning fix
+--    # Temporary fix for 'id_diff' #796
+-- @website http://forum.cockos.com/member.php?u=70694
 
 --[[
-   * ReaScript Name: mpl Align Takes
-   * Lua script for Cockos REAPER
-   * Author: Michael Pilyavskiy (mpl)
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-  ]]
-  
---[[
   * Changelog: 
+  ``* v1.120 (2016-08-09)
+      # Temporary fix for 'id_diff' #796
     * v1.111 (2016-06-23)
       + Presets
       + Parameter to load current script instance with custom preset
@@ -77,7 +66,7 @@
 ----------------------------------------------------------------------- 
 ----------------------------------------------------------------------- 
 -----------------------------------------------------------------------   
-  local vrs = '1.110'
+  local vrs = '1.12'
 ----------------------------------------------------------------------- 
   function msg(str)
     if type(str) == 'boolean' then if str then str = 'true' else str = 'false' end end
@@ -794,6 +783,7 @@
             diff_t[#diff_t+1] = F_find_arrays_com_diff(ref_arr, point1, fantom_arr_stretched)
           end 
           id_diff = F_find_min_value(diff_t)
+          if not id_diff then id_diff = 0 end -- unknown bug > 1.120
           block_ids[i].str = id_diff + search_start + point1
           sm_table[#sm_table+1] =  {
             block_ids[i].str * window_sec,
