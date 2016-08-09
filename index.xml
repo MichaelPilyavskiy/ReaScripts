@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="32aa937ebbea0d5605a23f4a39729e68be42ed0a" name="MPL Scripts">
+<index version="1" commit="48cd9d515ed5ca1151791cebbbd809c5da8cc228" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -735,6 +735,12 @@
       <version name="1.8.3" author="mpl" time="2016-08-03T19:53:08Z">
         <changelog><![CDATA[# Improved parsing GrooveTool patterns]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/32aa937ebbea0d5605a23f4a39729e68be42ed0a/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script">
+      <version name="1.0" author="mpl" time="2016-08-09T11:49:03Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/48cd9d515ed5ca1151791cebbbd809c5da8cc228/Various/mpl_Zoom%20horizontally,%20change%20grid%20relatively%20(mousewheel).lua</source>
       </version>
     </reapack>
   </category>
