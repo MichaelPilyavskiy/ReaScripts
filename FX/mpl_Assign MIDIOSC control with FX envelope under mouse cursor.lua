@@ -1,15 +1,15 @@
 -- @description Assign MIDIOSC control with FX envelope under mouse cursor
--- @version 1.01
+-- @version 1.02
 -- @author mpl
 -- @changelog
 --    + fixed first start logic
 -- @website http://forum.cockos.com/member.php?u=70694
 
 
-  --osc = '/1/fader4'
-  --is_soft_takeover = 0
-  --midiCC = 12
-  --midiChan = 1
+  -- osc = '/1/fader4'
+  -- is_soft_takeover = 0
+  -- midiCC = 12
+  -- midiChan = 1
   
     
     
@@ -224,7 +224,7 @@
       if not osc and not midi and not is_soft_takeover then FirstTimeMsg() return end
     -- check for envelope
       e_track, e_fx_ID, e_param_ID = GetEnvelopeUnderMouseCursor()
-      if not e_track or not e_fx_ID or not e_param_ID then FirstTimeMsg() return end
+      if not e_track or not e_fx_ID or not e_param_ID then return end
       
       str = CheckGivenControls(osc,midiCC, midiChan, is_soft_takeover)
       if not str then return reaper.MB('Error with MIDIOSC string synthax','MPL Assign ctrl',0) end 
