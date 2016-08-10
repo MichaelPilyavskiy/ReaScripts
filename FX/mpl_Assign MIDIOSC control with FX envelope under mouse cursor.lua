@@ -1,8 +1,8 @@
 -- @description Assign MIDIOSC control with FX envelope under mouse cursor
--- @version 1.0
+-- @version 1.01
 -- @author mpl
 -- @changelog
---    + init release
+--    + fixed first start logic
 -- @website http://forum.cockos.com/member.php?u=70694
 
 
@@ -168,6 +168,7 @@
   end  
 ------------------------------------------------------------------------------
   function AssignControl(e_track, e_fx_ID, e_param_ID, str)
+    if e_track and e_fx_ID and e_param_ID and str then
       -- assign control
         TrackFX_GetSetMIDIOSCLearn( e_track, 
                                     e_fx_ID, --fx_index 0 -based,
@@ -179,6 +180,7 @@
         reaper.SetProjExtState( 0, 'MPL_assign_ctrl', 'last_track_ID',  reaper.CSurf_TrackToID( e_track, false ) )                         
         reaper.SetProjExtState( 0, 'MPL_assign_ctrl', 'last_FX_ID',  e_fx_ID )   
         reaper.SetProjExtState( 0, 'MPL_assign_ctrl', 'last_param_ID',  e_param_ID ) 
+    end
   end
 ------------------------------------------------------------------------------- 
   function ErasePreviousAssign()
@@ -217,22 +219,24 @@
 -------------------------------------------------------------------------------  
 -------------------------------------------------------------------------------
  
-  function main()
-    e_track, e_fx_ID, e_param_ID = GetEnvelopeUnderMouseCursor() 
-    if not osc and not midi and not is_soft_takeover then    -- if  not edited
-      FirstTimeMsg()
-     else   
+  function main()    
+    -- check for edits
+      if not osc and not midi and not is_soft_takeover then FirstTimeMsg() return end
+    -- check for envelope
+      e_track, e_fx_ID, e_param_ID = GetEnvelopeUnderMouseCursor()
+      if not e_track or not e_fx_ID or not e_param_ID then FirstTimeMsg() return end
+      
       str = CheckGivenControls(osc,midiCC, midiChan, is_soft_takeover)
-      if not str then return end     
-      retval = reaper.GetProjExtState( 0, 'MPL_assign_ctrl', 'last_track_ID' )      
-      if retval == 0 then -- first time
+      if not str then return reaper.MB('Error with MIDIOSC string synthax','MPL Assign ctrl',0) end 
+      
+      if reaper.GetProjExtState( 0, 'MPL_assign_ctrl', 'last_track_ID' ) ==0 then 
+        FirstTimeMsg()
         AssignControl(e_track, e_fx_ID, e_param_ID, str)
        else
         ErasePreviousAssign(str)
-        AssignControl(e_track, e_fx_ID, e_param_ID, str)          
+        AssignControl(e_track, e_fx_ID, e_param_ID, str)  
       end
-    end 
-  end                           
+  end                         
     
     
     main()
