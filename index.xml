@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1c109361681465520353e5b82e189f80b735a7fb" name="MPL Scripts">
+<index version="1" commit="885dd098fc0e725f39d431ab31c6931d569a23a8" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -539,6 +539,13 @@
     </reapack>
   </category>
   <category name="Various">
+    <reapack name="mpl_Align takes (without GUI).lua" type="script">
+      <version name="1.120" author="mpl" time="2016-08-11T13:00:48Z">
+        <changelog><![CDATA[# Temporary fix for 'id_diff' #796
++ init no GUI branch]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/885dd098fc0e725f39d431ab31c6931d569a23a8/Various/mpl_Align%20takes%20(without%20GUI).lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Align takes.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-11T10:12:56Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e825429a79904a3bb2c19ad73917289d5a83d4b6/Various/mpl_Align%20takes.lua</source>
