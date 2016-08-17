@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="885dd098fc0e725f39d431ab31c6931d569a23a8" name="MPL Scripts">
+<index version="1" commit="72e9f6731cd59682231f6a592445a5f0f09a3e1f" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -446,6 +446,12 @@
     <reapack name="mpl_Rename selected tracks as first FX.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-10T11:46:50Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd75015e8302a11c807414834bebe47804d3e77e/Tracks%20Properties/mpl_Rename%20selected%20tracks%20as%20first%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Search tracks.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-08-17T14:58:41Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/72e9f6731cd59682231f6a592445a5f0f09a3e1f/Tracks%20Properties/mpl_Search%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Select tracks with instruments.lua" type="script">
