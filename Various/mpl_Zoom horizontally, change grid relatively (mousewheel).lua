@@ -1,10 +1,12 @@
 -- @description Zoom horizontally, change grid relatively (mousewheel) 
--- @version 1.0
+-- @version 1.1
 -- @author mpl
 -- @changelog
---   + init
+--   + prevent spam undo history
 -- @website http://forum.cockos.com/member.php?u=70694
  
+ 
+  function main()
 --------------------------------------------------------------------
   zoom_adjust = 1  
   stages = {0.38, -- no snap / no grid
@@ -62,3 +64,7 @@
       break
     end
   end
+  end
+  
+  
+  reaper.defer(main)
