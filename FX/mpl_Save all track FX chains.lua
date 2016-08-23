@@ -1,5 +1,5 @@
 -- @description Save all track FX chains
--- @version 1.01
+-- @version 1.02
 -- @author mpl
 -- @changelog
 --   + edit some tips
@@ -16,7 +16,7 @@
     2. You can edit paths manually
     3. <project_name> is a parameter, it will be automatically replaced
     4. use only '/' DON`T USE` '\'  
-    5. Line starts after '--' means commented line
+    5. Line starts after '--' means commented line]]
   
   
     --========= EDIT HERE ==========--      
@@ -42,7 +42,7 @@
   saving_path = GetPath(reaper.GetProjectPath(0,'')..'/', reaper.GetResourcePath()..'/')
   saving_path = saving_path:gsub('\\', '/')
   
-  --[[ get project name
+  -- get project name
     _, project_name = reaper.EnumProjects(0,'')
     repeat
       st1 = string.find(project_name,'\\') if st1 == nil then st1 = 0 end
@@ -139,5 +139,4 @@
     reaper.Undo_EndBlock(script_title, 1)
     
   end -- if ret == 1
-    ]]
   
