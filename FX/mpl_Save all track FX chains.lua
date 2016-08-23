@@ -1,28 +1,48 @@
---[[
-   * ReaScript Name:Save all track FX chains
-   * Lua script for Cockos REAPER
-   * Author: Michael Pilyavskiy (mpl)
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
+-- @description Save all track FX chains
+-- @version 1.01
+-- @author mpl
+-- @changelog
+--   + edit some tips
+-- @website http://forum.cockos.com/member.php?u=70694
+
   
-  script_title = "Save all tracks FX chains"  
+  function GetPath(ProjectPath, ResourcePath)  
+  --[[========================================================================================= 
+  --=========================================================================================     
   
-  ----------------------------------------------------------------------
-  ----------------------------------------------------------------------
-      
-  -- uncomment path you wanna to save FX chains to or type your custom folder,
-  -- use ONLY '/' and DON`T USE` '\'  
   
-  --saving_path = 'C:/FX Chains/'
-  --saving_path = reaper.GetProjectPath(0,'')..'/FX Chains/'
-  saving_path = reaper.GetResourcePath()..'/FXChains/'..'<project_name>'
+    Tips:    
+    1. Uncomment ONE path you wanna to save FX chains
+    2. You can edit paths manually
+    3. <project_name> is a parameter, it will be automatically replaced
+    4. use only '/' DON`T USE` '\'  
+    5. Line starts after '--' means commented line
+  
+  
+    --========= EDIT HERE ==========--      
+    --saving_path = 'C:/FX Chains/' 
+    --saving_path = ProjectPath.. 'FXChains/'
+    saving_path = ResourcePath..  'FXChains/'..  '<project_name>'      
+    --========= END EDIT HERE ==========--
     
-  ----------------------------------------------------------------------
-  ----------------------------------------------------------------------
+    
+    
+  --========================================================================================= 
+  --=========================================================================================]]
   
-  -- get project name
+  
+  
+  
+  
+  
+     
+    return saving_path
+  end
+  script_title = "Save all tracks FX chains"  
+  saving_path = GetPath(reaper.GetProjectPath(0,'')..'/', reaper.GetResourcePath()..'/')
+  saving_path = saving_path:gsub('\\', '/')
+  
+  --[[ get project name
     _, project_name = reaper.EnumProjects(0,'')
     repeat
       st1 = string.find(project_name,'\\') if st1 == nil then st1 = 0 end
@@ -119,5 +139,5 @@
     reaper.Undo_EndBlock(script_title, 1)
     
   end -- if ret == 1
-    
+    ]]
   
