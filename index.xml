@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="72e9f6731cd59682231f6a592445a5f0f09a3e1f" name="MPL Scripts">
+<index version="1" commit="9271eb5fe2df842dee33cc6027d8ead9288352e2" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -643,6 +643,12 @@
     <reapack name="mpl_Implode mono track session to stereo items relative to LR at the trackname end.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Various/mpl_Implode%20mono%20track%20session%20to%20stereo%20items%20relative%20to%20LR%20at%20the%20trackname%20end.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Import Winamp Playlist.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-08-23T11:06:45Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9271eb5fe2df842dee33cc6027d8ead9288352e2/Various/mpl_Import%20Winamp%20Playlist.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua" type="script">
