@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9271eb5fe2df842dee33cc6027d8ead9288352e2" name="MPL Scripts">
+<index version="1" commit="00da72a143b9a5e6db90829f6910a8d5b3d79f0f" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -9,6 +9,14 @@
     <reapack name="mpl_Move edit cursor to first note of selected item.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T07:14:02Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18a280d356ce75b45448c411761a16d98558c830/Cursor/mpl_Move%20edit%20cursor%20to%20first%20note%20of%20selected%20item.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Envelopes">
+    <reapack name="mpl_Duplicate envelope points.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-08-31T08:17:18Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/00da72a143b9a5e6db90829f6910a8d5b3d79f0f/Envelopes/mpl_Duplicate%20envelope%20points.lua</source>
       </version>
     </reapack>
   </category>
@@ -122,6 +130,14 @@
     <reapack name="mpl_Save all track FX chains.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/FX/mpl_Save%20all%20track%20FX%20chains.lua</source>
+      </version>
+      <version name="1.01" author="mpl" time="2016-08-23T14:54:15Z">
+        <changelog><![CDATA[+ edit some tips]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2fc6ace842b49c0b7b6d6951db27db55f2a6ff0c/FX/mpl_Save%20all%20track%20FX%20chains.lua</source>
+      </version>
+      <version name="1.02" author="mpl" time="2016-08-23T14:55:22Z">
+        <changelog><![CDATA[+ edit some tips]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0fdb113808d37e48bf3f595b61f7c8c3d21ad609/FX/mpl_Save%20all%20track%20FX%20chains.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Show instrument in FX chain on selected track.lua" type="script">
@@ -778,6 +794,10 @@
       <version name="1.0" author="mpl" time="2016-08-09T11:49:03Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/48cd9d515ed5ca1151791cebbbd809c5da8cc228/Various/mpl_Zoom%20horizontally,%20change%20grid%20relatively%20(mousewheel).lua</source>
+      </version>
+      <version name="1.1" author="mpl" time="2016-08-23T19:50:04Z">
+        <changelog><![CDATA[+ prevent spam undo history]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/485c36a18beff972b1089a207076b0afe948c29e/Various/mpl_Zoom%20horizontally,%20change%20grid%20relatively%20(mousewheel).lua</source>
       </version>
     </reapack>
   </category>
