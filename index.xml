@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5ab95590827feccd2c99e134a41ae072eaf7d31d" name="MPL Scripts">
+<index version="1" commit="653bd21badb09305b18d5a5d067aa7b05e43795f" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -30,6 +30,10 @@
         <changelog><![CDATA[#fixed -1 sample offset
 #fixed comparing time beetween points]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fed792247989211dd4b56720f30d795a9919b6e6/Envelopes/mpl_Duplicate%20envelope%20points.lua</source>
+      </version>
+      <version name="1.03" author="mpl" time="2016-08-31T14:50:30Z">
+        <changelog><![CDATA[#enabled track envelope support]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/653bd21badb09305b18d5a5d067aa7b05e43795f/Envelopes/mpl_Duplicate%20envelope%20points.lua</source>
       </version>
     </reapack>
   </category>
