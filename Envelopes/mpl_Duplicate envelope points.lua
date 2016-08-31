@@ -1,9 +1,9 @@
 -- @description Duplicate envelope points
 -- @version 1.02
---    #fixed -1 sample offset
---    #fixed comparing time beetween points
 -- @author mpl
 -- @changelog
+--    #fixed -1 sample offset
+--    #fixed comparing time beetween points
 -- @website http://forum.cockos.com/member.php?u=70694
 
 
