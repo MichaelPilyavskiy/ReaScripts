@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="00da72a143b9a5e6db90829f6910a8d5b3d79f0f" name="MPL Scripts">
+<index version="1" commit="db88db1aa74371b0c4470f1ac0c6129a026087ea" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -17,6 +17,14 @@
       <version name="1.0" author="mpl" time="2016-08-31T08:17:18Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/00da72a143b9a5e6db90829f6910a8d5b3d79f0f/Envelopes/mpl_Duplicate%20envelope%20points.lua</source>
+      </version>
+      <version name="1.01" author="mpl" time="2016-08-31T10:41:50Z">
+        <changelog><![CDATA[+ fx envelope support
++ take envelope support
++ proper unselect all points function
+- Disabled track envelope support, see below
+- Prevent REAPER bad behaviour: CountTrackEnvelopes / GetTrackEnvelope() include FX envelopes]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/db88db1aa74371b0c4470f1ac0c6129a026087ea/Envelopes/mpl_Duplicate%20envelope%20points.lua</source>
       </version>
     </reapack>
   </category>
