@@ -1,16 +1,16 @@
--- @description Align Takes
--- @version 1.28
+-- @description Mapping Panel
+-- @version 1.29
 -- @author mpl
 -- @changelog
 --    + Extended formula input window (REAPER 5.24+)
 -- @website http://forum.cockos.com/member.php?u=70694
 
 
-local vrs = 1.28
+local vrs = 1.29
 local changelog =
 
 [===[ 
-31.08.2016  1.28 
+31.08.2016  1.29 
             + Extended formula input window (REAPER 5.24+)
 30.04.2016  1.27
             + Actions: Slider/Link to all same parameters in all instances
