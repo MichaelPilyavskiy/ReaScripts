@@ -1,13 +1,14 @@
 -- @description Duplicate envelope points
--- @version 1.02
+-- @version 1.03
 -- @author mpl
 -- @changelog
---    #fixed -1 sample offset
---    #fixed comparing time beetween points
+--    #enabled track envelope support
 -- @website http://forum.cockos.com/member.php?u=70694
 
 
 --[[changelog
+  -- 1.03 / 31.08.2016
+    #enabled track envelope support
   -- 1.02 / 31.08.2016
     #fixed -1 sample offset
     #fixed comparing time beetween points
@@ -64,33 +65,33 @@ end
 ---------------------------------------------------------------------
   function GetSelPoints()   
     local EP = {}
-    --[[ track envelopes
+    -- track envelopes
     for i = 1, reaper.CountTracks(0) do
       local track = reaper.GetTrack(0, i-1)
       
-      
-      -- Expected: CountTrackEnvelopes / GetTrackEnvelope() should NOT include FX envelopes      
+         
       for env_id = 1, reaper.CountTrackEnvelopes(track) do          
         local tr_env = reaper.GetTrackEnvelope(track, env_id-1)         
-        
-        
+        _, fxID, parID = reaper.Envelope_GetParentTrack(tr_env)
         for point_id = 1, reaper.CountEnvelopePoints(tr_env) do    
           local _, pnt_pos, pnt_value, pnt_shape, pnt_tension, selected = reaper.GetEnvelopePoint(tr_env, point_id-1)
           if selected then                  
             EP[#EP+1] = {
-              parent = 0, -- track envelope
-              guid = reaper.BR_GetMediaTrackGUID(track),
-              env_id = env_id-1,
-              pnt_id = point_id, 
-              pnt_pos = pnt_pos, 
-              pnt_value = pnt_value, 
-              pnt_shape = pnt_shape, 
-              pnt_tension = pnt_tension
-              } 
+                parent = 0, -- track envelope
+                guid = reaper.BR_GetMediaTrackGUID(track),
+                env_id = env_id-1,
+                pnt_id = point_id, 
+                pnt_pos = pnt_pos, 
+                pnt_value = pnt_value, 
+                pnt_shape = pnt_shape, 
+                pnt_tension = pnt_tension,
+                fx_id = fxID,
+                par_id = parID,
+                } 
           end
         end 
       end  
-    end]]
+    end
     
     -- take envelopes
     for i = 1, reaper.CountTracks(0) do
@@ -108,7 +109,7 @@ end
                     parent = 1, -- take envelope
                     guid = reaper.BR_GetMediaItemTakeGUID(take),
                     env_id = env_id-1,
-                    pnt_id = point_id, 
+                    pnt_id = point_id-1, 
                     pnt_pos = pnt_pos, 
                     pnt_value = pnt_value, 
                     pnt_shape = pnt_shape, 
@@ -119,34 +120,6 @@ end
           end
         end
       end  
-    end
-      
-    -- get FX env points
-    for i = 1, reaper.CountTracks(0) do
-      local track = reaper.GetTrack(0, i-1)
-      for fx_id = 1, reaper.TrackFX_GetCount( track ) do
-        for par_id = 1,  reaper.TrackFX_GetNumParams( track, fx_id-1 ) do
-          local fx_env = reaper.GetFXEnvelope( track, fx_id-1, par_id-1, false )
-          if fx_env then
-            for point_id = 1, reaper.CountEnvelopePoints(fx_env) do    
-              local _, pnt_pos, pnt_value, pnt_shape, pnt_tension, selected = reaper.GetEnvelopePoint(fx_env, point_id-1)
-              if selected then                  
-                EP[#EP+1] = {
-                  parent = 2, -- fx envelope
-                  guid = reaper.BR_GetMediaTrackGUID(track),
-                  fx_id = fx_id-1,
-                  par_id = par_id-1,
-                  pnt_id = point_id, 
-                  pnt_pos = pnt_pos, 
-                  pnt_value = pnt_value, 
-                  pnt_shape = pnt_shape, 
-                  pnt_tension = pnt_tension
-                  } 
-              end
-            end
-          end         
-        end
-      end
     end
 
     
@@ -174,12 +147,19 @@ end
 ----------------------------------------------------------------------
   function DuplicatePoints(ep_t, val_sec, SR)
     if not val_sec then return end
-    UnselectAllPoints()
+    
     for i = 1, #ep_t do
       if ep_t[i].parent == 0 then  -- track envelope point
         local track = reaper.BR_GetMediaTrackByGUID( 0, ep_t[i].guid )
-        local envelope =  reaper.GetTrackEnvelope( track, ep_t[i].env_id )  
-        ReplaceAdd(envelope, ep_t[i], val_sec)
+        local envelope =  reaper.GetTrackEnvelope( track, ep_t[i].env_id )
+        if ep_t[i].par_id >= 0 then  
+          local envelope = reaper.GetFXEnvelope( track, ep_t[i].fx_id, ep_t[i].par_id, false )
+          ReplaceAdd(envelope, ep_t[i], val_sec)
+         else
+          -- volume pan width
+          ReplaceAdd(envelope, ep_t[i], val_sec)
+        end
+         
         
        elseif ep_t[i].parent == 1 then -- take envelope
         local take =  reaper.GetMediaItemTakeByGUID( 0, ep_t[i].guid )
@@ -188,8 +168,7 @@ end
           
        elseif ep_t[i].parent == 2 then  -- fx envelope
         local track = reaper.BR_GetMediaTrackByGUID( 0, ep_t[i].guid )
-        local envelope =   reaper.GetFXEnvelope( track, ep_t[i].fx_id, ep_t[i].par_id, false )
-        ReplaceAdd(envelope, ep_t[i], val_sec)
+        
              
       end
     end
@@ -227,6 +206,7 @@ end
   ep = GetSelPoints()  -- get points
   val_sec = GetValue(ep)  -- get difference
   SR = GetSR()  -- get sample rate
+  UnselectAllPoints()
   DuplicatePoints(ep, val_sec, SR)  -- duplicat
   
   reaper.Undo_EndBlock('mpl_Duplicate envelope points', 0)
