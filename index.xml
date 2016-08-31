@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fed792247989211dd4b56720f30d795a9919b6e6" name="MPL Scripts">
+<index version="1" commit="5ab95590827feccd2c99e134a41ae072eaf7d31d" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -763,6 +763,10 @@
       <version name="1.28" author="mpl" time="2016-08-31T12:29:28Z">
         <changelog><![CDATA[+ Extended formula input window (REAPER 5.24+)]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ae408ffc0a755784914e15597863b0fb365156e/Various/mpl_Mapping%20Panel.lua</source>
+      </version>
+      <version name="1.29" author="mpl" time="2016-08-31T13:16:43Z">
+        <changelog><![CDATA[+ Extended formula input window (REAPER 5.24+)]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5ab95590827feccd2c99e134a41ae072eaf7d31d/Various/mpl_Mapping%20Panel.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Monitor selected track with track 1.lua" type="script">
