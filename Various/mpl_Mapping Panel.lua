@@ -1,16 +1,17 @@
---[[
-   * ReaScript Name: mpl Mapping Panel
-   * Lua script for Cockos REAPER
-   * Author: Michael Pilyavskiy (mpl)
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.27
-  ]]
+-- @description Align Takes
+-- @version 1.28
+-- @author mpl
+-- @changelog
+--    + Extended formula input window (REAPER 5.24+)
+-- @website http://forum.cockos.com/member.php?u=70694
 
-  local vrs = 1.27
-  local changelog =
+
+local vrs = 1.28
+local changelog =
 
 [===[ 
+31.08.2016  1.28 
+            + Extended formula input window (REAPER 5.24+)
 30.04.2016  1.27
             + Actions: Slider/Link to all same parameters in all instances
 22.04.2016  1.26
@@ -4228,7 +4229,7 @@
         -- change func
           if MOUSE_match({graph_rect[1],graph_rect[2]+graph_rect[4]+y_offset, 
             graph_rect[3],17}) and mouse.LMB_state and not mouse.last_LMB_state then
-            _, form = reaper.GetUserInputs('Change formula', 1, 'Type formula', 
+            _, form = reaper.GetUserInputs('Change formula', 1, 'Type formula,extrawidth=200', 
               data.routing[data.current_routing][rout_id].form)
               if form == '' then form = 'x' end
               data.routing[data.current_routing][rout_id].form = form
