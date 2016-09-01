@@ -1,15 +1,17 @@
 -- @description Mapping Panel
--- @version 1.29
+-- @version 1.30
 -- @author mpl
 -- @changelog
---    + Extended formula input window (REAPER 5.24+)
+--    # fixed check for existing FX when floating related FX
 -- @website http://forum.cockos.com/member.php?u=70694
 
 
-local vrs = 1.29
+local vrs = 1.30
 local changelog =
 
 [===[ 
+01.09.2016  1.30
+            # fixed check for existing FX when floating related FX
 31.08.2016  1.29 
             + Extended formula input window (REAPER 5.24+)
 30.04.2016  1.27
@@ -3014,7 +3016,9 @@ local changelog =
     -- float fx 
       if ret_rb_slider == 6 then -- float FX
         _,_,_,_, track, fx_guid_act_id = ENGINE_GetSetParamValue(map, slider, false)
-        reaper.TrackFX_SetOpen(track, fx_guid_act_id, true)
+        if track and fx_guid_act_id then
+          reaper.TrackFX_SetOpen(track, fx_guid_act_id, true)
+        end
       end
       
  -- ====== separator ===========  
