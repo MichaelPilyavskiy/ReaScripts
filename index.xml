@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="46addc6593e6e7e1444c38e87dc524d6ce558d2b" name="MPL Scripts">
+<index version="1" commit="767fec930c744e54d5cdc8e61cab4cea97ed5c28" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -465,6 +465,10 @@
       <version name="1.0" author="mpl" time="2016-09-01T05:19:57Z">
         <changelog><![CDATA[+ init / recode from cubic13 idea]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/46addc6593e6e7e1444c38e87dc524d6ce558d2b/Tracks%20Properties/mpl_Enlarge%20selected%20track.lua</source>
+      </version>
+      <version name="1.01" author="mpl" time="2016-09-01T07:15:10Z">
+        <changelog><![CDATA[#fix check for sel track]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/767fec930c744e54d5cdc8e61cab4cea97ed5c28/Tracks%20Properties/mpl_Enlarge%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Go to first receive track.lua" type="script">
