@@ -1,12 +1,14 @@
 -- @description Duplicate envelope points
--- @version 1.03
+-- @version 1.04
 -- @author mpl
 -- @changelog
---    #enabled track envelope support
+--    # fix dealing with take envelopes
 -- @website http://forum.cockos.com/member.php?u=70694
 
 
 --[[changelog
+  -- 1.04 / 01.09.2016
+    # fix dealing with take envelopes
   -- 1.03 / 31.08.2016
     #enabled track envelope support
   -- 1.02 / 31.08.2016
@@ -104,13 +106,15 @@ end
             local take_env = reaper.GetTakeEnvelope(take, env_id-1)
             for point_id = 1, reaper.CountEnvelopePoints(take_env) do    
               local _, pnt_pos, pnt_value, pnt_shape, pnt_tension, selected = reaper.GetEnvelopePoint(take_env, point_id-1)
-              if selected then                  
+              if selected then  
+                item_pos = reaper.GetMediaItemInfo_Value( item, 'D_POSITION' )                
                 EP[#EP+1] = {
                     parent = 1, -- take envelope
                     guid = reaper.BR_GetMediaItemTakeGUID(take),
                     env_id = env_id-1,
                     pnt_id = point_id-1, 
-                    pnt_pos = pnt_pos, 
+                    pnt_pos = pnt_pos + item_pos,
+                    item_pos = item_pos, 
                     pnt_value = pnt_value, 
                     pnt_shape = pnt_shape, 
                     pnt_tension = pnt_tension
@@ -178,13 +182,20 @@ end
   function ReplaceAdd(envelope, t, val_sec)
     local test_point_id = reaper.GetEnvelopePointByTime( envelope, t.pnt_pos + val_sec) 
     local _, test_time, value, shape, tension, selected = reaper.GetEnvelopePoint( envelope, test_point_id )
-    if test_time > 0 and t.pnt_pos + val_sec == test_time then -- do move back older point
+      if  t.parent == 1 then 
+        pnt_pos = t.pnt_pos + val_sec - t.item_pos
+       else 
+        pnt_pos = t.pnt_pos + val_sec 
+      end
+      
+    if test_time > 0 and pnt_pos == test_time then -- do move back older point
       local time_smpl = reaper.format_timestr_len( test_time, '', 0, 4 )
       local new_time_smpl = time_smpl - 1
       local new_time_sec = new_time_smpl  / SR   
       reaper.SetEnvelopePoint( envelope, test_point_id, new_time_sec, value, shape, tension, false, false )  
+        
       reaper.InsertEnvelopePoint( envelope, 
-            t.pnt_pos + val_sec, --time, 
+            pnt_pos, --time, 
             t.pnt_value, 
             t.pnt_shape, 
             t.pnt_tension, 
@@ -192,7 +203,7 @@ end
             false)--noSortInOptional )   
      else
       reaper.InsertEnvelopePoint( envelope, 
-            t.pnt_pos + val_sec, --time, 
+            pnt_pos, --time, 
             t.pnt_value, 
             t.pnt_shape, 
             t.pnt_tension, 
