@@ -1,8 +1,8 @@
 -- @description Enlarge selected track
--- @version 1.01
+-- @version 1.02
 -- @author mpl
 -- @changelog
---    #fix check for sel track
+--    + set mixer scroll for selected track
 -- @website http://forum.cockos.com/member.php?u=70694
 
 --[[  changelog
@@ -19,6 +19,7 @@
         if h_last and last_track_guid and last_track_guid ~= track_guid then 
           h_cur_last = reaper.GetMediaTrackInfo_Value(track, "I_HEIGHTOVERRIDE")
           reaper.SetMediaTrackInfo_Value(track, "I_HEIGHTOVERRIDE", h_last) 
+          reaper.SetMixerScroll( track )
           if h_cur_last and last_track_guid then
             last_tr = reaper.BR_GetMediaTrackByGUID( 0, last_track_guid )
             if last_tr then reaper.SetMediaTrackInfo_Value(last_tr, "I_HEIGHTOVERRIDE", h_cur_last) end
