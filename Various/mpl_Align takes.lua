@@ -1,13 +1,17 @@
 -- @description Align Takes
--- @version 1.120
+-- @version 1.130
 -- @author mpl
 -- @changelog
---    # Temporary fix for 'id_diff' #796
+--    # prevent array size issues in FFT mode, thanks vk.com/xeonblack for bugreport
+--    + generate undo when release slider
 -- @website http://forum.cockos.com/member.php?u=70694
 
 --[[
   * Changelog: 
-  ``* v1.120 (2016-08-09)
+    * v1.130 (2016-09-09)
+      # prevent array size issues
+      + generate undo when release slider      
+    * v1.120 (2016-08-09)
       # Temporary fix for 'id_diff' #796
     * v1.111 (2016-06-23)
       + Presets
@@ -66,7 +70,7 @@
 ----------------------------------------------------------------------- 
 ----------------------------------------------------------------------- 
 -----------------------------------------------------------------------   
-  local vrs = '1.12'
+  local vrs = '1.13'
 ----------------------------------------------------------------------- 
   function msg(str)
     if type(str) == 'boolean' then if str then str = 'true' else str = 'false' end end
@@ -150,6 +154,7 @@
       t[#t+1] = tonumber(i) / 255
     end
     gfx.r, gfx.g, gfx.b = t[1], t[2], t[3]
+    return t[1], t[2], t[3]
   end
   
 ----------------------------------------------------------------------- 
@@ -518,13 +523,13 @@
     function F_stretch_array(src_array, new_size)
       local src_array_size = src_array.get_alloc()
       local coeff = (src_array_size - 1) / (new_size  - 1)
+      if new_size <= 1 then return src_array end
       local out_array = reaper.new_array(new_size)
       if new_size < src_array_size or new_size > src_array_size then
         for i = 0, new_size - 1 do 
           src_idx = math.floor(i * coeff) + 1
           src_idx = math.floor(F_limit(src_idx, 1, src_array_size))
-          out_array[i+1] = 
-            src_array[src_idx]
+          out_array[i+1] = src_array[src_idx]
         end
         return out_array
        elseif new_size == src_array_size then 
@@ -543,7 +548,10 @@
     local src_arr_pt1_size = src_mid_point - 1
     local src_arr_pt2_size = src_array_size-src_mid_point + 1    
     local out_arr_pt1_size = stretched_point - 1
-    local out_arr_pt2_size = src_array_size-stretched_point + 1    
+    local out_arr_pt2_size = src_array_size-stretched_point + 1 
+    --msg(src_arr_pt1_size) 
+    if   src_arr_pt1_size <= 0 then src_arr_pt1_size = 1 end
+    if   src_arr_pt2_size <= 0 then src_arr_pt2_size = 1 end
     local src_arr_pt1 = reaper.new_array(src_arr_pt1_size)
     local src_arr_pt2 = reaper.new_array(src_arr_pt2_size)    
     src_arr_pt1.copy(src_array,--src, 
@@ -929,6 +937,7 @@
       end
     end
     reaper.UpdateArrange()
+    return true
   end        
 ----------------------------------------------------------------------- 
   function GUI_item_display(objects, gui, xywh, reaperarray, is_ref, pointsarray, col_peaks) local arr_size
@@ -1092,12 +1101,27 @@
             F_Get_SSV(gui.color.white, true)
             gfx.rect(xywh[1],xywh[2],xywh[3], xywh[4], 1 , gui.aa) 
             
-          -- center line
+          --[[ center line
             gfx.a = 0.5 * alpha
             F_Get_SSV(gui.color[col], true)
             local sl_w = 3
             gfx.rect(xywh[1],xywh[2]+ (xywh[4]- sl_w) / 2,xywh[3], sl_w, 1 , gui.aa)  
-          
+          ]]
+          local sl_w = 3
+          gfx.a = 1
+          local r,g,b = F_Get_SSV(gui.color.green, true)
+          gfx.gradrect(xywh[1] + 1,xywh[2]+ (xywh[4]- sl_w) / 2,xywh[3]-1, sl_w, 
+            r,g,b,0.5, 
+            0.004,--drdx, 
+            0,--dgdx, 
+            0,--dbdx, 
+            0.0005,--dadx, 
+            0,--drdy, 
+            0,--dgdy, 
+            0,--dbdy, 
+            -0.002)--dady )
+            
+                     
           local handle_w = 20  
           if takes_t ~= nil and takes_t[2] ~= nil then
             -- blit grad   
@@ -1114,7 +1138,7 @@
           -- grid
             local gr_h = 20
             for i = 0, 1, 0.1 do
-              gfx.a = 0.3 * alpha
+              gfx.a = 0.2 * alpha
               F_Get_SSV(gui.color.white, true)
               gfx.line(handle_w/2 + xywh[1] + (xywh[3]-handle_w) * i, xywh[2] + xywh[4]/2 - gr_h*i - 1,
                        handle_w/2 + xywh[1] + (xywh[3]-handle_w) * i, xywh[2] + xywh[4]/2 + gr_h*i-1 )
@@ -1269,6 +1293,7 @@
     local is_sel
     local OS = reaper.GetOS()
     update_gfx_minor = true
+    
     
       ----------------------------------------------------------------------- 
           
@@ -1440,6 +1465,8 @@
     gfx.x,gfx.y = 0,0
     gfx.a = 1
     
+    
+    
     gfx.blit(1, 1, 0, -- backgr
           0,0,obj.main_w, obj.main_h+obj.set_wind_h,
           0,0,obj.main_w, obj.main_h+obj.set_wind_h, 0,0)           
@@ -1452,6 +1479,8 @@
     gfx.blit(9, 1, 0, -- main window dynamic
             0,0,obj.main_w, obj.main_h+obj.set_wind_h,
             0,0,obj.main_w, obj.main_h+obj.set_wind_h, 0,0)                        
+        
+        
         
     if trig_process ~= nil and trig_process == 1 then
         gfx.blit(5, 1, 0, --wait
@@ -1645,7 +1674,11 @@
     mouse.Ctrl_state = gfx.mouse_cap&4 == 4 
     mouse.Alt_state = gfx.mouse_cap&17 == 17 -- alt + LB
     mouse.wheel = gfx.mouse_wheel
-    
+
+    -- reset mouse context/doundo
+    if not mouse.last_LMB_state and not mouse.last_RMB_state then app = false end
+       
+           
     -------------------------------------------------------- mouse vars
     -- get value on click
       if mouse.LMB_state and not mouse.last_LMB_state then    
@@ -1685,8 +1718,9 @@
         w1_slider = F_limit((mouse.mx -objects.b_slider[1]) / objects.b_slider[3],0,1 )
         for i = 1, #takes_t do 
           if i == 1 then 
-                 ENGINE_set_stretch_markers2(i, str_markers_t[i], 0) 
-            else ENGINE_set_stretch_markers2(i, str_markers_t[i], w1_slider) 
+            app = ENGINE_set_stretch_markers2(i, str_markers_t[i], 0) 
+           else 
+            app = ENGINE_set_stretch_markers2(i, str_markers_t[i], w1_slider) 
           end
         end
       end
@@ -1832,10 +1866,16 @@ Blue knobs are parameters for building envelope
            data.current.xpos, data.current.ypos = xpos, ypos
         end
       end
-    
+ 
     -- set ini on release
       if  mouse.last_LMB_state and not mouse.LMB_state  then INI_set() end
+    
+    -- proceed undo state
+      if not app and last_app then reaper.Undo_OnStateChange('mpl Align takes' )end
+      last_app = app
       
+          
+    last_app = app
     mouse.last_LMB_state = mouse.LMB_state  
     mouse.last_RMB_state = mouse.RMB_state
     mouse.last_MMB_state = mouse.MMB_state 
