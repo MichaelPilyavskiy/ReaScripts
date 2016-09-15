@@ -1,12 +1,16 @@
 -- @description Enlarge selected track
--- @version 1.02
+-- @version 1.03
 -- @author mpl
 -- @changelog
---    + set mixer scroll for selected track
+--    + toolbar indication / toggle state (X-Raym template used)
 -- @website http://forum.cockos.com/member.php?u=70694
 
+-- X-Raym template:
+-- https://github.com/ReaTeam/ReaScripts-Templates/blob/master/Templates/X-Raym_Background%20script.lua
 --[[  changelog
-  1.0 - 01.09.2016
+  1.03 - 15.09.2016
+    + toolbar indication / toggle state
+  1.02 - 01.09.2016
     + init / recode from cubic13 idea
   ]]
 --  original cubic13 idea http://forum.cockos.com/showthread.php?t=145949
@@ -35,4 +39,27 @@
     reaper.runloop(EnlargeSelTrack)
   end
   
+  
+   -- Set ToolBar Button ON
+  function SetButtonON()
+    is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
+    state = reaper.GetToggleCommandStateEx( sec, cmd )
+    reaper.SetToggleCommandState( sec, cmd, 1 ) -- Set ON
+    reaper.RefreshToolbar2( sec, cmd )
+  end
+  
+  -- Set ToolBar Button OFF
+  function SetButtonOFF()
+    is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
+    state = reaper.GetToggleCommandStateEx( sec, cmd )
+    reaper.SetToggleCommandState( sec, cmd, 0 ) -- Set OFF
+    reaper.RefreshToolbar2( sec, cmd )
+  end
+  
+  
+  
+  
+  -- RUN
+  SetButtonON()
   EnlargeSelTrack()
+  reaper.atexit( SetButtonOFF )
