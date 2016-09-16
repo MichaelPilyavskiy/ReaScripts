@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bed8c746c8e6a78aded4059fc5a612319ef45f75" name="MPL Scripts">
+<index version="1" commit="e059ccf5961be2173c180f051d0559132265a627" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -13,6 +13,12 @@
     </reapack>
   </category>
   <category name="Envelopes">
+    <reapack name="mpl_Decrease selected tracks envelopes heights.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-09-16T20:06:18Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b94d833a4a2b989d5658963b45475c506f0a4593/Envelopes/mpl_Decrease%20selected%20tracks%20envelopes%20heights.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Duplicate envelope points.lua" type="script">
       <version name="1.0" author="mpl" time="2016-08-31T08:17:18Z">
         <changelog><![CDATA[+ init]]></changelog>
@@ -38,6 +44,54 @@
       <version name="1.04" author="mpl" time="2016-09-01T18:11:50Z">
         <changelog><![CDATA[# fix dealing with take envelopes]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/38d2aa292749c5ae9863538252b5d1628b290f02/Envelopes/mpl_Duplicate%20envelope%20points.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Hide all track envelopes except envelope under mouse cursor.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-09-16T20:49:27Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e059ccf5961be2173c180f051d0559132265a627/Envelopes/mpl_Hide%20all%20track%20envelopes%20except%20envelope%20under%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Hide all track envelopes except last touched parameter envelope.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-09-16T20:44:07Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4049a95749a54c589560e2af149f03459d599348/Envelopes/mpl_Hide%20all%20track%20envelopes%20except%20last%20touched%20parameter%20envelope.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Increase selected tracks envelopes heights.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-09-16T20:10:08Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/85ccf24536125079ec39cc5119d4f3de5015edc2/Envelopes/mpl_Increase%20selected%20tracks%20envelopes%20heights.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Maximize selected tracks envelopes heights.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-09-16T20:01:14Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e7936fdeadfd8c07a5b7f50c6f402fe7f7092a02/Envelopes/mpl_Maximize%20selected%20tracks%20envelopes%20heights.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Minimize all tracks envelopes heights.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-09-16T20:02:50Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7772b271ed10e46e3ee5915e49f51e906262d47/Envelopes/mpl_Minimize%20all%20tracks%20envelopes%20heights.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Minimize selected tracks envelopes heights.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-09-16T20:01:31Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18597ec1247d54f2e99441488e0c67ed6798f75c/Envelopes/mpl_Minimize%20selected%20tracks%20envelopes%20heights.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Show all active track envelopes, hide unactive.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-09-16T20:15:29Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bcd946bf9c2852fc2414b75ef1d1ac1453cc04a9/Envelopes/mpl_Show%20all%20active%20track%20envelopes,%20hide%20unactive.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Show all armed track envelopes, hide unarmed.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-09-16T20:16:17Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d5f2ecfb9ee96616942487148031c7eec5492bc/Envelopes/mpl_Show%20all%20armed%20track%20envelopes,%20hide%20unarmed.lua</source>
       </version>
     </reapack>
   </category>
