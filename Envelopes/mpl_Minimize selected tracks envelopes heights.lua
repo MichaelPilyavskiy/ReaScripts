@@ -1,4 +1,4 @@
--- @description Minimize selected tracks envelope heights
+-- @description Minimize selected tracks envelopes heights
 -- @version 1.0
 -- @author mpl
 -- @website http://forum.cockos.com/member.php?u=70694
