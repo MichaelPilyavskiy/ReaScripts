@@ -15,12 +15,13 @@ function main()
         local env = reaper.GetTrackEnvelope( track, i-1 )
         local br_env = reaper.BR_EnvAlloc( env, false )
         local active, visible, armed, inLane, laneHeight, defaultShape, _, _, _, _, faderScaling = reaper.BR_EnvGetProperties( br_env )
+        laneHeight = F_limit(laneHeight + difference,1,1000)
         reaper.BR_EnvSetProperties( br_env, 
                                   active, 
                                   visible, 
                                   armed, 
                                   inLane, 
-                                  laneHeight + difference, 
+                                  laneHeight, 
                                   defaultShape, 
                                   faderScaling )
         reaper.BR_EnvFree( br_env, true )
@@ -30,4 +31,12 @@ function main()
   
 end
 
+  function F_limit(val,min,max)
+      if val == nil or min == nil or max == nil then return end
+      local val_out = val
+      if val < min then val_out = min end
+      if val > max then val_out = max end
+      return val_out
+    end 
+    
 main()
