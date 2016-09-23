@@ -1,12 +1,13 @@
 -- @description Stretch marker guard
--- @version 1.0
+-- @version 1.1
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    + init release
-
+--    + Acion: Remove all non-1x stretch markers from selected takes
 
 --[[  full changelog
+--    1.1  // 23.09.2016
+--      + Acion: Remove all non-1x stretch markers from selected takes
 --    1.0  // 13.09.2016
 --     official release
 --    0.23 // 04.09.2016
@@ -23,7 +24,7 @@
   
   
   
-  local vrs = 1.0
+  local vrs = 1.1
   local name = 'MPL Stretch marker guard'
   ------------------------------------------------------------------  
   function GetExtState(default, key)
@@ -248,7 +249,7 @@
         obj.get_b = {name = 'Get',
                       x = offs,
                       y = offs,
-                      w = 50,
+                      w = 70,
                       h = (obj.main_h - offs*2)/2 - offs/4
                       }
         obj.res_b = {name = 'Reset',
@@ -256,11 +257,17 @@
                       y = offs + (obj.main_h - offs*2)/2 + offs/4,
                       w = 50,
                       h = (obj.main_h - offs*2)/2 - offs/4
-                      }                    
+                      }      
+        obj.res_b2 = {name = '▼',
+                      x = obj.res_b.x+ obj.res_b.w ,
+                      y = offs + (obj.main_h - offs*2)/2 + offs/4,
+                      w = 20,
+                      h = (obj.main_h - offs*2)/2 - offs/4
+                      }                                    
         obj.slider = {name = 'slider',
                       x = obj.get_b.x +obj.get_b.w+ offs,
                       y =offs,
-                      w = 300,---gfx.w - offs * (num_b+1) - but_w*2,
+                      w = 290,---gfx.w - offs * (num_b+1) - but_w*2,
                       h = obj.main_h - offs*2,
                       manualw = 30,
                       line_h = 3}
@@ -595,6 +602,7 @@
           GUI_slider(obj, obj.slider, gui, data.str_val)
           GUI_button(obj, gui, obj.get_b)
           GUI_button(obj, gui, obj.res_b)
+          GUI_button(obj, gui, obj.res_b2)
           -- pg2
           GUI_textbut(obj, gui, obj.GO_b, false)
           GUI_textbut(obj, gui, obj.SD_b)
@@ -721,6 +729,34 @@
     end
     
   end
+  -----------------------------------------------------------------------   
+  function ENGINE_remove_non1()
+    reaper.Undo_BeginBlock() 
+    for i = 1, reaper.CountSelectedMediaItems(0) do
+      local item = reaper.GetSelectedMediaItem(0,i-1) 
+      if not item then return end
+      local take = reaper.GetActiveTake(item)
+      if not take or reaper.TakeIsMIDI(take) then return end
+      local t = {}
+      for i = 2, reaper.GetTakeNumStretchMarkers( take ) do
+        local _, pos, srcpos = reaper.GetTakeStretchMarker( take, i-1 )
+        local _, pos2, srcpos2 = reaper.GetTakeStretchMarker( take, i-2 )      
+        local val = math.floor(100*(0.005+(srcpos2 - srcpos ) / (pos2-pos)))/100
+        t[#t+1] = val
+      end
+      
+      for i =reaper.GetTakeNumStretchMarkers( take )-1, 1, -1 do
+        if (t[i-1] == 1.0 and t[i] == 1.0 and t[i+1] ~= 1.0) then 
+          reaper.DeleteTakeStretchMarkers( take, i ) 
+         elseif  (t[i-1] ~= 1.0 and t[i] == 1.0 and t[i+1] == 1.0) then 
+          reaper.DeleteTakeStretchMarkers( take, i-1 ) 
+        end
+      end
+    end
+    reaper.UpdateArrange()
+    reaper.Undo_EndBlock("Remove all non-1x stretch markers from selected items", 0)
+  end
+  
   -----------------------------------------------------------------------         
   function MOUSE_get(obj)
     mouse.mx = gfx.mouse_x
@@ -760,6 +796,12 @@
       if MOUSE_button (obj.res_b) then 
         app = ENGINE_ApplyTransientProtect({L = 0, R = 0})
         update_gfx = true
+      end
+      --RES2
+      if MOUSE_button (obj.res_b2) then
+        gfx.x, gfx.y =  mouse.mx, mouse.my
+        local ret = gfx.showmenu('mpl_Remove all non-1x stretch markers from selected takes')
+        if ret == 1 then ENGINE_remove_non1() end
       end
       -- SLIDE
       local ret, typeval, val = MOUSE_slider (obj.slider)
