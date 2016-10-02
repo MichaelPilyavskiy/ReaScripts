@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="55f741082f03e1303606581f06792b22a81eec33" name="MPL Scripts">
+<index version="1" commit="2daf71709b91819795ecbb1791c1a38269fea8d2" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -495,6 +495,12 @@
       <version name="1.0" author="mpl" time="2016-09-23T12:00:10Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25fcdddfbc75e85be0176730523fe22e0d83ee11/Stretch%20Markers/mpl_Remove%20all%20non-1x%20stretch%20markers%20from%20selected%20takes.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Snap stretch marker under mouse cursor to grid.lua" type="script">
+      <version name="1.0" author="mpl" time="2016-10-02T05:47:19Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2daf71709b91819795ecbb1791c1a38269fea8d2/Stretch%20Markers/mpl_Snap%20stretch%20marker%20under%20mouse%20cursor%20to%20grid.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Stretch marker guard.lua" type="script">
