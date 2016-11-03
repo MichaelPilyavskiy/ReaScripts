@@ -1,17 +1,17 @@
 -- @description Mapping Panel
--- @version 1.31
+-- @version 1.32
 -- @author mpl
 -- @changelog
---    # vca() apply (x-base)/(1-child) function
+--    # vca() apply coefficient relative to base
 -- @website http://forum.cockos.com/member.php?u=70694
 
 
-local vrs = 1.31
+local vrs = 1.32
 local changelog =
 
 [===[ 
-03.11.2016  1.31
-            # vca() apply (x-base)/(1-child) function
+03.11.2016  1.32
+            # vca() apply coefficient relative to base
 01.09.2016  1.30
             # fixed check for existing FX when floating related FX
 31.08.2016  1.29 
@@ -2616,7 +2616,19 @@ local changelog =
         if ret_formula_act == 18 then F_set_formula('y = scaleto(x, 0, 1)', data.current_routing, rout_id) end 
         if ret_formula_act == 19 then F_set_formula('y = x ^ 1', data.current_routing, rout_id) end 
         if ret_formula_act == 20 then F_set_formula('y = match(x, curve)', data.current_routing, rout_id) end 
-        if ret_formula_act == 21 then F_set_formula('y = vca()', data.current_routing, rout_id) end 
+        if ret_formula_act == 21 then 
+          local str = data.routing[data.current_routing][rout_id].str
+          local t_r = {}
+          for num in str:gmatch('[%d]+') do t_r[#t_r+1] = tonumber(num )end  
+          local base = ENGINE_GetSetParamValue(t_r[1],t_r[2], false)
+          local child = ENGINE_GetSetParamValue(t_r[3],t_r[4], false)
+          if base >= child then
+            F_set_formula('y=x*'.. base  ,data.current_routing,rout_id)
+           else
+            F_set_formula('y=x*'.. (2-base)   ,data.current_routing,rout_id)
+          end
+          F_set_formula('y = vca()', data.current_routing, rout_id) 
+        end 
         if ret_formula_act == 22 then F_set_formula('y = saw(x, period)', data.current_routing, rout_id) end 
         if ret_formula_act == 23 then F_open_URL('http://lua-users.org/wiki/MathLibraryTutorial') end
     end
@@ -2724,12 +2736,14 @@ local changelog =
         if ret_formula_act == 12 then 
           local str = data.routing[data.current_routing][rout_id].str
           local t_r = {}
-          for num in str:gmatch('[%d]+') do t_r[#t_r+1] = tonumber(num )end
-          
+          for num in str:gmatch('[%d]+') do t_r[#t_r+1] = tonumber(num )end  
           local base = ENGINE_GetSetParamValue(t_r[1],t_r[2], false)
           local child = ENGINE_GetSetParamValue(t_r[3],t_r[4], false)
-          --msg(test)--
-          F_set_formula('(x-'..base..')/'..(1-base)   ,data.current_routing,rout_id)
+          if base >= child then
+            F_set_formula('x*'.. base  ,data.current_routing,rout_id)
+           else
+            F_set_formula('x*'.. (2-base)   ,data.current_routing,rout_id)
+          end
         end  
 
       -- saw   
