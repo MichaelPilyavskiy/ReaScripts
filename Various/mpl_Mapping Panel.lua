@@ -1,15 +1,17 @@
 -- @description Mapping Panel
--- @version 1.30
+-- @version 1.31
 -- @author mpl
 -- @changelog
---    # fixed check for existing FX when floating related FX
+--    # vca() apply (x-base)/(1-child) function
 -- @website http://forum.cockos.com/member.php?u=70694
 
 
-local vrs = 1.30
+local vrs = 1.31
 local changelog =
 
 [===[ 
+03.11.2016  1.31
+            # vca() apply (x-base)/(1-child) function
 01.09.2016  1.30
             # fixed check for existing FX when floating related FX
 31.08.2016  1.29 
@@ -209,7 +211,7 @@ local changelog =
       0.5-(math.atan(1/math.tan((x*math.pi)/period)))/math.pi
     end
   end
-  function vca() end 
+  function vca(x) end 
   function lim(x, lim_s, lim_e) if x ~= nil then return F_limit(x,lim_s,lim_e) end end
   function scaleto(x, lim_s, lim_e) if x ~= nil then return x*(math.abs(lim_s-lim_e))+ lim_s end end
   function wrap(x) if x ~= nil then return x % 1 end end
@@ -481,6 +483,7 @@ local changelog =
     -- get last touched fx
       local retval, tracknumber, fxnumber, paramnumber
       _, tracknumber, fxnumber, paramnumber = reaper.GetLastTouchedFX()
+     -- msg(paramnumber)
       if tracknumber == nil or fxnumber == nil or paramnumber == nil then LT_id = 1000 
         else LT_id = tracknumber + fxnumber + paramnumber end
       if tracknumber == 0 then track = reaper.GetMasterTrack(0) else track = reaper.GetTrack(0,tracknumber-1) end
@@ -2717,9 +2720,16 @@ local changelog =
           F_set_formula('match(x,curve)',data.current_routing,rout_id) 
         end         
 
-      -- match   
+      -- vca   
         if ret_formula_act == 12 then 
-          F_set_formula('vca()',data.current_routing,rout_id) 
+          local str = data.routing[data.current_routing][rout_id].str
+          local t_r = {}
+          for num in str:gmatch('[%d]+') do t_r[#t_r+1] = tonumber(num )end
+          
+          local base = ENGINE_GetSetParamValue(t_r[1],t_r[2], false)
+          local child = ENGINE_GetSetParamValue(t_r[3],t_r[4], false)
+          --msg(test)--
+          F_set_formula('(x-'..base..')/'..(1-base)   ,data.current_routing,rout_id)
         end  
 
       -- saw   
