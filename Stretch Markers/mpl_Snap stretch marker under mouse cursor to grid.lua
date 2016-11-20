@@ -6,7 +6,7 @@
 --    + init
   
   
-  pixel_find = 4
+  pixel_find = 4 -- area in pixels for searching stretch marker under mouse pointer.
   
   
   
