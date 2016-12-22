@@ -1,15 +1,17 @@
 -- @description Mapping Panel
--- @version 1.32
+-- @version 1.33
 -- @author mpl
 -- @changelog
---    # vca() apply coefficient relative to base
+--    + Actions: Slider/Link to all same parameters in all instances on same track
 -- @website http://forum.cockos.com/member.php?u=70694
 
 
-local vrs = 1.32
+local vrs = 1.33
 local changelog =
 
 [===[ 
+22.12.2016  1.33
+            + Actions: Slider/Link to all same parameters in all instances on same track
 03.11.2016  1.32
             # vca() apply coefficient relative to base
 01.09.2016  1.30
@@ -620,10 +622,28 @@ local changelog =
         end
       end
     end
-
-
   end
-        
+----------------------------------------------------------------------- 
+  function ENGINE_SetComParams_trackrel(track_guid,fxname0,paramname0, value)
+    tr =  reaper.BR_GetMediaTrackByGUID( 0, track_guid )
+      if tr ~= nil then
+        local c_fx = reaper.TrackFX_GetCount(tr)
+        if c_fx > 0 then
+          for j = 0, c_fx do
+            local _, fx_name = reaper.TrackFX_GetFXName(tr, j-1, '')
+            if fx_name == fxname0 then
+              local c_par = reaper.TrackFX_GetNumParams(tr, j-1)
+              for k = 1, c_par do
+                _, param_name = reaper.TrackFX_GetParamName(tr, j-1, k-1, '')
+                if param_name == paramname0 then
+                  reaper.TrackFX_SetParamNormalized(tr, j-1, k-1, value) 
+                end
+              end
+            end
+          end
+        end
+      end
+  end        
         
 ----------------------------------------------------------------------- 
   function ENGINE_GetSetParamValue(i,k, is_set, in_value)
@@ -671,6 +691,11 @@ local changelog =
         local com_var = data.map[i][k].is_common
         if tonumber(com_var) == 1 then ENGINE_SetComParams(track,fxname,param_name, value) end
       end
+      if data.map[i][k].is_common_trackrel ~= nil then 
+        local com_var = data.map[i][k].is_common_trackrel        
+        if tonumber(com_var) == 1 then ENGINE_SetComParams_trackrel(data.map[i][k].track_guid,fxname,param_name, value) end
+      end
+      
       return ret
      else
       return 
@@ -1023,7 +1048,7 @@ local changelog =
 
             
 -----------------------------------------------------------------------
-            function GUI_slider(n, val, is_com) -- text, color,alpha) 
+            function GUI_slider(n, val, is_com, is_com_trackrel) -- text, color,alpha) 
               local x,y,w,h,text,color,midi_offs
               
              -- if val == nil then val = 0 end
@@ -1064,7 +1089,7 @@ local changelog =
                 gfx.rect(x,y,w,h,1)   
                 
               -- gradient
-                if tonumber(is_com) == 0 then
+                if tonumber(is_com) == 0 or tonumber(is_com_trackrel) == 0 then
                   gfx.a = 1
                   gfx.blit(3, 1, 0, 
                            0,0,300,50,
@@ -1382,8 +1407,9 @@ local changelog =
                else 
                 val = data.map[data.current_map][k].value
                 is_com = data.map[data.current_map][k].is_common
+                is_com_trackrel = data.map[data.current_map][k].is_common_trackrel
               end
-              GUI_slider(k, val, is_com)
+              GUI_slider(k, val, is_com, is_com_trackrel)
             end
           end
         
@@ -2937,10 +2963,10 @@ local changelog =
     gfx.setfont(1, data.fontname, data.slider_fontsize)
     
     routing_slider_actions, menu_table = F_build_slider_routing_menu(map, slider)
-    rout_actions_count = 12
+    rout_actions_count = 13
     if data.map[map] ~= nil and data.map[map][slider] ~= nil then 
-      if data.map[map][slider].is_common ~= nil then
-        if data.map[map][slider].is_common == '0' then c_sl = '' else c_sl = '!' end
+      if data.map[map][slider].is_common ~= nil or data.map[map][slider].is_common_trackrel ~= nil then
+        if data.map[map][slider].is_common == '0' or data.map[map][slider].is_common_trackrel == '0' then c_sl = '' else c_sl = '!' end
        else c_sl = ''
       end
       state = 0
@@ -2955,6 +2981,7 @@ local changelog =
         '|Remove all output wires from slider'..
         '|Remove all wires from slider'..
         '||'..c_sl..'Link to all same parameters in all instances'..
+        '|'..c_sl..'Link to all same parameters in all instances on same track'..
         routing_slider_actions
         
         
@@ -2988,6 +3015,7 @@ local changelog =
           data.map[map][slider]['paramnumber'] = paramid
           data.map[map][slider]['gfx_name'] = gfx_name
           data.map[map][slider]['is_common'] = '0'
+          data.map[map][slider]['is_common_trackrel'] = '0'
           r,g,b = F_SetCol(color_t.green)
           data.map[map][slider].color = r..' '..g..' '..b..' ' 
            
@@ -3104,7 +3132,20 @@ local changelog =
               ENGINE_get_params_from_ext_state(false)
               update_gfx = true
             end
-                  
+ 
+            if ret_rb_slider == 11 then
+              if data.map[map][slider].is_common_trackrel == nil
+                or data.map[map][slider].is_common_trackrel == ''
+                or data.map[map][slider].is_common_trackrel == '0' then
+               data.map[map][slider].is_common_trackrel = 1
+               else
+               data.map[map][slider].is_common_trackrel = 0
+              end               
+              ENGINE_return_data_to_projextstate2(false)
+              ENGINE_get_params_from_ext_state(false)
+              update_gfx = true
+            end
+                              
  -- ====== separator =========== 
  
       if ret_rb_slider >= rout_actions_count and 
@@ -3305,7 +3346,7 @@ local changelog =
                   data.map[i][k]['paramnumber'] = temp_sl_s_t[4]:sub(ind_len)
                   data.map[i][k]['color'] = temp_sl_s_t[5]:sub(ind_len)
                   data.map[i][k]['is_common'] = temp_sl_s_t[6]:sub(ind_len)
-                  
+                  data.map[i][k]['is_common_trackrel'] = temp_sl_s_t[7]:sub(ind_len)
                   
                 end -- if slider exists
               end -- slider loop
@@ -3561,10 +3602,9 @@ local changelog =
               string_ret = string_ret..indent2..data.map[i][k]['track_guid']..'\n'
               string_ret = string_ret..indent2..data.map[i][k]['fx_guid']..'\n'
               string_ret = string_ret..indent2..data.map[i][k]['paramnumber']..'\n'
-              if data.map[i][k]['color'] ~= nil then 
-                string_ret = string_ret..indent2..data.map[i][k]['color']..'\n' end
-              if data.map[i][k]['is_common'] ~= nil then 
-                string_ret = string_ret..indent2..data.map[i][k]['is_common']..'\n' end                
+              if data.map[i][k]['color'] ~= nil then string_ret = string_ret..indent2..data.map[i][k]['color']..'\n' end
+              if data.map[i][k]['is_common'] ~= nil then string_ret = string_ret..indent2..data.map[i][k]['is_common']..'\n' end     
+              if data.map[i][k]['is_common_trackrel'] ~= nil then string_ret = string_ret..indent2..data.map[i][k]['is_common_trackrel']..'\n' end             
               string_ret = string_ret..indent..'ENDSL>'..'\n'
             end
           end
