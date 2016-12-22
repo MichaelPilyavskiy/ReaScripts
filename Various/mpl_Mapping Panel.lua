@@ -2965,10 +2965,17 @@ local changelog =
     routing_slider_actions, menu_table = F_build_slider_routing_menu(map, slider)
     rout_actions_count = 13
     if data.map[map] ~= nil and data.map[map][slider] ~= nil then 
-      if data.map[map][slider].is_common ~= nil or data.map[map][slider].is_common_trackrel ~= nil then
-        if data.map[map][slider].is_common == '0' or data.map[map][slider].is_common_trackrel == '0' then c_sl = '' else c_sl = '!' end
+    
+      if data.map[map][slider].is_common ~= nil then
+        if data.map[map][slider].is_common == '0' then c_sl = '' else c_sl = '!' end
        else c_sl = ''
       end
+      
+      if data.map[map][slider].is_common_trackrel ~= nil then
+        if data.map[map][slider].is_common_trackrel == '0' then c_sl_trackrel = '' else c_sl_trackrel = '!' end
+       else c_sl_trackrel = ''
+      end
+      
       state = 0
       slider_actions = 
         'Get last touched parameter' ..
@@ -2981,7 +2988,7 @@ local changelog =
         '|Remove all output wires from slider'..
         '|Remove all wires from slider'..
         '||'..c_sl..'Link to all same parameters in all instances'..
-        '|'..c_sl..'Link to all same parameters in all instances on same track'..
+        '|'..c_sl_trackrel..'Link to all same parameters in all instances on same track'..
         routing_slider_actions
         
         
