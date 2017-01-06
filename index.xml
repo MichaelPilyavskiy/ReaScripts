@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1d6b7e876b2689b7d8edae1eb9e3f62229a15ef6" name="MPL Scripts">
+<index version="1" commit="4fd1c88024bafa7202176d57e54bcaa2948ef245" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -825,6 +825,12 @@
       <version name="1.0" author="mpl" time="2016-08-23T11:06:45Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9271eb5fe2df842dee33cc6027d8ead9288352e2/Various/mpl_Import%20Winamp%20Playlist.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Isomorphic keyboard.lua" type="script">
+      <version name="1.0" author="MPL" time="2017-01-06T10:28:56Z">
+        <changelog><![CDATA[+ init official release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fd1c88024bafa7202176d57e54bcaa2948ef245/Various/mpl_Isomorphic%20keyboard.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua" type="script">
