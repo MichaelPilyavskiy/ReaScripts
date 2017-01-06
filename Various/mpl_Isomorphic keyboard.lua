@@ -1,11 +1,11 @@
 -- @description Isomorphic keyboard
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
 --  + init official release    
   
-  vrs = '1.0'
+  vrs = '1.01'
   name = 'MPL Isomorphic keyboard'  
   
   
@@ -1234,16 +1234,6 @@
       if MOUSE_button(obj.settings, 0) then settings_page = math.abs(settings_page-1) update_gfx = true end
       if MOUSE_button(obj.preview, 0) then ENGINE_enable_preview() end
       
-      if MOUSE_button(obj.info_conf, 0) then
-        local config_path = debug.getinfo(2, "S").source:sub(2):sub(0,-5)..'_config.ini' 
-        local cmd = 'start "" "'..config_path..'"'
-        os.execute(cmd)
-      end
-      if MOUSE_button(obj.info_cockos, 0) then F_open_URL('http://forum.cockos.com/showthread.php?t=185976') end
-      if MOUSE_button(obj.info_rmm, 0) then F_open_URL('http://rmmedia.ru/threads/126388/') end
-      if MOUSE_button(obj.info_vk, 0) then F_open_URL('http://vk.com/michael_pilyavskiy') end
-      if MOUSE_button(obj.info_sc, 0) then F_open_URL('http://soundcloud.com/mp57') end
-      if MOUSE_button(obj.info_donate, 0) then F_open_URL('http://www.paypal.me/donate2mpl') end
       
     -- drag
       if mouse.last_obj == 'drag' and mouse.LMB_state then
@@ -1262,6 +1252,18 @@
         obj = MOUSE_notes(obj, notes) 
       end
      else
+      if MOUSE_button(obj.info_conf, 0) then
+              local config_path = debug.getinfo(2, "S").source:sub(2):sub(0,-5)..'_config.ini' 
+              local cmd = 'start "" "'..config_path..'"'
+              os.execute(cmd)
+            end
+            
+            if MOUSE_button(obj.info_cockos, 0) then F_open_URL('http://forum.cockos.com/showthread.php?t=185976') end
+            if MOUSE_button(obj.info_rmm, 0) then F_open_URL('http://rmmedia.ru/threads/126388/') end
+            if MOUSE_button(obj.info_vk, 0) then F_open_URL('http://vk.com/michael_pilyavskiy') end
+            if MOUSE_button(obj.info_sc, 0) then F_open_URL('http://soundcloud.com/mp57') end
+            if MOUSE_button(obj.info_donate, 0) then F_open_URL('http://www.paypal.me/donate2mpl') end
+            
       -- hex side --
         local val = MOUSE_slider (obj.settings_hex_w, 0.2, 1)      
         if val then 
