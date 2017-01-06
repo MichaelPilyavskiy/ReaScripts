@@ -1,5 +1,5 @@
 -- @description Isomorphic keyboard
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
@@ -7,12 +7,12 @@
 --  + Add microtonal mode (split by channel up to 16 + distribute pitchbends)
 --  + Prevent microtonal for last note hold release behaviour
   
-  vrs = '1.02'
+  vrs = '1.03'
   name = 'MPL Isomorphic keyboard'  
   
   
   --[[ changelog:
-  1.02  07.01.2017
+  1.03  07.01.2017
     # fix incorrect checks behaviour
     + Add microtonal mode (split by channel up to 16 + distribute pitchbends)
   1.0 06.01.2017 
