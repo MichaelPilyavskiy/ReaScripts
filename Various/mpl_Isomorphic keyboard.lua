@@ -1,15 +1,20 @@
 -- @description Isomorphic keyboard
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---  + init official release    
+--  # fix incorrect checks behaviour
+--  + Add microtonal mode (split by channel up to 16 + distribute pitchbends)
+--  + Prevent microtonal for last note hold release behaviour
   
-  vrs = '1.01'
+  vrs = '1.02'
   name = 'MPL Isomorphic keyboard'  
   
   
   --[[ changelog:
+  1.02  07.01.2017
+    # fix incorrect checks behaviour
+    + Add microtonal mode (split by channel up to 16 + distribute pitchbends)
   1.0 06.01.2017 
     + init official release    
   1.0rc1 06.01.2017 
@@ -94,7 +99,8 @@
       pitch_high = 127,
       rect_ratio = 0.5,
       key_root = 0,
-      playoutscale = 1
+      playoutscale = 1,
+      support_PB = 0
       }        
     return data
   end
@@ -240,9 +246,20 @@
                             name = check..'Play out of scale keys',
                             id_mouse = 'playoutscale',
                             val = data.playoutscale
-                            }                            
+                            }  
+      local check 
+      if data.support_PB == 1 then check = '☑ ' else check = '☐ ' end
+      obj.settings_support_PB = {x = offs*2+menu_w+menu_sep,
+                            y = offs*3 + menu_h*4+vert_shift*3,
+                            w = menu_w,
+                            h = menu_h,
+                            name = check..'Microtonal mode',
+                            id_mouse = 'support_PB',
+                            val = data.support_PB
+                            }
+                                                                                  
       obj.settings_note_vel = {x = offs*2 + menu_sep + menu_w,
-                            y = offs*4+menu_h*4+vert_shift*3,
+                            y = offs*4+menu_h*5+vert_shift*3,
                             w = menu_w,
                             h = menu_h,
                             id_mouse = 'Velocity',
@@ -747,7 +764,8 @@
       GUI_slider(gui, obj.settings_magn_area, 0.2)
       GUI_button(gui, obj.settings_playoutscale, 0.05)
       GUI_slider(gui, obj.settings_note_vel, 0) 
-      
+      local a_text if data.midi_release_behav == 2 then a_text = 0.15 else a_text = 1 end
+      GUI_button(gui, obj.settings_support_PB, 0.05, 0, nil, a_text) 
       
     GUI_button(gui, obj.settings_INFO, 0.01, 1)
       GUI_button(gui, obj.info_conf, 0.05)
@@ -794,7 +812,7 @@
       gfx.mode = 1  
     end
   -----------------------------------------------------------------------         
-  function GUI_button(gui, obj, cust_alpha, noframe, use_dyn)
+  function GUI_button(gui, obj, cust_alpha, noframe, use_dyn, a_text)
     gfx.mode = 2
     local x,y,w,h, name = obj.x, obj.y, obj.w, obj.h, obj.name
     -- frame
@@ -831,11 +849,15 @@
       local x0 = x + (w - measurestrname)/2 + 1
       local y0 = y + (h - gfx.texth)/2 
       
-      gfx.a = 0.3
-      F_Get_SSV(gui.color.black, true)
-      gfx.x, gfx.y = x0,y0 +2
-      gfx.drawstr(name)
-      gfx.a = 0.7
+      if a_text then 
+        gfx.a = a_text
+       else 
+        gfx.a = 0.3
+        F_Get_SSV(gui.color.black, true)
+        gfx.x, gfx.y = x0,y0 +2
+        gfx.drawstr(name)
+        gfx.a = 0.7
+      end
       F_Get_SSV(gui.color.green, true)
       gfx.x, gfx.y = x0,y0 
       gfx.drawstr(name)
@@ -1029,6 +1051,11 @@
     end    
   end
   ----------------------------------------------------------------------- 
+  function F_dec2hex(num)
+    local str = string.format("%x", num)
+    return str
+  end
+  ----------------------------------------------------------------------- 
   function MOUSE_notes(obj)--, notes)
     local area_stat = 40
       for col = 1, data.row_cnt do  
@@ -1047,40 +1074,76 @@
               
               mouse.last_obj = col..' '..row
               
-              if data.midi_release_behav == 0 or data.midi_release_behav == 2 then
+              if data.midi_release_behav == 0 
+                or data.midi_release_behav == 2 then
                 if notes[col][row].pressed == false then                                    
-                  if notes[col][row].midi_pitch then
-                    
+                  if notes[col][row].midi_pitch then                    
                     if not (data.playoutscale == 0 and notes[col][row].scale == 2 ) then
-                      notes[col][row].pressed = true  
-                      reaper.StuffMIDIMessage( 0, 0x90,math.floor(notes[col][row].midi_pitch),  math.floor(data.velocity*127))
-                    end
-                     
+                      
+                      if data.support_PB and data.support_PB == 1 then
+                        if not midi_chan then midi_chan = 1 else midi_chan = midi_chan + 1 end
+                        local _, pitchbend = math.modf(notes[col][row].midi_pitch)
+                        pitchbend = 8192 + math.floor(8192*pitchbend)
+                        reaper.StuffMIDIMessage( 0, '0xE'..F_dec2hex(midi_chan),
+                                                    pitchbend & 0x7F,
+                                                    pitchbend >> 7)                       
+                        reaper.StuffMIDIMessage( 0, '0x9'..F_dec2hex(midi_chan),
+                                                    math.floor(notes[col][row].midi_pitch),  
+                                                    math.floor(data.velocity*127)) 
+                        update_gfx = true
+                        notes[col][row].pressed = true 
+                        notes[col][row].midi_chan = midi_chan                                    
+                       else
+                        reaper.StuffMIDIMessage( 0, 0x90,
+                                                    math.floor(notes[col][row].midi_pitch),  
+                                                    math.floor(data.velocity*127))
+                        update_gfx = true
+                        notes[col][row].pressed = true  
+                      end
+                      
+                    end                     
                   end
                 end
-                update_gfx = true
               end
               
               if data.midi_release_behav == 1 then
                 if not mouse.last_LMB_state then -- note off all on release
                   if notes[col][row].pressed == false then 
-                    if notes[col][row].midi_pitch then
-                      
+                    if notes[col][row].midi_pitch then                      
                       if not (data.playoutscale == 0 and notes[col][row].scale == 2 ) then
-                        notes[col][row].pressed = true 
-                        reaper.StuffMIDIMessage( 0, 0x90, notes[col][row].midi_pitch, math.floor(data.velocity*127))
-                      end
                       
+                        if data.support_PB and data.support_PB == 1 then
+                          if not midi_chan then midi_chan = 1 else midi_chan = midi_chan + 1 end
+                          local _, pitchbend = math.modf(notes[col][row].midi_pitch)
+                          pitchbend = 8192 + math.floor(8192*pitchbend)
+                          reaper.StuffMIDIMessage( 0, '0xE'..F_dec2hex(midi_chan),
+                                                      pitchbend & 0x7F,
+                                                      pitchbend >> 7)                       
+                          reaper.StuffMIDIMessage( 0, '0x9'..F_dec2hex(midi_chan),
+                                                      math.floor(notes[col][row].midi_pitch),  
+                                                      math.floor(data.velocity*127)) 
+                          update_gfx = true
+                          notes[col][row].pressed = true 
+                          notes[col][row].midi_chan = midi_chan                                    
+                         else
+                          reaper.StuffMIDIMessage( 0, 0x90,
+                                                      math.floor(notes[col][row].midi_pitch),  
+                                                      math.floor(data.velocity*127))
+                          update_gfx = true
+                          notes[col][row].pressed = true  
+                        end
+  
+                      end                      
                     end
                   end                  
-                  update_gfx = true
                 end
               end  
             end
           end
         end
       end
-      
+                
+          
       if data.midi_release_behav == 2 then -- Note off on note change
         if mouse.last_obj and tostring(mouse.last_obj):match('(%d+) (%d+)') then
           if not mouse.last_note or mouse.last_note ~=  mouse.last_obj then
@@ -1090,14 +1153,26 @@
             if notes[_col] and notes[_col][_row] and notes[_col][_row].midi_pitch then 
               local _last_pitch = notes[_col][_row].midi_pitch
               for i = 1, 127 do  
-                if i ~= _last_pitch then     
-                  reaper.StuffMIDIMessage( 0, --mode, 0=VKB, 
-                                         0x80, 
-                                         i, -- note
-                                         0) --vel)
-                  notes[_col][_row].pressed = false
+                if i ~= _last_pitch then  
+                  --[[if data.support_PB and data.support_PB == 1 then
+                    reaper.StuffMIDIMessage( 0, 
+                                            '0xE'..F_dec2hex(notes[_col][_row].midi_chan),
+                                             8192 & 0x7F,
+                                             8192 >> 7) 
+                    reaper.StuffMIDIMessage( 0, --mode, 0=VKB, 
+                                           '0x80',--..F_dec2hex(notes[_col][_row].midi_chan), 
+                                           i, -- note
+                                           0) --vel)
+                   else]]
+                    reaper.StuffMIDIMessage( 0, --mode, 0=VKB, 
+                                           0x80, 
+                                           i, -- note
+                                           0) --vel)
+                    notes[_col][_row].pressed = false
+                  --end
                 end
               end
+              
             end
           end
         end
@@ -1107,12 +1182,29 @@
       
       -- release + note off
         if mouse.last_LMB_state and not mouse.LMB_state    then
-          for i = 1, 127 do       
-            reaper.StuffMIDIMessage( 0, --mode, 0=VKB, 
+          for midi_chan = 1, 16 do
+            reaper.StuffMIDIMessage( 0, 
+                                  '0xE'..F_dec2hex(midi_chan),
+                                      8192 & 0x7F,
+                                      8192 >> 7)  
+          end
+          for i = 1, 127 do 
+            if data.support_PB and data.support_PB == 1 then
+              
+              for midi_chan = 1, 16 do
+                reaper.StuffMIDIMessage( 0, --mode, 0=VKB, 
+                                     '0x8'..F_dec2hex(midi_chan), 
+                                     i, -- note
+                                     0) --vel)
+              end
+             else      
+              reaper.StuffMIDIMessage( 0, --mode, 0=VKB, 
                                      0x80, 
                                      i, -- note
                                      0) --vel)
+            end
           end
+          midi_chan = nil
           for col = 1, data.row_cnt do  
             for row = 1, data.col_cnt do 
               if notes[col][row] then
@@ -1373,7 +1465,14 @@
                               'Hold/drag single note only'}, data.midi_release_behav )
           if ret then 
             data.midi_release_behav = math.floor(ret) 
+            update_gfx_onstart = true
+            update_gfx  =true
+            update_notes = true
             Data_Update()
+            Data_LoadConfig()
+            DEFINE_Notes()
+            update_gfx_alt = true
+            alpha_change_dir = 1
           end
         end
       -- magnet area --
@@ -1383,12 +1482,22 @@
           Data_Update()
         end        
       -- playoutscale --
-        local val = MOUSE_slider (obj.settings_playoutscale, 0, 1)      
+        local val = MOUSE_button (obj.settings_playoutscale, 0, 1)      
         if val then 
           data.playoutscale = math.abs(data.playoutscale  -1)
           Data_Update()
           update_gfx  =true
+        end    
+      -- support PB/channels     
+        local val = MOUSE_button (obj.settings_support_PB, 0, 1)      
+        if val then 
+          data.support_PB = math.abs(data.support_PB  -1)
+          Data_Update()
+          update_gfx  =true
         end         
+        
+        
+        
         
       -- note vel --
         local val = MOUSE_slider (obj.settings_note_vel, 0, 1)      
@@ -1596,7 +1705,10 @@
         if s ~= '0' then T_pat[#T_pat+1] = note end
       end      
       data.scale_t = {name = t.name,
-                      pitch = T_pat}                                            
+                      pitch = T_pat}   
+                      
+    --
+      if data.midi_release_behav == 2 then data.support_PB = 0 end                                  
   end      
  
   ------------------------------------------------------------------
