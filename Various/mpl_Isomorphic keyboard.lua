@@ -1,22 +1,21 @@
 -- @description Isomorphic keyboard
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---   # fixed incorrect key root parsing
---   + Add octave shift selector
+--   # fixed default color
   
-  vrs = '1.04'
+  vrs = '1.05'
   name = 'MPL Isomorphic keyboard'  
   
   
   --[[ changelog:
-  1.04  07.01.2017
+  1.05  07.01.2017
     # fixed incorrect key root parsing
-    + Add octave shift selector
-  1.03  07.01.2017
     # fix incorrect checks behaviour
+    # fixed default color
     + Add microtonal mode (split by channel up to 16 + distribute pitchbends)
+    + Add octave shift selector    
   1.0 06.01.2017 
     + init official release    
   1.0rc1 06.01.2017 
@@ -1686,7 +1685,7 @@
       local _, stringOut = reaper.BR_Win32_GetPrivateProfileString(
         'Colors', 
         data.color_act, 
-        '"Piano" #ff6f6f #7dff72 #8b8b8b', 
+        '"Piano Isomorphic" 1 #ff6f6f #7dff72 #8b8b8b', 
         config_path )
       data.color = stringOut
       
