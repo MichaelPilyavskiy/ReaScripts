@@ -1,17 +1,19 @@
 -- @description Isomorphic keyboard
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---  # fix incorrect checks behaviour
---  + Add microtonal mode (split by channel up to 16 + distribute pitchbends)
---  + Prevent microtonal for last note hold release behaviour
+--   # fixed incorrect key root parsing
+--   + Add octave shift selector
   
-  vrs = '1.03'
+  vrs = '1.04'
   name = 'MPL Isomorphic keyboard'  
   
   
   --[[ changelog:
+  1.04  07.01.2017
+    # fixed incorrect key root parsing
+    + Add octave shift selector
   1.03  07.01.2017
     # fix incorrect checks behaviour
     + Add microtonal mode (split by channel up to 16 + distribute pitchbends)
@@ -100,7 +102,8 @@
       rect_ratio = 0.5,
       key_root = 0,
       playoutscale = 1,
-      support_PB = 0
+      support_PB = 0,
+      oct_shift = 1
       }        
     return data
   end
@@ -128,7 +131,7 @@
     -- settings button
       obj.settings_but_w = 50
       local menu_w = 160
-      local menu_h = 25
+      local menu_h = 22
       local menu_sep = 10
       local vert_shift = 2
       
@@ -214,7 +217,14 @@
                             h = menu_h,
                             name = '● Key root',
                             id_mouse = 'key_root'
-                            }                              
+                            }  
+      obj.settings_oct_shift = {x = offs*2,
+                            y = offs*4 + menu_h*8+vert_shift*7,
+                            w = menu_w,
+                            h = menu_h,
+                            name = '● Octave shift',
+                            id_mouse = 'oct_shift'
+                            }                                                         
                                                                             
                  ----------------------------------           
       obj.settings_MIDI = {x = offs*2 + menu_sep + menu_w,
@@ -469,7 +479,7 @@
   end
 -----------------------------------------------------------------------    
   function Convert_Num2Pitch(val) 
-    local oct_shift = -2 
+    local oct_shift = -3+math.floor(data.oct_shift )
     if data.key_names == 0 then
       if not val then return end
       local val = math.floor(val)
@@ -758,6 +768,7 @@
       GUI_button(gui, obj.settings_scale,0.05)
       GUI_button(gui, obj.settings_key_name,0.05)       
       GUI_slider(gui, obj.settings_key_root, 0.2)
+      GUI_button(gui, obj.settings_oct_shift,0.05)
       
     GUI_button(gui, obj.settings_MIDI, 0.01, 1)
       GUI_button(gui, obj.settings_note_release, 0.05)
@@ -1440,9 +1451,10 @@
       -- keyroot
         if MOUSE_button(obj.settings_key_root, 0) then          
           local ret = GUI_menu( {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',}, 
-            math.floor(data.key_root * 11) )
+            math.floor(data.key_root) )
+            --msg(ret)
           if ret then 
-            data.key_root = ret/ 11
+            data.key_root = ret
             update_gfx_onstart = true
             update_gfx  =true
             update_notes = true
@@ -1453,7 +1465,23 @@
             alpha_change_dir = 1
           end
         end            
-           
+      -- oct_shift
+        if MOUSE_button(obj.settings_oct_shift, 0) then          
+          local ret = GUI_menu( {'C3 = 48','C3 = 60', 'C3 = 72'}, 
+            math.floor(data.oct_shift) )
+            --msg(ret)
+          if ret then 
+            data.oct_shift = ret
+            update_gfx_onstart = true
+            update_gfx  =true
+            update_notes = true
+            Data_Update()
+            Data_LoadConfig()
+            DEFINE_Notes()
+            update_gfx_alt = true
+            alpha_change_dir = 1
+          end
+        end            
            
            
                 
@@ -1700,7 +1728,7 @@
       local T_pat = {}
       for i = 1, 12 do
         local s = scale_pat:sub(i,i)
-        local note = i + math.floor(data.key_root * 11)
+        local note = i + math.floor(data.key_root)
         if note > 12 then note = note - 12 end
         if s ~= '0' then T_pat[#T_pat+1] = note end
       end      
