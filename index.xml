@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2062e1b7be97e7398ed67d1678065992cf97ce7c" name="MPL Scripts">
+<index version="1" commit="475ff7ffeb982d177919e43a212a462f5e2f6458" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -856,6 +856,14 @@
       <version name="1.05" author="MPL" time="2017-01-07T09:34:53Z">
         <changelog><![CDATA[# fixed default color]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2062e1b7be97e7398ed67d1678065992cf97ce7c/Various/mpl_Isomorphic%20keyboard.lua</source>
+      </version>
+      <version name="1.06" author="MPL" time="2017-01-07T14:38:01Z">
+        <changelog><![CDATA[# draw colors for microtonal intervals properly]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/961b7338ca8afb1a1012c4192f60777ad99696cd/Various/mpl_Isomorphic%20keyboard.lua</source>
+      </version>
+      <version name="1.07" author="MPL" time="2017-01-07T14:45:08Z">
+        <changelog><![CDATA[# draw colors for microtonal intervals properly]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/475ff7ffeb982d177919e43a212a462f5e2f6458/Various/mpl_Isomorphic%20keyboard.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua" type="script">
