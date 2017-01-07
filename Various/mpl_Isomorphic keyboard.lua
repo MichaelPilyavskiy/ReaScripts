@@ -1,21 +1,22 @@
 -- @description Isomorphic keyboard
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---   # fixed default color
+--   # draw colors for microtonal intervals properly
   
-  vrs = '1.05'
+  vrs = '1.06'
   name = 'MPL Isomorphic keyboard'  
   
   
   --[[ changelog:
-  1.05  07.01.2017
+  1.06  07.01.2017
     # fixed incorrect key root parsing
     # fix incorrect checks behaviour
     # fixed default color
     + Add microtonal mode (split by channel up to 16 + distribute pitchbends)
-    + Add octave shift selector    
+    + Add octave shift selector   
+    # draw colors for microtonal intervals properly 
   1.0 06.01.2017 
     + init official release    
   1.0rc1 06.01.2017 
@@ -460,10 +461,10 @@
               scale_note = math.fmod(pitch, 12) + 1
               local int, div = math.modf(scale_note)
               if div >= 0.5 then int = int + 1 end
-              if scale_note == data.scale_t.pitch[1] then notes[col][row].scale = 0
+              if int == data.scale_t.pitch[1] then notes[col][row].scale = 0
                else
                 for i = 2, #data.scale_t.pitch do
-                  if scale_note == data.scale_t.pitch[i] then notes[col][row].scale = 1 break end
+                  if int == data.scale_t.pitch[i] then notes[col][row].scale = 1 break end
                 end
                 if not notes[col][row].scale then notes[col][row].scale = 2 end
               end
