@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="09520446567340709cea721e03cc6bea7cc5d9f4" name="MPL Scripts">
+<index version="1" commit="2b90bfcbf2dd856953097e824f7ce9d78d786064" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -847,6 +847,11 @@
 + Add microtonal mode (split by channel up to 16 + distribute pitchbends)
 + Prevent microtonal for last note hold release behaviour]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/09520446567340709cea721e03cc6bea7cc5d9f4/Various/mpl_Isomorphic%20keyboard.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2017-01-07T06:51:45Z">
+        <changelog><![CDATA[# fixed incorrect key root parsing
++ Add octave shift selector]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2b90bfcbf2dd856953097e824f7ce9d78d786064/Various/mpl_Isomorphic%20keyboard.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua" type="script">
