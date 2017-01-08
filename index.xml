@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="475ff7ffeb982d177919e43a212a462f5e2f6458" name="MPL Scripts">
+<index version="1" commit="a92ad328680db8e39cd26de946d243568c44c943" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -864,6 +864,13 @@
       <version name="1.07" author="MPL" time="2017-01-07T14:45:08Z">
         <changelog><![CDATA[# draw colors for microtonal intervals properly]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/475ff7ffeb982d177919e43a212a462f5e2f6458/Various/mpl_Isomorphic%20keyboard.lua</source>
+      </version>
+      <version name="1.08" author="MPL" time="2017-01-08T09:21:09Z">
+        <changelog><![CDATA[+ reset draw offset when change layout
++ auto set keynames to 'C-C# + cents' if change to microtonal layout
++ support for cents shift in layout(clear config requied)
+# don`t redraw when moving gfx window]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a92ad328680db8e39cd26de946d243568c44c943/Various/mpl_Isomorphic%20keyboard.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua" type="script">
