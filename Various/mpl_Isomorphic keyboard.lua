@@ -1,15 +1,23 @@
 -- @description Isomorphic keyboard
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---   # draw colors for microtonal intervals properly
-  
-  vrs = '1.07'
+--    + reset draw offset when change layout
+--    + auto set keynames to 'C-C# + cents' if change to microtonal layout
+--    + support for cents shift in layout(clear config requied)  
+--    # don`t redraw when moving gfx window
+
+  vrs = '1.08'
   name = 'MPL Isomorphic keyboard'  
   
   
   --[[ changelog:
+  1.08  08.01.2017
+    + reset draw offset when change layout
+    + auto set keynames to 'C-C# + cents' if change to microtonal layout
+    + support for cents shift in layout(clear config requied)
+    # don`t redraw when moving gfx window
   1.07  07.01.2017
     # fixed incorrect key root parsing
     # fix incorrect checks behaviour
@@ -103,7 +111,8 @@
       key_root = 0,
       playoutscale = 1,
       support_PB = 0,
-      oct_shift = 1
+      oct_shift = 1,
+      shift_cents = 0
       }        
     return data
   end
@@ -393,17 +402,19 @@
     -- form pitches
       local note
       --data.base_note = 
-      local base_note = - 12
+      local base_note =-12
+      if not data.layout_t.shift_cents then data.layout_t.shift_cents = 0 end
+      local shift_cents = data.layout_t.shift_cents
        offs_oct = -math.floor(data.draw_offset_y / 50)
       -- rect
         if form == 0 then
           for col = 1, col_cnt do 
-            note = base_note*offs_oct + col * int_1
+            note = base_note*offs_oct + col * int_1+shift_cents
             for row = 1, row_cnt do
               if notes[col][row] then
                 note = note + int_2
                 if not (note < low_pitch) and not  (note > high_pitch) then 
-                  notes[col][row].midi_pitch = note 
+                  notes[col][row].midi_pitch = note
                   notes[col][row].text = Convert_Num2Pitch(note) or ''
                  else 
                   notes[col][row] = nil
@@ -416,7 +427,7 @@
         if form == 1 then
           int_3 = int_2 - int_1
           for col = 1, col_cnt do 
-            note =base_note*offs_oct + col * int_1
+            note =base_note*offs_oct + col * int_1+shift_cents
             for row = 1, row_cnt do
               if notes[col][row] then
                 if row%2 == 1 then note = note + int_2  else note = note + int_3 end 
@@ -435,7 +446,7 @@
         if form == 2 then
           local int_3 = int_1 - int_2
           for row = 1, row_cnt do 
-            note = base_note*offs_oct + int_2 * row
+            note = base_note*offs_oct + int_2 * row+shift_cents
             for col = 1, col_cnt do 
               if notes[col][row] then
                 if col%2 == 0 then note = note + int_3 else note = note +int_1 end
@@ -776,7 +787,7 @@
       GUI_slider(gui, obj.settings_magn_area, 0.2)
       GUI_button(gui, obj.settings_playoutscale, 0.05)
       GUI_slider(gui, obj.settings_note_vel, 0) 
-      local a_text if data.midi_release_behav == 2 then a_text = 0.15 else a_text = 1 end
+      local a_text if data.midi_release_behav == 2 then a_text = 0.15 else a_text = 0.7 end
       GUI_button(gui, obj.settings_support_PB, 0.05, 0, nil, a_text) 
       
     GUI_button(gui, obj.settings_INFO, 0.01, 1)
@@ -1049,6 +1060,7 @@
   end  
   -----------------------------------------------------------------------    
   function MOUSE_slider (obj, limit_1, limit2)
+    --if mouse.last_obj ~= 'drag' then return end
     local val, limit_1, limit_2
     if not limit_1 then limit_1 = 0 end
     if not limit_2 then limit_2 = 1 end
@@ -1396,6 +1408,8 @@
           update_gfx_onstart = true
           update_gfx  =true
           update_notes = true
+          data.draw_offset_x = 0
+          data.draw_offset_y = 0
           Data_Update()
           Data_LoadConfig()
           DEFINE_Notes()
@@ -1554,20 +1568,24 @@
   --------------------------------------------------------------------        
   function Run()    
     local d_state, gfxx,gfxy = gfx.dock(-1,0,0)
-    if not last_gfxx or 
-       not last_gfxy or 
-       not last_gfxw or 
+    if not last_gfxw or 
        not last_gfxh or 
        not last_d_state or 
        last_d_state ~= d_state or
-       last_gfxx ~= gfxx or
-       last_gfxy ~= gfxy or       
        last_gfxw ~=  gfx.w or 
        last_gfxh ~=  gfx.h then      
       Data_Update()
       update_gfx = true
       update_gfx_onstart = true
     end
+    if not last_gfxx or 
+       not last_gfxy or 
+       last_gfxx ~= gfxx or
+       last_gfxy ~= gfxy then      
+      Data_Update()
+    end    
+    
+    
     last_d_state, last_gfxx,last_gfxy, last_gfxw, last_gfxh = d_state, gfxx,gfxy,gfx.w,gfx.h
     
     clock = os.clock()
@@ -1650,17 +1668,18 @@
 15="Persian" 120034506007
 16="Composite Blues" 100334450070
 
-//Layouts have synthax like this: name, interval 1, interval 2, form
+//Layouts have synthax like this: name, interval 1, interval 2, form, cents shift
 // interval 1: E for rectangles and horizontal hexagons(form 1), NE for vertical hexagons(form 2)
 // interval 2: N for rectangles and vertical hexagons (form 2), NE for horizontal hexagons (form 1)
 // form is: 0 - rectangles/squares, 1 - horizontal hexagons, 2 - vertical hexagons
+// cents shift: 0 - 1 cents
 [Layouts]
-1="Wicki-Hayden" 2 7 1
-2="Janko" 2 1 1
-3="Harmonic" 4 7 2
-4="Gerhard" 4 1 2
-5="LinnStrument" 1 5 0
-6="Microtonal test" 2.5 7 1]]    
+1="Wicki-Hayden"    2 7 1 0
+2="Janko"           2 1 1 0
+3="Harmonic"        4 7 2 0
+4="Gerhard"         4 1 2 0
+5="LinnStrument"    1 5 0 0
+6="Microtonal test" 0.5 2 1 0.05]]    
   end
   ------------------------------------------------------------------   
   function Data_LoadConfig()
@@ -1695,11 +1714,11 @@
       local _, stringOut = reaper.BR_Win32_GetPrivateProfileString(
         'Layouts', 
         data.layout_act, 
-        '"Wicki-Hayden" 2 7 1', 
+        '"Wicki-Hayden" 2 7 1 0', 
         config_path )
-      data.layout = stringOut  
+      data.layout = stringOut 
 
-    -- Load layout
+    -- Load scale
       local _, stringOut = reaper.BR_Win32_GetPrivateProfileString(
         'Scales', 
         data.scale_act, 
@@ -1720,9 +1739,19 @@
    -- layout
      local t = F_ret_ExtState(data.layout)
      data.layout_t = {name = t.name,
-                     int_1 = t[1][1],
-                     int_2 = t[1][2],
-                     form = t[1][3]}   
+                     int_1 = tonumber(t[1][1]),
+                     int_2 = tonumber(t[1][2]),
+                     form = tonumber(t[1][3]),
+                     shift_cents =  tonumber(t[1][4])}
+      for key in pairs(data.layout_t) do
+        if tonumber(data.layout_t[key]) then
+          local _, fract = math.modf(data.layout_t[key])
+          if fract > 0 then 
+            data.key_names = 4
+            break 
+          end
+        end 
+      end                      
     -- scale
       local t = F_ret_ExtState(data.scale)
       local scale_pat = tostring(t[1][1])
