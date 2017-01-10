@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a92ad328680db8e39cd26de946d243568c44c943" name="MPL Scripts">
+<index version="1" commit="bbc6de33a3204fe18964f76994fe5c1766e08f22" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -9,6 +9,12 @@
     <reapack name="mpl_Move edit cursor to first note of selected item.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T07:14:02Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18a280d356ce75b45448c411761a16d98558c830/Cursor/mpl_Move%20edit%20cursor%20to%20first%20note%20of%20selected%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set time selection from edit cursor to start of current region.lua" type="script">
+      <version name="1.0" author="MPL" time="2017-01-10T18:38:17Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bbc6de33a3204fe18964f76994fe5c1766e08f22/Cursor/mpl_Set%20time%20selection%20from%20edit%20cursor%20to%20start%20of%20current%20region.lua</source>
       </version>
     </reapack>
   </category>
@@ -1018,6 +1024,12 @@
       <version name="1.8.3" author="mpl" time="2016-08-03T19:53:08Z">
         <changelog><![CDATA[# Improved parsing GrooveTool patterns]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/32aa937ebbea0d5605a23f4a39729e68be42ed0a/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Reset internal windows xy positions.lua" type="script">
+      <version name="1.0" author="MPL" time="2017-01-10T18:36:33Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d8eafb34e940480c6fd965a91b9da5edf9db58d4/Various/mpl_Reset%20internal%20windows%20xy%20positions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script">
