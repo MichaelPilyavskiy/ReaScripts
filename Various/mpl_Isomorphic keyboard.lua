@@ -1,18 +1,17 @@
 -- @description Isomorphic keyboard
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    + reset draw offset when change layout
---    + auto set keynames to 'C-C# + cents' if change to microtonal layout
---    + support for cents shift in layout(clear config requied)  
---    # don`t redraw when moving gfx window
+--    # fixed B root scale decoding
 
-  vrs = '1.08'
+  vrs = '1.09'
   name = 'MPL Isomorphic keyboard'  
   
   
   --[[ changelog:
+  1.09  12.01.2017
+    # fixed B root scale decoding
   1.08  08.01.2017
     + reset draw offset when change layout
     + auto set keynames to 'C-C# + cents' if change to microtonal layout
@@ -1759,8 +1758,8 @@
       for i = 1, 12 do
         local s = scale_pat:sub(i,i)
         local note = i + math.floor(data.key_root)
-        if note > 12 then note = note - 12 end
-        if s ~= '0' then T_pat[#T_pat+1] = note end
+        if note >= 12 then note = note - 12 end
+        if s ~= '0' then  T_pat[#T_pat+1] = note end
       end      
       data.scale_t = {name = t.name,
                       pitch = T_pat}   
