@@ -1,7 +1,7 @@
--- @version 1.0
+-- @version 1.01
 -- @author mpl
 -- @changelog
---   + init 
+--   + support parameters copypaste
 -- @description Paste Focused FX data
 -- @website http://forum.cockos.com/member.php?u=70694
 
@@ -41,17 +41,36 @@ function TrackFX_GetState(track, fx_id, buffer)
     --reaper.ShowConsoleMsg(chunk_out)
     return chunk_out
   end
-  
   ----------------------------------------------------------------------------
-  buffer = reaper.GetExtState( 'MPL_Copy_FX_Data', 'buf') 
-  
-  _, tracknumberOut, _, fxnumberOut = reaper.GetFocusedFX()
+  function ApplyParams(track, fx, param_str) 
+    local t = {}
+    if param_str then
+      for line in param_str:gmatch('[^%s]+') do
+        t[#t+1] = tonumber(line)
+      end
+    end
+    cnt = reaper.TrackFX_GetNumParams( track, fx )
+    if cnt -1 == #t then
+      for i =1 , cnt-1 do
+        reaper.TrackFX_SetParam( track,  fx, i-1, t[i] )
+      end
+     else
+      reaper.MB('Parameter count mismatch. Parameters will not be set.', 'Paste FX data', 0)
+    end
+  end
+  ----------------------------------------------------------------------------
+  local buffer = reaper.GetExtState( 'MPL_Copy_FX_Data', 'buf') 
+  buf_params = reaper.GetExtState( 'MPL_Copy_FX_Data', 'buf_params') 
+  local _, tracknumberOut, _, fxnumberOut = reaper.GetFocusedFX()
   if tracknumberOut >= 0 and fxnumberOut >= 0 then
-    track = reaper.CSurf_TrackFromID( tracknumberOut, false )
   
-    chunk_out = TrackFX_GetState(track,fxnumberOut+1,buffer)
+    local track = reaper.CSurf_TrackFromID( tracknumberOut, false )  
+    local chunk_out = TrackFX_GetState(track,fxnumberOut+1,buffer)
     if chunk_out then 
-      reaper.SetTrackStateChunk( track, chunk_out, true )
+      --reaper.SetTrackStateChunk( track, chunk_out, true )
       reaper.UpdateArrange()
+    end    
+    if buf_params then
+      ApplyParams(track,fxnumberOut, buf_params)
     end
   end
