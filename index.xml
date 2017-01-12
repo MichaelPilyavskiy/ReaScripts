@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bbc6de33a3204fe18964f76994fe5c1766e08f22" name="MPL Scripts">
+<index version="1" commit="f78e5d8d0926d804e4ce3b64ff5e067d7f7c4a99" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -102,6 +102,12 @@
     </reapack>
   </category>
   <category name="FX">
+    <reapack name="mpl_Assign audio input parameter modulation with last touched parameter.lua" type="script">
+      <version name="1.0" author="mpl" time="2017-01-11T13:26:11Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f78e5d8d0926d804e4ce3b64ff5e067d7f7c4a99/FX/mpl_Assign%20audio%20input%20parameter%20modulation%20with%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Assign MIDIOSC control with FX envelope under mouse cursor.lua" type="script">
       <version name="1.0" author="mpl" time="2016-08-10T15:15:57Z">
         <changelog><![CDATA[+ init release]]></changelog>
@@ -136,6 +142,12 @@
       </version>
       <version name="1.1" author="Michael Pilyavskiy (mpl)" time="2016-04-05T16:55:41Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78a4f0aadfc0833f9ce1fe1f3f3ec79390a34909/FX/mpl_Bypass%20all%20UAD%20FX%20on%20all%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Copy Focused FX data.lua" type="script">
+      <version name="1.0" author="mpl" time="2017-01-11T12:56:19Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b14eb396eda3e6f8cad28fd0ba8934bed6130389/FX/mpl_Copy%20Focused%20FX%20data.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Cubase AB floating FX make equal.lua" type="script">
@@ -189,6 +201,12 @@
       <version name="1.0" author="mpl" time="2016-07-23T04:51:54Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0dc278d52ea804274a91ee710161b1fd5139e224/FX/mpl_Move%20focused%20Track%20FX%20to%20screen%20center.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Paste Focused FX data.lua" type="script">
+      <version name="1.0" author="mpl" time="2017-01-11T12:57:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ccb758fd1b7d0473b930c1007d30f0c645a914d1/FX/mpl_Paste%20Focused%20FX%20data.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Randomize Track FX parameters.lua" type="script">
