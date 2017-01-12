@@ -1,7 +1,7 @@
--- @version 1.0
+-- @version 1.01
 -- @author mpl
 -- @changelog
---   + init
+--   + support parameters copypaste
 -- @description Copy Focused FX data
 -- @website http://forum.cockos.com/member.php?u=70694
 
@@ -25,14 +25,14 @@
         end            
       end        
       
-    cnt_input_fx = reaper.TrackFX_GetCount( track ) 
+    local cnt_input_fx = reaper.TrackFX_GetCount( track ) 
         
     if fx_id -1 >= cnt_input_fx then return end
-    FX_state = table.concat(chunk_t, '\n', 
+    local FX_state = table.concat(chunk_t, '\n', 
       fx_chunks_limits[fx_id][1],
       fx_chunks_limits[fx_id][2])    
     local temp_s = ''
-    
+    local already_skipped
     local temp_t = {}
     for line in FX_state:gmatch("[^\r\n]+") do
       if not already_skipped and line:find('<') then 
@@ -46,13 +46,30 @@
     temp_t[2] = '==FXDATA=='
     return table.concat(temp_t, '\n')
   end
-  
+  ----------------------------------------------------------------------------  
+  function GetParamsList(track,fx)
+    local str = ''
+    local cnt = reaper.TrackFX_GetNumParams( track, fx-1 )
+    for i =1 , cnt-1 do
+      local retval = reaper.TrackFX_GetParam( track, fx-1, i-1 )
+      str = str..tonumber(retval)..' '
+    end
+    return str
+  end
   ----------------------------------------------------------------------------
-  _, tracknumberOut, _, fxnumberOut = reaper.GetFocusedFX()
+  local _, tracknumberOut, _, fxnumberOut = reaper.GetFocusedFX()
   if tracknumberOut >= 0 and fxnumberOut >= 0 then
-    _, tracknumberOut, fxnumberOut = reaper.GetLastTouchedFX()
-    track = reaper.CSurf_TrackFromID( tracknumberOut, false )
-    temp_s = TrackFX_GetState(track,fxnumberOut+1)
-    reaper.ShowConsoleMsg(temp_s)
-    reaper.SetExtState( 'MPL_Copy_FX_Data', 'buf', temp_s, false )
+    local _, tracknumberOut, fxnumberOut = reaper.GetLastTouchedFX()
+    local track = reaper.CSurf_TrackFromID( tracknumberOut, false )
+    local temp_s = TrackFX_GetState(track,fxnumberOut+1)
+    local params_str = GetParamsList(track,fxnumberOut+1)
+    --reaper.ClearConsole()
+    --reaper.ShowConsoleMsg(params_str)
+    if temp_s then
+      reaper.SetExtState( 'MPL_Copy_FX_Data', 'buf', temp_s, false )
+      reaper.SetExtState( 'MPL_Copy_FX_Data', 'buf_params', params_str, false )
+      reaper.MB('FX data copied to buffer', 'Copy Focused FX data', 0)
+     else
+      reaper.MB('FX data not copied. Try moving some parameter before copying.', 'Copy Focused FX data', 0)
+    end
   end
