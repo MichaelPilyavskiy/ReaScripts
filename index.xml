@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f78e5d8d0926d804e4ce3b64ff5e067d7f7c4a99" name="MPL Scripts">
+<index version="1" commit="93d5ae1dbb4a92fddc2ac9bab32ae34b1340b691" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -149,6 +149,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b14eb396eda3e6f8cad28fd0ba8934bed6130389/FX/mpl_Copy%20Focused%20FX%20data.lua</source>
       </version>
+      <version name="1.01" author="mpl" time="2017-01-12T05:25:41Z">
+        <changelog><![CDATA[+ support parameters copypaste]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/93d5ae1dbb4a92fddc2ac9bab32ae34b1340b691/FX/mpl_Copy%20Focused%20FX%20data.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Cubase AB floating FX make equal.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
@@ -207,6 +211,10 @@
       <version name="1.0" author="mpl" time="2017-01-11T12:57:14Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ccb758fd1b7d0473b930c1007d30f0c645a914d1/FX/mpl_Paste%20Focused%20FX%20data.lua</source>
+      </version>
+      <version name="1.01" author="mpl" time="2017-01-12T05:24:04Z">
+        <changelog><![CDATA[+ support parameters copypaste]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6059ffb0f56e5275efd7af4db1898a8a7f63292a/FX/mpl_Paste%20Focused%20FX%20data.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Randomize Track FX parameters.lua" type="script">
