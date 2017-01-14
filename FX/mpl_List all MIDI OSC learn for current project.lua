@@ -1,11 +1,9 @@
---[[
-   * ReaScript Name: List all MIDI OSC learn for current project
-   * Lua script for Cockos REAPER
-   * Author: Michael Pilyavskiy (mpl)
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
+-- @description List all MIDI OSC learn for current project
+-- @version 1.01
+-- @author mpl
+-- @changelog
+--   + init
+-- @website http://forum.cockos.com/member.php?u=70694
   
 --------------------------------------------------------------
   function GetContent_t()
@@ -13,6 +11,7 @@
     -- get project content
       local _, projfn = reaper.EnumProjects( -1, '' )
       local file = io.open(projfn, 'r')
+      if not file then return end
       local content = file:read('a')
       for line in content:gmatch("[^\r\n]+") do t[#t+1] = line end
       file:close()
@@ -28,7 +27,8 @@
     end
     
 --------------------------------------------------------------  
-  function GetLearn_t(t_content)      
+  function GetLearn_t(t_content)   
+    if not    t_content then return end
       local cur_guid, osc, midiChannel, midiCC
       local LRN_t = {}
       for i = #t_content, 1, -1 do
@@ -123,6 +123,7 @@
   end
 --------------------------------------------------------------     
   function ParseLearnTable(LRN_t, guid_t)
+    if not LRN_t then return end
     local ret_str = ''
     local i = 1
     for i_lrn = #LRN_t, 1, -1 do
@@ -169,8 +170,8 @@
     local LRN_t = GetLearn_t(t_content)
     local guid_t = CollectProject_GUIDs()  
     local ret_str = ParseLearnTable(LRN_t, guid_t)
-      
-    if ret_str == '' then ret_str = 'Nothing linked. \nIf it is not, try to save project before running script.' end
+    
+    if not ret_str or ret_str == '' then ret_str = 'Nothing linked. \nIf it is not, try to save project before running script.' end
           
     reaper.ClearConsole()
     reaper.ShowConsoleMsg(ret_str)
