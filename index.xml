@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="495dca37ac4e465b124311d068d2f85644b2496a" name="MPL Scripts">
+<index version="1" commit="e521e77642292513c2f1087cca36080a410a1960" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -194,6 +194,11 @@
       <version name="1.0" author="mpl" time="2016-08-03T12:57:15Z">
         <changelog><![CDATA[+ init alpha]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e940e5111272af87c3cf63455cd983163347cef2/FX/mpl_Generate%20reabank%20from%20focused%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_List all MIDI OSC learn for current project.lua" type="script">
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2017-01-14T08:29:59Z">
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e521e77642292513c2f1087cca36080a410a1960/FX/mpl_List%20all%20MIDI%20OSC%20learn%20for%20current%20project.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_List all MIDI OSC learn from focused fx.lua" type="script">
