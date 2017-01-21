@@ -1,15 +1,17 @@
 -- @description Mapping Panel
--- @version 1.33
+-- @version 1.34
 -- @author mpl
 -- @changelog
---    + Actions: Slider/Link to all same parameters in all instances on same track
+--    # fix wrong decoding MIDI integer
 -- @website http://forum.cockos.com/member.php?u=70694
 
 
-local vrs = 1.33
+local vrs = 1.34
 local changelog =
 
 [===[ 
+21.01.2017  1.34
+            # fix wrong decoding MIDI integer
 22.12.2016  1.33
             + Actions: Slider/Link to all same parameters in all instances on same track
 03.11.2016  1.32
@@ -806,7 +808,7 @@ local changelog =
          end
        -- convert
          midiChannel = out_t[2] & 0x0F
-         midiCC = out_t[2] >> 8    
+         midiCC = out_t[2] >> 8   & 0x0F  
          
        return midiChannel + 1, midiCC, out_t[4] 
      end
@@ -3419,7 +3421,7 @@ local changelog =
                     data.learn[sl_id].midicc = nil
                    else
                     data.learn[sl_id].midich = (midinum & 0x0F) + 1
-                    data.learn[sl_id].midicc = midinum >> 8
+                    data.learn[sl_id].midicc = midinum >> 8 & 0x0F
                     data.learn[sl_id].flags = flags
                   end                
                   if osc ~= nil then data.learn[sl_id].osc = osc end                
