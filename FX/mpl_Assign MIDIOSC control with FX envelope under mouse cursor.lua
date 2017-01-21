@@ -1,8 +1,8 @@
 -- @description Assign MIDIOSC control with FX envelope under mouse cursor
--- @version 1.02
+-- @version 1.04
 -- @author mpl
 -- @changelog
---    + fixed first start logic
+--    # fix wrong decoding MIDI integer
 -- @website http://forum.cockos.com/member.php?u=70694
 
 
@@ -123,7 +123,7 @@
           end
         -- convert
           midiChannel = out_t[2] & 0x0F
-          midiCC = out_t[2] >> 8   
+          midiCC = out_t[2] >> 8    & 0x0F
         return midiChannel + 1, midiCC, out_t[4] 
       end
       if is_set == 1 then -- SET  midi
