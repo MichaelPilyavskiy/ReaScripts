@@ -1,11 +1,9 @@
---[[
-   * ReaScript Name:List all MIDI OSC learn from focused FX
-   * Lua script for Cockos REAPER
-   * Author: Michael Pilyavskiy (mpl)
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
+-- @description List all MIDI OSC learn for focused FX
+-- @version 1.01
+-- @author mpl
+-- @changelog
+--    # fix wrong decoding MIDI integer
+-- @website http://forum.cockos.com/member.php?u=70694
   
   
   function main()
@@ -54,7 +52,7 @@
               midi = ''
              else
               midiChannel = 1+ out_t[2] & 0x0F
-              midiCC = out_t[2] >> 8
+              midiCC = out_t[2] >> 8 & 0x0F
               midi = '    MIDI Channel '..midiChannel..' CC '..midiCC
             end
             
