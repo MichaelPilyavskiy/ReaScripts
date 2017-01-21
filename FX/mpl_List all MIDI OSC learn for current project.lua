@@ -1,8 +1,8 @@
 -- @description List all MIDI OSC learn for current project
--- @version 1.01
+-- @version 1.02
 -- @author mpl
 -- @changelog
---   + init
+--   # fix potentioal bug at ItemFX learn search
 -- @website http://forum.cockos.com/member.php?u=70694
   
 --------------------------------------------------------------
@@ -139,7 +139,7 @@
             osc_str = 'OSC '..LRN_t[i_lrn].osc..'\n' else osc_str = '' 
           end
           
-          if ind..guid_t[i_guid].tp ~= 'ItemFX' then 
+          if guid_t[i_guid].tp ~= 'ItemFX' then 
             local track = reaper.BR_GetMediaTrackByGUID( 0, guid_t[i_guid].track_guid )
             _, param_name =  reaper.TrackFX_GetParamName( track, guid_t[i_guid].FX_id, LRN_t[i_lrn].param_id, '' )
           end
