@@ -1,14 +1,11 @@
 -- @version 1.0
 -- @author MPL
+-- @description Quantize selected MIDI notes ends
+-- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
 --   + init release
 --   # release note: need an API to perform SnapToGrid() for MIDI Editor (relative to time signature denominator and ME timebase)
 
--- @description Quantize selected MIDI notes ends
--- @website http://forum.cockos.com/member.php?u=70694
-
--- limitations: works only for time signatures with denominator = 4 
--- need an API to perform SnapToGrid for MIDI Editor (reflecting time sinatures and ME timebase)
 
   function main()   
     local ME, take, fng_take,count_notes,note, sel, pos, len,ME_grid, swing,pos_sec
