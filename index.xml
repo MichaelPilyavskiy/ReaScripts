@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="be2c444d577fea1b597def577887433883fcb9d3" name="MPL Scripts">
+<index version="1" commit="c62d2f6e7954bca2f4d206d7bd8bbd21a64f157b" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -628,6 +628,11 @@
         <changelog><![CDATA[+ init release
 # release note: need an API to perform SnapToGrid() for MIDI Editor (relative to time signature denominator and ME timebase)]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f17d56955473a615092039f14ce99d403d9be177/MIDI%20editor/mpl_Quantize%20selected%20MIDI%20notes%20ends.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-01-22T15:32:39Z">
+        <changelog><![CDATA[+ init release
+# release note: need an API to perform SnapToGrid() for MIDI Editor (relative to time signature denominator and ME timebase)]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c62d2f6e7954bca2f4d206d7bd8bbd21a64f157b/MIDI%20editor/mpl_Quantize%20selected%20MIDI%20notes%20ends.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Select high pitch MIDI notes.lua" type="script" desc="Select high pitch MIDI notes">
