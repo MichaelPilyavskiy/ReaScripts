@@ -1,4 +1,4 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @description Quantize selected MIDI notes ends
 -- @website http://forum.cockos.com/member.php?u=70694
