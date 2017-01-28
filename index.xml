@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c62d2f6e7954bca2f4d206d7bd8bbd21a64f157b" name="MPL Scripts">
+<index version="1" commit="199990cbea125cfa173a4d79baf2f03a186066dd" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -246,6 +246,12 @@
       <version name="1.0" author="mpl" time="2016-08-03T12:57:15Z">
         <changelog><![CDATA[+ init alpha]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e940e5111272af87c3cf63455cd983163347cef2/FX/mpl_Generate%20reabank%20from%20focused%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Insert focused FX to selected tracks, preserve parameters.lua" type="script">
+      <version name="1.0" author="MPL" time="2017-01-23T11:50:45Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1095681c7ed0b84ed51719a8656640784c30780a/FX/mpl_Insert%20focused%20FX%20to%20selected%20tracks,%20preserve%20parameters.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Insert focused FX to selected tracks.lua" type="script" desc="Insert focused FX to selected tracks">
@@ -547,6 +553,11 @@
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-17T09:33:10Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/062e91fb0a2b44e2605852d1244271e0e506b96f/Items%20Properties/mpl_Send%20midi%20source%20as%20channel%20x.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set fadein of item under cursor to mouse position.lua" type="script">
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2017-01-28T05:51:00Z">
+        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/199990cbea125cfa173a4d79baf2f03a186066dd/Items%20Properties/mpl_Set%20fadein%20of%20item%20under%20cursor%20to%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set fadeout of item under cursor to mouse position.lua" type="script" desc="Set fadeout of item under cursor to mouse position">
