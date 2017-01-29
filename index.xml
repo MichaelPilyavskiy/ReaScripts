@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="57e307db5c46b3f6fcf78132c0a0f0fc64990956" name="MPL Scripts">
+<index version="1" commit="280b6ec75a400b6b1e483fe7fe16422a0c8978c6" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1344,6 +1344,11 @@
 # different GUI tweaks (indentation and resize)
 # fix wrong id from FX context menu]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57e307db5c46b3f6fcf78132c0a0f0fc64990956/Various/mpl_SendFader.lua</source>
+      </version>
+      <version name="1.06" author="MPL" time="2017-01-29T15:41:03Z">
+        <changelog><![CDATA[+ support for setting ID before init, use reaper.SetExtState( 'mpl SendFader', 'currentID', ID_val, false )
++ support for setting source TrackGUID before init, use reaper.SetExtState( 'mpl SendFader', 'srcTrack_GUID', ID_val, false )]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/280b6ec75a400b6b1e483fe7fe16422a0c8978c6/Various/mpl_SendFader.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
