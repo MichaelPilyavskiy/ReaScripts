@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="02c9c5f42b7d7e270912a2173ec7c72aa0d79e1a" name="MPL Scripts">
+<index version="1" commit="57e307db5c46b3f6fcf78132c0a0f0fc64990956" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1337,6 +1337,13 @@
         <changelog><![CDATA[+ reset vol/pan reflects linking
 + set vol/pan reflects linking]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/27b14cc1053e7e012cd92a589bcb2bdc77a85850/Various/mpl_SendFader.lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2017-01-29T15:06:43Z">
+        <changelog><![CDATA[+ Save window width and height on change
+# redraw window after xywh change
+# different GUI tweaks (indentation and resize)
+# fix wrong id from FX context menu]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57e307db5c46b3f6fcf78132c0a0f0fc64990956/Various/mpl_SendFader.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
