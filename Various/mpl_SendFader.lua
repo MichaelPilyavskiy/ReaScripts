@@ -1,14 +1,12 @@
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    + Save window width and height on change
---    # redraw window after xywh change
---    # different GUI tweaks (indentation and resize)
---    # fix wrong id from FX context menu
+--    + support for setting ID before init, use reaper.SetExtState( 'mpl SendFader', 'currentID', ID_val, false )
+--    + support for setting source TrackGUID before init, use reaper.SetExtState( 'mpl SendFader', 'srcTrack_GUID', ID_val, false )
 
-  vrs = '1.05'
+  vrs = '1.06'
   name = 'mpl SendFader'
   
   -- internal defaults
@@ -26,16 +24,18 @@
           
 --[[
   changelog:
-    1.05 29.01.2017
-      + Save window width and height on change
+    1.06 29.01.2017  
+      + Save window width and height on change      
+      + doubleclick on pan and vol reset value
+      + doubleclick reset vol/pan reflects linking         
+      + rightclick on pan and vol set value   
+      + rightclick set vol/pan reflects linking
+      + support disable track selection following, edit default config
+      + support for setting ID before init, use reaper.SetExtState( 'mpl SendFader', 'currentID', ID_val, false )      
+      # fix empty send data errors
       # redraw window after xywh change
       # different GUI tweaks (indentation and resize)
-      + doubleclick on pan and vol reset value
-      + rightclick on pan and vol set value
-      + reset vol/pan reflects linking      
-      + set vol/pan reflects linking
-      + support disable track selection following, edit default config
-      # fix line538 error
+      # fix wrong id from FX context menu
     1.0 29.01.2017
       + oficial release  
     1.0alpha20 29.01.2017
@@ -52,7 +52,6 @@
     1.0alpha18 28.01.2017
       # hopefully fixed VCA and dB convertion related bugs
       + Save window position
-      + Link
       + Link: VCA-style fader support
       + Link: VCA-style pan support
       + Link: phase support
@@ -361,10 +360,11 @@
           gfx.drawstr(txt)
         
         GUI_button(obj.b.tr_name, data.cur_tr_src_name,nil,0.4 )
-        GUI_button(obj.b.tr_send_name, data.cur_tr_dest_name ,nil,0.4 )  
+          
         
  
-        if data.send_t and #data.send_t >= 1 then 
+        if data.send_t and #data.send_t >= 1 and data.cur_send_id and data.send_t[data.cur_send_id] then 
+          GUI_button(obj.b.tr_send_name, data.cur_tr_dest_name ,nil,0.4 )
           -- frame of current id
             local cur_id_w = obj.b.tr_send_name.w / #data.send_t
             F_frame({x = obj.b.tr_send_name.x + cur_id_w*(data.cur_send_id-1) ,
@@ -392,60 +392,60 @@
               F_frame(obj.b.params_area, nil, 0.2)
             end
             
-          
-          -- mute
-            local m_col, m_alp = nil,0.3
-            if data.send_t[data.cur_send_id].mute == 1 then m_col = 'red' m_alp = 0.9 end
-            GUI_button(obj.b.mute, nil, m_col, m_alp)
-          
-          -- polarity
-            local p_col, p_alp = nil,0.3
-            if data.send_t[data.cur_send_id].phase == 1 then p_alp = 0.9 p_col = 'blue'end          
-            GUI_button(obj.b.phase, nil, p_col, p_alp)
-          
-          -- mono
-            local mono_col, mono_alp = nil, 0.3
-            if data.send_t[data.cur_send_id].mono == 1 then mono_alp = 0.9 end   
-            if obj.b.mono and obj.b.mono.name then 
-              if data.send_t[data.cur_send_id].mono == 0 then 
-                obj.b.mono.name = 'stereo'--'‹›' 
-               else 
-                obj.b.mono.name = 'mono'--'›' 
-                mono_col = 'blue2'
-              end
-            end       
-            GUI_button(obj.b.mono, nil, mono_col, mono_alp)  
-          
-          -- send mode\
-            if obj.b.send_mode then
-              if data.send_t[data.cur_send_id].send_mode == 0 then
-                obj.b.send_mode.name = 'PostPan'
-               elseif data.send_t[data.cur_send_id].send_mode == 1 then
-                obj.b.send_mode.name = 'PreFX'
-               elseif data.send_t[data.cur_send_id].send_mode == 2 or data.send_t[data.cur_send_id].send_mode == 3 then
-                obj.b.send_mode.name = 'PostFX'
-              end 
-              GUI_button(obj.b.send_mode) 
-            end
-          
-          -- FX
-            GUI_button(obj.b.fx)
+          if data.send_t and data.cur_send_id and data.send_t[data.cur_send_id] then
+            -- mute
+              local m_col, m_alp = nil,0.3
+              if data.send_t[data.cur_send_id].mute == 1 then m_col = 'red' m_alp = 0.9 end
+              GUI_button(obj.b.mute, nil, m_col, m_alp)
             
-          -- Link
-            local link_alpha
-            if data.link == 0 then 
-              link_alpha = 0.3 
-              link_col = 'white'
-             else 
-              link_alpha = 0.8 
-              link_col = 'green'
-            end
-            GUI_button(obj.b.link , nil, link_col,link_alpha)   
-          -- mixer
-            GUI_button(obj.b.mixer, nil, nil,0.9)
-          -- remove
-            GUI_button(obj.b.remove , nil, 'red',0.8)    
-           
+            -- polarity
+              local p_col, p_alp = nil,0.3
+              if data.send_t[data.cur_send_id].phase == 1 then p_alp = 0.9 p_col = 'blue'end          
+              GUI_button(obj.b.phase, nil, p_col, p_alp)
+            
+            -- mono
+              local mono_col, mono_alp = nil, 0.3
+              if data.send_t[data.cur_send_id].mono == 1 then mono_alp = 0.9 end   
+              if obj.b.mono and obj.b.mono.name then 
+                if data.send_t[data.cur_send_id].mono == 0 then 
+                  obj.b.mono.name = 'stereo'--'‹›' 
+                 else 
+                  obj.b.mono.name = 'mono'--'›' 
+                  mono_col = 'blue2'
+                end
+              end       
+              GUI_button(obj.b.mono, nil, mono_col, mono_alp)  
+            
+            -- send mode\
+              if obj.b.send_mode then
+                if data.send_t[data.cur_send_id].send_mode == 0 then
+                  obj.b.send_mode.name = 'PostPan'
+                 elseif data.send_t[data.cur_send_id].send_mode == 1 then
+                  obj.b.send_mode.name = 'PreFX'
+                 elseif data.send_t[data.cur_send_id].send_mode == 2 or data.send_t[data.cur_send_id].send_mode == 3 then
+                  obj.b.send_mode.name = 'PostFX'
+                end 
+                GUI_button(obj.b.send_mode) 
+              end
+            
+            -- FX
+              GUI_button(obj.b.fx)
+              
+            -- Link
+              local link_alpha
+              if data.link == 0 then 
+                link_alpha = 0.3 
+                link_col = 'white'
+               else 
+                link_alpha = 0.8 
+                link_col = 'green'
+              end
+              GUI_button(obj.b.link , nil, link_col,link_alpha)   
+            -- mixer
+              GUI_button(obj.b.mixer, nil, nil,0.9)
+            -- remove
+              GUI_button(obj.b.remove , nil, 'red',0.8)    
+          end 
         end    
       end
       
@@ -481,6 +481,7 @@
   end 
   --------------------------------------------------------------------    
   function GUI_peaks()
+    if not data.send_t or not data.cur_send_id or not data.send_t[data.cur_send_id] then return end
     -- frame
       F_Get_SSV(obj.gui_color.white)
       gfx.a = 0.5
@@ -701,6 +702,7 @@
   function F_dBFromVal(val) return 20*math.log(val, 10) end
   --------------------------------------------------------------------     
   function GUI_fader()   
+    if not data.send_t or not data.cur_send_id or not data.send_t[data.cur_send_id] then return end
     local val =  data.send_t[data.cur_send_id].vol    
     local y_man = F_Fader_From_ReaVal(val) 
     local left_shift = 0
@@ -980,12 +982,12 @@
   -----------------------------------------------------------------------    
   function DEFINE_data() local track
     if data.enable_follow_track_selection == 1 then 
-      track =  reaper.GetSelectedTrack(0,0)
+      data.track_pointer =  reaper.GetSelectedTrack(0,0)
      else
-      track = data.track_pointer0
+      data.track_pointer = data.track_pointer0
     end
-    data.track_pointer = track
-    if not track then 
+    
+    if not data.track_pointer then 
       if data.enable_follow_track_selection == 0 then 
         data.cur_tr_src_name = '> Get track'
        else
@@ -996,30 +998,39 @@
       return 
     end
     
-    -- update send ID
-      data.track_GUID = reaper.GetTrackGUID( track )      
+    -- update send ID / id
+      data.track_GUID = reaper.GetTrackGUID( data.track_pointer ) 
       if not data.last_track_GUID or data.last_track_GUID ~= data.track_GUID then data.cur_send_id = 1 end
+      
+      if data.ext_cur_send_id then data.cur_send_id = data.ext_cur_send_id end
+      if data.ext_srctrGUID then 
+        data.track_pointer =  reaper.BR_GetMediaTrackByGUID( 0,data.ext_srctrGUID )
+        data.last_track_GUID = data.ext_srctrGUID 
+      end
+      
+      if not data.track_pointer then return end
+      
       data.last_track_GUID = data.track_GUID
       
     -- get name
-      local _, tr_name = reaper.GetSetMediaTrackInfo_String( track, 'P_NAME', '', 0 )
-      local tr_id =  reaper.CSurf_TrackToID( track, false )
+      local _, tr_name = reaper.GetSetMediaTrackInfo_String( data.track_pointer, 'P_NAME', '', 0 )
+      local tr_id =  reaper.CSurf_TrackToID( data.track_pointer, false )
       if tr_name == '' then 
         data.cur_tr_src_name = '#'..tr_id..' '..'(untitled) →' 
        else
         data.cur_tr_src_name = '#'..tr_id..' '..tr_name..' →'
       end      
     -- get source peak info
-      data.track_peakL = reaper.Track_GetPeakInfo( track, 0 )
-      data.track_peakR = reaper.Track_GetPeakInfo( track, 1 )
+      data.track_peakL = reaper.Track_GetPeakInfo( data.track_pointer, 0 )
+      data.track_peakR = reaper.Track_GetPeakInfo( data.track_pointer, 1 )
       --data.track_peakH = reaper.Track_GetPeakHoldDB( track, channel, clear )
       
     -- get send table
       data.send_t = {}
-      local cnt_sends = reaper.GetTrackNumSends( track, 0 )
+      local cnt_sends = reaper.GetTrackNumSends( data.track_pointer, 0 )
       for i = 1, cnt_sends do
-        local _, send_name = reaper.GetTrackSendName( track, i-1, '' )  
-        local dest_tr = reaper.BR_GetMediaTrackSendInfo_Track( track, 0, i-1, 1 )  
+        local _, send_name = reaper.GetTrackSendName( data.track_pointer, i-1, '' )  
+        local dest_tr = reaper.BR_GetMediaTrackSendInfo_Track( data.track_pointer, 0, i-1, 1 )  
         local dest_tr_id =  reaper.CSurf_TrackToID( dest_tr, false )
         
         -- parse sendEQ
@@ -1051,12 +1062,12 @@
         
         data.send_t[#data.send_t+1] = { send_name = send_name,
                                       send_id = dest_tr_id,
-                                      pan = reaper.GetTrackSendInfo_Value( track, 0, i-1, 'D_PAN' ) ,
-                                      vol = F_limit(reaper.GetTrackSendInfo_Value( track, 0, i-1, 'D_VOL' ),0,4),
-                                      mute = reaper.GetTrackSendInfo_Value( track, 0, i-1, 'B_MUTE' ) ,
-                                      phase = reaper.GetTrackSendInfo_Value( track, 0, i-1, 'B_PHASE' ),
-                                      mono = reaper.GetTrackSendInfo_Value( track, 0, i-1, 'B_MONO'),
-                                      send_mode = reaper.GetTrackSendInfo_Value( track, 0, i-1, 'I_SENDMODE'), 
+                                      pan = reaper.GetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'D_PAN' ) ,
+                                      vol = F_limit(reaper.GetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'D_VOL' ),0,4),
+                                      mute = reaper.GetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'B_MUTE' ) ,
+                                      phase = reaper.GetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'B_PHASE' ),
+                                      mono = reaper.GetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'B_MONO'),
+                                      send_mode = reaper.GetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'I_SENDMODE'), 
                                       peakL = reaper.Track_GetPeakInfo( dest_tr, 0 ),
                                       peakR = reaper.Track_GetPeakInfo( dest_tr, 1 ),
                                       dest_GUID = reaper.GetTrackGUID( dest_tr ),
@@ -1724,7 +1735,21 @@
     update_gfx2 = true
     update_gfx_onstart = true
   end
+  --------------------------------------------------------------------   
+  function EXT_load()
+    local ext_id = reaper.GetExtState( 'mpl SendFader', 'currentID' )
+    if ext_id then
+      ext_id = tonumber(ext_id)
+      if ext_id and ext_id > 0 then  data.ext_cur_send_id =ext_id  end
+    end
+
+    local ext_guid = reaper.GetExtState( 'mpl SendFader', 'srcTrack_GUID' )
+    if ext_guid and ext_guid ~='' then data.ext_srctrGUID =ext_guid end
+        
+    
+  end
   -------------------------------------------------------------------- 
+  EXT_load()
   mouse = {}
   GUI_init_gfx()
   Run()  
