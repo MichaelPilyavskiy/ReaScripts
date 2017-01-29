@@ -1,12 +1,13 @@
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    # fix line538 error
+--    + reset vol/pan reflects linking
+--    + set vol/pan reflects linking
 
 
-  vrs = '1.02'
+  vrs = '1.03'
   name = 'mpl SendFader'
   
   -- internal defaults
@@ -24,9 +25,11 @@
           
 --[[
   changelog:
-    1.02 29.01.2017
+    1.03 29.01.2017
       + doubleclick on pan and vol reset value
       + rightclick on pan and vol set value
+      + reset vol/pan reflects linking      
+      + set vol/pan reflects linking
       + support disable track selection following, edit default config
       # fix line538 error
     1.0 29.01.2017
@@ -1293,12 +1296,23 @@
             local dbval = tonumber(str)
             if dbval > -90 and dbval < 12 then
               local out_val = F_Val_From_dB(dbval)
-              data.send_t[data.cur_send_id].vol = out_val
+              if data.link == 1 then
+                for send_i = 1, #data.send_t do data.send_t[send_i].vol = out_val end
+               else
+                data.send_t[data.cur_send_id].vol = out_val
+              end
               ENGINE_app_data()
             end
           end
         end
-        if MOUSE_DC(obj.b.fader) then data.send_t[data.cur_send_id].vol = 1 ENGINE_app_data()  end
+        if MOUSE_DC(obj.b.fader) then 
+          if data.link == 1 then
+            for send_i = 1, #data.send_t do data.send_t[send_i].vol = 1 end
+           else
+            data.send_t[data.cur_send_id].vol = 1  
+          end 
+          ENGINE_app_data()
+        end
         if MOUSE_match(obj.b.fader) and mouse.LMB_state and not mouse.last_LMB_state then
           mouse.last_obj =        obj.b.fader.mouse_id 
           mouse.last_obj_value =   F_Fader_From_ReaVal(data.send_t[data.cur_send_id].vol) -- fader
@@ -1335,12 +1349,22 @@
           if ret and tonumber(str) then
             local panval = tonumber(str)
             if panval >= -1 and panval <= 1 then
-              data.send_t[data.cur_send_id].pan = panval
+              if data.link == 1 then
+                for send_i = 1, #data.send_t do data.send_t[send_i].pan = panval end
+               else
+                data.send_t[data.cur_send_id].pan = panval
+              end
               ENGINE_app_data()
             end
           end
         end        
-          if MOUSE_DC(obj.b.pan_knob) then data.send_t[data.cur_send_id].pan = 0 ENGINE_app_data()  end
+          if MOUSE_DC(obj.b.pan_knob) then 
+            if data.link == 1 then
+              for send_i = 1, #data.send_t do data.send_t[send_i].pan = 0 end
+             else
+              data.send_t[data.cur_send_id].pan = 0  
+            end 
+          end
           if MOUSE_match(obj.b.pan_knob) and mouse.LMB_state and not mouse.last_LMB_state then
             mouse.last_obj =        obj.b.pan_knob.mouse_id 
             mouse.last_obj_value =  (data.send_t[data.cur_send_id].pan + 1 )/2 -- fader
