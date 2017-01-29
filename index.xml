@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7b4eecce331a7d97b684ab7e7a5962f3b4ee4b71" name="MPL Scripts">
+<index version="1" commit="c220348ca0574f229d5e3491d16fa2a481ff7808" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -555,14 +555,28 @@
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/062e91fb0a2b44e2605852d1244271e0e506b96f/Items%20Properties/mpl_Send%20midi%20source%20as%20channel%20x.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Set fadein of item under cursor to mouse position.lua" type="script">
+    <reapack name="mpl_Set fadein of item under cursor to mouse position.lua" type="script" desc="Set fadein of item under cursor to mouse position">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2017-01-28T05:51:00Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/199990cbea125cfa173a4d79baf2f03a186066dd/Items%20Properties/mpl_Set%20fadein%20of%20item%20under%20cursor%20to%20mouse%20position.lua</source>
       </version>
+      <version name="1.1" author="MPL" time="2017-01-29T18:28:03Z">
+        <changelog><![CDATA[# fix remove autofade if any]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c220348ca0574f229d5e3491d16fa2a481ff7808/Items%20Properties/mpl_Set%20fadein%20of%20item%20under%20cursor%20to%20mouse%20position.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Set fadeout of item under cursor to mouse position.lua" type="script" desc="Set fadeout of item under cursor to mouse position">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-11T12:16:41Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b13a6f6b2e1c5f1f0292ab3f8c445c43b3cbd62f/Items%20Properties/mpl_Set%20fadeout%20of%20item%20under%20cursor%20to%20mouse%20position.lua</source>
+      </version>
+      <version name="1.1" author="MPL" time="2017-01-29T18:26:38Z">
+        <changelog><![CDATA[# fix remove autofade if any]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/931f7dee8d8c28108ad2e8d80097ffc3dc8e2ae7/Items%20Properties/mpl_Set%20fadeout%20of%20item%20under%20cursor%20to%20mouse%20position.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Unlock selected items for 30 seconds.lua" type="script" desc="Unlock selected items for 30 seconds">
