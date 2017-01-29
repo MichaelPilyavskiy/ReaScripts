@@ -1,13 +1,14 @@
--- @version 1.03
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    + reset vol/pan reflects linking
---    + set vol/pan reflects linking
+--    + Save window width and height on change
+--    # redraw window after xywh change
+--    # different GUI tweaks (indentation and resize)
+--    # fix wrong id from FX context menu
 
-
-  vrs = '1.03'
+  vrs = '1.05'
   name = 'mpl SendFader'
   
   -- internal defaults
@@ -25,7 +26,10 @@
           
 --[[
   changelog:
-    1.03 29.01.2017
+    1.05 29.01.2017
+      + Save window width and height on change
+      # redraw window after xywh change
+      # different GUI tweaks (indentation and resize)
       + doubleclick on pan and vol reset value
       + rightclick on pan and vol set value
       + reset vol/pan reflects linking      
@@ -83,6 +87,11 @@
 ]]
 
   function msg(s) reaper.ShowConsoleMsg(s) reaper.ShowConsoleMsg('\n') end
+  --------------------------------------------------------------------    
+  function F_cond_button(xywh1, xywh2)                        
+    if  xywh1.y + xywh1.h >  xywh2.y + xywh2.h then xywh1  ={}    end  
+    return xywh1
+  end 
   --------------------------------------------------------------------  
   function DEFINE_Objects()  -- static variables
     if gfx.w < 100 then gfx.w = 100 end
@@ -120,6 +129,9 @@
     local x_fader = gfx.w/2+fader_area_x_shift
     local shift_b = 20
     obj.global_y_shift = 10
+    obj.min_w_peak = 130
+    obj.min_pan_h = 260
+    obj.min_h_buttons = 180       
     obj.b.tr_name =     { x= obj.offs,
                           y = obj.global_y_shift+obj.offs,
                           w = gfx.w - obj.offs*2,
@@ -143,7 +155,8 @@
                           y = y_offset_area,-- + obj.offs,
                           w = gfx.w - obj.offs*3-shift_b,-- - obj.offs*2,
                           h = pan_area_h
-                          }   
+                          }  
+    if gfx.h < obj.min_pan_h then  obj.b.pan_area.h = -obj.offs end
     obj.b.pre_eq_area =   {x = obj.b.pan_area.x+obj.offs,
                            y = obj.b.pan_area.y + obj.offs,
                            w= obj.b.pan_area.w - obj.offs*2,
@@ -178,60 +191,89 @@
                           h = obj.knob_side,
                           mouse_id = 'pan_knob'
                           }                                 
-    obj.b.fader  =  {x=  x_fader ,
-                          y = obj.b.fader_area.y + obj.offs*3,
-                          w = fader_w,
-                          h = obj.b.fader_area.h - obj.offs*6,
-                          mouse_id = 'fader'
-                          } 
-    local peakL_ind_x = obj.peak_w + 
+ 
+    --[[local peakL_ind_x = obj.peak_w + 
                         0.5*obj.peak_dist + 
                         0.5*obj.b.fader_area.x +
                         0.5*obj.offs  + 
                         obj.b.fader.x/2
                         -fad_b_w/2
-                        -1
-    obj.b.mute =         {x = peakL_ind_x,
-                          y = obj.b.fader.y + obj.offs,
-                          w =  fad_b_w,
-                          h = fad_b_h,
-                          name = 'M' }
-    obj.b.phase =         {x = peakL_ind_x,
-                          y = obj.b.fader.y + obj.offs*2+fad_b_h,
-                          w =  fad_b_w,
-                          h = fad_b_h,
-                          name = 'Ø' }  
-    obj.b.mono =         {x = peakL_ind_x,
-                          y = obj.b.fader.y + obj.offs*3+fad_b_h*2,
-                          w =  fad_b_w,
-                          h = fad_b_h,
-                          name = 'stereo' }
-    obj.b.send_mode =     {x = peakL_ind_x,
-                          y = obj.b.fader.y + obj.offs*4+fad_b_h*3,
-                          w =  fad_b_w,
-                          h = fad_b_h} 
-    local sep = obj.offs*2
-    obj.b.fx =            {x = peakL_ind_x,
-                          y = obj.b.fader.y + obj.offs*5+fad_b_h*4+sep,
-                          w =  fad_b_w,
-                          h = fad_b_h,
-                          name = 'FX'}     
-    obj.b.link =            {x = peakL_ind_x,
-                          y = obj.b.fader.y + obj.offs*6+fad_b_h*5+sep,
-                          w =  fad_b_w,
-                          h = fad_b_h,
-                          name = 'Link'}
-    obj.b.mixer =            {x = peakL_ind_x,
-                          y = obj.b.fader.y + obj.offs*7+fad_b_h*6+sep,
-                          w =  fad_b_w,
-                          h = fad_b_h,
-                          name = 'Mixer'}                          
-    obj.b.remove =            {x = peakL_ind_x,
-                          y = obj.b.fader.y + obj.offs*8+fad_b_h*7+sep*2,
-                          w =  fad_b_w,
-                          h = fad_b_h,
-                          name = 'Remove'}                          
-                                                                
+                        -1]]
+    local peakL_ind_x = 2*obj.peak_w + 
+                        obj.peak_dist + 
+                        3*obj.offs 
+      obj.b.fader  =  {x=  peakL_ind_x + fad_b_w + obj.offs ,
+                          y = obj.b.fader_area.y + obj.offs*3,
+                          w = gfx.w-2*peakL_ind_x-obj.offs*2 - fad_b_w,
+                          h = obj.b.fader_area.h - obj.offs*6,
+                          mouse_id = 'fader'
+                          }                              
+    if gfx.w  < obj.min_w_peak then       
+      peakL_ind_x = obj.offs*2
+      obj.b.fader.w = gfx.w - obj.offs*6 - fad_b_w
+      obj.b.fader.x = peakL_ind_x+obj.offs+fad_b_w
+      
+    end        
+    if gfx.h < obj.min_h_buttons  then                   
+      obj.b.fader = {x = peakL_ind_x,
+                    y = obj.b.fader_area.y+obj.offs,
+                     w = gfx.w - peakL_ind_x*2,
+                     h = obj.b.fader_area.h -obj.offs*2 }
+                      
+    end
+    
+    if gfx.h > obj.min_h_buttons then  
+      obj.b.fader.x =  fad_b_w + obj.offs*2 +peakL_ind_x          
+      obj.b.mute =         {x = peakL_ind_x,
+                            y = obj.b.fader.y + obj.offs,
+                            w =  fad_b_w,
+                            h = fad_b_h,
+                            name = 'M' }
+      obj.b.mute = F_cond_button(obj.b.mute, obj.b.fader_area)                            
+      obj.b.phase =         {x = peakL_ind_x,
+                            y = obj.b.fader.y + obj.offs*2+fad_b_h,
+                            w =  fad_b_w,
+                            h = fad_b_h,
+                            name = 'Ø' }  
+      obj.b.phase = F_cond_button(obj.b.phase, obj.b.fader_area)                            
+      obj.b.mono =         {x = peakL_ind_x,
+                            y = obj.b.fader.y + obj.offs*3+fad_b_h*2,
+                            w =  fad_b_w,
+                            h = fad_b_h,
+                            name = 'stereo' }
+      obj.b.mono = F_cond_button(obj.b.mono, obj.b.fader_area)                            
+      obj.b.send_mode =     {x = peakL_ind_x,
+                            y = obj.b.fader.y + obj.offs*4+fad_b_h*3,
+                            w =  fad_b_w,
+                            h = fad_b_h} 
+      obj.b.send_mode = F_cond_button(obj.b.send_mode, obj.b.fader_area)                            
+      local sep = obj.offs*2
+      obj.b.fx =            {x = peakL_ind_x,
+                            y = obj.b.fader.y + obj.offs*5+fad_b_h*4+sep,
+                            w =  fad_b_w,
+                            h = fad_b_h,
+                            name = 'FX'}  
+      obj.b.fx = F_cond_button(obj.b.fx, obj.b.fader_area)                               
+      obj.b.link =            {x = peakL_ind_x,
+                            y = obj.b.fader.y + obj.offs*6+fad_b_h*5+sep,
+                            w =  fad_b_w,
+                            h = fad_b_h,
+                            name = 'Link'}
+      obj.b.link = F_cond_button(obj.b.link, obj.b.fader_area)                            
+      obj.b.mixer =            {x = peakL_ind_x,
+                            y = obj.b.fader.y + obj.offs*7+fad_b_h*6+sep,
+                            w =  fad_b_w,
+                            h = fad_b_h,
+                            name = 'Mixer'}  
+      obj.b.mixer = F_cond_button(obj.b.mixer, obj.b.fader_area)                                                   
+      obj.b.remove =            {x = peakL_ind_x,
+                            y = obj.b.fader.y + obj.offs*8+fad_b_h*7+sep*2,
+                            w =  fad_b_w,
+                            h = fad_b_h,
+                            name = 'Remove'} 
+      obj.b.remove = F_cond_button(obj.b.remove, obj.b.fader_area) 
+    end
+                                     
     -- fix OSX font          
       local gfx_fontsize = 16                
       if OS == "OSX32" or OS == "OSX64" then gfx_fontsize = gfx_fontsize - 5 end
@@ -332,7 +374,14 @@
                     }, 'green', 0.4, true) 
                   
                    
-          GUI_pan() 
+          if obj.b.pan_area.h>0 then 
+            GUI_pan() 
+            -- next page
+              GUI_button(obj.b.next_page, nil, nil, 0.5)
+              gfx.a = 0.1
+              F_frame(obj.b.next_page, nil, 0.2)
+              F_gfx_rect(F_UnzipTable(obj.b.next_page))
+          end
           GUI_fader()
           
           -- frame mixer
@@ -343,11 +392,6 @@
               F_frame(obj.b.params_area, nil, 0.2)
             end
             
-          -- next page
-            GUI_button(obj.b.next_page, nil, nil, 0.5)
-            gfx.a = 0.1
-            F_frame(obj.b.next_page, nil, 0.2)
-            F_gfx_rect(F_UnzipTable(obj.b.next_page))
           
           -- mute
             local m_col, m_alp = nil,0.3
@@ -362,23 +406,27 @@
           -- mono
             local mono_col, mono_alp = nil, 0.3
             if data.send_t[data.cur_send_id].mono == 1 then mono_alp = 0.9 end   
-            if data.send_t[data.cur_send_id].mono == 0 then 
-              obj.b.mono.name = 'stereo'--'‹›' 
-             else 
-              obj.b.mono.name = 'mono'--'›' 
-              mono_col = 'blue2'
+            if obj.b.mono and obj.b.mono.name then 
+              if data.send_t[data.cur_send_id].mono == 0 then 
+                obj.b.mono.name = 'stereo'--'‹›' 
+               else 
+                obj.b.mono.name = 'mono'--'›' 
+                mono_col = 'blue2'
+              end
             end       
             GUI_button(obj.b.mono, nil, mono_col, mono_alp)  
           
-          -- send mode
-            if data.send_t[data.cur_send_id].send_mode == 0 then
-              obj.b.send_mode.name = 'PostPan'
-             elseif data.send_t[data.cur_send_id].send_mode == 1 then
-              obj.b.send_mode.name = 'PreFX'
-             elseif data.send_t[data.cur_send_id].send_mode == 2 or data.send_t[data.cur_send_id].send_mode == 3 then
-              obj.b.send_mode.name = 'PostFX'
-            end 
-            GUI_button(obj.b.send_mode) 
+          -- send mode\
+            if obj.b.send_mode then
+              if data.send_t[data.cur_send_id].send_mode == 0 then
+                obj.b.send_mode.name = 'PostPan'
+               elseif data.send_t[data.cur_send_id].send_mode == 1 then
+                obj.b.send_mode.name = 'PreFX'
+               elseif data.send_t[data.cur_send_id].send_mode == 2 or data.send_t[data.cur_send_id].send_mode == 3 then
+                obj.b.send_mode.name = 'PostFX'
+              end 
+              GUI_button(obj.b.send_mode) 
+            end
           
           -- FX
             GUI_button(obj.b.fx)
@@ -408,7 +456,7 @@
         gfx.setimgdim(11, -1, -1)   
         gfx.setimgdim(11, gfx.w, gfx.h)   
         if data.send_t and #data.send_t >= 1 then 
-          GUI_peaks()          
+          if gfx.w > obj.min_w_peak then GUI_peaks() end
         end  
       end
     
@@ -665,81 +713,86 @@
       F_gfx_rect(F_UnzipTable(obj.b.fader_area))
       gfx.a = 1
       F_frame(obj.b.fader_area) 
-           
-    -- center line
-      local manual_h = 10
-      local cent_line_w = 2
-      F_Get_SSV(obj.gui_color.white)
-      gfx.a = 0.49
-      gfx.rect(x_f,
-               y_f,
-               cent_line_w,
-               h_f+1)
-    -- level 
-      local t = { -120,
-            -48,
-            -24,
-            -12,
-            -6,
-            0,
-            '+6',
-            '+12'
-            }
-            
-    -- level lines
-      local line_w = 10
-      F_Get_SSV(obj.gui_color.white)
-      gfx.a = 1
-      for i = 1, #t do
-        local t_val = tonumber(t[i])
-        local rea_val = F_Val_From_dB(t_val)
-        local y1 = F_Fader_From_ReaVal(rea_val)  
-        if y1 < 0.004 then y1 = 0 end
-        gfx.a = 0.3
-        gfx.setfont(1, obj.gfx_fontname, obj.gfx_fontsize_2)
-        gfx.line(x_f+2, y_f + h_f - h_f *y1, x_f+line_w/2, y_f + h_f - h_f *y1)
-        gfx.x = x_f + w_f - gfx.measurestr(t[i]..'dB')
-        gfx.y = y_f + h_f - h_f *y1- gfx.texth/2-1
-        gfx.a = 0.6
-        gfx.drawstr(t[i]..'dB')
+      -- level 
+      local t
+        if gfx.h > obj.min_h_buttons then 
+          t = { -120,
+              -48,
+              -24,
+              -12,
+              -6,
+              0,
+              '+6',
+              '+12'
+              }   
+         else
+          t = {-120,-12,0,'+12'}   
       end
-      
-    -- manual
-      local manual_w = w_f
-      gfx.a = 0.5
-      
-      
-      if data.small_man == 1 then
-        local y_man_mir = y_f-manual_h/2+h_f-h_f*y_man
-        gfx.blit(3, 1, math.rad(180),
-                0, 0,  obj.main_w,obj.main_h/2, 
-                x_f, 
-                y_man_mir,
-                manual_w,          
-                manual_h/2,
-                0, 0)   
-        gfx.blit(3, 1, math.rad(0),
-                0, 0,  obj.main_w,obj.main_h, 
-                x_f+1, 
-                y_man_mir + manual_h/2,
-                manual_w-1,
-                manual_h/2,
-                0, 0)
-        gfx.a = 0.5
-        F_Get_SSV(obj.gui_color.green)
-        gfx.rect(x_f+1,-1+y_man_mir+manual_h/2,
-                 line_w/2,3) 
-       else
-        gfx.a = 0.3
-        gfx.blit(3, 1, math.rad(0),
-                0, 0,  obj.main_w,obj.main_h/2, 
-                x_f, 
-                y_f+h_f-h_f*y_man,
-                manual_w,          
-                h_f*y_man+2,
-                0, 0)          
-      end        
+      -- center line
+        local manual_h = 10
+        local cent_line_w = 2
+        F_Get_SSV(obj.gui_color.white)
+        gfx.a = 0.49
+        gfx.rect(x_f,
+                 y_f,
+                 cent_line_w,
+                 h_f+1)
               
+      -- level lines
+        local line_w = 10
+        F_Get_SSV(obj.gui_color.white)
+        gfx.a = 1
+        for i = 1, #t do
+          local t_val = tonumber(t[i])
+          local rea_val = F_Val_From_dB(t_val)
+          local y1 = F_Fader_From_ReaVal(rea_val)  
+          if y1 < 0.004 then y1 = 0 end
+          gfx.a = 0.3
+          gfx.setfont(1, obj.gfx_fontname, obj.gfx_fontsize_2)
+          gfx.line(x_f+2, y_f + h_f - h_f *y1, x_f+line_w/2, y_f + h_f - h_f *y1)
+          gfx.x = x_f + w_f - gfx.measurestr(t[i]..'dB')
+          gfx.y = y_f + h_f - h_f *y1- gfx.texth/2-1
+          gfx.a = 0.6
+          gfx.drawstr(t[i]..'dB')
+        end
+        
+      -- manual
+        local manual_w = w_f
+        gfx.a = 0.5
+        
+        
+        if data.small_man == 1 then
+          local y_man_mir = y_f-manual_h/2+h_f-h_f*y_man
+          gfx.blit(3, 1, math.rad(180),
+                  0, 0,  obj.main_w,obj.main_h/2, 
+                  x_f, 
+                  y_man_mir,
+                  manual_w,          
+                  manual_h/2,
+                  0, 0)   
+          gfx.blit(3, 1, math.rad(0),
+                  0, 0,  obj.main_w,obj.main_h, 
+                  x_f+1, 
+                  y_man_mir + manual_h/2,
+                  manual_w-1,
+                  manual_h/2,
+                  0, 0)
+          gfx.a = 0.5
+          F_Get_SSV(obj.gui_color.green)
+          gfx.rect(x_f+1,-1+y_man_mir+manual_h/2,
+                   line_w/2,3) 
+         else
+          gfx.a = 0.3
+          gfx.blit(3, 1, math.rad(0),
+                  0, 0,  obj.main_w,obj.main_h/2, 
+                  x_f, 
+                  y_f+h_f-h_f*y_man,
+                  manual_w,          
+                  h_f*y_man+2,
+                  0, 0)          
+      
+          
+      end
       gfx.a = 1           
   end  
   --------------------------------------------------------------------     
@@ -885,6 +938,7 @@
     if not obj_t then return end
     local color
     local x,y,w,h, name = obj_t.x, obj_t.y, obj_t.w, obj_t.h, obj_t.name
+    if not x then return end
     if ext_text then name = ext_text end
     -- frame
       if not frame then
@@ -905,7 +959,7 @@
   end   
   ------------------------------------------------------------------ 
   function MOUSE_match(b, offs)
-    if b then
+    if b and b.x then
       local mouse_y_match = b.y
       local mouse_h_match = b.y+b.h
       if offs then 
@@ -1318,7 +1372,7 @@
           mouse.last_obj_value =   F_Fader_From_ReaVal(data.send_t[data.cur_send_id].vol) -- fader
           mouse.last_stored_send_t = data.send_t       
         end
-        if mouse.last_obj == obj.b.fader.mouse_id  and mouse.LMB_state then     
+        if mouse.last_obj == obj.b.fader.mouse_id  and mouse.LMB_state and mouse.last_obj_value then     
           local new_val_fader = mouse.last_obj_value  - mouse.dy/data.fader_mouse_resolution -- fader
           if data.link == 1 then          
             local diff = new_val_fader - mouse.last_obj_value            
@@ -1480,7 +1534,7 @@
         end
         t_menu = {} for i = 1, #t do t_menu[#t_menu+1] =  t[i].fx_name end
         local ret = GUI_menu(t_menu, -1 )
-        if ret >=0 then reaper.TrackFX_Show( dest_tr, ret+1,3 ) end          
+        if ret >=0 then reaper.TrackFX_Show( dest_tr, ret,3 ) end          
       end
       
     -- Link
@@ -1601,12 +1655,28 @@
     clock = os.clock ()
     -- save xy state 
       _, wind_x,wind_y = gfx.dock(-1,0,0,0,0)
-      if not last_wind_x or not last_wind_y or last_wind_x~=wind_x or last_wind_y~=wind_y then
+      wind_w, wind_h = gfx.w, gfx.h
+      if 
+        not last_wind_x 
+        or not last_wind_y 
+        or not last_wind_w 
+        or not last_wind_h 
+        or last_wind_x~=wind_x 
+        or last_wind_y~=wind_y 
+        or last_wind_w~=wind_w
+        or last_wind_h~=wind_h then
         reaper.SetExtState( 'mpl SendFader', 'x_pos', math.floor(wind_x), true )
         reaper.SetExtState( 'mpl SendFader', 'y_pos', math.floor(wind_y), true )
+        reaper.SetExtState( 'mpl SendFader', 'wind_w', math.floor(wind_w), true )
+        reaper.SetExtState( 'mpl SendFader', 'wind_h', math.floor(wind_h), true )
+        DEFINE_Objects()
+        update_gfx = true
       end
+      
       last_wind_x = wind_x
       last_wind_y = wind_y
+      last_wind_w = wind_w
+      last_wind_h = wind_h
       
     -- upd gfx
       check_cnt =  reaper.GetProjectStateChangeCount( 0 )
@@ -1637,6 +1707,12 @@
     local mouse_x, mouse_y = reaper.GetMousePosition()
     local x_pos = reaper.GetExtState( 'mpl SendFader', 'x_pos' )
     local y_pos = reaper.GetExtState( 'mpl SendFader', 'y_pos' )
+    local w = reaper.GetExtState( 'mpl SendFader', 'wind_w' )
+    local h = reaper.GetExtState( 'mpl SendFader', 'wind_h' )
+    if tonumber(w) then 
+      data.wind_w = w
+      data.wind_h = h
+    end
     gfx.quit()
     if x_pos and x_pos ~= '' then 
       gfx.init('', data.wind_w, data.wind_h, 0, x_pos, y_pos)
