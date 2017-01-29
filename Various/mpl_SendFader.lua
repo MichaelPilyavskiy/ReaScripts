@@ -1,16 +1,12 @@
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    + support track colors
---    + support external control, see mpl_SendFader - set volume (MIDI OSC only).lua
---    # fixed indents when mixer opened
---    # allow change track/send_ID after external state get
---    # rename 'Remove' to 'Delete'
+--    # fix hardware sends in regular sends list
 
 
-  vrs = '1.10'
+  vrs = '1.11'
   name = 'mpl SendFader'
   
   -- internal defaults
@@ -29,7 +25,7 @@
           
 --[[
   changelog:
-    1.10 29.01.2017  
+    1.11 29.01.2017  
       + Save window width and height on change      
       + doubleclick on pan and vol reset value
       + doubleclick reset vol/pan reflects linking         
@@ -45,6 +41,7 @@
       # allow change track/send_ID after external state get
       # rename 'Remove' to 'Delete'
       # fix wrong id from FX context menu
+      # fix hardware sends in regular sends list
       # fixed small potential gfx/data issues
     1.0 29.01.2017
       + official release  
@@ -1096,8 +1093,9 @@
     -- get send table
       data.send_t = {}
       local cnt_sends = reaper.GetTrackNumSends( data.track_pointer, 0 )
+      data.cnt_sendsHW = reaper.GetTrackNumSends( data.track_pointer, 1 )
       for i = 1, cnt_sends do
-        local _, send_name = reaper.GetTrackSendName( data.track_pointer, i-1, '' )  
+        local _, send_name = reaper.GetTrackSendName( data.track_pointer, i-1+data.cnt_sendsHW, '' )  
         local dest_tr = reaper.BR_GetMediaTrackSendInfo_Track( data.track_pointer, 0, i-1, 1 )  
         local dest_tr_id =  reaper.CSurf_TrackToID( dest_tr, false )
         
@@ -1129,15 +1127,16 @@
           end
         local col = reaper.GetTrackColor( dest_tr )
         if col == 0 then col = nil end
+        local cat =0
         data.send_t[#data.send_t+1] = { send_name = send_name,
                                       send_id = dest_tr_id,
                                       col = col,
-                                      pan = reaper.GetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'D_PAN' ) ,
-                                      vol = F_limit(reaper.GetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'D_VOL' ),0,4),
-                                      mute = reaper.GetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'B_MUTE' ) ,
-                                      phase = reaper.GetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'B_PHASE' ),
-                                      mono = reaper.GetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'B_MONO'),
-                                      send_mode = reaper.GetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'I_SENDMODE'), 
+                                      pan = reaper.GetTrackSendInfo_Value( data.track_pointer, cat, i-1, 'D_PAN' ) ,
+                                      vol = F_limit(reaper.GetTrackSendInfo_Value( data.track_pointer, cat, i-1, 'D_VOL' ),0,4),
+                                      mute = reaper.GetTrackSendInfo_Value( data.track_pointer, cat, i-1, 'B_MUTE' ) ,
+                                      phase = reaper.GetTrackSendInfo_Value( data.track_pointer, cat, i-1, 'B_PHASE' ),
+                                      mono = reaper.GetTrackSendInfo_Value( data.track_pointer, cat, i-1, 'B_MONO'),
+                                      send_mode = reaper.GetTrackSendInfo_Value( data.track_pointer, cat, i-1, 'I_SENDMODE'), 
                                       peakL = reaper.Track_GetPeakInfo( dest_tr, 0 ),
                                       peakR = reaper.Track_GetPeakInfo( dest_tr, 1 ),
                                       dest_GUID = reaper.GetTrackGUID( dest_tr ),
