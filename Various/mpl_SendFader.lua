@@ -1,14 +1,12 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    + doubleclick on pan and vol reset value
---    + rightclick on pan and vol set value
---    + support disable track selection following, edit default config
+--    # fix line538 error
 
 
-  vrs = '1.01'
+  vrs = '1.02'
   name = 'mpl SendFader'
   
   -- internal defaults
@@ -26,10 +24,11 @@
           
 --[[
   changelog:
-    1.01 29.01.2017
+    1.02 29.01.2017
       + doubleclick on pan and vol reset value
       + rightclick on pan and vol set value
       + support disable track selection following, edit default config
+      # fix line538 error
     1.0 29.01.2017
       + oficial release  
     1.0alpha20 29.01.2017
@@ -535,6 +534,7 @@
   --------------------------------------------------------------------    
   function GUI_pan() 
     local  x,y,w,h = F_UnzipTable(obj.b.pan_area) 
+    if not data.send_t or not data.cur_send_id or not data.send_t[data.cur_send_id] then return end
     local val = data.send_t[data.cur_send_id].pan  
       
     -- frame
