@@ -1,11 +1,14 @@
--- @description SendFader
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
+-- @description SendFader
 -- @changelog
---    + init 
+--    + doubleclick on pan and vol reset value
+--    + rightclick on pan and vol set value
+--    + support disable track selection following, edit default config
 
-  vrs = '1.0'
+
+  vrs = '1.01'
   name = 'mpl SendFader'
   
   -- internal defaults
@@ -18,10 +21,15 @@
           knob_mouse_resolution = 150,
           fader_mouse_resolution = 300,
           show_mixer = 0,
-          small_man = 0}
+          small_man = 0,
+          enable_follow_track_selection = 1}
           
 --[[
   changelog:
+    1.01 29.01.2017
+      + doubleclick on pan and vol reset value
+      + rightclick on pan and vol set value
+      + support disable track selection following, edit default config
     1.0 29.01.2017
       + oficial release  
     1.0alpha20 29.01.2017
@@ -639,6 +647,7 @@
   end
   --------------------------------------------------------------------     
   function F_Val_From_dB(dB_val) return 10^(dB_val/20) end
+  function F_dBFromVal(val) return 20*math.log(val, 10) end
   --------------------------------------------------------------------     
   function GUI_fader()   
     local val =  data.send_t[data.cur_send_id].vol    
@@ -912,11 +921,19 @@
     end
   end
   -----------------------------------------------------------------------    
-  function DEFINE_data()
-    local track =  reaper.GetSelectedTrack(0,0)
+  function DEFINE_data() local track
+    if data.enable_follow_track_selection == 1 then 
+      track =  reaper.GetSelectedTrack(0,0)
+     else
+      track = data.track_pointer0
+    end
     data.track_pointer = track
     if not track then 
-      data.cur_tr_src_name = '(no track selected)'
+      if data.enable_follow_track_selection == 0 then 
+        data.cur_tr_src_name = '> Get track'
+       else
+        data.cur_tr_src_name = '(no track selected)'
+      end
       data.cur_tr_dest_name  = '(no track selected)'
       data.send_t = {}
       return 
@@ -1116,8 +1133,17 @@
         true)--isnorm )          
   end
   -----------------------------------------------------------------------
-  function MOUSE_DC()
-    
+  function MOUSE_DC(xywh)
+    if MOUSE_match(xywh) 
+      and not mouse.last_LMB_state 
+      and mouse.LMB_state
+      and mouse.last_click_ts 
+      and clock - mouse.last_click_ts < 0.3 then
+        return true
+    end
+    if MOUSE_match(xywh) and not mouse.last_LMB_state and mouse.LMB_state then
+      mouse.last_click_ts = clock
+    end
   end
   -----------------------------------------------------------------------     
   function MOUSE_get()--notes, 
@@ -1146,6 +1172,13 @@
       mouse.dy = mouse.my - mouse.LMB_stamp_y
     end
     
+    -- click on track name
+      if data.enable_follow_track_selection == 0 then 
+        if MOUSE_button(obj.b.tr_name) then
+          data.track_pointer0 = reaper.GetSelectedTrack(0,0)
+          update_gfx = true
+        end        
+      end
     -- click on send name
       if MOUSE_button(obj.b.tr_send_name) and data.cur_send_id then
         --local send_guids
@@ -1254,6 +1287,18 @@
       
     -- vol fader
       if data.send_t and data.cur_send_id and data.send_t[data.cur_send_id] then 
+        if MOUSE_button(obj.b.fader, nil, true) then
+          ret, str = reaper.GetUserInputs( 'MPL Sendfader: set volume', 1, 'dB', math.floor(F_dBFromVal(data.send_t[data.cur_send_id].vol )*100)/100)
+          if ret and tonumber(str) then
+            local dbval = tonumber(str)
+            if dbval > -90 and dbval < 12 then
+              local out_val = F_Val_From_dB(dbval)
+              data.send_t[data.cur_send_id].vol = out_val
+              ENGINE_app_data()
+            end
+          end
+        end
+        if MOUSE_DC(obj.b.fader) then data.send_t[data.cur_send_id].vol = 1 ENGINE_app_data()  end
         if MOUSE_match(obj.b.fader) and mouse.LMB_state and not mouse.last_LMB_state then
           mouse.last_obj =        obj.b.fader.mouse_id 
           mouse.last_obj_value =   F_Fader_From_ReaVal(data.send_t[data.cur_send_id].vol) -- fader
@@ -1283,11 +1328,19 @@
       end   
          
       -- pan
-      if data.pan_active_page == 1 then
-        if MOUSE_DC(obj.b.pan_knob) then
-          msg('test')
-        end
+      if data.pan_active_page == 1 then        
         if data.send_t and data.cur_send_id and data.send_t[data.cur_send_id] then 
+        if MOUSE_button(obj.b.pan_knob, nil, true) then
+          ret, str = reaper.GetUserInputs( 'MPL Sendfader: set pan', 1, '-1...+1', data.send_t[data.cur_send_id].pan)
+          if ret and tonumber(str) then
+            local panval = tonumber(str)
+            if panval >= -1 and panval <= 1 then
+              data.send_t[data.cur_send_id].pan = panval
+              ENGINE_app_data()
+            end
+          end
+        end        
+          if MOUSE_DC(obj.b.pan_knob) then data.send_t[data.cur_send_id].pan = 0 ENGINE_app_data()  end
           if MOUSE_match(obj.b.pan_knob) and mouse.LMB_state and not mouse.last_LMB_state then
             mouse.last_obj =        obj.b.pan_knob.mouse_id 
             mouse.last_obj_value =  (data.send_t[data.cur_send_id].pan + 1 )/2 -- fader
@@ -1520,7 +1573,8 @@
       return val_out
     end   
   --------------------------------------------------------------------          
-  function Run()    
+  function Run()  
+    clock = os.clock ()
     -- save xy state 
       _, wind_x,wind_y = gfx.dock(-1,0,0,0,0)
       if not last_wind_x or not last_wind_y or last_wind_x~=wind_x or last_wind_y~=wind_y then
