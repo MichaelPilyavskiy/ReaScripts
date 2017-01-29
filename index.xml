@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="077dc99504eaab5d5836620a9ef9d342b016470a" name="MPL Scripts">
+<index version="1" commit="825df85fbcc16d1398f74f724a5c2639a20f9945" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1297,7 +1297,10 @@
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d8eafb34e940480c6fd965a91b9da5edf9db58d4/Various/mpl_Reset%20internal%20windows%20xy%20positions.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_SendFader.lua" type="script">
+    <reapack name="mpl_SendFader.lua" type="script" desc="SendFader">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
       <version name="1.0" author="MPL" time="2017-01-29T09:22:15Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e7dd25f342fe08a36847c2ba1449ab9aa2ac7a8e/Various/mpl_SendFader.lua</source>
@@ -1307,6 +1310,10 @@
 + rightclick on pan and vol set value
 + support disable track selection following, edit default config]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/077dc99504eaab5d5836620a9ef9d342b016470a/Various/mpl_SendFader.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2017-01-29T12:36:09Z">
+        <changelog><![CDATA[# fix line538 error]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/825df85fbcc16d1398f74f724a5c2639a20f9945/Various/mpl_SendFader.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
