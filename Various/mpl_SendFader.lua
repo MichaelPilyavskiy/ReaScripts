@@ -1,12 +1,13 @@
--- @version 1.11
+-- @version 1.12
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    # fix hardware sends in regular sends list
+--    # fix scaling for external input
+--    # fix error on changing track while external control
 
 
-  vrs = '1.11'
+  vrs = '1.12'
   name = 'mpl SendFader'
   
   -- internal defaults
@@ -25,6 +26,9 @@
           
 --[[
   changelog:
+    1.12 30.01.2017 
+      # fix scaling for external input  
+      # fix error on changing track while external control      
     1.11 29.01.2017  
       + Save window width and height on change      
       + doubleclick on pan and vol reset value
@@ -1152,13 +1156,15 @@
       if data.remote == 1 then 
         data.ext_vol = reaper.GetExtState( 'mpl SendFader', 'EXT_vol' )
         if not data.last_ext_vol or data.last_ext_vol ~= data.ext_vol then 
-          if tonumber(data.ext_vol) then 
-            data.send_t[data.cur_send_id].vol = tonumber(data.ext_vol) 
+          if data.ext_vol and tonumber(data.ext_vol) 
+            and data.cur_send_id 
+            and data.send_t[data.cur_send_id] then 
+            data.send_t[data.cur_send_id].vol = F_ReaVal_from_Fader(tonumber(data.ext_vol) )
             update_gfx = true 
             ENGINE_app_data()
           end           
         end
-        data.last_ext_vol = data.ext_vol       
+        data.last_ext_vol = data.ext_vol 
       end
       
   end
