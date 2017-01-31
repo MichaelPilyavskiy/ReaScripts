@@ -1,15 +1,13 @@
--- @version 1.13
+-- @version 1.14
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    + MouseWheel on fader change volume
---    + MouseWheel on pan change pan, perform when link also
---    + Support for store/load configuration to external file (settings doesn`t resetted after update)
+--    + Save docked state
 
 
   -------------------------------------------------------------------- 
-  vrs = '1.13'
+  vrs = '1.14'
   name = 'mpl SendFader'
   --------------------------------------------------------------------   
   --  internal defaults
@@ -37,10 +35,11 @@
   --------------------------------------------------------------------           
 --[[
   changelog:
-    1.13 31.01.2017
+    1.14 31.01.2017
       + MouseWheel on fader change volume, perform when link also
       + MouseWheel on pan change pan, perform when link also
       + Support for store/load configuration to external file (settings doesn`t resetted after update)
+      + Save docked state
     1.12 30.01.2017 
       # fix scaling for external input  
       # fix error on changing track while external control      
@@ -1833,21 +1832,25 @@
   function Run()  
     clock = os.clock ()
     -- save xy state 
-      _, wind_x,wind_y = gfx.dock(-1,0,0,0,0)
+      is_docked, wind_x,wind_y = gfx.dock(-1,0,0,0,0)
       wind_w, wind_h = gfx.w, gfx.h
       if 
         not last_wind_x 
         or not last_wind_y 
         or not last_wind_w 
         or not last_wind_h 
+        or not last_is_docked
         or last_wind_x~=wind_x 
         or last_wind_y~=wind_y 
         or last_wind_w~=wind_w
-        or last_wind_h~=wind_h then
+        or last_wind_h~=wind_h 
+        or last_is_docked ~= is_docked
+         then
         reaper.SetExtState( 'mpl SendFader', 'x_pos', math.floor(wind_x), true )
         reaper.SetExtState( 'mpl SendFader', 'y_pos', math.floor(wind_y), true )
         reaper.SetExtState( 'mpl SendFader', 'wind_w', math.floor(wind_w), true )
         reaper.SetExtState( 'mpl SendFader', 'wind_h', math.floor(wind_h), true )
+        reaper.SetExtState( 'mpl SendFader', 'is_docked', math.floor(is_docked), true )
         DEFINE_Objects()
         update_gfx = true
       end
@@ -1856,6 +1859,7 @@
       last_wind_y = wind_y
       last_wind_w = wind_w
       last_wind_h = wind_h
+      last_is_docked = is_docked
       
     -- upd gfx
       check_cnt =  reaper.GetProjectStateChangeCount( 0 )
@@ -1888,15 +1892,16 @@
     local y_pos = reaper.GetExtState( 'mpl SendFader', 'y_pos' )
     local w = reaper.GetExtState( 'mpl SendFader', 'wind_w' )
     local h = reaper.GetExtState( 'mpl SendFader', 'wind_h' )
+    local is_docked = reaper.GetExtState( 'mpl SendFader', 'is_docked' )
     if tonumber(w) then 
       data.wind_w = w
       data.wind_h = h
     end
     gfx.quit()
     if x_pos and x_pos ~= '' then 
-      gfx.init('', data.wind_w, data.wind_h, 0, x_pos, y_pos)
+      gfx.init('', data.wind_w, data.wind_h, is_docked, x_pos, y_pos)
      else
-      gfx.init('', data.wind_w, data.wind_h, 0)--mouse_x, mouse_y)    
+      gfx.init('', data.wind_w, data.wind_h, is_docked)--mouse_x, mouse_y)    
     end
     DEFINE_Objects()
     update_gfx = true
