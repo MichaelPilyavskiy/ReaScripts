@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c220348ca0574f229d5e3491d16fa2a481ff7808" name="MPL Scripts">
+<index version="1" commit="275baa4b909946e4be845badcbe452aefdc7d536" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1384,6 +1384,17 @@
       <version name="1.11" author="MPL" time="2017-01-29T18:11:41Z">
         <changelog><![CDATA[# fix hardware sends in regular sends list]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7b4eecce331a7d97b684ab7e7a5962f3b4ee4b71/Various/mpl_SendFader.lua</source>
+      </version>
+      <version name="1.12" author="MPL" time="2017-01-30T18:24:19Z">
+        <changelog><![CDATA[# fix scaling for external input
+# fix error on changing track while external control]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e159bd8a83869f5f3d2702d43beb563fba7984a/Various/mpl_SendFader.lua</source>
+      </version>
+      <version name="1.13" author="MPL" time="2017-01-31T04:57:29Z">
+        <changelog><![CDATA[+ MouseWheel on fader change volume
++ MouseWheel on pan change pan, perform when link also
++ Support for store/load configuration to external file (settings doesn`t resetted after update)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/275baa4b909946e4be845badcbe452aefdc7d536/Various/mpl_SendFader.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
