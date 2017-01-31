@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="275baa4b909946e4be845badcbe452aefdc7d536" name="MPL Scripts">
+<index version="1" commit="3527c9ff48c5d48a16710ac16f271487c89ac4de" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1395,6 +1395,10 @@
 + MouseWheel on pan change pan, perform when link also
 + Support for store/load configuration to external file (settings doesn`t resetted after update)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/275baa4b909946e4be845badcbe452aefdc7d536/Various/mpl_SendFader.lua</source>
+      </version>
+      <version name="1.14" author="MPL" time="2017-01-31T14:59:38Z">
+        <changelog><![CDATA[+ Save docked state]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3527c9ff48c5d48a16710ac16f271487c89ac4de/Various/mpl_SendFader.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
