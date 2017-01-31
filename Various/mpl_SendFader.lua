@@ -1,31 +1,46 @@
--- @version 1.12
+-- @version 1.13
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    # fix scaling for external input
---    # fix error on changing track while external control
+--    + MouseWheel on fader change volume
+--    + MouseWheel on pan change pan, perform when link also
+--    + Support for store/load configuration to external file (settings doesn`t resetted after update)
 
 
-  vrs = '1.12'
+  -------------------------------------------------------------------- 
+  vrs = '1.13'
   name = 'mpl SendFader'
+  --------------------------------------------------------------------   
+  --  internal defaults
+  --  1.13+ Don`t edit values here, edit configuration instead (see script path with mpl_SendFader_config.ini)
   
-  -- internal defaults
-  data = {fader_coeff = 50, -- scale warp
+  function Data_defaults()
+    local data_default = {
+          fader_coeff = 50, -- scale warp
           fader_scale_lim = 0.8, -- zero height 
           pan_active_page = 1, -- 1: pan, 2: pre/postEQ
           link = 0, -- 0: off , 1: on
-          wind_w = 150, -- default gui width
-          wind_h0 = 450, -- default gui height
+          wind_w = 150, -- default GUI width
+          wind_h0 = 450, -- default GUI height
           knob_mouse_resolution = 150,
           fader_mouse_resolution = 300,
-          show_mixer = 0,
-          small_man = 0,
-          enable_follow_track_selection = 1,
-          remote = 0}
-          
+          show_mixer = 0, -- 0: off , 1: on
+          small_man = 0, -- 0: small manual , 1: full width fader
+          enable_follow_track_selection = 1, -- 0: track selected/store by click on track name area , 1: on
+          remote = 0, -- 0: disable , 1: enable
+          incr_vol_wheel = 0.02,  -- wheel resolution for volume fader
+          incr_pan_wheel = 0.02   -- wheel resolution for pan knob
+          }
+    return data_default
+  end
+  --------------------------------------------------------------------           
 --[[
   changelog:
+    1.13 31.01.2017
+      + MouseWheel on fader change volume, perform when link also
+      + MouseWheel on pan change pan, perform when link also
+      + Support for store/load configuration to external file (settings doesn`t resetted after update)
     1.12 30.01.2017 
       # fix scaling for external input  
       # fix error on changing track while external control      
@@ -1441,41 +1456,20 @@
       
     -- vol fader
       if data.send_t and data.cur_send_id and data.send_t[data.cur_send_id] then 
-        if MOUSE_button(obj.b.fader, nil, true) then
-          ret, str = reaper.GetUserInputs( 'MPL Sendfader: set volume', 1, 'dB', math.floor(F_dBFromVal(data.send_t[data.cur_send_id].vol )*100)/100)
-          if ret and tonumber(str) then
-            local dbval = tonumber(str)
-            if dbval > -90 and dbval < 12 then
-              local out_val = F_Val_From_dB(dbval)
-              if data.link == 1 then
-                for send_i = 1, #data.send_t do data.send_t[send_i].vol = out_val end
-               else
-                data.send_t[data.cur_send_id].vol = out_val
-              end
-              ENGINE_app_data()
-            end
-          end
-        end
-        if MOUSE_DC(obj.b.fader) then 
-          if data.link == 1 then
-            for send_i = 1, #data.send_t do data.send_t[send_i].vol = 1 end
-           else
-            data.send_t[data.cur_send_id].vol = 1  
-          end 
-          ENGINE_app_data()
-        end
-        if MOUSE_match(obj.b.fader) and mouse.LMB_state and not mouse.last_LMB_state then
-          mouse.last_obj =        obj.b.fader.mouse_id 
-          mouse.last_obj_value =   F_Fader_From_ReaVal(data.send_t[data.cur_send_id].vol) -- fader
-          mouse.last_stored_send_t = data.send_t       
-        end
-        if mouse.last_obj == obj.b.fader.mouse_id  and mouse.LMB_state and mouse.last_obj_value then     
-          local new_val_fader = mouse.last_obj_value  - mouse.dy/data.fader_mouse_resolution -- fader
-          if data.link == 1 then          
-            local diff = new_val_fader - mouse.last_obj_value            
-            if diff ~= 0 and diff < 1  then 
-              diff_coeff = diff   / F_limit(mouse.last_obj_value ,0.00001, 6)
-              data.send_t[data.cur_send_id].vol = F_ReaVal_from_Fader(new_val_fader)  -- reaval 
+        -- wheel
+          if mouse.wheel_trig~= 0 and MOUSE_match(obj.b.fader) then
+            mouse.last_obj =        obj.b.fader.mouse_id 
+            mouse.last_obj_value =   F_Fader_From_ReaVal(data.send_t[data.cur_send_id].vol) -- fader
+            mouse.last_stored_send_t = data.send_t
+            local new_val_fader
+            if mouse.wheel_trig > 0 then               
+              new_val_fader =  F_limit(mouse.last_obj_value + data.incr_vol_wheel,0,1)
+             else
+              new_val_fader =  F_limit(mouse.last_obj_value - data.incr_vol_wheel,0,1)
+            end            
+            if data.link == 1 then
+              local diff = new_val_fader - mouse.last_obj_value            
+              local diff_coeff = diff   / F_limit(mouse.last_obj_value ,0.00001, 6)              
               for send_i = 1, #data.send_t do
                 if send_i ~= data.cur_send_id then   
                   old_val_fader = F_Fader_From_ReaVal(mouse.last_stored_send_t[send_i].vol) 
@@ -1483,11 +1477,61 @@
                   out_val = F_ReaVal_from_Fader(new_val_fader1)                  
                   data.send_t[send_i].vol = out_val
                 end
+              end               
+            end 
+            data.send_t[data.cur_send_id].vol = F_ReaVal_from_Fader(new_val_fader)  -- reaval     
+            ENGINE_app_data()
+          end
+        -- rightclick
+          if MOUSE_button(obj.b.fader, nil, true) then
+            ret, str = reaper.GetUserInputs( 'MPL Sendfader: set volume', 1, 'dB', math.floor(F_dBFromVal(data.send_t[data.cur_send_id].vol )*100)/100)
+            if ret and tonumber(str) then
+              local dbval = tonumber(str)
+              if dbval > -90 and dbval < 12 then
+                local out_val = F_Val_From_dB(dbval)
+                if data.link == 1 then
+                  for send_i = 1, #data.send_t do data.send_t[send_i].vol = out_val end
+                 else
+                  data.send_t[data.cur_send_id].vol = out_val
+                end
+                ENGINE_app_data()
               end
-            end            
-           else
-            data.send_t[data.cur_send_id].vol = F_ReaVal_from_Fader(new_val_fader)            
-          end          
+            end
+          end
+        -- doubleclick
+          if MOUSE_DC(obj.b.fader) then 
+            if data.link == 1 then
+              for send_i = 1, #data.send_t do data.send_t[send_i].vol = 1 end
+             else
+              data.send_t[data.cur_send_id].vol = 1  
+            end 
+            ENGINE_app_data()
+          end
+        -- left drag
+          if MOUSE_match(obj.b.fader) and mouse.LMB_state and not mouse.last_LMB_state then
+            mouse.last_obj =        obj.b.fader.mouse_id 
+            mouse.last_obj_value =   F_Fader_From_ReaVal(data.send_t[data.cur_send_id].vol) -- fader
+            mouse.last_stored_send_t = data.send_t       
+          end
+          if mouse.last_obj == obj.b.fader.mouse_id  and mouse.LMB_state and mouse.last_obj_value then     
+            local new_val_fader = mouse.last_obj_value  - mouse.dy/data.fader_mouse_resolution -- fader
+            if data.link == 1 then          
+              local diff = new_val_fader - mouse.last_obj_value            
+              if diff ~= 0 and diff < 1  then 
+                diff_coeff = diff   / F_limit(mouse.last_obj_value ,0.00001, 6)
+                data.send_t[data.cur_send_id].vol = F_ReaVal_from_Fader(new_val_fader)  -- reaval 
+                for send_i = 1, #data.send_t do
+                  if send_i ~= data.cur_send_id then   
+                    old_val_fader = F_Fader_From_ReaVal(mouse.last_stored_send_t[send_i].vol) 
+                    new_val_fader1 = F_limit(old_val_fader * (1 + diff_coeff),0,1)
+                    out_val = F_ReaVal_from_Fader(new_val_fader1)                  
+                    data.send_t[send_i].vol = out_val
+                  end
+                end
+              end            
+             else
+              data.send_t[data.cur_send_id].vol = F_ReaVal_from_Fader(new_val_fader)            
+            end          
           ENGINE_app_data()
         end  
       end   
@@ -1495,34 +1539,17 @@
       -- pan
       if data.pan_active_page == 1 then        
         if data.send_t and data.cur_send_id and data.send_t[data.cur_send_id] then 
-        if MOUSE_button(obj.b.pan_knob, nil, true) then
-          ret, str = reaper.GetUserInputs( 'MPL Sendfader: set pan', 1, '-1...+1', data.send_t[data.cur_send_id].pan)
-          if ret and tonumber(str) then
-            local panval = tonumber(str)
-            if panval >= -1 and panval <= 1 then
-              if data.link == 1 then
-                for send_i = 1, #data.send_t do data.send_t[send_i].pan = panval end
-               else
-                data.send_t[data.cur_send_id].pan = panval
-              end
-              ENGINE_app_data()
-            end
-          end
-        end        
-          if MOUSE_DC(obj.b.pan_knob) then 
-            if data.link == 1 then
-              for send_i = 1, #data.send_t do data.send_t[send_i].pan = 0 end
-             else
-              data.send_t[data.cur_send_id].pan = 0  
-            end 
-          end
-          if MOUSE_match(obj.b.pan_knob) and mouse.LMB_state and not mouse.last_LMB_state then
+          -- wheel
+          if MOUSE_match(obj.b.pan_knob) and mouse.wheel_trig~= 0  then
             mouse.last_obj =        obj.b.pan_knob.mouse_id 
             mouse.last_obj_value =  (data.send_t[data.cur_send_id].pan + 1 )/2 -- fader
             mouse.last_stored_send_t = data.send_t 
-          end
-          if mouse.last_obj == obj.b.pan_knob.mouse_id  and mouse.LMB_state then 
-            local new_val_fader = mouse.last_obj_value  - mouse.dy/data.knob_mouse_resolution            
+            local new_val_fader
+            if mouse.wheel_trig > 0 then               
+              new_val_fader =  F_limit(mouse.last_obj_value + data.incr_pan_wheel,0,1) 
+             else
+              new_val_fader =  F_limit(mouse.last_obj_value - data.incr_pan_wheel,0,1)
+            end 
             if data.link == 1 then
               local diff = new_val_fader - mouse.last_obj_value            
               if diff ~= 0 and diff < 1 and new_val_fader ~= 0  then
@@ -1540,7 +1567,56 @@
               data.send_t[data.cur_send_id].pan = F_limit(new_val_fader*2-1,-1,1)
             end
             ENGINE_app_data()
-          end  
+          end          
+          --right click
+            if MOUSE_button(obj.b.pan_knob, nil, true) then
+              ret, str = reaper.GetUserInputs( 'MPL Sendfader: set pan', 1, '-1...+1', data.send_t[data.cur_send_id].pan)
+              if ret and tonumber(str) then
+                local panval = tonumber(str)
+                if panval >= -1 and panval <= 1 then
+                  if data.link == 1 then
+                    for send_i = 1, #data.send_t do data.send_t[send_i].pan = panval end
+                   else
+                    data.send_t[data.cur_send_id].pan = panval
+                  end
+                  ENGINE_app_data()
+                end
+              end
+            end   
+          -- doubleckick     
+            if MOUSE_DC(obj.b.pan_knob) then 
+              if data.link == 1 then
+                for send_i = 1, #data.send_t do data.send_t[send_i].pan = 0 end
+               else
+                data.send_t[data.cur_send_id].pan = 0  
+              end 
+            end
+          -- left drag
+            if MOUSE_match(obj.b.pan_knob) and mouse.LMB_state and not mouse.last_LMB_state then
+              mouse.last_obj =        obj.b.pan_knob.mouse_id 
+              mouse.last_obj_value =  (data.send_t[data.cur_send_id].pan + 1 )/2 -- fader
+              mouse.last_stored_send_t = data.send_t 
+            end
+            if mouse.last_obj == obj.b.pan_knob.mouse_id  and mouse.LMB_state then 
+              local new_val_fader = mouse.last_obj_value  - mouse.dy/data.knob_mouse_resolution            
+              if data.link == 1 then
+                local diff = new_val_fader - mouse.last_obj_value            
+                if diff ~= 0 and diff < 1 and new_val_fader ~= 0  then
+                  diff_coeff = diff   / F_limit(mouse.last_obj_value,0.00001, 6)
+                  data.send_t[data.cur_send_id].pan = F_limit(new_val_fader*2-1,-1,1)
+                  for send_i = 1, #data.send_t do
+                    if send_i ~= data.cur_send_id then   
+                      old_val_fader = (mouse.last_stored_send_t[send_i].pan+1)/2 -- fader
+                      new_val_fader1 = F_limit(old_val_fader * (1 + diff_coeff),0,1)
+                      data.send_t[send_i].pan = new_val_fader1*2-1
+                    end
+                  end
+                end                  
+               else
+                data.send_t[data.cur_send_id].pan = F_limit(new_val_fader*2-1,-1,1)
+              end
+              ENGINE_app_data()
+            end  
         end
       end 
          
@@ -1840,12 +1916,75 @@
 
     local ext_guid = reaper.GetExtState( 'mpl SendFader', 'srcTrack_GUID' )
     if ext_guid and ext_guid ~='' then data.ext_srctrGUID =ext_guid end
-        
+  end 
+  ------------------------------------------------------------------    
+  function Data_LoadSection(def_data, data, ext_name, config_path)
+      for key in pairs(def_data) do
+        local _, stringOut = reaper.BR_Win32_GetPrivateProfileString( ext_name, key, def_data[key], config_path )
+        if stringOut ~= ''  then
+          if tonumber(stringOut) then stringOut = tonumber(stringOut) end
+          data[key] = stringOut
+          --data[key] = def_data[key] -- FOR RESET DEBUG
+          reaper.BR_Win32_WritePrivateProfileString( ext_name, key, data[key], config_path )
+         else 
+          data[key] = def_data[key]
+          reaper.BR_Win32_WritePrivateProfileString( ext_name, key, def_data[key], config_path )
+        end
+      end
+  end 
+  --------------------------------------------------------------------   
+  function Data_InitContent()
+    return
+[[
+// configuration for MPL SendFader
+
+[Info]
+
+// Please edit global variables only if you sure what you doing
+// You can get values meaning from script itself (below ReaPack header)
+[Global_variables]
+]]
+  end  
+  --------------------------------------------------------------------     
+  function Data_LoadConfig()
+    local def_data = Data_defaults()
     
+    -- get config path
+      local config_path = debug.getinfo(2, "S").source:sub(2):sub(0,-5)..'_config.ini' 
+      
+    -- check default file
+      file = io.open(config_path, 'r')
+      if not file then
+        file = io.open(config_path, 'w')
+        def_content = Data_InitContent()
+        file:write(def_content)
+        file.close()
+      end
+      file:close()
+      
+    -- Load data section
+      Data_LoadSection(def_data, data, 'Global_variables', config_path)
   end
-  -------------------------------------------------------------------- 
+  ------------------------------------------------------------------ 
+  function Data_Update()
+    local def_data = Data_defaults()
+    local config_path = debug.getinfo(2, "S").source:sub(2):sub(0,-5)..'_config.ini' 
+    local d_state, win_pos_x,win_pos_y = gfx.dock(-1,0,0)
+    data.window_x, data.window_y, data.window_w, data.window_h, data.d_state = win_pos_x,win_pos_y, gfx.w, gfx.h, d_state
+    for key in pairs(def_data) do 
+      if type(data[key])~= 'table' 
+        then 
+        reaper.BR_Win32_WritePrivateProfileString( 'Global_variables', key, data[key], config_path )  
+      end 
+    end
+    reaper.BR_Win32_WritePrivateProfileString( 'Info', 'vrs', vrs, config_path )  
+  end  
+  --------------------------------------------------------------------     
   EXT_load()
   mouse = {}
   f_run = true
+  data = {}
+  Data_LoadConfig()
+  Data_Update()
   GUI_init_gfx()
   Run()  
