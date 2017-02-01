@@ -1,40 +1,19 @@
--- @version 1.14
+-- @version 1.15
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    + Save docked state
+--    + Support for writing envelopes
 
 
   -------------------------------------------------------------------- 
-  vrs = '1.14'
+  vrs = '1.15'
   name = 'mpl SendFader'
-  --------------------------------------------------------------------   
-  --  internal defaults
-  --  1.13+ Don`t edit values here, edit configuration instead (see script path with mpl_SendFader_config.ini)
-  
-  function Data_defaults()
-    local data_default = {
-          fader_coeff = 50, -- scale warp
-          fader_scale_lim = 0.8, -- zero height 
-          pan_active_page = 1, -- 1: pan, 2: pre/postEQ
-          link = 0, -- 0: off , 1: on
-          wind_w = 150, -- default GUI width
-          wind_h0 = 450, -- default GUI height
-          knob_mouse_resolution = 150,
-          fader_mouse_resolution = 300,
-          show_mixer = 0, -- 0: off , 1: on
-          small_man = 0, -- 0: small manual , 1: full width fader
-          enable_follow_track_selection = 1, -- 0: track selected/store by click on track name area , 1: on
-          remote = 0, -- 0: disable , 1: enable
-          incr_vol_wheel = 0.02,  -- wheel resolution for volume fader
-          incr_pan_wheel = 0.02   -- wheel resolution for pan knob
-          }
-    return data_default
-  end
   --------------------------------------------------------------------           
 --[[
   changelog:
+    1.15 01.02.2017
+      + Support for writing envelopes
     1.14 31.01.2017
       + MouseWheel on fader change volume, perform when link also
       + MouseWheel on pan change pan, perform when link also
@@ -1793,8 +1772,11 @@
         reaper.SetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'B_PHASE', data.send_t[i].phase )
         reaper.SetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'B_MONO', data.send_t[i].mono ) 
         reaper.SetTrackSendInfo_Value( data.track_pointer, 0, i-1, 'I_SENDMODE', data.send_t[i].send_mode )       
+        local trackid = reaper.CSurf_TrackToID( data.track_pointer, false )
+        reaper.CSurf_OnSendVolumeChange( data.track_pointer, i-1, vol, false )
       end
       update_gfx = true
+      reaper.UpdateArrange()
     end
   end
   -----------------------------------------------------------------------    
@@ -1984,6 +1966,29 @@
     end
     reaper.BR_Win32_WritePrivateProfileString( 'Info', 'vrs', vrs, config_path )  
   end  
+  --------------------------------------------------------------------     
+  --  internal defaults
+  --  1.13+ Don`t edit values here, edit configuration instead (see script path with mpl_SendFader_config.ini)
+  
+  function Data_defaults()
+    local data_default = {
+          fader_coeff = 50, -- scale warp
+          fader_scale_lim = 0.8, -- zero height 
+          pan_active_page = 1, -- 1: pan, 2: pre/postEQ
+          link = 0, -- 0: off , 1: on
+          wind_w = 150, -- default GUI width
+          wind_h0 = 450, -- default GUI height
+          knob_mouse_resolution = 150,
+          fader_mouse_resolution = 300,
+          show_mixer = 0, -- 0: off , 1: on
+          small_man = 0, -- 0: small manual , 1: full width fader
+          enable_follow_track_selection = 1, -- 0: track selected/store by click on track name area , 1: on
+          remote = 0, -- 0: disable , 1: enable
+          incr_vol_wheel = 0.02,  -- wheel resolution for volume fader
+          incr_pan_wheel = 0.02   -- wheel resolution for pan knob
+          }
+    return data_default
+  end
   --------------------------------------------------------------------     
   EXT_load()
   mouse = {}
