@@ -1,17 +1,19 @@
--- @version 1.15
+-- @version 1.16
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    + Support for writing envelopes
+--    # not sure it is SendFader bug but hope fix adding/renaming ReaEQ instance for send created before SendFader
 
 
   -------------------------------------------------------------------- 
-  vrs = '1.15'
+  vrs = '1.16'
   name = 'mpl SendFader'
   --------------------------------------------------------------------           
 --[[
   changelog:
+    1.16 03.02.2017
+      # not sure it is SendFader bug but hope fix adding/renaming ReaEQ instance for send created before SendFader
     1.15 01.02.2017
       + Support for writing envelopes
     1.14 31.01.2017
@@ -1220,6 +1222,7 @@
       local _, chunk = reaper.GetTrackStateChunk( track, '', false )
       local t = {} for line in chunk:gmatch("[^\r\n]+") do t[#t+1] = line end
     -- find edit line
+      local search
       for i = #t, 1, -1 do
         local t_check = t[i]:gsub('-','')
         if t_check:find(FX_GUID) then search = true  end
@@ -1231,6 +1234,7 @@
       end
     -- parse line
       if not edited_line then return end
+      if not edited_line:find('ReaEQ') then return end
       local t1 = {}
       for word in edited_line:gmatch('[%S]+') do t1[#t1+1] = word end
       t2 = {}
@@ -1245,7 +1249,9 @@
       
       local out_line = table.concat(t2,' ')
       t[edited_line_id] = '<'..out_line
-      reaper.SetTrackStateChunk( track, table.concat(t,'\n'), false )
+      out_chunk = table.concat(t,'\n')
+      --msg(out_chunk)
+      reaper.SetTrackStateChunk( track, out_chunk, false )
       reaper.UpdateArrange()
   end 
   -----------------------------------------------------------------------   
