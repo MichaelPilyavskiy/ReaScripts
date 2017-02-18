@@ -4,7 +4,7 @@
 This repository is part of the ReaPack [REAPER extension](http://reapack.com/).
 This means that you don't need to download and install the scripts manually anymore, you can simply use ReaPack to batch download all scripts or scripts of your choice right from REAPER!
 
-##Some stuff here you should firstly pay attension to:
+##Some stuff here you should firstly pay attention to:
 - Align takes - SyncroArts Vocalign analog, use only stretch markers and support aligning unlimited number of takes simultaneously
 - Isomorphic keyboard - special virtual keyboard for REAPER, support custom layouts/scales and microtones
 - Mapping Panel - advanced macro control beetween plugin parameters in project, support multiple linking, formulas and fixed auto learn macro controls to controller
