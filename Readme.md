@@ -26,4 +26,4 @@ This means that you don't need to download and install the scripts manually anym
 - [X-Raym](http://forum.cockos.com/member.php?u=58284), [spk77](http://forum.cockos.com/member.php?u=49553), [Breeder](http://forum.cockos.com/member.php?u=27094), [heda](http://forum.cockos.com/member.php?u=47822), [Xenakios](http://forum.cockos.com/member.php?u=3602)
 
 ##Donations:
-- [PayPal](http://paypal.me/donate2mpl), I`ll be very thankful to you even for a small donate
+- [PayPal](http://paypal.me/donate2mpl)
