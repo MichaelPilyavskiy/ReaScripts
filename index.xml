@@ -1442,27 +1442,37 @@
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Scripts for {\field{\*\fldinst{HYPERLINK "http://reaper.fm"}}{\fldrslt{\ul
+{\pard \ql \f0 \sa180 \li0 \fi0 ##Scripts for {\field{\*\fldinst{HYPERLINK "http://reaper.fm"}}{\fldrslt{\ul
 Cockos REAPER
 }}}
  written by Michael Pilyavskiy\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 ReaPack Download Instructions\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 This repository is part of the ReaPack {\field{\*\fldinst{HYPERLINK "http://www.extremraym.com/reapack-extension/"}}{\fldrslt{\ul
+{\pard \ql \f0 \sa180 \li0 \fi0 ##ReaPack Download Instructions This repository is part of the ReaPack {\field{\*\fldinst{HYPERLINK "http://reapack.com/"}}{\fldrslt{\ul
 REAPER extension
 }}}
 . This means that you don't need to download and install the scripts manually anymore, you can simply use ReaPack to batch download all scripts or scripts of your choice right from REAPER!\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Feature requests and bug reports:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ##Some stuff here you should firstly pay attention to:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Align takes - SyncroArts Vocalign analog, use only stretch markers and support aligning unlimited number of takes simultaneously\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Isomorphic keyboard - special virtual keyboard for REAPER, support custom layouts/scales and microtones\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mapping Panel - advanced macro control beetween plugin parameters in project, support multiple linking, formulas and fixed auto learn macro controls to controller\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Quantize Tool - advanced groove quantisation of item positions, notes, stretch markers or envelope points to each other, also support SWS grooves\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Sendfader - adveanced sends control like the ProTools Aux\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab StretchMarkerGuard - algorithm for transient protection peak-based stretch markers\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ##Feature requests and bug reports:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/MichaelPilyavskiy/ReaScripts/issues"}}{\fldrslt{\ul
 GitHub Issues
 }}}
 \sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contacts:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ##Contacts:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://vk.com/michael_pilyavskiy"}}{\fldrslt{\ul
 VK
 }}}
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://soundcloud.com/mp57"}}{\fldrslt{\ul
 SoundCloud
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://promodj.com/michaelpilyavskiy"}}{\fldrslt{\ul
+PromoDJ
 }}}
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=70694"}}{\fldrslt{\ul
@@ -1472,17 +1482,8 @@ Cockos Forum
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://rmmedia.ru/members/69811/"}}{\fldrslt{\ul
 RMM forum
 }}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://promodj.com/michaelpilyavskiy"}}{\fldrslt{\ul
-PromoDJ
-}}}
 \sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Donations:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://paypal.me/donate2mpl"}}{\fldrslt{\ul
-PayPal
-}}}
-\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 \b \fs32 Contributors:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ##Contributors:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=58284"}}{\fldrslt{\ul
 X-Raym
 }}}
@@ -1497,6 +1498,11 @@ heda
 }}}
 , {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=3602"}}{\fldrslt{\ul
 Xenakios
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 ##Donations:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://paypal.me/donate2mpl"}}{\fldrslt{\ul
+PayPal
 }}}
 \sa180\par}
 }
