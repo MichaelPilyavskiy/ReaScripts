@@ -5,12 +5,12 @@ This repository is part of the ReaPack [REAPER extension](http://reapack.com/).
 This means that you don't need to download and install the scripts manually anymore, you can simply use ReaPack to batch download all scripts or scripts of your choice right from REAPER!
 
 ##Some stuff here you should firstly pay attention to:
-- Align takes - SyncroArts Vocalign analog, use only stretch markers and support aligning unlimited number of takes simultaneously
-- Isomorphic keyboard - special virtual keyboard for REAPER, support custom layouts/scales and microtones
-- Mapping Panel - advanced macro control beetween plugin parameters in project, support multiple linking, formulas and fixed auto learn macro controls to controller
-- Quantize Tool - advanced groove quantisation of item positions, notes, stretch markers or envelope points to each other, also support SWS grooves
-- Sendfader - adveanced sends control like the ProTools Aux
-- StretchMarkerGuard - algorithm for transient protection peak-based stretch markers
+- [Align takes](http://forum.cockos.com/showthread.php?t=179544) - SyncroArts Vocalign analog, use only stretch markers and support aligning unlimited number of takes simultaneously
+- [Isomorphic keyboard](http://forums.cockos.com/showthread.php?p=1781599) - special virtual keyboard for REAPER, support custom layouts/scales and microtones
+- [Mapping Panel](http://forum.cockos.com/showthread.php?t=170044) - advanced macro control beetween plugin parameters in project, support multiple linking, formulas and fixed auto learn macro controls to controller
+- [Quantize Tool](http://forum.cockos.com/showthread.php?t=165672) - advanced groove quantisation of item positions, notes, stretch markers or envelope points to each other, also support SWS grooves
+- [Sendfader](http://forum.cockos.com/showthread.php?t=187138) - adveanced sends control like the ProTools Aux
+- [StretchMarkerGuard](http://forum.cockos.com/showthread.php?p=1729864) - algorithm for transient protection peak-based stretch markers
 
 ##Feature requests and bug reports:
 - [GitHub Issues](https://github.com/MichaelPilyavskiy/ReaScripts/issues)
