@@ -1451,12 +1451,30 @@ REAPER extension
 }}}
 . This means that you don't need to download and install the scripts manually anymore, you can simply use ReaPack to batch download all scripts or scripts of your choice right from REAPER!\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 ##Some stuff here you should firstly pay attention to:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Align takes - SyncroArts Vocalign analog, use only stretch markers and support aligning unlimited number of takes simultaneously\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Isomorphic keyboard - special virtual keyboard for REAPER, support custom layouts/scales and microtones\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Mapping Panel - advanced macro control beetween plugin parameters in project, support multiple linking, formulas and fixed auto learn macro controls to controller\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Quantize Tool - advanced groove quantisation of item positions, notes, stretch markers or envelope points to each other, also support SWS grooves\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab Sendfader - adveanced sends control like the ProTools Aux\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab StretchMarkerGuard - algorithm for transient protection peak-based stretch markers\sa180\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?t=179544"}}{\fldrslt{\ul
+Align takes
+}}}
+ - SyncroArts Vocalign analog, use only stretch markers and support aligning unlimited number of takes simultaneously\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forums.cockos.com/showthread.php?p=1781599"}}{\fldrslt{\ul
+Isomorphic keyboard
+}}}
+ - special virtual keyboard for REAPER, support custom layouts/scales and microtones\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?t=170044"}}{\fldrslt{\ul
+Mapping Panel
+}}}
+ - advanced macro control beetween plugin parameters in project, support multiple linking, formulas and fixed auto learn macro controls to controller\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?t=165672"}}{\fldrslt{\ul
+Quantize Tool
+}}}
+ - advanced groove quantisation of item positions, notes, stretch markers or envelope points to each other, also support SWS grooves\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?t=187138"}}{\fldrslt{\ul
+Sendfader
+}}}
+ - adveanced sends control like the ProTools Aux\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?p=1729864"}}{\fldrslt{\ul
+StretchMarkerGuard
+}}}
+ - algorithm for transient protection peak-based stretch markers\sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 ##Feature requests and bug reports:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/MichaelPilyavskiy/ReaScripts/issues"}}{\fldrslt{\ul
 GitHub Issues
