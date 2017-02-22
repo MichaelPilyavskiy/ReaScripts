@@ -1,35 +1,51 @@
---[[
-   * ReaScript Name:Float instrument relevant to MIDI editor
-   * Lua script for Cockos REAPER
-   * Author: Michael Pilyavskiy (mpl)
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
-  
-script_title = 'Float instrument relevant to MIDI Editor'
+-- @version 1.1
+-- @author MPL
+-- @description Float instrument relevant to MIDI editor
+-- @website http://forum.cockos.com/member.php?u=70694
+-- @changelog
+--    + Search instruments in send destination tracks
 
-reaper.Undo_BeginBlock()
-act_editor = reaper.MIDIEditor_GetActive()
-if act_editor ~= nil then
-  take = reaper.MIDIEditor_GetTake(act_editor)
-  if take ~= nil then
-    take_track = reaper.GetMediaItemTake_Track(take)
-    vsti_id = reaper.TrackFX_GetInstrument(take_track)
-    if vsti_id ~= nil then 
-      reaper.TrackFX_Show(take_track, vsti_id, 3) -- float
-    end
-    repeat
-      parent_track = reaper.GetParentTrack(take_track)
-      if parent_track ~= nil then
-        vsti_id = reaper.TrackFX_GetInstrument(parent_track)
-        if vsti_id ~= nil then 
-          reaper.TrackFX_Show(parent_track, vsti_id, 3) -- float
-        end
-        take_track = parent_track
-      end
-    until parent_track == nil    
+
+function check_instr(track)
+  vsti_id = reaper.TrackFX_GetInstrument(track)
+  if vsti_id and vsti_id >= 0 then 
+    reaper.TrackFX_Show(track, vsti_id, 3) -- float
+    return true
   end
 end
 
+function main()
+  local act_editor = reaper.MIDIEditor_GetActive()
+  if not act_editor then return end
+  local take = reaper.MIDIEditor_GetTake(act_editor)
+  if not take then return end
+  local take_track = reaper.GetMediaItemTake_Track(take)
+  
+  -- search vsti on parent track
+    ret1 = check_instr(take_track )
+    if ret1 then return end
+    
+  -- search vsti on tree
+    repeat
+      parent_track = reaper.GetParentTrack(take_track)
+      if parent_track ~= nil then
+        ret2 = check_instr(parent_track )
+        if ret2 then return end
+        take_track = parent_track
+      end
+    until parent_track == nil    
+    
+  -- search sends
+    cnt_sends = reaper.GetTrackNumSends( take_track, 0)
+    for sendidx = 1,  cnt_sends do
+      dest_tr = reaper.BR_GetMediaTrackSendInfo_Track( take_track, 0, sendidx-1, 1 )
+      ret3 = check_instr(dest_tr )
+      if ret3 then return  end
+    end
+  
+end
+
+script_title = 'Float instrument relevant to MIDI Editor'
+reaper.Undo_BeginBlock()
+main()
 reaper.Undo_EndBlock(script_title, 1)
