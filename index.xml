@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="438f05851f7b82ced136391f9f676f9e27424ecf" name="MPL Scripts">
+<index version="1" commit="93999c7e93d0aa626e7546e128766560c73abae6" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -632,8 +632,15 @@
       </version>
     </reapack>
     <reapack name="mpl_Float instrument relevant to MIDI editor.lua" type="script" desc="Float instrument relevant to MIDI editor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-07-23T14:23:24Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e738ac738feb5b921e077a7954b2f496f8650737/MIDI%20editor/mpl_Float%20instrument%20relevant%20to%20MIDI%20editor.lua</source>
+      </version>
+      <version name="1.1" author="MPL" time="2017-02-22T20:21:25Z">
+        <changelog><![CDATA[+ Search instruments in send destination tracks]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/93999c7e93d0aa626e7546e128766560c73abae6/MIDI%20editor/mpl_Float%20instrument%20relevant%20to%20MIDI%20editor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Paste selected CC.lua" type="script" desc="Paste selected CC">
