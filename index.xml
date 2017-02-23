@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1dfef626b918ab12fcdaf62dd335ff1b5df25daf" name="MPL Scripts">
+<index version="1" commit="93060cc97f63803065775298d68e33fb58ec3e33" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1462,6 +1462,10 @@
       <version name="1.21" author="MPL" time="2017-02-23T13:59:39Z">
         <changelog><![CDATA[+ Support for external change active send, see Remote menu + related script]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e5f034ef3df6ec68d713f50031ff3e437baf16b2/Various/mpl_SendFader.lua</source>
+      </version>
+      <version name="1.22" author="MPL" time="2017-02-23T18:19:01Z">
+        <changelog><![CDATA[# fix line1421, thanks J Reverb]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/93060cc97f63803065775298d68e33fb58ec3e33/Various/mpl_SendFader.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
