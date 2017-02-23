@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="93999c7e93d0aa626e7546e128766560c73abae6" name="MPL Scripts">
+<index version="1" commit="2c07bf557a275bb36c0d877b2c6249046e861792" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1428,6 +1428,14 @@
       <version name="1.16" author="MPL" time="2017-02-03T02:36:28Z">
         <changelog><![CDATA[# not sure it is SendFader bug but hope fix adding/renaming ReaEQ instance for send created before SendFader]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/33bb1b6ef6629492640d04703674960b071c6e7a/Various/mpl_SendFader.lua</source>
+      </version>
+      <version name="1.20" author="MPL" time="2017-02-23T11:06:40Z">
+        <changelog><![CDATA[+ Support for hardware sends
++ Soft takeover for remote mode, roght click on 'Remove' to enable ST 
++ Store mixer visibility
++ Store remote mode
++ Store ST mode]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2c07bf557a275bb36c0d877b2c6249046e861792/Various/mpl_SendFader.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
