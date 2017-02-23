@@ -1,10 +1,17 @@
--- @version 1.1
+-- @version 1.2
 -- @author MPL
 -- @description Float instrument relevant to MIDI editor
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    + Search instruments in send destination tracks
+--    # fix send instrument lookup (http://github.com/MichaelPilyavskiy/ReaScripts/issues/4)
 
+
+--[[
+    1.2 23.02.2017
+      # fix send instrument lookup (http://github.com/MichaelPilyavskiy/ReaScripts/issues/4)
+    1.1 22.02.2017
+      + Search instruments in send destination tracks
+]]
 
 function check_instr(track)
   vsti_id = reaper.TrackFX_GetInstrument(track)
@@ -26,12 +33,13 @@ function main()
     if ret1 then return end
     
   -- search vsti on tree
+    take_track2 = take_track
     repeat
-      parent_track = reaper.GetParentTrack(take_track)
+      parent_track = reaper.GetParentTrack(take_track2)
       if parent_track ~= nil then
         ret2 = check_instr(parent_track )
         if ret2 then return end
-        take_track = parent_track
+        take_track2 = parent_track
       end
     until parent_track == nil    
     
