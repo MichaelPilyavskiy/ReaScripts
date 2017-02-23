@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2c07bf557a275bb36c0d877b2c6249046e861792" name="MPL Scripts">
+<index version="1" commit="042a07f6f8bf34479bb88feea17206e73e356857" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -670,6 +670,15 @@
         <changelog><![CDATA[# refactoring for using PPQ-ProjTime-Beats convertion
 + Undo History point]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/438f05851f7b82ced136391f9f676f9e27424ecf/MIDI%20editor/mpl_Quantize%20selected%20MIDI%20notes%20ends.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Reset pitchbend at mouse cursor.lua" type="script" desc="Reset pitchbend at mouse cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-02-23T12:11:35Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/042a07f6f8bf34479bb88feea17206e73e356857/MIDI%20editor/mpl_Reset%20pitchbend%20at%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Select high pitch MIDI notes.lua" type="script" desc="Select high pitch MIDI notes">
