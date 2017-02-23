@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="042a07f6f8bf34479bb88feea17206e73e356857" name="MPL Scripts">
+<index version="1" commit="7e72bea2d7857820755c64ab91a41743f309d8b7" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1359,6 +1359,15 @@
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d8eafb34e940480c6fd965a91b9da5edf9db58d4/Various/mpl_Reset%20internal%20windows%20xy%20positions.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_SendFader - set active send (MIDI OSC only).lua" type="script" desc="SendFader - set active send (MIDI OSC only)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-02-23T14:00:22Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e72bea2d7857820755c64ab91a41743f309d8b7/Various/mpl_SendFader%20-%20set%20active%20send%20(MIDI%20OSC%20only).lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_SendFader - set volume (MIDI OSC only).lua" type="script" desc="SendFader - set volume (MIDI OSC only)">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -1445,6 +1454,10 @@
 + Store remote mode
 + Store ST mode]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2c07bf557a275bb36c0d877b2c6249046e861792/Various/mpl_SendFader.lua</source>
+      </version>
+      <version name="1.21" author="MPL" time="2017-02-23T13:59:39Z">
+        <changelog><![CDATA[+ Support for external change active send, see Remote menu + related script]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e5f034ef3df6ec68d713f50031ff3e437baf16b2/Various/mpl_SendFader.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
