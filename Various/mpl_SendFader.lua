@@ -1,27 +1,24 @@
--- @version 1.20
+-- @version 1.21
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    + Support for hardware sends
---    + Soft takeover for remote mode, roght click on 'Remove' to enable ST 
---    + Store mixer visibility
---    + Store remote mode
---    + Store ST mode
+--    + Support for external change active send, see Remote menu + related script
 
 
   -------------------------------------------------------------------- 
-  vrs = '1.20'
+  vrs = '1.21'
   name = 'MPL SendFader'
   --------------------------------------------------------------------           
 --[[
   changelog:
-    1.20 23.02.2017
+    1.21 23.02.2017
       + Support for hardware sends
       + Soft takeover for remote mode
       + Store mixer visibility
       + Store remote mode  
       + Store ST mode  
+      + Support for external change active send
     1.16 03.02.2017
       # not sure it is SendFader bug but hope fix adding/renaming ReaEQ instance for send created before SendFader
     1.15 01.02.2017
@@ -1175,32 +1172,40 @@
       end
       --if not data.cur_send_id then data.cur_send_id = 1 end
       
-      if data.send_t[data.cur_send_id] then
-        data.cur_tr_dest_name = '→ #'..data.send_t[data.cur_send_id].send_id..' '..F_extract_name(data.send_t[data.cur_send_id].send_name)
-       else data.cur_tr_dest_name = ''
-      end
-      
-      if data.remote == 1 then 
-        data.ext_vol = reaper.GetExtState( 'mpl SendFader', 'EXT_vol' )
-        if not data.last_ext_vol or data.last_ext_vol ~= data.ext_vol then 
-          if data.ext_vol and tonumber(data.ext_vol) 
-            and data.cur_send_id 
-            and data.send_t[data.cur_send_id] then 
-            local diff = math.abs(F_Fader_From_ReaVal(data.send_t[data.cur_send_id].vol) - tonumber(data.ext_vol) )
-            if  diff < 0.1 then act_remote = true end
-            if data.soft_takeover == 0 or (act_remote and data.soft_takeover == 1) then 
-              data.send_t[data.cur_send_id].vol = F_ReaVal_from_Fader(tonumber(data.ext_vol) )
-              update_gfx = true 
-              ENGINE_app_data()
-            end
-          end           
+      -- remote control
+        if data.remote == 1 then 
+          local cur_send_id_val = reaper.GetExtState( 'mpl SendFader', 'EXT_sendID' )      
+          if cur_send_id_val ~= '' and tonumber(cur_send_id_val) and data.remote_trackchange == 1 then 
+            data.cur_send_id = math.floor((tonumber(cur_send_id_val) * (#data.send_t-1) + 1))
+          end
+          
+          data.ext_vol = reaper.GetExtState( 'mpl SendFader', 'EXT_vol' )
+          if not data.last_ext_vol or data.last_ext_vol ~= data.ext_vol then 
+            if data.ext_vol and tonumber(data.ext_vol) 
+              and data.cur_send_id 
+              and data.send_t[data.cur_send_id] then 
+              local diff = math.abs(F_Fader_From_ReaVal(data.send_t[data.cur_send_id].vol) - tonumber(data.ext_vol) )
+              if  diff < 0.1 then act_remote = true end
+              if data.soft_takeover == 0 or (act_remote and data.soft_takeover == 1) then 
+                data.send_t[data.cur_send_id].vol = F_ReaVal_from_Fader(tonumber(data.ext_vol) )
+                update_gfx = true 
+                ENGINE_app_data()
+              end
+            end           
+          end
+          data.last_ext_vol = data.ext_vol 
         end
-        data.last_ext_vol = data.ext_vol 
-      end
       
-      if data.send_t and data.cur_send_id and data.send_t[data.cur_send_id] and data.send_t[data.cur_send_id].tp == 1 then 
-        data.pan_active_page = 1
-      end
+      -- update gfx name
+        if data.send_t[data.cur_send_id] then
+          data.cur_tr_dest_name = '→ #'..data.send_t[data.cur_send_id].send_id..' '..F_extract_name(data.send_t[data.cur_send_id].send_name)
+         else data.cur_tr_dest_name = ''
+        end
+      
+      -- reset pan view if HW send
+        if data.send_t and data.cur_send_id and data.send_t[data.cur_send_id] and data.send_t[data.cur_send_id].tp == 1 then 
+          data.pan_active_page = 1
+        end
   end
   -----------------------------------------------------------------------   
   function F_add_sends_to_list()
@@ -1754,10 +1759,13 @@
 
     -- remote
       if MOUSE_button(obj.b.remote, nil, true) then
-        local t = {'Soft takeover'}
-        local ret = GUI_menu(t, data.soft_takeover-1)
+        local t = {'Soft takeover', 'Use remote change active send'}
+        local ret = GUI_menu(t, nil, {data.soft_takeover, data.remote_trackchange})
         if ret ==  0 then 
           data.soft_takeover = math.abs(data.soft_takeover -1)
+          Data_Update()
+         elseif ret == 1 then 
+          data.remote_trackchange = math.abs(data.remote_trackchange -1)
           Data_Update()
         end
       end
@@ -1855,15 +1863,31 @@
     return t[1], t[2], t[3]
   end  
   -----------------------------------------------------------------------  
-  function GUI_menu(t, check) local name
+  function GUI_menu(t, check, check_t) local name
     local str = ''
-    for i = 1, #t do 
-      name = t[i]
-      if check == i-1 then
-        str = str..'!'..name ..'|'
-       else
-        str = str..name ..'|'
+    
+    if not check_t then
+    
+      for i = 1, #t do 
+        name = t[i]
+        if check == i-1 then
+          str = str..'!'..name ..'|'
+         else
+          str = str..name ..'|'
+        end
       end
+      
+     else
+      
+      for i = 1, #t do 
+        name = t[i]
+        if check_t[i] and check_t[i] == 1 then
+          str = str..'!'..name ..'|'
+         else
+          str = str..name ..'|'
+        end
+      end
+      
     end
     gfx.x, gfx.y = mouse.mx,mouse.my
     ret = gfx.showmenu(str) - 1
@@ -2053,7 +2077,8 @@
           remote = 1, -- 0: disable , 1: enable
           incr_vol_wheel = 0.02,  -- wheel resolution for volume fader
           incr_pan_wheel = 0.02,   -- wheel resolution for pan knob
-          soft_takeover = 0
+          soft_takeover = 0,
+          remote_trackchange = 0
           }
     return data_default
   end
