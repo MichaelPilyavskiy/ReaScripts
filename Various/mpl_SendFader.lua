@@ -1,24 +1,25 @@
--- @version 1.21
+-- @version 1.22
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    + Support for external change active send, see Remote menu + related script
+--    # fix line1421, thanks J Reverb
 
 
   -------------------------------------------------------------------- 
-  vrs = '1.21'
+  vrs = '1.22'
   name = 'MPL SendFader'
   --------------------------------------------------------------------           
 --[[
   changelog:
-    1.21 23.02.2017
+    1.22 23.02.2017
       + Support for hardware sends
       + Soft takeover for remote mode
       + Store mixer visibility
       + Store remote mode  
       + Store ST mode  
       + Support for external change active send
+      # fix line1421
     1.16 03.02.2017
       # not sure it is SendFader bug but hope fix adding/renaming ReaEQ instance for send created before SendFader
     1.15 01.02.2017
@@ -1418,7 +1419,7 @@
     -- click on send name
       if MOUSE_button(obj.b.tr_send_name) and data.cur_send_id then GUI_Sends_menu() end
       
-      if data.pan_active_page == 2 and data.send_t[data.cur_send_id] and data.send_t[data.cur_send_id].tp == 0 then
+      if data.pan_active_page == 2 and data.send_t and data.send_t[data.cur_send_id] and data.send_t[data.cur_send_id].tp == 0 then
         -- pre EQ
         if MOUSE_match(obj.b.pre_eq_area) and mouse.LMB_state and not mouse.last_LMB_state then 
           if not data.send_t[data.cur_send_id].sendEQ or not data.send_t[data.cur_send_id].sendEQ.pre then
