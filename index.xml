@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dd66a84d78b486a702f4d05b474bbf993db121c0" name="MPL Scripts">
+<index version="1" commit="5a678b0ae2306286c6811d14bf9f68ba461af3f5" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1470,6 +1470,11 @@
       <version name="1.23" author="MPL" time="2017-02-26T02:14:49Z">
         <changelog><![CDATA[+ Solo send]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd66a84d78b486a702f4d05b474bbf993db121c0/Various/mpl_SendFader.lua</source>
+      </version>
+      <version name="1.30" author="MPL" time="2017-02-26T02:27:14Z">
+        <changelog><![CDATA[+ Solo send
+# increased mixer height]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5a678b0ae2306286c6811d14bf9f68ba461af3f5/Various/mpl_SendFader.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
