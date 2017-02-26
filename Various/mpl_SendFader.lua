@@ -1,19 +1,21 @@
--- @version 1.23
+-- @version 1.30
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
 --    + Solo send
+--    # increased mixer height
 
 
   -------------------------------------------------------------------- 
-  vrs = '1.23'
+  vrs = '1.30'
   name = 'MPL SendFader'
   --------------------------------------------------------------------           
 --[[
   changelog:
-    1.23 26.02.2017
+    1.30 26.02.2017
       + Solo send
+      # increased mixer height
     1.22 23.02.2017
       + Support for hardware sends
       + Soft takeover for remote mode
@@ -134,7 +136,7 @@
     obj.glass_side = 300 -- glass w/h buffer   
     local pan_area_h = 70  
     local fader_area_x_shift = 10   
-    local params_area_h = 90  -- mixer area
+    local params_area_h = 100  -- mixer area
     local fad_b_w = 50  
     local fad_b_h = 15 
     local x_fader = gfx.w/2+fader_area_x_shift
@@ -1695,6 +1697,7 @@
     -- solo 
       if MOUSE_button(obj.b.solo) then 
         data.send_t.solo_id = data.cur_send_id
+        data.send_t[data.cur_send_id].solo = math.abs(data.send_t[data.cur_send_id].solo-1)
         ENGINE_app_data()
       end      
       
