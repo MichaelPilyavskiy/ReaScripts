@@ -1,17 +1,19 @@
--- @version 1.22
+-- @version 1.23
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    # fix line1421, thanks J Reverb
+--    + Solo send
 
 
   -------------------------------------------------------------------- 
-  vrs = '1.22'
+  vrs = '1.23'
   name = 'MPL SendFader'
   --------------------------------------------------------------------           
 --[[
   changelog:
+    1.23 26.02.2017
+      + Solo send
     1.22 23.02.2017
       + Support for hardware sends
       + Soft takeover for remote mode
@@ -238,10 +240,16 @@
       obj.b.fader.x =  fad_b_w + obj.offs*2 +peakL_ind_x          
       obj.b.mute =         {x = peakL_ind_x,
                             y = obj.b.fader.y,
-                            w =  fad_b_w,
+                            w =  fad_b_w/2,
                             h = fad_b_h,
                             name = 'M' }
-      obj.b.mute = F_cond_button(obj.b.mute, obj.b.fader_area)                            
+      obj.b.solo =         {x = peakL_ind_x+fad_b_w/2,
+                            y = obj.b.fader.y,
+                            w =  fad_b_w/2,
+                            h = fad_b_h,
+                            name = 'S' }                            
+      obj.b.mute = F_cond_button(obj.b.mute, obj.b.fader_area)  
+      obj.b.solo = F_cond_button(obj.b.solo, obj.b.fader_area)                           
       obj.b.phase =         {x = peakL_ind_x,
                             y = obj.b.fader.y + obj.offs+fad_b_h,
                             w =  fad_b_w,
@@ -434,7 +442,12 @@
               local m_col, m_alp = nil,0.3
               if data.send_t[data.cur_send_id].mute == 1 then m_col = 'red' m_alp = 0.9 end
               GUI_button(obj.b.mute, nil, m_col, m_alp)
-            
+              
+            -- mute
+              local m_col, m_alp = nil,0.3
+              if data.send_t[data.cur_send_id].solo == 1 then m_col = 'green' m_alp = 0.9 end
+              GUI_button(obj.b.solo, nil, m_col, m_alp)
+                          
             -- polarity
               local p_col, p_alp = nil,0.3
               if data.send_t[data.cur_send_id].phase == 1 then p_alp = 0.9 p_col = 'blue'end          
@@ -1171,6 +1184,23 @@
                                       dest_GUID = dest_GUID,
                                       sendEQ = sendEQ, }
       end
+      
+      -- define solo states
+        data.send_t.solo_id = -1
+        for i = 1, #data.send_t do          
+          local solo_cnt = 0
+          for j = 1, #data.send_t do
+            if  data.send_t[j].mute == 1 and i ~= j then 
+              solo_cnt = solo_cnt +1 
+            end
+          end
+          if solo_cnt ==  #data.send_t -1 then 
+            data.send_t.solo_id = i 
+            data.send_t[i].solo = 1 break 
+          end
+        end
+        if not data.send_t.solo_id then data.send_t.solo_id = -1 end
+      
       --if not data.cur_send_id then data.cur_send_id = 1 end
       
       -- remote control
@@ -1658,8 +1688,15 @@
     -- mute 
       if MOUSE_button(obj.b.mute) then 
         data.send_t[data.cur_send_id].mute = math.abs(data.send_t[data.cur_send_id].mute-1)
+        data.send_t.solo_id = -1
         ENGINE_app_data()
       end
+      
+    -- solo 
+      if MOUSE_button(obj.b.solo) then 
+        data.send_t.solo_id = data.cur_send_id
+        ENGINE_app_data()
+      end      
       
     --  phase
       if MOUSE_button(obj.b.phase) then 
@@ -1837,6 +1874,11 @@
   -----------------------------------------------------------------------     
   function ENGINE_app_data()
     if data.send_t and data.track_pointer then
+      if data.send_t.solo_id >= 0 and data.send_t[data.send_t.solo_id].solo == 0 then
+        data.send_t.solo_id = -1
+        for i = 1, #data.send_t do data.send_t[i].mute = 0 end        
+      end
+      
       for i = 1, #data.send_t do
         local vol = data.send_t[i].vol
         local tp = data.send_t[i].tp
@@ -1845,6 +1887,13 @@
         reaper.SetTrackSendInfo_Value( data.track_pointer, tp, i-1-id_incr, 'D_PAN', math.floor(data.send_t[i].pan*100)/100 ) 
         reaper.SetTrackSendInfo_Value( data.track_pointer, tp, i-1-id_incr, 'D_VOL', vol )
         reaper.SetTrackSendInfo_Value( data.track_pointer, tp, i-1-id_incr, 'B_MUTE', data.send_t[i].mute ) 
+        if data.send_t.solo_id >= 0 then 
+          if data.send_t.solo_id == i then 
+            reaper.SetTrackSendInfo_Value( data.track_pointer, tp, i-1-id_incr, 'B_MUTE', 0) 
+           else 
+            reaper.SetTrackSendInfo_Value( data.track_pointer, tp, i-1-id_incr, 'B_MUTE', 1) 
+          end
+        end
         reaper.SetTrackSendInfo_Value( data.track_pointer, tp, i-1-id_incr, 'B_PHASE', data.send_t[i].phase )
         reaper.SetTrackSendInfo_Value( data.track_pointer, tp, i-1-id_incr, 'B_MONO', data.send_t[i].mono ) 
         reaper.SetTrackSendInfo_Value( data.track_pointer, tp, i-1-id_incr, 'I_SENDMODE', data.send_t[i].send_mode )       
