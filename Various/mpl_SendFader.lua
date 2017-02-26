@@ -1,21 +1,19 @@
--- @version 1.31
+-- @version 1.32
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description SendFader
 -- @changelog
---    + Solo send
---    # increased mixer height
+--    # fix solo send
 
 
   -------------------------------------------------------------------- 
-  vrs = '1.31'
+  vrs = '1.32'
   name = 'MPL SendFader'
   --------------------------------------------------------------------           
 --[[
   changelog:
     1.31 26.02.2017
-      + Solo send, fixed wrong mute behaviour(1.31)
-      # increased mixer height
+      + Solo send
     1.22 23.02.2017
       + Support for hardware sends
       + Soft takeover for remote mode
@@ -1699,6 +1697,7 @@
       if MOUSE_button(obj.b.solo) then 
         data.send_t.solo_id = data.cur_send_id
         
+        if not data.send_t[data.cur_send_id].solo then data.send_t[data.cur_send_id].solo = 0 end
         data.send_t[data.cur_send_id].solo = math.abs(data.send_t[data.cur_send_id].solo-1)
         ENGINE_app_data()
       end      
