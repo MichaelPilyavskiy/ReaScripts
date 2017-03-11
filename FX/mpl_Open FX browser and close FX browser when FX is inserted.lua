@@ -1,22 +1,22 @@
--- @version 1.1
+-- @version 1.2
 -- @author MPL
 -- @description Open FX browser and close FX browser when FX is inserted
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    # fix adding by doubleclick
+--    # fix proper loop exit
   
 
 function run()
-  count_fx0 = Count_project_FX()
-  if count_fx0 ~= count_fx then 
-    reaper.Main_OnCommand(40271, 0) 
-    reaper.atexit() 
-   else 
-    if not isFXBr_open then reaper.defer(run) else reaper.atexit() end
+  count_fx = Count_project_FX()
+  if last_count_fx and last_count_fx ~= count_fx then 
+    reaper.atexit(reaper.Main_OnCommand(40271, 0))    
   end
+  last_count_fx = count_fx
+  if isFXBr_open() then reaper.defer(run)   end
 end
 
-function isFXBr_open() return reaper.GetToggleCommandState(40271) == 1 end
+function isFXBr_open() return reaper.GetToggleCommandStateEx(0,40271) == 1 end
+
 function Count_project_FX()
   local cnt = 0
   for i = 0,  reaper.CountTracks( 0, true ) do
@@ -35,6 +35,5 @@ function Count_project_FX()
   return cnt
 end
 
-count_fx = Count_project_FX()
 if not isFXBr_open() then reaper.Main_OnCommand(40271, 0) end -- open FX browser
 run()
