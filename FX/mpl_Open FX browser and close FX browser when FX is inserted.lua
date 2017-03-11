@@ -1,15 +1,16 @@
--- @version 1.2
+-- @version 1.3
 -- @author MPL
 -- @description Open FX browser and close FX browser when FX is inserted
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    # fix proper loop exit
+--    # doubleclick on FX runs FX browser again
   
 
 function run()
   count_fx = Count_project_FX()
   if last_count_fx and last_count_fx ~= count_fx then 
-    reaper.atexit(reaper.Main_OnCommand(40271, 0))    
+    if isFXBr_open() then reaper.Main_OnCommand(40271, 0) end
+    reaper.atexit()    
   end
   last_count_fx = count_fx
   if isFXBr_open() then reaper.defer(run)   end
