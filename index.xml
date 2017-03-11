@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="26630347833e54eb7e5601a67bb0d5c48e4bdfda" name="MPL Scripts">
+<index version="1" commit="36318cfc0e80400347da972de15a7fb5fa9d4d31" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -315,6 +315,10 @@
       <version name="1.1" author="MPL" time="2017-03-11T03:03:13Z">
         <changelog><![CDATA[# fix adding by doubleclick]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26630347833e54eb7e5601a67bb0d5c48e4bdfda/FX/mpl_Open%20FX%20browser%20and%20close%20FX%20browser%20when%20FX%20is%20inserted.lua</source>
+      </version>
+      <version name="1.2" author="MPL" time="2017-03-11T12:34:22Z">
+        <changelog><![CDATA[# fix proper loop exit]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/36318cfc0e80400347da972de15a7fb5fa9d4d31/FX/mpl_Open%20FX%20browser%20and%20close%20FX%20browser%20when%20FX%20is%20inserted.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Pan focused FX track 10% left.lua" type="script" desc="Pan focused FX track 10% left">
