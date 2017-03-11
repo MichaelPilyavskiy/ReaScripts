@@ -1,43 +1,41 @@
---[[
-   * ReaScript Name: Conditional bounce-in-place
-   * Lua script for Cockos REAPER
-   * Author: Michael Pilyavskiy (mpl)
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
+-- @version 1.1
+-- @author MPL
+-- @description Conditional bounce-in-place
+-- @website http://forum.cockos.com/member.php?u=70694
+-- @changelog
+--    # improved logic: render as new take, copy render to new track  or selected track if any  
+
   
+  function Act(id) reaper.Main_OnCommand(id, 0) end
+  
+  function main()
+    local item = reaper.GetSelectedMediaItem(0,0)
+    if not item then return end
+    Act(40289) -- unselect all items 
+    reaper.SetMediaItemSelected( item, true )   
+    reaper.Main_OnCommand(40209,0) -- apply take fx 
+    local _, it_chunk = reaper.GetItemStateChunk( item, '', true )
+    local item_track = reaper.GetMediaItemTrack(item)      
+    local cur_tr_id =  reaper.CSurf_TrackToID(item_track, false)
+    
+    local new_track = reaper.GetSelectedTrack(0,0)
+    if not new_track or item_track == new_track then
+      reaper.InsertTrackAtIndex(cur_tr_id, false )
+      new_track = reaper.CSurf_TrackFromID(cur_tr_id+1, false)
+      reaper.TrackList_AdjustWindows( false )
+    end
+    local new_item = reaper.AddMediaItemToTrack( new_track )
+    reaper.SetItemStateChunk( new_item, it_chunk, true )
+    local take = reaper.GetActiveTake(new_item)    
+    Act(40289) -- unselect all items 
+    reaper.SetMediaItemSelected( new_item, true ) 
+    Act(40131) -- Take: Crop to active take in items
+    
+    reaper.UpdateArrange()
+  end    
+
   reaper.Undo_BeginBlock() 
   reaper.PreventUIRefresh(1)  
-
-  function main()
-    sel_item = reaper.GetSelectedMediaItem(0,0)
-    if sel_item ~= nil then
-      it_track = reaper.GetMediaItemTrack(sel_item)
-      reaper.Main_OnCommand(40289, 0) -- unselect all items
-      reaper.SetMediaItemInfo_Value(sel_item, 'B_UISEL', 1)
-      reaper.Main_OnCommand(40209,0) -- apply take fx
-      
-     else
-      
-      track = reaper.GetSelectedTrack(0,0)
-      if track == nil then return end
-      track_id = reaper.CSurf_TrackToID(track,0) 
-      reaper.Main_OnCommand(reaper.NamedCommandLookup('_SWS_AWRENDERSTEREOSMART'), 0)
-      stem_track = reaper.CSurf_TrackFromID(track_id, 0)
-      orig_track = reaper.CSurf_TrackFromID(track_id+1, 0)
-      reaper.SetMediaTrackInfo_Value(stem_track, 'I_SELECTED', 0)
-      reaper.SetMediaTrackInfo_Value(orig_track, 'I_SELECTED', 1)
-      
-      rend_item = reaper.GetTrackMediaItem(stem_track, 0)
-      reaper.MoveMediaItemToTrack(rend_item, orig_track)
-      reaper.DeleteTrack(stem_track)
-      reaper.SetMediaTrackInfo_Value(orig_track, 'B_MUTE', 0)
-    end
-  end
-  
-
-
   main()
-reaper.PreventUIRefresh(-1)
+  reaper.PreventUIRefresh(-1)
   reaper.Undo_EndBlock('Conditional bounce in place',0)
