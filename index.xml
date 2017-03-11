@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a1f31cbe014a092e018d1221139007c5df857392" name="MPL Scripts">
+<index version="1" commit="f75b24befef19252bb54e60a9c64891a7fdfd549" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -302,6 +302,15 @@
       <version name="1.0" author="mpl" time="2016-07-23T04:51:54Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0dc278d52ea804274a91ee710161b1fd5139e224/FX/mpl_Move%20focused%20Track%20FX%20to%20screen%20center.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Open FX browser and close FX browser when FX is inserted.lua" type="script" desc="Open FX browser and close FX browser when FX is inserted">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-03-11T01:55:07Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f75b24befef19252bb54e60a9c64891a7fdfd549/FX/mpl_Open%20FX%20browser%20and%20close%20FX%20browser%20when%20FX%20is%20inserted.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Pan focused FX track 10% left.lua" type="script" desc="Pan focused FX track 10% left">
@@ -739,8 +748,15 @@
       </version>
     </reapack>
     <reapack name="mpl_Conditional bounce-in-place.lua" type="script" desc="Conditional bounce-in-place">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-14T19:31:36Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/845e8a390653fad013ea6e46d597d068b8d2ff8c/Render/mpl_Conditional%20bounce-in-place.lua</source>
+      </version>
+      <version name="1.1" author="MPL" time="2017-03-11T01:55:07Z">
+        <changelog><![CDATA[# improved logic: render as new take, copy render to new track  or selected track if any  ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f75b24befef19252bb54e60a9c64891a7fdfd549/Render/mpl_Conditional%20bounce-in-place.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Render inversed midi.lua" type="script" desc="Render inversed midi">
@@ -884,6 +900,16 @@
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Go%20to%20first%20send%20destination%20track.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Move selected tracks faders to 0dB relative to holded peak.lua" type="script" desc="Move selected tracks faders to 0dB relative to holded peak">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-03-11T01:55:07Z">
+        <changelog><![CDATA[+ init release
+# "Trim master/sel.tracks fader to 0dB peak" seems doesn`t work as expected, recoded to more smooth behaviour]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f75b24befef19252bb54e60a9c64891a7fdfd549/Tracks%20Properties/mpl_Move%20selected%20tracks%20faders%20to%200dB%20relative%20to%20holded%20peak.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Pan selected tracks with LR at the end of trackname respectively.lua" type="script" desc="Pan selected tracks with LR at the end of trackname respectively">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Tracks%20Properties/mpl_Pan%20selected%20tracks%20with%20LR%20at%20the%20end%20of%20trackname%20respectively.lua</source>
@@ -980,16 +1006,6 @@
     <reapack name="mpl_Toggle show only selected tracks in mixer.lua" type="script" desc="Toggle show only selected tracks in mixer">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Tracks%20Properties/mpl_Toggle%20show%20only%20selected%20tracks%20in%20mixer.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Trim master fader to 0dB peak.lua" type="script" desc="Trim master fader to 0dB peak">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-03T07:03:19Z">
-        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6caed9225c6810020c093f472df171c6e0464de4/Tracks%20Properties/mpl_Trim%20master%20fader%20to%200dB%20peak.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Trim selected tracks faders to 0dB peak.lua" type="script" desc="Trim selected tracks faders to 0dB peak">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-03T07:03:19Z">
-        <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6caed9225c6810020c093f472df171c6e0464de4/Tracks%20Properties/mpl_Trim%20selected%20tracks%20faders%20to%200dB%20peak.lua</source>
       </version>
     </reapack>
   </category>
