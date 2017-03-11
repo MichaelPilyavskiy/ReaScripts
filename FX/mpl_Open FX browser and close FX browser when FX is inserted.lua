@@ -1,17 +1,18 @@
--- @version 1.0
+-- @version 1.1
 -- @author MPL
 -- @description Open FX browser and close FX browser when FX is inserted
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    + init release
+--    # fix adding by doubleclick
   
 
 function run()
   count_fx0 = Count_project_FX()
-  if count_fx0 ~= count_fx or not isFXBr_open  then 
+  if count_fx0 ~= count_fx then 
     reaper.Main_OnCommand(40271, 0) 
     reaper.atexit() 
-    else reaper.defer(run) 
+   else 
+    if not isFXBr_open then reaper.defer(run) else reaper.atexit() end
   end
 end
 
