@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="506fd78bdf53a7b5666c81e140988b2a0ca07541" name="MPL Scripts">
+<index version="1" commit="721cd96f28ce2492d6a6e24a6ccb0ab342165b37" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -500,6 +500,15 @@
       <version name="1.0" author="MPL" time="2017-03-15T06:01:15Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/506fd78bdf53a7b5666c81e140988b2a0ca07541/FX%20specific/mpl_List%20previous%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k.lua" type="script" desc="Open and Close Media Explorer when single item is inserted, export it to RS5k">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-03-15T11:48:03Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/721cd96f28ce2492d6a6e24a6ccb0ab342165b37/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k.lua</source>
       </version>
     </reapack>
   </category>
