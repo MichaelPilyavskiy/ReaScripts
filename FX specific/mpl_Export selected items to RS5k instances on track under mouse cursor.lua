@@ -1,9 +1,12 @@
--- @version 1.0
+-- @version 1.1
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Export selected items to RS5k instances on track under mouse cursor
 -- @changelog
---    + 1.0 init release
+--    + enable RS5k obey notes off
+--    + set RS5k attack to 0
+--    + perform recoded X-Raym_Glue selected items independently.eel before export
+
 
   local script_title = 'Export selected items to RS5k instances on track under mouse cursor'
   -------------------------------------------------------------------------------
@@ -54,7 +57,63 @@
       reaper.SetTrackStateChunk( track, out_chunk, false )
       reaper.UpdateArrange()
   end
-  
+  -------------------------------------------------------------------------------   
+  function GlueSelectedItemsIndependently()
+    -- store GUIDs
+      GUIDs = {}
+      for it_id = 1, reaper.CountSelectedMediaItems(0) do
+        local item =  reaper.GetSelectedMediaItem( 0, it_id-1 )
+        local it_GUID = reaper.BR_GetMediaItemGUID( item )
+        GUIDs[#GUIDs+1] = it_GUID
+      end
+      
+    -- glue items
+      new_GUIDs = {}
+      for i = 1, #GUIDs do
+        local item = reaper.BR_GetMediaItemByGUID( 0, GUIDs[i] )
+        if item then 
+          reaper.Main_OnCommand(40289, 0) -- unselect all items
+          reaper.SetMediaItemSelected(item, true)
+          reaper.Main_OnCommand(40362, 0) -- glue without time selection
+          local cur_item =  reaper.GetSelectedMediaItem( 0, 0)
+          if cur_item then new_GUIDs[#new_GUIDs+1] = reaper.BR_GetMediaItemGUID( cur_item ) end
+        end
+      end
+    
+    reaper.Main_OnCommand(40289, 0) -- unselect all items
+    -- add new items to selection
+      for i = 1, #new_GUIDs do
+        local item = reaper.BR_GetMediaItemByGUID( 0, new_GUIDs[i] )
+        if item then reaper.SetMediaItemSelected(item, true) end
+      end
+    
+  end
+  ------------------------------------------------------------------------------- 
+  function ExportSelItemsToRs5k(base_pitch)
+    for i = 1, reaper.CountSelectedMediaItems(0) do
+      local item = reaper.GetSelectedMediaItem(0,i-1)
+      local take = reaper.GetActiveTake(item)
+      if not take or reaper.TakeIsMIDI(take) then goto skip_to_next_item end
+      
+      local tk_src =  reaper.GetMediaItemTake_Source( take )
+      local filename = reaper.GetMediaSourceFileName( tk_src, '' )
+      
+      local rs5k_pos = reaper.TrackFX_AddByName( track, 'ReaSamplOmatic5000 (Cockos)', false, -1 )
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 2, 0) -- gain for min vel
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 3, base_pitch/127 ) -- note range start
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 4, base_pitch/127 ) -- note range end
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 5, 0.5 ) -- pitch for start
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 6, 0.5 ) -- pitch for end
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 9, 0 ) -- attack
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 11, 1 ) -- obey note offs
+      local new_name = F_extract_filename(filename)
+      F_SetFXName(track, rs5k_pos, 'RS5K '..new_name)
+      reaper.TrackFX_SetNamedConfigParm(track, rs5k_pos, "FILE0", filename)
+      reaper.TrackFX_SetNamedConfigParm(track, rs5k_pos, "DONE","")
+      base_pitch = base_pitch + 1                
+      ::skip_to_next_item::
+    end
+  end
   -------------------------------------------------------------------------------    
   function main(track)
     local appvrs = reaper.GetAppVersion()
@@ -71,28 +130,10 @@
       return true
     end
     base_pitch = math.floor(tonumber(base_pitch))
-    
-    for i = 1, reaper.CountSelectedMediaItems(0) do
-      local item = reaper.GetSelectedMediaItem(0,i-1)
-      local take = reaper.GetActiveTake(item)
-      if not take or reaper.TakeIsMIDI(take) then goto skip_to_next_item end
-      
-      local tk_src =  reaper.GetMediaItemTake_Source( take )
-      local filename = reaper.GetMediaSourceFileName( tk_src, '' )
-      
-      local rs5k_pos = reaper.TrackFX_AddByName( track, 'ReaSamplOmatic5000 (Cockos)', false, -1 )
-      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 2, 0) -- gain for min vel
-      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 3, base_pitch/127 ) -- note range start
-      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 4, base_pitch/127 ) -- note range end
-      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 5, 0.5 ) -- pitch for start
-      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 6, 0.5 ) -- pitch for end
-      local new_name = F_extract_filename(filename)
-      F_SetFXName(track, rs5k_pos, 'RS5K '..new_name)
-      reaper.TrackFX_SetNamedConfigParm(track, rs5k_pos, "FILE0", filename)
-      reaper.TrackFX_SetNamedConfigParm(track, rs5k_pos, "DONE","")
-      base_pitch = base_pitch + 1                
-      ::skip_to_next_item::
-    end
+    reaper.PreventUIRefresh( -1 )
+    GlueSelectedItemsIndependently()
+    ExportSelItemsToRs5k(base_pitch)
+    reaper.PreventUIRefresh( 1 )
     return true
   end
   ------------------------------------------------------------------------------- 
@@ -106,5 +147,5 @@
   -------------------------------------------------------------------------------  
   reaper.Undo_BeginBlock()
   ret = main(track)
-  if not ret then reaper.MB('Script works with REAPER 5.40 and upper.','Error',0) end
+  if not ret then reaper.MB('Script works with REAPER 5.40 and upper. Script also need SWS extension.','Error',0) end
   reaper.Undo_EndBlock(script_title, 1)
