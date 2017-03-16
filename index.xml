@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="721cd96f28ce2492d6a6e24a6ccb0ab342165b37" name="MPL Scripts">
+<index version="1" commit="57c51c56539fdf5991bed5026dbe341cc2f1ed0e" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -468,20 +468,10 @@
 + perform recoded X-Raym_Glue selected items independently.eel before export]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8d8b6f30b85dd02c3f9ad68f9266df33e0c4fd97/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
       </version>
-    </reapack>
-    <reapack name="mpl_Export selected items to RS5k instances on track under mouse cursor.lua" type="script" desc="Export selected items to RS5k instances on track under mouse cursor">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-03-14T20:48:53Z">
-        <changelog><![CDATA[+ 1.0 init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d559cd4087e6a2cbf570314d1183fa22760ac8e4/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20track%20under%20mouse%20cursor.lua</source>
-      </version>
-      <version name="1.1" author="MPL" time="2017-03-15T05:09:28Z">
-        <changelog><![CDATA[+ enable RS5k obey notes off
-+ set RS5k attack to 0
-+ perform recoded X-Raym_Glue selected items independently.eel before export]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8d8b6f30b85dd02c3f9ad68f9266df33e0c4fd97/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20track%20under%20mouse%20cursor.lua</source>
+      <version name="1.10" author="MPL" time="2017-03-16T04:13:01Z">
+        <changelog><![CDATA[+ delete items after export
+# fix version check]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e2ce71ef703c3fd6ab66d668ebc5d6a932ca6e2/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_List next sample in directory for RS5k on selected track.lua" type="script" desc="List next sample in directory for RS5k on selected track">
