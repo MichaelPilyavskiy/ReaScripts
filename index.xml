@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0ad6fc38fdb16d1be86db53da7d5c967764b3c26" name="MPL Scripts">
+<index version="1" commit="da849268a36340d13fe51100552b6d8c21fdaa1f" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -461,6 +461,15 @@
     <reapack name="mpl_Create ReaComp sidechain routing.lua" type="script" desc="Create ReaComp sidechain routing from selected track and track under mouse cursor">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2017-03-14T20:48:53Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d559cd4087e6a2cbf570314d1183fa22760ac8e4/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Export selected item to RS5k instance on same track as chromatic source.lua" type="script" desc="Export selected item to RS5k instance on same track as chromatic source">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-03-16T18:49:09Z">
+        <changelog><![CDATA[+ inti]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/da849268a36340d13fe51100552b6d8c21fdaa1f/FX%20specific/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances on selected track.lua" type="script" desc="Export selected items to RS5k instances on selected track">
