@@ -1,12 +1,10 @@
--- @version 1.1
+-- @version 1.10
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Export selected items to RS5k instances on selected track
 -- @changelog
---    + enable RS5k obey notes off
---    + set RS5k attack to 0
---    + perform recoded X-Raym_Glue selected items independently.eel before export
-
+--    + delete items after export
+--    # fix version check
 
   local script_title = 'Export selected items to RS5k instances on selected track'
   -------------------------------------------------------------------------------
@@ -113,12 +111,19 @@
       ::skip_to_next_item::
     end
   end
+  -------------------------------------------------------------------------------      
+  function vrs_check()
+    local appvrs = reaper.GetAppVersion()
+    appvrs = appvrs:match('[%d%p]+')
+    if not appvrs then return end
+    appvrs =  tonumber(appvrs)
+    if not appvrs or appvrs <= 5.29 then return end
+    if not reaper.APIExists('TrackFX_SetNamedConfigParm')  then return end
+    return true
+  end
   -------------------------------------------------------------------------------    
   function main(track)
-    local appvrs = reaper.GetAppVersion()
-    local vrs =  tonumber(appvrs:match('[%d%p]+'))
-    if vrs <= 5.29 then return end
-    if not reaper.APIExists('TrackFX_SetNamedConfigParm')  then return end
+    if not vrs_check() then return end
     
     -- get base pitch
     local ret, base_pitch = reaper.GetUserInputs( script_title, 1, 'Set base pitch', 60 )
@@ -132,6 +137,7 @@
     reaper.PreventUIRefresh( -1 )
     GlueSelectedItemsIndependently()
     ExportSelItemsToRs5k(base_pitch)
+    reaper.Main_OnCommand(40006,0)--Item: Remove items
     reaper.PreventUIRefresh( 1 )
     return true
   end
