@@ -1,16 +1,17 @@
 -- @version 1.1
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
--- @description Export selected items to RS5k instances on selected track
+-- @description Export selected items to RS5k instances on track under mouse cursor
 -- @changelog
 --    + enable RS5k obey notes off
 --    + set RS5k attack to 0
 --    + perform recoded X-Raym_Glue selected items independently.eel before export
 
 
-  local script_title = 'Export selected items to RS5k instances on selected track'
+  local script_title = 'Export selected items to RS5k instances on track under mouse cursor'
   -------------------------------------------------------------------------------
-  local track = reaper.GetSelectedTrack(0,0)
+  reaper.BR_GetMouseCursorContext()
+  local track =  reaper.BR_GetMouseCursorContext_Track()
   if not track then return end
   
   -------------------------------------------------------------------------------
