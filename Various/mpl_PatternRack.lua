@@ -1,4 +1,4 @@
--- @description PatternRack
+﻿-- @description PatternRack
 -- @version 1.0
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
@@ -473,7 +473,7 @@ local MOUSE_modifiers =
                   a_txt = obj.txt_alpha1,
                   fontname = obj.fontname,
                   fontsize = obj.fontsize2,
-                  txt = '▼ '..name..' '..vrs
+                  txt = '> '..name..' '..vrs
                   }
         obj.undo = {x = 0,
                   y = 0,
@@ -483,7 +483,7 @@ local MOUSE_modifiers =
                   a_txt = obj.txt_alpha2,
                   fontname = obj.fontname,
                   fontsize = obj.fontsize3,
-                  txt = '▼ Undo',
+                  txt = 'Ў Undo',
                   txt_pos = 2}                  
       --  tabs
         obj.tab_cnt = 3
@@ -541,7 +541,7 @@ local MOUSE_modifiers =
                             y = stseq_y1,      
                             w = obj.w9,      
                             h = obj.but_h,
-                            txt = '←',
+                            txt = '<',
                             a_frame = obj.blit_alpha0,
                             a_txt = obj.txt_alpha1,
                             fontname = obj.fontname,
@@ -551,7 +551,7 @@ local MOUSE_modifiers =
                             y = stseq_y1,
                             w = obj.w9,
                             h = obj.but_h,
-                            txt = '→',
+                            txt = '>',
                             a_frame = obj.blit_alpha0,
                             a_txt = obj.txt_alpha1,
                             fontname = obj.fontname,
@@ -588,7 +588,7 @@ local MOUSE_modifiers =
                             y = stseq_y1,
                             w = gfx.w - F_follow_button(obj.StSeq_pat_id_del),
                             h = obj.but_h,
-                            txt_default = '▼ Menu',
+                            txt_default = '> Menu',
                             a_frame = obj.blit_alpha0,
                             a_txt = obj.txt_alpha1,
                             fontname = obj.fontname,
@@ -681,7 +681,7 @@ local MOUSE_modifiers =
                             y = stseq_y1,
                             w = gfx.w - F_follow_button(obj.Layer_id_del),
                             h = obj.but_h,
-                            txt_default = '▼ Menu',
+                            txt_default = '> Menu',
                             a_frame = obj.blit_alpha1,
                             a_txt = obj.txt_alpha1,
                             fontname = obj.fontname,
@@ -718,7 +718,7 @@ local MOUSE_modifiers =
                             y = stseq_y1,
                             w = gfx.w,
                             h = obj.but_h,
-                            txt= '▼ '..'Menu',
+                            txt= '> '..'Menu',
                             a_frame = obj.blit_alpha1,
                             a_txt = obj.txt_alpha1,
                             fontname = obj.fontname,
@@ -751,7 +751,7 @@ local MOUSE_modifiers =
     if not update_gfx then return end
     
     -- upd udo
-      if Undo[#Undo] then obj.undo.txt = '▼ '..Undo[#Undo].name end
+      if Undo[#Undo] then obj.undo.txt = '> '..Undo[#Undo].name end
       F_reduce_button_name(obj.undo)
     --if debug_mode then msg(string.rep('_',30)..'\n') msg('Upd objects '..os.date()) msg(str)  end
 
@@ -783,7 +783,7 @@ local MOUSE_modifiers =
     if data.current_tab == 1 then
       
       if patterns[patterns.cur_pattern] then 
-        obj.StSeq_pat_id.txt = '▼ Pattern#'..math.floor(patterns.cur_pattern)..': '..patterns[patterns.cur_pattern].name
+        obj.StSeq_pat_id.txt = '> Pattern#'..math.floor(patterns.cur_pattern)..': '..patterns[patterns.cur_pattern].name
         obj.StSeq_global_groove.txt = patterns[patterns.cur_pattern].groove
         obj.StSeq_global_groove_val.txt = 'G:'..math.floor(patterns[patterns.cur_pattern].groove_val * 100)..'%'
         
@@ -980,12 +980,12 @@ local MOUSE_modifiers =
     
     -- check active layer
       if blocks.cur_block and blocks[blocks.cur_block] then
-        obj.Layer_id.txt = '▼ '..blocks[blocks.cur_block].name
+        obj.Layer_id.txt = '> '..blocks[blocks.cur_block].name
        else
         if not blocks.cur_block then blocks.cur_block = 0 end
         for i = blocks.cur_block, 1, -1  do
           if blocks[i] then
-            obj.Layer_id.txt = '▼ '..blocks[i].name
+            obj.Layer_id.txt = '> '..blocks[i].name
             blocks.cur_block = i
             update_layers = true
             goto skip_cur_block_check
@@ -994,7 +994,7 @@ local MOUSE_modifiers =
                 
         for i = blocks.cur_block, #blocks do
           if blocks[i] then
-            obj.Layer_id.txt = '▼ '..blocks[i].name
+            obj.Layer_id.txt = '> '..blocks[i].name
             blocks.cur_block = i
             update_layers = true
             goto skip_cur_block_check
@@ -1087,7 +1087,7 @@ local MOUSE_modifiers =
                                        y = lay_y2,
                                        w = obj.w1,
                                        h= obj.but_h,
-                                       txt = '►',
+                                       txt = '>',
                                       a_frame = obj.blit_alpha0,
                                         a_txt = obj.txt_alpha1,
                                         txt_col = 'green',
@@ -2050,7 +2050,7 @@ local MOUSE_modifiers =
         if not reaper.TakeIsMIDI(pattern_item_take) then goto skip_next_take end
 
       -- upd pattern item
-        reaper.GetSetMediaItemTakeInfo_String( pattern_item_take, 'P_NAME', '●'..patterns[pat].name,  1 )
+        reaper.GetSetMediaItemTakeInfo_String( pattern_item_take, 'P_NAME', '>'..patterns[pat].name,  1 )
         local _, notecnt = reaper.MIDI_CountEvts( pattern_item_take )
         for i = notecnt, 1, -1 do reaper.MIDI_DeleteNote( pattern_item_take, i-1 ) end
 
@@ -2337,7 +2337,7 @@ local MOUSE_modifiers =
       
 
     -- rename parent track
-      local _, tr_name = reaper.GetSetMediaTrackInfo_String( tr, 'P_NAME', '● Patterns', 1 )
+      local _, tr_name = reaper.GetSetMediaTrackInfo_String( tr, 'P_NAME', '> Patterns', 1 )
       --retval, stringNeedBig reaper.GetSetMediaTrackInfo_String( tr, 'P_NAME', stringNeedBig, setnewvalue )
 
     -- reset names for regular items
@@ -2346,7 +2346,7 @@ local MOUSE_modifiers =
         local take = reaper.GetActiveTake(item)
         if take and reaper.TakeIsMIDI(take) then
           local ret, take_name = reaper.GetSetMediaItemTakeInfo_String( take, 'P_NAME', '',  0 )
-          if ret then reaper.GetSetMediaItemTakeInfo_String( take, 'P_NAME', take_name:gsub('●',''),  1 ) end
+          if ret then reaper.GetSetMediaItemTakeInfo_String( take, 'P_NAME', take_name:gsub('>',''),  1 ) end
         end
       end
       
@@ -3368,7 +3368,7 @@ local MOUSE_modifiers =
               reaper.InsertTrackAtIndex( tr_pos, true )
               local new_tr = reaper.CSurf_TrackFromID( tr_pos+1, false )
               local new_name = F_extract_filename(filename)
-              reaper.GetSetMediaTrackInfo_String( new_tr, 'P_NAME', '●'..new_name, 1 )
+              reaper.GetSetMediaTrackInfo_String( new_tr, 'P_NAME', '>'..new_name, 1 )
               local  new_tr_GUID = reaper.GetTrackGUID( new_tr )
               reaper.TrackList_AdjustWindows( false )
               
