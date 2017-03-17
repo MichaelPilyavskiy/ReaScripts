@@ -483,7 +483,7 @@ local MOUSE_modifiers =
                   a_txt = obj.txt_alpha2,
                   fontname = obj.fontname,
                   fontsize = obj.fontsize3,
-                  txt = 'Ў Undo',
+                  txt = '> Undo',
                   txt_pos = 2}                  
       --  tabs
         obj.tab_cnt = 3
