@@ -805,6 +805,17 @@
       </version>
     </reapack>
   </category>
+  <category name="Mouse">
+    <reapack name="mpl_Set default mouse modifier action for media item left click to [Split item at mouse cursor].lua" type="script" desc="Set default mouse modifier action for &quot;Media item left click&quot; to &quot;Split item at mouse cursor&quot;">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-03-19T08:32:04Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/155b173983260042fbf3bc249cb35a496ea49c39/Mouse/mpl_Set%20default%20mouse%20modifier%20action%20for%20media%20item%20left%20click%20to%20%5BSplit%20item%20at%20mouse%20cursor%5D.lua</source>
+      </version>
+    </reapack>
+  </category>
   <category name="Regions">
     <reapack name="mpl_Generate CUE from project markers.lua" type="script">
       <version name="1.0" author="mpl" time="2016-06-20T14:20:43Z">
