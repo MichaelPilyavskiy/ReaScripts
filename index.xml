@@ -1434,6 +1434,11 @@
         <changelog><![CDATA[+ official release]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4a650fadf0886b85e8950e2c1e70df3820be288f/Various/mpl_PatternRack.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2017-03-24T05:22:27Z">
+        <changelog><![CDATA[+ StepSeq: clicking on insert fill time selection by current pattern if any
+# StepSeq: fix scroll blocks only when pointer on selected block]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a4ab65918da0c5943d189c384eb911c66e10df1e/Various/mpl_PatternRack.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Quantize Tool set grid (MIDI CC and OSC only).lua" type="script" desc="Quantize Tool set grid (MIDI CC and OSC only)">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
