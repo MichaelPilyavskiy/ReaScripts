@@ -1439,6 +1439,10 @@
 # StepSeq: fix scroll blocks only when pointer on selected block]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a4ab65918da0c5943d189c384eb911c66e10df1e/Various/mpl_PatternRack.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2017-03-24T17:13:15Z">
+        <changelog><![CDATA[# disable REAPER version check on start because of broken API for x64 Win]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/da966714e6361af3b3b8d8bf47c08febe00dbab2/Various/mpl_PatternRack.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Quantize Tool set grid (MIDI CC and OSC only).lua" type="script" desc="Quantize Tool set grid (MIDI CC and OSC only)">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
