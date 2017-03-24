@@ -1,23 +1,27 @@
 ﻿-- @description PatternRack
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    # enable REAPER version check on start back
+--    # fix adding new pattern with no blocks
 
   --------------------------------------------------------------------
 
-  vrs = '1.03'
+  vrs = '1.04'
   name = 'MPL PatternRack'
   
   --------------------------------------------------------------------
 
 local changelog =[[    
-    1.01  24.03.2017  //  REAPER 5.40pre12+
+    1.04  24.03.2017  //  REAPER 5.40pre12+
       + StepSeq: clicking on insert fill time selection by current pattern if any
-      # StepSeq: fix scroll blocks only when pointer on selected block      
+      # StepSeq: fix scroll blocks only when pointer on selected block    
+      # StepSeq: fix adding new pattern with no blocks  
+      # fix version check for REAPER x64
+      
     1.0   17.03.2017  //  REAPER 5.40pre12+
       + official release
+      
     1.0alpha1 01.02.2017
       + mpl Rack GUI sketch
 ]]
@@ -2782,7 +2786,7 @@ local MOUSE_modifiers =
         update_gfx = true
         update_patterns = true
       end
-
+    if obj.StSeq_rows and #obj.StSeq_rows > 1 then
         -- scroll on name
           if mouse.mx < (obj.StSeq_rows[1].name.x+obj.StSeq_rows[1].name.w)
             and mouse.my > obj.StSeq_blit_level 
@@ -2796,6 +2800,7 @@ local MOUSE_modifiers =
             update_gfx = true
             update_patterns = true
           end
+    end
     
     
    ----------------   ROWS   ----------------------
