@@ -1,215 +1,25 @@
--- @description PatternRack
--- @version 1.0
+﻿-- @description PatternRack
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    + official release
+--    + StepSeq: clicking on insert fill time selection by current pattern if any
+--    # StepSeq: fix scroll blocks only when pointer on selected block
 
   --------------------------------------------------------------------
 
-  vrs = '1.0'
+  vrs = '1.01'
   name = 'MPL PatternRack'
   
   --------------------------------------------------------------------
 
 local changelog =[[
-    1.0 17.03.2017 // REAPER 5.40pre12+
+    1.01 24.03.2017  //  REAPER 5.40pre12+
+      + StepSeq: clicking on insert fill time selection by current pattern if any
+      # StepSeq: fix scroll blocks only when pointer on selected block
+      
+    1.0 17.03.2017  //  REAPER 5.40pre12+
       + official release
-      
-    1.0pre12  16.03.2017 // REAPER 5.40pre12+
-      + Blocks: remove items when add to block
-      + Blocks: list samples
-      + Blocks: update RS5K instances names and samples
-      
-    1.0pre11  15.03.2017 // REAPER 5.40pre12+
-      - Undo: leave forcing undo only for destructive actions
-      + Undo: Menu/Store current state
-      + Blocks: init cutby feature - cut blocks by each other, works only for dumped items
-      + Blocks: set related samples for RS5k instances when adding samples to block
-      + StepSeq: enable dumpitems button
-      
-    1.0pre9   13.03.2017
-      + Undo: init state on start, forcing undo on some actions (mainly add/delete stuff)
-      + Undo: up to 10 undo history entries coming to/from ProjExtState binary chunk
-      
-    1.0pre8c 12.03.2017
-      # Blocks: fix broken offsets
-      # Blocks: disable all overlap checks, use post overlap checking belong sample tracks
-      + Blocks: per block option to disable overlapping, enabled by default
-      + StepSeq: clicking on block name select related tracks if any
-      # Patterns: support properly follow pooled MIDI patterns      
-      
-    1.0pre7 11.03.2017
-      # fix fontsize on OSX
-      # StepSeq: fix steps not editable after changing tab
-      + Patterns: change humanize multiplier
-      + Patterns: change randomize threshold
-      # Patterns: apply new/duplicated pattern on selected item if any
-      + Blocks: per block pitch
-      + Blocks: per sample pitch
-      # Blocks: fix display common offset per sample
-      
-    1.0pre6 09.03.2017
-      + StepSeq: humanize step velocities
-      + StepSeq: show block note
-      + StepSeq: mousewheel on step change gain/velocity
-      # StepSeq: mousewheel scroll blocks only under name
-      # StepSeq: fix change mouse context when change pattern len
-      + Patterns: support SWS GrooveTool grooves, show groove as yellow lines
-      # Patterns: different performance fixes/improvements for patterns update      
-      # Blocks: use only JS:time adjustment for block/sample time shifts
-      
-    1.0pre5 08.03.2017
-      # Rename Layers to Blocks
-      + Main menu/Shortcuts and mouse modifiers
-      + StepSeq: mousewheel on volume
-      + StepSeq: option to follow groove per block
-      + StepSeq: randomize steps
-      + StepSeq: copypaste steps beetween blocks/patterns via context menu or Ctrl+C Ctrl+V
-      # StepSeq: doubleclick open block, LMB select block
-      # Patterns: update patterns on project state change
-      # Patterns: limit dumped pattern items to pattern edges
-      # Patterns: fix parse take to pattern
-      # Patterns: match current pattern length (in measures) when parsing
-      + Blocks: mousewheel on offsets
-      # Blocks: removing block remove linked samples tracks
-      # Blocks: reset blocks blit buffers on some GUI changes
-      # GUI tweaks
-      
-    1.0pre4 07.08.2017
-      + Patterns: Menu/Parse selected MIDI take as new 16-step pattern
-      + Patterns: Menu/Parse selected MIDI take to current 16-step pattern
-      + Patterns: doubleclick on step count set step count per measure
-      + Patterns: shift drag double/half current step count
-      + Patterns: add controls, previous/next pattern, remove current pattern
-      # Patterns: prevent adding steps when changing length or step count
-      # Patterns: prevent erasing parent track when remove all patterns
-      # Patterns: remove ALL previous dumped items from tracks (previous behaviour cause lags when converting PPQ to time in some cases)
-      # Patterns: match dumped item lengths MIDI notes   
-      # Patterns: prevent adding items with position < 0   
-      # Layers: show full sample paths 
-      # Layers: improved blocks validation
-      # GUI: improved knobs
-            
-    1.0pre3 06.03.2017
-      # Patterns: arm pattern track when defining 
-      # Patterns: set record MIDI for pattern track when defining 
-      + Patterns: volume per layer (dumped items gain follow MIDI velocity)
-      + Layers: scroll by scrollbar and mousewheel
-      + Layers: global offset (both PPQ/time), alt+LMB or doubleclick to reset
-      + Layers: offset per sample (auto add JS: TimeAdjustment), alt+LMB or doubleclick to reset
-      + Layers: testing adding RS5K instance via TrackStateChunk. Can cause REAPER crash on open RS5k UI afterwards. Waiting an API from Justin.
-      # Reset blit buffers on some GUI changes
-      
-    1.0pre2 04.03.2017
-      + Layers/StepSeq: mute layer tracks
-      + Layers/StepSeq: solo layer tracks
-      + Layers: store current layer with project
-      + Layers: preview layer
-      # Layers: fix update block table when add samples to current layer
-      + Patterns: store current pattern with project
-      # Patterns: fixes for start dialog
-      # Patterns: fix create new pattern set selected track as parent track
-      # StepSeq: Left Drag + Shift set velocity behaviour changed to match Y position under step
-      + Pads: Menu / Show black keys
-      + Pads: Menu / Key names
-      + Pads: Menu / Visual octave shift
-      + Pads: mute/solo indicators
-      + Pads: Ableton DrumRack layout
-      + Pads: Korg NanoPad layout
-      # Pads: proper click behaviour (send note off when release LMB)
-      # Update gfx only when changing w/h of window and not x,y position
-
-    1.0pre1 26.02.2017 required new clear ProjExtState
-      + Patterns: init mode - dump MIDI notes as audio items for current pattern
-      + Patterns: don`t remove items out of pattern clip when updating dumped items
-      + Patterns: set pattern MIDI notes muted
-      + Patterns: prevent inserting items after pattern edges
-      + Patterns: when define parent track, enable all MIDI channels input and monitoring
-      + Patterns: reset MIDI notes names not presented in rows
-      + Patterns: set pattern track dialog on start
-      # Patterns: improved menu
-      # Patterns: fix update only pattern track
-      # Patterns: fix validating sample/rs5k tracks after delete
-      # Global preferences moved to main menu
-      + GlobalPref/Layers: set base MIDI pitch
-      + GlobalPref/Layers: update RS5k instances pitch range on changing base pitch
-      + GlobalPref/About: links, changelog
-      + Pads: early stage
-      + Pads: reduce pad name down to MIDI pitch when small
-      # StepSeq: mouse modifiers improvements
-      + StepSeq: improved performance, dedicated ProjExtState for blocks
-      + Layers: data table hold MIDI base, blocks hold 0-based MIDI shift
-      + Layers: set minimum velocity to zero when adding rs5k instance
-      + Layers: Menu / Remove all layers
-      + Layers: Menu / Add selected items to separate layers
-      # Layers: add new tracks at the end of project
-      # Layers: when add first sample to layer, name layer as sample (reduced filename)
-      # Layers: improved menu
-      # Reduced filename for some contexts not include extension
-
-    1.0alpha28 23.02.2017
-      # Layers: fix wrong note when add new sample to layer
-      # Layers: fix crash if change tab before updating layers
-      + Layers: Menu / Add new layer
-      + Layers: Menu / Rename layer    
-      + Layers: Menu / Remove layer
-      + Layers: Menu / Add selected items to current layer
-        form new dedicated track with rs5k instance
-        rename rs5k instance with filename
-        create MIDI send to new track, disable audio send to new track
-        limit rs5k MIDI note range to current layer note
-      # StepSeq: fix editing steps apply edits to other patterns
-      + StepSeq: click on layer name open this layer in Layers tab
-      + StepSeq: support for swing, add swing by default, custom grooves not supported yet
-      + StepSeq: Menu / Set selected track as pattern track
-      + Tooltips: stepseq pattern length
-      + Tooltips: stepseq pattern groove name
-      + Patterns: update note names for pattern track
-      + Patterns: When create new pattern ask for pattern track
-      # Patterns: apply just duplicated pattern to selected items
-      # Patterns: legato per-row notes when applying
-      # Patterns: when edit current pattern, perform update only to this pattern
-      # Patterns: fix editing fist step velocity edit step count
-      # Patterns: Use only pattern track for pattern updating/manipulation
-
-    1.0alpha20 17.02.2017
-      # Internal chunk rebuild, dedicated table for Blocks (containers for samples/layers/MIDI/pads info)
-      + Layers: Menu/Layers list
-      + Layers: New layer button      
-      + Patterns: support for per-pattern length, global pattern len deprecated
-      + Patterns: store scroll offset to current pattern
-      + Patterns: Support for take rates
-      + Patterns: Support for take offset
-      + StepSeq: Perform notes update when editing steps
-      + StepSeq: steps mouse modifiers
-        LB click/hold on step - draw with vel=100,
-        RB click/hold on step - remove,
-        LB+ctrl click/hold on step - draw last touched step with vel = 100 + mouse dy
-        LB+ctrl+shift click/hold on step - draw with vel = 100 + mouse dy
-        LB drag on step count set count
-        LB+alt on step count reset count to defaults
-      + Patterns: Search for next empty place after edit cursor when inserting/creating pattern
-      + StepSeq: Step PPQ len fit GUI length
-      + StepSeq: GUI - Scroll bar
-      + StepSeq: GUI - grid beats/bars
-      + StepSeq: Menu / Unlink selected items from script
-      # StepSeq: fix step count and DC on row name relative to blit y shift
-      # StepSeq: GUI/update fixes and improvements
-
-    1.0alpha9 11.02.2017
-      + StepSeq: name, steps
-      + StepSeq: ExtStateParser early stage
-      + StepSeq: Menu / create
-      + StepSeq: Menu / duplicate
-      + StepSeq: Menu / rename
-      + StepSeq: Menu / apply
-      + StepSeq: Menu / remove pattern+variations
-      + StepSeq: Menu / select items linked to pattern
-      + Patterns: follow item selection optionally
-      + StepSeq: rows early stage, parse midi note, steps count
-      # change name to MPL PatternRack
-
     1.0alpha1 01.02.2017
       + mpl Rack GUI sketch
 ]]
@@ -264,7 +74,7 @@ local MOUSE_modifiers =
   local reaper = reaper
   local gfx = gfx
   local data = {}
-  local mouse = {}
+  mouse = {}
   local patterns = {}
   local blocks = {}
   local obj = {}
@@ -1967,7 +1777,7 @@ local MOUSE_modifiers =
     if it_tr_GUID == check_GUID then  return sel_item end
   end
   -----------------------------------------------------------------------
-  function Patterns_InsertNewItem(new_name, prevent_overlap)
+  function Patterns_InsertNewItem(new_name, prevent_overlap, timepos, force_new_item)
     --reaper.Main_OnCommand(40289,0) -- unselect all items
     -- get track
       if not patterns.tr_GUID then reaper.MB('Patterns track not found',name, 0) return end
@@ -1980,6 +1790,7 @@ local MOUSE_modifiers =
       if patterns.cur_pattern and patterns[patterns.cur_pattern] and patterns[patterns.cur_pattern].length then new_len_beats = patterns[patterns.cur_pattern].length else new_len_beats = 1 end
       local new_len = reaper.TimeMap2_beatsToTime( 0, 0,  new_len_beats )
       local new_st_time = edit_cur
+      if timepos then new_st_time = timepos end
       if prevent_overlap then
         for itemidx = 1,  reaper.CountTrackMediaItems( sel_tr ) do
           local it =  reaper.GetTrackMediaItem( sel_tr, itemidx -1)
@@ -1993,9 +1804,11 @@ local MOUSE_modifiers =
       if not new_st_time then new_st_time = 0 end
       local new_end_time = new_st_time + new_len
       
-      
-      local new_item = Patterns_GetSelectedItem()
-      if not new_item then 
+      local new_item
+      if not force_new_item then 
+        new_item = Patterns_GetSelectedItem()
+        if not new_item then new_item = reaper.CreateNewMIDIItemInProj( sel_tr, new_st_time,new_end_time) end
+       else
         new_item = reaper.CreateNewMIDIItemInProj( sel_tr, new_st_time,new_end_time) 
       end
       reaper.SetMediaItemInfo_Value( new_item, 'B_UISEL', 1 )
@@ -2844,9 +2657,23 @@ local MOUSE_modifiers =
           
     -- insert
       if MOUSE_button(obj.StSeq_pat_id_add) and patterns.cur_pattern and patterns.cur_pattern > 0 then
-        local _, itemGUID, poolGUID = Patterns_InsertNewItem(nil, true)
-        Patterns_AddTakeToPattern(patterns.cur_pattern, itemGUID,poolGUID)
-        update_patterns = true
+        local startOut, endOut = reaper.GetSet_LoopTimeRange2( 0, 0, 0, 0, 0, 0 )
+        if startOut == 0 and endOut == 0 then
+          local _, itemGUID, poolGUID = Patterns_InsertNewItem(nil, true)
+          Patterns_AddTakeToPattern(patterns.cur_pattern, itemGUID,poolGUID)
+          update_patterns = true
+         else
+          local st_beat, st_measure= reaper.TimeMap2_timeToBeats( 0, startOut )
+          if st_beat > 0.0001 then st_measure = st_measure + 1 end
+          local end_beat, end_measure= reaper.TimeMap2_timeToBeats( 0, endOut )
+          for i = 0, end_measure - st_measure-1, patterns [patterns.cur_pattern].length do            
+            local _, itemGUID, poolGUID = Patterns_InsertNewItem(nil, false, 
+                reaper.TimeMap2_beatsToTime( 0, 0, i+st_measure ),  -- timepos
+                true) -- force new item
+            Patterns_AddTakeToPattern(patterns.cur_pattern, itemGUID,poolGUID)
+          end
+          update_patterns = true
+        end
       end
     
     -- remove
@@ -2952,14 +2779,25 @@ local MOUSE_modifiers =
         mouse.last_obj = 'scrollbar'
         mouse.last_obj_val = patterns[patterns.cur_pattern].scroll
       end
-      if mouse.LMB_state and mouse.last_obj == 'scrollbar' then
-        patterns[patterns.cur_pattern].scroll =
-        F_limit(mouse.last_obj_val+mouse.dy/data.fader_mouse_resolution,0,1)
+      if (mouse.LMB_state and mouse.last_obj == 'scrollbar') then        
+        patterns[patterns.cur_pattern].scroll = F_limit(mouse.last_obj_val+mouse.dy/data.fader_mouse_resolution,0,1)
         update_gfx = true
         update_patterns = true
       end
 
-
+        -- scroll on name
+          if mouse.mx < (obj.StSeq_rows[1].name.x+obj.StSeq_rows[1].name.w)
+            and mouse.my > obj.StSeq_blit_level 
+            and mouse.wheel_trig and mouse.wheel_trig ~= 0 then
+            local shift = 0.4
+            if mouse.wheel_trig > 0 then
+              patterns[patterns.cur_pattern].scroll = F_limit(patterns[patterns.cur_pattern].scroll - shift,0,1)
+             else
+              patterns[patterns.cur_pattern].scroll = F_limit(patterns[patterns.cur_pattern].scroll + shift,0,1)
+            end
+            update_gfx = true
+            update_patterns = true
+          end
     
     
    ----------------   ROWS   ----------------------
@@ -3166,18 +3004,6 @@ local MOUSE_modifiers =
               break
             end
             
-        -- scroll on name
-          if MOUSE_match(obj.StSeq_rows[row].name)
-            and mouse.wheel_trig and mouse.wheel_trig ~= 0 then
-            local shift = 0.4
-            if mouse.wheel_trig > 0 then
-              patterns[patterns.cur_pattern].scroll = F_limit(patterns[patterns.cur_pattern].scroll - shift,0,1)
-             else
-              patterns[patterns.cur_pattern].scroll = F_limit(patterns[patterns.cur_pattern].scroll + shift,0,1)
-            end
-            update_gfx = true
-            update_patterns = true
-          end
                 
         end
           
@@ -4461,11 +4287,11 @@ Purchase MPL scripts?
       force_undo = false      
     end
     char = gfx.getchar()
-    -- local filepath = gfx.get_dragged_filepath()
+    --[[ local filepath = gfx.get_dragged_filepath()
     if filepath and filepath ~= '' then
       msg('drag sample test'..filepath)
       Layers_add_sample_to_layer(filepath, data.current_layer)
-    end    
+    end    ]]
     
     -- shortcuts
       if patterns.cur_pattern and blocks.cur_block then
