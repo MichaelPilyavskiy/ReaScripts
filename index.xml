@@ -1443,6 +1443,10 @@
         <changelog><![CDATA[# disable REAPER version check on start because of broken API for x64 Win]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/da966714e6361af3b3b8d8bf47c08febe00dbab2/Various/mpl_PatternRack.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2017-03-24T17:27:24Z">
+        <changelog><![CDATA[# enable REAPER version check on start back]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a91c94fa88a3b2c63e6b1584dcaa2d507d1be181/Various/mpl_PatternRack.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Quantize Tool set grid (MIDI CC and OSC only).lua" type="script" desc="Quantize Tool set grid (MIDI CC and OSC only)">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
