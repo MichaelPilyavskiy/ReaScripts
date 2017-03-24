@@ -1,25 +1,21 @@
 ﻿-- @description PatternRack
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    # disable REAPER version check on start because of broken API for x64 Win
+--    # enable REAPER version check on start back
 
   --------------------------------------------------------------------
 
-  vrs = '1.02'
+  vrs = '1.03'
   name = 'MPL PatternRack'
   
   --------------------------------------------------------------------
 
-local changelog =[[
-    1.02  24.03.2017  //  REAPER 5.40
-      # disable REAPER version check on start because of broken API for x64 Win
-      
+local changelog =[[    
     1.01  24.03.2017  //  REAPER 5.40pre12+
       + StepSeq: clicking on insert fill time selection by current pattern if any
-      # StepSeq: fix scroll blocks only when pointer on selected block
-      
+      # StepSeq: fix scroll blocks only when pointer on selected block      
     1.0   17.03.2017  //  REAPER 5.40pre12+
       + official release
     1.0alpha1 01.02.2017
@@ -4810,11 +4806,11 @@ Purchase MPL scripts?
   end
   --------------------------------------------------------------------
   function F_vrs_check()
-    --appvrs = reaper.GetAppVersion()
-    --appvrs = appvrs:match('[%d%p]+')
-    --if not appvrs then return end
-    --appvrs =  tonumber(appvrs)
-    --if not appvrs or appvrs < 5.40 then return end
+    appvrs = reaper.GetAppVersion()
+    appvrs = appvrs:match('[%d%p]+'):gsub('/','')
+    if not appvrs then return end
+    appvrs =  tonumber(appvrs)
+    if not appvrs or appvrs < 5.40 then return end
     local APITest = { 'BR_GetMidiTakePoolGUID', 
                       'BR_GetMediaTrackByGUID',
                       'BR_GetMediaTrackByGUID',
