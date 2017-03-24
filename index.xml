@@ -1447,6 +1447,10 @@
         <changelog><![CDATA[# enable REAPER version check on start back]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a91c94fa88a3b2c63e6b1584dcaa2d507d1be181/Various/mpl_PatternRack.lua</source>
       </version>
+      <version name="1.04" author="MPL" time="2017-03-24T20:11:25Z">
+        <changelog><![CDATA[# fix adding new pattern with no blocks]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6cf7f6596634c9f3cf9fbc7da4dd273715a1609a/Various/mpl_PatternRack.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Quantize Tool set grid (MIDI CC and OSC only).lua" type="script" desc="Quantize Tool set grid (MIDI CC and OSC only)">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
