@@ -1,10 +1,9 @@
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Open and Close Media Explorer when single item is inserted, export it to RS5k
 -- @changelog
---    + prepare track for MIDI input after release
---    + delete item after export
+--    # set record MIDI/Input
 
 
   local script_title = 'Open and Close Media Explorer when single item is inserted, export it to RS5k'
@@ -135,7 +134,7 @@
     reaper.SetMediaTrackInfo_Value( tr, 'I_RECINPUT', 4096+bits_set ) -- set input to all MIDI
     reaper.SetMediaTrackInfo_Value( tr, 'I_RECMON', 1) -- monitor input
     reaper.SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) -- arm track
-    reaper.SetMediaTrackInfo_Value( tr, 'I_RECMODE',4) -- record MIDI out
+    reaper.SetMediaTrackInfo_Value( tr, 'I_RECMODE',0) -- record MIDI in
   end
   -------------------------------------------------------------------------------  
   if not vrs_check() then 
