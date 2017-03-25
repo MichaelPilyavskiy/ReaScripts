@@ -1,9 +1,10 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Open and Close Media Explorer when single item is inserted, export it to RS5k
 -- @changelog
---    # fix for x64 vrs check
+--    + prepare track for MIDI input after release
+--    + delete item after export
 
 
   local script_title = 'Open and Close Media Explorer when single item is inserted, export it to RS5k'
@@ -111,6 +112,10 @@
           reaper.PreventUIRefresh( -1 )
           local f_item_tr =  reaper.GetMediaItemTrack( f_item )
           ExportSelItemsToRs5k(base_pitch, f_item_tr)
+          MIDI_prepare(f_item_tr)
+          reaper.Main_OnCommand(40289, 0) -- unselect items
+          reaper.SetMediaItemSelected( f_item, true )
+          reaper.Main_OnCommand(40006, 0)
           reaper.PreventUIRefresh( 1 )
          else
           reaper.atexit()
@@ -125,6 +130,14 @@
   ------------------------------------------------------------------------------- 
   function isME_open()  return reaper.GetToggleCommandState(50124) == 0 end
   -------------------------------------------------------------------------------   
+  function MIDI_prepare(tr)
+    local bits_set=tonumber('111111'..'00000',2)
+    reaper.SetMediaTrackInfo_Value( tr, 'I_RECINPUT', 4096+bits_set ) -- set input to all MIDI
+    reaper.SetMediaTrackInfo_Value( tr, 'I_RECMON', 1) -- monitor input
+    reaper.SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) -- arm track
+    reaper.SetMediaTrackInfo_Value( tr, 'I_RECMODE',4) -- record MIDI out
+  end
+  -------------------------------------------------------------------------------  
   if not vrs_check() then 
     reaper.MB('Script works with REAPER 5.40 and upper.','Error',0) 
    else

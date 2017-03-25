@@ -1,11 +1,15 @@
 -- @version 1.13
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
--- @description Export selected items to RS5k instances on selected track
+-- @description Export selected items to RS5k instances on selected track (drum mode)
 -- @changelog
---    + prepare track for MIDI input
+--    + init branch from Export selected items to RS5k instances on selected track
+--    + obey notesoff - disabled
+--    + maxvoices=1
 
-  local script_title = 'Export selected items to RS5k instances on selected track'
+
+
+  local script_title = 'Export selected items to RS5k instances on selected track (drum mode)' 
   
   -------------------------------------------------------------------------------
   function F_SetFXName(track, fx, new_name)
@@ -97,9 +101,9 @@
       reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 4, base_pitch/127 ) -- note range end
       reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 5, 0.5 ) -- pitch for start
       reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 6, 0.5 ) -- pitch for end
-      --reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 8, 0 ) -- max voices = 0
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 8, 0 ) -- max voices = 0
       reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 9, 0 ) -- attack
-      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 11, 1 ) -- obey note offs
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 11, 0 ) -- obey note offs
       local new_name = F_extract_filename(filename)
       F_SetFXName(track, rs5k_pos, 'RS5K '..new_name)
       reaper.TrackFX_SetNamedConfigParm(track, rs5k_pos, "FILE0", filename)

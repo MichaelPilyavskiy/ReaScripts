@@ -1,9 +1,11 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Export selected item to RS5k instance on same track as chromatic source
 -- @changelog
---    # fix for x64 vrs check
+--    + check for one item is selected
+--    + prepare track for MIDI input
+--    + glue item before export
 
   local script_title = 'Export selected item to RS5k instance on same track as chromatic source'
   
@@ -77,21 +79,35 @@
   end
 
   -------------------------------------------------------------------------------  
-  function main(track)   
+  function main(track) 
+    -- check for one items  
+      if reaper.CountSelectedMediaItems(0) > 1 then return end
     -- item check
       local item = reaper.GetSelectedMediaItem(0,0)
+      if reaper.TakeIsMIDI(reaper.GetActiveTake(item)) then return end
       if not item then return end        
       local track =  reaper.GetMediaItemTrack( item )
       
-    --[[ glue item      
+    -- glue item      
       reaper.Main_OnCommand(40289, 0) -- unselect all items
       reaper.SetMediaItemSelected(item, true)
       reaper.Main_OnCommand(40362, 0) -- glue without time selection]]
+      local item = reaper.GetSelectedMediaItem(0,0)
       
     -- export to RS5k
       ExportSelItemsToRs5k(track, item)
       reaper.Main_OnCommand(40006,0)--Item: Remove items
       
+    MIDI_prepare(track)
+      
+  end
+  ------------------------------------------------------------------------------- 
+  function MIDI_prepare(tr)
+    local bits_set=tonumber('111111'..'00000',2)
+    reaper.SetMediaTrackInfo_Value( tr, 'I_RECINPUT', 4096+bits_set ) -- set input to all MIDI
+    reaper.SetMediaTrackInfo_Value( tr, 'I_RECMON', 1) -- monitor input
+    reaper.SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) -- arm track
+    reaper.SetMediaTrackInfo_Value( tr, 'I_RECMODE',4) -- record MIDI out
   end
     -------------------------------------------------------------------------------      
   function vrs_check()
