@@ -481,6 +481,10 @@
 + glue item before export]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f3a3c5e157126c61983e251c3e3fdd040d11003/FX%20specific/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2017-03-25T21:00:32Z">
+        <changelog><![CDATA[# set record MIDI/Input]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2e542cd93328452d2fa07f8603fe9273b85a500/FX%20specific/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances on selected track (drum mode).lua" type="script" desc="Export selected items to RS5k instances on selected track (drum mode)">
       <metadata>
@@ -491,6 +495,10 @@
 + obey notesoff - disabled
 + maxvoices=1]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f3a3c5e157126c61983e251c3e3fdd040d11003/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(drum%20mode).lua</source>
+      </version>
+      <version name="1.15" author="MPL" time="2017-03-25T21:00:32Z">
+        <changelog><![CDATA[# set record MIDI/Input]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2e542cd93328452d2fa07f8603fe9273b85a500/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(drum%20mode).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances on selected track.lua" type="script" desc="Export selected items to RS5k instances on selected track">
@@ -523,6 +531,10 @@
       <version name="1.13" author="MPL" time="2017-03-25T17:40:26Z">
         <changelog><![CDATA[+ prepare track for MIDI input]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f3a3c5e157126c61983e251c3e3fdd040d11003/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
+      </version>
+      <version name="1.14" author="MPL" time="2017-03-25T21:00:32Z">
+        <changelog><![CDATA[# set record MIDI/Input]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2e542cd93328452d2fa07f8603fe9273b85a500/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_List next sample in directory for RS5k on selected track.lua" type="script" desc="List next sample in directory for RS5k on selected track">
@@ -567,6 +579,10 @@
         <changelog><![CDATA[+ prepare track for MIDI input after release
 + delete item after export]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f3a3c5e157126c61983e251c3e3fdd040d11003/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2017-03-25T21:00:32Z">
+        <changelog><![CDATA[# set record MIDI/Input]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2e542cd93328452d2fa07f8603fe9273b85a500/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k.lua</source>
       </version>
     </reapack>
   </category>
