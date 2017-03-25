@@ -1,9 +1,9 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description List next sample in directory for RS5k on selected track
 -- @changelog
---    + init
+--    # fix for x64 vrs check
 
 
   local script_title = 'List next sample for RS5k on selected track'
@@ -65,10 +65,8 @@
   -------------------------------------------------------------------------------  
   function vrs_check()
     local appvrs = reaper.GetAppVersion()
-    local vrs =  tonumber(appvrs:match('[%d%p]+'))
-    if vrs <= 5.29 then return end
-    if not reaper.APIExists('TrackFX_SetNamedConfigParm')  then return end
-    return true
+    appvrs = appvrs:match('[%d%p]+'):gsub('/','')
+    if not appvrs or not tonumber(appvrs) or tonumber(appvrs) < 5.40 then return else return true end 
   end
   -------------------------------------------------------------------------------   
   if not vrs_check() then 

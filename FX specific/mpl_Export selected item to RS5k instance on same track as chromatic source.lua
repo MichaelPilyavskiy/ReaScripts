@@ -1,9 +1,9 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Export selected item to RS5k instance on same track as chromatic source
 -- @changelog
---    + inti
+--    # fix for x64 vrs check
 
   local script_title = 'Export selected item to RS5k instance on same track as chromatic source'
   
@@ -96,7 +96,7 @@
     -------------------------------------------------------------------------------      
   function vrs_check()
     local appvrs = reaper.GetAppVersion()
-    appvrs = appvrs:match('[%d%p]+')
+    appvrs = appvrs:match('[%d%p]+'):gsub('/','')
     if not appvrs or not tonumber(appvrs) or tonumber(appvrs) < 5.40 then return else return true end 
   end
     -------------------------------------------------------------------------------    

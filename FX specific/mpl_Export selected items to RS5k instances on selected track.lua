@@ -1,9 +1,9 @@
--- @version 1.11
+-- @version 1.12
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Export selected items to RS5k instances on selected track
 -- @changelog
---    + create MIDI item if selected items placed on same track (MIDI from sliced loop)
+--    # fix for x64 vrs check
 
   local script_title = 'Export selected items to RS5k instances on selected track'
   
@@ -110,7 +110,7 @@
   -------------------------------------------------------------------------------      
   function vrs_check()
     local appvrs = reaper.GetAppVersion()
-    appvrs = appvrs:match('[%d%p]+')
+    appvrs = appvrs:match('[%d%p]+'):gsub('/','')
     if not appvrs then return end
     appvrs =  tonumber(appvrs)
     if not appvrs or appvrs <= 5.29 then return end

@@ -1,21 +1,17 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Open and Close Media Explorer when single item is inserted, export it to RS5k
 -- @changelog
---    + init
+--    # fix for x64 vrs check
 
 
   local script_title = 'Open and Close Media Explorer when single item is inserted, export it to RS5k'
--------------------------------------------------------------------------------  
+    -------------------------------------------------------------------------------      
   function vrs_check()
     local appvrs = reaper.GetAppVersion()
-    appvrs = appvrs:match('[%d%p]+')
-    if not appvrs then return end
-    local vrs =  tonumber(appvrs)
-    if vrs <= 5.29 then return end
-    if not reaper.APIExists('TrackFX_SetNamedConfigParm')  then return end
-    return true
+    appvrs = appvrs:match('[%d%p]+'):gsub('/','')
+    if not appvrs or not tonumber(appvrs) or tonumber(appvrs) < 5.40 then return else return true end 
   end
   ------------------------------------------------------------------------------- 
   function ExportSelItemsToRs5k(base_pitch, track)
