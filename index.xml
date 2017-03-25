@@ -471,6 +471,10 @@
         <changelog><![CDATA[+ inti]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/da849268a36340d13fe51100552b6d8c21fdaa1f/FX%20specific/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2017-03-25T07:14:22Z">
+        <changelog><![CDATA[# fix for x64 vrs check]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fac49a7cf0a9c16a893a744e90aad60d3cf32cd1/FX%20specific/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances on selected track.lua" type="script" desc="Export selected items to RS5k instances on selected track">
       <metadata>
@@ -495,6 +499,10 @@
         <changelog><![CDATA[+ create MIDI item if selected items placed on same track (MIDI from sliced loop)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25aad25298c66f3fc757ebee387be1100f776e95/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
       </version>
+      <version name="1.12" author="MPL" time="2017-03-25T07:14:22Z">
+        <changelog><![CDATA[# fix for x64 vrs check]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fac49a7cf0a9c16a893a744e90aad60d3cf32cd1/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_List next sample in directory for RS5k on selected track.lua" type="script" desc="List next sample in directory for RS5k on selected track">
       <metadata>
@@ -503,6 +511,10 @@
       <version name="1.0" author="MPL" time="2017-03-15T06:01:15Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/506fd78bdf53a7b5666c81e140988b2a0ca07541/FX%20specific/mpl_List%20next%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-03-25T07:14:22Z">
+        <changelog><![CDATA[# fix for x64 vrs check]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fac49a7cf0a9c16a893a744e90aad60d3cf32cd1/FX%20specific/mpl_List%20next%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_List previous sample in directory for RS5k on selected track.lua" type="script" desc="List previous sample in directory for RS5k on selected track">
@@ -513,6 +525,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/506fd78bdf53a7b5666c81e140988b2a0ca07541/FX%20specific/mpl_List%20previous%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2017-03-25T07:14:22Z">
+        <changelog><![CDATA[# fix for x64 vrs check]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fac49a7cf0a9c16a893a744e90aad60d3cf32cd1/FX%20specific/mpl_List%20previous%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k.lua" type="script" desc="Open and Close Media Explorer when single item is inserted, export it to RS5k">
       <metadata>
@@ -521,6 +537,10 @@
       <version name="1.0" author="MPL" time="2017-03-15T11:48:03Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/721cd96f28ce2492d6a6e24a6ccb0ab342165b37/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-03-25T07:14:22Z">
+        <changelog><![CDATA[# fix for x64 vrs check]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fac49a7cf0a9c16a893a744e90aad60d3cf32cd1/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k.lua</source>
       </version>
     </reapack>
   </category>
