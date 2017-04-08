@@ -453,6 +453,33 @@
     </reapack>
   </category>
   <category name="FX specific">
+    <reapack name="mpl_Add or replace source of item under mouse cursor for RS5k instance on selected track.lua" type="script" desc="Add or replace source of item under mouse cursor for RS5k instance on selected track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-04-08T09:39:22Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/628e26f4f011dbd2314b361bf7452b2490dcd205/FX%20specific/mpl_Add%20or%20replace%20source%20of%20item%20under%20mouse%20cursor%20for%20RS5k%20instance%20on%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Add or replace source of selected item for RS5k instance on selected track.lua" type="script" desc="Add or replace source of selected item for RS5k instance on selected track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-04-08T09:39:22Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/628e26f4f011dbd2314b361bf7452b2490dcd205/FX%20specific/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Add or replace source of selected item for RS5k instance on track under mouse cursor.lua" type="script" desc="Add or replace source of selected item for RS5k instance on track under mouse cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-04-08T09:39:22Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/628e26f4f011dbd2314b361bf7452b2490dcd205/FX%20specific/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Bypass all UAD FX on all tracks.lua" type="script">
       <version name="1.1" author="Michael Pilyavskiy (mpl)" time="2017-03-14T20:48:53Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d559cd4087e6a2cbf570314d1183fa22760ac8e4/FX%20specific/mpl_Bypass%20all%20UAD%20FX%20on%20all%20tracks.lua</source>
