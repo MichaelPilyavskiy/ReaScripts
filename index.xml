@@ -689,6 +689,10 @@
 + overlap checking]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d5c5bc1ad23995694d49195a9c3b4d05ccca4af/Items%20Editing/mpl_Smart%20duplicate%20items.lua</source>
       </version>
+      <version name="1.2" author="MPL" time="2017-04-16T07:38:47Z">
+        <changelog><![CDATA[# prevent overlap with last item or itself]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8f423c564b7b62da9e6ebc8af5385513b83335ed/Items%20Editing/mpl_Smart%20duplicate%20items.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Snap selected items to each other.lua" type="script" desc="Snap selected items to each other">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
