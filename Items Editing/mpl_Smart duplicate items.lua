@@ -1,12 +1,9 @@
--- @version 1.1
+-- @version 1.2
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Smart duplicate items
 -- @changelog
---    # recoded to lua
---    # proper area checking
---    # calc nudge value in measures, ignore overlap with last item
---    + overlap checking
+--    # prevent overlap with last item or itself
 
   function SmartDuplicateItems() 
     if reaper.CountSelectedMediaItems(0) < 1 then return end
@@ -22,13 +19,13 @@
       area_max = math.max(area_max, pos+len)
     end
     
-    meas = ({ reaper.TimeMap2_timeToBeats( 0, area_max - area_min)})[2]
-    
+    meas_min = ({ reaper.TimeMap2_timeToBeats( 0, area_min)})[2]
+    meas_max = ({ reaper.TimeMap2_timeToBeats( 0, area_max)})[2]
     reaper.ApplyNudge( 0, --project, 
                         0,--nudgeflag, 
                         5,--nudgewhat, 
                         16,--nudgeunits, 
-                        meas, --value, 
+                        meas_max-meas_min, --value, 
                         0,--reverse, 
                         1)--copies )
     t = nil
