@@ -217,6 +217,15 @@
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/93d5ae1dbb4a92fddc2ac9bab32ae34b1340b691/FX/mpl_Copy%20Focused%20FX%20data.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Create modulation link on same track from stored buffer.lua" type="script" desc="Create modulation link on same track from stored buffer">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2017-05-09T12:01:40Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ab6fd7b2f3bf64aabbd800902e91716caea6164c/FX/mpl_Create%20modulation%20link%20on%20same%20track%20from%20stored%20buffer.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Cubase AB floating FX make equal.lua" type="script" desc="Cubase AB floating FX make equal">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/FX/mpl_Cubase%20AB%20floating%20FX%20make%20equal.lua</source>
