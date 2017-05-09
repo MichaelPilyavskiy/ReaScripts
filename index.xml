@@ -161,6 +161,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f78e5d8d0926d804e4ce3b64ff5e067d7f7c4a99/FX/mpl_Assign%20audio%20input%20parameter%20modulation%20with%20last%20touched%20parameter.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2017-05-09T11:47:11Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3afc423d440339c2fe6294617f05cdd52c8c1180/FX/mpl_Assign%20audio%20input%20parameter%20modulation%20with%20last%20touched%20parameter.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Assign MIDIOSC control with FX envelope under mouse cursor.lua" type="script" desc="Assign MIDIOSC control with FX envelope under mouse cursor">
       <metadata>
@@ -431,6 +435,15 @@
       <version name="1.0" author="MPL" time="2017-05-09T11:35:07Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/58fe2d0219d426a643b3c2e1111d0d13dbe22f96/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Store source for further modulation from last touched parameter.lua" type="script" desc="Store source for further modulation from last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-05-09T11:47:11Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3afc423d440339c2fe6294617f05cdd52c8c1180/FX/mpl_Store%20source%20for%20further%20modulation%20from%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle float instrument on track under mouse cursor.lua" type="script" desc="Toggle float instrument on track under mouse cursor">
