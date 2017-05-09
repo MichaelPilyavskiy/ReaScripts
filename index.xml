@@ -415,6 +415,15 @@
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/acc63acaffa51a079ee8c076cbe896501ffa582f/FX/mpl_Show%20instrument%20in%20FX%20chain%20on%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Sort plugins by vendor.lua" type="script" desc="Sort plugins by vendor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-05-09T11:35:07Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/58fe2d0219d426a643b3c2e1111d0d13dbe22f96/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Toggle float instrument on track under mouse cursor.lua" type="script" desc="Toggle float instrument on track under mouse cursor">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/FX/mpl_Toggle%20float%20instrument%20on%20track%20under%20mouse%20cursor.lua</source>
