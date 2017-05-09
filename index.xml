@@ -144,6 +144,15 @@
     </reapack>
   </category>
   <category name="FX">
+    <reapack name="mpl_Apply FX without sends, offline FX.lua" type="script" desc="Apply FX without sends, offline FX">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-05-09T11:41:59Z">
+        <changelog><![CDATA[# prevent overlap with last item or itself]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c03d9d2036357bf07fa6f6c96cf45d624b95d3f3/FX/mpl_Apply%20FX%20without%20sends,%20offline%20FX.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Assign audio input parameter modulation with last touched parameter.lua" type="script" desc="Assign audio input parameter modulation with last touched parameter">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
