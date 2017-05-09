@@ -1,4 +1,4 @@
--- @version 1.0alpha
+-- @version 1.0
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Sort plugins by vendor
