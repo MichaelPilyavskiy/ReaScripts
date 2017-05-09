@@ -1,5 +1,5 @@
--- @version 1.0
--- @author mpl
+-- @version 1.01
+-- @author MPL
 -- @changelog
 --   + init
 -- @description Assign audio input parameter modulation with last touched parameter
