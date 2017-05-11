@@ -457,6 +457,10 @@
 - remove code for parsing VST name and creating backup]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f64ddc570395ee3e55fd89fa20b62f5691c8f3ff/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
       </version>
+      <version name="1.2" author="MPL" time="2017-05-11T21:04:18Z">
+        <changelog><![CDATA[# fix crossmatching condition for AU/VST]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94c4c6c142d0e01b82f592b3a9ad4e8a4594dee9/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Store source for further modulation from last touched parameter.lua" type="script" desc="Store source for further modulation from last touched parameter">
       <metadata>
