@@ -445,6 +445,18 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/58fe2d0219d426a643b3c2e1111d0d13dbe22f96/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
       </version>
+      <version name="1.1" author="MPL" time="2017-05-11T19:52:24Z">
+        <changelog><![CDATA[+ ask for open REAPER path after generating new list
++ add search for AU vendors
++ add JSFX bundled and ReaTeam filters/paths
++ list unknown vendor plugins in 'reaper-fxfolders_UNKNOWN.txt'
+# fix reading vst64 list
+# read vendor from last brackets for VST
+# add some string conditions
+# prevent adding waveshaper to Waves
+- remove code for parsing VST name and creating backup]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f64ddc570395ee3e55fd89fa20b62f5691c8f3ff/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Store source for further modulation from last touched parameter.lua" type="script" desc="Store source for further modulation from last touched parameter">
       <metadata>
