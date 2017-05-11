@@ -1,17 +1,9 @@
--- @version 1.1
+-- @version 1.2
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Sort plugins by vendor
 -- @changelog
---    + ask for open REAPER path after generating new list
---    + add search for AU vendors
---    + add JSFX bundled and ReaTeam filters/paths
---    + list unknown vendor plugins in 'reaper-fxfolders_UNKNOWN.txt'
---    # fix reading vst64 list
---    # read vendor from last brackets for VST
---    # add some string conditions
---    # prevent adding waveshaper to Waves
---    - remove code for parsing VST name and creating backup
+--    # fix crossmatching condition for AU/VST
 
   function msg(s) if s then reaper.ShowConsoleMsg(s..'\n') end end
   reaper.ClearConsole()
@@ -29,10 +21,11 @@
   -----------------------------------------------------------------------------------  
   function ExtractVendor(s)
     local out_str
-    if not s:match('AU') then goto skip_au_detect end     
-    out_str = s:match('.-%:'):sub(5,-2)
-    ::skip_au_detect::
-    
+    if s:match('AU') then 
+      out_str = s:match('%"(.-)%:')
+     else
+      
+     
     local t_brackets = {}
     for str in s:gmatch("%((.-)%)") do t_brackets[#t_brackets+1] = str end    
     for i = #t_brackets, 1, -1 do
@@ -63,6 +56,8 @@
         fx_name = s:sub(-fx_name_comma+1) 
         fx_name = fx_name:gsub('!!!VSTi', '')
       end      
+    end
+    
     end
     
     return out_str, fx_name
