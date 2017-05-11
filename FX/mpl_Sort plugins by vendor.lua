@@ -1,11 +1,19 @@
--- @version 1.0
+-- @version 1.1
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Sort plugins by vendor
 -- @changelog
---    + init
+--    + ask for open REAPER path after generating new list
+--    + add search for AU vendors
+--    + add JSFX bundled and ReaTeam filters/paths
+--    + list unknown vendor plugins in 'reaper-fxfolders_UNKNOWN.txt'
+--    # fix reading vst64 list
+--    # read vendor from last brackets for VST
+--    # add some string conditions
+--    # prevent adding waveshaper to Waves
+--    - remove code for parsing VST name and creating backup
 
-  function msg(s) reaper.ShowConsoleMsg(s) end
+  function msg(s) if s then reaper.ShowConsoleMsg(s..'\n') end end
   reaper.ClearConsole()
   ----------------------------------------------------------------------------------- 
   function spairs(t, order) --http://stackoverflow.com/questions/15706270/sort-a-table-in-lua
@@ -17,116 +25,156 @@
               i = i + 1
               if keys[i] then return keys[i], t[keys[i]] end
            end
-end
-  -----------------------------------------------------------------------------------   
-  function ExtractVSTName(s)
-    if not s then return end
-    local t = {}
-    for val in s:gmatch('[^%,]+') do t[#t+1]=val end
-    local out_val
-    if t[3] then out_val = t[3] else return end
-    if out_val:find('!!!') then out_val = out_val:sub(0, out_val:find('!!!')-1) end
-    return out_val
   end
   -----------------------------------------------------------------------------------  
   function ExtractVendor(s)
-    local t = {}
-    local out_str = ''
-    for str in s:gmatch("%((.-)%)") do 
+    local out_str
+    if not s:match('AU') then goto skip_au_detect end     
+    out_str = s:match('.-%:'):sub(5,-2)
+    ::skip_au_detect::
+    
+    local t_brackets = {}
+    for str in s:gmatch("%((.-)%)") do t_brackets[#t_brackets+1] = str end    
+    for i = #t_brackets, 1, -1 do
+      local str = t_brackets[i]
       if not 
-        (
-          str:len()<2
-          or str:lower():find('mono')
-          or str:lower():find('stereo')
-          or str:lower():find('multi')
-          or str:lower():find('64')
-          or str:lower():find('voice')
-          or str:lower():match('v[%d]')
-        ) 
-       then 
-        if str:len() > out_str:len() then out_str = str end
+              (
+                str:len()<2
+                or str:lower():find('mono')
+                or str:lower():find('stereo')
+                or str:lower():find('multi')
+                or str:lower():find('64')
+                or str:lower():find('voice')
+                or str:lower():match('v[%d]')
+                or str:lower():match('[%d] out')
+                or str:lower():match('[%d]ch')
+                or str:lower():match('[%d]->[%d]')
+              ) 
+       then  
+        out_str = t_brackets[i] 
+        break
       end
     end
-    return out_str
+    
+    local fx_name
+    if not out_str then
+      local fx_name_comma = s:reverse():find(',')
+      if fx_name_comma then 
+        fx_name = s:sub(-fx_name_comma+1) 
+        fx_name = fx_name:gsub('!!!VSTi', '')
+      end      
+    end
+    
+    return out_str, fx_name
   end
   -----------------------------------------------------------------------------------
-  function GetPluginsTable()
-      local context = ''
-      local plugins_info = reaper.GetResourcePath()..'/'..'reaper-vstplugins.ini'
-      f=io.open(plugins_info, 'r')
-      if f then context = f:read('a') else return end
-      f:close()  
-      
-      local plugins_info = reaper.GetResourcePath()..'/'..'reaper-vstplugins64.ini'
-      f=io.open(plugins_info, 'r')
-      if f then 
-        context = context..f:read('a')
-        f:close() 
-      end             
-        
-      local t = {}
-      for line in context:gmatch('[^\r\n]+') do t[#t+1] = line end
-      return t
+  function GetFileContext(fp)
+    local str = "\n"
+    local f=io.open(fp, 'r')
+    if f then str = f:read('a') f:close() end 
+    return str
+  end
+  -----------------------------------------------------------------------------------  
+  function AddSpecific(t)
+    local spec_filt = {
+      'JS:',
+      'JS: ix',
+      'JS: Liteon',
+      'JS: loser',
+      'JS: remaincalm_org',
+      'JS: schwa',
+      'JS: sstillwell',
+      'JS: Teej',
+      'JS: X-Raym',
+      'JS: ReaTeam'
+      }
+    for i = 1, #spec_filt do table.insert(t, spec_filt[i]) end
   end
   -----------------------------------------------------------------------------------
   function main()
-    local t = GetPluginsTable()
+    -- collect plugins info
+      local context = 
+          GetFileContext(reaper.GetResourcePath()..'/'..'reaper-vstplugins.ini')
+        ..GetFileContext(reaper.GetResourcePath()..'/'..'reaper-vstplugins64.ini')
+        ..GetFileContext(reaper.GetResourcePath()..'/'..'reaper-auplugins64-bc.ini')        
+      local t_file = {}
+      for line in context:gmatch('[^\r\n]+') do t_file[#t_file+1] = line end
+    
     -- get sorted table
       local t_sort = {}
-      for i = 1, #t do
-        local vend = ExtractVendor(t[i])
-        local fx_name = ExtractVSTName(t[i])
-        
-        if not vend then vend = 'Unknown' end 
-        if not t_sort[vend] then t_sort[vend] = {} end
-        if fx_name and vend == 'Unknown' then        
-          t_sort[vend][#t_sort[vend]+1] = fx_name
+      local t_unknown = {}
+      for i = 1, #t_file do 
+        local vend, fx_name = ExtractVendor(t_file[i])
+        if vend then 
+          if not t_sort[vend] then t_sort[vend] = '' end
+         else 
+          if t_file[i]:find('%[') ~= 1 then t_unknown[#t_unknown+1] = fx_name end
         end
       end
       
-      --[[local addTS = os.date():gsub('%:', '.')
-      local command = 'rename "'..reaper.GetResourcePath()..'/'..'reaper-fxfolders.ini"'..'  '..'"reaper-fxfolders'..'_backup'..addTS..'.ini"'
-      command = command:gsub('/', '\\')
-      --msg(command)
-      os.execute(command)]]
+    -- sort table alphabetically
+      local t_sort_ord = {}
+      for k,v in spairs(t_sort, function(t,a,b) return b:lower() > a:lower() end) do t_sort_ord[#t_sort_ord+1] = k end      
       
-    -- form new reaper-fxfolders.ini
+    -- specific names/filters
+      AddSpecific(t_sort_ord)
       
+    -- form new reaper-fxfolders.ini      
       local new_file_path = reaper.GetResourcePath()..'/'..'reaper-fxfolders_SORTED.ini'
-      f2=io.open(new_file_path, 'w') 
+      local f2=io.open(new_file_path, 'w') 
       f2:close()
-    -- get table size
-      local tsz = 0 for key in pairs(t_sort) do tsz = tsz + 1 end
-      reaper.BR_Win32_WritePrivateProfileString( 'Folders', 'NbFolders', tsz, new_file_path )
+      
+    -- write table sz
+      reaper.BR_Win32_WritePrivateProfileString( 'Folders', 'NbFolders', #t_sort_ord, new_file_path )
+      
     -- write fold names
-      local f_id = 0
-      for k,v in spairs(t_sort, function(t,a,b) return b:lower() > a:lower() end) do
-        reaper.BR_Win32_WritePrivateProfileString( 'Folders', 'Name'..f_id, k, new_file_path )
-        reaper.BR_Win32_WritePrivateProfileString( 'Folders', 'Id'..f_id, f_id, new_file_path )
-        f_id = f_id + 1 
+      for i = 0, #t_sort_ord-1 do
+        reaper.BR_Win32_WritePrivateProfileString( 'Folders', 'Name'..i, t_sort_ord[i+1], new_file_path )
+        reaper.BR_Win32_WritePrivateProfileString( 'Folders', 'Id'..i, i, new_file_path )
       end
+      
     -- write fold stuff
-      local f_id = 0
-      for k,v in spairs(t_sort, function(t,a,b) return b:lower() > a:lower() end) do
-        if k ~= 'Unknown' then
-          reaper.BR_Win32_WritePrivateProfileString( 'Folder'..f_id, 'Nb',    1,          new_file_path )
-          reaper.BR_Win32_WritePrivateProfileString( 'Folder'..f_id, 'Type0', 1048576,    new_file_path )
-          reaper.BR_Win32_WritePrivateProfileString( 'Folder'..f_id, 'Item0', '('..k..')\n',    new_file_path )
-        end
-        f_id = f_id + 1 
-      end    
+      for i = 0, #t_sort_ord-1 do
+        reaper.BR_Win32_WritePrivateProfileString( 'Folder'..i, 'Nb',    1,          new_file_path )
+        reaper.BR_Win32_WritePrivateProfileString( 'Folder'..i, 'Type0', 1048576,    new_file_path )        
+        
+        local filter = t_sort_ord[i+1]
+        if filter:lower():find('waves') then filter = 'waves NOT waveshap' 
+          elseif filter == 'JS: ix' then filter = 'JS: ix/' end        
+        reaper.BR_Win32_WritePrivateProfileString( 'Folder'..i, 'Item0', filter,    new_file_path )
+        
+      end 
+      
+    -- write unknown vendor plugins
+      if #t_unknown > 0 then
+        local unkn_file_path = reaper.GetResourcePath()..'/'..'reaper-fxfolders_UNKNOWN.txt'
+        local f3=io.open(unkn_file_path, 'w') 
+        f3:write('Following plugins weren`t be added to Favourites smart folders:\n\n'..table.concat(t_unknown, '\n'))
+        f3:close()
+      end
+    
+  end
+  -----------------------------------------------------------------------------------  
+  function msg_ask()
+    ret = reaper.MB(
+[[1. Look at REAPER resource path
+2. Make backup of your reaper-fxfolders.ini
+3. Close REAPER
+4. Rename newly created reaper-fxfolders_SORTED.ini as reaper-fxfolders.ini
+5. Run REAPER
+    
+As a result, plugins organized in Favourites by vendor.
+Plugins without vendor listed in reaper-fxfolders_UNKNOWN.txt if any.
+
+Show REAPER resource path?
+    ]]
+    , 'MPL: Sort plugins by vendor',4)
+    if ret == 6 then reaper.Main_OnCommand(40027,0) end
   end
   -----------------------------------------------------------------------------------
-  main()
-  reaper.MB(
-[[  - look at REAPER resource folder, you use 'Show resource path' action
-  - make backup of your fxfolders.ini
-  - close REAPER
-  - rename newly created fxfolders_SORTED as fxfolders
-  - run REAPER
   
-  As a result, plugins organized in Favourites by vendor.
-  ]]
-  , '',0)
+  
+  main()
+  msg_ask()
   
   
