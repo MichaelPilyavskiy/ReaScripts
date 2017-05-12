@@ -1,9 +1,9 @@
--- @version 1.2
+-- @version 1.21
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Sort plugins by vendor
 -- @changelog
---    # fix crossmatching condition for AU/VST
+--    # fix nil on 33 line
 
   function msg(s) if s then reaper.ShowConsoleMsg(s..'\n') end end
   reaper.ClearConsole()
@@ -27,10 +27,11 @@
       
      
     local t_brackets = {}
-    for str in s:gmatch("%((.-)%)") do t_brackets[#t_brackets+1] = str end    
+    for str in s:gmatch("%((.-)%)") do t_brackets[#t_brackets+1] = str end  
+    if   #t_brackets < 1 then return end
     for i = #t_brackets, 1, -1 do
       local str = t_brackets[i]
-      if not 
+      if str and not 
               (
                 str:len()<2
                 or str:lower():find('mono')
@@ -100,6 +101,7 @@
       local t_unknown = {}
       for i = 1, #t_file do 
         local vend, fx_name = ExtractVendor(t_file[i])
+        if vend == 'AU' then msg(t_file[i]) break end
         if vend then 
           if not t_sort[vend] then t_sort[vend] = '' end
          else 
