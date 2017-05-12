@@ -1,4 +1,4 @@
--- @version 1.21
+-- @version 1.22
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Sort plugins by vendor
@@ -101,7 +101,6 @@
       local t_unknown = {}
       for i = 1, #t_file do 
         local vend, fx_name = ExtractVendor(t_file[i])
-        if vend == 'AU' then msg(t_file[i]) break end
         if vend then 
           if not t_sort[vend] then t_sort[vend] = '' end
          else 
