@@ -461,6 +461,10 @@
         <changelog><![CDATA[# fix crossmatching condition for AU/VST]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94c4c6c142d0e01b82f592b3a9ad4e8a4594dee9/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
       </version>
+      <version name="1.22" author="MPL" time="2017-05-12T03:20:31Z">
+        <changelog><![CDATA[# fix nil on 33 line]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4340e3750172edb9408bbff98fdd83d539903aed/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Store source for further modulation from last touched parameter.lua" type="script" desc="Store source for further modulation from last touched parameter">
       <metadata>
