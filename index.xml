@@ -624,6 +624,24 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2e542cd93328452d2fa07f8603fe9273b85a500/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Float Fre(a)koscope on master channel.lua" type="script" desc="Float Fre(a)koscope on master channel">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-05-13T21:43:36Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0aea8d0ce03ad042fe8b6875271e9eae4920cfe3/FX%20specific/mpl_Float%20Fre(a)koscope%20on%20master%20channel.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Float s(M)exoscope on master channel.lua" type="script" desc="Float s(M)exoscope on master channel">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-05-13T21:43:36Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0aea8d0ce03ad042fe8b6875271e9eae4920cfe3/FX%20specific/mpl_Float%20s(M)exoscope%20on%20master%20channel.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_List next sample in directory for RS5k on selected track.lua" type="script" desc="List next sample in directory for RS5k on selected track">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -1655,6 +1673,15 @@
       <version name="1.8.3" author="mpl" time="2016-08-03T19:53:08Z">
         <changelog><![CDATA[# Improved parsing GrooveTool patterns]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/32aa937ebbea0d5605a23f4a39729e68be42ed0a/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-05-13T21:43:36Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0aea8d0ce03ad042fe8b6875271e9eae4920cfe3/Various/mpl_Reset%20audio%20and%20MIDI%20devices.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset internal windows xy positions.lua" type="script" desc="Reset internal windows xy positions">
