@@ -1789,6 +1789,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1f31cbe014a092e018d1221139007c5df857392/Various/mpl_SendFader.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Set project grid (MIDI CC and OSC only).lua" type="script" desc="Set project grid (MIDI CC and OSC only)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-05-13T20:49:08Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/01dabc113933eb59ba7784536fdc8ae2dfd1d053/Various/mpl_Set%20project%20grid%20(MIDI%20CC%20and%20OSC%20only).lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
