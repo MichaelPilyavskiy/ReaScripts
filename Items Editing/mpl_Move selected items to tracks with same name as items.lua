@@ -1,15 +1,12 @@
 -- @version 1.02
--- @author mpl
+-- @author MPL
 -- @changelog
 --   # Wrong file
 --   # Fix for takes without extension
   
   --[[
      * ReaScript Name: Move items to tracks on same name as items
-     * Lua script for Cockos REAPER
-     * Author: Michael Pilyavskiy (mpl)
      * Author URI: http://forum.cockos.com/member.php?u=70694
-     * Licence: GPL v3
     ]]
   
   

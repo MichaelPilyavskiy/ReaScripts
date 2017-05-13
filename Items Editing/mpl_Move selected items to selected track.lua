@@ -1,5 +1,5 @@
 -- @version 1.0
--- @author mpl
+-- @author MPL
 -- @changelog
 --   + init alpha
 -- @description Move selected items to selected track 

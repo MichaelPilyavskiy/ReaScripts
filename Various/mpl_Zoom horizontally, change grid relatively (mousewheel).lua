@@ -1,6 +1,6 @@
 -- @description Zoom horizontally, change grid relatively (mousewheel) 
 -- @version 1.1
--- @author mpl
+-- @author MPL
 -- @changelog
 --   + prevent spam undo history
 -- @website http://forum.cockos.com/member.php?u=70694

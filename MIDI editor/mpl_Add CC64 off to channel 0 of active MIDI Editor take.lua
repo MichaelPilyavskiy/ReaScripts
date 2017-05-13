@@ -1,7 +1,7 @@
   --[[
      * ReaScript Name: Add CC64 off to channel 0 of active MIDI Editor take
      * Lua script for Cockos REAPER
-     * Author: Michael Pilyavskiy (mpl)
+     * Author: MPL
      * Author URI: http://forum.cockos.com/member.php?u=70694
      * Licence: GPL v3
      * Version: 1.0

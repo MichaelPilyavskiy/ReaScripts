@@ -1,5 +1,5 @@
 -- @version 1.0
--- @author mpl
+-- @author MPL
 -- @changelog
 --   + init
 -- @description Create new MIDI take with custom CC generated from peaks of selected audio take

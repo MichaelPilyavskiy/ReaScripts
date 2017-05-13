@@ -1,6 +1,6 @@
 -- @description Align Takes
 -- @version 1.130
--- @author mpl
+-- @author MPL
 -- @changelog
 --    # prevent array size issues in FFT mode, thanks vk.com/xeonblack for bugreport
 --    + generate undo when release slider

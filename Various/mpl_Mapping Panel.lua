@@ -1,6 +1,6 @@
 -- @description Mapping Panel
 -- @version 1.34
--- @author mpl
+-- @author MPL
 -- @changelog
 --    # fix wrong decoding MIDI integer
 -- @website http://forum.cockos.com/member.php?u=70694

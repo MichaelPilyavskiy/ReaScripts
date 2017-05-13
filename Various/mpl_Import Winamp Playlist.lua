@@ -1,6 +1,6 @@
 -- @description Import Winamp Playlist
 -- @version 1.0
--- @author mpl
+-- @author MPL
 -- @changelog
 --    + init
 -- @website http://forum.cockos.com/member.php?u=70694

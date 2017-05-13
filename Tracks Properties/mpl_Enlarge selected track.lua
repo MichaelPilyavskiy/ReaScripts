@@ -1,6 +1,6 @@
 -- @description Enlarge selected track
 -- @version 1.03
--- @author mpl
+-- @author MPL
 -- @changelog
 --    + toolbar indication / toggle state (X-Raym template used)
 -- @website http://forum.cockos.com/member.php?u=70694

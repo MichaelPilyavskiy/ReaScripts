@@ -1,5 +1,5 @@
 -- @version 1.0
--- @author mpl
+-- @author MPL
 -- @changelog
 --   + init
 -- @description Setup gain/pan/pitch for selected items and item under mouse pointer

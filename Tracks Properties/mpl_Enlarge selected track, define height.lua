@@ -1,6 +1,6 @@
 -- @description Enlarge selected track, define height
 -- @version 1.0
--- @author mpl
+-- @author MPL
 -- @changelog
 --    + init / recode from cubic13 idea
 -- @website http://forum.cockos.com/member.php?u=70694

@@ -1,5 +1,5 @@
 -- @version 1.02
--- @author mpl
+-- @author MPL
 -- @changelog
 --   + fix split name
 

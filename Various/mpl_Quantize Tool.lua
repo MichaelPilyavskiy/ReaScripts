@@ -1,5 +1,5 @@
 -- @version 1.8.3
--- @author mpl
+-- @author MPL
 -- @description Quantize Tool
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog

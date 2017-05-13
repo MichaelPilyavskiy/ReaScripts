@@ -1,6 +1,6 @@
 -- @description Align Takes (without GUI)
 -- @version 1.120
--- @author mpl
+-- @author MPL
 -- @changelog
 --    # Temporary fix for 'id_diff' #796
 --    + init no GUI branch
