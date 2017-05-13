@@ -1,7 +1,7 @@
 --[[
    * ReaScript Name: Create ReaComp sidechain routing from selected track and track under mouse cursor
    * Lua script for Cockos REAPER
-   * Author: Michael Pilyavskiy (mpl)
+   * Author: MPL
    * Author URI: http://forum.cockos.com/member.php?u=70694
    * Licence: GPL v3
    * Version: 1.0

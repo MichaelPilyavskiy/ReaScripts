@@ -1,6 +1,6 @@
 -- @description Duplicate envelope points
 -- @version 1.04
--- @author mpl
+-- @author MPL
 -- @changelog
 --    # fix dealing with take envelopes
 -- @website http://forum.cockos.com/member.php?u=70694

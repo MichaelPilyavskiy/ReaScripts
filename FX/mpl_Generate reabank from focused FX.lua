@@ -1,7 +1,7 @@
 -- @version 1.0
--- @author mpl
+-- @author MPL
 -- @changelog
---   + init alpha
+--   + init
 -- @description Generate reabank from focused FX
 -- @website http://forum.cockos.com/member.php?u=70694
 

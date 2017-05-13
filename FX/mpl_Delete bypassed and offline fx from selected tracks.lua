@@ -6,7 +6,7 @@
  --[[
     * ReaScript Name: Delete bypassed and offline fx from selected tracks
     * Lua script for Cockos REAPER
-    * Author: Michael Pilyavskiy (mpl)
+    * Author: MPL
     * Author URI: http://forum.cockos.com/member.php?u=70694
     * Licence: GPL v3
    ]] 

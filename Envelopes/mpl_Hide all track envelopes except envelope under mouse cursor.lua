@@ -1,6 +1,6 @@
 -- @description Hide all track envelopes except envelope under mouse cursor
 -- @version 1.0
--- @author mpl
+-- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
 --    + init release

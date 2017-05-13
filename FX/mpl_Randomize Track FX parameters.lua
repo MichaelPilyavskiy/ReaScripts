@@ -1,5 +1,5 @@
 -- @version 1.20
--- @author mpl
+-- @author MPL
 -- @changelog
 --   + Add 'Get all parameters' button
 --   + Add 'Get all parameters except protected' button

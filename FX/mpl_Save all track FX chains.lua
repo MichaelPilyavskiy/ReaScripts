@@ -1,6 +1,6 @@
 -- @description Save all track FX chains
 -- @version 1.02
--- @author mpl
+-- @author MPL
 -- @changelog
 --   + edit some tips
 -- @website http://forum.cockos.com/member.php?u=70694

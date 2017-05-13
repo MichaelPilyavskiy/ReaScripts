@@ -1,5 +1,5 @@
 -- @version 1.01
--- @author mpl
+-- @author MPL
 -- @changelog
 --   + support parameters copypaste
 -- @description Paste Focused FX data

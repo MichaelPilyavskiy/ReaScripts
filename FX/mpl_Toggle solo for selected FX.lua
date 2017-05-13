@@ -1,6 +1,6 @@
 -- @description Toggle solo for selected FX
 -- @version 1.1
--- @author mpl
+-- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694 
 -- @changelog
 --    # perform only one FX chain (first track with opened FX chain)

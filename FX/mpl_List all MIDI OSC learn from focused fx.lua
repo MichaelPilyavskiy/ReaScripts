@@ -1,6 +1,6 @@
 -- @description List all MIDI OSC learn for focused FX
 -- @version 1.01
--- @author mpl
+-- @author MPL
 -- @changelog
 --    # fix wrong decoding MIDI integer
 -- @website http://forum.cockos.com/member.php?u=70694
