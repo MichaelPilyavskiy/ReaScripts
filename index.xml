@@ -1797,6 +1797,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/01dabc113933eb59ba7784536fdc8ae2dfd1d053/Various/mpl_Set%20project%20grid%20(MIDI%20CC%20and%20OSC%20only).lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2017-05-13T21:20:20Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/54c59b0278225feb074810eaeb0f06fbfb62ac03/Various/mpl_Set%20project%20grid%20(MIDI%20CC%20and%20OSC%20only).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
       <metadata>
