@@ -794,6 +794,15 @@
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d964919f1b85e8b1894e63dfe1b44e36b1a5d0b9/Items%20Properties/mpl_Align%20selected%20track%20items%20vertically.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Create snap offset at maximum peak in first second of take.lua" type="script" desc="Create snap offset at maximum peak in first second of take">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-05-13T14:01:46Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8db25036d0a1fcbfb403e701cb6617f8fcdd20fd/Items%20Properties/mpl_Create%20snap%20offset%20at%20maximum%20peak%20in%20first%20second%20of%20take.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Cut extension from selected item names.lua" type="script" desc="Cut extension from selected item names">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-10T09:38:17Z">
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f5e18404c99b12b6e287f2d25effe64498f54b26/Items%20Properties/mpl_Cut%20extension%20from%20selected%20item%20names.lua</source>
