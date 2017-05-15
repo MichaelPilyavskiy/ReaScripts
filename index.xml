@@ -1860,15 +1860,14 @@
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 ##Scripts for {\field{\*\fldinst{HYPERLINK "http://reaper.fm"}}{\fldrslt{\ul
+{\pard \ql \f0 \sa180 \li0 \fi0 Scripts for {\field{\*\fldinst{HYPERLINK "http://reaper.fm"}}{\fldrslt{\ul
 Cockos REAPER
 }}}
- written by Michael Pilyavskiy\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 ##ReaPack Download Instructions This repository is part of the ReaPack {\field{\*\fldinst{HYPERLINK "http://reapack.com/"}}{\fldrslt{\ul
+ coded by Michael Pilyavskiy This repository is compatible with the ReaPack {\field{\*\fldinst{HYPERLINK "http://reapack.com/"}}{\fldrslt{\ul
 REAPER extension
 }}}
-. This means that you don't need to download and install the scripts manually anymore, you can simply use ReaPack to batch download all scripts or scripts of your choice right from REAPER!\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 ##Some stuff here you should firstly pay attention to:\par}
+ for easy batch downloading and updating.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Some stuff here you can firstly pay attention to:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?t=179544"}}{\fldrslt{\ul
 Align takes
 }}}
@@ -1893,12 +1892,12 @@ Sendfader
 StretchMarkerGuard
 }}}
  - algorithm for transient protection peak-based stretch markers\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 ##Feature requests and bug reports:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Feature requests, bug reports and ideas for scripting:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/MichaelPilyavskiy/ReaScripts/issues"}}{\fldrslt{\ul
 GitHub Issues
 }}}
-\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 ##Contacts:\par}
+ I discontinued developing and fixing old stuff. Anyway, feel free to suggest good ideas, maybe it will not be so hard to implement from script side.\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MPL contacts (I speak Russian, English and a bit Hebrew):\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://vk.com/michael_pilyavskiy"}}{\fldrslt{\ul
 VK
 }}}
@@ -1919,24 +1918,36 @@ Cockos Forum
 RMM forum
 }}}
 \sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 ##Contributors:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Guys who gave me a lot info about scripting, they also did/do very cool stuff:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "cockos.com"}}{\fldrslt{\ul
+Justin
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion"}}{\fldrslt{\ul
+cfillion
+}}}
+\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=58284"}}{\fldrslt{\ul
 X-Raym
 }}}
-, {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=49553"}}{\fldrslt{\ul
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=49553"}}{\fldrslt{\ul
 spk77
 }}}
-, {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=27094"}}{\fldrslt{\ul
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=27094"}}{\fldrslt{\ul
 Breeder
 }}}
-, {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=47822"}}{\fldrslt{\ul
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=47822"}}{\fldrslt{\ul
 heda
 }}}
-, {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=3602"}}{\fldrslt{\ul
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=3602"}}{\fldrslt{\ul
 Xenakios
 }}}
 \sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 ##Donations:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Donations:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://paypal.me/donate2mpl"}}{\fldrslt{\ul
 PayPal
 }}}
