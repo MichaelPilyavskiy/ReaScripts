@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0aea8d0ce03ad042fe8b6875271e9eae4920cfe3" name="MPL Scripts">
+<index version="1" commit="fdd1ff913582bfb81a88738113ed1c856cfb2852" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="MPL" time="2016-03-06T14:47:19Z">
@@ -1319,6 +1319,24 @@
     <reapack name="mpl_Toggle show only selected tracks in mixer.lua" type="script" desc="Toggle show only selected tracks in mixer">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Toggle%20show%20only%20selected%20tracks%20in%20mixer.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle show tracks if edit cursor crossing any of their items.lua" type="script" desc="Toggle show tracks if edit cursor crossing any of their items">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-05-31T18:47:08Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fdd1ff913582bfb81a88738113ed1c856cfb2852/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20edit%20cursor%20crossing%20any%20of%20their%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle show tracks if time selection crossing any of their items.lua" type="script" desc="Toggle show tracks if time selection crossing any of their items">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-05-31T18:47:08Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fdd1ff913582bfb81a88738113ed1c856cfb2852/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20time%20selection%20crossing%20any%20of%20their%20items.lua</source>
       </version>
     </reapack>
     <reapack name="Prepare MIDI input for last touched track.lua" type="script" desc="Prepare MIDI input for last touched track">
