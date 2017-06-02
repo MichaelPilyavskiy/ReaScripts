@@ -1,7 +1,7 @@
--- @version 1.0
+-- @version 1.1
 -- @author MPL
 -- @changelog
---   + init
+--   + fix 'limit output' check
 -- @description Toggle 64x oversampling for all ReaComp instances
 -- @website http://forum.cockos.com/member.php?u=70694
 
@@ -14,18 +14,18 @@
       for k = 1,  reaper.TrackFX_GetCount( tr ) do
         local fx = reaper.TrackFX_GetByName( tr, 'reacomp', false )
         if fx >= 0 then    
-          stage = math.log(aa, 2)
+          local stage = math.log(aa, 2)
           if stage < 0 then stage = 0 end
-          val = stage*0.167
-          reaper.TrackFX_SetParamNormalized( tr, fx, 18, val )
+          cur_val = reaper.TrackFX_GetParamNormalized( tr, fx, 18)
+          reaper.TrackFX_SetParamNormalized( tr, fx, 18, (stage*2 + ( cur_val* 13)%2)/13 )
         end
       end
     end
     
   end
 
-  _,_,sectionID,cmdID = reaper.get_action_context()
-  state = reaper.GetToggleCommandState( cmdID )
+  local _,_,sectionID,cmdID = reaper.get_action_context()
+  local state = reaper.GetToggleCommandState( cmdID )
   if state == -1 then state = 1 end
   reaper.SetToggleCommandState( sectionID, cmdID, math.abs(1-state) )
 
