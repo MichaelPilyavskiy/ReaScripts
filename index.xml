@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="90a5ee8773ba02029a86c4eaf6e5251d3808df8f" name="MPL Scripts">
+<index version="1" commit="9c538a662da48145265efe096cad696abf672d0c" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="MPL" time="2016-03-06T14:47:19Z">
@@ -1259,6 +1259,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Pan%20selected%20tracks%20with%20LR%20at%20the%20end%20of%20trackname%20respectively.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Prepare MIDI input for last touched track.lua" type="script" desc="Prepare MIDI input for last touched track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-06-02T20:15:34Z">
+        <changelog><![CDATA[+ taken from Export selected items to RS5k instances on selected track (drum mode)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9c538a662da48145265efe096cad696abf672d0c/Tracks%20Properties/mpl_Prepare%20MIDI%20input%20for%20last%20touched%20track.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Rename selected tracks as first FX.lua" type="script" desc="Rename selected tracks as first FX">
       <version name="1.0" author="MPL" time="2016-02-10T11:46:50Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Rename%20selected%20tracks%20as%20first%20FX.lua</source>
@@ -1368,15 +1377,6 @@
       <version name="1.0" author="MPL" time="2017-05-31T18:47:08Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fdd1ff913582bfb81a88738113ed1c856cfb2852/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20time%20selection%20crossing%20any%20of%20their%20items.lua</source>
-      </version>
-    </reapack>
-    <reapack name="Prepare MIDI input for last touched track.lua" type="script" desc="Prepare MIDI input for last touched track">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-05-13T10:04:53Z">
-        <changelog><![CDATA[+ taken from Export selected items to RS5k instances on selected track (drum mode)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a31ec7c0fd2795f2fa505df45ab218ebb2b957ab/Tracks%20Properties/Prepare%20MIDI%20input%20for%20last%20touched%20track.lua</source>
       </version>
     </reapack>
   </category>
