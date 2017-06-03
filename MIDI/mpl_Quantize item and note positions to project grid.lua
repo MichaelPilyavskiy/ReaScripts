@@ -2,7 +2,7 @@
 -- @author MPL
 -- @changelog
 --   + init
--- @description Quantize item and note postions to project grid
+-- @description Quantize item and note positions to project grid
 -- @website http://forum.cockos.com/member.php?u=70694
 
 
