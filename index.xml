@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="98362cf1edbfdf730994f88f42019e0901450760" name="MPL Scripts">
+<index version="1" commit="4bdf1ff101657d65304642e93dba084659c50cef" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="MPL" time="2016-03-06T14:47:19Z">
@@ -713,6 +713,10 @@
       <version name="1.1" author="MPL" time="2017-06-02T19:47:50Z">
         <changelog><![CDATA[+ fix 'limit output' check]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/90a5ee8773ba02029a86c4eaf6e5251d3808df8f/FX%20specific/mpl_Toggle%2064x%20oversampling%20for%20all%20ReaComp%20instances.lua</source>
+      </version>
+      <version name="1.2" author="MPL" time="2017-06-05T17:30:36Z">
+        <changelog><![CDATA[+ perform master also]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bdf1ff101657d65304642e93dba084659c50cef/FX%20specific/mpl_Toggle%2064x%20oversampling%20for%20all%20ReaComp%20instances.lua</source>
       </version>
     </reapack>
   </category>
