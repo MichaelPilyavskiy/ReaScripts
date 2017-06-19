@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4bdf1ff101657d65304642e93dba084659c50cef" name="MPL Scripts">
+<index version="1" commit="8fa4b912fda867ce2ff2a84b49e82c434c7a7777" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="MPL" time="2016-03-06T14:47:19Z">
@@ -142,6 +142,24 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/Envelopes/mpl_Show%20all%20armed%20track%20envelopes,%20hide%20unarmed.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Toggle bypass selected tracks envelopes (reset FX parameters).lua" type="script" desc="Toggle bypass selected tracks envelopes (reset FX parameters)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-06-19T19:55:43Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fa4b912fda867ce2ff2a84b49e82c434c7a7777/Envelopes/mpl_Toggle%20bypass%20selected%20tracks%20envelopes%20(reset%20FX%20parameters).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle bypass selected tracks envelopes.lua" type="script" desc="Toggle bypass selected tracks envelopes">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-06-19T19:55:43Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fa4b912fda867ce2ff2a84b49e82c434c7a7777/Envelopes/mpl_Toggle%20bypass%20selected%20tracks%20envelopes.lua</source>
+      </version>
+    </reapack>
   </category>
   <category name="FX">
     <reapack name="mpl_Apply FX without sends, offline FX.lua" type="script" desc="Apply FX without sends, offline FX">
@@ -250,10 +268,17 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Delete%20all%20MIDI%20OSC%20learn%20from%20selected%20track.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Delete bypassed and offline fx from selected tracks.lua" type="script">
+    <reapack name="mpl_Delete bypassed and offline fx from selected tracks.lua" type="script" desc="Delete bypassed fx from selected tracks">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
       <version name="1.0" author="mpl" time="2016-06-21T21:35:10Z">
         <changelog><![CDATA[+ init release]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Delete%20bypassed%20and%20offline%20fx%20from%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.1" author="MPL" time="2017-06-19T19:55:43Z">
+        <changelog><![CDATA[# prevent deleting bypassed fx with bypass envelope]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fa4b912fda867ce2ff2a84b49e82c434c7a7777/FX/mpl_Delete%20bypassed%20and%20offline%20fx%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Float instrument on selected track.eel" type="script" desc="Float instrument on selected track">
@@ -963,6 +988,15 @@
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI%20editor/mpl_Copy%20selected%20CC.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Copy selected notes velocities.lua" type="script" desc="Copy selected notes velocities">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-06-19T19:55:43Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fa4b912fda867ce2ff2a84b49e82c434c7a7777/MIDI%20editor/mpl_Copy%20selected%20notes%20velocities.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Duplicate selected MIDI notes.lua" type="script" desc="Duplicate selected MIDI notes">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI%20editor/mpl_Duplicate%20selected%20MIDI%20notes.lua</source>
@@ -991,6 +1025,15 @@
       <version name="1.0" author="MPL" time="2016-11-21T16:27:24Z">
         <changelog><![CDATA[+ init release]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI%20editor/mpl_Paste%20selected%20CC.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Paste selected notes velocities.lua" type="script" desc="Paste selected notes velocities">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-06-19T19:55:43Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fa4b912fda867ce2ff2a84b49e82c434c7a7777/MIDI%20editor/mpl_Paste%20selected%20notes%20velocities.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Quantize selected MIDI notes ends.lua" type="script" desc="Quantize selected MIDI notes ends">
@@ -1275,6 +1318,15 @@
     <reapack name="mpl_Rename selected tracks as first FX.lua" type="script" desc="Rename selected tracks as first FX">
       <version name="1.0" author="MPL" time="2016-02-10T11:46:50Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Rename%20selected%20tracks%20as%20first%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Reset color for all children tracks to their top level folders.lua" type="script" desc="Reset color for all children tracks to their top level folders">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-06-19T19:55:43Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fa4b912fda867ce2ff2a84b49e82c434c7a7777/Tracks%20Properties/mpl_Reset%20color%20for%20all%20children%20tracks%20to%20their%20top%20level%20folders.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Search tracks.lua" type="script" desc="Search tracks">
