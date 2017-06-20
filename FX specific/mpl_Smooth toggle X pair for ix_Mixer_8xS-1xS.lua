@@ -1,7 +1,7 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @changelog
---   + metadata parser fix
+--   + metadata parser fix, removing difference condition
 -- @description Smooth toggle X pair for ix_Mixer_8xS-1xS
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @metapackage
@@ -38,13 +38,13 @@
       diff = 0
       for param = 1, 8 do
         par_val = TrackFX_GetParam( tr, fx, param-1)
-        new_val = par_val + (t[param]-par_val)/7
+        new_val = par_val + (t[param]-par_val)/5
         t0[param] = new_val
         TrackFX_SetParam( tr, fx, param-1, new_val )
         diff = diff + math.abs(t0[param] - par_val)
       end       
       
-      if diff > 0.4 or ts - ts0 > 5 then
+      if ts - ts0 < 1 then
         defer(run_move) 
        else
         for param = 1, 8 do
@@ -52,6 +52,7 @@
         end             
       end
     end
+
     
     run_move()
   end
