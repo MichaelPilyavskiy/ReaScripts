@@ -1,7 +1,7 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @changelog
---   + init
+--   + metadata parser fix
 -- @description Smooth toggle X pair for ix_Mixer_8xS-1xS
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @metapackage
@@ -62,9 +62,9 @@
   if state == -1 then state = 1 end
   SetToggleCommandState( sectionID, cmdID, math.abs(1-state) )
   Undo_BeginBlock()
-  channel_pair = ({reaper.get_action_context()})[2]:match('[%d]')
+  channel_pair = (tonumber(({reaper.get_action_context()})[2]:match('[%d]'))-1)/2
   if channel_pair then
-    main(  (channel_pair-1)/2  )
+    main(state, channel_pair)
    else
     error("could not extract send ID from filename")
   end  
