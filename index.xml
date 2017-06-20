@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="42547f20bb580b7a0c891be5ac7d5095fa1a0a2d" name="MPL Scripts">
+<index version="1" commit="5bf4a60b4a39d720c0975585f62bc11d21294bbc" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="MPL" time="2016-03-06T14:47:19Z">
@@ -752,6 +752,13 @@
         <source main="main" file="mpl_Smooth toggle 5-6 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/42547f20bb580b7a0c891be5ac7d5095fa1a0a2d/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
         <source main="main" file="mpl_Smooth toggle 7-8 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/42547f20bb580b7a0c891be5ac7d5095fa1a0a2d/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
         <source main="main" file="mpl_Smooth toggle 9-10 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/42547f20bb580b7a0c891be5ac7d5095fa1a0a2d/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2017-06-20T22:10:56Z">
+        <changelog><![CDATA[+ metadata parser fix, removing difference condition]]></changelog>
+        <source main="main" file="mpl_Smooth toggle 3-4 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5bf4a60b4a39d720c0975585f62bc11d21294bbc/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
+        <source main="main" file="mpl_Smooth toggle 5-6 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5bf4a60b4a39d720c0975585f62bc11d21294bbc/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
+        <source main="main" file="mpl_Smooth toggle 7-8 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5bf4a60b4a39d720c0975585f62bc11d21294bbc/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
+        <source main="main" file="mpl_Smooth toggle 9-10 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5bf4a60b4a39d720c0975585f62bc11d21294bbc/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle 64x oversampling for all ReaComp instances.lua" type="script" desc="Toggle 64x oversampling for all ReaComp instances">
