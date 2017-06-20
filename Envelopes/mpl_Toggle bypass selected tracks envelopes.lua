@@ -1,18 +1,19 @@
--- @version 1.0
+-- @version 1.1
 -- @author MPL
 -- @changelog
---   + init
+--   # perform on master track
 -- @description Toggle bypass selected tracks envelopes
 -- @website http://forum.cockos.com/member.php?u=70694
 
   function main(state) local tr
-    for i = 1, reaper.CountSelectedTracks(0) do
-      local tr = reaper.GetSelectedTrack(0,i-1)
+    for i = 0, reaper.CountSelectedTracks(0) do
+      if i == 0 then tr = reaper.GetMasterTrack(0) if not reaper.IsTrackSelected(tr) then goto skip end else tr = reaper.GetSelectedTrack(0,i-1) end    
       for env = 1,  reaper.CountTrackEnvelopes( tr ) do
         local tr_env = reaper.GetTrackEnvelope( tr, env-1 )
         local retval, env_chunk = reaper.GetEnvelopeStateChunk( tr_env, '', false )
         if retval then reaper.SetEnvelopeStateChunk( tr_env, env_chunk:gsub('ACT [%d]', 'ACT '..state), false ) end
       end
+      ::skip::
     end
   end
 
