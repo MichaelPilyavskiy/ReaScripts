@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5bf4a60b4a39d720c0975585f62bc11d21294bbc" name="MPL Scripts">
+<index version="1" commit="020e2d7c858618819c3c630fd9380a75a1f3e7b6" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="MPL" time="2016-03-06T14:47:19Z">
@@ -1086,6 +1086,10 @@
       <version name="1.0" author="MPL" time="2017-06-19T19:55:43Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fa4b912fda867ce2ff2a84b49e82c434c7a7777/MIDI%20editor/mpl_Paste%20selected%20notes%20velocities.lua</source>
+      </version>
+      <version name="1.1" author="MPL" time="2017-06-26T19:42:04Z">
+        <changelog><![CDATA[# fix buffer indexing]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/020e2d7c858618819c3c630fd9380a75a1f3e7b6/MIDI%20editor/mpl_Paste%20selected%20notes%20velocities.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Quantize selected MIDI notes ends.lua" type="script" desc="Quantize selected MIDI notes ends">
