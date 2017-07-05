@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dc11226898e8bc7a6843ae6492bb38205c323551" name="MPL Scripts">
+<index version="1" commit="af9ca5da02450bda524ff71c98ebc6c9b16be4d7" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="MPL" time="2016-03-06T14:47:19Z">
@@ -287,6 +287,10 @@
       <version name="1.1" author="MPL" time="2017-06-19T19:55:43Z">
         <changelog><![CDATA[# prevent deleting bypassed fx with bypass envelope]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fa4b912fda867ce2ff2a84b49e82c434c7a7777/FX/mpl_Delete%20bypassed%20and%20offline%20fx%20from%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.2" author="MPL" time="2017-07-05T20:38:57Z">
+        <changelog><![CDATA[# recoded for FX deleting via SWS API and smarter offline and bypass checking]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/af9ca5da02450bda524ff71c98ebc6c9b16be4d7/FX/mpl_Delete%20bypassed%20and%20offline%20fx%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Float instrument on selected track.eel" type="script" desc="Float instrument on selected track">
