@@ -1,9 +1,9 @@
--- @version 1.15
+-- @version 1.16
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Export selected items to RS5k instances on selected track (drum mode)
 -- @changelog
---    # set record MIDI/Input
+--    # try preventin line60 error
 
 
   local script_title = 'Export selected items to RS5k instances on selected track (drum mode)' 
@@ -57,8 +57,10 @@
       local GUIDs = {}
       for it_id = 1, reaper.CountSelectedMediaItems(0) do
         local item =  reaper.GetSelectedMediaItem( 0, it_id-1 )
-        local it_GUID = reaper.BR_GetMediaItemGUID( item )
-        GUIDs[#GUIDs+1] = it_GUID
+        if item then 
+          local it_GUID = reaper.BR_GetMediaItemGUID( item )
+          GUIDs[#GUIDs+1] = it_GUID
+        end
       end
       
     -- glue items
