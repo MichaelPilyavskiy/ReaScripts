@@ -1,4 +1,4 @@
--- @version 1.11
+-- @version 1.12
 -- @author MPL
 -- @changelog
 --   # recoded for FX deleting via SWS API and smarter offline and bypass checking
