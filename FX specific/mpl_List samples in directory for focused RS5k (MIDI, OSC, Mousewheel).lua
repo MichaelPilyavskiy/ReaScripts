@@ -1,4 +1,4 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description List samples in directory for focused RS5k (MIDI, OSC, Mousewheel)
@@ -44,7 +44,6 @@ function main(mode, val, res)
       
       if mode == 0 then
         id = math.floor((val/res) * (#files-1)) + 1
-        reaper.ShowConsoleMsg(id..'\n')
        elseif mode==2 then
         local c if val < 0 then c = -1 else c = 1 end
         id = cur_id + c*(val/val)
