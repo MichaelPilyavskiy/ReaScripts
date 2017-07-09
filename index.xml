@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dc603ff1a22c0bf518e1aa498c8ade8474d11789" name="MPL Scripts">
+<index version="1" commit="516b4f2f58b161ee2283c1e6a070ee8d0fb4ec44" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="MPL" time="2016-03-06T14:47:19Z">
@@ -703,6 +703,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0aea8d0ce03ad042fe8b6875271e9eae4920cfe3/FX%20specific/mpl_Float%20s(M)exoscope%20on%20master%20channel.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_List next sample in directory for focused RS5k.lua" type="script" desc="List next sample in directory for focused RS5k">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-07-09T09:20:00Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/516b4f2f58b161ee2283c1e6a070ee8d0fb4ec44/FX%20specific/mpl_List%20next%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_List next sample in directory for RS5k on selected track.lua" type="script" desc="List next sample in directory for RS5k on selected track">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -716,6 +725,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fac49a7cf0a9c16a893a744e90aad60d3cf32cd1/FX%20specific/mpl_List%20next%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_List previous sample in directory for focused RS5k.lua" type="script" desc="List previous sample in directory for focused RS5k">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-07-09T09:20:00Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/516b4f2f58b161ee2283c1e6a070ee8d0fb4ec44/FX%20specific/mpl_List%20previous%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_List previous sample in directory for RS5k on selected track.lua" type="script" desc="List previous sample in directory for RS5k on selected track">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -727,6 +745,15 @@
       <version name="1.01" author="MPL" time="2017-03-25T07:14:22Z">
         <changelog><![CDATA[# fix for x64 vrs check]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fac49a7cf0a9c16a893a744e90aad60d3cf32cd1/FX%20specific/mpl_List%20previous%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_List samples in directory for focused RS5k (MIDI, OSC, Mousewheel).lua" type="script" desc="List samples in directory for focused RS5k (MIDI, OSC, Mousewheel)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-07-09T09:20:00Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/516b4f2f58b161ee2283c1e6a070ee8d0fb4ec44/FX%20specific/mpl_List%20samples%20in%20directory%20for%20focused%20RS5k%20(MIDI,%20OSC,%20Mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k.lua" type="script" desc="Open and Close Media Explorer when single item is inserted, export it to RS5k">
