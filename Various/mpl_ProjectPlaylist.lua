@@ -1,7 +1,8 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @changelog
---    + oficial release
+--    + Menu/Show shortcuts
+--    + Menu/Dock: show dockstate check 
 -- @description ProjectPlaylist
 -- @website http://forum.cockos.com/member.php?u=70694
   
@@ -63,6 +64,9 @@
       take gradient back
     0.61
       force reload after SWS save test
+    1.01 12/07/2017
+      Menu/Show shortcuts
+      Menu dock: show dockstate check 
   ]]
   
   
@@ -86,12 +90,12 @@
   
   
   --  INIT -------------------------------------------------  
-  local vrs = 1.0
+  local vrs = 1.01
   debug = 0
   local mouse = {}
   local gui -- see GUI_define()
   local obj = {blit_offs = 0}
-  local conf = {}
+   conf = {}
   local cycle = 0
   local redraw = 1
   local SCC, lastSCC, SCC_trig,drag_mode,last_drag_mode
@@ -308,6 +312,8 @@
   function Menu()
     gfx.x, gfx.y = mouse.mx, mouse.my  
     local is_dirty = '#' if playlist.fn then is_dirty = '' end
+    local is_docked 
+    if conf.dock==1 then is_docked = '!' else is_docked = '' end
     local str_t = {
              {  txt = 'Add current saved project to playlist',
                 func =  function() 
@@ -388,7 +394,7 @@
                           os.execute(cmd..' "" "' .. playlists_path .. '"')
                         end
                 },
-              { txt = '||Refresh playlist',
+              { txt = '||Refresh GUI',
                 func =  function()  
                           playlist = {}
                           Actions_AddOpenedProjectsToPlaylist() 
@@ -396,12 +402,27 @@
                           OBJ_define()
                         end
               }   ,
-              { txt = '|Toggle dock window',
+              { txt = '|'..is_docked..'Dock GUI',
                 func =  function()  
                           dock_state = gfx.dock(-1)
                           gfx.dock(math.abs(1-dock_state))
                         end
-              }                        
+              }   ,
+              { txt = '|Show shortcuts',
+                func =  function()  
+                          MB(
+[[
+Space - Transport: Play/stop active tab
+Up arrow - Previous tab
+Down arrow - Next tab
+Tab - SWS/S&M: Focus main window (close others)
+Ctrl+Alt+K - SWS/S&M: Save List of Open Project, reload playlist 
+]]                          
+                          
+                          ,'Keyboard shortcuts',0)
+                        end
+              }        
+                       
             }
     local str = ""
     for i = 1, #str_t do str = str..str_t[i].txt end
