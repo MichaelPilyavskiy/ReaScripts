@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b9760609ae4f8bd25098a818dbe4a479409cde16" name="MPL Scripts">
+<index version="1" commit="b6bf914df6019f0a1c089ef6d2a1ee46ba461282" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="MPL" time="2016-03-06T14:47:19Z">
@@ -2087,6 +2087,15 @@
       <version name="1.1" author="MPL" time="2016-08-23T19:50:04Z">
         <changelog><![CDATA[+ prevent spam undo history]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Various/mpl_Zoom%20horizontally,%20change%20grid%20relatively%20(mousewheel).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Zoom horizontally, change grid relatively, preserve grid visibility and snap state  (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively, preserve grid visibility and snap state  (mousewheel)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="mpl" time="2017-07-25T15:21:26Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b6bf914df6019f0a1c089ef6d2a1ee46ba461282/Various/mpl_Zoom%20horizontally,%20change%20grid%20relatively,%20preserve%20grid%20visibility%20and%20snap%20state%20%20(mousewheel).lua</source>
       </version>
     </reapack>
   </category>
