@@ -1,7 +1,7 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @changelog
---   + init release
+--   # chunk issues
 -- @description Create modulation link on same track from stored buffer
 -- @website http://forum.cockos.com/member.php?u=70694
 
@@ -19,7 +19,7 @@ LFO 0
 LFOWT 1 1
 AUDIOCTL 0
 AUDIOCTLWT 1 1
-PLINK 1 ]]..src_fx..[[:-1  ]]..src_param..[[ 0
+PLINK 1 ]]..src_fx..[[0:0  ]]..src_param..[[ 0
 >
 ]]
   
