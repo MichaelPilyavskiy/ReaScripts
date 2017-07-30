@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ed0e667c66a2e4b088c40b5e97da249c3af605d1" name="MPL Scripts">
+<index version="1" commit="aba62ceee636e97d2437a00ba90074f8e64df1c0" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="MPL" time="2016-03-06T14:47:19Z">
@@ -243,23 +243,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Copy%20Focused%20FX%20data.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Create modulation link on same track from stored buffer.lua" type="script" desc="Create modulation link on same track from stored buffer">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.01" author="MPL" time="2017-05-09T12:01:40Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ab6fd7b2f3bf64aabbd800902e91716caea6164c/FX/mpl_Create%20modulation%20link%20on%20same%20track%20from%20stored%20buffer.lua</source>
-      </version>
-      <version name="1.0" author="MPL" time="2017-05-09T06:46:32Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6bb9cc1b265653f5f379dd5b037bf17bad3d69c/FX/mpl_Create%20modulation%20link%20on%20same%20track%20from%20stored%20buffer.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-07-28T04:28:10Z">
-        <changelog><![CDATA[# chunk issues]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ed0e667c66a2e4b088c40b5e97da249c3af605d1/FX/mpl_Create%20modulation%20link%20on%20same%20track%20from%20stored%20buffer.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Cubase AB floating FX make equal.lua" type="script" desc="Cubase AB floating FX make equal">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Cubase%20AB%20floating%20FX%20make%20equal.lua</source>
@@ -428,6 +411,15 @@
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b934e136c8319a80d71417a72aa4ace8336961f6/FX/mpl_Pan%20focused%20FX%20track%20at%20center.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Parameter Modulation Viewer.lua" type="script" desc="MPL Parameter Modulation Viewer">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-07-30T01:24:07Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aba62ceee636e97d2437a00ba90074f8e64df1c0/FX/mpl_Parameter%20Modulation%20Viewer.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Paste Focused FX data.lua" type="script" desc="Paste Focused FX data">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -525,15 +517,6 @@
       <version name="1.21" author="MPL" time="2017-05-12T03:18:51Z">
         <changelog><![CDATA[# fix nil on 33 line]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e6ae18b105e1de715d82c36089cf20e119835623/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Store source for further modulation from last touched parameter.lua" type="script" desc="Store source for further modulation from last touched parameter">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-05-09T06:48:40Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3afc423d440339c2fe6294617f05cdd52c8c1180/FX/mpl_Store%20source%20for%20further%20modulation%20from%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle float instrument on track under mouse cursor.lua" type="script" desc="Toggle float instrument on track under mouse cursor">
