@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="aba62ceee636e97d2437a00ba90074f8e64df1c0" name="MPL Scripts">
+<index version="1" commit="5031d9de29cf56365176433ab6305db4b0ed5e44" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="MPL" time="2016-03-06T14:47:19Z">
@@ -1718,6 +1718,15 @@
       <version name="1.09" author="MPL" time="2017-01-12T12:39:37Z">
         <changelog><![CDATA[# fixed B root scale decoding]]></changelog>
         <source main="true">https://github.com/MichaelPilyavskiy/ReaScripts/raw/495dca37ac4e465b124311d068d2f85644b2496a/Various/mpl_Isomorphic%20keyboard.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_MacroControl.lua" type="script" desc="MacroControl">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-07-30T10:45:20Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5031d9de29cf56365176433ab6305db4b0ed5e44/Various/mpl_MacroControl.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua" type="script" desc="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua">
