@@ -1,5 +1,5 @@
--- @version 1.8.3
--- @author MPL
+-- @version 1.8.4
+-- @author mpl
 -- @description Quantize Tool
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
@@ -8,7 +8,7 @@
 
 
 
-vrs = "1.8.3"
+vrs = "1.8.4"
  
 changelog =                   
 [===[
@@ -16,6 +16,8 @@ changelog =
    ==========
    Changelog:
    ==========  
+31.07.2017  1.8.4
+          # Catch snap offset for quantized items
 03.08.2016  1.8.3
           # Improved parsing GrooveTool patterns
 31.07.2016  1.8.2 
@@ -1719,7 +1721,7 @@ end
           item = reaper.BR_GetMediaItemByGUID(0, dest_items_subt[1])
           if item ~= nil then
             item_newpos, item_newvol = ENGINE3_quantize_compare(dest_items_subt[2],dest_items_subt[3])
-            reaper.SetMediaItemInfo_Value(item, "D_POSITION", item_newpos)
+            reaper.SetMediaItemInfo_Value(item, "D_POSITION", item_newpos-  reaper.GetMediaItemInfo_Value( item, 'D_SNAPOFFSET' ))
             reaper.SetMediaItemInfo_Value(item, "D_VOL", item_newvol)
           end
          -- reaper.UpdateItemInProject(item)
