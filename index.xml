@@ -2182,40 +2182,14 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 Scripts for {\field{\*\fldinst{HYPERLINK "http://reaper.fm"}}{\fldrslt{\ul
 Cockos REAPER
 }}}
- coded by Michael Pilyavskiy This repository is compatible with the ReaPack {\field{\*\fldinst{HYPERLINK "http://reapack.com/"}}{\fldrslt{\ul
+ coded by Michael Pilyavskiy. This repository is compatible with the ReaPack {\field{\*\fldinst{HYPERLINK "http://reapack.com/"}}{\fldrslt{\ul
 REAPER extension
 }}}
  for easy batch downloading and updating.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Some stuff here you can firstly pay attention to:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?t=179544"}}{\fldrslt{\ul
-Align takes
+{\pard \ql \f0 \sa180 \li0 \fi0 Discussing is {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/showthread.php?t=188335"}}{\fldrslt{\ul
+here
 }}}
- - SyncroArts Vocalign analog, use only stretch markers and support aligning unlimited number of takes simultaneously\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forums.cockos.com/showthread.php?p=1781599"}}{\fldrslt{\ul
-Isomorphic keyboard
-}}}
- - special virtual keyboard for REAPER, support custom layouts/scales and microtones\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?t=170044"}}{\fldrslt{\ul
-Mapping Panel
-}}}
- - advanced macro control beetween plugin parameters in project, support multiple linking, formulas and fixed auto learn macro controls to controller\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?t=165672"}}{\fldrslt{\ul
-Quantize Tool
-}}}
- - advanced groove quantisation of item positions, notes, stretch markers or envelope points to each other, also support SWS grooves\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?t=187138"}}{\fldrslt{\ul
-Sendfader
-}}}
- - adveanced sends control like the ProTools Aux\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/showthread.php?p=1729864"}}{\fldrslt{\ul
-StretchMarkerGuard
-}}}
- - algorithm for transient protection peak-based stretch markers\sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Feature requests, bug reports and ideas for scripting:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/MichaelPilyavskiy/ReaScripts/issues"}}{\fldrslt{\ul
-GitHub Issues
-}}}
- I discontinued developing and fixing old stuff. Anyway, feel free to suggest good ideas, maybe it will not be so hard to implement from script side.\sa180\par}
+.\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 MPL contacts (I speak Russian, English and a bit Hebrew):\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://vk.com/michael_pilyavskiy"}}{\fldrslt{\ul
 VK
@@ -2231,10 +2205,6 @@ PromoDJ
 \par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=70694"}}{\fldrslt{\ul
 Cockos Forum
-}}}
-\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://rmmedia.ru/members/69811/"}}{\fldrslt{\ul
-RMM forum
 }}}
 \sa180\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 Guys who gave me a lot info about scripting, they also did/do very cool stuff:\par}
@@ -2266,7 +2236,7 @@ heda
 Xenakios
 }}}
 \sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Donations:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A very small amount of donations for last 2 years show how useless my scripts are. Agree? If not:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://paypal.me/donate2mpl"}}{\fldrslt{\ul
 PayPal
 }}}
