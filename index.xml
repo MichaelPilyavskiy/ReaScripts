@@ -2175,6 +2175,74 @@
     </reapack>
   </category>
   <metadata>
+    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Scripts for {\field{\*\fldinst{HYPERLINK "http://reaper.fm"}}{\fldrslt{\ul
+Cockos REAPER
+}}}
+ coded by Michael Pilyavskiy. This repository is compatible with the ReaPack {\field{\*\fldinst{HYPERLINK "http://reapack.com/"}}{\fldrslt{\ul
+REAPER extension
+}}}
+ for easy batch downloading and updating.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Discussing is {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/showthread.php?t=188335"}}{\fldrslt{\ul
+here
+}}}
+.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MPL contacts (I speak Russian, English and a bit Hebrew):\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://vk.com/michael_pilyavskiy"}}{\fldrslt{\ul
+VK
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://soundcloud.com/mp57"}}{\fldrslt{\ul
+SoundCloud
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://promodj.com/michaelpilyavskiy"}}{\fldrslt{\ul
+PromoDJ
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=70694"}}{\fldrslt{\ul
+Cockos Forum
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Guys who gave me a lot info about scripting, they also did/do very cool stuff:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "cockos.com"}}{\fldrslt{\ul
+Justin
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/cfillion"}}{\fldrslt{\ul
+cfillion
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=58284"}}{\fldrslt{\ul
+X-Raym
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=49553"}}{\fldrslt{\ul
+spk77
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=27094"}}{\fldrslt{\ul
+Breeder
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=47822"}}{\fldrslt{\ul
+heda
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=3602"}}{\fldrslt{\ul
+Xenakios
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 A very small amount of donations for last 2 years show how useless my scripts are. Agree? If not:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://paypal.me/donate2mpl"}}{\fldrslt{\ul
+PayPal
+}}}
+\sa180\par}
+}
+]]></description>
     <link rel="donation">https://www.paypal.me/donate2mpl</link>
     <link rel="website" href="http://rmmedia.ru/members/69811/">RMMForum</link>
     <link rel="website" href="http://forum.cockos.com/member.php?u=70694">CockosForum</link>
