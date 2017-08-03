@@ -1,9 +1,10 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Remove parameter modulation from focused FX
 -- @changelog
 --    + init
+--    # synthax fix
   
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   ----------------------------------------------------  
@@ -26,7 +27,7 @@
       for i = 1, #t do 
         if t[i]:match('FXID') and t[i]:gsub('[{}-]','') and t[i]:gsub('[{}-]',''):match(fx_guid) then search_PM = true end
         if t[i]:match('FXID') and t[i]:gsub('[{}-]','') and not t[i]:gsub('[{}-]',''):match(fx_guid) and search_PM then search_PM = nil end
-        if search_PM and (t[i]:match('<PROGRAMENV ') or or t[i]:match('<PARMENV')) then erase_chunk = true end
+        if search_PM and (t[i]:match('<PROGRAMENV ') or t[i]:match('<PARMENV')) then erase_chunk = true end
         if erase_chunk and t[i]:find('>') then erase_chunk = false t[i] = '' end
         if erase_chunk then t[i] = '' end        
       end
