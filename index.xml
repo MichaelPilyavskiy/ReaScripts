@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2dad215a3f967d696f40570822a0b821ce104e2b" name="MPL Scripts">
+<index version="1" commit="9e4b05c4cffae26df6603e477c8df6a95d85ae11" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="MPL" time="2016-03-06T14:47:19Z">
@@ -243,6 +243,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Copy%20Focused%20FX%20data.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Copy LFO settings from last touched FX parameter.lua" type="script" desc="Copy LFO settings from last touched FX parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2017-08-03T17:42:23Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e4b05c4cffae26df6603e477c8df6a95d85ae11/FX/mpl_Copy%20LFO%20settings%20from%20last%20touched%20FX%20parameter.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Cubase AB floating FX make equal.lua" type="script" desc="Cubase AB floating FX make equal">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Cubase%20AB%20floating%20FX%20make%20equal.lua</source>
@@ -431,6 +440,15 @@
       <version name="1.01" author="MPL" time="2017-01-12T05:24:04Z">
         <changelog><![CDATA[+ support parameters copypaste]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Paste%20Focused%20FX%20data.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Paste LFO settings for last touched FX parameter.lua" type="script" desc="Paste LFO settings for last touched FX parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2017-08-03T17:42:23Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e4b05c4cffae26df6603e477c8df6a95d85ae11/FX/mpl_Paste%20LFO%20settings%20for%20last%20touched%20FX%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Randomize Track FX parameters.lua" type="script">
