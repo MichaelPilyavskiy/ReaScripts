@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7c2559ffcceec3654bb74876798129379929801c" name="MPL Scripts">
+<index version="1" commit="832407a3d234b5b7eff89d17b929b8b761b6cca5" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1390,6 +1390,15 @@
       <version name="1.0" author="MPL" time="2017-02-03T13:32:21Z">
         <changelog><![CDATA[+ init release]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/893460f10b545aedbad61400f4e1827f1fb2dfc6/Tracks%20Properties/mpl_Add%20send%20to%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Apply visibility of focused FX TCP controls to instances in selected tracks.lua" type="script" desc="Apply visibility of focused FX TCP controls to instances in selected tracks">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-08-08T06:25:06Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/832407a3d234b5b7eff89d17b929b8b761b6cca5/Tracks%20Properties/mpl_Apply%20visibility%20of%20focused%20FX%20TCP%20controls%20to%20instances%20in%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Color project tracks by user defined filter and color.lua" type="script" desc="Color project tracks by user defined filter and color">
