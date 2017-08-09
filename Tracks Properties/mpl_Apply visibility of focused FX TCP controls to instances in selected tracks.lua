@@ -1,7 +1,7 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @changelog
---   + init release
+--   # fixed for custom plugin aliases
 -- @description Apply visibility of focused FX TCP controls to instances in selected tracks
 -- @website http://forum.cockos.com/member.php?u=70694
 
@@ -9,7 +9,8 @@
     local retval, tracknumberOut, itemnumberOut, fxnumberOut = reaper.GetFocusedFX()
     if not  retval then return end
     local src_tr = reaper.CSurf_TrackFromID( tracknumberOut, false )
-    local fx_name = ({reaper.TrackFX_GetFXName( src_tr, fxnumberOut, '' )})[2]:match('[%:].*'):sub(3)
+     fx_name = ({reaper.TrackFX_GetFXName( src_tr, fxnumberOut, '' )})[2]
+    if fx_name:match('[%:].*') then fx_name = fx_name:match('[%:].*'):sub(3) end
     local t = {}
     for i = 1, reaper.CountTCPFXParms( 0, src_tr ) do
       local retval, fxindexOut, parmidxOut = reaper.GetTCPFXParm( 0, src_tr, i-1 )
