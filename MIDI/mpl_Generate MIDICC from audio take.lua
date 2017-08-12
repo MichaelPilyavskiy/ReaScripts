@@ -1,20 +1,10 @@
 -- @version 1.0
 -- @author MPL
 -- @changelog
---   + init
--- @description Create new MIDI take with custom CC generated from peaks of selected audio take
+--    # fix ReaPack header
+-- @description Generate MIDICC from audio take
 -- @website http://forum.cockos.com/member.php?u=70694
   
-  
-  
-  --[[
-     * ReaScript Name: Generate MIDICC from audio take
-     * Lua script for Cockos REAPER
-     * Author: Michael Pilyavskiy (mpl)
-     * Author URI: http://forum.cockos.com/member.php?u=70694
-     * Licence: GPL v3
-     * Version: 1.0
-    ]]
     
   function m(s) reaper.ShowConsoleMsg(s)end
  
@@ -89,7 +79,7 @@
     
     _, cc_str =  reaper.GetUserInputs( 'CC', 1, '', '' )
     cc_id = tonumber(cc_str)
-    _, window_ms =  reaper.GetUserInputs( 'RMS window', 1, '', 0.05 )
+    _, window_ms =  reaper.GetUserInputs( 'RMS window', 1, '(seconds)', 0.05 )
     window_ms = tonumber(window_ms)
     if not cc_id or not  window_ms then return end
     
@@ -130,4 +120,4 @@
   end
   
   
-  main ()
+  main()
