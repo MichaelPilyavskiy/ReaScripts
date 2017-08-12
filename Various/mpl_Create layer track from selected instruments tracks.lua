@@ -1,10 +1,9 @@
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Create layer track from selected instruments tracks
 -- @changelog
---    # replace remove tracks action by API to prevent undo point
---    # fix copy track chunk before renaming as instrument FX
+--    # fix MIDI send null source
 
     local name = 'Create layer track from selected tracks'
     for key in pairs(reaper) do _G[key]=reaper[key]  end 
@@ -62,6 +61,7 @@
           SetMediaTrackInfo_Value( cur_tr, 'B_MAINSEND', 1 ) 
           new_send = CreateTrackSend( midi_tr, cur_tr )
           reaper.SetTrackSendInfo_Value( midi_tr, 0, new_send, 'I_SRCCHAN',-1 )
+          reaper.SetTrackSendInfo_Value( midi_tr, 0, new_send, 'I_MIDIFLAGS', 0 )
           if i == #ch_t then last_tr = cur_tr end
         end
         
