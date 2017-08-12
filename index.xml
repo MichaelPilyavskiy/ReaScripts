@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="84547cbabdf4a2e94cf94b4164bf583a759bb0e6" name="MPL Scripts">
+<index version="1" commit="d3bdd7c8abb87bf49b35b5590afa937c8cf21f43" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1510,6 +1510,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/72e9f6731cd59682231f6a592445a5f0f09a3e1f/Tracks%20Properties/mpl_Search%20tracks.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Select last track.lua" type="script" desc="Select last track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-08-12T12:37:27Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d3bdd7c8abb87bf49b35b5590afa937c8cf21f43/Tracks%20Properties/mpl_Select%20last%20track.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Select tracks with instruments.lua" type="script" desc="Select tracks with instruments">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-15T07:07:25Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Select%20tracks%20with%20instruments.lua</source>
@@ -1752,6 +1761,10 @@
         <changelog><![CDATA[# replace remove tracks action by API to prevent undo point
 # fix copy track chunk before renaming as instrument FX]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ed29c77a4269b48093c6dc83aa19004b7fdf8ea7/Various/mpl_Create%20layer%20track%20from%20selected%20instruments%20tracks.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2017-08-12T12:37:27Z">
+        <changelog><![CDATA[# fix MIDI send null source]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d3bdd7c8abb87bf49b35b5590afa937c8cf21f43/Various/mpl_Create%20layer%20track%20from%20selected%20instruments%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Delete nonexistent scripts from ActionList.lua" type="script">
