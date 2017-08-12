@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="493889431dabf3cdc9051014e1fa04611e78549f" name="MPL Scripts">
+<index version="1" commit="84547cbabdf4a2e94cf94b4164bf583a759bb0e6" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1093,6 +1093,10 @@
       <version name="1.0" author="mpl" time="2016-07-23T05:16:37Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7351b2b62d63bf753bc0c970b0629b08403198b6/MIDI/mpl_Generate%20MIDICC%20from%20audio%20take.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-08-12T11:33:15Z">
+        <changelog><![CDATA[# fix ReaPack header]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/84547cbabdf4a2e94cf94b4164bf583a759bb0e6/MIDI/mpl_Generate%20MIDICC%20from%20audio%20take.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Paste MIDI notes to selected item.lua" type="script" desc="Paste MIDI notes to selected item">
