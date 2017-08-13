@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f066d051cd8ce7ec22d882b09af5ec3a06323470" name="MPL Scripts">
+<index version="1" commit="801cd554dff93b46cc3b43b133da25b9bc5195ce" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1247,6 +1247,33 @@
     <reapack name="mpl_Split selected notes to equal parts.lua" type="script" desc="Split selected notes to equal parts">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-10T10:47:28Z">
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5709e04c5222b5fbd6915f77dedb84f4f31f2519/MIDI%20editor/mpl_Split%20selected%20notes%20to%20equal%20parts.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Stretch selected MIDI notes positions by custom x.lua" type="script" desc="Stretch selected MIDI notes positions by custom x">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-08-13T07:20:40Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/801cd554dff93b46cc3b43b133da25b9bc5195ce/MIDI%20editor/mpl_Stretch%20selected%20MIDI%20notes%20positions%20by%20custom%20x.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Stretch selected MIDI notes positions by x0.5.lua" type="script" desc="Stretch selected MIDI notes positions by x0.5">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-08-13T07:20:40Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/801cd554dff93b46cc3b43b133da25b9bc5195ce/MIDI%20editor/mpl_Stretch%20selected%20MIDI%20notes%20positions%20by%20x0.5.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Stretch selected MIDI notes positions by x2.lua" type="script" desc="Stretch selected MIDI notes positions by x2">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-08-13T07:20:40Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/801cd554dff93b46cc3b43b133da25b9bc5195ce/MIDI%20editor/mpl_Stretch%20selected%20MIDI%20notes%20positions%20by%20x2.lua</source>
       </version>
     </reapack>
   </category>
