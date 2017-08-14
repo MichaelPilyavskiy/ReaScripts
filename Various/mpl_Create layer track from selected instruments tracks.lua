@@ -1,9 +1,9 @@
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Create layer track from selected instruments tracks
 -- @changelog
---    # fix MIDI send null source
+--    # rename tracks only if unnamed
 
     local name = 'Create layer track from selected tracks'
     for key in pairs(reaper) do _G[key]=reaper[key]  end 
@@ -24,7 +24,9 @@
           if instr_id >=0 then
             local fx_name = ({TrackFX_GetFXName( tr, instr_id, '' )})[2]
             if fx_name:match('%:') then fx_name = fx_name:match('%:.*'):sub(3) end
-            GetSetMediaTrackInfo_String( tr, "P_NAME", fx_name, true)
+            if ({GetSetMediaTrackInfo_String( tr, "P_NAME", '', false)})[2] == '' then
+              GetSetMediaTrackInfo_String( tr, "P_NAME", fx_name, true)
+            end
           end  
           ch_t [#ch_t+1] = ({GetTrackStateChunk( tr, '', false )})[2]      
         end      
@@ -33,7 +35,6 @@
       -- name folder track
         local retval, new_name = GetUserInputs( 'mpl_Create layer track', 1, 'New layer name:,extrawidth=150', 'InstrumentLayer' )
         if not retval then return end 
-        --Action(40005) -- Track: Remove tracks
         for i = CountSelectedTracks(0), 1, -1 do DeleteTrack( GetSelectedTrack(0,i-1) ) end
         InsertTrackAtIndex( insert_id-1, false )
         local fold_tr = reaper.CSurf_TrackFromID( insert_id, false )
