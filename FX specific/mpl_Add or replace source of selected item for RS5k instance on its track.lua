@@ -1,10 +1,9 @@
--- @version 1.01
+-- @version 1.0
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
--- @description Add or replace source of selected item for RS5k instance on selected track
+-- @description Add or replace source of selected item for RS5k instance on its track
 -- @changelog
---    # insert MIDI also
---    setup min gain, attack =0
+--    + init
 
 
   function GetRS5Kpos(track)
@@ -72,7 +71,7 @@
   function main()
     local item = reaper.GetSelectedMediaItem(0,0)
     if not item then return end
-    local track = reaper.GetSelectedTrack(0,0)
+    local track = reaper.GetMediaItem_Track(item)
     if not track then return end
     local take = reaper.GetActiveTake(item) 
     if not take or reaper.TakeIsMIDI(take) then return end
