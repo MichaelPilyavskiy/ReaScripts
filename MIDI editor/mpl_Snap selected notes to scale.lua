@@ -1,6 +1,6 @@
--- @version 1.0
--- @author MPL
+-- @version 1.01
 -- @description Snap selected notes to scale
+-- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
 --    + init
