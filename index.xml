@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2aedf13b5d00d7cb479db681253f340a7d25d7b5" name="MPL Scripts">
+<index version="1" commit="836a57839b5e0096222e4e7b2dd92011cb5f4bc5" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1278,6 +1278,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-08-19T06:14:42Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c4150d63cfedd4c71e6d021dc7d79696c6cf1fe9/MIDI%20editor/mpl_Snap%20selected%20notes%20to%20scale.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-08-19T08:02:36Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/836a57839b5e0096222e4e7b2dd92011cb5f4bc5/MIDI%20editor/mpl_Snap%20selected%20notes%20to%20scale.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Solo MIDI Editor active take track.lua" type="script" desc="Solo MIDI Editor active take track">
