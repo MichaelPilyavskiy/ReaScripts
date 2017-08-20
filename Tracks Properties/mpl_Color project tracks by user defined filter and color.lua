@@ -1,9 +1,9 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @description Color project tracks by user defined filter and color
 -- @website http://forum.cockos.com/member.php?u=70694  
 -- @changelog
---   + init
+--   + add voc
 
 function SetFolderColor(tr)
   _, tr_name =  reaper.GetSetMediaTrackInfo_String( tr, 'P_NAME', '', 0 )
@@ -44,7 +44,13 @@ function SetFolderColor(tr)
               r = 30,
               g = 30,
               b = 30
-              }              
+              }   ,
+        [7] = {
+              cat = 'voc', 
+              r = 50,
+              g = 30,
+              b = 30
+              }                          
       }
   
   for i = 1, #t do
