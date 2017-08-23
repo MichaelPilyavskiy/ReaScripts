@@ -1,8 +1,8 @@
 -- @description Snap takes to scale
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @changelog
---   + init (1.01 ReaPack forcing update)
+--   # fix perform note selection (sorry)
 -- @website http://forum.cockos.com/member.php?u=70694
   
   debug = 0
@@ -296,12 +296,12 @@
       local take = GetMediaItemTakeByGUID( 0, takes[i].guid )
       if take then 
         MIDI_SetAllEvts( take,  takes[i].data )
-        local _, notecnt = reaper.MIDI_CountEvts( take )
+        local _, notecnt = MIDI_CountEvts( take )
         for i = 1, notecnt do
           local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote( take, i-1 )
           --new_pitch = pitch % 12
           new_pitch = Check_Scale(pitch, pat)
-          if selected then reaper.MIDI_SetNote( take, i-1, true, muted, startppqpos, endppqpos, chan, new_pitch, vel, true ) end
+          MIDI_SetNote( take, i-1, true, muted, startppqpos, endppqpos, chan, new_pitch, vel, true )
         end
         reaper.MIDI_Sort( take )
       end
