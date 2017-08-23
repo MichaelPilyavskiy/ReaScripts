@@ -1,8 +1,8 @@
 -- @description Snap takes to scale
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @changelog
---   + init
+--   + init (1.01 ReaPack forcing update)
 -- @website http://forum.cockos.com/member.php?u=70694
   
   debug = 0
