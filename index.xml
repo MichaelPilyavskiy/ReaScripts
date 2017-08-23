@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="18c629f4a8e4e17b19cc98f49a40510c9a3d7f96" name="MPL Scripts">
+<index version="1" commit="b88516f70f19e947487db943372d41ba999c4edd" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1156,6 +1156,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.01" author="MPL" time="2017-08-23T00:23:05Z">
         <changelog><![CDATA[+ init (1.01 ReaPack forcing update)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18c629f4a8e4e17b19cc98f49a40510c9a3d7f96/MIDI/mpl_Snap%20takes%20to%20scale.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2017-08-23T17:29:34Z">
+        <changelog><![CDATA[# fix perform note selection (sorry)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b88516f70f19e947487db943372d41ba999c4edd/MIDI/mpl_Snap%20takes%20to%20scale.lua</source>
       </version>
     </reapack>
   </category>
