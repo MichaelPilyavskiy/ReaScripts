@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b88516f70f19e947487db943372d41ba999c4edd" name="MPL Scripts">
+<index version="1" commit="da81cc468eea316da694c523fbbd4cfda0180cd5" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1853,6 +1853,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-08-12T13:15:07Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f066d051cd8ce7ec22d882b09af5ec3a06323470/Various/mpl_Create%20folder%20from%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-08-23T18:49:07Z">
+        <changelog><![CDATA[# use SWS copy/paste tracks with routing]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/da81cc468eea316da694c523fbbd4cfda0180cd5/Various/mpl_Create%20folder%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create layer track from selected instruments tracks.lua" type="script" desc="Create layer track from selected instruments tracks">
