@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4caa8377293fde2ac5b2dc62b628530b554d6cdd" name="MPL Scripts">
+<index version="1" commit="623fbe6a3c135a998ae6542dbf5082a8c555fffb" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1988,6 +1988,13 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-07-30T10:45:20Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5031d9de29cf56365176433ab6305db4b0ed5e44/Various/mpl_MacroControl.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-08-26T06:24:58Z">
+        <changelog><![CDATA[+ formatted parameters at the top
++ font scaled to script window width
+# redraw all knobs when changing one
+# fix pan send indication/ctrl]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/623fbe6a3c135a998ae6542dbf5082a8c555fffb/Various/mpl_MacroControl.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua" type="script" desc="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua">
