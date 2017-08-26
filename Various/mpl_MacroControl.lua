@@ -1,7 +1,10 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @changelog
---   + init
+--    + formatted parameters at the top
+--    + font scaled to script window width
+--    # redraw all knobs when changing one
+--    # fix pan send indication/ctrl
 -- @description MacroControl
 -- @website http://forum.cockos.com/member.php?u=70694
   
@@ -94,10 +97,21 @@
     local ang_val = math.rad(-ang_gr+math.ceil(ang_gr*2*k.val))
     local h = math.ceil(arc_r*2)
     
+    --gfx.rect(x,y,w,h,0)
+    -- val
+      if k.val_str then 
+        col('white', 0.8)
+        gfx.setfont(1, gui.font, gui.fontsz)
+        gfx.x = x+ (w-gfx.measurestr(k.val_str))/2
+        gfx.y = y
+        gfx.drawstr(k.val_str)
+      end
+      
+    local y_knob_offs = 10
     local x1 = math.floor(x+w/2-1)
     local x2 = x1+1
-    local y1 = math.floor(y+h/2-1)
-    local y2 = y1 +1
+    local y1 = math.floor(y+h/2-1) +h*0.3
+    local y2 = y1 +2
       
       
     col(k.col)
@@ -179,6 +193,7 @@
                 y2,
                 x1+math.cos(ang_val-math.rad(90))*arc_r*lc,
                 y2+math.sin(ang_val-math.rad(90))*arc_r*lc)
+                
   end
   ---------------------------------------------------
   local function GUI_DrawBut(o) 
@@ -388,7 +403,7 @@
         if t[4] == 'vol' then
           SetTrackSendInfo_Value( tr, 0, sendidx, 'D_VOL', val )
          elseif t[4] == 'pan' then
-          SetTrackSendInfo_Value( tr, 0, sendidx, 'D_PAN', val )
+          SetTrackSendInfo_Value( tr, 0, sendidx, 'D_PAN', (val-0.5 )*2)
         end
       end      
   end
@@ -440,6 +455,7 @@
   ---------------------------------------------------
   function ENGINE_GetValue(ES_str)
     if not ES_str then return 0 end
+    local deg = 2 -- quantize volume levels
     local  t = {}
     for word in ES_str:gmatch('[^%_]+') do t[#t+1] = word end
     -- perform FX param ctrl
@@ -450,7 +466,9 @@
         if fx_id < 0 then return 0 end -- BROKEN
         local par_id = tonumber(t[4])
         if not par_id then return 0 end -- BROKEN
-        return math.max(0, math.min(1,TrackFX_GetParamNormalized( tr, fx_id-1, par_id-1 )))
+        return 
+          math.max(0, math.min(1,TrackFX_GetParamNormalized( tr, fx_id-1, par_id-1 ))),
+          ({TrackFX_GetFormattedParamValue( tr, fx_id-1, par_id-1,'' )})[2]
       end  
       
     -- perform track info
@@ -458,11 +476,17 @@
         local tr =  BR_GetMediaTrackByGUID( 0, t[1] )
         if not tr then return end -- BROKEN
         if t[3] == 'vol' then
-          return math.max(0, math.min(1,GetMediaTrackInfo_Value( tr, 'D_VOL' )))
+          local out_val = math.max(0, math.min(1,GetMediaTrackInfo_Value( tr, 'D_VOL' )))
+          return out_val,
+                math.floor((20*math.log(out_val, 10))*10^deg)/10^deg..'dB'
         elseif t[3] == 'pan' then
-          return (GetMediaTrackInfo_Value( tr, 'D_PAN')+1)/2
+          local out_val = (GetMediaTrackInfo_Value( tr, 'D_PAN')+1)/2
+          local ch if out_val<0.5 then ch = 'L' else ch =  'R' end
+          local val_str = math.floor((-0.5+out_val)*200)..'%'..ch
+          return out_val,val_str
         elseif t[3] == 'width' then
-          return (GetMediaTrackInfo_Value( tr, 'D_WIDTH')+1)/2          
+          local out_val = (GetMediaTrackInfo_Value( tr, 'D_WIDTH')+1)/2   
+          return    out_val,math.floor((-0.5+out_val) *200   )..'W'
         end
       end
       
@@ -473,9 +497,15 @@
         local sendidx = GetSendIdxFromGUID(tr, t[3])
         if sendidx < 0 then return end
         if t[4] == 'vol' then
-          return math.max(0, math.min(1,GetTrackSendInfo_Value( tr, 0, sendidx, 'D_VOL' )))
+          local out_val = math.max(0, math.min(1,GetTrackSendInfo_Value( tr, 0, sendidx, 'D_VOL' )))
+          return out_val,
+            math.floor((20*math.log(out_val, 10))*10^deg)/10^deg..'dB'
          elseif t[4] == 'pan' then
-          return GetTrackSendInfo_Value( tr, 0, sendidx, 'D_PAN' )
+          local out_val = 0.5*GetTrackSendInfo_Value( tr, 0, sendidx, 'D_PAN' )+0.5
+          local ch if out_val<0.5 then ch = 'L' else ch =  'R' end
+          local val_str = math.floor((-0.5+out_val)*200)..'%'..ch
+          return out_val,
+            val_str
         end
       end    
        
@@ -500,7 +530,7 @@
       obj.knob[i].y = obj.offs
       obj.knob[i].h = gfx.h-obj.offs*2
       obj.knob[i].col = 'white'
-      obj.knob[i].val = ENGINE_GetValue(obj.knob[i].ES_str)
+      obj.knob[i].val,obj.knob[i].val_str  = ENGINE_GetValue(obj.knob[i].ES_str)
       if not obj.knob[i].val then obj.knob[i].val = 0 end
     end
     obj.learn.x = gfx.w-obj.menu_w
@@ -604,10 +634,14 @@
       obj.knob[id].val = lim(obj.knob[id].val_latch - mouse.dy * 0.01)
       ENGINE_ApplyValue(obj.knob[id].ES_str, obj.knob[id].val)
       redraw = id+10
+      OBJ_Update()
     end
     
     -- mouse release    
-      if mouse.last_LMB_state and not mouse.LMB_state   then  mouse.context_latch = '' end
+      if mouse.last_LMB_state and not mouse.LMB_state   then  
+        mouse.context_latch = '' 
+      end
+      
       mouse.last_LMB_state = mouse.LMB_state  
       mouse.last_RMB_state = mouse.RMB_state
       mouse.last_MMB_state = mouse.MMB_state 
@@ -623,7 +657,14 @@
     clock = os.clock()
     cycle = cycle+1
     local st_wind = HasWindXYWHChanged()
-    if st_wind >= -1 then ExtState_Save() if math.abs(st_wind) == 1 then redraw = st_wind OBJ_Update() end end
+    if st_wind >= -1 then 
+      ExtState_Save() 
+      if math.abs(st_wind) == 1 then 
+        redraw = st_wind 
+        OBJ_Update() 
+      end 
+      GUI_define()
+    end
     if SCC_trig then OBJ_Update() redraw = -1 end
     ENGINE_Learn()
     MOUSE()
@@ -664,12 +705,12 @@
     SetProjExtState( 0, 'MPL_MC', 'data', outstr )
   end
   ---------------------------------------------------
-  local function GUI_define()
+  function GUI_define()
     gui = {
                 aa = 1,
                 mode = 3,
                 fontname = 'Calibri',
-                fontsize = 18,
+                fontsz = math.floor(gfx.w/35),
                 col = { grey =    {0.5, 0.5,  0.5 },
                         white =   {1,   1,    1   },
                         red =     {1,   0,    0   },
@@ -678,7 +719,7 @@
                 
                 }
     
-      if OS == "OSX32" or OS == "OSX64" then gui.fontsize = gui.fontsize - 7 end
+      if OS == "OSX32" or OS == "OSX64" then gui.fontsize = gui.fontsize - 5 end
   end
   ---------------------------------------------------
   ExtState_Load()  
