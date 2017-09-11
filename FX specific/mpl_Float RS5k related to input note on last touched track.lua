@@ -1,9 +1,9 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Float RS5k related to input note on last touched track
 -- @changelog
---    + init
+--    #fix floating only first matching instance
   
 
   function main()
@@ -17,7 +17,7 @@
       param = math.floor(param*127)
       if param == s_note then 
         reaper.TrackFX_Show( tr, i-1, 3 )
-        return 
+         
       end
     end
   end
