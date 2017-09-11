@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d62681edc09d061d9c20ed398f76ab5ec63a4be5" name="MPL Scripts">
+<index version="1" commit="2839fea7556cd5b4000a7582d0da015ede876e57" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -795,6 +795,10 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d62681edc09d061d9c20ed398f76ab5ec63a4be5/FX%20specific/mpl_Float%20RS5k%20related%20to%20input%20note%20on%20last%20touched%20track.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2017-09-11T12:36:53Z">
+        <changelog><![CDATA[#fix floating only first matching instance]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2839fea7556cd5b4000a7582d0da015ede876e57/FX%20specific/mpl_Float%20RS5k%20related%20to%20input%20note%20on%20last%20touched%20track.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Float s(M)exoscope on master channel.lua" type="script" desc="Float s(M)exoscope on master channel">
       <metadata>
@@ -856,6 +860,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-09-11T04:12:21Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d62681edc09d061d9c20ed398f76ab5ec63a4be5/FX%20specific/mpl_List%20random%20impulse%20in%20directory%20for%20focused%20ReaVerb.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-09-11T12:36:53Z">
+        <changelog><![CDATA[+ search level up from parent folder]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2839fea7556cd5b4000a7582d0da015ede876e57/FX%20specific/mpl_List%20random%20impulse%20in%20directory%20for%20focused%20ReaVerb.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_List random sample in directory for focused RS5k.lua" type="script" desc="List random sample in directory for focused RS5k">
