@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="36ff7b00ddf701534da456f4bf0cab6c1b61dc2a" name="MPL Scripts">
+<index version="1" commit="8a61c0af8b1cab38ec99ced0aad78e6603d6e16b" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -254,7 +254,7 @@
     </reapack>
     <reapack name="mpl_Create send from focused FX insert.lua" type="script" desc="Create send from focused FX insert">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2017-08-20T15:29:03Z">
         <changelog><![CDATA[+ init]]></changelog>
@@ -1576,11 +1576,17 @@ setup min gain, attack =0]]></changelog>
   <category name="Tracks Properties">
     <reapack name="mpl_Add send to selected tracks.lua" type="script" desc="Add send to selected tracks">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2017-02-03T13:32:21Z">
         <changelog><![CDATA[+ init release]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/893460f10b545aedbad61400f4e1827f1fb2dfc6/Tracks%20Properties/mpl_Add%20send%20to%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-09-13T05:16:34Z">
+        <changelog><![CDATA[# respect default send parameters
+# forum link
+- don`t set same color]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8a61c0af8b1cab38ec99ced0aad78e6603d6e16b/Tracks%20Properties/mpl_Add%20send%20to%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Apply visibility of focused FX TCP controls to instances in selected tracks.lua" type="script" desc="Apply visibility of focused FX TCP controls to instances in selected tracks">
@@ -1729,18 +1735,50 @@ setup min gain, attack =0]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Send selected tracks to track under mouse cursor (channel 3-4).lua" type="script" desc="Send selected tracks to track under mouse cursor (channel 3-4)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-15T07:07:25Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor%20(channel%203-4).lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2017-09-13T05:16:34Z">
+        <changelog><![CDATA[# respect reaper default send volume
+# respect reaper default send flag
+# use native APIs relative to Send parameters
+# code improvements
+# change forum link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8a61c0af8b1cab38ec99ced0aad78e6603d6e16b/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor%20(channel%203-4).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Send selected tracks to track under mouse cursor.lua" type="script" desc="Send selected tracks to track under mouse cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-15T07:07:25Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2017-09-13T05:16:34Z">
+        <changelog><![CDATA[# respect reaper default send volume
+# respect reaper default send flag
+# use native APIs relative to Send parameters
+# code improvements
+# change forum link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8a61c0af8b1cab38ec99ced0aad78e6603d6e16b/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Send track under mouse cursor to selected tracks.lua" type="script" desc="Send track under mouse cursor to selected tracks">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-17T05:22:21Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/946e6c239799568452908c3c6a9074d54841fbf8/Tracks%20Properties/mpl_Send%20track%20under%20mouse%20cursor%20to%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-09-13T05:16:34Z">
+        <changelog><![CDATA[# respect reaper default send volume
+# respect reaper default send flag
+# code improvements
+# change forum link]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8a61c0af8b1cab38ec99ced0aad78e6603d6e16b/Tracks%20Properties/mpl_Send%20track%20under%20mouse%20cursor%20to%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set parent channels according to index for selected tracks.lua" type="script" desc="Set parent channels according to index for selected tracks">
