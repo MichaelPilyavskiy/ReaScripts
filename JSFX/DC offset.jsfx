@@ -1,0 +1,14 @@
+desc: DC offset
+version: 1.0
+changelog: init
+author: MPL
+website: http://forum.cockos.com/showthread.php?t=188335
+
+slider1:0<-1,1,0.0001>DC
+@init
+bpos=0;
+@block
+blah+=samplesblock;
+@sample
+spl0=spl0+slider1;
+spl1=spl1+slider1;
