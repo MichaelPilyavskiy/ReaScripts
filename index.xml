@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e20700fecd51e57f581046811f99456544e565e2" name="MPL Scripts">
+<index version="1" commit="f8350aefe752113c7cff825e8cad62cab2e59eb5" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -821,6 +821,15 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-05-13T21:43:36Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0aea8d0ce03ad042fe8b6875271e9eae4920cfe3/FX%20specific/mpl_Float%20s(M)exoscope%20on%20master%20channel.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Generate DC offset envelope from asymmetric waveform.lua" type="script" desc="Generate DC offset envelope from asymmetric waveform">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-09-13T11:26:00Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f8350aefe752113c7cff825e8cad62cab2e59eb5/FX%20specific/mpl_Generate%20DC%20offset%20envelope%20from%20asymmetric%20waveform.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_List next sample in directory for focused RS5k.lua" type="script" desc="List next sample in directory for focused RS5k">
