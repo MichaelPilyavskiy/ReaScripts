@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2734b65a041b97fcf9fe6b6918d548361764078a" name="MPL Scripts">
+<index version="1" commit="e20700fecd51e57f581046811f99456544e565e2" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1194,6 +1194,15 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-06-20T20:04:56Z">
         <changelog><![CDATA[init]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/0bec563fc22114ad8960e4c9a902623fe679fd43/JSFX/Convert%20Pitch(L)%20Gate(R)%20pair%20from%20Reaktor%20Blocks%20to%20MIDI.jsfx</source>
+      </version>
+    </reapack>
+    <reapack name="DC offset.jsfx" type="effect" desc="DC offset">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-09-13T10:29:31Z">
+        <changelog><![CDATA[init]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/e20700fecd51e57f581046811f99456544e565e2/JSFX/DC%20offset.jsfx</source>
       </version>
     </reapack>
   </category>
