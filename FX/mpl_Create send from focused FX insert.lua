@@ -1,11 +1,16 @@
 -- @description Create send from focused FX insert
 -- @version 1.0
 -- @author MPL
--- @website http://forum.cockos.com/member.php?u=70694
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   + init
+--   # respect send parameters
+--   # forum link
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
+  
+  local defsendvol = ({BR_Win32_GetPrivateProfileString( 'REAPER', 'defsendvol', '0',  get_ini_file() )})[2]
+  local defsendflag = ({BR_Win32_GetPrivateProfileString( 'REAPER', 'defsendflag', '0',  get_ini_file() )})[2]
+    
   function msg(s)  ShowConsoleMsg(s..'\n') end
   function main()
     local ret, tracknumberOut, _, fxnumberOut = GetFocusedFX()
@@ -31,7 +36,9 @@ DOCKED 0]]..'\n'..insert_chunk..'\n>\n>'
     
     -- remove old inssert fx
     if ret then SNM_MoveOrRemoveTrackFX( track, fxnumberOut, 0 ) end
-    CreateTrackSend( track, new_tr )
+    new_id = CreateTrackSend( track, new_tr )
+    SetTrackSendInfo_Value( track, 0, new_id, 'D_VOL', defsendvol)
+    SetTrackSendInfo_Value( track, 0, new_id, 'I_SENDMODE', defsendflag)
   end
   
   Undo_BeginBlock()
