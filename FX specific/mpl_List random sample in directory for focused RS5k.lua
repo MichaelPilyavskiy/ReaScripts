@@ -4,6 +4,7 @@
 -- @description List random sample in directory for focused RS5k
 -- @changelog
 --    # prevent possible errors for path parser
+--    + try to get last touched RS5k in addition to focused instance
 
 
 function main()
@@ -11,7 +12,14 @@ function main()
     local track = reaper.CSurf_TrackFromID( tracknumberOut, false )
     if not track then return end
     ret, fn = reaper.TrackFX_GetNamedConfigParm(track, fxnumberOut, "FILE0")
+    if not ret then     
+      ret, tracknumberOut, fxnumberOut, paramnumberOut = reaper.GetLastTouchedFX()
+      local track = reaper.CSurf_TrackFromID( tracknumberOut, false )
+      if not track then return end
+      ret, fn = reaper.TrackFX_GetNamedConfigParm(track, fxnumberOut, "FILE0")
+    end
     if not ret then return end
+    
     fn = fn:gsub('\\', '/')
     
     path = fn:reverse():match('[%/]+.*')
