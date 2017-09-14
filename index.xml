@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5374fd0dcfc1cbf8cdbd2f1ff9ce80912b85d08d" name="MPL Scripts">
+<index version="1" commit="eb2d39b03df599db3f8229da78513eae74a81449" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -897,6 +897,10 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d62681edc09d061d9c20ed398f76ab5ec63a4be5/FX%20specific/mpl_List%20random%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2017-09-14T19:01:58Z">
+        <changelog><![CDATA[# prevent possible errors for path parser]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9efc67aadbffb4ee99ea7c7e02579b5ebdc2f859/FX%20specific/mpl_List%20random%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_List samples in directory for focused RS5k (MIDI, OSC, Mousewheel).lua" type="script" desc="List samples in directory for focused RS5k (MIDI, OSC, Mousewheel)">
       <metadata>
@@ -1788,6 +1792,10 @@ setup min gain, attack =0]]></changelog>
 # change forum link]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8a61c0af8b1cab38ec99ced0aad78e6603d6e16b/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2017-09-14T19:01:58Z">
+        <changelog><![CDATA[# create multichannel send if source track is multichannel]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9efc67aadbffb4ee99ea7c7e02579b5ebdc2f859/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Send track under mouse cursor to selected tracks.lua" type="script" desc="Send track under mouse cursor to selected tracks">
       <metadata>
@@ -1802,6 +1810,10 @@ setup min gain, attack =0]]></changelog>
 # code improvements
 # change forum link]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8a61c0af8b1cab38ec99ced0aad78e6603d6e16b/Tracks%20Properties/mpl_Send%20track%20under%20mouse%20cursor%20to%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2017-09-14T19:01:58Z">
+        <changelog><![CDATA[# create multichannel send if source track is multichannel]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9efc67aadbffb4ee99ea7c7e02579b5ebdc2f859/Tracks%20Properties/mpl_Send%20track%20under%20mouse%20cursor%20to%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Send tracks.lua" type="script" desc="Send tracks">
