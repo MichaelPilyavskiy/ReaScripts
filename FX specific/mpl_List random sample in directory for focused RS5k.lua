@@ -1,9 +1,9 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description List random sample in directory for focused RS5k
 -- @changelog
---    + init
+--    # prevent possible errors for path parser
 
 
 function main()
@@ -14,8 +14,10 @@ function main()
     if not ret then return end
     fn = fn:gsub('\\', '/')
     
-    path = fn:reverse():match('[%/]+.*'):reverse():sub(0,-2)
-    cur_file =     fn:reverse():match('.-[%/]'):reverse():sub(2)
+    path = fn:reverse():match('[%/]+.*')
+    if path then path = path:reverse():sub(0,-2) else return end
+    cur_file =     fn:reverse():match('.-[%/]')
+    if cur_file then cur_file = cur_file:reverse():sub(2) else return end
     -- get files list
       local files = {}
       local i = 0

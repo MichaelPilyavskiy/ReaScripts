@@ -1,12 +1,9 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @description Send track under mouse cursor to selected tracks
--- @changelog
---    # respect reaper default send volume
---    # respect reaper default send flag
---    # code improvements
---    # change forum link
 -- @website http://forum.cockos.com/showthread.php?t=188335    
+-- @changelog
+--    # create multichannel send if source track is multichannel
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   
@@ -44,15 +41,21 @@
       end
     end
   end
+  
   ---------------------------------------------------------------------   
   function AddSends(src_t, dest_t)
     for i = 1, #src_t do
       local src_tr =  BR_GetMediaTrackByGUID( 0, src_t[i] )
+      local ch = GetMediaTrackInfo_Value( src_tr, 'I_NCHAN')
       for i = 1, #dest_t do
         local dest_tr =  BR_GetMediaTrackByGUID( 0, dest_t[i] )
+        SetMediaTrackInfo_Value( dest_tr, 'I_NCHAN', ch )
         local new_id = CreateTrackSend( src_tr, dest_tr )
         SetTrackSendInfo_Value( src_tr, 0, new_id, 'D_VOL', defsendvol)
         SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SENDMODE', defsendflag)
+         
+        SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SRCCHAN', 512*ch)
+        --SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', 0)
       end
     end
   end
