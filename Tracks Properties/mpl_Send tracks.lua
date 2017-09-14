@@ -1,9 +1,9 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @description Send tracks
 -- @website http://forum.cockos.com/showthread.php?t=188335    
 -- @changelog
---    + init
+--    # allow multichannel sends
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
 
@@ -28,6 +28,7 @@
   local ProjState
   src_tr = {}
   dest_tr = {}
+  function msg(s) if s then ShowConsoleMsg(s..'\n') end end
   ---------------------------------------------------------------------
   function GetTracks()
     local t = {}
@@ -49,6 +50,32 @@
       end
     end
   end
+
+  ---------------------------------------------------------------------   
+  function GetFlags(t,c,r)
+    local s_id, d_id
+    
+    --mono/stereo
+      if conf.multichan == 0 then 
+        if t[c][r] == 2 then 
+          return c-1, r-1  
+         elseif t[c][r] == 1 then 
+          if not(t[c-1] and t[c-1][r-1]and t[c-1][r-1] == 2) then return (c-1)|1024, (r-1)|1024 end
+        end
+      end
+    
+    -- multi
+      if conf.multichan == 1 then 
+        if t[c][r] == 1 and not (t[c+1] and t[c+1][r+1]and t[c+1][r+1] > 0) then return (c-1)|1024, (r-1)|1024 end
+        if t[c][r] > 1 then 
+          s_id = (c-1)+512*t[c][r] - t[c][r]+1 
+          d_id = (r-1) - t[c][r]+1
+          return s_id, d_id
+        end
+      end
+    
+  end
+  
   ---------------------------------------------------------------------   
   function AddSends(src_t, dest_t)      
     if #src_t < 1 or #dest_t < 1 then return end
@@ -63,17 +90,17 @@
         for c in pairs(t) do
           for r in pairs(t[c]) do
             
-            
-            if t[c][r] == 1 or t[c][r] == 2 and conf.matrix == 0 then 
-              local s_id = c-1
-              local d_id = r-1
-              if t[c][r] == 1 then s_id = s_id|1024 d_id = d_id|1024 end
-              local new_id = CreateTrackSend( src_tr, dest_tr )
-              SetTrackSendInfo_Value( src_tr, 0, new_id, 'D_VOL', defsendvol)
-              SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SENDMODE', defsendflag)
-              SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SRCCHAN', s_id)
-              SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', d_id)
+            if conf.matrix == 0 then
+              local s_id, d_id = GetFlags(t,c,r)
+              if s_id and d_id then 
+                local new_id = CreateTrackSend( src_tr, dest_tr )
+                SetTrackSendInfo_Value( src_tr, 0, new_id, 'D_VOL', defsendvol)
+                SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SENDMODE', defsendflag)
+                SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SRCCHAN', s_id)
+                SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', d_id)
+              end
             end
+          
             
             if t[c][r] > 0 and conf.matrix == 1 then 
               local flag = (r<<5) + c
@@ -132,17 +159,18 @@
         
       -- color back                
         if o.RM_state then 
-          if o.RM_state == 1 then -- mono
+          if (conf.multichan == 0 and o.RM_state == 1)
+            or (conf.multichan == 1 and o.RM_state > 0) then -- mono
             gfx.a = 0.6 
             gfx.rect(x,y,w,h,1) 
-           elseif o.RM_state == 2 then -- stereo 1
+           elseif (conf.multichan == 0 and o.RM_state == 2) then -- stereo 1
             col('green', 0.6)
             gfx.rect(x,y,w,h,1)
             col('white', 0.8)
             gfx.x = x+w/2
             gfx.y = y+h/2
             gfx.lineto(x+w*1.5,y+h*1.5 )
-           elseif o.RM_state == 3 then -- stereo 2
+           elseif (conf.multichan == 0 and o.RM_state == 3) then -- stereo 2
             col('green', 0.6)
             gfx.rect(x,y,w,h,1)                         
           end
@@ -255,6 +283,7 @@
               wind_h =  343,
               dock =    0,
               sz = 16,
+              multichan = 0,
               matrix = 0} -- 0 audio 1 midi
     end
     ---------------------------------------------------
@@ -395,22 +424,52 @@
     ----------------------------------------------------------------------
     function Analyze_t(t)
       if conf.matrix == 1 then return end
-      for c in pairs(t) do
-        for r in pairs(t[c]) do
-          if t[c][r] then
-            if c%2 == 1 and r%2 == 1 then
-              if t[c+1] and t[c+1][r+1] then
-              
-                if t[c][r] > 0 and t[c+1][r+1] > 0 then
-                  t[c][r] = 2
-                  t[c+1][r+1] = 3
-                 elseif t[c][r] == 0 and t[c+1][r+1] > 0  then
-                  t[c+1][r+1] = 1
+      local sz = conf.sz
+      for c = 1, sz do
+        if not t[c] then t[c] = {} end
+        for r = 1, sz do
+          if not t[c][r] then t[c][r] = 0 end
+        end
+      end
+      if conf.multichan == 0 then 
+      
+        for c in pairs(t) do
+          for r in pairs(t[c]) do
+            if t[c][r] then
+              if c%2 == 1 and r%2 == 1 then
+                if t[c+1] and t[c+1][r+1] then
+                
+                  if t[c][r] > 0 and t[c+1][r+1] > 0 then
+                    t[c][r] = 2
+                    t[c+1][r+1] = 3
+                   elseif t[c][r] == 0 and t[c+1][r+1] > 0  then
+                    t[c+1][r+1] = 1
+                  end
+                 
                 end
-               
               end
-            end
-          end 
+            end 
+          end
+        end
+        
+       else
+        
+        
+        for c in pairs(t) do
+          for r in pairs(t[c]) do
+            if t[c][r] then
+            
+              if      t[c][r] > 0 
+                  and t[c+1] 
+                  and t[c+1][r+1] 
+                  and t[c+1][r+1] > 0 then
+                  t[c+1][r+1] = t[c][r] + 1
+                  t[c][r] = 1
+              end
+              
+              --if t[c][r] == 0 and t[c+1][r+1] > 0  then  t[c+1][r+1] = 1   end
+            end 
+          end
         end
       end
     end
@@ -440,7 +499,15 @@
                       conf.sz = new_sz 
                       redraw = 1 
                       ExtState_Save()
-                    end},                              
+                    end},     
+            {str = 'Allow multichannel sends',
+            state = conf.multichan == 1,
+            func =  function()       
+                      mtrx_audio = {}                
+                      conf.multichan = math.abs(1-conf.multichan)
+                      redraw = 1 
+                      ExtState_Save()
+                    end},                                               
             {str = '|Build multichannel send',
             state = false,
             func =  function() 
