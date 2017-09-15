@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ffed929122a952665cabb8bfeaac62bf8e81f710" name="MPL Scripts">
+<index version="1" commit="6c55937c9a793b947433e51af4102268944a0580" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -790,6 +790,15 @@ setup min gain, attack =0]]></changelog>
       <version name="1.14" author="MPL" time="2017-03-25T21:00:32Z">
         <changelog><![CDATA[# set record MIDI/Input]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2e542cd93328452d2fa07f8603fe9273b85a500/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Export selected items to single RS5k instance on selected track.lua" type="script" desc="Export selected items to single RS5k instance on selected track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-09-15T09:46:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6c55937c9a793b947433e51af4102268944a0580/FX%20specific/mpl_Export%20selected%20items%20to%20single%20RS5k%20instance%20on%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Float Fre(a)koscope on master channel.lua" type="script" desc="Float Fre(a)koscope on master channel">
