@@ -1,9 +1,10 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @description Send tracks
 -- @website http://forum.cockos.com/showthread.php?t=188335    
 -- @changelog
---    # allow multichannel sends
+--    # refresh matrix after changing 
+--    + clear matrix button
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
 
@@ -321,8 +322,21 @@
                    alpha1 = alpha1,
                   alpha2 = alpha2,
                   func =  function() dest_tr = GetTracks() Check_t(src_tr, dest_tr) redraw = 1 end}      
-                  
-      obj.addsend = { x = 0,
+      obj.clear = { x = 0,
+                  y = (obj.item_h+1)*3,
+                  h = obj.item_h,
+                  w = 60,
+                  col = 'red',
+                  state = 1,
+                  is_but = true,
+                  alpha1 = alpha1,
+                  alpha2 = alpha2,
+                  txt = 'Clear',
+                  func =  function() 
+                            if conf.matrix == 1 then mtrx_midi = {} else mtrx_audio = {} end 
+                            redraw = 1
+                          end}                   
+      obj.addsend = { x = obj.clear.w+1,
                   y = (obj.item_h+1)*3,
                   h = obj.item_h,
                   
@@ -360,7 +374,7 @@
       obj.get_dest.w = gfx.w
       obj.get_dest.txt = "Get destination tracks ("..#dest_tr..')'
       
-      obj.addsend.w = gfx.w
+      obj.addsend.w = gfx.w-obj.clear.w
       local what = 'audio' if conf.matrix == 1 then what = 'MIDI' end
       obj.addsend.txt='Create '..what..' send'
       
@@ -373,6 +387,7 @@
     end
     ---------------------------------------------------
     function OBJ_BuildRM()
+      for key in pairs(obj) do if key:match('RM_but_x') then obj[key]=nil end end
       local sz = tonumber(conf.sz)
        local w = math.floor(obj.RM.w/sz)
       local h = math.floor(obj.RM.h/sz)
