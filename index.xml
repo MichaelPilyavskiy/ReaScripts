@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="13f91f34fdd4cba4a0ff55fb233faf5c651fec90" name="MPL Scripts">
+<index version="1" commit="ddf7240f992762ca5e6078425d53deb8ebbe8c12" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1845,6 +1845,11 @@ setup min gain, attack =0]]></changelog>
       <version name="1.01" author="MPL" time="2017-09-14T20:33:57Z">
         <changelog><![CDATA[# allow multichannel sends]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ffed929122a952665cabb8bfeaac62bf8e81f710/Tracks%20Properties/mpl_Send%20tracks.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2017-09-17T07:56:28Z">
+        <changelog><![CDATA[# refresh matrix after changing 
++ clear matrix button]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ddf7240f992762ca5e6078425d53deb8ebbe8c12/Tracks%20Properties/mpl_Send%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set parent channels according to index for selected tracks.lua" type="script" desc="Set parent channels according to index for selected tracks">
