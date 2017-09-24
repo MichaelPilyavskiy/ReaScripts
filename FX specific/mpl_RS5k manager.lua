@@ -1,15 +1,20 @@
--- @description RS5k manager
--- @version 1.0
+﻿-- @description RS5k manager
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   init release
+--    + Options/Browser: use preview RS5K instance at note 0
+--    + Keyboard: space - Transport: Play 
+--    + Keyboard: escape - Close window
+--    # GUI: Arial font, corrected font size
   
 --[[ 
   08.2017           Early beta as reimplementing Pattern Rack
   24.09.2017  1.0   Init release
+  24.09.2017  1.01  
+                    
   ]]
-  local vrs = 'v1.0'
+  local vrs = 'v1.01'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -25,7 +30,7 @@
   local gui = {
                 aa = 1,
                 mode = 0,
-                font = 'Calibri',
+                font = 'Arial',
                 fontsz = 20,
                 fontsz2 = 15,
                 a1 = 0.2, -- pat not sel
@@ -38,8 +43,8 @@
                 }
     
   if GetOS():find("OSX") then 
-    gui.fontsz = gui.fontsz - 7 
-    gui.fontsz2 = gui.fontsz2 - 7 
+    gui.fontsz = gui.fontsz - 6 
+    gui.fontsz2 = gui.fontsz2 - 5 
   end
   ---------------------------------------------------
   function ExtState_Def()
@@ -59,6 +64,7 @@
             -- Samples
             cur_smpl_browser_dir = GetResourcePath():gsub('\\','/'),
             fav_path_cnt = 4,
+            use_preview = 0,
             -- Pads
             keymode = 0,  -- 0-keys
             oct_shift = 5,
@@ -100,6 +106,17 @@
   ---------------------------------------------------
   local function col(col_s, a) gfx.set( table.unpack(gui.col[col_s])) if a then gfx.a = a end  end
   ---------------------------------------------------
+  function rect(x,y,w,h)
+    gfx.x,gfx.y = x,y
+    gfx.lineto(x,y+h)
+    gfx.x,gfx.y = x+1,y+h
+    gfx.lineto(x+w,y+h)
+    gfx.x,gfx.y = x+w,y+h-1
+    gfx.lineto(x+w,y)
+    gfx.x,gfx.y = x+w-1,y
+    gfx.lineto(x+1,y)
+  end
+  ---------------------------------------------------
   local function GUI_DrawObj(o) 
     if not o then return end
     local x,y,w,h, txt = o.x, o.y, o.w, o.h, o.txt
@@ -127,8 +144,18 @@
        else
         col(o.col, o.alpha_back2 or 0.2)
         gfx.rect(x_sl,y_sl,w_sl,h_sl,1)
-      end        
-    
+      end 
+             
+    -- check
+      if o.check and o.check == 1 then
+        gfx.a = 0.5
+        gfx.rect(x+w-h+2,y+2,h-3,h-3,1)
+        rect(x+w-h,y,h,h,0)
+       elseif o.check and o.check == 0 then
+        gfx.a = 0.5
+        rect(x+w-h,y,h,h,0)
+      end
+      
     -- step
       if o.is_step and o.val then
         local val = o.val/127
@@ -817,6 +844,23 @@
                             redraw = 1 
                           end                          
                         end}     
+    obj.opt_sample_use_0notepreview = { clear = true,
+                x = obj.tab_div+2,
+                y = obj.item_h2+2,
+                w = gfx.w - obj.tab_div-4,
+                h = obj.item_h2,
+                col = 'white',
+                check = conf.use_preview,
+                txt= 'Use RS5k instance at note 0 as preview',
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha4,
+                func =  function() 
+                          conf.use_preview = math.abs(1-conf.use_preview) 
+                          ExtState_Save()
+                          redraw = 1                  
+                        end}                             
   end
   ----------------------------------------------------------------------- 
   function GetInput( captions_csv, retvals_csv,floor)
@@ -1282,6 +1326,11 @@
                               redraw = 1
                              else
                               GetSampleToExport(p)
+                              if conf.use_preview then 
+                                ExportItemToRS5K(p, 0)
+                                StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), 0,100)
+                                StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), 0,100)
+                              end
                             end
                           end}    
     end
@@ -1682,12 +1731,18 @@
     return retval
   end
   ---------------------------------------------------
+  function ShortCuts(char)
+    if char == 32 then reaper.Main_OnCommandEx(40044, 0,0) end -- space: play/pause
+  end
+  ---------------------------------------------------
   function run()
     clock = os.clock()
     redraw = CheckUpdates()
     MOUSE()
     GUI_draw()
-    if gfx.getchar() >= 0 then defer(run) else atexit(gfx.quit) end
+    local char =gfx.getchar()
+    ShortCuts(char)
+    if char >= 0 and char ~= 27 then defer(run) else atexit(gfx.quit) end
   end
   ---------------------------------------------------
   ClearConsole()
