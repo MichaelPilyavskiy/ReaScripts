@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0addc244e50315f8ba7dfff2c229753e4d67dbbb" name="MPL Scripts">
+<index version="1" commit="f039a87796a117175fe68a0afdb34b13777b1da4" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -95,6 +95,10 @@
       <version name="1.0" author="MPL" time="2017-03-16T18:35:04Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0ad6fc38fdb16d1be86db53da7d5c967764b3c26/Envelopes/mpl_Insert%201%20measure%20long%20automation%20item%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-09-25T18:33:28Z">
+        <changelog><![CDATA[# support track volume and pan envelopes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f039a87796a117175fe68a0afdb34b13777b1da4/Envelopes/mpl_Insert%201%20measure%20long%20automation%20item%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Maximize selected tracks envelopes heights.lua" type="script" desc="Maximize selected tracks envelopes heights">
@@ -983,6 +987,11 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[# Options/Browser: use preview RS5K instance at note 0 doesn`t check state
 # Patterns: fix wrong PPQ definition when commiting]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0addc244e50315f8ba7dfff2c229753e4d67dbbb/FX%20specific/mpl_RS5k%20manager.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2017-09-25T18:33:28Z">
+        <changelog><![CDATA[# GUI: improve steps drawing at low velocities
++ Options/Global: autoprepare MIDI input]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f039a87796a117175fe68a0afdb34b13777b1da4/FX%20specific/mpl_RS5k%20manager.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Smooth toggle X pair for ix_Mixer_8xS-1xS.lua" type="script" desc="Smooth toggle X pair for ix_Mixer_8xS-1xS">
@@ -1955,11 +1964,6 @@ setup min gain, attack =0]]></changelog>
     <reapack name="mpl_Play from item under mouse cursor.lua" type="script" desc="Play from item under mouse cursor">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Transport/mpl_Play%20from%20item%20under%20mouse%20cursor.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Playback alt.lua" type="script" desc="Playback alt">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Transport/mpl_Playback%20alt.lua</source>
       </version>
     </reapack>
   </category>
