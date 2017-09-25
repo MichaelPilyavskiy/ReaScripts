@@ -1,13 +1,13 @@
 -- @description Align Takes
--- @version 1.131
+-- @version 1.132
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=179544
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
 --    # prevent possible error when writing external config
 
 --[[
   * Changelog: 
-    * v1.131  (2017-09-25)
+    * v1.132  (2017-09-25)
       # prevent possible error when writing external config
     * v1.130 (2016-09-09)
       # prevent array size issues
@@ -2199,7 +2199,9 @@ Blue knobs are parameters for building envelope
       for key in pairs (def_top) do
         if type(def_top[key]) ~= 'table' then
           if not data or not data[key] then top_str = def_top[key] else top_str = data[key] end
-          reaper.BR_Win32_WritePrivateProfileString( 'Global', key, top_str, config_path )
+          if key and top_str and config_path then 
+            reaper.BR_Win32_WritePrivateProfileString( 'Global', key, top_str, config_path )
+          end
         end
       end        
     -- write tables   
