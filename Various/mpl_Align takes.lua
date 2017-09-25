@@ -1,14 +1,17 @@
 -- @description Align Takes
--- @version 1.132
+-- @version 1.133
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # prevent possible error when writing external config
+--    - reduce about section
+--    - remove donation button
 
 --[[
   * Changelog: 
-    * v1.132  (2017-09-25)
+    * v1.133  (2017-09-25)
       # prevent possible error when writing external config
+      - reduce about section
+      - remove donation button
     * v1.130 (2016-09-09)
       # prevent array size issues
       + generate undo when release slider      
@@ -1067,6 +1070,7 @@
 
         -----------------------------------------------------------------------         
         function GUI_button2(objects, gui, xywh, name, issel, font, text_alpha, color_str) local w1_sl_a
+          if not xywh  then return end
           gfx.y,gfx.x = 0,0         
           -- frame
             gfx.a = 0.1
@@ -1516,15 +1520,16 @@
     GUI_button2(obj, gui, obj.about_b1, 'How to use', mouse.context == 'about_b1', gui.b_sel_fontsize, 0.7, 'white')
     GUI_button2(obj, gui, obj.about_b6, 'Parameters description', mouse.context == 'about_b6', gui.b_sel_fontsize, 0.7, 'white')
     
-    GUI_button2(obj, gui, obj.about_b2, 'VK', mouse.context == 'about_b2', gui.b_sel_fontsize, 0.7, 'green')
+    --GUI_button2(obj, gui, obj.about_b2, 'VK', mouse.context == 'about_b2', gui.b_sel_fontsize, 0.7, 'green')
     GUI_button2(obj, gui, obj.about_b3, 'SoundCloud', mouse.context == 'about_b3', gui.b_sel_fontsize, 0.7, 'green')
     GUI_button2(obj, gui, obj.about_b4, 'CockosForum', mouse.context == 'about_b4', gui.b_sel_fontsize, 0.7, 'green')
-    GUI_button2(obj, gui, obj.about_b5, 'RMM thread', mouse.context == 'about_b5', gui.b_sel_fontsize, 0.7, 'green')
+    --GUI_button2(obj, gui, obj.about_b5, 'RMM thread', mouse.context == 'about_b5', gui.b_sel_fontsize, 0.7, 'green')
     
     GUI_button2(obj, gui, obj.about_b7, 'Close [X]', mouse.context == 'about_b7', gui.b_sel_fontsize, 0.7, 'red')
   end
 -----------------------------------------------------------------------     
   function MOUSE_match(b)
+    if not b then return end
     if mouse.mx > b[1] and mouse.mx < b[1]+b[3]
       and mouse.my > b[2] and mouse.my < b[2]+b[4] then
      return true 
@@ -1835,18 +1840,18 @@ Blue knobs are parameters for building envelope
         reaper.MB(info_str2,'MPL Align takes',0)
       end
 
-      if MOUSE_button(objects.about_b2, 'about_b2') then -- VK
+      --[[if MOUSE_button(objects.about_b2, 'about_b2') then -- VK
         F_open_URL('http://vk.com/michael_pilyavskiy')
-      end           
+      end   ]]        
       if MOUSE_button(objects.about_b3, 'about_b3') then -- soundcloud
         F_open_URL('http://soundcloud.com/mp57')
       end  
       if MOUSE_button(objects.about_b4, 'about_b4') then -- cockos forum
-        F_open_URL('http://forum.cockos.com/showthread.php?p=1709618')
+        F_open_URL('http://forum.cockos.com/showthread.php?t=188335')
       end  
-      if MOUSE_button(objects.about_b5, 'about_b5') then 
+      --[[if MOUSE_button(objects.about_b5, 'about_b5') then 
         F_open_URL('http://rmmedia.ru/threads/121230/')
-      end   
+      end   ]]
       
       if MOUSE_button(objects.about_b7, 'about_b7') then 
         run_about = false
@@ -2094,7 +2099,7 @@ Blue knobs are parameters for building envelope
                               objects.knob_w*6+objects.x_offset*7,
                               objects.knob_h-objects.y_offset} 
                                             
-        local b_cnt = 3                                   
+        local b_cnt = 2                                   
         local b_h = objects.knob_h/b_cnt -   objects.y_offset
                                      
         objects.pref_b1 = {objects.x_offset*9 + objects.knob_w*6,
@@ -2107,10 +2112,10 @@ Blue knobs are parameters for building envelope
                               objects.knob_w+objects.x_offset*2,
                               b_h}     
                               
-        objects.pref_b3 = {objects.x_offset*9 + objects.knob_w*6,
+        --[[objects.pref_b3 = {objects.x_offset*9 + objects.knob_w*6,
                               objects.pref_rect2[2]+objects.pref_rect2[4]+b_h*2+objects.y_offset*3,
                               objects.knob_w+objects.x_offset*2,
-                              b_h}                                                        
+                              b_h}   ]]                                                     
         
         objects.set_wind_h = 180              
                                                                          
