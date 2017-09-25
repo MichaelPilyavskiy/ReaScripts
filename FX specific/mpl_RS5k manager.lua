@@ -1,20 +1,12 @@
 ﻿-- @description RS5k manager
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Options/Browser: use preview RS5K instance at note 0
---    + Keyboard: space - Transport: Play 
---    + Keyboard: escape - Close window
---    # GUI: Arial font, corrected font size
+--    # Options/Browser: use preview RS5K instance at note 0 doesn`t check state
+--    # Patterns: fix wrong PPQ definition when commiting
   
---[[ 
-  08.2017           Early beta as reimplementing Pattern Rack
-  24.09.2017  1.0   Init release
-  24.09.2017  1.01  
-                    
-  ]]
-  local vrs = 'v1.01'
+  local vrs = 'v1.02'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -74,7 +66,8 @@
             default_value = 120,
             commit_mode = 0, -- 0-commit to selected items,
             -- Options
-            options_tab = 0
+            options_tab = 0,
+            global_mode = 0 -- rs5k / sends/ dumpitems
             }
     for i = 1, t.fav_path_cnt do t['smpl_browser_fav_path'..i] = '' end
     return t
@@ -282,14 +275,14 @@
   end
   ---------------------------------------------------
   function GUI_SeqLines()
-    gfx.a = 0.2
+    gfx.a = 0.15
     local step_w = (obj.workarea.w - obj.item_w1 - obj.item_h4- 3-obj.scroll_w) / 16
     for i = 1, 16 do
       if i%4 == 1 then
-        gfx.line(obj.item_w1 + obj.item_h4 + 2 + (i-1)*step_w, 
+        gfx.line(obj.item_w1 + obj.item_h4 + 2 + (i-1)*step_w + obj.tab_div, 
                 0, 
-                obj.item_w1 + obj.item_h4 + 2 + (i-1)*step_w, 
-                blit_h2)
+                obj.item_w1 + obj.item_h4 + 2 + (i-1)*step_w + obj.tab_div, 
+                gfx.h)
       end
     end
   end
@@ -368,7 +361,7 @@
                 local ret = GUI_DrawObj(obj[key])
               end  
             end 
-            if conf.tab == 1 then GUI_SeqLines()   end
+            if conf.tab == 1 then gfx.dest = 1 GUI_SeqLines()   end
           end          
       end
       
@@ -507,6 +500,7 @@
     CommitPattern()
   end
   ---------------------------------------------------
+  ---------------------------------------------------
   function CommitPattern(mode, old_name, new_name)
     local int_mode
     if mode then int_mode = mode else int_mode = conf.commit_mode end
@@ -514,8 +508,12 @@
       if pat[pat.SEL] then
         for i = 1, CountSelectedMediaItems(0) do
           local it = GetSelectedMediaItem(0,i-1)
+          local it_pos =  GetMediaItemInfo_Value( it,'D_POSITION' )
+          local it_pos_beats = ({ TimeMap2_timeToBeats( 0, it_pos )})[4]
+          local it_pos_beats_1measure = TimeMap2_beatsToTime( 0, it_pos_beats, 1 )
+          local it_pos_QN =  TimeMap2_timeToQN( 0, it_pos_beats_1measure )          
           local tk = GetActiveTake(it)
-          if tk and TakeIsMIDI(tk) then CommitPatternSub(it, tk, pat[pat.SEL]) end
+          if tk and TakeIsMIDI(tk) then CommitPatternSub(it, tk, pat[pat.SEL],it_pos_QN) end
         end
       end
       
@@ -523,12 +521,16 @@
       if pat[pat.SEL] then
         for i = 1, CountMediaItems(0) do
           local it = GetMediaItem(0,i-1)
+          local it_pos =  GetMediaItemInfo_Value( it,'D_POSITION' )
+          local it_pos_beats = ({ TimeMap2_timeToBeats( 0, it_pos )})[4]
+          local it_pos_beats_1measure = TimeMap2_beatsToTime( 0, it_pos_beats, 1 )
+          local it_pos_QN =  TimeMap2_timeToQN( 0, it_pos_beats_1measure )
           local tk = GetActiveTake(it)
           if tk and TakeIsMIDI(tk) then 
             local _, tk_name = GetSetMediaItemTakeInfo_String( tk, 'P_NAME', '',  0 )
             local chk_name if old_name then chk_name = old_name else chk_name = pat[pat.SEL].NAME end
             if tk_name == chk_name then
-              CommitPatternSub(it, tk, pat[pat.SEL])
+              CommitPatternSub(it, tk, pat[pat.SEL],it_pos_QN)
             end
             if new_name then GetSetMediaItemTakeInfo_String( tk, 'P_NAME', new_name,  1 ) end
           end
@@ -538,7 +540,8 @@
     end
   end
   ---------------------------------------------------
-  function CommitPatternSub(it, tk, pat_t)
+  function CommitPatternSub(it, tk, pat_t,it_pos_QN )
+    local MeasPPQ = MIDI_GetPPQPosFromProjQN( tk, it_pos_QN )
     -- update name
     GetSetMediaItemTakeInfo_String( tk, 'P_NAME', pat_t.NAME,  1 )
     -- clear MIDI data
@@ -548,7 +551,6 @@
         if key:match('NOTE[%d]+') then
           local t = pat_t[key]
           local note = tonumber(key:match('[%d]+'))
-          local MeasPPQ = 38400
           local step_len = math.ceil(MeasPPQ/t.STEPS)
           for step = 1, t.STEPS do
             if t.seq and t.seq[step] and t.seq[step] > 0 then
@@ -702,10 +704,13 @@
     obj.tab.w = obj.tab_div
     if conf.tab == 0 then 
       obj.tab.txt = 'Samples & Pads'
+      --obj.tab.col = 'green'
      elseif conf.tab == 1 then 
       obj.tab.txt = 'Patterns & StepSeq'
+      --obj.tab.col = 'blue'
      elseif conf.tab == 2 then 
-      obj.tab.txt = 'Controls & Options'      
+      obj.tab.txt = 'Controls & Options'  
+      --obj.tab.col = 'white'    
     end
     obj.tab.val = conf.tab
     obj.tab.steps = 3
@@ -760,39 +765,37 @@
       if conf.options_tab == 0 then OBJ_GenOptionsList_Browser() 
        elseif conf.options_tab == 1 then OBJ_GenOptionsList_Pads() 
        elseif conf.options_tab == 2 then OBJ_GenOptionsList_StepSeq()
+       elseif conf.options_tab == 3 then OBJ_GenOptionsList_Global()
       end      
       -----------------------
     end
     for key in pairs(obj) do if type(obj[key]) == 'table' then obj[key].context = key end end    
   end
   ----------------------------------------------------------------------- 
-  function GetCommitMode(mode)
-    if mode == 0 then return 'set/update selected items by clicking step sequencer' 
-     elseif mode == 1 then return 'ignore selected items, update items by name-based propagating'  
-     elseif mode == 2 then return 'manual commiting to selected items'  end
-  end
-  ----------------------------------------------------------------------- 
   function OBJ_GenOptionsList_StepSeq()
-    obj.opt_stepseq_commit = { clear = true,
+    local commit_modes = {'set/update selected items by clicking step sequencer' ,
+                          'ignore selected items, update items by name-based propagating'  ,
+                          'manual commiting to selected items'}
+    obj.opt_steseq_commit_mode = { clear = true,
                 x = obj.tab_div+2,
                 y = 1,
                 w = gfx.w - obj.tab_div-4,
                 h = obj.item_h2,
                 col = 'white',
                 state = conf.commit_mode == 0,
-                txt= 'Commit mode: '..GetCommitMode(conf.commit_mode),
+                txt= 'Commit mode: '..commit_modes[conf.commit_mode+1],
                 show = true,
                 is_but = true,
                 fontsz = gui.fontsz2,
                 alpha_back = obj.it_alpha4,
                 func =  function() 
-                          Menu({  {str = GetCommitMode(0),
+                          Menu({  {str = commit_modes[1],
                                     func = function() conf.commit_mode = 0 ExtState_Save() redraw = 1 end ,
                                     state = conf.commit_mode == 0},
-                                  {str = GetCommitMode(1),
+                                  {str = commit_modes[2],
                                     func = function() conf.commit_mode = 1 ExtState_Save() redraw = 1 end ,
                                     state = conf.commit_mode == 1},
-                                  {str = GetCommitMode(2),
+                                  {str = commit_modes[3],
                                     func = function() conf.commit_mode = 2 ExtState_Save() redraw = 1 end ,
                                     state = conf.commit_mode == 2}                                    
                                 })
@@ -872,10 +875,59 @@
     return num
   end
   ----------------------------------------------------------------------- 
+  function OBJ_GenOptionsList_Global()
+    local global_modes = {'(Default) RS5K instances are on single track',
+                          '#Use MIDI Send to multiple child tracks with RS5K instances',
+                          '#Use dumping items to multiple child tracks'}
+    obj.opt_global_mode = { clear = true,
+                x = obj.tab_div+2,
+                y = 1,
+                w = gfx.w - obj.tab_div-4,
+                h = obj.item_h2,
+                col = 'white',
+                state = conf.commit_mode == 0,
+                txt= 'Parent track mode: '..global_modes[conf.global_mode+1],
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha4,
+                func =  function() 
+                          Menu({  {str = global_modes[1],
+                                    func = function() conf.global_mode = 0 ExtState_Save() redraw = 1 end ,
+                                    state = conf.global_mode == 0},
+                                  {str = global_modes[2],
+                                    func = function() conf.global_mode = 1 ExtState_Save() redraw = 1 end ,
+                                    state = conf.global_mode == 1},
+                                  {str = global_modes[3],
+                                    func = function() conf.global_mode = 2 ExtState_Save() redraw = 1 end ,
+                                    state = conf.global_mode == 2}                                    
+                                })
+                        end}       
+  
+  end  
+  ----------------------------------------------------------------------- 
   function OBJ_GenOptionsList() 
+    obj.opt_global = { clear = true,
+                x = obj.browser.x+1,
+                y = obj.browser.y,--+(obj.item_h2+1),
+                w = obj.tab_div-2,
+                h = obj.item_h2,
+                col = 'white',
+                state = conf.options_tab == 3,
+                txt= 'Global preferences',
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha3,
+                alpha_back2 = obj.it_alpha2,
+                func =  function() 
+                          conf.options_tab = 3 
+                          ExtState_Save()
+                          redraw = 1
+                        end}   
     obj.opt_sample = { clear = true,
                 x = obj.browser.x+1,
-                y = obj.browser.y,
+                y = obj.browser.y+(obj.item_h2+1),
                 w = obj.tab_div-2,
                 h = obj.item_h2,
                 col = 'white',
@@ -893,7 +945,7 @@
                         end}  
     obj.opt_pads = { clear = true,
                 x = obj.browser.x+1,
-                y = obj.browser.y+(obj.item_h2+1),
+                y = obj.browser.y+(obj.item_h2+1)*2,
                 w = obj.tab_div-2,
                 h = obj.item_h2,
                 col = 'white',
@@ -911,7 +963,7 @@
                         end}    
     obj.opt_stepseq = { clear = true,
                 x = obj.browser.x+1,
-                y = obj.browser.y+(obj.item_h2+1)*2,
+                y = obj.browser.y+(obj.item_h2+1)*3,
                 w = obj.tab_div-2,
                 h = obj.item_h2,
                 col = 'white',
@@ -1326,7 +1378,7 @@
                               redraw = 1
                              else
                               GetSampleToExport(p)
-                              if conf.use_preview then 
+                              if conf.use_preview == 1 then 
                                 ExportItemToRS5K(p, 0)
                                 StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), 0,100)
                                 StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), 0,100)
