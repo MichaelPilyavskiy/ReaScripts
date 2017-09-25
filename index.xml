@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="080a61b75ffe2f1b7b4077c4eb1add120bdb36cb" name="MPL Scripts">
+<index version="1" commit="7edef07e28a6ed2b9a7347b2f0379907bd793445" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1971,7 +1971,7 @@ setup min gain, attack =0]]></changelog>
     </reapack>
     <reapack name="mpl_Align takes.lua" type="script" desc="Align Takes">
       <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=179544</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-11T10:12:56Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e825429a79904a3bb2c19ad73917289d5a83d4b6/Various/mpl_Align%20takes.lua</source>
@@ -2062,6 +2062,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.131" author="MPL" time="2017-09-25T06:07:45Z">
         <changelog><![CDATA[# prevent possible error when writing external config]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/080a61b75ffe2f1b7b4077c4eb1add120bdb36cb/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="1.132" author="MPL" time="2017-09-25T06:11:28Z">
+        <changelog><![CDATA[# prevent possible error when writing external config]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7edef07e28a6ed2b9a7347b2f0379907bd793445/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create folder from selected tracks.lua" type="script" desc="Create folder from selected tracks">
