@@ -1,43 +1,44 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Insert 1 measure long automation item for last touched parameter
 -- @changelog
---    + init
+--    # support track volume and pan envelopes
 
   local script_title = 'Insert 1 measure long automation item for last touched parameter'
-    
-  
-  function main() 
-    local retval, tracknum, fxnum, paramnum = reaper.GetLastTouchedFX()
-    if not retval then return end    
-    local track =  reaper.CSurf_TrackFromID( tracknum, false )
-    if not track then return end
-        
-    AI_pos = reaper.GetCursorPosition()
-    local cur_pos_beats, cur_pos_measures =  reaper.TimeMap2_timeToBeats( 0, AI_pos )
-    AI_len = reaper.TimeMap2_beatsToTime( 0, cur_pos_beats, cur_pos_measures+1 ) - AI_pos
-    local fx_env = reaper.GetFXEnvelope( track, fxnum, paramnum, true )
-    if not fx_env then return end
-    AI_poolid = reaper.InsertAutomationItem( fx_env, -1, AI_pos, AI_len ) -- add pool to RPP with negative srclen, not visible in project
-    
-    reaper.GetSetAutomationItemInfo( fx_env, AI_poolid, 'D_POSITION', AI_pos, true ) -- crashing
-    reaper.GetSetAutomationItemInfo( fx_env, AI_poolid, 'D_LENGTH', AI_len, true ) -- crashing
-    
-    reaper.TrackList_AdjustWindows( false )
-    reaper.UpdateArrange()    
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ----------------------------------------------------------------------------------------------------
+  function GetLastTouchedEnv(act_str)
+    if not act_str then return str end
+    if act_str == 'Adjust track volume' then
+      local tr = GetLastTouchedTrack()
+      SetOnlyTrackSelected( tr ) -- for perform setting env visible
+      Main_OnCommand(40052,0)--Track: Toggle track volume envelope active
+      return GetTrackEnvelopeByName( tr, 'Volume' )
+     elseif act_str == 'Adjust track pan' then
+      local tr = GetLastTouchedTrack()
+      SetOnlyTrackSelected( tr ) -- for perform setting env visible
+      Main_OnCommand(40053,0)--Track: Toggle track volume envelope active
+      return GetTrackEnvelopeByName( tr, 'Pan' )   
+     else
+      local retval, tracknum, fxnum, paramnum = GetLastTouchedFX()
+      if not retval then return end    
+      local track =  CSurf_TrackFromID( tracknum, false )
+      if not track then return end
+      return GetFXEnvelope( track, fxnum, paramnum, true )       
+    end
   end
-  
-  function vrs_check()
-    local appvrs = reaper.GetAppVersion()
-    appvrs = appvrs:match('[%d%p]+')
-    if not appvrs or not tonumber(appvrs) or tonumber(appvrs) < 5.40 then return else return true end 
+  ----------------------------------------------------------------------------------------------------
+  function InsertAI(env) 
+    if not env then return end
+    local AI_pos = GetCursorPosition()
+    local cur_pos_beats, cur_pos_measures =  TimeMap2_timeToBeats( 0, AI_pos )
+    local AI_len = TimeMap2_beatsToTime( 0, cur_pos_beats, cur_pos_measures+1 ) - AI_pos
+    InsertAutomationItem( env, -1, AI_pos, AI_len ) -- add pool to RPP with negative srclen, not visible in project    
+    TrackList_AdjustWindows( false )
+    UpdateArrange()    
   end
-  
-  if vrs_check() then 
-    reaper.Undo_BeginBlock()
-    main()
-    reaper.Undo_EndBlock(script_title, 1)
-   else
-    reaper.MB('Script works with REAPER 5.40+', 'Error', 0)
-  end
+  ----------------------------------------------------------------------------------------------------
+  last_act =  Undo_CanUndo2( 0 )
+  env = GetLastTouchedEnv(last_act)   
+  InsertAI(env)

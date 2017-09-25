@@ -1,12 +1,12 @@
 ﻿-- @description RS5k manager
--- @version 1.02
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # Options/Browser: use preview RS5K instance at note 0 doesn`t check state
---    # Patterns: fix wrong PPQ definition when commiting
+--    # GUI: improve steps drawing at low velocities
+--    + Options/Global: autoprepare MIDI input
   
-  local vrs = 'v1.02'
+  local vrs = 'v1.04'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -67,7 +67,8 @@
             commit_mode = 0, -- 0-commit to selected items,
             -- Options
             options_tab = 0,
-            global_mode = 0 -- rs5k / sends/ dumpitems
+            global_mode = 0, -- rs5k / sends/ dumpitems
+            prepareMIDI = 0
             }
     for i = 1, t.fav_path_cnt do t['smpl_browser_fav_path'..i] = '' end
     return t
@@ -154,8 +155,8 @@
         local val = o.val/127
         local x_sl = x      
         local w_sl = w 
-        local y_sl = y + h-h *val     
-        local h_sl = h *val
+        local y_sl = y + h-math.ceil(h *val)  
+        local h_sl = math.ceil(h *val)
         col(o.col, 0.7)
         gfx.rect(x_sl,y_sl,w_sl-1,h_sl,1)      
       end
@@ -267,7 +268,7 @@
                         pitch=pitch }
       end
     end
-    if ex then MIDI_prepare(tr) end
+    if ex and conf.prepareMIDI == 1 then MIDI_prepare(tr) end
     for i =1, #temp do 
       if not data[ temp[i].pitch]  then data[ temp[i].pitch] = {} end
       data[ temp[i].pitch][#data[ temp[i].pitch]+1] = temp[i] 
@@ -286,6 +287,66 @@
       end
     end
   end
+  ------------------------------------------------------------------------
+  function ExplodeRS5K_Extract_rs5k_tChunks(tr)
+    local _, chunk = GetTrackStateChunk(tr, '', false)
+    local t = {}
+    for fx_chunk in chunk:gmatch('BYPASS(.-)WAK') do 
+      if fx_chunk:match('<(.*)') and fx_chunk:match('<(.*)'):match('reasamplomatic.dll') then 
+        t[#t+1] = 'BYPASS 0 0 0\n<'..fx_chunk:match('<(.*)') ..'WAK 0'
+      end
+    end
+    return t
+  end
+  ------------------------------------------------------------------------  
+  function ExplodeRS5K_AddChunkToTrack(tr, chunk) -- add empty fx chain chunk if not exists
+    local _, chunk_ch = GetTrackStateChunk(tr, '', false)
+    -- add fxchain if not exists
+    if not chunk_ch:match('FXCHAIN') then 
+      chunk_ch = chunk_ch:sub(0,-3)..[=[
+<FXCHAIN
+SHOW 0
+LASTSEL 0
+DOCKED 0
+>
+>]=]
+    end
+    chunk_ch = chunk_ch:gsub('DOCKED %d', chunk)
+    SetTrackStateChunk(tr, chunk_ch, false)
+  end
+  ------------------------------------------------------------------------  
+  function ExplodeRS5K_RenameTrAsFirstInstance(track)
+    local fx_count =  TrackFX_GetCount(track)
+    if fx_count >= 1 then
+      local retval, fx_name =  TrackFX_GetFXName(track, 0, '')      
+      local fx_name_cut = fx_name:match(': (.*)')
+      if fx_name_cut then fx_name = fx_name_cut end
+      GetSetMediaTrackInfo_String(track, 'P_NAME', fx_name, true)
+    end
+  end
+  ------------------------------------------------------------------------  
+  function ExplodeRS5K_main(tr)
+    if tr then 
+      local tr_id = CSurf_TrackToID( tr,false )
+      SetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH', 1 )
+      Undo_BeginBlock2( 0 )
+      local ch = ExplodeRS5K_Extract_rs5k_tChunks(tr)
+      if ch and #ch > 0 then 
+        for i = #ch, 1, -1 do 
+          InsertTrackAtIndex( tr_id, false )
+          local child_tr = GetTrack(0,tr_id)
+          ExplodeRS5K_AddChunkToTrack(child_tr, ch[i])
+          ExplodeRS5K_RenameTrAsFirstInstance(child_tr)
+          local ch_depth if i == #ch then ch_depth = -1 else ch_depth = 0 end
+          SetMediaTrackInfo_Value( child_tr, 'I_FOLDERDEPTH', ch_depth )
+          SetMediaTrackInfo_Value( child_tr, 'I_FOLDERCOMPACT', 1 ) 
+        end
+      end
+      SetOnlyTrackSelected( tr )
+      Main_OnCommand(40535,0 ) -- Track: Set all FX offline for selected tracks
+      Undo_EndBlock2( 0, 'Explode selected track RS5k instances to new tracks', 0 )
+    end
+  end  
   ---------------------------------------------------
   local function GUI_draw()
     gfx.mode = 0
@@ -902,7 +963,24 @@
                                     func = function() conf.global_mode = 2 ExtState_Save() redraw = 1 end ,
                                     state = conf.global_mode == 2}                                    
                                 })
-                        end}       
+                        end}    
+    obj.opt_global_autoprepare = { clear = true,
+                x = obj.tab_div+2,
+                y = obj.item_h2+2,
+                w = gfx.w - obj.tab_div-4,
+                h = obj.item_h2,
+                col = 'white',
+                check = conf.prepareMIDI,
+                txt= 'Auto prepare MIDI input',
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha4,
+                func =  function() 
+                          conf.prepareMIDI = math.abs(1-conf.prepareMIDI) 
+                          ExtState_Save()
+                          redraw = 1                  
+                        end}                                
   
   end  
   ----------------------------------------------------------------------- 
