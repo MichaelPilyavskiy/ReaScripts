@@ -1,13 +1,14 @@
 -- @description Align Takes
--- @version 1.130
+-- @version 1.131
 -- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=179544
 -- @changelog
---    # prevent array size issues in FFT mode, thanks vk.com/xeonblack for bugreport
---    + generate undo when release slider
--- @website http://forum.cockos.com/member.php?u=70694
+--    # prevent possible error when writing external config
 
 --[[
   * Changelog: 
+    * v1.131  (2017-09-25)
+      # prevent possible error when writing external config
     * v1.130 (2016-09-09)
       # prevent array size issues
       + generate undo when release slider      
@@ -2207,7 +2208,9 @@ Blue knobs are parameters for building envelope
           if i == data.count_presets + 1 then i = 'current' end
           if i == data.count_presets + 2 then i = 'default' end          
           if not data[i] or not data[i][key] then val = def_data[key] else val = data[i][key] end
-          reaper.BR_Win32_WritePrivateProfileString( 'preset'..i, key, val, config_path )
+          if i and key and val and config_path then
+            reaper.BR_Win32_WritePrivateProfileString( 'preset'..i, key, val, config_path )
+          end
         end
       end      
     -- write timestamp
