@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f039a87796a117175fe68a0afdb34b13777b1da4" name="MPL Scripts">
+<index version="1" commit="6bdbe9984735331661b9573485e54d98ed8042db" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -99,6 +99,15 @@
       <version name="1.01" author="MPL" time="2017-09-25T18:33:28Z">
         <changelog><![CDATA[# support track volume and pan envelopes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f039a87796a117175fe68a0afdb34b13777b1da4/Envelopes/mpl_Insert%201%20measure%20long%20automation%20item%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Latch all automation items to edit cursor.lua" type="script" desc="Latch all automation items to edit cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-09-27T16:31:41Z">
+        <changelog><![CDATA[+ init release]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6bdbe9984735331661b9573485e54d98ed8042db/Envelopes/mpl_Latch%20all%20automation%20items%20to%20edit%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Maximize selected tracks envelopes heights.lua" type="script" desc="Maximize selected tracks envelopes heights">
