@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e5d2fd9ef99f9471c94f02cd6ed65785582f8204" name="MPL Scripts">
+<index version="1" commit="14196de8e3c4ef802d3dfd91678ed4306022c0d7" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -59,6 +59,15 @@
       <version name="1.04" author="mpl" time="2016-09-01T18:11:50Z">
         <changelog><![CDATA[# fix dealing with take envelopes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/38d2aa292749c5ae9863538252b5d1628b290f02/Envelopes/mpl_Duplicate%20envelope%20points.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-10-01T22:16:22Z">
+        <changelog><![CDATA[+ init  ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14196de8e3c4ef802d3dfd91678ed4306022c0d7/Envelopes/mpl_Generate%20track%20volume%20automation%20item%20from%20audio%20take.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Hide all track envelopes except envelope under mouse cursor.lua" type="script" desc="Hide all track envelopes except envelope under mouse cursor">
