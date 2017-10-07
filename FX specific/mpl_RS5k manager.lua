@@ -1,23 +1,27 @@
 ﻿-- @description RS5k manager
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # GUI: improve steps drawing at low velocities
---    + Options/Global: autoprepare MIDI input
-  
-  local vrs = 'v1.04'
+--    + Options/Global: MIDI send mode
+--    # Rename preview FX to 'RS5K preview'
+
+
+  local vrs = 'v1.05'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
+  local SCC, lastSCC
   local mouse = {}
   local obj = {}
-  local conf = {}
+  conf = {}
   local pat = {}
-  local data = {}
+  data = {}
   local action_export = {}
   local redraw = -1
+  local MIDItr_name = 'RS5K MIDI'
+  local preview_name = 'RS5K preview'
   local blit_h,slider_val,blit_h2,slider_val2 = 0,0,0,0
   local gui = {
                 aa = 1,
@@ -96,7 +100,11 @@
            end
   end
   ---------------------------------------------------
-  local function msg(s) if not s then return end ShowConsoleMsg('==================\n'..os.date()..'\n'..s..'\n') end
+  local function msg(s) 
+    if not s then return end 
+    --ShowConsoleMsg('==================\n'..os.date()..'\n'..s..'\n')
+    ShowConsoleMsg(s..'\n')  
+  end
   ---------------------------------------------------
   local function col(col_s, a) gfx.set( table.unpack(gui.col[col_s])) if a then gfx.a = a end  end
   ---------------------------------------------------
@@ -240,39 +248,81 @@
   end
   ---------------------------------------------------
   function math_q(num)  if math.abs(num - math.floor(num)) < math.abs(num - math.ceil(num)) then return math.floor(num) else return math.ceil(num) end end
+  function math_q_dec(num, pow) return math.floor(num * 10^pow) / 10^pow end
   ---------------------------------------------------
-  function MIDI_prepare(tr)
+  function MIDI_prepare(tr, no_arm)
     local bits_set=tonumber('111111'..'00000',2)
     SetMediaTrackInfo_Value( tr, 'I_RECINPUT', 4096+bits_set ) -- set input to all MIDI
     SetMediaTrackInfo_Value( tr, 'I_RECMON', 1) -- monitor input
-    SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) -- arm track
+    if not no_arm then SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) end -- arm track 
     SetMediaTrackInfo_Value( tr, 'I_RECMODE',0) -- record MIDI out
   end
   ---------------------------------------------------
   function Data_Update()
     data = {}
     local temp = {}
-    local tr = GetSelectedTrack(0,0)
-    if not tr then return end
-    data.tr_pointer = tr
-    local ex = false
-    for fxid = 1,  TrackFX_GetCount( tr ) do
-      local retval, buf =TrackFX_GetFXName( tr, fxid-1, '' )
-      if buf:lower():match('rs5k') or buf:lower():match('reasamplomatic5000') then
-        ex = true
-        local retval, fn = TrackFX_GetNamedConfigParm( tr, fxid-1, 'FILE' )
-        local pitch = math_q(TrackFX_GetParamNormalized( tr, fxid-1, 3)*127)
-        temp[#temp+1] = {idx = fxid-1,
-                        name = buf,
-                        fn = fn,
-                        pitch=pitch }
+    
+    if conf.global_mode == 0 then
+      local tr = GetSelectedTrack(0,0)
+      if not tr then return end
+      data.tr_pointer = tr
+      local ex = false
+      for fxid = 1,  TrackFX_GetCount( tr ) do
+        local retval, buf =TrackFX_GetFXName( tr, fxid-1, '' )
+        if buf:lower():match('rs5k') or buf:lower():match('reasamplomatic5000') then
+          ex = true
+          local retval, fn = TrackFX_GetNamedConfigParm( tr, fxid-1, 'FILE' )
+          local pitch = math_q(TrackFX_GetParamNormalized( tr, fxid-1, 3)*127)
+          temp[#temp+1] = {idx = fxid-1,
+                          name = buf,
+                          fn = fn,
+                          pitch=pitch}
+        end
+      end
+      if ex and conf.prepareMIDI == 1 then MIDI_prepare(tr)   end
+      for i =1, #temp do 
+        if not data[ temp[i].pitch]  then data[ temp[i].pitch] = {} end
+        data[ temp[i].pitch][#data[ temp[i].pitch]+1] = temp[i] 
       end
     end
-    if ex and conf.prepareMIDI == 1 then MIDI_prepare(tr) end
-    for i =1, #temp do 
-      if not data[ temp[i].pitch]  then data[ temp[i].pitch] = {} end
-      data[ temp[i].pitch][#data[ temp[i].pitch]+1] = temp[i] 
+    ---------
+    
+    if conf.global_mode == 1 then
+      local tr = GetSelectedTrack(0,0)
+      if not tr then return end
+      data.tr_pointer = tr
+      local ex = false
+      local tr_id = CSurf_TrackToID( tr, false )
+      if GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' ) == 1 then      
+        for i = tr_id+1, CountTracks(0) do
+          local child_tr =  GetTrack( 0, i-1 )
+          if ({GetSetMediaTrackInfo_String(child_tr, 'P_NAME', '', false)})[2] == MIDItr_name then data.tr_pointer_MIDI = child_tr end
+          local lev = GetMediaTrackInfo_Value( child_tr, 'I_FOLDERDEPTH' )
+          for fxid = 1,  TrackFX_GetCount( child_tr ) do
+            local retval, buf =TrackFX_GetFXName( child_tr, fxid-1, '' )
+            if buf:lower():match('rs5k') or buf:lower():match('reasamplomatic5000') then
+              ex = true
+              local retval, fn = TrackFX_GetNamedConfigParm( child_tr, fxid-1, 'FILE' )
+              local pitch = math_q(TrackFX_GetParamNormalized( child_tr, fxid-1, 3)*127)
+              temp[#temp+1] = {idx = fxid-1,
+                              name = buf,
+                              fn = fn,
+                              pitch=pitch,
+                              trackGUID = GetTrackGUID( child_tr )  }
+            end
+          end          
+          if lev < 0 then break end
+        end
+      end
+      ---------- add from stored data
+      for i =1, #temp do 
+        if not data[ temp[i].pitch]  then data[ temp[i].pitch] = {} end
+        data[ temp[i].pitch][#data[ temp[i].pitch]+1] = temp[i] 
+      end        
+      --if ex and conf.prepareMIDI == 1 then  MIDI_prepare(tr) end
     end
+    
+    
   end
   ---------------------------------------------------
   function GUI_SeqLines()
@@ -311,11 +361,12 @@ DOCKED 0
 >
 >]=]
     end
-    chunk_ch = chunk_ch:gsub('DOCKED %d', chunk)
+    if chunk then chunk_ch = chunk_ch:gsub('DOCKED %d', chunk) end
     SetTrackStateChunk(tr, chunk_ch, false)
   end
   ------------------------------------------------------------------------  
   function ExplodeRS5K_RenameTrAsFirstInstance(track)
+    if not track then return end
     local fx_count =  TrackFX_GetCount(track)
     if fx_count >= 1 then
       local retval, fx_name =  TrackFX_GetFXName(track, 0, '')      
@@ -329,7 +380,7 @@ DOCKED 0
     if tr then 
       local tr_id = CSurf_TrackToID( tr,false )
       SetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH', 1 )
-      Undo_BeginBlock2( 0 )
+      Undo_BeginBlock2( 0 )      
       local ch = ExplodeRS5K_Extract_rs5k_tChunks(tr)
       if ch and #ch > 0 then 
         for i = #ch, 1, -1 do 
@@ -503,6 +554,7 @@ DOCKED 0
   function ExtState_Load_Patterns()
     pat = {}
     local ret, str = GetProjExtState( 0, conf.ES_key, 'PAT' )
+    --msg(str)
     if not ret then return end
     -- parse patterns
       for line in str:gmatch('<PAT[\n\r](.-)>') do   
@@ -938,7 +990,7 @@ DOCKED 0
   ----------------------------------------------------------------------- 
   function OBJ_GenOptionsList_Global()
     local global_modes = {'(Default) RS5K instances are on single track',
-                          '#Use MIDI Send to multiple child tracks with RS5K instances',
+                          'Use MIDI Send to multiple child tracks with RS5K instances',
                           '#Use dumping items to multiple child tracks'}
     obj.opt_global_mode = { clear = true,
                 x = obj.tab_div+2,
@@ -957,12 +1009,19 @@ DOCKED 0
                                     func = function() conf.global_mode = 0 ExtState_Save() redraw = 1 end ,
                                     state = conf.global_mode == 0},
                                   {str = global_modes[2],
-                                    func = function() conf.global_mode = 1 ExtState_Save() redraw = 1 end ,
+                                    func = function() 
+                                            conf.global_mode = 1 
+                                            ExtState_Save() 
+                                            redraw = 1 
+                                          end ,
                                     state = conf.global_mode == 1},
                                   {str = global_modes[3],
                                     func = function() conf.global_mode = 2 ExtState_Save() redraw = 1 end ,
-                                    state = conf.global_mode == 2}                                    
+                                    state = conf.global_mode == 2}                                                                        
                                 })
+                                
+                                
+                                
                         end}    
     obj.opt_global_autoprepare = { clear = true,
                 x = obj.tab_div+2,
@@ -980,7 +1039,23 @@ DOCKED 0
                           conf.prepareMIDI = math.abs(1-conf.prepareMIDI) 
                           ExtState_Save()
                           redraw = 1                  
-                        end}                                
+                        end}   
+    --[[obj.opt_global_exploders5k = { clear = true,
+                x = obj.tab_div+2,
+                y = (obj.item_h2+2)*2,
+                w = gfx.w - obj.tab_div-4,
+                h = obj.item_h2,
+                col = 'white',
+                txt= 'Action: Explode RS5k instances from selected track',
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha4,
+                func =  function() 
+                          local tr = GetSelectedTrack(0,0)
+                          ExplodeRS5K_main(tr)
+                          redraw = 1                 
+                        end}      ]]                                          
   
   end  
   ----------------------------------------------------------------------- 
@@ -1384,6 +1459,68 @@ DOCKED 0
     return cnt
   end
   ---------------------------------------------------
+  function InsertTrack(tr_id)
+    InsertTrackAtIndex(tr_id, true)
+    TrackList_AdjustWindows( false )
+    return CSurf_TrackFromID( tr_id+1, false )
+  end
+  ---------------------------------------------------
+  function GetDestTrackByNote(main_track, note)
+    if not main_track then return end
+    local tr_id = CSurf_TrackToID( main_track, false ) - 1
+    local ex = false
+    local last_id
+    
+    -- if main track still no folder
+    if GetMediaTrackInfo_Value( main_track, 'I_FOLDERDEPTH' ) ~= 1 then
+      local child_tr = InsertTrack(tr_id+1)
+      SetMediaTrackInfo_Value( main_track, 'I_FOLDERDEPTH', 1 )
+      SetMediaTrackInfo_Value( child_tr, 'I_FOLDERDEPTH', -1 )
+      if note == 0 then GetSetMediaTrackInfo_String( child_tr, 'P_NAME', prev_name, 1 ) end
+      return child_tr
+    end
+    
+    -- search track
+    if GetMediaTrackInfo_Value( main_track, 'I_FOLDERDEPTH' ) == 1 then
+      for i = tr_id+1, CountTracks(0) do        
+        local child_tr =  GetTrack( 0, i-1 )
+        local lev = GetMediaTrackInfo_Value( child_tr, 'I_FOLDERDEPTH' )
+        for fxid = 1,  TrackFX_GetCount( child_tr ) do
+          local retval, buf =TrackFX_GetFXName( child_tr, fxid-1, '' )
+          if buf:lower():match('rs5k') or buf:lower():match(prev_name) then
+            local cur_pitch = TrackFX_GetParamNormalized( child_tr, fxid-1, 3 )
+            if math_q_dec(cur_pitch, 5) == math_q_dec(note/127,5) then
+              ex = true   
+              return child_tr
+            end              
+          end
+        end
+        if lev < 0 then 
+          last_id = i-1
+          break 
+        end
+      end   
+    end
+      
+    -- insert new if not exists
+    if not ex then 
+      local insert_id
+      if last_id then insert_id = last_id+1 else insert_id = tr_id+1 end
+      local new_ch = InsertTrack(insert_id)  
+      -- set params 
+      --MIDI_prepare(new_ch, true)
+      SetMediaTrackInfo_Value( GetTrack(0, CSurf_TrackToID(new_ch,false)-2), 'I_FOLDERDEPTH',0 )
+      SetMediaTrackInfo_Value( new_ch, 'I_FOLDERDEPTH',-1 )
+      CreateMIDISend(new_ch)
+      return new_ch
+    end
+  end
+  --------------------------------------------------
+  function CreateMIDISend(new_ch)
+    local send_id = CreateTrackSend( data.tr_pointer_MIDI, new_ch)
+    SetTrackSendInfo_Value( data.tr_pointer_MIDI, 0, send_id, 'I_SRCCHAN' , -1 )
+  end
+  ---------------------------------------------------
   function OBJ_GenSampleBrowser()
     local up_w = 25
     obj.browser_up = { clear = true,
@@ -1457,15 +1594,50 @@ DOCKED 0
                              else
                               GetSampleToExport(p)
                               if conf.use_preview == 1 then 
-                                ExportItemToRS5K(p, 0)
-                                StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), 0,100)
-                                StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), 0,100)
+                                
+                                if conf.global_mode ==0 then -- single track multiple instances                                         
+                                  ExportItemToRS5K(p, 0)
+                                  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), 0,100)
+                                  StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), 0,100)
+                                end
+                                
+                                if conf.global_mode == 1 then -- use track as folder
+                                  BuildTrackTemplate_MIDISendMode()
+                                  ExportItemToRS5K(p, 0,data.tr_pointer_MIDI)
+                                  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), 0,100)
+                                  StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), 0,100)
+                                end
+                                                               
                               end
                             end
                           end}    
     end
     local cnt = lim((gfx.h-obj.browser.h)/list_cnt, 2, math.huge)
     return cnt
+  end
+  -----------------------------------------------------------------------  
+  function BuildTrackTemplate_MIDISendMode()
+    if not data.tr_pointer then return end
+    -- if not folder then create preview channel and set to folder
+      if GetMediaTrackInfo_Value( data.tr_pointer, 'I_FOLDERDEPTH' ) ~= 1 then
+        local ret = MB('Build RS5K template around selected track?', scr_title,4 )
+        if ret == 6 then
+          SetMediaTrackInfo_Value( data.tr_pointer, 'I_FOLDERDEPTH',1 )
+          
+          data.tr_pointer_MIDI = InsertTrack(CSurf_TrackToID( data.tr_pointer, false ))
+          GetSetMediaTrackInfo_String(data.tr_pointer_MIDI, 'P_NAME', MIDItr_name, true)
+          SetMediaTrackInfo_Value(data.tr_pointer_MIDI, 'I_FOLDERDEPTH',-1 ) 
+          ExplodeRS5K_AddChunkToTrack(data.tr_pointer_MIDI)
+          MIDI_prepare(data.tr_pointer_MIDI)
+        end
+      end
+      
+    -- if MIDI track not exists
+      if not data.tr_pointer_MIDI and GetMediaTrackInfo_Value( data.tr_pointer, 'I_FOLDERDEPTH' ) == 1 then
+        data.tr_pointer_MIDI = InsertTrack(CSurf_TrackToID( data.tr_pointer, false ))        
+        GetSetMediaTrackInfo_String(data.tr_pointer_MIDI, 'P_NAME', MIDItr_name, true) 
+        MIDI_prepare(data.tr_pointer_MIDI)
+      end      
   end
   -----------------------------------------------------------------------    
     function GetNoteStr(val, mode) 
@@ -1794,7 +1966,9 @@ DOCKED 0
             and obj[ mouse.context ] 
             and obj[ mouse.context ].linked_note then
               local note = obj[ mouse.context ].linked_note
-              ExportItemToRS5K(action_export.fn, note)
+              local dest_tr
+              if conf.global_mode == 1 then dest_tr = GetDestTrackByNote(data.tr_pointer, note)  end
+              ExportItemToRS5K(action_export.fn, note, dest_tr)
           end
           action_export = {}
         -- clear note
@@ -1812,35 +1986,82 @@ DOCKED 0
       
       mouse.LMB_trig = nil   
   end
+
   ---------------------------------------------------
-  function ExportItemToRS5K(fn, note)
+  function ExportItemToRS5K(fn, note, track)
+    if not track then track = data.tr_pointer end
     local ex = false
     for key in pairs(data) do
       if key == note then
-        TrackFX_SetNamedConfigParm(  data.tr_pointer, data[key][1].idx, 'FILE0', fn)
-        TrackFX_SetNamedConfigParm(  data.tr_pointer, data[key][1].idx, 'DONE', '') 
+        TrackFX_SetNamedConfigParm(  track, data[key][1].idx, 'FILE0', fn)
+        TrackFX_SetNamedConfigParm(  track, data[key][1].idx, 'DONE',  '') 
         redraw = 1
         ex = true
         break
       end
     end
     if not ex and data.tr_pointer then 
-      local rs5k_pos = TrackFX_AddByName( data.tr_pointer, 'ReaSamplomatic5000', false, -1 )
-      TrackFX_SetNamedConfigParm(  data.tr_pointer, rs5k_pos, 'FILE0', fn)
-      TrackFX_SetNamedConfigParm(  data.tr_pointer, rs5k_pos, 'DONE', '')      
-      reaper.TrackFX_SetParamNormalized( data.tr_pointer, rs5k_pos, 2, 0) -- gain for min vel
-      reaper.TrackFX_SetParamNormalized( data.tr_pointer, rs5k_pos, 3, note/127 ) -- note range start
-      reaper.TrackFX_SetParamNormalized( data.tr_pointer, rs5k_pos, 4, note/127 ) -- note range end
-      reaper.TrackFX_SetParamNormalized( data.tr_pointer, rs5k_pos, 5, 0.5 ) -- pitch for start
-      reaper.TrackFX_SetParamNormalized( data.tr_pointer, rs5k_pos, 6, 0.5 ) -- pitch for end
-      reaper.TrackFX_SetParamNormalized( data.tr_pointer, rs5k_pos, 8, 0 ) -- max voices = 0
-      reaper.TrackFX_SetParamNormalized( data.tr_pointer, rs5k_pos, 9, 0 ) -- attack
-      reaper.TrackFX_SetParamNormalized( data.tr_pointer, rs5k_pos, 11, 0 ) -- obey note offs
+      local rs5k_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -1 )
+      TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'FILE0', fn)
+      TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'DONE', '')      
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 2, 0) -- gain for min vel
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 3, note/127 ) -- note range start
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 4, note/127 ) -- note range end
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 5, 0.5 ) -- pitch for start
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 6, 0.5 ) -- pitch for end
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 8, 0 ) -- max voices = 0
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 9, 0 ) -- attack
+      reaper.TrackFX_SetParamNormalized( track, rs5k_pos, 11, 0 ) -- obey note offs
       redraw = 1
+      if note ==0 then SetFXName(track, rs5k_pos, preview_name) end
     end
+    if note ~= 0 then ExplodeRS5K_RenameTrAsFirstInstance(track) end
+  end
+  -----------------------------------------------------------------------
+  function SetFXName(track, fx, new_name)
+    if not new_name then return end
+    local edited_line,edited_line_id, segm
+    -- get ref guid
+      if not track or not tonumber(fx) then return end
+      local FX_GUID = reaper.TrackFX_GetFXGUID( track, fx )
+      if not FX_GUID then return else FX_GUID = FX_GUID:gsub('-',''):sub(2,-2) end
+      local plug_type = reaper.TrackFX_GetIOSize( track, fx )
+    -- get chunk t
+      local _, chunk = reaper.GetTrackStateChunk( track, '', false )
+      local t = {} for line in chunk:gmatch("[^\r\n]+") do t[#t+1] = line end
+    -- find edit line
+      local search
+      for i = #t, 1, -1 do
+        local t_check = t[i]:gsub('-','')
+        if t_check:find(FX_GUID) then search = true  end
+        if t[i]:find('<') and search and not t[i]:find('JS_SER') then
+          edited_line = t[i]:sub(2)
+          edited_line_id = i
+          break
+        end
+      end
+    -- parse line
+      if not edited_line then return end
+      local t1 = {}
+      for word in edited_line:gmatch('[%S]+') do t1[#t1+1] = word end
+      local t2 = {}
+      for i = 1, #t1 do
+        segm = t1[i]
+        if not q then t2[#t2+1] = segm else t2[#t2] = t2[#t2]..' '..segm end
+        if segm:find('"') and not segm:find('""') then if not q then q = true else q = nil end end
+      end
+  
+      if plug_type == 2 then t2[3] = '"'..new_name..'"' end -- if JS
+      if plug_type == 3 then t2[5] = '"'..new_name..'"' end -- if VST
+  
+      local out_line = table.concat(t2,' ')
+      t[edited_line_id] = '<'..out_line
+      local out_chunk = table.concat(t,'\n')
+      --msg(out_chunk)
+      reaper.SetTrackStateChunk( track, out_chunk, false )
+      reaper.UpdateArrange()
   end
   ---------------------------------------------------  
-  local SCC, lastSCC
   function CheckUpdates()
     local retval = 0
     -- force by proj change state
