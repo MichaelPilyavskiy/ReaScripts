@@ -1,13 +1,13 @@
 ﻿-- @description RS5k manager
--- @version 1.05
+-- @version 1.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Options/Global: MIDI send mode
---    # Rename preview FX to 'RS5K preview'
+--    + Options/Global: Dump sources to child tracks as audio items
+--    # fix preview_name variable
 
 
-  local vrs = 'v1.05'
+  local vrs = 'v1.10'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -287,7 +287,7 @@
     end
     ---------
     
-    if conf.global_mode == 1 then
+    if conf.global_mode==1 or  conf.global_mode==2  then
       local tr = GetSelectedTrack(0,0)
       if not tr then return end
       data.tr_pointer = tr
@@ -319,7 +319,6 @@
         if not data[ temp[i].pitch]  then data[ temp[i].pitch] = {} end
         data[ temp[i].pitch][#data[ temp[i].pitch]+1] = temp[i] 
       end        
-      --if ex and conf.prepareMIDI == 1 then  MIDI_prepare(tr) end
     end
     
     
@@ -634,22 +633,68 @@ DOCKED 0
       if pat[pat.SEL] then
         for i = 1, CountMediaItems(0) do
           local it = GetMediaItem(0,i-1)
-          local it_pos =  GetMediaItemInfo_Value( it,'D_POSITION' )
-          local it_pos_beats = ({ TimeMap2_timeToBeats( 0, it_pos )})[4]
-          local it_pos_beats_1measure = TimeMap2_beatsToTime( 0, it_pos_beats, 1 )
-          local it_pos_QN =  TimeMap2_timeToQN( 0, it_pos_beats_1measure )
-          local tk = GetActiveTake(it)
-          if tk and TakeIsMIDI(tk) then 
-            local _, tk_name = GetSetMediaItemTakeInfo_String( tk, 'P_NAME', '',  0 )
-            local chk_name if old_name then chk_name = old_name else chk_name = pat[pat.SEL].NAME end
-            if tk_name == chk_name then
-              CommitPatternSub(it, tk, pat[pat.SEL],it_pos_QN)
+          if it then
+            local it_pos =  GetMediaItemInfo_Value( it,'D_POSITION' )
+            local it_pos_beats = ({ TimeMap2_timeToBeats( 0, it_pos )})[4]
+            local it_pos_beats_1measure = TimeMap2_beatsToTime( 0, it_pos_beats, 1 )
+            local it_pos_QN =  TimeMap2_timeToQN( 0, it_pos_beats_1measure )
+            local tk = GetActiveTake(it)
+            if tk and TakeIsMIDI(tk) then 
+              local _, tk_name = GetSetMediaItemTakeInfo_String( tk, 'P_NAME', '',  0 )
+              local chk_name if old_name then chk_name = old_name else chk_name = pat[pat.SEL].NAME end
+              if tk_name == chk_name then
+                CommitPatternSub(it, tk, pat[pat.SEL],it_pos_QN)
+              end
+              if new_name then GetSetMediaItemTakeInfo_String( tk, 'P_NAME', new_name,  1 ) end
             end
-            if new_name then GetSetMediaItemTakeInfo_String( tk, 'P_NAME', new_name,  1 ) end
           end
         end
       end
            
+    end
+  end
+  ---------------------------------------------------
+  function CommitPattern_InsertSource(tr, sample_path, pos , vel)
+    local item = AddMediaItemToTrack( tr )
+    local take = AddTakeToMediaItem( item )
+    local src = PCM_Source_CreateFromFile( sample_path)
+    local src_len = GetMediaSourceLength( src )    
+    SetMediaItemInfo_Value( item, 'D_POSITION', pos)
+    SetMediaItemInfo_Value( item, 'D_LENGTH', src_len)
+    SetMediaItemInfo_Value( item, 'D_FADEINLEN', 0 )
+    SetMediaItemInfo_Value( item, 'D_FADEOUTLEN', 0.001 )
+    SetMediaItemInfo_Value( item, 'B_LOOPSRC', 0 )
+    SetMediaItemInfo_Value( item, 'D_VOL', vel / 127 )
+    BR_SetTakeSourceFromFile2( take, sample_path,false, true)
+    UpdateItemInProject( item )
+ --[[local 
+                      
+                      
+                      local rate = 2^((blocks[block].gl_pitch+blocks[block].samples[smpl].pitch)/12)
+                      step_item_src_len = step_item_src_len / rate
+                      reaper.
+                      reaper.
+                      reaper.SetMediaItemTakeInfo_Value( step_item_take, 'D_PITCH', blocks[block].gl_pitch )
+                      reaper.SetMediaItemTakeInfo_Value( step_item_take, 'D_PLAYRATE', rate)
+                       
+                      reaper.GetSetMediaItemTakeInfo_String( step_item_take, 'P_NAME', F_extract_filename(blocks[block].samples[smpl].filename), true )
+                      reaper.  ]]
+  end
+  ---------------------------------------------------
+  function CommitPattern_ClearDumpTrack(track, src_pat_item)
+    if not track or not src_pat_item then return end
+    local t1 = GetMediaItemInfo_Value( src_pat_item, 'D_POSITION' )
+    local t2 = GetMediaItemInfo_Value( src_pat_item, 'D_LENGTH' ) + t1
+    local offs = 0.001
+    
+    for it_idx = CountTrackMediaItems( track ), 1, -1 do
+      local it = GetTrackMediaItem( track, it_idx-1 )
+      local it_pos = GetMediaItemInfo_Value( it, 'D_POSITION' )
+      if it_pos > t1-offs and it_pos < t2 - offs then 
+        DeleteTrackMediaItem( track, it ) 
+        
+      end
+      if it_pos < t1 - offs then break end
     end
   end
   ---------------------------------------------------
@@ -659,11 +704,23 @@ DOCKED 0
     GetSetMediaItemTakeInfo_String( tk, 'P_NAME', pat_t.NAME,  1 )
     -- clear MIDI data
     for i = ({MIDI_CountEvts( tk )})[2], 1, -1 do MIDI_DeleteNote( tk, i-1 ) end
+    -- clear child items for dump items mode
+    if conf.global_mode == 2 then 
+      for key in spairs(pat_t) do
+        if key:match('NOTE[%d]+') then
+          local note = tonumber(key:match('[%d]+'))
+          local child_tr = GetDestTrackByNote(data.tr_pointer, note, false) 
+          CommitPattern_ClearDumpTrack(child_tr, it) 
+        end
+      end
+    end
     -- add notes
       for key in spairs(pat_t) do
         if key:match('NOTE[%d]+') then
           local t = pat_t[key]
           local note = tonumber(key:match('[%d]+'))
+          local child_tr = GetDestTrackByNote(data.tr_pointer, note, false)
+          local _,_,sample_path = GetSampleNameByNote(note)
           local step_len = math.ceil(MeasPPQ/t.STEPS)
           for step = 1, t.STEPS do
             if t.seq and t.seq[step] and t.seq[step] > 0 then
@@ -676,7 +733,11 @@ DOCKED 0
                0, -- channel
                note, -- pitch
                t.seq[step], -- velocity
-               true) -- no sort]]
+               true) -- no sort
+              if conf.global_mode == 2 then 
+                local pos = MIDI_GetProjTimeFromPPQPos( tk, step_len * (step-1) )
+                CommitPattern_InsertSource(child_tr, sample_path, pos, t.seq[step]) 
+              end
             end
           end
         end
@@ -989,9 +1050,9 @@ DOCKED 0
   end
   ----------------------------------------------------------------------- 
   function OBJ_GenOptionsList_Global()
-    local global_modes = {'(Default) RS5K instances are on single track',
-                          'Use MIDI Send to multiple child tracks with RS5K instances',
-                          '#Use dumping items to multiple child tracks'}
+    local global_modes = {'RS5K instances are on single track',
+                          'RS5K instances are on child tracks (MIDI send)',
+                          'Dump sources to child tracks as audio items'}
     obj.opt_global_mode = { clear = true,
                 x = obj.tab_div+2,
                 y = 1,
@@ -1465,7 +1526,7 @@ DOCKED 0
     return CSurf_TrackFromID( tr_id+1, false )
   end
   ---------------------------------------------------
-  function GetDestTrackByNote(main_track, note)
+  function GetDestTrackByNote(main_track, note, insert_new)
     if not main_track then return end
     local tr_id = CSurf_TrackToID( main_track, false ) - 1
     local ex = false
@@ -1476,7 +1537,7 @@ DOCKED 0
       local child_tr = InsertTrack(tr_id+1)
       SetMediaTrackInfo_Value( main_track, 'I_FOLDERDEPTH', 1 )
       SetMediaTrackInfo_Value( child_tr, 'I_FOLDERDEPTH', -1 )
-      if note == 0 then GetSetMediaTrackInfo_String( child_tr, 'P_NAME', prev_name, 1 ) end
+      if note == 0 then GetSetMediaTrackInfo_String( child_tr, 'P_NAME', preview_name, 1 ) end
       return child_tr
     end
     
@@ -1487,7 +1548,7 @@ DOCKED 0
         local lev = GetMediaTrackInfo_Value( child_tr, 'I_FOLDERDEPTH' )
         for fxid = 1,  TrackFX_GetCount( child_tr ) do
           local retval, buf =TrackFX_GetFXName( child_tr, fxid-1, '' )
-          if buf:lower():match('rs5k') or buf:lower():match(prev_name) then
+          if buf:lower():match('rs5k') or buf:lower():match(preview_name) then
             local cur_pitch = TrackFX_GetParamNormalized( child_tr, fxid-1, 3 )
             if math_q_dec(cur_pitch, 5) == math_q_dec(note/127,5) then
               ex = true   
@@ -1503,7 +1564,7 @@ DOCKED 0
     end
       
     -- insert new if not exists
-    if not ex then 
+    if not ex and insert_new then  
       local insert_id
       if last_id then insert_id = last_id+1 else insert_id = tr_id+1 end
       local new_ch = InsertTrack(insert_id)  
@@ -1511,7 +1572,7 @@ DOCKED 0
       --MIDI_prepare(new_ch, true)
       SetMediaTrackInfo_Value( GetTrack(0, CSurf_TrackToID(new_ch,false)-2), 'I_FOLDERDEPTH',0 )
       SetMediaTrackInfo_Value( new_ch, 'I_FOLDERDEPTH',-1 )
-      CreateMIDISend(new_ch)
+      if conf.global_mode == 1 then CreateMIDISend(new_ch) end
       return new_ch
     end
   end
@@ -1712,11 +1773,12 @@ DOCKED 0
       local str = ''
       for key in pairs(data) do
         if key == note then 
-          local fn = ''
-          for i = 1, #data[key] do
-            fn = fn..GetShortSmplName(data[key][i].fn)          
-          end
-          return fn, true
+          --local fn = ''
+          --for i = 1, #data[key] do
+            local fn = GetShortSmplName(data[key][1].fn)
+            local fn_full = data[key][1].fn          
+          --end
+          return fn, true, fn_full
         end
       end
       return str
@@ -1967,7 +2029,7 @@ DOCKED 0
             and obj[ mouse.context ].linked_note then
               local note = obj[ mouse.context ].linked_note
               local dest_tr
-              if conf.global_mode == 1 then dest_tr = GetDestTrackByNote(data.tr_pointer, note)  end
+              if conf.global_mode == 1 or conf.global_mode == 2 then dest_tr = GetDestTrackByNote(data.tr_pointer, note, true)  end
               ExportItemToRS5K(action_export.fn, note, dest_tr)
           end
           action_export = {}
