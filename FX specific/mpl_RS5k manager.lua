@@ -1,12 +1,12 @@
 ﻿-- @description RS5k manager
--- @version 1.12
+-- @version 1.13
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix search other than wav formats in browser
+--    # Browser: fix preview sample not working for dumpitems mode
 
 
-  local vrs = 'v1.12'
+  local vrs = 'v1.13'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -1874,7 +1874,7 @@ DOCKED 0
                                   StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), 0,100)
                                 end
                                 
-                                if conf.global_mode == 1 then -- use track as folder
+                                if conf.global_mode == 1 or conf.global_mode == 2 then -- use track as folder
                                   BuildTrackTemplate_MIDISendMode()
                                   ExportItemToRS5K(p, 0,data.tr_pointer_MIDI)
                                   StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), 0,100)
