@@ -1,13 +1,26 @@
 ﻿-- @description RS5k manager
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Options/Global: Dump sources to child tracks as audio items
---    # fix preview_name variable
+--    + StepSequencer: preview MIDI note by left click on name
+--    + StepSequencer: copypaste step (right click on name), support for temporary link steps
+--    + StepSequencer: allow change step velocity with ctrl+mousewheel
+--    + Patterns: use increment id`s when duplicating
+--    + Patterns/Menu: select linked pattern
+--    + Patterns/Menu: rename pattern without commit to linked items
+--    + Pads: add buttons to seek octaves
+--    + Options/StepSeq: change mouse dy ratio for changing velocity with ctrl+left drag
+--    + Options/StepSeq: change mousewheel ratio for changing velocity with ctrl+left drag
+--    + Options/StepSeq: allow to select patterns by clicking pattern in browser
+--    # StepSequencer: add MIDI track when clicking steps or add new track
+--    # GUI: move steps scroll when changing width
+--    # GUI: hide pattern list on specified stepseq width
+--    # GUI: hide step names on specified steps area width
+--    # GUI: fix incorrent behaviour on mouse release sometimes
 
 
-  local vrs = 'v1.10'
+  local vrs = 'v1.11'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -15,9 +28,10 @@
   local SCC, lastSCC
   local mouse = {}
   local obj = {}
-  conf = {}
+  local conf = {}
   local pat = {}
-  data = {}
+  local Buf_t
+  local data = {}
   local action_export = {}
   local redraw = -1
   local MIDItr_name = 'RS5K MIDI'
@@ -34,7 +48,8 @@
                 col = { grey =    {0.5, 0.5,  0.5 },
                         white =   {1,   1,    1   },
                         red =     {1,   0,    0   },
-                        green =   {0.3,   0.9,    0.3   }
+                        green =   {0.3,   0.9,    0.3   },
+                        black =   {0,0,0 }
                       }
                 }
     
@@ -69,6 +84,10 @@
             default_steps = 16,
             default_value = 120,
             commit_mode = 0, -- 0-commit to selected items,
+            mouse_ctrldrag_res = 10,
+            mouse_stepseq_wheel_res = 40,
+            autoselect_patterns = 0,
+            
             -- Options
             options_tab = 0,
             global_mode = 0, -- rs5k / sends/ dumpitems
@@ -123,10 +142,17 @@
     if not o then return end
     local x,y,w,h, txt = o.x, o.y, o.w, o.h, o.txt
     if not x or not y or not w or not h then return end
-    gfx.a = o.alpha_back or 0.3
-    gfx.blit( 2, 1, 0, -- grad back
-              0,0,  obj.grad_sz,obj.grad_sz,
+    gfx.a = o.alpha_back or 0.2
+    local blit_h, blit_w = obj.grad_sz,obj.grad_sz
+    if o.is_step then 
+      gfx.blit( 5, 1, 0, -- grad back
+              0,0,  blit_w,blit_h,
+              x,y,w,h, 0,0)      
+     else
+      gfx.blit( 2, 1, 0, -- grad back
+              0,0,  blit_w,blit_h,
               x,y,w,h, 0,0)
+    end
     
     -- fill back
       local x_sl = x      
@@ -165,7 +191,7 @@
         local w_sl = w 
         local y_sl = y + h-math.ceil(h *val)  
         local h_sl = math.ceil(h *val)
-        col(o.col, 0.7)
+        col(o.col, 0.5)
         gfx.rect(x_sl,y_sl,w_sl-1,h_sl,1)      
       end
     
@@ -181,9 +207,13 @@
       end
       
     -- txt
-      if o.txt then 
+      if o.txt and w > 0 then 
         local txt = tostring(o.txt)
-        col('white', o.alpha_txt or 0.8)
+        if o.txt_col then 
+          col(o.txt_col, o.alpha_txt or 0.8)
+         else
+          col('white', o.alpha_txt or 0.8)
+        end
         local f_sz = gui.fontsz
         gfx.setfont(1, gui.font,o.fontsz or gui.fontsz )
         local y_shift = -1
@@ -327,11 +357,16 @@
   function GUI_SeqLines()
     gfx.a = 0.15
     local step_w = (obj.workarea.w - obj.item_w1 - obj.item_h4- 3-obj.scroll_w) / 16
+    if obj.gui_cond then  step_w = (obj.workarea.w -obj.item_h4*2- 3-obj.scroll_w) / 16 end
+    if obj.gui_cond2 then  step_w = (obj.workarea.w- obj.scroll_w) / 16 end
     for i = 1, 16 do
       if i%4 == 1 then
-        gfx.line(obj.item_w1 + obj.item_h4 + 2 + (i-1)*step_w + obj.tab_div, 
+        local x = obj.item_w1 + obj.item_h4 + 2 + (i-1)*step_w + obj.tab_div
+        if obj.gui_cond then x = obj.item_h4*2 + 2 + (i-1)*step_w + obj.tab_div end
+        if obj.gui_cond2 then x = (i-1)*step_w + obj.tab_div end
+        gfx.line(x, 
                 0, 
-                obj.item_w1 + obj.item_h4 + 2 + (i-1)*step_w + obj.tab_div, 
+                x, 
                 gfx.h)
       end
     end
@@ -405,12 +440,14 @@ DOCKED 0
     -- 2 gradient
     -- 3 smpl browser blit
     -- 4 stepseq 
+    -- 5 gradient steps
     -- 10 sample keys
     
     --  init
       if redraw == -1 then
         Data_Update()
         OBJ_Update()
+        -- com grad
         gfx.dest = 2
         gfx.setimgdim(2, -1, -1)  
         gfx.setimgdim(2, obj.grad_sz,obj.grad_sz)  
@@ -429,6 +466,25 @@ DOCKED 0
                         r,g,b,a, 
                         drdx, dgdx, dbdx, dadx, 
                         drdy, dgdy, dbdy, dady) 
+        -- steps grad
+        gfx.dest = 5
+        gfx.setimgdim(5, -1, -1)  
+        gfx.setimgdim(5, obj.grad_sz,obj.grad_sz)  
+        local r,g,b,a = 1,1,1,0.5
+        gfx.x, gfx.y = 0,0
+        local c = 1
+        local drdx = c*0.001
+        local drdy = c*0.01
+        local dgdx = c*0.001
+        local dgdy = c*0.001    
+        local dbdx = c*0.00008
+        local dbdy = c*0.001
+        local dadx = c*0.001
+        local dady = c*0.001       
+        gfx.gradrect(0,0, obj.grad_sz,obj.grad_sz, 
+                        r,g,b,a, 
+                        drdx, dgdx, dbdx, dadx, 
+                        drdy, dgdy, dbdy, dady)                         
         redraw = 1 -- force com redraw after init 
       end
       
@@ -775,6 +831,8 @@ DOCKED 0
     obj.it_alpha2 = 0.28 -- navigation
     obj.it_alpha3 = 0.1 -- option tabs
     obj.it_alpha4 = 0.05 -- option items
+    obj.comm_w = 80 -- commit button
+    obj.comm_h = 30
     
     obj.tab = { x = 0,
                 y = 0,
@@ -867,15 +925,18 @@ DOCKED 0
                               slider_val2 = lim(val, 0,1)
                               redraw = 1
                             end
-                          end}    
+                          end}  
+                            
                       
   end
   ---------------------------------------------------
   function OBJ_Update()
     obj.tab_div = math.floor(gfx.w*conf.tab_div)
+    if obj.tab_div < 160 then obj.tab_div = 0 end
     --
     obj.tab.is_tab = conf.tab + (3<<7)
     obj.tab.w = obj.tab_div
+    obj.tab.show = obj.tab_div~=0
     if conf.tab == 0 then 
       obj.tab.txt = 'Samples & Pads'
       --obj.tab.col = 'green'
@@ -898,27 +959,69 @@ DOCKED 0
     obj.scroll.val = slider_val
     obj.scroll.h = gfx.h-obj.item_h-obj.item_h2-3
     obj.scroll.show = true
+    obj.scroll2.x = gfx.w - obj.scroll_w
     obj.scroll2.show = false
     --
+    obj.gui_cond = obj.workarea.w < 400
+    obj.gui_cond2 = obj.workarea.w < 300
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = nil end end
     ---------------------------------------------macro windows
     if conf.tab == 0 then 
       local cnt_it = OBJ_GenSampleBrowser()
-      if conf.keymode == 0 then OBJ_GenKeys() end
+      obj._octaveshiftL = { clear = true,
+                  x = gfx.w-obj.comm_w,
+                  y = gfx.h -obj.comm_h ,
+                  w = obj.comm_w/2,
+                  h = obj.comm_h,
+                  col = 'white',
+                  state = fale,
+                  txt= '<',
+                  show = true,
+                  is_but = true,
+                  mouse_overlay = true,
+                  fontsz = gui.fontsz,
+                  alpha_back = obj.it_alpha4,
+                  a_frame = 0.1,
+                  func =  function() 
+                            conf.oct_shift = lim(conf.oct_shift - 1,0,10)
+                            ExtState_Save()
+                            redraw = 1
+                          end} 
+      obj._octaveshiftR = { clear = true,
+                  x = gfx.w-obj.comm_w/2,
+                  y = gfx.h -obj.comm_h ,
+                  w = obj.comm_w/2,
+                  h = obj.comm_h,
+                  col = 'white',
+                  state = fale,
+                  txt= '>',
+                  show = true,
+                  is_but = true,
+                  mouse_overlay = true,
+                  fontsz = gui.fontsz,
+                  alpha_back = obj.it_alpha4,
+                  a_frame = 0.1,
+                  func =  function() 
+                            conf.oct_shift = lim(conf.oct_shift + 1,1,10)
+                            ExtState_Save()
+                            redraw = 1                            
+                          end}                          
+      if conf.keymode == 0 then 
+        OBJ_GenKeys() 
+      end
       obj.scroll.steps = cnt_it
       -----------------------
      elseif conf.tab == 1 then 
-      local cnt_it = OBJ_GenPatternBrowser()
+      local cnt_it
+      if obj.tab_div ~= 0 then cnt_it = OBJ_GenPatternBrowser() end
       obj.scroll.steps = cnt_it   
       local cnt_it2 = OBJ_GenStepSequencer()
       if conf.commit_mode == 1 or conf.commit_mode == 2 then 
-        local comm_w = 80
-        local comm_h = 30
         obj._stepseq_commit = { clear = true,
-                    x = gfx.w-comm_w- obj.scroll_w - 1,
-                    y = gfx.h -comm_h ,
-                    w = comm_w,
-                    h = comm_h,
+                    x = gfx.w-obj.comm_w- obj.scroll_w - 1,
+                    y = gfx.h -obj.comm_h ,
+                    w = obj.comm_w,
+                    h = obj.comm_h,
                     col = 'white',
                     state = fale,
                     txt= 'Commit',
@@ -936,10 +1039,9 @@ DOCKED 0
      elseif conf.tab == 2 then 
       obj.scroll.show = false
       OBJ_GenOptionsList() 
-      if conf.options_tab == 0 then OBJ_GenOptionsList_Browser() 
-       elseif conf.options_tab == 1 then OBJ_GenOptionsList_Pads() 
+      if conf.options_tab == 1 then OBJ_GenOptionsList_Browser()  
        elseif conf.options_tab == 2 then OBJ_GenOptionsList_StepSeq()
-       elseif conf.options_tab == 3 then OBJ_GenOptionsList_Global()
+       elseif conf.options_tab == 0 then OBJ_GenOptionsList_Global()
       end      
       -----------------------
     end
@@ -973,31 +1075,66 @@ DOCKED 0
                                     func = function() conf.commit_mode = 2 ExtState_Save() redraw = 1 end ,
                                     state = conf.commit_mode == 2}                                    
                                 })
-                        end}       
-  end
-  ----------------------------------------------------------------------- 
-  function OBJ_GenOptionsList_Pads()
-    obj.opt_pad_keynames = { clear = true,
+                        end}  
+    obj.opt_steseq_mouseres_ctrlleftdrag = { clear = true,
                 x = obj.tab_div+2,
-                y = 1,
+                y = 1 + obj.item_h2+2,
                 w = gfx.w - obj.tab_div-4,
                 h = obj.item_h2,
                 col = 'white',
                 state = conf.options_tab == 0,
-                txt= 'Key names: '..({GetNoteStr(0, conf.key_names)})[2],
+                txt= 'Mouse dy ratio (Ctrl+LeftDrag, default=0.5): '..conf.mouse_ctrldrag_res,
                 show = true,
                 is_but = true,
                 fontsz = gui.fontsz2,
                 alpha_back = obj.it_alpha4,
                 func =  function() 
-                          Menu({  {str = ({GetNoteStr(1, 8)})[2],
-                                    func = function() conf.key_names = 8 ExtState_Save() redraw = 1 end ,
-                                    state = conf.key_names == 8},
-                                  {str = ({GetNoteStr(1, 7)})[2],
-                                    func = function() conf.key_names = 7 ExtState_Save() redraw = 1 end ,
-                                    state = conf.key_names == 7}
-                                })
-                        end}     
+                          ret = GetInput( 'Set dy ratio for ctrl+left drag', conf.mouse_ctrldrag_res)
+                          if ret then 
+                            conf.mouse_ctrldrag_res = ret 
+                            ExtState_Save()
+                            redraw = 1 
+                          end                          
+                        end} 
+    obj.opt_steseq_mousewheel_ratio = { clear = true,
+                x = obj.tab_div+2,
+                y = 1+(obj.item_h2+2)*2,
+                w = gfx.w - obj.tab_div-4,
+                h = obj.item_h2,
+                col = 'white',
+                state = conf.options_tab == 0,
+                txt= 'Mouse wheel ratio (default=40): '..conf.mouse_stepseq_wheel_res,
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha4,
+                func =  function() 
+                          ret = GetInput( 'Set mousewheel ratio', conf.mouse_stepseq_wheel_res)
+                          if ret then 
+                            conf.mouse_stepseq_wheel_res = ret 
+                            ExtState_Save()
+                            redraw = 1 
+                          end                          
+                        end}                              
+    obj.opt_steseq_autoselect = { clear = true,
+                x = obj.tab_div+2,
+                y = 1+(obj.item_h2+2)*3,
+                w = gfx.w - obj.tab_div-4,
+                h = obj.item_h2,
+                col = 'white',
+                check = conf.autoselect_patterns,
+                txt= 'Select linked items by click on pattern name',
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha4,
+                func =  function() 
+                          conf.autoselect_patterns = math.abs(1-conf.autoselect_patterns) 
+                          ExtState_Save()
+                          redraw = 1                  
+                        end}                          
+                        
+                                                 
   end
   ----------------------------------------------------------------------- 
   function OBJ_GenOptionsList_Browser()
@@ -1023,7 +1160,7 @@ DOCKED 0
                         end}     
     obj.opt_sample_use_0notepreview = { clear = true,
                 x = obj.tab_div+2,
-                y = obj.item_h2+2,
+                y = 1+(obj.item_h2+2),
                 w = gfx.w - obj.tab_div-4,
                 h = obj.item_h2,
                 col = 'white',
@@ -1037,7 +1174,28 @@ DOCKED 0
                           conf.use_preview = math.abs(1-conf.use_preview) 
                           ExtState_Save()
                           redraw = 1                  
-                        end}                             
+                        end}     
+    obj.opt_pad_keynames = { clear = true,
+                x = obj.tab_div+2,
+                y = 1+(obj.item_h2+2)*2,
+                w = gfx.w - obj.tab_div-4,
+                h = obj.item_h2,
+                col = 'white',
+                state = conf.options_tab == 0,
+                txt= 'Key names: '..({GetNoteStr(0, conf.key_names)})[2],
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha4,
+                func =  function() 
+                          Menu({  {str = ({GetNoteStr(1, 8)})[2],
+                                    func = function() conf.key_names = 8 ExtState_Save() redraw = 1 end ,
+                                    state = conf.key_names == 8},
+                                  {str = ({GetNoteStr(1, 7)})[2],
+                                    func = function() conf.key_names = 7 ExtState_Save() redraw = 1 end ,
+                                    state = conf.key_names == 7}
+                                })
+                        end}                                                  
   end
   ----------------------------------------------------------------------- 
   function GetInput( captions_csv, retvals_csv,floor)
@@ -1127,26 +1285,8 @@ DOCKED 0
                 w = obj.tab_div-2,
                 h = obj.item_h2,
                 col = 'white',
-                state = conf.options_tab == 3,
-                txt= 'Global preferences',
-                show = true,
-                is_but = true,
-                fontsz = gui.fontsz2,
-                alpha_back = obj.it_alpha3,
-                alpha_back2 = obj.it_alpha2,
-                func =  function() 
-                          conf.options_tab = 3 
-                          ExtState_Save()
-                          redraw = 1
-                        end}   
-    obj.opt_sample = { clear = true,
-                x = obj.browser.x+1,
-                y = obj.browser.y+(obj.item_h2+1),
-                w = obj.tab_div-2,
-                h = obj.item_h2,
-                col = 'white',
                 state = conf.options_tab == 0,
-                txt= 'Browser',
+                txt= 'Global preferences',
                 show = true,
                 is_but = true,
                 fontsz = gui.fontsz2,
@@ -1156,33 +1296,34 @@ DOCKED 0
                           conf.options_tab = 0 
                           ExtState_Save()
                           redraw = 1
-                        end}  
-    obj.opt_pads = { clear = true,
+                        end}   
+    obj.opt_sample = { clear = true,
                 x = obj.browser.x+1,
-                y = obj.browser.y+(obj.item_h2+1)*2,
+                y = obj.browser.y+(obj.item_h2+1),
                 w = obj.tab_div-2,
                 h = obj.item_h2,
                 col = 'white',
                 state = conf.options_tab == 1,
-                txt= 'Pads',
+                txt= 'Browser / Pads',
                 show = true,
                 is_but = true,
                 fontsz = gui.fontsz2,
                 alpha_back = obj.it_alpha3,
                 alpha_back2 = obj.it_alpha2,
                 func =  function() 
-                          conf.options_tab = 1
-                          ExtState_Save() 
+                          conf.options_tab = 1 
+                          ExtState_Save()
                           redraw = 1
-                        end}    
+                        end}  
+
     obj.opt_stepseq = { clear = true,
                 x = obj.browser.x+1,
-                y = obj.browser.y+(obj.item_h2+1)*3,
+                y = obj.browser.y+(obj.item_h2+1)*2,
                 w = obj.tab_div-2,
                 h = obj.item_h2,
                 col = 'white',
                 state = conf.options_tab == 2,
-                txt= 'StepSequencer',
+                txt= 'StepSequencer / Patterns',
                 show = true,
                 is_but = true,
                 fontsz = gui.fontsz2,
@@ -1204,11 +1345,9 @@ DOCKED 0
     return false
   end
 -----------------------------------------------------------------------  
-  function OBJ_GenStepSequencer()                          
+  function OBJ_GenStepSequencer() 
     local s_cnt = 0
-    for i = 1, 127 do
-      if CheckPatCond(i) then s_cnt = s_cnt + 1 end
-    end
+    for i = 1, 127 do if CheckPatCond(i) then s_cnt = s_cnt + 1 end end
     blit_h2 = s_cnt*obj.item_h4 + obj.workarea.y + obj.item_h2
     obj.blit_y_src2 = math.floor(slider_val2*(blit_h2-obj.item_h4*2-obj.item_h))  
     local cnt = 0          
@@ -1224,7 +1363,7 @@ DOCKED 0
         obj['stseq'..i] = {  clear = true,
                   x = 0,
                   y = (cnt-1)*obj.item_h4,
-                  w =  obj.item_w1,
+                  w = obj.item_w1,
                   h = obj.item_h4-1,
                   col = col,
                   state = 1,
@@ -1234,17 +1373,46 @@ DOCKED 0
                   show = true,
                   is_but = true,
                   fontsz = gui.fontsz2,
-                  alpha_back = 0.49,
+                  alpha_back = 0.5,
                   --a_line = 0,
                   mouse_offs_x = obj.workarea.x,
-                  mouse_offs_y = obj.blit_y_src2-(obj.item_h+obj.item_h2 +2),
-                  func =  function() 
-                            
-                          end}
+                  mouse_offs_y = obj.blit_y_src2-obj.workarea.y,
+                  func =    function() 
+                              StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), note,100)
+                            end,
+                  func_R = function()
+                              local t = { { str='Copy steps',
+                                            func = function() Buf_t = pat[pat.SEL]['NOTE'..i].seq end},
+                                          { str = 'Paste steps',
+                                            func = function() 
+                                              if Buf_t then 
+                                                pat[pat.SEL]['NOTE'..i].seq = CopyTable(Buf_t)
+                                                ExtState_Save_Patterns()
+                                                redraw = 1
+                                              end
+                                            end},
+                                          { str = 'Paste steps and link until close',
+                                            func = function() 
+                                              if Buf_t then 
+                                                pat[pat.SEL]['NOTE'..i].seq = Buf_t
+                                                ExtState_Save_Patterns()
+                                                redraw = 1
+                                              end
+                                            end}                                            
+                                        }
+                              
+                              Menu(t)
+                              
+                            end
+                  }
+        if obj.gui_cond then  obj['stseq'..i].w = obj.item_h4 
+                              obj['stseq'..i].txt = GetNoteStr(note,0)..'\n\r'..note
+        end
+        if obj.gui_cond2 then obj['stseq'..i].w = 0 end
         local steps = conf.default_steps
         if pat[pat.SEL] and pat[pat.SEL]['NOTE'..i] and pat[pat.SEL]['NOTE'..i].STEPS then steps = pat[pat.SEL]['NOTE'..i].STEPS end
         obj['stseq_steps'..i] = {  clear = true,
-                  x = obj.item_w1 + 1,
+                  x = obj['stseq'..i].x+obj['stseq'..i].w + 1,
                   y = (cnt-1)*obj.item_h4,
                   w = obj.item_h4,
                   h = obj.item_h4-1,
@@ -1255,7 +1423,7 @@ DOCKED 0
                   blit = 4,
                   show = true,
                   fontsz = gui.fontsz2,
-                  alpha_back = 0.49,
+                  alpha_back = 0.5,
                   --a_line = 0,
                   mouse_offs_x = obj.workarea.x,
                   mouse_offs_y = obj.blit_y_src2-obj.workarea.y,
@@ -1286,14 +1454,15 @@ DOCKED 0
                                   redraw = 1 
                               end
                           end,
-                          }                          
+                          }  
+        if obj.gui_cond2 then obj['stseq_steps'..i].w = 0 end
         -- steps
-        local step_w = (obj.workarea.w - obj.item_w1 - obj.item_h4- 3-obj.scroll_w) / steps
+        local step_w = (obj.workarea.w - obj['stseq_steps'..i].w - obj['stseq'..i].w - 3-obj.scroll_w) / steps
         for step = 1, steps do
           local val = 0
           if pat[pat.SEL] and pat[pat.SEL]['NOTE'..i] and pat[pat.SEL]['NOTE'..i].seq and pat[pat.SEL]['NOTE'..i].seq[step] then val = pat[pat.SEL]['NOTE'..i].seq[step] end
           obj['stseq_stepseq'..i..'_'..step] = {  clear = true,
-                  x = obj.item_w1 + obj.item_h4 + 2 + (step-1)*step_w,
+                  x = obj['stseq_steps'..i].x + obj['stseq_steps'..i].w + 2 + (step-1)*step_w,
                   y = (cnt-1)*obj.item_h4,
                   w = step_w-1,
                   h = obj.item_h4-1,
@@ -1305,7 +1474,7 @@ DOCKED 0
                   show = true,
                   is_step = true,
                   fontsz = gui.fontsz2,
-                  alpha_back = 0.22,
+                  alpha_back = 0.23,
                   val = val,
                   --a_line = 0,
                   mouse_offs_x = obj.workarea.x,
@@ -1316,8 +1485,7 @@ DOCKED 0
                             if not pat[pat.SEL]['NOTE'..i] then pat[pat.SEL]['NOTE'..i] = {} end
                             if not pat[pat.SEL]['NOTE'..i].STEPS then pat[pat.SEL]['NOTE'..i].STEPS = conf.default_steps end
                             if not pat[pat.SEL]['NOTE'..i].seq then pat[pat.SEL]['NOTE'..i].seq = {} end
-                            if not pat[pat.SEL]['NOTE'..i].seq[step] then pat[pat.SEL]['NOTE'..i].seq[step] = 0 end
-                            
+                            if not pat[pat.SEL]['NOTE'..i].seq[step] then pat[pat.SEL]['NOTE'..i].seq[step] = 0 end                            
                             if pat[pat.SEL]['NOTE'..i].seq[step] > 0 then 
                               pat[pat.SEL]['NOTE'..i].seq[step] = 0
                               mouse.context_latch_val = pat[pat.SEL]['NOTE'..i].seq[step]
@@ -1327,8 +1495,9 @@ DOCKED 0
                             end
                             pat[pat.SEL]['NOTE'..i].SEQHASH = FormSeqHash(steps, pat[pat.SEL]['NOTE'..i].seq)
                             ExtState_Save_Patterns()
+                            if conf.global_mode == 1 or conf.global_mode == 2 then BuildTrackTemplate_MIDISendMode() end
                             redraw = 1 
-                          end ,
+                          end,
                   func_LD =  function() 
                                 if not pat[pat.SEL] or not mouse.is_moving  then return end
                                 if not pat[pat.SEL]['NOTE'..i] then pat[pat.SEL]['NOTE'..i] = {} end
@@ -1346,7 +1515,7 @@ DOCKED 0
                                 and mouse.context_latch_val 
                                 and mouse.is_moving 
                                 and pat[pat.SEL] then
-                                  local val = mouse.context_latch_val - mouse.dy/2
+                                  local val = mouse.context_latch_val - mouse.dy/conf.mouse_ctrldrag_res
                                   local val = math.floor(lim(val, 0,127) )
                                   if not pat[pat.SEL]['NOTE'..i] then pat[pat.SEL]['NOTE'..i] = {} end
                                   pat[pat.SEL]['NOTE'..i].seq[step] = val
@@ -1354,7 +1523,16 @@ DOCKED 0
                                   ExtState_Save_Patterns()
                                   redraw = 1 
                               end
-                          end,                            
+                          end,  
+                  func_wheel = function(wheel)
+                              if mouse.context =='stseq_stepseq'..i..'_'..step  and pat[pat.SEL] then
+                                  if not pat[pat.SEL]['NOTE'..i] then pat[pat.SEL]['NOTE'..i] = {} end
+                                  pat[pat.SEL]['NOTE'..i].seq[step] = math_q(pat[pat.SEL]['NOTE'..i].seq[step] + wheel/conf.mouse_stepseq_wheel_res)
+                                  pat[pat.SEL]['NOTE'..i].SEQHASH = FormSeqHash(steps, pat[pat.SEL]['NOTE'..i].seq)
+                                  ExtState_Save_Patterns()
+                                  redraw = 1 
+                              end
+                          end,                                                     
                   func_RD =  function() 
                             if not pat[pat.SEL] then return end
                             if not pat[pat.SEL]['NOTE'..i] then pat[pat.SEL]['NOTE'..i] = {} end
@@ -1364,7 +1542,8 @@ DOCKED 0
                             pat[pat.SEL]['NOTE'..i].SEQHASH = FormSeqHash(steps, pat[pat.SEL]['NOTE'..i].seq)
                             ExtState_Save_Patterns()
                             redraw = 1 
-                          end                           }                                      
+                          end 
+                }                              
         end
       end    
     end
@@ -1390,6 +1569,36 @@ DOCKED 0
       t[#t+1] = math.min(math.max(0,val),127) 
     end
     return t
+  end
+  -----------------------------------------------------------------------
+  function GetNewPatternName(name)
+    if not name then return end
+    if name:reverse():find('[%d]+_') == 1 then 
+      local id = name:reverse():match('[%d]+'):reverse()
+      return name:reverse():match('(_.*)'):reverse()..math.floor(id+1)
+     else
+      return name..'_1'
+    end
+  end
+  -----------------------------------------------------------------------  
+  function SelectLinkedPatterns(pat_name)
+    if conf.global_mode == 0 then 
+      tr = data.tr_pointer
+     elseif conf.global_mode == 1 or conf.global_mode == 2 then
+      tr = data.tr_pointer_MIDI
+    end
+    if not tr then return end
+    for i = 1,  CountTrackMediaItems(tr) do
+      local it =  GetTrackMediaItem(tr,i-1)
+      if it then
+        local tk = GetActiveTake(it)
+        if tk and TakeIsMIDI(tk) then 
+          local _, tk_name = GetSetMediaItemTakeInfo_String( tk, 'P_NAME', '',  0 )
+          SetMediaItemSelected( it, tk_name == pat_name )
+        end
+      end  
+    end
+    UpdateArrange()
   end
 -----------------------------------------------------------------------   
   function OBJ_GenPatternBrowser()
@@ -1433,6 +1642,7 @@ DOCKED 0
                                                             --GUID=genGuid('')})                          
                           pat[insert_at_index] = CopyTable(pat[ pat.SEL ])
                           pat[insert_at_index].GUID=genGuid('')
+                          pat[insert_at_index].NAME = GetNewPatternName(pat[insert_at_index].NAME)
                           pat.SEL = insert_at_index
                           ExtState_Save_Patterns()
                           redraw = 1                          
@@ -1473,6 +1683,16 @@ DOCKED 0
                 alpha_back = obj.it_alpha,
                 func =  function() 
                           Menu({
+                                  {str='Rename pattern',
+                                  func =  function() 
+                                            local r, str = GetUserInputs(scr_title, 1, 'Pattern name', pat[pat.SEL].NAME)
+                                            if r then 
+                                              local old_name = pat[pat.SEL].NAME
+                                              pat[pat.SEL].NAME = str
+                                              ExtState_Save_Patterns()
+                                              redraw = 1
+                                            end
+                                          end},                          
                                   {str='Rename pattern and propagate it to items with same name',
                                   func =  function() 
                                             local r, str = GetUserInputs(scr_title, 1, 'Pattern name', pat[pat.SEL].NAME)
@@ -1483,7 +1703,12 @@ DOCKED 0
                                               ExtState_Save_Patterns()
                                               redraw = 1
                                             end
-                                          end}
+                                          end},
+                                  {str='Select linked patterns',
+                                  func =  function() 
+                                            SelectLinkedPatterns(pat[pat.SEL].NAME)
+                                          end}                                          
+                                  
                                 })
                         end}      
     local p_cnt = #pat
@@ -1512,6 +1737,7 @@ DOCKED 0
                   mouse_offs_y = obj.blit_y_src,
                   func =  function() 
                             pat.SEL = i
+                            if conf.autoselect_patterns == 1 then SelectLinkedPatterns(pat[i].NAME) end
                             ExtState_Save_Patterns()
                             redraw = 1
                           end}    
@@ -1808,28 +2034,32 @@ DOCKED 0
         local col = 'white'
         if ret then col = 'green' end
         local txt = GetNoteStr(note)..'\n\r'--..fn
-        obj['keys_'..i] = 
-                  { clear = true,
-                    x = obj.workarea.x+shifts[i][1]*key_w,
-                    y = opt_h+ shifts[i][2]*key_h,
-                    w = key_w,
-                    h = key_h,
-                    col = col,
-                    state = 0,
-                    txt= txt,
-                    vertical_txt = fn,
-                    linked_note = note,
-                    show = true,
-                    is_but = true,
-                    alpha_back = 0.25+ 0.3*shifts[i][2],
-                    a_frame = 0.1,
-                    aligh_txt = 5,
-                    fontsz = gui.fontsz2,
-                    func =  function() 
-                              if obj[ mouse.context ] and obj[ mouse.context ].linked_note then
-                                StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), obj[ mouse.context ].linked_note,100) 
-                              end
-                            end}       
+        if note > 0 and note <= 127 then
+          obj['keys_'..i] = 
+                    { clear = true,
+                      x = obj.workarea.x+shifts[i][1]*key_w,
+                      y = opt_h+ shifts[i][2]*key_h,
+                      w = key_w,
+                      h = key_h,
+                      col = col,
+                      state = 0,
+                      txt= txt,
+                      is_step = true,
+                      vertical_txt = fn,
+                      linked_note = note,
+                      show = true,
+                      is_but = true,
+                      alpha_back = 0.45,
+                      a_frame = 0.1,
+                      aligh_txt = 5,
+                      fontsz = gui.fontsz2,
+                      func =  function() 
+                                if obj[ mouse.context ] and obj[ mouse.context ].linked_note then
+                                  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), obj[ mouse.context ].linked_note,100) 
+                                end
+                              end} 
+          if shifts[i][2] == 0 then obj['keys_'..i].txt_col = 'black' end
+        end
       end
     end
     ---------------------------------------------------
@@ -1991,7 +2221,7 @@ DOCKED 0
         if type(obj[key]) == 'table' and not obj[key].ignore_mouse  then
           if MOUSE_Match(obj[key]) and obj[key].mouse_overlay then 
             if mouse.LMB_trig and mouse.LMB_trig == 0 and MOUSE_Match(obj[key]) then if obj[key].func then  obj[key].func() end end
-            return 
+            goto skip_mouse_check 
           end
           if MOUSE_Match(obj[key]) then mouse.context = key end
           if mouse.LMB_trig and mouse.LMB_trig == 0 and MOUSE_Match(obj[key]) then if obj[key].func then  obj[key].func() end end
@@ -1999,6 +2229,8 @@ DOCKED 0
           if mouse.LMB_state and not mouse.Ctrl_state and (mouse.context == key or mouse.context_latch == key) then if obj[key].func_LD then obj[key].func_LD() end end
           if mouse.Ctrl_LMB_state and (mouse.context == key or mouse.context_latch == key) then if obj[key].func_ctrlLD then obj[key].func_ctrlLD() end end
           if mouse.RMB_state and  (mouse.context == key or mouse.context_latch == key) then if obj[key].func_RD then obj[key].func_RD() end end
+          if mouse.RMB_state and  mouse.context == key and not mouse.last_RMB_state then if obj[key].func_R then obj[key].func_R() end end
+          if mouse.wheel_trig and mouse.wheel_trig ~= 0 and mouse.Ctrl_state then if obj[key].func_wheel then obj[key].func_wheel(mouse.wheel_trig) end end
         end
       end
     
@@ -2011,7 +2243,7 @@ DOCKED 0
       end
 
     -- scroll stepseq
-      if mouse.mx > obj.workarea.x  and mouse.wheel_trig and mouse.wheel_trig ~= 0 then
+      if mouse.mx > obj.workarea.x  and mouse.wheel_trig and mouse.wheel_trig ~= 0 and not mouse.Ctrl_state then
         if blit_h2 > gfx.h then
           slider_val2 = lim(slider_val2 - mouse.wheel_trig/conf.mouse_wheel_res,0,1)
           redraw = 1
@@ -2029,13 +2261,19 @@ DOCKED 0
             and obj[ mouse.context ].linked_note then
               local note = obj[ mouse.context ].linked_note
               local dest_tr
-              if conf.global_mode == 1 or conf.global_mode == 2 then dest_tr = GetDestTrackByNote(data.tr_pointer, note, true)  end
+              if conf.global_mode == 1 or conf.global_mode == 2 then 
+                dest_tr = GetDestTrackByNote(data.tr_pointer, note, true)
+                BuildTrackTemplate_MIDISendMode()
+               end
               ExportItemToRS5K(action_export.fn, note, dest_tr)
+              
           end
           action_export = {}
         -- clear note
           for i = 1, 127 do StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), i, 100) end
       end
+      
+      ::skip_mouse_check::
       mouse.last_mx = mouse.mx
       mouse.last_my = mouse.my
       mouse.last_LMB_state = mouse.LMB_state  
