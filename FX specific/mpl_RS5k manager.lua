@@ -1,26 +1,12 @@
 ﻿-- @description RS5k manager
--- @version 1.11
+-- @version 1.12
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + StepSequencer: preview MIDI note by left click on name
---    + StepSequencer: copypaste step (right click on name), support for temporary link steps
---    + StepSequencer: allow change step velocity with ctrl+mousewheel
---    + Patterns: use increment id`s when duplicating
---    + Patterns/Menu: select linked pattern
---    + Patterns/Menu: rename pattern without commit to linked items
---    + Pads: add buttons to seek octaves
---    + Options/StepSeq: change mouse dy ratio for changing velocity with ctrl+left drag
---    + Options/StepSeq: change mousewheel ratio for changing velocity with ctrl+left drag
---    + Options/StepSeq: allow to select patterns by clicking pattern in browser
---    # StepSequencer: add MIDI track when clicking steps or add new track
---    # GUI: move steps scroll when changing width
---    # GUI: hide pattern list on specified stepseq width
---    # GUI: hide step names on specified steps area width
---    # GUI: fix incorrent behaviour on mouse release sometimes
+--    # fix search other than wav formats in browser
 
 
-  local vrs = 'v1.11'
+  local vrs = 'v1.12'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -2125,7 +2111,12 @@ DOCKED 0
   ---------------------------------------------------
   function IsSupportedExtension(fn)
     if fn 
-      and fn:lower():match('%.wav') then 
+      and (fn:lower():match('%.wav')
+      or fn:lower():match('%.flac')
+      or fn:lower():match('%.mp3')
+      or fn:lower():match('%.ogg')
+      or fn:lower():match('%.aif')
+          ) then 
         return true 
     end
   end
