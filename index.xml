@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dd4e4bf56507384b8e05ed8111e320ef28282b06" name="MPL Scripts">
+<index version="1" commit="40df55ac8285b2ed018c1468a18aa10e121db1ae" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1052,6 +1052,10 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[# fix search other than wav formats in browser]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd4e4bf56507384b8e05ed8111e320ef28282b06/FX%20specific/mpl_RS5k%20manager.lua</source>
       </version>
+      <version name="1.13" author="MPL" time="2017-10-08T16:21:32Z">
+        <changelog><![CDATA[# Browser: fix preview sample not working for dumpitems mode]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40df55ac8285b2ed018c1468a18aa10e121db1ae/FX%20specific/mpl_RS5k%20manager.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Smooth toggle X pair for ix_Mixer_8xS-1xS.lua" type="script" desc="Smooth toggle X pair for ix_Mixer_8xS-1xS">
       <metadata>
@@ -1583,6 +1587,15 @@ setup min gain, attack =0]]></changelog>
     </reapack>
   </category>
   <category name="Regions">
+    <reapack name="Convert CUE file into markers.lua" type="script" desc="Convert CUE file into markers">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-10-08T16:21:32Z">
+        <changelog><![CDATA[+init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40df55ac8285b2ed018c1468a18aa10e121db1ae/Regions/Convert%20CUE%20file%20into%20markers.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Generate CUE from project markers.lua" type="script">
       <version name="1.0" author="mpl" time="2016-06-20T14:20:43Z">
         <changelog><![CDATA[+ init release]]></changelog>
