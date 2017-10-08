@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="80fab2615bc8cf941a38f489f1166184946124e5" name="MPL Scripts">
+<index version="1" commit="dd4e4bf56507384b8e05ed8111e320ef28282b06" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1047,6 +1047,10 @@ setup min gain, attack =0]]></changelog>
 # GUI: hide step names on specified steps area width
 # GUI: fix incorrent behaviour on mouse release sometimes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/80fab2615bc8cf941a38f489f1166184946124e5/FX%20specific/mpl_RS5k%20manager.lua</source>
+      </version>
+      <version name="1.12" author="MPL" time="2017-10-08T15:12:23Z">
+        <changelog><![CDATA[# fix search other than wav formats in browser]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd4e4bf56507384b8e05ed8111e320ef28282b06/FX%20specific/mpl_RS5k%20manager.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Smooth toggle X pair for ix_Mixer_8xS-1xS.lua" type="script" desc="Smooth toggle X pair for ix_Mixer_8xS-1xS">
