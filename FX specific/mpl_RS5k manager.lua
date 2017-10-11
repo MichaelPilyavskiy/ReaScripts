@@ -1,15 +1,12 @@
 ﻿-- @description RS5k manager
--- @version 1.16
+-- @version 1.17
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix some mouse issues
---    # StepSeq: fix error when pattern has ghost tracks in dumpitems mode
---    # StepSeq: fix adding dumped items outta source MIDI clip edges
---    + Pads: Korg NanoPad layout
+--    # StepSeq: fix erasing audio/MIDI data for first step due to time approximation
 
 
-  local vrs = 'v1.16'
+  local vrs = 'v1.17'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -730,11 +727,10 @@ DOCKED 0
                       reaper.  ]]
   end
   ---------------------------------------------------
-  function CommitPattern_ClearDumpTrack(track, src_pat_item)
+  function CommitPattern_ClearDumpTrack(track, src_pat_item, offs)
     if not track or not src_pat_item then return end
     local t1 = GetMediaItemInfo_Value( src_pat_item, 'D_POSITION' )
     local t2 = GetMediaItemInfo_Value( src_pat_item, 'D_LENGTH' ) + t1
-    local offs = 0.001
     
     for it_idx = CountTrackMediaItems( track ), 1, -1 do
       local it = GetTrackMediaItem( track, it_idx-1 )
@@ -748,6 +744,7 @@ DOCKED 0
   end
   ---------------------------------------------------
   function CommitPatternSub(it, tk, pat_t,it_pos_QN,it_pos,it_len )
+    local offs = 0.0001
     local MeasPPQ = MIDI_GetPPQPosFromProjQN( tk, it_pos_QN )
     -- update name
     GetSetMediaItemTakeInfo_String( tk, 'P_NAME', pat_t.NAME,  1 )
@@ -759,7 +756,7 @@ DOCKED 0
         if key:match('NOTE[%d]+') then
           local note = tonumber(key:match('[%d]+'))
           local child_tr = GetDestTrackByNote(data.tr_pointer, note, false) 
-          CommitPattern_ClearDumpTrack(child_tr, it) 
+          CommitPattern_ClearDumpTrack(child_tr, it,offs) 
         end
       end
     end
@@ -785,7 +782,7 @@ DOCKED 0
                true) -- no sort
               if conf.global_mode == 2 then 
                 local pos = MIDI_GetProjTimeFromPPQPos( tk, step_len * (step-1) )
-                if pos > it_pos and pos < it_pos + it_len then
+                if pos > it_pos-offs and pos < it_pos + it_len+offs then
                   CommitPattern_InsertSource(child_tr, sample_path, pos, t.seq[step]) 
                 end
               end
