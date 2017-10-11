@@ -1,5 +1,5 @@
 ﻿-- @description RS5k manager
--- @version 1.15
+-- @version 1.16
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
@@ -9,7 +9,7 @@
 --    + Pads: Korg NanoPad layout
 
 
-  local vrs = 'v1.15'
+  local vrs = 'v1.16'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -671,7 +671,6 @@ DOCKED 0
           local it_pos_beats_1measure = TimeMap2_beatsToTime( 0, it_pos_beats, 1 )
           local it_pos_QN =  TimeMap2_timeToQN( 0, it_pos_beats_1measure )          
           local tk = GetActiveTake(it)
-          msg(it_pos..os.date())
           if tk and TakeIsMIDI(tk) then CommitPatternSub(it, tk, pat[pat.SEL],it_pos_QN,it_pos,it_len) end
         end
       end
