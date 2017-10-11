@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f66450e41e43e81f5c513a50e19b589a29106c4a" name="MPL Scripts">
+<index version="1" commit="92c8bd4a27737749cbecafab0a197c6f42365d30" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1069,6 +1069,10 @@ setup min gain, attack =0]]></changelog>
 # StepSeq: fix adding dumped items outta source MIDI clip edges
 + Pads: Korg NanoPad layout]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f66450e41e43e81f5c513a50e19b589a29106c4a/FX%20specific/mpl_RS5k%20manager.lua</source>
+      </version>
+      <version name="1.17" author="MPL" time="2017-10-11T19:50:37Z">
+        <changelog><![CDATA[# StepSeq: fix erasing audio/MIDI data for first step due to time approximation]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/92c8bd4a27737749cbecafab0a197c6f42365d30/FX%20specific/mpl_RS5k%20manager.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Smooth toggle X pair for ix_Mixer_8xS-1xS.lua" type="script" desc="Smooth toggle X pair for ix_Mixer_8xS-1xS">
