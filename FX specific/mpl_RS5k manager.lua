@@ -1,18 +1,21 @@
 ﻿-- @description RS5k manager
--- @version 1.13
+-- @version 1.15
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # Browser: fix preview sample not working for dumpitems mode
+--    # fix some mouse issues
+--    # StepSeq: fix error when pattern has ghost tracks in dumpitems mode
+--    # StepSeq: fix adding dumped items outta source MIDI clip edges
+--    + Pads: Korg NanoPad layout
 
 
-  local vrs = 'v1.13'
+  local vrs = 'v1.15'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local SCC, lastSCC
-  local mouse = {}
+  mouse = {}
   local obj = {}
   local conf = {}
   local pat = {}
@@ -663,11 +666,13 @@ DOCKED 0
         for i = 1, CountSelectedMediaItems(0) do
           local it = GetSelectedMediaItem(0,i-1)
           local it_pos =  GetMediaItemInfo_Value( it,'D_POSITION' )
+          local it_len =  GetMediaItemInfo_Value( it,'D_LENGTH' )
           local it_pos_beats = ({ TimeMap2_timeToBeats( 0, it_pos )})[4]
           local it_pos_beats_1measure = TimeMap2_beatsToTime( 0, it_pos_beats, 1 )
           local it_pos_QN =  TimeMap2_timeToQN( 0, it_pos_beats_1measure )          
           local tk = GetActiveTake(it)
-          if tk and TakeIsMIDI(tk) then CommitPatternSub(it, tk, pat[pat.SEL],it_pos_QN) end
+          msg(it_pos..os.date())
+          if tk and TakeIsMIDI(tk) then CommitPatternSub(it, tk, pat[pat.SEL],it_pos_QN,it_pos,it_len) end
         end
       end
       
@@ -677,6 +682,8 @@ DOCKED 0
           local it = GetMediaItem(0,i-1)
           if it then
             local it_pos =  GetMediaItemInfo_Value( it,'D_POSITION' )
+            local it_pos =  GetMediaItemInfo_Value( it,'D_POSITION' )
+            local it_len =  GetMediaItemInfo_Value( it,'D_LENGTH' )
             local it_pos_beats = ({ TimeMap2_timeToBeats( 0, it_pos )})[4]
             local it_pos_beats_1measure = TimeMap2_beatsToTime( 0, it_pos_beats, 1 )
             local it_pos_QN =  TimeMap2_timeToQN( 0, it_pos_beats_1measure )
@@ -685,7 +692,7 @@ DOCKED 0
               local _, tk_name = GetSetMediaItemTakeInfo_String( tk, 'P_NAME', '',  0 )
               local chk_name if old_name then chk_name = old_name else chk_name = pat[pat.SEL].NAME end
               if tk_name == chk_name then
-                CommitPatternSub(it, tk, pat[pat.SEL],it_pos_QN)
+                CommitPatternSub(it, tk, pat[pat.SEL],it_pos_QN,it_pos,it_len)
               end
               if new_name then GetSetMediaItemTakeInfo_String( tk, 'P_NAME', new_name,  1 ) end
             end
@@ -697,6 +704,7 @@ DOCKED 0
   end
   ---------------------------------------------------
   function CommitPattern_InsertSource(tr, sample_path, pos , vel)
+    if not tr then return end
     local item = AddMediaItemToTrack( tr )
     local take = AddTakeToMediaItem( item )
     local src = PCM_Source_CreateFromFile( sample_path)
@@ -740,7 +748,7 @@ DOCKED 0
     end
   end
   ---------------------------------------------------
-  function CommitPatternSub(it, tk, pat_t,it_pos_QN )
+  function CommitPatternSub(it, tk, pat_t,it_pos_QN,it_pos,it_len )
     local MeasPPQ = MIDI_GetPPQPosFromProjQN( tk, it_pos_QN )
     -- update name
     GetSetMediaItemTakeInfo_String( tk, 'P_NAME', pat_t.NAME,  1 )
@@ -778,7 +786,9 @@ DOCKED 0
                true) -- no sort
               if conf.global_mode == 2 then 
                 local pos = MIDI_GetProjTimeFromPPQPos( tk, step_len * (step-1) )
-                CommitPattern_InsertSource(child_tr, sample_path, pos, t.seq[step]) 
+                if pos > it_pos and pos < it_pos + it_len then
+                  CommitPattern_InsertSource(child_tr, sample_path, pos, t.seq[step]) 
+                end
               end
             end
           end
@@ -819,7 +829,8 @@ DOCKED 0
     obj.it_alpha4 = 0.05 -- option items
     obj.comm_w = 80 -- commit button
     obj.comm_h = 30
-    
+    obj.layout = {'keys',
+                  'Korg NanoPad'}   
     obj.tab = { x = 0,
                 y = 0,
                 h = obj.item_h,
@@ -992,9 +1003,11 @@ DOCKED 0
                             ExtState_Save()
                             redraw = 1                            
                           end}                          
-      if conf.keymode == 0 then 
+      --[[if conf.keymode == 0 then 
         OBJ_GenKeys() 
-      end
+       elseif conf.keymode == 1 then ]]
+        OBJ_GenKeys()
+     -- end
       obj.scroll.steps = cnt_it
       -----------------------
      elseif conf.tab == 1 then 
@@ -1167,7 +1180,6 @@ DOCKED 0
                 w = gfx.w - obj.tab_div-4,
                 h = obj.item_h2,
                 col = 'white',
-                state = conf.options_tab == 0,
                 txt= 'Key names: '..({GetNoteStr(0, conf.key_names)})[2],
                 show = true,
                 is_but = true,
@@ -1181,7 +1193,27 @@ DOCKED 0
                                     func = function() conf.key_names = 7 ExtState_Save() redraw = 1 end ,
                                     state = conf.key_names == 7}
                                 })
-                        end}                                                  
+                        end} 
+    obj.opt_pad_layout = { clear = true,
+                x = obj.tab_div+2,
+                y = 1+(obj.item_h2+2)*3,
+                w = gfx.w - obj.tab_div-4,
+                h = obj.item_h2,
+                col = 'white',
+                txt= 'Layout: '..obj.layout[conf.keymode+1],
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha4,
+                func =  function() 
+                          Menu({  {str = obj.layout[1],
+                                    func = function() conf.keymode = 0 ExtState_Save() redraw = 1 end ,
+                                    state = conf.keymode == 0},
+                                  {str = obj.layout[2],
+                                    func = function() conf.keymode = 1 ExtState_Save() redraw = 1 end ,
+                                    state = conf.keymode == 1}
+                                })
+                        end}                                                                       
   end
   ----------------------------------------------------------------------- 
   function GetInput( captions_csv, retvals_csv,floor)
@@ -1998,9 +2030,11 @@ DOCKED 0
     ---------------------------------------------------
     function OBJ_GenKeys()
       local opt_h = 0--obj.item_h +  1 + obj.item_h2 + 1
-      local key_w = math.ceil(obj.workarea.w/7)
-      local key_h = math.ceil(0.5*(gfx.h - opt_h))
-      local shifts  = {{0,1},
+      local shifts,w_div ,h_div
+      if conf.keymode ==0 then 
+        w_div = 7
+        h_div = 2
+        shifts  = {{0,1},
                   {0.5,0},
                   {1,1},
                   {1.5,0},
@@ -2013,8 +2047,30 @@ DOCKED 0
                   {5.5,0},
                   {6,1},
                 }
-                
-      for i = 1, 12 do
+       elseif conf.keymode == 1 then
+        w_div = 8
+        h_div = 2       
+        shifts  = {{0,1},
+                  {0,0},
+                  {1,1},
+                  {1,0},
+                  {2,1},
+                  {2,0},
+                  {3,1},
+                  {3,0},
+                  {4,1},
+                  {4,0},
+                  {5,1},
+                  {5,0},
+                  {6,1},
+                  {6,0},      
+                  {7,1},
+                  {7,0},                              
+                }       
+      end
+      local key_w = math.ceil(obj.workarea.w/w_div)
+      local key_h = math.ceil((1/h_div)*(gfx.h - opt_h))  
+      for i = 1, #shifts do
         local note = (i-1)+12*conf.oct_shift
         local fn, ret = GetSampleNameByNote(note)
         local col = 'white'
@@ -2044,7 +2100,12 @@ DOCKED 0
                                   StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), obj[ mouse.context ].linked_note,100) 
                                 end
                               end} 
-          if shifts[i][2] == 0 then obj['keys_'..i].txt_col = 'black' end
+          if    note%12 == 1 
+            or  note%12 == 3 
+            or  note%12 == 6 
+            or  note%12 == 8 
+            or  note%12 == 10 
+            then obj['keys_'..i].txt_col = 'black' end
         end
       end
     end
@@ -2184,6 +2245,7 @@ DOCKED 0
 
   ---------------------------------------------------
   local function MOUSE()
+    local d_click = 0.2
     mouse.mx = gfx.mouse_x
     mouse.my = gfx.mouse_y
     mouse.LMB_state = gfx.mouse_cap&1 == 1 
@@ -2193,30 +2255,28 @@ DOCKED 0
     mouse.Ctrl_state = gfx.mouse_cap&4 == 4 
     mouse.Alt_state = gfx.mouse_cap&17 == 17 -- alt + LB
     mouse.wheel = gfx.mouse_wheel
-    
-    --if mouse.LMB_state and not mouse.last_LMB_state then mouse.LMB_trig = true end     
+     
     if mouse.last_mx and mouse.last_my and (mouse.last_mx ~= mouse.mx or mouse.last_my ~= mouse.my) then mouse.is_moving = true else mouse.is_moving = false end
     if mouse.last_wheel then mouse.wheel_trig = (mouse.wheel - mouse.last_wheel) end 
     if not mouse.LMB_state_TS then mouse.LMB_state_TS = clock end
+    if mouse.LMB_state and mouse.LMB_state_TS and clock -mouse.LMB_state_TS < d_click and clock -mouse.LMB_state_TS  > 0 then  mouse.DLMB_state = true  end 
     if mouse.LMB_state and not mouse.last_LMB_state then  
       mouse.last_mx_onclick = mouse.mx     
       mouse.last_my_onclick = mouse.my 
-      if mouse.LMB_state_TS then if clock - mouse.LMB_state_TS > 0.2 then mouse.LMB_trig = 0 else mouse.LMB_trig = 1 end end
       mouse.LMB_state_TS = clock
     end    
-    if mouse.LMB_state_TS and clock - mouse.LMB_state_TS > 0.2 and mouse.trig_LMB then mouse.trig_LMB = nil end 
     if mouse.last_mx_onclick and mouse.last_my_onclick then mouse.dx = mouse.mx - mouse.last_mx_onclick  mouse.dy = mouse.my - mouse.last_my_onclick else mouse.dx, mouse.dy = 0,0 end
 
     -- buttons
       for key in spairs(obj) do
         if type(obj[key]) == 'table' and not obj[key].ignore_mouse  then
           if MOUSE_Match(obj[key]) and obj[key].mouse_overlay then 
-            if mouse.LMB_trig and mouse.LMB_trig == 0 and MOUSE_Match(obj[key]) then if obj[key].func then  obj[key].func() end end
+            if mouse.LMB_state and not mouse.last_LMB_state and MOUSE_Match(obj[key]) then if obj[key].func then  obj[key].func() end end
             goto skip_mouse_check 
           end
           if MOUSE_Match(obj[key]) then mouse.context = key end
-          if mouse.LMB_trig and mouse.LMB_trig == 0 and MOUSE_Match(obj[key]) then if obj[key].func then  obj[key].func() end end
-          if mouse.LMB_trig and mouse.LMB_trig == 1 and MOUSE_Match(obj[key]) then if obj[key].func_DC then  obj[key].func_DC() end end
+          if mouse.LMB_state and not mouse.last_LMB_state and not mouse.Ctrl_state  and MOUSE_Match(obj[key]) then if obj[key].func then  obj[key].func() end end
+          if mouse.LMB_state and not mouse.last_LMB_state and not mouse.Ctrl_state  and mouse.DLMB_state and MOUSE_Match(obj[key]) then if obj[key].func_DC then   obj[key].func_DC() end end
           if mouse.LMB_state and not mouse.Ctrl_state and (mouse.context == key or mouse.context_latch == key) then if obj[key].func_LD then obj[key].func_LD() end end
           if mouse.Ctrl_LMB_state and (mouse.context == key or mouse.context_latch == key) then if obj[key].func_ctrlLD then obj[key].func_ctrlLD() end end
           if mouse.RMB_state and  (mouse.context == key or mouse.context_latch == key) then if obj[key].func_RD then obj[key].func_RD() end end
@@ -2275,7 +2335,7 @@ DOCKED 0
       mouse.last_Alt_state = mouse.Alt_state
       mouse.last_wheel = mouse.wheel   
       
-      mouse.LMB_trig = nil   
+      mouse.DLMB_state = nil   
   end
 
   ---------------------------------------------------
