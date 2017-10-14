@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="815e04fe7bc6306211dd2775a2114597cf25d772" name="MPL Scripts">
+<index version="1" commit="18a6a1b52fb22db830dde788c6f0f34455853125" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1617,6 +1617,15 @@ setup min gain, attack =0]]></changelog>
       <version name="1.02" author="mpl" time="2016-06-21T11:31:25Z">
         <changelog><![CDATA[+ fix split name]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/be6729359d51511981bdb34cadada7c5d3dfa5bc/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Go to next marker id.lua" type="script" desc="Go to next marker id">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-10-14T22:50:37Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18a6a1b52fb22db830dde788c6f0f34455853125/Regions/mpl_Go%20to%20next%20marker%20id.lua</source>
       </version>
     </reapack>
   </category>
