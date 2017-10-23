@@ -1,23 +1,23 @@
 ﻿-- @description RS5k manager
--- @version 1.17
+-- @version 1.18
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # StepSeq: fix erasing audio/MIDI data for first step due to time approximation
+--    + Options/RS5K controls: global pitch offset
 
-
-  local vrs = 'v1.17'
+  
+  local vrs = 'v1.18'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local SCC, lastSCC
-  mouse = {}
+  local mouse = {}
   local obj = {}
   local conf = {}
   local pat = {}
   local Buf_t
-  local data = {}
+   data = {}
   local action_export = {}
   local redraw = -1
   local MIDItr_name = 'RS5K MIDI'
@@ -151,6 +151,14 @@
        elseif o.is_slider  and o.steps and o.axis == 'y' then 
         y_sl = y + h/o.steps*o.val
         h_sl = h - h/o.steps
+       elseif o.is_slider and o.axis == 'x_cent' then 
+        if o.val < 0.5 then
+          x_sl = x + w*o.val
+          w_sl = w*(0.5-o.val)
+         else
+          x_sl = x + w*0.5
+          w_sl = w*(o.val-0.5)          
+        end
       end  
       if not (o.state and o.alpha_back2) then 
         col(o.col, o.alpha_back or 0.2)
@@ -172,13 +180,15 @@
       
     -- step
       if o.is_step and o.val then
-        local val = o.val/127
-        local x_sl = x      
-        local w_sl = w 
-        local y_sl = y + h-math.ceil(h *val)  
-        local h_sl = math.ceil(h *val)
-        col(o.col, 0.5)
-        gfx.rect(x_sl,y_sl,w_sl-1,h_sl,1)      
+        if tonumber(o.val) then
+          local val = o.val/127
+          local x_sl = x      
+          local w_sl = w 
+          local y_sl = y + h-math.ceil(h *val)  
+          local h_sl = math.ceil(h *val)
+          col(o.col, 0.5)
+          gfx.rect(x_sl,y_sl,w_sl-1,h_sl,1)      
+        end
       end
     
     -- tab
@@ -277,6 +287,8 @@
   function Data_Update()
     data = {}
     local temp = {}
+    local p_offs = {}
+    
     
     if conf.global_mode == 0 then
       local tr = GetSelectedTrack(0,0)
@@ -289,10 +301,13 @@
           ex = true
           local retval, fn = TrackFX_GetNamedConfigParm( tr, fxid-1, 'FILE' )
           local pitch = math_q(TrackFX_GetParamNormalized( tr, fxid-1, 3)*127)
+          local pitch_offset = TrackFX_GetParamNormalized( tr, fxid-1, 15)
+          p_offs[#p_offs+1] = pitch_offset
           temp[#temp+1] = {idx = fxid-1,
                           name = buf,
                           fn = fn,
-                          pitch=pitch}
+                          pitch=pitch,
+                          pitch_offset = pitch_offset}
         end
       end
       if ex and conf.prepareMIDI == 1 then MIDI_prepare(tr)   end
@@ -320,10 +335,13 @@
               ex = true
               local retval, fn = TrackFX_GetNamedConfigParm( child_tr, fxid-1, 'FILE' )
               local pitch = math_q(TrackFX_GetParamNormalized( child_tr, fxid-1, 3)*127)
+              local pitch_offset = TrackFX_GetParamNormalized( child_tr, fxid-1, 15)
+              p_offs[#p_offs+1] = pitch_offset
               temp[#temp+1] = {idx = fxid-1,
                               name = buf,
                               fn = fn,
                               pitch=pitch,
+                              pitch_offset = pitch_offset,
                               trackGUID = GetTrackGUID( child_tr )  }
             end
           end          
@@ -337,6 +355,13 @@
       end        
     end
     
+    local is_diff = false
+    local last_val
+    for i = 1, #p_offs do 
+      if last_val and last_val ~= p_offs[i] then is_diff = true break end
+      last_val = p_offs[i]
+    end
+    if is_diff then data.global_pitch_offset = 0.5 else data.global_pitch_offset = last_val end
     
   end
   ---------------------------------------------------
@@ -1037,10 +1062,67 @@ DOCKED 0
       if conf.options_tab == 1 then OBJ_GenOptionsList_Browser()  
        elseif conf.options_tab == 2 then OBJ_GenOptionsList_StepSeq()
        elseif conf.options_tab == 0 then OBJ_GenOptionsList_Global()
+       elseif conf.options_tab == 3 then OBJ_GenOptionsList_RS5Kctrl()
       end      
       -----------------------
     end
     for key in pairs(obj) do if type(obj[key]) == 'table' then obj[key].context = key end end    
+  end
+  ----------------------------------------------------------------------- 
+  function OBJ_GenOptionsList_RS5Kctrl()
+    if data.global_pitch_offset then
+      obj.opt_rsk5ctrl_pitch = { clear = true,
+                x = obj.tab_div+2,
+                y = 1,
+                w = gfx.w - obj.tab_div-4,
+                h = obj.item_h2,
+                  col = 'white',
+                  state = 1,
+                  txt= 'Global pitch offset: '..math_q((-0.5+data.global_pitch_offset)*160),
+                  --aligh_txt = 1,
+                  --blit = 4,
+                  show = true,
+                  is_slider = true,
+                  fontsz = gui.fontsz2,
+                  alpha_back = 0.1,
+                  alpha_back2 = 0.3,
+                  axis ='x_cent',
+                  val = data.global_pitch_offset,
+                  func =  function()
+                            mouse.context_latch = 'opt_rsk5ctrl_pitch'
+                            mouse.context_latch_val = data.global_pitch_offset
+                          end,                  
+                  func_LD = function()
+                              if mouse.context_latch =='opt_rsk5ctrl_pitch'
+                                and mouse.context_latch_val 
+                                and mouse.is_moving then
+                                  local val = mouse.context_latch_val + mouse.dx/1000
+                                  local val = lim(val, 0,1)--math.floor(160*(lim(val, 0,1) -0.5))
+                                  val = 0.5+math.floor(160*(lim(val, 0,1) -0.5))/160
+                                  SetRS5KParam(15, val)
+                                  redraw = 1
+                              end
+                            end
+              }
+    end
+  end
+  ----------------------------------------------------------------------- 
+  function SetRS5KParam(param, value)
+    if data.tr_pointer then 
+      for key in pairs(data) do
+        if type(data[key]) == 'table' then
+          for i = 1, #data[key] do
+            local tr
+            if conf.global_mode==0 then
+              tr = data.tr_pointer 
+             elseif conf.global_mode==1 or  conf.global_mode==2 then
+              tr =  BR_GetMediaTrackByGUID( 0,data[key][i].trackGUID)
+            end
+            TrackFX_SetParamNormalized( tr, data[key][i].idx, param, value )
+          end
+        end
+      end
+    end
   end
   ----------------------------------------------------------------------- 
   function OBJ_GenOptionsList_StepSeq()
@@ -1347,7 +1429,25 @@ DOCKED 0
                           conf.options_tab = 2
                           ExtState_Save() 
                           redraw = 1
-                        end}                                                
+                        end} 
+    obj.opt_rs5k_ctrl = { clear = true,
+                x = obj.browser.x+1,
+                y = obj.browser.y+(obj.item_h2+1)*3,
+                w = obj.tab_div-2,
+                h = obj.item_h2,
+                col = 'white',
+                state = conf.options_tab == 3,
+                txt= 'Common RS5K controls',
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha3,
+                alpha_back2 = obj.it_alpha2,
+                func =  function() 
+                          conf.options_tab = 3
+                          ExtState_Save() 
+                          redraw = 1
+                        end}                                                                        
   end
   ----------------------------------------------------------------------- 
   function CheckPatCond(note)
@@ -2318,6 +2418,7 @@ DOCKED 0
           action_export = {}
         -- clear note
           for i = 1, 127 do StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), i, 100) end
+          redraw = 1
       end
       
       ::skip_mouse_check::
