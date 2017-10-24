@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="01155ffed6a3707cc41e743d8d7c3d462fa6e5fc" name="MPL Scripts">
+<index version="1" commit="ccb8e205e9b15f5336372e934170504dfcedfa80" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1623,6 +1623,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-10-08T16:24:19Z">
         <changelog><![CDATA[+init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bc82de9b5a69a3ec5a59b0c753803eb03e44c3dc/Regions/mpl_Convert%20CUE%20file%20into%20markers.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-10-24T15:04:54Z">
+        <changelog><![CDATA[# sytnhax error]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ccb8e205e9b15f5336372e934170504dfcedfa80/Regions/mpl_Convert%20CUE%20file%20into%20markers.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Generate CUE from project markers.lua" type="script">
