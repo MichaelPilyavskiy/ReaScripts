@@ -1,12 +1,12 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Convert CUE file into markers
 -- @changelog
---    +init
+--    # sytnhax error
   
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
-  local scr ='Convert CUE file into markers
+  local scr ='Convert CUE file into markers'
   ----------------------------------------------------
   function msg(s) 
     if not s then return end 
