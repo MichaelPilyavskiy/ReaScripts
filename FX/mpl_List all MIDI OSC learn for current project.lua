@@ -1,5 +1,5 @@
 -- @description List all MIDI OSC learn for current project
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @changelog
 --   # fix wrong decoding MIDI integer
@@ -40,7 +40,7 @@
             for word in t_content[i]:gmatch('[^%s]+') do ssv[#ssv+1] = word end
             if ssv[3] ~= 0 then 
               midiChannel = 1+ ssv[3] & 0x0F
-              midiCC = ssv[3] >> 8 & 0x0F
+              midiCC = ssv[3] >> 8
             end
             if ssv[5] then osc = ssv[4] end
           LRN_t[#LRN_t+1] = {midich = midiChannel,

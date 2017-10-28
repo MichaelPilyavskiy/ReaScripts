@@ -1,5 +1,5 @@
 -- @description List all MIDI OSC learn for focused FX
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @changelog
 --    # fix wrong decoding MIDI integer
@@ -52,7 +52,7 @@
               midi = ''
              else
               midiChannel = 1+ out_t[2] & 0x0F
-              midiCC = out_t[2] >> 8 & 0x0F
+              midiCC = out_t[2] >> 8
               midi = '    MIDI Channel '..midiChannel..' CC '..midiCC
             end
             
