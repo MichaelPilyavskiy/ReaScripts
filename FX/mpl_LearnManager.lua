@@ -1,23 +1,12 @@
 -- @description LearnManager
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # use eugen27771 GetTrackStateChunk() workaround for >4Mb chunks
---    # fix errors when no focused FX
---    # fix -1 shift of parameter ids
---    # fix updating FX when envelopes exist
---    + Action: overwrite default mapping
---    + Action: add mapping from custom/default (custom is not ready yet)
---    + Action: add/replace mapping from custom/default
---    + Action: add/clear mapping from custom/default
---    + Action: Apply current mapping to all FX instances on selected tracks
---    + Action: Show in TCP currently mapped parameters
---    + Action: Clear TCP controls on focused FX parent track
---    + Action: Show envelopes for currently mapped parameters
+--    # fix applying mapping when envelopes exists
+--    + Action: Show TCP controls for mapped parameters (all instances)
 
-
-  local vrs = '1.05'  
+  local vrs = '1.06'  
   local scr_title = 'LearnManager'
   --NOT gfx NOT reaper
   --  INIT -------------------------------------------------
@@ -319,9 +308,9 @@
     ------------------------
     --- APPLY DATA
     if line_id then
-      t[line_id] = t[line_id]..'\n'..add_str..'\n\n'
+      t[line_id] = t[line_id]..'\n'..add_str..'\n\n\n'
       local out_chunk = table.concat(t, '\n'):gsub('(\n\n)', '')
-      --msg(out_chunk)
+      msg(out_chunk)
       SetTrackStateChunk( track, out_chunk, true )
     end
     
@@ -374,11 +363,13 @@
                                     if not  data.FX_name then return end  
                                     for i = 1, CountSelectedTracks(0) do
                                       local tr = GetSelectedTrack(0,i-1)
-                                      for fxid = 1, TrackFX_GetCount( tr ) do
-                                        local fx_name = ({TrackFX_GetFXName( tr, fxid-1, '' )})[2]
-                                        if fx_name == data.FX_name then 
-                                          local fx_guid = TrackFX_GetFXGUID( tr, fxid-1 )
-                                          ApplyMappingToFX(2, data, tr, fx_guid)
+                                      if tr ~= data.TR_ptr then
+                                        for fxid = 1, TrackFX_GetCount( tr ) do
+                                          local fx_name = ({TrackFX_GetFXName( tr, fxid-1, '' )})[2]
+                                          if fx_name == data.FX_name then 
+                                            local fx_guid = TrackFX_GetFXGUID( tr, fxid-1 )
+                                            ApplyMappingToFX(2, data, tr, fx_guid)
+                                          end
                                         end
                                       end
                                     end
@@ -397,6 +388,26 @@
                                     end                              
                                   end
                           },    
+                          {str = 'Show TCP controls for mapped parameters (all instances)',
+                           func = function()  
+                                   if not  data.FX_name then return end  
+                                    for i = 1, CountSelectedTracks(0) do
+                                      local tr = GetSelectedTrack(0,i-1)
+                                      for fxid = 1, TrackFX_GetCount( tr ) do
+                                        local fx_name = ({TrackFX_GetFXName( tr, fxid-1, '' )})[2]
+                                        if fx_name == data.FX_name then 
+                                          if data.lrn then
+                                            for key in spairs(data.lrn) do
+                                              SNM_AddTCPFXParm( tr,  fxid-1, key )
+                                            end
+                                          end  
+                                        end
+                                      end
+                                    end                           
+                                    UpdateInfo() 
+                                    redraw = 1                             
+                                  end
+                          },                           
                           {str = 'Clear TCP controls',
                            func = function()  
                                     if not data.TR_ptr then return end
