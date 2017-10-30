@@ -1,14 +1,23 @@
 -- @description LearnManager
--- @version 1.0
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
---    + Basic overview learned parameters and related parameter names
---    + Allow to load/overview default mapping for managed plugin
+--    # use eugen27771 GetTrackStateChunk() workaround for >4Mb chunks
+--    # fix errors when no focused FX
+--    # fix -1 shift of parameter ids
+--    # fix updating FX when envelopes exist
+--    + Action: overwrite default mapping
+--    + Action: add mapping from custom/default (custom is not ready yet)
+--    + Action: add/replace mapping from custom/default
+--    + Action: add/clear mapping from custom/default
+--    + Action: Apply current mapping to all FX instances on selected tracks
+--    + Action: Show in TCP currently mapped parameters
+--    + Action: Clear TCP controls on focused FX parent track
+--    + Action: Show envelopes for currently mapped parameters
 
 
-  local vrs = '1.0'  
+  local vrs = '1.05'  
   local scr_title = 'LearnManager'
   --NOT gfx NOT reaper
   --  INIT -------------------------------------------------
@@ -174,6 +183,149 @@
       if es_str == '' then conf[key] = def[key] else conf[key] = tonumber(es_str) or es_str end
     end
   end
+
+  ---------------------------------------------------
+  function SaveCurrentMapping()
+    if not data.FX_name or not data0.type_t then return end
+    ---------
+    local ini_path = GetResourcePath()..'/reaper-fxlearn.ini'
+    local ini_path_BU = GetResourcePath()..'/reaper-fxlearn.ini-backup'
+    local f = io.open(ini_path, 'r')
+    local context,replace_str,add_new
+    if not f then 
+      return 
+     else
+      context = f:read('a')
+      replace_str = context:match('(%['..literalize(data.FX_name)..'.-)%[')
+      if not replace_str then replace_str = context:match('%['..literalize(data.FX_name)..'.*') end
+      if not replace_str then add_new = true end
+      f:close()
+      -- create backup
+      local f_bu = io.open(ini_path_BU, 'w')
+      f_bu:write(context)
+      f_bu:close()
+    end
+    if not add_new and not replace_str then return end
+    
+    ---------
+    local add_str = '['..data.FX_name..']'
+    local cnt = 0
+    for key in spairs(data.lrn) do
+      add_str = add_str..'\np'..cnt..'='
+        ..key..','
+        ..data.lrn[key].MIDI_int..','
+        ..'5'
+      if data.lrn[key].OSC_str and data.lrn[key].OSC_str ~= '' then add_str = add_str..','..data.lrn[key].OSC_str end
+      cnt = cnt +1 
+    end
+    add_str = add_str..'\n'..'numparm='..cnt
+    ---------
+    if not add_new then   
+      if replace_str then    
+        context =context:gsub(literalize(replace_str), '') 
+        context =context..add_str
+      end
+     else 
+      context =context..add_str
+    end
+    
+    local ret = MB('Overwrite default mapping?', scr_title, 4)
+    if ret then 
+      f = io.open(ini_path, 'w')
+      f:write(context)
+      f:close()
+      return true
+    end
+  end
+  ---------------------------------------------------
+  function ClearTCP(track)
+        local tr_chunk = eugen27771_GetTrackStateChunk( track )
+        local t = {} for line in tr_chunk:gmatch('[^\r\n]+') do t[#t+1] = line  end
+        local check_str = literalize(data.FX_GUID)
+        local search,line_id
+        for i = 1, #t do
+          if search and t[i]:match('WAK') then break end
+          if search then 
+            if t[i]:match('PARM_TCP') then t[i] = '\n' end
+          end
+          if t[i]:match(check_str) then search = true end
+        end
+        local out_chunk = table.concat(t, '\n'):gsub('(\n\n)', '')
+        SetTrackStateChunk( track, out_chunk, true )
+  end
+  ---------------------------------------------------
+  function ApplyMappingToFX(mode, src_t, track0, fx_guid0)
+    if not src_t or not src_t.lrn then return end
+    
+    -- GET CHUNK DATA
+      local track 
+      if track0 then track = track0 else track = data.TR_ptr end
+      if fx_guid0 then fx_guid = fx_guid0 else fx_guid = data.FX_GUID end
+      
+      if not track then return end
+      local tr_chunk = eugen27771_GetTrackStateChunk( track )
+      if not tr_chunk then return end
+      local t = {} for line in tr_chunk:gmatch('[^\r\n]+') do t[#t+1] = line  end
+      local check_str = literalize(fx_guid)
+      local search,line_id
+      for i = 1, #t do
+        if search and t[i]:match('WAK') then break end
+        if search then 
+          if t[i]:match('PARMLEARN') then t[i] = '' end
+        end
+        if t[i]:match(check_str) then search = true line_id = i end
+      end
+    
+    -- GENERATE NEW DATA
+    local function form_lrn_str(t,i)
+      return 'PARMLEARN '
+                  ..i..' '
+                  ..t.lrn[i].MIDI_int..' '
+                  ..'5'..' '
+                  ..t.lrn[i].OSC_str
+                  ..'\n'
+    end
+    
+    --------------------------- MODES 
+    local add_str = ''
+    
+    if mode == 0 then -- add/replace
+      for i = 1, #data.param_names do
+        if src_t.lrn[i] then
+          add_str = add_str ..form_lrn_str(src_t, i)
+         elseif data.lrn[i] then 
+          add_str = add_str ..form_lrn_str(data, i)
+        end
+      end
+      
+     elseif mode == 1 then -- add only
+      for i = 1, #data.param_names do
+        if src_t.lrn[i] and not data.lrn[i] then
+          add_str = add_str ..form_lrn_str(src_t, i)
+         elseif data.lrn[i] then 
+          add_str = add_str ..form_lrn_str(data, i)
+        end
+      end  
+
+     elseif mode == 2 then -- clear/add
+      for i = 1, #data.param_names do
+        if src_t.lrn[i] then
+          add_str = add_str ..form_lrn_str(src_t, i)
+        end
+      end        
+         
+    end
+    
+    ------------------------
+    --- APPLY DATA
+    if line_id then
+      t[line_id] = t[line_id]..'\n'..add_str..'\n\n'
+      local out_chunk = table.concat(t, '\n'):gsub('(\n\n)', '')
+      --msg(out_chunk)
+      SetTrackStateChunk( track, out_chunk, true )
+    end
+    
+  end
   ---------------------------------------------------
   function OBJ_define()  
     obj.offs = 2
@@ -184,7 +336,7 @@
     obj.get = { x = 0,
                 y = 0,
                 h = obj.item_h,
-                txt = "FocusedFX: Update info",
+                txt = "Last Touched FX: Update info",
                 col = 'white',
                 state = 0,
                 is_but = true,
@@ -193,14 +345,12 @@
                 func =  function() 
                           UpdateInfo() 
                           ParseDefMap()
-                          redraw = 1 
-                          --data0 = {}
-                          --obj.t2type.txt = '(no type selected)'                          
+                          redraw = 1                       
                         end}
-
+                                                        
     obj.t1type = { x = 0,
                 y = obj.item_h + obj.item_h2,
-                h = obj.item_h2,
+                h = obj.item_h2*2,
                 txt = "Current mapping",
                 --txt_align_left = true,
                 --txt_align_top = true,
@@ -208,11 +358,71 @@
                 state = 0,
                 is_but = true,
                 txtsz = gui.fontsz2,
-                alpha_back = 0.1}    
+                alpha_back = 0.1,
+                func = function()
+                  Menu({  {str = 'Save to default mapping',
+                           func = function()                                    
+                                    local ret = SaveCurrentMapping()
+                                    if ret then 
+                                      ParseDefMap()
+                                      redraw = 1 
+                                    end 
+                                  end
+                          },
+                          {str = 'Apply to all FX instances on selected tracks',
+                           func = function() 
+                                    if not  data.FX_name then return end  
+                                    for i = 1, CountSelectedTracks(0) do
+                                      local tr = GetSelectedTrack(0,i-1)
+                                      for fxid = 1, TrackFX_GetCount( tr ) do
+                                        local fx_name = ({TrackFX_GetFXName( tr, fxid-1, '' )})[2]
+                                        if fx_name == data.FX_name then 
+                                          local fx_guid = TrackFX_GetFXGUID( tr, fxid-1 )
+                                          ApplyMappingToFX(2, data, tr, fx_guid)
+                                        end
+                                      end
+                                    end
+                                    
+                                  end
+                          },                          
+                          
+                          {str = '|Show TCP controls for mapped parameters',
+                           func = function()  
+                                    if data.lrn then
+                                      for key in spairs(data.lrn) do
+                                        SNM_AddTCPFXParm( data.TR_ptr, data.FX_id, key )
+                                      end
+                                      UpdateInfo() 
+                                      redraw = 1 
+                                    end                              
+                                  end
+                          },    
+                          {str = 'Clear TCP controls',
+                           func = function()  
+                                    if not data.TR_ptr then return end
+                                    ClearTCP(data.TR_ptr)
+                                  end
+                          },                          
+                          {str = 'Show envelopes for mapped parameters',
+                           func = function()  
+                                    if data.lrn then
+                                      for key in spairs(data.lrn) do
+                                        GetFXEnvelope(  data.TR_ptr, data.FX_id, key, true )
+                                      end
+                                      UpdateInfo() 
+                                      redraw = 1 
+                                      UpdateArrange()
+                                    end                              
+                                  end
+                          },                                                 
+                          
+                          
+                        })
+                        end} 
                 
     obj.t2type = { x = 0,
                 y = obj.item_h + obj.item_h2,
-                h = obj.item_h2,
+                h = obj.item_h2*2,
                 txt = '(no type selected)',
                 --txt_align_left = true,
                 --txt_align_right = true,
@@ -223,18 +433,33 @@
                 txtsz = gui.fontsz2,
                 alpha_back = 0.1,
                 func = function()
-                  Menu({  {str = 'Load default mapping',
+                  Menu({  {str = 'Add to current mapping, replace existed',
                            func = function()                                    
-                                    ParseDefMap()
+                                    ApplyMappingToFX(0, data0)
+                                    UpdateInfo() 
                                     redraw = 1
                                   end
-                          }
+                          },
+                          {str = 'Add to current mapping, prevent replacing',
+                           func = function()                                    
+                                    ApplyMappingToFX(1, data0)
+                                    UpdateInfo() 
+                                    redraw = 1
+                                  end
+                          },
+                          {str = 'Add to current mapping, clear current',
+                           func = function()                                    
+                                    ApplyMappingToFX(2, data0)
+                                    UpdateInfo() 
+                                    redraw = 1
+                                  end
+                          }                          
                         })
                         end}                   
                                
     obj.t1 = { x = 0,
-                y = obj.item_h + obj.item_h2*2,
-                h = gfx.h - obj.item_h - obj.item_h2*2,
+                y = obj.item_h + obj.item_h2*3,
+                h = gfx.h - obj.item_h - obj.item_h2*3,
                 txt = "(no data)",
                 txt_align_left = true,
                 txt_align_top = true,
@@ -245,8 +470,8 @@
                 alpha_back = 0}    
                     
     obj.t2 = { 
-                y = obj.item_h + obj.item_h2*2,
-                h = gfx.h - obj.item_h - obj.item_h2*2,
+                y = obj.item_h + obj.item_h2*3,
+                h = gfx.h - obj.item_h - obj.item_h2*3,
                 txt = "(no data)",
                 txt_align_left = true,
                 txt_align_top = true,
@@ -259,11 +484,41 @@
                       
   end
   ---------------------------------------------------
+  function OBJ_Update()
+    if data.FX_name or data.TR_name then
+      
+      obj.fxname = { x = 0,
+              y = obj.item_h,
+              w = gfx.w,
+              h = obj.item_h2,
+              col = 'white',   
+              txtsz= gui.fontsz2,  
+              txt=   data.TR_name..'  / '..data.FX_name ,  
+              state = 0,
+              is_but = true,
+              alpha_back = 0.2} 
+    end
+    obj.get.w = gfx.w
+    
+    obj.t1type.w = math.floor(gfx.w/2)
+    obj.t2type.x = math.floor(gfx.w/2)
+    obj.t2type.w = math.floor(gfx.w/2)
+    
+    local str_cur_learn = GenerateButtonTxt(data)
+    obj.t1.w = math.floor(gfx.w/2)
+    obj.t1.txt = str_cur_learn
+    
+    local dest_learn = GenerateButtonTxt(data0)
+    obj.t2.x = math.floor(gfx.w/2)
+    obj.t2.w = math.floor(gfx.w/2)
+    obj.t2.txt = dest_learn
+  end
+  ---------------------------------------------------
   function ParseDefMap()
     obj.t2type.txt = 'Default mapping'
-    data0 = {lrn = {}}
-    ClearConsole()
-    if not data.FX_name then return end
+    data0 = { type_t = 0,
+              lrn = {}}
+    if not data.FX_name or data.FX_name == '' then return end
     data0.FX_name = data.FX_name
     local ini_path = GetResourcePath()..'/reaper-fxlearn.ini'
     local f = io.open(ini_path, 'r')
@@ -271,8 +526,8 @@
       return 
      else
       local context = f:read('a')
-      local ini_str = context:match(literalize(data.FX_name)..'.-%[')
-      if not ini_str then ini_str = context:match(literalize(data.FX_name)..'.*') end
+      local ini_str = context:match('(%['..literalize(data.FX_name)..'.-)%[')
+      if not ini_str then ini_str = context:match('%['..literalize(data.FX_name)..'.*') end
       if not ini_str then return end
       for line in ini_str:gmatch('[^\r\n]+') do 
         if line:match('p[%d]+=') then 
@@ -286,7 +541,8 @@
               OSC_str = t[5]
              else
               MIDI_Ch = 1 +t[3] & 0x0F
-              MIDI_CC = t[3] >> 8  
+              MIDI_CC = t[3] >> 8 
+              OSC_str = '' 
             end
             data0.lrn[par_idx] = {OSC_str = OSC_str,
                               MIDI_Ch= MIDI_Ch,
@@ -301,45 +557,18 @@
     end
   end
   ---------------------------------------------------
-  function OBJ_Update()
-    if data.FX_name then
-      obj.fxname = { x = 0,
-              y = obj.item_h,
-              w = gfx.w,
-              h = obj.item_h2,
-              col = 'white',   
-              txtsz= gui.fontsz2,  
-              txt=   data.FX_name or 'no data',  
-              state = 0,
-              is_but = true,
-              alpha_back = 0.2} 
-    end
-    obj.get.w = gfx.w
-    
-    obj.t1type.w = math.floor(gfx.w/2)-1
-    obj.t2type.x = math.floor(gfx.w/2)+1
-    obj.t2type.w = math.floor(gfx.w/2)
-    
-    local str_cur_learn = GenerateButtonTxt(data)
-    obj.t1.w = math.floor(gfx.w/2)
-    obj.t1.txt = str_cur_learn
-    
-    local dest_learn = GenerateButtonTxt(data0)
-    obj.t2.x = math.floor(gfx.w/2)
-    obj.t2.w = math.floor(gfx.w/2)
-    obj.t2.txt = dest_learn
-  end
-  ---------------------------------------------------
   function GenerateButtonTxt(t)
-    if not t or not t.FX_name then return end
+    if not t or not t.FX_name or not data.param_names then return end
     local ind = ' '
     local str = ''
     for key in spairs(t.lrn) do
-      str = str..'#'..key..' '..data.param_names[tonumber(key)]
-      if t.lrn[key].OSC_str then
-        str = str..':'..ind:rep(2)..'OSC '..t.lrn[key].OSC_str..'\n'
-       elseif t.lrn[key].MIDI_Ch then
-        str = str..':'..ind:rep(2)..'MIDI Channel '..t.lrn[key].MIDI_Ch..' CC '..t.lrn[key].MIDI_CC..'\n'
+      if data.param_names[tonumber(key)] then 
+        str = str..'#'..key..' '..data.param_names[tonumber(key)+1]
+        if t.lrn[key].OSC_str and t.lrn[key].OSC_str ~= ''  then
+          str = str..':'..ind:rep(2)..'OSC '..t.lrn[key].OSC_str..'\n'
+         elseif t.lrn[key].MIDI_Ch then
+          str = str..':'..ind:rep(2)..'MIDI Channel '..t.lrn[key].MIDI_Ch..' CC '..t.lrn[key].MIDI_CC..'\n'
+        end
       end
     end
     return str
@@ -368,17 +597,29 @@
     if ret > 0 then if t[ret].func then t[ret].func() end end
   end
   ---------------------------------------------------
+  function eugen27771_GetTrackStateChunk(track)
+    if not track then return end
+    local fast_str, track_chunk
+    fast_str = SNM_CreateFastString("")
+    if SNM_GetSetObjectState(track, fast_str, false, false) then track_chunk = SNM_GetFastString(fast_str) end
+    SNM_DeleteFastString(fast_str)  
+    return track_chunk
+  end  
+  ---------------------------------------------------
   function UpdateInfo()
     -- get chunk data
       local retval, tracknumberOut, _, fxnumberOut = GetFocusedFX()
+      --local retval, tracknumberOut, fxnumberOut = GetLastTouchedFX()
       if not retval or fxnumberOut < 0 then return end
       local track = CSurf_TrackFromID( tracknumberOut, false )
       local GUID = TrackFX_GetFXGUID( track, fxnumberOut )
-      
+      if not track then return end
       data= { FX_GUID = GUID,
               FX_id = fxnumberOut,
               FX_name = ({TrackFX_GetFXName( track, fxnumberOut, '' )})[2],
               TR_GUID = GetTrackGUID( track ),
+              TR_name  = ({GetTrackName( track, '' )})[2],
+              TR_ptr = track,
               lrn = {},
               param_names = {}
               }
@@ -387,8 +628,9 @@
         data.param_names[ #data.param_names + 1 ]= ({TrackFX_GetParamName( track, fxnumberOut, i-1, '' )})[2]     
       end
       
-      local _, tr_chunk = GetTrackStateChunk( track, '', false )
-      local str = tr_chunk:match(literalize(GUID)..'(.-)>')
+      local tr_chunk = eugen27771_GetTrackStateChunk( track)
+      if not tr_chunk or not GUID then return end
+      local str = tr_chunk:match(literalize(GUID)..'(.-)WAK')
       if not str then return end
       for line in str:gmatch('[^\r\n]+') do
         if line:find('PARMLEARN') then
@@ -402,6 +644,7 @@
            else
             MIDI_Ch = 1 +t[3] & 0x0F
             MIDI_CC = t[3] >> 8  
+            OSC_str = ''
           end
           data.lrn[par_idx] = {
                               OSC_str = OSC_str,
@@ -416,7 +659,7 @@
   end
   ---------------------------------------------------
   function literalize(str) -- http://stackoverflow.com/questions/1745448/lua-plain-string-gsub
-      return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", function(c) return "%" .. c end)
+     if str then  return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", function(c) return "%" .. c end) end
   end
  ---------------------------------------------------
   local function MOUSE_Match(b) if b.x and b.y and b.w and b.h then return mouse.mx > b.x and mouse.mx < b.x+b.w and mouse.my > b.y and mouse.my < b.y+b.h end  end
