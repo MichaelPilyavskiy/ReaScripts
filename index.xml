@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3c1bd119a28ba7603d5554a9a0dabf1bcfa6950b" name="MPL Scripts">
+<index version="1" commit="38cac8cb895f87754061142236290857b0e84fbc" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -388,6 +388,21 @@
 + Basic overview learned parameters and related parameter names
 + Allow to load/overview default mapping for managed plugin]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3c1bd119a28ba7603d5554a9a0dabf1bcfa6950b/FX/mpl_LearnManager.lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2017-10-30T17:38:17Z">
+        <changelog><![CDATA[# use eugen27771 GetTrackStateChunk() workaround for >4Mb chunks
+# fix errors when no focused FX
+# fix -1 shift of parameter ids
+# fix updating FX when envelopes exist
++ Action: overwrite default mapping
++ Action: add mapping from custom/default (custom is not ready yet)
++ Action: add/replace mapping from custom/default
++ Action: add/clear mapping from custom/default
++ Action: Apply current mapping to all FX instances on selected tracks
++ Action: Show in TCP currently mapped parameters
++ Action: Clear TCP controls on focused FX parent track
++ Action: Show envelopes for currently mapped parameters]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/38cac8cb895f87754061142236290857b0e84fbc/FX/mpl_LearnManager.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_List all MIDI OSC learn for current project.lua" type="script" desc="List all MIDI OSC learn for current project">
