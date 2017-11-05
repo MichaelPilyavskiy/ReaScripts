@@ -1,100 +1,16 @@
--- @version 1.32
+﻿-- @version 1.33
 -- @author MPL
--- @website http://forum.cockos.com/member.php?u=70694
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description SendFader
 -- @changelog
---    # fix solo send
+--    + Support master harware sends (REAPER 5.15+)
+--    # change link to common discussion
 
 
   -------------------------------------------------------------------- 
-  vrs = '1.32'
+  vrs = '1.33'
   name = 'MPL SendFader'
   --------------------------------------------------------------------           
---[[
-  changelog:
-    1.31 26.02.2017
-      + Solo send
-    1.22 23.02.2017
-      + Support for hardware sends
-      + Soft takeover for remote mode
-      + Store mixer visibility
-      + Store remote mode  
-      + Store ST mode  
-      + Support for external change active send
-      # fix line1421
-    1.16 03.02.2017
-      # not sure it is SendFader bug but hope fix adding/renaming ReaEQ instance for send created before SendFader
-    1.15 01.02.2017
-      + Support for writing envelopes
-    1.14 31.01.2017
-      + MouseWheel on fader change volume, perform when link also
-      + MouseWheel on pan change pan, perform when link also
-      + Support for store/load configuration to external file (settings doesn`t resetted after update)
-      + Save docked state
-    1.12 30.01.2017 
-      # fix scaling for external input  
-      # fix error on changing track while external control      
-    1.11 29.01.2017  
-      + Save window width and height on change      
-      + doubleclick on pan and vol reset value
-      + doubleclick reset vol/pan reflects linking         
-      + rightclick on pan and vol set value   
-      + rightclick set vol/pan reflects linking
-      + support disable track selection following, edit default config
-      + support for setting ID before init, use reaper.SetExtState( 'mpl SendFader', 'currentID', ID_val, false )
-      + support for setting source TrackGUID before init, use reaper.SetExtState( 'mpl SendFader', 'srcTrack_GUID', ID_val, false )
-      + support track colors
-      # fix empty send data errors
-      # redraw window after xywh change
-      # different GUI tweaks (indentation and resize)
-      # allow change track/send_ID after external state get
-      # rename 'Remove' to 'Delete'
-      # fix wrong id from FX context menu
-      # fix hardware sends in regular sends list
-      # fixed small potential gfx/data issues
-    1.0 29.01.2017
-      + official release  
-    1.0alpha20 29.01.2017
-      + Mixer: up to 6 visible peaks
-      + Mixer: show fader values
-      + Mixer: mark green current fader
-      + Mixer: hidden by default, open by mouse or editing default config
-      + wide fader with fill, small_man == 1 use small manual
-      + Names: subtract 'aux' and 'send' from track name
-      + scroll on send track name or mixer change current track fader
-      + show scroll bar in track send name
-      + reset GUI when change project/tab and when not track selected
-      + version and name moved to gfx
-    1.0alpha18 28.01.2017
-      # hopefully fixed VCA and dB convertion related bugs
-      + Save window position
-      + Link: VCA-style fader support
-      + Link: VCA-style pan support
-      + Link: phase support
-      + Link: mono support
-      + Link: send mode support
-      + Link: PreEQ/PostEQ support
-    1.0alpha14 27.01.2017
-      + FX: float first FX on send track, skip 'PreEQ', skip 'PostEQ'
-      + FX: right click open FX list at current send
-      + Pre/Post EQ sliders
-      + Pre/Post EQ sliders: add ReaEQ to first/end slot of chain on first touch
-    1.0alpha10 26.01.2017
-      + Send mode
-      + Action: add send from tracks match 'aux', 'send' in their names
-      + Action: add send from list
-      + Prevent accidentally feedback routing
-      + Mute
-      + Phase
-      + Mono
-      # GUI tweaks
-    1.0alpha5 24.01.2017
-      + track/send peak levels
-      + pan
-      + fader block
-    1.0alpha1 24.01.2017
-      + basic GUI
-]]
 
   function msg(s) reaper.ShowConsoleMsg(s) reaper.ShowConsoleMsg('\n') end
   --------------------------------------------------------------------    
@@ -1069,7 +985,7 @@
   -----------------------------------------------------------------------    
   function DEFINE_data() local track,sendEQ,peakL,peakR, dest_GUID
     if data.enable_follow_track_selection == 1 then 
-      data.track_pointer =  reaper.GetSelectedTrack(0,0)
+      data.track_pointer =  reaper.GetSelectedTrack2(0,0,true)
      else
       data.track_pointer = data.track_pointer0
     end
@@ -1443,7 +1359,7 @@
     -- click on track name
       if data.enable_follow_track_selection == 0 then 
         if MOUSE_button(obj.b.tr_name) then
-          data.track_pointer0 = reaper.GetSelectedTrack(0,0)
+          data.track_pointer0 = reaper.GetSelectedTrack2(0,0,true)
           update_gfx = true
         end        
       end
@@ -1845,7 +1761,7 @@
       end
     -- info
       if MOUSE_button({x=0,y=0,w = gfx.w, h = obj.global_y_shift})then
-        F_open_URL('http://forum.cockos.com/showthread.php?p=1793588') 
+        F_open_URL('http://forum.cockos.com/showthread.php?t=188335') 
       end
     -- reset mouse context/doundo
       if mouse.last_LMB_state and not mouse.LMB_state then 
