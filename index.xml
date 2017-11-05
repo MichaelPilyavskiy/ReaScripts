@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="75ff9c7f3ef7ac95a36e03bbef70b1a7de27b91b" name="MPL Scripts">
+<index version="1" commit="b85b95dd9d5eca9e18a0240c5e9852ca2b94dc6e" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -2630,7 +2630,7 @@ setup min gain, attack =0]]></changelog>
     </reapack>
     <reapack name="mpl_SendFader.lua" type="script" desc="SendFader">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2017-01-29T09:22:15Z">
         <changelog><![CDATA[+ init ]]></changelog>
@@ -2731,6 +2731,11 @@ setup min gain, attack =0]]></changelog>
       <version name="1.32" author="MPL" time="2017-02-26T02:34:30Z">
         <changelog><![CDATA[# fix solo send]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1f31cbe014a092e018d1221139007c5df857392/Various/mpl_SendFader.lua</source>
+      </version>
+      <version name="1.33" author="MPL" time="2017-11-05T12:49:05Z">
+        <changelog><![CDATA[+ Support master harware sends (REAPER 5.15+)
+# change link to common discussion]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b85b95dd9d5eca9e18a0240c5e9852ca2b94dc6e/Various/mpl_SendFader.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set project grid (MIDI CC and OSC only).lua" type="script" desc="Set project grid (MIDI CC and OSC only)">
