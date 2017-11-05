@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e0b447ac052c0aab06576e68133cfe7faafe45e6" name="MPL Scripts">
+<index version="1" commit="75ff9c7f3ef7ac95a36e03bbef70b1a7de27b91b" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -408,6 +408,24 @@
         <changelog><![CDATA[# fix applying mapping when envelopes exists
 + Action: Show TCP controls for mapped parameters (all instances)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e0b447ac052c0aab06576e68133cfe7faafe45e6/FX/mpl_LearnManager.lua</source>
+      </version>
+      <version name="1.10" author="MPL" time="2017-11-05T12:03:45Z">
+        <changelog><![CDATA[+ Add support for load/save custom mappings (4 slots)
++ Action: Show envelopes for mapped parameters (all in selected tracks)
++ Action: Hide envelopes for mapped parameters
++ Action: Remove parameter from mapping by ID
++ Action: Remove OSC mappings
++ Action: Remove MIDI mappings
++ Action: Clear mapping
++ Action: Change MIDI mappings to specific channel
++ Action: Build dummy mapping from TCP controls
++ Action: Build dummy mapping from FX envelopes
++ Action: Build mapping by incrementing OSC address
++ Action: Build mapping by incrementing MIDI CC
+# highlight buttons
+# fix update tracklist after showing envelopes
+# fix replacing multiple empty lines in learn chunks]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/75ff9c7f3ef7ac95a36e03bbef70b1a7de27b91b/FX/mpl_LearnManager.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_List all MIDI OSC learn for current project.lua" type="script" desc="List all MIDI OSC learn for current project">
