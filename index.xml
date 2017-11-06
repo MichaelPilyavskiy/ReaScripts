@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b85b95dd9d5eca9e18a0240c5e9852ca2b94dc6e" name="MPL Scripts">
+<index version="1" commit="89633a269e822854d5d0eda1d467aeff34528890" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1338,6 +1338,24 @@ setup min gain, attack =0]]></changelog>
     <reapack name="mpl_Cut extension from selected item names.lua" type="script" desc="Cut extension from selected item names">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-10T09:38:17Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f5e18404c99b12b6e287f2d25effe64498f54b26/Items%20Properties/mpl_Cut%20extension%20from%20selected%20item%20names.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Phase match selected items (check polarity).lua" type="script" desc="Phase match selected items (check polarity)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-11-06T06:36:02Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/89633a269e822854d5d0eda1d467aeff34528890/Items%20Properties/mpl_Phase%20match%20selected%20items%20(check%20polarity).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Phase match selected items (shift positions).lua" type="script" desc="Phase match selected items (shift positions)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-11-06T06:36:02Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/89633a269e822854d5d0eda1d467aeff34528890/Items%20Properties/mpl_Phase%20match%20selected%20items%20(shift%20positions).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Samplitude object mini.lua" type="script" desc="Setup gain/pan/pitch for selected items and item under mouse pointer">
