@@ -3,20 +3,11 @@ This repository is compatible with the ReaPack [REAPER extension](http://reapack
 
 Discussing is [here](https://forum.cockos.com/showthread.php?t=188335).
 
-MPL contacts (I speak Russian, English and a bit Hebrew):
+MPL contacts: (I speak Russian, English, a bit Hebrew and Tatar):
 - [VK](https://vk.com/michael_pilyavskiy)
 - [SoundCloud](https://soundcloud.com/mp57)
 - [PromoDJ](http://promodj.com/michaelpilyavskiy)
 - [Cockos Forum](http://forum.cockos.com/member.php?u=70694)
 
-Guys who gave me a lot info about scripting, they also did/do very cool stuff:
-- [Justin](cockos.com)
-- [cfillion](https://github.com/cfillion)
-- [X-Raym](http://forum.cockos.com/member.php?u=58284)
-- [spk77](http://forum.cockos.com/member.php?u=49553)
-- [Breeder](http://forum.cockos.com/member.php?u=27094)
-- [heda](http://forum.cockos.com/member.php?u=47822)
-- [Xenakios](http://forum.cockos.com/member.php?u=3602)
-
-A very small amount of donations for last 2 years show how useless my scripts are. Agree? If not:
+Please donate if you like my stuff:
 - [PayPal](http://paypal.me/donate2mpl)
