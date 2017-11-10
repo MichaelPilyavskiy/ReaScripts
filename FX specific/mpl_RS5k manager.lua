@@ -1,12 +1,37 @@
 ﻿-- @description RS5k manager
--- @version 1.18
+-- @version 1.20
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Options/RS5K controls: global pitch offset
-
+--    + Global: allow only single instance of parent track per project
+--    + Global: remove build track template confirmation dialog
+--    + Global: define parent track when starting script first time in active project, check is parent track existed while script is running
+--    + Global: Changed name of MIDI patterns track, probably uncompatible with earlier versions (require manual resend MIDI to childrens)
+--    + Global: Set parent track name as 'RS5K Manager'
+--    + Pads: Chromatic Keys 2 octaves layout
+--    + Pads: Ableton Live Drum Rack layout
+--    + Pads: Studio One Impact layout
+--    + SampleBrowser: Draw waveforms and full file path when click on keys
+--    + Options/Global: Action: Redefine parent track
+--    + Options/Global: Action: Select parent track
+--    + Options/Pads: optionally disable send MIDI by clicking on keys
+--    # SingleTrack mode: don`t add MIDI preview track
+--    # SingleTrack mode: don`t add make parent track folder
+--    # MIDISend mode: clear MIDI preparations from parent track
+--    # DumpItems mode: use parent track for preview, not create additional MIDI track
+--    # DumpItems mode: use parent track for patterns
+--    # DumpItems mode: auto mute patterns when commit
+--    # StepSequencer: fix draw steps by dragging
+--    # Pads: fix wrong MIDI notes integers
+--    # UI: fix hide SampleBrowser back button when compressed width
+--    # UI: fix wrong check for global mode preferences
+--    # UI: fix fast scroll behaviour
+--    # UI: move sample path name level down
+--    # UI: move pattern name level down
+--    # UI: move commit pattern button to pattern menu 
+--    # UI: always sort pattern list by name 
   
-  local vrs = 'v1.18'
+  local vrs = 'v1.20'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -17,11 +42,13 @@
   local conf = {}
   local pat = {}
   local Buf_t
-   data = {}
+  data = {}
   local action_export = {}
-  local redraw = -1
-  local MIDItr_name = 'RS5K MIDI'
+  local redraw,redraw_WF = -1,-1
+  local MIDItr_name = 'RS5K MIDI Patterns'
   local preview_name = 'RS5K preview'
+  local parent_tr_name = 'RS5K Manager'
+  local mouse_wheel_res = 5000
   local blit_h,slider_val,blit_h2,slider_val2 = 0,0,0,0
   local gui = {
                 aa = 1,
@@ -29,6 +56,7 @@
                 font = 'Arial',
                 fontsz = 20,
                 fontsz2 = 15,
+                fontsz3 = 13,
                 a1 = 0.2, -- pat not sel
                 a2 = 0.45, -- pat sel
                 col = { grey =    {0.5, 0.5,  0.5 },
@@ -64,6 +92,7 @@
             use_preview = 0,
             -- Pads
             keymode = 0,  -- 0-keys
+            keypreview = 1, -- send MIDI by clicking on keys
             oct_shift = 5,
             key_names = 8, --8 return MIDInotes and keynames
             -- Patterns
@@ -124,7 +153,7 @@
     gfx.lineto(x+1,y)
   end
   ---------------------------------------------------
-  local function GUI_DrawObj(o) 
+  function GUI_DrawObj(o) 
     if not o then return end
     local x,y,w,h, txt = o.x, o.y, o.w, o.h, o.txt
     if not x or not y or not w or not h then return end
@@ -140,7 +169,7 @@
               x,y,w,h, 0,0)
     end
     
-    -- fill back
+    ------------------ fill back
       local x_sl = x      
       local w_sl = w 
       local y_sl = y      
@@ -168,7 +197,7 @@
         gfx.rect(x_sl,y_sl,w_sl,h_sl,1)
       end 
              
-    -- check
+    ------------------ check
       if o.check and o.check == 1 then
         gfx.a = 0.5
         gfx.rect(x+w-h+2,y+2,h-3,h-3,1)
@@ -178,7 +207,7 @@
         rect(x+w-h,y,h,h,0)
       end
       
-    -- step
+    ------------------ step
       if o.is_step and o.val then
         if tonumber(o.val) then
           local val = o.val/127
@@ -191,7 +220,7 @@
         end
       end
     
-    -- tab
+    ------------------ tab
       if o.is_tab then
         col(o.col, 0.6)
         local tab_cnt = o.is_tab >> 7
@@ -201,8 +230,12 @@
         gfx.line( x+cur_tab*w/tab_cnt,y+h,
                   x+w/tab_cnt*(1+cur_tab),y+h)                  
       end
-      
-    -- txt
+    
+    ------------------ knob
+      if o.is_knob then
+        GUI_knob(o)
+      end
+    ------------------ txt
       if o.txt and w > 0 then 
         local txt = tostring(o.txt)
         if o.txt_col then 
@@ -219,11 +252,12 @@
             line = '...'..line
           end
           if o.txt2 then line = o.txt2..' '..line end
-          gfx.x = x+ (w-gfx.measurestr(line))/2
+          gfx.x = x+ math.ceil((w-gfx.measurestr(line))/2)
           gfx.y = y+ (h-gfx.texth)/2 + y_shift 
           if o.aligh_txt then
-            if o.aligh_txt&1 then gfx.x = x + 1 end -- align left
-            if o.aligh_txt>>2&1 then gfx.y = y + y_shift end -- align top
+            if o.aligh_txt&1==1 then gfx.x = x  end -- align left
+            if o.aligh_txt>>2&1==1 then gfx.y = y + y_shift end -- align top
+            if o.aligh_txt>>4&1==1 then gfx.y = h - gfx.texth end -- align bot
           end
           if o.bot_al_txt then 
             gfx.y = y+ h-gfx.texth-3 +y_shift
@@ -233,7 +267,7 @@
         end
       end
       
-    -- key txt
+    ------------------ key txt
       if o.vertical_txt then
         gfx.dest = 10
         gfx.setimgdim(10, -1, -1)  
@@ -249,14 +283,14 @@
                   x,y,h,h,-5,h-w+5)
       end
     
-    -- line
+    ------------------ line
       if o.a_line then  -- low frame
         col(o.col, o.a_frame or 0.2)
         gfx.x,gfx.y = x+1,y+h
         gfx.lineto(x+w,y+h)
       end
       
-    -- frame
+    ------------------ frame
       if o.a_frame then  -- low frame
         col(o.col, o.a_frame or 0.2)
         gfx.rect(x,y,w,h,0)
@@ -276,52 +310,72 @@
   function math_q(num)  if math.abs(num - math.floor(num)) < math.abs(num - math.ceil(num)) then return math.floor(num) else return math.ceil(num) end end
   function math_q_dec(num, pow) return math.floor(num * 10^pow) / 10^pow end
   ---------------------------------------------------
-  function MIDI_prepare(tr, no_arm)
-    local bits_set=tonumber('111111'..'00000',2)
-    SetMediaTrackInfo_Value( tr, 'I_RECINPUT', 4096+bits_set ) -- set input to all MIDI
-    SetMediaTrackInfo_Value( tr, 'I_RECMON', 1) -- monitor input
-    if not no_arm then SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) end -- arm track 
-    SetMediaTrackInfo_Value( tr, 'I_RECMODE',0) -- record MIDI out
+  function MIDI_prepare(tr, no_arm, clear_all)
+    if not ( clear_all and clear_all == -1) then
+      local bits_set=tonumber('111111'..'00000',2)
+      SetMediaTrackInfo_Value( tr, 'I_RECINPUT', 4096+bits_set ) -- set input to all MIDI
+      SetMediaTrackInfo_Value( tr, 'I_RECMON', 1) -- monitor input
+      if not no_arm then SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) end -- arm track 
+      SetMediaTrackInfo_Value( tr, 'I_RECMODE',0) -- record MIDI out
+     else
+      SetMediaTrackInfo_Value( tr, 'I_RECINPUT', -1 )
+      SetMediaTrackInfo_Value( tr, 'I_RECMON', 0)
+      SetMediaTrackInfo_Value( tr, 'I_RECARM', 0)
+    end
+  end
+  ---------------------------------------------------
+  function dBFromVal(val) if val < 0.5 then return 20*math.log(val*2, 10) else return (val*12-6) end end
+  ---------------------------------------------------
+  function GetRS5kData(tr,temp,p_offs)
+    for fxid = 1,  TrackFX_GetCount( tr ) do
+      local retval, buf =TrackFX_GetFXName( tr, fxid-1, '' )
+      if buf:lower():match('rs5k') or buf:lower():match('reasamplomatic5000') then
+        ex = true
+        local retval, fn = TrackFX_GetNamedConfigParm( tr, fxid-1, 'FILE' )
+        local gain = TrackFX_GetParamNormalized( tr, fxid-1, 0)
+        local pitch = math_q(TrackFX_GetParamNormalized( tr, fxid-1, 3)*127)
+        local pitch_offset = TrackFX_GetParamNormalized( tr, fxid-1, 15)
+        p_offs[#p_offs+1] = pitch_offset
+        temp[#temp+1] = {idx = fxid-1,
+                        name = buf,
+                        fn = fn,
+                        pitch=pitch,
+                        pitch_offset = pitch_offset,
+                        gain=gain}
+      end
+    end  
   end
   ---------------------------------------------------
   function Data_Update()
-    data = {}
+    TR = GetSelectedTrack(0,0)
+    if not ES_parent then return end
+    data = {tr_pointer = ES_parent}
+    local tr = ES_parent
+    if not tr or not ValidatePtr2( 0, tr, 'MediaTrack*' ) then ES_parent = nil return end 
+    
     local temp = {}
     local p_offs = {}
     
-    
+    ---------    
     if conf.global_mode == 0 then
-      local tr = GetSelectedTrack(0,0)
-      if not tr then return end
-      data.tr_pointer = tr
+      --local tr = GetSelectedTrack(0,0)
+      --if not tr then return end
+      --data.tr_pointer = tr      
+      GetSetMediaTrackInfo_String( tr, 'P_NAME', parent_tr_name, 1 )
       local ex = false
-      for fxid = 1,  TrackFX_GetCount( tr ) do
-        local retval, buf =TrackFX_GetFXName( tr, fxid-1, '' )
-        if buf:lower():match('rs5k') or buf:lower():match('reasamplomatic5000') then
-          ex = true
-          local retval, fn = TrackFX_GetNamedConfigParm( tr, fxid-1, 'FILE' )
-          local pitch = math_q(TrackFX_GetParamNormalized( tr, fxid-1, 3)*127)
-          local pitch_offset = TrackFX_GetParamNormalized( tr, fxid-1, 15)
-          p_offs[#p_offs+1] = pitch_offset
-          temp[#temp+1] = {idx = fxid-1,
-                          name = buf,
-                          fn = fn,
-                          pitch=pitch,
-                          pitch_offset = pitch_offset}
-        end
-      end
+      GetRS5kData(tr,temp,p_offs)
       if ex and conf.prepareMIDI == 1 then MIDI_prepare(tr)   end
       for i =1, #temp do 
         if not data[ temp[i].pitch]  then data[ temp[i].pitch] = {} end
         data[ temp[i].pitch][#data[ temp[i].pitch]+1] = temp[i] 
       end
     end
-    ---------
-    
-    if conf.global_mode==1 or  conf.global_mode==2  then
-      local tr = GetSelectedTrack(0,0)
+    ---------   
+    if conf.global_mode==1   then
+      --[[local tr = GetSelectedTrack(0,0)
       if not tr then return end
-      data.tr_pointer = tr
+      data.tr_pointer = tr]]
+      GetSetMediaTrackInfo_String( tr, 'P_NAME', parent_tr_name, 1 )
       local ex = false
       local tr_id = CSurf_TrackToID( tr, false )
       if GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' ) == 1 then      
@@ -329,22 +383,7 @@
           local child_tr =  GetTrack( 0, i-1 )
           if ({GetSetMediaTrackInfo_String(child_tr, 'P_NAME', '', false)})[2] == MIDItr_name then data.tr_pointer_MIDI = child_tr end
           local lev = GetMediaTrackInfo_Value( child_tr, 'I_FOLDERDEPTH' )
-          for fxid = 1,  TrackFX_GetCount( child_tr ) do
-            local retval, buf =TrackFX_GetFXName( child_tr, fxid-1, '' )
-            if buf:lower():match('rs5k') or buf:lower():match('reasamplomatic5000') then
-              ex = true
-              local retval, fn = TrackFX_GetNamedConfigParm( child_tr, fxid-1, 'FILE' )
-              local pitch = math_q(TrackFX_GetParamNormalized( child_tr, fxid-1, 3)*127)
-              local pitch_offset = TrackFX_GetParamNormalized( child_tr, fxid-1, 15)
-              p_offs[#p_offs+1] = pitch_offset
-              temp[#temp+1] = {idx = fxid-1,
-                              name = buf,
-                              fn = fn,
-                              pitch=pitch,
-                              pitch_offset = pitch_offset,
-                              trackGUID = GetTrackGUID( child_tr )  }
-            end
-          end          
+          GetRS5kData(child_tr,temp,p_offs)   
           if lev < 0 then break end
         end
       end
@@ -354,7 +393,30 @@
         data[ temp[i].pitch][#data[ temp[i].pitch]+1] = temp[i] 
       end        
     end
-    
+    ----------
+    if conf.global_mode==2   then
+      --[[local tr = GetSelectedTrack(0,0)
+      if not tr then return end
+      data.tr_pointer = tr]]
+      GetSetMediaTrackInfo_String( tr, 'P_NAME', parent_tr_name, 1 )
+      local ex = false
+      local tr_id = CSurf_TrackToID( tr, false )
+      --if GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' ) == 1 then      
+        for i = tr_id, CountTracks(0) do
+          local child_tr =  GetTrack( 0, i-1 )
+          if ({GetSetMediaTrackInfo_String(child_tr, 'P_NAME', '', false)})[2] == MIDItr_name then data.tr_pointer_MIDI = child_tr end
+          local lev = GetMediaTrackInfo_Value( child_tr, 'I_FOLDERDEPTH' )
+          GetRS5kData(child_tr,temp,p_offs)   
+          if lev < 0 then break end
+        end
+      --end
+      ---------- add from stored data
+      for i =1, #temp do 
+        if not data[ temp[i].pitch]  then data[ temp[i].pitch] = {} end
+        data[ temp[i].pitch][#data[ temp[i].pitch]+1] = temp[i] 
+      end        
+    end
+    ------------------------    
     local is_diff = false
     local last_val
     for i = 1, #p_offs do 
@@ -443,6 +505,55 @@ DOCKED 0
       Undo_EndBlock2( 0, 'Explode selected track RS5k instances to new tracks', 0 )
     end
   end  
+  ---------------------------------------------------------------------------------------------------------------------
+  function Normalize(t, scale)
+    local m = 0 for i = 1, #t do m = math.max(math.abs(t[i]),m) end
+    for i = 1, #t do t[i] = scale*t[i]/m end
+    return t
+  end  
+  ---------------------------------------------------------------------------------------------------------------------
+  function GetPeaks(note)
+    if note and data[note] and data[note][1] then   
+      local file_name = data[note][1].fn
+      local src = PCM_Source_CreateFromFileEx( file_name, true )
+      local peakrate = 5000
+      local src_len =  GetMediaSourceLength( src )
+      local n_spls = math.floor(src_len*peakrate)
+      local n_ch = 1
+      local want_extra_type = 0--115  -- 's' char
+      local buf = new_array(n_spls * n_ch * 3) -- min, max, spectral each chan(but now mono only)
+        -------------
+      local retval =  PCM_Source_GetPeaks(    src, 
+                                        peakrate, 
+                                        0,--starttime, 
+                                        n_ch,--numchannels, 
+                                        n_spls, 
+                                        want_extra_type, 
+                                        buf )
+      local spl_cnt  = (retval & 0xfffff)        -- sample_count
+      local peaks = {}
+      for i=1, spl_cnt do  peaks[#peaks+1] = buf[i]  end
+      buf.clear()
+      PCM_Source_Destroy( src )
+      peaks = Normalize(peaks, 1) 
+      return peaks, spl_cnt
+    end
+  end 
+  ---------------------------------------------------
+  function GUI_DrawWF(t)
+    local w = obj.WF_w
+    local h = obj.WF_h
+    -- WF
+      col('green', 0.5)
+      gfx.x, gfx.y = 0, h
+      local last_x
+      for i = 1, #t do 
+        local val = math.abs(t[i])
+        local x = math.floor(i * w/#t)
+        local y = math.floor(h-h*val)
+        gfx.lineto(x,y)
+      end 
+  end
   ---------------------------------------------------
   local function GUI_draw()
     gfx.mode = 0
@@ -452,6 +563,7 @@ DOCKED 0
     -- 3 smpl browser blit
     -- 4 stepseq 
     -- 5 gradient steps
+    -- 6 WaveForm
     -- 10 sample keys
     
     --  init
@@ -512,12 +624,13 @@ DOCKED 0
                     0,0,  gfx.w,gfx.h, 0,0)
         -- refresh all buttons
           for key in pairs(obj) do 
-            if type(obj[key]) == 'table' and obj[key].show and not obj[key].blit then 
+            if type(obj[key]) == 'table' and obj[key].show and not obj[key].blit and key~= 'set_par_tr'  then 
               GUI_DrawObj(obj[key]) 
             end  
           end  
           gfx.a = 0.2
           gfx.line(obj.tab_div,0,obj.tab_div,gfx.h )
+         
         -- refresh blit list 1
           if blit_h then
             gfx.dest = 3
@@ -540,9 +653,36 @@ DOCKED 0
               end  
             end 
             if conf.tab == 1 then gfx.dest = 1 GUI_SeqLines()   end
+          end 
+        -- WF cent line
+          if conf.tab == 0 then 
+            gfx.dest = 1
+            col('white', .1)
+            gfx.line( obj.tab_div, 
+                      gfx.h-obj.WF_h-obj.key_h,
+                      gfx.w, 
+                      gfx.h-obj.WF_h-obj.key_h)
+            gfx.line( obj.tab_div, 
+                      gfx.h-obj.key_h,
+                      gfx.w, 
+                      gfx.h-obj.key_h)                      
+          end         
+        -- WF
+          if redraw_WF and redraw_WF == 1 then
+            local peaks, cnt = GetPeaks(obj.current_WFkey)
+            if peaks then 
+              if cnt < gfx.w - obj.tab_div then cnt = gfx.w - obj.tab_div end
+              obj.WF_w = cnt
+              gfx.dest = 6
+              gfx.setimgdim(6, -1, -1)  
+              gfx.setimgdim(6, obj.WF_w,obj.WF_h) 
+              GUI_DrawWF(peaks)
+            end
+            redraw_WF = 0
           end          
       end
-      
+    
+ 
       
     --  render    
       gfx.dest = -1   
@@ -556,11 +696,11 @@ DOCKED 0
       if blit_h and obj.blit_y_src then
         gfx.blit(3, 1, 0, -- backgr
           0,  
-          obj.blit_y_src+obj.browser.y+obj.item_h2, 
+          obj.blit_y_src, 
           obj.tab_div, 
           blit_h,
           0,  
-          obj.browser.y+obj.item_h2,              
+          obj.browser.y+obj.item_h2*2,              
           obj.tab_div, 
           blit_h, 
           0,0) 
@@ -595,6 +735,20 @@ DOCKED 0
                         fontsz = gui.fontsz2,
                         alpha_back = 0.1})
       end
+    --  WF
+    if conf.tab == 0 then 
+      gfx.a = 0.5
+      gfx.mode = 3
+      gfx.blit(6, 1, 0, -- backgr
+          0,0,obj.WF_w, obj.WF_h-1,
+          obj.tab_div,gfx.h-obj.WF_h-obj.key_h,gfx.w-obj.tab_div, obj.WF_h-1 , 0,0) 
+    end      
+    
+    if not ES_parent then
+      gfx.set(0,0,0,0.9)
+      gfx.rect(0,0,gfx.w, gfx.h)
+      GUI_DrawObj(obj.set_par_tr)
+    end
     redraw = 0
     gfx.update()
   end
@@ -620,8 +774,13 @@ DOCKED 0
   function ExtState_Load_Patterns()
     pat = {}
     local ret, str = GetProjExtState( 0, conf.ES_key, 'PAT' )
-    --msg(str)
+    ---msg(str)
     if not ret then return end
+    if str:match('PARENT_GUID') then 
+      local ES_parent_GUID = str:match('PARENT_GUID (.-)\n') 
+      --msg(ES_parent_GUID)
+      ES_parent = BR_GetMediaTrackByGUID( 0, ES_parent_GUID )
+    end
     -- parse patterns
       for line in str:gmatch('<PAT[\n\r](.-)>') do   
         pat[#pat+1] = {}     
@@ -649,13 +808,25 @@ DOCKED 0
           pat[key] = val
         end 
       end
+    
+    -- sort by name
+      local pat_2 = CopyTable(pat)
+      pat = {}
+      local names = {}
+      for i = 1, #pat_2 do names[pat_2[i].NAME] = i end
+      for key in spairs(names) do pat[#pat+1] = pat_2[ names[key] ] end
+      
   end
   ---------------------------------------------------
   function ExtState_Save_Patterns()
     local str = '//MPL_RS5K_PATLIST'
+    if data.tr_pointer then
+      str = str..'\nPARENT_GUID '..GetTrackGUID( data.tr_pointer )..'\n'
+    end
     local ind = '   '
     for k,v in spairs(pat, function(t,a,b) return tostring(b):lower() > tostring(a):lower() end) do 
     --for k in pairs(pat) do 
+      
       if tonumber(k) then
         local pat_t = pat[k]
         str = str..'\n<PAT'
@@ -674,6 +845,7 @@ DOCKED 0
         str = str..'\n'..k..' '..pat[k]
       end
     end  
+    --ClearConsole()
     --msg('\nSAVE\n'..str)
     SetProjExtState( 0, conf.ES_key, 'PAT', str )
     CommitPattern()
@@ -713,6 +885,8 @@ DOCKED 0
               local _, tk_name = GetSetMediaItemTakeInfo_String( tk, 'P_NAME', '',  0 )
               local chk_name if old_name then chk_name = old_name else chk_name = pat[pat.SEL].NAME end
               if tk_name == chk_name then
+                function B() end
+                if conf.global_mode == 2 then SetMediaItemInfo_Value( it,'B_MUTE', 1 ) end
                 CommitPatternSub(it, tk, pat[pat.SEL],it_pos_QN,it_pos,it_len)
               end
               if new_name then GetSetMediaItemTakeInfo_String( tk, 'P_NAME', new_name,  1 ) end
@@ -835,8 +1009,18 @@ DOCKED 0
       return copy
   end
   ---------------------------------------------------
+  function DefineParentTrack()
+    local tr = GetSelectedTrack(0,0)
+    if not tr then return end
+    ES_parent = tr 
+    Data_Update()       
+    BuildTrackTemplate_MIDISendMode()                     
+    ExtState_Save_Patterns()
+    redraw = 1
+  end
+  ---------------------------------------------------
   local function OBJ_define()  
-    obj.offs = 2
+    obj.offs = 5
     obj.grad_sz = 200
     obj.item_h = 30  -- tabs
     obj.item_h2 = 20 -- list header
@@ -850,8 +1034,33 @@ DOCKED 0
     obj.it_alpha4 = 0.05 -- option items
     obj.comm_w = 80 -- commit button
     obj.comm_h = 30
-    obj.layout = {'keys',
-                  'Korg NanoPad'}   
+    obj.layout = {'Chromatic Keys',
+                  'Chromatic Keys (2 oct)',
+                  'Korg NanoPad',
+                  'Ableton Live Drum Rack',
+                  'Studio One Impact'} 
+    obj.key_h = 250  -- keys y/h  
+    obj.WF_h=50    
+    obj.kn_w =40
+    obj.kn_h =50
+    -----------------------------
+    local set_par_tr_w = 300
+    obj.set_par_tr =  {x =(gfx.w-set_par_tr_w)/2,
+                y = (gfx.h-obj.kn_h)/2 ,
+                w = set_par_tr_w,
+                h = obj.kn_h,
+                col = 'white',
+                show = true,
+                state = 0,
+                txt = 'Set selected track as parent for script data',
+                fontsz = gui.fontsz2,
+                alpha_back = 0.05,
+                mouse_scale = 100,
+                axis = 'y',
+                is_slider = true,
+                func =  function() DefineParentTrack() end}
+    
+    
     obj.tab = { x = 0,
                 y = 0,
                 h = obj.item_h,
@@ -894,9 +1103,9 @@ DOCKED 0
                 state = 0,
                 ignore_mouse = true}                
     obj.scroll =  {
-                y = obj.item_h+2+obj.item_h2,
+                y = obj.item_h+2+obj.item_h2*2,
                 w = obj.scroll_w,
-                h = gfx.h-obj.item_h-obj.item_h2-3,
+                h = gfx.h-obj.item_h-obj.item_h2*2-3,
                 col = 'white',
                 show = true,
                 state = 0,
@@ -912,7 +1121,7 @@ DOCKED 0
                             if mouse.context_latch =='scroll' 
                               and mouse.context_latch_val 
                               and mouse.is_moving then
-                              local val = mouse.context_latch_val + mouse.dy/20
+                              local val = mouse.context_latch_val + mouse.dy/150
                               slider_val = lim(val, 0,1)
                               redraw = 1
                             end
@@ -962,7 +1171,7 @@ DOCKED 0
       obj.tab.txt = 'Patterns & StepSeq'
       --obj.tab.col = 'blue'
      elseif conf.tab == 2 then 
-      obj.tab.txt = 'Controls & Options'  
+      obj.tab.txt = 'Options'  
       --obj.tab.col = 'white'    
     end
     obj.tab.val = conf.tab
@@ -975,7 +1184,7 @@ DOCKED 0
     --
     obj.scroll.x =  obj.tab_div-obj.scroll_w
     obj.scroll.val = slider_val
-    obj.scroll.h = gfx.h-obj.item_h-obj.item_h2-3
+    obj.scroll.h = gfx.h-obj.item_h-obj.item_h2*2-3
     obj.scroll.show = true
     obj.scroll2.x = gfx.w - obj.scroll_w
     obj.scroll2.show = false
@@ -1024,11 +1233,9 @@ DOCKED 0
                             ExtState_Save()
                             redraw = 1                            
                           end}                          
-      --[[if conf.keymode == 0 then 
-        OBJ_GenKeys() 
-       elseif conf.keymode == 1 then ]]
-        OBJ_GenKeys()
-     -- end
+
+      OBJ_GenKeys()
+      OBJ_GenKeys_splCtrl()
       obj.scroll.steps = cnt_it
       -----------------------
      elseif conf.tab == 1 then 
@@ -1036,24 +1243,6 @@ DOCKED 0
       if obj.tab_div ~= 0 then cnt_it = OBJ_GenPatternBrowser() end
       obj.scroll.steps = cnt_it   
       local cnt_it2 = OBJ_GenStepSequencer()
-      if conf.commit_mode == 1 or conf.commit_mode == 2 then 
-        obj._stepseq_commit = { clear = true,
-                    x = gfx.w-obj.comm_w- obj.scroll_w - 1,
-                    y = gfx.h -obj.comm_h ,
-                    w = obj.comm_w,
-                    h = obj.comm_h,
-                    col = 'white',
-                    state = fale,
-                    txt= 'Commit',
-                    show = true,
-                    is_but = true,
-                    mouse_overlay = true,
-                    fontsz = gui.fontsz,
-                    alpha_back = obj.it_alpha4,
-                    func =  function() 
-                              CommitPattern(0)
-                            end} 
-      end
       obj.scroll2.show = true 
       -----------------------
      elseif conf.tab == 2 then 
@@ -1242,7 +1431,7 @@ DOCKED 0
                 h = obj.item_h2,
                 col = 'white',
                 check = conf.use_preview,
-                txt= 'Use RS5k instance at note 0 as preview',
+                txt= 'Use RS5k instance at note 0 as browser preview',
                 show = true,
                 is_but = true,
                 fontsz = gui.fontsz2,
@@ -1289,9 +1478,35 @@ DOCKED 0
                                     state = conf.keymode == 0},
                                   {str = obj.layout[2],
                                     func = function() conf.keymode = 1 ExtState_Save() redraw = 1 end ,
-                                    state = conf.keymode == 1}
+                                    state = conf.keymode == 1},
+                                  {str = obj.layout[3],
+                                    func = function() conf.keymode = 2 ExtState_Save() redraw = 1 end ,
+                                    state = conf.keymode == 2}  ,   
+                                  {str = obj.layout[4],
+                                    func = function() conf.keymode = 3 ExtState_Save() redraw = 1 end ,
+                                    state = conf.keymode == 3},
+                                  {str = obj.layout[5],
+                                    func = function() conf.keymode = 4 ExtState_Save() redraw = 1 end ,
+                                    state = conf.keymode == 4}                                                                                                           
                                 })
-                        end}                                                                       
+                        end}    
+    obj.opt_sample_keypreview = { clear = true,
+                x = obj.tab_div+2,
+                y = 1+(obj.item_h2+2)*4,
+                w = gfx.w - obj.tab_div-4,
+                h = obj.item_h2,
+                col = 'white',
+                check = conf.keypreview,
+                txt= 'Send MIDI by clicking on keys',
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha4,
+                func =  function() 
+                          conf.keypreview = math.abs(1-conf.keypreview) 
+                          ExtState_Save()
+                          redraw = 1                  
+                        end}                                                                                            
   end
   ----------------------------------------------------------------------- 
   function GetInput( captions_csv, retvals_csv,floor)
@@ -1313,7 +1528,7 @@ DOCKED 0
                 w = gfx.w - obj.tab_div-4,
                 h = obj.item_h2,
                 col = 'white',
-                state = conf.commit_mode == 0,
+                state = conf.global_mode == 0,
                 txt= 'Parent track mode: '..global_modes[conf.global_mode+1],
                 show = true,
                 is_but = true,
@@ -1355,6 +1570,34 @@ DOCKED 0
                           ExtState_Save()
                           redraw = 1                  
                         end}   
+    obj.opt_global_redefine_parent = { clear = true,
+                x = obj.tab_div+2,
+                y = (obj.item_h2+2)*2,
+                w = gfx.w - obj.tab_div-4,
+                h = obj.item_h2,
+                col = 'red',
+                txt= 'Redefine parent track (make sure you know what you do)',
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha4,
+                func =  function() DefineParentTrack() end}    
+    obj.opt_global_select_parent = { clear = true,
+                x = obj.tab_div+2,
+                y = (obj.item_h2+2)*3,
+                w = gfx.w - obj.tab_div-4,
+                h = obj.item_h2,
+                col = 'white',
+                txt= 'Select parent track',
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha4,
+                func =  function() 
+                          if not data.tr_pointer or not ValidatePtr2( 0, data.tr_pointer, 'MediaTrack*' ) then return end 
+                          SetOnlyTrackSelected( data.tr_pointer )
+                        end}                                          
+                        
     --[[obj.opt_global_exploders5k = { clear = true,
                 x = obj.tab_div+2,
                 y = (obj.item_h2+2)*2,
@@ -1482,7 +1725,7 @@ DOCKED 0
                   col = col,
                   state = 1,
                   txt= txt,
-                  aligh_txt = 1,
+                  aligh_txt = 4,
                   blit = 4,
                   show = true,
                   is_but = true,
@@ -1617,8 +1860,10 @@ DOCKED 0
                                 if not pat[pat.SEL]['NOTE'..i] then pat[pat.SEL]['NOTE'..i] = {} end
                                 if not pat[pat.SEL]['NOTE'..i].STEPS then pat[pat.SEL]['NOTE'..i].STEPS = conf.default_steps end
                                 if not pat[pat.SEL]['NOTE'..i].seq then pat[pat.SEL]['NOTE'..i].seq = {} end
-                                if pat[pat.SEL]['NOTE'..i].seq[step] and mouse.context_latch_val then 
-                                  pat[pat.SEL]['NOTE'..i].seq[step] = mouse.context_latch_val
+                                if pat[pat.SEL]['NOTE'..i].seq[step] then
+                                  if mouse.context_latch_val then pat[pat.SEL]['NOTE'..i].seq[step] = mouse.context_latch_val end
+                                 else
+                                  pat[pat.SEL]['NOTE'..i].seq[step] = 0
                                 end
                                 pat[pat.SEL]['NOTE'..i].SEQHASH = FormSeqHash(steps, pat[pat.SEL]['NOTE'..i].seq)
                                 ExtState_Save_Patterns()
@@ -1719,9 +1964,9 @@ DOCKED 0
     local up_w = 40
     obj.pat_new = { clear = true,
                   x = obj.browser.x,
-                y = obj.browser.y,
+                y = obj.browser.y+obj.item_h2,
                 w = up_w,
-                h = obj.item_h2,
+                h = obj.item_h2-1,
                 col = 'white',
                 state = 0,
                 txt= 'New',
@@ -1739,9 +1984,9 @@ DOCKED 0
                         end} 
     obj.pat_dupl = { clear = true,
                   x = obj.browser.x+up_w+1,
-                y = obj.browser.y,
+                y = obj.browser.y+obj.item_h2,
                 w = up_w,
-                h = obj.item_h2,
+                h = obj.item_h2-1,
                 col = 'white',
                 state = 0,
                 txt= 'Dupl',
@@ -1763,9 +2008,9 @@ DOCKED 0
                         end}    
     obj.pat_rem = { clear = true,
                   x = obj.browser.x+(up_w+1)*2,
-                y = obj.browser.y,
+                y = obj.browser.y+obj.item_h2,
                 w = up_w,
-                h = obj.item_h2,
+                h = obj.item_h2-1,
                 col = 'white',
                 state = 0,
                 txt= 'Del',
@@ -1781,20 +2026,35 @@ DOCKED 0
                             redraw = 1
                           end
                         end}   
+      if conf.commit_mode == 1 or conf.commit_mode == 2 then 
+        obj.stepseq_commit = { clear = true,
+                    x = obj.browser.x+(up_w+1)*3,-- gfx.w-obj.comm_w- obj.scroll_w - 1,
+                    y = obj.browser.y+obj.item_h2,--gfx.h -obj.comm_h ,
+                    w = obj.tab_div - (obj.browser.x+(up_w+1)*3),--obj.comm_w,
+                    h = obj.item_h2-1,--obj.comm_h,
+                    col = 'white',
+                    state = 0,
+                    txt= 'Commit',
+                    show = true,
+                    is_but = true,
+                    fontsz = gui.fontsz2,
+                    alpha_back = obj.it_alpha2,
+                    func =  function() CommitPattern(0)end} 
+      end                        
     local cur_pat_name = '(not selected)'
     if pat.SEL and pat[pat.SEL] then cur_pat_name = pat[pat.SEL].NAME end
     obj.pat_current = { clear = true,
-                  x = obj.browser.x+(up_w+1)*3,
-                y = obj.browser.y,
-                w = lim(obj.browser.w-(up_w+1)*3,up_w, math.huge),
-                h = obj.item_h2,
-                col = 'white',
+                  x = obj.browser.x,--+(up_w+1)*3,
+                y = obj.browser.y,--+obj.item_h2,
+                w = obj.tab_div,--lim(obj.browser.w-(up_w+1)*3,up_w, math.huge),
+                h = obj.item_h2-1,
+                col = 'green',
                 state = 0,
                 txt= cur_pat_name ,
                 show = true,
                 is_but = true,
                 fontsz = gui.fontsz2,
-                alpha_back = obj.it_alpha,
+                alpha_back = obj.it_alpha2,
                 func =  function() 
                           Menu({
                                   {str='Rename pattern',
@@ -1827,7 +2087,7 @@ DOCKED 0
                         end}      
     local p_cnt = #pat
     --if #pat > 1 then p_cnt = #pat end
-    blit_h = p_cnt*obj.item_h3 + obj.browser.y + obj.item_h2
+    blit_h = p_cnt*obj.item_h3 + obj.browser.y + obj.item_h2*2
     obj.blit_y_src = math.floor(slider_val*(blit_h-obj.item_h2*2-obj.item_h))            
     for i = 1, #pat do 
       local a = 0.2
@@ -1835,7 +2095,7 @@ DOCKED 0
       obj['patlist'..i] = 
                 { clear = true,
                   x = obj.browser.x,
-                  y = obj.browser.y + 1  + obj.item_h2+(i-1)*obj.item_h3,
+                  y = (i-1)*obj.item_h3,
                   w = obj.tab_div-obj.scroll_w- 1,
                   h = obj.item_h3,
                   col = 'white',
@@ -1848,7 +2108,7 @@ DOCKED 0
                   fontsz = gui.fontsz2,
                   alpha_back = a,
                   --a_line = 0,
-                  mouse_offs_y = obj.blit_y_src,
+                  mouse_offs_y = obj.blit_y_src - obj.item_h2*2-obj.item_h,
                   func =  function() 
                             pat.SEL = i
                             if conf.autoselect_patterns == 1 then SelectLinkedPatterns(pat[i].NAME) end
@@ -1924,6 +2184,7 @@ DOCKED 0
   ---------------------------------------------------
   function OBJ_GenSampleBrowser()
     local up_w = 25
+    if obj.tab_div == 0 then up_w = 0 end
     obj.browser_up = { clear = true,
                   x = obj.browser.x,
                 y = obj.browser.y,
@@ -1947,9 +2208,9 @@ DOCKED 0
                         end} 
     ------ browser menu form --------------- 
     obj.browser_cur = { clear = true,
-                x = up_w+1+obj.browser.x,
-                y = obj.browser.y,
-                w = obj.tab_div-up_w-1,
+                x = obj.browser.x,
+                y = obj.browser.y+obj.item_h2,
+                w = obj.tab_div,
                 h = obj.item_h2,
                 col = 'white',
                 state = 0,
@@ -1970,7 +2231,7 @@ DOCKED 0
       obj['browser_dirlist'..i] = 
                 { clear = true,
                   x = obj.browser.x,
-                  y = obj.browser.y + 1  + obj.item_h2+(i-1)*obj.item_h3,
+                  y = (i-1)*obj.item_h3,
                   w = obj.tab_div-obj.scroll_w,
                   h = obj.item_h3,
                   col = 'white',
@@ -1984,7 +2245,7 @@ DOCKED 0
                   fontsz = gui.fontsz2,
                   alpha_back = 0.2,
                   a_line = 0.1,
-                  mouse_offs_y = obj.blit_y_src,
+                  mouse_offs_y = obj.blit_y_src - obj.item_h2*2-obj.item_h,
                   func =  function() 
                             local p = conf.cur_smpl_browser_dir..'/'..cur_dir_list[i][1] 
                             p = p:gsub('\\','/')
@@ -1993,6 +2254,7 @@ DOCKED 0
                               ExtState_Save()
                               redraw = 1
                              else
+                              -- preview
                               GetSampleToExport(p)
                               if conf.use_preview == 1 then 
                                 
@@ -2002,13 +2264,20 @@ DOCKED 0
                                   StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), 0,100)
                                 end
                                 
-                                if conf.global_mode == 1 or conf.global_mode == 2 then -- use track as folder
+                                if conf.global_mode == 1 then -- use track as folder
                                   BuildTrackTemplate_MIDISendMode()
                                   ExportItemToRS5K(p, 0,data.tr_pointer_MIDI)
                                   StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), 0,100)
                                   StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), 0,100)
                                 end
-                                                               
+
+                                if conf.global_mode == 2 then -- dump mode, use parent track
+                                  BuildTrackTemplate_MIDISendMode()
+                                  ExportItemToRS5K(p, 0,data.tr_pointer)
+                                  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), 0,100)
+                                  StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), 0,100)
+                                end
+                                                                                               
                               end
                             end
                           end}    
@@ -2020,29 +2289,25 @@ DOCKED 0
   function BuildTrackTemplate_MIDISendMode()
     if not data.tr_pointer then return end
     -- if not folder then create preview channel and set to folder
-      if GetMediaTrackInfo_Value( data.tr_pointer, 'I_FOLDERDEPTH' ) ~= 1 then
-        local ret = MB('Build RS5K template around selected track?', scr_title,4 )
-        if ret == 6 then
-          SetMediaTrackInfo_Value( data.tr_pointer, 'I_FOLDERDEPTH',1 )
-          
-          data.tr_pointer_MIDI = InsertTrack(CSurf_TrackToID( data.tr_pointer, false ))
-          GetSetMediaTrackInfo_String(data.tr_pointer_MIDI, 'P_NAME', MIDItr_name, true)
-          SetMediaTrackInfo_Value(data.tr_pointer_MIDI, 'I_FOLDERDEPTH',-1 ) 
-          ExplodeRS5K_AddChunkToTrack(data.tr_pointer_MIDI)
-          MIDI_prepare(data.tr_pointer_MIDI)
-        end
-      end
-      
-    -- if MIDI track not exists
-      if not data.tr_pointer_MIDI and GetMediaTrackInfo_Value( data.tr_pointer, 'I_FOLDERDEPTH' ) == 1 then
-        data.tr_pointer_MIDI = InsertTrack(CSurf_TrackToID( data.tr_pointer, false ))        
-        GetSetMediaTrackInfo_String(data.tr_pointer_MIDI, 'P_NAME', MIDItr_name, true) 
+    if conf.global_mode == 1 or conf.global_mode == 2 then SetMediaTrackInfo_Value( data.tr_pointer, 'I_FOLDERDEPTH',1 ) end
+    if conf.global_mode == 1 then
+      if not data.tr_pointer_MIDI or not ValidatePtr2( 0, data.tr_pointer_MIDI, 'MediaTrack*' ) then
+        data.tr_pointer_MIDI = InsertTrack(CSurf_TrackToID( data.tr_pointer, false ))
+        GetSetMediaTrackInfo_String(data.tr_pointer_MIDI, 'P_NAME', MIDItr_name, true)
+        SetMediaTrackInfo_Value(data.tr_pointer_MIDI, 'I_FOLDERDEPTH',-1 ) 
+        ExplodeRS5K_AddChunkToTrack(data.tr_pointer_MIDI)
         MIDI_prepare(data.tr_pointer_MIDI)
-      end      
+       else
+        MIDI_prepare(data.tr_pointer, _, -1)
+      end
+    end
+    
+    if conf.global_mode == 0 or conf.global_mode == 2 then  MIDI_prepare(data.tr_pointer)  end
+    
   end
   -----------------------------------------------------------------------    
     function GetNoteStr(val, mode) 
-      local oct_shift = conf.oct_shift-7
+      local oct_shift = -1--conf.oct_shift-7
       local int_mode
       if mode then int_mode = mode else int_mode = conf.key_names end
       if int_mode == 0 then
@@ -2125,8 +2390,9 @@ DOCKED 0
     end
     ---------------------------------------------------
     function OBJ_GenKeys()
-      local opt_h = 0--obj.item_h +  1 + obj.item_h2 + 1
+      --obj.item_h +  1 + obj.item_h2 + 1
       local shifts,w_div ,h_div
+      local start_note_shift =0
       if conf.keymode ==0 then 
         w_div = 7
         h_div = 2
@@ -2143,9 +2409,37 @@ DOCKED 0
                   {5.5,0},
                   {6,1},
                 }
-       elseif conf.keymode == 1 then
+      elseif conf.keymode ==1 then 
+        w_div = 14
+        h_div = 2
+        shifts  = {{0,1},
+                  {0.5,0},
+                  {1,1},
+                  {1.5,0},
+                  {2,1},
+                  {3,1},
+                  {3.5,0},
+                  {4,1},
+                  {4.5,0},
+                  {5,1},
+                  {5.5,0},
+                  {6,1},
+                  {7,1},
+                  {7.5,0},
+                  {8,1},
+                  {8.5,0},
+                  {9,1},
+                  {10,1},
+                  {10.5,0},
+                  {11,1},
+                  {11.5,0},
+                  {12,1},
+                  {12.5,0},
+                  {13,1}                 
+                }                
+       elseif conf.keymode == 2 then -- korg nano
         w_div = 8
-        h_div = 2       
+        h_div = 2     
         shifts  = {{0,1},
                   {0,0},
                   {1,1},
@@ -2162,12 +2456,54 @@ DOCKED 0
                   {6,0},      
                   {7,1},
                   {7,0},                              
-                }       
+                }   
+       elseif conf.keymode == 3 then -- live dr rack
+        w_div = 4
+        h_div = 4     
+        shifts  = { {0,3},    
+                    {1,3}, 
+                    {2,3}, 
+                    {3,3},
+                    {0,2},    
+                    {1,2}, 
+                    {2,2}, 
+                    {3,2},
+                    {0,1},    
+                    {1,1}, 
+                    {2,1}, 
+                    {3,1},
+                    {0,0},    
+                    {1,0}, 
+                    {2,0}, 
+                    {3,0}                                                               
+                }      
+       elseif conf.keymode == 4 then -- s1 impact
+        w_div = 4
+        h_div = 4 
+        start_note_shift = -1    
+        shifts  = { {0,3},    
+                    {1,3}, 
+                    {2,3}, 
+                    {3,3},
+                    {0,2},    
+                    {1,2}, 
+                    {2,2}, 
+                    {3,2},
+                    {0,1},    
+                    {1,1}, 
+                    {2,1}, 
+                    {3,1},
+                    {0,0},    
+                    {1,0}, 
+                    {2,0}, 
+                    {3,0}                                                               
+                }                              
       end
       local key_w = math.ceil(obj.workarea.w/w_div)
-      local key_h = math.ceil((1/h_div)*(gfx.h - opt_h))  
+      local key_h = math.ceil((1/h_div)*(obj.key_h)) 
+      obj.h_div = h_div
       for i = 1, #shifts do
-        local note = (i-1)+12*conf.oct_shift
+        local note = (i-1)+12*conf.oct_shift+start_note_shift
         local fn, ret = GetSampleNameByNote(note)
         local col = 'white'
         if ret then col = 'green' end
@@ -2176,7 +2512,7 @@ DOCKED 0
           obj['keys_'..i] = 
                     { clear = true,
                       x = obj.workarea.x+shifts[i][1]*key_w,
-                      y = opt_h+ shifts[i][2]*key_h,
+                      y = gfx.h-obj.key_h+ shifts[i][2]*key_h,
                       w = key_w,
                       h = key_h,
                       col = col,
@@ -2193,7 +2529,9 @@ DOCKED 0
                       fontsz = gui.fontsz2,
                       func =  function() 
                                 if obj[ mouse.context ] and obj[ mouse.context ].linked_note then
-                                  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), obj[ mouse.context ].linked_note,100) 
+                                  if conf.keypreview == 1 then StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), obj[ mouse.context ].linked_note,100)  end
+                                  obj.current_WFkey = obj[ mouse.context ].linked_note
+                                  redraw_WF = 1
                                 end
                               end} 
           if    note%12 == 1 
@@ -2204,7 +2542,107 @@ DOCKED 0
             then obj['keys_'..i].txt_col = 'black' end
         end
       end
+ 
+      
     end
+    ---------------------------------------------------
+    function OBJ_GenKeys_splCtrl()
+      local cur_note = obj.current_WFkey
+      if not (cur_note and data[cur_note] and data[cur_note][1]) or conf.global_mode == 2 then return end
+      
+      local file_name = data[cur_note][1].fn
+      obj.spl_WF_filename = { clear = true,
+              x = obj.tab_div,
+              y = gfx.h - obj.WF_h-obj.key_h,
+              w = gfx.w - obj.tab_div,
+              h = obj.WF_h,
+              col = 'white',
+              state = 0,
+              txt= file_name,
+              aligh_txt = 0,
+              show = true,
+              is_but = true,
+              fontsz = gui.fontsz2,
+              alpha_back =0}   
+        --[[ knobs
+        if gfx.h - obj.WF_h-obj.key_h > obj.kn_h + obj.offs * 2 then
+          local gain_val = data[cur_note][1].gain / 2
+          local gain_txt
+          if mouse.context_latch and mouse.context_latch == 'splctrl_gain' then 
+            gain_txt  = dBFromVal(data[cur_note][1].gain) 
+           else 
+            gain_txt = 'Gain' 
+          end
+          function B1() end
+          obj.splctrl_gain = { clear = true,
+                x = obj.tab_div + obj.offs,
+                y = obj.offs,
+                w = obj.kn_w*4,
+                h = obj.kn_h,
+                col = 'white',
+                state = 0,
+                txt= gain_txt,
+                aligh_txt = 16,
+                show = true,
+                is_but = true,
+                is_knob = true,
+                val = gain_val,
+                fontsz = gui.fontsz3,
+                alpha_back =0.03,
+                func = function() 
+                        redraw = 1 
+                      end}
+        end ]]              
+    end
+    ---------------------------------------------------
+    function GUI_knob(b)
+      local x,y,w,h,val =b.x,b.y,b.w,b.h, b.val
+      local arc_r = math.floor(w/2 * 0.8)
+      y = y - arc_r/2 + 1
+      local ang_gr = 120
+      local ang_val = math.rad(-ang_gr+ang_gr*2*val)
+      local ang = math.rad(ang_gr)
+    
+      -- arc back
+      for i = 0, 3, 0.5 do
+        gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
+        gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
+        gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
+        gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)
+      end
+      
+      col(b.col, 0.5)
+      -- val       
+      local ang_val = math.rad(-ang_gr+ang_gr*2*val)
+      for i = 0, 3, 0.5 do
+        if ang_val < math.rad(-90) then 
+          gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),ang_val, 1)
+         else
+          if ang_val < math.rad(0) then 
+            gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
+            gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),ang_val,    1)
+           else
+            if ang_val < math.rad(90) then 
+              gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
+              gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
+              gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    1)
+             else
+              if ang_val < math.rad(ang_gr) then 
+                gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
+                gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
+                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
+                gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),ang_val,    1)
+               else
+                gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
+                gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
+                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
+                gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)                  
+              end
+            end
+          end                
+        end
+      end
+    end 
     ---------------------------------------------------
     function GetParentFolder(dir) return dir:match('(.*)[%\\/]') end
     ---------------------------------------------------
@@ -2363,28 +2801,71 @@ DOCKED 0
     end    
     if mouse.last_mx_onclick and mouse.last_my_onclick then mouse.dx = mouse.mx - mouse.last_mx_onclick  mouse.dy = mouse.my - mouse.last_my_onclick else mouse.dx, mouse.dy = 0,0 end
 
+    
     -- buttons
       for key in spairs(obj) do
-        if type(obj[key]) == 'table' and not obj[key].ignore_mouse  then
+        if type(obj[key]) == 'table' and not obj[key].ignore_mouse then
+          if not ES_parent and key ~= 'set_par_tr' then goto skip_until_get_parent_track end
+          ------------------------
           if MOUSE_Match(obj[key]) and obj[key].mouse_overlay then 
             if mouse.LMB_state and not mouse.last_LMB_state and MOUSE_Match(obj[key]) then if obj[key].func then  obj[key].func() end end
             goto skip_mouse_check 
           end
+          ------------------------
           if MOUSE_Match(obj[key]) then mouse.context = key end
-          if mouse.LMB_state and not mouse.last_LMB_state and not mouse.Ctrl_state  and MOUSE_Match(obj[key]) then if obj[key].func then  obj[key].func() end end
-          if mouse.LMB_state and not mouse.last_LMB_state and not mouse.Ctrl_state  and mouse.DLMB_state and MOUSE_Match(obj[key]) then if obj[key].func_DC then   obj[key].func_DC() end end
-          if mouse.LMB_state and not mouse.Ctrl_state and (mouse.context == key or mouse.context_latch == key) then if obj[key].func_LD then obj[key].func_LD() end end
-          if mouse.Ctrl_LMB_state and (mouse.context == key or mouse.context_latch == key) then if obj[key].func_ctrlLD then obj[key].func_ctrlLD() end end
-          if mouse.RMB_state and  (mouse.context == key or mouse.context_latch == key) then if obj[key].func_RD then obj[key].func_RD() end end
-          if mouse.RMB_state and  mouse.context == key and not mouse.last_RMB_state then if obj[key].func_R then obj[key].func_R() end end
-          if mouse.wheel_trig and mouse.wheel_trig ~= 0 and mouse.Ctrl_state then if obj[key].func_wheel then obj[key].func_wheel(mouse.wheel_trig) end end
+          if MOUSE_Match(obj[key]) and mouse.LMB_state and not mouse.last_LMB_state then mouse.context_latch = key end
+          
+          if mouse.LMB_state 
+            and not mouse.last_LMB_state 
+            and not mouse.Ctrl_state  
+            and MOUSE_Match(obj[key]) then 
+            if obj[key].func then  obj[key].func() 
+          end end
+          
+          if mouse.LMB_state 
+            and not mouse.last_LMB_state 
+            and not mouse.Ctrl_state  
+            and mouse.DLMB_state 
+            and MOUSE_Match(obj[key]) then 
+            if obj[key].func_DC then   obj[key].func_DC() 
+          end end
+          
+          if mouse.LMB_state 
+            and not mouse.Ctrl_state 
+            and (mouse.context == key or mouse.context_latch == key) then 
+            if obj[key].func_LD then obj[key].func_LD() 
+          end end
+          
+          if mouse.Ctrl_LMB_state 
+            and (mouse.context == key or mouse.context_latch == key) then 
+            if obj[key].func_ctrlLD then obj[key].func_ctrlLD() 
+          end end
+          
+          if mouse.RMB_state 
+            and  (mouse.context == key or mouse.context_latch == key) then 
+            if obj[key].func_RD then obj[key].func_RD() 
+          end end
+          
+          if mouse.RMB_state 
+            and  mouse.context == key 
+              and not mouse.last_RMB_state then 
+              if obj[key].func_R then obj[key].func_R() 
+          end end
+            
+          if mouse.wheel_trig 
+            and mouse.wheel_trig ~= 0 
+            and mouse.Ctrl_state then 
+            if obj[key].func_wheel then obj[key].func_wheel(mouse.wheel_trig) 
+          end end
+          ::skip_until_get_parent_track::
+          ------------------
         end
       end
-    
+      
     -- scroll
       if mouse.mx < obj.browser.x + obj.browser.w  and mouse.wheel_trig and mouse.wheel_trig ~= 0 then
         if blit_h > obj.browser.h then 
-          slider_val = lim(slider_val - mouse.wheel_trig/conf.mouse_wheel_res,0,1)
+          slider_val = lim(slider_val - mouse.wheel_trig/mouse_wheel_res,0,1)
           redraw = 1
         end
       end
@@ -2392,7 +2873,7 @@ DOCKED 0
     -- scroll stepseq
       if mouse.mx > obj.workarea.x  and mouse.wheel_trig and mouse.wheel_trig ~= 0 and not mouse.Ctrl_state then
         if blit_h2 > gfx.h then
-          slider_val2 = lim(slider_val2 - mouse.wheel_trig/conf.mouse_wheel_res,0,1)
+          slider_val2 = lim(slider_val2 - mouse.wheel_trig/mouse_wheel_res,0,1)
           redraw = 1
         end
       end
@@ -2420,7 +2901,6 @@ DOCKED 0
           for i = 1, 127 do StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), i, 100) end
           redraw = 1
       end
-      
       ::skip_mouse_check::
       mouse.last_mx = mouse.mx
       mouse.last_my = mouse.my
@@ -2431,7 +2911,7 @@ DOCKED 0
       mouse.last_Ctrl_state = mouse.Ctrl_state
       mouse.last_Alt_state = mouse.Alt_state
       mouse.last_wheel = mouse.wheel   
-      
+      mouse.last_context_latch = mouse.context_latch
       mouse.DLMB_state = nil   
   end
 
@@ -2543,10 +3023,11 @@ DOCKED 0
     ShortCuts(char)
     if char >= 0 and char ~= 27 then defer(run) else atexit(gfx.quit) end
   end
+
   ---------------------------------------------------
-  ClearConsole()
+  --ClearConsole()
   ExtState_Load()  
-  ExtState_Load_Patterns()
+  ExtState_Load_Patterns() -- load parent GUID 
   gfx.init('MPL '..scr_title..' '..vrs,
             conf.wind_w, 
             conf.wind_h, 
