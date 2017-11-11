@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="26fef8b6af2fef895fb496c3f4fb9c513dbb5646" name="MPL Scripts">
+<index version="1" commit="c954134d5f0035a1e85c5382415145c1a666d8a3" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1358,20 +1358,17 @@ setup min gain, attack =0]]></changelog>
     </reapack>
     <reapack name="mpl_Comb-filtering check selected items.lua" type="script" desc="Comb-filtering check selected items">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa0 \li360 \fi-360 1.\tx360\tab Script works for 2 selected items\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 2.\tx360\tab Put edit cursor at transient and shift dub item a bit left.\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 3.\tx360\tab Select both items and run script.\sa180\par}
-}
-]]></description>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
       <version name="1.0" author="MPL" time="2017-11-11T06:00:52Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26fef8b6af2fef895fb496c3f4fb9c513dbb5646/Items%20Properties/mpl_Comb-filtering%20check%20selected%20items.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-11-11T06:13:38Z">
+        <changelog><![CDATA[# more area (0.1s)
+# unlimited selected dub items
+# no need to shift items back before]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c954134d5f0035a1e85c5382415145c1a666d8a3/Items%20Properties/mpl_Comb-filtering%20check%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create snap offset at maximum peak in first second of take.lua" type="script" desc="Create snap offset at maximum peak in first second of take">
