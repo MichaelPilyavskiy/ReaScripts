@@ -1,21 +1,18 @@
 -- @description Comb-filtering check selected items
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---   + init
--- @about
---    1. Script works for 2 selected items
---    2. Put edit cursor at transient and shift dub item a bit left.
---    3. Select both items and run script.
-
+--    # more area (0.1s)
+--    # unlimited selected dub items
+--    # no need to shift items back before
 
   sz = 2^11
-  area = 0.05
+  area = 0.1
   show_tooltip = 1
   
   -- NOT gfx NOT reaper
-  local scr_title = 'Phase match selected items (comb-filtering check)'
+  local scr_title = 'Comb-filtering check selected items'
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
   function msg(s)  if not s then return end  ShowConsoleMsg(s..'\n')   end
@@ -99,20 +96,23 @@
     local ref_item = GetSelectedMediaItem(0,0)
     if not ref_item then return end
     local ref_item_buf = GetBuffer(ref_item, sz, SR, 0)  
-    local dub_it = GetSelectedMediaItem(0,1)
-    if not dub_it then return end
     
   if show_tooltip == 1 then 
-    MB([[1. Script works for 2 selected items
-2. Put edit cursor at transient and shift dub item a bit left.
-3. Select both items and run script') 
+    MB([[
+1. Put edit cursor at transient 
+2. Select items and run script') 
 
 Expected search area: ]]..area..'ms\nFFT size: '..math.floor(sz), scr_title, 0)
   end
-      
-    local pos = GetMediaItemInfo_Value( dub_it, 'D_POSITION' )
-    offs = CalcOffset(dub_it, area, ref_item_buf, sz, SR)
-    SetMediaItemInfo_Value( dub_it, 'D_POSITION', pos + offs )
+  
+    for i =2 , CountSelectedMediaItems(0) do
+      local dub_it = GetSelectedMediaItem(0,i-1)
+      if not dub_it then return end      
+      local pos = GetMediaItemInfo_Value( dub_it, 'D_POSITION' )
+      SetMediaItemInfo_Value( dub_it, 'D_POSITION', pos -area/2 )
+      offs = CalcOffset(dub_it, area, ref_item_buf, sz, SR)
+      SetMediaItemInfo_Value( dub_it, 'D_POSITION', pos + offs -area/2)
+    end
   end
   --------------------------------------------------- 
   
