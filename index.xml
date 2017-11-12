@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c954134d5f0035a1e85c5382415145c1a666d8a3" name="MPL Scripts">
+<index version="1" commit="7b00c2aa418fd9d712defd60196baf5de16cf0b3" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1370,6 +1370,11 @@ setup min gain, attack =0]]></changelog>
 # no need to shift items back before]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c954134d5f0035a1e85c5382415145c1a666d8a3/Items%20Properties/mpl_Comb-filtering%20check%20selected%20items.lua</source>
       </version>
+      <version name="1.05" author="MPL" time="2017-11-12T14:56:46Z">
+        <changelog><![CDATA[+ GUI
++ Splitted selection reference take and dub takes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Items%20Properties/mpl_Comb-filtering%20check%20selected%20items.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Create snap offset at maximum peak in first second of take.lua" type="script" desc="Create snap offset at maximum peak in first second of take">
       <metadata>
@@ -1500,6 +1505,39 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-06-03T04:39:21Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/98362cf1edbfdf730994f88f42019e0901450760/MIDI/mpl_Quantize%20item%20and%20note%20positions%20to%20project%20grid.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Send short NoteOn MIDI message to virtual keyboard.lua" type="script" desc="Send short NoteOn MIDI message to virtual keyboard">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-11-12T14:56:46Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main" file="Send NoteOn to VK, pitch 48 C3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 49 C#3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 50 D3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 51 D#3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 52 E3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 53 F3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 54 F#3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 55 G3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 56 G#3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 57 A3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 58 A#3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 59 B3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 60 C4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 61 C#4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 62 D4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 63 D#4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 64 E4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 65 F4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 66 F#4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 67 G4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 68 G#4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 69 A4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 70 A#4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 71 B4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
+        <source main="main" file="Send NoteOn to VK, pitch 72 C5.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Snap takes to scale.lua" type="script" desc="Snap takes to scale">
@@ -1789,6 +1827,53 @@ setup min gain, attack =0]]></changelog>
     <reapack name="mpl_Render inversed midi.lua" type="script" desc="Render inversed midi">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Render/mpl_Render%20inversed%20midi.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Spectral Edits">
+    <reapack name="mpl_Add spectral edit at specified frequency.lua" type="script" desc="Add spectral edit at specified frequency">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-11-12T14:56:46Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Spectral%20Edits/mpl_Add%20spectral%20edit%20at%20specified%20frequency.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Remove all spectral edits from selected items active takes.lua" type="script" desc="Remove all spectral edits from selected items active takes">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-11-12T14:56:46Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Spectral%20Edits/mpl_Remove%20all%20spectral%20edits%20from%20selected%20items%20active%20takes.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Remove all spectral edits from selected items.lua" type="script" desc="Remove all spectral edits from selected items">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-11-12T14:56:46Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Spectral%20Edits/mpl_Remove%20all%20spectral%20edits%20from%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle bypass all spectral edits in selected items active takes.lua" type="script" desc="Toggle bypass all spectral edits in selected items active takes">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-11-12T14:56:46Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Spectral%20Edits/mpl_Toggle%20bypass%20all%20spectral%20edits%20in%20selected%20items%20active%20takes.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle bypass all spectral edits in selected items.lua" type="script" desc="Toggle bypass all spectral edits in selected items">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-11-12T14:56:46Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Spectral%20Edits/mpl_Toggle%20bypass%20all%20spectral%20edits%20in%20selected%20items.lua</source>
       </version>
     </reapack>
   </category>
