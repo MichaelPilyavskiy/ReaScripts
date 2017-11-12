@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7b00c2aa418fd9d712defd60196baf5de16cf0b3" name="MPL Scripts">
+<index version="1" commit="9b880105b5af5feb25e3430f3b7164376cceeb92" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1839,6 +1839,10 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Spectral%20Edits/mpl_Add%20spectral%20edit%20at%20specified%20frequency.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2017-11-12T16:05:37Z">
+        <changelog><![CDATA[# fix non-WAVE sources]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9b880105b5af5feb25e3430f3b7164376cceeb92/Spectral%20Edits/mpl_Add%20spectral%20edit%20at%20specified%20frequency.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Remove all spectral edits from selected items active takes.lua" type="script" desc="Remove all spectral edits from selected items active takes">
       <metadata>
@@ -1847,6 +1851,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-11-12T14:56:46Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Spectral%20Edits/mpl_Remove%20all%20spectral%20edits%20from%20selected%20items%20active%20takes.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-11-12T16:05:37Z">
+        <changelog><![CDATA[# fix non-WAVE sources]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9b880105b5af5feb25e3430f3b7164376cceeb92/Spectral%20Edits/mpl_Remove%20all%20spectral%20edits%20from%20selected%20items%20active%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove all spectral edits from selected items.lua" type="script" desc="Remove all spectral edits from selected items">
@@ -1857,6 +1865,10 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Spectral%20Edits/mpl_Remove%20all%20spectral%20edits%20from%20selected%20items.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2017-11-12T16:05:37Z">
+        <changelog><![CDATA[# fix non-WAVE sources]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9b880105b5af5feb25e3430f3b7164376cceeb92/Spectral%20Edits/mpl_Remove%20all%20spectral%20edits%20from%20selected%20items.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Toggle bypass all spectral edits in selected items active takes.lua" type="script" desc="Toggle bypass all spectral edits in selected items active takes">
       <metadata>
@@ -1866,6 +1878,10 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Spectral%20Edits/mpl_Toggle%20bypass%20all%20spectral%20edits%20in%20selected%20items%20active%20takes.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2017-11-12T16:05:37Z">
+        <changelog><![CDATA[# fix non-WAVE sources]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9b880105b5af5feb25e3430f3b7164376cceeb92/Spectral%20Edits/mpl_Toggle%20bypass%20all%20spectral%20edits%20in%20selected%20items%20active%20takes.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Toggle bypass all spectral edits in selected items.lua" type="script" desc="Toggle bypass all spectral edits in selected items">
       <metadata>
@@ -1874,6 +1890,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-11-12T14:56:46Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Spectral%20Edits/mpl_Toggle%20bypass%20all%20spectral%20edits%20in%20selected%20items.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2017-11-12T16:05:37Z">
+        <changelog><![CDATA[# fix non-WAVE sources]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9b880105b5af5feb25e3430f3b7164376cceeb92/Spectral%20Edits/mpl_Toggle%20bypass%20all%20spectral%20edits%20in%20selected%20items.lua</source>
       </version>
     </reapack>
   </category>
