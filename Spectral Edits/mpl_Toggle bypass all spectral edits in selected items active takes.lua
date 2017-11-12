@@ -105,6 +105,7 @@
               ..data[tk_cnt].edits[edit_id].fadeinout_vert2..' '
               ..'\n'
           end
+          add_str = add_str..'SPECTRAL_CONFIG '..data[tk_cnt].FFT_sz  ..'\n'         
         end
         
         t[i] = t[i]..'\n'..add_str
