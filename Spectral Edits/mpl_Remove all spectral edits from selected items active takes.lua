@@ -1,9 +1,9 @@
 -- @description Remove all spectral edits from selected items active takes
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   + init
+--   # fix non-WAVE sources
 
 
   -- NOT gfx NOT reaper
@@ -19,7 +19,7 @@
     local SE ={}
     for line in chunk:gmatch('[^\r\n]+') do 
     
-      if line:match('<SOURCE WAVE') then 
+      if line:match('<SOURCE') then 
         tk_cnt =  tk_cnt +1 
         SE[tk_cnt]= {}
       end 
@@ -71,7 +71,7 @@
     for line in chunk:gmatch('[^\r\n]+') do t[#t+1] = line end
     local tk_cnt = 0 
     for i = 1, #t do
-      if t[i]:match('<SOURCE WAVE') then 
+      if t[i]:match('<SOURCE') then 
         tk_cnt = tk_cnt + 1 
         open = true 
       end
