@@ -1,5 +1,5 @@
 -- @description Remove all spectral edits from selected items active takes
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
