@@ -1,43 +1,24 @@
 ﻿-- @description RS5k manager
--- @version 1.20
+-- @version 1.21
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Global: allow only single instance of parent track per project
---    + Global: remove build track template confirmation dialog
---    + Global: define parent track when starting script first time in active project, check is parent track existed while script is running
---    + Global: Changed name of MIDI patterns track, probably uncompatible with earlier versions (require manual resend MIDI to childrens)
---    + Global: Set parent track name as 'RS5K Manager'
---    + Pads: Chromatic Keys 2 octaves layout
---    + Pads: Ableton Live Drum Rack layout
---    + Pads: Studio One Impact layout
---    + SampleBrowser: Draw waveforms and full file path when click on keys
---    + Options/Global: Action: Redefine parent track
---    + Options/Global: Action: Select parent track
---    + Options/Pads: optionally disable send MIDI by clicking on keys
---    # SingleTrack mode: don`t add MIDI preview track
---    # SingleTrack mode: don`t add make parent track folder
---    # MIDISend mode: clear MIDI preparations from parent track
---    # DumpItems mode: use parent track for preview, not create additional MIDI track
---    # DumpItems mode: use parent track for patterns
---    # DumpItems mode: auto mute patterns when commit
---    # StepSequencer: fix draw steps by dragging
---    # Pads: fix wrong MIDI notes integers
---    # UI: fix hide SampleBrowser back button when compressed width
---    # UI: fix wrong check for global mode preferences
---    # UI: fix fast scroll behaviour
---    # UI: move sample path name level down
---    # UI: move pattern name level down
---    # UI: move commit pattern button to pattern menu 
---    # UI: always sort pattern list by name 
+--    + Pads: Gain control per sample, double click to reset
+--    + Pads: Pan control per sample, double click to reset
+--    + Pads: Pitch control per sample (small circle is finetune), double click to reset
+--    + Pads: Attack control per sample (x^6 scaled), double click to reset
+--    + Pads: Decay control per sample (x^6 scaled), double click resets to 250ms
+--    + Pads: Sustain control per sample, double click to reset
+--    + Pads: Release control per sample, double click reset to 1ms
+--    # fix doubleclick behaviour in some cases
   
-  local vrs = 'v1.20'
+  local vrs = 'v1.21'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local SCC, lastSCC
-  local mouse = {}
+  local  mouse = {}
   local obj = {}
   local conf = {}
   local pat = {}
@@ -232,9 +213,8 @@
       end
     
     ------------------ knob
-      if o.is_knob then
-        GUI_knob(o)
-      end
+      if o.is_knob then GUI_knob(o) end
+
     ------------------ txt
       if o.txt and w > 0 then 
         local txt = tostring(o.txt)
@@ -326,22 +306,33 @@
   ---------------------------------------------------
   function dBFromVal(val) if val < 0.5 then return 20*math.log(val*2, 10) else return (val*12-6) end end
   ---------------------------------------------------
-  function GetRS5kData(tr,temp,p_offs)
+  function GetRS5kData(tr,temp,p_offs) local ex
     for fxid = 1,  TrackFX_GetCount( tr ) do
       local retval, buf =TrackFX_GetFXName( tr, fxid-1, '' )
       if buf:lower():match('rs5k') or buf:lower():match('reasamplomatic5000') then
         ex = true
         local retval, fn = TrackFX_GetNamedConfigParm( tr, fxid-1, 'FILE' )
-        local gain = TrackFX_GetParamNormalized( tr, fxid-1, 0)
-        local pitch = math_q(TrackFX_GetParamNormalized( tr, fxid-1, 3)*127)
         local pitch_offset = TrackFX_GetParamNormalized( tr, fxid-1, 15)
         p_offs[#p_offs+1] = pitch_offset
         temp[#temp+1] = {idx = fxid-1,
                         name = buf,
                         fn = fn,
-                        pitch=pitch,
+                        pitch    =math.floor(({TrackFX_GetFormattedParamValue( tr, fxid-1, 3, '' )})[2]),
+                        pitch_semitones =    ({TrackFX_GetFormattedParamValue( tr, fxid-1, 15, '' )})[2],
                         pitch_offset = pitch_offset,
-                        gain=gain}
+                        gain=                 TrackFX_GetParamNormalized( tr, fxid-1, 0),
+                        gain_dB =           ({TrackFX_GetFormattedParamValue( tr, fxid-1, 0, '' )})[2],
+                        trackGUID =           GetTrackGUID( tr ),
+                        pan=                  TrackFX_GetParamNormalized( tr, fxid-1,1),
+                        attack =              TrackFX_GetParamNormalized( tr, fxid-1,9),
+                        attack_ms =         ({TrackFX_GetFormattedParamValue( tr, fxid-1, 9, '' )})[2],
+                        decay =              TrackFX_GetParamNormalized( tr, fxid-1,24),
+                        decay_ms =         ({TrackFX_GetFormattedParamValue( tr, fxid-1, 24, '' )})[2],  
+                        sust =              TrackFX_GetParamNormalized( tr, fxid-1,25),
+                        sust_dB =         ({TrackFX_GetFormattedParamValue( tr, fxid-1, 25, '' )})[2],
+                        rel =              TrackFX_GetParamNormalized( tr, fxid-1,10),
+                        rel_ms =         ({TrackFX_GetFormattedParamValue( tr, fxid-1, 10, '' )})[2],                                                                        
+                        }
       end
     end  
   end
@@ -885,7 +876,6 @@ DOCKED 0
               local _, tk_name = GetSetMediaItemTakeInfo_String( tk, 'P_NAME', '',  0 )
               local chk_name if old_name then chk_name = old_name else chk_name = pat[pat.SEL].NAME end
               if tk_name == chk_name then
-                function B() end
                 if conf.global_mode == 2 then SetMediaItemInfo_Value( it,'B_MUTE', 1 ) end
                 CommitPatternSub(it, tk, pat[pat.SEL],it_pos_QN,it_pos,it_len)
               end
@@ -1041,8 +1031,8 @@ DOCKED 0
                   'Studio One Impact'} 
     obj.key_h = 250  -- keys y/h  
     obj.WF_h=50    
-    obj.kn_w =40
-    obj.kn_h =50
+    obj.kn_w =42
+    obj.kn_h =56
     -----------------------------
     local set_par_tr_w = 300
     obj.set_par_tr =  {x =(gfx.w-set_par_tr_w)/2,
@@ -1296,20 +1286,37 @@ DOCKED 0
     end
   end
   ----------------------------------------------------------------------- 
-  function SetRS5KParam(param, value)
+  function SetRS5KParam(param, value, linked_note)
     if data.tr_pointer then 
-      for key in pairs(data) do
-        if type(data[key]) == 'table' then
-          for i = 1, #data[key] do
+      if not linked_note then 
+      
+        for key in pairs(data) do
+          if type(data[key]) == 'table' then
+            for i = 1, #data[key] do
+              local tr
+              if conf.global_mode==0 then
+                tr = data.tr_pointer 
+               elseif conf.global_mode==1 or  conf.global_mode==2 then
+                tr =  BR_GetMediaTrackByGUID( 0,data[key][i].trackGUID)
+              end
+                
+              TrackFX_SetParamNormalized( tr, data[key][i].idx, param, value )
+            end
+          end
+        end
+       else
+        if data[linked_note] then
+          for i = 1, #data[linked_note] do
             local tr
             if conf.global_mode==0 then
               tr = data.tr_pointer 
              elseif conf.global_mode==1 or  conf.global_mode==2 then
-              tr =  BR_GetMediaTrackByGUID( 0,data[key][i].trackGUID)
+              tr =  BR_GetMediaTrackByGUID( 0,data[linked_note][i].trackGUID)
             end
-            TrackFX_SetParamNormalized( tr, data[key][i].idx, param, value )
+            TrackFX_SetParamNormalized( tr, data[linked_note][i].idx, param, value )
           end
         end
+        
       end
     end
   end
@@ -2547,6 +2554,7 @@ DOCKED 0
     end
     ---------------------------------------------------
     function OBJ_GenKeys_splCtrl()
+      local env_x_shift = 20
       local cur_note = obj.current_WFkey
       if not (cur_note and data[cur_note] and data[cur_note][1]) or conf.global_mode == 2 then return end
       
@@ -2563,21 +2571,24 @@ DOCKED 0
               show = true,
               is_but = true,
               fontsz = gui.fontsz2,
-              alpha_back =0}   
-        --[[ knobs
-        if gfx.h - obj.WF_h-obj.key_h > obj.kn_h + obj.offs * 2 then
+              alpha_back =0}  
+              
+              
+               
+        -- knobs
+        if not (gfx.h - obj.WF_h-obj.key_h > obj.kn_h + obj.offs * 2) then return end
+          ---------- gain ----------
           local gain_val = data[cur_note][1].gain / 2
           local gain_txt
           if mouse.context_latch and mouse.context_latch == 'splctrl_gain' then 
-            gain_txt  = dBFromVal(data[cur_note][1].gain) 
-           else 
-            gain_txt = 'Gain' 
+            gain_txt  = data[cur_note][1].gain_dB..'dB'   
+           else   
+            gain_txt = 'Gain'    
           end
-          function B1() end
           obj.splctrl_gain = { clear = true,
                 x = obj.tab_div + obj.offs,
                 y = obj.offs,
-                w = obj.kn_w*4,
+                w = obj.kn_w,
                 h = obj.kn_h,
                 col = 'white',
                 state = 0,
@@ -2588,22 +2599,322 @@ DOCKED 0
                 is_knob = true,
                 val = gain_val,
                 fontsz = gui.fontsz3,
-                alpha_back =0.03,
-                func = function() 
-                        redraw = 1 
-                      end}
-        end ]]              
+                alpha_back =0,
+                func =  function() 
+                          mouse.context_latch_val = data[cur_note][1].gain 
+                          redraw = 1                      
+                        end,
+                func_LD2 = function ()
+                            if not mouse.context_latch_val then return end
+                            local out_val = lim(mouse.context_latch_val - mouse.dy/200, 0, 2)
+                            if not out_val then return end
+                            SetRS5KParam(0, out_val, cur_note)
+                            redraw = 1
+                          end,
+
+                func_DC = function ()
+                            SetRS5KParam(0, 0.5, cur_note)
+                            redraw = 1
+                          end
+                }
+          ---------- pan ----------                          
+          local pan_val = data[cur_note][1].pan 
+          local pan_txt
+          if mouse.context_latch and mouse.context_latch == 'splctrl_pan' then 
+            pan_txt  = math.floor((-0.5+data[cur_note][1].pan)*200)
+            if pan_txt < 0 then pan_txt = math.abs(pan_txt)..'%L' elseif pan_txt > 0 then pan_txt = math.abs(pan_txt)..'%R' else pan_txt = 'center' end
+           else   pan_txt = 'Pan'    
+          end                          
+          obj.splctrl_pan = { clear = true,
+                x = obj.tab_div + obj.offs + obj.kn_w,
+                y = obj.offs,
+                w = obj.kn_w,
+                h = obj.kn_h,
+                col = 'white',
+                state = 0,
+                txt= pan_txt,
+                aligh_txt = 16,
+                show = true,
+                is_but = true,
+                is_knob = true,
+                is_centered_knob = true,
+                val = pan_val,
+                fontsz = gui.fontsz3,
+                alpha_back =0,
+                func =  function() 
+                          mouse.context_latch_val = data[cur_note][1].pan 
+                          redraw = 1                      
+                        end,
+                func_LD2 = function ()
+                            if not mouse.context_latch_val then return end
+                            local out_val = lim(mouse.context_latch_val - mouse.dy/200, 0, 1)
+                            if not out_val then return end
+                            SetRS5KParam(1, out_val, cur_note)
+                            redraw = 1
+                          end,
+                func_DC = function () 
+                            SetRS5KParam(1, 0.5, cur_note)
+                            redraw = 1
+                          end}        
+          ---------- ptch ----------                          
+          local pitch_val = data[cur_note][1].pitch_offset 
+          local pitch_txt
+          if mouse.context_latch and (mouse.context_latch == 'splctrl_pitch1' or mouse.context_latch == 'splctrl_pitch2') then 
+            pitch_txt  = data[cur_note][1].pitch_semitones else   pitch_txt = 'Pitch'    
+          end                          
+          obj.splctrl_pitch1 = { clear = true,
+                x = obj.tab_div + obj.offs + obj.kn_w*2,
+                y = obj.offs,
+                w = obj.kn_w,
+                h = obj.kn_h,
+                col = 'white',
+                state = 0,
+                txt= pitch_txt,
+                aligh_txt = 16,
+                show = true,
+                is_but = true,
+                is_knob = true,
+                is_centered_knob = true,
+                val = pitch_val,
+                fontsz = gui.fontsz3,
+                alpha_back =0,
+                func =  function() 
+                          mouse.context_latch_val = data[cur_note][1].pitch_offset 
+                          redraw = 1                      
+                        end,
+                func_LD2 = function ()
+                            if not mouse.context_latch_val then return end
+                            local out_val = lim(mouse.context_latch_val - mouse.dy/400, 0, 1)*160
+                            local int, fract = math.modf(mouse.context_latch_val*160 )
+                            local out_val = lim(mouse.context_latch_val - mouse.dy/400, 0, 1)
+                            if not out_val then return end
+                            out_val = (math_q(out_val*160)+fract)/160
+                            SetRS5KParam(15, out_val, cur_note)
+                            redraw = 1
+                          end,
+                func_DC = function () 
+                            SetRS5KParam(15, 0.5, cur_note)
+                            redraw = 1
+                          end}  
+        local int,fract =  math.modf(pitch_val*160-80 ) if not fract then fract = 0 end
+        local pitch_val = fract
+        obj.splctrl_pitch2 = { clear = true,
+                x = obj.tab_div + obj.offs + obj.kn_w*2.25,
+                y = obj.offs+obj.kn_w/2,
+                w = obj.kn_w/2,
+                h = obj.kn_h/2,
+                col = 'white',
+                state = 0,
+                txt= '',
+                aligh_txt = 16,
+                show = true,
+                is_but = true,
+                is_knob = true,
+                --is_centered_knob = true,
+                knob_a = 0,
+                knob_as_point = true,
+                val = pitch_val,
+                fontsz = gui.fontsz3,
+                alpha_back =0,
+                func =  function() 
+                          mouse.context_latch_val = data[cur_note][1].pitch_offset 
+                          redraw = 1                      
+                        end,
+                func_LD2 = function ()
+                            if not mouse.context_latch_val then return end
+                            local out_val = lim(mouse.context_latch_val - mouse.dy/100000, 0, 1)
+                            if not out_val then return end
+                            SetRS5KParam(15, out_val, cur_note)
+                            redraw = 1
+                          end}   
+          ---------- attack ----------  
+          local att_txt
+          if mouse.context_latch and mouse.context_latch == 'splctrl_att' then 
+            att_txt  = data[cur_note][1].attack_ms..'ms'   
+           else   
+            att_txt = 'A'    
+          end
+          obj.splctrl_att = { clear = true,
+                x = obj.tab_div + obj.offs+ obj.kn_w*3 + env_x_shift,
+                y = obj.offs,
+                w = obj.kn_w,
+                h = obj.kn_h,
+                col = 'white',
+                state = 0,
+                txt= att_txt,
+                aligh_txt = 16,
+                show = true,
+                is_but = true,
+                is_knob = true,
+                val = data[cur_note][1].attack^0.1666,
+                fontsz = gui.fontsz3,
+                alpha_back =0,
+                func =  function() 
+                          mouse.context_latch_val = data[cur_note][1].attack 
+                          redraw = 1                      
+                        end,
+                func_LD2 = function ()
+                            if not mouse.context_latch_val then return end
+                            local out_val = lim(mouse.context_latch_val^0.1666 - mouse.dy/300, 0, 1)
+                            if not out_val then return end
+                            out_val = out_val^6
+                            SetRS5KParam(9, out_val, cur_note)
+                            redraw = 1
+                          end,
+
+                func_DC = function ()
+                            SetRS5KParam(9, 0, cur_note)
+                            redraw = 1
+                          end
+                }     
+          ---------- decay ----------  
+          local dec_txt
+          if mouse.context_latch and mouse.context_latch == 'splctrl_dec' then 
+            dec_txt  = data[cur_note][1].decay_ms..'ms'   
+           else   
+            dec_txt = 'D'    
+          end
+          obj.splctrl_dec = { clear = true,
+                x = obj.tab_div + obj.offs+ obj.kn_w*4 + env_x_shift,
+                y = obj.offs,
+                w = obj.kn_w,
+                h = obj.kn_h,
+                col = 'white',
+                state = 0,
+                txt= dec_txt,
+                aligh_txt = 16,
+                show = true,
+                is_but = true,
+                is_knob = true,
+                val = data[cur_note][1].decay^0.1666,
+                fontsz = gui.fontsz3,
+                alpha_back =0,
+                func =  function() 
+                          mouse.context_latch_val = data[cur_note][1].decay 
+                          redraw = 1                      
+                        end,
+                func_LD2 = function ()
+                            if not mouse.context_latch_val then return end
+                            local out_val = lim(mouse.context_latch_val^0.1666 - mouse.dy/1000, 0, 1)
+                            if not out_val then return end
+                            out_val = out_val^6
+                            SetRS5KParam(24, out_val, cur_note)
+                            redraw = 1
+                          end,
+
+                func_DC = function ()
+                            SetRS5KParam(24, 0.016, cur_note)
+                            redraw = 1
+                          end
+                }         
+          ---------- sust ----------
+          local sust_txt
+          if mouse.context_latch and mouse.context_latch == 'splctrl_sust' then 
+            sust_txt  = data[cur_note][1].sust_dB..'dB'   
+           else   
+            sust_txt = 'S'    
+          end
+          obj.splctrl_sust = { clear = true,
+                x = obj.tab_div + obj.offs+ obj.kn_w*5 + env_x_shift,
+                y = obj.offs,
+                w = obj.kn_w,
+                h = obj.kn_h,
+                col = 'white',
+                state = 0,
+                txt= sust_txt,
+                aligh_txt = 16,
+                show = true,
+                is_but = true,
+                is_knob = true,
+                val = data[cur_note][1].sust/2,
+                fontsz = gui.fontsz3,
+                alpha_back =0,
+                func =  function() 
+                          mouse.context_latch_val = data[cur_note][1].sust 
+                          redraw = 1                      
+                        end,
+                func_LD2 = function ()
+                            if not mouse.context_latch_val then return end
+                            local out_val = lim(mouse.context_latch_val - mouse.dy/200, 0, 2)
+                            if not out_val then return end
+                            SetRS5KParam(25, out_val, cur_note)
+                            redraw = 1
+                          end,
+
+                func_DC = function ()
+                            SetRS5KParam(25, 0.5, cur_note)
+                            redraw = 1
+                          end
+                }              
+          ---------- release ----------  
+          local rel_txt
+          if mouse.context_latch and mouse.context_latch == 'splctrl_rel' then 
+            rel_txt  = data[cur_note][1].rel_ms..'ms'   
+           else   
+            rel_txt = 'R'    
+          end
+          obj.splctrl_rel = { clear = true,
+                x = obj.tab_div + obj.offs+ obj.kn_w*6 + env_x_shift,
+                y = obj.offs,
+                w = obj.kn_w,
+                h = obj.kn_h,
+                col = 'white',
+                state = 0,
+                txt= rel_txt,
+                aligh_txt = 16,
+                show = true,
+                is_but = true,
+                is_knob = true,
+                val = data[cur_note][1].rel^0.1666,
+                fontsz = gui.fontsz3,
+                alpha_back =0,
+                func =  function() 
+                          mouse.context_latch_val = data[cur_note][1].rel 
+                          redraw = 1                      
+                        end,
+                func_LD2 = function ()
+                            if not mouse.context_latch_val then return end
+                            local out_val = lim(mouse.context_latch_val^0.1666 - mouse.dy/300, 0, 1)
+                            if not out_val then return end
+                            out_val = out_val^6
+                            SetRS5KParam(10, out_val, cur_note)
+                            redraw = 1
+                          end,
+
+                func_DC = function ()
+                            SetRS5KParam(10, 0.0004, cur_note)
+                            redraw = 1
+                          end
+                }                                                                                                                                                              
     end
     ---------------------------------------------------
     function GUI_knob(b)
       local x,y,w,h,val =b.x,b.y,b.w,b.h, b.val
       local arc_r = math.floor(w/2 * 0.8)
+      if b.reduce_knob then arc_r = arc_r*b.reduce_knob end
       y = y - arc_r/2 + 1
       local ang_gr = 120
       local ang_val = math.rad(-ang_gr+ang_gr*2*val)
       local ang = math.rad(ang_gr)
     
-      -- arc back
+      col(b.col, 0.04)
+      if b.knob_as_point then 
+        local y = y - 5
+        local arc_r = arc_r*0.75
+        for i = 0, 1, 0.5 do
+          gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-180),math.rad(-90),    1)
+          gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
+          gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
+          gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),math.rad(180),    1)
+        end
+        gfx.a = 0.02
+        gfx.circle(x+w/2,y+h/2,arc_r, 1)
+        return 
+      end
+      
+      
+      -- arc back      
+      col(b.col, 0.02)
       for i = 0, 3, 0.5 do
         gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
         gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
@@ -2611,38 +2922,72 @@ DOCKED 0
         gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)
       end
       
-      col(b.col, 0.5)
-      -- val       
-      local ang_val = math.rad(-ang_gr+ang_gr*2*val)
-      for i = 0, 3, 0.5 do
-        if ang_val < math.rad(-90) then 
-          gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),ang_val, 1)
-         else
-          if ang_val < math.rad(0) then 
-            gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
-            gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),ang_val,    1)
+      
+      
+      local knob_a = 0.5
+      if b.knob_a then knob_a = b.knob_a end
+      col(b.col, knob_a)      
+      if not b.is_centered_knob then 
+        -- val       
+        local ang_val = math.rad(-ang_gr+ang_gr*2*val)
+        for i = 0, 3, 0.5 do
+          if ang_val < math.rad(-90) then 
+            gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),ang_val, 1)
            else
-            if ang_val < math.rad(90) then 
+            if ang_val < math.rad(0) then 
               gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
-              gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
-              gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    1)
+              gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),ang_val,    1)
              else
-              if ang_val < math.rad(ang_gr) then 
+              if ang_val < math.rad(90) then 
                 gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
                 gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
-                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
-                gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),ang_val,    1)
+                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    1)
                else
-                gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
-                gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
-                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
-                gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)                  
+                if ang_val < math.rad(ang_gr) then 
+                  gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
+                  gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
+                  gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
+                  gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),ang_val,    1)
+                 else
+                  gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
+                  gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
+                  gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
+                  gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)                  
+                end
               end
-            end
-          end                
+            end                
+          end
         end
-      end
-    end 
+        
+       else -- if centered
+        local ang_val = math.rad(-ang_gr+ang_gr*2*val)
+        for i = 0, 3, 0.5 do
+          if ang_val < math.rad(-90) then 
+            gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(0),math.rad(-90),    1)
+            gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-90),ang_val,    1)
+           else
+            if ang_val < math.rad(0) then 
+              gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    1)
+             else
+              if ang_val < math.rad(90) then 
+                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    1)
+               else
+                if ang_val < math.rad(ang_gr) then 
+
+                  gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
+                  gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),ang_val,    1)
+                 else
+
+                  gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
+                  gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)                  
+                end
+              end
+            end                
+          end
+        end    
+            
+      end 
+    end
     ---------------------------------------------------
     function GetParentFolder(dir) return dir:match('(.*)[%\\/]') end
     ---------------------------------------------------
@@ -2827,14 +3172,21 @@ DOCKED 0
             and not mouse.Ctrl_state  
             and mouse.DLMB_state 
             and MOUSE_Match(obj[key]) then 
-            if obj[key].func_DC then   obj[key].func_DC() 
+            if obj[key].func_DC then obj[key].func_DC() 
           end end
           
           if mouse.LMB_state 
             and not mouse.Ctrl_state 
             and (mouse.context == key or mouse.context_latch == key) then 
-            if obj[key].func_LD then obj[key].func_LD() 
-          end end
+            if obj[key].func_LD then obj[key].func_LD() end 
+          end
+          
+          if mouse.LMB_state 
+            and not mouse.Ctrl_state 
+            and mouse.is_moving
+            and mouse.context_latch == key then 
+            if obj[key].func_LD2 then obj[key].func_LD2() end 
+          end
           
           if mouse.Ctrl_LMB_state 
             and (mouse.context == key or mouse.context_latch == key) then 
