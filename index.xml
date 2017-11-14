@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5f5acc0af0e88c28888a79f5db18ed1e2a663d2c" name="MPL Scripts">
+<index version="1" commit="673dfb3e7abf57ced4722c28e6630a820ea39c16" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1155,6 +1155,17 @@ setup min gain, attack =0]]></changelog>
 # UI: move commit pattern button to pattern menu 
 # UI: always sort pattern list by name ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f9487ff48ac7d5f25c4a3bfa64a561edc8efe89d/FX%20specific/mpl_RS5k%20manager.lua</source>
+      </version>
+      <version name="1.21" author="MPL" time="2017-11-14T19:54:50Z">
+        <changelog><![CDATA[+ Pads: Gain control per sample, double click to reset
++ Pads: Pan control per sample, double click to reset
++ Pads: Pitch control per sample (small circle is finetune), double click to reset
++ Pads: Attack control per sample (x^6 scaled), double click to reset
++ Pads: Decay control per sample (x^6 scaled), double click resets to 250ms
++ Pads: Sustain control per sample, double click to reset
++ Pads: Release control per sample, double click reset to 1ms
+# fix doubleclick behaviour in some cases]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/673dfb3e7abf57ced4722c28e6630a820ea39c16/FX%20specific/mpl_RS5k%20manager.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Smooth toggle X pair for ix_Mixer_8xS-1xS.lua" type="script" desc="Smooth toggle X pair for ix_Mixer_8xS-1xS">
