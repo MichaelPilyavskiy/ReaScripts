@@ -1,24 +1,17 @@
 ﻿-- @description RS5k manager
--- @version 1.21
+-- @version 1.22
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Pads: Gain control per sample, double click to reset
---    + Pads: Pan control per sample, double click to reset
---    + Pads: Pitch control per sample (small circle is finetune), double click to reset
---    + Pads: Attack control per sample (x^6 scaled), double click to reset
---    + Pads: Decay control per sample (x^6 scaled), double click resets to 250ms
---    + Pads: Sustain control per sample, double click to reset
---    + Pads: Release control per sample, double click reset to 1ms
---    # fix doubleclick behaviour in some cases
+--    # fix proper mouse layering when parent track doesn`t found
   
-  local vrs = 'v1.21'
+  local vrs = 'v1.22'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local SCC, lastSCC
-  local  mouse = {}
+   mouse = {}
   local obj = {}
   local conf = {}
   local pat = {}
@@ -342,8 +335,13 @@
     if not ES_parent then return end
     data = {tr_pointer = ES_parent}
     local tr = ES_parent
-    if not tr or not ValidatePtr2( 0, tr, 'MediaTrack*' ) then ES_parent = nil return end 
-    
+    if not tr or not ValidatePtr2( 0, tr, 'MediaTrack*' ) then 
+      ES_parent = nil 
+      obj.set_par_tr.ignore_mouse = false
+      return 
+     else 
+      obj.set_par_tr.ignore_mouse = true
+    end 
     local temp = {}
     local p_offs = {}
     
@@ -1048,7 +1046,7 @@ DOCKED 0
                 mouse_scale = 100,
                 axis = 'y',
                 is_slider = true,
-                func =  function() DefineParentTrack() end}
+                func =  function() DefineParentTrack() obj.set_par_tr.ignore_mouse = true end}
     
     
     obj.tab = { x = 0,
