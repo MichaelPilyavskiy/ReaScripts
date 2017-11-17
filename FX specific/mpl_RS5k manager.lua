@@ -1,22 +1,23 @@
 ﻿-- @description RS5k manager
--- @version 1.22
+-- @version 1.23
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix proper mouse layering when parent track doesn`t found
+--    # reset parent track when changing modes
+--    # fix create additional children track
   
-  local vrs = 'v1.22'
+  local vrs = 'v1.23'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local SCC, lastSCC
-   mouse = {}
+  local mouse = {}
   local obj = {}
-  local conf = {}
+  conf = {}
   local pat = {}
   local Buf_t
-  data = {}
+  local data = {}
   local action_export = {}
   local redraw,redraw_WF = -1,-1
   local MIDItr_name = 'RS5K MIDI Patterns'
@@ -763,11 +764,9 @@ DOCKED 0
   function ExtState_Load_Patterns()
     pat = {}
     local ret, str = GetProjExtState( 0, conf.ES_key, 'PAT' )
-    ---msg(str)
     if not ret then return end
     if str:match('PARENT_GUID') then 
       local ES_parent_GUID = str:match('PARENT_GUID (.-)\n') 
-      --msg(ES_parent_GUID)
       ES_parent = BR_GetMediaTrackByGUID( 0, ES_parent_GUID )
     end
     -- parse patterns
@@ -845,6 +844,7 @@ DOCKED 0
     local int_mode
     if mode then int_mode = mode else int_mode = conf.commit_mode end
     if int_mode == 0 then -- set/upd selected items
+      
       if pat[pat.SEL] then
         for i = 1, CountSelectedMediaItems(0) do
           local it = GetSelectedMediaItem(0,i-1)
@@ -856,6 +856,7 @@ DOCKED 0
           local tk = GetActiveTake(it)
           if tk and TakeIsMIDI(tk) then CommitPatternSub(it, tk, pat[pat.SEL],it_pos_QN,it_pos,it_len) end
         end
+        
       end
       
      elseif int_mode == 1 then -- propagate patterns by name
@@ -900,18 +901,6 @@ DOCKED 0
     SetMediaItemInfo_Value( item, 'D_VOL', vel / 127 )
     BR_SetTakeSourceFromFile2( take, sample_path,false, true)
     UpdateItemInProject( item )
- --[[local 
-                      
-                      
-                      local rate = 2^((blocks[block].gl_pitch+blocks[block].samples[smpl].pitch)/12)
-                      step_item_src_len = step_item_src_len / rate
-                      reaper.
-                      reaper.
-                      reaper.SetMediaItemTakeInfo_Value( step_item_take, 'D_PITCH', blocks[block].gl_pitch )
-                      reaper.SetMediaItemTakeInfo_Value( step_item_take, 'D_PLAYRATE', rate)
-                       
-                      reaper.GetSetMediaItemTakeInfo_String( step_item_take, 'P_NAME', F_extract_filename(blocks[block].samples[smpl].filename), true )
-                      reaper.  ]]
   end
   ---------------------------------------------------
   function CommitPattern_ClearDumpTrack(track, src_pat_item, offs)
@@ -1541,17 +1530,35 @@ DOCKED 0
                 alpha_back = obj.it_alpha4,
                 func =  function() 
                           Menu({  {str = global_modes[1],
-                                    func = function() conf.global_mode = 0 ExtState_Save() redraw = 1 end ,
+                                    func = function() 
+                                              conf.global_mode = 0 
+                                              ExtState_Save() 
+                                              redraw = 1 
+                                              ES_parent = nil 
+                                              data.tr_pointer = nil
+                                              ExtState_Save_Patterns()
+                                              obj.set_par_tr.ignore_mouse = false
+                                            end ,
                                     state = conf.global_mode == 0},
                                   {str = global_modes[2],
                                     func = function() 
                                             conf.global_mode = 1 
                                             ExtState_Save() 
                                             redraw = 1 
+                                            ES_parent = nil 
+                                            data.tr_pointer = nil
+                                            obj.set_par_tr.ignore_mouse = false
                                           end ,
                                     state = conf.global_mode == 1},
                                   {str = global_modes[3],
-                                    func = function() conf.global_mode = 2 ExtState_Save() redraw = 1 end ,
+                                    func = function() 
+                                              conf.global_mode = 2 
+                                              ExtState_Save() 
+                                              redraw = 1 
+                                              ES_parent = nil 
+                                              data.tr_pointer = nil 
+                                              obj.set_par_tr.ignore_mouse = false
+                                            end ,
                                     state = conf.global_mode == 2}                                                                        
                                 })
                                 
@@ -2137,14 +2144,14 @@ DOCKED 0
     local ex = false
     local last_id
     
-    -- if main track still no folder
-    if GetMediaTrackInfo_Value( main_track, 'I_FOLDERDEPTH' ) ~= 1 then
+    --[[ if main track still no folder
+    if GetMediaTrackInfo_Value( main_track, 'I_FOLDERDEPTH' ) ~= 1  then
       local child_tr = InsertTrack(tr_id+1)
       SetMediaTrackInfo_Value( main_track, 'I_FOLDERDEPTH', 1 )
       SetMediaTrackInfo_Value( child_tr, 'I_FOLDERDEPTH', -1 )
       if note == 0 then GetSetMediaTrackInfo_String( child_tr, 'P_NAME', preview_name, 1 ) end
       return child_tr
-    end
+    end]]
     
     -- search track
     if GetMediaTrackInfo_Value( main_track, 'I_FOLDERDEPTH' ) == 1 then
@@ -3048,6 +3055,8 @@ DOCKED 0
   end
   ---------------------------------------------------
   function IsSupportedExtension(fn)
+    function B() end
+    --reaper.IsMediaExtension( ext, wantOthers )
     if fn 
       and (fn:lower():match('%.wav')
       or fn:lower():match('%.flac')
