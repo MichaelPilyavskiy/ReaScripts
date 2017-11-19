@@ -1,4 +1,4 @@
--- @description Add channel strip controls to selected tracks
+-- @description Add channel strip controls to selected tracks TCP
 -- @about
 --    Adds ReaEQ, ReaComp and JS Delay to the end of FX chain and also put some controls to TCP/MCP
 -- @version 1.0
