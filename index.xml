@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="234cc8caf1b0ff42af1e69844e9874dec99910a2" name="MPL Scripts">
+<index version="1" commit="390af0fc8f3af74eacbcdb441ade076a31ba05c1" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -1184,6 +1184,12 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[# reset parent track when changing modes
 # fix create additional children track]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4691fefe95f509d08e00faeca314658cff243aaa/FX%20specific/mpl_RS5k%20manager.lua</source>
+      </version>
+      <version name="1.24" author="MPL" time="2017-11-19T17:37:22Z">
+        <changelog><![CDATA[# fix error if not found sample path properly
++ Pads: add shortcut to open FX chain for current sample
++ Patterns: store last selected pattern]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/390af0fc8f3af74eacbcdb441ade076a31ba05c1/FX%20specific/mpl_RS5k%20manager.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Smooth toggle X pair for ix_Mixer_8xS-1xS.lua" type="script" desc="Smooth toggle X pair for ix_Mixer_8xS-1xS">
