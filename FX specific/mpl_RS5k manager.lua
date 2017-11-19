@@ -1,12 +1,13 @@
 ﻿-- @description RS5k manager
--- @version 1.23
+-- @version 1.24
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # reset parent track when changing modes
---    # fix create additional children track
+--    # fix error if not found sample path properly
+--    + Pads: add shortcut to open FX chain for current sample
+--    + Patterns: store last selected pattern
   
-  local vrs = 'v1.23'
+  local vrs = 'v1.24'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -803,7 +804,11 @@ DOCKED 0
       local names = {}
       for i = 1, #pat_2 do names[pat_2[i].NAME] = i end
       for key in spairs(names) do pat[#pat+1] = pat_2[ names[key] ] end
-      
+    
+    -- selected
+      local selected = str:match('SEL ([%d]+)')
+      if selected and tonumber(selected) then selected = tonumber(selected) end
+      if pat[selected] then pat.SEL = selected end
   end
   ---------------------------------------------------
   function ExtState_Save_Patterns()
@@ -1728,7 +1733,8 @@ DOCKED 0
         local fn, ret = GetSampleNameByNote(note)
         local col = 'white'
         if ret then col = 'green' end
-        local txt = GetNoteStr(note,0)..' / '..note..'\n\r'..fn
+        local txt = GetNoteStr(note,0)..' / '..note..'\n\r'
+        if fn then txt=txt..fn end
         obj['stseq'..i] = {  clear = true,
                   x = 0,
                   y = (cnt-1)*obj.item_h4,
@@ -2395,6 +2401,7 @@ DOCKED 0
             local fn = GetShortSmplName(data[key][1].fn)
             local fn_full = data[key][1].fn          
           --end
+          if not fn then fn = fn_full end
           return fn, true, fn_full
         end
       end
@@ -2890,7 +2897,28 @@ DOCKED 0
                             SetRS5KParam(10, 0.0004, cur_note)
                             redraw = 1
                           end
-                }                                                                                                                                                              
+                }   
+          ----------------------
+          obj.splctrl_fx = { clear = true,
+                x = obj.tab_div + obj.offs+ obj.kn_w*7 + env_x_shift*2,
+                y = obj.offs,
+                w = obj.kn_w,
+                h = obj.kn_h,
+                col = 'white',
+                state = 0,
+                txt= 'FX',
+                --aligh_txt = 16,
+                show = true,
+                is_but = true,
+                val = data[cur_note][1].rel^0.1666,
+                fontsz = gui.fontsz3,
+                alpha_back =0.1,
+                func =  function() 
+                            local tr = GetDestTrackByNote(data.tr_pointer, cur_note)
+                            if not tr then return end
+                            TrackFX_Show( tr,0, 1 )
+                          end
+                }                                                                                                                                                                             
     end
     ---------------------------------------------------
     function GUI_knob(b)
