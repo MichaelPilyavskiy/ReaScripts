@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a1003383f5153dc76aba4020eba8848b023f4c40" name="MPL Scripts">
+<index version="1" commit="f701ce46f7a01f09a3db12cadd978c5bb22be70a" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -2106,6 +2106,15 @@ setup min gain, attack =0]]></changelog>
       <version name="1.01" author="MPL" time="2017-08-09T22:31:14Z">
         <changelog><![CDATA[# fixed for custom plugin aliases]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5c2766d87ddc99d33e33c463e7a608b05e0cec17/Tracks%20Properties/mpl_Apply%20visibility%20of%20focused%20FX%20TCP%20controls%20to%20instances%20in%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Clear TCP controls for selected tracks.lua" type="script" desc="Clear TCP controls for selected tracks">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-11-26T06:48:38Z">
+        <changelog><![CDATA[+ init port from mpl_LearnManager]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f701ce46f7a01f09a3db12cadd978c5bb22be70a/Tracks%20Properties/mpl_Clear%20TCP%20controls%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Color project tracks by user defined filter and color.lua" type="script" desc="Color project tracks by user defined filter and color">
