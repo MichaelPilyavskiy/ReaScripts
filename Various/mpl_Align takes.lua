@@ -1,13 +1,14 @@
 -- @description Align Takes
--- @version 1.133
+-- @version 1.134
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    - reduce about section
---    - remove donation button
+--    # limit array #531
 
 --[[
   * Changelog: 
+    * v1.134  (2017-11-30)
+      # limit array #531
     * v1.133  (2017-09-25)
       # prevent possible error when writing external config
       - reduce about section
@@ -548,6 +549,7 @@
     if src_array == nil or src_mid_point == nil or stretched_point == nil 
       then return end      
     local src_array_size = src_array.get_alloc()
+    if src_array_size < 1 then return end
     local out_arr = reaper.new_array(src_array_size)    
     local src_arr_pt1_size = src_mid_point - 1
     local src_arr_pt2_size = src_array_size-src_mid_point + 1    
