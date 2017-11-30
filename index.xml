@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f701ce46f7a01f09a3db12cadd978c5bb22be70a" name="MPL Scripts">
+<index version="1" commit="d144c59aeb7d5c4c2e1bcc17283e2da5b34e6604" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -244,21 +244,19 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6dd43e268a3e30b11a3dfebb6685e5af4b075ef2/FX/mpl_Assign%20MIDIOSC%20control%20with%20FX%20envelope%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Bypass all FX except instruments on all tracks .lua" type="script" desc="Bypass all FX except instruments on all tracks">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20all%20tracks%20.lua</source>
-      </version>
-      <version name="1.1" author="Michael Pilyavskiy (mpl)" time="2016-01-14T15:54:18Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1db4c5075097404e41bb7f28ea715d09693af87e/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20all%20tracks%20.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Bypass all FX except instruments on selected tracks.lua" type="script" desc="Bypass all FX except instruments on selected tracks">
+    <reapack name="mpl_Bypass all FX except instruments on selected tracks.lua" type="script" desc="Toggle bypass all FX except instruments on selected tracks">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
       <version name="1.0" author="MPL" time="2016-10-05T13:46:24Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cdfeba1af91ffa41680fbf24ed491b0df1222211/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.1" author="MPL" time="2017-11-30T18:04:22Z">
+        <changelog><![CDATA[- bypass for all tracks removed from repository as obsolete
++ use programmatically changed ReaScript toggle state
++ remember bypass state of ALL plugins in project, state data stored/erased into extstate section of current RPP]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d144c59aeb7d5c4c2e1bcc17283e2da5b34e6604/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Copy Focused FX data.lua" type="script" desc="Copy Focused FX data">
@@ -2542,6 +2540,10 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[- reduce about section
 - remove donation button]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8267653736e10593de4516c590774f99d9627eb0/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="1.134" author="MPL" time="2017-11-30T18:04:22Z">
+        <changelog><![CDATA[# limit array #531]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d144c59aeb7d5c4c2e1bcc17283e2da5b34e6604/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create layer track from selected instruments tracks.lua" type="script" desc="Create layer track from selected instruments tracks">
