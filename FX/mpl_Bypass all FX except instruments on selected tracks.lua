@@ -1,12 +1,9 @@
 -- @description Toggle bypass all FX except instruments on selected tracks
--- @version 1.1
+-- @version 1.2
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694 
 -- @changelog
---    - bypass for all tracks removed from repository as obsolete
---    + use programmatically changed ReaScript toggle state
---    + remember bypass state of ALL plugins in project, state data stored/erased into extstate section of current RPP
-  
+--    # use string matching way for checking FX is instrument
 
   --NOT gfx NOT reaper  
   local scr_title = "Toggle Bypass all FX except instruments on selected tracks"
@@ -44,13 +41,14 @@
     end
     return t
   end
+  function IsInstrument(track, fx) return ({reaper.TrackFX_GetFXName( track, fx, '' )})[2]:match('[%u]+i%:')~= nil end
   ---------------------------------------------------------  
   function SetFXState(FX_state, t)
     for i = 1, CountSelectedTracks(0) do
       local tr = GetSelectedTrack(0,i-1)
       local GUID = GetTrackGUID(tr)
       for fx_id = 1, TrackFX_GetCount(tr) do
-        if fx_id-1 ~= TrackFX_GetInstrument(tr) then
+        if IsInstrument(tr, fx_id-1) then
           -- check t
           if FX_state == true then 
             if not (t[GUID] and t[GUID][fx_id]) then
