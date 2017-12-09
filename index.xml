@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d144c59aeb7d5c4c2e1bcc17283e2da5b34e6604" name="MPL Scripts">
+<index version="1" commit="4597b2a39dc1be7b09cae2ff9c660918c46d0c00" name="MPL Scripts">
   <category name="Cursor">
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
@@ -257,6 +257,10 @@
 + use programmatically changed ReaScript toggle state
 + remember bypass state of ALL plugins in project, state data stored/erased into extstate section of current RPP]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d144c59aeb7d5c4c2e1bcc17283e2da5b34e6604/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.2" author="MPL" time="2017-12-09T08:31:48Z">
+        <changelog><![CDATA[# use string matching way for checking FX is instrument]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4597b2a39dc1be7b09cae2ff9c660918c46d0c00/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Copy Focused FX data.lua" type="script" desc="Copy Focused FX data">
