@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4597b2a39dc1be7b09cae2ff9c660918c46d0c00" name="MPL Scripts">
+<index version="1" commit="9fb7e6dc7e6c19b47b12183efe40c83b47433336" name="MPL Scripts">
   <category name="Cursor">
+    <reapack name="mpl_Move cursor to next selected item edge, keep overlapping condition.lua" type="script" desc="Move cursor to next selected item edge, keep overlapping condition">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Calculate edges of selected items and move cursor to next edge\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-12-12T06:08:11Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9fb7e6dc7e6c19b47b12183efe40c83b47433336/Cursor/mpl_Move%20cursor%20to%20next%20selected%20item%20edge,%20keep%20overlapping%20condition.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Move edit cursor to first note of active MIDI editor take.lua" type="script" desc="Move edit cursor to first note of active MIDI editor take">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T14:47:19Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3486c8bb4e0aabdf7dc6fbc161e5c2a1d0a30a52/Cursor/mpl_Move%20edit%20cursor%20to%20first%20note%20of%20active%20MIDI%20editor%20take.lua</source>
