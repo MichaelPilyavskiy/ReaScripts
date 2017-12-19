@@ -1,9 +1,12 @@
--- @version 1.0
+-- @version 1.1
 -- @author MPL
--- @changelog
---    + init  
 -- @description Generate track volume automation item from audio take
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--    + respect multiple items
+--    + Consolidate undo
+--    # fix proper add points positions
+
   
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   function m(s) reaper.ShowConsoleMsg(s)end
@@ -52,16 +55,13 @@
       return sum_t
   end
   ---------------------------------------------------------------------------------------------------------------------
-  function main()
-    local item = GetSelectedMediaItem(0,0)
+  function CalcAI(item, window_ms)
     if not item then return end
     local take =  reaper.GetActiveTake( item )
     if TakeIsMIDI( take ) then return end
         
     local i_pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
     local i_len = GetMediaItemInfo_Value( item, 'D_LENGTH' )    
-    local _, window_ms =  reaper.GetUserInputs( 'RMS window', 1, '(seconds)', 0.05 )
-    window_ms = tonumber(window_ms)
     if not  window_ms then return end 
        
     local t = Get_take_data(take, window_ms, i_len)
@@ -73,9 +73,18 @@
       env =  GetTrackEnvelopeByName( track, 'Volume' )
     end
     local AI_idx = InsertAutomationItem( env, -1, i_pos, i_len )
-    for i = 1, #t do InsertEnvelopePointEx( env, AI_idx, (i-1)*window_ms, t[i], 0, 0, 0, true ) end
+    for i = 1, #t do InsertEnvelopePointEx( env, AI_idx, (i-1)*window_ms+i_pos, t[i], 0, 0, 0, true ) end
     Envelope_SortPointsEx( env, AI_idx )
     UpdateArrange()
   end
-
-  main()
+  
+  local ret, window_ms =  reaper.GetUserInputs( 'RMS window', 1, '(seconds)', 0.05 )
+  if ret then
+    Undo_BeginBlock()
+    window_ms = tonumber(window_ms)
+    for i = 1,  CountSelectedMediaItems( 0 ) do
+      local item = GetSelectedMediaItem(0,i-1)
+      CalcAI(item, window_ms)
+    end
+    Undo_EndBlock( 'Generate AI from audio item', 0 )
+  end
