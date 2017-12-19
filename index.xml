@@ -1,5 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9fb7e6dc7e6c19b47b12183efe40c83b47433336" name="MPL Scripts">
+<index version="1" commit="b9c1a6b7054783de9bc6a8a9c9edf731d54dc1e6" name="MPL Scripts">
+  <category name="Automation Items">
+    <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.1" author="MPL" time="2017-12-19T17:48:16Z">
+        <changelog><![CDATA[+ respect multiple items
++ Consolidate undo
+# fix proper add points positions]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9c1a6b7054783de9bc6a8a9c9edf731d54dc1e6/Automation%20Items/mpl_Generate%20track%20volume%20automation%20item%20from%20audio%20take.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Insert 1 measure long automation item for last touched parameter.lua" type="script" desc="Insert 1 measure long automation item for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2017-12-19T17:48:16Z">
+        <changelog><![CDATA[# support track volume and pan envelopes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9c1a6b7054783de9bc6a8a9c9edf731d54dc1e6/Automation%20Items/mpl_Insert%201%20measure%20long%20automation%20item%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+  </category>
   <category name="Cursor">
     <reapack name="mpl_Move cursor to next selected item edge, keep overlapping condition.lua" type="script" desc="Move cursor to next selected item edge, keep overlapping condition">
       <metadata>
@@ -77,15 +99,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/38d2aa292749c5ae9863538252b5d1628b290f02/Envelopes/mpl_Duplicate%20envelope%20points.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-10-01T22:16:22Z">
-        <changelog><![CDATA[+ init  ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14196de8e3c4ef802d3dfd91678ed4306022c0d7/Envelopes/mpl_Generate%20track%20volume%20automation%20item%20from%20audio%20take.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Hide all track envelopes except envelope under mouse cursor.lua" type="script" desc="Hide all track envelopes except envelope under mouse cursor">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -111,19 +124,6 @@
       <version name="1.0" author="mpl" time="2016-09-16T20:10:08Z">
         <changelog><![CDATA[+ init release]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/85ccf24536125079ec39cc5119d4f3de5015edc2/Envelopes/mpl_Increase%20selected%20tracks%20envelopes%20heights.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Insert 1 measure long automation item for last touched parameter.lua" type="script" desc="Insert 1 measure long automation item for last touched parameter">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-03-16T18:35:04Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0ad6fc38fdb16d1be86db53da7d5c967764b3c26/Envelopes/mpl_Insert%201%20measure%20long%20automation%20item%20for%20last%20touched%20parameter.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-09-25T18:33:28Z">
-        <changelog><![CDATA[# support track volume and pan envelopes]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f039a87796a117175fe68a0afdb34b13777b1da4/Envelopes/mpl_Insert%201%20measure%20long%20automation%20item%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Maximize selected tracks envelopes heights.lua" type="script" desc="Maximize selected tracks envelopes heights">
