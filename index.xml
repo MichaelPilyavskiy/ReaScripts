@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b9c1a6b7054783de9bc6a8a9c9edf731d54dc1e6" name="MPL Scripts">
+<index version="1" commit="cc0f426d0ead2164d376810459294f3fe8f8eb95" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1755,6 +1755,15 @@ setup min gain, attack =0]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/438f05851f7b82ced136391f9f676f9e27424ecf/MIDI%20editor/mpl_Quantize%20selected%20MIDI%20notes%20ends.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Reorder selected notes.lua" type="script" desc="Reorder selected notes">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-12-23T09:38:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc0f426d0ead2164d376810459294f3fe8f8eb95/MIDI%20editor/mpl_Reorder%20selected%20notes.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Reset pitchbend at mouse cursor.lua" type="script" desc="Reset pitchbend at mouse cursor">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -3036,6 +3045,15 @@ setup min gain, attack =0]]></changelog>
       <version name="1.01" author="MPL" time="2017-05-13T21:20:20Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/54c59b0278225feb074810eaeb0f06fbfb62ac03/Various/mpl_Set%20project%20grid%20(MIDI%20CC%20and%20OSC%20only).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Warp grid to selected item stretch markers.lua" type="script" desc="Warp grid to selected item stretch markers">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2017-12-23T09:38:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc0f426d0ead2164d376810459294f3fe8f8eb95/Various/mpl_Warp%20grid%20to%20selected%20item%20stretch%20markers.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
