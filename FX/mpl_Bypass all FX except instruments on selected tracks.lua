@@ -1,9 +1,10 @@
 -- @description Toggle bypass all FX except instruments on selected tracks
--- @version 1.2
+-- @version 1.3
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694 
 -- @changelog
---    # use string matching way for checking FX is instrument
+--    # fix inversed state
+--    # reverted native first(only) instrument check
 
   --NOT gfx NOT reaper  
   local scr_title = "Toggle Bypass all FX except instruments on selected tracks"
@@ -41,14 +42,15 @@
     end
     return t
   end
-  function IsInstrument(track, fx) return ({reaper.TrackFX_GetFXName( track, fx, '' )})[2]:match('[%u]+i%:')~= nil end
+  --function IsInstrument(track, fx)  return ({reaper.TrackFX_GetFXName( track, fx, '' )})[2]:match('[%u]+i%:')~= nil end
+  function IsInstrument(track, fx)  return  TrackFX_GetInstrument( track ) == fx end
   ---------------------------------------------------------  
   function SetFXState(FX_state, t)
     for i = 1, CountSelectedTracks(0) do
       local tr = GetSelectedTrack(0,i-1)
       local GUID = GetTrackGUID(tr)
       for fx_id = 1, TrackFX_GetCount(tr) do
-        if IsInstrument(tr, fx_id-1) then
+        if not IsInstrument(tr, fx_id-1) then
           -- check t
           if FX_state == true then 
             if not (t[GUID] and t[GUID][fx_id]) then
