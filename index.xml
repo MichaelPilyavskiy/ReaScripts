@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="74afb3e5c3832f1888b98a1fbcf9fe67eea8306c" name="MPL Scripts">
+<index version="1" commit="cc4c0fe7d7f6effce3351bce96b53db58a4a065d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1247,6 +1247,16 @@ setup min gain, attack =0]]></changelog>
 + Pads: add shortcut to open FX chain for current sample
 + Patterns: store last selected pattern]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/390af0fc8f3af74eacbcdb441ade076a31ba05c1/FX%20specific/mpl_RS5k%20manager.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Search ReaControlMIDI bank.lua" type="script" desc="Search ReaControlMIDI bank">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0alpha" author="MPL" time="2017-12-27T20:08:53Z">
+        <changelog><![CDATA[+ Alpha release, it loops through all possible combinations (even if their real count not too much), so it FREEZE app for 5-20 seconds.
++ This behaviour can be changed if devs implement API to get current opened reabank or ins file.]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc4c0fe7d7f6effce3351bce96b53db58a4a065d/FX%20specific/mpl_Search%20ReaControlMIDI%20bank.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Smooth toggle X pair for ix_Mixer_8xS-1xS.lua" type="script" desc="Smooth toggle X pair for ix_Mixer_8xS-1xS">
