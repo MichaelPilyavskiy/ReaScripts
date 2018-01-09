@@ -1,32 +1,61 @@
---[[
-   * ReaScript Name: Solo MIDI Editor active take track
-   * Lua script for Cockos REAPER
-   * Author: MPL
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
-  
-script_title = 'Solo MIDI Editor active take track '
+-- @description Solo MIDI Editor active take track
+-- @version 1.1
+-- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--    # show current state in toolbar
 
-reaper.Undo_BeginBlock()
-act_editor = reaper.MIDIEditor_GetActive()
-if act_editor ~= nil then
-  take = reaper.MIDIEditor_GetTake(act_editor)
-  if take ~= nil then    
-    take_track = reaper.GetMediaItemTake_Track(take)
-    is_solo = reaper.GetMediaTrackInfo_Value(take_track, 'I_SOLO')
+  local scr_title = 'Solo MIDI Editor active take track'
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  --NOT gfx NOT reaper
+
+----------------------------------------------------------
+  function main()
+    Undo_BeginBlock()
+    local ME = MIDIEditor_GetActive()
+    if not ME then return end
+    local take = MIDIEditor_GetTake(ME)
+    if not take then return end
+    local take_track = GetMediaItemTake_Track(take)
+    local is_solo = GetMediaTrackInfo_Value(take_track, 'I_SOLO')
     
-    if is_solo == 1 then reaper.SetMediaTrackInfo_Value(take_track, 'I_SOLO',0)
-                    else reaper.Main_OnCommand(40340,0) reaper.SetMediaTrackInfo_Value(take_track, 'I_SOLO',1) end
+    
+    if is_solo == 1 then 
+      SetMediaTrackInfo_Value(take_track, 'I_SOLO',0)
+      SetButtonOFF()
+     else 
+      SetButtonON()
+      Main_OnCommand(40340,0) --Track: Unsolo all tracks
+      SetMediaTrackInfo_Value(take_track, 'I_SOLO',1) 
+    end
+    
+    local parent_track
     repeat
-      parent_track = reaper.GetParentTrack(take_track)
-      if parent_track ~= nil then
-        reaper.SetMediaTrackInfo_Value(parent_track, 'I_SOLO',math.abs(is_solo-1))
+      parent_track = GetParentTrack(take_track)
+      if parent_track then
+        SetMediaTrackInfo_Value(parent_track, 'I_SOLO', math.abs(is_solo-1))
         take_track = parent_track
       end
-    until parent_track == nil    
+    until parent_track == nil   
+    Undo_EndBlock(scr_title, 1)
   end
-end
-
-reaper.Undo_EndBlock(script_title, 1)
+----------------------------------------------------------
+  -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Templates/X-Raym_Background%20script.lua  
+  
+  -- Set ToolBar Button ON
+  function SetButtonON()
+    is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
+    state = reaper.GetToggleCommandStateEx( sec, cmd )
+    reaper.SetToggleCommandState( sec, cmd, 1 ) -- Set ON
+    reaper.RefreshToolbar2( sec, cmd )
+  end
+  
+  -- Set ToolBar Button OFF
+  function SetButtonOFF()
+    is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
+    state = reaper.GetToggleCommandStateEx( sec, cmd )
+    reaper.SetToggleCommandState( sec, cmd, 0 ) -- Set OFF
+    reaper.RefreshToolbar2( sec, cmd )
+  end
+----------------------------------------------------------
+  main()
