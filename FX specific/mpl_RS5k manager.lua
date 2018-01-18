@@ -1,15 +1,11 @@
 ﻿-- @description RS5k manager
--- @version 1.25
+-- @version 1.26
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Patterns: add support for change pattern length (2/4/8 beats)
---    + Patterns: increase max steps count to 64
---    + Patterns: Ctrl+drag on step count quantize value to power of 2
---    + Patterns: support mousewheel on steps count
---    + DumpItems mode: aligh sources in FIPM when overlapped
+--    + Patterns: Insert button add media item to parent track and commit pattern to this item
   
-  local vrs = 'v1.25'
+  local vrs = 'v1.26'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -2097,6 +2093,31 @@ DOCKED 0
                             redraw = 1
                           end
                         end}   
+    obj.pat_ins = { clear = true,
+                  x = obj.browser.x+(up_w+1)*3,
+                y = obj.browser.y+obj.item_h2,
+                w = up_w,
+                h = obj.item_h2-1,
+                col = 'white',
+                state = 0,
+                txt= 'Insert',
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back = obj.it_alpha2,
+                func =  function() 
+                          if pat.SEL and pat[pat.SEL] and ES_parent then 
+                            --AddMediaItemToTrack( ES_parent )
+                            local curpos = GetCursorPosition()
+                            local _, _, _, fullbeats=TimeMap2_timeToBeats( 0, curpos )
+                            local endtime = TimeMap2_beatsToTime( 0, fullbeats+4 )
+                            local it = CreateNewMIDIItemInProj( ES_parent, curpos, endtime )
+                            SelectAllMediaItems( 0, false )
+                            SetMediaItemSelected( it, true )
+                            CommitPattern()
+                            redraw = 1
+                          end
+                        end}                           
       if conf.commit_mode == 1 or conf.commit_mode == 2 then 
         obj.stepseq_commit = { clear = true,
                     x = obj.browser.x+(up_w+1)*3,-- gfx.w-obj.comm_w- obj.scroll_w - 1,
