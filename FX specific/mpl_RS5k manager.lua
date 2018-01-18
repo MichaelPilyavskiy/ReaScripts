@@ -1,21 +1,23 @@
 ﻿-- @description RS5k manager
--- @version 1.24
+-- @version 1.25
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix error if not found sample path properly
---    + Pads: add shortcut to open FX chain for current sample
---    + Patterns: store last selected pattern
+--    + Patterns: add support for change pattern length (2/4/8 beats)
+--    + Patterns: increase max steps count to 64
+--    + Patterns: Ctrl+drag on step count quantize value to power of 2
+--    + Patterns: support mousewheel on steps count
+--    + DumpItems mode: aligh sources in FIPM when overlapped
   
-  local vrs = 'v1.24'
+  local vrs = 'v1.25'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local SCC, lastSCC
-  local mouse = {}
+   mouse = {}
   local obj = {}
-  conf = {}
+  local conf = {}
   local pat = {}
   local Buf_t
   local data = {}
@@ -66,13 +68,16 @@
             cur_smpl_browser_dir = GetResourcePath():gsub('\\','/'),
             fav_path_cnt = 4,
             use_preview = 0,
+            
             -- Pads
             keymode = 0,  -- 0-keys
             keypreview = 1, -- send MIDI by clicking on keys
             oct_shift = 5,
             key_names = 8, --8 return MIDInotes and keynames
+            
             -- Patterns
             default_steps = 16,
+            max_step_count = 64,
             default_value = 120,
             commit_mode = 0, -- 0-commit to selected items,
             mouse_ctrldrag_res = 10,
@@ -783,7 +788,7 @@ DOCKED 0
            else
             local t = {} for val in l2:gmatch('[^%s]+') do t[#t+1] = val end
             if not pat[#pat][key] then pat[#pat][key] = {} end
-            pat[#pat][key].STEPS = tonumber(t[2])
+            pat[#pat][key].STEPS = math.floor(tonumber(t[2]))
             pat[#pat][key].SEQHASH = t[3]
             pat[#pat][key].seq = GetSeqHash(t[3])
           end
@@ -906,6 +911,7 @@ DOCKED 0
     SetMediaItemInfo_Value( item, 'D_VOL', vel / 127 )
     BR_SetTakeSourceFromFile2( take, sample_path,false, true)
     UpdateItemInProject( item )
+    return item, pos+src_len
   end
   ---------------------------------------------------
   function CommitPattern_ClearDumpTrack(track, src_pat_item, offs)
@@ -947,8 +953,12 @@ DOCKED 0
           local t = pat_t[key]
           local note = tonumber(key:match('[%d]+'))
           local child_tr = GetDestTrackByNote(data.tr_pointer, note, false)
+          local FIPM = GetMediaTrackInfo_Value( child_tr, 'B_FREEMODE')
           local _,_,sample_path = GetSampleNameByNote(note)
-          local step_len = math.ceil(MeasPPQ/t.STEPS)
+          local mult if not pat_t.PATLEN then mult = 1 else mult = pat_t.PATLEN end
+          local step_len = math.ceil(MeasPPQ/t.STEPS)*mult
+          local last_source_end
+          local last_pos = true
           for step = 1, t.STEPS do
             if t.seq and t.seq[step] and t.seq[step] > 0 then
               MIDI_InsertNote( 
@@ -964,7 +974,24 @@ DOCKED 0
               if conf.global_mode == 2 then 
                 local pos = MIDI_GetProjTimeFromPPQPos( tk, step_len * (step-1) )
                 if pos > it_pos-offs and pos < it_pos + it_len+offs then
-                  CommitPattern_InsertSource(child_tr, sample_path, pos, t.seq[step]) 
+                  local it, source_end = CommitPattern_InsertSource(child_tr, sample_path, pos, t.seq[step]) 
+                  if FIPM and it and last_source_end and last_source_end >= pos then 
+                    --msg('---')
+                    --msg(last_source_end)
+                    --msg(pos)
+                    if last_pos == true then 
+                      reaper.SetMediaItemInfo_Value( it, 'F_FREEMODE_Y', 0.5 )
+                      reaper.SetMediaItemInfo_Value( it, 'F_FREEMODE_H', 0.5 )
+                      last_pos = false
+                     else
+                      reaper.SetMediaItemInfo_Value( it, 'F_FREEMODE_Y', 0 )
+                      reaper.SetMediaItemInfo_Value( it, 'F_FREEMODE_H', 0.5 )
+                      last_pos = true
+                    end  
+                   else 
+                    last_pos = true                
+                  end
+                  last_source_end = source_end
                 end
               end
             end
@@ -1802,24 +1829,50 @@ DOCKED 0
                   --a_line = 0,
                   mouse_offs_x = obj.workarea.x,
                   mouse_offs_y = obj.blit_y_src2-obj.workarea.y,
+                  func_wheel = function(wheel)
+                                local val = pat[pat.SEL]['NOTE'..i].STEPS
+                                if wheel > 0 then c = 1 else c = -1 end
+                                pat[pat.SEL]['NOTE'..i].STEPS = val + c
+                                ExtState_Save_Patterns()
+                                redraw = 1 
+                              end,
                   func =  function()
                             if not pat[pat.SEL] then return end
                             mouse.context_latch = 'stseq_steps'..i
                             mouse.context_latch_val = steps
-                          end,
+                          end,                  
+                  func_trigCtrl =  function()
+                            if not pat[pat.SEL] then return end
+                            mouse.context_latch = 'stseq_steps'..i
+                            mouse.context_latch_val = steps
+                          end,                  
                   func_LD = function()
                               if mouse.context_latch =='stseq_steps'..i
                                 and mouse.context_latch_val 
                                 and mouse.is_moving 
                                 and pat[pat.SEL] then
                                   local val = mouse.context_latch_val - mouse.dy/20
-                                  local val = math.floor(lim(val, 1,32) )
+                                  local val = math.floor(lim(val, 1,conf.max_step_count) )
                                   if not pat[pat.SEL]['NOTE'..i] then pat[pat.SEL]['NOTE'..i] = {} end
                                   pat[pat.SEL]['NOTE'..i].STEPS = val
                                   ExtState_Save_Patterns()
                                   redraw = 1 
                               end
                           end,
+                  func_ctrlLD = function()
+                              if mouse.context_latch =='stseq_steps'..i
+                                and mouse.context_latch_val 
+                                and mouse.is_moving 
+                                and pat[pat.SEL] then
+                                  local val = mouse.context_latch_val - mouse.dy/10
+                                  local val = math.floor(lim(val, 1,conf.max_step_count) )
+                                  local q_val = 2^(lim(math.floor(math.sqrt(val)),1,6))
+                                  if not pat[pat.SEL]['NOTE'..i] then pat[pat.SEL]['NOTE'..i] = {} end
+                                  pat[pat.SEL]['NOTE'..i].STEPS = math.floor(q_val)
+                                  ExtState_Save_Patterns()
+                                  redraw = 1 
+                              end
+                          end,                          
                         
                   func_DC = function()
                               if pat[pat.SEL] then
@@ -2099,7 +2152,25 @@ DOCKED 0
                                   {str='Select linked patterns',
                                   func =  function() 
                                             SelectLinkedPatterns(pat[pat.SEL].NAME)
-                                          end}                                          
+                                          end}  ,
+                                  {str='|Set pattern length to 2 beats (default)',
+                                  func =  function() 
+                                            pat[pat.SEL].PATLEN = 1
+                                            ExtState_Save_Patterns()
+                                            redraw = 1
+                                          end}, 
+                                  {str='Set pattern length to 4 beats',
+                                  func =  function() 
+                                            pat[pat.SEL].PATLEN = 2
+                                            ExtState_Save_Patterns()
+                                            redraw = 1
+                                          end},     
+                                  {str='Set pattern length to 8 beats',
+                                  func =  function() 
+                                            pat[pat.SEL].PATLEN = 4
+                                            ExtState_Save_Patterns()
+                                            redraw = 1
+                                          end},                                                                                                                           
                                   
                                 })
                         end}      
@@ -3083,7 +3154,6 @@ DOCKED 0
   end
   ---------------------------------------------------
   function IsSupportedExtension(fn)
-    function B() end
     --reaper.IsMediaExtension( ext, wantOthers )
     if fn 
       and (fn:lower():match('%.wav')
@@ -3195,55 +3265,62 @@ DOCKED 0
           if MOUSE_Match(obj[key]) then mouse.context = key end
           if MOUSE_Match(obj[key]) and mouse.LMB_state and not mouse.last_LMB_state then mouse.context_latch = key end
           
-          if mouse.LMB_state 
-            and not mouse.last_LMB_state 
-            and not mouse.Ctrl_state  
-            and MOUSE_Match(obj[key]) then 
-            if obj[key].func then  obj[key].func() 
-          end end
-          
-          if mouse.LMB_state 
-            and not mouse.last_LMB_state 
-            and not mouse.Ctrl_state  
-            and mouse.DLMB_state 
-            and MOUSE_Match(obj[key]) then 
-            if obj[key].func_DC then obj[key].func_DC() 
-          end end
-          
-          if mouse.LMB_state 
-            and not mouse.Ctrl_state 
-            and (mouse.context == key or mouse.context_latch == key) then 
-            if obj[key].func_LD then obj[key].func_LD() end 
-          end
-          
-          if mouse.LMB_state 
-            and not mouse.Ctrl_state 
-            and mouse.is_moving
-            and mouse.context_latch == key then 
-            if obj[key].func_LD2 then obj[key].func_LD2() end 
-          end
-          
-          if mouse.Ctrl_LMB_state 
-            and (mouse.context == key or mouse.context_latch == key) then 
-            if obj[key].func_ctrlLD then obj[key].func_ctrlLD() 
-          end end
-          
-          if mouse.RMB_state 
-            and  (mouse.context == key or mouse.context_latch == key) then 
-            if obj[key].func_RD then obj[key].func_RD() 
-          end end
-          
-          if mouse.RMB_state 
-            and  mouse.context == key 
-              and not mouse.last_RMB_state then 
-              if obj[key].func_R then obj[key].func_R() 
-          end end
-            
-          if mouse.wheel_trig 
-            and mouse.wheel_trig ~= 0 
-            and mouse.Ctrl_state then 
-            if obj[key].func_wheel then obj[key].func_wheel(mouse.wheel_trig) 
-          end end
+          mouse.onclick_L = mouse.LMB_state 
+                              and not mouse.last_LMB_state 
+                              and not mouse.Ctrl_state  
+                              and MOUSE_Match(obj[key]) 
+          if mouse.onclick_L and obj[key].func then obj[key].func() end
+                ------------------------
+          mouse.onDclick_L = mouse.LMB_state 
+                              and not mouse.last_LMB_state 
+                              and not mouse.Ctrl_state  
+                              and mouse.DLMB_state 
+                              and MOUSE_Match(obj[key]) 
+          if mouse.onDclick_L and obj[key].func_DC then obj[key].func_DC() end
+                ------------------------
+          mouse.ondrag_L = -- left drag (persistent even if not moving)
+                              mouse.LMB_state 
+                              and not mouse.Ctrl_state 
+                              and (mouse.context == key or mouse.context_latch == key) 
+          if mouse.ondrag_L and obj[key].func_LD then obj[key].func_LD() end 
+                ------------------------
+          mouse.ondrag_L_onmove = -- left drag (only when moving after latch)
+                              mouse.LMB_state 
+                              and not mouse.Ctrl_state 
+                              and mouse.is_moving
+                              and mouse.context_latch == key
+          if mouse.ondrag_L_onmove and obj[key].func_LD2 then obj[key].func_LD2() end 
+                ------------------------              
+          mouse.onclick_LCtrl = mouse.LMB_state 
+                              and not mouse.last_LMB_state 
+                              and mouse.Ctrl_state  
+                              and MOUSE_Match(obj[key]) 
+          if mouse.onclick_LCtrl and obj[key].func_trigCtrl then obj[key].func_trigCtrl() end
+                ------------------------            
+          mouse.ondrag_LCtrl = -- left drag (persistent even if not moving)
+                              mouse.LMB_state 
+                              and mouse.Ctrl_state 
+                              and (mouse.context == key or mouse.context_latch == key) 
+          if mouse.ondrag_LCtrl and obj[key].func_ctrlLD then obj[key].func_ctrlLD() end 
+                ------------------------
+          mouse.onclick_R = mouse.LMB_state 
+                              and not mouse.last_LMB_state 
+                              and not mouse.Ctrl_state  
+                              and MOUSE_Match(obj[key]) 
+          if mouse.onclick_L and obj[key].func_R then obj[key].func_R() end
+                ------------------------                
+          mouse.ondrag_R = -- left drag (persistent even if not moving)
+                              mouse.RMB_state 
+                              and not mouse.Ctrl_state 
+                              and (mouse.context == key or mouse.context_latch == key) 
+          if mouse.ondrag_R and obj[key].func_RD then obj[key].func_RD() end 
+                ------------------------  
+          mouse.onwheel = mouse.wheel_trig 
+                          and mouse.wheel_trig ~= 0 
+                          and not mouse.Ctrl_state 
+                          and mouse.context == key
+          if mouse.onwheel and obj[key].func_wheel then obj[key].func_wheel(mouse.wheel_trig) end
+                ------------------------          
           ::skip_until_get_parent_track::
           ------------------
         end
@@ -3289,6 +3366,14 @@ DOCKED 0
           redraw = 1
       end
       ::skip_mouse_check::
+      
+      -- reset latch anyway
+      if mouse.last_LMB_state and not mouse.LMB_state   then  
+        -- clear context
+          mouse.context_latch = ''
+          mouse.context_latch_val = -1
+      end      
+      
       mouse.last_mx = mouse.mx
       mouse.last_my = mouse.my
       mouse.last_LMB_state = mouse.LMB_state  
