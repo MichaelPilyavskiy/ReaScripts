@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b9e1820801e21c5a9764ec9deeba58fc2b4726e6" name="MPL Scripts">
+<index version="1" commit="720dd322e25b6d383a245a3a4b7ec88c14625fca" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -402,37 +402,11 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/be2c444d577fea1b597def577887433883fcb9d3/FX/mpl_Insert%20focused%20FX%20to%20selected%20tracks.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_LearnManager.lua" type="script" desc="LearnManager">
+    <reapack name="mpl_LearnManager (background).lua" type="script" desc="LearnManager">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2017-10-29T07:35:46Z">
-        <changelog><![CDATA[+ init
-+ Basic overview learned parameters and related parameter names
-+ Allow to load/overview default mapping for managed plugin]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3c1bd119a28ba7603d5554a9a0dabf1bcfa6950b/FX/mpl_LearnManager.lua</source>
-      </version>
-      <version name="1.05" author="MPL" time="2017-10-30T17:38:17Z">
-        <changelog><![CDATA[# use eugen27771 GetTrackStateChunk() workaround for >4Mb chunks
-# fix errors when no focused FX
-# fix -1 shift of parameter ids
-# fix updating FX when envelopes exist
-+ Action: overwrite default mapping
-+ Action: add mapping from custom/default (custom is not ready yet)
-+ Action: add/replace mapping from custom/default
-+ Action: add/clear mapping from custom/default
-+ Action: Apply current mapping to all FX instances on selected tracks
-+ Action: Show in TCP currently mapped parameters
-+ Action: Clear TCP controls on focused FX parent track
-+ Action: Show envelopes for currently mapped parameters]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/38cac8cb895f87754061142236290857b0e84fbc/FX/mpl_LearnManager.lua</source>
-      </version>
-      <version name="1.06" author="MPL" time="2017-10-30T20:50:30Z">
-        <changelog><![CDATA[# fix applying mapping when envelopes exists
-+ Action: Show TCP controls for mapped parameters (all instances)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e0b447ac052c0aab06576e68133cfe7faafe45e6/FX/mpl_LearnManager.lua</source>
-      </version>
-      <version name="1.10" author="MPL" time="2017-11-05T12:03:45Z">
+      <version name="1.10" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[+ Add support for load/save custom mappings (4 slots)
 + Action: Show envelopes for mapped parameters (all in selected tracks)
 + Action: Hide envelopes for mapped parameters
@@ -448,7 +422,7 @@
 # highlight buttons
 # fix update tracklist after showing envelopes
 # fix replacing multiple empty lines in learn chunks]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/75ff9c7f3ef7ac95a36e03bbef70b1a7de27b91b/FX/mpl_LearnManager.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX/mpl_LearnManager%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_List all MIDI OSC learn for current project.lua" type="script" desc="List all MIDI OSC learn for current project">
@@ -745,13 +719,13 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e09644009b45769cf68ec960bfcea0141ef65fd/FX/mpl_Toggle%20solo%20for%20selected%20FX.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_XYPad.lua" type="script" desc="XYPad">
+    <reapack name="mpl_XYPad (background).lua" type="script" desc="XYPad">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2017-11-17T20:08:26Z">
+      <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4691fefe95f509d08e00faeca314658cff243aaa/FX/mpl_XYPad.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX/mpl_XYPad%20(background).lua</source>
       </version>
     </reapack>
   </category>
@@ -1078,187 +1052,31 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3d5f2c7e20a37fb738cccceb4f455627a991db02/FX%20specific/mpl_List%20samples%20in%20directory%20for%20focused%20RS5k%20(MIDI,%20OSC,%20Mousewheel).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Open and Close Media Explorer when single item is inserted, export chromatically to RS5k.lua" type="script" desc="Open and Close Media Explorer when single item is inserted, export chromatically to RS5k">
+    <reapack name="mpl_Open and Close Media Explorer when single item is inserted, export chromatically to RS5k (background).lua" type="script" desc="Open and Close Media Explorer when single item is inserted, export chromatically to RS5k">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2017-09-11T04:12:21Z">
+      <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d62681edc09d061d9c20ed398f76ab5ec63a4be5/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20chromatically%20to%20RS5k.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20chromatically%20to%20RS5k%20(background).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k.lua" type="script" desc="Open and Close Media Explorer when single item is inserted, export it to RS5k">
+    <reapack name="mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k (background).lua" type="script" desc="Open and Close Media Explorer when single item is inserted, export it to RS5k">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2017-03-15T11:48:03Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/721cd96f28ce2492d6a6e24a6ccb0ab342165b37/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-03-25T07:14:22Z">
-        <changelog><![CDATA[# fix for x64 vrs check]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fac49a7cf0a9c16a893a744e90aad60d3cf32cd1/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-03-25T17:40:26Z">
-        <changelog><![CDATA[+ prepare track for MIDI input after release
-+ delete item after export]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f3a3c5e157126c61983e251c3e3fdd040d11003/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2017-03-25T21:00:32Z">
+      <version name="1.03" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[# set record MIDI/Input]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2e542cd93328452d2fa07f8603fe9273b85a500/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k%20(background).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_RS5k manager.lua" type="script" desc="RS5k manager">
+    <reapack name="mpl_RS5k manager (background).lua" type="script" desc="RS5k manager">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2017-09-24T09:47:12Z">
-        <changelog><![CDATA[init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b6358c0d63d11b322a4ae4091b1cbc60ec02f5d/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-09-24T10:49:24Z">
-        <changelog><![CDATA[+ Options/Browser: use preview RS5K instance at note 0
-+ Keyboard: space - Transport: Play 
-+ Keyboard: escape - Close window
-# GUI: Arial font, corrected font size]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c3ef4e436285ae62f7aa58080422727e8e23608a/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-09-25T15:15:04Z">
-        <changelog><![CDATA[# Options/Browser: use preview RS5K instance at note 0 doesn`t check state
-# Patterns: fix wrong PPQ definition when commiting]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0addc244e50315f8ba7dfff2c229753e4d67dbbb/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.04" author="MPL" time="2017-09-25T18:33:28Z">
-        <changelog><![CDATA[# GUI: improve steps drawing at low velocities
-+ Options/Global: autoprepare MIDI input]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f039a87796a117175fe68a0afdb34b13777b1da4/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.05" author="MPL" time="2017-10-07T21:25:08Z">
-        <changelog><![CDATA[+ Options/Global: MIDI send mode
-# Rename preview FX to 'RS5K preview']]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0af80dd642942141531502401f4764a21f836735/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.10" author="MPL" time="2017-10-08T07:29:32Z">
-        <changelog><![CDATA[+ Options/Global: Dump sources to child tracks as audio items
-# fix preview_name variable]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/de08a8a1d2b2a49ded694eb946c6c18262d41c7a/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.11" author="MPL" time="2017-10-08T15:06:56Z">
-        <changelog><![CDATA[+ StepSequencer: preview MIDI note by left click on name
-+ StepSequencer: copypaste step (right click on name), support for temporary link steps
-+ StepSequencer: allow change step velocity with ctrl+mousewheel
-+ Patterns: use increment id`s when duplicating
-+ Patterns/Menu: select linked pattern
-+ Patterns/Menu: rename pattern without commit to linked items
-+ Pads: add buttons to seek octaves
-+ Options/StepSeq: change mouse dy ratio for changing velocity with ctrl+left drag
-+ Options/StepSeq: change mousewheel ratio for changing velocity with ctrl+left drag
-+ Options/StepSeq: allow to select patterns by clicking pattern in browser
-# StepSequencer: add MIDI track when clicking steps or add new track
-# GUI: move steps scroll when changing width
-# GUI: hide pattern list on specified stepseq width
-# GUI: hide step names on specified steps area width
-# GUI: fix incorrent behaviour on mouse release sometimes]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/80fab2615bc8cf941a38f489f1166184946124e5/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.12" author="MPL" time="2017-10-08T15:12:23Z">
-        <changelog><![CDATA[# fix search other than wav formats in browser]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd4e4bf56507384b8e05ed8111e320ef28282b06/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.13" author="MPL" time="2017-10-08T16:21:32Z">
-        <changelog><![CDATA[# Browser: fix preview sample not working for dumpitems mode]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40df55ac8285b2ed018c1468a18aa10e121db1ae/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.15" author="MPL" time="2017-10-11T19:06:36Z">
-        <changelog><![CDATA[# fix some mouse issues
-# StepSeq: fix error when pattern has ghost tracks in dumpitems mode
-# StepSeq: fix adding dumped items outta source MIDI clip edges
-+ Pads: Korg NanoPad layout]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3d33a2c641272b93550f6cacf197ae816bbd3e1b/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.16" author="MPL" time="2017-10-11T19:10:30Z">
-        <changelog><![CDATA[# fix some mouse issues
-# StepSeq: fix error when pattern has ghost tracks in dumpitems mode
-# StepSeq: fix adding dumped items outta source MIDI clip edges
-+ Pads: Korg NanoPad layout]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f66450e41e43e81f5c513a50e19b589a29106c4a/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.17" author="MPL" time="2017-10-11T19:50:37Z">
-        <changelog><![CDATA[# StepSeq: fix erasing audio/MIDI data for first step due to time approximation]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/92c8bd4a27737749cbecafab0a197c6f42365d30/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.18" author="MPL" time="2017-10-23T17:21:38Z">
-        <changelog><![CDATA[+ Options/RS5K controls: global pitch offset]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/01155ffed6a3707cc41e743d8d7c3d462fa6e5fc/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.20" author="MPL" time="2017-11-10T17:49:57Z">
-        <changelog><![CDATA[+ Global: allow only single instance of parent track per project
-+ Global: remove build track template confirmation dialog
-+ Global: define parent track when starting script first time in active project, check is parent track existed while script is running
-+ Global: Changed name of MIDI patterns track, probably uncompatible with earlier versions (require manual resend MIDI to childrens)
-+ Global: Set parent track name as 'RS5K Manager'
-+ Pads: Chromatic Keys 2 octaves layout
-+ Pads: Ableton Live Drum Rack layout
-+ Pads: Studio One Impact layout
-+ SampleBrowser: Draw waveforms and full file path when click on keys
-+ Options/Global: Action: Redefine parent track
-+ Options/Global: Action: Select parent track
-+ Options/Pads: optionally disable send MIDI by clicking on keys
-# SingleTrack mode: don`t add MIDI preview track
-# SingleTrack mode: don`t add make parent track folder
-# MIDISend mode: clear MIDI preparations from parent track
-# DumpItems mode: use parent track for preview, not create additional MIDI track
-# DumpItems mode: use parent track for patterns
-# DumpItems mode: auto mute patterns when commit
-# StepSequencer: fix draw steps by dragging
-# Pads: fix wrong MIDI notes integers
-# UI: fix hide SampleBrowser back button when compressed width
-# UI: fix wrong check for global mode preferences
-# UI: fix fast scroll behaviour
-# UI: move sample path name level down
-# UI: move pattern name level down
-# UI: move commit pattern button to pattern menu 
-# UI: always sort pattern list by name ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f9487ff48ac7d5f25c4a3bfa64a561edc8efe89d/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.21" author="MPL" time="2017-11-14T19:54:50Z">
-        <changelog><![CDATA[+ Pads: Gain control per sample, double click to reset
-+ Pads: Pan control per sample, double click to reset
-+ Pads: Pitch control per sample (small circle is finetune), double click to reset
-+ Pads: Attack control per sample (x^6 scaled), double click to reset
-+ Pads: Decay control per sample (x^6 scaled), double click resets to 250ms
-+ Pads: Sustain control per sample, double click to reset
-+ Pads: Release control per sample, double click reset to 1ms
-# fix doubleclick behaviour in some cases]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/673dfb3e7abf57ced4722c28e6630a820ea39c16/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.22" author="MPL" time="2017-11-14T20:14:42Z">
-        <changelog><![CDATA[# fix proper mouse layering when parent track doesn`t found]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f7b2b7343df4c656567031aced235a33a152ba46/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.23" author="MPL" time="2017-11-17T20:08:26Z">
-        <changelog><![CDATA[# reset parent track when changing modes
-# fix create additional children track]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4691fefe95f509d08e00faeca314658cff243aaa/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.24" author="MPL" time="2017-11-19T17:37:22Z">
-        <changelog><![CDATA[# fix error if not found sample path properly
-+ Pads: add shortcut to open FX chain for current sample
-+ Patterns: store last selected pattern]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/390af0fc8f3af74eacbcdb441ade076a31ba05c1/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.25" author="MPL" time="2018-01-18T18:30:41Z">
-        <changelog><![CDATA[+ Patterns: add support for change pattern length (2/4/8 beats)
-+ Patterns: increase max steps count to 64
-+ Patterns: Ctrl+drag on step count quantize value to power of 2
-+ Patterns: support mousewheel on steps count
-+ DumpItems mode: aligh sources in FIPM when overlapped]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f8559ce43b8338a544a49e081c129e70f289307a/FX%20specific/mpl_RS5k%20manager.lua</source>
-      </version>
-      <version name="1.26" author="MPL" time="2018-01-18T18:52:49Z">
+      <version name="1.26" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[+ Patterns: Insert button add media item to parent track and commit pattern to this item]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9e1820801e21c5a9764ec9deeba58fc2b4726e6/FX%20specific/mpl_RS5k%20manager.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Search ReaControlMIDI bank.lua" type="script" desc="Search ReaControlMIDI bank">
@@ -1271,30 +1089,16 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc4c0fe7d7f6effce3351bce96b53db58a4a065d/FX%20specific/mpl_Search%20ReaControlMIDI%20bank.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Smooth toggle X pair for ix_Mixer_8xS-1xS.lua" type="script" desc="Smooth toggle X pair for ix_Mixer_8xS-1xS">
+    <reapack name="mpl_Smooth toggle X pair for ix_Mixer_8xS-1xS (background).lua" type="script" desc="Smooth toggle X pair for ix_Mixer_8xS-1xS">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2017-06-20T21:53:58Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main" file="mpl_Smooth toggle 3-4 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9fae944e08a33d83d78c7cd74f0581e9edddd7bc/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
-        <source main="main" file="mpl_Smooth toggle 5-6 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9fae944e08a33d83d78c7cd74f0581e9edddd7bc/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
-        <source main="main" file="mpl_Smooth toggle 7-8 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9fae944e08a33d83d78c7cd74f0581e9edddd7bc/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
-        <source main="main" file="mpl_Smooth toggle 9-10 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9fae944e08a33d83d78c7cd74f0581e9edddd7bc/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-06-20T21:58:54Z">
-        <changelog><![CDATA[+ metadata parser fix]]></changelog>
-        <source main="main" file="mpl_Smooth toggle 3-4 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/42547f20bb580b7a0c891be5ac7d5095fa1a0a2d/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
-        <source main="main" file="mpl_Smooth toggle 5-6 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/42547f20bb580b7a0c891be5ac7d5095fa1a0a2d/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
-        <source main="main" file="mpl_Smooth toggle 7-8 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/42547f20bb580b7a0c891be5ac7d5095fa1a0a2d/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
-        <source main="main" file="mpl_Smooth toggle 9-10 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/42547f20bb580b7a0c891be5ac7d5095fa1a0a2d/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-06-20T22:10:56Z">
+      <version name="1.02" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[+ metadata parser fix, removing difference condition]]></changelog>
-        <source main="main" file="mpl_Smooth toggle 3-4 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5bf4a60b4a39d720c0975585f62bc11d21294bbc/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
-        <source main="main" file="mpl_Smooth toggle 5-6 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5bf4a60b4a39d720c0975585f62bc11d21294bbc/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
-        <source main="main" file="mpl_Smooth toggle 7-8 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5bf4a60b4a39d720c0975585f62bc11d21294bbc/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
-        <source main="main" file="mpl_Smooth toggle 9-10 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5bf4a60b4a39d720c0975585f62bc11d21294bbc/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS.lua</source>
+        <source main="main" file="mpl_Smooth toggle 3-4 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS%20(background).lua</source>
+        <source main="main" file="mpl_Smooth toggle 5-6 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS%20(background).lua</source>
+        <source main="main" file="mpl_Smooth toggle 7-8 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS%20(background).lua</source>
+        <source main="main" file="mpl_Smooth toggle 9-10 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle 64x oversampling for all ReaComp instances.lua" type="script" desc="Toggle 64x oversampling for all ReaComp instances">
@@ -1449,17 +1253,14 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Items%20Editing/mpl_Stretch%20selected%20items%20to%20edit%20cursor%20preserve%20snapoffset.eel</source>
       </version>
     </reapack>
-    <reapack name="mpl_Toggle stretch selected items positions grid relative.lua" type="script" desc="Toggle stretch selected items positions grid relative">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-05-22T11:36:03Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/671bdb4694af970994926d1796f06018596c4398/Items%20Editing/mpl_Toggle%20stretch%20selected%20items%20positions%20grid%20relative.lua</source>
+    <reapack name="mpl_Toggle stretch selected items positions (background).lua" type="script" desc="Toggle stretch selected items positions">
+      <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Items%20Editing/mpl_Toggle%20stretch%20selected%20items%20positions%20(background).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Toggle stretch selected items positions.lua" type="script" desc="Toggle stretch selected items positions">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-05-22T11:36:03Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/671bdb4694af970994926d1796f06018596c4398/Items%20Editing/mpl_Toggle%20stretch%20selected%20items%20positions.lua</source>
-      </version>
-      <version name="1.01" author="Michael Pilyavskiy (mpl)" time="2016-05-29T19:44:18Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0ca7f5852ffa6f1c3e78618d37b0751d7721c030/Items%20Editing/mpl_Toggle%20stretch%20selected%20items%20positions.lua</source>
+    <reapack name="mpl_Toggle stretch selected items positions grid relative (background).lua" type="script" desc="Toggle stretch selected items positions grid relative">
+      <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Items%20Editing/mpl_Toggle%20stretch%20selected%20items%20positions%20grid%20relative%20(background).lua</source>
       </version>
     </reapack>
   </category>
@@ -1512,17 +1313,13 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/21b5bcf46d6f2a36b9d98ca4b2c63916faa86a6f/Items%20Properties/mpl_Cut%20extension%20from%20selected%20item%20names.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Samplitude object mini.lua" type="script" desc="Setup gain/pan/pitch for selected items and item under mouse pointer">
+    <reapack name="mpl_Samplitude object mini (background).lua" type="script" desc="Setup gain/pan/pitch for selected items and item under mouse pointer">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="0.1" author="mpl" time="2016-07-23T05:07:42Z">
+      <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5596982ebbbbfa0abb5db93bc0fca50513762d28/Items%20Properties/mpl_Samplitude%20object%20mini.lua</source>
-      </version>
-      <version name="1.0" author="mpl" time="2016-07-23T05:27:13Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2d546182a97e8bcca2f9d537fac2653dbac6773/Items%20Properties/mpl_Samplitude%20object%20mini.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Items%20Properties/mpl_Samplitude%20object%20mini%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Send midi source as channel x.lua" type="script" desc="Send midi source as channel x">
@@ -2205,34 +2002,22 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/21b5bcf46d6f2a36b9d98ca4b2c63916faa86a6f/Tracks%20Properties/mpl_Disable%20master%20or%20parent%20send%20for%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Enlarge selected track, define height.lua" type="script" desc="Enlarge selected track, define height">
+    <reapack name="mpl_Enlarge selected track (background).lua" type="script" desc="Enlarge selected track">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="mpl" time="2016-09-01T07:36:18Z">
-        <changelog><![CDATA[+ init / recode from cubic13 idea]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8c656aa59bcd667f544160f5e264c0939015f4b7/Tracks%20Properties/mpl_Enlarge%20selected%20track,%20define%20height.lua</source>
+      <version name="1.03" author="MPL" time="2018-01-27T04:42:47Z">
+        <changelog><![CDATA[+ toolbar indication / toggle state (X-Raym template used)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Tracks%20Properties/mpl_Enlarge%20selected%20track%20(background).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Enlarge selected track.lua" type="script" desc="Enlarge selected track">
+    <reapack name="mpl_Enlarge selected track, define height (background).lua" type="script" desc="Enlarge selected track, define height">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="mpl" time="2016-09-01T05:19:57Z">
+      <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[+ init / recode from cubic13 idea]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/46addc6593e6e7e1444c38e87dc524d6ce558d2b/Tracks%20Properties/mpl_Enlarge%20selected%20track.lua</source>
-      </version>
-      <version name="1.01" author="mpl" time="2016-09-01T07:15:10Z">
-        <changelog><![CDATA[#fix check for sel track]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/767fec930c744e54d5cdc8e61cab4cea97ed5c28/Tracks%20Properties/mpl_Enlarge%20selected%20track.lua</source>
-      </version>
-      <version name="1.02" author="mpl" time="2016-09-07T11:45:31Z">
-        <changelog><![CDATA[+ set mixer scroll for selected track]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee9bc2c462c5bc96775f8d05ece0cd768231ea47/Tracks%20Properties/mpl_Enlarge%20selected%20track.lua</source>
-      </version>
-      <version name="1.03" author="mpl" time="2016-09-15T10:53:39Z">
-        <changelog><![CDATA[+ toolbar indication / toggle state (X-Raym template used)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bed8c746c8e6a78aded4059fc5a612319ef45f75/Tracks%20Properties/mpl_Enlarge%20selected%20track.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Tracks%20Properties/mpl_Enlarge%20selected%20track,%20define%20height%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Go to first receive track.lua" type="script" desc="Go to first receive track">
@@ -2405,22 +2190,14 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9efc67aadbffb4ee99ea7c7e02579b5ebdc2f859/Tracks%20Properties/mpl_Send%20track%20under%20mouse%20cursor%20to%20selected%20tracks.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Send tracks.lua" type="script" desc="Send tracks">
+    <reapack name="mpl_Send tracks (background).lua" type="script" desc="Send tracks">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2017-09-14T09:54:14Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5374fd0dcfc1cbf8cdbd2f1ff9ce80912b85d08d/Tracks%20Properties/mpl_Send%20tracks.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-09-14T20:33:57Z">
-        <changelog><![CDATA[# allow multichannel sends]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ffed929122a952665cabb8bfeaac62bf8e81f710/Tracks%20Properties/mpl_Send%20tracks.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-09-17T07:56:28Z">
+      <version name="1.02" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[# refresh matrix after changing 
 + clear matrix button]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ddf7240f992762ca5e6078425d53deb8ebbe8c12/Tracks%20Properties/mpl_Send%20tracks.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Tracks%20Properties/mpl_Send%20tracks%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set parent channels according to index for selected tracks.lua" type="script" desc="Set parent channels according to index for selected tracks">
@@ -2451,10 +2228,10 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Sort%20all%20tracks%20by%20color.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Toggle auto add last touched parameter to TCP.lua" type="script">
-      <version name="1.0" author="mpl" time="2016-06-20T11:05:46Z">
+    <reapack name="mpl_Toggle auto add last touched parameter to TCP (background).lua" type="script">
+      <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/164763496da490b3d8b89d51edcfb6372d81408a/Tracks%20Properties/mpl_Toggle%20auto%20add%20last%20touched%20parameter%20to%20TCP.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Tracks%20Properties/mpl_Toggle%20auto%20add%20last%20touched%20parameter%20to%20TCP%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle input quantize for selected track.lua" type="script" desc="Toggle input quantize for selected track">
@@ -2740,20 +2517,34 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/495dca37ac4e465b124311d068d2f85644b2496a/Various/mpl_Isomorphic%20keyboard.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_MacroControl.lua" type="script" desc="MacroControl">
+    <reapack name="mpl_Link TCP MCP folder collapsed state (background).lua" type="script" desc="Link TCP MCP folder collapsed state (running in background)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_Link%20TCP%20MCP%20folder%20collapsed%20state%20(background).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_MacroControl (background).lua" type="script" desc="MacroControl">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2017-07-30T10:45:20Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5031d9de29cf56365176433ab6305db4b0ed5e44/Various/mpl_MacroControl.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-08-26T06:24:58Z">
+      <version name="1.01" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[+ formatted parameters at the top
 + font scaled to script window width
 # redraw all knobs when changing one
 # fix pan send indication/ctrl]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/623fbe6a3c135a998ae6542dbf5082a8c555fffb/Various/mpl_MacroControl.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_MacroControl%20(background).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Mapping Panel (background).lua" type="script" desc="Mapping Panel">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.34" author="MPL" time="2018-01-27T04:42:47Z">
+        <changelog><![CDATA[# fix wrong decoding MIDI integer]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_Mapping%20Panel%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua" type="script" desc="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua">
@@ -2766,148 +2557,33 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6bbd9fd9acaebd5d4e64d65b712810bfc215fb2a/Various/mpl_Mapping%20Panel%20-%20remove%20config%20data.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Mapping Panel.lua" type="script" desc="Mapping Panel">
+    <reapack name="mpl_Monitor selected track with track 1 (background).lua" type="script" desc="Monitor selected track with track 1">
+      <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_Monitor%20selected%20track%20with%20track%201%20(background).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Open and Close Media Explorer when item is inserted (background).lua" type="script" desc="Open and Close Media Explorer when item is inserted">
+      <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_Open%20and%20Close%20Media%20Explorer%20when%20item%20is%20inserted%20(background).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_ProjectPlaylist (background).lua" type="script" desc="ProjectPlaylist">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-06T06:35:56Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ecb585c1eede88f6d0b540472472b40d41ba897e/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.02" author="Michael Pilyavskiy (mpl)" time="2016-01-07T11:42:00Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79216a70605e1fcbf6b21c4feff8bdd153580701/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.03" author="Michael Pilyavskiy (mpl)" time="2016-01-08T10:29:06Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/62c799dd557b6e61ad5b6e4eca0fe5355f8e41b0/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.04" author="Michael Pilyavskiy (mpl)" time="2016-01-08T10:56:08Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c3613609a531909c5e6d280caab08f3c464d78b8/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.05" author="Michael Pilyavskiy (mpl)" time="2016-01-08T12:55:21Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eea28c8c8ab856a8336d9a39985bcb4dbbf0001d/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.07" author="Michael Pilyavskiy (mpl)" time="2016-01-08T14:05:51Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/91a8f8f1e9f9ba8258e6c3ca6e4428b1b826c6b6/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.1" author="Michael Pilyavskiy (mpl)" time="2016-01-09T09:04:46Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c3881b9633fcd652d65424eca1fd992e21e36bfb/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.11" author="Michael Pilyavskiy (mpl)" time="2016-01-09T09:12:40Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e081084d03ccde107e4a25d73f77f5c76a011fa/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.12" author="Michael Pilyavskiy (mpl)" time="2016-01-09T12:40:21Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/74be2faf4bd0d2be983b905840c47067fc8394ee/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.13" author="Michael Pilyavskiy (mpl)" time="2016-01-11T06:15:05Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55bff8e794489be86c3fa643425e535571a3cf1a/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.14" author="Michael Pilyavskiy (mpl)" time="2016-01-11T06:50:42Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/84a8f917e1369e7008e1da9cbd610fb5d74d1c74/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.16" author="Michael Pilyavskiy (mpl)" time="2016-01-11T18:15:47Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6fffc118d63ed7b2e126fa88bab7cfe69ce75639/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.17" author="Michael Pilyavskiy (mpl)" time="2016-01-11T18:48:51Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/764d760ca9d31177a27a0a39c5ec4861350df624/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.18" author="Michael Pilyavskiy (mpl)" time="2016-01-11T18:56:27Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8801e224f2ede6aa6b651a58967f93343dd1d1b5/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.19" author="Michael Pilyavskiy (mpl)" time="2016-01-11T19:03:18Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71fc81b2dde05bb4d1875303a720432069b3ec24/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.20" author="Michael Pilyavskiy (mpl)" time="2016-01-14T06:27:14Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/21d027d729149aaa9c88c21ecee3b45cf38b608f/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.21" author="Michael Pilyavskiy (mpl)" time="2016-02-17T11:42:02Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb98b9f56e929a5915f9f6a2e9912f1f2175e655/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.22" author="Michael Pilyavskiy (mpl)" time="2016-02-17T11:56:41Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e78b392dfd885bb025417bb9d0568b05ef7c81b4/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.23" author="Michael Pilyavskiy (mpl)" time="2016-02-17T12:11:06Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4f98e477a45c9b47e6556cd7dfa7ef4d7f767c7a/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.24" author="Michael Pilyavskiy (mpl)" time="2016-03-02T07:31:07Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/05427f57b4faafe406f93657794fc0343746efb1/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.25" author="Michael Pilyavskiy (mpl)" time="2016-04-18T19:00:18Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9cb5e712cf38c6f1a78505ea04766f650749fb73/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.26" author="Michael Pilyavskiy (mpl)" time="2016-04-22T20:41:24Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b3ec85d5cddc98597fe31fb4eace4e4d473e8ce4/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.27" author="Michael Pilyavskiy (mpl)" time="2016-04-30T08:51:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/baac8b86eaf54106db642ce59154e750eb596303/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.28" author="mpl" time="2016-08-31T12:29:28Z">
-        <changelog><![CDATA[+ Extended formula input window (REAPER 5.24+)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ae408ffc0a755784914e15597863b0fb365156e/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.29" author="mpl" time="2016-08-31T13:16:43Z">
-        <changelog><![CDATA[+ Extended formula input window (REAPER 5.24+)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5ab95590827feccd2c99e134a41ae072eaf7d31d/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.30" author="mpl" time="2016-09-01T03:33:58Z">
-        <changelog><![CDATA[# fixed check for existing FX when floating related FX]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6110874f4f876ce70106b0ffdd75c86260f50dbd/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.31" author="mpl" time="2016-11-03T19:43:19Z">
-        <changelog><![CDATA[# vca() apply (x-base)/(1-child) function]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/153a13caf3555926fb22e5f1b061e0ded5d8686e/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.32" author="mpl" time="2016-11-03T20:05:50Z">
-        <changelog><![CDATA[# vca() apply coefficient relative to base]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aa1051d25155f7642cbbc8c1bf09d1d3d7b28f09/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.33" author="mpl" time="2016-12-22T08:53:55Z">
-        <changelog><![CDATA[+ Actions: Slider/Link to all same parameters in all instances on same track]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4f8f3c71fe3b39a302cded9c19282d5d0c739023/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-      <version name="1.34" author="mpl" time="2017-01-21T12:56:26Z">
-        <changelog><![CDATA[# fix wrong decoding MIDI integer]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e6080b70c8936c5bb3960efc5c718768bbc3f973/Various/mpl_Mapping%20Panel.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Monitor selected track with track 1.lua" type="script" desc="Monitor selected track with track 1">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-05-31T12:03:57Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d3b865f577813b846661272abf51508d38877606/Various/mpl_Monitor%20selected%20track%20with%20track%201.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Open and Close Media Explorer when item is inserted.lua" type="script" desc="Open and Close Media Explorer when item is inserted">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Various/mpl_Open%20and%20Close%20Media%20Explorer%20when%20item%20is%20inserted.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Open application, define path.lua" type="script" desc="Open application, define path">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-01-29T13:22:44Z">
-        <changelog><![CDATA[+ init, usage - for quick shortcuts to user defined applications]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/02c9c5f42b7d7e270912a2173ec7c72aa0d79e1a/Various/mpl_Open%20application,%20define%20path.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Open directory in explorer, define path.lua" type="script" desc="Open directory in explorer, define path">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-01-29T13:22:25Z">
-        <changelog><![CDATA[+ init, usage - for quick shortcuts to user defined folders]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6021a65ea7707db975c827cb16c10bcc7bc9001/Various/mpl_Open%20directory%20in%20explorer,%20define%20path.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_ProjectPlaylist.lua" type="script" desc="ProjectPlaylist">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-07-11T18:08:31Z">
-        <changelog><![CDATA[+ oficial release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7a040e04b394773ef89bfdfefcf62b7444813dad/Various/mpl_ProjectPlaylist.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-07-12T18:12:54Z">
+      <version name="1.01" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[+ Menu/Show shortcuts
 + Menu/Dock: show dockstate check ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9760609ae4f8bd25098a818dbe4a479409cde16/Various/mpl_ProjectPlaylist.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_ProjectPlaylist%20(background).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Quantize Tool (background).lua" type="script" desc="Quantize Tool">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.8.4" author="mpl" time="2018-01-27T04:42:47Z">
+        <changelog><![CDATA[# Improved parsing GrooveTool patterns]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_Quantize%20Tool%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Quantize Tool set grid (MIDI CC and OSC only).lua" type="script" desc="Quantize Tool set grid (MIDI CC and OSC only)">
@@ -2923,30 +2599,6 @@ setup min gain, attack =0]]></changelog>
     <reapack name="mpl_Quantize Tool set swing (MIDI CC and OSC only).lua" type="script" desc="Quantize Tool set swing (MIDI CC and OSC only)">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Various/mpl_Quantize%20Tool%20set%20swing%20(MIDI%20CC%20and%20OSC%20only).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Quantize Tool.lua" type="script" desc="Quantize Tool">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.7" author="Michael Pilyavskiy (mpl)" time="2015-12-06T11:46:21Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8f48a4ba32b84772de6a5f5d2e2bcbe7c668b92e/Various/mpl_Quantize%20Tool.lua</source>
-      </version>
-      <version name="1.8" author="Michael Pilyavskiy (mpl)" time="2015-12-06T14:38:03Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/796d6ab1f0a99ddaecb3fd71e62aab7022e1ad73/Various/mpl_Quantize%20Tool.lua</source>
-      </version>
-      <version name="1.8.2" author="mpl" time="2016-07-31T10:12:05Z">
-        <changelog><![CDATA[# temporary fix for <get stretch markers> in pattern mode
-# Change reference list title to match current mode]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5c308ad078876d2fe41f23c258670050ed07a0f9/Various/mpl_Quantize%20Tool.lua</source>
-      </version>
-      <version name="1.8.3" author="mpl" time="2016-08-03T19:53:08Z">
-        <changelog><![CDATA[# Improved parsing GrooveTool patterns]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/32aa937ebbea0d5605a23f4a39729e68be42ed0a/Various/mpl_Quantize%20Tool.lua</source>
-      </version>
-      <version name="1.8.4" author="mpl" time="2017-07-31T20:58:38Z">
-        <changelog><![CDATA[# Improved parsing GrooveTool patterns]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e24685ce973f2e4e8e6ef395c0e7807018d658db/Various/mpl_Quantize%20Tool.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
@@ -2967,6 +2619,16 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d8eafb34e940480c6fd965a91b9da5edf9db58d4/Various/mpl_Reset%20internal%20windows%20xy%20positions.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_SendFader (background).lua" type="script" desc="SendFader">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.33" author="MPL" time="2018-01-27T04:42:47Z">
+        <changelog><![CDATA[+ Support master harware sends (REAPER 5.15+)
+# change link to common discussion]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_SendFader%20(background).lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_SendFader - set active send (MIDI OSC only).lua" type="script" desc="SendFader - set active send (MIDI OSC only)">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -2983,116 +2645,6 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-01-29T17:22:38Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/28db9db63306262a42e5ac1bf237e5ead60c7e87/Various/mpl_SendFader%20-%20set%20volume%20(MIDI%20OSC%20only).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_SendFader.lua" type="script" desc="SendFader">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-01-29T09:22:15Z">
-        <changelog><![CDATA[+ init ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e7dd25f342fe08a36847c2ba1449ab9aa2ac7a8e/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-01-29T10:46:30Z">
-        <changelog><![CDATA[+ doubleclick on pan and vol reset value
-+ rightclick on pan and vol set value
-+ support disable track selection following, edit default config]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/077dc99504eaab5d5836620a9ef9d342b016470a/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-01-29T12:36:09Z">
-        <changelog><![CDATA[# fix line538 error]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/825df85fbcc16d1398f74f724a5c2639a20f9945/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2017-01-29T12:50:33Z">
-        <changelog><![CDATA[+ reset vol/pan reflects linking
-+ set vol/pan reflects linking]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/27b14cc1053e7e012cd92a589bcb2bdc77a85850/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.05" author="MPL" time="2017-01-29T15:06:43Z">
-        <changelog><![CDATA[+ Save window width and height on change
-# redraw window after xywh change
-# different GUI tweaks (indentation and resize)
-# fix wrong id from FX context menu]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57e307db5c46b3f6fcf78132c0a0f0fc64990956/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.06" author="MPL" time="2017-01-29T15:41:03Z">
-        <changelog><![CDATA[+ support for setting ID before init, use reaper.SetExtState( 'mpl SendFader', 'currentID', ID_val, false )
-+ support for setting source TrackGUID before init, use reaper.SetExtState( 'mpl SendFader', 'srcTrack_GUID', ID_val, false )]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/280b6ec75a400b6b1e483fe7fe16422a0c8978c6/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.10" author="MPL" time="2017-01-29T17:22:14Z">
-        <changelog><![CDATA[+ support track colors
-+ support external control, see mpl_SendFader - set volume (MIDI OSC only).lua
-# fixed indents when mixer opened
-# allow change track/send_ID after external state get
-# rename 'Remove' to 'Delete']]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8427ab0464ceae8a17b4487728e159d874fcd4aa/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.11" author="MPL" time="2017-01-29T18:11:41Z">
-        <changelog><![CDATA[# fix hardware sends in regular sends list]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7b4eecce331a7d97b684ab7e7a5962f3b4ee4b71/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.12" author="MPL" time="2017-01-30T18:24:19Z">
-        <changelog><![CDATA[# fix scaling for external input
-# fix error on changing track while external control]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e159bd8a83869f5f3d2702d43beb563fba7984a/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.13" author="MPL" time="2017-01-31T04:57:29Z">
-        <changelog><![CDATA[+ MouseWheel on fader change volume
-+ MouseWheel on pan change pan, perform when link also
-+ Support for store/load configuration to external file (settings doesn`t resetted after update)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/275baa4b909946e4be845badcbe452aefdc7d536/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.14" author="MPL" time="2017-01-31T14:59:38Z">
-        <changelog><![CDATA[+ Save docked state]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3527c9ff48c5d48a16710ac16f271487c89ac4de/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.15" author="MPL" time="2017-02-01T07:54:33Z">
-        <changelog><![CDATA[+ Support for writing envelopes]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d08f3a78f14c4e42e142097c13ec57abefb5c0f7/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.16" author="MPL" time="2017-02-03T02:36:28Z">
-        <changelog><![CDATA[# not sure it is SendFader bug but hope fix adding/renaming ReaEQ instance for send created before SendFader]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/33bb1b6ef6629492640d04703674960b071c6e7a/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.20" author="MPL" time="2017-02-23T11:06:40Z">
-        <changelog><![CDATA[+ Support for hardware sends
-+ Soft takeover for remote mode, roght click on 'Remove' to enable ST 
-+ Store mixer visibility
-+ Store remote mode
-+ Store ST mode]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2c07bf557a275bb36c0d877b2c6249046e861792/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.21" author="MPL" time="2017-02-23T13:59:39Z">
-        <changelog><![CDATA[+ Support for external change active send, see Remote menu + related script]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e5f034ef3df6ec68d713f50031ff3e437baf16b2/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.22" author="MPL" time="2017-02-23T18:19:01Z">
-        <changelog><![CDATA[# fix line1421, thanks J Reverb]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/93060cc97f63803065775298d68e33fb58ec3e33/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.23" author="MPL" time="2017-02-26T02:14:49Z">
-        <changelog><![CDATA[+ Solo send]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd66a84d78b486a702f4d05b474bbf993db121c0/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.30" author="MPL" time="2017-02-26T02:27:14Z">
-        <changelog><![CDATA[+ Solo send
-# increased mixer height]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5a678b0ae2306286c6811d14bf9f68ba461af3f5/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.31" author="MPL" time="2017-02-26T02:31:12Z">
-        <changelog><![CDATA[+ Solo send
-# increased mixer height]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3051537d590fba9da99284e92346c1c9974ea5f0/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.32" author="MPL" time="2017-02-26T02:34:30Z">
-        <changelog><![CDATA[# fix solo send]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1f31cbe014a092e018d1221139007c5df857392/Various/mpl_SendFader.lua</source>
-      </version>
-      <version name="1.33" author="MPL" time="2017-11-05T12:49:05Z">
-        <changelog><![CDATA[+ Support master harware sends (REAPER 5.15+)
-# change link to common discussion]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b85b95dd9d5eca9e18a0240c5e9852ca2b94dc6e/Various/mpl_SendFader.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set project grid (MIDI CC and OSC only).lua" type="script" desc="Set project grid (MIDI CC and OSC only)">
