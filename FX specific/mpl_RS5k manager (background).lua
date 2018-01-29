@@ -1,11 +1,12 @@
 ﻿-- @description RS5k manager
--- @version 1.26
+-- @version 1.27
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Patterns: Insert button add media item to parent track and commit pattern to this item
+--    # fix error when track is not in FIPM mode
+--    # red mode switch since it reqiure to start with new project or at least with redifined parent without any RS5k instances
   
-  local vrs = 'v1.26'
+  local vrs = 'v1.27'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -949,7 +950,9 @@ DOCKED 0
           local t = pat_t[key]
           local note = tonumber(key:match('[%d]+'))
           local child_tr = GetDestTrackByNote(data.tr_pointer, note, false)
-          local FIPM = GetMediaTrackInfo_Value( child_tr, 'B_FREEMODE')
+          if child_tr then
+            local FIPM = GetMediaTrackInfo_Value( child_tr, 'B_FREEMODE')
+          end
           local _,_,sample_path = GetSampleNameByNote(note)
           local mult if not pat_t.PATLEN then mult = 1 else mult = pat_t.PATLEN end
           local step_len = math.ceil(MeasPPQ/t.STEPS)*mult
@@ -1549,7 +1552,7 @@ DOCKED 0
                 y = 1,
                 w = gfx.w - obj.tab_div-4,
                 h = obj.item_h2,
-                col = 'white',
+                col = 'red',
                 state = conf.global_mode == 0,
                 txt= 'Parent track mode: '..global_modes[conf.global_mode+1],
                 show = true,
