@@ -1,11 +1,9 @@
---[[
-   * ReaScript Name: Smart duplicate notes
-   * Lua script for Cockos REAPER
-   * Author: MPL
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
+-- @description Smart duplicate notes
+-- @version 1.01
+-- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--    # fix integer PPQ value
   
 script_title = "Smart duplicate notes"
 
@@ -93,7 +91,7 @@ if midi_editor ~= nil then
         --1FNG_note_mute, 2FNG_note_pos,3FNG_note_len,4FNG_note_chan, 5FNG_note_pitch, 6FNG_note_vel  
         reaper.FNG_SetMidiNoteIntProperty(FNG_note1, "SELECTED", 1)
         reaper.FNG_SetMidiNoteIntProperty(FNG_note1, "MUTED", notes_2_copy_subt[1])
-        reaper.FNG_SetMidiNoteIntProperty(FNG_note1, "POSITION", notes_2_copy_subt[2]+adjust_ppq )
+        reaper.FNG_SetMidiNoteIntProperty(FNG_note1, "POSITION", math.floor(notes_2_copy_subt[2]+adjust_ppq/2) )
         reaper.FNG_SetMidiNoteIntProperty(FNG_note1, "LENGTH", notes_2_copy_subt[3])
         reaper.FNG_SetMidiNoteIntProperty(FNG_note1, "CHANNEL", notes_2_copy_subt[4])
         reaper.FNG_SetMidiNoteIntProperty(FNG_note1, "PITCH", notes_2_copy_subt[5])
