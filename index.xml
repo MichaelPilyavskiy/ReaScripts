@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d2b36675974906d392e14e3ba88daf090fb553e9" name="MPL Scripts">
+<index version="1" commit="97efcf4a792b2d860b17982924300fc32be6c313" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -2552,11 +2552,15 @@ setup min gain, attack =0]]></changelog>
     </reapack>
     <reapack name="mpl_Mapping Panel (background).lua" type="script" desc="Mapping Panel">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.34" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[# fix wrong decoding MIDI integer]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_Mapping%20Panel%20(background).lua</source>
+      </version>
+      <version name="1.35" author="MPL" time="2018-01-31T17:52:14Z">
+        <changelog><![CDATA[# fix take 2 channels peaks formula (thnx fundorin)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/97efcf4a792b2d860b17982924300fc32be6c313/Various/mpl_Mapping%20Panel%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua" type="script" desc="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua">
