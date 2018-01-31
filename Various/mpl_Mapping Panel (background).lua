@@ -1,15 +1,17 @@
 -- @description Mapping Panel
--- @version 1.34
+-- @version 1.35
 -- @author MPL
 -- @changelog
---    # fix wrong decoding MIDI integer
--- @website http://forum.cockos.com/member.php?u=70694
+--    # fix take 2 channels peaks formula (thnx fundorin)
+-- @website http://forum.cockos.com/showthread.php?t=188335
 
 
-local vrs = 1.34
+local vrs = 1.35
 local changelog =
 
 [===[ 
+31.01.2018  1.35
+            # fix take 2 channels peaks (thnx fundorin)
 21.01.2017  1.34
             # fix wrong decoding MIDI integer
 22.12.2016  1.33
@@ -284,7 +286,7 @@ local changelog =
     if data.map[m] == nil or data.map[m][sl] == nil then return 0.1 end
     local guid = data.map[m][sl].track_guid
     local track = reaper.BR_GetMediaTrackByGUID(0, guid)
-    local peak_ret = (reaper.Track_GetPeakInfo(track, 1) + reaper.Track_GetPeakInfo(track, 1))  /2 
+    local peak_ret = (reaper.Track_GetPeakInfo(track, 1) + reaper.Track_GetPeakInfo(track, 2))  /2 
     return peak_ret
   end  
   
@@ -4408,8 +4410,6 @@ local changelog =
   function MAIN_exit() 
     reaper.atexit()
     gfx.quit() 
-    --if data.current_window ==4 then data.current_window = 2 end  
-    --ENGINE_return_data_to_projextstate2(false)
   end    
   
 -----------------------------------------------------------------------
