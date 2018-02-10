@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c1afb7f961b5a63f5aabbb46d7fe5febf160bff9" name="MPL Scripts">
+<index version="1" commit="fa97a43d4819ea28effaa373f77c485772ccd4c5" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -2453,6 +2453,31 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="mpl" time="2016-08-23T11:06:45Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9271eb5fe2df842dee33cc6027d8ead9288352e2/Various/mpl_Import%20Winamp%20Playlist.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_InfoTool.lua" type="script" desc="InfoTool">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="0.1alpha" author="MPL" time="2018-02-10T17:28:54Z">
+        <changelog><![CDATA[+ Prelimitary alpha version. There weren`t plans to develop it further with different widgets like interactive/draggable grid, different indicators/controls, but it probably can be improved in the future if will have some response from users on Cockos Forum.
++ Basic interactive overview of some parameters
++ Context: Audio item 
++ Context: MIDI item
++ Context: Empty Item
++ Context: Multiple items
++ Tags: Item - #snap #position #length #offset
++ MouseModifiers/ShortCurs: change value - left drag value
++ MouseModifiers/ShortCurs: change value - mousewheel
++ MouseModifiers/ShortCurs: type/parse value - doubleclick
++ Customizable configuration]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">

@@ -1,3 +1,9 @@
+-- @description InfoTool_SpecFunc
+-- @author MPL
+-- @website http://forum.cockos.com/member.php?u=70694
+-- @noindex
+
+
   -- specific functions for mpl_InfoTool
   
   function MPL_GetTableOfCtrlValues(str)
