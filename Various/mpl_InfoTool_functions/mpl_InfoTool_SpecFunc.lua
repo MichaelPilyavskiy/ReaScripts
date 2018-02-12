@@ -1,20 +1,57 @@
--- @description InfoTool_SpecFunc
--- @author MPL
--- @website http://forum.cockos.com/member.php?u=70694
--- @noindex
-
-
   -- specific functions for mpl_InfoTool
   
-  function MPL_GetTableOfCtrlValues(str)
-    if not str then return end
+  function MPL_GetTableOfCtrlValues(str)  -- split .:
+    if not str or type(str) ~= 'string' then return end
     local t = {} for val in str:gmatch('[%-%d]+.') do t[#t+1] = val end
     if #t == 0 and str:match('%d+') then t[1] = str end
     return t
   end
   ---------------------------------------------------
+  function MPL_GetTableOfCtrlValues2(str, dig_cnt0)  -- split float
+    if not str  then return end
+    local dig_cnt
+    local minus = str:match('%-')
+    if not dig_cnt0 then dig_cnt = 3 else dig_cnt = dig_cnt0 end
+    local t = {} for val in str:gmatch('[%-%d]+.') do t[#t+1] = val end
+    if #t == 0 and str:match('%d+') then t[1] = str end
+    if tonumber(str) then
+      local int, div = math.modf(tonumber(str))
+      div = tostring(div):match('%.(%d+)')
+      --div = math.floor(math.abs(div * 10*dig_cnt))
+      --div = string.format("%0"..dig_cnt.."d", div)
+      local int_str
+      if minus and not tostring(int):match('%-') then 
+        int_str = '-'..int
+       else
+        int_str = tostring(int)
+      end
+      return {int_str..'.', tostring(div)}
+     else 
+      return {'undefined'}
+    end
+  end
+  ---------------------------------------------------
+  function MPL_ModifyFloatVal(src_val,int_ID,int_cnt,change_val,data, positive_only)
+    if not src_val then return end
+    local out_val = src_val
+    local int_ID0 = int_cnt - int_ID -- ID from end
+    
+    if int_ID0 == 0 then
+      out_val = out_val + change_val*0.01
+     elseif int_ID0 == 1 then
+      out_val = out_val + change_val
+    end
+    if math.abs(out_val) < 0.0001 then   out_val = 0 end            
+    if positive_only == true and type(positive_only) == 'boolean' then return lim(out_val, 0, math.huge) 
+     elseif positive_only and type(positive_only) == 'function' then return positive_only(out_val)
+     else
+      return out_val
+    end
+  end  
+  ---------------------------------------------------
   function MPL_ModifyTimeVal(src_val_sec,int_ID,int_cnt,change_val,data, positive_only)
     local out_val = src_val_sec
+    if not src_val_sec then return end
     local int_ID0 = int_cnt - int_ID -- ID from end
     local rul_format = data.rul_format
     
@@ -111,4 +148,16 @@
       elseif buf:match('%d%:%d%d%:%d%d%:%d%d') then return 4 -- hhmmssfr
     end
     return ruler
+  end
+  ---------------------------------------------------
+  function MPL_FormatPan(pan_val)
+    local pan_str = 'undefined'
+          if pan_val > 0 then 
+            pan_str = math.floor((pan_val*100))..'% R'
+           elseif pan_val < 0 then
+            pan_str = math.floor(math.abs(pan_val*100))..'% L'
+           elseif pan_val == 0 then
+            pan_str = 'Center'
+          end
+    return pan_str
   end

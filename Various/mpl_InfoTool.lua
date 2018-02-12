@@ -1,7 +1,9 @@
 -- @description InfoTool
--- @version 0.1alpha
+-- @version 0.2alpha
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
+-- @about
+--    Alpha version of Cubase-based feature. An info bar displaing some information about different objects, also allow to edit them quickly without walking through menus and windows.
 -- @provides
 --    mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_GUI.lua
@@ -9,33 +11,35 @@
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua
+--    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua
 -- @changelog
---    + Prelimitary alpha version. There weren`t plans to develop it further with different widgets like interactive/draggable grid, different indicators/controls, but it probably can be improved in the future if will have some response from users on Cockos Forum.
---    + Basic interactive overview of some parameters
---    + Context: Audio item 
---    + Context: MIDI item
---    + Context: Empty Item
---    + Context: Multiple items
---    + Tags: Item - #snap #position #length #offset
---    + MouseModifiers/ShortCurs: change value - left drag value
---    + MouseModifiers/ShortCurs: change value - mousewheel
---    + MouseModifiers/ShortCurs: type/parse value - doubleclick
---    + Customizable configuration
+--    # fix renaming items
+--    # fix error when using #offset tag for multiple item selection
+--    # use format_timestr_len for snapoffset
+--    # extend MIDI source when extendind MIDI item length
+--    + Context: Envelope Point (underlying envelope)
+--    + Tags/Item - #fadein #fadeout #volume #transpose #itembuttons
+--    + Tags/Envelope - #position #value
+--    + Add support for custom ordered buttons
+--    + ButtonTags/Item - #lock #mute #loop #chanmode
 
 
 
 
-  local vrs = '0.1alpha'
+  local vrs = '0.2alpha'
 --[[todo for
 --    Automation Item context
 --    Envelope point context
 --    Ruler event context
 --    Track context
 --    Additional dynamic stuff
+
+
+stretch marker - optimize for tonal content , force size
+pan
 ]]
   
   -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua
-  -- This run external functions too !
   local info = debug.getinfo(1,'S');
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
   dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua")
@@ -44,6 +48,7 @@
   dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua")
   dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua") 
   dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua")
+  dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua")
   
 
   
@@ -52,16 +57,15 @@
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
-  data = {conf_path = script_path:gsub('\\','/') .. "mpl_InfoTool_Config.ini",
-          vrs = vrs  }
+   data = {conf_path = script_path:gsub('\\','/') .. "mpl_InfoTool_Config.ini",
+          vrs = vrs}
   local scr_title = 'InfoTool'
-  mouse = {}
+  local mouse = {}
   local obj = {}
-  local widgets = {}
+  widgets = {}
   local cycle_cnt,clock = 0
-  local SCC, SCC_trig, lastSCC
+  --local SCC, SCC_trig, lastSCC
   local FormTS, cur_pos, lastcur_pos, last_FormTS
-  --redraw = 1
   ---------------------------------------------------
   function ExtState_Def()
     return {ES_key = 'MPL_'..scr_title,
@@ -69,7 +73,7 @@
             wind_y =  50,
             wind_w =  200,
             wind_h =  300,
-            dock =    0}
+            dock =    513}--second
   end
   ---------------------------------------------------
   function Run()
@@ -93,7 +97,7 @@
         redraw = 1      
       end
     -- perf GUI 
-      GUI_Main(obj, cycle_cnt, redraw)
+      GUI_Main(obj, cycle_cnt, redraw, data)
       redraw = 0 
     -- defer cycle   
       if gfx.getchar() >= 0 then defer(Run) else atexit(gfx.quit) end  
@@ -103,14 +107,28 @@
     -- default_config string
     return
 [[
+//Configuration for MPL InfoTool
+
 [AudioItem]
-order=#snap #position #length #offset
+order=#buttons#snap #position #length #offset #fadein #fadeout #vol #transpose #pan
+buttons=#lock #preservepitch #loop #chanmode #mute 
+
 [MIDIItem]
-order=#snap #position #length #offset
+order=#buttons#snap #position #length #offset #fadein #fadeout #vol #transpose #pan
+buttons=#lock #preservepitch #loop #mute
+
 [EmptyItem]
-order=#position #length
+buttons=#position #length
+
 [MultipleItem]
-order=#position #length
+order=#buttons#position #length #offset #fadein #fadeout #vol #transpose #pan
+buttons=#lock #preservepitch #loop #chanmode #mute 
+
+[EnvelopePoint]
+order = #position #value
+
+[MultipleEnvelopePoints]
+order = #position #value
 ]]
   end
   ---------------------------------------------------
@@ -128,19 +146,29 @@ order=#position #length
           f:close()
         end
       end
-    
-    --  parse audio item widgets 
+
+    -- map types to data.obj_type_int order
       widgets.types_t ={'EmptyItem',
                         'MIDIItem',
                         'AudioItem',
-                        'MultipleItem'
+                        'MultipleItem',
+                        'EnvelopePoint',
+                        'MultipleEnvelopePoints',
                   }
+                      
+    --  parse item widgets 
       for i = 1, #widgets.types_t do 
         local widg_str = widgets.types_t[i]
         local retval, str_widgets_tags = BR_Win32_GetPrivateProfileString( widg_str, 'order', '', conf_path )
         widgets[widg_str] = {}
         for w in str_widgets_tags:gmatch('#(%a+)') do widgets[widg_str] [  #widgets[widg_str] +1 ] = w end
+        
+        widgets[widg_str].buttons = {}
+        local retval, buttons_str = BR_Win32_GetPrivateProfileString( widg_str, 'buttons', '', conf_path )
+        for w in buttons_str:gmatch('#(%a+)') do widgets[widg_str].buttons [  #widgets[widg_str].buttons +1 ] = w end
       end
+      
+      
   end
   ---------------------------------------------------
   function Config_Reset(data)
@@ -153,6 +181,14 @@ order=#position #length
     redraw = 1
     SCC_trig = true
   end
+  
+  
+ 
+  
+  
+  
+  
+  
   ---------------------------------------------------
   ExtState_Load(conf)  
   gfx.init('MPL '..scr_title,conf.wind_w, 30,513)--, conf.wind_x, conf.wind_y)

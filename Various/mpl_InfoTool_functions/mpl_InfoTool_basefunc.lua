@@ -69,4 +69,6 @@
     gfx.y = mouse.y
     local ret = gfx.showmenu(str)
     if ret > 0 then if t[ret].func then t[ret].func() end end
-  end     
+  end  
+  ---------------------------------------------------   
+  function math_q(num)  if math.abs(num - math.floor(num)) < math.abs(num - math.ceil(num)) then return math.floor(num) else return math.ceil(num) end end

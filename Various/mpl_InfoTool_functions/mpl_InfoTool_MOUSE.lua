@@ -16,7 +16,8 @@
                             modify_func,                   -- func with arg to modify src_float
                             t_out_values,
                             app_func,                      -- func to apply what modify_func returns
-                            positive_only)
+                            mouse_scale,
+                            use_mouse_drag_xAxis)          -- for example for pan
     local measured_x_offs = 0
     if not t then return end
     -- generate ctrls
@@ -45,11 +46,17 @@
                                                 redraw = 2                           
                                               end,                                              
                                 func_drag =   function(is_ctrl) 
-                                                if mouse.temp_val2 < #t then return end
+                                                if not mouse.temp_val2 or mouse.temp_val2 < #t then return end
                                                 if mouse.temp_val then 
                                                   local  t_out_values = {}
                                                   for src_valID = 1, #src_val do
-                                                    t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, math.modf(mouse.dy/15), data, positive_only) 
+                                                    local mouse_shift = 0
+                                                    if use_mouse_drag_xAxis then 
+                                                       mouse_shift = -mouse.dx
+                                                      else 
+                                                       mouse_shift = mouse.dy
+                                                    end
+                                                    t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, math.modf(mouse_shift/mouse_scale), data, positive_only) 
                                                   end
                                                   app_func(data, obj, t_out_values, table_key)
                                                   redraw = 1   
@@ -74,21 +81,30 @@
   function MOUSE(obj,mouse, clock, redraw)
     mouse.x = gfx.mouse_x
     mouse.y = gfx.mouse_y
-    mouse.LB_gate = gfx.mouse_cap&1 == 1 
+    mouse.LB_gate = gfx.mouse_cap&1 == 1
+    mouse.RB_gate = gfx.mouse_cap&2 == 2
     mouse.wheel = gfx.mouse_wheel
     mouse.LB_trig = not mouse.LB_gate_last and mouse.LB_gate
+    mouse.RB_trig = not mouse.RB_gate_last and mouse.RB_gate
     mouse.LB_release = mouse.LB_gate_last and not mouse.LB_gate
+    mouse.RB_release = mouse.RB_gate_last and not mouse.RB_gate
     mouse.Ctrl = (gfx.mouse_cap>>2)&1==1
+    
     -- perf doubleclick
       mouse.LDC = mouse.LB_trig and mouse.LB_trig_TS and clock - mouse.LB_trig_TS < 0.3 
       if mouse.LB_trig then mouse.LB_trig_TS = clock end
     
     -- dy drag
       if mouse.LB_trig or mouse.LB_release then 
+        mouse.x_latch = mouse.x
         mouse.y_latch = mouse.y
         mouse.dy = 0
+        mouse.dx = 0
       end    
-      if mouse.LB_gate then mouse.dy = mouse.y_latch - mouse.y end
+      if mouse.LB_gate then 
+        mouse.dx = mouse.x_latch - mouse.x 
+        mouse.dy = mouse.y_latch - mouse.y 
+      end
     
     -- wheel
       if mouse.wheel_last then 
@@ -107,6 +123,7 @@
             if MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_wheel and mouse.wheel_trig ~= 0 then obj.b[key].func_wheel() end
             if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) then mouse.context_latch = key end
             if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func then obj.b[key].func() end
+            if mouse.RB_trig and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_R then obj.b[key].func_R() end
             if mouse.LB_gate and mouse.context_latch == key and obj.b[key].func_drag then obj.b[key].func_drag(mouse.Ctrl) end
             if mouse.LDC and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_DC then obj.b[key].func_DC() end
           end   
@@ -118,6 +135,7 @@
       local SCC_trig2
       mouse.wheel_last = mouse.wheel
       mouse.LB_gate_last = mouse.LB_gate
+      mouse.RB_gate_last = mouse.RB_gate
       if mouse.LB_release then 
         mouse.context_latch = nil 
         mouse.LDC = nil 
@@ -131,14 +149,3 @@
       
       return SCC_trig2
   end  
-  
-  
-  --[[
-      mouse.RMB_state = gfx.mouse_cap&2 == 2 
-      mouse.MMB_state = gfx.mouse_cap&64 == 64
-      mouse.LMB_state_doubleclick = false
-      mouse.Ctrl_LMB_state = gfx.mouse_cap&5 == 5 
-      mouse.Ctrl_state = gfx.mouse_cap&4 == 4 
-      mouse.Alt_state = gfx.mouse_cap&17 == 17 -- alt + LB
-    ]]
-  ----------------------------------------------------------------------- 

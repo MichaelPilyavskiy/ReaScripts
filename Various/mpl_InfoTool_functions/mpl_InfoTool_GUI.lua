@@ -23,13 +23,19 @@
                           blue  =   {0.5, 0.9,  1}},
                   txt_a = 0.85,
                   txt_col_header = 'blue',
+                  txt_col_toolbar ='white', 
                   
                   grad_sz = 200,
                   b = {},             -- buttons table
                   
+                  mouse_scal_time = 15,
+                  mouse_scal_vol = 5,
+                  mouse_scal_pitch = 15,
+                  mouse_scal_pan = 1,
                   
                   entry_w = 200,      -- name w
                   entry_w2 = 90,     -- controls w
+                  entry_ratio = 1,    -- toolbar
                   entry_h = 18,
                   menu_b_rect_side = 20,
                   offs = 0,
@@ -82,8 +88,15 @@
                                     }  ,     
                                   {str = 'Configuration Help',
                                    func = function()  
-                                            msg('//List of supported widgets tags for MPL`s InfoTool\n//You can edit them in /REAPER/Scripts/mpl_InfoTool/mpl_InfoTool_Config.ini\n'..
-                                            Config_Default() )
+                                            msg(
+[[Here is the default configuration contains all supported widgets tags for MPL`s InfoTool.
+You can edit them in /REAPER/Scripts/mpl_InfoTool_functions/mpl_InfoTool_Config.ini
+Buttons tags are added to the buttons module interleaved.
+After changing configuration, you need to restart script. If you do it from Action List, click 'Terminate Instances' when REAPER will ask for what to do with already running ReaScript.
+
+=======================================
+
+]]..Config_Default() )
                                           end
                                     }  ,                                      
                                                    
@@ -111,10 +124,17 @@
       gfx.blit( 2, 1, math.rad(180), -- grad back
                 0,0,  obj.grad_sz,obj.grad_sz,
                 x,y,w,h, 0,0)
+    -- state
+      if o.state then
+        if o.state_col then GUI_col(o.state_col, obj) end
+        gfx.a = 0.49
+        gfx.rect(x,y,w,h,1)        
+      end
     
     -- text 
       local txt
-      if not o.txt then txt = o.txt_def else txt = o.txt end
+      if not o.txt then txt = '' else txt = o.txt end
+      --if not o.txt then txt = '>' else txt = o.txt..'|' end
       ------------------ txt
         if txt and w > 0 then 
           if o.txt_col then GUI_col(o.txt_col, obj)else GUI_col('white', obj) end
@@ -152,7 +172,7 @@
     end   
   end
   ---------------------------------------------------
-  function GUI_Main(obj, cycle_cnt, redraw)
+  function GUI_Main(obj, cycle_cnt, redraw, data)
     gfx.mode = 0
     -- redraw: -1 init, 1 maj changes, 2 minor changes
     -- 1 back
@@ -212,9 +232,12 @@
           0,0,gfx.w, gfx.h, 0,0)  
           
     -- draw vrs
-      gfx.x, gfx.y = 0,gfx.h-20
+      gfx.x, gfx.y = gfx.w-150,0
       gfx.set(0,0,0,1)
-      gfx.setfont(1,'Arial', 16)
+      gfx.setfont(1,'Arial', 13)
+      gfx.set(1,1,1,0.5)
+      gfx.rect(gfx.w-150,0,150, 13)
+      gfx.set(0,0,0,1)
       gfx.drawstr('MPL_InfoTool '..data.vrs)
       
     gfx.update()
