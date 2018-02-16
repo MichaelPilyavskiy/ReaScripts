@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="715881d81426215da326670c67c31a281be02039" name="MPL Scripts">
+<index version="1" commit="641cd4fe4899325f5497de4694d4a2882ce1e386" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -2534,6 +2534,25 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/715881d81426215da326670c67c31a281be02039/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
         <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/715881d81426215da326670c67c31a281be02039/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
         <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/715881d81426215da326670c67c31a281be02039/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
+      </version>
+      <version name="0.31alpha" author="MPL" time="2018-02-16T19:17:26Z">
+        <changelog><![CDATA[+ When doubleclick value, GetUserInput is opening with multiple fields for easily TAB through them
++ Context: Envelope (selected envelope)
++ Tags/Persistent - #transport, show play state, left click: play+store edit cursor position/stop+revert playcursor to pervious position, right click: pause, ctrl+left click: record
++ Tags/Envelope - #floatfx, left click floats FX, disabled for track envelopes such as Volume, Pan etc
+# Extend MIDI source when typing length value
+# GUI: Prevent error when opening nonexisting buttons order
+# Performance: update GUI/data on changing playstate
+# fix missing envelope point context]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">
