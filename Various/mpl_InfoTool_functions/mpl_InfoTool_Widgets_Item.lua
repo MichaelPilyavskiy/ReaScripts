@@ -8,7 +8,7 @@
   
   ---------------------------------------------------
   function Obj_UpdateItem(data, obj, mouse, widgets)
-    obj.b.obj_name = { x = obj.offs,
+    obj.b.obj_name = { x = obj.menu_b_rect_side + obj.offs,
                         y = obj.offs *2 +obj.entry_h,
                         w = obj.entry_w,
                         h = obj.entry_h,
@@ -31,7 +31,7 @@
                               end
                             end
                           end} 
-    local x_offs = obj.offs + obj.entry_w 
+    local x_offs = obj.menu_b_rect_side + obj.offs + obj.entry_w 
     
     
     
@@ -42,7 +42,7 @@
       for i = 1, #widgets[widg_key] do
         local key = widgets[widg_key][i]
         if _G['Widgets_Item_'..key] then
-            local ret = _G['Widgets_Item_'..key](data, obj, mouse, x_offs) 
+            local ret = _G['Widgets_Item_'..key](data, obj, mouse, x_offs, widgets) 
             if ret then x_offs = x_offs + obj.offs + ret end
         end
       end  
@@ -59,6 +59,7 @@
   --------------------------------------------------------------
   function Widgets_Item_position(data, obj, mouse, x_offs)    -- generate position controls 
     if not data.it then return end
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_pos = { x = x_offs,
                         y = obj.offs ,
                         w = obj.entry_w2,
@@ -121,6 +122,7 @@
 
   --------------------------------------------------------------   
   function Widgets_Item_snap(data, obj, mouse, x_offs) -- generate snap_offs controls  
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_snap_offs = { x = x_offs,
                         y = obj.offs ,
                         w = obj.entry_w2,
@@ -182,9 +184,11 @@
 
   -------------------------------------------------------------- 
   function Widgets_Item_pan(data, obj, mouse, x_offs) -- generate snap_offs controls  
+    local pan_w = 60
+    if x_offs + pan_w > obj.persist_margin then return x_offs end 
     obj.b.obj_it_pan = { x = x_offs,
                         y = obj.offs ,
-                        w = obj.entry_w2,
+                        w = pan_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
                         txt_a = obj.txt_a,
@@ -192,7 +196,7 @@
                         txt = 'Pan'} 
     obj.b.obj_it_pan_back = { x =  x_offs,
                         y = obj.offs *2 +obj.entry_h ,
-                        w = obj.entry_w2,
+                        w = pan_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
@@ -202,7 +206,7 @@
       Obj_GenerateCtrl( data,obj,  mouse,
                         {data.it[1].pan_format},
                         'it_pan_ctrl',
-                         x_offs,  obj.entry_w2,
+                         x_offs,  pan_w,--obj.entry_w2,
                          data.it,
                          'pan',
                          MPL_ModifyFloatVal,
@@ -210,7 +214,7 @@
                          Apply_Item_pan,                         
                          obj.mouse_scal_pan,
                          true) -- use_mouse_drag_xAxis
-    return obj.entry_w2                         
+    return pan_w--obj.entry_w2                         
   end
   
   function Apply_Item_pan(data, obj, t_out_values, butkey, out_str_toparse)
@@ -260,6 +264,7 @@
 
   --------------------------------------------------------------   
   function Widgets_Item_length(data, obj, mouse, x_offs) -- generate snap_offs controls  
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_len = { x = x_offs,
                         y = obj.offs ,
                         w = obj.entry_w2,
@@ -328,6 +333,7 @@
 
   --------------------------------------------------------------
   function Widgets_Item_offset(data, obj, mouse, x_offs)    -- generate position controls 
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_start_offs = { x = x_offs,
                         y = obj.offs ,
                         w = obj.entry_w2,
@@ -390,6 +396,7 @@
 
   --------------------------------------------------------------   
   function Widgets_Item_fadein(data, obj, mouse, x_offs) -- generate snap_offs controls  
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_fadein = { x = x_offs,
                         y = obj.offs ,
                         w = obj.entry_w2,
@@ -451,6 +458,7 @@
 
   --------------------------------------------------------------   
   function Widgets_Item_fadeout(data, obj, mouse, x_offs) -- generate snap_offs controls  
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_fadeout = { x = x_offs,
                         y = obj.offs ,
                         w = obj.entry_w2,
@@ -511,10 +519,12 @@
 
 
   --------------------------------------------------------------   
-  function Widgets_Item_vol(data, obj, mouse, x_offs) -- generate snap_offs controls  
+  function Widgets_Item_vol(data, obj, mouse, x_offs) -- generate snap_offs controls 
+    local vol_w = 60 
+    if x_offs + vol_w > obj.persist_margin then return x_offs end 
     obj.b.obj_vol = { x = x_offs,
                         y = obj.offs ,
-                        w = obj.entry_w2,
+                        w = vol_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
                         txt_a = obj.txt_a,
@@ -522,7 +532,7 @@
                         txt = 'Volume'} 
     obj.b.obj_vol_back = { x =  x_offs,
                         y = obj.offs *2 +obj.entry_h ,
-                        w = obj.entry_w2,
+                        w = vol_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
@@ -532,14 +542,14 @@
       Obj_GenerateCtrl( data,obj,  mouse,
                         MPL_GetTableOfCtrlValues2(vol_str),
                         'vol_ctrl',
-                         x_offs,  obj.entry_w2,
+                         x_offs,  vol_w,--obj.entry_w2,
                          data.it,
                          'vol',
                          MPL_ModifyFloatVal,
                          t_out_values,
                          Apply_Item_vol,                         
                          obj.mouse_scal_vol)               -- mouse scaling
-    return obj.entry_w2                         
+    return vol_w--obj.entry_w2                         
   end
   
   function Apply_Item_vol(data, obj, t_out_values, butkey, out_str_toparse)
@@ -582,17 +592,19 @@
 
   --------------------------------------------------------------   
   function Widgets_Item_transpose(data, obj, mouse, x_offs)
+    local pitch_w = 60
+    if x_offs + pitch_w > obj.persist_margin then return x_offs end 
     obj.b.obj_pitch = { x = x_offs,
                         y = obj.offs ,
-                        w = obj.entry_w2,
+                        w = pitch_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
-                        txt = 'Transpose'} 
+                        txt = 'Pitch'} 
     obj.b.obj_pitch_back = { x =  x_offs,
                         y = obj.offs *2 +obj.entry_h ,
-                        w = obj.entry_w2,
+                        w = pitch_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
@@ -602,14 +614,14 @@
       Obj_GenerateCtrl( data,obj,  mouse,
                         MPL_GetTableOfCtrlValues2(pitch_str, 2),
                         'pitch_ctrl',
-                         x_offs,  obj.entry_w2,
+                         x_offs,  pitch_w,--obj.entry_w2,
                          data.it,
                          'pitch',
                          MPL_ModifyFloatVal,
                          t_out_values,
                          Apply_Item_transpose,                         
                          obj.mouse_scal_pitch)               -- mouse scaling
-    return obj.entry_w2                         
+    return pitch_w--obj.entry_w2                         
   end
   
   function Apply_Item_transpose(data, obj, t_out_values, butkey, out_str_toparse)
@@ -644,22 +656,24 @@
   
   
   --------------------------------------------------------------  
-  function Widgets_Item_buttons(data, obj, mouse, x_offs0)
-
+  function Widgets_Item_buttons(data, obj, mouse, x_offs0, widgets)
+    local frame_a, x_offs, y_offs
+    if x_offs0 + obj.entry_w2*2 > obj.persist_margin then return x_offs0 end  -- reduce buttons when more than regular wx2
     local last_x1,last_x2 = x_offs0, x_offs0
     local tp_ID = data.obj_type_int
     local widg_key = widgets.types_t[tp_ID+1] -- get key of current mapped table
     if widgets[widg_key] and widgets[widg_key].buttons  then  
       for i = 1, #widgets[widg_key].buttons do 
         local key = widgets[widg_key].buttons[i]
-        local y_offs = obj.entry_h * ((i+1)%2)
         if _G['Widgets_Item_buttons_'..key] then  
           if i%2 == 1 then 
             x_offs = last_x1
             frame_a = obj.frame_a_head
+            y_offs = 0
            elseif i%2 == 0 then   
             x_offs = last_x2 
             frame_a = obj.frame_a_entry
+            y_offs = obj.entry_h
           end
           local next_w = _G['Widgets_Item_buttons_'..key](data, obj, mouse, x_offs, y_offs, frame_a)
           if i%2 == 1 then last_x1 = last_x1+next_w elseif i%2 == 0 then last_x2 = last_x2+next_w end
@@ -674,14 +688,14 @@
   function Widgets_Item_buttons_lock(data, obj, mouse, x_offs, y_offs, frame_a)
     local w = 40*obj.entry_ratio
     obj.b.obj_itlock = {  x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = w,
                         h = obj.entry_h,
                         frame_a = frame_a,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_toolbar,
                         txt = 'Lock',
-                        fontsz = obj.fontsz,
+                        fontsz = obj.fontsz_entry,
                         state = data.it[1].lock==1,
                         state_col = 'red',
                         func =  function()
@@ -698,6 +712,25 @@
                                 }
     return w
   end
+  -------------------------------------------------------------- 
+  function Widgets_Item_buttons_bwfsrc(data, obj, mouse, x_offs, y_offs, frame_a)
+    local w = 40*obj.entry_ratio
+    obj.b.obj_bwfsrc = {  x = x_offs,
+                        y =y_offs ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = frame_a,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_toolbar,
+                        txt = 'BWF',
+                        fontsz = obj.fontsz_entry,
+                        func =  function()
+                                  Main_OnCommand(40299,0) --Item: Move to source preferred position (used by BWF)                   
+                                  end,                                
+                                
+                                }
+    return w
+  end
   --------------------------------------------------------------
   function Widgets_Item_buttons_loop(data, obj, mouse, x_offs, y_offs, frame_a)
     local w = 40*obj.entry_ratio
@@ -707,7 +740,7 @@
                         h = obj.entry_h,
                         frame_a = frame_a,
                         txt_a = obj.txt_a,
-                        fontsz = obj.fontsz,
+                        fontsz = obj.fontsz_entry,
                         txt_col = obj.txt_col_toolbar,
                         txt = 'Loop',
                         state = data.it[1].loop==1,
@@ -730,7 +763,7 @@
                         h = obj.entry_h,
                         frame_a = frame_a,
                         txt_a = obj.txt_a,
-                        fontsz = obj.fontsz,
+                        fontsz = obj.fontsz_entry,
                         txt_col = obj.txt_col_toolbar,
                         txt = 'Preserve Pitch',
                         state = data.it[1].preservepitch==1,
@@ -756,7 +789,7 @@
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_toolbar,
                         txt = 'Mute',
-                        fontsz = obj.fontsz,
+                        fontsz = obj.fontsz_entry,
                         state = data.it[1].mute==1,
                         state_col = 'red',
                         func =  function()

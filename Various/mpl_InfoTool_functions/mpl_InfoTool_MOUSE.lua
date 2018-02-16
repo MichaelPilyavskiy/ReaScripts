@@ -33,33 +33,47 @@
                                 txt_a = obj.txt_a,
                                 fontsz = obj.fontsz_entry,
                                 func =        function()
-                                                mouse.temp_val = CopyTable(src_val)
+                                                if type(src_val) == 'table' then 
+                                                  mouse.temp_val = CopyTable(src_val)
+                                                 else
+                                                  mouse.temp_val = src_val
+                                                end
                                                 mouse.temp_val2 = #t 
                                                 redraw = 1                              
                                               end,
                                 func_wheel =  function()
-                                                local t_out_values = {}
-                                                for src_valID = 1, #src_val do
-                                                  t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, mouse.wheel_trig, data, positive_only)                                                  
-                                                end 
-                                                app_func(data, obj, t_out_values, table_key)
-                                                redraw = 2                           
+                                                if type(src_val) == 'table' then
+                                                  local t_out_values = {}
+                                                  for src_valID = 1, #src_val do
+                                                    t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, mouse.wheel_trig, data, positive_only)                                                  
+                                                  end 
+                                                  app_func(data, obj, t_out_values, table_key)
+                                                  redraw = 2 
+                                                 else 
+                                                  local out_value = modify_func(src_val, i, #t, mouse.wheel_trig, data)
+                                                  app_func(data, obj, out_value, table_key)
+                                                  redraw = 2
+                                                end                         
                                               end,                                              
                                 func_drag =   function(is_ctrl) 
                                                 if not mouse.temp_val2 or mouse.temp_val2 < #t then return end
                                                 if mouse.temp_val then 
-                                                  local  t_out_values = {}
-                                                  for src_valID = 1, #src_val do
-                                                    local mouse_shift = 0
-                                                    if use_mouse_drag_xAxis then 
-                                                       mouse_shift = -mouse.dx
-                                                      else 
-                                                       mouse_shift = mouse.dy
+                                                  if type(src_val) == 'table' then
+                                                    local  t_out_values = {}
+                                                    for src_valID = 1, #src_val do
+                                                      local mouse_shift = 0
+                                                      if use_mouse_drag_xAxis then mouse_shift = -mouse.dx else mouse_shift = mouse.dy end
+                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, math.modf(mouse_shift/mouse_scale), data, positive_only) 
                                                     end
-                                                    t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, math.modf(mouse_shift/mouse_scale), data, positive_only) 
+                                                    app_func(data, obj, t_out_values, table_key)
+                                                    redraw = 1   
+                                                   else
+                                                    local mouse_shift,out_value = 0
+                                                    if use_mouse_drag_xAxis then mouse_shift = -mouse.dx else mouse_shift = mouse.dy end
+                                                    out_value = modify_func(mouse.temp_val, i, #t, math.modf(mouse_shift/mouse_scale), data)
+                                                    app_func(data, obj, out_value, table_key)
+                                                    redraw = 1                                                     
                                                   end
-                                                  app_func(data, obj, t_out_values, table_key)
-                                                  redraw = 1   
                                                 end
                                               end,
                                 func_DC =     function() 

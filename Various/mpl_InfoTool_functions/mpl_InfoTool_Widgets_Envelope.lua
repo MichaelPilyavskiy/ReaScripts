@@ -8,7 +8,7 @@
   
   ---------------------------------------------------
   function Obj_UpdateEnvelope(data, obj, mouse, widgets)
-    obj.b.obj_name = { x = obj.offs,
+    obj.b.obj_name = { x = obj.menu_b_rect_side + obj.offs,
                         y = obj.offs *2 +obj.entry_h,
                         w = obj.entry_w,
                         h = obj.entry_h,
@@ -16,7 +16,7 @@
                         txt_a = obj.txt_a,
                         txt = data.name,
                         fontsz = obj.fontsz_entry} 
-    local x_offs = obj.offs + obj.entry_w 
+    local x_offs = obj.menu_b_rect_side + obj.offs + obj.entry_w 
     
     
     
@@ -27,7 +27,7 @@
       for i = 1, #widgets[widg_key] do
         local key = widgets[widg_key][i]
         if _G['Widgets_Envelope_'..key] then
-            local ret = _G['Widgets_Envelope_'..key](data, obj, mouse, x_offs) 
+            local ret = _G['Widgets_Envelope_'..key](data, obj, mouse, x_offs, widgets) 
             if ret then x_offs = x_offs + obj.offs + ret end
         end
       end  
@@ -43,6 +43,7 @@
 
   --------------------------------------------------------------
   function Widgets_Envelope_position(data, obj, mouse, x_offs)    -- generate position controls 
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_envpos = { x = x_offs,
                         y = obj.offs ,
                         w = obj.entry_w2,
@@ -123,7 +124,8 @@
   
 
   --------------------------------------------------------------   
-  function Widgets_Envelope_value(data, obj, mouse, x_offs) -- generate snap_offs controls  
+  function Widgets_Envelope_value(data, obj, mouse, x_offs) -- generate snap_offs controls
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end  
     obj.b.obj_envval = { x = x_offs,
                         y = obj.offs ,
                         w = obj.entry_w2,

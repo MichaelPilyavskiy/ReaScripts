@@ -7,7 +7,7 @@
   
   
   ---------------------------------------------------
-  function DataUpdate(data, mouse, widgets, obj)
+  function DataUpdate(data, mouse, widgets, obj, conf)
     --[[ 
       contexts for data.obj_type_int
         0 empty item
@@ -17,32 +17,47 @@
         
         4 envelope point
         5 multiple envelope points
-    ]]
+    ]] 
     
     data.rul_format = MPL_GetCurrentRulerFormat()
     data.SR = tonumber(reaper.format_timestr_pos(1, '', 4))
     data.FR = TimeMap_curFrameRate( 0 )
     data.obj_type = 'No object selected'
-    data.obj_type_int = -1
+    data.obj_type_int = -1    
+    data.grid_val, data.grid_val_format, data.grid_istriplet = MPL_GetFormattedGrid()
+    data.grid_isactive =  GetToggleCommandStateEx( 0, 1157 )==1
+    local TS_st, TSend = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )
+    data.timeselectionstart, data.timeselectionend = TS_st, TSend
+    data.timeselectionstart_format = format_timestr_pos( data.timeselectionstart, '', -1 ) 
+    data.timeselectionend_format = format_timestr_pos( data.timeselectionend, '', -1 ) 
     
     -- reset buttons data
-    obj.b = {}
-    
+      obj.b = {}
+
+    -- persisten widgets
+      obj.persist_margin = Obj_UpdatePersist(data, obj, mouse, widgets)
+     
     -- contexts
       local item = GetSelectedMediaItem(0,0)
       local env = GetSelectedEnvelope( 0 )
+      local env_hasselpoint = false 
       
       if item then 
         DataUpdate_Item(data) 
         Obj_UpdateItem(data, obj, mouse, widgets)
-       elseif env then
+       elseif env then    
         DataUpdate_Envelope(data, env)
         Obj_UpdateEnvelope(data, obj, mouse, widgets)
       end
-    
+
     -- update com butts
-      Obj_UpdateCom(data, mouse, obj)
-      
+      Obj_UpdateCom(data, mouse, obj, widgets, conf) 
+          
+    -- reset name if overlap persist
+      if obj.b.type_name.x + obj.b.type_name.w > obj.persist_margin then
+        obj.b.type_name = nil
+        obj.b.obj_name = nil
+      end  
 
       
   end
@@ -99,9 +114,12 @@
         data.it[i].isMIDI = TakeIsMIDI(take)
         data.it[i].chanmode = GetMediaItemTakeInfo_Value( take, 'I_CHANMODE' )
         data.it[i].preservepitch = GetMediaItemTakeInfo_Value( take, 'B_PPITCH')
-        
+        data.it[i].pitchmode = GetMediaItemTakeInfo_Value( take, 'I_PITCHMODE' )>>16
+        data.it[i].pitchsubmode = GetMediaItemTakeInfo_Value( take, 'I_PITCHMODE' )&65535
         data.it[i].pan = GetMediaItemTakeInfo_Value( take, 'D_PAN' )
         data.it[i].pan_format = MPL_FormatPan(data.it[i].pan)
+        
+        
 
       end 
       
@@ -164,9 +182,9 @@
       BR_EnvFree( BR_env, false )
       data.minValue, data.maxValue = minValue, maxValue
     
-    local obj_type, first_selected
+    local obj_type, first_selected, env_hasselpoint
     for i = 1, CountEnvelopePoints( env ) do      
-      local retval, time, value, shape, tension, selected = GetEnvelopePoint( env, i-1 )
+      local retval, time, value, shape, tension, selected = GetEnvelopePointEx( env, -1, i-1 )
       data.ep[i] = {}
       data.ep[i].pos = time
       data.ep[i].pos_format = format_timestr_pos( time, '', -1 ) 
@@ -179,11 +197,20 @@
         data.ep.sel_point_ID = i
         first_selected = true
       end
+      if selected then 
+        if env_hasselpoint and env_hasselpoint == 1 then env_hasselpoint = 2 break end
+        env_hasselpoint = 1 
+      end
     end
     
-    if #data.ep > 1 then 
+    -- reaper.CountAutomationItems( env ) 
+       
+    if env_hasselpoint == 1 then 
+      data.obj_type = 'Envelope point'
+      data.obj_type_int = 5  
+     elseif env_hasselpoint == 2 then
       data.obj_type = 'Envelope points'
-      data.obj_type_int = 5    
+      data.obj_type_int = 5        
     end
   end  
   

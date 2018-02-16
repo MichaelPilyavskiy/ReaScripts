@@ -1,9 +1,3 @@
--- @description InfoTool_specfunc
--- @author MPL
--- @website http://forum.cockos.com/member.php?u=70694
--- @noindex
-
-
   -- specific functions for mpl_InfoTool
   
   function MPL_GetTableOfCtrlValues(str)  -- split .:
@@ -167,3 +161,19 @@
           end
     return pan_str
   end
+  ---------------------------------------------------
+  function MPL_GetFormattedGrid()
+    local grid_flags, grid_division, grid_swingmode, grid_swingamt = GetSetProjectGrid( 0, false )
+    local is_triplet
+    local denom = 1/grid_division
+    local grid_str
+    if denom >=2 then 
+      is_triplet = (1/grid_division) % 3 == 0 
+      grid_str = '1/'..math.floor(denom)
+      if is_triplet then grid_str = '1/'..math.floor(denom*2/3) end
+     else 
+      grid_str = 1
+      is_triplet = math.abs(grid_division - 0.6666) < 0.001
+    end
+    return grid_division, grid_str, is_triplet
+  end   
