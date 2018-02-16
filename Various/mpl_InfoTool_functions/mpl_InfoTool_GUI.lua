@@ -20,6 +20,7 @@
                           white =   {1,   1,    1   },
                           red =     {1,   0,    0   },
                           green =   {0.3, 0.9,  0.3 },
+                          greendark =   {0.2, 0.4,  0.2 },
                           blue  =   {0.5, 0.9,  1}},
                   background_col = conf.GUI_background_col,
                   background_alpha = conf.GUI_background_alpha,
@@ -234,7 +235,7 @@
   -----------------------------------------------------------------------
   function Menu2_Settings(mouse, obj, widgets, conf, data)
     -- form t
-    local t = { { str = 'MPL InfoTool',
+    local t = { { str = 'MPL InfoTool v'..data.vrs,
                   hidden = true},
                 { str = '|>Links / Info|Donate to MPL',
                   func = function() F_open_URL('http://www.paypal.me/donate2mpl') end }  ,
@@ -321,20 +322,17 @@
                 { str = 'Buttons order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 4, true ) end} ,                      
                   
-                { str = '>Envelope point|Modules order',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 5 ) end} ,
-                { str = 'Buttons order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 5, true ) end} ,                      
+                { str = '>Envelope point|Modules order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 5 ) end} ,                  
                   
-                { str = '>Multiple envelope points|Modules order',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} , 
-                { str = 'Buttons order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 6, true ) end} ,                      
-                                                                                                                     
-                { str = '>Persistent modules|Modules order',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 'Persist' ) end} , 
-                { str = 'Buttons order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 'Persist', true ) end} ,                                                                     
+                { str = '>Multiple envelope points|Modules order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} ,                      
+
+                { str = '>Selected envelope|Modules order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 7 ) end} , 
+                                                                                                                                       
+                { str = '>Persistent modules|Modules order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 'Persist' ) end} ,                                                                  
                                                                                                       
                 {str = '|#Widget configuration'},
                 {str = 'Reset',
@@ -380,6 +378,7 @@ msg(
     if tonumber(widgtype) and tonumber(widgtype) >= 1 then key = widgets.types_t[widgtype] else key = widgtype end
     
     if is_buttons then 
+      if not widgets[key].buttons then return end
       for i = 1, #widgets[key].buttons do cur_str = cur_str..'#'..widgets[key].buttons[i]..' ' end 
      else 
       for i = 1, #widgets[key] do cur_str = cur_str..'#'..widgets[key][i]..' ' end
@@ -397,6 +396,3 @@ msg(
       Config_DumpIni(widgets, data.conf_path) 
     end
   end
-  --[[
-  t = { 
-                                    ]]

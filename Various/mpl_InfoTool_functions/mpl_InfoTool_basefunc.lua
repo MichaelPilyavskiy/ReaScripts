@@ -86,6 +86,14 @@
     return ret
   end
   ---------------------------------------------------
+  function HasPlayStateChanged()
+    int_playstate = GetPlayStateEx( 0 )
+    local ret = false
+    if lastint_playstate and lastint_playstate ~= int_playstate  then  ret = true end
+    lastint_playstate = int_playstate
+    return ret
+  end 
+  ---------------------------------------------------
   function HasRulerFormChanged()
     local FormTS = format_timestr_pos( 100, '', -1 )
     local ret = false
@@ -93,6 +101,15 @@
     last_FormTS = FormTS 
     return ret
   end
+  ---------------------------------------------------
+  function HasSelEnvChanged()
+    local Sel_env = GetSelectedEnvelope( 0 )
+    local ret = false
+    if (Sel_env and not last_Sel_env) or (last_Sel_env and last_Sel_env ~= Sel_env)  then  ret = true end
+    last_Sel_env = Sel_env 
+    return ret
+  end  
+  
   ---------------------------------------------------
   function Config_ParseIni(conf_path, widgets) 
     local def_conf = Config_DefaultStr()

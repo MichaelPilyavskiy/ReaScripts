@@ -38,7 +38,7 @@
     local gridwidg_xpos = gfx.w-grid_widg_w-obj.menu_b_rect_side - x_margin
     if data.grid_isactive then  frame_a = obj.frame_a_state end
     obj.b.obj_pers_grid_back = { x = x_margin - grid_widg_w,
-                        y = obj.offs ,
+                        y = 0 ,
                         w = grid_widg_w,
                         h = obj.entry_h*2,
                         frame_a = obj.frame_a_entry,
@@ -48,9 +48,9 @@
                         txt = '',
                         ignore_mouse = true} 
     obj.b.obj_pers_grid_val = { x = x_margin - grid_widg_w,
-                        y = obj.offs2 ,
+                        y = 0 ,
                         w = grid_widg_val_w,
-                        h = (obj.entry_h-obj.offs2)*2,
+                        h = obj.entry_h*2,
                         frame_a = frame_a,
                         --frame_rect_a = 1,
                         txt_a = obj.txt_a,
@@ -104,9 +104,9 @@
     local tripl_a = obj.frame_a_state
     if not data.grid_istriplet then  tripl_a = 0 end
     obj.b.obj_pers_grid_tripl = { x = x_margin - grid_widg_w+ grid_widg_val_w,
-                        y = obj.offs2 ,
+                        y = 0 ,
                         w = grid_widg_w_trpl,
-                        h = (obj.entry_h-obj.offs2)*2,
+                        h = obj.entry_h*2,
                         frame_a = tripl_a,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
@@ -234,3 +234,76 @@
   end  
   -------------------------------------------------------------- 
 
+
+
+
+
+
+------------------------------------------------------------
+  function Widgets_Persist_transport(data, obj, mouse, x_margin, widgets)    -- generate position controls 
+    local transport_state_w = 60
+    local frame_a = 0
+    local txt = 'Stop'
+    local gridwidg_xpos = gfx.w-transport_state_w-obj.menu_b_rect_side - x_margin
+    obj.b.obj_pers_transport_back = { x = x_margin - transport_state_w,
+                        y = obj.offs ,
+                        w = transport_state_w,
+                        h = obj.entry_h*2,
+                        frame_a = obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = '',
+                        ignore_mouse = true} 
+    local state_col, state
+    if  data.record  then
+      state = true
+      txt = 'Record'
+      state_col = 'red'
+     elseif data.play  then
+      state = true
+      txt = 'Play'
+      state_col = 'green'
+     elseif data.pause  then
+      txt = 'Pause'
+      state = true
+      state_col = 'greendark'
+     else
+    end
+    obj.b.obj_pers_transport_state = { x = x_margin - transport_state_w,
+                        y =  0,
+                        w = transport_state_w,
+                        h = obj.entry_h*2,
+                        frame_a = frame_a,--,
+                        state_col = state_col,
+                        state = state,
+                        --frame_rect_a = 1,
+                        txt_a = obj.txt_a,
+                        txt_col = 'white',
+                        txt = txt,
+                        func =        function()
+                                        if data.pause then
+                                          Main_OnCommand(1016, 0) --Transport: Stop
+                                          if data.play_editcurzeropos then SetEditCurPos( data.play_editcurzeropos, true , true ) end
+                                         else
+                                          Main_OnCommand(40044, 0) -- Transport: Play/stop
+                                          data.play_editcurzeropos = GetCursorPositionEx( 0 )
+                                        end
+                                        redraw = 1                            
+                                      end,   
+                        func_ctrlL =   function()
+                                        if not data.play then
+                                          data.play_editcurzeropos = GetCursorPositionEx( 0 )
+                                        end
+                                        Main_OnCommand(1013, 0) -- Transport: Record                                       
+                                        redraw = 1
+                                      end,
+                        func_R =     function()
+                                        Main_OnCommand(40073, 0) -- Transport: Play/pause                                        
+                                        redraw = 1
+                                      end,                                      
+                                      
+                                      
+                                      }
+    return transport_state_w
+  end  

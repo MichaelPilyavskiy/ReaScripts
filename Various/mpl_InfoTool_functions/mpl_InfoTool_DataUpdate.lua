@@ -16,7 +16,10 @@
         3 multiple items 
         
         4 envelope point
-        5 multiple envelope points
+        5 multiple envelope points        
+        6 envelope
+        
+        
     ]] 
     
     data.rul_format = MPL_GetCurrentRulerFormat()
@@ -30,6 +33,11 @@
     data.timeselectionstart, data.timeselectionend = TS_st, TSend
     data.timeselectionstart_format = format_timestr_pos( data.timeselectionstart, '', -1 ) 
     data.timeselectionend_format = format_timestr_pos( data.timeselectionend, '', -1 ) 
+    local int_playstate = GetPlayStateEx( 0 )
+    data.play = int_playstate&1==1
+    data.pause = int_playstate&2==2
+    data.record = int_playstate&4==4
+    data.editcur_pos = GetCursorPositionEx( 0 )
     
     -- reset buttons data
       obj.b = {}
@@ -40,14 +48,16 @@
     -- contexts
       local item = GetSelectedMediaItem(0,0)
       local env = GetSelectedEnvelope( 0 )
-      local env_hasselpoint = false 
-      
+      local tr = GetSelectedTrack(0,0)
+            
       if item then 
         DataUpdate_Item(data) 
         Obj_UpdateItem(data, obj, mouse, widgets)
        elseif env then    
         DataUpdate_Envelope(data, env)
         Obj_UpdateEnvelope(data, obj, mouse, widgets)
+       elseif tr then
+        
       end
 
     -- update com butts
@@ -166,15 +176,21 @@
   
   function DataUpdate_Envelope(data, env)
     data.name = ''  
-    data.ep={env_ptr = env}
-    local tr, indexOutOptional, index2OutOptional = Envelope_GetParentTrack( env )
+    data.ep={}
+    data.env_ptr = env
+    local tr, env_FXid, env_paramid = Envelope_GetParentTrack( env )
     if tr then 
-      data.obj_type = 'Track Envelope point'
+      data.obj_type = 'Envelope'
       data.obj_type_int = 4
       local _, tr_name = GetTrackName( tr, '' )
       local _, env_name =  GetEnvelopeName( env, '' )
       data.name = tr_name..' | '..env_name
-    end
+      data.env_parenttr = tr
+      data.env_parentFX = env_FXid
+      data.env_parentParam = env_paramid
+      local retval, buf = TrackFX_GetFXName( tr,  env_FXid, env_paramid )
+      data.env_parentFXname = buf
+    end    
     
     -- get val limits
       local BR_env = BR_EnvAlloc( env, false )
@@ -199,19 +215,26 @@
       end
       if selected then 
         if env_hasselpoint and env_hasselpoint == 1 then env_hasselpoint = 2 break end
-        env_hasselpoint = 1 
+        env_hasselpoint = 1        
       end
     end
+    
+        
     
     -- reaper.CountAutomationItems( env ) 
        
     if env_hasselpoint == 1 then 
       data.obj_type = 'Envelope point'
-      data.obj_type_int = 5  
+      data.obj_type_int = 4  
      elseif env_hasselpoint == 2 then
       data.obj_type = 'Envelope points'
-      data.obj_type_int = 5        
+      data.obj_type_int = 5   
+     else
+      data.obj_type_int = 6
+      data.obj_type = 'Envelope'
     end
+    
+    return true
   end  
   
     

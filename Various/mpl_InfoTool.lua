@@ -1,5 +1,5 @@
 -- @description InfoTool
--- @version 0.3alpha
+-- @version 0.31alpha
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about
@@ -14,34 +14,21 @@
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua
 -- @changelog
---    + Add support for persistent widgets (out of contexts, displayed on the right side, config order - backwards)
---    + Tags/Persistent - #grid, drag/wheel controls value from 1/128 to 1, right click toggle snap, double click open snap settings
---    + Tags/Persistent - #timeselend #timeselstart, same behaviour as object controls
---    + Tags/AudioItem - #bwfsrc perform action Item: Move to source preferred position (used by BWF)
---    + GUI: Store XYWH+docked window settings, loads to the second docker by default
---    + Config: allow to customize font sizes
---    + Config: allow to customize text colors
---    + Config: allow to customize background color and alpha
---    + WidgetConfig: add editable fields to the menus
---    # Context: fix envpoint/multiple env points catching, ignore AI for now
---    # Config: fix emptyitem string for default config
---    # GUI: move config button to the left side
---    # GUI: increased default font size for OSX
---    # GUI: use font2 for buttons
---    # GUI: hardcoded volume, pitch, pah heights
---    # GUI: fix hardcode Item/#lock y offset
---    # GUI: refresh GUI when not docked and changing window size
---    # GUI: reduce context modules when they overlapped by persistent modules
---    # Performance: force GUI/data update on changing timeselection
+--    + When doubleclick value, GetUserInput is opening with multiple fields for easily TAB through them
+--    + Context: Envelope (selected envelope)
+--    + Tags/Persistent - #transport, show play state, left click: play+store edit cursor position/stop+revert playcursor to pervious position, right click: pause, ctrl+left click: record
+--    + Tags/Envelope - #floatfx, left click floats FX, disabled for track envelopes such as Volume, Pan etc
+--    # Extend MIDI source when typing length value
+--    # GUI: Prevent error when opening nonexisting buttons order
+--    # Performance: update GUI/data on changing playstate
+--    # fix missing envelope point context
 
 
 
 
 
 
-
-
-  local vrs = '0.3alpha'
+  local vrs = '0.31alpha'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -65,25 +52,28 @@
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
-  local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InfoTool_Config.ini",
+   data = {conf_path = script_path:gsub('\\','/') .. "mpl_InfoTool_Config.ini",
           vrs = vrs}
   local scr_title = 'InfoTool'
   local mouse = {}
   local obj = {}
-  local widgets = {    -- map types to data.obj_type_int order
+  widgets = {    -- map types to data.obj_type_int order
               types_t ={'EmptyItem',
                         'MIDIItem',
                         'AudioItem',
                         'MultipleItem',
                         'EnvelopePoint',
-                        'MultipleEnvelopePoints'
+                        'MultipleEnvelopePoints',
+                        'Envelope'
                         }
                   }
   local cycle_cnt,clock = 0
-  local SCC, SCC_trig, lastSCC
+  --local SCC, SCC_trig, lastSCC
   local lastcur_pos
   local last_FormTS
   local lastTS_st, lastTSend
+  local lastint_playstate
+  local last_Sel_env 
   local last_gfxx, last_gfxy, last_gfxw, last_gfxh, last_dock
   ---------------------------------------------------
   function Config_DefaultStr()
@@ -101,11 +91,13 @@ buttons=#lock #preservepitch #loop #mute #chanmode #bwfsrc
 order=#buttons#position #length #offset #fadein #fadeout #vol #transpose #pan
 buttons=#lock #preservepitch #loop #chanmode #mute 
 [EnvelopePoint]
-order = #position #value
+order = #floatfx #position #value
 [MultipleEnvelopePoints]
-order = #position #value
+order = #floatfx  #position #value
+[Envelope]
+order = #floatfx
 [Persist]
-order = #grid #timeselend #timeselstart
+order = #grid #timeselend #timeselstart #transport
 ]]
   end  
   ---------------------------------------------------
@@ -134,7 +126,9 @@ order = #grid #timeselend #timeselstart
       lastSCC = SCC      
       if not SCC_trig and HasCurPosChanged() then SCC_trig = true end
       if not SCC_trig and HasTimeSelChanged() then SCC_trig = true end
-      if not SCC_trig and HasRulerFormChanged() then SCC_trig = true end      
+      if not SCC_trig and HasRulerFormChanged() then SCC_trig = true end    
+      if not SCC_trig and HasPlayStateChanged() then SCC_trig = true end 
+      if not SCC_trig and HasSelEnvChanged() then SCC_trig = true end     
       
     -- wind state
       local ret

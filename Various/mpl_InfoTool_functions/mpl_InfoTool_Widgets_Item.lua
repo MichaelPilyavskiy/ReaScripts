@@ -317,7 +317,13 @@
       local out_val = parse_timestr_len(out_str_toparse,1,-1) 
       local diff = data.it[1].item_len - out_val
       for i = 1, #t_out_values do
-        SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH', math.max(0,t_out_values[i] - diff ))
+        local out_len = math.max(0,t_out_values[i] - diff )
+        SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH', out_len)
+        if data.it[i].isMIDI then
+            local start_qn =  TimeMap2_timeToQN( 0, data.it[i].item_pos )
+          local end_qn = TimeMap2_timeToQN(0, data.it[i].item_pos + out_len)
+          MIDI_SetItemExtents(data.it[i].ptr_item, start_qn, end_qn)
+        end        
         UpdateItemInProject( data.it[i].ptr_item )                                
       end
       redraw = 2   

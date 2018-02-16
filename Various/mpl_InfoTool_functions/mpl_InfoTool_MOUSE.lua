@@ -77,12 +77,25 @@
                                                 end
                                               end,
                                 func_DC =     function() 
-                                                local out_str_toparse = table.concat(t,'')
-                                                local retval0, out_str_toparse = GetUserInputs( 'Edit', 1, 'New value, extrawidth=100', out_str_toparse )
+                                                local comma = ','
+                                                local name_flds = comma:rep(#t)
+                                                
+                                                    
+                                                 sign_t = {}   for i = 1, #t do sign_t[i] = t[i]:match('[%:%.]') end
+                                                local  existval = {} for i = 1, #t do existval[i] =  t[i]:match('[%d]+') end
+                                                --local out_str_toparse = table.concat(t,'')                           
+                                                local retval0,ret_str = GetUserInputs( 'Edit', #t, name_flds..'extrawidth=100', table.concat(existval,',') )
                                                 if not retval0 then return end
-                                                local  t_out_values = {}
+                                                  t_out_values = {}
                                                 for src_valID = 1, #src_val do t_out_values[src_valID] = src_val[src_valID][src_val_key] end
-                                                app_func(data, obj, t_out_values, table_key, out_str_toparse)                                                                   
+                                                out_val_t = {}
+                                                for num in ret_str:gmatch('[%d]+') do out_val_t[#out_val_t+1] = num end
+                                                local out_str_toparse_concat = ''
+                                                for i = 1, #out_val_t do                                                    
+                                                  local sign if sign_t[i] then sign = sign_t[i] else sign = '' end
+                                                  out_str_toparse_concat = out_str_toparse_concat..out_val_t[i]..sign 
+                                                end
+                                                app_func(data, obj, t_out_values, table_key, out_str_toparse_concat)                                                                   
                                               end} 
         measured_x_offs = measured_x_offs + w_but
       end
@@ -135,10 +148,11 @@
         for key in pairs(obj.b) do
           if not obj.b[key].ignore_mouse then
             if MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_wheel and mouse.wheel_trig ~= 0 then obj.b[key].func_wheel() end
-            if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) then mouse.context_latch = key end
-            if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func then obj.b[key].func() end
+            if mouse.LB_trig and not mouse.Ctrl and MOUSE_Match(mouse, obj.b[key]) then mouse.context_latch = key end
+            if mouse.LB_trig and not mouse.Ctrl and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func then obj.b[key].func() end
+            if mouse.LB_trig and mouse.Ctrl and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func then obj.b[key].func_ctrlL() end
             if mouse.RB_trig and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_R then obj.b[key].func_R() end
-            if mouse.LB_gate and mouse.context_latch == key and obj.b[key].func_drag then obj.b[key].func_drag(mouse.Ctrl) end
+            if mouse.LB_gate and not mouse.Ctrl and mouse.context_latch == key and obj.b[key].func_drag then obj.b[key].func_drag(mouse.Ctrl) end
             if mouse.LDC and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_DC then obj.b[key].func_DC() end
           end   
         end     
