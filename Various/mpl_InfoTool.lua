@@ -1,5 +1,5 @@
 -- @description InfoTool
--- @version 0.31alpha
+-- @version 0.32alpha
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about
@@ -14,21 +14,15 @@
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua
 -- @changelog
---    + When doubleclick value, GetUserInput is opening with multiple fields for easily TAB through them
---    + Context: Envelope (selected envelope)
---    + Tags/Persistent - #transport, show play state, left click: play+store edit cursor position/stop+revert playcursor to pervious position, right click: pause, ctrl+left click: record
---    + Tags/Envelope - #floatfx, left click floats FX, disabled for track envelopes such as Volume, Pan etc
---    # Extend MIDI source when typing length value
---    # GUI: Prevent error when opening nonexisting buttons order
---    # Performance: update GUI/data on changing playstate
---    # fix missing envelope point context
+--    # fix (hopefully) OSX inverted colors
+--    # fix correct reading custom font sizes
 
 
 
 
 
 
-  local vrs = '0.31alpha'
+  local vrs = '0.32alpha'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -52,11 +46,11 @@
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
-   data = {conf_path = script_path:gsub('\\','/') .. "mpl_InfoTool_Config.ini",
+  local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InfoTool_Config.ini",
           vrs = vrs}
   local scr_title = 'InfoTool'
   local mouse = {}
-  local obj = {}
+   obj = {}
   widgets = {    -- map types to data.obj_type_int order
               types_t ={'EmptyItem',
                         'MIDIItem',

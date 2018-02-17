@@ -3,8 +3,6 @@
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @noindex
 
-
-  -- func for mpl_InfoTool
   
   function MPL_GetTableOfCtrlValues(str)  -- split .:
     if not str or type(str) ~= 'string' then return end

@@ -15,7 +15,7 @@
                   
                   font = 'Calibri',
                   fontsz = conf.GUI_font1,
-                  fontsz_entry = 15,
+                  fontsz_entry = conf.GUI_font2,
                   col = { grey =    {0.5, 0.5,  0.5 },
                           white =   {1,   1,    1   },
                           red =     {1,   0,    0   },
@@ -151,11 +151,7 @@
       end   
      else
       local rOut, gOut, bOut = ColorFromNative(col_s)
-      if GetOS():match('OSX') then 
-        gfx.set(bOut/255, gOut/255, rOut/255)
-       else 
-        gfx.set(rOut/255, gOut/255, bOut/255)
-      end
+      gfx.set(rOut/255, gOut/255, bOut/255)
     end
   end
   ---------------------------------------------------
@@ -263,7 +259,7 @@
                                 conf.GUI_font2 = f_sz[2]
                                 ExtState_Save(conf)
                                 local temp_t = Obj_init(conf)
-                                obj.fontsz = temp_t.fontsz_entry
+                                obj.fontsz_entry = temp_t.fontsz_entry
                                 redraw = 2
                               end
                                                             
