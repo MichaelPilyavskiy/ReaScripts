@@ -152,6 +152,7 @@
      else
       local rOut, gOut, bOut = ColorFromNative(col_s)
       gfx.set(rOut/255, gOut/255, bOut/255)
+      if GetOS():match('OSX') then gfx.set(bOut/255, gOut/255, rOut/255) end
     end
   end
   ---------------------------------------------------
@@ -268,6 +269,11 @@
                   func = function()                           
                             local retval, colorOut  = GR_SelectColor(  ) 
                             if  retval ~= 0 then
+                                if GetOS():match('OSX') then
+                                  local r, g, b = ColorFromNative(colorOut)
+                                  colorOut = ColorToNative( b, g, r )
+                                end
+                                
                                 conf.GUI_colortitle = colorOut
                                 ExtState_Save(conf)
                                 local temp_t = Obj_init(conf)

@@ -1,5 +1,5 @@
 -- @description InfoTool
--- @version 0.32alpha
+-- @version 0.33alpha
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about
@@ -14,15 +14,15 @@
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua
 -- @changelog
---    # fix (hopefully) OSX inverted colors
---    # fix correct reading custom font sizes
+--    - revert OSX inverted colors
+--    # invert RGB taken from system dialog
 
 
 
 
 
 
-  local vrs = '0.32alpha'
+  local vrs = '0.33alpha'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
