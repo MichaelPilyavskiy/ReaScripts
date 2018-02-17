@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ba17b9b46b1040e67d212792efdc02de6fe09c8c" name="MPL Scripts">
+<index version="1" commit="a3b058b0e1495f3c38a1610bdd550c35040d6b85" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -2579,6 +2579,19 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba17b9b46b1040e67d212792efdc02de6fe09c8c/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
         <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba17b9b46b1040e67d212792efdc02de6fe09c8c/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
         <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba17b9b46b1040e67d212792efdc02de6fe09c8c/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
+      </version>
+      <version name="0.35alpha" author="MPL" time="2018-02-17T10:10:12Z">
+        <changelog><![CDATA[+ Shortcuts: space to Transport Play/Stop
+# avoid SWS bug BR_Win32_GetPrivateProfileString ignore key if it has space before equal sign]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">
