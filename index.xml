@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a3b058b0e1495f3c38a1610bdd550c35040d6b85" name="MPL Scripts">
+<index version="1" commit="661f9b27a2d3597edd6002fe1ff41fb09307f973" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -2592,6 +2592,30 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
         <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
         <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
+      </version>
+      <version name="0.40alpha" author="MPL" time="2018-02-17T21:21:43Z">
+        <changelog><![CDATA[+ Context: Track
++ Tags: Display dB value when drag #vol
++ Tags/Track: #vol 
++ Tags/Track: #pan
++ Tags/Track: #fxlist, wheel for scrolling FX, click to float currently viewed, shift click toggle bypass
++ Tags/Persist: #lasttouchfx, click FX name float FX, changing value by mousewheel, drag, direct typing
++ Performance: update GUI/data on changing grid
++ Performance: update GUI/data on changing selected envelope
+# ignore top volume/value value scaling
+# restart doesn`t required when reseting widgets configuration
+# Context: change catch order from Item>Env to Env>Item>Track
+- Context: EnvelopePoint, MultipleEnvelopePoints merged to Envelope context. Require resetting config.]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">
