@@ -109,13 +109,14 @@
     last_Sel_env = Sel_env 
     return ret
   end  
-  
   ---------------------------------------------------
   function Config_ParseIni(conf_path, widgets) 
     local def_conf = Config_DefaultStr()
     --  create if not exists
       local f = io.open(conf_path, 'r')
+      local cont
       if f then
+        cont = f:read('a')
         f:close()
        else
         f = io.open(conf_path, 'w')
@@ -124,7 +125,8 @@
           f:close()
         end
       end
-      
+    
+    
                       
     --  parse widgets 
       for i = 1, #widgets.types_t do 

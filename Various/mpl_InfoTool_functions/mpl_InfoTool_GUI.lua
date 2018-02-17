@@ -7,7 +7,9 @@
   -- common objects functions for mpl_InfoTool
   
   
-  
+  function GUI_shortcuts(char)
+    if char == 32 then Main_OnCommand(40044,0) end --Transport: Play/stop
+  end
   ---------------------------------------------------
   function Obj_init(conf)  
     local obj = {       aa = 1,

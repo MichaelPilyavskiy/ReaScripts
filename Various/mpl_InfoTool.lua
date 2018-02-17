@@ -1,5 +1,5 @@
 -- @description InfoTool
--- @version 0.33alpha
+-- @version 0.35alpha
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about
@@ -14,15 +14,14 @@
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua
 -- @changelog
---    - revert OSX inverted colors
---    # invert RGB taken from system dialog
+--    + Shortcuts: space to Transport Play/Stop
+--    # avoid SWS bug BR_Win32_GetPrivateProfileString ignore key if it has space before equal sign
 
 
 
 
 
-
-  local vrs = '0.33alpha'
+  local vrs = '0.35alpha'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -50,8 +49,8 @@
           vrs = vrs}
   local scr_title = 'InfoTool'
   local mouse = {}
-   obj = {}
-  widgets = {    -- map types to data.obj_type_int order
+  local obj = {}
+  local widgets = {    -- map types to data.obj_type_int order
               types_t ={'EmptyItem',
                         'MIDIItem',
                         'AudioItem',
@@ -62,7 +61,7 @@
                         }
                   }
   local cycle_cnt,clock = 0
-  --local SCC, SCC_trig, lastSCC
+  local SCC, SCC_trig, lastSCC
   local lastcur_pos
   local last_FormTS
   local lastTS_st, lastTSend
@@ -85,13 +84,13 @@ buttons=#lock #preservepitch #loop #mute #chanmode #bwfsrc
 order=#buttons#position #length #offset #fadein #fadeout #vol #transpose #pan
 buttons=#lock #preservepitch #loop #chanmode #mute 
 [EnvelopePoint]
-order = #floatfx #position #value
+order=#floatfx #position #value
 [MultipleEnvelopePoints]
-order = #floatfx  #position #value
+order=#floatfx  #position #value
 [Envelope]
-order = #floatfx
+order=#floatfx
 [Persist]
-order = #grid #timeselend #timeselstart #transport
+order=#grid #timeselend #timeselstart #transport
 ]]
   end  
   ---------------------------------------------------
@@ -144,7 +143,10 @@ order = #grid #timeselend #timeselstart #transport
     -- perf GUI 
       GUI_Main(obj, cycle_cnt, redraw, data)
       redraw = 0 
+    -- perform shortcuts
+      GUI_shortcuts(gfx.getchar())
     -- defer cycle   
+      T = gfx.getchar()
       if gfx.getchar() >= 0 and not force_exit then defer(Run) else atexit(gfx.quit) end  
   end
   
