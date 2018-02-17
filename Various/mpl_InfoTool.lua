@@ -1,5 +1,5 @@
 -- @description InfoTool
--- @version 0.35alpha
+-- @version 0.40alpha
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about
@@ -13,15 +13,24 @@
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua
+--    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua
 -- @changelog
---    + Shortcuts: space to Transport Play/Stop
---    # avoid SWS bug BR_Win32_GetPrivateProfileString ignore key if it has space before equal sign
+--    + Context: Track
+--    + Tags: Display dB value when drag #vol
+--    + Tags/Track: #vol 
+--    + Tags/Track: #pan
+--    + Tags/Track: #fxlist, wheel for scrolling FX, click to float currently viewed, shift click toggle bypass
+--    + Tags/Persist: #lasttouchfx, click FX name float FX, changing value by mousewheel, drag, direct typing
+--    + Performance: update GUI/data on changing grid
+--    + Performance: update GUI/data on changing selected envelope
+--    # ignore top volume/value value scaling
+--    # restart doesn`t required when reseting widgets configuration
+--    # Context: change catch order from Item>Env to Env>Item>Track
+--    - Context: EnvelopePoint, MultipleEnvelopePoints merged to Envelope context. Require resetting config.
 
 
 
-
-
-  local vrs = '0.35alpha'
+  local vrs = '0.40alpha'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -36,6 +45,7 @@
     dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua")
     dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua")
     dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua")
+    dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua")
   end
   
   RefreshExternalLibs()
@@ -55,9 +65,10 @@
                         'MIDIItem',
                         'AudioItem',
                         'MultipleItem',
-                        'EnvelopePoint',
-                        'MultipleEnvelopePoints',
-                        'Envelope'
+                        nil,--'EnvelopePoint',
+                        nil,--'MultipleEnvelopePoints',
+                        'Envelope',
+                        'Track'
                         }
                   }
   local cycle_cnt,clock = 0
@@ -67,8 +78,50 @@
   local lastTS_st, lastTSend
   local lastint_playstate
   local last_Sel_env 
+  local last_ProjGid
   local last_gfxx, last_gfxy, last_gfxw, last_gfxh, last_dock
+  local widgets_def = {}
   ---------------------------------------------------
+  
+  
+  function LIP_load_MPLmod(str)
+    -- http://github.com/Dynodzzo/Lua_INI_Parser/blob/master/LIP.lua
+    --- Returns a table containing all the data from the INI file.
+    --@param fileName The name of the INI file to parse. [string]
+    --@return The table containing all data from the INI file. [table]
+    local data = {};
+    local section;
+    for line in str:gmatch('[^\r\n]+') do
+      local tempSection = line:match('^%[([^%[%]]+)%]$');
+      if(tempSection)then
+        section = tonumber(tempSection) and tonumber(tempSection) or tempSection;
+        data[section] = data[section] or {};
+      end
+      local param, value = line:match('^([%w|_]+)%s-=%s-(.+)$');
+      if(param and value ~= nil)then
+        if(tonumber(value))then
+          value = tonumber(value);
+        elseif(value == 'true')then
+          value = true;
+        elseif(value == 'false')then
+          value = false;
+        end
+        if(tonumber(param))then
+          param = tonumber(param);
+        end
+        data[section][param] = value;
+        if param == 'order' or param == 'buttons' then
+          data[section][param] = {}
+          for tag in value:gmatch('#(%a+)') do
+            data[section][param]  [#data[section][param]+1] = tag
+          end
+        end
+      end
+    end
+    return data;
+  end
+  
+  
   function Config_DefaultStr()
     return [[
 //Configuration for MPL InfoTool
@@ -83,14 +136,12 @@ buttons=#lock #preservepitch #loop #mute #chanmode #bwfsrc
 [MultipleItem]
 order=#buttons#position #length #offset #fadein #fadeout #vol #transpose #pan
 buttons=#lock #preservepitch #loop #chanmode #mute 
-[EnvelopePoint]
-order=#floatfx #position #value
-[MultipleEnvelopePoints]
-order=#floatfx  #position #value
 [Envelope]
-order=#floatfx
+order=#floatfx #position #value
+[Track]
+order=#vol #pan #fxlist
 [Persist]
-order=#grid #timeselend #timeselstart #transport
+order=#grid #timeselend #timeselstart #lasttouchfx #transport 
 ]]
   end  
   ---------------------------------------------------
@@ -121,7 +172,8 @@ order=#grid #timeselend #timeselstart #transport
       if not SCC_trig and HasTimeSelChanged() then SCC_trig = true end
       if not SCC_trig and HasRulerFormChanged() then SCC_trig = true end    
       if not SCC_trig and HasPlayStateChanged() then SCC_trig = true end 
-      if not SCC_trig and HasSelEnvChanged() then SCC_trig = true end     
+      if not SCC_trig and HasSelEnvChanged() then SCC_trig = true end  
+      if not SCC_trig and HasGridChanged() then SCC_trig = true end      
       
     -- wind state
       local ret
@@ -141,12 +193,11 @@ order=#grid #timeselend #timeselstart #transport
         redraw = 1      
       end
     -- perf GUI 
-      GUI_Main(obj, cycle_cnt, redraw, data)
+      GUI_Main(obj, cycle_cnt, redraw, data, clock)
       redraw = 0 
     -- perform shortcuts
       GUI_shortcuts(gfx.getchar())
     -- defer cycle   
-      T = gfx.getchar()
       if gfx.getchar() >= 0 and not force_exit then defer(Run) else atexit(gfx.quit) end  
   end
   
@@ -156,6 +207,7 @@ order=#grid #timeselend #timeselstart #transport
   gfx.init('MPL '..conf.scr_title,conf.wind_w, conf.wind_h,  conf.dock2 , conf.wind_x, conf.wind_y)
   obj = Obj_init(conf)
   Config_ParseIni(data.conf_path, widgets)
+  --widgets_def = LIP_load_MPLmod(Config_DefaultStr())
   Run()  
   
   ---------------------------------------------------

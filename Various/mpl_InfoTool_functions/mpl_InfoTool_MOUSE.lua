@@ -14,22 +14,24 @@
                             src_val,                       -- init dat table
                             src_val_key,                   -- init dat table key
                             modify_func,                   -- func with arg to modify src_float
-                            t_out_values,
                             app_func,                      -- func to apply what modify_func returns
                             mouse_scale,
-                            use_mouse_drag_xAxis)          -- for example for pan
+                            use_mouse_drag_xAxis,          -- for example for pan
+                            ignore_fields)                  -- use same val for both fields
     local measured_x_offs = 0
-    if not t then return end
+    --if not t then return end
     -- generate ctrls
       gfx.setfont(1, obj.font, obj.fontsz_entry )
       for i = 1, #t do
+        local txt
+        if t.return_for_calc_only then txt = '' else txt = t[i] end
         local w_but = gfx.measurestr(t[i]..'. ') 
         obj.b[table_key..i] = { x = x_offs + measured_x_offs,
                                 y = obj.offs *2 +obj.entry_h,
                                 w = w_but,
                                 h = obj.entry_h,
                                 frame_a = 0,
-                                txt = t[i],
+                                txt = txt,
                                 txt_a = obj.txt_a,
                                 fontsz = obj.fontsz_entry,
                                 func =        function()
@@ -45,12 +47,12 @@
                                                 if type(src_val) == 'table' then
                                                   local t_out_values = {}
                                                   for src_valID = 1, #src_val do
-                                                    t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, mouse.wheel_trig, data, positive_only)                                                  
+                                                    t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, mouse.wheel_trig, data, positive_only, nil, ignore_fields)                                                  
                                                   end 
                                                   app_func(data, obj, t_out_values, table_key)
                                                   redraw = 2 
                                                  else 
-                                                  local out_value = modify_func(src_val, i, #t, mouse.wheel_trig, data)
+                                                  local out_value = modify_func(src_val, i, #t, mouse.wheel_trig, data, positive_only, nil, ignore_fields)
                                                   app_func(data, obj, out_value, table_key)
                                                   redraw = 2
                                                 end                         
@@ -63,14 +65,14 @@
                                                     for src_valID = 1, #src_val do
                                                       local mouse_shift = 0
                                                       if use_mouse_drag_xAxis then mouse_shift = -mouse.dx else mouse_shift = mouse.dy end
-                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, math.modf(mouse_shift/mouse_scale), data, positive_only) 
+                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, math.modf(mouse_shift/mouse_scale), data, positive_only, nil, ignore_fields) 
                                                     end
                                                     app_func(data, obj, t_out_values, table_key)
                                                     redraw = 1   
                                                    else
                                                     local mouse_shift,out_value = 0
                                                     if use_mouse_drag_xAxis then mouse_shift = -mouse.dx else mouse_shift = mouse.dy end
-                                                    out_value = modify_func(mouse.temp_val, i, #t, math.modf(mouse_shift/mouse_scale), data)
+                                                    out_value = modify_func(mouse.temp_val, i, #t, math.modf(mouse_shift/mouse_scale), data, positive_only, nil, ignore_fields)
                                                     app_func(data, obj, out_value, table_key)
                                                     redraw = 1                                                     
                                                   end
@@ -115,7 +117,8 @@
     mouse.RB_trig = not mouse.RB_gate_last and mouse.RB_gate
     mouse.LB_release = mouse.LB_gate_last and not mouse.LB_gate
     mouse.RB_release = mouse.RB_gate_last and not mouse.RB_gate
-    mouse.Ctrl = (gfx.mouse_cap>>2)&1==1
+    mouse.Ctrl = gfx.mouse_cap&4==4
+    mouse.Shift = gfx.mouse_cap&8==8
     
     -- perf doubleclick
       mouse.LDC = mouse.LB_trig and mouse.LB_trig_TS and clock - mouse.LB_trig_TS < 0.3 
@@ -148,11 +151,12 @@
         for key in pairs(obj.b) do
           if not obj.b[key].ignore_mouse then
             if MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_wheel and mouse.wheel_trig ~= 0 then obj.b[key].func_wheel() end
-            if mouse.LB_trig and not mouse.Ctrl and MOUSE_Match(mouse, obj.b[key]) then mouse.context_latch = key end
+            if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) then mouse.context_latch = key end
             if mouse.LB_trig and not mouse.Ctrl and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func then obj.b[key].func() end
-            if mouse.LB_trig and mouse.Ctrl and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func then obj.b[key].func_ctrlL() end
+            if mouse.LB_trig and mouse.Ctrl and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_ctrlL then obj.b[key].func_ctrlL() end
             if mouse.RB_trig and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_R then obj.b[key].func_R() end
-            if mouse.LB_gate and not mouse.Ctrl and mouse.context_latch == key and obj.b[key].func_drag then obj.b[key].func_drag(mouse.Ctrl) end
+            if mouse.LB_gate and not mouse.Ctrl and mouse.context_latch == key and obj.b[key].func_drag then obj.b[key].func_drag() end
+            if mouse.LB_gate and mouse.Ctrl and mouse.context_latch == key and obj.b[key].func_drag_Ctrl then obj.b[key].func_drag_Ctrl() end
             if mouse.LDC and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_DC then obj.b[key].func_DC() end
           end   
         end     

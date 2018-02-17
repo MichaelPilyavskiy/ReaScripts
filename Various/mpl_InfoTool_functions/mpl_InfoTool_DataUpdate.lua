@@ -19,6 +19,7 @@
         5 multiple envelope points        
         6 envelope
         
+        7 track
         
     ]] 
     
@@ -27,17 +28,36 @@
     data.FR = TimeMap_curFrameRate( 0 )
     data.obj_type = 'No object selected'
     data.obj_type_int = -1    
+    
     data.grid_val, data.grid_val_format, data.grid_istriplet = MPL_GetFormattedGrid()
     data.grid_isactive =  GetToggleCommandStateEx( 0, 1157 )==1
+    
     local TS_st, TSend = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )
     data.timeselectionstart, data.timeselectionend = TS_st, TSend
+    
     data.timeselectionstart_format = format_timestr_pos( data.timeselectionstart, '', -1 ) 
-    data.timeselectionend_format = format_timestr_pos( data.timeselectionend, '', -1 ) 
+    data.timeselectionend_format = format_timestr_pos( data.timeselectionend, '', -1 )
+     
     local int_playstate = GetPlayStateEx( 0 )
     data.play = int_playstate&1==1
     data.pause = int_playstate&2==2
     data.record = int_playstate&4==4
     data.editcur_pos = GetCursorPositionEx( 0 )
+    
+    data.LTFX = {}
+    local ret, tr, fx, param = GetLastTouchedFX()
+    if ret then
+      data.LTFX.exist = true
+      local tr = CSurf_TrackFromID( tr, false )
+      data.LTFX_trptr = tr
+      data.LTFX_fxID = fx
+      data.LTFX_parID = param
+      _, data.LTFX_fxname = TrackFX_GetFXName( tr, fx, '' )
+      _, data.LTFX_parname = TrackFX_GetParamName( tr, fx, param, '' )
+      data.LTFX_val,data.LTFX_minval,data.LTFX_maxval = TrackFX_GetParamEx( tr, fx, param )
+      local _, LTFX_val_format = TrackFX_GetFormattedParamValue( tr, fx, param, '' )
+      data.LTFX_val_format = LTFX_val_format:match('%d+')
+    end
     
     -- reset buttons data
       obj.b = {}
@@ -50,14 +70,15 @@
       local env = GetSelectedEnvelope( 0 )
       local tr = GetSelectedTrack(0,0)
             
-      if item then 
+      if env then    
+       DataUpdate_Envelope(data, env)
+       Obj_UpdateEnvelope(data, obj, mouse, widgets)
+       elseif item then 
         DataUpdate_Item(data) 
         Obj_UpdateItem(data, obj, mouse, widgets)
-       elseif env then    
-        DataUpdate_Envelope(data, env)
-        Obj_UpdateEnvelope(data, obj, mouse, widgets)
        elseif tr then
-        
+        DataUpdate_Track(data, tr)
+        Obj_UpdateTrack(data, obj, mouse, widgets)        
       end
 
     -- update com butts
@@ -68,20 +89,9 @@
         obj.b.type_name = nil
         obj.b.obj_name = nil
       end  
-
-      
   end
   
-  
-  
-  
-  
-  
   ---------------------------------------------------
-  
-  
-  
-  
   function DataUpdate_Item(data, item)
     data.name = ''  
     data.it={}
@@ -128,9 +138,6 @@
         data.it[i].pitchsubmode = GetMediaItemTakeInfo_Value( take, 'I_PITCHMODE' )&65535
         data.it[i].pan = GetMediaItemTakeInfo_Value( take, 'D_PAN' )
         data.it[i].pan_format = MPL_FormatPan(data.it[i].pan)
-        
-        
-
       end 
       
       
@@ -164,16 +171,8 @@
           data.obj_type = 'Items'
           data.obj_type_int = 3
       end    
-  end
-  
-  
-  
+  end  
 ------------------------------------------------------------------------
-
-
-    
-  
-  
   function DataUpdate_Envelope(data, env)
     data.name = ''  
     data.ep={}
@@ -181,7 +180,7 @@
     local tr, env_FXid, env_paramid = Envelope_GetParentTrack( env )
     if tr then 
       data.obj_type = 'Envelope'
-      data.obj_type_int = 4
+      data.obj_type_int = 6
       local _, tr_name = GetTrackName( tr, '' )
       local _, env_name =  GetEnvelopeName( env, '' )
       data.name = tr_name..' | '..env_name
@@ -218,12 +217,9 @@
         env_hasselpoint = 1        
       end
     end
-    
-        
-    
     -- reaper.CountAutomationItems( env ) 
        
-    if env_hasselpoint == 1 then 
+    --[[if env_hasselpoint == 1 then 
       data.obj_type = 'Envelope point'
       data.obj_type_int = 4  
      elseif env_hasselpoint == 2 then
@@ -232,30 +228,12 @@
      else
       data.obj_type_int = 6
       data.obj_type = 'Envelope'
-    end
-    
+    end  ]]  
     return true
   end  
   
-    
-  --[[ ruler evt      
-    local ret = DataUpdate_Ruler(cur_pos)
-    if ret then return end
-    
-  -- track
-    local tr = GetSelectedTrack(0,0)
-    if tr then DataUpdate_Track(tr) return  end]]
-    --[[
-    
-  
-  ---------------------------------------------------
-  f unction DataUpdate_AI(env, ai_id)
-    data.obj_type = ''
-    data.obj_type = 'Automation item' 
-    data.obj_type_int = 2
-    data.name = ''
-  end  
-  ---------------------------------------------------
+
+  --[[-------------------------------------------------
   f unction DataUpdate_Ruler(cur_pos)
     -- tempo/timesig
       local tempomark = FindTempoTimeSigMarker( 0, cur_pos+0.001 )
@@ -273,18 +251,42 @@
       --markeridxOut retval, regionidxOut reaper.GetLastMarkerAndCurRegion( proj, time )
     
   end
-  ---------------------------------------------------
-  f unction DataUpdate_Track(tr)
-    data.obj_type = 'Track' 
-    data.obj_type_int = 5
-    data.name = ''
-    if tr then
-      local retval, tr_name = GetTrackName( tr, '' )
-      data.name = tr_name
-    end
-    
-  end   
+
   
   ---------------------------------------------------
   
   ]]
+  
+  function DataUpdate_Track(data, tr)
+    data.name = ''  
+    data.tr = {}
+    
+    data.obj_type = 'Track'
+    data.obj_type_int = 7
+    if not data.curent_trFXID then data.curent_trFXID = 1 end
+    for i = 1, CountSelectedTracks(0) do
+      local tr = GetSelectedTrack(0,i-1)
+      data.tr[i] = {}
+      if i ==1 then
+        data.tr[i].fx_names= {}
+        local instr = TrackFX_GetInstrument( tr )
+        for fxid = 1, TrackFX_GetCount( tr ) do          
+          data.tr[i].fx_names[fxid] = {name = MPL_ReduceFXname(({TrackFX_GetFXName( tr, fxid-1, '' )})[2]),
+                                        is_instr = instr==fxid-1,
+                                        is_enabled =  TrackFX_GetEnabled( tr, fxid-1 )}
+        end
+      end
+      data.tr[i].ptr = tr
+      local _, tr_name = GetTrackName( tr, '' )
+      local trID = CSurf_TrackToID( tr, false )
+      if trID < 1 then trID = '' else trID = trID..': '  end
+      data.tr[i].name = trID..tr_name
+      data.tr[i].name_proj = tr_name
+      data.tr[i].pan = GetMediaTrackInfo_Value( tr, 'D_PAN' )
+      data.tr[i].pan_format = MPL_FormatPan(data.tr[i].pan)
+      data.tr[i].vol = GetMediaTrackInfo_Value( tr, 'D_VOL' )
+      
+      data.tr[i].vol_format = string.format("%.2f", data.tr[i].vol)
+    end
+    return true
+  end  

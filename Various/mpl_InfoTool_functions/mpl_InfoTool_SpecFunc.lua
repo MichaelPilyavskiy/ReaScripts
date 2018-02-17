@@ -35,15 +35,20 @@
     end
   end
   ---------------------------------------------------
-  function MPL_ModifyFloatVal(src_val,int_ID,int_cnt,change_val,data, positive_only)
+  function MPL_ModifyFloatVal(src_val,int_ID,int_cnt,change_val,data, positive_only, pow_tol, ignore_fields)
     if not src_val then return end
     local out_val = src_val
     local int_ID0 = int_cnt - int_ID -- ID from end
     
-    if int_ID0 == 0 then
-      out_val = out_val + change_val*0.01
+    if int_ID0 == 0 then      
+      if pow_tol then out_val = out_val + change_val*10^pow_tol else out_val = out_val + change_val*0.01 end
      elseif int_ID0 == 1 then
-      out_val = out_val + change_val
+      
+      if ignore_fields then 
+        if pow_tol then out_val = out_val + change_val*10^pow_tol else out_val = out_val + change_val*0.001 end
+       else
+        out_val = out_val + change_val
+      end
     end
     if math.abs(out_val) < 0.0001 then   out_val = 0 end            
     if positive_only == true and type(positive_only) == 'boolean' then return lim(out_val, 0, math.huge) 

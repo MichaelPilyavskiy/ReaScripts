@@ -14,6 +14,7 @@
   function Obj_init(conf)  
     local obj = {       aa = 1,
                   mode = 0,
+                  --GUI_flow_time = 0.1,
                   
                   font = 'Calibri',
                   fontsz = conf.GUI_font1,
@@ -38,6 +39,7 @@
                   mouse_scal_vol = 5,
                   mouse_scal_pitch = 15,
                   mouse_scal_pan = 1,
+                  mouse_scal_float = 2,
                   
                   entry_w = 200,      -- name w
                   entry_w2 = 90,     -- controls w / position
@@ -55,6 +57,65 @@
       obj.fontsz_entry = obj.fontsz_entry - 5
     end
     return obj             
+  end
+-----------------------------------------------------------------------          
+  function GUI_knob(o, obj)
+    local val = o.val
+    if val == nil then val = 0 end 
+    local x,y,w,h = o.x, o.y, o.w, o.h
+    
+    local arc_w = 2
+    local arc_r = math.floor(w/2)
+    local ang_gr = 110
+    
+    local ang_val = math.rad(-ang_gr+ang_gr*2*val)
+    local ang = math.rad(ang_gr)
+    
+    gfx.a = 0.07
+    
+      -- arc back
+        local x_offsr = math.floor(x+w/2)
+        --local diff = -math.sin(math.rad(90+ang_gr))
+        local y_offsr = math.floor(y+w/2)
+        for i = 0, arc_w, 0.4 do
+          
+          gfx.arc(x_offsr,y_offsr+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
+          gfx.arc(x_offsr,y_offsr,arc_r-i,    math.rad(-90),math.rad(0),    1)
+          gfx.arc(x_offsr+1,y_offsr,arc_r-i,    math.rad(0),math.rad(90),    1)
+          gfx.arc(x_offsr+1,y_offsr+1,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)
+        end
+    -- val arc
+      if o.knob_col then GUI_col(o.knob_col, obj) end
+      gfx.a = 0.4
+      local ang_val = math.rad(-ang_gr+ang_gr*2*val)
+      for i = 0, arc_w, 0.4 do
+            if ang_val < math.rad(-90) then 
+              gfx.arc(x+w/2-1,y_offsr+1,arc_r-i,    math.rad(-ang_gr),ang_val, 1)
+             else
+              if ang_val < math.rad(0) then 
+                gfx.arc(x_offsr,y_offsr+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
+                gfx.arc(x_offsr,y_offsr,arc_r-i,    math.rad(-90),ang_val,    1)
+               else
+                if ang_val < math.rad(90) then 
+                  gfx.arc(x_offsr,y_offsr+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
+                  gfx.arc(x_offsr,y_offsr,arc_r-i,    math.rad(-90),math.rad(0),    1)
+                  gfx.arc(x_offsr+1,y_offsr,arc_r-i,    math.rad(0),ang_val,    1)
+                 else
+                  if ang_val < math.rad(ang_gr) then 
+                    gfx.arc(x_offsr,y_offsr+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
+                    gfx.arc(x_offsr,y_offsr,arc_r-i,    math.rad(-90),math.rad(0),    1)
+                    gfx.arc(x+w/2+1,y_offsr,arc_r-i,    math.rad(0),math.rad(90),    1)
+                    gfx.arc(x+w/2+1,y_offsr+1,arc_r-i,    math.rad(90),ang_val,    1)
+                   else
+                    gfx.arc(x_offsr,y_offsr+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
+                    gfx.arc(x_offsr,y_offsr,arc_r-i,    math.rad(-90),math.rad(0),    1)
+                    gfx.arc(x_offsr+1,y_offsr,arc_r-i,    math.rad(0),math.rad(90),    1)
+                    gfx.arc(x_offsr+1,y_offsr+1,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)                  
+                  end
+                end
+              end                
+            end
+          end
   end
   
   
@@ -103,7 +164,7 @@
         gfx.set(1,1,1,o.frame_rect_a)
         gfx.rect(x+1,y+1,w-2,h-2,0)
       end
-      
+    
     -- state
       if o.state then
         if o.state_col then GUI_col(o.state_col, obj) end
@@ -111,6 +172,8 @@
         gfx.rect(x,y,w,h,1)        
       end
     
+    -- knob
+      if o.is_knob then GUI_knob(o, obj) end
     -- text 
       local txt
       if not o.txt then txt = '' else txt = tostring(o.txt) end
@@ -125,10 +188,13 @@
           for line in txt:gmatch('[^\r\n]+') do cnt = cnt + 1 end
           local com_texth = gfx.texth*cnt
           local i = 0
+          local reduce1, reduce2 = 2, nil
+          if o.aligh_txt and o.aligh_txt&8==8 then reduce1, reduce2 = 0,-2 end
           for line in txt:gmatch('[^\r\n]+') do
-            if gfx.measurestr(line:sub(2)) > w -2 and w > 20 then 
-              repeat line = line:sub(2) until gfx.measurestr(line..'...') < w -2
-              line = '...'..line
+            if gfx.measurestr(line:sub(2)) > w -5 and w > 20 then 
+              repeat line = line:sub(reduce1, reduce2) until gfx.measurestr(line..'...') < w -5
+              if o.aligh_txt and o.aligh_txt&8==8 then line = line..'...'
+                else line = '...'..line end
             end
             gfx.x = x+ math.ceil((w-gfx.measurestr(line))/2)
             gfx.y = y+ h/2 - com_texth/2 + i*gfx.texth
@@ -158,7 +224,7 @@
     end
   end
   ---------------------------------------------------
-  function GUI_Main(obj, cycle_cnt, redraw, data)
+  function GUI_Main(obj, cycle_cnt, redraw, data, clock)
     gfx.mode = 0
     -- redraw: -1 init, 1 maj changes, 2 minor changes
     -- 1 back
@@ -190,17 +256,23 @@
         redraw = 1 -- force com redraw after init 
       end
       
-    -- refresh
-      if redraw == 1 then 
+      
+      
+      local buf_dest = 10
+      if redraw == 1 then
         -- refresh backgroung
-          gfx.dest = 1
-          gfx.setimgdim(1, -1, -1)  
-          gfx.setimgdim(1, gfx.w, gfx.h) 
-          --gfx.line(gfx.w-obj.menu_w, 0,gfx.w-obj.menu_w, gfx.h )
+          gfx.dest = buf_dest
+          gfx.setimgdim(buf_dest, -1, -1)          
+          gfx.setimgdim(buf_dest, gfx.w, gfx.h) 
         -- refresh all buttons
           if obj.b then for key in pairs(obj.b) do GUI_DrawObj(obj.b[key], obj) end end
+          
+        --[[ test
+          gfx.x, gfx.y = 30+buf_dest,0
+          gfx.set (1,1,1,1)
+          gfx.drawstr(buf_dest)]]
       end
-      
+            
       gfx.dest = -1   
     ----  render    
       
@@ -213,12 +285,14 @@
       --[[gfx.blit(2, 1, 0, -- backgr
           0,0,obj.grad_sz, obj.grad_sz,
           0,0,gfx.w, gfx.h, 0,0)]]
+          
+          
     -- butts  
-      gfx.a  =1 
-      gfx.blit(1, 1, 0,
+      gfx.a = 1
+      gfx.blit(10, 1, 0,
           0,0,gfx.w, gfx.h,
           0,0,gfx.w, gfx.h, 0,0)  
-          
+                    
     -- draw vrs
       gfx.x, gfx.y = gfx.w-150,0
       gfx.set(0,0,0,1)
@@ -326,15 +400,18 @@
                 { str = 'Buttons order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 4, true ) end} ,                      
                   
-                { str = '>Envelope point|Modules order|<',
+                --[[{ str = '>Envelope point|Modules order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 5 ) end} ,                  
                   
                 { str = '>Multiple envelope points|Modules order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} ,                      
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} ,  ]]                    
 
-                { str = '>Selected envelope|Modules order|<',
+                { str = '>Envelope|Modules order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 7 ) end} , 
-                                                                                                                                       
+
+                { str = '>Track|Modules order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 8 ) end} , 
+                                                                                                                                                         
                 { str = '>Persistent modules|Modules order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 'Persist' ) end} ,                                                                  
                                                                                                       
@@ -344,7 +421,9 @@
                           local ret = MB('Are you sure you want to reset widget configuration of MPL InfoTool?',  'MPL InfoTool', 4)
                           if ret == 6 then 
                             Config_Reset(data.conf_path) 
-                            MB('Restart script to affect changes', 'MPL InfoTool', 0)
+                            --MB('Restart script to affect changes', 'MPL InfoTool', 0)
+                            Config_ParseIni(data.conf_path, widgets)
+                            redraw = 2
                           end
                         end
                             }  ,                               

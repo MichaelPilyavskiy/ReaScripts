@@ -85,9 +85,9 @@
                          data.it,
                          'item_pos',
                          MPL_ModifyTimeVal,
-                         t_out_values,
                          Apply_Item_Pos,
-                         obj.mouse_scal_time)
+                         obj.mouse_scal_time,
+                         false)
     return obj.entry_w2
   end  
   function Apply_Item_Pos(data, obj, t_out_values, butkey, out_str_toparse)
@@ -147,9 +147,9 @@
                          data.it,
                          'snap_offs',
                          MPL_ModifyTimeVal,
-                         t_out_values,
                          Apply_Item_SnapOffs,                         
-                         obj.mouse_scal_time)
+                         obj.mouse_scal_time,
+                         false)
     return obj.entry_w2                         
   end
   
@@ -210,7 +210,6 @@
                          data.it,
                          'pan',
                          MPL_ModifyFloatVal,
-                         t_out_values,
                          Apply_Item_pan,                         
                          obj.mouse_scal_pan,
                          true) -- use_mouse_drag_xAxis
@@ -289,9 +288,9 @@
                          data.it,
                          'item_len',
                          MPL_ModifyTimeVal,
-                         t_out_values,
                          Apply_Item_Length,
-                         obj.mouse_scal_time)
+                         obj.mouse_scal_time,
+                         false)
     return obj.entry_w2
   end
   
@@ -365,9 +364,9 @@
                          data.it,
                          'start_offs',
                          MPL_ModifyTimeVal,
-                         t_out_values,
                          Apply_Item_Offset,
-                         obj.mouse_scal_time)
+                         obj.mouse_scal_time,
+                         false)
     return obj.entry_w2                         
   end  
   function Apply_Item_Offset(data, obj, t_out_values, butkey, out_str_toparse)
@@ -427,9 +426,9 @@
                          data.it,
                          'fadein_len',
                          MPL_ModifyTimeVal,
-                         t_out_values,
                          Apply_Item_fadein,                         
-                         obj.mouse_scal_time)
+                         obj.mouse_scal_time,
+                         false)
     return obj.entry_w2
   end
   
@@ -489,9 +488,9 @@
                          data.it,
                          'fadeout_len',
                          MPL_ModifyTimeVal,
-                         t_out_values,
                          Apply_Item_fadeout,                         
-                         obj.mouse_scal_time)
+                         obj.mouse_scal_time,
+                         false)
     return obj.entry_w2
   end
   
@@ -542,6 +541,7 @@
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
+                        fontsz = obj.fontsz_entry,
                         ignore_mouse = true}  
                 
       local vol_str = data.it[1].vol_format
@@ -552,9 +552,10 @@
                          data.it,
                          'vol',
                          MPL_ModifyFloatVal,
-                         t_out_values,
                          Apply_Item_vol,                         
-                         obj.mouse_scal_vol)               -- mouse scaling
+                         obj.mouse_scal_vol,               -- mouse scaling
+                         nil,
+                         true)
     return vol_w--obj.entry_w2                         
   end
   
@@ -569,8 +570,9 @@
       local new_str_t = MPL_GetTableOfCtrlValues2(new_str)
       if new_str_t then 
         for i = 1, #new_str_t do
-          obj.b[butkey..i].txt = new_str_t[i]
+          obj.b[butkey..i].txt = ''--new_str_t[i]
         end
+        obj.b.obj_vol_back.txt = dBFromReaperVal(t_out_values[1])..'dB'
       end
      else
       local out_val = tonumber(out_str_toparse) 
@@ -624,9 +626,9 @@
                          data.it,
                          'pitch',
                          MPL_ModifyFloatVal,
-                         t_out_values,
                          Apply_Item_transpose,                         
-                         obj.mouse_scal_pitch)               -- mouse scaling
+                         obj.mouse_scal_pitch,               -- mouse scaling
+                         false)
     return pitch_w--obj.entry_w2                         
   end
   

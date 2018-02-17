@@ -70,9 +70,9 @@
                          data.ep,
                          'pos',
                          MPL_ModifyTimeVal,
-                         t_out_values,
                          Apply_Envpoint_Pos,
-                         obj.mouse_scal_time)
+                         obj.mouse_scal_time,
+                         false)
     return obj.entry_w2
   end  
   function Apply_Envpoint_Pos(data, obj, t_out_values, butkey, out_str_toparse)
@@ -140,6 +140,7 @@
                         y = obj.offs *2 +obj.entry_h ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
+                        fontsz= obj.fontsz_entry,
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         ignore_mouse = true}  
@@ -151,9 +152,10 @@
                          data.ep,
                          'value',
                          MPL_ModifyFloatVal,
-                         t_out_values,
                          Apply_Envpoint_Val,                         
-                         obj.mouse_scal_vol)               -- mouse scaling
+                         obj.mouse_scal_vol,               -- mouse scaling
+                         nil,
+                         true)
     return obj.entry_w2                         
   end
   
@@ -170,8 +172,9 @@
       local new_str_t = MPL_GetTableOfCtrlValues2(new_str)
       if new_str_t then 
         for i = 1, #new_str_t do
-          obj.b[butkey..i].txt = new_str_t[i]
+          obj.b[butkey..i].txt = ''--new_str_t[i]
         end
+        obj.b.obj_envval_back.txt = dBFromReaperVal(t_out_values[ data.ep.sel_point_ID])..'dB'
       end
      else
       local out_val = tonumber(out_str_toparse) 
@@ -192,13 +195,12 @@
 
 
 
-
   --------------------------------------------------------------   
   function Widgets_Envelope_floatfx(data, obj, mouse, x_offs) -- generate snap_offs controls
     if data.env_parentFX == -1 then return  end
     local fxname_w = 100
     if x_offs + fxname_w > obj.persist_margin then return  end  
-    local fx_name = data.env_parentFXname:match('%: (.*)'):gsub('%(.-%)','')
+    local fx_name = MPL_ReduceFXname(data.env_parentFXname)
     obj.b.obj_envfloatfx = { x = x_offs,
                         y = obj.offs ,
                         w = fxname_w,

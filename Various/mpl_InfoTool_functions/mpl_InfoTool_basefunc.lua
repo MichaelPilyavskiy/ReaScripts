@@ -11,6 +11,8 @@
   ---------------------------------------------------
   function msg(s) if s then ShowConsoleMsg(s..'\n') end end
   ---------------------------------------------------
+  function MPL_ReduceFXname(s)return s:match('%: (.*)'):gsub('%(.-%)','') end
+ ---------------------------------------------------  
   function lim(val, min,max) --local min,max 
     if not min or not max then min, max = 0,1 end 
     return math.max(min,  math.min(val, max) ) 
@@ -86,8 +88,16 @@
     return ret
   end
   ---------------------------------------------------
+  function HasGridChanged()
+    local _, ProjGid = GetSetProjectGrid( 0, false )
+    local ret = false
+    if last_ProjGid and last_ProjGid ~= ProjGid  then  ret = true end
+    last_ProjGid = ProjGid
+    return ret
+  end 
+  ---------------------------------------------------
   function HasPlayStateChanged()
-    int_playstate = GetPlayStateEx( 0 )
+    local int_playstate = GetPlayStateEx( 0 )
     local ret = false
     if lastint_playstate and lastint_playstate ~= int_playstate  then  ret = true end
     lastint_playstate = int_playstate
@@ -101,7 +111,25 @@
     last_FormTS = FormTS 
     return ret
   end
+  function dBFromReaperVal(val)  local out
+    if val < 1 then 
+      out = 20*math.log(val, 10)
+     else 
+      out = 6*math.log(val, 2)
+    end 
+    return string.format('%.2f',out)
+  end
   ---------------------------------------------------
+  function ReaperValfromdB(dB_val)  local out
+    local dB_val = tonumber(dB_val)
+    if dB_val < 0 then 
+      out = 10^(dB_val/20)
+     else 
+      out = 10^(dB_val/20)
+    end 
+    return out--string.format('%.2f',tonumber(out))
+  end
+  ---------------------------------------------------  
   function HasSelEnvChanged()
     local Sel_env = GetSelectedEnvelope( 0 )
     local ret = false
@@ -131,13 +159,15 @@
     --  parse widgets 
       for i = 1, #widgets.types_t do 
         local widg_str = widgets.types_t[i]
-        local retval, str_widgets_tags = BR_Win32_GetPrivateProfileString( widg_str, 'order', '', conf_path )
-        widgets[widg_str] = {}
-        for w in str_widgets_tags:gmatch('#(%a+)') do widgets[widg_str] [  #widgets[widg_str] +1 ] = w end
-        
-        widgets[widg_str].buttons = {}
-        local retval, buttons_str = BR_Win32_GetPrivateProfileString( widg_str, 'buttons', '', conf_path )
-        for w in buttons_str:gmatch('#(%a+)') do widgets[widg_str].buttons [  #widgets[widg_str].buttons +1 ] = w end
+        if widg_str ~= nil then
+          local retval, str_widgets_tags = BR_Win32_GetPrivateProfileString( widg_str, 'order', '', conf_path )
+          widgets[widg_str] = {}
+          for w in str_widgets_tags:gmatch('#(%a+)') do widgets[widg_str] [  #widgets[widg_str] +1 ] = w end
+            
+          widgets[widg_str].buttons = {}
+          local retval, buttons_str = BR_Win32_GetPrivateProfileString( widg_str, 'buttons', '', conf_path )
+          for w in buttons_str:gmatch('#(%a+)') do widgets[widg_str].buttons [  #widgets[widg_str].buttons +1 ] = w end
+        end
       end
       
     -- persist
@@ -155,18 +185,20 @@
       --  parse widgets 
         for i = 1, #widgets.types_t do 
           local widg_str = widgets.types_t[i]
-          str = str..'\n'..'['..widg_str..']'
-          local ord = ''
-          for i2 =1 , #widgets[widg_str] do 
-            ord = ord..'#'..widgets[widg_str][i2]..' '
-          end
-          str = str..'\norder='..ord
-          if widgets[widg_str].buttons and #widgets[widg_str].buttons > 0 then
-            local b_ord = ''
-            for i2 =1 , #widgets[widg_str].buttons do 
-              b_ord = b_ord..'#'..widgets[widg_str].buttons[i2]..' '
+          if widg_str then 
+            str = str..'\n'..'['..widg_str..']'
+            local ord = ''
+            for i2 =1 , #widgets[widg_str] do 
+              ord = ord..'#'..widgets[widg_str][i2]..' '
             end
-            str = str..'\nbuttons='..b_ord
+            str = str..'\norder='..ord
+            if widgets[widg_str].buttons and #widgets[widg_str].buttons > 0 then
+              local b_ord = ''
+              for i2 =1 , #widgets[widg_str].buttons do 
+                b_ord = b_ord..'#'..widgets[widg_str].buttons[i2]..' '
+              end
+              str = str..'\nbuttons='..b_ord
+            end
           end
         end
         
@@ -196,7 +228,7 @@
   ---------------------------------------------------
   function Config_Reset(conf_path)
     local def_conf = Config_DefaultStr()
-    f = io.open(conf_path, 'w')
+    local f = io.open(conf_path, 'w')
     if f then 
       f:write(def_conf)
       f:close()

@@ -152,7 +152,6 @@
                          data.timeselectionstart,
                          '',
                          MPL_ModifyTimeVal,
-                         out_value,
                          Apply_TimeselSt,
                          obj.mouse_scal_time)
     return obj.entry_w2
@@ -210,7 +209,6 @@
                          data.timeselectionend,
                          '',
                          MPL_ModifyTimeVal,
-                         out_value,
                          Apply_Timeselend,
                          obj.mouse_scal_time)
     return obj.entry_w2
@@ -307,3 +305,124 @@
                                       }
     return transport_state_w
   end  
+  
+  ----------------------------------------------------------------------------
+  function Widgets_Persist_lasttouchfx(data, obj, mouse, x_margin, widgets)
+    local lasttouchfx_w = 160 
+    local val_w = 50
+    local knob_x_offs = 5
+    if not data.LTFX.exist or data.LTFX_parname == 'Bypass' then return end
+    obj.b.obj_lasttouchfx_back1 = { x = x_margin-lasttouchfx_w,
+                        y = obj.offs ,
+                        w = lasttouchfx_w,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        fontsz = obj.fontsz_entry,
+                        txt = '',
+                        ignore_mouse = true}    
+    obj.b.obj_lasttouchfx = { x = x_margin-lasttouchfx_w,
+                        y = obj.offs ,
+                        w = lasttouchfx_w-val_w,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        fontsz = obj.fontsz_entry,
+                        txt = MPL_ReduceFXname(data.LTFX_fxname),
+                        func = function() 
+                          TrackFX_Show( data.LTFX_trptr, data.LTFX_fxID, 3 ) 
+                        end} 
+    obj.b.obj_lasttouchfx_param = { x =  x_margin-lasttouchfx_w,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = lasttouchfx_w-val_w,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = 0,
+                        txt = data.LTFX_parname,
+                        fontsz = obj.fontsz_entry,
+                        func = function () 
+                                  --Main_OnCommand(41984,0)--FX: Arm track envelope for last touched FX parameter
+                                  TrackFX_Show( data.LTFX_trptr, data.LTFX_fxID, 3 )
+                                end} 
+    obj.b.obj_lasttouchfx_param_back = { x =  x_margin-lasttouchfx_w,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = lasttouchfx_w,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt = '',
+                        fontsz = obj.fontsz_entry,
+                        ignore_mouse = true}      
+                 
+    local txt_val = string.format('%.3f',data.LTFX_val)
+    obj.b.obj_lasttouchfx_knobval = { x = x_margin-val_w-knob_x_offs,
+                                    y = obj.offs,
+                                    w = val_w,
+                                    h = obj.entry_h,
+                                    frame_a = 0,
+                                    txt = txt_val,
+                                    txt_a = obj.txt_a,
+                                    fontsz = obj.fontsz_entry,
+                                    ignore_mouse = true}
+    obj.b.obj_lasttouchfx_knobval2 = { x = x_margin-val_w-knob_x_offs,
+                                    y = obj.offs+obj.entry_h,
+                                    w = val_w,
+                                    h = obj.entry_h,
+                                    frame_a = 0,
+                                    txt = data.LTFX_val_format,
+                                    txt_a = obj.txt_a,
+                                    fontsz = obj.fontsz_entry,
+                                    ignore_mouse = true}                                    
+    obj.b.obj_lasttouchfx_knob = { x = x_margin-val_w-knob_x_offs,
+                                y = obj.offs,
+                                w = val_w,
+                                h = obj.entry_h*2,
+                                frame_a = 0,
+                                txt = '',
+                                txt_a = obj.txt_a,
+                                fontsz = obj.fontsz_entry,
+                                is_knob = true,
+                                knob_col = obj.txt_col_header,
+                                val = data.LTFX_val,
+                                func =        function()
+                                                mouse.temp_val = data.LTFX_val
+                                                redraw = 1                              
+                                              end,
+                                func_ctrlL =        function()
+                                                mouse.temp_val = data.LTFX_val
+                                                redraw = 1                              
+                                              end,                                              
+                                func_wheel =  function()
+                                                local out_value = MPL_ModifyFloatVal(data.LTFX_val, 1, 1, mouse.wheel_trig, data, nil, -2)
+                                                out_value = lim(out_value,data.LTFX_minval,data.LTFX_maxval)
+                                                ApplyFXVal(out_value, data.LTFX_trptr, data.LTFX_fxID, data.LTFX_parID)
+                                                data.LTFX_val = out_value
+                                                redraw = 2          
+                                              end,                                              
+                                func_drag =   function(is_ctrl) 
+                                                if not mouse.temp_val then return end
+                                                local pow_tol = -2
+                                                local out_value = MPL_ModifyFloatVal(mouse.temp_val, 1, 1, math.modf(mouse.dy/obj.mouse_scal_float), data, nil, pow_tol)
+                                                out_value = lim(out_value,data.LTFX_minval,data.LTFX_maxval)
+                                                ApplyFXVal(out_value, data.LTFX_trptr, data.LTFX_fxID, data.LTFX_parID)
+                                                redraw =2
+                                              end,
+                                func_drag_Ctrl =   function(is_ctrl) 
+                                                if not mouse.temp_val then return end
+                                                local pow_tol = -4 
+                                                local out_value = MPL_ModifyFloatVal(mouse.temp_val, 1, 1, math.modf(mouse.dy/obj.mouse_scal_float), data, nil, pow_tol)
+                                                out_value = lim(out_value,data.LTFX_minval,data.LTFX_maxval)
+                                                ApplyFXVal(out_value, data.LTFX_trptr, data.LTFX_fxID, data.LTFX_parID)
+                                                redraw = 2
+                                              end,                                              
+                                func_DC =     function() 
+                                                local retval0,ret_str = GetUserInputs( 'Edit value', 1, ',extrawidth=100', data.LTFX_val )
+                                                if not retval0 or not tonumber(ret_str) then return end
+                                                ApplyFXVal(tonumber(ret_str), data.LTFX_trptr, data.LTFX_fxID, data.LTFX_parID)                                                                 
+                                              end} 
+    return lasttouchfx_w                        
+  end  
+  ------------------------------------
+  function ApplyFXVal(val, track, fx, param) 
+    TrackFX_SetParam( track, fx, param, val )
+  end 
