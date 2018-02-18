@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5" name="MPL Scripts">
+<index version="1" commit="d4409ebda83bccd8eee4d5ccfa251e3e47061a9d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -2455,186 +2455,34 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9271eb5fe2df842dee33cc6027d8ead9288352e2/Various/mpl_Import%20Winamp%20Playlist.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_InfoTool.lua" type="script" desc="InfoTool">
+    <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 An info bar displaing some information about different objects, also allow to edit them quickly without walking through menus and windows.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 An script displaing some information about different objects, also allow to edit them quickly without walking through menus and windows.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="0.1alpha" author="MPL" time="2018-02-10T17:28:54Z">
-        <changelog><![CDATA[+ Prelimitary alpha version. There weren`t plans to develop it further with different widgets like interactive/draggable grid, different indicators/controls, but it probably can be improved in the future if will have some response from users on Cockos Forum.
-+ Basic interactive overview of some parameters
-+ Context: Audio item 
-+ Context: MIDI item
-+ Context: Empty Item
-+ Context: Multiple items
-+ Tags: Item - #snap #position #length #offset
-+ MouseModifiers/ShortCurs: change value - left drag value
-+ MouseModifiers/ShortCurs: change value - mousewheel
-+ MouseModifiers/ShortCurs: type/parse value - doubleclick
-+ Customizable configuration]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa97a43d4819ea28effaa373f77c485772ccd4c5/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
-      </version>
-      <version name="0.2alpha" author="MPL" time="2018-02-12T19:43:24Z">
-        <changelog><![CDATA[# fix renaming items
-# fix error when using #offset tag for multiple item selection
-# use format_timestr_len for snapoffset
-# extend MIDI source when extendind MIDI item length
-+ Context: Envelope Point (underlying envelope)
-+ Tags/Item - #fadein #fadeout #volume #transpose #itembuttons
-+ Tags/Envelope - #position #value
-+ Add support for custom ordered buttons
-+ ButtonTags/Item - #lock #mute #loop #chanmode]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c8efab56f43416368c7f66220b1f465e85e65b38/Various/mpl_InfoTool.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c8efab56f43416368c7f66220b1f465e85e65b38/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c8efab56f43416368c7f66220b1f465e85e65b38/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c8efab56f43416368c7f66220b1f465e85e65b38/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c8efab56f43416368c7f66220b1f465e85e65b38/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c8efab56f43416368c7f66220b1f465e85e65b38/Various/mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c8efab56f43416368c7f66220b1f465e85e65b38/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c8efab56f43416368c7f66220b1f465e85e65b38/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
-      </version>
-      <version name="0.3alpha" author="MPL" time="2018-02-16T08:33:01Z">
-        <changelog><![CDATA[+ Add support for persistent widgets (out of contexts, displayed on the right side, config order - backwards)
-+ Tags/Persistent - #grid, drag/wheel controls value from 1/128 to 1, right click toggle snap, double click open snap settings
-+ Tags/Persistent - #timeselend #timeselstart, same behaviour as object controls
-+ Tags/AudioItem - #bwfsrc perform action Item: Move to source preferred position (used by BWF)
-+ GUI: Store XYWH+docked window settings, loads to the second docker by default
-+ Config: allow to customize font sizes
-+ Config: allow to customize text colors
-+ Config: allow to customize background color and alpha
-+ WidgetConfig: add editable fields to the menus
-# Context: fix envpoint/multiple env points catching, ignore AI for now
-# Config: fix emptyitem string for default config
-# GUI: move config button to the left side
-# GUI: increased default font size for OSX
-# GUI: use font2 for buttons
-# GUI: hardcoded volume, pitch, pah heights
-# GUI: fix hardcode Item/#lock y offset
-# GUI: refresh GUI when not docked and changing window size
-# GUI: reduce context modules when they overlapped by persistent modules
-# Performance: force GUI/data update on changing timeselection]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/715881d81426215da326670c67c31a281be02039/Various/mpl_InfoTool.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/715881d81426215da326670c67c31a281be02039/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/715881d81426215da326670c67c31a281be02039/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/715881d81426215da326670c67c31a281be02039/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/715881d81426215da326670c67c31a281be02039/Various/mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/715881d81426215da326670c67c31a281be02039/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/715881d81426215da326670c67c31a281be02039/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/715881d81426215da326670c67c31a281be02039/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/715881d81426215da326670c67c31a281be02039/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
-      </version>
-      <version name="0.31alpha" author="MPL" time="2018-02-16T19:17:26Z">
-        <changelog><![CDATA[+ When doubleclick value, GetUserInput is opening with multiple fields for easily TAB through them
-+ Context: Envelope (selected envelope)
-+ Tags/Persistent - #transport, show play state, left click: play+store edit cursor position/stop+revert playcursor to pervious position, right click: pause, ctrl+left click: record
-+ Tags/Envelope - #floatfx, left click floats FX, disabled for track envelopes such as Volume, Pan etc
-# Extend MIDI source when typing length value
-# GUI: Prevent error when opening nonexisting buttons order
-# Performance: update GUI/data on changing playstate
-# fix missing envelope point context]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/641cd4fe4899325f5497de4694d4a2882ce1e386/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
-      </version>
-      <version name="0.32alpha" author="MPL" time="2018-02-17T04:09:41Z">
-        <changelog><![CDATA[# fix (hopefully) OSX inverted colors
-# fix correct reading custom font sizes]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94d065d8b0b9038f4252d05f0710fb06b9069cb5/Various/mpl_InfoTool.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94d065d8b0b9038f4252d05f0710fb06b9069cb5/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94d065d8b0b9038f4252d05f0710fb06b9069cb5/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94d065d8b0b9038f4252d05f0710fb06b9069cb5/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94d065d8b0b9038f4252d05f0710fb06b9069cb5/Various/mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94d065d8b0b9038f4252d05f0710fb06b9069cb5/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94d065d8b0b9038f4252d05f0710fb06b9069cb5/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94d065d8b0b9038f4252d05f0710fb06b9069cb5/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94d065d8b0b9038f4252d05f0710fb06b9069cb5/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
-      </version>
-      <version name="0.33alpha" author="MPL" time="2018-02-17T04:25:53Z">
-        <changelog><![CDATA[- revert OSX inverted colors
-# invert RGB taken from system dialog]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba17b9b46b1040e67d212792efdc02de6fe09c8c/Various/mpl_InfoTool.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba17b9b46b1040e67d212792efdc02de6fe09c8c/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba17b9b46b1040e67d212792efdc02de6fe09c8c/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba17b9b46b1040e67d212792efdc02de6fe09c8c/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba17b9b46b1040e67d212792efdc02de6fe09c8c/Various/mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba17b9b46b1040e67d212792efdc02de6fe09c8c/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba17b9b46b1040e67d212792efdc02de6fe09c8c/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba17b9b46b1040e67d212792efdc02de6fe09c8c/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba17b9b46b1040e67d212792efdc02de6fe09c8c/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
-      </version>
-      <version name="0.35alpha" author="MPL" time="2018-02-17T10:10:12Z">
-        <changelog><![CDATA[+ Shortcuts: space to Transport Play/Stop
-# avoid SWS bug BR_Win32_GetPrivateProfileString ignore key if it has space before equal sign]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3b058b0e1495f3c38a1610bdd550c35040d6b85/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
-      </version>
-      <version name="0.40alpha" author="MPL" time="2018-02-17T21:21:43Z">
-        <changelog><![CDATA[+ Context: Track
-+ Tags: Display dB value when drag #vol
-+ Tags/Track: #vol 
-+ Tags/Track: #pan
-+ Tags/Track: #fxlist, wheel for scrolling FX, click to float currently viewed, shift click toggle bypass
-+ Tags/Persist: #lasttouchfx, click FX name float FX, changing value by mousewheel, drag, direct typing
-+ Performance: update GUI/data on changing grid
-+ Performance: update GUI/data on changing selected envelope
-# ignore top volume/value value scaling
-# restart doesn`t required when reseting widgets configuration
-# Context: change catch order from Item>Env to Env>Item>Track
-- Context: EnvelopePoint, MultipleEnvelopePoints merged to Envelope context. Require resetting config.]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua</source>
-      </version>
-      <version name="0.50beta" author="MPL" time="2018-02-18T12:41:58Z">
-        <changelog><![CDATA[+ Obj_GenerateCtrl() recoded for using a table instead of ordered data for further developing modules, all current modules also follow new structure
-+ Tags/Track: #sendto, pre-set send volume and pan, send by selecting from list topmost parent folders in project or pre-defined receives
-# GUI: show/Parse dB instead or real volues for #vol
-# GUI: improved FX name reducing
-# GUI: improved bypass coloring for #fxlist
-# GUI: show FX ids in fxlist
-# parse direct pan scrings for #pan
-# fix ignore_fields tolerance skip]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
-        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua</source>
+      <version name="1.0" author="MPL" time="2018-02-18T16:54:40Z">
+        <changelog><![CDATA[+ MouseModifiers: Alt+Click on param reset it to default (if any)
++ Options: Set loop points linked to time selection
++ MouseModifiers: wheel on item name run action Take: Switch items to next/previous take
+# Tags/Track/#sendto disable displaying parent folder
+# nudge timeselection when change #timeselst
+# fix inverted decimal/integer float modifying
+# don`t ignore fields for #vol]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d4409ebda83bccd8eee4d5ccfa251e3e47061a9d/Various/mpl_InteractiveToolbar.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d4409ebda83bccd8eee4d5ccfa251e3e47061a9d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d4409ebda83bccd8eee4d5ccfa251e3e47061a9d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d4409ebda83bccd8eee4d5ccfa251e3e47061a9d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d4409ebda83bccd8eee4d5ccfa251e3e47061a9d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d4409ebda83bccd8eee4d5ccfa251e3e47061a9d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d4409ebda83bccd8eee4d5ccfa251e3e47061a9d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d4409ebda83bccd8eee4d5ccfa251e3e47061a9d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d4409ebda83bccd8eee4d5ccfa251e3e47061a9d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">
