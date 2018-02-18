@@ -63,16 +63,16 @@
                         
       
       local pos_str = data.ep[data.ep.sel_point_ID].pos_format
-      Obj_GenerateCtrl( data,obj, mouse,
-                         MPL_GetTableOfCtrlValues(pos_str), 
-                        'position_ctrl',
-                         x_offs, obj.entry_w2,
-                         data.ep,
-                         'pos',
-                         MPL_ModifyTimeVal,
-                         Apply_Envpoint_Pos,
-                         obj.mouse_scal_time,
-                         false)
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(pos_str),
+                        table_key='position_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.ep,
+                        src_val_key= 'pos',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Envpoint_Pos,                         
+                        mouse_scale= obj.mouse_scal_time})                         
     return obj.entry_w2
   end  
   function Apply_Envpoint_Pos(data, obj, t_out_values, butkey, out_str_toparse)
@@ -145,17 +145,19 @@
                         txt = '',
                         ignore_mouse = true}  
       local val_str = data.ep[data.ep.sel_point_ID].value_format
-      Obj_GenerateCtrl( data,obj,  mouse,
-                        MPL_GetTableOfCtrlValues2(val_str),
-                        'val_ctrl',
-                         x_offs,  obj.entry_w2,
-                         data.ep,
-                         'value',
-                         MPL_ModifyFloatVal,
-                         Apply_Envpoint_Val,                         
-                         obj.mouse_scal_vol,               -- mouse scaling
-                         nil,
-                         true)
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues2(val_str),
+                        table_key='val_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.ep,
+                        src_val_key= 'value',
+                        modify_func= MPL_ModifyFloatVal,
+                        app_func= Apply_Envpoint_Val,                         
+                        mouse_scale= obj.mouse_scal_vol,               -- mouse scaling
+                        use_mouse_drag_xAxis= nil, -- x
+                        --ignore_fields= true
+                        })                         
     return obj.entry_w2                         
   end
   
@@ -172,9 +174,9 @@
       local new_str_t = MPL_GetTableOfCtrlValues2(new_str)
       if new_str_t then 
         for i = 1, #new_str_t do
-          obj.b[butkey..i].txt = ''--new_str_t[i]
+          obj.b[butkey..i].txt = new_str_t[i]
         end
-        obj.b.obj_envval_back.txt = dBFromReaperVal(t_out_values[ data.ep.sel_point_ID])..'dB'
+        --obj.b.obj_envval_back.txt = dBFromReaperVal(t_out_values[ data.ep.sel_point_ID])..'dB'
       end
      else
       local out_val = tonumber(out_str_toparse) 

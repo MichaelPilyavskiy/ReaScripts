@@ -78,16 +78,16 @@
                         
                         
       local pos_str =  data.it[1].item_pos_format
-      Obj_GenerateCtrl( data,obj, mouse,
-                         MPL_GetTableOfCtrlValues(pos_str), 
-                        'position_ctrl',
-                         x_offs, obj.entry_w2,
-                         data.it,
-                         'item_pos',
-                         MPL_ModifyTimeVal,
-                         Apply_Item_Pos,
-                         obj.mouse_scal_time,
-                         false)
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(pos_str),
+                        table_key='position_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.it,
+                        src_val_key= 'item_pos',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Item_Pos,                         
+                        mouse_scale= obj.mouse_scal_time})                         
     return obj.entry_w2
   end  
   function Apply_Item_Pos(data, obj, t_out_values, butkey, out_str_toparse)
@@ -140,16 +140,16 @@
                         ignore_mouse = true}  
                 
       local snap_offs_str = data.it[1].snap_offs_format
-      Obj_GenerateCtrl( data,obj,  mouse,
-                        MPL_GetTableOfCtrlValues(snap_offs_str),
-                        'snap_offs_ctrl',
-                         x_offs,  obj.entry_w2,
-                         data.it,
-                         'snap_offs',
-                         MPL_ModifyTimeVal,
-                         Apply_Item_SnapOffs,                         
-                         obj.mouse_scal_time,
-                         false)
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(snap_offs_str),
+                        table_key='snap_offs_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.it,
+                        src_val_key= 'snap_offs',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Item_SnapOffs,                         
+                        mouse_scale= obj.mouse_scal_time})                           
     return obj.entry_w2                         
   end
   
@@ -203,16 +203,18 @@
                         ignore_mouse = true}  
                 
       local it_pan_str = data.it[1].pan_format
-      Obj_GenerateCtrl( data,obj,  mouse,
-                        {data.it[1].pan_format},
-                        'it_pan_ctrl',
-                         x_offs,  pan_w,--obj.entry_w2,
-                         data.it,
-                         'pan',
-                         MPL_ModifyFloatVal,
-                         Apply_Item_pan,                         
-                         obj.mouse_scal_pan,
-                         true) -- use_mouse_drag_xAxis
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = {data.it[1].pan_format},
+                        table_key='it_pan_ctrl',
+                        x_offs= x_offs,  
+                        w_com=pan_w,--obj.entry_w2,
+                        src_val=data.it,
+                        src_val_key= 'pan',
+                        modify_func= MPL_ModifyFloatVal,
+                        app_func= Apply_Item_pan,                         
+                        mouse_scale= obj.mouse_scal_pan,
+                        use_mouse_drag_xAxis = true,
+                        parse_pan_tags = true})                          
     return pan_w--obj.entry_w2                         
   end
   
@@ -245,7 +247,7 @@
           UpdateItemInProject( data.it[i].ptr_item )                                
         end   ]]
       --set
-        for i = 1, #t_out_values do
+        for i = 1, # data.it do
           local out_val = math_q(out_val*100)/100
           SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_PAN', lim(out_val,-1,1) )
           UpdateItemInProject( data.it[i].ptr_item )                                
@@ -281,16 +283,16 @@
                         ignore_mouse = true}  
                 
       local len_str = data.it[1].item_len_format
-      Obj_GenerateCtrl( data, obj, mouse,
-                        MPL_GetTableOfCtrlValues(len_str),
-                        'len_ctrl',
-                         x_offs,  obj.entry_w2,
-                         data.it,
-                         'item_len',
-                         MPL_ModifyTimeVal,
-                         Apply_Item_Length,
-                         obj.mouse_scal_time,
-                         false)
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(len_str),
+                        table_key='len_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.it,
+                        src_val_key= 'item_len',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Item_Length,                         
+                        mouse_scale= obj.mouse_scal_time})                          
     return obj.entry_w2
   end
   
@@ -357,16 +359,16 @@
                         
                         
       local start_offs_str = data.it[1].start_offs_format
-      Obj_GenerateCtrl( data, obj, mouse,
-                         MPL_GetTableOfCtrlValues(start_offs_str), 
-                        'start_offs_ctrl',
-                         x_offs, obj.entry_w2,
-                         data.it,
-                         'start_offs',
-                         MPL_ModifyTimeVal,
-                         Apply_Item_Offset,
-                         obj.mouse_scal_time,
-                         false)
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(start_offs_str),
+                        table_key='start_offs_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.it,
+                        src_val_key= 'start_offs',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Item_Offset,                         
+                        mouse_scale= obj.mouse_scal_time})                            
     return obj.entry_w2                         
   end  
   function Apply_Item_Offset(data, obj, t_out_values, butkey, out_str_toparse)
@@ -419,16 +421,16 @@
                         ignore_mouse = true}  
                 
       local fadein_str = data.it[1].fadein_len_format
-      Obj_GenerateCtrl( data,obj,  mouse,
-                        MPL_GetTableOfCtrlValues(fadein_str),
-                        'fadein_ctrl',
-                         x_offs,  obj.entry_w2,
-                         data.it,
-                         'fadein_len',
-                         MPL_ModifyTimeVal,
-                         Apply_Item_fadein,                         
-                         obj.mouse_scal_time,
-                         false)
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(fadein_str),
+                        table_key='fadein_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.it,
+                        src_val_key= 'fadein_len',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Item_fadein,                         
+                        mouse_scale= obj.mouse_scal_time})                         
     return obj.entry_w2
   end
   
@@ -481,16 +483,16 @@
                         ignore_mouse = true}  
                 
       local fadeout_str = data.it[1].fadeout_len_format
-      Obj_GenerateCtrl( data,obj,  mouse,
-                        MPL_GetTableOfCtrlValues(fadeout_str),
-                        'fadeout_ctrl',
-                         x_offs,  obj.entry_w2,
-                         data.it,
-                         'fadeout_len',
-                         MPL_ModifyTimeVal,
-                         Apply_Item_fadeout,                         
-                         obj.mouse_scal_time,
-                         false)
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(fadeout_str),
+                        table_key='fadeout_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.it,
+                        src_val_key= 'fadeout_len',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Item_fadeout,                         
+                        mouse_scale= obj.mouse_scal_time})                          
     return obj.entry_w2
   end
   
@@ -545,17 +547,17 @@
                         ignore_mouse = true}  
                 
       local vol_str = data.it[1].vol_format
-      Obj_GenerateCtrl( data,obj,  mouse,
-                        MPL_GetTableOfCtrlValues2(vol_str),
-                        'vol_ctrl',
-                         x_offs,  vol_w,--obj.entry_w2,
-                         data.it,
-                         'vol',
-                         MPL_ModifyFloatVal,
-                         Apply_Item_vol,                         
-                         obj.mouse_scal_vol,               -- mouse scaling
-                         nil,
-                         true)
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues2(vol_str),
+                        table_key='vol_ctrl',
+                        x_offs= x_offs,  
+                        w_com=vol_w,--obj.entry_w2,
+                        src_val=data.it,
+                        src_val_key= 'vol',
+                        modify_func= MPL_ModifyFloatVal,
+                        app_func= Apply_Item_vol,                         
+                        mouse_scale= obj.mouse_scal_vol,
+                        ignore_fields = true})                           
     return vol_w--obj.entry_w2                         
   end
   
@@ -570,12 +572,14 @@
       local new_str_t = MPL_GetTableOfCtrlValues2(new_str)
       if new_str_t then 
         for i = 1, #new_str_t do
-          obj.b[butkey..i].txt = ''--new_str_t[i]
+          if obj.b[butkey..i] then obj.b[butkey..i].txt = '' end--new_str_t[i]
         end
         obj.b.obj_vol_back.txt = dBFromReaperVal(t_out_values[1])..'dB'
       end
      else
       local out_val = tonumber(out_str_toparse) 
+      out_val = ReaperValfromdB(out_val)
+      out_val = math.max(0,out_val) 
       --[[nudge
         local diff = data.it[1].vol - out_val
         for i = 1, #t_out_values do
@@ -619,16 +623,17 @@
                         ignore_mouse = true}  
                 
       local pitch_str = data.it[1].pitch_format
-      Obj_GenerateCtrl( data,obj,  mouse,
-                        MPL_GetTableOfCtrlValues2(pitch_str, 2),
-                        'pitch_ctrl',
-                         x_offs,  pitch_w,--obj.entry_w2,
-                         data.it,
-                         'pitch',
-                         MPL_ModifyFloatVal,
-                         Apply_Item_transpose,                         
-                         obj.mouse_scal_pitch,               -- mouse scaling
-                         false)
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues2(pitch_str, 2),
+                        table_key='pitch_ctrl',
+                        x_offs= x_offs,  
+                        w_com=pitch_w,--obj.entry_w2,
+                        src_val=data.it,
+                        src_val_key= 'pitch',
+                        modify_func= MPL_ModifyFloatVal,
+                        app_func= Apply_Item_transpose,                         
+                        mouse_scale= obj.mouse_scal_pitch,
+                        pow_tolerance = -2})                          
     return pitch_w--obj.entry_w2                         
   end
   

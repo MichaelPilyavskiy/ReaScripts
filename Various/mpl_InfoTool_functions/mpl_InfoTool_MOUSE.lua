@@ -7,7 +7,8 @@
   -- mouse func for mpl_InfoTool
   
   ---------------------------------------------------  
-  function Obj_GenerateCtrl(data, obj, mouse,
+  function Obj_GenerateCtrl(tbl)
+    local data, obj, mouse,
                             t,                              -- values are splitted to table
                             table_key,                     -- table key>> for ID in {obj.b}
                             x_offs, w_com,                 -- offset + common width of controls
@@ -17,17 +18,42 @@
                             app_func,                      -- func to apply what modify_func returns
                             mouse_scale,
                             use_mouse_drag_xAxis,          -- for example for pan
-                            ignore_fields)                  -- use same val for both fields
+                            ignore_fields,                  -- use same val/changing for both fields
+                            y_offs,
+                            dont_draw_val,
+                            pow_tolerance,
+                            parse_pan_tags,
+                            trig_GUIupdWithWheel
+                            
+                            = tbl.data, tbl.obj, tbl.mouse,
+                            tbl.t,                              -- values are splitted to table
+                            tbl.table_key,                     -- table key>> for ID in {obj.b}
+                            tbl.x_offs, tbl.w_com,                 -- offset + common width of controls
+                            tbl.src_val,                       -- init dat table
+                            tbl.src_val_key,                   -- init dat table key
+                            tbl.modify_func,                   -- func with arg to modify src_float
+                            tbl.app_func,                      -- func to apply what modify_func returns
+                            tbl.mouse_scale,
+                            tbl.use_mouse_drag_xAxis,          -- for example for pan
+                            tbl.ignore_fields,                  -- use same val/changing for both fields
+                            tbl.y_offs,                          -- y pos
+                            tbl.dont_draw_val,
+                            tbl.pow_tolerance,
+                            tbl.parse_pan_tags,
+                            tbl.trig_GUIupdWithWheel
+                            
+                            if not obj  then return end
     local measured_x_offs = 0
-    --if not t then return end
+    if not y_offs then y_offs = obj.offs *2 +obj.entry_h end
+    --if not t or not type(t)=='table' then t = {t} end
     -- generate ctrls
       gfx.setfont(1, obj.font, obj.fontsz_entry )
       for i = 1, #t do
         local txt
-        if t.return_for_calc_only then txt = '' else txt = t[i] end
+        if t.return_for_calc_only or dont_draw_val then txt = '' elseif t[i] then txt = t[i] end
         local w_but = gfx.measurestr(t[i]..'. ') 
         obj.b[table_key..i] = { x = x_offs + measured_x_offs,
-                                y = obj.offs *2 +obj.entry_h,
+                                y = y_offs,
                                 w = w_but,
                                 h = obj.entry_h,
                                 frame_a = 0,
@@ -37,23 +63,29 @@
                                 func =        function()
                                                 if type(src_val) == 'table' then 
                                                   mouse.temp_val = CopyTable(src_val)
+                                                  if src_val[src_val_key] ~= nil then mouse.temp_val = src_val[src_val_key] end
                                                  else
-                                                  mouse.temp_val = src_val
+                                                  mouse.temp_val = src_val 
                                                 end
                                                 mouse.temp_val2 = #t 
                                                 redraw = 1                              
                                               end,
                                 func_wheel =  function()
                                                 if type(src_val) == 'table' then
-                                                  local t_out_values = {}
-                                                  for src_valID = 1, #src_val do
-                                                    t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, mouse.wheel_trig, data, positive_only, nil, ignore_fields)                                                  
-                                                  end 
-                                                  app_func(data, obj, t_out_values, table_key)
+                                                  local t_out_values
+                                                  if not src_val[src_val_key] then 
+                                                    t_out_values = {}
+                                                    for src_valID = 1, #src_val do
+                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, mouse.wheel_trig, data, positive_only, nil, ignore_fields)                                                  
+                                                    end 
+                                                   else 
+                                                    t_out_values = modify_func(src_val[src_val_key], i, #t, mouse.wheel_trig, data, positive_only, pow_tolerance, ignore_fields)
+                                                  end
+                                                  app_func(data, obj, t_out_values, table_key,nil,mouse)
                                                   redraw = 2 
                                                  else 
-                                                  local out_value = modify_func(src_val, i, #t, mouse.wheel_trig, data, positive_only, nil, ignore_fields)
-                                                  app_func(data, obj, out_value, table_key)
+                                                  local out_value = modify_func(src_val, i, #t, mouse.wheel_trig, data, positive_only, pow_tolerance, ignore_fields)
+                                                  app_func(data, obj, out_value, table_key, nil, mouse)
                                                   redraw = 2
                                                 end                         
                                               end,                                              
@@ -65,15 +97,15 @@
                                                     for src_valID = 1, #src_val do
                                                       local mouse_shift = 0
                                                       if use_mouse_drag_xAxis then mouse_shift = -mouse.dx else mouse_shift = mouse.dy end
-                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, math.modf(mouse_shift/mouse_scale), data, positive_only, nil, ignore_fields) 
+                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, math.modf(mouse_shift/mouse_scale), data, positive_only, pow_tolerance, ignore_fields) 
                                                     end
-                                                    app_func(data, obj, t_out_values, table_key)
+                                                    app_func(data, obj, t_out_values, table_key, nil, mouse)
                                                     redraw = 1   
                                                    else
                                                     local mouse_shift,out_value = 0
                                                     if use_mouse_drag_xAxis then mouse_shift = -mouse.dx else mouse_shift = mouse.dy end
                                                     out_value = modify_func(mouse.temp_val, i, #t, math.modf(mouse_shift/mouse_scale), data, positive_only, nil, ignore_fields)
-                                                    app_func(data, obj, out_value, table_key)
+                                                    app_func(data, obj, out_value, table_key,nil,mouse)
                                                     redraw = 1                                                     
                                                   end
                                                 end
@@ -83,21 +115,49 @@
                                                 local name_flds = comma:rep(#t)
                                                 
                                                     
-                                                 sign_t = {}   for i = 1, #t do sign_t[i] = t[i]:match('[%:%.]') end
-                                                local  existval = {} for i = 1, #t do existval[i] =  t[i]:match('[%d]+') end
-                                                --local out_str_toparse = table.concat(t,'')                           
-                                                local retval0,ret_str = GetUserInputs( 'Edit', #t, name_flds..'extrawidth=100', table.concat(existval,',') )
-                                                if not retval0 then return end
-                                                  t_out_values = {}
-                                                for src_valID = 1, #src_val do t_out_values[src_valID] = src_val[src_valID][src_val_key] end
-                                                out_val_t = {}
-                                                for num in ret_str:gmatch('[%d]+') do out_val_t[#out_val_t+1] = num end
-                                                local out_str_toparse_concat = ''
-                                                for i = 1, #out_val_t do                                                    
-                                                  local sign if sign_t[i] then sign = sign_t[i] else sign = '' end
-                                                  out_str_toparse_concat = out_str_toparse_concat..out_val_t[i]..sign 
+                                                local sign_t = {}   for i = 1, #t do sign_t[i] = t[i]:match('[%:%.]') end
+                                                local  existval = {} for i = 1, #t do existval[i] =  t[i]:match('[%-%d]+') end
+                                                local ex_val
+                                                if parse_pan_tags then 
+                                                  ex_val = table.concat(t,'')
+                                                 else
+                                                  ex_val = table.concat(existval,',')
                                                 end
-                                                app_func(data, obj, t_out_values, table_key, out_str_toparse_concat)                                                                   
+                                                --local out_str_toparse = table.concat(t,'')                           
+                                                local retval0,ret_str = GetUserInputs( 'Edit', #t, name_flds..'extrawidth=100', ex_val )
+                                                if not retval0 then return end
+                                                if parse_pan_tags then
+                                                  app_func(data, obj, out_value, table_key, ret_str, mouse)
+                                                  return 
+                                                end
+                                                  
+                                                if type(src_val) == 'table'  and not src_val[src_val_key] then 
+                                                  local t_out_values = {}
+                                                  for src_valID = 1, #src_val do t_out_values[src_valID] = src_val[src_valID][src_val_key] end
+                                                  local out_val_t = {}
+                                                  for num in ret_str:gmatch('[%-%d]+') do out_val_t[#out_val_t+1] = num end
+                                                  local out_str_toparse_concat = ''
+                                                  for i = 1, #out_val_t do                                                    
+                                                    local sign if sign_t[i] then sign = sign_t[i] else sign = '' end
+                                                    out_str_toparse_concat = out_str_toparse_concat..out_val_t[i]..sign 
+                                                  end
+                                                  app_func(data, obj, t_out_values, table_key, out_str_toparse_concat,mouse) 
+                                                 else 
+                                                  local out_value
+                                                  if type(src_val) == 'table' and src_val[src_val_key] then 
+                                                    out_value = src_val[src_val_key] 
+                                                   else 
+                                                    out_value = src_val 
+                                                  end
+                                                  local out_val_t = {}
+                                                  for num in ret_str:gmatch('[%-%d]+') do out_val_t[#out_val_t+1] = num end
+                                                  local out_str_toparse_concat = ''
+                                                  for i = 1, #out_val_t do                                                    
+                                                    local sign if sign_t[i] then sign = sign_t[i] else sign = '' end
+                                                    out_str_toparse_concat = out_str_toparse_concat..out_val_t[i]..sign 
+                                                  end
+                                                  app_func(data, obj, out_value, table_key, out_str_toparse_concat, mouse)                                                   
+                                                end                                                                  
                                               end} 
         measured_x_offs = measured_x_offs + w_but
       end

@@ -21,7 +21,7 @@
                   fontsz_entry = conf.GUI_font2,
                   col = { grey =    {0.5, 0.5,  0.5 },
                           white =   {1,   1,    1   },
-                          red =     {1,   0,    0   },
+                          red =     {1,   0.2,    0.2   },
                           green =   {0.3, 0.9,  0.3 },
                           greendark =   {0.2, 0.4,  0.2 },
                           blue  =   {0.5, 0.9,  1}},
@@ -171,9 +171,30 @@
         gfx.a = 0.49
         gfx.rect(x,y,w,h,1)        
       end
-    
+      
+    -- slider
+      if o.is_slider and o.val then 
+        local val = o.val
+        if o.slider_a then gfx.a =  o.slider_a end
+        if o.sider_col then GUI_col(o.sider_col, obj) end
+        if not o.centered_slider then 
+          val = lim(val,0,1)
+          gfx.rect(x,y,w*val,h,1)
+         else
+          val = lim(val,-1,1)
+          if val > 0 then 
+            local w2 = val*w/2
+            gfx.rect(x+w/2,y,w2,h,1)
+           else 
+            local w2 = math.abs(val*w/2)
+            gfx.rect(x+w/2-w2,y,w2,h,1)
+          end
+        end
+      end
+      
     -- knob
       if o.is_knob then GUI_knob(o, obj) end
+      
     -- text 
       local txt
       if not o.txt then txt = '' else txt = tostring(o.txt) end
@@ -265,7 +286,7 @@
           gfx.setimgdim(buf_dest, -1, -1)          
           gfx.setimgdim(buf_dest, gfx.w, gfx.h) 
         -- refresh all buttons
-          if obj.b then for key in pairs(obj.b) do GUI_DrawObj(obj.b[key], obj) end end
+          if obj.b then for key in spairs(obj.b) do GUI_DrawObj(obj.b[key], obj) end end
           
         --[[ test
           gfx.x, gfx.y = 30+buf_dest,0
@@ -382,37 +403,37 @@
                           
                 { str = '|#Contexts'}  ,
 
-                { str = '>Empty item|Change order|<',
+                { str = '>Empty item|Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 1 ) end} ,  
                 
-                { str = '>MIDI item|Modules order',
+                { str = '>MIDI item|Widgets order',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 2 ) end} ,
                 { str = 'Buttons order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 2, true ) end} ,    
                                 
-                { str = '>Audio item|Modules order',
+                { str = '>Audio item|Widgets order',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 3 ) end} ,
                 { str = 'Buttons order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 3, true ) end} ,                      
                   
-                { str = '>Multiple items|Modules order',
+                { str = '>Multiple items|Widgets order',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 4 ) end} ,
                 { str = 'Buttons order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 4, true ) end} ,                      
                   
-                --[[{ str = '>Envelope point|Modules order|<',
+                --[[{ str = '>Envelope point|Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 5 ) end} ,                  
                   
-                { str = '>Multiple envelope points|Modules order|<',
+                { str = '>Multiple envelope points|Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} ,  ]]                    
 
-                { str = '>Envelope|Modules order|<',
+                { str = '>Envelope|Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 7 ) end} , 
 
-                { str = '>Track|Modules order|<',
+                { str = '>Track|Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 8 ) end} , 
                                                                                                                                                          
-                { str = '>Persistent modules|Modules order|<',
+                { str = '>Persistent modules|Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 'Persist' ) end} ,                                                                  
                                                                                                       
                 {str = '|#Widget configuration'},

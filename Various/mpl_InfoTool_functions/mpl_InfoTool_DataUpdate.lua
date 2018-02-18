@@ -117,6 +117,11 @@
       data.it[i].vol = GetMediaItemInfo_Value( item, 'D_VOL')
       data.it[i].vol_format = string.format("%.2f", data.it[i].vol)
       
+      local dBval = dBFromReaperVal(data.it[i].vol)
+      if not tonumber(dBval) then dBval = -math.huge end
+      local real = reaper.DB2SLIDER(dBval )/1000
+      data.it[i].vol_format = string.format("%.2f", dBval)
+      
       data.it[i].lock = GetMediaItemInfo_Value( item, 'C_LOCK')
       data.it[i].mute = GetMediaItemInfo_Value( item, 'B_MUTE')
       data.it[i].loop = GetMediaItemInfo_Value( item, 'B_LOOPSRC') 
@@ -286,7 +291,33 @@
       data.tr[i].pan_format = MPL_FormatPan(data.tr[i].pan)
       data.tr[i].vol = GetMediaTrackInfo_Value( tr, 'D_VOL' )
       
-      data.tr[i].vol_format = string.format("%.2f", data.tr[i].vol)
+      --data.tr[i].vol_format = string.format("%.2f", data.tr[i].vol)
+      local dBval = dBFromReaperVal(data.tr[i].vol)
+      if not tonumber(dBval) then dBval = -math.huge end
+      local real = reaper.DB2SLIDER(dBval )/1000
+      data.tr[i].vol_format = string.format("%.2f", dBval)
     end
+    
+    if not data.defsendvol or not data.defsendpan then
+      data.defsendvol = tonumber(({BR_Win32_GetPrivateProfileString( 'REAPER', 'defsendvol', '0',  get_ini_file() )})[2])
+      data.defsendpan = 0
+      data.defsendflag = tonumber(({BR_Win32_GetPrivateProfileString( 'REAPER', 'defsendflag', '0',  get_ini_file() )})[2])
+    end
+    
+    if data.defsendvol then
+      local dBval = dBFromReaperVal(data.defsendvol)
+      if not tonumber(dBval) then dBval = -math.huge end
+      data.defsendvol_format = string.format("%.2f", dBval)
+      data.defsendvol_slider = reaper.DB2SLIDER(dBval )/1000
+      data.defsendpan_format = MPL_FormatPan(data.defsendpan)
+      data.defsendpan_slider = data.defsendpan
+    end
+    
+    -- parse predefined sends
+      data.PreDefinedSend_GUID = {}
+      local retval, PreDefinedSend_GUID = GetProjExtState( 0, 'MPL_InfoTool', 'PreDefinedSend_GUID' )
+      if retval > 0 then
+        for GUID in PreDefinedSend_GUID:gmatch('[^%s]+') do data.PreDefinedSend_GUID[GUID] = 1 end
+      end
     return true
   end  

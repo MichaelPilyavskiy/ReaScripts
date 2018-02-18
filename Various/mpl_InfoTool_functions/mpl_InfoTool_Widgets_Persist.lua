@@ -145,15 +145,17 @@
                         
                         
       local TSpos_str =  data.timeselectionstart_format
-      Obj_GenerateCtrl( data,obj, mouse,
-                         MPL_GetTableOfCtrlValues(TSpos_str), 
-                        'timesel_position_ctrl',
-                         x_margin-obj.entry_w2, obj.entry_w2,
-                         data.timeselectionstart,
-                         '',
-                         MPL_ModifyTimeVal,
-                         Apply_TimeselSt,
-                         obj.mouse_scal_time)
+
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(TSpos_str), 
+                        table_key='timesel_position_ctrl',
+                        x_offs=  x_margin-obj.entry_w2,  
+                        w_com=obj.entry_w2,
+                        src_val=data.timeselectionstart,
+                        src_val_key= '',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_TimeselSt,                         
+                        mouse_scale= obj.mouse_scal_time})                         
     return obj.entry_w2
   end  
   function Apply_TimeselSt(data, obj, out_value, butkey, out_str_toparse)
@@ -202,15 +204,16 @@
                         
                         
       local TSposend_str =  data.timeselectionend_format
-      Obj_GenerateCtrl( data,obj, mouse,
-                         MPL_GetTableOfCtrlValues(TSposend_str), 
-                        'timeselend_position_ctrl',
-                         x_margin-obj.entry_w2, obj.entry_w2,
-                         data.timeselectionend,
-                         '',
-                         MPL_ModifyTimeVal,
-                         Apply_Timeselend,
-                         obj.mouse_scal_time)
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(TSposend_str), 
+                        table_key='timeselend_position_ctrl',
+                        x_offs= x_margin-obj.entry_w2,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.timeselectionend,
+                        src_val_key= '',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Timeselend,                         
+                        mouse_scale= obj.mouse_scal_time})                         
     return obj.entry_w2
   end  
   function Apply_Timeselend(data, obj, out_value, butkey, out_str_toparse)

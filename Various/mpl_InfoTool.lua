@@ -1,5 +1,5 @@
 -- @description InfoTool
--- @version 0.40alpha
+-- @version 0.50beta
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about
@@ -8,29 +8,25 @@
 --    mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_GUI.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua
---    mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua
 --    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua
 -- @changelog
---    + Context: Track
---    + Tags: Display dB value when drag #vol
---    + Tags/Track: #vol 
---    + Tags/Track: #pan
---    + Tags/Track: #fxlist, wheel for scrolling FX, click to float currently viewed, shift click toggle bypass
---    + Tags/Persist: #lasttouchfx, click FX name float FX, changing value by mousewheel, drag, direct typing
---    + Performance: update GUI/data on changing grid
---    + Performance: update GUI/data on changing selected envelope
---    # ignore top volume/value value scaling
---    # restart doesn`t required when reseting widgets configuration
---    # Context: change catch order from Item>Env to Env>Item>Track
---    - Context: EnvelopePoint, MultipleEnvelopePoints merged to Envelope context. Require resetting config.
+--    + Obj_GenerateCtrl() recoded for using a table instead of ordered data for further developing modules, all current modules also follow new structure
+--    + Tags/Track: #sendto, pre-set send volume and pan, send by selecting from list topmost parent folders in project or pre-defined receives
+--    # GUI: show/Parse dB instead or real volues for #vol
+--    # GUI: improved FX name reducing
+--    # GUI: improved bypass coloring for #fxlist
+--    # GUI: show FX ids in fxlist
+--    # parse direct pan scrings for #pan
+--    # fix ignore_fields tolerance skip
 
 
 
-  local vrs = '0.40alpha'
+
+  local vrs = '0.50beta'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -38,7 +34,6 @@
   function RefreshExternalLibs()
     -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua
     dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua")
-    dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_SpecFunc.lua")  
     dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_GUI.lua")
     dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua")
     dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua") 
@@ -139,7 +134,7 @@ buttons=#lock #preservepitch #loop #chanmode #mute
 [Envelope]
 order=#floatfx #position #value
 [Track]
-order=#vol #pan #fxlist
+order=#vol #pan #fxlist #sendto
 [Persist]
 order=#grid #timeselend #timeselstart #lasttouchfx #transport 
 ]]
