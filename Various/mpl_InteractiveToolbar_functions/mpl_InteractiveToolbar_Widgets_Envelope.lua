@@ -1,10 +1,10 @@
--- @description InfoTool_Widgets_Envelope
+-- @description InteractiveToolbar_Widgets_Envelope
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @noindex
 
 
-  -- Envelope wigets for mpl_InfoTool
+  -- Envelope wigets for mpl_InteractiveToolbar
   
   ---------------------------------------------------
   function Obj_UpdateEnvelope(data, obj, mouse, widgets)
@@ -157,6 +157,7 @@
                         mouse_scale= obj.mouse_scal_vol,               -- mouse scaling
                         use_mouse_drag_xAxis= nil, -- x
                         --ignore_fields= true
+                        default_val = data.env_defValue
                         })                         
     return obj.entry_w2                         
   end

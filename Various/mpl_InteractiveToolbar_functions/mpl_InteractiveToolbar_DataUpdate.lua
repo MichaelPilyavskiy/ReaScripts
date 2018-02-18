@@ -1,9 +1,9 @@
--- @description InfoTool_DataUpdate
+-- @description InteractiveToolbar_DataUpdate
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @noindex
 
-  -- mpl_InfoTool_DataUpdate.lua functions for mpl_InfoTool
+  -- functions for mpl_InfoTool
   
   
   ---------------------------------------------------
@@ -21,6 +21,8 @@
         
         7 track
         
+        -8 note
+        -9 cc
     ]] 
     
     data.rul_format = MPL_GetCurrentRulerFormat()
@@ -69,10 +71,14 @@
       local item = GetSelectedMediaItem(0,0)
       local env = GetSelectedEnvelope( 0 )
       local tr = GetSelectedTrack(0,0)
+      --local ME = MIDIEditor_GetActive()
             
-      if env then    
-       DataUpdate_Envelope(data, env)
-       Obj_UpdateEnvelope(data, obj, mouse, widgets)
+      --[[if ME then
+        DataUpdate_MIDIEditor(data, ME )
+       else
+       ]]if env then    
+        DataUpdate_Envelope(data, env)
+        Obj_UpdateEnvelope(data, obj, mouse, widgets)
        elseif item then 
         DataUpdate_Item(data) 
         Obj_UpdateItem(data, obj, mouse, widgets)
@@ -198,9 +204,9 @@
     
     -- get val limits
       local BR_env = BR_EnvAlloc( env, false )
-      local _, _, _, _, _, _, minValue, maxValue = BR_EnvGetProperties( BR_env )
+      local _, _, _, _, _, _, minValue, maxValue, centr = BR_EnvGetProperties( BR_env )
       BR_EnvFree( BR_env, false )
-      data.minValue, data.maxValue = minValue, maxValue
+      data.minValue, data.maxValue, data.env_defValue= minValue, maxValue, centr
     
     local obj_type, first_selected, env_hasselpoint
     for i = 1, CountEnvelopePoints( env ) do      
@@ -236,7 +242,29 @@
     end  ]]  
     return true
   end  
-  
+  -------------------------------------------------
+  function DataUpdate_MIDIEditor(data, ME)
+    data.name = ''  
+    data.ep={}
+    data.ME_ptr = ME
+    
+    data.obj_type = 'MIDI Editor'
+    data.obj_type_int = 8
+    
+    local take= MIDIEditor_GetTake( ME )
+    data.take = take 
+    local retval, notecnt, ccevtcnt = MIDI_CountEvts( take )
+    local obj_type
+    data.note = {}
+    for i = 1, notecnt do
+      --data.note[i] ={table.unpack({MIDI_GetNote( take, i-1 )})}
+      data.note[i] ={}
+      local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = MIDI_GetNote( take, i-1 )
+      
+      data.note[i].selected, data.note[i].muted, data.note[i].startppqpos, data.note[i].endppqpos, data.note[i].chan, data.note[i].pitch, data.note[i].vel = 
+      selected, muted, startppqpos, endppqpos, chan, pitch, vel
+    end
+  end
 
   --[[-------------------------------------------------
   f unction DataUpdate_Ruler(cur_pos)

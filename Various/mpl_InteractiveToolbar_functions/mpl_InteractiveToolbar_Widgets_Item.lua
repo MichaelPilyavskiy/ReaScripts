@@ -1,10 +1,10 @@
--- @description InfoTool_Widgets_Item
+-- @description InteractiveToolbar_Widgets_Item
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @noindex
 
 
-  -- Item wigets for mpl_InfoTool
+  -- Item wigets for mpl_InteractiveToolbar
   
   ---------------------------------------------------
   function Obj_UpdateItem(data, obj, mouse, widgets)
@@ -16,6 +16,14 @@
                         txt_a = obj.txt_a,
                         txt = data.it[1].name,
                         fontsz = obj.fontsz_entry,
+                        func_wheel =  function()
+                                        if mouse.wheel >= 1 then
+                                          Main_OnCommand(40125,0) --Take: Switch items to next take
+                                         elseif mouse.wheel <= -1 then
+                                          Main_OnCommand(40126,0) -- Take: Switch items to previous take
+                                        end
+                                        redraw = 2
+                                      end,
                         func_DC = 
                           function ()
                             if data.it[1].name then
@@ -149,7 +157,8 @@
                         src_val_key= 'snap_offs',
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Item_SnapOffs,                         
-                        mouse_scale= obj.mouse_scal_time})                           
+                        mouse_scale= obj.mouse_scal_time,
+                        default_val=0})                           
     return obj.entry_w2                         
   end
   
@@ -214,7 +223,8 @@
                         app_func= Apply_Item_pan,                         
                         mouse_scale= obj.mouse_scal_pan,
                         use_mouse_drag_xAxis = true,
-                        parse_pan_tags = true})                          
+                        parse_pan_tags = true,
+                        default_val=0})                          
     return pan_w--obj.entry_w2                         
   end
   
@@ -368,7 +378,8 @@
                         src_val_key= 'start_offs',
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Item_Offset,                         
-                        mouse_scale= obj.mouse_scal_time})                            
+                        mouse_scale= obj.mouse_scal_time,
+                        default_val=0})                            
     return obj.entry_w2                         
   end  
   function Apply_Item_Offset(data, obj, t_out_values, butkey, out_str_toparse)
@@ -430,7 +441,8 @@
                         src_val_key= 'fadein_len',
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Item_fadein,                         
-                        mouse_scale= obj.mouse_scal_time})                         
+                        mouse_scale= obj.mouse_scal_time,
+                        default_val=0})                         
     return obj.entry_w2
   end
   
@@ -492,7 +504,8 @@
                         src_val_key= 'fadeout_len',
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Item_fadeout,                         
-                        mouse_scale= obj.mouse_scal_time})                          
+                        mouse_scale= obj.mouse_scal_time,
+                        default_val=0})                          
     return obj.entry_w2
   end
   
@@ -557,7 +570,8 @@
                         modify_func= MPL_ModifyFloatVal,
                         app_func= Apply_Item_vol,                         
                         mouse_scale= obj.mouse_scal_vol,
-                        ignore_fields = true})                           
+                        --ignore_fields = true,
+                        default_val = 1})                           
     return vol_w--obj.entry_w2                         
   end
   
@@ -630,10 +644,11 @@
                         w_com=pitch_w,--obj.entry_w2,
                         src_val=data.it,
                         src_val_key= 'pitch',
-                        modify_func= MPL_ModifyFloatVal,
+                        modify_func= MPL_ModifyFloatVal2,
                         app_func= Apply_Item_transpose,                         
                         mouse_scale= obj.mouse_scal_pitch,
-                        pow_tolerance = -2})                          
+                        pow_tolerance = -2,
+                        default_val=0})                          
     return pitch_w--obj.entry_w2                         
   end
   

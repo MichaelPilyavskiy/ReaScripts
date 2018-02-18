@@ -1,46 +1,42 @@
--- @description InfoTool
--- @version 0.50beta
+-- @description InteractiveToolbar
+-- @version 1.0
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about
---    An info bar displaing some information about different objects, also allow to edit them quickly without walking through menus and windows.
+--    An script displaing some information about different objects, also allow to edit them quickly without walking through menus and windows.
 -- @provides
---    mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua
---    mpl_InfoTool_functions/mpl_InfoTool_GUI.lua
---    mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua
---    mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua
---    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua
---    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua
---    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua
---    mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua
+--    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua
+--    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua
+--    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua
+--    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua
+--    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua
+--    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua
+--    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua
+--    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 -- @changelog
---    + Obj_GenerateCtrl() recoded for using a table instead of ordered data for further developing modules, all current modules also follow new structure
---    + Tags/Track: #sendto, pre-set send volume and pan, send by selecting from list topmost parent folders in project or pre-defined receives
---    # GUI: show/Parse dB instead or real volues for #vol
---    # GUI: improved FX name reducing
---    # GUI: improved bypass coloring for #fxlist
---    # GUI: show FX ids in fxlist
---    # parse direct pan scrings for #pan
---    # fix ignore_fields tolerance skip
+--    + MouseModifiers: Alt+Click on param reset it to default (if any)
+--    + Options: Set loop points linked to time selection
+--    + MouseModifiers: wheel on item name run action Take: Switch items to next/previous take
+--    # Tags/Track/#sendto disable displaying parent folder
+--    # nudge timeselection when change #timeselst
+--    # fix inverted decimal/integer float modifying
+--    # don`t ignore fields for #vol
 
-
-
-
-  local vrs = '0.50beta'
+  local vrs = '1.0'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
       
   function RefreshExternalLibs()
     -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua
-    dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua")
-    dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_GUI.lua")
-    dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua")
-    dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua") 
-    dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua")
-    dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua")
-    dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua")
-    dofile(script_path .. "mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua")
+    dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua")
+    dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua")
+    dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua")
+    dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua") 
+    dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua")
+    dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua")
+    dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua")
+    dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua")
   end
   
   RefreshExternalLibs()
@@ -50,9 +46,10 @@
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
-  local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InfoTool_Config.ini",
-          vrs = vrs}
-  local scr_title = 'InfoTool'
+  local scr_title = 'InteractiveToolbar'
+  local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
+          vrs = vrs,
+          scr_title=scr_title}
   local mouse = {}
   local obj = {}
   local widgets = {    -- map types to data.obj_type_int order
@@ -195,8 +192,7 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport
     -- defer cycle   
       if gfx.getchar() >= 0 and not force_exit then defer(Run) else atexit(gfx.quit) end  
   end
-  
-  
+
   ---------------------------------------------------
   ExtState_Load(conf)  
   gfx.init('MPL '..conf.scr_title,conf.wind_w, conf.wind_h,  conf.dock2 , conf.wind_x, conf.wind_y)

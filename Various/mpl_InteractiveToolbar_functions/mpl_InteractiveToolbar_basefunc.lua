@@ -1,4 +1,4 @@
--- @description InfoTool_basefunc
+-- @description InteractiveToolbar_basefunc
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @noindex
@@ -57,18 +57,21 @@
     if int_ID0 == 0 then  
       
       if not ignore_fields then 
-        if pow_tol then out_val = out_val + change_val*10^pow_tol else out_val = out_val + change_val*0.01 end
+        if pow_tol then  out_val = out_val + change_val*10^pow_tol  else  out_val = out_val + change_val*0.001  end
        else
         if pow_tol then out_val = out_val + change_val*10^pow_tol else out_val = out_val + change_val*0.01 end
       end    
+      
      elseif int_ID0 == 1 then
       
       if not ignore_fields then 
-        if pow_tol then out_val = out_val + change_val*10^pow_tol else out_val = out_val + change_val*0.001 end
+        if pow_tol then out_val = out_val + change_val*10^pow_tol else out_val = out_val + change_val*0.01 end
        else
         if pow_tol then out_val = out_val + change_val*10^pow_tol else out_val = out_val + change_val*0.01 end
       end
+      
     end
+    
     if math.abs(out_val) < 0.00001 then   out_val = 0 end            
     if positive_only == true and type(positive_only) == 'boolean' then return lim(out_val, 0, math.huge) 
      elseif positive_only and type(positive_only) == 'function' then return positive_only(out_val)
@@ -77,6 +80,24 @@
     end
   end  
   ---------------------------------------------------
+  function MPL_ModifyFloatVal2(src_val,int_ID,int_cnt,change_val,data, positive_only, pow_tol, ignore_fields)
+    if not src_val then return end
+    local out_val = src_val
+    local int_ID0 = int_cnt - int_ID -- ID from end
+    if int_ID0 == 0 then  
+      out_val = out_val + change_val*0.01
+     elseif int_ID0 == 1 then
+      out_val = out_val + change_val
+    end
+    
+    if math.abs(out_val) < 0.00001 then   out_val = 0 end            
+    if positive_only == true and type(positive_only) == 'boolean' then return lim(out_val, 0, math.huge) 
+     elseif positive_only and type(positive_only) == 'function' then return positive_only(out_val)
+     else
+      return out_val
+    end
+  end 
+  -------------------------------------------------------------------------------
   function MPL_ModifyTimeVal(src_val_sec,int_ID,int_cnt,change_val,data, positive_only)
     local out_val = src_val_sec
     if not src_val_sec then return end
@@ -178,6 +199,8 @@
     return ruler
   end
   ---------------------------------------------------
+  --strNeed64 reaper.mkvolstr(strNeed64, vol )
+  --strNeed64 reaper.mkpanstr(strNeed64, pan )
   function MPL_FormatPan(pan_val)
     local pan_str = 'undefined'
           if pan_val > 0 then 

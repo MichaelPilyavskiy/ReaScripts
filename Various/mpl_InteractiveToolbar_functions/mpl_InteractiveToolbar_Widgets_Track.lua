@@ -1,10 +1,10 @@
--- @description InfoTool_Widgets_Track
+-- @description InteractiveToolbar_Widgets_Track
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @noindex
 
 
-  -- track wigets for mpl_InfoTool
+  -- track wigets for mpl_InteractiveToolbar
   
   ---------------------------------------------------
   function Obj_UpdateTrack(data, obj, mouse, widgets)
@@ -84,7 +84,8 @@
                         app_func= Apply_Track_pan,                    
                         mouse_scale= obj.mouse_scal_pan,               -- mouse scaling
                         use_mouse_drag_xAxis= true,
-                        parse_pan_tags = true})                         
+                        parse_pan_tags = true,
+                        default_val = 0})                         
     return pan_w--obj.entry_w2                         
   end
   
@@ -163,9 +164,10 @@
                         app_func= Apply_Track_vol,                    
                         mouse_scale= obj.mouse_scal_vol,               -- mouse scaling
                         use_mouse_drag_xAxis= nil, -- x
-                        ignore_fields= true, -- same tolerance change
+                        --ignore_fields= true, -- same tolerance change
                         y_offs= nil,
-                        dont_draw_val = nil})
+                        dont_draw_val = nil,
+                        default_val = 1})
     return vol_w--obj.entry_w2                         
   end
   
@@ -348,14 +350,14 @@
                         x_offs= x_offs,  
                         w_com=vol_w,--obj.entry_w2,
                         src_val=data.defsendvol,
-                        --src_val_key= '',
                         modify_func= MPL_ModifyFloatVal,
                         app_func= Apply_STrack_vol,                         
                         mouse_scale= obj.mouse_scal_vol,               -- mouse scaling
                         use_mouse_drag_xAxis= true, -- x
                         ignore_fields= true, -- same tolerance change
                         y_offs= obj.offs,
-                        dont_draw_val = true})
+                        dont_draw_val = true,
+                        default_val = tonumber(({BR_Win32_GetPrivateProfileString( 'REAPER', 'defsendvol', '0',  get_ini_file() )})[2])})
     obj.b.obj_sendto_pan = { x = x_offs,
                         y = obj.offs +obj.entry_h,
                         w = vol_w,--obj.entry_w2,
@@ -386,7 +388,8 @@
                         use_mouse_drag_xAxis= true, -- x
                         ignore_fields= true, -- same tolerance change
                         y_offs= obj.offs+obj.entry_h,
-                        dont_draw_val = true})
+                        dont_draw_val = true,
+                        default_val = 0})
     return send_w 
   end
   function Apply_STrack_vol(data, obj, t_out_values, butkey, out_str_toparse)
@@ -447,13 +450,13 @@
     local GUID  =GetTrackGUID( data.tr[1].ptr )
     local is_predefSend = data.PreDefinedSend_GUID[GUID] ~= nil
     local t = {
-          {str = '#Send track(s) ('..data.tr[1].name..') '}  
+          {str = '#Send '..#data.tr..' selected track(s)'}  
         }  
         
     local unpack_prefed = ({table.unpack(SendTracksTo_CollectPreDef(data))})
     for i = 1, #unpack_prefed do table.insert(t, unpack_prefed[i]) end
-    local unpack_fold = ({table.unpack(SendTracksTo_CollectTopFold(data))})
-    for i = 1, #unpack_fold do table.insert(t, unpack_fold[i]) end
+    --[[local unpack_fold = ({table.unpack(SendTracksTo_CollectTopFold(data))})
+    for i = 1, #unpack_fold do table.insert(t, unpack_fold[i]) end]]
     t[#t+1] ={str = '|Mark as predefined send bus',
              func = function ()
                       for i = 1, #data.tr do
@@ -490,7 +493,7 @@
   end
   ---------------------------------------------------------
   function SendTracksTo_CollectPreDef(data)
-    local out_t1 = {{str = '|#PreDefined sends'}}
+    local out_t1 = {{str = '|#PreDefined sends list'}}
       for GUID in pairs(data.PreDefinedSend_GUID) do 
       local tr = BR_GetMediaTrackByGUID( 0, GUID )
       if tr then

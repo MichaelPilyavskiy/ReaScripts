@@ -1,10 +1,10 @@
--- @description InfoTool_GUI
+-- @description InteractiveToolbar_GUI
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @noindex
 
-  -- GUI functions for mpl_InfoTool 
-  -- common objects functions for mpl_InfoTool
+  -- GUI functions for mpl_InteractiveToolbar 
+  -- common objects functions for mpl_InteractiveToolbar
   
   
   function GUI_shortcuts(char)
@@ -314,14 +314,14 @@
           0,0,gfx.w, gfx.h,
           0,0,gfx.w, gfx.h, 0,0)  
                     
-    -- draw vrs
+    --[[ draw vrs
       gfx.x, gfx.y = gfx.w-150,0
       gfx.set(0,0,0,1)
       gfx.setfont(1,'Arial', 13)
       gfx.set(1,1,1,0.5)
       gfx.rect(gfx.w-150,0,150, 10)
       gfx.set(0,0,0,1)
-      gfx.drawstr('MPL_InfoTool '..data.vrs)
+      gfx.drawstr('MPL_InfoTool '..data.vrs)]]
       
     gfx.update()
   end
@@ -329,7 +329,7 @@
   -----------------------------------------------------------------------
   function Menu2_Settings(mouse, obj, widgets, conf, data)
     -- form t
-    local t = { { str = 'MPL InfoTool v'..data.vrs,
+    local t = { { str = data.scr_title..' v'..data.vrs,
                   hidden = true},
                 { str = '|>Links / Info|Donate to MPL',
                   func = function() F_open_URL('http://www.paypal.me/donate2mpl') end }  ,

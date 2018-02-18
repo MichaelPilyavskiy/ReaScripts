@@ -1,10 +1,10 @@
--- @description InfoTool_Widgets_Persist
+-- @description InteractiveToolbar_Widgets_Persist
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @noindex
 
 
-  -- Persistent wigets for mpl_InfoTool
+  -- Persistent wigets for mpl_InteractiveToolbar
   
   ---------------------------------------------------
   function Obj_UpdatePersist(data, obj, mouse, widgets)
@@ -158,10 +158,12 @@
                         mouse_scale= obj.mouse_scal_time})                         
     return obj.entry_w2
   end  
-  function Apply_TimeselSt(data, obj, out_value, butkey, out_str_toparse)
+  function Apply_TimeselSt(data, obj, out_value, butkey, out_str_toparse, mouse)
     if not out_str_toparse then  
-      local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
-      GetSet_LoopTimeRange2( 0, true, true, math.max(0,out_value), endOut, false )
+      local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )
+      local nudge = startOut - math.max(0,out_value)  
+      GetSet_LoopTimeRange2( 0, true, true, math.max(0,out_value), endOut-nudge, false )
+      Main_OnCommand(40749,0) -- Options: Set loop points linked to time selection
       local new_str = format_timestr_pos( math.max(0,out_value), '', -1 ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
@@ -171,7 +173,8 @@
       -- nudge values from first item
       local out_val = parse_timestr_pos(out_str_toparse,-1) 
       local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
-      GetSet_LoopTimeRange2( 0, true, true, math.max(0,out_value), endOut, false )
+      local nudge = startOut - math.max(0,out_val) 
+      GetSet_LoopTimeRange2( 0, true, true, math.max(0,out_val), endOut-nudge, false )
       redraw = 2   
     end
   end  
@@ -216,10 +219,11 @@
                         mouse_scale= obj.mouse_scal_time})                         
     return obj.entry_w2
   end  
-  function Apply_Timeselend(data, obj, out_value, butkey, out_str_toparse)
+  function Apply_Timeselend(data, obj, out_value, butkey, out_str_toparse, mouse)
     if not out_str_toparse then  
       local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
       GetSet_LoopTimeRange2( 0, true, true, startOut, math.max(0,out_value), false )
+      Main_OnCommand(40749,0) -- Options: Set loop points linked to time selection
       local new_str = format_timestr_pos( math.max(0,out_value), '', -1 ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do

@@ -1,10 +1,10 @@
--- @description InfoTool_MOUSE
+-- @description InteractiveToolbar_MOUSE
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @noindex
 
 
-  -- mouse func for mpl_InfoTool
+  -- mouse func for mpl_InteractiveToolbar
   
   ---------------------------------------------------  
   function Obj_GenerateCtrl(tbl)
@@ -23,7 +23,8 @@
                             dont_draw_val,
                             pow_tolerance,
                             parse_pan_tags,
-                            trig_GUIupdWithWheel
+                            trig_GUIupdWithWheel,
+                            default_val
                             
                             = tbl.data, tbl.obj, tbl.mouse,
                             tbl.t,                              -- values are splitted to table
@@ -40,7 +41,8 @@
                             tbl.dont_draw_val,
                             tbl.pow_tolerance,
                             tbl.parse_pan_tags,
-                            tbl.trig_GUIupdWithWheel
+                            tbl.trig_GUIupdWithWheel,
+                            tbl.default_val
                             
                             if not obj  then return end
     local measured_x_offs = 0
@@ -68,7 +70,28 @@
                                                   mouse.temp_val = src_val 
                                                 end
                                                 mouse.temp_val2 = #t 
-                                                redraw = 1                              
+                                                redraw = 1
+                                              
+                                                if mouse.Alt and default_val then
+                                                  if type(src_val) == 'table' then
+                                                    local t_out_values
+                                                    if not src_val[src_val_key] then 
+                                                      t_out_values = {}
+                                                      for src_valID = 1, #src_val do
+                                                        t_out_values[src_valID] =default_val                    
+                                                      end 
+                                                     else 
+                                                      t_out_values = default_val
+                                                    end
+                                                    app_func(data, obj, t_out_values, table_key,nil,mouse)
+                                                    redraw = 2 
+                                                   else 
+                                                    local out_value = default_val
+                                                    app_func(data, obj, default_val, table_key, nil, mouse)
+                                                    redraw = 2
+                                                  end  
+                                                end
+                                              
                                               end,
                                 func_wheel =  function()
                                                 if type(src_val) == 'table' then
@@ -76,7 +99,7 @@
                                                   if not src_val[src_val_key] then 
                                                     t_out_values = {}
                                                     for src_valID = 1, #src_val do
-                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, mouse.wheel_trig, data, positive_only, nil, ignore_fields)                                                  
+                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, mouse.wheel_trig, data, positive_only, nil, ignore_fields)                 
                                                     end 
                                                    else 
                                                     t_out_values = modify_func(src_val[src_val_key], i, #t, mouse.wheel_trig, data, positive_only, pow_tolerance, ignore_fields)
@@ -84,7 +107,8 @@
                                                   app_func(data, obj, t_out_values, table_key,nil,mouse)
                                                   redraw = 2 
                                                  else 
-                                                  local out_value = modify_func(src_val, i, #t, mouse.wheel_trig, data, positive_only, pow_tolerance, ignore_fields)
+                                                  local out_value
+                                                  out_value = modify_func(src_val, i, #t, mouse.wheel_trig, data, positive_only, pow_tolerance, ignore_fields)
                                                   app_func(data, obj, out_value, table_key, nil, mouse)
                                                   redraw = 2
                                                 end                         
@@ -179,7 +203,8 @@
     mouse.RB_release = mouse.RB_gate_last and not mouse.RB_gate
     mouse.Ctrl = gfx.mouse_cap&4==4
     mouse.Shift = gfx.mouse_cap&8==8
-    
+    mouse.Alt = gfx.mouse_cap&16==16
+    mouse.on_move = mouse.last_x and (mouse.last_x ~= mouse.x or mouse.last_y ~= mouse.y )
     -- perf doubleclick
       mouse.LDC = mouse.LB_trig and mouse.LB_trig_TS and clock - mouse.LB_trig_TS < 0.3 
       if mouse.LB_trig then mouse.LB_trig_TS = clock end
@@ -213,10 +238,11 @@
             if MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_wheel and mouse.wheel_trig ~= 0 then obj.b[key].func_wheel() end
             if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) then mouse.context_latch = key end
             if mouse.LB_trig and not mouse.Ctrl and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func then obj.b[key].func() end
+            --if mouse.LB_trig and mouse.Alt and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_Alt then obj.b[key].func_Alt() end            
             if mouse.LB_trig and mouse.Ctrl and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_ctrlL then obj.b[key].func_ctrlL() end
             if mouse.RB_trig and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_R then obj.b[key].func_R() end
-            if mouse.LB_gate and not mouse.Ctrl and mouse.context_latch == key and obj.b[key].func_drag then obj.b[key].func_drag() end
-            if mouse.LB_gate and mouse.Ctrl and mouse.context_latch == key and obj.b[key].func_drag_Ctrl then obj.b[key].func_drag_Ctrl() end
+            if mouse.LB_gate and not mouse.Alt and mouse.on_move and not mouse.Ctrl and mouse.context_latch == key and obj.b[key].func_drag then obj.b[key].func_drag() end
+            if mouse.LB_gate and mouse.on_move and mouse.Ctrl and mouse.context_latch == key and obj.b[key].func_drag_Ctrl then obj.b[key].func_drag_Ctrl() end
             if mouse.LDC and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_DC then obj.b[key].func_DC() end
           end   
         end     
@@ -228,6 +254,8 @@
       mouse.wheel_last = mouse.wheel
       mouse.LB_gate_last = mouse.LB_gate
       mouse.RB_gate_last = mouse.RB_gate
+      mouse.last_x = mouse.x
+      mouse.last_y = mouse.y
       if mouse.LB_release then 
         mouse.context_latch = nil 
         mouse.LDC = nil 
