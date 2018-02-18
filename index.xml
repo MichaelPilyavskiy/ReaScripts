@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="661f9b27a2d3597edd6002fe1ff41fb09307f973" name="MPL Scripts">
+<index version="1" commit="8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -2616,6 +2616,25 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
         <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
         <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/661f9b27a2d3597edd6002fe1ff41fb09307f973/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua</source>
+      </version>
+      <version name="0.50beta" author="MPL" time="2018-02-18T12:41:58Z">
+        <changelog><![CDATA[+ Obj_GenerateCtrl() recoded for using a table instead of ordered data for further developing modules, all current modules also follow new structure
++ Tags/Track: #sendto, pre-set send volume and pan, send by selecting from list topmost parent folders in project or pre-defined receives
+# GUI: show/Parse dB instead or real volues for #vol
+# GUI: improved FX name reducing
+# GUI: improved bypass coloring for #fxlist
+# GUI: show FX ids in fxlist
+# parse direct pan scrings for #pan
+# fix ignore_fields tolerance skip]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_basefunc.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_GUI.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_DataUpdate.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_MOUSE.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Item.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Envelope.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Persist.lua</source>
+        <source file="mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fbe00d4e4b3dbd46cfa2480a013a7d1e86e5be5/Various/mpl_InfoTool_functions/mpl_InfoTool_Widgets_Track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">
