@@ -17,9 +17,9 @@
                         txt = data.it[1].name,
                         fontsz = obj.fontsz_entry,
                         func_wheel =  function()
-                                        if mouse.wheel >= 1 then
+                                        if  mouse.wheel_trig >= 1 then
                                           Main_OnCommand(40125,0) --Take: Switch items to next take
-                                         elseif mouse.wheel <= -1 then
+                                         elseif  mouse.wheel_trig <= -1 then
                                           Main_OnCommand(40126,0) -- Take: Switch items to previous take
                                         end
                                         redraw = 2
