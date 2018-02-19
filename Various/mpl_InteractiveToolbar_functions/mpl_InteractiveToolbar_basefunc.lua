@@ -230,9 +230,12 @@
   end     
   ---------------------------------------------------
   function MPL_ReduceFXname(s)
-    local s_out = s:match('%: (.*)'):gsub('%(.-%)','') 
-    if s_out:match('%/(.*)') then  s_out = s_out:match('%/(.*)') end
-    return s_out
+    local s_out = s:match('%: (.*)')
+    if not s_out then return s end
+    s_out = s_out:gsub('%(.-%)','') 
+    if not s_out then return s end
+    s_out = s_out:match('%/(.*)')
+    if not s_out then return s else return s_out end
   end
  ---------------------------------------------------  
   function lim(val, min,max) --local min,max 

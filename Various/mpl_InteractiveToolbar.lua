@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about
@@ -14,15 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 -- @changelog
---    + MouseModifiers: Alt+Click on param reset it to default (if any)
---    + Options: Set loop points linked to time selection
---    + MouseModifiers: wheel on item name run action Take: Switch items to next/previous take
---    # Tags/Track/#sendto disable displaying parent folder
---    # nudge timeselection when change #timeselst
---    # fix inverted decimal/integer float modifying
---    # don`t ignore fields for #vol
+--    # fix FX name reducer
 
-  local vrs = '1.0'
+  local vrs = '1.01'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
