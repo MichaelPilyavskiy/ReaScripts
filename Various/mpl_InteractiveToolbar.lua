@@ -1,7 +1,7 @@
 -- @description InteractiveToolbar
--- @version 1.02
+-- @version 1.03
 -- @author MPL
--- @website http://forum.cockos.com/member.php?u=70694
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
 --    An script displaing some information about different objects, also allow to edit them quickly without walking through menus and windows.
 -- @provides
@@ -14,9 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 -- @changelog
---    # scroll on item takes works in both directions
+--    # link to discussion
+--    # improved FX name reducer in case of JSFX names with slash
 
-  local vrs = '1.02'
+  local vrs = '1.03'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])

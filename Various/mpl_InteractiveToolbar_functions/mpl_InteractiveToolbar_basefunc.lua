@@ -230,11 +230,10 @@
   end     
   ---------------------------------------------------
   function MPL_ReduceFXname(s)
-    local s_out = s:match('%: (.*)')
+    local s_out = s:match('[%:%/%s]+(.*)')
     if not s_out then return s end
     s_out = s_out:gsub('%(.-%)','') 
-    if not s_out then return s end
-    s_out = s_out:match('%/(.*)')
+    if s_out:match('%/(.*)') then s_out = s_out:match('%/(.*)') end
     if not s_out then return s else return s_out end
   end
  ---------------------------------------------------  

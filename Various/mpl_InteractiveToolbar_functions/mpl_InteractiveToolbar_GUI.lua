@@ -334,7 +334,7 @@
                 { str = '|>Links / Info|Donate to MPL',
                   func = function() F_open_URL('http://www.paypal.me/donate2mpl') end }  ,
                 { str = 'Cockos Forum thread|<',
-                  func = function() F_open_URL('http://forum.cockos.com/showthread.php?p=1953498') end  } ,  
+                  func = function() F_open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } ,  
                 { str = '>Theme|Font size',
                   func = function() 
                             local ret, ftsz = GetUserInputs( conf.scr_title, 2, 'Font 1,Font 2', conf.GUI_font1..','..conf.GUI_font2 )
