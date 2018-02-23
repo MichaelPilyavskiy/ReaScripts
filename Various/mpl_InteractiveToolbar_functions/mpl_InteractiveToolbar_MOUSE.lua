@@ -23,6 +23,7 @@
                             dont_draw_val,
                             pow_tolerance,
                             parse_pan_tags,
+                            modify_wholestr,
                             trig_GUIupdWithWheel,
                             default_val
                             
@@ -41,6 +42,7 @@
                             tbl.dont_draw_val,
                             tbl.pow_tolerance,
                             tbl.parse_pan_tags,
+                            tbl.modify_wholestr,
                             tbl.trig_GUIupdWithWheel,
                             tbl.default_val
                             
@@ -135,9 +137,25 @@
                                                 end
                                               end,
                                 func_DC =     function() 
+                                
+                                              
+                                                if modify_wholestr then                                                   
+                                                  local retval0,ret_str = GetUserInputs( 'Edit', 1, ',extrawidth=100', table.concat(t,'') )
+                                                  if retval0 then
+                                                    if type(src_val) == 'table'  and not src_val[src_val_key] then 
+                                                      local t_out_values = {}
+                                                      for src_valID = 1, #src_val do t_out_values[src_valID] = src_val[src_valID][src_val_key] end                                                    
+                                                      app_func(data, obj, t_out_values, table_key, ret_str, mouse)
+                                                     else 
+                                                      local out_value = src_val[src_val_key] 
+                                                      app_func(data, obj, out_value, table_key, ret_str, mouse)
+                                                    end
+                                                  end
+                                                  return
+                                                end
+                                                
                                                 local comma = ','
                                                 local name_flds = comma:rep(#t)
-                                                
                                                     
                                                 local sign_t = {}   for i = 1, #t do sign_t[i] = t[i]:match('[%:%.]') end
                                                 local  existval = {} for i = 1, #t do existval[i] =  t[i]:match('[%-%d]+') end
@@ -146,8 +164,7 @@
                                                   ex_val = table.concat(t,'')
                                                  else
                                                   ex_val = table.concat(existval,',')
-                                                end
-                                                --local out_str_toparse = table.concat(t,'')                           
+                                                end                        
                                                 local retval0,ret_str = GetUserInputs( 'Edit', #t, name_flds..'extrawidth=100', ex_val )
                                                 if not retval0 then return end
                                                 if parse_pan_tags then
@@ -263,6 +280,7 @@
         mouse.temp_val2 = nil   -- table controls size
         mouse.temp_val3 = nil   -- last good value
         SCC_trig2 = true
+        Main_OnCommand(NamedCommandLookup('_BR_FOCUS_ARRANGE_WND'),0)
        else
         SCC_trig2 = false
       end

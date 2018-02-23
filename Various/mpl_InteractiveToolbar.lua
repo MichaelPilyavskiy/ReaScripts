@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.03
+-- @version 1.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -14,10 +14,20 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 -- @changelog
---    # link to discussion
---    # improved FX name reducer in case of JSFX names with slash
+--    + Tags/Persist: #bpm shows/edit tempo and time signature for project (or tempo marker falling at edit cursor if any) 
+--    + Focus arrange on mouse release (so global shortkeys passed there)
+--    + Tags/Track/#pan: allow to input [-100...100] values
+--    + Tags/Item/#pan: allow to input [-100...100] values
+--    + Context/Track: show selected tracks count
+--    + Context/Items: show selected items count
+--    + Context/EnvPoints: show selected points count
+--    # Tags/Track/#vol: edit full string on doubleclick
+--    # Tags/Item/#vol: edit full string on doubleclick
+--    # Tags/Item/#transpose: edit full string on doubleclick
+--    # fix lost buttons when edit tags from menu
+--    # fix collect only first selected envelope points data
 
-  local vrs = '1.03'
+  local vrs = '1.07'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -128,13 +138,13 @@ order=#floatfx #position #value
 [Track]
 order=#vol #pan #fxlist #sendto
 [Persist]
-order=#grid #timeselend #timeselstart #lasttouchfx #transport 
+order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm
 ]]
   end  
   ---------------------------------------------------
   function ExtState_Def()
     return {ES_key = 'MPL_'..scr_title,
-            scr_title = 'InfoTool',
+            scr_title = 'InteractiveToolbar',
             wind_x =  50,
             wind_y =  50,
             wind_w =  200,
@@ -161,16 +171,23 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport
       if not SCC_trig and HasPlayStateChanged() then SCC_trig = true end 
       if not SCC_trig and HasSelEnvChanged() then SCC_trig = true end  
       if not SCC_trig and HasGridChanged() then SCC_trig = true end      
-      
-    -- wind state
-      local ret
-      ret,last_gfxx, last_gfxy, last_gfxw, last_gfxh, last_dock = HasWindXYWHChanged(last_gfxx, last_gfxy, last_gfxw, last_gfxh, last_dock)
-      if ret == 1 then 
+      local ret =  HasWindXYWHChanged() 
+      if ret == 1 then
         redraw = 2
         ExtState_Save(conf)
        elseif ret == 2 then
         ExtState_Save(conf)
       end
+    --[[ wind state
+      local ret
+      ret,last_gfxx, last_gfxy, last_gfxw, last_gfxh, last_dock = HasWindXYWHChanged(last_gfxx, last_gfxy, last_gfxw, last_gfxh, last_dock)
+      if ret == 1 then 
+        DockWindowRefresh()
+        redraw = 2
+        ExtState_Save(conf)
+       elseif ret == 2 then
+        ExtState_Save(conf)
+      end]]
     -- perf mouse
       local SCC_trig2 = MOUSE(obj,mouse, clock) 
     -- produce update if yes

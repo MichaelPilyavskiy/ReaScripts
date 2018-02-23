@@ -1,32 +1,38 @@
---[[
-   * ReaScript Name: Rename selected tracks as first FX
-   * Lua script for Cockos REAPER
-   * Author: MPL
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
-
-script_title = "Rename selected tracks as first FX"
+-- @description Rename selected tracks as first FX
+-- @version 1.1
+-- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--    # reduce FX name if possible
+--    # use first instrument name if any
   
-  reaper.Undo_BeginBlock()
-  
-  count_tracks = reaper.CountSelectedTracks(0)
-       
-  if  count_tracks ~= nil then
-    for i = 1, count_tracks do
-      track = reaper.GetSelectedTrack(0,i-1)
-      if track ~= nil then
-        fx_count =  reaper.TrackFX_GetCount(track)
-        if fx_count >= 1 then
-          retval, fx_name =  reaper.TrackFX_GetFXName(track, 0, '')
-          fx_name_cut = fx_name:match('[%:].*'):sub(3)
-          reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', fx_name_cut, true)
-        end
-      end
+  script_title = "Rename selected tracks as first FX"
+  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
+  function MPL_ReduceFXname(s)
+    local s_out = s:match('[%:%/%s]+(.*)')
+    if not s_out then return s end
+    s_out = s_out:gsub('%(.-%)','') 
+    if s_out:match('%/(.*)') then s_out = s_out:match('%/(.*)') end
+    if not s_out then 
+      return s 
+     else 
+      return s_out 
     end
-  end     
-      
-      
-reaper.UpdateArrange()
-reaper.Undo_EndBlock(script_title, 0)
+  end
+  ---------------------------------------------------  
+  function RenameAsFX(track)
+    local instr = TrackFX_GetInstrument( track )
+    if instr >=0 then 
+      local _, fx_name = TrackFX_GetFXName(track, instr, '')            
+      GetSetMediaTrackInfo_String(track, 'P_NAME', MPL_ReduceFXname(fx_name), true)
+      return
+    end
+    local _, fx_name = TrackFX_GetFXName(track, 0, '')            
+    GetSetMediaTrackInfo_String(track, 'P_NAME', MPL_ReduceFXname(fx_name), true)
+    
+  end
+  
+  Undo_BeginBlock()
+  for i = 1, CountSelectedTracks(0) do RenameAsFX(GetSelectedTrack(0,i-1)) end
+  Undo_EndBlock(script_title, 0)

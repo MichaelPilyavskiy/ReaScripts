@@ -313,6 +313,98 @@
     return transport_state_w
   end  
   
+  
+  
+  
+  
+  
+  
+  function Widgets_Persist_bpm(data, obj, mouse, x_margin, widgets)  
+    local bpm_w = 60
+    local frame_a = 0
+    local gridwidg_xpos = gfx.w-bpm_w-obj.menu_b_rect_side - x_margin
+    obj.b.obj_pers_bpm = { x = x_margin - bpm_w,
+                        y = obj.offs ,
+                        w = bpm_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_entry,
+                        txt = data.TempoMarker_bpm,
+                        func =  function()  
+                                  local retval0,ret_str = GetUserInputs( 'Edit BPM', 1, 'BPM', data.TempoMarker_bpm )
+                                  if retval0 and tonumber (ret_str) then
+                                    if data.TempoMarker_ID == -1 then 
+                                      CSurf_OnTempoChange(  tonumber (ret_str) )
+                                      UpdateTimeline()
+                                      redraw = 2  
+                                     else 
+                                      SetTempoTimeSigMarker( 0, data.TempoMarker_ID, 
+                                                                data.TempoMarker_timepos, 
+                                                                -1, 
+                                                                -1, 
+                                                                tonumber (ret_str), 
+                                                                data.TempoMarker_timesig_num, 
+                                                                data.TempoMarker_timesig_denom, 
+                                                                data.TempoMarker_lineartempochange )
+                                      UpdateTimeline()
+                                    end
+                                  end
+                                end}
+    obj.b.obj_pers_timesign = { x = x_margin - bpm_w,
+                        y = obj.offs +obj.entry_h,
+                        w = bpm_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_entry,
+                        txt = data.TempoMarker_timesig1..'/'..data.TempoMarker_timesig2,
+                        func =  function()  
+                                  local retval0,ret_str = GetUserInputs( 'Edit Time signature', 2, 'Numerator,Denomerator', data.TempoMarker_timesig1..','..data.TempoMarker_timesig2 )
+                                  if not retval0 then return end
+                                  if not ret_str:match('(%d+)%,(%d+)') then return end
+                                  local num, denom = ret_str:match('(%d+)%,(%d+)')
+                                  if not tonumber(num) or not tonumber(denom) then return end
+                                  if data.TempoMarker_ID ~= -1 then 
+                                    SetTempoTimeSigMarker( 0, data.TempoMarker_ID, 
+                                                                data.TempoMarker_timepos, 
+                                                                -1, 
+                                                                -1, 
+                                                                data.TempoMarker_bpm, 
+                                                                tonumber(num), 
+                                                                tonumber(denom), 
+                                                                data.TempoMarker_lineartempochange )
+                                      UpdateTimeline()
+                                    else 
+                                    SetTempoTimeSigMarker( 0,-1, 
+                                                                data.editcur_pos, 
+                                                                -1, 
+                                                                -1, 
+                                                                data.TempoMarker_bpm, 
+                                                                tonumber(num), 
+                                                                tonumber(denom), 
+                                                                data.TempoMarker_lineartempochange )
+                                      UpdateTimeline()                                     
+                                  end
+                                end}                    
+    return bpm_w
+  end    
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   ----------------------------------------------------------------------------
   function Widgets_Persist_lasttouchfx(data, obj, mouse, x_margin, widgets)
     local lasttouchfx_w = 160 

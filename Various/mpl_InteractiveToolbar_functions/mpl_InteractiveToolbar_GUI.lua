@@ -8,7 +8,7 @@
   
   
   function GUI_shortcuts(char)
-    if char == 32 then Main_OnCommand(40044,0) end --Transport: Play/stop
+    --if char == 32 then Main_OnCommand(40044,0) end --Transport: Play/stop
   end
   ---------------------------------------------------
   function Obj_init(conf)  
@@ -21,7 +21,7 @@
                   fontsz_entry = conf.GUI_font2,
                   col = { grey =    {0.5, 0.5,  0.5 },
                           white =   {1,   1,    1   },
-                          red =     {1,   0.2,    0.2   },
+                          red =     {1,   0.3,    0.3   },
                           green =   {0.3, 0.9,  0.3 },
                           greendark =   {0.2, 0.4,  0.2 },
                           blue  =   {0.5, 0.9,  1}},
@@ -452,8 +452,8 @@
                  func = function()  
 ClearConsole()                 
 msg(
-[[  Here is the default configuration contains all supported widgets tags for MPL`s InfoTool.
-  You can edit them via menu (recommended) or in /REAPER/Scripts/mpl_InfoTool_functions/mpl_InfoTool_Config.ini
+[[  Here is the default configuration contains all supported widgets tags for MPL`s InteractiveToolbar.
+  You can edit them via menu (recommended) or in /REAPER/Scripts/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Config.ini
   Buttons tags are added to the buttons module interleaved.
   After changing configuration, you need to restart script. If you do it from Action List, click 'Terminate Instances' when REAPER will ask for what to do with already running ReaScript.
   
@@ -467,7 +467,7 @@ msg(
                 }  ,
                 {str = 'Edit manually',
                  func = function()  F_open_URL('"" "'..data.conf_path..'"') end}  , 
-                {str = '|Close MPL InfoTool',
+                {str = '|Close MPL InteractiveToolbar',
                  func = function() force_exit = true end} ,                   
                         
                         
@@ -480,23 +480,25 @@ msg(
     local cur_str = ''
     local key
     if tonumber(widgtype) and tonumber(widgtype) >= 1 then key = widgets.types_t[widgtype] else key = widgtype end
+    local temp_but_t if widgets[key].buttons then temp_but_t = CopyTable(widgets[key].buttons) end
     
     if is_buttons then 
       if not widgets[key].buttons then return end
       for i = 1, #widgets[key].buttons do cur_str = cur_str..'#'..widgets[key].buttons[i]..' ' end 
+      local key_show = key..' buttons' 
+      local ret, retorder = GetUserInputs( conf.scr_title, 1, key_show..' context,extrawidth=500',cur_str ) 
+      widgets[key].buttons = {}
+      for val in retorder:gmatch('#(%a+)') do widgets[key].buttons [#widgets[key].buttons + 1 ] =val end
+      
      else 
+     
       for i = 1, #widgets[key] do cur_str = cur_str..'#'..widgets[key][i]..' ' end
+      local ret, retorder = GetUserInputs( conf.scr_title, 1, key..' context,extrawidth=500',cur_str ) 
+      widgets[key] = {}
+      for val in retorder:gmatch('#(%a+)') do widgets[key] [#widgets[key] + 1 ] =val end   
+      widgets[key].buttons = CopyTable(temp_but_t)
     end
-    
-    local key_show
-    if is_buttons then key_show = key..' buttons' else  key_show = key   end
-    
-    local ret, retorder = GetUserInputs( conf.scr_title, 1, key_show..' context,extrawidth=500',cur_str ) 
-    if ret then 
-      if is_buttons then widgets[key].buttons = {} else widgets[key] = {} end
-      for val in retorder:gmatch('#(%a+)') do widgets[key] [#widgets[key] + 1 ] =val end 
-      if is_buttons then  for val in retorder:gmatch('#(%a+)') do widgets[key].buttons [#widgets[key].buttons + 1 ] =val end  end
-      redraw = 2
-      Config_DumpIni(widgets, data.conf_path) 
-    end
+    redraw = 2
+    Config_DumpIni(widgets, data.conf_path) 
+      
   end

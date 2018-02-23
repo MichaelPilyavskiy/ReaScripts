@@ -241,15 +241,7 @@
       obj.b[butkey..1].txt = new_str
       redraw = 1
      else
-      local out_val = 0
-      if out_str_toparse:lower():match('r') then side = 1 
-          elseif out_str_toparse:lower():match('l') then side = -1 
-          elseif out_str_toparse:lower():match('c') then side = 0
-          else side = 0
-      end 
-      local val = out_str_toparse:match('%d+')
-      if not val then return end
-      out_val = side * val/100
+      local out_val = MPL_ParsePanVal(out_str_toparse)
       --[[nudge
         local diff = data.it[1].pan - out_val
         for i = 1, #t_out_values do
@@ -265,10 +257,7 @@
       redraw = 2   
     end
   end  
-  -------------------------------------------------------------- 
-
-
-
+  --------------------------------------------------------------
 
 
 
@@ -561,7 +550,7 @@
                 
       local vol_str = data.it[1].vol_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
-                        t = MPL_GetTableOfCtrlValues2(vol_str),
+                        t = {vol_str},
                         table_key='vol_ctrl',
                         x_offs= x_offs,  
                         w_com=vol_w,--obj.entry_w2,
@@ -570,8 +559,9 @@
                         modify_func= MPL_ModifyFloatVal,
                         app_func= Apply_Item_vol,                         
                         mouse_scale= obj.mouse_scal_vol,
-                        --ignore_fields = true,
-                        default_val = 1})                           
+                        ignore_fields = true,
+                        default_val = 1,
+                        modify_wholestr = true})                           
     return vol_w--obj.entry_w2                         
   end
   
@@ -591,8 +581,9 @@
         obj.b.obj_vol_back.txt = dBFromReaperVal(t_out_values[1])..'dB'
       end
      else
-      local out_val = tonumber(out_str_toparse) 
-      out_val = ReaperValfromdB(out_val)
+      local floatdB = out_str_toparse:match('[%d%p]+')
+      --local out_val = tonumber(out_str_toparse) 
+      out_val = ReaperValfromdB(floatdB)
       out_val = math.max(0,out_val) 
       --[[nudge
         local diff = data.it[1].vol - out_val
@@ -638,7 +629,7 @@
                 
       local pitch_str = data.it[1].pitch_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
-                        t = MPL_GetTableOfCtrlValues2(pitch_str, 2),
+                        t = MPL_GetTableOfCtrlValues2(data.it[1].pitch_format),
                         table_key='pitch_ctrl',
                         x_offs= x_offs,  
                         w_com=pitch_w,--obj.entry_w2,
@@ -648,7 +639,8 @@
                         app_func= Apply_Item_transpose,                         
                         mouse_scale= obj.mouse_scal_pitch,
                         pow_tolerance = -2,
-                        default_val=0})                          
+                        default_val=0,
+                        modify_wholestr = true})                          
     return pitch_w--obj.entry_w2                         
   end
   
@@ -658,8 +650,7 @@
         SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_PITCH', t_out_values[i])
         UpdateItemInProject( data.it[i].ptr_item )                                
       end
-      local new_str = tostring(t_out_values[1])
-      local new_str_t = MPL_GetTableOfCtrlValues2(new_str)
+      local new_str_t = MPL_GetTableOfCtrlValues2(t_out_values[1])
       if new_str_t then 
         for i = 1, #new_str_t do
           obj.b[butkey..i].txt = new_str_t[i]

@@ -78,7 +78,7 @@
   function Apply_Envpoint_Pos(data, obj, t_out_values, butkey, out_str_toparse)
     if not out_str_toparse then  
       
-      local temp_t = {}
+      temp_t = {}
       for i = 1, #t_out_values do
         if data.ep[i].selected then
           temp_t[i] = {math.max(0,t_out_values[i] ), data.ep[i].value, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}

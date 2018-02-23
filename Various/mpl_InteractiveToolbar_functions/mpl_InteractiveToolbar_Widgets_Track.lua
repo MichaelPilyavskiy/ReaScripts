@@ -101,15 +101,7 @@
       obj.b[butkey..1].txt = new_str
       redraw = 1
      else
-      local out_val = 0
-      if out_str_toparse:lower():match('r') then side = 1 
-          elseif out_str_toparse:lower():match('l') then side = -1 
-          elseif out_str_toparse:lower():match('c') then side = 1
-          else side = 0
-      end 
-      local val = out_str_toparse:match('%d+')
-      if not val then return end
-      out_val = side * val/100
+      local out_val = MPL_ParsePanVal(out_str_toparse)
       --[[nudge
         local diff = data.it[1].pan - out_val
         for i = 1, #t_out_values do
@@ -154,7 +146,7 @@
                 
       local vol_str = data.tr[1].vol_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
-                        t = MPL_GetTableOfCtrlValues2(data.tr[1].vol_format),
+                        t = {data.tr[1].vol_format},
                         table_key='trvol_ctrl',
                         x_offs= x_offs,  
                         w_com=vol_w,--obj.entry_w2,
@@ -167,7 +159,8 @@
                         --ignore_fields= true, -- same tolerance change
                         y_offs= nil,
                         dont_draw_val = nil,
-                        default_val = 1})
+                        default_val = 1,
+                        modify_wholestr = true})
     return vol_w--obj.entry_w2                         
   end
   
@@ -176,14 +169,16 @@
       for i = 1, #t_out_values do
         SetMediaTrackInfo_Value( data.tr[i].ptr, 'D_VOL', math.max(0,t_out_values[i] ))
       end
+      
       local new_str = string.format("%.2f", t_out_values[1])
       local new_str_t = MPL_GetTableOfCtrlValues2(new_str)
       if new_str_t then 
         for i = 1, #new_str_t do
-          obj.b[butkey..i].txt = ''--new_str_t[i]
+          if obj.b[butkey..i] then obj.b[butkey..i].txt = '' end--new_str_t[i]
         end
         obj.b.obj_trvol_back.txt = dBFromReaperVal(t_out_values[1])..'dB'
       end
+      
      else
       local out_val = tonumber(out_str_toparse) 
       out_val = ReaperValfromdB(out_val)

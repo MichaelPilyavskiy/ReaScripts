@@ -27,6 +27,7 @@
   end
   ---------------------------------------------------
   function MPL_GetTableOfCtrlValues2(str, dig_cnt0)  -- split float
+    local str = tostring(str)
     if not str  then return end
     local dig_cnt
     local minus = str:match('%-')
@@ -79,6 +80,25 @@
       return out_val
     end
   end  
+  -------------------------------------------------------------- 
+  function MPL_ParsePanVal(out_str_toparse)
+    if not out_str_toparse then return 0 end
+    local out_val
+    if out_str_toparse:lower():match('[rlc]') then
+      if out_str_toparse:lower():match('r') then side = 1 
+          elseif out_str_toparse:lower():match('l') then side = -1 
+          elseif out_str_toparse:lower():match('c') then side = 0
+      end 
+      local val = out_str_toparse:match('%d+')
+      if not val then return 0 end
+      out_val = side * val/100
+     else
+      out_val = tonumber(out_str_toparse)
+      if not out_val then return 0 end
+      out_val = out_val/100
+    end
+    return out_val
+  end
   ---------------------------------------------------
   function MPL_ModifyFloatVal2(src_val,int_ID,int_cnt,change_val,data, positive_only, pow_tol, ignore_fields)
     if not src_val then return end
@@ -242,13 +262,14 @@
     return math.max(min,  math.min(val, max) ) 
   end
   ---------------------------------------------------
-  function HasWindXYWHChanged(last_gfxx, last_gfxy, last_gfxw, last_gfxh, last_dock)
-    local  dock, wx,wy,ww,wh = gfx.dock(-1, 0,0,0,0)
+  function HasWindXYWHChanged()
+    local dock, wx,wy,ww,wh = gfx.dock(-1, 0,0,0,0)
     local retval=0
     if wx ~= last_gfxx or wy ~= last_gfxy then retval= 2 end --- minor
     if ww ~= last_gfxw or wh ~= last_gfxh or dock ~= last_dock then retval= 1 end --- major
     if not last_gfxx then retval = -1 end
-    return retval, wx,wy,ww,wh, dock
+    last_gfxx, last_gfxy, last_gfxw, last_gfxh, last_dock = wx,wy,ww,wh,dock
+    return retval
   end
   ---------------------------------------------------
   function CopyTable(orig)--http://lua-users.org/wiki/CopyTable
@@ -350,6 +371,7 @@
   ---------------------------------------------------
   function ReaperValfromdB(dB_val)  local out
     local dB_val = tonumber(dB_val)
+    if not dB_val then return 0 end
     if dB_val < 0 then 
       out = 10^(dB_val/20)
      else 
