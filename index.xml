@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a1d5e0c7073b37661a2424ae0204acbbd4de9fdc" name="MPL Scripts">
+<index version="1" commit="0e93939d2b659a3826e19b59bffea726d87cf83d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -2046,8 +2046,16 @@ setup min gain, attack =0]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Rename selected tracks as first FX.lua" type="script" desc="Rename selected tracks as first FX">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-10T11:46:50Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd75015e8302a11c807414834bebe47804d3e77e/Tracks%20Properties/mpl_Rename%20selected%20tracks%20as%20first%20FX.lua</source>
+      </version>
+      <version name="1.1" author="MPL" time="2018-02-23T10:36:50Z">
+        <changelog><![CDATA[# reduce FX name if possible
+# use first instrument name if any]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e93939d2b659a3826e19b59bffea726d87cf83d/Tracks%20Properties/mpl_Rename%20selected%20tracks%20as%20first%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset color for all children tracks to their top level folders.lua" type="script" desc="Reset color for all children tracks to their top level folders">
@@ -2521,6 +2529,29 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d5e0c7073b37661a2424ae0204acbbd4de9fdc/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d5e0c7073b37661a2424ae0204acbbd4de9fdc/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
       </version>
+      <version name="1.10" author="MPL" time="2018-02-23T10:36:50Z">
+        <changelog><![CDATA[+ Tags/Persist: #bpm shows/edit tempo and time signature for project (or tempo marker falling at edit cursor if any) 
++ Focus arrange on mouse release (so global shortkeys passed there)
++ Tags/Track/#pan: allow to input [-100...100] values
++ Tags/Item/#pan: allow to input [-100...100] values
++ Context/Track: show selected tracks count
++ Context/Items: show selected items count
++ Context/EnvPoints: show selected points count
+# Tags/Track/#vol: edit full string on doubleclick
+# Tags/Item/#vol: edit full string on doubleclick
+# Tags/Item/#transpose: edit full string on doubleclick
+# fix lost buttons when edit tags from menu
+# fix collect only first selected envelope points data]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e93939d2b659a3826e19b59bffea726d87cf83d/Various/mpl_InteractiveToolbar.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e93939d2b659a3826e19b59bffea726d87cf83d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e93939d2b659a3826e19b59bffea726d87cf83d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e93939d2b659a3826e19b59bffea726d87cf83d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e93939d2b659a3826e19b59bffea726d87cf83d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e93939d2b659a3826e19b59bffea726d87cf83d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e93939d2b659a3826e19b59bffea726d87cf83d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e93939d2b659a3826e19b59bffea726d87cf83d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e93939d2b659a3826e19b59bffea726d87cf83d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">
       <metadata>
@@ -2661,16 +2692,6 @@ setup min gain, attack =0]]></changelog>
     <reapack name="mpl_Quantize Tool set swing (MIDI CC and OSC only).lua" type="script" desc="Quantize Tool set swing (MIDI CC and OSC only)">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Various/mpl_Quantize%20Tool%20set%20swing%20(MIDI%20CC%20and%20OSC%20only).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Rename selected tracks as first FX.lua" type="script" desc="Rename selected tracks as first FX">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.1" author="MPL" time="2018-02-19T15:42:32Z">
-        <changelog><![CDATA[# reduce FX name if possible
-# use first instrument name if any]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d5e0c7073b37661a2424ae0204acbbd4de9fdc/Various/mpl_Rename%20selected%20tracks%20as%20first%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
