@@ -25,7 +25,8 @@
                             parse_pan_tags,
                             modify_wholestr,
                             trig_GUIupdWithWheel,
-                            default_val
+                            default_val,
+                            onRelease_ActName 
                             
                             = tbl.data, tbl.obj, tbl.mouse,
                             tbl.t,                              -- values are splitted to table
@@ -44,12 +45,14 @@
                             tbl.parse_pan_tags,
                             tbl.modify_wholestr,
                             tbl.trig_GUIupdWithWheel,
-                            tbl.default_val
+                            tbl.default_val,
+                            tbl.onRelease_ActName
                             
                             if not obj  then return end
     local measured_x_offs = 0
     if not y_offs then y_offs = obj.offs *2 +obj.entry_h end
     --if not t or not type(t)=='table' then t = {t} end
+    if not t then return end
     -- generate ctrls
       gfx.setfont(1, obj.font, obj.fontsz_entry )
       for i = 1, #t do
@@ -64,6 +67,7 @@
                                 txt = txt,
                                 txt_a = obj.txt_a,
                                 fontsz = obj.fontsz_entry,
+                                func_onRelease = function() if onRelease_ActName then Undo_OnStateChange( onRelease_ActName ) end end,
                                 func =        function()
                                                 if type(src_val) == 'table' then 
                                                   mouse.temp_val = CopyTable(src_val)
@@ -254,11 +258,11 @@
           if not obj.b[key].ignore_mouse then
             if MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_wheel and mouse.wheel_trig ~= 0 then obj.b[key].func_wheel() end
             if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) then mouse.context_latch = key end
-            if mouse.LB_trig and not mouse.Ctrl and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func then obj.b[key].func() end
-            --if mouse.LB_trig and mouse.Alt and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_Alt then obj.b[key].func_Alt() end            
-            if mouse.LB_trig and mouse.Ctrl and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_ctrlL then obj.b[key].func_ctrlL() end
+            
+            if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func then obj.b[key].func() end
+            
             if mouse.RB_trig and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_R then obj.b[key].func_R() end
-            if mouse.LB_gate and not mouse.Alt and mouse.on_move and not mouse.Ctrl and mouse.context_latch == key and obj.b[key].func_drag then obj.b[key].func_drag() end
+            if mouse.LB_gate and not mouse.Alt and mouse.on_move and mouse.context_latch == key and obj.b[key].func_drag then obj.b[key].func_drag() end
             if mouse.LB_gate and mouse.on_move and mouse.Ctrl and mouse.context_latch == key and obj.b[key].func_drag_Ctrl then obj.b[key].func_drag_Ctrl() end
             if mouse.LDC and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_DC then obj.b[key].func_DC() end
           end   
@@ -273,7 +277,17 @@
       mouse.RB_gate_last = mouse.RB_gate
       mouse.last_x = mouse.x
       mouse.last_y = mouse.y
+      
+    -- act onrelease
       if mouse.LB_release then 
+        -- loop buttons --------------
+          if obj.b then
+            for key in pairs(obj.b) do
+              if not obj.b[key].ignore_mouse then
+                if mouse.context_latch == key and obj.b[key].func_onRelease then obj.b[key].func_onRelease() break end
+              end
+            end
+          end
         mouse.context_latch = nil 
         mouse.LDC = nil 
         mouse.temp_val = nil    -- latch drag
@@ -281,6 +295,7 @@
         mouse.temp_val3 = nil   -- last good value
         SCC_trig2 = true
         Main_OnCommand(NamedCommandLookup('_BR_FOCUS_ARRANGE_WND'),0)
+        
        else
         SCC_trig2 = false
       end

@@ -95,15 +95,20 @@
                         src_val_key= 'item_pos',
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Item_Pos,                         
-                        mouse_scale= obj.mouse_scal_time})                         
+                        mouse_scale= obj.mouse_scal_time,
+                        onRelease_ActName = data.scr_title..': Change item properties'})                         
     return obj.entry_w2
   end  
-  function Apply_Item_Pos(data, obj, t_out_values, butkey, out_str_toparse)
+  function Apply_Item_Pos(data, obj, t_out_values, butkey, out_str_toparse, mouse)
     if not out_str_toparse then    
-      for i = 1, #t_out_values do
-        SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_POSITION', math.max(0,t_out_values[i] ))
-        UpdateItemInProject( data.it[i].ptr_item )                                
-      end
+      
+        for i = 1, #t_out_values do
+          local outv
+          if mouse.Ctrl then outv = math.max(0,t_out_values[1]) else outv = math.max(0,t_out_values[i]) end
+          SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_POSITION',outv)
+          UpdateItemInProject( data.it[i].ptr_item )                                
+        end  
+        
       local new_str = format_timestr_pos( t_out_values[1], '', -1 ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
@@ -113,10 +118,10 @@
       -- nudge values from first item
       local out_val = parse_timestr_pos(out_str_toparse,-1) 
       local diff = out_val - data.it[1].item_pos
-      for i = 1, #t_out_values do
-        SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_POSITION', math.max(0,t_out_values[i] + diff ))
-        UpdateItemInProject( data.it[i].ptr_item )                                
-      end
+        for i = 1, #t_out_values do
+          SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_POSITION', math.max(0,t_out_values[i] + diff ))
+          UpdateItemInProject( data.it[i].ptr_item )                                
+        end
       redraw = 2   
     end
   end  
@@ -158,7 +163,8 @@
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Item_SnapOffs,                         
                         mouse_scale= obj.mouse_scal_time,
-                        default_val=0})                           
+                        default_val=0,
+                        onRelease_ActName = data.scr_title..': Change item properties'})                           
     return obj.entry_w2                         
   end
   
@@ -224,7 +230,8 @@
                         mouse_scale= obj.mouse_scal_pan,
                         use_mouse_drag_xAxis = true,
                         parse_pan_tags = true,
-                        default_val=0})                          
+                        default_val=0,
+                        onRelease_ActName = data.scr_title..': Change item properties'})                          
     return pan_w--obj.entry_w2                         
   end
   
@@ -291,22 +298,28 @@
                         src_val_key= 'item_len',
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Item_Length,                         
-                        mouse_scale= obj.mouse_scal_time})                          
+                        mouse_scale= obj.mouse_scal_time,
+                        onRelease_ActName = data.scr_title..': Change item properties'})                          
     return obj.entry_w2
   end
   
-  function Apply_Item_Length(data, obj, t_out_values, butkey, out_str_toparse)
+  function Apply_Item_Length(data, obj, t_out_values, butkey, out_str_toparse, mouse)
     if not out_str_toparse then    
-      for i = 1, #t_out_values do
-        local out_len = math.max(0,t_out_values[i])
-        SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH', out_len )
-        if data.it[i].isMIDI then
-            local start_qn =  TimeMap2_timeToQN( 0, data.it[i].item_pos )
-          local end_qn = TimeMap2_timeToQN(0, data.it[i].item_pos + out_len)
-          MIDI_SetItemExtents(data.it[i].ptr_item, start_qn, end_qn)
+      
+        for i = 1, #t_out_values do
+          local out_len
+          if mouse.Ctrl then out_len = math.max(0,t_out_values[1]) else out_len = math.max(0,t_out_values[i]) end
+          SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH', out_len )
+          if data.it[i].isMIDI then
+              local start_qn =  TimeMap2_timeToQN( 0, data.it[i].item_pos )
+            local end_qn = TimeMap2_timeToQN(0, data.it[i].item_pos + out_len)
+            MIDI_SetItemExtents(data.it[i].ptr_item, start_qn, end_qn)
+            SetMediaItemInfo_Value( data.it[i].ptr_item, 'B_LOOPSRC',data.it[i].loop)
+            SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_STARTOFFS', data.it[i].start_offs )
+          end
+          UpdateItemInProject( data.it[i].ptr_item ) 
         end
-        UpdateItemInProject( data.it[i].ptr_item )                                
-      end
+           
       local new_str = format_timestr_len( t_out_values[1],'', 1, -1 ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
@@ -323,6 +336,8 @@
             local start_qn =  TimeMap2_timeToQN( 0, data.it[i].item_pos )
           local end_qn = TimeMap2_timeToQN(0, data.it[i].item_pos + out_len)
           MIDI_SetItemExtents(data.it[i].ptr_item, start_qn, end_qn)
+          SetMediaItemInfo_Value( data.it[i].ptr_item, 'B_LOOPSRC',data.it[i].loop)
+          SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_STARTOFFS', data.it[i].start_offs )
         end        
         UpdateItemInProject( data.it[i].ptr_item )                                
       end
@@ -368,7 +383,8 @@
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Item_Offset,                         
                         mouse_scale= obj.mouse_scal_time,
-                        default_val=0})                            
+                        default_val=0,
+                        onRelease_ActName = data.scr_title..': Change item properties'})                            
     return obj.entry_w2                         
   end  
   function Apply_Item_Offset(data, obj, t_out_values, butkey, out_str_toparse)
@@ -431,7 +447,8 @@
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Item_fadein,                         
                         mouse_scale= obj.mouse_scal_time,
-                        default_val=0})                         
+                        default_val=0,
+                        onRelease_ActName = data.scr_title..': Change item properties'})                         
     return obj.entry_w2
   end
   
@@ -494,7 +511,8 @@
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Item_fadeout,                         
                         mouse_scale= obj.mouse_scal_time,
-                        default_val=0})                          
+                        default_val=0,
+                        onRelease_ActName = data.scr_title..': Change item properties'})                          
     return obj.entry_w2
   end
   
@@ -561,14 +579,17 @@
                         mouse_scale= obj.mouse_scal_vol,
                         ignore_fields = true,
                         default_val = 1,
-                        modify_wholestr = true})                           
+                        modify_wholestr = true,
+                        onRelease_ActName = data.scr_title..': Change item properties'})                           
     return vol_w--obj.entry_w2                         
   end
   
-  function Apply_Item_vol(data, obj, t_out_values, butkey, out_str_toparse)
+  function Apply_Item_vol(data, obj, t_out_values, butkey, out_str_toparse, mouse)
     if not out_str_toparse then    
       for i = 1, #t_out_values do
-        SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_VOL', math.max(0,t_out_values[i] ))
+        local val = math.max(0,t_out_values[i] )
+        if mouse.Ctrl then val = math.max(0,t_out_values[1] ) end
+        SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_VOL', val)
         UpdateItemInProject( data.it[i].ptr_item )                                
       end
       if t_out_values[1] < 0 then return end
@@ -640,7 +661,8 @@
                         mouse_scale= obj.mouse_scal_pitch,
                         pow_tolerance = -2,
                         default_val=0,
-                        modify_wholestr = true})                          
+                        modify_wholestr = true,
+                        onRelease_ActName = data.scr_title..': Change item properties'})                          
     return pitch_w--obj.entry_w2                         
   end
   

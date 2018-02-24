@@ -410,7 +410,7 @@
     local lasttouchfx_w = 160 
     local val_w = 50
     local knob_x_offs = 5
-    if not data.LTFX.exist or data.LTFX_parname == 'Bypass' then return end
+    if not data.LTFX.exist or data.LTFX_parname == 'Bypass' or data.LTFX_fxname == 'JS: time_adjustment' then return end
     obj.b.obj_lasttouchfx_back1 = { x = x_margin-lasttouchfx_w,
                         y = obj.offs ,
                         w = lasttouchfx_w,--obj.entry_w2,
@@ -482,7 +482,7 @@
                                 fontsz = obj.fontsz_entry,
                                 is_knob = true,
                                 knob_col = obj.txt_col_header,
-                                val = data.LTFX_val,
+                                val = lim(data.LTFX_val),
                                 func =        function()
                                                 mouse.temp_val = data.LTFX_val
                                                 redraw = 1                              

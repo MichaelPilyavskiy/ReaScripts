@@ -72,16 +72,17 @@
                         src_val_key= 'pos',
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Envpoint_Pos,                         
-                        mouse_scale= obj.mouse_scal_time})                         
+                        mouse_scale= obj.mouse_scal_time,
+                        onRelease_ActName = data.scr_title..': Change point properties'})                         
     return obj.entry_w2
   end  
-  function Apply_Envpoint_Pos(data, obj, t_out_values, butkey, out_str_toparse)
+  function Apply_Envpoint_Pos(data, obj, t_out_values, butkey, out_str_toparse, mouse)
     if not out_str_toparse then  
       
       temp_t = {}
       for i = 1, #t_out_values do
         if data.ep[i].selected then
-          temp_t[i] = {math.max(0,t_out_values[i] ), data.ep[i].value, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
+          temp_t[i] = {out_val, data.ep[i].value, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
          else 
           temp_t[i] = {data.ep[i].pos, data.ep[i].value, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
         end
@@ -154,10 +155,11 @@
                         src_val_key= 'value',
                         modify_func= MPL_ModifyFloatVal,
                         app_func= Apply_Envpoint_Val,                         
-                        mouse_scale= obj.mouse_scal_vol,               -- mouse scaling
+                        mouse_scale= obj.mouse_scal_float,               -- mouse scaling
                         use_mouse_drag_xAxis= nil, -- x
                         --ignore_fields= true
-                        default_val = data.env_defValue
+                        default_val = data.env_defValue,
+                        onRelease_ActName = data.scr_title..': Change point properties'
                         })                         
     return obj.entry_w2                         
   end
@@ -165,8 +167,10 @@
   function Apply_Envpoint_Val(data, obj, t_out_values, butkey, out_str_toparse)
     if not out_str_toparse then    
       for i = 1, #t_out_values do
+        local outval
+        if mouse.Ctrl then outval = lim(t_out_values[1],data.minValue,data.maxValue) else outval = lim(t_out_values[i],data.minValue,data.maxValue) end
         if data.ep[i].selected then 
-          SetEnvelopePointEx( data.env_ptr, -1, i-1, data.ep[i].pos, lim(t_out_values[i],data.minValue,data.maxValue), data.ep[i].shape, data.ep[i].tension, true, true )
+          SetEnvelopePointEx( data.env_ptr, -1, i-1, data.ep[i].pos, outval, data.ep[i].shape, data.ep[i].tension, true, true )
         end
       end
       Envelope_SortPoints( data.env_ptr )

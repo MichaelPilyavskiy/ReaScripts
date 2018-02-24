@@ -85,7 +85,8 @@
                         mouse_scale= obj.mouse_scal_pan,               -- mouse scaling
                         use_mouse_drag_xAxis= true,
                         parse_pan_tags = true,
-                        default_val = 0})                         
+                        default_val = 0,
+                        onRelease_ActName = data.scr_title..': Change track properties'})                         
     return pan_w--obj.entry_w2                         
   end
   
@@ -160,7 +161,8 @@
                         y_offs= nil,
                         dont_draw_val = nil,
                         default_val = 1,
-                        modify_wholestr = true})
+                        modify_wholestr = true,
+                        onRelease_ActName = data.scr_title..': Change track properties'})
     return vol_w--obj.entry_w2                         
   end
   
@@ -200,9 +202,77 @@
 
 
 
+  function Widgets_Track_delay(data, obj, mouse, x_offs)    -- generate position controls 
+    local del_w = 60
+    if x_offs + del_w > obj.persist_margin then return x_offs end 
+    obj.b.obj_trdelay = { x = x_offs,
+                        y = obj.offs ,
+                        w = del_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = 'Delay'} 
+    obj.b.obj_trdelay_back = { x =  x_offs,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = del_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt = data.tr[1].delay_format..'s',
+                        fontsz = obj.fontsz_entry,
+                        ignore_mouse = true}  
+                        
+                        
+      local delay_str = data.tr[1].delay_format
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = {delay_str},
+                        table_key='delay_ctrl',
+                        x_offs= x_offs,  
+                        w_com=del_w,
+                        src_val=data.tr,
+                        src_val_key= 'delay',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Track_delay,                         
+                        mouse_scale= obj.mouse_scal_time,
+                        default_val=0,
+                        modify_wholestr = true,
+                        dont_draw_val = true,
+                        onRelease_ActName = data.scr_title..': Change track properties'})                            
+    return del_w                       
+  end  
+  function Apply_Track_delay(data, obj, t_out_values, butkey, out_str_toparse, mouse)
+    if not out_str_toparse then    
+      for i = 1, #t_out_values do
+        local fx_pos = TrackFX_AddByName( data.tr[i].ptr, 'time_adjustment', false, 1 )
+        local value = lim(0.5 + t_out_values[i] / 0.2)
+        if mouse.Ctrl then value = lim(0.5 + t_out_values[1] / 0.2) end
+        TrackFX_SetParamNormalized(data.tr[i].ptr, fx_pos, 0, value )
+      end
+      local new_str = format_timestr_len( t_out_values[1], '', 0, 3 )
+      obj.b.obj_trdelay_back.txt = new_str..'s'
+     else
+      -- nudge values from first item
+      local out_val = parse_timestr_len(out_str_toparse,0,3) 
+      local diff = data.tr[1].delay - out_val
+      for i = 1, #t_out_values do
+        local out = t_out_values[i] - diff
+        local fx_pos = TrackFX_AddByName( data.tr[i].ptr, 'time_adjustment', false, 1 )
+        local value = lim(0.5 + out / 0.2)
+        TrackFX_SetParamNormalized(data.tr[i].ptr, fx_pos, 0, value ) 
+      end
+      redraw = 2   
+    end
+  end    
+  -------------------------------------------------------------- 
 
-
-
+  
+  
+  
+  
+  
+  
+  
+  
   --------------------------------------------------------------   
   function Widgets_Track_fxlist(data, obj, mouse, x_offs)
     if not data.tr[1].fx_names or #data.tr[1].fx_names < 1 then return end

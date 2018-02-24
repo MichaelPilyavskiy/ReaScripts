@@ -35,11 +35,11 @@
                   grad_sz = 200,
                   b = {},             -- buttons table
                   
-                  mouse_scal_time = 15,
+                  mouse_scal_time = 5,
                   mouse_scal_vol = 5,
-                  mouse_scal_pitch = 15,
+                  mouse_scal_pitch = 5,
                   mouse_scal_pan = 1,
-                  mouse_scal_float = 2,
+                  mouse_scal_float = 0.5,
                   
                   entry_w = 200,      -- name w
                   entry_w2 = 90,     -- controls w / position
@@ -467,7 +467,13 @@ msg(
                 }  ,
                 {str = 'Edit manually',
                  func = function()  F_open_URL('"" "'..data.conf_path..'"') end}  , 
-                {str = '|Close MPL InteractiveToolbar',
+                {str = '|Dock MPL InteractiveToolbar',
+                                 func = function() 
+                                          gfx.quit() 
+                                          gfx.init('MPL '..conf.scr_title,conf.wind_w, conf.wind_h,  513 , conf.wind_x, conf.wind_y)end} ,                   
+                {str = 'Refresh GUI',
+                 func = function() SCC_trig = true end}  ,                  
+                {str = 'Close MPL InteractiveToolbar',
                  func = function() force_exit = true end} ,                   
                         
                         

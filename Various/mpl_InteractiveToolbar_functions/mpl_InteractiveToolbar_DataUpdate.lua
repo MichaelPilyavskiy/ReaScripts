@@ -176,8 +176,7 @@
       
       data.it[i].lock = GetMediaItemInfo_Value( item, 'C_LOCK')
       data.it[i].mute = GetMediaItemInfo_Value( item, 'B_MUTE')
-      data.it[i].loop = GetMediaItemInfo_Value( item, 'B_LOOPSRC') 
-       
+      data.it[i].loop = GetMediaItemInfo_Value( item, 'B_LOOPSRC')     
         
       local take = GetActiveTake(item)
       if take then
@@ -356,13 +355,17 @@
       data.tr[i].pan = GetMediaTrackInfo_Value( tr, 'D_PAN' )
       data.tr[i].pan_format = MPL_FormatPan(data.tr[i].pan)
       data.tr[i].vol = GetMediaTrackInfo_Value( tr, 'D_VOL' )
-      
-      --[[data.tr[i].vol_format = string.format("%.2f", data.tr[i].vol)
-      local dBval = dBFromReaperVal(data.tr[i].vol)
-      if not tonumber(dBval) then dBval = -math.huge end
-      local real = reaper.DB2SLIDER(dBval )/1000
-      data.tr[i].vol_format = string.format("%.2f", dBval)]]
       data.tr[i].vol_format = dBFromReaperVal(data.tr[i].vol)..'dB'
+      
+      -- get delay
+        data.tr[i].delay = 0
+        local delayFX_pos = TrackFX_AddByName( tr, 'time_adjustment', false, 0 )
+        if delayFX_pos >=0 then
+          data.tr[i].delay_FXpos = delayFX_pos
+          local val = TrackFX_GetParamNormalized( tr, delayFX_pos, 0 )
+          data.tr[i].delay = (val-0.5)*0.2
+        end
+        data.tr[i].delay_format = format_timestr_len( data.tr[i].delay, '', 0,3 ) 
     end
     
     if not data.defsendvol or not data.defsendpan then

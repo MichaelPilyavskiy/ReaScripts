@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.10
+-- @version 1.12
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -14,20 +14,22 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 -- @changelog
---    + Tags/Persist: #bpm shows/edit tempo and time signature for project (or tempo marker falling at edit cursor if any) 
---    + Focus arrange on mouse release (so global shortkeys passed there)
---    + Tags/Track/#pan: allow to input [-100...100] values
---    + Tags/Item/#pan: allow to input [-100...100] values
---    + Context/Track: show selected tracks count
---    + Context/Items: show selected items count
---    + Context/EnvPoints: show selected points count
---    # Tags/Track/#vol: edit full string on doubleclick
---    # Tags/Item/#vol: edit full string on doubleclick
---    # Tags/Item/#transpose: edit full string on doubleclick
---    # fix lost buttons when edit tags from menu
---    # fix collect only first selected envelope points data
+--    + Add action to dock GUI (workaround for OSX users)
+--    + Add action to refresh GUI
+--    + Tags/track/#delay: get/set value in seconds for 'JS: time adjustment'
+--    + MouseModifiers Item/#pos: cltr+drag set positions to first item position
+--    + MouseModifiers Item/#len: cltr+drag set lengths to first item length
+--    + MouseModifiers Item/#vol: cltr+drag set items gain to first item gain
+--    + MouseModifiers Envelope/#val: cltr+drag set values to first point value
+--    + Context/Track: force undo entry on change properties
+--    + Context/Item: force undo entry on change properties
+--    + Context/Envelope: force undo entry on change properties
+--    # Tags/Item/#len: preserve MIDI items loop source state after MIDI_SetItemExtents()
+--    # Tags/Item/#len: preserve MIDI items start offset after MIDI_SetItemExtents()
+--    # Tags/Persist/#lasttouchfx: ignore time adjustment
+--    # Reduce mouse resolution for position and float types
 
-  local vrs = '1.07'
+  local vrs = '1.12'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -52,7 +54,7 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-  local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
+  data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title}
   local mouse = {}
@@ -81,44 +83,6 @@
   ---------------------------------------------------
   
   
-  function LIP_load_MPLmod(str)
-    -- http://github.com/Dynodzzo/Lua_INI_Parser/blob/master/LIP.lua
-    --- Returns a table containing all the data from the INI file.
-    --@param fileName The name of the INI file to parse. [string]
-    --@return The table containing all data from the INI file. [table]
-    local data = {};
-    local section;
-    for line in str:gmatch('[^\r\n]+') do
-      local tempSection = line:match('^%[([^%[%]]+)%]$');
-      if(tempSection)then
-        section = tonumber(tempSection) and tonumber(tempSection) or tempSection;
-        data[section] = data[section] or {};
-      end
-      local param, value = line:match('^([%w|_]+)%s-=%s-(.+)$');
-      if(param and value ~= nil)then
-        if(tonumber(value))then
-          value = tonumber(value);
-        elseif(value == 'true')then
-          value = true;
-        elseif(value == 'false')then
-          value = false;
-        end
-        if(tonumber(param))then
-          param = tonumber(param);
-        end
-        data[section][param] = value;
-        if param == 'order' or param == 'buttons' then
-          data[section][param] = {}
-          for tag in value:gmatch('#(%a+)') do
-            data[section][param]  [#data[section][param]+1] = tag
-          end
-        end
-      end
-    end
-    return data;
-  end
-  
-  
   function Config_DefaultStr()
     return [[
 //Configuration for MPL InfoTool
@@ -136,7 +100,7 @@ buttons=#lock #preservepitch #loop #chanmode #mute
 [Envelope]
 order=#floatfx #position #value
 [Track]
-order=#vol #pan #fxlist #sendto
+order=#vol #pan #fxlist #sendto #delay
 [Persist]
 order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm
 ]]
@@ -172,22 +136,7 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm
       if not SCC_trig and HasSelEnvChanged() then SCC_trig = true end  
       if not SCC_trig and HasGridChanged() then SCC_trig = true end      
       local ret =  HasWindXYWHChanged() 
-      if ret == 1 then
-        redraw = 2
-        ExtState_Save(conf)
-       elseif ret == 2 then
-        ExtState_Save(conf)
-      end
-    --[[ wind state
-      local ret
-      ret,last_gfxx, last_gfxy, last_gfxw, last_gfxh, last_dock = HasWindXYWHChanged(last_gfxx, last_gfxy, last_gfxw, last_gfxh, last_dock)
-      if ret == 1 then 
-        DockWindowRefresh()
-        redraw = 2
-        ExtState_Save(conf)
-       elseif ret == 2 then
-        ExtState_Save(conf)
-      end]]
+      if ret == 1 then  redraw = 2  ExtState_Save(conf)  elseif ret == 2 then  ExtState_Save(conf)  end
     -- perf mouse
       local SCC_trig2 = MOUSE(obj,mouse, clock) 
     -- produce update if yes
@@ -215,6 +164,44 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm
   
   ---------------------------------------------------
   
+  
+  --[[
+  function LIP_load_MPLmod(str)
+    -- http://github.com/Dynodzzo/Lua_INI_Parser/blob/master/LIP.lua
+    --- Returns a table containing all the data from the INI file.
+    --@param fileName The name of the INI file to parse. [string]
+    --@return The table containing all data from the INI file. [table]
+    local data = {};
+    local section;
+    for line in str:gmatch('[^\r\n]+') do
+      local tempSection = line:match('^%[([^%[%] ]+)%]$');
+      if(tempSection)then
+        section = tonumber(tempSection) and tonumber(tempSection) or tempSection;
+        data[section] = data[section] or {};
+      end
+      local param, value = line:match('^([%w|_]+)%s-=%s-(.+)$');
+      if(param and value ~= nil)then
+        if(tonumber(value))then
+          value = tonumber(value);
+        elseif(value == 'true')then
+          value = true;
+        elseif(value == 'false')then
+          value = false;
+        end
+        if(tonumber(param))then
+          param = tonumber(param);
+        end
+        data[section][param] = value;
+        if param == 'order' or param == 'buttons' then
+          data[section][param] = {}
+          for tag in value:gmatch('#(%a+)') do
+            data[section][param]  [#data[section][param]+1] = tag
+          end
+        end
+      end
+    end
+    return data;
+  end]]
   
   
     
