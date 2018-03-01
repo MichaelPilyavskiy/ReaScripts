@@ -8,7 +8,7 @@
   
   ---------------------------------------------------
   function DataUpdate(data, mouse, widgets, obj, conf)
-    DataUpdate_RulerGrid(data) 
+    DataUpdate_RulerGrid(data, conf) 
     DataUpdate_TimeSelection(data)
     DataUpdate_PlayState(data)
     DataUpdate_TempoTimeSignature(data)
@@ -29,12 +29,13 @@
       end  
   end
   ---------------------------------------------------  
-  function DataUpdate_RulerGrid(data)  
+  function DataUpdate_RulerGrid(data, conf)  
     data.rul_format = MPL_GetCurrentRulerFormat()
     data.SR = tonumber(reaper.format_timestr_pos(1, '', 4))
     data.FR = TimeMap_curFrameRate( 0 )
     data.grid_val, data.grid_val_format, data.grid_istriplet = MPL_GetFormattedGrid()
     data.grid_isactive =  GetToggleCommandStateEx( 0, 1157 )==1
+    data.ruleroverride = conf.ruleroverride
   end
   ---------------------------------------------------
   function DataUpdate_Context(data, mouse, widgets, obj, conf)    
@@ -51,7 +52,7 @@
         
         7 track
         
-        -8 note
+        8 note
         -9 cc
         -10 ruler evt
         -
@@ -61,12 +62,12 @@
     local item = GetSelectedMediaItem(0,0)
     local env = GetSelectedEnvelope( 0 )
     local tr = GetSelectedTrack(0,0)
-    --local ME = MIDIEditor_GetActive()
+    local ME = MIDIEditor_GetActive()
           
-    --[[if ME then
+    if ME then
       DataUpdate_MIDIEditor(data, ME )
-     else
-     ]]if env then    
+      Obj_UpdateMIDIEditor(data, obj, mouse, widgets)
+     elseif env then    
       DataUpdate_Envelope(data, env)
       Obj_UpdateEnvelope(data, obj, mouse, widgets)
      elseif item then 
@@ -81,8 +82,8 @@
   function DataUpdate_TimeSelection(data)
     local TS_st, TSend = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )
     data.timeselectionstart, data.timeselectionend = TS_st, TSend    
-    data.timeselectionstart_format = format_timestr_pos( data.timeselectionstart, '', -1 ) 
-    data.timeselectionend_format = format_timestr_pos( data.timeselectionend, '', -1 )
+    data.timeselectionstart_format = format_timestr_pos( data.timeselectionstart, '',data.ruleroverride ) 
+    data.timeselectionend_format = format_timestr_pos( data.timeselectionend, '', data.ruleroverride )
   end
   ---------------------------------------------------
     
@@ -157,14 +158,16 @@
           
       data.it[i].item_pos = GetMediaItemInfo_Value( item, 'D_POSITION')
       data.it[i].item_len = GetMediaItemInfo_Value( item, 'D_LENGTH')
+      data.it[i].item_end = data.it[i].item_pos + data.it[i].item_len
       data.it[i].snap_offs = GetMediaItemInfo_Value( item, 'D_SNAPOFFSET')
       data.it[i].fadein_len = GetMediaItemInfo_Value( item, 'D_FADEINLEN')
       data.it[i].fadeout_len = GetMediaItemInfo_Value( item, 'D_FADEOUTLEN')       
-      data.it[i].item_pos_format = format_timestr_pos( data.it[i].item_pos, '', -1 ) 
-      data.it[i].item_len_format = format_timestr_len( data.it[i].item_len, '', 0, -1 ) 
-      data.it[i].snap_offs_format = format_timestr_len( data.it[i].snap_offs, '', 0, -1 )
-      data.it[i].fadein_len_format = format_timestr_len( data.it[i].fadein_len, '', 0, -1 )
-      data.it[i].fadeout_len_format = format_timestr_len( data.it[i].fadeout_len, '', 0, -1 )
+      data.it[i].item_pos_format = format_timestr_pos( data.it[i].item_pos, '', data.ruleroverride ) 
+      data.it[i].item_len_format = format_timestr_len( data.it[i].item_len, '', 0, data.ruleroverride ) 
+      data.it[i].item_end_format = format_timestr_pos( data.it[i].item_pos+data.it[i].item_len, '', data.ruleroverride ) 
+      data.it[i].snap_offs_format = format_timestr_len( data.it[i].snap_offs, '', 0, data.ruleroverride )
+      data.it[i].fadein_len_format = format_timestr_len( data.it[i].fadein_len, '', 0, data.ruleroverride )
+      data.it[i].fadeout_len_format = format_timestr_len( data.it[i].fadeout_len, '', 0, data.ruleroverride )
       
       data.it[i].vol = GetMediaItemInfo_Value( item, 'D_VOL')
       --data.it[i].vol_format = string.format("%.2f", data.it[i].vol)
@@ -183,7 +186,7 @@
         data.it[i].ptr_take = take
         local _, tk_name = GetSetMediaItemTakeInfo_String( take, "P_NAME", '', false )         
         data.it[i].start_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
-        data.it[i].start_offs_format = format_timestr_len(data.it[i].start_offs, '', 0, -1 )
+        data.it[i].start_offs_format = format_timestr_len(data.it[i].start_offs, '', 0, data.ruleroverride )
         data.it[i].pitch = GetMediaItemTakeInfo_Value( take, 'D_PITCH' )
         data.it[i].pitch_format = math.floor(data.it[i].pitch *100) / 100
         data.it[i].name = tk_name
@@ -248,7 +251,7 @@
       local retval, time, value, shape, tension, selected = GetEnvelopePointEx( env, -1, i-1 )
       data.ep[i] = {}
       data.ep[i].pos = time
-      data.ep[i].pos_format = format_timestr_pos( time, '', -1 ) 
+      data.ep[i].pos_format = format_timestr_pos( time, '', data.ruleroverride ) 
       data.ep[i].value = value
       data.ep[i].value_format = string.format("%.2f", value)
       data.ep[i].shape = shape
@@ -308,19 +311,88 @@
     data.obj_type = 'MIDI Editor'
     data.obj_type_int = 8
     
-    local take= MIDIEditor_GetTake( ME )
-    data.take = take 
+    local take= MIDIEditor_GetTake( ME ) 
+    data.take_ptr = take 
+    local _, take_name = GetSetMediaItemTakeInfo_String( take, "P_NAME", '', false )   
+    data.take_name = take_name
+    local item  = GetMediaItemTake_Item( take )
+    data.item_ptr = item
+    data.item_pos = GetMediaItemInfo_Value( item, 'D_POSITION')
+    
+    
+    -- parse RAW MIDI data
+      if not take then return end
+      data.evts = {}
+      local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
+      if not gotAllOK then return end
+      local s_unpack = string.unpack
+      local s_pack   = string.pack
+      local MIDIlen = MIDIstring:len()
+      local idx = 0    
+      local offset, flags, msg1
+      local first_selected
+      local ppq_pos = 0
+      local nextPos, prevPos = 1, 1 
+      local cnt_sel_notes, cnt_sel_CC, cnt_sel_evts_other = 0,0,0
+      while nextPos <= MIDIlen do  
+          prevPos = nextPos
+          offset, flags, msg1, nextPos = s_unpack("i4Bs4", MIDIstring, prevPos)
+          idx = idx + 1
+          ppq_pos = ppq_pos + offset
+          local selected = flags&1==1
+          if not first_selected and selected then first_selected = idx end
+          local pos_sec = MIDI_GetProjTimeFromPPQPos( take, ppq_pos )
+          local pos_sec_format = format_timestr_pos( pos_sec, '', data.ruleroverride ) 
+          local CClane, pitch
+          local isNoteOn = msg1:byte(1)>>4 == 0x9
+          local isNoteOff = msg1:byte(1)>>4 == 0x8
+          local isCC = msg1:byte(1)>>4 == 0xB
+          local chan = 1+msg1:byte(1)&0xF
+          if isNoteOn or isNoteOff then 
+            pitch = msg1:byte(2) 
+            if selected then cnt_sel_notes = cnt_sel_notes+1  end
+           elseif isCC then 
+            CClane = msg1:byte(2) 
+            if selected then cnt_sel_CC = cnt_sel_CC + 1  end
+           else 
+            if selected then cnt_sel_evts_other = cnt_sel_evts_other + 1  end
+          end
+          data.evts[idx] = {rawevt = s_pack("i4Bs4", offset, flags , msg1),
+                            offset=offset, 
+                            flags=flags, 
+                            selected =selected,
+                            muted =flags&2==2,
+                            msg1=msg1,
+                            ppq_pos = ppq_pos,
+                            pos_sec = pos_sec,
+                            pos_sec_format = pos_sec_format,
+                            isNoteOn =isNoteOn,
+                            isNoteOff =isNoteOff,
+                            isCC = isCC,
+                            CClane=CClane,
+                            pitch=pitch,
+                            chan = chan}
+      end
+      data.evts.first_selected = first_selected
+      data.evts.cnt_sel_notes, data.evts.cnt_sel_CC, data.cnt_sel_evts_other =  math.ceil(cnt_sel_notes/2), cnt_sel_CC, cnt_sel_evts_other
+      
+    if cnt_sel_notes > 0 or cnt_sel_CC > 0 or cnt_sel_evts_other > 0 then
+      local midistr = ''
+      if cnt_sel_notes > 0 then midistr = midistr..'Note ('..math.ceil(cnt_sel_notes/2)..') ' end
+      if cnt_sel_CC > 0 then midistr = midistr..'CC ('..cnt_sel_CC..')  ' end
+      if cnt_sel_evts_other > 0 then midistr = midistr..'Others ('..cnt_sel_evts_other..')' end
+      data.obj_type = midistr
+    end
+    --[[
     local retval, notecnt, ccevtcnt = MIDI_CountEvts( take )
     local obj_type
     data.note = {}
     for i = 1, notecnt do
-      --data.note[i] ={table.unpack({MIDI_GetNote( take, i-1 )})}
       data.note[i] ={}
-      local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = MIDI_GetNote( take, i-1 )
-      
+      local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = MIDI_GetNote( take, i-1 )      
       data.note[i].selected, data.note[i].muted, data.note[i].startppqpos, data.note[i].endppqpos, data.note[i].chan, data.note[i].pitch, data.note[i].vel = 
       selected, muted, startppqpos, endppqpos, chan, pitch, vel
-    end
+    end]]
   end
   ----------------------------------------------------------------------
   function DataUpdate_Track(data, tr)

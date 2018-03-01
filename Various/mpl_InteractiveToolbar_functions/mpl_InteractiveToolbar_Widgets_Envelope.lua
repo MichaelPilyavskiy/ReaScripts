@@ -92,14 +92,14 @@
       
       Envelope_SortPoints( data.env_ptr )
       UpdateArrange()
-      local new_str = format_timestr_pos( t_out_values[ data.ep.sel_point_ID  ], '', -1 ) 
+      local new_str = format_timestr_pos( t_out_values[ data.ep.sel_point_ID  ], '', data.ruleroverride ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
         obj.b[butkey..i].txt = new_str_t[i]
       end
      else
       -- nudge values from first item
-      local out_val = parse_timestr_pos(out_str_toparse,-1)
+      local out_val = parse_timestr_pos(out_str_toparse,data.ruleroverride)
       diff = data.ep[data.ep.sel_point_ID].pos -out_val
       
       local temp_t = {}

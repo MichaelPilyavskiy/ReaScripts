@@ -1,9 +1,9 @@
 -- @description InteractiveToolbar
--- @version 1.12
+-- @version 1.15
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
---    An script displaing some information about different objects, also allow to edit them quickly without walking through menus and windows.
+--    This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows.
 -- @provides
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua
@@ -13,23 +13,14 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
+--    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Add action to dock GUI (workaround for OSX users)
---    + Add action to refresh GUI
---    + Tags/track/#delay: get/set value in seconds for 'JS: time adjustment'
---    + MouseModifiers Item/#pos: cltr+drag set positions to first item position
---    + MouseModifiers Item/#len: cltr+drag set lengths to first item length
---    + MouseModifiers Item/#vol: cltr+drag set items gain to first item gain
---    + MouseModifiers Envelope/#val: cltr+drag set values to first point value
---    + Context/Track: force undo entry on change properties
---    + Context/Item: force undo entry on change properties
---    + Context/Envelope: force undo entry on change properties
---    # Tags/Item/#len: preserve MIDI items loop source state after MIDI_SetItemExtents()
---    # Tags/Item/#len: preserve MIDI items start offset after MIDI_SetItemExtents()
---    # Tags/Persist/#lasttouchfx: ignore time adjustment
---    # Reduce mouse resolution for position and float types
+--    + Add option to override time formatting mode
+--    + Tags/Item: #endedge. Get/set position of item refering to its end.
+--    + Context: MIDI event. Get info about selected events in currently opened MIDI Editor.
+--    + Tags/MIDI: #position. Perform a PPQ<>ProjectTime convertion as absolute time of note. This function has only nudge mode and for now can be buggy.
 
-  local vrs = '1.12'
+  local vrs = '1.15'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -44,6 +35,7 @@
     dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua")
     dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua")
     dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua")
+    dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua")
   end
   
   RefreshExternalLibs()
@@ -67,7 +59,8 @@
                         nil,--'EnvelopePoint',
                         nil,--'MultipleEnvelopePoints',
                         'Envelope',
-                        'Track'
+                        'Track',
+                        'MIDIEditor'
                         }
                   }
   local cycle_cnt,clock = 0
@@ -85,22 +78,24 @@
   
   function Config_DefaultStr()
     return [[
-//Configuration for MPL InfoTool
+//Configuration for MPL Interactive Toolbar
 [EmptyItem]
 order=#position #length
 [MIDIItem]
-order=#buttons#snap #position #length #offset #fadein #fadeout #vol #transpose #pan
+order=#buttons#snap #position #endedge #length #offset #fadein #fadeout #vol #transpose #pan 
 buttons=#lock #loop #mute 
 [AudioItem]
-order=#buttons#snap #position #length #offset #fadein #fadeout #vol #transpose #pan
+order=#buttons#snap #position #endedge #length #offset #fadein #fadeout #vol #transpose #pan
 buttons=#lock #preservepitch #loop #mute #chanmode #bwfsrc 
 [MultipleItem]
-order=#buttons#position #length #offset #fadein #fadeout #vol #transpose #pan
+order=#buttons#position #endedge #length #offset #fadein #fadeout #vol #transpose #pan
 buttons=#lock #preservepitch #loop #chanmode #mute 
 [Envelope]
 order=#floatfx #position #value
 [Track]
 order=#vol #pan #fxlist #sendto #delay
+[MIDIEditor]
+order=#position
 [Persist]
 order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm
 ]]
@@ -118,7 +113,8 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm
             GUI_font2 = 15,
             GUI_colortitle =      16768407, -- blue
             GUI_background_col =  16777215, -- white
-            GUI_background_alpha = 0.18}
+            GUI_background_alpha = 0.18,
+            ruleroverride = -1}
   end
   ---------------------------------------------------
   function Run()

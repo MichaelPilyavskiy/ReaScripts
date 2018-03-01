@@ -400,7 +400,19 @@
                                 redraw = 2                            
                             end
                           end}  ,
-                          
+                { str = '|>Time formatting mode|Ruler linked',
+                  func = function() conf.ruleroverride = -1 redraw = 2 end} ,    
+                { str = 'Time',
+                  func = function() conf.ruleroverride = 0 redraw = 2 end} ,   
+                { str = 'measures.beats',
+                  func = function() conf.ruleroverride = 2 redraw = 2 end} ,  
+                { str = 'seconds',
+                  func = function() conf.ruleroverride = 3 redraw = 2 end} ,  
+                { str = 'samples',
+                  func = function() conf.ruleroverride = 4 redraw = 2 end} ,  
+                { str = 'h:m:s:f|<',
+                  func = function() conf.ruleroverride = 5 redraw = 2 end} , 
+                                                                                                                                                      
                 { str = '|#Contexts'}  ,
 
                 { str = '>Empty item|Widgets order|<',
@@ -432,7 +444,10 @@
 
                 { str = '>Track|Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 8 ) end} , 
-                                                                                                                                                         
+
+                { str = '>MIDI editor|Widgets order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 9 ) end} , 
+                                                                                                                                                                           
                 { str = '>Persistent modules|Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 'Persist' ) end} ,                                                                  
                                                                                                       

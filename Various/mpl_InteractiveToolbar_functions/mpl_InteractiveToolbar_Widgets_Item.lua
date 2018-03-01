@@ -109,14 +109,14 @@
           UpdateItemInProject( data.it[i].ptr_item )                                
         end  
         
-      local new_str = format_timestr_pos( t_out_values[1], '', -1 ) 
+      local new_str = format_timestr_pos( t_out_values[1], '',data.ruleroverride ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
         obj.b[butkey..i].txt = new_str_t[i]
       end
      else
       -- nudge values from first item
-      local out_val = parse_timestr_pos(out_str_toparse,-1) 
+      local out_val = parse_timestr_pos(out_str_toparse,data.ruleroverride) 
       local diff = out_val - data.it[1].item_pos
         for i = 1, #t_out_values do
           SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_POSITION', math.max(0,t_out_values[i] + diff ))
@@ -131,8 +131,76 @@
 
 
 
-
-
+  function Widgets_Item_endedge(data, obj, mouse, x_offs)    -- generate position controls 
+    if not data.it then return end
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
+    obj.b.obj_endedge = { x = x_offs,
+                        y = obj.offs ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = 'End'} 
+    obj.b.obj_endedge_back = { x =  x_offs,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt = '',
+                        ignore_mouse = true}  
+                        
+                        
+      local pos_str =  data.it[1].item_end_format
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(pos_str),
+                        table_key='endedge_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.it,
+                        src_val_key= 'item_end',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Item_Pos2,                         
+                        mouse_scale= obj.mouse_scal_time,
+                        onRelease_ActName = data.scr_title..': Change item properties'})                         
+    return obj.entry_w2
+  end  
+  function Apply_Item_Pos2(data, obj, t_out_values, butkey, out_str_toparse, mouse)
+    if not out_str_toparse then    
+      
+        for i = 1, #t_out_values do
+          local outv
+          if mouse.Ctrl then outv = math.max(0,t_out_values[1]) else outv = math.max(0,t_out_values[i]) end
+          SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_POSITION',outv-data.it[i].item_len)
+          UpdateItemInProject( data.it[i].ptr_item )                                
+        end  
+        
+      local new_str = format_timestr_pos( t_out_values[1], '', data.ruleroverride ) 
+      local new_str_t = MPL_GetTableOfCtrlValues(new_str)
+      for i = 1, #new_str_t do
+        obj.b[butkey..i].txt = new_str_t[i]
+      end
+     else
+      -- nudge values from first item
+      local out_val = parse_timestr_pos(out_str_toparse,data.ruleroverride) 
+      local diff = out_val - (data.it[1].item_pos +data.it[1].item_len)
+        for i = 1, #t_out_values do
+          SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_POSITION', math.max(0,t_out_values[i] + diff-data.it[i].item_len))
+          UpdateItemInProject( data.it[i].ptr_item )                                
+        end
+      redraw = 2   
+    end
+  end  
+  -------------------------------------------------------------- 
+  
+  
+  
+  
+  
+  
+  
+  
+  
   --------------------------------------------------------------   
   function Widgets_Item_snap(data, obj, mouse, x_offs) -- generate snap_offs controls  
     if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
@@ -174,14 +242,14 @@
         SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_SNAPOFFSET', math.max(0,t_out_values[i] ))
         UpdateItemInProject( data.it[i].ptr_item )                                
       end
-      local new_str = format_timestr_len( t_out_values[1], '',0,-1 ) 
+      local new_str = format_timestr_len( t_out_values[1], '',0,data.ruleroverride ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
         obj.b[butkey..i].txt = new_str_t[i]
       end
      else
       -- directly set value from first item
-      local out_val = parse_timestr_len(out_str_toparse,1,-1) 
+      local out_val = parse_timestr_len(out_str_toparse,1,data.ruleroverride) 
       for i = 1, #t_out_values do
         SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_SNAPOFFSET', math.max(0,out_val ))
         UpdateItemInProject( data.it[i].ptr_item )                                
@@ -320,14 +388,14 @@
           UpdateItemInProject( data.it[i].ptr_item ) 
         end
            
-      local new_str = format_timestr_len( t_out_values[1],'', 1, -1 ) 
+      local new_str = format_timestr_len( t_out_values[1],'', 1,data.ruleroverride ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
         obj.b[butkey..i].txt = new_str_t[i]
       end
      else
       -- nudge values from first item
-      local out_val = parse_timestr_len(out_str_toparse,1,-1) 
+      local out_val = parse_timestr_len(out_str_toparse,1,data.ruleroverride) 
       local diff = data.it[1].item_len - out_val
       for i = 1, #t_out_values do
         local out_len = math.max(0,t_out_values[i] - diff )
@@ -393,14 +461,14 @@
         SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_STARTOFFS', t_out_values[i] )
         UpdateItemInProject( data.it[i].ptr_item )                                
       end
-      local new_str = format_timestr_len( t_out_values[1], '',1, -1 ) 
+      local new_str = format_timestr_len( t_out_values[1], '',1, data.ruleroverride ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
         obj.b[butkey..i].txt = new_str_t[i]
       end
      else
       -- nudge values from first item
-      local out_val = parse_timestr_len(out_str_toparse,1,-1) 
+      local out_val = parse_timestr_len(out_str_toparse,1,data.ruleroverride) 
       local diff = data.it[1].start_offs - out_val
       for i = 1, #t_out_values do
         SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_STARTOFFS', t_out_values[i] - diff )
@@ -458,14 +526,14 @@
         SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_FADEINLEN', math.max(0,t_out_values[i] ))
         UpdateItemInProject( data.it[i].ptr_item )                                
       end
-      local new_str = format_timestr_len( t_out_values[1], '', 0, -1 ) 
+      local new_str = format_timestr_len( t_out_values[1], '', 0, data.ruleroverride ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
         obj.b[butkey..i].txt = new_str_t[i]
       end
      else
       -- directly set value from first item
-      local out_val = parse_timestr_len(out_str_toparse,1,-1) 
+      local out_val = parse_timestr_len(out_str_toparse,1,data.ruleroverride) 
       for i = 1, #t_out_values do
         SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_FADEINLEN',math.max(0, out_val ))
         UpdateItemInProject( data.it[i].ptr_item )                                
@@ -522,14 +590,14 @@
         SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_FADEOUTLEN', math.max(0,t_out_values[i] ))
         UpdateItemInProject( data.it[i].ptr_item )                                
       end
-      local new_str = format_timestr_len( t_out_values[1], '', 0, -1 ) 
+      local new_str = format_timestr_len( t_out_values[1], '', 0, data.ruleroverride ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
         obj.b[butkey..i].txt = new_str_t[i]
       end
      else
       -- directly set value from first item
-      local out_val = parse_timestr_len(out_str_toparse,1,-1) 
+      local out_val = parse_timestr_len(out_str_toparse,1,data.ruleroverride) 
       for i = 1, #t_out_values do
         SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_FADEOUTLEN',math.max(0, out_val ))
         UpdateItemInProject( data.it[i].ptr_item )                                
