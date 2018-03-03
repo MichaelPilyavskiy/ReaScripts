@@ -330,7 +330,7 @@
       local MIDIlen = MIDIstring:len()
       local idx = 0    
       local offset, flags, msg1
-      local first_selected
+      local first_selected, first_selectedCC, first_selectednote
       local ppq_pos = 0
       local nextPos, prevPos = 1, 1 
       local cnt_sel_notes, cnt_sel_CC, cnt_sel_evts_other = 0,0,0
@@ -343,16 +343,21 @@
           if not first_selected and selected then first_selected = idx end
           local pos_sec = MIDI_GetProjTimeFromPPQPos( take, ppq_pos )
           local pos_sec_format = format_timestr_pos( pos_sec, '', data.ruleroverride ) 
-          local CClane, pitch
+          local CClane, pitch, CCval,vel
           local isNoteOn = msg1:byte(1)>>4 == 0x9
           local isNoteOff = msg1:byte(1)>>4 == 0x8
           local isCC = msg1:byte(1)>>4 == 0xB
           local chan = 1+msg1:byte(1)&0xF
+          if not first_selectedCC and selected and isCC then first_selectedCC = idx end
+          if not first_selectednote and selected and isNoteOn then first_selectednote = idx end
+          
           if isNoteOn or isNoteOff then 
             pitch = msg1:byte(2) 
+            vel = msg1:byte(3) 
             if selected then cnt_sel_notes = cnt_sel_notes+1  end
            elseif isCC then 
             CClane = msg1:byte(2) 
+            CCval = msg1:byte(3)
             if selected then cnt_sel_CC = cnt_sel_CC + 1  end
            else 
             if selected then cnt_sel_evts_other = cnt_sel_evts_other + 1  end
@@ -371,9 +376,14 @@
                             isCC = isCC,
                             CClane=CClane,
                             pitch=pitch,
-                            chan = chan}
+                            CCval=CCval,
+                            chan = chan,
+                            vel=vel}
       end
+      
       data.evts.first_selected = first_selected
+      data.evts.first_selectednote = first_selectednote
+      data.evts.first_selectedCC = first_selectedCC
       data.evts.cnt_sel_notes, data.evts.cnt_sel_CC, data.cnt_sel_evts_other =  math.ceil(cnt_sel_notes/2), cnt_sel_CC, cnt_sel_evts_other
       
     if cnt_sel_notes > 0 or cnt_sel_CC > 0 or cnt_sel_evts_other > 0 then

@@ -40,6 +40,7 @@
                   mouse_scal_pitch = 5,
                   mouse_scal_pan = 1,
                   mouse_scal_float = 0.5,
+                  mouse_scal_intMIDICC = 5,
                   
                   entry_w = 200,      -- name w
                   entry_w2 = 90,     -- controls w / position

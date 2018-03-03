@@ -80,6 +80,16 @@
       return out_val
     end
   end  
+  ---------------------------------------------------
+  function MPL_ModifyIntVal(src_val,int_ID,int_cnt,change_val,data, positive_only, pow_tol, ignore_fields)
+    if not src_val then return end
+    local out_val = math.floor(src_val+change_val)
+    if positive_only == true and type(positive_only) == 'boolean' then return lim(out_val, 0, math.huge) 
+     elseif positive_only and type(positive_only) == 'function' then return positive_only(out_val)
+     else
+      return out_val
+    end
+  end    
   -------------------------------------------------------------- 
   function MPL_ParsePanVal(out_str_toparse)
     if not out_str_toparse then return 0 end

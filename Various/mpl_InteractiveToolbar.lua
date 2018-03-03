@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.15
+-- @version 1.16
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,12 +15,12 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Add option to override time formatting mode
---    + Tags/Item: #endedge. Get/set position of item refering to its end.
---    + Context: MIDI event. Get info about selected events in currently opened MIDI Editor.
---    + Tags/MIDI: #position. Perform a PPQ<>ProjectTime convertion as absolute time of note. This function has only nudge mode and for now can be buggy.
+--    # Tags/MIDI Editor: #position. Hopefully fixed/refactoring logic for defining MIDI offsets in different cases.
+--    + Tags/MIDI Editor: #CCval. Currently 7-bit only. MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
+--    + Tags/MIDI Editor: #notepitch. MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
 
-  local vrs = '1.15'
+
+  local vrs = '1.16'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -46,7 +46,7 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-  data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
+  local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title}
   local mouse = {}
@@ -95,7 +95,7 @@ order=#floatfx #position #value
 [Track]
 order=#vol #pan #fxlist #sendto #delay
 [MIDIEditor]
-order=#position
+order=#position #CCval #notepitch
 [Persist]
 order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm
 ]]
