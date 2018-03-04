@@ -231,17 +231,18 @@
                         frame_a = obj.frame_a_head,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
-                        txt = 'Note pitch'} 
+                        txt = 'NotePitch'} 
     obj.b.obj_MEevtnotepitch_back = { x =  x_offs,
                         y = obj.offs *2 +obj.entry_h ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
+                        fontsz = obj.fontsz_entry,
                         ignore_mouse = true}  
                         
       
-      local pitch_str = data.evts[  data.evts.first_selectednote  ].pitch
+      local pitch_str = data.evts[  data.evts.first_selectednote  ].pitch_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = {pitch_str},
                         table_key='MEevtnotepitch_ctrl',
@@ -253,7 +254,8 @@
                         app_func= Apply_MEevt_notepitch,                         
                         mouse_scale= obj.mouse_scal_intMIDICC,
                         onRelease_ActName = data.scr_title..': Change MIDI event properties',
-                        modify_wholestr = true
+                        modify_wholestr = true,
+                        --dont_draw_val = true
                         })                        
     return obj.entry_w2
   end  
@@ -262,11 +264,11 @@
       
       local shift = t_out_values[ data.evts.first_selectednote  ] - data.evts[  data.evts.first_selectednote  ].pitch
       RawMIDI_ChangeNotePitch(data.take_ptr, data.evts, shift, mouse)
-      obj.b[butkey..1].txt = lim(t_out_values[ data.evts.first_selectednote  ],0,127)
+      obj.b[butkey..1].txt = MPL_FormatMIDIPitch(data, lim(t_out_values[ data.evts.first_selectednote  ],0,127))
       
      else
       -- nudge values from first item
-      local out_val = tonumber(out_str_toparse)
+      local out_val = MPL_ParseMIDIPitch(data, out_str_toparse)-- tonumber(out_str_toparse)
       if out_val then
         local shift =out_val - data.evts[  data.evts.first_selectednote  ].pitch
         RawMIDI_ChangeNotePitch(data.take_ptr, data.evts, shift, mouse)
@@ -290,6 +292,90 @@
         if t[i].isNoteOn then msgtype = 0x90 int = 1 else msgtype = 0x80 int = 0 end
         str_per_msg = string.pack("i4Bi4BBB", t[i].offset, t[i].flags, 3, 
                                   msgtype| (t[i].chan-1),out_val, t[i].vel )
+                                  
+                                           
+      end
+      
+      str = str..str_per_msg
+    end
+    MIDI_SetAllEvts(take, str)
+    MIDI_Sort(take)
+  end  
+  --------------------------------------------------------------  
+  
+  
+  
+  
+  
+  
+  --------------------------------------------------------------
+  function Widgets_MIDIEditor_notevel(data, obj, mouse, x_offs)    -- generate position controls 
+    if not data.evts or data.evts.cnt_sel_notes == 0 then return  x_offs end
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
+    obj.b.obj_MEevtnotevel = { x = x_offs,
+                        y = obj.offs ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = 'NoteVelocity'} 
+    obj.b.obj_MEevtnotevel_back = { x =  x_offs,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt = '',
+                        ignore_mouse = true}  
+                        
+      
+      local vel_str = data.evts[  data.evts.first_selectednote  ].vel
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = {vel_str},
+                        table_key='MEevtnotevel_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.evts,
+                        src_val_key= 'vel',
+                        modify_func= MPL_ModifyIntVal,
+                        app_func= Apply_MEevt_notevel,                         
+                        mouse_scale= obj.mouse_scal_intMIDICC,
+                        onRelease_ActName = data.scr_title..': Change MIDI event properties',
+                        modify_wholestr = true
+                        })                        
+    return obj.entry_w2
+  end  
+  function Apply_MEevt_notevel(data, obj, t_out_values, butkey, out_str_toparse, mouse)
+    if not out_str_toparse then  
+      
+      local shift = t_out_values[ data.evts.first_selectednote  ] - data.evts[  data.evts.first_selectednote  ].vel
+      RawMIDI_ChangeNoteVel(data.take_ptr, data.evts, shift, mouse)
+      obj.b[butkey..1].txt = lim(t_out_values[ data.evts.first_selectednote  ],0,127)
+      
+     else
+      -- nudge values from first item
+      local out_val = tonumber(out_str_toparse)
+      if out_val then
+        local shift =out_val - data.evts[  data.evts.first_selectednote  ].vel
+        RawMIDI_ChangeNoteVel(data.take_ptr, data.evts, shift, mouse)
+        redraw = 2 
+      end  
+    end
+  end  
+  function RawMIDI_ChangeNoteVel(take, t, vel_change, mouse)
+    if not take or not t then return end
+    
+    local str = ''
+    local out_val0
+    if mouse.Ctrl then out_val0 = lim(t[  t.first_selectednote  ].pitch+vel_change,0,127) end
+    for i = 1, #t do      
+      local str_per_msg = string.pack("i4Bs4", t[i].offset, t[i].flags , t[i].msg1)
+      
+      if t[i].selected and t[i].isNoteOn  then   
+        local out_val = lim(t[i].vel + vel_change,0,127)
+        if out_val0 then out_val = out_val0 end
+        str_per_msg = string.pack("i4Bi4BBB", t[i].offset, t[i].flags, 3, 
+                                  0x90| (t[i].chan-1), t[i].pitch, out_val )
                                   
                                            
       end

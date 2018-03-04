@@ -402,53 +402,65 @@
                             end
                           end}  ,
                 { str = '|>Time formatting mode|Ruler linked',
-                  func = function() conf.ruleroverride = -1 redraw = 2 end} ,    
+                  func = function() conf.ruleroverride = -1 ExtState_Save(conf) redraw = 2 end} ,    
                 { str = 'Time',
-                  func = function() conf.ruleroverride = 0 redraw = 2 end} ,   
+                  func = function() conf.ruleroverride = 0 ExtState_Save(conf) redraw = 2 end} ,   
                 { str = 'measures.beats',
-                  func = function() conf.ruleroverride = 2 redraw = 2 end} ,  
+                  func = function() conf.ruleroverride = 2 ExtState_Save(conf) redraw = 2 end} ,  
                 { str = 'seconds',
-                  func = function() conf.ruleroverride = 3 redraw = 2 end} ,  
+                  func = function() conf.ruleroverride = 3 ExtState_Save(conf) redraw = 2 end} ,  
                 { str = 'samples',
-                  func = function() conf.ruleroverride = 4 redraw = 2 end} ,  
+                  func = function() conf.ruleroverride = 4 ExtState_Save(conf) redraw = 2 end} ,  
                 { str = 'h:m:s:f|<',
-                  func = function() conf.ruleroverride = 5 redraw = 2 end} , 
-                                                                                                                                                      
+                  func = function() conf.ruleroverride = 5 ExtState_Save(conf) redraw = 2 end} , 
+                  
+                { str = '>MIDI Pitch formatting mode|Pitch only',
+                  func = function() conf.pitch_format = 0 ExtState_Save(conf) redraw = 2 end} ,    
+                { str = 'C#',
+                  func = function() conf.pitch_format = 1 ExtState_Save(conf) redraw = 2 end} ,   
+                { str = 'D♭',
+                  func = function() conf.pitch_format = 2 ExtState_Save(conf) redraw = 2 end} ,  
+                { str = 'Do#',
+                  func = function() conf.pitch_format = 3 ExtState_Save(conf) redraw = 2 end} ,  
+                { str = 'Re♭',
+                  func = function() conf.pitch_format = 4 ExtState_Save(conf) redraw = 2 end} ,  
+                { str = 'Frequency',
+                  func = function() conf.pitch_format = 5 ExtState_Save(conf) redraw = 2 end} ,                    
+                { str = '|Octave shift|<',
+                  func =  function() 
+                            local ret, ret_val = GetUserInputs( conf.scr_title, 1, 'Set octave shift', conf.oct_shift )
+                            if ret and tonumber(ret_val)  then
+                              conf.oct_shift = tonumber(ret_val) 
+                              ExtState_Save(conf)
+                              redraw = 2 
+                            end
+                          end} , 
+                                                                                                                                                                        
                 { str = '|#Contexts'}  ,
-
                 { str = '>Empty item|Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 1 ) end} ,  
-                
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 1 ) end} ,                  
                 { str = '>MIDI item|Widgets order',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 2 ) end} ,
                 { str = 'Buttons order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 2, true ) end} ,    
-                                
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 2, true ) end} , 
                 { str = '>Audio item|Widgets order',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 3 ) end} ,
                 { str = 'Buttons order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 3, true ) end} ,                      
-                  
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 3, true ) end} ,
                 { str = '>Multiple items|Widgets order',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 4 ) end} ,
                 { str = 'Buttons order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 4, true ) end} ,                      
-                  
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 4, true ) end} , 
                 --[[{ str = '>Envelope point|Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 5 ) end} ,                  
-                  
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 5 ) end} ,      
                 { str = '>Multiple envelope points|Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} ,  ]]                    
-
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} ,  ]]  
                 { str = '>Envelope|Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 7 ) end} , 
-
                 { str = '>Track|Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 8 ) end} , 
-
                 { str = '>MIDI editor|Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 9 ) end} , 
-                                                                                                                                                                           
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 9 ) end} ,                                                                                     
                 { str = '>Persistent modules|Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 'Persist' ) end} ,                                                                  
                                                                                                       

@@ -229,6 +229,103 @@
     return ruler
   end
   ---------------------------------------------------
+  function MPL_ParseMIDIPitch(data, str) 
+    local oct_shift = -3+math.floor(data.oct_shift )
+    if data.pitch_format == 0 then-- midi pitch
+      return tonumber(val)
+     elseif data.pitch_format == 1 then
+      local key_names = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'}
+      for i = 1, #key_names do
+        local str_let = str:match('[^%d]+')
+        local str_num = str:match('%d+')
+        if str_let and str_let:lower() == (key_names[i]:lower()) and tonumber(str_num) then
+          local note = i
+          local oct = oct_shift + 12*(1+tonumber(str_num))
+          return oct+note
+        end
+      end
+      
+     elseif data.pitch_format == 2 then
+      local key_names = {'C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'}
+      for i = 1, #key_names do
+        local str_let = str:match('[^%d]+')
+        local str_num = str:match('%d+')
+        if str_let and str_let:lower() == (key_names[i]:lower()) and tonumber(str_num) then
+          local note = i
+          local oct = oct_shift + 12*(1+tonumber(str_num))
+          return oct+note
+        end
+      end     
+     
+     elseif data.pitch_format == 3 then
+      local key_names = {'Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si'}
+      for i = 1, #key_names do
+        local str_let = str:match('[^%d]+')
+        local str_num = str:match('%d+')
+        if str_let and str_let:lower() == (key_names[i]:lower()) and tonumber(str_num) then
+          local note = i
+          local oct = oct_shift + 12*(1+tonumber(str_num))
+          return oct+note
+        end
+      end     
+      
+     elseif data.pitch_format == 4 then
+      local key_names = {'Do', 'Re♭', 'Re', 'Mi♭', 'Mi', 'Fa', 'Sol♭', 'Sol', 'La♭', 'La', 'Si♭', 'Si'}
+      for i = 1, #key_names do
+        local str_let = str:match('[^%d]+')
+        local str_num = str:match('%d+')
+        if str_let and str_let:lower() == (key_names[i]:lower()) and tonumber(str_num) then
+          local note = i
+          local oct = oct_shift + 12*(1+tonumber(str_num))
+          return oct+note
+        end
+      end 
+      
+     elseif data.pitch_format == 5 then 
+      local F = tonumber(str)
+      if F then return math.floor(69+12*math.log(F/440, 2)) end
+    end
+    
+  end
+  ---------------------------------------------------
+  function MPL_FormatMIDIPitch(data, val) 
+    local oct_shift = -3+math.floor(data.oct_shift )
+    if data.pitch_format == 0 -- midi pitch
+     then return val
+    elseif data.pitch_format == 1 then
+      if not val then return end
+      local val = math.floor(val)
+      local oct = math.floor(val / 12)
+      local note = math.fmod(val,  12)
+      local key_names = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'}
+      if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift end
+     elseif data.pitch_format == 2 then
+      if not val then return end
+      local val = math.floor(val)
+      local oct = math.floor(val / 12)
+      local note = math.fmod(val,  12)
+      local key_names = {'C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'}
+      if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift end  
+     elseif data.pitch_format == 3 then
+      if not val then return end
+      local val = math.floor(val)
+      local oct = math.floor(val / 12)
+      local note = math.fmod(val,  12)
+      local key_names = {'Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si'}
+      if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift end      
+     elseif data.pitch_format == 4 then
+      if not val then return end
+      local val = math.floor(val)
+      local oct = math.floor(val / 12)
+      local note = math.fmod(val,  12)
+      local key_names = {'Do', 'Re♭', 'Re', 'Mi♭', 'Mi', 'Fa', 'Sol♭', 'Sol', 'La♭', 'La', 'Si♭', 'Si'}
+      if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift end       
+     elseif 
+      data.pitch_format == 5 -- freq
+      then return math.floor(440 * 2 ^ ( (val - 69) / 12))..'Hz'
+    end
+  end
+  ---------------------------------------------------
   --strNeed64 reaper.mkvolstr(strNeed64, vol )
   --strNeed64 reaper.mkpanstr(strNeed64, pan )
   function MPL_FormatPan(pan_val)

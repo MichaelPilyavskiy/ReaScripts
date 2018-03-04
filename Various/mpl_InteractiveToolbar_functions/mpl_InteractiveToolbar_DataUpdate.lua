@@ -14,6 +14,9 @@
     DataUpdate_TempoTimeSignature(data)
     DataUpdate_LastTouchedFX(data)
     
+    data.pitch_format = conf.pitch_format
+    data.oct_shift = conf.oct_shift
+    
     -- reset buttons data
       obj.b = {}
     -- persisten widgets
@@ -343,7 +346,7 @@
           if not first_selected and selected then first_selected = idx end
           local pos_sec = MIDI_GetProjTimeFromPPQPos( take, ppq_pos )
           local pos_sec_format = format_timestr_pos( pos_sec, '', data.ruleroverride ) 
-          local CClane, pitch, CCval,vel
+          local CClane, pitch, CCval,vel, pitch_format
           local isNoteOn = msg1:byte(1)>>4 == 0x9
           local isNoteOff = msg1:byte(1)>>4 == 0x8
           local isCC = msg1:byte(1)>>4 == 0xB
@@ -353,6 +356,7 @@
           
           if isNoteOn or isNoteOff then 
             pitch = msg1:byte(2) 
+            pitch_format = MPL_FormatMIDIPitch(data, pitch)
             vel = msg1:byte(3) 
             if selected then cnt_sel_notes = cnt_sel_notes+1  end
            elseif isCC then 
@@ -376,6 +380,7 @@
                             isCC = isCC,
                             CClane=CClane,
                             pitch=pitch,
+                            pitch_format=  pitch_format,
                             CCval=CCval,
                             chan = chan,
                             vel=vel}

@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.16
+-- @version 1.17
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,12 +15,11 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # Tags/MIDI Editor: #position. Hopefully fixed/refactoring logic for defining MIDI offsets in different cases.
---    + Tags/MIDI Editor: #CCval. Currently 7-bit only. MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
---    + Tags/MIDI Editor: #notepitch. MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
+--    + Tags/MIDI Editor: #notevel. MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
+--    + Menu/MIDI pitch formatting modes
+--    # fix saving time format override persistent
 
-
-  local vrs = '1.16'
+  local vrs = '1.17'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -95,7 +94,7 @@ order=#floatfx #position #value
 [Track]
 order=#vol #pan #fxlist #sendto #delay
 [MIDIEditor]
-order=#position #CCval #notepitch
+order=#position #CCval #notepitch #notevel
 [Persist]
 order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm
 ]]
@@ -114,7 +113,9 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm
             GUI_colortitle =      16768407, -- blue
             GUI_background_col =  16777215, -- white
             GUI_background_alpha = 0.18,
-            ruleroverride = -1}
+            ruleroverride = -1,
+            pitch_format = 0,
+            oct_shift = 2}
   end
   ---------------------------------------------------
   function Run()
