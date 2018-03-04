@@ -16,6 +16,7 @@
     
     data.pitch_format = conf.pitch_format
     data.oct_shift = conf.oct_shift
+    data.always_use_x_axis = conf.always_use_x_axis
     
     -- reset buttons data
       obj.b = {}
@@ -128,6 +129,7 @@
       data.TempoMarker_timesig1 = math.floor(timesig_num)
       data.TempoMarker_timesig2 = math.floor(timesig_denom)
       data.TempoMarker_bpm= bpm
+      data.TempoMarker_lineartempochange = false
      else
       local _, timepos, measureposOut, beatposOut, bpm, timesig_num, timesig_denom, lineartempoOut = GetTempoTimeSigMarker( 0, int_TM )
       data.TempoMarker_bpm= bpm
@@ -173,13 +175,12 @@
       data.it[i].fadeout_len_format = format_timestr_len( data.it[i].fadeout_len, '', 0, data.ruleroverride )
       
       data.it[i].vol = GetMediaItemInfo_Value( item, 'D_VOL')
-      --data.it[i].vol_format = string.format("%.2f", data.it[i].vol)
       
+      --data.it[i].vol_format = string.format("%.2f", data.it[i].vol)      
       --local dBval = dBFromReaperVal(data.it[i].vol)
       --if not tonumber(dBval) then dBval = -math.huge end
       --local real = reaper.DB2SLIDER(dBval )/1000
-      data.it[i].vol_format = dBFromReaperVal(data.it[i].vol)..'dB'
-      
+      data.it[i].vol_format = dBFromReaperVal(data.it[i].vol)..'dB'      
       data.it[i].lock = GetMediaItemInfo_Value( item, 'C_LOCK')
       data.it[i].mute = GetMediaItemInfo_Value( item, 'B_MUTE')
       data.it[i].loop = GetMediaItemInfo_Value( item, 'B_LOOPSRC')     
@@ -200,6 +201,15 @@
         data.it[i].pitchsubmode = GetMediaItemTakeInfo_Value( take, 'I_PITCHMODE' )&65535
         data.it[i].pan = GetMediaItemTakeInfo_Value( take, 'D_PAN' )
         data.it[i].pan_format = MPL_FormatPan(data.it[i].pan)
+        
+        local retval, sectionOut, startOut, lengthOut, fadeOut, reverseOut  = BR_GetMediaSourceProperties( take )
+        data.it[i].srclen = lengthOut
+        data.it[i].srclen_format = format_timestr_len( data.it[i].srclen, '', 0, data.ruleroverride ) 
+        data.it[i].src_reverse = reverseOut
+        data.it[i].src_start = startOut
+        data.it[i].src_fade = fadeOut
+        data.it[i].src_section = sectionOut
+        
       end 
       
       

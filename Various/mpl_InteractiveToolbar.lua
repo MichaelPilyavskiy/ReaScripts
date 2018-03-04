@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.17
+-- @version 1.18
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,11 +15,14 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Tags/MIDI Editor: #notevel. MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
---    + Menu/MIDI pitch formatting modes
---    # fix saving time format override persistent
+--    + Menu: show state checks
+--    + MouseModifiers: allow to use only X axis when draggin value by mouse
+--    + Tags/Item/buttons/#srcreverse
+--    + Tags/Item/buttons/#srclen. Peaks of just changed source are not updating in realtime with UpdateItemInProject(). This issue is up to the REAPER devs.
+--    # Tags/Persist/#bpm: fix error on timesig changewhen set new marker
+--    # Tags/Envelope/#pos: fix error on drag
 
-  local vrs = '1.17'
+  local vrs = '1.18'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -45,7 +48,7 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-  local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
+   data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title}
   local mouse = {}
@@ -81,14 +84,14 @@
 [EmptyItem]
 order=#position #length
 [MIDIItem]
-order=#buttons#snap #position #endedge #length #offset #fadein #fadeout #vol #transpose #pan 
-buttons=#lock #loop #mute 
+order=#buttons#snap #position #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen
+buttons=#lock #loop #srcreverse #mute 
 [AudioItem]
-order=#buttons#snap #position #endedge #length #offset #fadein #fadeout #vol #transpose #pan
-buttons=#lock #preservepitch #loop #mute #chanmode #bwfsrc 
+order=#buttons#snap #position #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen
+buttons=#lock #preservepitch #loop #mute #chanmode #srcreverse #bwfsrc 
 [MultipleItem]
-order=#buttons#position #endedge #length #offset #fadein #fadeout #vol #transpose #pan
-buttons=#lock #preservepitch #loop #chanmode #mute 
+order=#buttons#position #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen
+buttons=#lock #preservepitch #chanmode #loop #srcreverse #mute   
 [Envelope]
 order=#floatfx #position #value
 [Track]
@@ -115,7 +118,8 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm
             GUI_background_alpha = 0.18,
             ruleroverride = -1,
             pitch_format = 0,
-            oct_shift = 2}
+            oct_shift = 2,
+            always_use_x_axis = 0}
   end
   ---------------------------------------------------
   function Run()

@@ -73,22 +73,25 @@
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Envpoint_Pos,                         
                         mouse_scale= obj.mouse_scal_time,
-                        onRelease_ActName = data.scr_title..': Change point properties'})                         
+                        onRelease_ActName = data.scr_title..': Change point properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1})                         
     return obj.entry_w2
   end  
   function Apply_Envpoint_Pos(data, obj, t_out_values, butkey, out_str_toparse, mouse)
     if not out_str_toparse then  
       
-      temp_t = {}
+      local temp_t = {}
       for i = 1, #t_out_values do
         if data.ep[i].selected then
-          temp_t[i] = {out_val, data.ep[i].value, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
+          temp_t[i] = {t_out_values[i], data.ep[i].value, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
          else 
           temp_t[i] = {data.ep[i].pos, data.ep[i].value, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
         end
       end
       DeleteEnvelopePointRangeEx( data.env_ptr, -1, 0, math.huge )
-      for i = 1, #temp_t do  InsertEnvelopePointEx( data.env_ptr, -1, temp_t[i][1], temp_t[i][2], temp_t[i][3], temp_t[i][4], temp_t[i][5], true ) end
+      for i = 1, #temp_t do  
+        InsertEnvelopePointEx( data.env_ptr, -1, temp_t[i][1], temp_t[i][2], temp_t[i][3], temp_t[i][4], temp_t[i][5], true ) 
+      end
       
       Envelope_SortPoints( data.env_ptr )
       UpdateArrange()
@@ -156,7 +159,7 @@
                         modify_func= MPL_ModifyFloatVal,
                         app_func= Apply_Envpoint_Val,                         
                         mouse_scale= obj.mouse_scal_float,               -- mouse scaling
-                        use_mouse_drag_xAxis= nil, -- x
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1, -- x
                         --ignore_fields= true
                         default_val = data.env_defValue,
                         onRelease_ActName = data.scr_title..': Change point properties'
@@ -164,7 +167,7 @@
     return obj.entry_w2                         
   end
   
-  function Apply_Envpoint_Val(data, obj, t_out_values, butkey, out_str_toparse)
+  function Apply_Envpoint_Val(data, obj, t_out_values, butkey, out_str_toparse, mouse)
     if not out_str_toparse then    
       for i = 1, #t_out_values do
         local outval

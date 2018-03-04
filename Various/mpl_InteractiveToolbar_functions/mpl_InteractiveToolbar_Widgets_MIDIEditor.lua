@@ -73,7 +73,8 @@
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_MEevt_Pos,                         
                         mouse_scale= obj.mouse_scal_time,
-                        onRelease_ActName = data.scr_title..': Change MIDI event properties'})                        
+                        onRelease_ActName = data.scr_title..': Change MIDI event properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,})                        
     return obj.entry_w2
   end  
   
@@ -173,7 +174,8 @@
                         app_func= Apply_MEevt_CCval,                         
                         mouse_scale= obj.mouse_scal_intMIDICC,
                         onRelease_ActName = data.scr_title..': Change MIDI event properties',
-                        modify_wholestr = true
+                        modify_wholestr = true,
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
                         })                        
     return obj.entry_w2
   end  
@@ -255,6 +257,7 @@
                         mouse_scale= obj.mouse_scal_intMIDICC,
                         onRelease_ActName = data.scr_title..': Change MIDI event properties',
                         modify_wholestr = true,
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
                         --dont_draw_val = true
                         })                        
     return obj.entry_w2
@@ -341,7 +344,8 @@
                         app_func= Apply_MEevt_notevel,                         
                         mouse_scale= obj.mouse_scal_intMIDICC,
                         onRelease_ActName = data.scr_title..': Change MIDI event properties',
-                        modify_wholestr = true
+                        modify_wholestr = true,
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
                         })                        
     return obj.entry_w2
   end  

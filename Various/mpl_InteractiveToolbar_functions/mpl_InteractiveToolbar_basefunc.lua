@@ -414,15 +414,20 @@
     for i = 1, #t do
       if t[i].state then check = '!' else check ='' end
       if t[i].hidden then hidden = '#' else hidden ='' end
-      local add_str= hidden..check..t[i].str
-      add_str= add_str:gsub('!|', '|!')
+      local add_str = hidden..check..t[i].str 
       str = str..add_str
       str = str..'|'
     end
     gfx.x = mouse.x
     gfx.y = mouse.y
     local ret = gfx.showmenu(str)
-    if ret > 0 then if t[ret].func then t[ret].func() end end
+    local incr = 0
+    if ret > 0 then 
+      for i = 1, ret do 
+        if t[i+incr].str:match('>')  then incr = incr + 1 end
+      end
+      if t[ret+incr] and t[ret+incr].func then t[ret+incr].func() end 
+    end
   end  
   ---------------------------------------------------   
   function math_q(num)  if math.abs(num - math.floor(num)) < math.abs(num - math.ceil(num)) then return math.floor(num) else return math.ceil(num) end end

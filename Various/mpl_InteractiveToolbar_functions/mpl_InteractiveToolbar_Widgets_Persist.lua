@@ -73,8 +73,15 @@
                                       end,                                              
                         func_drag =   function() 
                                         if mouse.temp_val then 
-                                          local mouse_shift = math.floor(mouse.dy/30)
-                                          local div = 1
+                                          
+                                          local mouse_shift, div
+                                          if data.always_use_x_axis==1 then 
+                                            mouse_shift = math.floor(-mouse.dx/10)
+                                            div = 1
+                                           else
+                                            mouse_shift = math.floor(mouse.dy/30)
+                                            div = 1
+                                          end                                            
                                           
                                           if mouse_shift > 0 then div = 2^math.abs(mouse_shift)
                                            elseif mouse_shift < 0 then div = 0.5^math.abs(mouse_shift)
@@ -155,7 +162,8 @@
                         src_val_key= '',
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_TimeselSt,                         
-                        mouse_scale= obj.mouse_scal_time})                         
+                        mouse_scale= obj.mouse_scal_time,
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1})                         
     return obj.entry_w2
   end  
   function Apply_TimeselSt(data, obj, out_value, butkey, out_str_toparse, mouse)
@@ -216,7 +224,8 @@
                         src_val_key= '',
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Timeselend,                         
-                        mouse_scale= obj.mouse_scal_time})                         
+                        mouse_scale= obj.mouse_scal_time,
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1})                         
     return obj.entry_w2
   end  
   function Apply_Timeselend(data, obj, out_value, butkey, out_str_toparse, mouse)
@@ -501,7 +510,11 @@
                                 func_drag =   function(is_ctrl) 
                                                 if not mouse.temp_val then return end
                                                 local pow_tol = -2
-                                                local out_value = MPL_ModifyFloatVal(mouse.temp_val, 1, 1, math.modf(mouse.dy/obj.mouse_scal_float), data, nil, pow_tol)
+                                                local out_value, mouse_shift 
+                                                
+                                                if data.always_use_x_axis==1 then mouse_shift = -mouse.dx else mouse_shift = mouse.dx end
+                                                
+                                                out_value = MPL_ModifyFloatVal(mouse.temp_val, 1, 1, math.modf(mouse_shift/obj.mouse_scal_float), data, nil, pow_tol)
                                                 out_value = lim(out_value,data.LTFX_minval,data.LTFX_maxval)
                                                 ApplyFXVal(out_value, data.LTFX_trptr, data.LTFX_fxID, data.LTFX_parID)
                                                 redraw =2

@@ -156,7 +156,7 @@
                         modify_func= MPL_ModifyFloatVal,
                         app_func= Apply_Track_vol,                    
                         mouse_scale= obj.mouse_scal_vol,               -- mouse scaling
-                        use_mouse_drag_xAxis= nil, -- x
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
                         --ignore_fields= true, -- same tolerance change
                         y_offs= nil,
                         dont_draw_val = nil,
@@ -237,7 +237,8 @@
                         default_val=0,
                         modify_wholestr = true,
                         dont_draw_val = true,
-                        onRelease_ActName = data.scr_title..': Change track properties'})                            
+                        onRelease_ActName = data.scr_title..': Change track properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1})                            
     return del_w                       
   end  
   function Apply_Track_delay(data, obj, t_out_values, butkey, out_str_toparse, mouse)

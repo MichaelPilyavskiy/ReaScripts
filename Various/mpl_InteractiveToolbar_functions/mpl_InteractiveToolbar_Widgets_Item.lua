@@ -51,7 +51,9 @@
         local key = widgets[widg_key][i]
         if _G['Widgets_Item_'..key] then
             local ret = _G['Widgets_Item_'..key](data, obj, mouse, x_offs, widgets) 
-            if ret then x_offs = x_offs + obj.offs + ret end
+            if ret then 
+              x_offs = x_offs + obj.offs + ret 
+            end
         end
       end  
     end
@@ -96,7 +98,8 @@
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Item_Pos,                         
                         mouse_scale= obj.mouse_scal_time,
-                        onRelease_ActName = data.scr_title..': Change item properties'})                         
+                        onRelease_ActName = data.scr_title..': Change item properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,})                         
     return obj.entry_w2
   end  
   function Apply_Item_Pos(data, obj, t_out_values, butkey, out_str_toparse, mouse)
@@ -160,6 +163,7 @@
                         src_val=data.it,
                         src_val_key= 'item_end',
                         modify_func= MPL_ModifyTimeVal,
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
                         app_func= Apply_Item_Pos2,                         
                         mouse_scale= obj.mouse_scal_time,
                         onRelease_ActName = data.scr_title..': Change item properties'})                         
@@ -232,7 +236,8 @@
                         app_func= Apply_Item_SnapOffs,                         
                         mouse_scale= obj.mouse_scal_time,
                         default_val=0,
-                        onRelease_ActName = data.scr_title..': Change item properties'})                           
+                        onRelease_ActName = data.scr_title..': Change item properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,})                           
     return obj.entry_w2                         
   end
   
@@ -367,7 +372,8 @@
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Item_Length,                         
                         mouse_scale= obj.mouse_scal_time,
-                        onRelease_ActName = data.scr_title..': Change item properties'})                          
+                        onRelease_ActName = data.scr_title..': Change item properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,})                          
     return obj.entry_w2
   end
   
@@ -376,7 +382,7 @@
       
         for i = 1, #t_out_values do
           local out_len
-          if mouse.Ctrl then out_len = math.max(0,t_out_values[1]) else out_len = math.max(0,t_out_values[i]) end
+          if mouse.Ctrl then out_len = math.max(0.001,t_out_values[1]) else out_len = math.max(0.001,t_out_values[i]) end
           SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH', out_len )
           if data.it[i].isMIDI then
               local start_qn =  TimeMap2_timeToQN( 0, data.it[i].item_pos )
@@ -398,7 +404,7 @@
       local out_val = parse_timestr_len(out_str_toparse,1,data.ruleroverride) 
       local diff = data.it[1].item_len - out_val
       for i = 1, #t_out_values do
-        local out_len = math.max(0,t_out_values[i] - diff )
+        local out_len = math.max(0.001,t_out_values[i] - diff )
         SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH', out_len)
         if data.it[i].isMIDI then
             local start_qn =  TimeMap2_timeToQN( 0, data.it[i].item_pos )
@@ -407,7 +413,7 @@
           SetMediaItemInfo_Value( data.it[i].ptr_item, 'B_LOOPSRC',data.it[i].loop)
           SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_STARTOFFS', data.it[i].start_offs )
         end        
-        UpdateItemInProject( data.it[i].ptr_item )                                
+        --UpdateItemInProject( data.it[i].ptr_item )                                
       end
       redraw = 2   
     end
@@ -419,7 +425,82 @@
 
 
 
-
+  --------------------------------------------------------------   
+  function Widgets_Item_srclen(data, obj, mouse, x_offs) -- generate snap_offs controls  
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
+    obj.b.obj_srclen = { x = x_offs,
+                        y = obj.offs ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = 'SRC Length'} 
+    obj.b.obj_srclen_back = { x =  x_offs,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt = '',
+                        ignore_mouse = true}  
+                
+      local srclen_str = data.it[1].srclen_format
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(srclen_str),
+                        table_key='srclen_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.it,
+                        src_val_key= 'srclen',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Item_SrcLength,                         
+                        mouse_scale= obj.mouse_scal_time,
+                        onRelease_ActName = data.scr_title..': Change item properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,})                          
+    return obj.entry_w2
+  end
+  
+  function Apply_Item_SrcLength(data, obj, t_out_values, butkey, out_str_toparse, mouse)
+    if not out_str_toparse then    
+      
+        for i = 1, #t_out_values do
+          local out_len
+          if mouse.Ctrl then out_len = math.max(0.001,t_out_values[1]) else out_len = math.max(0.001,t_out_values[i]) end
+          BR_SetMediaSourceProperties( data.it[i].ptr_take, true, data.it[i].src_start, out_len, data.it[i].src_fade, data.it[i].src_reverse)
+          UpdateItemInProject( data.it[i].ptr_item ) 
+        end
+        --Main_OnCommand(40441, 0) --Peaks: Rebuild peaks for selected items
+        --UpdateArrange() 
+           
+      local new_str = format_timestr_len( t_out_values[1],'', 1,data.ruleroverride ) 
+      local new_str_t = MPL_GetTableOfCtrlValues(new_str)
+      for i = 1, #new_str_t do
+        obj.b[butkey..i].txt = new_str_t[i]
+      end
+     else
+      -- nudge values from first item
+      local out_val = parse_timestr_len(out_str_toparse,1,data.ruleroverride) 
+      local diff = data.it[1].item_len - out_val
+      for i = 1, #t_out_values do
+        local out_len = math.max(0.001,t_out_values[i] - diff )
+        BR_SetMediaSourceProperties( data.it[i].ptr_take, true, data.it[i].src_start, out_len, data.it[i].src_fade, data.it[i].src_reverse)
+        --UpdateItemInProject( data.it[i].ptr_item )   
+      end
+      --Main_OnCommand(40441, 0) --Peaks: Rebuild peaks for selected items 
+      redraw = 2
+      --UpdateArrange()   
+    end
+  end  
+  -------------------------------------------------------------- 
+  
+  
+  
+  
+  
+  
+  
+  
+  
   --------------------------------------------------------------
   function Widgets_Item_offset(data, obj, mouse, x_offs)    -- generate position controls 
     if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
@@ -452,7 +533,8 @@
                         app_func= Apply_Item_Offset,                         
                         mouse_scale= obj.mouse_scal_time,
                         default_val=0,
-                        onRelease_ActName = data.scr_title..': Change item properties'})                            
+                        onRelease_ActName = data.scr_title..': Change item properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,})                            
     return obj.entry_w2                         
   end  
   function Apply_Item_Offset(data, obj, t_out_values, butkey, out_str_toparse)
@@ -516,7 +598,8 @@
                         app_func= Apply_Item_fadein,                         
                         mouse_scale= obj.mouse_scal_time,
                         default_val=0,
-                        onRelease_ActName = data.scr_title..': Change item properties'})                         
+                        onRelease_ActName = data.scr_title..': Change item properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,})                         
     return obj.entry_w2
   end
   
@@ -580,7 +663,8 @@
                         app_func= Apply_Item_fadeout,                         
                         mouse_scale= obj.mouse_scal_time,
                         default_val=0,
-                        onRelease_ActName = data.scr_title..': Change item properties'})                          
+                        onRelease_ActName = data.scr_title..': Change item properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,})                          
     return obj.entry_w2
   end
   
@@ -648,7 +732,8 @@
                         ignore_fields = true,
                         default_val = 1,
                         modify_wholestr = true,
-                        onRelease_ActName = data.scr_title..': Change item properties'})                           
+                        onRelease_ActName = data.scr_title..': Change item properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,})                           
     return vol_w--obj.entry_w2                         
   end
   
@@ -730,7 +815,8 @@
                         pow_tolerance = -2,
                         default_val=0,
                         modify_wholestr = true,
-                        onRelease_ActName = data.scr_title..': Change item properties'})                          
+                        onRelease_ActName = data.scr_title..': Change item properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,})                          
     return pitch_w--obj.entry_w2                         
   end
   
@@ -786,7 +872,9 @@
           end
           local next_w = _G['Widgets_Item_buttons_'..key](data, obj, mouse, x_offs, y_offs, frame_a)
           if i%2 == 1 then last_x1 = last_x1+next_w elseif i%2 == 0 then last_x2 = last_x2+next_w end
-  
+         --[[elseif key:match('s(%d+)') then 
+          local sp = tonumber(key:match('s(%d+)'))
+          if i%2 == 1 then last_x1 = last_x1+sp elseif i%2 == 0 then last_x2 = last_x2+sp end]]
         end
         
       end
@@ -863,6 +951,32 @@
                                 end}
     return w
   end 
+  --------------------------------------------------------------
+  function Widgets_Item_buttons_srcreverse(data, obj, mouse, x_offs, y_offs, frame_a)
+    local w = 50*obj.entry_ratio
+    obj.b.obj_srcreverse = {  x = x_offs,
+                        y = obj.offs+y_offs ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = frame_a,
+                        txt_a = obj.txt_a,
+                        fontsz = obj.fontsz_entry,
+                        txt_col = obj.txt_col_toolbar,
+                        txt = 'Reverse',
+                        state = data.it[1].src_reverse,
+                        state_col = 'green',
+                        func =  function()
+                                  for i = 1, #data.it do                                    
+                                    local retval, section, start, length, fade, reverse  = BR_GetMediaSourceProperties( data.it[i].ptr_take )
+                                    BR_SetMediaSourceProperties( data.it[i].ptr_take, section, start, length, fade, not data.it[1].src_reverse )
+                                    UpdateItemInProject( data.it[i].ptr_item )                                
+                                  end
+                                  redraw = 1                              
+                                end}
+    return w
+  end   
+  
+  
   --------------------------------------------------------------
   function Widgets_Item_buttons_preservepitch(data, obj, mouse, x_offs, y_offs, frame_a)
     local w = 90*obj.entry_ratio
