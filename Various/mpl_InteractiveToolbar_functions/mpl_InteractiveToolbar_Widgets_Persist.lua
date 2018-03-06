@@ -296,22 +296,24 @@
                         txt_col = 'white',
                         txt = txt,
                         func =        function()
-                                        if data.pause then
-                                          Main_OnCommand(1016, 0) --Transport: Stop
-                                          if data.play_editcurzeropos then SetEditCurPos( data.play_editcurzeropos, true , true ) end
+                                        if not mouse.Ctrl then
+                                          if data.pause then
+                                            Main_OnCommand(1016, 0) --Transport: Stop
+                                            if data.play_editcurzeropos then SetEditCurPos( data.play_editcurzeropos, true , true ) end
+                                           else
+                                            Main_OnCommand(40044, 0) -- Transport: Play/stop
+                                            data.play_editcurzeropos = GetCursorPositionEx( 0 )
+                                          end
+                                          redraw = 1    
+                                          
                                          else
-                                          Main_OnCommand(40044, 0) -- Transport: Play/stop
-                                          data.play_editcurzeropos = GetCursorPositionEx( 0 )
-                                        end
-                                        redraw = 1                            
+                                          if not data.play then
+                                             data.play_editcurzeropos = GetCursorPositionEx( 0 )
+                                           end
+                                           Main_OnCommand(1013, 0) -- Transport: Record                                       
+                                           redraw = 1 
+                                          end                       
                                       end,   
-                        func_ctrlL =   function()
-                                        if not data.play then
-                                          data.play_editcurzeropos = GetCursorPositionEx( 0 )
-                                        end
-                                        Main_OnCommand(1013, 0) -- Transport: Record                                       
-                                        redraw = 1
-                                      end,
                         func_R =     function()
                                         Main_OnCommand(40073, 0) -- Transport: Play/pause                                        
                                         redraw = 1

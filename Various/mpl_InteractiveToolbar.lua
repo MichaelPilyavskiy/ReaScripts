@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.18
+-- @version 1.19
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,14 +15,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Menu: show state checks
---    + MouseModifiers: allow to use only X axis when draggin value by mouse
---    + Tags/Item/buttons/#srcreverse
---    + Tags/Item/buttons/#srclen. Peaks of just changed source are not updating in realtime with UpdateItemInProject(). This issue is up to the REAPER devs.
---    # Tags/Persist/#bpm: fix error on timesig changewhen set new marker
---    # Tags/Envelope/#pos: fix error on drag
+--    # Tags/Persist/#transport: fix ctrl+left click run record
 
-  local vrs = '1.18'
+  local vrs = '1.19'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
