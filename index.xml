@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f848b5c054e72d3721c3f48f055d5bd3d64edb0e" name="MPL Scripts">
+<index version="1" commit="5aedeffbbb5247aeb3825ee93662eb3533375725" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1400,6 +1400,70 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-06-03T04:39:21Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/98362cf1edbfdf730994f88f42019e0901450760/MIDI/mpl_Quantize%20item%20and%20note%20positions%20to%20project%20grid.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Remove selected takes MIDI AfterTouch.lua" type="script" desc="Remove selected takes MIDI AfterTouch">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 code snippets based on juliansader work https://forum.cockos.com/member.php?u=14710\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="juliansader, MPL" time="2018-03-07T18:14:10Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5aedeffbbb5247aeb3825ee93662eb3533375725/MIDI/mpl_Remove%20selected%20takes%20MIDI%20AfterTouch.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Remove selected takes MIDI CC.lua" type="script" desc="Remove selected takes MIDI CC">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 code snippets based on juliansader work https://forum.cockos.com/member.php?u=14710\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="juliansader, MPL" time="2018-03-07T18:14:10Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5aedeffbbb5247aeb3825ee93662eb3533375725/MIDI/mpl_Remove%20selected%20takes%20MIDI%20CC.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Remove selected takes MIDI PitchWheel.lua" type="script" desc="Remove selected takes MIDI PitchWheel">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 code snippets based on juliansader work https://forum.cockos.com/member.php?u=14710\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="juliansader, MPL" time="2018-03-07T18:14:10Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5aedeffbbb5247aeb3825ee93662eb3533375725/MIDI/mpl_Remove%20selected%20takes%20MIDI%20PitchWheel.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Remove selected takes MIDI ProgramChange.lua" type="script" desc="Remove selected takes MIDI ProgramChange">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 code snippets based on juliansader work https://forum.cockos.com/member.php?u=14710\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="juliansader, MPL" time="2018-03-07T18:14:10Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5aedeffbbb5247aeb3825ee93662eb3533375725/MIDI/mpl_Remove%20selected%20takes%20MIDI%20ProgramChange.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Send short NoteOn MIDI message to virtual keyboard.lua" type="script" desc="Send short NoteOn MIDI message to virtual keyboard">
