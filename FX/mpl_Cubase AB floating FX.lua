@@ -1,17 +1,14 @@
---[[
-   * ReaScript Name:Cubase AB floating FX
-   * Lua script for Cockos REAPER
-   * Author: MPL
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
-  
-  --[[
-   * Description: implementation of "AB" button in Cubase 7+ plugin window
-   * Instructions: float FX, changes params, run script, change params again and run script again. 
-   It will change plugin parameters beetween two states. Use mpl_Cubase AB floating FX make equal to make two states same.
---]]
+-- @description AB floating FX parameters
+-- @version 1.01
+-- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--    # ReaPack header, name 
+-- @about
+--    implementation of "AB" button in Cubase 7+ plugin window
+--    Instructions: float FX, changes params, run script, change params again and run script again. 
+--    It will change plugin parameters beetween two states. Use mpl_Cubase AB floating FX make equal to make two states same.
+
      
   retval, track, item, fxnum = reaper.GetFocusedFX()
   track = reaper.GetTrack(0, track-1)

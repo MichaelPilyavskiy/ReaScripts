@@ -1,13 +1,12 @@
---[[
-   * ReaScript Name:Delete all MIDI OSC learn from focused FX
-   * Lua script for Cockos REAPER
-   * Author: MPL
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
+-- @description Delete all MIDI OSC learn from focused FX
+-- @version 1.01
+-- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--    # ReaPack header
+
   
-  
+    
   script_title = "Delete all MIDI OSC learn from focused fx"
   reaper.Undo_BeginBlock()
   

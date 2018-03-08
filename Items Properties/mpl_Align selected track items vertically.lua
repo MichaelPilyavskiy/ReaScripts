@@ -1,16 +1,10 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @description Align selected track items vertically (free positioned mode)
 -- @changelog
---    + init
+--    # ReaPack header
 
---[[
-   * ReaScript Name: Align selected track items vertically
-   * Lua script for Cockos REAPER
-   * Author: Michael Pilyavskiy (mpl)
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-  ]]
-  
   function msg(s) reaper.ShowConsoleMsg("") reaper.ShowConsoleMsg(s) end
   
 -------------------------------------------

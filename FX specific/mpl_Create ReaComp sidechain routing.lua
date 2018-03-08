@@ -1,11 +1,9 @@
---[[
-   * ReaScript Name: Create ReaComp sidechain routing from selected track and track under mouse cursor
-   * Lua script for Cockos REAPER
-   * Author: MPL
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
+-- @description Create ReaComp sidechain routing from selected track to track under mouse cursor
+-- @version 1.01
+-- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--    # ReaPack header, name
   
   script_title = "Create ReaComp sidechain routing"
   

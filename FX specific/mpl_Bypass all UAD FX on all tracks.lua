@@ -1,11 +1,9 @@
---[[
-   * Bypass all UAD FX on all tracks
-   * Lua script for Cockos REAPER
-   * Author: MPL
-   * Author URL: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.1
-  ]]
+-- @description Bypass all UAD FX on all tracks
+-- @version 1.11
+-- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--    # ReaPack header, name  
   
   script_title = "Bypass all UAD FX on all tracks"
   reaper.Undo_BeginBlock()

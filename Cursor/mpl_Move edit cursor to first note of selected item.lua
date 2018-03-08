@@ -1,17 +1,10 @@
-  --[[
-     * ReaScript Name: Move edit cursor to first note of selected item
-     * Lua script for Cockos REAPER
-     * Author: MPL
-     * Author URI: http://forum.cockos.com/member.php?u=70694
-     * Licence: GPL v3
-     * Version: 1.0
-    ]]
-    
-  --[[
-    * Changelog: 
-    * v1.0 (2016-08-06)
-      + init release
-  --]]
+-- @description Move edit cursor to first note of selected item
+-- @version 1.01
+-- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--    # ReaPack header, name 
+
   
   function main()
     item = reaper.GetSelectedMediaItem(0,0)
