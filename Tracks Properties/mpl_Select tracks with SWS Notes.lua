@@ -1,5 +1,5 @@
 -- @version 1.1
--- @author mpl
+-- @author MPL
 -- @changelog
 --   #proper match GUID
 -- @description Select tracks with SWS Notes

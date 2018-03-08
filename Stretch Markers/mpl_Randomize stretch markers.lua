@@ -1,25 +1,10 @@
+-- @description Randomize stretch markers
 -- @version 1.0
--- @author mpl
+-- @author MPL
+-- @website http://forum.cockos.com/member.php?u=70694 
 -- @changelog
---   init release
+--    + init 
 
---[[
-   * ReaScript Name: Randomize stretch markers
-   * Lua script for Cockos REAPER
-   * Author: MPL
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-  ]]
-  
-  
---[[ changelog
-    - 1.0 / 28.07.2016
-      + init release
-]]
-  
-        
-  ------------------------------------------------------------
-  
   function GetObjects()
     local obj = {}
       

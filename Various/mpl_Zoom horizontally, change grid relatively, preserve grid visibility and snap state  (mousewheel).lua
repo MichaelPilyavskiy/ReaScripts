@@ -1,6 +1,6 @@
 -- @description Zoom horizontally, change grid relatively, preserve grid visibility and snap state  (mousewheel) 
 -- @version 1.0
--- @author mpl
+-- @author MPL
 -- @changelog
 --   + init
 -- @website http://forum.cockos.com/member.php?u=70694

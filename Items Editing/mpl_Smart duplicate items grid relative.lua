@@ -1,15 +1,14 @@
---[[
-   * ReaScript Name: Smart duplicate items grid relative
-   * Lua script for Cockos REAPER
-   * Author: MPL
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
-  
-script_title = "mpl Smart duplicate items snapgrid relative"
+-- @description Smart duplicate items grid relative
+-- @version 1.11
+-- @author MPL
+-- @website http://forum.cockos.com/member.php?u=70694
+-- @changelog
+--    # ReaPack header
 
--- 06.09.2015 LUA version + wrong timing bugfix
+  
+  script_title = "Smart duplicate items grid relative"
+
+-- vrs 1.1 # 6.09.2015 LUA version + wrong timing bugfix
 
 reaper.Undo_BeginBlock()
 reaper.PreventUIRefresh(1)
