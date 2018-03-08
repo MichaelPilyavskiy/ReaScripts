@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9d54c63f3073a89758270e8f3ef570ab5f184baa" name="MPL Scripts">
+<index version="1" commit="307cdf250bba8ea605d7fcce556c6024f2470f96" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1442,6 +1442,38 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="juliansader, MPL" time="2018-03-07T18:14:10Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5aedeffbbb5247aeb3825ee93662eb3533375725/MIDI/mpl_Remove%20selected%20takes%20MIDI%20CC.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Remove selected takes MIDI CC64 (hold pedal).lua" type="script" desc="Remove selected takes MIDI CC64 (hold pedal)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 code snippets based on juliansader work https://forum.cockos.com/member.php?u=14710\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="juliansader, MPL" time="2018-03-08T14:13:27Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/307cdf250bba8ea605d7fcce556c6024f2470f96/MIDI/mpl_Remove%20selected%20takes%20MIDI%20CC64%20(hold%20pedal).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Remove selected takes MIDI CC64-69 (all pedals).lua" type="script" desc="Remove selected takes MIDI CC64-69 (all pedals)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 code snippets based on juliansader work https://forum.cockos.com/member.php?u=14710\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="juliansader, MPL" time="2018-03-08T14:13:27Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/307cdf250bba8ea605d7fcce556c6024f2470f96/MIDI/mpl_Remove%20selected%20takes%20MIDI%20CC64-69%20(all%20pedals).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove selected takes MIDI PitchWheel.lua" type="script" desc="Remove selected takes MIDI PitchWheel">
