@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="753614c55c99ad859150b42158a1354ea870b48a" name="MPL Scripts">
+<index version="1" commit="9d54c63f3073a89758270e8f3ef570ab5f184baa" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -237,6 +237,16 @@
       <version name="1.01" author="MPL" time="2017-05-09T11:47:11Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3afc423d440339c2fe6294617f05cdd52c8c1180/FX/mpl_Assign%20audio%20input%20parameter%20modulation%20with%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Bypass all FX except instruments on all tracks.lua" type="script" desc="Toggle bypass all FX except instruments on all tracks">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.3" author="MPL" time="2018-03-08T04:31:22Z">
+        <changelog><![CDATA[# fix inversed state
+# reverted native first(only) instrument check]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d54c63f3073a89758270e8f3ef570ab5f184baa/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20all%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Bypass all FX except instruments on selected tracks.lua" type="script" desc="Toggle bypass all FX except instruments on selected tracks">
