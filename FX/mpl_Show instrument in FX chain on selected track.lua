@@ -1,13 +1,12 @@
---[[
-   * ReaScript Name:Show instrument in FX chain on selected track
-   * Lua script for Cockos REAPER
-   * Author: MPL
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
+-- @description Show instrument in FX chain on selected track
+-- @version 1.01
+-- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--    # ReaPack header
+
   
-  script_title = "Show instrument in FX chain on selected track"
+    script_title = "Show instrument in FX chain on selected track"
   reaper.Undo_BeginBlock() 
   
   selected_tracks_count = reaper.CountSelectedTracks(0);

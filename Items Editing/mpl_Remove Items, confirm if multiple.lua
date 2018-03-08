@@ -1,13 +1,12 @@
---[[
-   * ReaScript Name: Remove Items with confirm
-   * Lua script for Cockos REAPER
-   * Author: MPL
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-   * Version: 1.0
-  ]]
+-- @description Remove Items, confirm if multiple
+-- @version 1.01
+-- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--    # ReaPack header, name
+
   
- reaper.Undo_BeginBlock()
+   reaper.Undo_BeginBlock()
 limit = 1 -- message displayed after this items quantity 
 script_title = 'Remove Items (confirm if > '..limit..')'
 
