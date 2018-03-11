@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7f5dfded4057118c622808f3fb0f77cd0edbd963" name="MPL Scripts">
+<index version="1" commit="0012aea3af485d54798d3ca19388d7675457b83b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1526,6 +1526,15 @@ setup min gain, attack =0]]></changelog>
       <version name="1.01" author="MPL" time="2017-08-12T11:33:15Z">
         <changelog><![CDATA[# fix ReaPack header]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/84547cbabdf4a2e94cf94b4164bf583a759bb0e6/MIDI/mpl_Generate%20MIDICC%20from%20audio%20take.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_MIDI map generator.lua" type="script" desc="MIDI map generator">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-03-11T08:32:01Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0012aea3af485d54798d3ca19388d7675457b83b/MIDI/mpl_MIDI%20map%20generator.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Paste MIDI notes to selected item.lua" type="script" desc="Paste MIDI notes to selected item">
