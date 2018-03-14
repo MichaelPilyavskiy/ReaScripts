@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.19
+-- @version 1.20
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,9 +15,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # Tags/Persist/#transport: fix ctrl+left click run record
+--    # render secondary buffer for persist modules. This is a workaround for ReaScript GUI size limitation.
 
-  local vrs = '1.19'
+  local vrs = '1.20'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])

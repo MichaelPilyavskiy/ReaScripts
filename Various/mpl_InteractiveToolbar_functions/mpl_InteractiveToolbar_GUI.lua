@@ -152,7 +152,7 @@
     if not o then return end
     local x,y,w,h = o.x, o.y, o.w, o.h
     if not x or not y or not w or not h then return end
-    
+    if o.persist_buf then x = x - obj.persist_margin end
     
     -- glass back
       gfx.a = o.frame_a
@@ -287,14 +287,29 @@
           gfx.setimgdim(buf_dest, -1, -1)          
           gfx.setimgdim(buf_dest, gfx.w, gfx.h) 
         -- refresh all buttons
-          if obj.b then for key in spairs(obj.b) do GUI_DrawObj(obj.b[key], obj) end end
-          
-        --[[ test
-          gfx.x, gfx.y = 30+buf_dest,0
-          gfx.set (1,1,1,1)
-          gfx.drawstr(buf_dest)]]
+          if obj.b then 
+            for key in spairs(obj.b) do 
+              if not obj.b[key].persist_buf then GUI_DrawObj(obj.b[key], obj) end
+            end 
+          end
       end
-            
+
+      local x_persist_draw = obj.persist_margin
+      local w_persist_draw = gfx.w - obj.persist_margin      
+      local buf_dest = 11
+      if redraw == 1 then
+        -- refresh backgroung
+          gfx.dest = buf_dest
+          gfx.setimgdim(buf_dest, -1, -1)          
+          gfx.setimgdim(buf_dest, w_persist_draw, gfx.h) 
+        -- refresh all buttons
+          if obj.b then 
+            for key in spairs(obj.b) do 
+              if obj.b[key].persist_buf then GUI_DrawObj(obj.b[key], obj) end
+            end 
+          end
+      end
+                  
       gfx.dest = -1   
     ----  render    
       
@@ -314,7 +329,11 @@
       gfx.blit(10, 1, 0,
           0,0,gfx.w, gfx.h,
           0,0,gfx.w, gfx.h, 0,0)  
-                    
+      gfx.a = 1
+      gfx.blit(11, 1, 0,  -- persist buf
+          0,0,w_persist_draw, gfx.h,
+          x_persist_draw,0,w_persist_draw, gfx.h, 0,0)  
+                              
     --[[ draw vrs
       gfx.x, gfx.y = gfx.w-150,0
       gfx.set(0,0,0,1)

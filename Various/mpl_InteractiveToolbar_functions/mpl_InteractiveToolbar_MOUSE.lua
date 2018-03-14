@@ -26,7 +26,9 @@
                             modify_wholestr,
                             trig_GUIupdWithWheel,
                             default_val,
-                            onRelease_ActName 
+                            onRelease_ActName ,
+                            persist_buf
+                            
                             
                             = tbl.data, tbl.obj, tbl.mouse,
                             tbl.t,                              -- values are splitted to table
@@ -46,7 +48,8 @@
                             tbl.modify_wholestr,
                             tbl.trig_GUIupdWithWheel,
                             tbl.default_val,
-                            tbl.onRelease_ActName
+                            tbl.onRelease_ActName,
+                            tbl.persist_buf
                             
                             if not obj  then return end
     local measured_x_offs = 0
@@ -59,7 +62,8 @@
         local txt
         if t.return_for_calc_only or dont_draw_val then txt = '' elseif t[i] then txt = t[i] end
         local w_but = gfx.measurestr(t[i]..'. ') 
-        obj.b[table_key..i] = { x = x_offs + measured_x_offs,
+        obj.b[table_key..i] = { persist_buf = persist_buf,
+                                x = x_offs + measured_x_offs,
                                 y = y_offs,
                                 w = w_but,
                                 h = obj.entry_h,

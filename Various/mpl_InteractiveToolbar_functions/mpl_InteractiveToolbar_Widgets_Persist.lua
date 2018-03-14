@@ -37,7 +37,8 @@
     local frame_a = 0
     local gridwidg_xpos = gfx.w-grid_widg_w-obj.menu_b_rect_side - x_margin
     if data.grid_isactive then  frame_a = obj.frame_a_state end
-    obj.b.obj_pers_grid_back = { x = x_margin - grid_widg_w,
+    obj.b.obj_pers_grid_back = { persist_buf = true,
+                        x = x_margin - grid_widg_w,
                         y = 0 ,
                         w = grid_widg_w,
                         h = obj.entry_h*2,
@@ -47,7 +48,8 @@
                         txt_col = obj.txt_col_header,
                         txt = '',
                         ignore_mouse = true} 
-    obj.b.obj_pers_grid_val = { x = x_margin - grid_widg_w,
+    obj.b.obj_pers_grid_val = { persist_buf = true,
+                        x = x_margin - grid_widg_w,
                         y = 0 ,
                         w = grid_widg_val_w,
                         h = obj.entry_h*2,
@@ -110,7 +112,8 @@
                                       }
     local tripl_a = obj.frame_a_state
     if not data.grid_istriplet then  tripl_a = 0 end
-    obj.b.obj_pers_grid_tripl = { x = x_margin - grid_widg_w+ grid_widg_val_w,
+    obj.b.obj_pers_grid_tripl = { persist_buf = true,
+                        x = x_margin - grid_widg_w+ grid_widg_val_w,
                         y = 0 ,
                         w = grid_widg_w_trpl,
                         h = obj.entry_h*2,
@@ -134,7 +137,8 @@
 
   --------------------------------------------------------------
   function Widgets_Persist_timeselstart(data, obj, mouse, x_margin, widgets)    -- generate position controls 
-    obj.b.obj_tsstart = { x = x_margin-obj.entry_w2,
+    obj.b.obj_tsstart = { persist_buf = true,
+                        x = x_margin-obj.entry_w2,
                         y = obj.offs ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
@@ -142,7 +146,8 @@
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
                         txt = 'TimeSelStart'} 
-    obj.b.obj_tsstart_back = { x =  x_margin-obj.entry_w2,
+    obj.b.obj_tsstart_back = { persist_buf = true,
+                        x =  x_margin-obj.entry_w2,
                         y = obj.offs *2 +obj.entry_h ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
@@ -163,7 +168,8 @@
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_TimeselSt,                         
                         mouse_scale= obj.mouse_scal_time,
-                        use_mouse_drag_xAxis = data.always_use_x_axis==1})                         
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
+                        persist_buf = true})                         
     return obj.entry_w2
   end  
   function Apply_TimeselSt(data, obj, out_value, butkey, out_str_toparse, mouse)
@@ -197,7 +203,8 @@
 
   --------------------------------------------------------------
   function Widgets_Persist_timeselend(data, obj, mouse, x_margin, widgets)    -- generate position controls 
-    obj.b.obj_tsend = { x = x_margin-obj.entry_w2,
+    obj.b.obj_tsend = { persist_buf = true,
+                        x = x_margin-obj.entry_w2,
                         y = obj.offs ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
@@ -205,7 +212,8 @@
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
                         txt = 'TimeSelEnd'} 
-    obj.b.obj_tsend_back = { x =  x_margin-obj.entry_w2,
+    obj.b.obj_tsend_back = { persist_buf = true,
+                        x =  x_margin-obj.entry_w2,
                         y = obj.offs *2 +obj.entry_h ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
@@ -225,7 +233,8 @@
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_Timeselend,                         
                         mouse_scale= obj.mouse_scal_time,
-                        use_mouse_drag_xAxis = data.always_use_x_axis==1})                         
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
+                        persist_buf = true})                         
     return obj.entry_w2
   end  
   function Apply_Timeselend(data, obj, out_value, butkey, out_str_toparse, mouse)
@@ -259,7 +268,8 @@
     local frame_a = 0
     local txt = 'Stop'
     local gridwidg_xpos = gfx.w-transport_state_w-obj.menu_b_rect_side - x_margin
-    obj.b.obj_pers_transport_back = { x = x_margin - transport_state_w,
+    obj.b.obj_pers_transport_back = { persist_buf = true,
+                        x = x_margin - transport_state_w,
                         y = obj.offs ,
                         w = transport_state_w,
                         h = obj.entry_h*2,
@@ -284,7 +294,8 @@
       state_col = 'greendark'
      else
     end
-    obj.b.obj_pers_transport_state = { x = x_margin - transport_state_w,
+    obj.b.obj_pers_transport_state = {persist_buf = true,
+                        x = x_margin - transport_state_w,
                         y =  0,
                         w = transport_state_w,
                         h = obj.entry_h*2,
@@ -334,7 +345,8 @@
     local bpm_w = 60
     local frame_a = 0
     local gridwidg_xpos = gfx.w-bpm_w-obj.menu_b_rect_side - x_margin
-    obj.b.obj_pers_bpm = { x = x_margin - bpm_w,
+    obj.b.obj_pers_bpm = { persist_buf = true,
+                        x = x_margin - bpm_w,
                         y = obj.offs ,
                         w = bpm_w,
                         h = obj.entry_h,
@@ -364,7 +376,8 @@
                                     end
                                   end
                                 end}
-    obj.b.obj_pers_timesign = { x = x_margin - bpm_w,
+    obj.b.obj_pers_timesign = { persist_buf = true,
+                        x = x_margin - bpm_w,
                         y = obj.offs +obj.entry_h,
                         w = bpm_w,
                         h = obj.entry_h,
@@ -422,7 +435,8 @@
     local val_w = 50
     local knob_x_offs = 5
     if not data.LTFX.exist or data.LTFX_parname == 'Bypass' or data.LTFX_fxname == 'JS: time_adjustment' then return end
-    obj.b.obj_lasttouchfx_back1 = { x = x_margin-lasttouchfx_w,
+    obj.b.obj_lasttouchfx_back1 = { persist_buf = true,
+                        x = x_margin-lasttouchfx_w,
                         y = obj.offs ,
                         w = lasttouchfx_w,--obj.entry_w2,
                         h = obj.entry_h,
@@ -432,7 +446,8 @@
                         fontsz = obj.fontsz_entry,
                         txt = '',
                         ignore_mouse = true}    
-    obj.b.obj_lasttouchfx = { x = x_margin-lasttouchfx_w,
+    obj.b.obj_lasttouchfx = { persist_buf = true,
+                        x = x_margin-lasttouchfx_w,
                         y = obj.offs ,
                         w = lasttouchfx_w-val_w,--obj.entry_w2,
                         h = obj.entry_h,
@@ -444,7 +459,8 @@
                         func = function() 
                           TrackFX_Show( data.LTFX_trptr, data.LTFX_fxID, 3 ) 
                         end} 
-    obj.b.obj_lasttouchfx_param = { x =  x_margin-lasttouchfx_w,
+    obj.b.obj_lasttouchfx_param = { persist_buf = true,
+                        x =  x_margin-lasttouchfx_w,
                         y = obj.offs *2 +obj.entry_h ,
                         w = lasttouchfx_w-val_w,--obj.entry_w2,
                         h = obj.entry_h,
@@ -455,7 +471,8 @@
                                   --Main_OnCommand(41984,0)--FX: Arm track envelope for last touched FX parameter
                                   TrackFX_Show( data.LTFX_trptr, data.LTFX_fxID, 3 )
                                 end} 
-    obj.b.obj_lasttouchfx_param_back = { x =  x_margin-lasttouchfx_w,
+    obj.b.obj_lasttouchfx_param_back = { persist_buf = true,
+                        x =  x_margin-lasttouchfx_w,
                         y = obj.offs *2 +obj.entry_h ,
                         w = lasttouchfx_w,--obj.entry_w2,
                         h = obj.entry_h,
@@ -465,7 +482,8 @@
                         ignore_mouse = true}      
                  
     local txt_val = string.format('%.3f',data.LTFX_val)
-    obj.b.obj_lasttouchfx_knobval = { x = x_margin-val_w-knob_x_offs,
+    obj.b.obj_lasttouchfx_knobval = { persist_buf = true,
+                        x = x_margin-val_w-knob_x_offs,
                                     y = obj.offs,
                                     w = val_w,
                                     h = obj.entry_h,
@@ -474,7 +492,8 @@
                                     txt_a = obj.txt_a,
                                     fontsz = obj.fontsz_entry,
                                     ignore_mouse = true}
-    obj.b.obj_lasttouchfx_knobval2 = { x = x_margin-val_w-knob_x_offs,
+    obj.b.obj_lasttouchfx_knobval2 = { persist_buf = true,
+                        x = x_margin-val_w-knob_x_offs,
                                     y = obj.offs+obj.entry_h,
                                     w = val_w,
                                     h = obj.entry_h,
@@ -483,7 +502,8 @@
                                     txt_a = obj.txt_a,
                                     fontsz = obj.fontsz_entry,
                                     ignore_mouse = true}                                    
-    obj.b.obj_lasttouchfx_knob = { x = x_margin-val_w-knob_x_offs,
+    obj.b.obj_lasttouchfx_knob = { persist_buf = true,
+                        x = x_margin-val_w-knob_x_offs,
                                 y = obj.offs,
                                 w = val_w,
                                 h = obj.entry_h*2,
