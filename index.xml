@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0ea3b0c6e83c31418762d5bf8331440d5d3a0faf" name="MPL Scripts">
+<index version="1" commit="4e88dae05d55993843e4646faf230a2ddceb1ea6" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1734,11 +1734,6 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-06-19T19:55:43Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fa4b912fda867ce2ff2a84b49e82c434c7a7777/MIDI%20editor/mpl_Copy%20selected%20notes%20velocities.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Duplicate selected MIDI notes.lua" type="script" desc="Duplicate selected MIDI notes">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI%20editor/mpl_Duplicate%20selected%20MIDI%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Fit selected notes to MIDI item edges.lua" type="script" desc="Fit selected notes to MIDI item edges">
