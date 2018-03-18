@@ -968,9 +968,9 @@
                         func =  function()
                                   for i = 1, #data.it do                                    
                                     local retval, section, start, length, fade, reverse  = BR_GetMediaSourceProperties( data.it[i].ptr_take )
-                                    BR_SetMediaSourceProperties( data.it[i].ptr_take, section, start, length, fade, not data.it[1].src_reverse )
-                                    UpdateItemInProject( data.it[i].ptr_item )                                
+                                    BR_SetMediaSourceProperties( data.it[i].ptr_take, section, start, length, fade, not data.it[1].src_reverse )                            
                                   end
+                                  Action(40441) --Peaks: Rebuild peaks for selected items 
                                   redraw = 1                              
                                 end}
     return w

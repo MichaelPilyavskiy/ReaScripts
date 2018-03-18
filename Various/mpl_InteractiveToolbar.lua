@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.20
+-- @version 1.21
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,9 +15,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # render secondary buffer for persist modules. This is a workaround for ReaScript GUI size limitation.
+--    + Tags/Persist/#clock shows play/edit cursor positions
+--    # Tags/Item/#reverse: rebuild item peaks after reversing
 
-  local vrs = '1.20'
+  local vrs = '1.21'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -94,7 +95,7 @@ order=#vol #pan #fxlist #sendto #delay
 [MIDIEditor]
 order=#position #CCval #notepitch #notevel
 [Persist]
-order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm
+order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock
 ]]
   end  
   ---------------------------------------------------
@@ -140,7 +141,10 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm
       if SCC_trig then 
         DataUpdate(data, mouse, widgets, obj, conf)
         redraw = 1      
-      end
+      end 
+    -- data constant upd
+      data.playcur_pos =  GetPlayPositionEx( 0 )
+      data.playcur_pos_format =  format_timestr_pos( data.playcur_pos, '', data.ruleroverride )
     -- perf GUI 
       GUI_Main(obj, cycle_cnt, redraw, data, clock)
       redraw = 0 

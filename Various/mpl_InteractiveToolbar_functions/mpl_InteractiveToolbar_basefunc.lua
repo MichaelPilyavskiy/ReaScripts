@@ -7,6 +7,7 @@
 
   ---------------------------------------------------
   function msg(s) if s then ShowConsoleMsg(s..'\n') end end
+  function Action(s) Main_OnCommand(NamedCommandLookup(s), 0) end
   ---------------------------------------------------
   function MPL_GetTableOfCtrlValues(str)  -- split .:
     if not str or type(str) ~= 'string' then return end

@@ -97,6 +97,7 @@
     data.pause = int_playstate&2==2
     data.record = int_playstate&4==4
     data.editcur_pos = GetCursorPositionEx( 0 )
+    data.editcur_pos_format =  format_timestr_pos( data.editcur_pos, '', data.ruleroverride )
   end
   
   ---------------------------------------------------

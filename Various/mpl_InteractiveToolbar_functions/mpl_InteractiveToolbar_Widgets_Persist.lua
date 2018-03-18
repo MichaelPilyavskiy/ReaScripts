@@ -28,7 +28,6 @@
 
 
 
-
 ------------------------------------------------------------
   function Widgets_Persist_grid(data, obj, mouse, x_margin, widgets)    -- generate position controls 
     local grid_widg_val_w = 50
@@ -556,7 +555,39 @@
                                               end} 
     return lasttouchfx_w                        
   end  
-  ------------------------------------
+  ------------------------------------------------------------------------  
   function ApplyFXVal(val, track, fx, param) 
     TrackFX_SetParam( track, fx, param, val )
   end 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  ------------------------------------------------------------------------  
+  function Widgets_Persist_clock(data, obj, mouse, x_margin, widgets)  
+    local clock_w = 130
+    local frame_a = 0
+    obj.b.obj_pers_clock = { outside_buf = true,
+                        x = x_margin - clock_w,
+                        y = obj.offs ,
+                        w = clock_w,
+                        h = obj.entry_h*2,
+                        frame_a = obj.frame_a_head,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock,
+                        txt = data.playcur_pos,
+                        func =  function()  
+                                  
+                                end}
+                                
+    return clock_w   
+  end
+  

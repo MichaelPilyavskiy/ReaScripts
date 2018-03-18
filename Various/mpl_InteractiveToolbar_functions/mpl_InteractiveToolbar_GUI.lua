@@ -19,6 +19,7 @@
                   font = 'Calibri',
                   fontsz = conf.GUI_font1,
                   fontsz_entry = conf.GUI_font2,
+                  fontsz_clock = 32,--conf.GUI_font2,
                   col = { grey =    {0.5, 0.5,  0.5 },
                           white =   {1,   1,    1   },
                           red =     {1,   0.3,    0.3   },
@@ -56,6 +57,8 @@
     if GetOS():match('OSX') then 
       obj.fontsz = obj.fontsz - 5
       obj.fontsz_entry = obj.fontsz_entry - 5
+      obj.fontsz_clock = obj.fontsz_clock - 5
+      
     end
     return obj             
   end
@@ -156,6 +159,7 @@
     
     -- glass back
       gfx.a = o.frame_a
+      if o.outside_buf then gfx.a = o.frame_a*0.2 end
       gfx.blit( 2, 1, math.rad(180), -- grad back
                 0,0,  obj.grad_sz,obj.grad_sz,
                 x,y,w,h, 0,0)
@@ -203,7 +207,12 @@
       ------------------ txt
         if txt and w > 0 then 
           if o.txt_col then GUI_col(o.txt_col, obj)else GUI_col('white', obj) end
-          if o.txt_a then gfx.a = o.txt_a else gfx.a = 0.8 end
+          if o.txt_a then 
+            gfx.a = o.txt_a 
+            if o.outside_buf then gfx.a = o.txt_a*0.7 end
+           else 
+            gfx.a = 0.8 
+          end
           gfx.setfont(1, obj.font, o.fontsz or obj.fontsz )
           local shift = 5
           local cnt = 0
@@ -289,7 +298,7 @@
         -- refresh all buttons
           if obj.b then 
             for key in spairs(obj.b) do 
-              if not obj.b[key].persist_buf then GUI_DrawObj(obj.b[key], obj) end
+              if not obj.b[key].persist_buf and not obj.b[key].outside_buf then GUI_DrawObj(obj.b[key], obj) end
             end 
           end
       end
@@ -333,7 +342,17 @@
       gfx.blit(11, 1, 0,  -- persist buf
           0,0,w_persist_draw, gfx.h,
           x_persist_draw,0,w_persist_draw, gfx.h, 0,0)  
-                              
+
+    -- refresh outside_buf buttons
+      gfx.dest = -1
+      
+      if data.play then 
+        obj.b.obj_pers_clock.txt = data.playcur_pos_format
+       else
+        obj.b.obj_pers_clock.txt = data.editcur_pos_format 
+      end
+      GUI_DrawObj(obj.b.obj_pers_clock, obj)
+                                        
     --[[ draw vrs
       gfx.x, gfx.y = gfx.w-150,0
       gfx.set(0,0,0,1)
