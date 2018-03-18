@@ -347,9 +347,9 @@
       gfx.dest = -1
       
       if data.play then 
-        obj.b.obj_pers_clock.txt = data.playcur_pos_format
+        if obj.b.obj_pers_clock then obj.b.obj_pers_clock.txt = data.playcur_pos_format end
        else
-        obj.b.obj_pers_clock.txt = data.editcur_pos_format 
+        if obj.b.obj_pers_clock then obj.b.obj_pers_clock.txt = data.editcur_pos_format end
       end
       GUI_DrawObj(obj.b.obj_pers_clock, obj)
                                         

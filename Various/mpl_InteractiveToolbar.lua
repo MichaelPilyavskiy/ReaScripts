@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.21
+-- @version 1.22
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,10 +15,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Tags/Persist/#clock shows play/edit cursor positions
---    # Tags/Item/#reverse: rebuild item peaks after reversing
+--    # Tags/Persist/#clock fix if not exist in config
 
-  local vrs = '1.21'
+  local vrs = '1.22'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
