@@ -17,6 +17,8 @@
     data.pitch_format = conf.pitch_format
     data.oct_shift = conf.oct_shift
     data.always_use_x_axis = conf.always_use_x_axis
+    data.MM_doubleclick = conf.MM_doubleclick
+    data.MM_rightclick = conf.MM_rightclick
     
     -- reset buttons data
       obj.b = {}
@@ -31,6 +33,7 @@
         obj.b.type_name = nil
         obj.b.obj_name = nil
       end  
+      
   end
   ---------------------------------------------------  
   function DataUpdate_RulerGrid(data, conf)  
@@ -64,10 +67,29 @@
     data.obj_type = 'No object selected'
     data.obj_type_int = -1  
     local item = GetSelectedMediaItem(0,0)
+    local item_parent_tr if item then item_parent_tr = GetMediaItem_Track( item ) end
     local env = GetSelectedEnvelope( 0 )
+    local env_parent_tr if env then env_parent_tr  = Envelope_GetParentTrack( env ) end
     local tr = GetSelectedTrack(0,0)
     local ME = MIDIEditor_GetActive()
-          
+
+    data.fsel_tr = GetSelectedTrack(0,0)
+    ClearConsole()
+    
+    if  conf.use_context_specific_conditions == 1 and data.last_fsel_tr 
+        and data.last_fsel_tr ~= data.fsel_tr 
+        and not (
+                  (item_parent_tr and item_parent_tr == data.fsel_tr )
+                  or  
+                  (env_parent_tr and env_parent_tr == data.fsel_tr) 
+                )
+      then 
+      DataUpdate_Track(data, tr)
+      Obj_UpdateTrack(data, obj, mouse, widgets)   
+      goto skip_context_selector
+    end
+    
+
     if ME then
       DataUpdate_MIDIEditor(data, ME )
       Obj_UpdateMIDIEditor(data, obj, mouse, widgets)
@@ -81,6 +103,19 @@
       DataUpdate_Track(data, tr)
       Obj_UpdateTrack(data, obj, mouse, widgets)        
     end
+    
+    ::skip_context_selector::
+    data.last_fsel_tr = data.fsel_tr
+    --[[ force_track_context engine
+      local window, segment, details = BR_GetMouseCursorContext()
+      data.fsel_tr = GetSelectedTrack(0,0)
+      local force_track_context = --((window == 'tcp' and segment == 'track') or (window == arrange and segment == 'track' and details == 'empty'))and
+                                  (data.last_fsel_tr and data.last_fsel_tr ~= data.fsel_tr)
+                                  and (data.last_obj_type_int and data.last_obj_type_int ~= 7)
+      --ClearConsole()
+      data.last_fsel_tr = data.fsel_tr
+      data.last_obj_type_int =data.obj_type_int]]
+            
   end
   ---------------------------------------------------
   function DataUpdate_TimeSelection(data)

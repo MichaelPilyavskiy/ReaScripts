@@ -5,6 +5,82 @@
 
 
   -- mouse func for mpl_InteractiveToolbar
+  ---------------------------------------------------
+  function Obj_GenerateCtrl_userinput_value(modify_wholestr, t,src_val,src_val_key,app_func,data, obj,table_key,mouse,parse_pan_tags,out_value)  
+    -- if parse whole string  
+      if modify_wholestr then                                                   
+        local retval0,ret_str = GetUserInputs( 'Edit', 1, ',extrawidth=100', table.concat(t,'') )
+        if retval0 then
+          if type(src_val) == 'table'  and not src_val[src_val_key] then 
+            local t_out_values = {}
+            for src_valID = 1, #src_val do t_out_values[src_valID] = src_val[src_valID][src_val_key] end                                                    
+            app_func(data, obj, t_out_values, table_key, ret_str, mouse)
+           else 
+            local out_value = src_val[src_val_key] 
+            app_func(data, obj, out_value, table_key, ret_str, mouse)
+          end
+        end
+        return
+      end
+    
+    -- if modify partially                                          
+      local comma = ','
+      local name_flds = comma:rep(#t)                                                    
+      local sign_t = {}   for i = 1, #t do sign_t[i] = t[i]:match('[%:%.]') end
+      local  existval = {} for i = 1, #t do existval[i] =  t[i]:match('[%-%d]+') end
+      local ex_val
+      if parse_pan_tags then ex_val = table.concat(t,'') else ex_val = table.concat(existval,',') end                        
+      local retval0,ret_str = GetUserInputs( 'Edit', #t, name_flds..'extrawidth=100', ex_val )
+      if not retval0 then return end
+      if parse_pan_tags then app_func(data, obj, out_value, table_key, ret_str, mouse) return end
+                                                  
+      if type(src_val) == 'table'  and not src_val[src_val_key] then 
+        local t_out_values = {}
+        for src_valID = 1, #src_val do t_out_values[src_valID] = src_val[src_valID][src_val_key] end
+        local out_val_t = {}  for num in ret_str:gmatch('[%-%d]+') do out_val_t[#out_val_t+1] = num end
+        local out_str_toparse_concat = ''
+        for i = 1, #out_val_t do  
+          local sign 
+          if sign_t[i] then sign = sign_t[i] else sign = '' end
+          out_str_toparse_concat = out_str_toparse_concat..out_val_t[i]..sign 
+        end
+        app_func(data, obj, t_out_values, table_key, out_str_toparse_concat,mouse) 
+       
+       else 
+        local out_value
+        if type(src_val) == 'table' and src_val[src_val_key] then out_value = src_val[src_val_key] else out_value = src_val end
+        local out_val_t = {}
+        for num in ret_str:gmatch('[%-%d]+') do out_val_t[#out_val_t+1] = num end
+        local out_str_toparse_concat = ''
+        for i = 1, #out_val_t do                                                    
+          local sign if sign_t[i] then sign = sign_t[i] else sign = '' end
+          out_str_toparse_concat = out_str_toparse_concat..out_val_t[i]..sign 
+        end
+        app_func(data, obj, out_value, table_key, out_str_toparse_concat, mouse)                                                   
+      end  
+  end      
+                                                  
+  ---------------------------------------------------
+  function Obj_GenerateCtrl_reset_value(src_val, src_val_key, default_val, app_func, data, obj, table_key, mouse)  
+    if not default_val then return end
+    if type(src_val) == 'table' then
+      local t_out_values
+      if not src_val[src_val_key] then 
+        t_out_values = {}
+        for src_valID = 1, #src_val do
+          t_out_values[src_valID] =default_val                    
+        end 
+       else 
+        t_out_values = default_val
+      end
+      app_func(data, obj, t_out_values, table_key,nil,mouse)
+      redraw = 2 
+     else 
+      local out_value = default_val
+      app_func(data, obj, default_val, table_key, nil, mouse)
+      redraw = 2
+    end 
+  end
   
   ---------------------------------------------------  
   function Obj_GenerateCtrl(tbl)
@@ -82,24 +158,8 @@
                                                 mouse.temp_val2 = #t 
                                                 redraw = 1
                                               
-                                                if mouse.Alt and default_val then
-                                                  if type(src_val) == 'table' then
-                                                    local t_out_values
-                                                    if not src_val[src_val_key] then 
-                                                      t_out_values = {}
-                                                      for src_valID = 1, #src_val do
-                                                        t_out_values[src_valID] =default_val                    
-                                                      end 
-                                                     else 
-                                                      t_out_values = default_val
-                                                    end
-                                                    app_func(data, obj, t_out_values, table_key,nil,mouse)
-                                                    redraw = 2 
-                                                   else 
-                                                    local out_value = default_val
-                                                    app_func(data, obj, default_val, table_key, nil, mouse)
-                                                    redraw = 2
-                                                  end  
+                                                if mouse.Alt then
+                                                  Obj_GenerateCtrl_reset_value(src_val, src_val_key, default_val, app_func, data, obj, table_key, mouse)  
                                                 end
                                               
                                               end,
@@ -145,68 +205,18 @@
                                                 end
                                               end,
                                 func_DC =     function() 
-                                
-                                              
-                                                if modify_wholestr then                                                   
-                                                  local retval0,ret_str = GetUserInputs( 'Edit', 1, ',extrawidth=100', table.concat(t,'') )
-                                                  if retval0 then
-                                                    if type(src_val) == 'table'  and not src_val[src_val_key] then 
-                                                      local t_out_values = {}
-                                                      for src_valID = 1, #src_val do t_out_values[src_valID] = src_val[src_valID][src_val_key] end                                                    
-                                                      app_func(data, obj, t_out_values, table_key, ret_str, mouse)
-                                                     else 
-                                                      local out_value = src_val[src_val_key] 
-                                                      app_func(data, obj, out_value, table_key, ret_str, mouse)
-                                                    end
-                                                  end
-                                                  return
+                                                if data.MM_doubleclick == 0 then
+                                                  Obj_GenerateCtrl_userinput_value(modify_wholestr, t,src_val,src_val_key,app_func,data, obj,table_key,mouse,parse_pan_tags,out_value)                                          
+                                                 elseif data.MM_doubleclick == 1 then
+                                                  Obj_GenerateCtrl_reset_value(src_val, src_val_key, default_val, app_func, data, obj, table_key, mouse) 
                                                 end
-                                                
-                                                local comma = ','
-                                                local name_flds = comma:rep(#t)
-                                                    
-                                                local sign_t = {}   for i = 1, #t do sign_t[i] = t[i]:match('[%:%.]') end
-                                                local  existval = {} for i = 1, #t do existval[i] =  t[i]:match('[%-%d]+') end
-                                                local ex_val
-                                                if parse_pan_tags then 
-                                                  ex_val = table.concat(t,'')
-                                                 else
-                                                  ex_val = table.concat(existval,',')
-                                                end                        
-                                                local retval0,ret_str = GetUserInputs( 'Edit', #t, name_flds..'extrawidth=100', ex_val )
-                                                if not retval0 then return end
-                                                if parse_pan_tags then
-                                                  app_func(data, obj, out_value, table_key, ret_str, mouse)
-                                                  return 
+                                              end,
+                                func_R =      function()
+                                                if data.MM_rightclick == 0 then 
+                                                  Obj_GenerateCtrl_reset_value(src_val, src_val_key, default_val, app_func, data, obj, table_key, mouse) 
+                                                 elseif data.MM_rightclick == 1 then
+                                                  Obj_GenerateCtrl_userinput_value(modify_wholestr, t,src_val,src_val_key,app_func,data, obj,table_key,mouse,parse_pan_tags,out_value)
                                                 end
-                                                  
-                                                if type(src_val) == 'table'  and not src_val[src_val_key] then 
-                                                  local t_out_values = {}
-                                                  for src_valID = 1, #src_val do t_out_values[src_valID] = src_val[src_valID][src_val_key] end
-                                                  local out_val_t = {}
-                                                  for num in ret_str:gmatch('[%-%d]+') do out_val_t[#out_val_t+1] = num end
-                                                  local out_str_toparse_concat = ''
-                                                  for i = 1, #out_val_t do                                                    
-                                                    local sign if sign_t[i] then sign = sign_t[i] else sign = '' end
-                                                    out_str_toparse_concat = out_str_toparse_concat..out_val_t[i]..sign 
-                                                  end
-                                                  app_func(data, obj, t_out_values, table_key, out_str_toparse_concat,mouse) 
-                                                 else 
-                                                  local out_value
-                                                  if type(src_val) == 'table' and src_val[src_val_key] then 
-                                                    out_value = src_val[src_val_key] 
-                                                   else 
-                                                    out_value = src_val 
-                                                  end
-                                                  local out_val_t = {}
-                                                  for num in ret_str:gmatch('[%-%d]+') do out_val_t[#out_val_t+1] = num end
-                                                  local out_str_toparse_concat = ''
-                                                  for i = 1, #out_val_t do                                                    
-                                                    local sign if sign_t[i] then sign = sign_t[i] else sign = '' end
-                                                    out_str_toparse_concat = out_str_toparse_concat..out_val_t[i]..sign 
-                                                  end
-                                                  app_func(data, obj, out_value, table_key, out_str_toparse_concat, mouse)                                                   
-                                                end                                                                  
                                               end} 
         measured_x_offs = measured_x_offs + w_but
       end

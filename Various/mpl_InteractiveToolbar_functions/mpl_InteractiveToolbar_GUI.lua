@@ -377,10 +377,28 @@
                   func = function() F_open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } , 
                   
                 { str = '>Options'},
-                { str = 'Always use X axis control|<',
+                { str = 'Always use X axis control',
                   state = conf.always_use_x_axis==1,
                   func = function() conf.always_use_x_axis = math.abs(-1+conf.always_use_x_axis) ExtState_Save(conf) redraw = 2 end }  ,
-                   
+                { str = 'Use additional context conditions|',
+                  state = conf.use_context_specific_conditions==1,
+                  func = function() conf.use_context_specific_conditions = math.abs(-1+conf.use_context_specific_conditions) ExtState_Save(conf) redraw = 2 end }  ,                   
+                
+                { str = '#MouseModifiers'},
+                { str = 'Doubleclick on value to type value',
+                  state = conf.MM_doubleclick==0,
+                  func = function() conf.MM_doubleclick = 0 ExtState_Save(conf) redraw = 2 end }  ,                   
+                { str = 'Doubleclick on value to reset value',
+                  state = conf.MM_doubleclick==1,
+                  func = function() conf.MM_doubleclick = 1 ExtState_Save(conf) redraw = 2 end }  , 
+                  
+                { str = 'Rightclick on value to reset value',
+                  state = conf.MM_rightclick==0,
+                  func = function() conf.MM_rightclick = 0 ExtState_Save(conf) redraw = 2 end }  ,                   
+                { str = 'Rightclick on value to type value|<',
+                  state = conf.MM_rightclick==1,
+                  func = function() conf.MM_rightclick = 1 ExtState_Save(conf) redraw = 2 end }  ,                   
+                                     
                   
                 { str = '>Theme'},
                 { str = 'Font size',

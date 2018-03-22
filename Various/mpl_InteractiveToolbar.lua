@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.22
+-- @version 1.25
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,9 +15,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # Tags/Persist/#clock fix if not exist in config
+--    + Options/Use additional context conditions. Force track context on track change even if item/point is selected.
+--    + Options/MouseModifiers for rightclick and doubleclick
 
-  local vrs = '1.22'
+  local vrs = '1.25'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -114,7 +115,10 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock
             ruleroverride = -1,
             pitch_format = 0,
             oct_shift = 2,
-            always_use_x_axis = 0}
+            always_use_x_axis = 0,
+            use_context_specific_conditions = 0,
+            MM_doubleclick = 0,
+            MM_rightclick = 0}
   end
   ---------------------------------------------------
   function Run()
