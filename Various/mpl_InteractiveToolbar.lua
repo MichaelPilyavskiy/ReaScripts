@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.25
+-- @version 1.26
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,10 +15,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Options/Use additional context conditions. Force track context on track change even if item/point is selected.
---    + Options/MouseModifiers for rightclick and doubleclick
+--    # fix context fail on empty track when specific context enabled
 
-  local vrs = '1.25'
+  local vrs = '1.26'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])

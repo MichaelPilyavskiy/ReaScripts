@@ -83,6 +83,7 @@
                   or  
                   (env_parent_tr and env_parent_tr == data.fsel_tr) 
                 )
+        and tr
       then 
       DataUpdate_Track(data, tr)
       Obj_UpdateTrack(data, obj, mouse, widgets)   
