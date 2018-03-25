@@ -38,15 +38,26 @@
     if data.grid_isactive then  frame_a = obj.frame_a_state end
     obj.b.obj_pers_grid_back = { persist_buf = true,
                         x = x_margin - grid_widg_w,
-                        y = 0 ,
+                        y = obj.offs ,
                         w = grid_widg_w,
-                        h = obj.entry_h*2,
-                        frame_a = obj.frame_a_entry,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
                         frame_rect_a = 0,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
                         txt = '',
                         ignore_mouse = true} 
+    obj.b.obj_pers_grid_back2 = { persist_buf = true,
+                        x = x_margin - grid_widg_w,
+                        y = obj.offs + obj.entry_h,
+                        w = grid_widg_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = '',
+                        ignore_mouse = true}                         
     obj.b.obj_pers_grid_val = { persist_buf = true,
                         x = x_margin - grid_widg_w,
                         y = 0 ,
@@ -267,17 +278,26 @@
     local frame_a = 0
     local txt = 'Stop'
     local gridwidg_xpos = gfx.w-transport_state_w-obj.menu_b_rect_side - x_margin
-    obj.b.obj_pers_transport_back = { persist_buf = true,
+    obj.b.obj_pers_transport_state_bck1 = {persist_buf = true,
                         x = x_margin - transport_state_w,
                         y = obj.offs ,
                         w = transport_state_w,
-                        h = obj.entry_h*2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}   
+    obj.b.obj_pers_transport_state_bck2 = {persist_buf = true,
+                        x = x_margin - transport_state_w,
+                        y = obj.offs+obj.entry_h ,
+                        w = transport_state_w,
+                        h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         frame_rect_a = 0,
                         txt_a = obj.txt_a,
-                        txt_col = obj.txt_col_header,
-                        txt = '',
-                        ignore_mouse = true} 
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}   
     local state_col, state
     if  data.record  then
       state = true
@@ -331,6 +351,7 @@
                                       
                                       
                                       }
+                                              
     return transport_state_w
   end  
   
@@ -573,12 +594,32 @@
   function Widgets_Persist_clock(data, obj, mouse, x_margin, widgets)  
     local clock_w = 130
     local frame_a = 0
+    obj.b.obj_pers_clock_back1 = {persist_buf = true,
+                        x = x_margin - clock_w,
+                        y = obj.offs ,
+                        w = clock_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}
+    obj.b.obj_pers_clock_back2 = {persist_buf = true,
+                        x = x_margin - clock_w,
+                        y = obj.offs+obj.entry_h ,
+                        w = clock_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}                        
     obj.b.obj_pers_clock = { outside_buf = true,
                         x = x_margin - clock_w,
                         y = obj.offs ,
                         w = clock_w,
                         h = obj.entry_h*2,
-                        frame_a = obj.frame_a_head,
+                        frame_a = 0,
                         frame_rect_a = 0,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_entry,
@@ -591,3 +632,34 @@
     return clock_w   
   end
   
+
+
+
+
+---------------------------------------------------------------
+  function Widgets_Persist_toolbar(data, obj, mouse, x_margin, widgets)  
+    local toolb_w = obj.entry_h*2
+    local frame_a = 0
+    obj.b.obj_pers_toolb_back1 = {persist_buf = true,
+                        x = x_margin - toolb_w,
+                        y = obj.offs ,
+                        w = toolb_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}
+    obj.b.obj_pers_toolb_back2 = {persist_buf = true,
+                        x = x_margin - toolb_w,
+                        y = obj.offs+obj.entry_h ,
+                        w = toolb_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock} 
+                                
+    return toolb_w   
+  end

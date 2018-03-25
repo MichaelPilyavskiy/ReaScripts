@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.26
+-- @version 1.27
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,9 +15,11 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # fix context fail on empty track when specific context enabled
+--    + Tags/Track/#chsendmixer shows all send faders if sends existed for the first selected track. Ctrl+drag move on any slider acts as a VCA.
+--    # Config: refresh widgets on refresh GUI (ex. after manual widgets ini edit)
+--    # GUI: proper background for #clock, #transport, #grid and menu
 
-  local vrs = '1.26'
+  local vrs = '1.27'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -43,7 +45,7 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-   data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
+  data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title}
   local mouse = {}
@@ -90,7 +92,7 @@ buttons=#lock #preservepitch #chanmode #loop #srcreverse #mute
 [Envelope]
 order=#floatfx #position #value
 [Track]
-order=#vol #pan #fxlist #sendto #delay
+order=#vol #pan #fxlist #sendto #delay #chsendmixer
 [MIDIEditor]
 order=#position #CCval #notepitch #notevel
 [Persist]

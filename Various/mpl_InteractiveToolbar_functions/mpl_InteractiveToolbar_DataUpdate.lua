@@ -13,6 +13,7 @@
     DataUpdate_PlayState(data)
     DataUpdate_TempoTimeSignature(data)
     DataUpdate_LastTouchedFX(data)
+    --DataUpdate_Toolbar(data,conf)
     
     data.pitch_format = conf.pitch_format
     data.oct_shift = conf.oct_shift
@@ -44,6 +45,11 @@
     data.grid_isactive =  GetToggleCommandStateEx( 0, 1157 )==1
     data.ruleroverride = conf.ruleroverride
   end
+  --[[-------------------------------------------------
+  function DataUpdate_Toolbar(data,conf)
+    local toolb_id = 1
+    
+  end]]
   ---------------------------------------------------
   function DataUpdate_Context(data, mouse, widgets, obj, conf)    
     --[[ 
@@ -471,27 +477,54 @@
     for i = 1, cnt do
       local tr = GetSelectedTrack(0,i-1)
       data.tr[i] = {}
-      if i ==1 then
-        data.tr[i].fx_names= {}
-        local instr = TrackFX_GetInstrument( tr )
-        for fxid = 1, TrackFX_GetCount( tr ) do          
-          data.tr[i].fx_names[fxid] = {name = MPL_ReduceFXname(({TrackFX_GetFXName( tr, fxid-1, '' )})[2]),
-                                        is_instr = instr==fxid-1,
-                                        is_enabled =  TrackFX_GetEnabled( tr, fxid-1 )}
-        end
-      end
-      data.tr[i].ptr = tr
-      local _, tr_name = GetTrackName( tr, '' )
-      local trID = CSurf_TrackToID( tr, false )
-      if trID < 1 then trID = '' else trID = trID..': '  end
-      data.tr[i].name = trID..tr_name
-      data.tr[i].name_proj = tr_name
-      data.tr[i].pan = GetMediaTrackInfo_Value( tr, 'D_PAN' )
-      data.tr[i].pan_format = MPL_FormatPan(data.tr[i].pan)
-      data.tr[i].vol = GetMediaTrackInfo_Value( tr, 'D_VOL' )
-      data.tr[i].vol_format = dBFromReaperVal(data.tr[i].vol)..'dB'
       
-      -- get delay
+      -- sends 
+        if i == 1 then
+          data.tr_send = {}
+          data.tr_cnt_sends = GetTrackNumSends(tr, 0 )
+          data.tr_cnt_sendsHW = GetTrackNumSends(tr, 1 )
+          for send_i = 1, data.tr_cnt_sends+data.tr_cnt_sendsHW do
+            local _, send_name = GetTrackSendName(tr, send_i-1, '' )  
+            local desttr_ptr = BR_GetMediaTrackSendInfo_Track(tr, 0, send_i-1-data.tr_cnt_sendsHW, 1 )
+            local s_vol = GetTrackSendInfo_Value( tr, 0, send_i-1-data.tr_cnt_sendsHW, 'D_VOL' )
+            local retval, s_name = GetTrackSendName( tr, send_i-1-data.tr_cnt_sendsHW, '' )
+            local dBval = dBFromReaperVal(s_vol)
+            if not tonumber(dBval) then dBval = -math.huge end
+            local s_vol_slider = DB2SLIDER(dBval )/1000
+            data.tr_send[send_i] = {send_name=send_name,
+                                    desttr_ptr=desttr_ptr,
+                                    s_vol=s_vol,
+                                    s_name=s_name,
+                                    s_vol_slider=s_vol_slider}
+          end
+        end
+          
+      -- FX 
+        if i ==1 then
+          data.tr[i].fx_names= {}
+          local instr = TrackFX_GetInstrument( tr )
+          for fxid = 1, TrackFX_GetCount( tr ) do          
+            data.tr[i].fx_names[fxid] = {name = MPL_ReduceFXname(({TrackFX_GetFXName( tr, fxid-1, '' )})[2]),
+                                          is_instr = instr==fxid-1,
+                                          is_enabled =  TrackFX_GetEnabled( tr, fxid-1 )}
+          end
+        end
+        
+      -- tr name 
+        data.tr[i].ptr = tr
+        local _, tr_name = GetTrackName( tr, '' )
+        local trID = CSurf_TrackToID( tr, false )
+        if trID < 1 then trID = '' else trID = trID..': '  end
+        data.tr[i].name = trID..tr_name
+        data.tr[i].name_proj = tr_name
+      
+      -- values
+        data.tr[i].pan = GetMediaTrackInfo_Value( tr, 'D_PAN' )
+        data.tr[i].pan_format = MPL_FormatPan(data.tr[i].pan)
+        data.tr[i].vol = GetMediaTrackInfo_Value( tr, 'D_VOL' )
+        data.tr[i].vol_format = dBFromReaperVal(data.tr[i].vol)..'dB'
+      
+      -- delay time_adjustment
         data.tr[i].delay = 0
         local delayFX_pos = TrackFX_AddByName( tr, 'time_adjustment', false, 0 )
         if delayFX_pos >=0 then

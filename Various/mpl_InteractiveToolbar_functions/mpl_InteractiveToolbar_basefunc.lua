@@ -474,6 +474,7 @@
   end
   ---------------------------------------------------
   function dBFromReaperVal(val)  local out
+    if not val or type(val) == 'string' then val = 0 end
     if val < 1 then 
       out = 20*math.log(val, 10)
      else 
@@ -484,7 +485,7 @@
   ---------------------------------------------------
   function ReaperValfromdB(dB_val)  local out
     local dB_val = tonumber(dB_val)
-    if not dB_val then return 0 end
+    if not dB_val or type(dB_val) == 'string' then return 0 end
     if dB_val < 0 then 
       out = 10^(dB_val/20)
      else 

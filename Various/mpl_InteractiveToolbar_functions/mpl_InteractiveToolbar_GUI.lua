@@ -38,6 +38,7 @@
                   
                   mouse_scal_time = 5,
                   mouse_scal_vol = 5,
+                  mouse_scal_sendmixvol = 10,
                   mouse_scal_pitch = 5,
                   mouse_scal_pan = 1,
                   mouse_scal_float = 0.5,
@@ -135,11 +136,21 @@
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
                         txt =data.obj_type}
+    obj.b.menu_back1 = { x = obj.offs,
+                        y = obj.offs,
+                        w = obj.menu_b_rect_side,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head}
+    obj.b.menu_back2 = { x = obj.offs,
+                        y = obj.offs+obj.entry_h,
+                        w = obj.menu_b_rect_side,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry}                        
     obj.b.menu = { x = obj.offs,
                         y = obj.offs,
                         w = obj.menu_b_rect_side,
                         h = obj.entry_h*2,
-                        frame_a = obj.frame_a_head,
+                        frame_a = 0,--obj.frame_a_head,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
                         txt = '>',
@@ -173,7 +184,7 @@
     -- state
       if o.state then
         if o.state_col then GUI_col(o.state_col, obj) end
-        gfx.a = 0.49
+        gfx.a = 0.3
         gfx.rect(x,y,w,h,1)        
       end
       
@@ -184,7 +195,15 @@
         if o.sider_col then GUI_col(o.sider_col, obj) end
         if not o.centered_slider then 
           val = lim(val,0,1)
-          gfx.rect(x,y,w*val,h,1)
+          if not o.is_vertical_slider then
+            gfx.rect(x,y,w*val,h,1)
+           else 
+            gfx.rect(x+1,
+                      y+math.floor(h*(1-val)),
+                      w-2,
+                      lim(  math.floor(h*val), 0, h-y-math.floor(h*(1-val)) ),
+                          1)
+          end
          else
           val = lim(val,-1,1)
           if val > 0 then 
@@ -209,7 +228,7 @@
           if o.txt_col then GUI_col(o.txt_col, obj)else GUI_col('white', obj) end
           if o.txt_a then 
             gfx.a = o.txt_a 
-            if o.outside_buf then gfx.a = o.txt_a*0.7 end
+            if o.outside_buf then gfx.a = o.txt_a*0.8 end
            else 
             gfx.a = 0.8 
           end
@@ -588,7 +607,11 @@ msg(
                                           gfx.quit() 
                                           gfx.init('MPL '..conf.scr_title,conf.wind_w, conf.wind_h,  513 , conf.wind_x, conf.wind_y)end} ,                   
                 {str = 'Refresh GUI',
-                 func = function() SCC_trig = true end}  ,                  
+                 func = function() 
+                          SCC_trig = true 
+                          Config_ParseIni(data.conf_path, widgets)
+                          redraw = 2
+                        end}  ,                  
                 {str = 'Close MPL InteractiveToolbar',
                  func = function() force_exit = true end} ,                   
                         

@@ -474,7 +474,7 @@
       if not tonumber(dBval) then dBval = -math.huge end
       local real = reaper.DB2SLIDER(dBval )/1000
       data.defsendvol_slider = real
-      obj.b.obj_sendto_vol.val = data.defsendvol_slider
+      obj.b.obj_sendto_vol.val = real
       
       redraw =  2 
      else
@@ -589,4 +589,156 @@
       end
   end
   
-  
+
+
+
+
+
+
+
+-----------------------------------------------------------   
+  function Widgets_Track_chsendmixer(data, obj, mouse, x_offs)
+    local send_w = 150
+    if data.tr_cnt_sends + data.tr_cnt_sendsHW == 0 then return end
+    if x_offs + send_w > obj.persist_margin then return x_offs end 
+    obj.b.obj_sendmix_back1 = { x = x_offs,
+                        y = obj.offs ,
+                        w = send_w,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        --txt = 'test',
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        ignore_mouse = true}  
+    obj.b.obj_sendmix_back2 = { x = x_offs,
+                        y = obj.offs+obj.entry_h ,
+                        w = send_w,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        ignore_mouse = true} 
+                       
+    local ch_w = 12
+    local ch_h = math.floor(obj.entry_h*1.8)
+    local ch_y = obj.offs + (obj.entry_h*2-math.floor(obj.entry_h*1.8))/2
+    for i = 1, data.tr_cnt_sends + data.tr_cnt_sendsHW do
+      local slider_a if data.active_context_id and data.active_context_id == i then slider_a = 0.5 else slider_a = 0.2 end
+      obj.b['obj_sendmix_ch'..i] = { x = x_offs + 3 + math.floor(ch_w * (i-1)),
+                        y = ch_y,
+                        w = ch_w,--obj.entry_w2,
+                        h = ch_h,
+                        frame_a = 0,
+                        frame_rect_a = 0.1,
+                        fontsz = obj.fontsz_entry,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        --ignore_mouse=true,
+                        val = lim(data.tr_send[i].s_vol_slider),
+                        is_slider = true,
+                        is_vertical_slider = true,
+                        sider_col = obj.txt_col_entry,
+                        slider_a =slider_a,
+                        func =  function()
+                                  mouse.temp_val = data.tr_send[i].s_vol
+                                  mouse.temp_val2 = data.tr_send
+                                end,
+                        func_onRelease = function() Undo_OnStateChange( data.scr_title..': Change track send properties' ) end,
+                        func_wheel = function()
+                                      mouse.temp_val = data.tr_send[i].s_vol
+                                      local real = Apply_SendMix_vol(data, mouse, i, mouse.wheel_trig/10, mouse.temp_val)
+                                      data.active_context_id = i 
+                                      data.active_context_sendmixer =      data.tr_send[i].s_name  
+                                      data.active_context_sendmixer_val =      lim(real,0,4)                         
+                                      redraw = 2  
+                                      end,
+                        func_drag = function() 
+                                      if not mouse.temp_val or not data.tr[1] then return end
+                                      local mouse_shift = 0
+                                      if data.use_mouse_drag_xAxis == 1 then mouse_shift = -mouse.dx else mouse_shift = mouse.dy end  
+                                      local real = Apply_SendMix_vol(data, mouse, i, mouse_shift/obj.mouse_scal_sendmixvol, mouse.temp_val)
+                                      data.active_context_id = i 
+                                      data.active_context_sendmixer =      data.tr_send[i].s_name  
+                                      data.active_context_sendmixer_val =      lim(real,0,4)                         
+                                      redraw = 2 
+                                    end,
+                        func_drag_Ctrl = function()
+                                            if not mouse.temp_val2 or not data.tr[1] then return end
+                                            local mouse_shift = 0
+                                            if data.use_mouse_drag_xAxis == 1 then mouse_shift = -mouse.dx else mouse_shift = mouse.dy end 
+                                            local real
+                                            for s_id = 1, data.tr_cnt_sends + data.tr_cnt_sendsHW do
+                                              local real0 = Apply_SendMix_vol(data, mouse, s_id, mouse_shift/obj.mouse_scal_sendmixvol, mouse.temp_val2[s_id].s_vol )
+                                              if s_id == i then real = real0 end
+                                            end       
+                                            data.active_context_id = i 
+                                            data.active_context_sendmixer =      data.tr_send[i].s_name  
+                                            data.active_context_sendmixer_val =      lim(real,0,4)                
+                                            redraw = 2                                           
+                                          end,
+                        func_matchonly = function()
+                                            data.active_context_id = i 
+                                            data.active_context_sendmixer =      data.tr_send[i].s_name  
+                                            data.active_context_sendmixer_val =      data.tr_send[i].s_vol 
+                                            redraw = 2
+                                          end}
+    end
+    local mix_fields = (data.tr_cnt_sends + data.tr_cnt_sendsHW) * ch_w
+    local txt = ''
+    if data.active_context_sendmixer then txt = '-> '..data.active_context_sendmixer end
+    obj.b.obj_sendmix_tr_name = { x = x_offs+mix_fields,
+                        y = obj.offs ,
+                        w = send_w-mix_fields,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = 0,
+                        txt = txt,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        ignore_mouse = true,
+                        fontsz = obj.fontsz_entry} 
+    if data.active_context_sendmixer_val then
+
+      obj.b.obj_sendmix_tr_s_vol = { x = x_offs+mix_fields,
+                          y = obj.offs+obj.entry_h ,
+                          w = send_w-mix_fields,--obj.entry_w2,
+                          h = obj.entry_h,
+                          frame_a = 0,
+                          txt = dBFromReaperVal(data.active_context_sendmixer_val)..'dB',
+                          txt_a = obj.txt_a,
+                          txt_col = obj.txt_col_entry,
+                          --ignore_mouse = true,
+                          fontsz = obj.fontsz_entry,
+                          func_DC =     function() 
+                                                if data.MM_doubleclick == 0 then
+                                                  --input
+                                                 elseif data.MM_doubleclick == 1 then
+                                                  Apply_SendMix_vol_reset()
+                                                end
+                                              end,
+                          func_R =      function()
+                                                if data.MM_rightclick == 0 then 
+                                                  Apply_SendMix_vol_reset()
+                                                 elseif data.MM_rightclick == 1 then
+                                                  --input
+                                                end
+                                              end
+                      } 
+    end                                                                       
+    return send_w
+  end
+  -------------------
+  function Apply_SendMix_vol_reset()
+    if not data.tr[1] or not data.active_context_id then return end
+    SetTrackSendInfo_Value( data.tr[1].ptr, 0, data.active_context_id-1-data.tr_cnt_sendsHW, 'D_VOL', 1 )
+    data.active_context_sendmixer_val = 1
+    redraw = 2   
+  end
+  ------------------
+  function Apply_SendMix_vol(data, mouse, idx, shift, srcval)                                   
+    local dBval = dBFromReaperVal(srcval)
+    if not tonumber(dBval) then dBval = -90 end
+    dBval = lim(tonumber(dBval)+shift,-90,12)
+    local real = ReaperValfromdB(dBval)
+    SetTrackSendInfo_Value( data.tr[1].ptr, 0, idx-1-data.tr_cnt_sendsHW, 'D_VOL', lim(real,0,4) ) 
+    return real 
+  end
