@@ -69,6 +69,10 @@
                         txt_col = obj.txt_col_header,
                         txt = data.grid_val_format,
                         func =        function()
+                                        if data.MM_grid_ignoreleftdrag == 1 then 
+                                          Main_OnCommand(1157, 0) -- toggle grid
+                                          redraw = 2
+                                        end
                                         mouse.temp_val = data.grid_val
                                         mouse.temp_val2 = data.grid_istriplet
                                         redraw = 1                            
@@ -84,7 +88,7 @@
                                         redraw = 2                           
                                       end,                                              
                         func_drag =   function() 
-                                        if mouse.temp_val then 
+                                        if mouse.temp_val and data.MM_grid_ignoreleftdrag == 0 then 
                                           
                                           local mouse_shift, div
                                           if data.always_use_x_axis==1 then 
@@ -110,11 +114,19 @@
                                         end
                                       end,
                         func_DC =     function()
-                                        Main_OnCommand(40071, 0) -- open settings
+                                        if data.MM_grid_doubleclick == 0 then
+                                          Main_OnCommand(40071, 0) -- open settings
+                                         elseif data.MM_grid_doubleclick == 1 and data.MM_grid_default_reset_grid then
+                                          GetSetProjectGrid( 0, true, data.MM_grid_default_reset_grid)
+                                        end
                                         redraw = 2
                                       end,
                         func_R =     function()
-                                        Main_OnCommand(1157, 0) -- toggle grid
+                                        if data.MM_grid_rightclick == 1 then
+                                          Main_OnCommand(1157, 0) -- toggle grid
+                                         elseif data.MM_grid_rightclick == 0 then
+                                          Main_OnCommand(40071, 0) -- open settings
+                                        end
                                         redraw = 2
                                       end,                                      
                                       

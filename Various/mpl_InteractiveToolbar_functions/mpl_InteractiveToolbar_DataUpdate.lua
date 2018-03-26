@@ -20,6 +20,10 @@
     data.always_use_x_axis = conf.always_use_x_axis
     data.MM_doubleclick = conf.MM_doubleclick
     data.MM_rightclick = conf.MM_rightclick
+    data.MM_grid_rightclick = conf.MM_grid_rightclick
+    data.MM_grid_ignoreleftdrag=conf.MM_grid_ignoreleftdrag
+    data.MM_grid_doubleclick = conf.MM_grid_doubleclick
+    data.MM_grid_default_reset_grid = conf.MM_grid_default_reset_grid
     
     -- reset buttons data
       obj.b = {}
@@ -218,12 +222,8 @@
       data.it[i].fadeout_len_format = format_timestr_len( data.it[i].fadeout_len, '', 0, data.ruleroverride )
       
       data.it[i].vol = GetMediaItemInfo_Value( item, 'D_VOL')
-      
-      --data.it[i].vol_format = string.format("%.2f", data.it[i].vol)      
-      --local dBval = dBFromReaperVal(data.it[i].vol)
-      --if not tonumber(dBval) then dBval = -math.huge end
-      --local real = reaper.DB2SLIDER(dBval )/1000
-      data.it[i].vol_format = dBFromReaperVal(data.it[i].vol)..'dB'      
+      data.it[i].vol_format = WDL_VAL2DB(data.it[i].vol, true)..'dB'    
+      --data.it[i].vol_format = dBFromReaperVal(data.it[i].vol)..'dB'      
       data.it[i].lock = GetMediaItemInfo_Value( item, 'C_LOCK')
       data.it[i].mute = GetMediaItemInfo_Value( item, 'B_MUTE')
       data.it[i].loop = GetMediaItemInfo_Value( item, 'B_LOOPSRC')     
@@ -484,21 +484,48 @@
           data.tr_cnt_sends = GetTrackNumSends(tr, 0 )
           data.tr_cnt_sendsHW = GetTrackNumSends(tr, 1 )
           for send_i = 1, data.tr_cnt_sends+data.tr_cnt_sendsHW do
-            local _, send_name = GetTrackSendName(tr, send_i-1, '' )  
             local desttr_ptr = BR_GetMediaTrackSendInfo_Track(tr, 0, send_i-1-data.tr_cnt_sendsHW, 1 )
             local s_vol = GetTrackSendInfo_Value( tr, 0, send_i-1-data.tr_cnt_sendsHW, 'D_VOL' )
+            local s_vol_dB = WDL_VAL2DB(s_vol)  
             local retval, s_name = GetTrackSendName( tr, send_i-1-data.tr_cnt_sendsHW, '' )
-            local dBval = dBFromReaperVal(s_vol)
-            if not tonumber(dBval) then dBval = -math.huge end
-            local s_vol_slider = DB2SLIDER(dBval )/1000
-            data.tr_send[send_i] = {send_name=send_name,
+            local s_vol_slider = DB2SLIDER(s_vol_dB )/1000
+            data.tr_send[send_i] = {
                                     desttr_ptr=desttr_ptr,
                                     s_vol=s_vol,
                                     s_name=s_name,
-                                    s_vol_slider=s_vol_slider}
+                                    s_vol_slider=s_vol_slider,
+                                    s_vol_dB=s_vol_dB}
           end
+          if not data.active_context_id and data.tr_send[1] then 
+            data.active_context_id = 1 
+            data.active_context_sendmixer =      data.tr_send[1].s_name  
+            data.active_context_sendmixer_val =  data.tr_send[1].s_vol
+          end          
         end
-          
+
+      -- rec 
+        if i == 1 then
+          data.tr_recv = {}
+          data.tr_cnt_receives = GetTrackNumSends(tr, -1 )
+          for receives_i = 1, data.tr_cnt_receives do
+            local _, r_name = GetTrackReceiveName(tr, receives_i-1, '' ) 
+            local srctr_ptr = BR_GetMediaTrackSendInfo_Track(tr, -1, receives_i-1, 0 )
+            local r_vol = GetTrackSendInfo_Value( tr, -1, receives_i-1, 'D_VOL' )
+            local r_vol_dB = WDL_VAL2DB(r_vol)  
+            local r_vol_slider = DB2SLIDER(r_vol_dB )/1000
+            data.tr_recv[receives_i] = {srctr_ptr=srctr_ptr,
+                                    r_vol=r_vol,
+                                    r_name=r_name,
+                                    r_vol_slider=r_vol_slider,
+                                    r_vol_dB=r_vol_dB}
+          end
+          if not data.active_context_id2 and data.tr_recv[1] then 
+            data.active_context_id2 = 1 
+            data.active_context_sendmixer2 =      data.tr_recv[1].r_name  
+            data.active_context_sendmixer_val2 =  data.tr_recv[1].r_vol
+          end          
+        end
+                  
       -- FX 
         if i ==1 then
           data.tr[i].fx_names= {}

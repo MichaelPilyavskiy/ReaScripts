@@ -752,13 +752,14 @@
         for i = 1, #new_str_t do
           if obj.b[butkey..i] then obj.b[butkey..i].txt = '' end--new_str_t[i]
         end
-        obj.b.obj_vol_back.txt = dBFromReaperVal(t_out_values[1])..'dB'
+        obj.b.obj_vol_back.txt = WDL_VAL2DB(t_out_values[1], true)..'dB'
       end
      else
-      local floatdB = out_str_toparse:match('[%d%p]+')
+      --[[local floatdB = out_str_toparse:match('[%d%p]+')
       --local out_val = tonumber(out_str_toparse) 
       out_val = ReaperValfromdB(floatdB)
-      out_val = math.max(0,out_val) 
+      out_val = math.max(0,out_val) ]]
+      local out_val = ParseDbVol(out_str_toparse)
       --[[nudge
         local diff = data.it[1].vol - out_val
         for i = 1, #t_out_values do

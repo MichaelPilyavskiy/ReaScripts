@@ -341,8 +341,13 @@
     return pan_str
   end
   ---------------------------------------------------
-  function MPL_GetFormattedGrid()
-    local grid_flags, grid_division, grid_swingmode, grid_swingamt = GetSetProjectGrid( 0, false )
+  function MPL_GetFormattedGrid(grid_div)
+    local grid_flags, grid_division, grid_swingmode, grid_swingamt 
+    if not grid_div then 
+      grid_flags, grid_division, grid_swingmode, grid_swingamt  = GetSetProjectGrid( 0, false )
+     else 
+      grid_flags, grid_division, grid_swingmode, grid_swingamt = 0,grid_div,0,0
+    end
     local is_triplet
     local denom = 1/grid_division
     local grid_str
@@ -482,7 +487,32 @@
     end 
     return string.format('%.2f',out)
   end
-  ---------------------------------------------------
+  -------------------------------------------------------
+  --https://github.com/majek/wdl/blob/master/WDL/db2val.h
+  function WDL_DB2VAL(x) return math.exp((x)*0.11512925464970228420089957273422) end
+  function WDL_VAL2DB(x, reduce)
+    if x < 0.0000000298023223876953125 then return -150.0 end
+    local v=math.log(x)*8.6858896380650365530225783783321
+    if v<-150.0 then return -150.0 else 
+      if reduce then 
+        return string.format('%.2f', v)
+       else 
+        return v 
+      end
+    end
+  end
+
+  -------------------------------------------------------
+  function ParseDbVol(out_str_toparse)
+    if not out_str_toparse then return 0 end
+    if out_str_toparse:find('1.#JdB') then return 0 end
+    out_str_toparse = out_str_toparse:lower():gsub('db', '')
+    local out_val = tonumber(out_str_toparse) 
+    out_val = lim(out_val, -150, 12)
+    out_val = WDL_DB2VAL(out_val)
+    return out_val
+  end
+  --[[-------------------------------------------------
   function ReaperValfromdB(dB_val)  local out
     local dB_val = tonumber(dB_val)
     if not dB_val or type(dB_val) == 'string' then return 0 end
@@ -492,7 +522,7 @@
       out = 10^(dB_val/20)
     end 
     return out--string.format('%.2f',tonumber(out))
-  end
+  end]]
   ---------------------------------------------------
   function HasSelEnvChanged()
     local Sel_env = GetSelectedEnvelope( 0 )

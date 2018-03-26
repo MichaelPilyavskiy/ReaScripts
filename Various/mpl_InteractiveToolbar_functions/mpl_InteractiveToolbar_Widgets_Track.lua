@@ -178,12 +178,11 @@
         for i = 1, #new_str_t do
           if obj.b[butkey..i] then obj.b[butkey..i].txt = '' end--new_str_t[i]
         end
-        obj.b.obj_trvol_back.txt = dBFromReaperVal(t_out_values[1])..'dB'
+        obj.b.obj_trvol_back.txt = WDL_VAL2DB(t_out_values[1], true)..'dB'
       end
       
      else
-      local out_val = tonumber(out_str_toparse) 
-      out_val = ReaperValfromdB(out_val)
+      local out_val = ParseDbVol(out_str_toparse)
       --[[nudge
         local diff = data.it[1].vol - out_val
         for i = 1, #t_out_values do
@@ -588,7 +587,7 @@
         --SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN',5)
       end
   end
-  
+-----------------------------------------------------------   
 
 
 
@@ -643,6 +642,20 @@
                                   mouse.temp_val = data.tr_send[i].s_vol
                                   mouse.temp_val2 = data.tr_send
                                 end,
+                          func_DC =     function() 
+                                                if data.MM_doubleclick == 0 then
+                                                  Apply_SendMix_vol_input(data.tr_send[data.active_context_id].s_vol_dB)
+                                                 elseif data.MM_doubleclick == 1 then
+                                                  Apply_SendMix_vol_reset()
+                                                end
+                                              end,
+                          func_R =      function()
+                                                if data.MM_rightclick == 0 then 
+                                                  Apply_SendMix_vol_reset()
+                                                 elseif data.MM_rightclick == 1 then
+                                                  Apply_SendMix_vol_input(data.tr_send[data.active_context_id].s_vol_dB)
+                                                end
+                                              end ,                               
                         func_onRelease = function() Undo_OnStateChange( data.scr_title..': Change track send properties' ) end,
                         func_wheel = function()
                                       mouse.temp_val = data.tr_send[i].s_vol
@@ -703,14 +716,14 @@
                           w = send_w-mix_fields,--obj.entry_w2,
                           h = obj.entry_h,
                           frame_a = 0,
-                          txt = dBFromReaperVal(data.active_context_sendmixer_val)..'dB',
+                          txt = WDL_VAL2DB(data.active_context_sendmixer_val, true)..'dB',
                           txt_a = obj.txt_a,
                           txt_col = obj.txt_col_entry,
                           --ignore_mouse = true,
                           fontsz = obj.fontsz_entry,
                           func_DC =     function() 
                                                 if data.MM_doubleclick == 0 then
-                                                  --input
+                                                  Apply_SendMix_vol_input(data.tr_send[data.active_context_id].s_vol_dB)
                                                  elseif data.MM_doubleclick == 1 then
                                                   Apply_SendMix_vol_reset()
                                                 end
@@ -719,12 +732,22 @@
                                                 if data.MM_rightclick == 0 then 
                                                   Apply_SendMix_vol_reset()
                                                  elseif data.MM_rightclick == 1 then
-                                                  --input
+                                                  Apply_SendMix_vol_input(data.tr_send[data.active_context_id].s_vol_dB)
                                                 end
                                               end
                       } 
     end                                                                       
     return send_w
+  end
+  -------------------
+  function Apply_SendMix_vol_input(srcval)
+    local ret, outstr = GetUserInputs( 'Edit', 1, '', srcval )
+    if not ret then return end
+    local out_val = ParseDbVol(outstr)
+    if not data.tr[1] or not data.active_context_id or not out_val then return end
+    SetTrackSendInfo_Value( data.tr[1].ptr, 0, data.active_context_id-1-data.tr_cnt_sendsHW, 'D_VOL', out_val )
+    data.active_context_sendmixer_val = out_val
+    redraw = 2   
   end
   -------------------
   function Apply_SendMix_vol_reset()
@@ -735,10 +758,188 @@
   end
   ------------------
   function Apply_SendMix_vol(data, mouse, idx, shift, srcval)                                   
-    local dBval = dBFromReaperVal(srcval)
-    if not tonumber(dBval) then dBval = -90 end
-    dBval = lim(tonumber(dBval)+shift,-90,12)
-    local real = ReaperValfromdB(dBval)
+    local dBval = WDL_VAL2DB(srcval)
+    dBval = lim(dBval+shift,-90,12)
+    local real = WDL_DB2VAL(dBval)
     SetTrackSendInfo_Value( data.tr[1].ptr, 0, idx-1-data.tr_cnt_sendsHW, 'D_VOL', lim(real,0,4) ) 
+    return real 
+  end
+----------------------------------------------------------- 
+
+
+
+
+
+
+
+
+----------------------------------------------------------- 
+  function Widgets_Track_chrecvmixer(data, obj, mouse, x_offs)
+    local recv_w = 150
+    if data.tr_cnt_receives == 0 then return end
+    if x_offs + recv_w > obj.persist_margin then return x_offs end 
+    obj.b.obj_recvmix_back1 = { x = x_offs,
+                        y = obj.offs ,
+                        w = recv_w,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        --txt = 'test',
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        ignore_mouse = true}  
+    obj.b.obj_recvmix_back2 = { x = x_offs,
+                        y = obj.offs+obj.entry_h ,
+                        w = recv_w,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        ignore_mouse = true} 
+                       
+    local ch_w = 12
+    local ch_h = math.floor(obj.entry_h*1.8)
+    local ch_y = obj.offs + (obj.entry_h*2-math.floor(obj.entry_h*1.8))/2
+    local mix_fields = recv_w-data.tr_cnt_receives * ch_w - 6
+    for i = 1, data.tr_cnt_receives do
+      local slider_a if data.active_context_id2 and data.active_context_id2 == i then slider_a = 0.5 else slider_a = 0.2 end
+      obj.b['obj_recvmix_ch'..i] = { x = mix_fields+x_offs + 3 + math.floor(ch_w * (i-1)),
+                        y = ch_y,
+                        w = ch_w,--obj.entry_w2,
+                        h = ch_h,
+                        frame_a = 0,
+                        frame_rect_a = 0.1,
+                        fontsz = obj.fontsz_entry,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        --ignore_mouse=true,
+                        val = lim(data.tr_recv[i].r_vol_slider),
+                        is_slider = true,
+                        is_vertical_slider = true,
+                        sider_col = obj.txt_col_entry,
+                        slider_a =slider_a,
+                        func =  function()
+                                  mouse.temp_val = data.tr_recv[i].r_vol
+                                  mouse.temp_val2 = data.tr_recv
+                                end,
+                          func_DC =     function() 
+                                                if data.MM_doubleclick == 0 then
+                                                  Apply_RecvMix_vol_input(data.tr_recv[data.active_context_id2].r_vol_dB)
+                                                 elseif data.MM_doubleclick == 1 then
+                                                  Apply_RecvMix_vol_reset()
+                                                end
+                                              end,
+                          func_R =      function()
+                                                if data.MM_rightclick == 0 then 
+                                                  Apply_RecvMix_vol_reset()
+                                                 elseif data.MM_rightclick == 1 then
+                                                  Apply_RecvMix_vol_input(data.tr_recv[data.active_context_id2].r_vol_dB)
+                                                end
+                                              end  ,                              
+                        func_onRelease = function() Undo_OnStateChange( data.scr_title..': Change track receive properties' ) end,
+                        func_wheel = function()
+                                      mouse.temp_val = data.tr_recv[i].s_vol
+                                      local real = Apply_RecvMix_vol(data, mouse, i, mouse.wheel_trig/10, mouse.temp_val)
+                                      data.active_context_id2 = i 
+                                      data.active_context_sendmixer2 =      data.tr_recv[i].r_name  
+                                      data.active_context_sendmixer_val2=      lim(real,0,4)                         
+                                      redraw = 2  
+                                      end,
+                        func_drag = function() 
+                                      if not mouse.temp_val or not data.tr[1] then return end
+                                      local mouse_shift = 0
+                                      if data.use_mouse_drag_xAxis == 1 then mouse_shift = -mouse.dx else mouse_shift = mouse.dy end  
+                                      local real = Apply_RecvMix_vol(data, mouse, i, mouse_shift/obj.mouse_scal_sendmixvol, mouse.temp_val)
+                                      data.active_context_id2 = i 
+                                      data.active_context_sendmixer2 =      data.tr_recv[i].r_name  
+                                      data.active_context_sendmixer_val2 =      lim(real,0,4)                         
+                                      redraw = 2 
+                                    end,
+                        func_drag_Ctrl = function()
+                                            if not mouse.temp_val2 or not data.tr[1] then return end
+                                            local mouse_shift = 0
+                                            if data.use_mouse_drag_xAxis == 1 then mouse_shift = -mouse.dx else mouse_shift = mouse.dy end 
+                                            local real
+                                            for r_id = 1, data.tr_cnt_receives do
+                                              local real0 = Apply_RecvMix_vol(data, mouse, r_id, mouse_shift/obj.mouse_scal_sendmixvol, mouse.temp_val2[r_id].r_vol )
+                                              if r_id == i then real = real0 end
+                                            end       
+                                            data.active_context_id2 = i 
+                                            data.active_context_sendmixer2 =      data.tr_recv[i].r_name  
+                                            data.active_context_sendmixer_val2 =      lim(real,0,4)                
+                                            redraw = 2                                           
+                                          end,
+                        func_matchonly = function()
+                                            data.active_context_id2 = i 
+                                            data.active_context_sendmixer2 =      data.tr_recv[i].r_name  
+                                            data.active_context_sendmixer_val2 =      data.tr_recv[i].r_vol 
+                                            redraw = 2
+                                          end}
+    end
+    
+    local txt = ''
+    if data.active_context_sendmixer2 then txt = data.active_context_sendmixer2..' ->' end
+    obj.b.obj_recvmix_tr_name = { x = x_offs,
+                        y = obj.offs ,
+                        w = mix_fields,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = 0,
+                        txt = txt,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        ignore_mouse = true,
+                        fontsz = obj.fontsz_entry} 
+    if data.active_context_sendmixer_val2 then
+
+      obj.b.obj_recvmix_tr_s_vol = { x = x_offs,
+                          y = obj.offs+obj.entry_h ,
+                          w = mix_fields,--obj.entry_w2,
+                          h = obj.entry_h,
+                          frame_a = 0,
+                          txt = WDL_VAL2DB(data.active_context_sendmixer_val2, true)..'dB',
+                          txt_a = obj.txt_a,
+                          txt_col = obj.txt_col_entry,
+                          --ignore_mouse = true,
+                          fontsz = obj.fontsz_entry,
+                          func_DC =     function() 
+                                                if data.MM_doubleclick == 0 then
+                                                  Apply_RecvMix_vol_input(data.tr_recv[data.active_context_id2].r_vol_dB)
+                                                 elseif data.MM_doubleclick == 1 then
+                                                  Apply_RecvMix_vol_reset()
+                                                end
+                                              end,
+                          func_R =      function()
+                                                if data.MM_rightclick == 0 then 
+                                                  Apply_RecvMix_vol_reset()
+                                                 elseif data.MM_rightclick == 1 then
+                                                  Apply_RecvMix_vol_input(data.tr_recv[data.active_context_id2].r_vol_dB)
+                                                end
+                                              end
+                      } 
+    end                                                                       
+    return recv_w
+  end
+  -------------------
+  function Apply_RecvMix_vol_input(srcval)
+    local ret, outstr = GetUserInputs( 'Edit', 1, '', srcval )
+    if not ret then return end
+    local out_val = ParseDbVol(outstr)
+    if not data.tr[1] or not data.active_context_id2 or not out_val then return end
+    SetTrackSendInfo_Value( data.tr[1].ptr, -1, data.active_context_id2-1, 'D_VOL', out_val )
+    data.active_context_sendmixer_val2 = out_val
+    redraw = 2   
+  end
+  -------------------
+  function Apply_RecvMix_vol_reset()
+    if not data.tr[1] or not data.active_context_id2 then return end
+    SetTrackSendInfo_Value( data.tr[1].ptr, -1, data.active_context_id2-1, 'D_VOL', 1 )
+    data.active_context_sendmixer_val2 = 1
+    redraw = 2   
+  end
+  ------------------
+  function Apply_RecvMix_vol(data, mouse, idx, shift, srcval)                                   
+    local dBval = WDL_VAL2DB(srcval)
+    dBval = lim(dBval+shift,-90,12)
+    local real = WDL_DB2VAL(dBval)
+    SetTrackSendInfo_Value( data.tr[1].ptr, -1, idx-1, 'D_VOL', lim(real,0,4) ) 
     return real 
   end

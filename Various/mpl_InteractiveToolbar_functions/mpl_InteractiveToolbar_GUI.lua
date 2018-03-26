@@ -399,25 +399,56 @@
                 { str = 'Always use X axis control',
                   state = conf.always_use_x_axis==1,
                   func = function() conf.always_use_x_axis = math.abs(-1+conf.always_use_x_axis) ExtState_Save(conf) redraw = 2 end }  ,
-                { str = 'Use additional context conditions|',
+                { str = 'Use additional context conditions|<',
                   state = conf.use_context_specific_conditions==1,
                   func = function() conf.use_context_specific_conditions = math.abs(-1+conf.use_context_specific_conditions) ExtState_Save(conf) redraw = 2 end }  ,                   
                 
-                { str = '#MouseModifiers'},
+                { str = '>MouseModifiers|>Value fields'},
+                --{ str = ''},
                 { str = 'Doubleclick on value to type value',
                   state = conf.MM_doubleclick==0,
                   func = function() conf.MM_doubleclick = 0 ExtState_Save(conf) redraw = 2 end }  ,                   
-                { str = 'Doubleclick on value to reset value',
+                { str = 'Doubleclick on value to reset value|',
                   state = conf.MM_doubleclick==1,
-                  func = function() conf.MM_doubleclick = 1 ExtState_Save(conf) redraw = 2 end }  , 
-                  
+                  func = function() conf.MM_doubleclick = 1 ExtState_Save(conf) redraw = 2 end }  ,
+                
+                                     
                 { str = 'Rightclick on value to reset value',
                   state = conf.MM_rightclick==0,
                   func = function() conf.MM_rightclick = 0 ExtState_Save(conf) redraw = 2 end }  ,                   
                 { str = 'Rightclick on value to type value|<',
                   state = conf.MM_rightclick==1,
                   func = function() conf.MM_rightclick = 1 ExtState_Save(conf) redraw = 2 end }  ,                   
-                                     
+                
+                { str = '>Grid widget'},
+                { str = 'Ignore left drag, pass left click as toggle snap|',
+                  state = conf.MM_grid_ignoreleftdrag==1,
+                  func = function() conf.MM_grid_ignoreleftdrag = math.abs(1-data.MM_grid_ignoreleftdrag) ExtState_Save(conf) redraw = 2 end }  ,                 
+                { str = 'DoubleClick on grid value open Snap/Grid dialog',
+                  state = conf.MM_grid_doubleclick==0,
+                  func = function() conf.MM_grid_doubleclick = 0 ExtState_Save(conf) redraw = 2 end }  ,
+                { str = 'DoubleClick on grid value reset grid to custom value',
+                  state = conf.MM_grid_doubleclick==1,
+                  func = function() conf.MM_grid_doubleclick = 1 ExtState_Save(conf) redraw = 2 end }  , 
+                { str = 'Set reset value|',
+                  func =  function() 
+                            local ret, grid_out = GetUserInputs( conf.scr_title, 1, 'Default grid',
+                                                                ({MPL_GetFormattedGrid(conf.MM_grid_default_reset_grid )})[2])
+                            if ret then
+                              local f = load('return '..grid_out)
+                              if not f then MB('Wrong value',conf.scr_title,0 ) return end
+                              conf.MM_grid_default_reset_grid = f()
+                              ExtState_Save(conf) 
+                              redraw = 2 
+                            end
+                          end }  ,                                     
+                { str = 'Rightclick on grid value open Snap/Grid dialog',
+                  state = conf.MM_grid_rightclick==0,
+                  func = function() conf.MM_grid_rightclick = 0 ExtState_Save(conf) redraw = 2 end }  ,                 
+                { str = 'Rightclick on grid value toggle snap|<|<',
+                  state = conf.MM_grid_rightclick==1,
+                  func = function() conf.MM_grid_rightclick = 1 ExtState_Save(conf) redraw = 2 end }  ,                  
+                
                   
                 { str = '>Theme'},
                 { str = 'Font size',
@@ -536,7 +567,8 @@
                           end} , 
                                                                                                                                                                         
                 { str = '|#Contexts'}  ,
-                { str = '>Empty item|Widgets order|<',
+                { str = '>Empty item'},
+                { str = 'Widgets order|<',
                   
                   func = function() Menu_ChangeOrder(widgets, data, conf, 1 ) end} ,                  
                 { str = '>MIDI item'},
