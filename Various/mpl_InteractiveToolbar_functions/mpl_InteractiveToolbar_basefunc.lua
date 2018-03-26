@@ -504,7 +504,7 @@
 
   -------------------------------------------------------
   function ParseDbVol(out_str_toparse)
-    if not out_str_toparse then return 0 end
+    if not out_str_toparse or not out_str_toparse:match('%d') then return 0 end
     if out_str_toparse:find('1.#JdB') then return 0 end
     out_str_toparse = out_str_toparse:lower():gsub('db', '')
     local out_val = tonumber(out_str_toparse) 

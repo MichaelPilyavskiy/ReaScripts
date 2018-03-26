@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.30
+-- @version 1.31
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,14 +15,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Tags/Track/#chrecvmixer shows all receive faders if receives existed for the first selected track. Ctrl+drag move on any slider acts as a VCA.
---    + MouseModifiers for #chsendmixer and #chrecvmixer works on sliders also
---    + MouseModifiers: Tags/Persist/#grid rightclick, doubleclick and left drag/click
---    # GUI: init selecting first send/receive for #chsendmixer and #chrecvmixer
---    # fix Empty Item menu
---    # db values: use Justin`s WDL/db2val.h reference
+--    # prevent error when parse input volume in db
 
-  local vrs = '1.30'
+  local vrs = '1.31'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
