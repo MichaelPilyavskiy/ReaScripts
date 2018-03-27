@@ -504,10 +504,11 @@
 
   -------------------------------------------------------
   function ParseDbVol(out_str_toparse)
-    if not out_str_toparse or not out_str_toparse:match('%d') then return 0 end
-    if out_str_toparse:find('1.#JdB') then return 0 end
+    if not out_str_toparse or not out_str_toparse:match('%d') then return end
+    if out_str_toparse:find('1.#JdB') then return end
     out_str_toparse = out_str_toparse:lower():gsub('db', '')
     local out_val = tonumber(out_str_toparse) 
+    if not out_val then return end
     out_val = lim(out_val, -150, 12)
     out_val = WDL_DB2VAL(out_val)
     return out_val

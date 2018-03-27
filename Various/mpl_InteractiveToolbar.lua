@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.31
+-- @version 1.32
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,9 +15,17 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # prevent error when parse input volume in db
+--    + MouseModifiers: allow to disable doubleclick on Persist/#grid
+--    + Tags/Persist/#grid: show relative snapping state
+--    # fix clear console erase console info
+--    # Tags/Item/#vol: ignore invalid input data
+--    # Tags/Item/#pitch: ignore invalid input data
+--    # Tags/Envelope/#value: ignore invalid input data
+--    # Tags/Envelope/#value: parse whole string
+--    # Tags/Envelope/#value: show values in dB if envelope match 'Volume' in its name
+--    # Tags/Envelope/#value: fix long floats for mouse drag
 
-  local vrs = '1.31'
+  local vrs = '1.32'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])

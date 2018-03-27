@@ -48,6 +48,8 @@
     data.grid_val, data.grid_val_format, data.grid_istriplet = MPL_GetFormattedGrid()
     data.grid_isactive =  GetToggleCommandStateEx( 0, 1157 )==1
     data.ruleroverride = conf.ruleroverride
+    data.grid_rel_snap =  GetToggleCommandStateEx( 0, 41054 ) --Item edit: Toggle relative grid snap
+    
   end
   --[[-------------------------------------------------
   function DataUpdate_Toolbar(data,conf)
@@ -84,7 +86,6 @@
     local ME = MIDIEditor_GetActive()
 
     data.fsel_tr = GetSelectedTrack(0,0)
-    ClearConsole()
     
     if  conf.use_context_specific_conditions == 1 and data.last_fsel_tr 
         and data.last_fsel_tr ~= data.fsel_tr 
@@ -300,7 +301,22 @@
       local _, _, _, _, _, _, minValue, maxValue, centr = BR_EnvGetProperties( BR_env )
       BR_EnvFree( BR_env, false )
       data.minValue, data.maxValue, data.env_defValue= minValue, maxValue, centr
-    
+
+    if tr then 
+
+      data.obj_type_int = 6
+      local _, tr_name = GetTrackName( tr, '' )
+      local _, env_name =  GetEnvelopeName( env, '' )
+      data.name = tr_name..' | '..env_name
+      data.env_isvolume = env_name:match('Volume') ~= nil
+      data.env_name=env_name
+      data.env_parenttr = tr
+      data.env_parentFX = env_FXid
+      data.env_parentParam = env_paramid
+      local retval, buf = TrackFX_GetFXName( tr,  env_FXid, env_paramid )
+      data.env_parentFXname = buf
+    end 
+        
     local obj_type, first_selected, env_hasselpoint
     local cnt_selected_pts = 0
     for i = 1, CountEnvelopePoints( env ) do      
@@ -309,7 +325,8 @@
       data.ep[i].pos = time
       data.ep[i].pos_format = format_timestr_pos( time, '', data.ruleroverride ) 
       data.ep[i].value = value
-      data.ep[i].value_format = string.format("%.2f", value)
+      data.ep[i].value_format =  string.format("%.2f", value)
+      if data.env_isvolume then  data.ep[i].value_format = string.format("%.2f", WDL_VAL2DB(value))    end
       data.ep[i].shape = shape
       data.ep[i].tension = tension
       data.ep[i].selected = selected
@@ -317,6 +334,14 @@
       if not first_selected and selected then 
         data.ep.sel_point_ID = i
         first_selected = true
+      end
+      
+      if tr then 
+        if cnt_selected_pts > 0 then 
+           data.obj_type = 'Envelope points ('..cnt_selected_pts..' selected)'
+          else 
+           data.obj_type = 'Envelope'
+        end
       end
       --[[if selected then 
         if env_hasselpoint and env_hasselpoint == 1 and not env_hasselpoint == 2 then 
@@ -327,22 +352,6 @@
     end
     
     
-    if tr then 
-      if cnt_selected_pts > 0 then 
-         data.obj_type = 'Envelope points ('..cnt_selected_pts..' selected)'
-        else 
-         data.obj_type = 'Envelope'
-      end
-      data.obj_type_int = 6
-      local _, tr_name = GetTrackName( tr, '' )
-      local _, env_name =  GetEnvelopeName( env, '' )
-      data.name = tr_name..' | '..env_name
-      data.env_parenttr = tr
-      data.env_parentFX = env_FXid
-      data.env_parentParam = env_paramid
-      local retval, buf = TrackFX_GetFXName( tr,  env_FXid, env_paramid )
-      data.env_parentFXname = buf
-    end 
     
     -- reaper.CountAutomationItems( env ) 
        

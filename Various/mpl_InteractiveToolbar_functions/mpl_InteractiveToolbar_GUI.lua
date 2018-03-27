@@ -20,6 +20,7 @@
                   fontsz = conf.GUI_font1,
                   fontsz_entry = conf.GUI_font2,
                   fontsz_clock = 32,--conf.GUI_font2,
+                  fontsz_grid_rel = 14,--conf.GUI_font2,
                   col = { grey =    {0.5, 0.5,  0.5 },
                           white =   {1,   1,    1   },
                           red =     {1,   0.3,    0.3   },
@@ -59,7 +60,7 @@
       obj.fontsz = obj.fontsz - 5
       obj.fontsz_entry = obj.fontsz_entry - 5
       obj.fontsz_clock = obj.fontsz_clock - 5
-      
+      obj.fontsz_grid_rel = obj.fontsz_grid_rel - 5
     end
     return obj             
   end
@@ -424,6 +425,9 @@
                 { str = 'Ignore left drag, pass left click as toggle snap|',
                   state = conf.MM_grid_ignoreleftdrag==1,
                   func = function() conf.MM_grid_ignoreleftdrag = math.abs(1-data.MM_grid_ignoreleftdrag) ExtState_Save(conf) redraw = 2 end }  ,                 
+                { str = 'DoubleClick on grid value: disabled',
+                  state = conf.MM_grid_doubleclick==2,
+                  func = function() conf.MM_grid_doubleclick = 2 ExtState_Save(conf) redraw = 2 end }  ,
                 { str = 'DoubleClick on grid value open Snap/Grid dialog',
                   state = conf.MM_grid_doubleclick==0,
                   func = function() conf.MM_grid_doubleclick = 0 ExtState_Save(conf) redraw = 2 end }  ,

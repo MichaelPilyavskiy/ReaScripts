@@ -759,7 +759,6 @@
       --local out_val = tonumber(out_str_toparse) 
       out_val = ReaperValfromdB(floatdB)
       out_val = math.max(0,out_val) ]]
-      local out_val = ParseDbVol(out_str_toparse)
       --[[nudge
         local diff = data.it[1].vol - out_val
         for i = 1, #t_out_values do
@@ -767,6 +766,8 @@
           UpdateItemInProject( data.it[i].ptr_item )                                
         end   ]]
       --set
+        local out_val = ParseDbVol(out_str_toparse)
+        if not out_val then return end
         for i = 1, #t_out_values do
           SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_VOL', math.max(0,out_val ))
           UpdateItemInProject( data.it[i].ptr_item )                                
@@ -835,6 +836,7 @@
       end
      else
       local out_val = tonumber(out_str_toparse) 
+      if not out_val then return end
       local diff = data.it[1].pitch - out_val
       for i = 1, #t_out_values do
         SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_PITCH', t_out_values[i] - diff )

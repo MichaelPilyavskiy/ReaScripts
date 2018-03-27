@@ -57,8 +57,27 @@
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
                         txt = '',
-                        ignore_mouse = true}                         
-    obj.b.obj_pers_grid_val = { persist_buf = true,
+                        ignore_mouse = true}   
+    local rel_snap_w = 25
+    local rel_snap_h = 10
+    local txt_a =obj.txt_a
+    if data.grid_rel_snap == 0 then txt_a = txt_a * 0.1 end
+    obj.b.obj_pers_grid_relsnap = { persist_buf = true,
+                        x = x_margin - grid_widg_w,
+                        y = obj.offs ,
+                        w = rel_snap_w,
+                        h = rel_snap_h,
+                        frame_a = 0,--obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = txt_a,
+                        --txt_col = 'white',
+                        txt = 'REL',
+                        aligh_txt = 1,
+                        fontsz = obj.fontsz_grid_rel,
+                        func =  function ()
+                                  Action(41054)
+                                end}                           
+    obj.b.obj_pers_grid_B_val = { persist_buf = true,
                         x = x_margin - grid_widg_w,
                         y = 0 ,
                         w = grid_widg_val_w,
@@ -69,13 +88,15 @@
                         txt_col = obj.txt_col_header,
                         txt = data.grid_val_format,
                         func =        function()
-                                        if data.MM_grid_ignoreleftdrag == 1 then 
-                                          Main_OnCommand(1157, 0) -- toggle grid
-                                          redraw = 2
-                                        end
-                                        mouse.temp_val = data.grid_val
-                                        mouse.temp_val2 = data.grid_istriplet
-                                        redraw = 1                            
+                                        if not MOUSE_Match(mouse, obj.b.obj_pers_grid_relsnap) then
+                                          if data.MM_grid_ignoreleftdrag == 1 then 
+                                            Main_OnCommand(1157, 0) -- toggle grid
+                                            redraw = 2
+                                          end
+                                          mouse.temp_val = data.grid_val
+                                          mouse.temp_val2 = data.grid_istriplet
+                                          redraw = 1    
+                                        end                        
                                       end,
                         func_wheel =  function()local div
                                         if mouse.wheel_trig > 0 then div = 2 
@@ -114,12 +135,14 @@
                                         end
                                       end,
                         func_DC =     function()
-                                        if data.MM_grid_doubleclick == 0 then
-                                          Main_OnCommand(40071, 0) -- open settings
-                                         elseif data.MM_grid_doubleclick == 1 and data.MM_grid_default_reset_grid then
-                                          GetSetProjectGrid( 0, true, data.MM_grid_default_reset_grid)
+                                        if data.MM_grid_ignoreleftdrag == 1 then
+                                          if data.MM_grid_doubleclick == 0 then
+                                            Main_OnCommand(40071, 0) -- open settings
+                                           elseif data.MM_grid_doubleclick == 1 and data.MM_grid_default_reset_grid then
+                                            GetSetProjectGrid( 0, true, data.MM_grid_default_reset_grid)
+                                          end
+                                          redraw = 2
                                         end
-                                        redraw = 2
                                       end,
                         func_R =     function()
                                         if data.MM_grid_rightclick == 1 then
@@ -150,7 +173,8 @@
                                     GetSetProjectGrid( 0, true, data.grid_val  * 3/2  )
                                   end
                                   redraw = 2
-                                end}                
+                                end}  
+                                            
     return grid_widg_w
   end  
 

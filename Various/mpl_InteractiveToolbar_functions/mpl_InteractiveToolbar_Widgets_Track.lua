@@ -183,6 +183,7 @@
       
      else
       local out_val = ParseDbVol(out_str_toparse)
+      if not out_val then return end
       --[[nudge
         local diff = data.it[1].vol - out_val
         for i = 1, #t_out_values do

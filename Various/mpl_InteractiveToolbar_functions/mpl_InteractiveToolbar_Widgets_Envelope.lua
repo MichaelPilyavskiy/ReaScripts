@@ -149,6 +149,7 @@
                         txt = '',
                         ignore_mouse = true}  
       local val_str = data.ep[data.ep.sel_point_ID].value_format
+     -- local modify_wholestr = data.env_isvolume
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = MPL_GetTableOfCtrlValues2(val_str),
                         table_key='val_ctrl',
@@ -157,6 +158,7 @@
                         src_val=data.ep,
                         src_val_key= 'value',
                         modify_func= MPL_ModifyFloatVal,
+                        modify_wholestr=true,
                         app_func= Apply_Envpoint_Val,                         
                         mouse_scale= obj.mouse_scal_float,               -- mouse scaling
                         use_mouse_drag_xAxis = data.always_use_x_axis==1, -- x
@@ -178,24 +180,39 @@
       end
       Envelope_SortPoints( data.env_ptr )
       UpdateArrange()
-      local new_str = string.format("%.2f", t_out_values[ data.ep.sel_point_ID  ], '', -1 ) 
+      
+      local new_str
+      if data.env_isvolume then  
+        new_str = string.format("%.2f", WDL_VAL2DB(t_out_values[ data.ep.sel_point_ID  ]))
+       else 
+        new_str = string.format("%.2f", t_out_values[ data.ep.sel_point_ID  ]) 
+      end
       local new_str_t = MPL_GetTableOfCtrlValues2(new_str)
       if new_str_t then 
         for i = 1, #new_str_t do
           obj.b[butkey..i].txt = new_str_t[i]
         end
-        --obj.b.obj_envval_back.txt = dBFromReaperVal(t_out_values[ data.ep.sel_point_ID])..'dB'
       end
-     else
-      local out_val = tonumber(out_str_toparse) 
+      
+      
+     else --input str
+      local out_val
+      if not data.env_isvolume then
+        out_val = tonumber(out_str_toparse) 
+       else
+        out_val = ParseDbVol(out_str_toparse)
+      end
+      if not out_val then return end
       for i = 1, #t_out_values do
         if data.ep[i].selected then 
-          SetEnvelopePointEx( data.env_ptr, -1, i-1, data.ep[i].pos, lim(out_val,data.minValue,data.maxValue), data.ep[i].shape, data.ep[i].tension, true, true )
+          SetEnvelopePointEx( data.env_ptr, -1, i-1, data.ep[i].pos, 
+                              lim(out_val,data.minValue,data.maxValue), 
+                              data.ep[i].shape, data.ep[i].tension, true, true )
         end
-      end
+      end  
       Envelope_SortPoints( data.env_ptr )
       UpdateArrange()
-      redraw = 2   
+      redraw = 2 
     end
   end  
   -------------------------------------------------------------- 
