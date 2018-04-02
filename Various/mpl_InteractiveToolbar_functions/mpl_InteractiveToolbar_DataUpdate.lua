@@ -24,6 +24,8 @@
     data.MM_grid_ignoreleftdrag=conf.MM_grid_ignoreleftdrag
     data.MM_grid_doubleclick = conf.MM_grid_doubleclick
     data.MM_grid_default_reset_grid = conf.MM_grid_default_reset_grid
+    data.persist_clock_showtimesec = conf.persist_clock_showtimesec
+    
     
     -- reset buttons data
       obj.b = {}
@@ -49,6 +51,7 @@
     data.grid_isactive =  GetToggleCommandStateEx( 0, 1157 )==1
     data.ruleroverride = conf.ruleroverride
     data.grid_rel_snap =  GetToggleCommandStateEx( 0, 41054 ) --Item edit: Toggle relative grid snap
+    data.grid_vis =  GetToggleCommandStateEx( 0, 40145 ) -- toggle grid visibility
     
   end
   --[[-------------------------------------------------
@@ -144,7 +147,13 @@
     data.pause = int_playstate&2==2
     data.record = int_playstate&4==4
     data.editcur_pos = GetCursorPositionEx( 0 )
-    data.editcur_pos_format =  format_timestr_pos( data.editcur_pos, '', data.ruleroverride )
+    local editcur_pos_format =  format_timestr_pos( data.editcur_pos, '', data.ruleroverride )
+    local editcur_pos_format2 =  format_timestr_pos( data.editcur_pos, '', 0 )
+    if data.persist_clock_showtimesec == 1 then -- SEE GUI_Main
+      data.editcur_pos_format = editcur_pos_format..' / '..editcur_pos_format2
+     else
+      data.editcur_pos_format = editcur_pos_format
+    end
   end
   
   ---------------------------------------------------

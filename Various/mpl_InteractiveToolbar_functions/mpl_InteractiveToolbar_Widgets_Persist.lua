@@ -61,7 +61,7 @@
     local rel_snap_w = 25
     local rel_snap_h = 10
     local txt_a =obj.txt_a
-    if data.grid_rel_snap == 0 then txt_a = txt_a * 0.1 end
+    if data.grid_rel_snap == 0 then txt_a = txt_a * 0.3 end
     obj.b.obj_pers_grid_relsnap = { persist_buf = true,
                         x = x_margin - grid_widg_w,
                         y = obj.offs ,
@@ -72,11 +72,28 @@
                         txt_a = txt_a,
                         --txt_col = 'white',
                         txt = 'REL',
-                        aligh_txt = 1,
+                        --aligh_txt = 1,
                         fontsz = obj.fontsz_grid_rel,
                         func =  function ()
                                   Action(41054)
-                                end}                           
+                                end}   
+    local txt_a =obj.txt_a 
+    if data.grid_vis == 0 then txt_a = txt_a * 0.3 end
+    obj.b.obj_pers_grid_visible = { persist_buf = true,
+                        x = x_margin - grid_widg_w + rel_snap_w,
+                        y = obj.offs ,
+                        w = rel_snap_w,
+                        h = rel_snap_h,
+                        frame_a = 0,--obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = txt_a,
+                        --txt_col = 'white',
+                        txt = 'LINE',
+                        --aligh_txt = 1,
+                        fontsz = obj.fontsz_grid_rel,
+                        func =  function ()
+                                  Action(40145) --Options: Toggle grid lines
+                                end}                                                        
     obj.b.obj_pers_grid_B_val = { persist_buf = true,
                         x = x_margin - grid_widg_w,
                         y = 0 ,
@@ -88,7 +105,8 @@
                         txt_col = obj.txt_col_header,
                         txt = data.grid_val_format,
                         func =        function()
-                                        if not MOUSE_Match(mouse, obj.b.obj_pers_grid_relsnap) then
+                                        if not MOUSE_Match(mouse, obj.b.obj_pers_grid_relsnap) and 
+                                            not MOUSE_Match(mouse, obj.b.obj_pers_grid_visible)  then
                                           if data.MM_grid_ignoreleftdrag == 1 then 
                                             Main_OnCommand(1157, 0) -- toggle grid
                                             redraw = 2
@@ -129,13 +147,13 @@
                                             if data.grid_istriplet then lim_max = 2/3 end
                                             local out_val = lim(mouse.temp_val*div, 0.0078125*lim_max, lim_max)                                         
                                             GetSetProjectGrid( 0, true, out_val  )
-                                            _, obj.b.obj_pers_grid_val.txt = MPL_GetFormattedGrid()
+                                            _, obj.b.obj_pers_grid_B_val.txt = MPL_GetFormattedGrid()
                                             redraw = 1  
                                           end 
                                         end
                                       end,
                         func_DC =     function()
-                                        if data.MM_grid_ignoreleftdrag == 1 then
+                                        if data.MM_grid_ignoreleftdrag == 0 then
                                           if data.MM_grid_doubleclick == 0 then
                                             Main_OnCommand(40071, 0) -- open settings
                                            elseif data.MM_grid_doubleclick == 1 and data.MM_grid_default_reset_grid then
@@ -158,7 +176,7 @@
     local tripl_a = obj.frame_a_state
     if not data.grid_istriplet then  tripl_a = 0 end
     obj.b.obj_pers_grid_tripl = { persist_buf = true,
-                        x = x_margin - grid_widg_w+ grid_widg_val_w,
+                        x = x_margin - grid_widg_w+ grid_widg_val_w-1,
                         y = 0 ,
                         w = grid_widg_w_trpl,
                         h = obj.entry_h*2,
@@ -167,12 +185,18 @@
                         txt_col = obj.txt_col_header,
                         txt = 'T',                          
                         func =  function() 
-                                  if not data.grid_istriplet then
-                                    GetSetProjectGrid( 0, true, data.grid_val  * 2/3 )--
-                                   else 
-                                    GetSetProjectGrid( 0, true, data.grid_val  * 3/2  )
+                                  if not MOUSE_Match(mouse, obj.b.obj_pers_grid_relsnap) and 
+                                      not MOUSE_Match(mouse, obj.b.obj_pers_grid_visible)  then
+                                      
+                                        if not data.grid_istriplet then
+                                          GetSetProjectGrid( 0, true, data.grid_val  * 2/3 )
+                                          if data.grid_vis == 0 then  Action(40145) end
+                                         else 
+                                          GetSetProjectGrid( 0, true, data.grid_val  * 3/2  )
+                                          if data.grid_vis == 0 then  Action(40145) end
+                                        end
+                                        redraw = 2
                                   end
-                                  redraw = 2
                                 end}  
                                             
     return grid_widg_w
@@ -431,7 +455,28 @@
                                       UpdateTimeline()
                                     end
                                   end
-                                end}
+                                end,
+                        func_wheel =  function()  
+                                  local src_bpm = data.TempoMarker_bpm
+                                  local out_bpm = data.TempoMarker_bpm + mouse.wheel_trig
+                                  if out_bpm then
+                                    if data.TempoMarker_ID == -1 then 
+                                      CSurf_OnTempoChange( out_bpm )
+                                      UpdateTimeline()
+                                      redraw = 2  
+                                     else 
+                                      SetTempoTimeSigMarker( 0, data.TempoMarker_ID, 
+                                                                data.TempoMarker_timepos, 
+                                                                -1, 
+                                                                -1, 
+                                                                out_bpm, 
+                                                                data.TempoMarker_timesig_num, 
+                                                                data.TempoMarker_timesig_denom, 
+                                                                data.TempoMarker_lineartempochange )
+                                      UpdateTimeline()
+                                    end
+                                  end
+                                end}                                
     obj.b.obj_pers_timesign = { persist_buf = true,
                         x = x_margin - bpm_w,
                         y = obj.offs +obj.entry_h,
@@ -467,6 +512,32 @@
                                                                 data.TempoMarker_bpm, 
                                                                 tonumber(num), 
                                                                 tonumber(denom), 
+                                                                data.TempoMarker_lineartempochange )
+                                      UpdateTimeline()                                     
+                                  end
+                                end,
+                        func_wheel =  function()  
+                                  local src_num = data.TempoMarker_timesig1
+                                  local out_num = data.TempoMarker_timesig1 + mouse.wheel_trig
+                                  if not out_num then return end
+                                  if data.TempoMarker_ID ~= -1 then 
+                                    SetTempoTimeSigMarker( 0, data.TempoMarker_ID, 
+                                                                data.TempoMarker_timepos, 
+                                                                -1, 
+                                                                -1, 
+                                                                data.TempoMarker_bpm, 
+                                                                out_num, 
+                                                                data.TempoMarker_timesig2, 
+                                                                data.TempoMarker_lineartempochange )
+                                      UpdateTimeline()
+                                    else 
+                                    SetTempoTimeSigMarker( 0,-1, 
+                                                                data.editcur_pos, 
+                                                                -1, 
+                                                                -1, 
+                                                                data.TempoMarker_bpm, 
+                                                                out_num, 
+                                                                data.TempoMarker_timesig2, 
                                                                 data.TempoMarker_lineartempochange )
                                       UpdateTimeline()                                     
                                   end
@@ -629,6 +700,7 @@
   ------------------------------------------------------------------------  
   function Widgets_Persist_clock(data, obj, mouse, x_margin, widgets)  
     local clock_w = 130
+    if data.persist_clock_showtimesec == 1 then clock_w = 260 end
     local frame_a = 0
     obj.b.obj_pers_clock_back1 = {persist_buf = true,
                         x = x_margin - clock_w,
@@ -649,7 +721,7 @@
                         frame_rect_a = 0,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_entry,
-                        fontsz = obj.fontsz_clock}                        
+                        fontsz = obj.fontsz_clock}  
     obj.b.obj_pers_clock = { outside_buf = true,
                         x = x_margin - clock_w,
                         y = obj.offs ,
@@ -660,10 +732,8 @@
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_entry,
                         fontsz = obj.fontsz_clock,
-                        txt = data.playcur_pos,
-                        func =  function()  
-                                  
-                                end}
+                        txt = data.editcur_pos_format  -- SEE GUI_Main
+                        }
                                 
     return clock_w   
   end

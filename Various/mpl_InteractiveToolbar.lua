@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.32
+-- @version 1.33
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,17 +15,15 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + MouseModifiers: allow to disable doubleclick on Persist/#grid
---    + Tags/Persist/#grid: show relative snapping state
---    # fix clear console erase console info
---    # Tags/Item/#vol: ignore invalid input data
---    # Tags/Item/#pitch: ignore invalid input data
---    # Tags/Envelope/#value: ignore invalid input data
---    # Tags/Envelope/#value: parse whole string
---    # Tags/Envelope/#value: show values in dB if envelope match 'Volume' in its name
---    # Tags/Envelope/#value: fix long floats for mouse drag
+--    + Persist/#bpm: mousewheel support
+--    + Persist/#clock: allow also show time in seconds, see Menu/Persistent modules
+--    + Persist/#grid: allow toggle grid visibility
+--    # Persist/#grid: prevent error on doubleclick 
+--    # Persist/#grid: make disabled state text brighter
+--    # Persist/#grid: changed behaviour when pass left drag enabled, hide entries in menu
+--    # Menu improvements
 
-  local vrs = '1.32'
+  local vrs = '1.33'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -51,10 +49,10 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-  data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
+  local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title}
-  local mouse = {}
+  mouse = {}
   local obj = {}
   local widgets = {    -- map types to data.obj_type_int order
               types_t ={'EmptyItem',
@@ -124,6 +122,7 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock
             oct_shift = 2,
             always_use_x_axis = 0,
             use_context_specific_conditions = 0,
+            persist_clock_showtimesec = 0,
             MM_doubleclick = 0,
             MM_rightclick = 0,
             MM_grid_rightclick = 0,
@@ -156,9 +155,17 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock
         DataUpdate(data, mouse, widgets, obj, conf)
         redraw = 1      
       end 
+      
     -- data constant upd
       data.playcur_pos =  GetPlayPositionEx( 0 )
-      data.playcur_pos_format =  format_timestr_pos( data.playcur_pos, '', data.ruleroverride )
+      local playcur_pos_format =  format_timestr_pos( data.playcur_pos, '', data.ruleroverride )
+      local playcur_pos_format2 =  format_timestr_pos( data.playcur_pos, '', 0 )
+      if data.persist_clock_showtimesec == 1 then -- SEE GUI_Main
+        data.playcur_pos_format = playcur_pos_format..' / '..playcur_pos_format2
+       else
+        data.playcur_pos_format = playcur_pos_format
+      end
+      
     -- perf GUI 
       GUI_Main(obj, cycle_cnt, redraw, data, clock)
       redraw = 0 

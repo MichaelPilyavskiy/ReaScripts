@@ -234,7 +234,7 @@
             gfx.a = 0.8 
           end
           gfx.setfont(1, obj.font, o.fontsz or obj.fontsz )
-          local shift = 5
+          local shift = 2
           local cnt = 0
           for line in txt:gmatch('[^\r\n]+') do cnt = cnt + 1 end
           local com_texth = gfx.texth*cnt
@@ -387,7 +387,8 @@
   
   -----------------------------------------------------------------------
   function Menu2_Settings(mouse, obj, widgets, conf, data)
-    -- form t
+    local Grid_DC_cond = ''
+    if data.MM_grid_ignoreleftdrag == 1 then Grid_DC_cond = '#' end
     local t = { { str = data.scr_title..' v'..data.vrs,
                   hidden = true},
                 { str = '|>Links / Info'},
@@ -397,61 +398,49 @@
                   func = function() F_open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } , 
                   
                 { str = '>Options'},
-                { str = 'Always use X axis control',
-                  state = conf.always_use_x_axis==1,
-                  func = function() conf.always_use_x_axis = math.abs(-1+conf.always_use_x_axis) ExtState_Save(conf) redraw = 2 end }  ,
-                { str = 'Use additional context conditions|<',
+                { str = 'Context: Force track context on change track selection',
                   state = conf.use_context_specific_conditions==1,
                   func = function() conf.use_context_specific_conditions = math.abs(-1+conf.use_context_specific_conditions) ExtState_Save(conf) redraw = 2 end }  ,                   
                 
-                { str = '>MouseModifiers|>Value fields'},
+                { str = 'Controls: Always use X axis control',
+                  state = conf.always_use_x_axis==1,
+                  func = function() conf.always_use_x_axis = math.abs(-1+conf.always_use_x_axis) ExtState_Save(conf) redraw = 2 end }  ,
+                { str = '>Controls: Time formatting mode'},
+                { str = 'Ruler linked',
+                  state = conf.ruleroverride == -1,
+                  func = function() conf.ruleroverride = -1 ExtState_Save(conf) redraw = 2 end} ,    
+                { str = 'Time',
+                  state = conf.ruleroverride == 0,
+                  func = function() conf.ruleroverride = 0 ExtState_Save(conf) redraw = 2 end} ,   
+                { str = 'measures.beats',
+                  state = conf.ruleroverride == 2,
+                  func = function() conf.ruleroverride = 2 ExtState_Save(conf) redraw = 2 end} ,  
+                { str = 'seconds',
+                  state = conf.ruleroverride == 3,
+                  func = function() conf.ruleroverride = 3 ExtState_Save(conf) redraw = 2 end} ,  
+                { str = 'samples',
+                  state = conf.ruleroverride == 4,
+                  func = function() conf.ruleroverride = 4 ExtState_Save(conf) redraw = 2 end} ,  
+                { str = 'h:m:s:f|<',
+                  state = conf.ruleroverride == 5,
+                  func = function() conf.ruleroverride = 5 ExtState_Save(conf) redraw = 2 end} , 
+                                  
+                { str = '>Controls: MouseModifiers'},
                 --{ str = ''},
                 { str = 'Doubleclick on value to type value',
                   state = conf.MM_doubleclick==0,
                   func = function() conf.MM_doubleclick = 0 ExtState_Save(conf) redraw = 2 end }  ,                   
                 { str = 'Doubleclick on value to reset value|',
                   state = conf.MM_doubleclick==1,
-                  func = function() conf.MM_doubleclick = 1 ExtState_Save(conf) redraw = 2 end }  ,
-                
-                                     
+                  func = function() conf.MM_doubleclick = 1 ExtState_Save(conf) redraw = 2 end }  ,  
                 { str = 'Rightclick on value to reset value',
                   state = conf.MM_rightclick==0,
                   func = function() conf.MM_rightclick = 0 ExtState_Save(conf) redraw = 2 end }  ,                   
-                { str = 'Rightclick on value to type value|<',
+                { str = 'Rightclick on value to type value|<|<',
                   state = conf.MM_rightclick==1,
                   func = function() conf.MM_rightclick = 1 ExtState_Save(conf) redraw = 2 end }  ,                   
                 
-                { str = '>Grid widget'},
-                { str = 'Ignore left drag, pass left click as toggle snap|',
-                  state = conf.MM_grid_ignoreleftdrag==1,
-                  func = function() conf.MM_grid_ignoreleftdrag = math.abs(1-data.MM_grid_ignoreleftdrag) ExtState_Save(conf) redraw = 2 end }  ,                 
-                { str = 'DoubleClick on grid value: disabled',
-                  state = conf.MM_grid_doubleclick==2,
-                  func = function() conf.MM_grid_doubleclick = 2 ExtState_Save(conf) redraw = 2 end }  ,
-                { str = 'DoubleClick on grid value open Snap/Grid dialog',
-                  state = conf.MM_grid_doubleclick==0,
-                  func = function() conf.MM_grid_doubleclick = 0 ExtState_Save(conf) redraw = 2 end }  ,
-                { str = 'DoubleClick on grid value reset grid to custom value',
-                  state = conf.MM_grid_doubleclick==1,
-                  func = function() conf.MM_grid_doubleclick = 1 ExtState_Save(conf) redraw = 2 end }  , 
-                { str = 'Set reset value|',
-                  func =  function() 
-                            local ret, grid_out = GetUserInputs( conf.scr_title, 1, 'Default grid',
-                                                                ({MPL_GetFormattedGrid(conf.MM_grid_default_reset_grid )})[2])
-                            if ret then
-                              local f = load('return '..grid_out)
-                              if not f then MB('Wrong value',conf.scr_title,0 ) return end
-                              conf.MM_grid_default_reset_grid = f()
-                              ExtState_Save(conf) 
-                              redraw = 2 
-                            end
-                          end }  ,                                     
-                { str = 'Rightclick on grid value open Snap/Grid dialog',
-                  state = conf.MM_grid_rightclick==0,
-                  func = function() conf.MM_grid_rightclick = 0 ExtState_Save(conf) redraw = 2 end }  ,                 
-                { str = 'Rightclick on grid value toggle snap|<|<',
-                  state = conf.MM_grid_rightclick==1,
-                  func = function() conf.MM_grid_rightclick = 1 ExtState_Save(conf) redraw = 2 end }  ,                  
+               
                 
                   
                 { str = '>Theme'},
@@ -521,93 +510,11 @@
                             end
                           end}  ,
                           
-                { str = '|>Time formatting mode'},
-                { str = 'Ruler linked',
-                  state = conf.ruleroverride == -1,
-                  func = function() conf.ruleroverride = -1 ExtState_Save(conf) redraw = 2 end} ,    
-                { str = 'Time',
-                  state = conf.ruleroverride == 0,
-                  func = function() conf.ruleroverride = 0 ExtState_Save(conf) redraw = 2 end} ,   
-                { str = 'measures.beats',
-                  state = conf.ruleroverride == 2,
-                  func = function() conf.ruleroverride = 2 ExtState_Save(conf) redraw = 2 end} ,  
-                { str = 'seconds',
-                  state = conf.ruleroverride == 3,
-                  func = function() conf.ruleroverride = 3 ExtState_Save(conf) redraw = 2 end} ,  
-                { str = 'samples',
-                  state = conf.ruleroverride == 4,
-                  func = function() conf.ruleroverride = 4 ExtState_Save(conf) redraw = 2 end} ,  
-                { str = 'h:m:s:f|<',
-                  state = conf.ruleroverride == 5,
-                  func = function() conf.ruleroverride = 5 ExtState_Save(conf) redraw = 2 end} , 
                   
-                { str = '>MIDI Pitch formatting mode'},
-                { str = 'Pitch only',
-                  state = conf.pitch_format == 0,
-                  func = function() conf.pitch_format = 0 ExtState_Save(conf) redraw = 2 end} ,    
-                { str = 'C#',
-                  state = conf.pitch_format == 1,
-                  func = function() conf.pitch_format = 1 ExtState_Save(conf) redraw = 2 end} ,   
-                { str = 'D♭',
-                  state = conf.pitch_format == 2,
-                  func = function() conf.pitch_format = 2 ExtState_Save(conf) redraw = 2 end} ,  
-                { str = 'Do#',
-                  state = conf.pitch_format == 3,
-                  func = function() conf.pitch_format = 3 ExtState_Save(conf) redraw = 2 end} ,  
-                { str = 'Re♭',
-                  state = conf.pitch_format == 4,
-                  func = function() conf.pitch_format = 4 ExtState_Save(conf) redraw = 2 end} ,  
-                { str = 'Frequency',
-                  state = conf.pitch_format == 5,
-                  func = function() conf.pitch_format = 5 ExtState_Save(conf) redraw = 2 end} ,                    
-                { str = '|Octave shift|<',
-                  func =  function() 
-                            local ret, ret_val = GetUserInputs( conf.scr_title, 1, 'Set octave shift', conf.oct_shift )
-                            if ret and tonumber(ret_val)  then
-                              conf.oct_shift = tonumber(ret_val) 
-                              ExtState_Save(conf)
-                              redraw = 2 
-                            end
-                          end} , 
+ 
                                                                                                                                                                         
-                { str = '|#Contexts'}  ,
-                { str = '>Empty item'},
-                { str = 'Widgets order|<',
-                  
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 1 ) end} ,                  
-                { str = '>MIDI item'},
-                 { str = 'Widgets order',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 2 ) end} ,
-                { str = 'Buttons order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 2, true ) end} , 
-                { str = '>Audio item'},
-                { str = 'Widgets order',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 3 ) end} ,
-                { str = 'Buttons order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 3, true ) end} ,
-                { str = '>Multiple items'},
-                { str = 'Widgets order',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 4 ) end} ,
-                { str = 'Buttons order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 4, true ) end} , 
-                --[[{ str = '>Envelope point|Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 5 ) end} ,      
-                { str = '>Multiple envelope points|Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} ,  ]]  
-                { str = '>Envelope'},
-                { str = 'Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 7 ) end} , 
-                { str = '>Track'},
-                { str = 'Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 8 ) end} , 
-                { str = '>MIDI editor'},
-                { str = 'Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 9 ) end} ,                                                                                     
-                { str = '>Persistent modules'},
-                { str = 'Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 'Persist' ) end} ,                                                                  
-                                                                                                      
-                {str = '|#Widget configuration'},
+                { str = '|#Contexts/Widgets'}  ,
+                {str = '>Widget Configuration'},
                 {str = 'Reset',
                  func = function()  
                           local ret = MB('Are you sure you want to reset widget configuration of MPL InfoTool?',  'MPL InfoTool', 4)
@@ -636,8 +543,107 @@ msg(
                  
                         end   
                 }  ,
-                {str = 'Edit manually',
-                 func = function()  F_open_URL('"" "'..data.conf_path..'"') end}  , 
+                {str = 'Edit manually|<',
+                 func = function()  F_open_URL('"" "'..data.conf_path..'"') end}  ,                 
+                { str = '>Empty item'},
+                { str = 'Widgets order|<',                  
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 1 ) end} , 
+                { str = '>MIDI item'},              
+                 { str = 'Widgets order',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 2 ) end} ,
+                { str = 'Buttons order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 2, true ) end} , 
+                { str = '>Audio item'},
+                { str = 'Widgets order',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 3 ) end} ,
+                { str = 'Buttons order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 3, true ) end} ,
+                { str = '>Multiple items'},
+                { str = 'Widgets order',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 4 ) end} ,
+                { str = 'Buttons order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 4, true ) end} , 
+                --[[{ str = '>Envelope point|Widgets order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 5 ) end} ,      
+                { str = '>Multiple envelope points|Widgets order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} ,  ]]  
+                { str = '>Envelope'},
+                { str = 'Widgets order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 7 ) end} , 
+                { str = '>Track'},
+                { str = 'Widgets order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 8 ) end} , 
+                { str = '>MIDI editor|>MIDI Pitch formatting mode'},
+                { str = 'Pitch only',
+                  state = conf.pitch_format == 0,
+                  func = function() conf.pitch_format = 0 ExtState_Save(conf) redraw = 2 end} ,    
+                { str = 'C#',
+                  state = conf.pitch_format == 1,
+                  func = function() conf.pitch_format = 1 ExtState_Save(conf) redraw = 2 end} ,   
+                { str = 'D♭',
+                  state = conf.pitch_format == 2,
+                  func = function() conf.pitch_format = 2 ExtState_Save(conf) redraw = 2 end} ,  
+                { str = 'Do#',
+                  state = conf.pitch_format == 3,
+                  func = function() conf.pitch_format = 3 ExtState_Save(conf) redraw = 2 end} ,  
+                { str = 'Re♭',
+                  state = conf.pitch_format == 4,
+                  func = function() conf.pitch_format = 4 ExtState_Save(conf) redraw = 2 end} ,  
+                { str = 'Frequency',
+                  state = conf.pitch_format == 5,
+                  func = function() conf.pitch_format = 5 ExtState_Save(conf) redraw = 2 end} ,                    
+                { str = '|Octave shift|<',
+                  func =  function() 
+                            local ret, ret_val = GetUserInputs( conf.scr_title, 1, 'Set octave shift', conf.oct_shift )
+                            if ret and tonumber(ret_val)  then
+                              conf.oct_shift = tonumber(ret_val) 
+                              ExtState_Save(conf)
+                              redraw = 2 
+                            end
+                          end} ,                  
+                { str = 'Widgets order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 9 ) end} ,  
+                                                                                                     
+                { str = '>Persistent modules'},
+                { str = ' #grid: Ignore left drag, pass left click as toggle snap',
+                  state = conf.MM_grid_ignoreleftdrag==1,
+                  func = function() conf.MM_grid_ignoreleftdrag = math.abs(1-conf.MM_grid_ignoreleftdrag) ExtState_Save(conf) redraw = 2 end }  ,                 
+                { str = Grid_DC_cond..' #grid: DoubleClick on grid value: disabled',
+                  state = conf.MM_grid_doubleclick==2,
+                  func = function() conf.MM_grid_doubleclick = 2 ExtState_Save(conf) redraw = 2 end }  ,
+                { str = Grid_DC_cond..' #grid: DoubleClick on grid value open Snap/Grid dialog',
+                  state = conf.MM_grid_doubleclick==0,
+                  func = function() conf.MM_grid_doubleclick = 0 ExtState_Save(conf) redraw = 2 end }  ,
+                { str = Grid_DC_cond..' #grid: DoubleClick on grid value reset grid to custom value',
+                  state = conf.MM_grid_doubleclick==1,
+                  func = function() conf.MM_grid_doubleclick = 1 ExtState_Save(conf) redraw = 2 end }  , 
+                { str = Grid_DC_cond..' #grid: Set default grid',
+                  func =  function() 
+                            local ret, grid_out = GetUserInputs( conf.scr_title, 1, 'Default grid',
+                                                                ({MPL_GetFormattedGrid(conf.MM_grid_default_reset_grid )})[2])
+                            if ret then
+                              local f = load('return '..grid_out)
+                              if not f then MB('Wrong value',conf.scr_title,0 ) return end
+                              conf.MM_grid_default_reset_grid = f()
+                              ExtState_Save(conf) 
+                              redraw = 2 
+                            end
+                          end }  ,                                     
+                { str = ' #grid: Rightclick on grid value open Snap/Grid dialog',
+                  state = conf.MM_grid_rightclick==0,
+                  func = function() conf.MM_grid_rightclick = 0 ExtState_Save(conf) redraw = 2 end }  ,                 
+                { str = ' #grid: Rightclick on grid value toggle snap|',
+                  state = conf.MM_grid_rightclick==1,
+                  func = function() conf.MM_grid_rightclick = 1 ExtState_Save(conf) redraw = 2 end }  ,                   
+                { str = ' #clock: Show time in seconds|',
+                  state = conf.persist_clock_showtimesec == 1,
+                  func = function() conf.persist_clock_showtimesec = math.abs(1-conf.persist_clock_showtimesec) ExtState_Save(conf) redraw = 2 end} ,                  
+                
+                 
+                
+                { str = 'Widgets order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 'Persist' ) end} , 
+                  
                 {str = '|Dock MPL InteractiveToolbar',
                                  func = function() 
                                           gfx.quit() 
