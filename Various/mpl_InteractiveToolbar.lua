@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.33
+-- @version 1.34
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
