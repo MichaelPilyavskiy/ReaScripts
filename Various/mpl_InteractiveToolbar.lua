@@ -15,15 +15,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Persist/#bpm: mousewheel support
---    + Persist/#clock: allow also show time in seconds, see Menu/Persistent modules
---    + Persist/#grid: allow toggle grid visibility
---    # Persist/#grid: prevent error on doubleclick 
---    # Persist/#grid: make disabled state text brighter
---    # Persist/#grid: changed behaviour when pass left drag enabled, hide entries in menu
+--    + Persist/#transport: show repeat state
 --    # Menu improvements
 
-  local vrs = '1.33'
+  local vrs = '1.34'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])

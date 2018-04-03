@@ -34,8 +34,13 @@
     local grid_widg_w_trpl = 20
     local grid_widg_w = grid_widg_val_w+ grid_widg_w_trpl
     local frame_a = 0
+    local rel_snap_w = 25
+    local rel_snap_h = 10
     local gridwidg_xpos = gfx.w-grid_widg_w-obj.menu_b_rect_side - x_margin
     if data.grid_isactive then  frame_a = obj.frame_a_state end
+    local txt_a,txt_a_relsnap,txt_a_visgrid =obj.txt_a
+    if data.grid_rel_snap == 0 then txt_a_relsnap = txt_a * 0.3 end
+    if data.grid_vis == 0 then      txt_a_visgrid = txt_a * 0.3 end
     obj.b.obj_pers_grid_back = { persist_buf = true,
                         x = x_margin - grid_widg_w,
                         y = obj.offs ,
@@ -58,10 +63,6 @@
                         txt_col = obj.txt_col_header,
                         txt = '',
                         ignore_mouse = true}   
-    local rel_snap_w = 25
-    local rel_snap_h = 10
-    local txt_a =obj.txt_a
-    if data.grid_rel_snap == 0 then txt_a = txt_a * 0.3 end
     obj.b.obj_pers_grid_relsnap = { persist_buf = true,
                         x = x_margin - grid_widg_w,
                         y = obj.offs ,
@@ -69,7 +70,7 @@
                         h = rel_snap_h,
                         frame_a = 0,--obj.frame_a_entry,
                         frame_rect_a = 0,
-                        txt_a = txt_a,
+                        txt_a = txt_a_relsnap,
                         --txt_col = 'white',
                         txt = 'REL',
                         --aligh_txt = 1,
@@ -77,8 +78,6 @@
                         func =  function ()
                                   Action(41054)
                                 end}   
-    local txt_a =obj.txt_a 
-    if data.grid_vis == 0 then txt_a = txt_a * 0.3 end
     obj.b.obj_pers_grid_visible = { persist_buf = true,
                         x = x_margin - grid_widg_w + rel_snap_w,
                         y = obj.offs ,
@@ -86,7 +85,7 @@
                         h = rel_snap_h,
                         frame_a = 0,--obj.frame_a_entry,
                         frame_rect_a = 0,
-                        txt_a = txt_a,
+                        txt_a = txt_a_visgrid,
                         --txt_col = 'white',
                         txt = 'LINE',
                         --aligh_txt = 1,
@@ -335,9 +334,12 @@
 ------------------------------------------------------------
   function Widgets_Persist_transport(data, obj, mouse, x_margin, widgets)    -- generate position controls 
     local transport_state_w = 60
+    local repeat_w = 25
     local frame_a = 0
     local txt = 'Stop'
     local gridwidg_xpos = gfx.w-transport_state_w-obj.menu_b_rect_side - x_margin
+    local txt_a,txt_a_repstate =obj.txt_a
+    if data.repeat_state == 0 then txt_a_repstate = txt_a * 0.3 end
     obj.b.obj_pers_transport_state_bck1 = {persist_buf = true,
                         x = x_margin - transport_state_w,
                         y = obj.offs ,
@@ -358,6 +360,22 @@
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_entry,
                         fontsz = obj.fontsz_clock}   
+    obj.b.obj_pers_transport_A_repeat = { persist_buf = true,
+                        x = x_margin-transport_state_w,
+                        y = obj.offs ,
+                        w = repeat_w,
+                        h = 10,
+                        frame_a = 0,--obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = txt_a_repstate,
+                        --txt_col = 'white',
+                        txt = 'REP',
+                        aligh_txt = 1,
+                        fontsz = obj.fontsz_grid_rel,
+                        func =  function ()
+                                  Action(1068)--Transport: Toggle repeat
+                                  redraw = 2
+                                end}                         
     local state_col, state
     if  data.record  then
       state = true
@@ -373,7 +391,7 @@
       state_col = 'greendark'
      else
     end
-    obj.b.obj_pers_transport_state = {persist_buf = true,
+    obj.b.obj_pers_transport_B_state = {persist_buf = true,
                         x = x_margin - transport_state_w,
                         y =  0,
                         w = transport_state_w,
@@ -386,6 +404,7 @@
                         txt_col = 'white',
                         txt = txt,
                         func =        function()
+                                        if MOUSE_Match(mouse, obj.b.obj_pers_transport_A_repeat) then return end
                                         if not mouse.Ctrl then
                                           if data.pause then
                                             Main_OnCommand(1016, 0) --Transport: Stop

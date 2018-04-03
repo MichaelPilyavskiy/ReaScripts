@@ -147,6 +147,7 @@
     data.pause = int_playstate&2==2
     data.record = int_playstate&4==4
     data.editcur_pos = GetCursorPositionEx( 0 )
+    data.repeat_state = GetToggleCommandStateEx( 0, 1068 ) 
     local editcur_pos_format =  format_timestr_pos( data.editcur_pos, '', data.ruleroverride )
     local editcur_pos_format2 =  format_timestr_pos( data.editcur_pos, '', 0 )
     if data.persist_clock_showtimesec == 1 then -- SEE GUI_Main

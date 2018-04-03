@@ -605,19 +605,20 @@ msg(
                   func = function() Menu_ChangeOrder(widgets, data, conf, 9 ) end} ,  
                                                                                                      
                 { str = '>Persistent modules'},
-                { str = ' #grid: Ignore left drag, pass left click as toggle snap',
+                { str = '# #grid'},
+                { str = 'Ignore left drag, pass left click as toggle snap',
                   state = conf.MM_grid_ignoreleftdrag==1,
                   func = function() conf.MM_grid_ignoreleftdrag = math.abs(1-conf.MM_grid_ignoreleftdrag) ExtState_Save(conf) redraw = 2 end }  ,                 
-                { str = Grid_DC_cond..' #grid: DoubleClick on grid value: disabled',
+                { str = Grid_DC_cond..'DoubleClick on grid value: disabled',
                   state = conf.MM_grid_doubleclick==2,
                   func = function() conf.MM_grid_doubleclick = 2 ExtState_Save(conf) redraw = 2 end }  ,
-                { str = Grid_DC_cond..' #grid: DoubleClick on grid value open Snap/Grid dialog',
+                { str = Grid_DC_cond..'DoubleClick on grid value open Snap/Grid dialog',
                   state = conf.MM_grid_doubleclick==0,
                   func = function() conf.MM_grid_doubleclick = 0 ExtState_Save(conf) redraw = 2 end }  ,
-                { str = Grid_DC_cond..' #grid: DoubleClick on grid value reset grid to custom value',
+                { str = Grid_DC_cond..'DoubleClick on grid value reset grid to custom value',
                   state = conf.MM_grid_doubleclick==1,
                   func = function() conf.MM_grid_doubleclick = 1 ExtState_Save(conf) redraw = 2 end }  , 
-                { str = Grid_DC_cond..' #grid: Set default grid',
+                { str = Grid_DC_cond..'Set default grid',
                   func =  function() 
                             local ret, grid_out = GetUserInputs( conf.scr_title, 1, 'Default grid',
                                                                 ({MPL_GetFormattedGrid(conf.MM_grid_default_reset_grid )})[2])
@@ -629,13 +630,14 @@ msg(
                               redraw = 2 
                             end
                           end }  ,                                     
-                { str = ' #grid: Rightclick on grid value open Snap/Grid dialog',
+                { str = 'Rightclick on grid value open Snap/Grid dialog',
                   state = conf.MM_grid_rightclick==0,
                   func = function() conf.MM_grid_rightclick = 0 ExtState_Save(conf) redraw = 2 end }  ,                 
-                { str = ' #grid: Rightclick on grid value toggle snap|',
+                { str = 'Rightclick on grid value toggle snap|',
                   state = conf.MM_grid_rightclick==1,
                   func = function() conf.MM_grid_rightclick = 1 ExtState_Save(conf) redraw = 2 end }  ,                   
-                { str = ' #clock: Show time in seconds|',
+                { str = '# #clock'},
+                { str = 'Show time in seconds|',
                   state = conf.persist_clock_showtimesec == 1,
                   func = function() conf.persist_clock_showtimesec = math.abs(1-conf.persist_clock_showtimesec) ExtState_Save(conf) redraw = 2 end} ,                  
                 
