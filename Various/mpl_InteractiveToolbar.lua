@@ -1,9 +1,7 @@
 -- @description InteractiveToolbar
--- @version 1.35
+-- @version 1.36
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @about
---    This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows.
 -- @provides
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua
@@ -15,13 +13,66 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Tags/Track/#buttons/#polarity: Toggle inverted polarity ("phase" in REAPER) of track audio output
---    + Tags/Track/#buttons/#parentsend: Toggle Master/Parent send
---    + Tags/Persist/#tap: Get a tempo from tap, allow to distribute that info in different ways. RightClick reset taps data and force current tempo to convertion chart.
---    # Tags/Track/#chrecvmixer: fix error when modifing send volume via mousewheel
---    # Tags/Track/#chsendmixer and #chrecvmixer: decrease mouse resolution
+--    + Added descriptions chart into about section
+-- @about
+--[[  
+This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows.
+For widgets editing purposes see Menu ('>') button in the right corner, then Widget Configuration>Help.
 
-  local vrs = '1.35'
+    Modules info:
+        Item
+          #position editing position
+          #length editing length
+          #snap editing take snap offset
+          #endedge editing position of item refering to its end
+          #length editing length
+          #offset editing take source offset
+          #fadein editing fadein
+          #fadeout editing fadeout
+          #vol editing item volume
+          #transpose editing item pitch
+          #pan editing take pan
+          #srclen editing source length (for loop source), update require rebuilding peaks
+          #buttons
+            #lock toggle lock
+            #loop toggle loop source
+            #mute toggle mute
+            #srcreverse (Audio and Multiple only)
+            #preservepitch (Audio and Multiple only) toggle take preserve pitch
+            #chanmode (Audio and Multiple only) editing take channel mode
+            #bwfsrc (Audio and Multiple only) Action Item: Move to source preferred position (used by BWF)
+        Envelope
+          #floatfx float FX related with current envelope
+          #position editing point position
+          #value editing point value, volume envelopes use db<>linear convertion
+        Track
+          #vol editing track volume
+          #pan editing track pan
+          #fxlist Show FX in chain, LeftClick float FX, Shift+Click bypass FX
+          #sendto Small tool for quick creating sends from selected track, to have potential sends in the list add them via selecting and 'Mark as predefined send'
+          #delay get/set value in seconds for 'JS: time adjustment'
+          #chsendmixer shows all send faders if sends existed for the first selected track. Ctrl+drag move on any slider acts as a VCA.
+          #chrecvmixer shows all receive faders if receives existed for the first selected track. Ctrl+drag move on any slider acts as a VCA.
+          #buttons
+            #polarity Toggle inverted polarity ("phase" in REAPER) of track audio output
+            #parentsend Toggle Master/Parent send
+        MIDIEditor
+          #position perform a PPQ<>ProjectTime convertion as absolute time of note
+          #CCval change CC value, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
+          #notepitch change note pitch, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
+          #notevel change note velocity, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
+        Persist
+          #grid show current grid, allow to change grid lines visibility and relative snap
+          #timeselend editing time selection end
+          #timeselstart editing time selection start
+          #lasttouchfx editing last touched FX parameter
+          #transport show/editing current play state, RightClick - pause, LeftClick - stop/revert to start position, Cltr+Left - record
+          #bpm shows/edit tempo and time signature for project (or tempo marker falling at edit cursor if any)
+          #clock shows play/edit cursor positions
+          #tap Get a tempo from tap, allow to distribute that info in different ways. RightClick reset taps data and force current tempo to convertion chart.      
+]]   
+   
+    local vrs = '1.36'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
