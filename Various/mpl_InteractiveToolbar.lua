@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.34
+-- @version 1.35
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
@@ -15,10 +15,13 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Persist/#transport: show repeat state
---    # Menu improvements
+--    + Tags/Track/#buttons/#polarity: Toggle inverted polarity ("phase" in REAPER) of track audio output
+--    + Tags/Track/#buttons/#parentsend: Toggle Master/Parent send
+--    + Tags/Persist/#tap: Get a tempo from tap, allow to distribute that info in different ways. RightClick reset taps data and force current tempo to convertion chart.
+--    # Tags/Track/#chrecvmixer: fix error when modifing send volume via mousewheel
+--    # Tags/Track/#chsendmixer and #chrecvmixer: decrease mouse resolution
 
-  local vrs = '1.34'
+  local vrs = '1.35'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -44,10 +47,10 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-  local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
+   data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title}
-  mouse = {}
+  local mouse = {}
   local obj = {}
   local widgets = {    -- map types to data.obj_type_int order
               types_t ={'EmptyItem',
@@ -57,7 +60,7 @@
                         nil,--'EnvelopePoint',
                         nil,--'MultipleEnvelopePoints',
                         'Envelope',
-                        'Track',
+                        'Track', 
                         'MIDIEditor'
                         }
                   }
@@ -71,6 +74,7 @@
   local last_ProjGid
   local last_gfxx, last_gfxy, last_gfxw, last_gfxh, last_dock
   local widgets_def = {}
+  local lastTapTS
   ---------------------------------------------------
   
   
@@ -91,11 +95,12 @@ buttons=#lock #preservepitch #chanmode #loop #srcreverse #mute
 [Envelope]
 order=#floatfx #position #value
 [Track]
-order=#vol #pan #fxlist #sendto #delay #chsendmixer #chrecvmixer
+order=#buttons #vol #pan #fxlist #sendto #delay #chsendmixer #chrecvmixer 
+buttons=#polarity #parentsend
 [MIDIEditor]
 order=#position #CCval #notepitch #notevel
 [Persist]
-order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock
+order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap
 ]]
   end  
   ---------------------------------------------------
@@ -123,7 +128,8 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock
             MM_grid_rightclick = 0,
             MM_grid_doubleclick = 0,
             MM_grid_ignoreleftdrag = 0,
-            MM_grid_default_reset_grid = 0.25}
+            MM_grid_default_reset_grid = 0.25,
+            tap_quantize = 0}
   end
   ---------------------------------------------------
   function Run()

@@ -39,7 +39,7 @@
                   
                   mouse_scal_time = 5,
                   mouse_scal_vol = 5,
-                  mouse_scal_sendmixvol = 10,
+                  mouse_scal_sendmixvol = 5,
                   mouse_scal_pitch = 5,
                   mouse_scal_pan = 1,
                   mouse_scal_float = 0.5,
@@ -185,7 +185,7 @@
     -- state
       if o.state then
         if o.state_col then GUI_col(o.state_col, obj) end
-        gfx.a = 0.3
+        gfx.a = 0.35
         gfx.rect(x,y,w,h,1)        
       end
       
@@ -571,8 +571,10 @@ msg(
                 { str = 'Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 7 ) end} , 
                 { str = '>Track'},
-                { str = 'Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 8 ) end} , 
+                { str = 'Widgets order',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 8 ) end} ,
+                { str = 'Buttons order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 8, true ) end} ,
                 { str = '>MIDI editor|>MIDI Pitch formatting mode'},
                 { str = 'Pitch only',
                   state = conf.pitch_format == 0,

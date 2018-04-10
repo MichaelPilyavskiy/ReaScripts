@@ -7,13 +7,13 @@
   -- Persistent wigets for mpl_InteractiveToolbar
   
   ---------------------------------------------------
-  function Obj_UpdatePersist(data, obj, mouse, widgets)
+  function Obj_UpdatePersist(data, obj, mouse, widgets, conf)
     local x_margin = gfx.w-obj.offs
     if widgets.Persist then
       for i = 1, #widgets.Persist do
         local key = widgets.Persist[i]
         if _G['Widgets_Persist_'..key] then
-          local ret = _G['Widgets_Persist_'..key](data, obj, mouse, x_margin, widgets) 
+          local ret = _G['Widgets_Persist_'..key](data, obj, mouse, x_margin, widgets, conf) 
           if ret then x_margin = x_margin - ret end
         end
       end  
@@ -761,7 +761,7 @@
 
 
 
----------------------------------------------------------------
+--[[-------------------------------------------------------------
   function Widgets_Persist_toolbar(data, obj, mouse, x_margin, widgets)  
     local toolb_w = obj.entry_h*2
     local frame_a = 0
@@ -788,3 +788,191 @@
                                 
     return toolb_w   
   end
+  ---------------------------------------------------------------------------]]
+  
+  
+  
+  
+  
+  
+  
+  
+  ------------------------------------------------------------
+    function Widgets_Persist_tap(data, obj, mouse, x_margin, widgets, conf)    -- generate position controls 
+      local tap_w = 80
+      local tap_menu_w = 20
+      local frame_a = 0
+      local gridwidg_xpos = gfx.w-tap_w-obj.menu_b_rect_side - x_margin
+      obj.b.obj_pers_tap_bck1 = {persist_buf = true,
+                          x = x_margin - tap_w,
+                          y = obj.offs ,
+                          w = tap_w,
+                          h = obj.entry_h,
+                          frame_a = obj.frame_a_head,
+                          frame_rect_a = 0,
+                          txt_a = obj.txt_a,
+                          txt_col = obj.txt_col_entry,
+                          fontsz = obj.fontsz_clock}   
+      obj.b.obj_pers_tap_bck2 = {persist_buf = true,
+                          x = x_margin - tap_w,
+                          y = obj.offs+obj.entry_h ,
+                          w = tap_w,
+                          h = obj.entry_h,
+                          frame_a = obj.frame_a_entry,
+                          frame_rect_a = 0,
+                          txt_a = obj.txt_a,
+                          txt_col = obj.txt_col_entry,
+                          fontsz = obj.fontsz_clock}   
+      local txt = 'TAP'
+      if data.tap_data and data.tap_data.tap_tempo then txt = data.tap_data.tap_tempo end
+      obj.b.obj_pers_tap_app = {persist_buf = true,
+                          x = x_margin - tap_w,
+                          y =  0,
+                          w = tap_w-tap_menu_w,
+                          h = obj.entry_h*2,
+                          frame_a = frame_a,--,
+                          state_col = state_col,
+                          state = state,
+                          --frame_rect_a = 1,
+                          txt_a = obj.txt_a,
+                          txt_col = 'white',
+                          txt = txt,
+                          func =        function()
+                                          local taps_cnt = 16
+                                                                                    
+                                          -- wrap tap timestamps
+                                          local TapTS = os.clock()
+                                          if not lastTapTS then lastTapTS = TapTS end
+                                          local diff = TapTS - lastTapTS
+                                          
+                                          lastTapTS = TapTS
+                                          if diff > 0.1 and diff < 1.5 then
+                                            if #data.tap_data.tapst < taps_cnt then 
+                                              table.insert(data.tap_data.tapst,diff )
+                                             else
+                                              table.remove(data.tap_data.tapst,1 )
+                                              table.insert(data.tap_data.tapst,diff )
+                                            end
+                                          end
+                                          
+                                          -- calc RMS                                          
+                                          if #data.tap_data.tapst < 2 then return end  
+                                          local diff_com = 0                                          
+                                          for i = 1, #data.tap_data.tapst do diff_com = diff_com + data.tap_data.tapst[i]   end 
+                                          diff = diff_com / #data.tap_data.tapst
+                                          
+                                          -- convert into data
+                                          if diff then
+                                            data.tap_data.diff = diff
+                                            data.tap_data.tap_tempo = tonumber(string.format('%.3f', 60 / diff))
+                                            if conf.tap_quantize == 1 then data.tap_data.tap_tempo = math_q (data.tap_data.tap_tempo) end
+                                            redraw = 1
+                                          end
+                                          
+                                        end,
+                                          
+                          func_R =      function()
+                                          data.tap_data.tapst = {}
+                                          data.tap_data.tap_tempo = data.TempoMarker_bpm
+                                          redraw = 2
+                                        end,                                                                          
+                                        
+                                        
+                                        }
+        local is_accesible = '#'
+        if data.tap_data.tap_tempo then is_accesible = '' end
+        obj.b.obj_pers_tapmenu = { persist_buf = true,
+                          x = x_margin-tap_menu_w,
+                          y = obj.offs ,
+                          w = tap_menu_w,
+                          h = obj.entry_h*2,
+                          frame_a = frame_a,
+                          txt_a = obj.txt_a,
+                          txt_col = 'white',
+                          txt = '->',
+                          fontsz = obj.fontsz_grid_rel,
+                          func =  function ()
+                                    Menu(mouse, 
+                                        { { str = 'Quantize tapped tempo|',
+                                            state = conf.tap_quantize==1,
+                                            func = function() 
+                                                    conf.tap_quantize = math.abs(1-conf.tap_quantize)
+                                                    ExtState_Save(conf)
+                                                    redraw = 2
+                                                  end
+                                          },
+                                          { str = is_accesible..'Apply to tempo marker',
+                                            func = function() 
+                                                    if data.tap_data.tap_tempo then 
+                                                      if data.TempoMarker_ID == -1 then 
+                                                        CSurf_OnTempoChange(  data.tap_data.tap_tempo )
+                                                        UpdateTimeline()
+                                                        redraw = 2  
+                                                       else 
+                                                        SetTempoTimeSigMarker( 0, data.TempoMarker_ID, 
+                                                                                  data.TempoMarker_timepos, 
+                                                                                  -1, 
+                                                                                  -1, 
+                                                                                  data.tap_data.tap_tempo, 
+                                                                                  data.TempoMarker_timesig_num, 
+                                                                                  data.TempoMarker_timesig_denom, 
+                                                                                  data.TempoMarker_lineartempochange )
+                                                        UpdateTimeline()
+                                                      end
+                                                    end
+                                                  end
+                                          },  
+                                      { str = is_accesible..'Apply to selected item',
+                                            func = function() 
+                                                    if data.tap_data.tap_tempo and data.TempoMarker_bpm then 
+                                                      local new_rate = data.TempoMarker_bpm / data.tap_data.tap_tempo
+                                                      for i = 1 , CountSelectedMediaItems(0) do
+                                                        local item = GetSelectedMediaItem(0, i-1)
+                                                        local take = GetActiveTake(item)
+                                                        if take then 
+                                                          SetMediaItemTakeInfo_Value( take, 'D_PLAYRATE', new_rate )
+                                                        end
+                                                      end
+                                                      UpdateArrange()
+                                                    end
+                                                  end
+                                          },                                           
+                                          {str = is_accesible..'Show delay times',
+                                          func = function()
+                                                    ClearConsole()
+                                                    form = '%.3f'
+                                                    local s_info = 'Tempo: '..data.tap_data.tap_tempo..'BPM\n'..
+                                                                    
+                                                                    'Frequency: '..60/data.tap_data.tap_tempo..'Hz\n\n'..
+                                                                    
+                                                                    ' 1/2:  '..string.format(form,        1000        * 120/data.tap_data.tap_tempo)..'ms\n'..
+                                                                    ' 1/2T:  '..string.format(form,       1000 * 2/3  * 120/data.tap_data.tap_tempo)..'ms\n'..
+                                                                    ' 1/2 dotted:  '..string.format(form, 1000 * 3/2  * 120/data.tap_data.tap_tempo)..'ms\n'..
+                                                                    ' 1/2 cycle: '..string.format(form,   1/(           120/data.tap_data.tap_tempo))..'Hz\n\n'..
+                                                                                                                     
+                                                                    ' 1/4:  '..string.format(form,        1000        * 60/data.tap_data.tap_tempo)..'ms\n'..
+                                                                    ' 1/4T:  '..string.format(form,       1000 * 2/3  * 60/data.tap_data.tap_tempo)..'ms\n'..
+                                                                    ' 1/4 dotted:  '..string.format(form, 1000 * 3/2  * 60/data.tap_data.tap_tempo)..'ms\n'..
+                                                                    ' 1/4 cycle: '..string.format(form,   1/(           60/data.tap_data.tap_tempo))..'Hz\n\n'..
+                                                                    
+                                                                    ' 1/8:  '..string.format(form,        1000        * 30/data.tap_data.tap_tempo)..'ms\n'..
+                                                                    ' 1/8T:  '..string.format(form,       1000 * 2/3  * 30/data.tap_data.tap_tempo)..'ms\n'..
+                                                                    ' 1/8 dotted:  '..string.format(form, 1000 * 3/2  * 30/data.tap_data.tap_tempo)..'ms\n'..                                                                 
+                                                                    ' 1/8 cycle: '..string.format(form,   1/(           30/data.tap_data.tap_tempo))..'Hz\n\n'..
+                                                                    
+                                                                    ' 1/16:  '..string.format(form,        1000        * 15/data.tap_data.tap_tempo)..'ms\n'..
+                                                                    ' 1/16T:  '..string.format(form,       1000 * 2/3  * 15/data.tap_data.tap_tempo)..'ms\n'..
+                                                                    ' 1/16 dotted:  '..string.format(form, 1000 * 3/2  * 15/data.tap_data.tap_tempo)..'ms\n'..
+                                                                    ' 1/16 cycle: '..string.format(form,   1/(           15/data.tap_data.tap_tempo))..'Hz\n\n'
+                                                    
+                                                    msg(s_info)
+                                                  end
+                                          }                                        
+                                          
+                                          
+                                          
+                                          
+                                        })
+                                  end}                                                  
+      return tap_w
+    end  

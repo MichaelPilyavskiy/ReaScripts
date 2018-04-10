@@ -52,7 +52,93 @@
 
 
 
-
+  --------------------------------------------------------------  
+  function Widgets_Track_buttons(data, obj, mouse, x_offs0, widgets)
+    local frame_a, x_offs, y_offs
+    --if x_offs0 + obj.entry_w2*2 > obj.persist_margin then return x_offs0 end  -- reduce buttons when more than regular wx2
+    local last_x1,last_x2 = x_offs0, x_offs0
+    local tp_ID = data.obj_type_int
+    local widg_key = widgets.types_t[tp_ID+1] -- get key of current mapped table
+    if widgets[widg_key] and widgets[widg_key].buttons  then  
+      for i = 1, #widgets[widg_key].buttons do 
+        local key = widgets[widg_key].buttons[i]
+        if _G['Widgets_Track_buttons_'..key] then  
+          if i%2 == 1 then 
+            x_offs = last_x1
+            frame_a = obj.frame_a_head
+            y_offs = 0
+           elseif i%2 == 0 then   
+            x_offs = last_x2 
+            frame_a = obj.frame_a_entry
+            y_offs = obj.entry_h
+          end
+          local next_w = _G['Widgets_Track_buttons_'..key](data, obj, mouse, x_offs, y_offs, frame_a)
+          if i%2 == 1 then last_x1 = last_x1+next_w elseif i%2 == 0 then last_x2 = last_x2+next_w end
+        end
+        
+      end
+    end
+    return math.max(last_x1,last_x2) - x_offs0
+  end 
+  --------------------------------------------------------------   
+  
+  
+  
+  
+  
+  
+  
+  
+  --------------------------------------------------------------
+  function Widgets_Track_buttons_polarity(data, obj, mouse, x_offs, y_offs, frame_a)
+    local w = 50*obj.entry_ratio
+    obj.b.obj_trpol = {  x = x_offs,
+                        y = obj.offs+y_offs ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = frame_a,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_toolbar,
+                        txt = 'Ø',
+                        fontsz = obj.fontsz_entry,
+                        state = data.tr[1].pol==1,
+                        state_col = 'green',
+                        func =  function()
+                                  for i = 1, #data.tr do
+                                    SetMediaTrackInfo_Value( data.tr[i].ptr, 'B_PHASE', math.abs(data.tr[1].pol-1))
+                                  end
+                                  redraw = 1                              
+                                end}
+    return w
+  end  
+  --------------------------------------------------------------
+  function Widgets_Track_buttons_parentsend(data, obj, mouse, x_offs, y_offs, frame_a)
+    local w = 50*obj.entry_ratio
+    obj.b.obj_trparsend = {  x = x_offs,
+                        y = obj.offs+y_offs ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = frame_a,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_toolbar,
+                        txt = 'Parent',
+                        fontsz = obj.fontsz_entry,
+                        state = data.tr[1].parsend==1,
+                        state_col = 'green',
+                        func =  function()
+                                  for i = 1, #data.tr do
+                                    SetMediaTrackInfo_Value( data.tr[i].ptr, 'B_MAINSEND', math.abs(data.tr[1].parsend-1))
+                                  end
+                                  redraw = 1                              
+                                end}
+    return w
+  end  
+  --------------------------------------------------------------  
+  
+  
+  
+  
+  
   -------------------------------------------------------------- 
   function Widgets_Track_pan(data, obj, mouse, x_offs)
     local pan_w = 60
@@ -838,7 +924,7 @@
                                               end  ,                              
                         func_onRelease = function() Undo_OnStateChange( data.scr_title..': Change track receive properties' ) end,
                         func_wheel = function()
-                                      mouse.temp_val = data.tr_recv[i].s_vol
+                                      mouse.temp_val = data.tr_recv[i].r_vol
                                       local real = Apply_RecvMix_vol(data, mouse, i, mouse.wheel_trig/10, mouse.temp_val)
                                       data.active_context_id2 = i 
                                       data.active_context_sendmixer2 =      data.tr_recv[i].r_name  

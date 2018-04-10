@@ -491,7 +491,7 @@
   --https://github.com/majek/wdl/blob/master/WDL/db2val.h
   function WDL_DB2VAL(x) return math.exp((x)*0.11512925464970228420089957273422) end
   function WDL_VAL2DB(x, reduce)
-    if x < 0.0000000298023223876953125 then return -150.0 end
+    if not x or x < 0.0000000298023223876953125 then return -150.0 end
     local v=math.log(x)*8.6858896380650365530225783783321
     if v<-150.0 then return -150.0 else 
       if reduce then 

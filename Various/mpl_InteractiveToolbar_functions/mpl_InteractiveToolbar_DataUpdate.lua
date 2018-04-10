@@ -15,6 +15,9 @@
     DataUpdate_LastTouchedFX(data)
     --DataUpdate_Toolbar(data,conf)
     
+    if not data.tap_data then data.tap_data = {} end
+    if not data.tap_data.tapst then data.tap_data.tapst = {} end
+    
     data.pitch_format = conf.pitch_format
     data.oct_shift = conf.oct_shift
     data.always_use_x_axis = conf.always_use_x_axis
@@ -26,11 +29,10 @@
     data.MM_grid_default_reset_grid = conf.MM_grid_default_reset_grid
     data.persist_clock_showtimesec = conf.persist_clock_showtimesec
     
-    
     -- reset buttons data
       obj.b = {}
     -- persisten widgets
-      obj.persist_margin = Obj_UpdatePersist(data, obj, mouse, widgets) -- MUST be before DataUpdate_Context for passing persist_margin
+      obj.persist_margin = Obj_UpdatePersist(data, obj, mouse, widgets, conf) -- MUST be before DataUpdate_Context for passing persist_margin
     -- context widgets  
       DataUpdate_Context(data, mouse, widgets, obj, conf) 
     -- update com butts
@@ -107,16 +109,16 @@
 
     if ME then
       DataUpdate_MIDIEditor(data, ME )
-      Obj_UpdateMIDIEditor(data, obj, mouse, widgets)
+      Obj_UpdateMIDIEditor(data, obj, mouse, widgets, conf)
      elseif env then    
       DataUpdate_Envelope(data, env)
-      Obj_UpdateEnvelope(data, obj, mouse, widgets)
+      Obj_UpdateEnvelope(data, obj, mouse, widgets, conf)
      elseif item then 
       DataUpdate_Item(data) 
-      Obj_UpdateItem(data, obj, mouse, widgets)
+      Obj_UpdateItem(data, obj, mouse, widgets, conf)
      elseif tr then
       DataUpdate_Track(data, tr)
-      Obj_UpdateTrack(data, obj, mouse, widgets)        
+      Obj_UpdateTrack(data, obj, mouse, widgets, conf)        
     end
     
     ::skip_context_selector::
@@ -569,6 +571,9 @@
         data.tr[i].pan_format = MPL_FormatPan(data.tr[i].pan)
         data.tr[i].vol = GetMediaTrackInfo_Value( tr, 'D_VOL' )
         data.tr[i].vol_format = dBFromReaperVal(data.tr[i].vol)..'dB'
+        data.tr[i].pol = GetMediaTrackInfo_Value( tr, 'B_PHASE' )
+        data.tr[i].parsend = GetMediaTrackInfo_Value( tr, 'B_MAINSEND' )
+         
       
       -- delay time_adjustment
         data.tr[i].delay = 0
