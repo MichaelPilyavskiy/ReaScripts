@@ -472,17 +472,55 @@
       if cnt_sel_evts_other > 0 then midistr = midistr..'Others ('..cnt_sel_evts_other..')' end
       data.obj_type = midistr
     end
-    --[[
-    local retval, notecnt, ccevtcnt = MIDI_CountEvts( take )
-    local obj_type
-    data.note = {}
-    for i = 1, notecnt do
-      data.note[i] ={}
-      local _, selected, muted, startppqpos, endppqpos, chan, pitch, vel = MIDI_GetNote( take, i-1 )      
-      data.note[i].selected, data.note[i].muted, data.note[i].startppqpos, data.note[i].endppqpos, data.note[i].chan, data.note[i].pitch, data.note[i].vel = 
-      selected, muted, startppqpos, endppqpos, chan, pitch, vel
-    end]]
+
+
   end
+  ----------------------------------------------------------------------
+  function DataUpdate_Track_FXControls(data, tr, GUID)
+    -- parse extstate
+    data.tr_FXCtrl = {}
+    local ret, str = GetProjExtState( 0, 'MPL_InfoTool', 'FXCtrl' )
+    if ret ~= 1 then return end
+    local linktr
+    for line in str:gmatch('[^\r\n]+') do
+      if line:match('LINK_TR') then linktr = line:match('LINK_TR[%s]+(.*)') end
+      if linktr == GUID then
+        if linktr and not data.tr_FXCtrl[linktr] then data.tr_FXCtrl[linktr] = {} end
+        if linktr and line:match('SLOT [%d]+') then
+          local t = {}
+          for val in line:gmatch('[^%s]+') do t[#t+1] = val   end
+          if #t == 7 then
+            local trackGUID = t[3]
+            local FX_GUID = t[4]
+            local paramnum =   tonumber(t[5])
+            local lim1 =       tonumber(t[6])
+            local lim2 =       tonumber(t[7])
+            local track = BR_GetMediaTrackByGUID( 0, trackGUID )
+            local FXid = GetFXByGUID(track, FX_GUID)
+            if FXid then 
+              local val = TrackFX_GetParamNormalized( track, FXid, paramnum )
+              local retval, paramname = TrackFX_GetParamName( track, FXid, paramnum, '' )
+              local retval, paramformat = TrackFX_GetFormattedParamValue( track, FXid, paramnum, '' )
+              local retval, fxname =  TrackFX_GetFXName( track, FXid, '' )
+              local tr_ID = CSurf_TrackToID( track, false )
+              table.insert(data.tr_FXCtrl[linktr],  { tr_ID=tr_ID,
+                                                    trackGUID = trackGUID,
+                                                    FX_GUID = FX_GUID,
+                                                    paramnum = paramnum,
+                                                    lim1 = lim1,
+                                                    lim2 = lim2,
+                                                    val = val,
+                                                    paramname=paramname,
+                                                    paramformat=paramformat,
+                                                    fxname=fxname})
+            end
+          end
+        end
+      end
+    end
+    
+  end
+  
   ----------------------------------------------------------------------
   function DataUpdate_Track(data, tr)
     data.name = ''  
@@ -495,9 +533,11 @@
     end
     data.obj_type_int = 7
     if not data.curent_trFXID then data.curent_trFXID = 1 end
+    
+    
     for i = 1, cnt do
       local tr = GetSelectedTrack(0,i-1)
-      data.tr[i] = {}
+      data.tr[i] = {GUID = GetTrackGUID( tr )}
       
       -- sends 
         if i == 1 then
@@ -523,7 +563,7 @@
             data.active_context_sendmixer_val =  data.tr_send[1].s_vol
           end          
         end
-
+    
       -- rec 
         if i == 1 then
           data.tr_recv = {}
@@ -584,7 +624,7 @@
           data.tr[i].delay = (val-0.5)*0.2
         end
         data.tr[i].delay_format = format_timestr_len( data.tr[i].delay, '', 0,3 ) 
-    end
+    end    
     
     if not data.defsendvol or not data.defsendpan then
       data.defsendvol = tonumber(({BR_Win32_GetPrivateProfileString( 'REAPER', 'defsendvol', '0',  get_ini_file() )})[2])
@@ -607,31 +647,9 @@
       if retval > 0 then
         for GUID in PreDefinedSend_GUID:gmatch('[^%s]+') do data.PreDefinedSend_GUID[GUID] = 1 end
       end
-    return true
-  end  
-  
-  
-  --[[-------------------------------------------------
-  f unction DataUpdate_Ruler(cur_pos)
-    -- tempo/timesig
-      local tempomark = FindTempoTimeSigMarker( 0, cur_pos+0.001 )
-      if tempomark > 0 then
-        local retval, timeposOut, measureposOut, beatposOut, bpmOut, timesig_numOut, timesig_denomOut, lineartempoOut = GetTempoTimeSigMarker( 0, tempomark )
-        local diff = math.abs(timeposOut - cur_pos)
-        if diff < 0.1 then
-          data.obj_type = 'Ruler event' 
-          data.obj_type_int = 6
-          data.name = ''
-          return true      
-        end
-      end
       
-      --markeridxOut retval, regionidxOut reaper.GetLastMarkerAndCurRegion( proj, time )
-    
+    -- parse FX controls
+      DataUpdate_Track_FXControls(data, tr, data.tr[1].GUID)
+      
+    return true
   end
-  
-  
-  ---------------------------------------------------
-  
-  ]]
-  

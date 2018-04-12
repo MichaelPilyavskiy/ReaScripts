@@ -274,7 +274,7 @@
             if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) then mouse.context_latch = key end
             
             if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func then obj.b[key].func() end
-            if not mouse.LB_gate and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_matchonly then obj.b[key].func_matchonly() end
+            if not mouse.LB_gate and MOUSE_Match(mouse, obj.b[key]) and mouse.on_move and obj.b[key].func_matchonly then obj.b[key].func_matchonly() end
             if mouse.RB_trig and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_R then obj.b[key].func_R() end
             if mouse.LB_gate and not mouse.Alt and mouse.on_move and mouse.context_latch == key and obj.b[key].func_drag then obj.b[key].func_drag() end
             if mouse.LB_gate and mouse.on_move and mouse.Ctrl and mouse.context_latch == key and obj.b[key].func_drag_Ctrl then obj.b[key].func_drag_Ctrl() end

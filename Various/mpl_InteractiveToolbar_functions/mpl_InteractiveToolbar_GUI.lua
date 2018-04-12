@@ -21,6 +21,7 @@
                   fontsz_entry = conf.GUI_font2,
                   fontsz_clock = 32,--conf.GUI_font2,
                   fontsz_grid_rel = 14,--conf.GUI_font2,
+                  fontszFXctrl = 13,
                   col = { grey =    {0.5, 0.5,  0.5 },
                           white =   {1,   1,    1   },
                           red =     {1,   0.3,    0.3   },
@@ -44,6 +45,8 @@
                   mouse_scal_pan = 1,
                   mouse_scal_float = 0.5,
                   mouse_scal_intMIDICC = 5,
+                  mouse_scal_FXCtrl = 60,   -- FX wheel
+                  mouse_scal_FXCtrl2 = 1000, -- FX drag
                   
                   entry_w = 200,      -- name w
                   entry_w2 = 90,     -- controls w / position
@@ -61,6 +64,7 @@
       obj.fontsz_entry = obj.fontsz_entry - 5
       obj.fontsz_clock = obj.fontsz_clock - 5
       obj.fontsz_grid_rel = obj.fontsz_grid_rel - 5
+      obj.fontszFXctrl = obj.fontszFXctrl-4
     end
     return obj             
   end

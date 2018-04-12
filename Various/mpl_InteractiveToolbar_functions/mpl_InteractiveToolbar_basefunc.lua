@@ -15,6 +15,14 @@
     if #t == 0 and str:match('%d+') then t[1] = str end
     return t
   end
+  ----------------------------------------------------------------------
+  function GetFXByGUID(track, FX_GUID)
+    if not track then return end
+    for i = 1, TrackFX_GetCount( track ) do
+      local fxGUID = TrackFX_GetFXGUID( track, i-1 )
+      if fxGUID == FX_GUID then return i-1 end
+    end
+  end
   ---------------------------------------------------
   function spairs(t, order) --http://stackoverflow.com/questions/15706270/sort-a-table-in-lua
     local keys = {}

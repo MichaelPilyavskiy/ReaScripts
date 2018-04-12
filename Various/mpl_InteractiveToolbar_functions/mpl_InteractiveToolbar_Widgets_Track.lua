@@ -1030,3 +1030,245 @@
     SetTrackSendInfo_Value( data.tr[1].ptr, -1, idx-1, 'D_VOL', lim(real,0,4) ) 
     return real 
   end
+----------------------------------------------------------- 
+
+
+
+
+
+  
+  
+  
+----------------------------------------------------------- 
+  function Widgets_Track_fxcontrols(data, obj, mouse, x_offs)
+    local ch_w = 12
+    local fxctrl_menu_w = 20
+    local fxctrl_name_w = 100
+    local fxctrl_w
+    local mix_fields = 0
+    if data.tr_FXCtrl[data.tr[1].GUID] then 
+      mix_fields = #data.tr_FXCtrl[data.tr[1].GUID] * ch_w
+      fxctrl_w = mix_fields + fxctrl_menu_w + fxctrl_name_w
+     else
+      fxctrl_w = fxctrl_menu_w
+    end
+    
+    if x_offs + fxctrl_w > obj.persist_margin then return x_offs end 
+    obj.b.obj_fxctrl_back1 = { x = x_offs,
+                        y = obj.offs ,
+                        w = fxctrl_w,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        --txt = 'test',
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        ignore_mouse = true}  
+    obj.b.obj_fxctrl_back2 = { x = x_offs,
+                        y = obj.offs+obj.entry_h ,
+                        w = fxctrl_w,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        ignore_mouse = true} 
+    obj.b.obj_fxctrl_app = {x = x_offs + fxctrl_w- fxctrl_menu_w,
+                          y =  obj.entry_h,
+                          w = fxctrl_menu_w,
+                          h = obj.entry_h,
+                          frame_a = 0,--,
+                          --frame_rect_a = 1,
+                          txt_a = obj.txt_a,
+                          txt_col = 'white',
+                          txt = '->',
+                          func =        function()
+                                          Menu(mouse,
+                                              { { str = '#FX controls|'},
+                                                { str = 'Add last touched parameter to FX controls',
+                                                  func =  function()
+                                                            local linktrGUID = data.tr[1].GUID
+                                                            local retval, tracknumberOut, fxnumberOut, paramnumberOut = GetLastTouchedFX()
+                                                            if not retval then return end
+                                                            local track = CSurf_TrackFromID( tracknumberOut, false )
+                                                            local trackGUID = GetTrackGUID( track )
+                                                            local FX_GUID = TrackFX_GetFXGUID( track, fxnumberOut )
+                                                            UpdateFXCtrls(linktrGUID, trackGUID, FX_GUID, paramnumberOut, 0, 1 )
+                                                          end
+                                                },
+                                                { str = 'Clear linked controls',
+                                                  func =  function()
+                                                            local linktrGUID = data.tr[1].GUID
+                                                            data.tr_FXCtrl[linktrGUID] = nil
+                                                            TrackFXCtrls_Save(data) 
+                                                            redraw = 2
+                                                          end
+                                                }                                                
+                                              
+                                              })
+                                        end
+                      }  
+    if not data.tr_FXCtrl[data.tr[1].GUID] then return fxctrl_w end                      
+    local ch_h = math.floor(obj.entry_h*1.8)
+    local ch_y = obj.offs + (obj.entry_h*2-math.floor(obj.entry_h*1.8))/2
+    local mix_fields = #data.tr_FXCtrl[data.tr[1].GUID] * ch_w
+    for i = 1, #data.tr_FXCtrl[data.tr[1].GUID] do
+      local slider_a if data.active_context_id3 and data.active_context_id3 == i then slider_a = 0.5 else slider_a = 0.2 end
+      obj.b['fxctrl_ch'..i] = { x = x_offs + 3 + math.floor(ch_w * (i-1)),
+                        y = ch_y,
+                        w = ch_w,--obj.entry_w2,
+                        h = ch_h,
+                        frame_a = 0,
+                        frame_rect_a = 0.1,
+                        fontsz = obj.fontsz_entry,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        val = data.tr_FXCtrl[data.tr[1].GUID][i].val,
+                        is_slider = true,
+                        is_vertical_slider = true,
+                        sider_col = obj.txt_col_entry,
+                        slider_a =slider_a,
+                        func =  function()
+                                  mouse.temp_val = data.tr_FXCtrl[data.tr[1].GUID][i].val
+                                end,
+                        func_DC =     function() 
+                                               --[[ if data.MM_doubleclick == 0 then
+                                                  Apply_RecvMix_vol_input(data.tr_recv[data.active_context_id2].r_vol_dB)
+                                                 elseif data.MM_doubleclick == 1 then
+                                                  Apply_RecvMix_vol_reset()
+                                                end]]
+                                              end,
+                        func_R =      function()
+                                              --[[  if data.MM_rightclick == 0 then 
+                                                  Apply_RecvMix_vol_reset()
+                                                 elseif data.MM_rightclick == 1 then
+                                                  Apply_RecvMix_vol_input(data.tr_recv[data.active_context_id2].r_vol_dB)
+                                                end]]
+                                              end  ,                              
+                        func_onRelease = function() 
+                                            Undo_OnStateChange( data.scr_title..': Change FX parameter' ) 
+                                          end,
+                        func_wheel = function()
+                                      mouse.temp_val = data.tr_FXCtrl[data.tr[1].GUID][i].val
+                                      Apply_FXCtrl(data, mouse, mouse.wheel_trig/obj.mouse_scal_FXCtrl, mouse.temp_val, data.tr_FXCtrl[data.tr[1].GUID][i] )
+                                      data.active_context_id3 = i 
+                                      data.active_context_fxctrl =      data.tr_FXCtrl[data.tr[1].GUID][i].paramname
+                                      data.active_context_fxctrl_val =  data.tr_FXCtrl[data.tr[1].GUID][i].paramformat                  
+                                      redraw = 2 
+                                      end,
+                        func_drag = function() 
+                                      if not mouse.temp_val or not data.tr_FXCtrl[data.tr[1].GUID] then return end
+                                      local mouse_shift = 0
+                                      if data.use_mouse_drag_xAxis == 1 then mouse_shift = -mouse.dx else mouse_shift = mouse.dy end  
+                                      Apply_FXCtrl(data, mouse, mouse_shift/obj.mouse_scal_FXCtrl2, mouse.temp_val, data.tr_FXCtrl[data.tr[1].GUID][i] )
+                                      data.active_context_id3 = i 
+                                      data.active_context_fxctrl =      data.tr_FXCtrl[data.tr[1].GUID][i].paramname
+                                      data.active_context_fxctrl_val =  data.tr_FXCtrl[data.tr[1].GUID][i].paramformat                         
+                                      redraw = 2 
+                                    end,
+                        func_matchonly = function()
+                                            data.active_context_id3 = i 
+                                            data.active_context_fxctrl =      data.tr_FXCtrl[data.tr[1].GUID][i].paramname
+                                            data.active_context_fxctrl_val =  data.tr_FXCtrl[data.tr[1].GUID][i].paramformat
+                                            redraw = 2
+                                          end}
+    end
+    
+    local fxctrl_name_txt,fxctrl_val_txt,fxname,tr_ID = '','','',''
+    if data.active_context_id3 and data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3] then 
+      fxname = data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3].fxname
+      tr_ID = data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3].tr_ID
+      fxname = '['..tr_ID..'] '..MPL_ReduceFXname(fxname)
+      fxctrl_val_txt =  data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3].paramformat
+      fxctrl_name_txt = data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3].paramname      
+     else
+      return fxctrl_w
+    end
+    obj.b.fxctrl_fxname = { x = x_offs + mix_fields+4,
+                        y = -2,
+                        w = fxctrl_w - mix_fields -4,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = 0,
+                        txt = fxname,
+                        txt_a = obj.txt_a,
+                        aligh_txt = 1,
+                        txt_col = obj.txt_col_entry,
+                        ignore_mouse = true,
+                        fontsz = obj.fontszFXctrl} 
+    obj.b.fxctrl_name = { x = x_offs + mix_fields+4,
+                        y = -2+obj.fontszFXctrl-1 ,
+                        w = fxctrl_w - mix_fields -4,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = 0,
+                        txt = fxctrl_name_txt,
+                        txt_a = obj.txt_a,
+                        aligh_txt = 1,
+                        txt_col = obj.txt_col_entry,
+                        ignore_mouse = true,
+                        fontsz = obj.fontszFXctrl} 
+    obj.b.fxctrl_val = { x = x_offs + mix_fields+4,
+                          y =-2+ obj.fontszFXctrl*2-2 ,
+                          w = fxctrl_w - mix_fields -4 - fxctrl_menu_w,--obj.entry_w2,
+                          h = obj.entry_h,
+                          frame_a = 0,
+                          txt = fxctrl_val_txt,
+                          txt_a = obj.txt_a,
+                          txt_col = obj.txt_col_entry,
+                          aligh_txt = 1,
+                          fontsz = obj.fontszFXctrl,
+                          func_DC =     function() 
+                                                --[[if data.MM_doubleclick == 0 then
+                                                  Apply_RecvMix_vol_input(data.tr_recv[data.active_context_id2].r_vol_dB)
+                                                 elseif data.MM_doubleclick == 1 then
+                                                  Apply_RecvMix_vol_reset()
+                                                end]]
+                                              end,
+                          func_R =      function()
+                                                --[[if data.MM_rightclick == 0 then 
+                                                  Apply_RecvMix_vol_reset()
+                                                 elseif data.MM_rightclick == 1 then
+                                                  Apply_RecvMix_vol_input(data.tr_recv[data.active_context_id2].r_vol_dB)
+                                                end]]
+                                              end
+                      }                                                                      
+    return fxctrl_w
+  end  
+  ---------------------------------------------------------------
+  function UpdateFXCtrls(linktrGUID, trackGUID, FX_GUID, paramnum, lim1, lim2)
+    if not data.tr_FXCtrl then data.tr_FXCtrl = {} end
+    if not data.tr_FXCtrl[linktrGUID] then data.tr_FXCtrl[linktrGUID] = {} end
+    for i = 1, #data.tr_FXCtrl[linktrGUID] do
+      local t = data.tr_FXCtrl[linktrGUID][i]
+      if t.FX_GUID == FX_GUID and t.paramnum==paramnum then return end
+    end
+    table.insert(data.tr_FXCtrl[linktrGUID],  {trackGUID = trackGUID,
+                                               FX_GUID=FX_GUID,
+                                               paramnum=paramnum,
+                                               lim1 = lim1,
+                                               lim2 = lim2})
+    TrackFXCtrls_Save(data) 
+  end
+  -------------------------------------------------------------------
+  function TrackFXCtrls_Save(data)                            
+    -- store ext chunk
+    local out_extchunk = ''
+    for linktrGUID in pairs(data.tr_FXCtrl) do
+      out_extchunk = out_extchunk..'LINK_TR '..linktrGUID..'\n'
+      for i = 1, #data.tr_FXCtrl[linktrGUID] do
+        out_extchunk = out_extchunk..'SLOT '..i..' '..data.tr_FXCtrl[linktrGUID][i].trackGUID
+                        ..' '..data.tr_FXCtrl[linktrGUID][i].FX_GUID
+                        ..' '..data.tr_FXCtrl[linktrGUID][i].paramnum
+                        ..' '..data.tr_FXCtrl[linktrGUID][i].lim1
+                        ..' '..data.tr_FXCtrl[linktrGUID][i].lim2..'\n'
+      end
+    end
+    SetProjExtState( 0, 'MPL_InfoTool', 'FXCtrl', out_extchunk )
+  end
+----------------------------------------------------------------
+  function Apply_FXCtrl(data, mouse, shift, srcval, t )
+    local tr = BR_GetMediaTrackByGUID(0, t.trackGUID)
+    if not tr then return end
+    local fxid = GetFXByGUID(tr, t.FX_GUID)
+    local param = t.paramnum
+    local outval = lim(srcval + shift, 0, 1)
+    TrackFX_SetParamNormalized( tr, fxid, param, outval )
+  end                                            
+    
