@@ -395,10 +395,76 @@
     if data.MM_grid_ignoreleftdrag == 1 then Grid_DC_cond = '#' end
     local t = { { str = data.scr_title..' v'..data.vrs,
                   hidden = true},
-                { str = '|>Links / Info'},
+                { str = '|#Links / Info'},
+                {str = 'Help',
+                 func = function()  
+ClearConsole()                 
+msg(
+[[  Here is the list of all supported widgets for MPL`s InteractiveToolbar.
+  You can edit them via menu (recommended) or open /REAPER/Scripts/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Config.ini in any text editor
+  After changing configuration, you need to restart script. If you do it from Action List, click 'Terminate Instances' when REAPER will ask for what to do with already running ReaScript.
+  Buttons tags are added to the buttons module interleaved.
+  Persist modules are in right-to-left order.
+
+      Modules info:
+        Item
+          #position editing position
+          #length editing length
+          #snap editing take snap offset
+          #endedge editing position of item refering to its end
+          #length editing length
+          #offset editing take source offset
+          #fadein editing fadein
+          #fadeout editing fadeout
+          #vol editing item volume
+          #transpose editing item pitch
+          #pan editing take pan
+          #srclen editing source length (for loop source), update require rebuilding peaks
+          #buttons
+            #lock toggle lock
+            #loop toggle loop source
+            #mute toggle mute
+            #srcreverse (Audio and Multiple only)
+            #preservepitch (Audio and Multiple only) toggle take preserve pitch
+            #chanmode (Audio and Multiple only) editing take channel mode
+            #bwfsrc (Audio and Multiple only) Action Item: Move to source preferred position (used by BWF)
+        Envelope
+          #floatfx float FX related with current envelope
+          #position editing point position
+          #value editing point value, volume envelopes use db<>linear convertion
+        Track
+          #vol editing track volume
+          #pan editing track pan
+          #fxlist Show FX in chain, LeftClick float FX, Shift+Click bypass FX
+          #sendto Small tool for quick creating sends from selected track, to have potential sends in the list add them via selecting and 'Mark as predefined send'
+          #delay get/set value in seconds for 'JS: time adjustment'
+          #chsendmixer shows all send faders if sends existed for the first selected track. Ctrl+drag move on any slider acts as a VCA.
+          #chrecvmixer shows all receive faders if receives existed for the first selected track. Ctrl+drag move on any slider acts as a VCA.
+          #fxcontrols allow to store some FX macro controls stores per track (although params can be stored from another track FX)
+          #buttons
+            #polarity Toggle inverted polarity ("phase" in REAPER) of track audio output
+            #parentsend Toggle Master/Parent send
+        MIDIEditor
+          #position perform a PPQ<>ProjectTime convertion as absolute time of note
+          #CCval change CC value, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
+          #notepitch change note pitch, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
+          #notevel change note velocity, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
+        Persist
+          #grid show current grid, allow to change grid lines visibility and relative snap
+          #timeselend editing time selection end
+          #timeselstart editing time selection start
+          #lasttouchfx editing last touched FX parameter
+          #transport show/editing current play state, RightClick - pause, LeftClick - stop/revert to start position, Cltr+Left - record
+          #bpm shows/edit tempo and time signature for project (or tempo marker falling at edit cursor if any)
+          #clock shows play/edit cursor positions
+          #tap Get a tempo from tap, allow to distribute that info in different ways. RightClick reset taps data and force current tempo to convertion chart.      
+ ]] )  
+                 
+                        end   
+                }  ,                
                 { str = 'Donate to MPL',
                   func = function() F_open_URL('http://www.paypal.me/donate2mpl') end }  ,
-                { str = 'Cockos Forum thread|<',
+                { str = 'Cockos Forum thread|',
                   func = function() F_open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } , 
                   
                 { str = '>Options'},
@@ -518,37 +584,7 @@
  
                                                                                                                                                                         
                 { str = '|#Contexts/Widgets'}  ,
-                {str = '>Widget Configuration'},
-                {str = 'Reset',
-                 func = function()  
-                          local ret = MB('Are you sure you want to reset widget configuration of MPL InfoTool?',  'MPL InfoTool', 4)
-                          if ret == 6 then 
-                            Config_Reset(data.conf_path) 
-                            --MB('Restart script to affect changes', 'MPL InfoTool', 0)
-                            Config_ParseIni(data.conf_path, widgets)
-                            redraw = 2
-                          end
-                        end
-                            }  ,                               
-                {str = 'Help',
-                 func = function()  
-ClearConsole()                 
-msg(
-[[  Here is the default configuration contains all supported widgets tags for MPL`s InteractiveToolbar.
-  You can edit them via menu (recommended) or in /REAPER/Scripts/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Config.ini
-  Buttons tags are added to the buttons module interleaved.
-  After changing configuration, you need to restart script. If you do it from Action List, click 'Terminate Instances' when REAPER will ask for what to do with already running ReaScript.
-  
-  =================== START HERE ====================
-  
-  ]]..Config_DefaultStr()..
-  
-[[  =================== END HERE ====================]] )  
-                 
-                        end   
-                }  ,
-                {str = 'Edit manually|<',
-                 func = function()  F_open_URL('"" "'..data.conf_path..'"') end}  ,                 
+       
                 { str = '>Empty item'},
                 { str = 'Widgets order|<',                  
                   func = function() Menu_ChangeOrder(widgets, data, conf, 1 ) end} , 
@@ -651,7 +687,20 @@ msg(
                 
                 { str = 'Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 'Persist' ) end} , 
-                  
+                {str = '|>Global Widget Configuration'},
+                {str = 'Reset',
+                 func = function()  
+                          local ret = MB('Are you sure you want to reset widget configuration of MPL InfoTool?',  'MPL InfoTool', 4)
+                          if ret == 6 then 
+                            Config_Reset(data.conf_path) 
+                            --MB('Restart script to affect changes', 'MPL InfoTool', 0)
+                            Config_ParseIni(data.conf_path, widgets)
+                            redraw = 2
+                          end
+                        end
+                            }  ,                               
+                {str = 'Edit manually|<',
+                 func = function()  F_open_URL('"" "'..data.conf_path..'"') end}  ,                            
                 {str = '|Dock MPL InteractiveToolbar',
                                  func = function() 
                                           gfx.quit() 
