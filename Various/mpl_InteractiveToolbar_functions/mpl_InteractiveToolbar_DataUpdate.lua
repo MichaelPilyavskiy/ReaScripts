@@ -89,6 +89,8 @@
     local env_parent_tr if env then env_parent_tr  = Envelope_GetParentTrack( env ) end
     local tr = GetSelectedTrack(0,0)
     local ME = MIDIEditor_GetActive()
+    local MEtake
+    if ME then MEtake = MIDIEditor_GetTake( ME ) end
 
     data.fsel_tr = GetSelectedTrack(0,0)
     
@@ -107,7 +109,7 @@
     end
     
 
-    if ME then
+    if ME and MEtake then
       DataUpdate_MIDIEditor(data, ME )
       Obj_UpdateMIDIEditor(data, obj, mouse, widgets, conf)
      elseif env then    
@@ -385,10 +387,11 @@
     data.ep={}
     data.ME_ptr = ME
     
+    local take= MIDIEditor_GetTake( ME ) 
+    if not take then return end
     data.obj_type = 'MIDI Editor'
     data.obj_type_int = 8
     
-    local take= MIDIEditor_GetTake( ME ) 
     data.take_ptr = take 
     local _, take_name = GetSetMediaItemTakeInfo_String( take, "P_NAME", '', false )   
     data.take_name = take_name

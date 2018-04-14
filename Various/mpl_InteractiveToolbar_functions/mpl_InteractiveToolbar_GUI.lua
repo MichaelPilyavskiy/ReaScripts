@@ -440,7 +440,7 @@ msg(
           #delay get/set value in seconds for 'JS: time adjustment'
           #chsendmixer shows all send faders if sends existed for the first selected track. Ctrl+drag move on any slider acts as a VCA.
           #chrecvmixer shows all receive faders if receives existed for the first selected track. Ctrl+drag move on any slider acts as a VCA.
-          #fxcontrols allow to store some FX macro controls stores per track (although params can be stored from another track FX)
+          #fxcontrols allow to store some FX macro controls stores per track (although params can be stored from another track FX). Rightclick slider for options.
           #buttons
             #polarity Toggle inverted polarity ("phase" in REAPER) of track audio output
             #parentsend Toggle Master/Parent send

@@ -7,7 +7,7 @@
   -- track wigets for mpl_InteractiveToolbar
   
   ---------------------------------------------------
-  function Obj_UpdateTrack(data, obj, mouse, widgets)
+  function Obj_UpdateTrack(data, obj, mouse, widgets, conf)
     obj.b.obj_name = { x = obj.menu_b_rect_side + obj.offs,
                         y = obj.offs *2 +obj.entry_h,
                         w = obj.entry_w,
@@ -38,7 +38,7 @@
       for i = 1, #widgets[widg_key] do
         local key = widgets[widg_key][i]
         if _G['Widgets_Track_'..key] then
-            local ret = _G['Widgets_Track_'..key](data, obj, mouse, x_offs, widgets) 
+            local ret = _G['Widgets_Track_'..key](data, obj, mouse, x_offs, widgets, conf) 
             if ret then x_offs = x_offs + obj.offs + ret end
         end
       end  
@@ -1040,7 +1040,7 @@
   
   
 ----------------------------------------------------------- 
-  function Widgets_Track_fxcontrols(data, obj, mouse, x_offs)
+  function Widgets_Track_fxcontrols(data, obj, mouse, x_offs, widgets, conf)
     local ch_w = 12
     local fxctrl_menu_w = 20
     local fxctrl_name_w = 100
@@ -1094,14 +1094,20 @@
                                                             UpdateFXCtrls(linktrGUID, trackGUID, FX_GUID, paramnumberOut, 0, 1 )
                                                           end
                                                 },
-                                                { str = 'Clear linked controls',
+                                                { str = 'Clear linked controls|',
                                                   func =  function()
                                                             local linktrGUID = data.tr[1].GUID
                                                             data.tr_FXCtrl[linktrGUID] = nil
                                                             TrackFXCtrls_Save(data) 
                                                             redraw = 2
                                                           end
-                                                }                                                
+                                                }  ,
+                                                { str = 'Use deductive brutforce for input parameter',
+                                                  state = conf.trackfxctrl_use_brutforce == 1,
+                                                  func =  function()
+                                                            conf.trackfxctrl_use_brutforce = math.abs(-1+conf.trackfxctrl_use_brutforce) ExtState_Save(conf) redraw = 2
+                                                          end
+                                                }  ,                                            
                                               
                                               })
                                         end
@@ -1130,19 +1136,24 @@
                                   mouse.temp_val = data.tr_FXCtrl[data.tr[1].GUID][i].val
                                 end,
                         func_DC =     function() 
-                                               --[[ if data.MM_doubleclick == 0 then
-                                                  Apply_RecvMix_vol_input(data.tr_recv[data.active_context_id2].r_vol_dB)
-                                                 elseif data.MM_doubleclick == 1 then
-                                                  Apply_RecvMix_vol_reset()
-                                                end]]
+                                               if data.MM_doubleclick == 0 then
+                                                  Apply_FXCtrl_input(data, conf, mouse,  data.tr_FXCtrl[data.tr[1].GUID][i] )
+                                                 --elseif data.MM_doubleclick == 1 then
+                                                  --reset()
+                                                end
                                               end,
                         func_R =      function()
-                                              --[[  if data.MM_rightclick == 0 then 
-                                                  Apply_RecvMix_vol_reset()
-                                                 elseif data.MM_rightclick == 1 then
-                                                  Apply_RecvMix_vol_input(data.tr_recv[data.active_context_id2].r_vol_dB)
-                                                end]]
-                                              end  ,                              
+                                        Menu(mouse, {
+                                                      {str = 'Remove from controls',
+                                                       func = function()
+                                                                local linktrGUID = data.tr[1].GUID
+                                                                table.remove(data.tr_FXCtrl[linktrGUID], i)
+                                                                TrackFXCtrls_Save(data) 
+                                                                redraw = 2
+                                                              end
+                                                        }
+                                                    })
+                                      end  ,                              
                         func_onRelease = function() 
                                             Undo_OnStateChange( data.scr_title..': Change FX parameter' ) 
                                           end,
@@ -1191,8 +1202,10 @@
                         txt_a = obj.txt_a,
                         aligh_txt = 1,
                         txt_col = obj.txt_col_entry,
-                        ignore_mouse = true,
-                        fontsz = obj.fontszFXctrl} 
+                        fontsz = obj.fontszFXctrl,
+                        func = function () 
+                                  Apply_FXCtrl_FloatFX(data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3])
+                                end} 
     obj.b.fxctrl_name = { x = x_offs + mix_fields+4,
                         y = -2+obj.fontszFXctrl-1 ,
                         w = fxctrl_w - mix_fields -4,--obj.entry_w2,
@@ -1202,8 +1215,21 @@
                         txt_a = obj.txt_a,
                         aligh_txt = 1,
                         txt_col = obj.txt_col_entry,
-                        ignore_mouse = true,
-                        fontsz = obj.fontszFXctrl} 
+                        fontsz = obj.fontszFXctrl,
+                        func_DC =     function() 
+                                              if data.MM_doubleclick == 0 then
+                                                Apply_FXCtrl_input(data, conf, mouse,  data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3] )
+                                               elseif data.MM_doubleclick == 1 then
+                                                --reset()
+                                              end
+                                            end,
+                        func_R =      function()
+                                              if data.MM_rightclick == 0 then 
+                                                --reset()
+                                               elseif data.MM_rightclick == 1 then
+                                                Apply_FXCtrl_input(data, conf, mouse,  data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3] )
+                                              end
+                                            end} 
     obj.b.fxctrl_val = { x = x_offs + mix_fields+4,
                           y =-2+ obj.fontszFXctrl*2-2 ,
                           w = fxctrl_w - mix_fields -4 - fxctrl_menu_w,--obj.entry_w2,
@@ -1215,18 +1241,18 @@
                           aligh_txt = 1,
                           fontsz = obj.fontszFXctrl,
                           func_DC =     function() 
-                                                --[[if data.MM_doubleclick == 0 then
-                                                  Apply_RecvMix_vol_input(data.tr_recv[data.active_context_id2].r_vol_dB)
+                                                if data.MM_doubleclick == 0 then
+                                                  Apply_FXCtrl_input(data, conf, mouse,  data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3] )
                                                  elseif data.MM_doubleclick == 1 then
-                                                  Apply_RecvMix_vol_reset()
-                                                end]]
+                                                  --reset()
+                                                end
                                               end,
                           func_R =      function()
-                                                --[[if data.MM_rightclick == 0 then 
-                                                  Apply_RecvMix_vol_reset()
+                                                if data.MM_rightclick == 0 then 
+                                                  --reset()
                                                  elseif data.MM_rightclick == 1 then
-                                                  Apply_RecvMix_vol_input(data.tr_recv[data.active_context_id2].r_vol_dB)
-                                                end]]
+                                                  Apply_FXCtrl_input(data, conf, mouse,  data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3] )
+                                                end
                                               end
                       }                                                                      
     return fxctrl_w
@@ -1270,5 +1296,31 @@
     local param = t.paramnum
     local outval = lim(srcval + shift, 0, 1)
     TrackFX_SetParamNormalized( tr, fxid, param, outval )
-  end                                            
+  end    
+  ----------------------------------------------------------------                    
+  function Apply_FXCtrl_input(data, conf, mouse, t )
+    local tr = BR_GetMediaTrackByGUID(0, t.trackGUID)
+    if not tr then return end
+    local fx = GetFXByGUID(tr, t.FX_GUID)
+    local param = t.paramnum
+    if conf.trackfxctrl_use_brutforce == 1 then 
+        local ReaperVal = MPL_BFPARAM_main(tr,fx, param) 
+        if out_val then
+          TrackFX_SetParamNormalized( tr, fx, param, ReaperVal )
+          redraw = 2
+        end   
+      elseif conf.trackfxctrl_use_brutforce == 0 then
+       local retval, paramnorm = GetUserInputs( 'Input normalized param', 1, 'value,extrawidth=200', TrackFX_GetParamNormalized( tr , fx, param, '' ) )
+       if not retval or not tonumber(paramnorm) then return end
+       TrackFX_SetParamNormalized( tr, fx, param, paramnorm )
+       
+    end
+  end  
+  ---------------------------------------------------------------- 
+  function Apply_FXCtrl_FloatFX(t)
+    local tr = BR_GetMediaTrackByGUID(0, t.trackGUID)
+    if not tr then return end
+    local fx = GetFXByGUID(tr, t.FX_GUID)
+    TrackFX_Show( tr, fx, 3 )
+  end        
     

@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.41
+-- @version 1.42
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -13,10 +13,14 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # Menu/Help refactoring
--- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu ('>') button in the right corner, then Widget Configuration>Help.
+--    + Tags/Track/#fxcontrols: allow to remove control by right click
+--    + Tags/Track/#fxcontrols: allow to input (type) parameter (follow global mouse modifiers)
+--    + Tags/Track/#fxcontrols: input linear param (REAPER internal value) or use deductive brutforce
+--    + Tags/Track/#fxcontrols: float FX by clicking FX name
+--    # Context/MIDI Editor: prevent error when deleting take while MIDI Editor context opened
+-- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
    
-    local vrs = '1.41'
+    local vrs = '1.42'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -124,7 +128,8 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap
             MM_grid_doubleclick = 0,
             MM_grid_ignoreleftdrag = 0,
             MM_grid_default_reset_grid = 0.25,
-            tap_quantize = 0}
+            tap_quantize = 0,
+            trackfxctrl_use_brutforce = 0}
   end
   ---------------------------------------------------
   function Run()
