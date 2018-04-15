@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.42
+-- @version 1.43
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -13,14 +13,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Tags/Track/#fxcontrols: allow to remove control by right click
---    + Tags/Track/#fxcontrols: allow to input (type) parameter (follow global mouse modifiers)
---    + Tags/Track/#fxcontrols: input linear param (REAPER internal value) or use deductive brutforce
---    + Tags/Track/#fxcontrols: float FX by clicking FX name
---    # Context/MIDI Editor: prevent error when deleting take while MIDI Editor context opened
+--    # force take pointer validation check when Preferences/Editing behaviour/MIDI editor/Close editor when the active item is deleted in arrange view NOT checked
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
    
-    local vrs = '1.42'
+    local vrs = '1.43'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
