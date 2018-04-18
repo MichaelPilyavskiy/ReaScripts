@@ -1,7 +1,8 @@
 -- @description InteractiveToolbar
--- @version 1.43
+-- @version 1.45
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
 -- @provides
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua
@@ -13,10 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # force take pointer validation check when Preferences/Editing behaviour/MIDI editor/Close editor when the active item is deleted in arrange view NOT checked
--- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
+--    # # force take pointer validation check when Preferences/Editing behaviour/MIDI editor/Close editor when the active item is deleted in arrange view NOT checked
+--    + Tags/Track/#chsendmixer and #chrecvmixer: extend widget width dynamically
    
-    local vrs = '1.43'
+    local vrs = '1.45'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])

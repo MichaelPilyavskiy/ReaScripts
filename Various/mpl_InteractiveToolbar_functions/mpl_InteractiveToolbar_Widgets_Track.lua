@@ -684,8 +684,12 @@
 
 -----------------------------------------------------------   
   function Widgets_Track_chsendmixer(data, obj, mouse, x_offs)
-    local send_w = 150
     if data.tr_cnt_sends + data.tr_cnt_sendsHW == 0 then return end
+    local send_name_w = 120
+    local ch_w = 12  
+    local send_w = send_name_w + (data.tr_cnt_sends + data.tr_cnt_sendsHW) * ch_w
+  
+    
     if x_offs + send_w > obj.persist_margin then return x_offs end 
     obj.b.obj_sendmix_back1 = { x = x_offs,
                         y = obj.offs ,
@@ -788,7 +792,7 @@
     if data.active_context_sendmixer then txt = '-> '..data.active_context_sendmixer end
     obj.b.obj_sendmix_tr_name = { x = x_offs+mix_fields,
                         y = obj.offs ,
-                        w = send_w-mix_fields,--obj.entry_w2,
+                        w = send_name_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = 0,
                         txt = txt,
@@ -800,7 +804,7 @@
 
       obj.b.obj_sendmix_tr_s_vol = { x = x_offs+mix_fields,
                           y = obj.offs+obj.entry_h ,
-                          w = send_w-mix_fields,--obj.entry_w2,
+                          w = send_name_w,
                           h = obj.entry_h,
                           frame_a = 0,
                           txt = WDL_VAL2DB(data.active_context_sendmixer_val, true)..'dB',
@@ -862,8 +866,11 @@
 
 ----------------------------------------------------------- 
   function Widgets_Track_chrecvmixer(data, obj, mouse, x_offs)
-    local recv_w = 150
     if data.tr_cnt_receives == 0 then return end
+    local recv_name_w = 120
+    local ch_w = 12  
+    local recv_w = recv_name_w + data.tr_cnt_receives * ch_w
+    
     if x_offs + recv_w > obj.persist_margin then return x_offs end 
     obj.b.obj_recvmix_back1 = { x = x_offs,
                         y = obj.offs ,
@@ -967,7 +974,7 @@
     if data.active_context_sendmixer2 then txt = data.active_context_sendmixer2..' ->' end
     obj.b.obj_recvmix_tr_name = { x = x_offs,
                         y = obj.offs ,
-                        w = mix_fields,--obj.entry_w2,
+                        w = recv_name_w,
                         h = obj.entry_h,
                         frame_a = 0,
                         txt = txt,
@@ -979,7 +986,7 @@
 
       obj.b.obj_recvmix_tr_s_vol = { x = x_offs,
                           y = obj.offs+obj.entry_h ,
-                          w = mix_fields,--obj.entry_w2,
+                          w = recv_name_w,
                           h = obj.entry_h,
                           frame_a = 0,
                           txt = WDL_VAL2DB(data.active_context_sendmixer_val2, true)..'dB',
