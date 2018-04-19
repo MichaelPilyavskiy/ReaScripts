@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6bc45acc4421885f4e5051dcc74b18042f9d946e" name="MPL Scripts">
+<index version="1" commit="9d934b606b51a4a8d91eb046a85b7e5807ef2476" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -3289,6 +3289,19 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6bc45acc4421885f4e5051dcc74b18042f9d946e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6bc45acc4421885f4e5051dcc74b18042f9d946e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6bc45acc4421885f4e5051dcc74b18042f9d946e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
+      </version>
+      <version name="1.46" author="MPL" time="2018-04-19T14:32:22Z">
+        <changelog><![CDATA[# fix skippin MIDI note context before item context]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d934b606b51a4a8d91eb046a85b7e5807ef2476/Various/mpl_InteractiveToolbar.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d934b606b51a4a8d91eb046a85b7e5807ef2476/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d934b606b51a4a8d91eb046a85b7e5807ef2476/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d934b606b51a4a8d91eb046a85b7e5807ef2476/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d934b606b51a4a8d91eb046a85b7e5807ef2476/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d934b606b51a4a8d91eb046a85b7e5807ef2476/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d934b606b51a4a8d91eb046a85b7e5807ef2476/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d934b606b51a4a8d91eb046a85b7e5807ef2476/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d934b606b51a4a8d91eb046a85b7e5807ef2476/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d934b606b51a4a8d91eb046a85b7e5807ef2476/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">
