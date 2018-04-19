@@ -88,11 +88,11 @@
     local env = GetSelectedEnvelope( 0 )
     local env_parent_tr if env then env_parent_tr  = Envelope_GetParentTrack( env ) end
     local tr = GetSelectedTrack(0,0)
-    local ME = MIDIEditor_GetActive()
-    local MEtake,is_takeOK
+    local ME, MEtake,is_takeOK
+    ME = MIDIEditor_GetActive()
     if ME then 
       MEtake = MIDIEditor_GetTake( ME ) 
-      is_takeOK = ValidatePtr2( 0, take, 'MediaItem_Take*' )  
+      is_takeOK = ValidatePtr2( 0, MEtake, 'MediaItem_Take*' )  
     end
     
     data.fsel_tr = GetSelectedTrack(0,0)
