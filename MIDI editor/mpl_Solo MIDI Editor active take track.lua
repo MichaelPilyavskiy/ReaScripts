@@ -1,13 +1,12 @@
 -- @description Solo MIDI Editor active take track
--- @version 1.1
--- @author MPL
+-- @version 1.2
+-- @author MPL 
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # show current state in toolbar
+--    # changed to solo in place behaviour
 
   local scr_title = 'Solo MIDI Editor active take track'
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
-  --NOT gfx NOT reaper
 
 ----------------------------------------------------------
   function main()
@@ -20,23 +19,24 @@
     local is_solo = GetMediaTrackInfo_Value(take_track, 'I_SOLO')
     
     
-    if is_solo == 1 then 
+    if is_solo == 1 or is_solo == 2 then 
       SetMediaTrackInfo_Value(take_track, 'I_SOLO',0)
       SetButtonOFF()
      else 
       SetButtonON()
       Main_OnCommand(40340,0) --Track: Unsolo all tracks
-      SetMediaTrackInfo_Value(take_track, 'I_SOLO',1) 
+      SetMediaTrackInfo_Value(take_track, 'I_SOLO',2) 
     end
-    
-    local parent_track
-    repeat
+      
+      -- deprecated//changed argument to 2 (solo in place)
+    --[[local parent_track
+    repeat  
       parent_track = GetParentTrack(take_track)
       if parent_track then
         SetMediaTrackInfo_Value(parent_track, 'I_SOLO', math.abs(is_solo-1))
         take_track = parent_track
       end
-    until parent_track == nil   
+    until parent_track == nil ]]  
     Undo_EndBlock(scr_title, 1)
   end
 ----------------------------------------------------------
