@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9d934b606b51a4a8d91eb046a85b7e5807ef2476" name="MPL Scripts">
+<index version="1" commit="f7625fd557c541dd3ff864a9674878e6942f0887" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -2000,6 +2000,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.1" author="MPL" time="2018-01-09T14:39:01Z">
         <changelog><![CDATA[# show current state in toolbar]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6a843baf9f2dcc2925f71b4bd60e10289944c0ff/MIDI%20editor/mpl_Solo%20MIDI%20Editor%20active%20take%20track.lua</source>
+      </version>
+      <version name="1.2" author="MPL" time="2018-04-20T14:52:15Z">
+        <changelog><![CDATA[# changed to solo in place behaviour]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f7625fd557c541dd3ff864a9674878e6942f0887/MIDI%20editor/mpl_Solo%20MIDI%20Editor%20active%20take%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Split selected notes to equal parts.lua" type="script" desc="Split selected notes to equal parts">
