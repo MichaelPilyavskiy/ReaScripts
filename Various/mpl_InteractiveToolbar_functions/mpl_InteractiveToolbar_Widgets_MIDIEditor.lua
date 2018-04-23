@@ -205,7 +205,7 @@
     for i = 1, #t do      
       local str_per_msg = string.pack("i4Bs4", t[i].offset, t[i].flags , t[i].msg1)
       
-      if t[i].selected and t[i].CClane >=0 and t[i].CClane <=127 then   
+      if t[i].selected and t[i].CClane and t[i].CClane >=0 and t[i].CClane <=127 then   
         local out_val = lim(t[i].CCval + CCshift,0,127)
         if out_val0 then out_val = out_val0 end
         str_per_msg = string.pack("i4BI4BBB", t[i].offset, t[i].flags, 3, 

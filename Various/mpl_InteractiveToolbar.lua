@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.46
+-- @version 1.47
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # fix skippin MIDI note context before item context
+--    # fix error when changing CC when notes also selected
    
-    local vrs = '1.46'
+    local vrs = '1.47'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -174,7 +174,7 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap
 
   ---------------------------------------------------
   ExtState_Load(conf)  
-  gfx.init('MPL '..conf.scr_title,conf.wind_w, conf.wind_h,  conf.dock2 , conf.wind_x, conf.wind_y)
+  gfx.init('MPL InteractiveToolbar',conf.wind_w, conf.wind_h,  conf.dock2 , conf.wind_x, conf.wind_y)
   obj = Obj_init(conf)
   Config_ParseIni(data.conf_path, widgets)
   --widgets_def = LIP_load_MPLmod(Config_DefaultStr())
