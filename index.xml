@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7788e3b832928cb19e19c3a8f01e481bbdd10fd0" name="MPL Scripts">
+<index version="1" commit="09250737602df33b1f026f49aa14556f84a4893b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1161,6 +1161,14 @@ setup min gain, attack =0]]></changelog>
       </metadata>
       <version name="1.0" author="MPL" time="2018-05-05T10:45:01Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ccad289d05e92019a489f397d55a852dc827dd28/FX%20specific/mpl_Port%20focused%20ReaEQ%20bands%20to%20spectral%20edits%20on%20selected%20items.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2018-05-05T15:52:17Z">
+        <changelog><![CDATA[# proper obeying time selection
+# commit spectral edits once
+# do not add bands with gain less than 1dB
+# do not add bands with BW bigger than 1oct
+# add band, band(alt), band(alt2) types only]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/09250737602df33b1f026f49aa14556f84a4893b/FX%20specific/mpl_Port%20focused%20ReaEQ%20bands%20to%20spectral%20edits%20on%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k manager (background).lua" type="script" desc="RS5k manager">
