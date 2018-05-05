@@ -1,7 +1,13 @@
 -- @description Port focused ReaEQ bands to spectral edits on selected items
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--    # proper obeying time selection
+--    # commit spectral edits once
+--    # do not add bands with gain less than 1dB
+--    # do not add bands with BW bigger than 1oct
+--    # add band, band(alt), band(alt2) types only
   
   
   
@@ -15,23 +21,30 @@
     local isReaEQ = TrackFX_GetEQParam( tr, fx, 0 )
     if not isReaEQ then return end
     local num_params = TrackFX_GetNumParams( tr, fx )
-    bands = {}
+    local bands = {}
     for param = 1, num_params - 2, 3 do
       local retval, db_gain  = TrackFX_GetFormattedParamValue( tr, fx, param, '' )
       local retval, freq = TrackFX_GetFormattedParamValue( tr, fx, param-1,'')
       local retval, N = TrackFX_GetFormattedParamValue( tr, fx, param+1,'')
-      
+      local retval_type, b_type = TrackFX_GetNamedConfigParm( tr, fx, 'BANDTYPE'..(-1+(param+2)/3) )
+      local retval, b_enabled = TrackFX_GetNamedConfigParm( tr, fx, 'BANDENABLED'..(-1+(param+2)/3) )      
       freq = math.floor(tonumber(freq) )
       db_gain = tonumber(db_gain) if not db_gain then db_gain = -150 end
       N = tonumber(N)
-      local Q = math.sqrt(2^N) / (2^N - 1 )
-      bands[#bands+1]  = {  F = freq,
-                            G = db_gain,
-                            Q = math.floor(freq/Q)}
+      if N < 1 and math.abs(db_gain) > 1 then 
+        if (not retval_type) or 
+          (retval_type and 
+          (tonumber(b_type) == 8  or tonumber(b_type) == 9 or tonumber(b_type) == 2)
+          and tonumber(b_enabled) == 1) then
+          local Q = math.sqrt(2^N) / (2^N - 1 )
+          bands[#bands+1]  = {  F = freq,
+                                G = db_gain,
+                                Q = math.floor(freq/Q)}
+        end
+      end
     end
-    for i = 1, #bands do
-      MPL_SetSpectralPeak(bands[i].F, bands[i].Q, bands[i].G)
-    end
+    
+      MPL_SetSpectralPeak(bands)
   end  
   -----------------------------------------------------------------------------
   function ParseDbVol(out_str_toparse)
@@ -169,6 +182,7 @@
     end   
     local out_chunk = table.concat(t, '\n')
     SetItemStateChunk( item, out_chunk, false )
+    --ClearConsole()
     UpdateItemInProject( item )
   end
   -------------------------------------------------------
@@ -185,6 +199,9 @@
        else
         len = item_pos + item_len - loopS
       end
+     else
+      pos = 0
+      len = item_len
     end
     local freq_L = math.max(0, F_base-F_Area)
     local freq_H = math.min(SR, F_base+F_Area)
@@ -210,7 +227,7 @@
        fadeinout_vert2 = 0}
   end
   -------------------------------------------------------
-  function MPL_SetSpectralPeak(F_base, F_Area, gain_dB)
+  function MPL_SetSpectralPeak(bands)
     local loopS, loopE = GetSet_LoopTimeRange2( 0, false, 0, -1, -1, false )
     for i = 1, CountSelectedMediaItems(0) do 
       local item = GetSelectedMediaItem(0,i-1)
@@ -220,8 +237,10 @@
       local src =  GetMediaItemTake_Source( tk )
       local SR = GetMediaSourceSampleRate( src )
       local tk_id = GetMediaItemTakeInfo_Value( tk, 'IP_TAKENUMBER' )
-      ret, data = GetSpectralData(item) 
-      AddSE(data, tk_id, SR, item_pos, item_len, loopS, loopE, F_base, F_Area, gain_dB)
+      local ret, data = GetSpectralData(item) 
+      for i = 1, #bands do        
+        AddSE(data, tk_id, SR, item_pos, item_len, loopS, loopE, bands[i].F, bands[i].Q, bands[i].G)
+      end
       if ret then SetSpectralData(item, data) end
     end
   end
