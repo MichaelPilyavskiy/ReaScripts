@@ -1,7 +1,9 @@
 -- @description Sort focused ReaEQ bands by frequency
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--    # fix version check
 
   -- NOT reaper NOT gfx
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
@@ -205,10 +207,11 @@
     local appvrs = GetAppVersion()
     local app_full = appvrs:match('[%d%p]+') if app_full then app_full = tonumber(app_full) end
     local app_pre = appvrs:match('pre([%d]+)') if app_pre then app_pre = tonumber(app_pre) end
-    if app_full>=vrs then
+    if not app_pre then app_pre = math.huge end
+    if app_full and app_full>=vrs then
       if not pre then 
         return true
-       elseif pre and app_pre>=pre then
+       elseif app_pre and pre and app_pre>=pre then
         return true
       end
     end
