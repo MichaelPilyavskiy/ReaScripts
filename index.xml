@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e8d4f33a394d12cc4e4e251497ca25476793c38a" name="MPL Scripts">
+<index version="1" commit="e8beb8e854e85bde081137976109004a9597cb14" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1455,6 +1455,15 @@ setup min gain, attack =0]]></changelog>
     <reapack name="mpl_Snap selected items to each other.lua" type="script" desc="Snap selected items to each other">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Items%20Editing/mpl_Snap%20selected%20items%20to%20each%20other.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Split item under mouse cursor at mouse cursor.lua" type="script" desc="Split item under mouse cursor at mouse cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-05-06T13:35:50Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e8beb8e854e85bde081137976109004a9597cb14/Items%20Editing/mpl_Split%20item%20under%20mouse%20cursor%20at%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Stretch selected items to edit cursor preserve snapoffset.eel" type="script" desc="Stretch selected items to edit cursor preserve snapoffset">
