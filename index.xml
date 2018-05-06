@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e8beb8e854e85bde081137976109004a9597cb14" name="MPL Scripts">
+<index version="1" commit="a8d90fc1720b46e123ab3336b7e62931ca72d9be" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -873,6 +873,12 @@ setup min gain, attack =0]]></changelog>
       </metadata>
       <version name="1.0" author="MPL" time="2018-05-05T10:05:18Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/787da849745b6ef3418e6b55015c2d1405812371/FX%20specific/mpl_Build%20harmonic%20series%20bands%20for%20focused%20ReaEQ.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2018-05-06T23:49:30Z">
+        <changelog><![CDATA[+ link bandwidth after building
++ bands gain reduce factor
++ remember settings]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a8d90fc1720b46e123ab3336b7e62931ca72d9be/FX%20specific/mpl_Build%20harmonic%20series%20bands%20for%20focused%20ReaEQ.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Bypass all UAD FX on all tracks.lua" type="script" desc="Bypass all UAD FX on all tracks">
