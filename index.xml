@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a8d90fc1720b46e123ab3336b7e62931ca72d9be" name="MPL Scripts">
+<index version="1" commit="b00146a0dc62ce50e8989cab5a66d8525d7ad8bc" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1270,6 +1270,15 @@ setup min gain, attack =0]]></changelog>
       <version name="1.01" author="MPL" time="2018-05-05T18:45:29Z">
         <changelog><![CDATA[# fix version check]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e8d4f33a394d12cc4e4e251497ca25476793c38a/FX%20specific/mpl_Sort%20focused%20ReaEQ%20bands%20by%20frequency.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Split focused ReaEQ to LR routing.lua" type="script" desc="Split focused ReaEQ to LR routing">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-05-09T15:30:22Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b00146a0dc62ce50e8989cab5a66d8525d7ad8bc/FX%20specific/mpl_Split%20focused%20ReaEQ%20to%20LR%20routing.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle 64x oversampling for all ReaComp instances.lua" type="script" desc="Toggle 64x oversampling for all ReaComp instances">
