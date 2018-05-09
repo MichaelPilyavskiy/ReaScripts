@@ -1,16 +1,15 @@
 -- @description Port focused ReaEQ bands to spectral edits on selected items
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # proper obeying time selection
---    # commit spectral edits once
---    # do not add bands with gain less than 1dB
---    # do not add bands with BW bigger than 1oct
---    # add band, band(alt), band(alt2) types only
-  
-  
-  
+--    + Write Undo history entry
+--    # hardcoded spectral area (0-1000:50Hz, 1000-5000:200Hz, 5000-10000:500Hz, 10000+:1000Hz)
+--    # timeselection obeying improvements
+--    # increase BW to 2oct
+--    # respect take start offset
+--    # respect take playrate
+
   -- NOT reaper NOT gfx
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if s then ShowConsoleMsg(s..'\n') end end
@@ -31,7 +30,7 @@
       freq = math.floor(tonumber(freq) )
       db_gain = tonumber(db_gain) if not db_gain then db_gain = -150 end
       N = tonumber(N)
-      if N < 1 and math.abs(db_gain) > 1 then 
+      if N < 2 and math.abs(db_gain) > 1 then 
         if (not retval_type) or 
           (retval_type and 
           (tonumber(b_type) == 8  or tonumber(b_type) == 9 or tonumber(b_type) == 2)
@@ -182,31 +181,27 @@
     end   
     local out_chunk = table.concat(t, '\n')
     SetItemStateChunk( item, out_chunk, false )
-    --ClearConsole()
     UpdateItemInProject( item )
   end
   -------------------------------------------------------
-  function AddSE(data, tk_id, SR, item_pos, item_len, loopS, loopE, F_base, F_Area, gain_dB)
+  function AddSE(data, tk_id, SR, item_pos, item_len, loopS, loopE, F_base, F_Area, gain_dB, take_offs, take_prate)
     if not data[tk_id+1] then return end
     if not data[tk_id+1].edits then data[tk_id+1].edits = {} end
       
     -- obey time selection
     local pos, len = 0, item_len
     if loopE - loopS > 0.001 then 
-      if loopS >= item_pos and loopS <= item_pos + item_len then pos = loopS- item_pos end
-      if loopE >= item_pos and loopE <= item_pos + item_len then 
-        len = loopE - loopS 
-       else
-        len = item_pos + item_len - loopS
-      end
+      pos = math.max(loopS - item_pos, 0)
+      len = loopE - pos - item_pos
      else
       pos = 0
       len = item_len
     end
+    pos = pos* take_prate + take_offs 
+    len = len * take_prate
+    if len <= 0 then return end
     local freq_L = math.max(0, F_base-F_Area)
     local freq_H = math.min(SR, F_base+F_Area)
-    
-    
     data[tk_id+1].edits [ #data[tk_id+1].edits + 1] = 
       {pos = pos,
        len = len,
@@ -237,13 +232,31 @@
       local src =  GetMediaItemTake_Source( tk )
       local SR = GetMediaSourceSampleRate( src )
       local tk_id = GetMediaItemTakeInfo_Value( tk, 'IP_TAKENUMBER' )
+      local take_offs = GetMediaItemTakeInfo_Value( tk , 'D_STARTOFFS' )
+      local take_prate = GetMediaItemTakeInfo_Value( tk , 'D_PLAYRATE' )
+      
       local ret, data = GetSpectralData(item) 
-      for i = 1, #bands do        
-        AddSE(data, tk_id, SR, item_pos, item_len, loopS, loopE, bands[i].F, bands[i].Q, bands[i].G)
+      for i = 1, #bands do  
+        local f_area = 100
+        if bands[i].F < 1000 then 
+          f_area = 50
+         elseif bands[i].F >= 1000 and bands[i].F < 5000 then 
+          f_area = 200
+         elseif bands[i].F >= 5000 and bands[i].F < 10000 then 
+          f_area = 500
+         elseif bands[i].F >= 10000 then 
+          f_area = 1000
+        end
+        AddSE(data, tk_id, SR, item_pos, item_len, loopS, loopE, 
+              bands[i].F, 
+              f_area,--bands[i].Q, 
+              bands[i].G, 
+              take_offs, take_prate)
       end
       if ret then SetSpectralData(item, data) end
     end
   end
   
-     
+  Undo_BeginBlock()
   MPL_PortReaEQtoSpectralPeaks()
+  Undo_EndBlock( 'Port focused ReaEQ bands to spectral edits', 0 )
