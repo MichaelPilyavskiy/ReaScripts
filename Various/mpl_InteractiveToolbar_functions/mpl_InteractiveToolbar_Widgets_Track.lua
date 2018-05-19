@@ -1338,6 +1338,7 @@
   --------------------------------------------------------------
   function Widgets_Track_freeze(data, obj, mouse, x_offs) 
     local w = 80
+    if not data.tr or not data.tr.freezecnt_format then return end
     if x_offs + w > obj.persist_margin then return x_offs end 
     obj.b.obj_tr_freeze = { x = x_offs,
                         y = obj.offs ,

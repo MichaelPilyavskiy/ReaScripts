@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.50
+-- @version 1.51
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,15 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Context: allow to ignore contexts
---    + Context: allow to disable persistent modules
---    + GUI: allow to change context name width
---    + Tags/Track/#freeze: freeze/unfreeze selected track(s)
---    + Tags/Persist/#swing: allow to change swing, widget text is a toggle
---    # Tags/Persist/#grid: prevent resetting swing toggle and amount when changing grid in any way
+--    # fix error when commiting on GitHub
 
 
-    local vrs = '1.50'
+    local vrs = '1.51'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
