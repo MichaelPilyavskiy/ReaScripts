@@ -8,11 +8,15 @@
   
   ---------------------------------------------------
   function DataUpdate(data, mouse, widgets, obj, conf)
+  
     DataUpdate_RulerGrid(data, conf) 
-    DataUpdate_TimeSelection(data)
-    DataUpdate_PlayState(data)
-    DataUpdate_TempoTimeSignature(data)
-    DataUpdate_LastTouchedFX(data)
+    
+    if conf.ignore_context&(1<<9) ~= (1<<9) then
+      DataUpdate_TimeSelection(data)
+      DataUpdate_PlayState(data)
+      DataUpdate_TempoTimeSignature(data)
+      DataUpdate_LastTouchedFX(data)
+    end
     --DataUpdate_Toolbar(data,conf)
     
     if not data.tap_data then data.tap_data = {} end
@@ -31,8 +35,14 @@
     
     -- reset buttons data
       obj.b = {}
+      
     -- persisten widgets
-      obj.persist_margin = Obj_UpdatePersist(data, obj, mouse, widgets, conf) -- MUST be before DataUpdate_Context for passing persist_margin
+      if conf.ignore_context&(1<<9) ~= (1<<9) then
+        obj.persist_margin = Obj_UpdatePersist(data, obj, mouse, widgets, conf) -- MUST be before DataUpdate_Context for passing persist_margin
+       else
+        obj.persist_margin = gfx.w
+      end
+      
     -- context widgets  
       DataUpdate_Context(data, mouse, widgets, obj, conf) 
     -- update com butts
@@ -49,8 +59,9 @@
     data.rul_format = MPL_GetCurrentRulerFormat()
     data.SR = tonumber(reaper.format_timestr_pos(1, '', 4))
     data.FR = TimeMap_curFrameRate( 0 )
-    data.grid_val, data.grid_val_format, data.grid_istriplet = MPL_GetFormattedGrid()
+    data.grid_val, data.grid_val_format, data.grid_istriplet, data.grid_swingactive_int, data.grid_swingamt, data.grid_swingamt_format = MPL_GetFormattedGrid()
     data.grid_isactive =  GetToggleCommandStateEx( 0, 1157 )==1
+    data.grid_swingactive = data.grid_swingactive_int == 1
     data.ruleroverride = conf.ruleroverride
     data.grid_rel_snap =  GetToggleCommandStateEx( 0, 41054 ) --Item edit: Toggle relative grid snap
     data.grid_vis =  GetToggleCommandStateEx( 0, 40145 ) -- toggle grid visibility
@@ -68,34 +79,38 @@
         0 empty item
         1 MIDI item
         2 audio item
-        3 multiple items 
-        
-        4 envelope point
-        5 multiple envelope points        
+        3 multiple items    
         6 envelope
-        
         7 track
+        8 MIDI message
+        9 persistent
         
-        8 note
-        -9 cc
-        -10 ruler evt
-        -
+        --deprecated:
+        --4 envelope point
+        --5 multiple envelope points        
+        --8 note
+        --9 cc
+        --10 ruler evt
+        
     ]]  
     data.obj_type = 'No object selected'
     data.obj_type_int = -1  
-    local item = GetSelectedMediaItem(0,0)
+    
+    local item if conf.ignore_context&(1<<0) ~= (1<<0) then item = GetSelectedMediaItem(0,0) end
     local item_parent_tr if item then item_parent_tr = GetMediaItem_Track( item ) end
-    local env = GetSelectedEnvelope( 0 )
-    local env_parent_tr if env then env_parent_tr  = Envelope_GetParentTrack( env ) end
-    local tr = GetSelectedTrack(0,0)
-    local ME, MEtake,is_takeOK
-    ME = MIDIEditor_GetActive()
+  
+    local env if conf.ignore_context&(1<<6) ~= (1<<6) then env = GetSelectedEnvelope( 0 ) end
+    local env_parent_tr if env then env_parent_tr  = Envelope_GetParentTrack( env ) end    
+    
+    local tr if conf.ignore_context&(1<<7) ~= (1<<7) then tr = GetSelectedTrack(0,0) end
+    data.fsel_tr = GetSelectedTrack(0,0) 
+        
+    local ME, MEtake,is_takeOK if conf.ignore_context&(1<<8) ~= (1<<8) then ME = MIDIEditor_GetActive() end
     if ME then 
       MEtake = MIDIEditor_GetTake( ME ) 
       is_takeOK = ValidatePtr2( 0, MEtake, 'MediaItem_Take*' )  
     end
     
-    data.fsel_tr = GetSelectedTrack(0,0)
     
     if  conf.use_context_specific_conditions == 1 and data.last_fsel_tr 
         and data.last_fsel_tr ~= data.fsel_tr 
@@ -107,7 +122,7 @@
         and tr
       then 
       DataUpdate_Track(data, tr)
-      Obj_UpdateTrack(data, obj, mouse, widgets)   
+      Obj_UpdateTrack(data, obj, mouse, widgets, conf)   
       goto skip_context_selector
     end
     
@@ -540,11 +555,17 @@
     data.obj_type_int = 7
     if not data.curent_trFXID then data.curent_trFXID = 1 end
     
-    
+    local fr_cnt_min, fr_cnt_max = -math.huge,math.huge
     for i = 1, cnt do
       local tr = GetSelectedTrack(0,i-1)
       data.tr[i] = {GUID = GetTrackGUID( tr )}
       
+      -- freeze
+        local freezecnt = BR_GetMediaTrackFreezeCount( tr )
+        data.tr[i].freezecnt=freezecnt
+        fr_cnt_max = math.min(fr_cnt_max, freezecnt)
+        fr_cnt_min = math.max(fr_cnt_min, freezecnt)
+        
       -- sends 
         if i == 1 then
           data.tr_send = {}
@@ -631,6 +652,15 @@
         end
         data.tr[i].delay_format = format_timestr_len( data.tr[i].delay, '', 0,3 ) 
     end    
+    
+    data.tr.freezecnt_format = '('..data.tr[1].freezecnt..')'
+    if cnt>1 then 
+      if fr_cnt_min==0 and fr_cnt_max == 0 then 
+        data.tr.freezecnt_format = '(0)'
+       else
+        data.tr.freezecnt_format = '('..fr_cnt_max..'-'..fr_cnt_min..')'
+      end
+    end
     
     if not data.defsendvol or not data.defsendpan then
       data.defsendvol = tonumber(({BR_Win32_GetPrivateProfileString( 'REAPER', 'defsendvol', '0',  get_ini_file() )})[2])
