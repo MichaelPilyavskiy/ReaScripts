@@ -27,7 +27,8 @@
                           red =     {1,   0.3,    0.3   },
                           green =   {0.3, 0.9,  0.3 },
                           greendark =   {0.2, 0.4,  0.2 },
-                          blue  =   {0.5, 0.9,  1}},
+                          blue  =   {0.5, 0.9,  1},
+                          blue_bright  =   {0.2, 0.7,  1}},
                   background_col = conf.GUI_background_col,
                   background_alpha = conf.GUI_background_alpha,
                   
@@ -135,7 +136,7 @@
     if data.obj_type_int and data.obj_type_int >=0 then main_type_frame_a = obj.frame_a_head else main_type_frame_a = 0 end
     obj.b.type_name = { x = obj.menu_b_rect_side + obj.offs,
                         y = obj.offs,
-                        w = obj.entry_w,
+                        w = conf.GUI_contextname_w,
                         h = obj.entry_h,
                         frame_a = main_type_frame_a,
                         txt_a = obj.txt_a,
@@ -441,6 +442,7 @@ msg(
           #chsendmixer shows all send faders if sends existed for the first selected track. Ctrl+drag move on any slider acts as a VCA.
           #chrecvmixer shows all receive faders if receives existed for the first selected track. Ctrl+drag move on any slider acts as a VCA.
           #fxcontrols allow to store some FX macro controls stores per track (although params can be stored from another track FX). Rightclick slider for options.
+          #freeze allow to freeze/unfreeze track, show freeze depth
           #buttons
             #polarity Toggle inverted polarity ("phase" in REAPER) of track audio output
             #parentsend Toggle Master/Parent send
@@ -451,6 +453,7 @@ msg(
           #notevel change note velocity, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
         Persist
           #grid show current grid, allow to change grid lines visibility and relative snap
+          #swing show current swing value, 'SWING' text is a toggle
           #timeselend editing time selection end
           #timeselstart editing time selection start
           #lasttouchfx editing last touched FX parameter
@@ -465,7 +468,7 @@ msg(
                 { str = 'Donate to MPL',
                   func = function() F_open_URL('http://www.paypal.me/donate2mpl') end }  ,
                 { str = 'Cockos Forum thread|',
-                  func = function() F_open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } , 
+                  func = function() F_open_URL('http://forum.cockos.com/showthread.php?t=203393') end  } , 
                   
                 { str = '>Options'},
                 { str = 'Context: Force track context on change track selection',
@@ -568,7 +571,7 @@ msg(
                                 redraw = 2                            
                             end
                           end}    ,
-                { str = 'Background alpha|<',
+                { str = 'Background alpha',
                   func = function()                           
                             local ret, ftsz = GetUserInputs( conf.scr_title, 1, 'Background alpha',conf.GUI_background_alpha )
                             if  ret and tonumber(ftsz) then
@@ -579,43 +582,72 @@ msg(
                                 redraw = 2                            
                             end
                           end}  ,
+                { str = 'Context name width|<',
+                  func = function()                           
+                            local ret, str = GetUserInputs( conf.scr_title, 1, 'Context name width (def. = 200)',conf.GUI_contextname_w )
+                            if  ret and tonumber(str) then
+                                conf.GUI_contextname_w = lim(tonumber(str), 0, 300)
+                                ExtState_Save(conf)
+                                redraw = 2                            
+                            end
+                          end}  ,                          
+                          
                           
                   
  
                                                                                                                                                                         
                 { str = '|#Contexts/Widgets'}  ,
-       
-                { str = '>Empty item'},
+                
+                { str = '>Item: Empty '},
+                { str = 'Ignore all item contexts',    
+                  state = conf.ignore_context&(1<<0) == (1<<0),              
+                  func = function() Menu_IgnoreContext(conf, 0) end} , 
                 { str = 'Widgets order|<',                  
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 1 ) end} , 
-                { str = '>MIDI item'},              
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 0 ) end} , 
+                { str = '>Item: MIDI'}, 
+                { str = 'Ignore all item contexts',    
+                  state = conf.ignore_context&(1<<0) == (1<<0),              
+                  func = function() Menu_IgnoreContext(conf, 0) end} ,       
                  { str = 'Widgets order',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 1 ) end} ,
+                { str = 'Buttons order|<',
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 1, true ) end} , 
+                { str = '>Item: Audio'},
+                { str = 'Ignore all item contexts',    
+                  state = conf.ignore_context&(1<<0) == (1<<0),              
+                  func = function() Menu_IgnoreContext(conf, 0) end} , 
+                { str = 'Widgets order',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 2 ) end} ,
                 { str = 'Buttons order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 2, true ) end} , 
-                { str = '>Audio item'},
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 2, true ) end} ,
+                { str = '>Item: Multiple'},
+                { str = 'Ignore all item contexts',    
+                  state = conf.ignore_context&(1<<0) == (1<<0),              
+                  func = function() Menu_IgnoreContext(conf, 0) end} , 
                 { str = 'Widgets order',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 3 ) end} ,
                 { str = 'Buttons order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 3, true ) end} ,
-                { str = '>Multiple items'},
-                { str = 'Widgets order',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 4 ) end} ,
-                { str = 'Buttons order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 4, true ) end} , 
-                --[[{ str = '>Envelope point|Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 5 ) end} ,      
-                { str = '>Multiple envelope points|Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} ,  ]]  
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 3, true ) end} , 
                 { str = '>Envelope'},
+                { str = 'Ignore',    
+                  state = conf.ignore_context&(1<<6) == (1<<6),              
+                  func = function() Menu_IgnoreContext(conf, 6) end} , 
                 { str = 'Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 7 ) end} , 
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} , 
                 { str = '>Track'},
+                { str = 'Ignore',    
+                  state = conf.ignore_context&(1<<7) == (1<<7),              
+                  func = function() Menu_IgnoreContext(conf, 7) end} , 
                 { str = 'Widgets order',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 8 ) end} ,
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 7 ) end} ,
                 { str = 'Buttons order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 8, true ) end} ,
-                { str = '>MIDI editor|>MIDI Pitch formatting mode'},
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 7, true ) end} ,
+                { str = '>MIDI editor'},
+                { str = 'Ignore',    
+                  state = conf.ignore_context&(1<<8) == (1<<8),              
+                  func = function() Menu_IgnoreContext(conf, 8) end , 
+                  menu_decr = true},
+                { str = '|>MIDI Pitch formatting mode'},
                 { str = 'Pitch only',
                   state = conf.pitch_format == 0,
                   func = function() conf.pitch_format = 0 ExtState_Save(conf) redraw = 2 end} ,    
@@ -644,20 +676,23 @@ msg(
                             end
                           end} ,                  
                 { str = 'Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 9 ) end} ,  
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 8 ) end} ,  
                                                                                                      
                 { str = '>Persistent modules'},
-                { str = '# #grid'},
-                { str = 'Ignore left drag, pass left click as toggle snap',
+                { str = 'Disable persistent modules',    
+                  state = conf.ignore_context&(1<<9) == (1<<9),              
+                  func = function() Menu_IgnoreContext(conf, 9) end} ,                 
+                { str = '# #grid and #swing'},
+                { str = '(#grid only) Ignore left drag, pass left click as toggle snap',
                   state = conf.MM_grid_ignoreleftdrag==1,
                   func = function() conf.MM_grid_ignoreleftdrag = math.abs(1-conf.MM_grid_ignoreleftdrag) ExtState_Save(conf) redraw = 2 end }  ,                 
-                { str = Grid_DC_cond..'DoubleClick on grid value: disabled',
+                { str = Grid_DC_cond..'DoubleClick on grid/swing value: disabled',
                   state = conf.MM_grid_doubleclick==2,
                   func = function() conf.MM_grid_doubleclick = 2 ExtState_Save(conf) redraw = 2 end }  ,
-                { str = Grid_DC_cond..'DoubleClick on grid value open Snap/Grid dialog',
+                { str = Grid_DC_cond..'DoubleClick on grid/swing value open Snap/Grid dialog',
                   state = conf.MM_grid_doubleclick==0,
                   func = function() conf.MM_grid_doubleclick = 0 ExtState_Save(conf) redraw = 2 end }  ,
-                { str = Grid_DC_cond..'DoubleClick on grid value reset grid to custom value',
+                { str = Grid_DC_cond..'DoubleClick on grid/swing value reset grid to custom value',
                   state = conf.MM_grid_doubleclick==1,
                   func = function() conf.MM_grid_doubleclick = 1 ExtState_Save(conf) redraw = 2 end }  , 
                 { str = Grid_DC_cond..'Set default grid',
@@ -687,10 +722,24 @@ msg(
                 
                 { str = 'Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 'Persist' ) end} , 
-                {str = '|>Global Widget Configuration'},
-                {str = 'Reset',
+                {str = '|>Global Configuration'},
+                { str = 'Enable all contexts + persistent widgets',          
+                  func =function() 
+                          conf.ignore_context = 0
+                          ExtState_Save(conf) 
+                          redraw = 2 
+                        end} ,                  
+                { str = 'Disable all contexts + persistent widgets',          
+                  func =function() 
+                          Menu_IgnoreContext(conf, 0, 0)  -- item
+                          Menu_IgnoreContext(conf, 6, 0)  -- env
+                          Menu_IgnoreContext(conf, 7, 0)  -- tr
+                          Menu_IgnoreContext(conf, 8, 0)  -- midi
+                          Menu_IgnoreContext(conf, 9, 0)  -- persist
+                        end} ,              
+                {str = '|Reset all widgets order to default',
                  func = function()  
-                          local ret = MB('Are you sure you want to reset widget configuration of MPL InfoTool?',  'MPL InfoTool', 4)
+                          local ret = MB('Are you sure you want to reset widget configuration of MPL InteractiveToolbar?',  'MPL InteractiveToolbar', 4)
                           if ret == 6 then 
                             Config_Reset(data.conf_path) 
                             --MB('Restart script to affect changes', 'MPL InfoTool', 0)
@@ -699,7 +748,7 @@ msg(
                           end
                         end
                             }  ,                               
-                {str = 'Edit manually|<',
+                {str = 'Edit widget order manually|<',
                  func = function()  F_open_URL('"" "'..data.conf_path..'"') end}  ,                            
                 {str = '|Dock MPL InteractiveToolbar',
                                  func = function() 
@@ -719,10 +768,23 @@ msg(
               }
     Menu(mouse, t)
   end
-  
+  -----------------------------------------------------------
+  function Menu_IgnoreContext(conf, context_int, set)
+    local byte_num = 1<<context_int
+    
+    if conf.ignore_context&byte_num == byte_num then 
+      if not set or (set and set == 1) then conf.ignore_context = conf.ignore_context - byte_num end
+     else 
+      if not set or (set and set == 0) then conf.ignore_context = conf.ignore_context + byte_num end
+    end
+    ExtState_Save(conf) 
+    redraw = 2 
+  end   
+  -----------------------------------------------------------
   function Menu_ChangeOrder(widgets, data, conf, widgtype, is_buttons )
     local cur_str = ''
     local key
+    local widgtype = widgtype + 1
     if tonumber(widgtype) and tonumber(widgtype) >= 1 then key = widgets.types_t[widgtype] else key = widgtype end
     local temp_but_t if widgets[key].buttons then temp_but_t = CopyTable(widgets[key].buttons) end
     

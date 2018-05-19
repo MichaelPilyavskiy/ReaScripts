@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.47
+-- @version 1.50
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,15 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # fix error when changing CC when notes also selected
-   
-    local vrs = '1.47'
+--    + Context: allow to ignore contexts
+--    + Context: allow to disable persistent modules
+--    + GUI: allow to change context name width
+--    + Tags/Track/#freeze: freeze/unfreeze selected track(s)
+--    + Tags/Persist/#swing: allow to change swing, widget text is a toggle
+--    # Tags/Persist/#grid: prevent resetting swing toggle and amount when changing grid in any way
+
+
+    local vrs = '1.50'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -42,7 +48,7 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-   data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
+  local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title}
   local mouse = {}
@@ -90,12 +96,12 @@ buttons=#lock #preservepitch #chanmode #loop #srcreverse #mute
 [Envelope]
 order=#floatfx #position #value
 [Track]
-order=#fxcontrols #buttons #vol #pan #fxlist #sendto #delay #chsendmixer #chrecvmixer 
-buttons=#polarity #parentsend
+order=#fxcontrols #buttons #vol #pan #fxlist #sendto #delay #chsendmixer #chrecvmixer #freeze
+buttons=#polarity #parentsend 
 [MIDIEditor]
 order=#position #CCval #notepitch #notevel
 [Persist]
-order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap
+order=#swing #grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap
 ]]
   end  
   ---------------------------------------------------
@@ -112,6 +118,7 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap
             GUI_colortitle =      16768407, -- blue
             GUI_background_col =  16777215, -- white
             GUI_background_alpha = 0.18,
+            GUI_contextname_w = 200, --px
             ruleroverride = -1,
             pitch_format = 0,
             oct_shift = 2,
@@ -125,7 +132,8 @@ order=#grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap
             MM_grid_ignoreleftdrag = 0,
             MM_grid_default_reset_grid = 0.25,
             tap_quantize = 0,
-            trackfxctrl_use_brutforce = 0}
+            trackfxctrl_use_brutforce = 0,
+            ignore_context = 0}
   end
   ---------------------------------------------------
   function Run()

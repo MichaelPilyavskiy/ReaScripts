@@ -10,7 +10,7 @@
   function Obj_UpdateTrack(data, obj, mouse, widgets, conf)
     obj.b.obj_name = { x = obj.menu_b_rect_side + obj.offs,
                         y = obj.offs *2 +obj.entry_h,
-                        w = obj.entry_w,
+                        w = conf.GUI_contextname_w,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt_a = obj.txt_a,
@@ -27,7 +27,7 @@
                               end
                             end
                           end} 
-    local x_offs = obj.menu_b_rect_side + obj.offs + obj.entry_w 
+    local x_offs = obj.menu_b_rect_side + obj.offs + conf.GUI_contextname_w 
     
     
     
@@ -1331,3 +1331,37 @@
     TrackFX_Show( tr, fx, 3 )
   end        
     
+
+
+
+
+  --------------------------------------------------------------
+  function Widgets_Track_freeze(data, obj, mouse, x_offs) 
+    local w = 80
+    if x_offs + w > obj.persist_margin then return x_offs end 
+    obj.b.obj_tr_freeze = { x = x_offs,
+                        y = obj.offs ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        fontsz = obj.fontsz_entry,
+                        state_col = 'blue_bright',
+                        state =true,
+                        txt_a = obj.txt_a,
+                        txt_col = 'white',
+                        txt = 'Frz '..data.tr.freezecnt_format,
+                        func = function () Action(41223) end} 
+    obj.b.obj_tr_unfreeze = { x =  x_offs,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        fontsz = obj.fontsz_entry,
+                        state_col = 'red',
+                        state =true,
+                        txt_a = obj.txt_a,
+                        txt_col = 'white',
+                        txt = 'Unfreeze',
+                        func = function() Action(41644) end} 
+    return w
+  end

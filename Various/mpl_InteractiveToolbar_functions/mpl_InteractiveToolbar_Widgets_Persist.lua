@@ -27,12 +27,12 @@
 
 
 
-
 ------------------------------------------------------------
   function Widgets_Persist_grid(data, obj, mouse, x_margin, widgets)    -- generate position controls 
     local grid_widg_val_w = 50
     local grid_widg_w_trpl = 20
-    local grid_widg_w = grid_widg_val_w+ grid_widg_w_trpl
+    local grid_widg_w = grid_widg_val_w + grid_widg_w_trpl
+    
     local frame_a = 0
     local rel_snap_w = 25
     local rel_snap_h = 10
@@ -122,7 +122,7 @@
                                         local lim_max = 1
                                         if data.grid_istriplet then lim_max = 2/3 end
                                         local out_val = lim(data.grid_val*div, 0.0078125*lim_max, lim_max)
-                                        GetSetProjectGrid( 0, true, out_val  )
+                                        GetSetProjectGrid( 0, true,  out_val, data.grid_swingactive_int, data.grid_swingamt )
                                         redraw = 2                           
                                       end,                                              
                         func_drag =   function() 
@@ -145,7 +145,7 @@
                                             local lim_max = 1
                                             if data.grid_istriplet then lim_max = 2/3 end
                                             local out_val = lim(mouse.temp_val*div, 0.0078125*lim_max, lim_max)                                         
-                                            GetSetProjectGrid( 0, true, out_val  )
+                                            GetSetProjectGrid( 0, true,  out_val, data.grid_swingactive_int, data.grid_swingamt )
                                             _, obj.b.obj_pers_grid_B_val.txt = MPL_GetFormattedGrid()
                                             redraw = 1  
                                           end 
@@ -156,7 +156,7 @@
                                           if data.MM_grid_doubleclick == 0 then
                                             Main_OnCommand(40071, 0) -- open settings
                                            elseif data.MM_grid_doubleclick == 1 and data.MM_grid_default_reset_grid then
-                                            GetSetProjectGrid( 0, true, data.MM_grid_default_reset_grid)
+                                            GetSetProjectGrid( 0, true,  data.MM_grid_default_reset_grid, data.grid_swingactive_int, data.grid_swingamt )
                                           end
                                           redraw = 2
                                         end
@@ -976,3 +976,116 @@
                                   end}                                                  
       return tap_w
     end  
+
+
+
+
+
+  ------------------------------------------------------------
+  function Widgets_Persist_swing(data, obj, mouse, x_margin, widgets)
+    local grid_widg_swingval_w = 50
+    
+    local frame_a = 0
+    local txt_a_swact =obj.txt_a
+    if data.grid_swingactive_int == 0 then txt_a_swact = obj.txt_a * 0.3 end
+    obj.b.obj_pers_swgrid_name = { persist_buf = true,
+                        x = x_margin - grid_widg_swingval_w,
+                        y = obj.offs ,
+                        w = grid_widg_swingval_w,
+                        h = 10,
+                        frame_a = 0,--obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = txt_a_swact,
+                        --txt_col = 'white',
+                        txt = 'SWING',
+                        --aligh_txt = 1,
+                        fontsz = obj.fontsz_grid_rel,
+                        func =  function ()
+                                  Action(42304)
+                                end}    
+    obj.b.obj_pers_swgrid_back = { persist_buf = true,
+                        x = x_margin - grid_widg_swingval_w,
+                        y = obj.offs ,
+                        w = grid_widg_swingval_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = '',
+                        ignore_mouse = true} 
+    obj.b.obj_pers_swgrid_back2 = { persist_buf = true,
+                        x = x_margin - grid_widg_swingval_w,
+                        y = obj.offs + obj.entry_h,
+                        w = grid_widg_swingval_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = '',
+                        ignore_mouse = true}                               
+    obj.b.obj_pers_swgrid_B_val = { persist_buf = true,
+                        x = x_margin - grid_widg_swingval_w,
+                        y = 0 ,
+                        w = grid_widg_swingval_w,
+                        h = obj.entry_h*2,
+                        frame_a = frame_a,
+                        --frame_rect_a = 1,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = data.grid_swingamt_format,
+                        func =        function()                                        
+                                        mouse.temp_val = data.grid_swingamt
+                                        redraw = 1              
+                                      end,
+                        func_wheel =  function()
+                                        local inc
+                                        if mouse.wheel_trig > 0 then 
+                                          inc = 0.01 
+                                         elseif mouse.wheel_trig < 0 then 
+                                          inc = -0.01 
+                                        end 
+                                        local out_val = lim(data.grid_swingamt+inc, -1, 1)
+                                        GetSetProjectGrid( project, true,  data.grid_val, data.grid_swingactive_int, out_val )
+                                        redraw = 2                           
+                                      end,                                              
+                        func_drag =   function() 
+                                        if mouse.temp_val then 
+                                          local mouse_shift
+                                          if data.always_use_x_axis==1 then 
+                                            mouse_shift = -mouse.dx/100
+                                           else
+                                            mouse_shift = mouse.dy/300
+                                          end  
+                                          
+                                          if mouse_shift then 
+                                            mouse_shift = math.floor(mouse_shift*100)/100
+                                            local out_val = lim(data.grid_swingamt+mouse_shift, -1, 1)
+                                            GetSetProjectGrid( project, true,  data.grid_val, data.grid_swingactive_int, out_val )
+                                            redraw = 1  
+                                            local _, _, _, _, _, grid_swingamt_form = MPL_GetFormattedGrid()
+                                            obj.b.obj_pers_swgrid_B_val.txt = grid_swingamt_form
+                                          end 
+                                        end
+                                      end,
+                        func_DC =     function()
+                                        if data.MM_grid_ignoreleftdrag == 0 then
+                                          if data.MM_grid_doubleclick == 0 then
+                                            Main_OnCommand(40071, 0) -- open settings
+                                           elseif data.MM_grid_doubleclick == 1 and data.MM_grid_default_reset_grid then
+                                            GetSetProjectGrid( project, true,  data.grid_val, data.grid_swingactive_int, 0 )
+                                          end
+                                          redraw = 2
+                                        end
+                                      end,
+                        func_R =     function()
+                                        if data.MM_grid_rightclick == 1 then
+                                          Main_OnCommand(42304, 0) -- toggle grid
+                                         elseif data.MM_grid_rightclick == 0 then
+                                          Main_OnCommand(40071, 0) -- open settings
+                                        end
+                                        redraw = 2
+                                      end}
+    return grid_widg_swingval_w
+  end    

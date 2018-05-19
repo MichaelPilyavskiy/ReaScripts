@@ -431,7 +431,8 @@
       grid_str = 1
       is_triplet = math.abs(grid_division - 0.6666) < 0.001
     end
-    return grid_division, grid_str, is_triplet
+    grid_swingamt_format = math.floor(grid_swingamt * 100)..'%'
+    return grid_division, grid_str, is_triplet, grid_swingmode, grid_swingamt, grid_swingamt_format
   end     
   ---------------------------------------------------
   function MPL_ReduceFXname(s)
@@ -502,6 +503,7 @@
     local incr = 0
     if ret > 0 then 
       for i = 1, ret do 
+        if t[i+incr].menu_decr == true then incr = incr - 1 end
         if t[i+incr].str:match('>')  then incr = incr + 1 end
       end
       if t[ret+incr] and t[ret+incr].func then t[ret+incr].func() end 
