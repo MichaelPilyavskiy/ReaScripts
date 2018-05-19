@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="67b653dbafd520ad6dc23403b5836f48cf65a2be" name="MPL Scripts">
+<index version="1" commit="a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1796,6 +1796,22 @@ setup min gain, attack =0]]></changelog>
         <source main="main" file="Send NoteOn to VK, pitch 72 C5.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/MIDI/mpl_Send%20short%20NoteOn%20MIDI%20message%20to%20virtual%20keyboard.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Show selected MIDI item data.lua" type="script" desc="Show selected MIDI item data">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Dev purposes. Returns MIDI take data\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-05-19T07:17:30Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/MIDI/mpl_Show%20selected%20MIDI%20item%20data.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Snap takes to scale.lua" type="script" desc="Snap takes to scale">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -2763,6 +2779,11 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fdd1ff913582bfb81a88738113ed1c856cfb2852/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20edit%20cursor%20crossing%20any%20of%20their%20items.lua</source>
       </version>
+      <version name="1.1" author="MPL" time="2018-05-19T07:17:30Z">
+        <changelog><![CDATA[+ respect TCP hidden tracks when checking items crossing
++ restore hidden track state on enabling TCP view back]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20edit%20cursor%20crossing%20any%20of%20their%20items.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Toggle show tracks if time selection crossing any of their items.lua" type="script" desc="Toggle show tracks if time selection crossing any of their items">
       <metadata>
@@ -2771,6 +2792,11 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-05-31T18:47:08Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fdd1ff913582bfb81a88738113ed1c856cfb2852/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20time%20selection%20crossing%20any%20of%20their%20items.lua</source>
+      </version>
+      <version name="1.1" author="MPL" time="2018-05-19T07:17:30Z">
+        <changelog><![CDATA[+ respect TCP hidden tracks when checking items crossing
++ restore hidden track state on enabling TCP view back]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20time%20selection%20crossing%20any%20of%20their%20items.lua</source>
       </version>
     </reapack>
   </category>
@@ -3435,6 +3461,24 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f86b73b76ae243e25ded6751767b334e255577b/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f86b73b76ae243e25ded6751767b334e255577b/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f86b73b76ae243e25ded6751767b334e255577b/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
+      </version>
+      <version name="1.50" author="MPL" time="2018-05-19T07:17:30Z">
+        <changelog><![CDATA[+ Context: allow to ignore contexts
++ Context: allow to disable persistent modules
++ GUI: allow to change context name width
++ Tags/Track/#freeze: freeze/unfreeze selected track(s)
++ Tags/Persist/#swing: allow to change swing, widget text is a toggle
+# Tags/Persist/#grid: prevent resetting swing toggle and amount when changing grid in any way]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Various/mpl_InteractiveToolbar.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">
