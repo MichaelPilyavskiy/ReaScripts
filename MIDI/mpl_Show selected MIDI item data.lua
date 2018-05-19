@@ -1,16 +1,17 @@
 -- @description Show selected MIDI item data
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Dev purposes. Returns MIDI take data
 -- @changelog
---    + init
+--    # use reverse beats to seconds convertion for grid difference
 
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if s then ShowConsoleMsg(s..'\n') end end
+  function math_q(num)  if math.abs(num - math.floor(num)) < math.abs(num - math.ceil(num)) then return math.floor(num) else return math.ceil(num) end end
   -----------------------------------------------------------------
-  function getMIDIdata(take)
+  function getMIDIdata(take, it_pos)
       local evts = {}
       local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
       if not gotAllOK then return end
@@ -28,10 +29,10 @@
           offset, flags, msg, nextPos = s_unpack("i4Bs4", MIDIstring, prevPos)
           idx = idx + 1
           ppq_pos = ppq_pos + offset
-          local pos_sec = MIDI_GetProjTimeFromPPQPos( take, ppq_pos )
-          local pos_sec_format = format_timestr_pos( pos_sec, '', -1 )
-          local grid_dt = SnapToGrid( 0, pos_sec ) - pos_sec
+          local pos_sec = MIDI_GetProjTimeFromPPQPos( take, ppq_pos )          
           local beats, measures, _, fullbeatsOutOptional, _ = TimeMap2_timeToBeats( 0, pos_sec )
+          local back_conv_sec = TimeMap2_beatsToTime( 0, beats, measures)
+          local grid_dt =  back_conv_sec  - pos_sec
           evts[idx] = {rawevt = s_pack("i4Bs4", offset, flags , msg),
                             offset=offset, 
                             flags=flags, 
@@ -39,7 +40,7 @@
                             ppq_pos = ppq_pos,
                             pos_sec = pos_sec,
                             pos_sec_format = pos_sec_format,
-                            pos_beats = measures..'.'..beats,
+                            pos_beats = beats,
                             grid_dt = grid_dt}
       end 
       return evts   
@@ -48,9 +49,10 @@
   function main()
     local item = GetSelectedMediaItem(0,0)
     if not item then return end
+    local it_pos =  GetMediaItemInfo_Value(item, 'D_POSITION')
     local take = GetActiveTake(item)
     if not take or not TakeIsMIDI(take) then return end
-    data = getMIDIdata(take)
+    data = getMIDIdata(take, it_pos)
     str = ''
     for i = 1, #data do
       str = str..'\n'
