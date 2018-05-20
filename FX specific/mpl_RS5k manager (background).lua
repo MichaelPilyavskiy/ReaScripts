@@ -1,23 +1,28 @@
-﻿-- @description RS5k manager
--- @version 1.27
+-- @description RS5k manager
+-- @version 1.28
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix error when track is not in FIPM mode
---    # red mode switch since it reqiure to start with new project or at least with redifined parent without any RS5k instances
+--    + Pads: show FX button per pad
+--    + Pads: Ableton Push layout
+--    # fix in MIDI childs mode add new pattern to MIDI pattern track
+--    # GUI: improved keys Y indentation
+--    # GUI: change font to Calibri
+
   
-  local vrs = 'v1.27'
+  local vrs = 'v1.28'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local SCC, lastSCC
-   mouse = {}
+  local mouse = {}
   local obj = {}
   local conf = {}
   local pat = {}
   local Buf_t
   local data = {}
+  smpl_brws = {}
   local action_export = {}
   local redraw,redraw_WF = -1,-1
   local MIDItr_name = 'RS5K MIDI Patterns'
@@ -28,7 +33,7 @@
   local gui = {
                 aa = 1,
                 mode = 0,
-                font = 'Arial',
+                font = 'Calibri',
                 fontsz = 20,
                 fontsz2 = 15,
                 fontsz3 = 13,
@@ -134,6 +139,12 @@
   function GUI_DrawObj(o) 
     if not o then return end
     local x,y,w,h, txt = o.x, o.y, o.w, o.h, o.txt
+    --[[
+    gfx.set(1,1,1,1)
+    gfx.setfont()
+    gfx.x, gfx.y = x+20,y
+    gfx.drawstr(x)]]
+    
     if not x or not y or not w or not h then return end
     gfx.a = o.alpha_back or 0.2
     local blit_h, blit_w = obj.grad_sz,obj.grad_sz
@@ -421,6 +432,7 @@
   end
   ---------------------------------------------------
   function GUI_SeqLines()
+    
     gfx.a = 0.15
     local step_w = (obj.workarea.w - obj.item_w1 - obj.item_h4- 3-obj.scroll_w) / 16
     if obj.gui_cond then  step_w = (obj.workarea.w -obj.item_h4*2- 3-obj.scroll_w) / 16 end
@@ -534,6 +546,7 @@ DOCKED 0
   end 
   ---------------------------------------------------
   function GUI_DrawWF(t)
+    
     local w = obj.WF_w
     local h = obj.WF_h
     -- WF
@@ -616,7 +629,7 @@ DOCKED 0
                     0,0,  obj.grad_sz,obj.grad_sz/2,
                     0,0,  gfx.w,gfx.h, 0,0)
         -- refresh all buttons
-          for key in pairs(obj) do 
+          for key in spairs(obj) do 
             if type(obj[key]) == 'table' and obj[key].show and not obj[key].blit and key~= 'set_par_tr'  then 
               GUI_DrawObj(obj[key]) 
             end  
@@ -648,7 +661,7 @@ DOCKED 0
             if conf.tab == 1 then gfx.dest = 1 GUI_SeqLines()   end
           end 
         -- WF cent line
-          if conf.tab == 0 then 
+          --[[if conf.tab == 0 then 
             gfx.dest = 1
             col('white', .1)
             gfx.line( obj.tab_div, 
@@ -659,7 +672,7 @@ DOCKED 0
                       gfx.h-obj.key_h,
                       gfx.w, 
                       gfx.h-obj.key_h)                      
-          end         
+          end        ]] 
         -- WF
           if redraw_WF and redraw_WF == 1 then
             local peaks, cnt = GetPeaks(obj.current_WFkey)
@@ -732,9 +745,15 @@ DOCKED 0
     if conf.tab == 0 then 
       gfx.a = 0.5
       gfx.mode = 3
-      gfx.blit(6, 1, 0, -- backgr
-          0,0,obj.WF_w, obj.WF_h-1,
-          obj.tab_div,gfx.h-obj.WF_h-obj.key_h,gfx.w-obj.tab_div, obj.WF_h-1 , 0,0) 
+      if not obj.keys_hide_knobs then
+        local y_wf if obj.keys_hide_fp == true then y_wf = 0 else y_wf = obj.kn_h end
+        gfx.blit(6, 1, 0, -- backgr
+            0,0,obj.WF_w, obj.WF_h-1,
+            obj.tab_div,
+            y_wf,--gfx.h-obj.WF_h-obj.key_h,
+            gfx.w-obj.tab_div, 
+            obj.WF_h-1 , 0,0) 
+      end
     end      
     
     if not ES_parent then
@@ -1040,14 +1059,16 @@ DOCKED 0
     obj.it_alpha2 = 0.28 -- navigation
     obj.it_alpha3 = 0.1 -- option tabs
     obj.it_alpha4 = 0.05 -- option items
+    obj.it_alpha5 = 0.05 -- oct lowhigh
     obj.comm_w = 80 -- commit button
     obj.comm_h = 30
     obj.layout = {'Chromatic Keys',
                   'Chromatic Keys (2 oct)',
                   'Korg NanoPad',
                   'Ableton Live Drum Rack',
-                  'Studio One Impact'} 
-    obj.key_h = 250  -- keys y/h  
+                  'Studio One Impact',
+                  'Ableton Push'} 
+    obj.key_h = 250-- keys y/h  
     obj.WF_h=50    
     obj.kn_w =42
     obj.kn_h =56
@@ -1203,9 +1224,9 @@ DOCKED 0
     ---------------------------------------------macro windows
     if conf.tab == 0 then 
       local cnt_it = OBJ_GenSampleBrowser()
-      obj._octaveshiftL = { clear = true,
+      obj.keys_octaveshiftL = { clear = true,
                   x = gfx.w-obj.comm_w,
-                  y = gfx.h -obj.comm_h ,
+                  y = 0,--gfx.h -obj.comm_h ,
                   w = obj.comm_w/2,
                   h = obj.comm_h,
                   col = 'white',
@@ -1215,16 +1236,16 @@ DOCKED 0
                   is_but = true,
                   mouse_overlay = true,
                   fontsz = gui.fontsz,
-                  alpha_back = obj.it_alpha4,
-                  a_frame = 0.1,
+                  alpha_back = obj.it_alpha5,
+                  a_frame = 0.05,
                   func =  function() 
                             conf.oct_shift = lim(conf.oct_shift - 1,0,10)
                             ExtState_Save()
                             redraw = 1
                           end} 
-      obj._octaveshiftR = { clear = true,
+      obj.keys_octaveshiftR = { clear = true,
                   x = gfx.w-obj.comm_w/2,
-                  y = gfx.h -obj.comm_h ,
+                  y = 0,--gfx.h -obj.comm_h ,
                   w = obj.comm_w/2,
                   h = obj.comm_h,
                   col = 'white',
@@ -1234,8 +1255,8 @@ DOCKED 0
                   is_but = true,
                   mouse_overlay = true,
                   fontsz = gui.fontsz,
-                  alpha_back = obj.it_alpha4,
-                  a_frame = 0.1,
+                  alpha_back = obj.it_alpha5,
+                  a_frame = 0.05,
                   func =  function() 
                             conf.oct_shift = lim(conf.oct_shift + 1,1,10)
                             ExtState_Save()
@@ -1429,6 +1450,7 @@ DOCKED 0
   end
   ----------------------------------------------------------------------- 
   function OBJ_GenOptionsList_Browser()
+    
     obj.opt_sample_favpathcount = { clear = true,
                 x = obj.tab_div+2,
                 y = 1,
@@ -1512,7 +1534,10 @@ DOCKED 0
                                     state = conf.keymode == 3},
                                   {str = obj.layout[5],
                                     func = function() conf.keymode = 4 ExtState_Save() redraw = 1 end ,
-                                    state = conf.keymode == 4}                                                                                                           
+                                    state = conf.keymode == 4}    ,
+                                  {str = obj.layout[6],
+                                    func = function() conf.keymode = 5 ExtState_Save() redraw = 1 end ,
+                                    state = conf.keymode == 5}                                                                                                                                            
                                 })
                         end}    
     obj.opt_sample_keypreview = { clear = true,
@@ -2109,12 +2134,18 @@ DOCKED 0
                 fontsz = gui.fontsz2,
                 alpha_back = obj.it_alpha2,
                 func =  function() 
-                          if pat.SEL and pat[pat.SEL] and ES_parent then 
+                          if pat.SEL and pat[pat.SEL] and 
+                            ((conf.global_mode ~= 1 and ES_parent) or (conf.global_mode == 1 and data.tr_pointer_MIDI))then 
                             --AddMediaItemToTrack( ES_parent )
                             local curpos = GetCursorPosition()
                             local _, _, _, fullbeats=TimeMap2_timeToBeats( 0, curpos )
                             local endtime = TimeMap2_beatsToTime( 0, fullbeats+4 )
-                            local it = CreateNewMIDIItemInProj( ES_parent, curpos, endtime )
+                            local it
+                            if conf.global_mode ~= 1 then
+                              it = CreateNewMIDIItemInProj( ES_parent, curpos, endtime )
+                             else
+                              it = CreateNewMIDIItemInProj( data.tr_pointer_MIDI, curpos, endtime )
+                            end
                             SelectAllMediaItems( 0, false )
                             SetMediaItemSelected( it, true )
                             CommitPattern()
@@ -2294,7 +2325,6 @@ DOCKED 0
     local send_id = CreateTrackSend( data.tr_pointer_MIDI, new_ch)
     SetTrackSendInfo_Value( data.tr_pointer_MIDI, 0, send_id, 'I_SRCCHAN' , -1 )
   end
-  ---------------------------------------------------
   function OBJ_GenSampleBrowser()
     local up_w = 25
     if obj.tab_div == 0 then up_w = 0 end
@@ -2611,49 +2641,163 @@ DOCKED 0
                     {1,0}, 
                     {2,0}, 
                     {3,0}                                                               
-                }                              
+                }  
+       elseif conf.keymode == 5 then -- ableton push
+        w_div = 8
+        h_div = 8 
+        start_note_shift = 1    
+        shifts  = { 
+                    {0,7},    
+                    {1,7}, 
+                    {2,7}, 
+                    {3,7},
+                    {4,7},
+                    {5,7},
+                    {6,7},
+                    {7,7},
+                            
+                    {0,6},    
+                    {1,6}, 
+                    {2,6}, 
+                    {3,6},
+                    {4,6},
+                    {5,6},
+                    {6,6},
+                    {7,6},
+                            
+                    {0,5},    
+                    {1,5}, 
+                    {2,5}, 
+                    {3,5},
+                    {4,5},
+                    {5,5},
+                    {6,5},
+                    {7,5},
+                                               
+                    {0,4},    
+                    {1,4}, 
+                    {2,4}, 
+                    {3,4},
+                    {4,4},
+                    {5,4},
+                    {6,4},
+                    {7,4},
+                    
+                    {0,3},    
+                    {1,3}, 
+                    {2,3}, 
+                    {3,3},
+                    {4,3},
+                    {5,3},
+                    {6,3},
+                    {7,3},
+                    
+                    {0,2},    
+                    {1,2}, 
+                    {2,2}, 
+                    {3,2},
+                    {4,2},    
+                    {5,2}, 
+                    {6,2}, 
+                    {7,2},                    
+                    
+                    {0,1},    
+                    {1,1}, 
+                    {2,1}, 
+                    {3,1},
+                    {4,1},    
+                    {5,1}, 
+                    {6,1}, 
+                    {7,1},                    
+                    
+                    {0,0},    
+                    {1,0}, 
+                    {2,0}, 
+                    {3,0},
+                    {4,0},    
+                    {5,0}, 
+                    {6,0}, 
+                    {7,0},                                                                              
+                }                                               
       end
+      
+      obj.keys_hide_fp = false
+      obj.keys_hide_knobs = false
+      if gfx.h < 400 then obj.keys_hide_fp = true end
+      if gfx.h < 300 then obj.keys_hide_knobs = true end
+      local key_area_h = obj.key_h
+      if obj.keys_hide_fp then 
+        key_area_h = gfx.h -obj.kn_h
+       else 
+        key_area_h = gfx.h -obj.kn_h - obj.WF_h
+      end
+      if obj.keys_hide_knobs then key_area_h = gfx.h end
+      --if key_area_h < gfx.h - obj.WF_h + obj.kn_h  then key_area_h = gfx.h - obj.WF_h - obj.kn_h end
+      
+      
       local key_w = math.ceil(obj.workarea.w/w_div)
-      local key_h = math.ceil((1/h_div)*(obj.key_h)) 
+      local key_h = math.ceil((1/h_div)*(key_area_h)) 
       obj.h_div = h_div
       for i = 1, #shifts do
         local note = (i-1)+12*conf.oct_shift+start_note_shift
         local fn, ret = GetSampleNameByNote(note)
         local col = 'white'
         if ret then col = 'green' end
-        local txt = GetNoteStr(note)..'\n\r'--..fn
-        if note > 0 and note <= 127 then
-          obj['keys_'..i] = 
-                    { clear = true,
-                      x = obj.workarea.x+shifts[i][1]*key_w,
-                      y = gfx.h-obj.key_h+ shifts[i][2]*key_h,
-                      w = key_w,
-                      h = key_h,
-                      col = col,
-                      state = 0,
-                      txt= txt,
-                      is_step = true,
-                      vertical_txt = fn,
-                      linked_note = note,
-                      show = true,
-                      is_but = true,
-                      alpha_back = 0.45,
-                      a_frame = 0.1,
-                      aligh_txt = 5,
-                      fontsz = gui.fontsz2,
-                      func =  function() 
-                                if obj[ mouse.context ] and obj[ mouse.context ].linked_note then
-                                  if conf.keypreview == 1 then StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), obj[ mouse.context ].linked_note,100)  end
-                                  obj.current_WFkey = obj[ mouse.context ].linked_note
-                                  redraw_WF = 1
-                                end
-                              end} 
-          if    note%12 == 1 
-            or  note%12 == 3 
-            or  note%12 == 6 
-            or  note%12 == 8 
-            or  note%12 == 10 
-            then obj['keys_'..i].txt_col = 'black' end
+        local note_str = GetNoteStr(note)
+        if note_str then
+          local txt = note_str..'\n\r'--..fn
+          local fx_rect_side = 15
+          if note > 0 and note <= 127 then
+            obj['keys_pFX'..i] = { clear = true,
+                  x = obj.workarea.x+shifts[i][1]*key_w + key_w - fx_rect_side - obj.offs,
+                  y = gfx.h-key_area_h + shifts[i][2]*key_h+obj.offs,
+                  w = fx_rect_side,
+                  h = fx_rect_side,
+                  col = 'white',
+                  state = 0,
+                  txt= 'FX',
+                  --aligh_txt = 16,
+                  show = true,
+                  is_but = true,
+                  fontsz = gui.fontsz3-2,
+                  alpha_back =0.2,
+                  func =  function() 
+                              local tr = GetDestTrackByNote(data.tr_pointer, note)
+                              if not tr then return end
+                              TrackFX_Show( tr,0, 1 )
+                            end}
+            obj['keys_p'..i] = 
+                      { clear = true,
+                        x = obj.workarea.x+shifts[i][1]*key_w,
+                        y = gfx.h-key_area_h+ shifts[i][2]*key_h,
+                        w = key_w,
+                        h = key_h,
+                        col = col,
+                        state = 0,
+                        txt= txt,
+                        is_step = true,
+                        vertical_txt = fn,
+                        linked_note = note,
+                        show = true,
+                        is_but = true,
+                        alpha_back = 0.45,
+                        a_frame = 0.1,
+                        aligh_txt = 5,
+                        fontsz = gui.fontsz2,
+                        func =  function() 
+                                  if obj[ mouse.context ] and obj[ mouse.context ].linked_note then
+                                    if conf.keypreview == 1 then StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), obj[ mouse.context ].linked_note,100)  end
+                                    obj.current_WFkey = obj[ mouse.context ].linked_note
+                                    redraw_WF = 1
+                                  end
+                                end} 
+            if    note%12 == 1 
+              or  note%12 == 3 
+              or  note%12 == 6 
+              or  note%12 == 8 
+              or  note%12 == 10 
+              then obj['keys_p'..i].txt_col = 'black' end
+          end
         end
       end
  
@@ -2665,25 +2809,29 @@ DOCKED 0
       local cur_note = obj.current_WFkey
       if not (cur_note and data[cur_note] and data[cur_note][1]) or conf.global_mode == 2 then return end
       
-      local file_name = data[cur_note][1].fn
-      obj.spl_WF_filename = { clear = true,
-              x = obj.tab_div,
-              y = gfx.h - obj.WF_h-obj.key_h,
-              w = gfx.w - obj.tab_div,
-              h = obj.WF_h,
-              col = 'white',
-              state = 0,
-              txt= file_name,
-              aligh_txt = 0,
-              show = true,
-              is_but = true,
-              fontsz = gui.fontsz2,
-              alpha_back =0}  
+      if obj.keys_hide_knobs == true then return end
+      
+      if not obj.keys_hide_fp then 
+        local file_name = data[cur_note][1].fn
+        obj.spl_WF_filename = { clear = true,
+                x = obj.tab_div,
+                y = obj.kn_h,--gfx.h - obj.WF_h-obj.key_h,
+                w = gfx.w - obj.tab_div,
+                h = obj.WF_h,
+                col = 'white',
+                state = 0,
+                txt= file_name,
+                aligh_txt = 0,
+                show = true,
+                is_but = true,
+                fontsz = gui.fontsz2,
+                alpha_back =0}  
+      end
               
               
                
         -- knobs
-        if not (gfx.h - obj.WF_h-obj.key_h > obj.kn_h + obj.offs * 2) then return end
+        --if not (gfx.h - obj.WF_h-obj.key_h > obj.kn_h + obj.offs * 2) then return end
           ---------- gain ----------
           local gain_val = data[cur_note][1].gain / 2
           local gain_txt
@@ -2994,7 +3142,7 @@ DOCKED 0
                           end
                 }   
           ----------------------
-          obj.splctrl_fx = { clear = true,
+          --[[obj.splctrl_fx = { clear = true,
                 x = obj.tab_div + obj.offs+ obj.kn_w*7 + env_x_shift*2,
                 y = obj.offs,
                 w = obj.kn_w,
@@ -3013,7 +3161,7 @@ DOCKED 0
                             if not tr then return end
                             TrackFX_Show( tr,0, 1 )
                           end
-                }                                                                                                                                                                             
+                }         ]]                                                                                                                                                                    
     end
     ---------------------------------------------------
     function GUI_knob(b)
@@ -3042,7 +3190,7 @@ DOCKED 0
       
       
       -- arc back      
-      col(b.col, 0.02)
+      col(b.col, 0.1)
       for i = 0, 3, 0.5 do
         gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
         gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
@@ -3052,7 +3200,7 @@ DOCKED 0
       
       
       
-      local knob_a = 0.5
+      local knob_a = 0.6
       if b.knob_a then knob_a = b.knob_a end
       col(b.col, knob_a)      
       if not b.is_centered_knob then 
@@ -3205,6 +3353,36 @@ DOCKED 0
     until not fn
     return t
   end
+  
+  ---------------------------------------------------  
+  function ScanPath(path, scan_fullpath)
+    local t = {}
+    local subdirindex, fileindex = 0,0    
+    local path_child
+    repeat
+        path_child = reaper.EnumerateSubdirectories(path, subdirindex )
+        if scan_fullpath and path_child and path..'/'..path_child == scan_fullpath:gsub('\\','/') then 
+            t[path_child] = {}
+            local tmp = ScanPath(path .. "/" .. path_child)
+            t[path_child] = tmp
+         elseif path_child then 
+          t[path_child] = {}
+        end
+        subdirindex = subdirindex+1
+    until not path_child
+
+    repeat
+        fn = reaper.EnumerateFiles( path, fileindex )
+        if fn then 
+          if not t[path] then t[path] = {} end
+          t[path][  #t[path]+1  ] = fn
+            --t[#t+1] = fn
+        end
+        fileindex = fileindex+1
+    until not fn
+    
+    return t
+end
   ---------------------------------------------------
   function Menu(t)
     local str, check = '', ''
@@ -3523,6 +3701,7 @@ DOCKED 0
   ---------------------------------------------------
   --ClearConsole()
   ExtState_Load()  
+  --smpl_brws = ScanPath(conf.cur_smpl_browser_dir)
   ExtState_Load_Patterns() -- load parent GUID 
   gfx.init('MPL '..scr_title..' '..vrs,
             conf.wind_w, 
