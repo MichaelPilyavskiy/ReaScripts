@@ -1,4 +1,4 @@
--- @version 1.02
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Create layer track from selected instruments tracks
