@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5c4d2ab18773414d4c29ee59a35711f2fe6f7ea2" name="MPL Scripts">
+<index version="1" commit="ea27c048e0bced01683503574ce1727098e68ee5" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -2738,15 +2738,9 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Solo%20track%20with%20opened%20FX%20chain.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Sort selected tracks by color.lua" type="script" desc="Sort selected tracks by color">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.4" author="MPL" time="2018-05-21T17:10:17Z">
-        <changelog><![CDATA[+ mod from Sort all tracks by color
-# put selected tracks after fisrst selected track
-# rebuild with ReorderSelectedTracks(), require REAPER 5.90rc7+]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5c4d2ab18773414d4c29ee59a35711f2fe6f7ea2/Tracks%20Properties/mpl_Sort%20selected%20tracks%20by%20color.lua</source>
+    <reapack name="mpl_Sort all tracks by color.lua" type="script" desc="Sort all tracks by color">
+      <version name="1.2" author="MPL" time="2016-01-15T07:07:25Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Sort%20all%20tracks%20by%20color.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle auto add last touched parameter to TCP (background).lua" type="script">
