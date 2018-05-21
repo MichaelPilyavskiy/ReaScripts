@@ -1,11 +1,9 @@
 -- @description Sort selected tracks by color
--- @version 1.4
+-- @version 1.4.1
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + mod from Sort all tracks by color
---    # put selected tracks after fisrst selected track
---    # rebuild with ReorderSelectedTracks(), require REAPER 5.90rc7+
+--    # fix msg vsr
  
   local script_title = "Sort all tracks by color"
   for key in pairs(reaper) do _G[key]=reaper[key]  end
@@ -44,5 +42,5 @@
       main()
       Undo_EndBlock( script_title, -1 )
      else
-      MB('Require REAPER 5.70rc7+','Error',0)
+      MB('Require REAPER 5.90rc7+','Error',0)
     end

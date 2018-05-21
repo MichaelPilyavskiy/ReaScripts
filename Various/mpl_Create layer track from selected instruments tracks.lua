@@ -1,9 +1,9 @@
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Create layer track from selected instruments tracks
 -- @changelog
---    # rebuild with ReorderSelectedTracks(), require REAPER 5.90rc7+
+--    # fix msg vsr
 
 
 
@@ -62,5 +62,5 @@
       main()
       Undo_EndBlock( name, -1 )
      else
-      MB('Require REAPER 5.70rc7+','Error',0)
+      MB('Require REAPER 5.90rc7+','Error',0)
     end
