@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="05005d966a7591104458751d7e2aba753df1f784" name="MPL Scripts">
+<index version="1" commit="b2bc0a7a9ed8d83d4182d5988d60357d3ad7a6b3" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -2969,6 +2969,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.04" author="MPL" time="2017-08-14T20:25:55Z">
         <changelog><![CDATA[# rename tracks only if unnamed]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ed177efd64b257d2670a94a94a6ebecd561adb7d/Various/mpl_Create%20layer%20track%20from%20selected%20instruments%20tracks.lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2018-05-21T17:13:45Z">
+        <changelog><![CDATA[# rebuild with ReorderSelectedTracks(), require REAPER 5.90rc7+]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b2bc0a7a9ed8d83d4182d5988d60357d3ad7a6b3/Various/mpl_Create%20layer%20track%20from%20selected%20instruments%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Delete nonexistent scripts from ActionList.lua" type="script">
