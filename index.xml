@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ad32074bac41bbe3d1affb23532b5b8e13c443f3" name="MPL Scripts">
+<index version="1" commit="82cbc769bf1999f168ea139b048d5957d4fdb3d3" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -2439,6 +2439,15 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tempo/mpl_Import%20Cubase%20tempo%20map.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Toggle tempo envelope.lua" type="script" desc="Toggle tempo envelope">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-05-22T19:42:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82cbc769bf1999f168ea139b048d5957d4fdb3d3/Tempo/mpl_Toggle%20tempo%20envelope.lua</source>
+      </version>
+    </reapack>
   </category>
   <category name="Tracks Properties">
     <reapack name="mpl_Add send to selected tracks.lua" type="script" desc="Add send to selected tracks">
@@ -2805,6 +2814,15 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[+ respect TCP hidden tracks when checking items crossing
 + restore hidden track state on enabling TCP view back]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20edit%20cursor%20crossing%20any%20of%20their%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle show tracks if play cursor crossing any of their items.lua" type="script" desc="Toggle show tracks if play cursor crossing any of their items">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-05-22T19:42:17Z">
+        <changelog><![CDATA[+ init split from same version for edit cursor ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82cbc769bf1999f168ea139b048d5957d4fdb3d3/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20play%20cursor%20crossing%20any%20of%20their%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle show tracks if time selection crossing any of their items.lua" type="script" desc="Toggle show tracks if time selection crossing any of their items">
