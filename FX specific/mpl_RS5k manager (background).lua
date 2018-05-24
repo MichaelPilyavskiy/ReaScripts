@@ -1,16 +1,18 @@
 -- @description RS5k manager
--- @version 1.28
+-- @version 1.30
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Pads: show FX button per pad
---    + Pads: Ableton Push layout
---    # fix in MIDI childs mode add new pattern to MIDI pattern track
---    # GUI: improved keys Y indentation
---    # GUI: change font to Calibri
+--    + Pads: color pads respect related track colors (in MIDI_childs and Dump_Items modes)
+--    + StepSeq: fields colors respect related track colors (in MIDI_childs and Dump_Items modes)
+--    + Pads: ADSR support mousewheel
+--    # Pads: fix note offset for Push layout
+--    # Pads: hide oct shift buttons when hiding knobs
+--    # GUI: improved waveform draw
+--    # fix right mouse click pass on left click in some cases
 
   
-  local vrs = 'v1.28'
+  local vrs = 'v1.30'
   --NOT gfx NOT reaper
   local scr_title = 'RS5K manager'
   --  INIT -------------------------------------------------
@@ -18,11 +20,11 @@
   local SCC, lastSCC
   local mouse = {}
   local obj = {}
-  local conf = {}
+   conf = {}
   local pat = {}
   local Buf_t
-  local data = {}
-  smpl_brws = {}
+  data = {}
+  
   local action_export = {}
   local redraw,redraw_WF = -1,-1
   local MIDItr_name = 'RS5K MIDI Patterns'
@@ -179,10 +181,26 @@
         end
       end  
       if not (o.state and o.alpha_back2) then 
-        col(o.col, o.alpha_back or 0.2)
+        if o.colint then
+
+          local r, g, b = ColorFromNative( o.colint )
+          if GetOS():match('Win') then gfx.set(r/255,g/255,b/255, o.alpha_back or 0.2)
+           else gfx.set(b/255,g/255,r/255, o.alpha_back or 0.2)     end
+                     
+         else
+          col(o.col, o.alpha_back or 0.2)
+        end
         gfx.rect(x_sl,y_sl,w_sl,h_sl,1)
        else
-        col(o.col, o.alpha_back2 or 0.2)
+        if o.colint then
+        
+          local r, g, b = ColorFromNative( o.colint )
+          if GetOS():match('Win') then gfx.set(r/255,g/255,b/255, o.alpha_back or 0.2)
+           else gfx.set(b/255,g/255,r/255, o.alpha_back or 0.2)     end
+           
+         else
+          col(o.col, o.alpha_back or 0.2)
+        end
         gfx.rect(x_sl,y_sl,w_sl,h_sl,1)
       end 
              
@@ -205,6 +223,16 @@
           local y_sl = y + h-math.ceil(h *val)  
           local h_sl = math.ceil(h *val)
           col(o.col, 0.5)
+          if o.colint then
+          
+            local r, g, b = ColorFromNative( o.colint )
+            if GetOS():match('Win') then gfx.set(r/255,g/255,b/255) else gfx.set(b/255,g/255,r/255)     end
+            gfx.a = 0.7
+            
+           else
+            col(o.col, 0.5)
+          end
+          
           gfx.rect(x_sl,y_sl,w_sl-1,h_sl,1)      
         end
       end
@@ -550,14 +578,15 @@ DOCKED 0
     local w = obj.WF_w
     local h = obj.WF_h
     -- WF
-      col('green', 0.5)
+      col('green', 0.3)
       gfx.x, gfx.y = 0, h
       local last_x
       for i = 1, #t do 
         local val = math.abs(t[i])
         local x = math.floor(i * w/#t)
         local y = math.floor(h-h*val)
-        gfx.lineto(x,y)
+        gfx.rect(x,y/2,w/#t,h*val, 0)
+        --gfx.lineto(x,y)
       end 
   end
   ---------------------------------------------------
@@ -1224,44 +1253,46 @@ DOCKED 0
     ---------------------------------------------macro windows
     if conf.tab == 0 then 
       local cnt_it = OBJ_GenSampleBrowser()
-      obj.keys_octaveshiftL = { clear = true,
-                  x = gfx.w-obj.comm_w,
-                  y = 0,--gfx.h -obj.comm_h ,
-                  w = obj.comm_w/2,
-                  h = obj.comm_h,
-                  col = 'white',
-                  state = fale,
-                  txt= '<',
-                  show = true,
-                  is_but = true,
-                  mouse_overlay = true,
-                  fontsz = gui.fontsz,
-                  alpha_back = obj.it_alpha5,
-                  a_frame = 0.05,
-                  func =  function() 
-                            conf.oct_shift = lim(conf.oct_shift - 1,0,10)
-                            ExtState_Save()
-                            redraw = 1
-                          end} 
-      obj.keys_octaveshiftR = { clear = true,
-                  x = gfx.w-obj.comm_w/2,
-                  y = 0,--gfx.h -obj.comm_h ,
-                  w = obj.comm_w/2,
-                  h = obj.comm_h,
-                  col = 'white',
-                  state = fale,
-                  txt= '>',
-                  show = true,
-                  is_but = true,
-                  mouse_overlay = true,
-                  fontsz = gui.fontsz,
-                  alpha_back = obj.it_alpha5,
-                  a_frame = 0.05,
-                  func =  function() 
-                            conf.oct_shift = lim(conf.oct_shift + 1,1,10)
-                            ExtState_Save()
-                            redraw = 1                            
-                          end}                          
+      if not obj.keys_hide_knobs then
+        obj.keys_octaveshiftL = { clear = true,
+                    x = gfx.w-obj.comm_w,
+                    y = 0,--gfx.h -obj.comm_h ,
+                    w = obj.comm_w/2,
+                    h = obj.comm_h,
+                    col = 'white',
+                    state = fale,
+                    txt= '<',
+                    show = true,
+                    is_but = true,
+                    mouse_overlay = true,
+                    fontsz = gui.fontsz,
+                    alpha_back = obj.it_alpha5,
+                    a_frame = 0.05,
+                    func =  function() 
+                              conf.oct_shift = lim(conf.oct_shift - 1,0,10)
+                              ExtState_Save()
+                              redraw = 1
+                            end} 
+        obj.keys_octaveshiftR = { clear = true,
+                    x = gfx.w-obj.comm_w/2,
+                    y = 0,--gfx.h -obj.comm_h ,
+                    w = obj.comm_w/2,
+                    h = obj.comm_h,
+                    col = 'white',
+                    state = fale,
+                    txt= '>',
+                    show = true,
+                    is_but = true,
+                    mouse_overlay = true,
+                    fontsz = gui.fontsz,
+                    alpha_back = obj.it_alpha5,
+                    a_frame = 0.05,
+                    func =  function() 
+                              conf.oct_shift = lim(conf.oct_shift + 1,1,10)
+                              ExtState_Save()
+                              redraw = 1                            
+                            end}  
+      end                        
 
       OBJ_GenKeys()
       OBJ_GenKeys_splCtrl()
@@ -1783,7 +1814,19 @@ DOCKED 0
         local note = i--(i-1)+12*conf.oct_shift
         local fn, ret = GetSampleNameByNote(note)
         local col = 'white'
-        if ret then col = 'green' end
+        local colint
+        if ret then 
+          col = 'green'          
+          if conf.global_mode == 1 or conf.global_mode == 2 then
+            if data[i] and data[i][1] and data[i][1].trackGUID then
+              local tr =  BR_GetMediaTrackByGUID( 0, data[i][1].trackGUID )
+              if tr then
+                colint0 =  GetTrackColor( tr )
+                if colint0 ~= 0 then colint = colint0 end
+              end
+            end
+          end        
+        end
         local txt = GetNoteStr(note,0)..' / '..note..'\n\r'
         if fn then txt=txt..fn end
         obj['stseq'..i] = {  clear = true,
@@ -1792,6 +1835,7 @@ DOCKED 0
                   w = obj.item_w1,
                   h = obj.item_h4-1,
                   col = col,
+                  colint = colint,
                   state = 1,
                   txt= txt,
                   aligh_txt = 4,
@@ -1843,6 +1887,7 @@ DOCKED 0
                   w = obj.item_h4,
                   h = obj.item_h4-1,
                   col = col,
+                  colint = colint,
                   state = 0,
                   txt= steps,
                   --aligh_txt = 1,
@@ -1919,6 +1964,7 @@ DOCKED 0
                   w = step_w-1,
                   h = obj.item_h4-1,
                   col = col,
+                  colint = colint,
                   state = 1,
                   txt= '',
                   --aligh_txt = 1,
@@ -2645,7 +2691,7 @@ DOCKED 0
        elseif conf.keymode == 5 then -- ableton push
         w_div = 8
         h_div = 8 
-        start_note_shift = 1    
+        start_note_shift = 0    
         shifts  = { 
                     {0,7},    
                     {1,7}, 
@@ -2742,12 +2788,29 @@ DOCKED 0
         local note = (i-1)+12*conf.oct_shift+start_note_shift
         local fn, ret = GetSampleNameByNote(note)
         local col = 'white'
-        if ret then col = 'green' end
+        local colint
+        if ret then 
+          alpha_back = 0.49        
+          col = 'green'           
+          if conf.global_mode == 1 or conf.global_mode == 2 then
+            local id = i-1+conf.oct_shift*12
+            if data[id] and data[id][1] and data[id][1].trackGUID then
+              local tr =  BR_GetMediaTrackByGUID( 0, data[id][1].trackGUID )
+              if tr then
+                colint0 =  GetTrackColor( tr )
+                if colint0 ~= 0 then colint = colint0 end
+              end
+            end
+          end
+         else
+          alpha_back = 0.15 
+        end
         local note_str = GetNoteStr(note)
         if note_str then
           local txt = note_str..'\n\r'--..fn
           local fx_rect_side = 15
           if note > 0 and note <= 127 then
+              
             obj['keys_pFX'..i] = { clear = true,
                   x = obj.workarea.x+shifts[i][1]*key_w + key_w - fx_rect_side - obj.offs,
                   y = gfx.h-key_area_h + shifts[i][2]*key_h+obj.offs,
@@ -2773,6 +2836,7 @@ DOCKED 0
                         w = key_w,
                         h = key_h,
                         col = col,
+                        colint = colint,
                         state = 0,
                         txt= txt,
                         is_step = true,
@@ -2780,8 +2844,8 @@ DOCKED 0
                         linked_note = note,
                         show = true,
                         is_but = true,
-                        alpha_back = 0.45,
-                        a_frame = 0.1,
+                        alpha_back = alpha_back,
+                        a_frame = 0.05,
                         aligh_txt = 5,
                         fontsz = gui.fontsz2,
                         func =  function() 
@@ -2806,6 +2870,10 @@ DOCKED 0
     ---------------------------------------------------
     function OBJ_GenKeys_splCtrl()
       local env_x_shift = 20
+      local knob_back = 0
+      local knob_y = 0
+      local wheel_ratio = 12000
+      local wheel_ratio_log = 12000
       local cur_note = obj.current_WFkey
       if not (cur_note and data[cur_note] and data[cur_note][1]) or conf.global_mode == 2 then return end
       
@@ -2842,7 +2910,7 @@ DOCKED 0
           end
           obj.splctrl_gain = { clear = true,
                 x = obj.tab_div + obj.offs,
-                y = obj.offs,
+                y = knob_y,
                 w = obj.kn_w,
                 h = obj.kn_h,
                 col = 'white',
@@ -2854,7 +2922,7 @@ DOCKED 0
                 is_knob = true,
                 val = gain_val,
                 fontsz = gui.fontsz3,
-                alpha_back =0,
+                alpha_back =knob_back,
                 func =  function() 
                           mouse.context_latch_val = data[cur_note][1].gain 
                           redraw = 1                      
@@ -2866,7 +2934,13 @@ DOCKED 0
                             SetRS5KParam(0, out_val, cur_note)
                             redraw = 1
                           end,
-
+                func_wheel = function()
+                            local out_val = lim(data[cur_note][1].gain  + mouse.wheel_trig/wheel_ratio, 0, 2)
+                            if not out_val then return end
+                            SetRS5KParam(0, out_val, cur_note)
+                            redraw = 1
+                          end,
+                          
                 func_DC = function ()
                             SetRS5KParam(0, 0.5, cur_note)
                             redraw = 1
@@ -2882,7 +2956,7 @@ DOCKED 0
           end                          
           obj.splctrl_pan = { clear = true,
                 x = obj.tab_div + obj.offs + obj.kn_w,
-                y = obj.offs,
+                y = knob_y,
                 w = obj.kn_w,
                 h = obj.kn_h,
                 col = 'white',
@@ -2895,7 +2969,7 @@ DOCKED 0
                 is_centered_knob = true,
                 val = pan_val,
                 fontsz = gui.fontsz3,
-                alpha_back =0,
+                alpha_back =knob_back,
                 func =  function() 
                           mouse.context_latch_val = data[cur_note][1].pan 
                           redraw = 1                      
@@ -2907,6 +2981,12 @@ DOCKED 0
                             SetRS5KParam(1, out_val, cur_note)
                             redraw = 1
                           end,
+                func_wheel = function()
+                            local out_val = lim(data[cur_note][1].pan  + mouse.wheel_trig/wheel_ratio, 0, 2)
+                            if not out_val then return end
+                            SetRS5KParam(1, out_val, cur_note)
+                            redraw = 1
+                          end,                          
                 func_DC = function () 
                             SetRS5KParam(1, 0.5, cur_note)
                             redraw = 1
@@ -2919,7 +2999,7 @@ DOCKED 0
           end                          
           obj.splctrl_pitch1 = { clear = true,
                 x = obj.tab_div + obj.offs + obj.kn_w*2,
-                y = obj.offs,
+                y = knob_y,
                 w = obj.kn_w,
                 h = obj.kn_h,
                 col = 'white',
@@ -2932,7 +3012,7 @@ DOCKED 0
                 is_centered_knob = true,
                 val = pitch_val,
                 fontsz = gui.fontsz3,
-                alpha_back =0,
+                alpha_back =knob_back,
                 func =  function() 
                           mouse.context_latch_val = data[cur_note][1].pitch_offset 
                           redraw = 1                      
@@ -2947,6 +3027,12 @@ DOCKED 0
                             SetRS5KParam(15, out_val, cur_note)
                             redraw = 1
                           end,
+                func_wheel = function()
+                            local out_val = lim(data[cur_note][1].pitch_offset  + mouse.wheel_trig/wheel_ratio, 0, 2)
+                            if not out_val then return end
+                            SetRS5KParam(15, out_val, cur_note)
+                            redraw = 1
+                          end,                           
                 func_DC = function () 
                             SetRS5KParam(15, 0.5, cur_note)
                             redraw = 1
@@ -2955,7 +3041,7 @@ DOCKED 0
         local pitch_val = fract
         obj.splctrl_pitch2 = { clear = true,
                 x = obj.tab_div + obj.offs + obj.kn_w*2.25,
-                y = obj.offs+obj.kn_w/2,
+                y = knob_y+obj.kn_w/2,
                 w = obj.kn_w/2,
                 h = obj.kn_h/2,
                 col = 'white',
@@ -2970,11 +3056,12 @@ DOCKED 0
                 knob_as_point = true,
                 val = pitch_val,
                 fontsz = gui.fontsz3,
-                alpha_back =0,
+                alpha_back =knob_back,
                 func =  function() 
                           mouse.context_latch_val = data[cur_note][1].pitch_offset 
                           redraw = 1                      
                         end,
+                         
                 func_LD2 = function ()
                             if not mouse.context_latch_val then return end
                             local out_val = lim(mouse.context_latch_val - mouse.dy/100000, 0, 1)
@@ -2991,7 +3078,7 @@ DOCKED 0
           end
           obj.splctrl_att = { clear = true,
                 x = obj.tab_div + obj.offs+ obj.kn_w*3 + env_x_shift,
-                y = obj.offs,
+                y = knob_y,
                 w = obj.kn_w,
                 h = obj.kn_h,
                 col = 'white',
@@ -3003,7 +3090,7 @@ DOCKED 0
                 is_knob = true,
                 val = data[cur_note][1].attack^0.1666,
                 fontsz = gui.fontsz3,
-                alpha_back =0,
+                alpha_back =knob_back,
                 func =  function() 
                           mouse.context_latch_val = data[cur_note][1].attack 
                           redraw = 1                      
@@ -3016,7 +3103,12 @@ DOCKED 0
                             SetRS5KParam(9, out_val, cur_note)
                             redraw = 1
                           end,
-
+                func_wheel = function()
+                            local out_val = lim(data[cur_note][1].attack^0.1666  + mouse.wheel_trig/wheel_ratio_log, 0, 2)
+                            if not out_val then return end
+                            SetRS5KParam(9, out_val^6, cur_note)
+                            redraw = 1
+                          end,  
                 func_DC = function ()
                             SetRS5KParam(9, 0, cur_note)
                             redraw = 1
@@ -3031,7 +3123,7 @@ DOCKED 0
           end
           obj.splctrl_dec = { clear = true,
                 x = obj.tab_div + obj.offs+ obj.kn_w*4 + env_x_shift,
-                y = obj.offs,
+                y = knob_y,
                 w = obj.kn_w,
                 h = obj.kn_h,
                 col = 'white',
@@ -3043,7 +3135,7 @@ DOCKED 0
                 is_knob = true,
                 val = data[cur_note][1].decay^0.1666,
                 fontsz = gui.fontsz3,
-                alpha_back =0,
+                alpha_back =knob_back,
                 func =  function() 
                           mouse.context_latch_val = data[cur_note][1].decay 
                           redraw = 1                      
@@ -3056,7 +3148,12 @@ DOCKED 0
                             SetRS5KParam(24, out_val, cur_note)
                             redraw = 1
                           end,
-
+                func_wheel = function()
+                            local out_val = lim(data[cur_note][1].decay^0.1666  + mouse.wheel_trig/wheel_ratio_log, 0, 2)
+                            if not out_val then return end
+                            SetRS5KParam(24, out_val^6, cur_note)
+                            redraw = 1
+                          end,  
                 func_DC = function ()
                             SetRS5KParam(24, 0.016, cur_note)
                             redraw = 1
@@ -3071,7 +3168,7 @@ DOCKED 0
           end
           obj.splctrl_sust = { clear = true,
                 x = obj.tab_div + obj.offs+ obj.kn_w*5 + env_x_shift,
-                y = obj.offs,
+                y = knob_y,
                 w = obj.kn_w,
                 h = obj.kn_h,
                 col = 'white',
@@ -3083,7 +3180,7 @@ DOCKED 0
                 is_knob = true,
                 val = data[cur_note][1].sust/2,
                 fontsz = gui.fontsz3,
-                alpha_back =0,
+                alpha_back =knob_back,
                 func =  function() 
                           mouse.context_latch_val = data[cur_note][1].sust 
                           redraw = 1                      
@@ -3095,7 +3192,12 @@ DOCKED 0
                             SetRS5KParam(25, out_val, cur_note)
                             redraw = 1
                           end,
-
+                func_wheel = function()
+                            local out_val = lim(data[cur_note][1].sust  + mouse.wheel_trig/wheel_ratio, 0, 2)
+                            if not out_val then return end
+                            SetRS5KParam(25, out_val, cur_note)
+                            redraw = 1
+                          end,  
                 func_DC = function ()
                             SetRS5KParam(25, 0.5, cur_note)
                             redraw = 1
@@ -3110,7 +3212,7 @@ DOCKED 0
           end
           obj.splctrl_rel = { clear = true,
                 x = obj.tab_div + obj.offs+ obj.kn_w*6 + env_x_shift,
-                y = obj.offs,
+                y = knob_y,
                 w = obj.kn_w,
                 h = obj.kn_h,
                 col = 'white',
@@ -3122,7 +3224,7 @@ DOCKED 0
                 is_knob = true,
                 val = data[cur_note][1].rel^0.1666,
                 fontsz = gui.fontsz3,
-                alpha_back =0,
+                alpha_back =knob_back,
                 func =  function() 
                           mouse.context_latch_val = data[cur_note][1].rel 
                           redraw = 1                      
@@ -3135,33 +3237,17 @@ DOCKED 0
                             SetRS5KParam(10, out_val, cur_note)
                             redraw = 1
                           end,
-
+                func_wheel = function()
+                            local out_val = lim(data[cur_note][1].rel^0.1666  + mouse.wheel_trig/wheel_ratio_log, 0, 2)
+                            if not out_val then return end
+                            SetRS5KParam(10, out_val^6, cur_note)
+                            redraw = 1
+                          end, 
                 func_DC = function ()
                             SetRS5KParam(10, 0.0004, cur_note)
                             redraw = 1
                           end
-                }   
-          ----------------------
-          --[[obj.splctrl_fx = { clear = true,
-                x = obj.tab_div + obj.offs+ obj.kn_w*7 + env_x_shift*2,
-                y = obj.offs,
-                w = obj.kn_w,
-                h = obj.kn_h,
-                col = 'white',
-                state = 0,
-                txt= 'FX',
-                --aligh_txt = 16,
-                show = true,
-                is_but = true,
-                val = data[cur_note][1].rel^0.1666,
-                fontsz = gui.fontsz3,
-                alpha_back =0.1,
-                func =  function() 
-                            local tr = GetDestTrackByNote(data.tr_pointer, cur_note)
-                            if not tr then return end
-                            TrackFX_Show( tr,0, 1 )
-                          end
-                }         ]]                                                                                                                                                                    
+                }                                                                                                                                  
     end
     ---------------------------------------------------
     function GUI_knob(b)
@@ -3173,7 +3259,7 @@ DOCKED 0
       local ang_val = math.rad(-ang_gr+ang_gr*2*val)
       local ang = math.rad(ang_gr)
     
-      col(b.col, 0.04)
+      col(b.col, 0.08)
       if b.knob_as_point then 
         local y = y - 5
         local arc_r = arc_r*0.75
@@ -3190,7 +3276,7 @@ DOCKED 0
       
       
       -- arc back      
-      col(b.col, 0.1)
+      col(b.col, 0.2)
       for i = 0, 3, 0.5 do
         gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
         gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
@@ -3505,11 +3591,11 @@ end
                               and (mouse.context == key or mouse.context_latch == key) 
           if mouse.ondrag_LCtrl and obj[key].func_ctrlLD then obj[key].func_ctrlLD() end 
                 ------------------------
-          mouse.onclick_R = mouse.LMB_state 
-                              and not mouse.last_LMB_state 
+          mouse.onclick_R = mouse.RMB_state 
+                              and not mouse.last_RMB_state 
                               and not mouse.Ctrl_state  
                               and MOUSE_Match(obj[key]) 
-          if mouse.onclick_L and obj[key].func_R then obj[key].func_R() end
+          if mouse.onclick_R and obj[key].func_R then obj[key].func_R() end
                 ------------------------                
           mouse.ondrag_R = -- left drag (persistent even if not moving)
                               mouse.RMB_state 
