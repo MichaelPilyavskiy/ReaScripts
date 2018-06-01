@@ -435,6 +435,26 @@
     return grid_division, grid_str, is_triplet, grid_swingmode, grid_swingamt, grid_swingamt_format
   end     
   ---------------------------------------------------
+  function MPL_GetFormattedMIDIGrid(take)
+    local grid_flags, grid_division, grid_swingmode, grid_swingamt 
+    grid_division, grid_swingamt = MIDI_GetGrid( take )
+    local is_triplet
+    local denom = 1/grid_division
+    local grid_str
+    if denom >=2 then 
+      is_triplet = (1/grid_division) % 3 == 0 
+      grid_str = '1/'..math.floor(denom)
+      if is_triplet then grid_str = '1/'..math.floor(denom*2/3) end
+     else 
+      grid_str = 1
+      is_triplet = math.abs(grid_division - 0.6666) < 0.001
+    end
+    grid_swingamt_format = math.floor(grid_swingamt * 100)..'%'
+    return grid_division, grid_str, is_triplet, grid_swingmode, grid_swingamt, grid_swingamt_format
+  end     
+  
+  
+  ---------------------------------------------------
   function MPL_ReduceFXname(s)
     local s_out = s:match('[%:%/%s]+(.*)')
     if not s_out then return s end

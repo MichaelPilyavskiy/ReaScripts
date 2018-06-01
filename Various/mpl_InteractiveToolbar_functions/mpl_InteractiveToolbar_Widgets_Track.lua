@@ -1098,7 +1098,7 @@
                                                             local track = CSurf_TrackFromID( tracknumberOut, false )
                                                             local trackGUID = GetTrackGUID( track )
                                                             local FX_GUID = TrackFX_GetFXGUID( track, fxnumberOut )
-                                                            UpdateFXCtrls(linktrGUID, trackGUID, FX_GUID, paramnumberOut, 0, 1 )
+                                                            UpdateFXCtrls(data, linktrGUID, trackGUID, FX_GUID, paramnumberOut, 0, 1 )
                                                           end
                                                 },
                                                 { str = 'Clear linked controls|',
@@ -1265,7 +1265,7 @@
     return fxctrl_w
   end  
   ---------------------------------------------------------------
-  function UpdateFXCtrls(linktrGUID, trackGUID, FX_GUID, paramnum, lim1, lim2)
+  function UpdateFXCtrls(data, linktrGUID, trackGUID, FX_GUID, paramnum, lim1, lim2)
     if not data.tr_FXCtrl then data.tr_FXCtrl = {} end
     if not data.tr_FXCtrl[linktrGUID] then data.tr_FXCtrl[linktrGUID] = {} end
     for i = 1, #data.tr_FXCtrl[linktrGUID] do

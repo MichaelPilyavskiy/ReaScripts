@@ -59,7 +59,9 @@
     data.rul_format = MPL_GetCurrentRulerFormat()
     data.SR = tonumber(reaper.format_timestr_pos(1, '', 4))
     data.FR = TimeMap_curFrameRate( 0 )
+    --local ME = MIDIEditor_GetActive()
     data.grid_val, data.grid_val_format, data.grid_istriplet, data.grid_swingactive_int, data.grid_swingamt, data.grid_swingamt_format = MPL_GetFormattedGrid()
+    --if ME then data.grid_val, data.grid_val_format, data.grid_istriplet, data.grid_swingactive_int, data.grid_swingamt, data.grid_swingamt_format = MPL_GetFormattedMIDIGrid(MIDIEditor_GetTake( ME )) end
     data.grid_isactive =  GetToggleCommandStateEx( 0, 1157 )==1
     data.grid_swingactive = data.grid_swingactive_int == 1
     data.ruleroverride = conf.ruleroverride
@@ -157,9 +159,10 @@
   ---------------------------------------------------
   function DataUpdate_TimeSelection(data)
     local TS_st, TSend = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )
-    data.timeselectionstart, data.timeselectionend = TS_st, TSend    
+    data.timeselectionstart, data.timeselectionend, data.timeselectionlen = TS_st, TSend,  TSend-TS_st
     data.timeselectionstart_format = format_timestr_pos( data.timeselectionstart, '',data.ruleroverride ) 
     data.timeselectionend_format = format_timestr_pos( data.timeselectionend, '', data.ruleroverride )
+    data.timeselectionlen_format = format_timestr_len( data.timeselectionlen, '', 0, data.ruleroverride )
   end
   ---------------------------------------------------
     
@@ -254,6 +257,8 @@
       data.it[i].fadein_len_format = format_timestr_len( data.it[i].fadein_len, '', 0, data.ruleroverride )
       data.it[i].fadeout_len_format = format_timestr_len( data.it[i].fadeout_len, '', 0, data.ruleroverride )
       
+      
+      
       data.it[i].vol = GetMediaItemInfo_Value( item, 'D_VOL')
       data.it[i].vol_format = WDL_VAL2DB(data.it[i].vol, true)..'dB'    
       --data.it[i].vol_format = dBFromReaperVal(data.it[i].vol)..'dB'      
@@ -285,7 +290,11 @@
         data.it[i].src_start = startOut
         data.it[i].src_fade = fadeOut
         data.it[i].src_section = sectionOut
-        
+       else
+        local note = ULT_GetMediaItemNote( item )
+        if note then 
+          data.it[i].name = note:match('.-\n')
+        end        
       end 
       
       

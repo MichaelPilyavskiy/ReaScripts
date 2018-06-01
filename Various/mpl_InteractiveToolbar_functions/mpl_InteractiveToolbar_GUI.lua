@@ -456,6 +456,7 @@ msg(
           #swing show current swing value, 'SWING' text is a toggle
           #timeselend editing time selection end
           #timeselstart editing time selection start
+          #timesellen editing time selection length
           #lasttouchfx editing last touched FX parameter
           #transport show/editing current play state, RightClick - pause, LeftClick - stop/revert to start position, Cltr+Left - record
           #bpm shows/edit tempo and time signature for project (or tempo marker falling at edit cursor if any)
@@ -784,6 +785,10 @@ msg(
   function Menu_ChangeOrder(widgets, data, conf, widgtype, is_buttons )
     local cur_str = ''
     local key
+    if not widgtype then 
+      MB('Configuration file damaged. Reset configuration or try to fix manually (Menu/Global configuration)',conf.scr_title, 0 )
+      return
+    end
     local widgtype = widgtype + 1
     if tonumber(widgtype) and tonumber(widgtype) >= 1 then key = widgets.types_t[widgtype] else key = widgtype end
     local temp_but_t if widgets[key].buttons then temp_but_t = CopyTable(widgets[key].buttons) end

@@ -329,7 +329,64 @@
 
 
 
-
+  --------------------------------------------------------------
+  function Widgets_Persist_timesellen(data, obj, mouse, x_margin, widgets)    -- generate position controls 
+    obj.b.obj_tslen = { persist_buf = true,
+                        x = x_margin-obj.entry_w2,
+                        y = obj.offs ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = 'TimeSelLen'} 
+    obj.b.obj_tslen_back = { persist_buf = true,
+                        x =  x_margin-obj.entry_w2,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt = '',
+                        ignore_mouse = true}  
+                        
+                        
+      local TSlen_str =  data.timeselectionlen_format
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(TSlen_str), 
+                        table_key='timesellen_position_ctrl',
+                        x_offs= x_margin-obj.entry_w2,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.timeselectionlen,
+                        src_val_key= '',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Timesellen,                         
+                        mouse_scale= obj.mouse_scal_time,
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
+                        persist_buf = true})                         
+    return obj.entry_w2
+  end  
+  function Apply_Timesellen(data, obj, out_value, butkey, out_str_toparse, mouse)
+    if not out_str_toparse then  
+      local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
+      GetSet_LoopTimeRange2( 0, true, true, startOut, startOut+math.max(0,out_value), false )
+      Main_OnCommand(40749,0) -- Options: Set loop points linked to time selection
+      local new_str = format_timestr_pos( math.max(0,out_value), '', -1 ) 
+      local new_str_t = MPL_GetTableOfCtrlValues(new_str)
+      for i = 1, #new_str_t do
+        obj.b[butkey..i].txt = new_str_t[i]
+      end
+     else
+      -- nudge values from first item
+      local out_val = parse_timestr_pos(out_str_toparse,-1) 
+      local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
+      GetSet_LoopTimeRange2( 0, true, true, startOut, startOut+math.max(0,out_valu), false )
+      redraw = 2   
+    end
+  end  
+  -------------------------------------------------------------- 
+  
+  
+  
 
 ------------------------------------------------------------
   function Widgets_Persist_transport(data, obj, mouse, x_margin, widgets)    -- generate position controls 

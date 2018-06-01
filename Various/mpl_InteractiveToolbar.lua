@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.51
+-- @version 1.52
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,10 +14,12 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # fix error when commiting on GitHub
+--    # fix error on adding FX control
+--    # prevent loading damaged configuration
+--    + Context/EmptyItem: show item note first line in name field
+--    + Tags/Persist/#timesellen: time selection length
 
-
-    local vrs = '1.51'
+    local vrs = '1.52'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -96,7 +98,7 @@ buttons=#polarity #parentsend
 [MIDIEditor]
 order=#position #CCval #notepitch #notevel
 [Persist]
-order=#swing #grid #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap
+order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap
 ]]
   end  
   ---------------------------------------------------
