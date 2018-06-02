@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.52
+-- @version 1.53
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,12 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # fix error on adding FX control
---    # prevent loading damaged configuration
---    + Context/EmptyItem: show item note first line in name field
---    + Tags/Persist/#timesellen: time selection length
+--    # fix error when editing persist widgets order
 
-    local vrs = '1.52'
+    local vrs = '1.53'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -50,7 +47,7 @@
           scr_title=scr_title}
   local mouse = {}
   local obj = {}
-  local widgets = {    -- map types to data.obj_type_int order
+   widgets = {    -- map types to data.obj_type_int order
               types_t ={'EmptyItem',
                         'MIDIItem',
                         'AudioItem',
@@ -59,7 +56,8 @@
                         nil,--'MultipleEnvelopePoints',
                         'Envelope',
                         'Track', 
-                        'MIDIEditor'
+                        'MIDIEditor',
+                        'Persist'
                         }
                   }
   local cycle_cnt,clock = 0

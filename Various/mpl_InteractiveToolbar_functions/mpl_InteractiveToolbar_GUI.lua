@@ -722,7 +722,7 @@ msg(
                  
                 
                 { str = 'Widgets order|<',
-                  func = function() Menu_ChangeOrder(widgets, data, conf, 'Persist' ) end} , 
+                  func = function() Menu_ChangeOrder(widgets, data, conf, 9 ) end} , 
                 {str = '|>Global Configuration'},
                 { str = 'Enable all contexts + persistent widgets',          
                   func =function() 
@@ -785,7 +785,7 @@ msg(
   function Menu_ChangeOrder(widgets, data, conf, widgtype, is_buttons )
     local cur_str = ''
     local key
-    if not widgtype then 
+    if not widgtype or not tonumber(widgtype) then 
       MB('Configuration file damaged. Reset configuration or try to fix manually (Menu/Global configuration)',conf.scr_title, 0 )
       return
     end
