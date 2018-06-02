@@ -105,6 +105,7 @@
     local dig_cnt
     local minus = str:match('%-')
     if not dig_cnt0 then dig_cnt = 3 else dig_cnt = dig_cnt0 end
+    --str = string.format('%.'..dig_cnt..'f',str)
     local t = {} for val in str:gmatch('[%-%d]+.') do t[#t+1] = val end
     if #t == 0 and str:match('%d+') then t[1] = str end
     if tonumber(str) then
@@ -145,6 +146,8 @@
       end
       
     end
+    
+    --out_val = string.format("%.2f", out_val)
     
     if math.abs(out_val) < 0.00001 then   out_val = 0 end            
     if positive_only == true and type(positive_only) == 'boolean' then return lim(out_val, 0, math.huge) 
@@ -435,9 +438,16 @@
     return grid_division, grid_str, is_triplet, grid_swingmode, grid_swingamt, grid_swingamt_format
   end     
   ---------------------------------------------------
-  function MPL_GetFormattedMIDIGrid(take)
+  function MPL_GetFormattedMIDIGrid()
+    --SN_FocusMIDIEditor()
+    
+    local ME = MIDIEditor_GetActive()
+    if not ME then return end
+    take = MIDIEditor_GetTake( ME )
+    if not take then return end
     local grid_flags, grid_division, grid_swingmode, grid_swingamt 
     grid_division, grid_swingamt = MIDI_GetGrid( take )
+    grid_division = grid_division/4
     local is_triplet
     local denom = 1/grid_division
     local grid_str

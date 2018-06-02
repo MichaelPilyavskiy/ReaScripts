@@ -46,6 +46,7 @@
                   mouse_scal_pan = 1,
                   mouse_scal_float = 0.5,
                   mouse_scal_intMIDICC = 5,
+                  mouse_scal_intMIDIchan = 10,
                   mouse_scal_FXCtrl = 60,   -- FX wheel
                   mouse_scal_FXCtrl2 = 1000, -- FX drag
                   
@@ -451,6 +452,7 @@ msg(
           #CCval change CC value, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
           #notepitch change note pitch, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
           #notevel change note velocity, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
+          #midichan change event channel, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
         Persist
           #grid show current grid, allow to change grid lines visibility and relative snap
           #swing show current swing value, 'SWING' text is a toggle
@@ -707,7 +709,19 @@ msg(
                               ExtState_Save(conf) 
                               redraw = 2 
                             end
-                          end }  ,                                     
+                          end }  ,   
+                { str = Grid_DC_cond..'Set default MIDI grid',
+                  func =  function() 
+                            local ret, grid_out = GetUserInputs( conf.scr_title, 1, 'Default MIDI grid',
+                                                                ({MPL_GetFormattedGrid(conf.MM_grid_default_reset_MIDIgrid )})[2])
+                            if ret then
+                              local f = load('return '..grid_out)
+                              if not f then MB('Wrong value',conf.scr_title,0 ) return end
+                              conf.MM_grid_default_reset_MIDIgrid = f()
+                              ExtState_Save(conf) 
+                              redraw = 2 
+                            end
+                          end }  ,                                                             
                 { str = 'Rightclick on grid value open Snap/Grid dialog',
                   state = conf.MM_grid_rightclick==0,
                   func = function() conf.MM_grid_rightclick = 0 ExtState_Save(conf) redraw = 2 end }  ,                 

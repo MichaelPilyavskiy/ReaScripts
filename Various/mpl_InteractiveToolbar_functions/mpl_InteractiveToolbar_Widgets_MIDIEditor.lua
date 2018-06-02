@@ -224,8 +224,8 @@
   
   --------------------------------------------------------------
   function Widgets_MIDIEditor_notepitch(data, obj, mouse, x_offs)    -- generate position controls 
-    if not data.evts or data.evts.cnt_sel_notes == 0 then return  x_offs end
-    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
+    if not data.evts or data.evts.cnt_sel_notes == 0 then return   end
+    if x_offs + obj.entry_w2 > obj.persist_margin then return  end 
     obj.b.obj_MEevtnotepitch = { x = x_offs,
                         y = obj.offs ,
                         w = obj.entry_w2,
@@ -313,8 +313,8 @@
   
   --------------------------------------------------------------
   function Widgets_MIDIEditor_notevel(data, obj, mouse, x_offs)    -- generate position controls 
-    if not data.evts or data.evts.cnt_sel_notes == 0 then return  x_offs end
-    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
+    if not data.evts or data.evts.cnt_sel_notes == 0 then return   end
+    if x_offs + obj.entry_w2 > obj.persist_margin then return  end 
     obj.b.obj_MEevtnotevel = { x = x_offs,
                         y = obj.offs ,
                         w = obj.entry_w2,
@@ -390,5 +390,84 @@
     MIDI_Sort(take)
   end  
   --------------------------------------------------------------  
-  
+
+
+
+  --------------------------------------------------------------
+  function Widgets_MIDIEditor_midichan(data, obj, mouse, x_offs)    -- generate position controls 
+    if not data.evts or not data.evts.first_selected or not data.evts[data.evts.first_selected]  then return  x_offs end
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
+    obj.b.obj_MEevtchan = { x = x_offs,
+                        y = obj.offs ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = 'Channel'} 
+    obj.b.obj_MEevtchan_back = { x =  x_offs,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt = '',
+                        ignore_mouse = true}  
+                        
+      
+      local chan_str = data.evts[  data.evts.first_selected  ].chan
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = {chan_str},
+                        table_key='MEevtchan_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.evts,
+                        src_val_key= 'chan',
+                        modify_func= MPL_ModifyIntVal,
+                        app_func= Apply_MEevt_chan,                         
+                        mouse_scale= obj.mouse_scal_intMIDIchan,
+                        onRelease_ActName = data.scr_title..': Change MIDI event properties',
+                        modify_wholestr = true,
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
+                        })                        
+    return obj.entry_w2
+  end  
+  function Apply_MEevt_chan(data, obj, t_out_values, butkey, out_str_toparse, mouse)
+    if not out_str_toparse then  
+      local chan_out = lim(t_out_values[ data.evts.first_selected  ],1,16)
+      RawMIDI_ChangeMIDIchan(data.take_ptr, data.evts, chan_out)
+      obj.b[butkey..1].txt = chan_out
+      
+     else
+      -- nudge values from first item
+      local chan_out = tonumber(out_str_toparse)
+      if chan_out then
+        RawMIDI_ChangeMIDIchan(data.take_ptr, data.evts, chan_out)
+        redraw = 2 
+      end  
+    end
+  end  
+  function RawMIDI_ChangeMIDIchan(take, t, chan_out)
+    if not take or not t then return end
+    local chan_out = lim(chan_out, 0, 15)
+    local str = ''
+    for i = 1, #t-1 do      
+      local str_per_msg = string.pack("i4Bs4", t[i].offset, t[i].flags , t[i].msg1)
+      if t[i].selected then 
+        
+          str_per_msg = string.pack("i4Bi4BBB", t[i].offset, t[i].flags, 3, 
+                                  t[i].msg1:byte(1) - t[i].chan + chan_out, 
+                                  t[i].msg1:byte(2), 
+                                  t[i].msg1:byte(3)  )
+        
+                                  
+                                           
+      end
+      
+      str = str..str_per_msg
+    end
+    str = str..string.pack("i4Bs4", t[#t].offset, t[#t].flags , t[#t].msg1)
+    MIDI_SetAllEvts(take, str)
+    MIDI_Sort(take)
+  end  
+  --------------------------------------------------------------    
   

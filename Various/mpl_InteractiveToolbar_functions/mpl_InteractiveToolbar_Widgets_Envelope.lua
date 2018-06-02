@@ -95,6 +95,7 @@
       
       Envelope_SortPoints( data.env_ptr )
       UpdateArrange()
+      UpdateTimeline()
       local new_str = format_timestr_pos( t_out_values[ data.ep.sel_point_ID  ], '', data.ruleroverride ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
@@ -119,6 +120,7 @@
 
       Envelope_SortPoints( data.env_ptr )
       UpdateArrange()
+      UpdateTimeline()
       redraw = 2   
     end
   end  
@@ -151,7 +153,7 @@
       local val_str = data.ep[data.ep.sel_point_ID].value_format
      -- local modify_wholestr = data.env_isvolume
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
-                        t = MPL_GetTableOfCtrlValues2(val_str),
+                        t = {val_str},
                         table_key='val_ctrl',
                         x_offs= x_offs,  
                         w_com=obj.entry_w2,--obj.entry_w2,
@@ -180,19 +182,20 @@
       end
       Envelope_SortPoints( data.env_ptr )
       UpdateArrange()
-      
+      UpdateTimeline()
       local new_str
       if data.env_isvolume then  
         new_str = string.format("%.2f", WDL_VAL2DB(t_out_values[ data.ep.sel_point_ID  ]))
        else 
         new_str = string.format("%.2f", t_out_values[ data.ep.sel_point_ID  ]) 
       end
-      local new_str_t = MPL_GetTableOfCtrlValues2(new_str)
+      --[[local new_str_t = MPL_GetTableOfCtrlValues2(new_str, 3)
       if new_str_t then 
         for i = 1, #new_str_t do
           obj.b[butkey..i].txt = new_str_t[i]
         end
-      end
+      end]]
+      obj.b[butkey..1].txt = new_str
       
       
      else --input str
@@ -212,6 +215,7 @@
       end  
       Envelope_SortPoints( data.env_ptr )
       UpdateArrange()
+      UpdateTimeline()
       redraw = 2 
     end
   end  

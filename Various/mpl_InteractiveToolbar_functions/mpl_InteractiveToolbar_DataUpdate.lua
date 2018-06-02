@@ -59,14 +59,18 @@
     data.rul_format = MPL_GetCurrentRulerFormat()
     data.SR = tonumber(reaper.format_timestr_pos(1, '', 4))
     data.FR = TimeMap_curFrameRate( 0 )
-    --local ME = MIDIEditor_GetActive()
     data.grid_val, data.grid_val_format, data.grid_istriplet, data.grid_swingactive_int, data.grid_swingamt, data.grid_swingamt_format = MPL_GetFormattedGrid()
-    --if ME then data.grid_val, data.grid_val_format, data.grid_istriplet, data.grid_swingactive_int, data.grid_swingamt, data.grid_swingamt_format = MPL_GetFormattedMIDIGrid(MIDIEditor_GetTake( ME )) end
+    data.MIDIgrid_val, data.MIDIgrid_val_format, data.MIDIgrid_istriplet = MPL_GetFormattedMIDIGrid()
+    
+    
     data.grid_isactive =  GetToggleCommandStateEx( 0, 1157 )==1
+    data.MIDIgrid_isactive =  GetToggleCommandStateEx( 32060, 1014 )==1
     data.grid_swingactive = data.grid_swingactive_int == 1
     data.ruleroverride = conf.ruleroverride
     data.grid_rel_snap =  GetToggleCommandStateEx( 0, 41054 ) --Item edit: Toggle relative grid snap
+    data.MIDIgrid_rel_snap =  GetToggleCommandStateEx( 32060, 40829 )
     data.grid_vis =  GetToggleCommandStateEx( 0, 40145 ) -- toggle grid visibility
+    data.MIDIgrid_vis =  GetToggleCommandStateEx( 32060,1017 )
     
   end
   --[[-------------------------------------------------
@@ -162,7 +166,7 @@
     data.timeselectionstart, data.timeselectionend, data.timeselectionlen = TS_st, TSend,  TSend-TS_st
     data.timeselectionstart_format = format_timestr_pos( data.timeselectionstart, '',data.ruleroverride ) 
     data.timeselectionend_format = format_timestr_pos( data.timeselectionend, '', data.ruleroverride )
-    data.timeselectionlen_format = format_timestr_len( data.timeselectionlen, '', 0, data.ruleroverride )
+    data.timeselectionlen_format = format_timestr_len( data.timeselectionlen, '', TS_st, data.ruleroverride )
   end
   ---------------------------------------------------
     
@@ -212,6 +216,7 @@
       data.TempoMarker_timesig1 = math.floor(timesig_num)
       data.TempoMarker_timesig2 = math.floor(timesig_denom)
       data.TempoMarker_bpm= bpm
+      
       data.TempoMarker_lineartempochange = false
      else
       local _, timepos, measureposOut, beatposOut, bpm, timesig_num, timesig_denom, lineartempoOut = GetTempoTimeSigMarker( 0, int_TM )
@@ -230,6 +235,7 @@
         data.TempoMarker_timesig2 = math.floor(timesig_denom)
       end
     end
+    if data.TempoMarker_bpm then data.TempoMarker_bpm_format= string.format("%.3f", data.TempoMarker_bpm) end
   end
   ---------------------------------------------------
   function DataUpdate_Item(data, item)
@@ -368,6 +374,7 @@
       data.ep[i].value = value
       data.ep[i].value_format =  string.format("%.2f", value)
       if data.env_isvolume then  data.ep[i].value_format = string.format("%.2f", WDL_VAL2DB(value))    end
+      
       data.ep[i].shape = shape
       data.ep[i].tension = tension
       data.ep[i].selected = selected
@@ -420,6 +427,8 @@
     data.obj_type_int = 8
     
     data.take_ptr = take 
+    --local gotAllOK, MIDIstring = reaper.MIDI_GetAllEvts(take, "")
+    --data.take_hash = MIDIstring
     local _, take_name = GetSetMediaItemTakeInfo_String( take, "P_NAME", '', false )   
     data.take_name = take_name
     local item  = GetMediaItemTake_Item( take )
@@ -454,7 +463,7 @@
           local isNoteOn = msg1:byte(1)>>4 == 0x9
           local isNoteOff = msg1:byte(1)>>4 == 0x8
           local isCC = msg1:byte(1)>>4 == 0xB
-          local chan = 1+msg1:byte(1)&0xF
+          local chan = 1+(msg1:byte(1)&0xF)
           if not first_selectedCC and selected and isCC then first_selectedCC = idx end
           if not first_selectednote and selected and isNoteOn then first_selectednote = idx end
           

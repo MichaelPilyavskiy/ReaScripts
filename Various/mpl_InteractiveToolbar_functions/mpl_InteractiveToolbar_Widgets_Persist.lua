@@ -28,7 +28,7 @@
 
 
 ------------------------------------------------------------
-  function Widgets_Persist_grid(data, obj, mouse, x_margin, widgets)    -- generate position controls 
+  function Widgets_Persist_grid(data, obj, mouse, x_margin, widgets, conf)    -- generate position controls 
     local grid_widg_val_w = 50
     local grid_widg_w_trpl = 20
     local grid_widg_w = grid_widg_val_w + grid_widg_w_trpl
@@ -37,10 +37,12 @@
     local rel_snap_w = 25
     local rel_snap_h = 10
     local gridwidg_xpos = gfx.w-grid_widg_w-obj.menu_b_rect_side - x_margin
-    if data.grid_isactive then  frame_a = obj.frame_a_state end
+    if (data.grid_isactive and data.obj_type_int ~= 8) or (data.MIDIgrid_isactive and data.obj_type_int == 8) then  
+      frame_a = obj.frame_a_state 
+    end
     local txt_a,txt_a_relsnap,txt_a_visgrid =obj.txt_a
-    if data.grid_rel_snap == 0 then txt_a_relsnap = txt_a * 0.3 end
-    if data.grid_vis == 0 then      txt_a_visgrid = txt_a * 0.3 end
+    if (data.grid_rel_snap == 0 and data.obj_type_int ~= 8) or (data.MIDIgrid_rel_snap == 0 and data.obj_type_int == 8) then txt_a_relsnap = txt_a * 0.3 end
+    if (data.grid_vis == 0 and data.obj_type_int ~= 8) or (data.MIDIgrid_vis == 0 and data.obj_type_int == 8) then      txt_a_visgrid = txt_a * 0.3 end
     obj.b.obj_pers_grid_back = { persist_buf = true,
                         x = x_margin - grid_widg_w,
                         y = obj.offs ,
@@ -76,7 +78,12 @@
                         --aligh_txt = 1,
                         fontsz = obj.fontsz_grid_rel,
                         func =  function ()
-                                  Action(41054)
+                                  if data.obj_type_int ~= 8 then
+                                    Action(41054)
+                                   else
+                                    local ME = MIDIEditor_GetActive() 
+                                    if ME then MIDIEditor_OnCommand(ME, 40829) end
+                                  end
                                 end}   
     obj.b.obj_pers_grid_visible = { persist_buf = true,
                         x = x_margin - grid_widg_w + rel_snap_w,
@@ -91,8 +98,19 @@
                         --aligh_txt = 1,
                         fontsz = obj.fontsz_grid_rel,
                         func =  function ()
-                                  Action(40145) --Options: Toggle grid lines
-                                end}                                                        
+                                  if data.obj_type_int ~= 8 then
+                                    Action(40145)
+                                   else
+                                    local ME = MIDIEditor_GetActive() 
+                                    if ME then MIDIEditor_OnCommand(ME, 1017) end
+                                  end                                  
+                                end}            
+    local grid_txt = ''
+    if data.obj_type_int ~= 8 then 
+      grid_txt = data.grid_val_format
+     else
+      grid_txt = data.MIDIgrid_val_format
+    end                                           
     obj.b.obj_pers_grid_B_val = { persist_buf = true,
                         x = x_margin - grid_widg_w,
                         y = 0 ,
@@ -102,16 +120,23 @@
                         --frame_rect_a = 1,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
-                        txt = data.grid_val_format,
+                        txt = grid_txt,
                         func =        function()
                                         if not MOUSE_Match(mouse, obj.b.obj_pers_grid_relsnap) and 
                                             not MOUSE_Match(mouse, obj.b.obj_pers_grid_visible)  then
+                                            
                                           if data.MM_grid_ignoreleftdrag == 1 then 
-                                            Main_OnCommand(1157, 0) -- toggle grid
+                                            if data.obj_type_int == 8 and data.ME_ptr then MIDIEditor_OnCommand( data.ME_ptr, 1014)  else Main_OnCommand(1157, 0) end -- toggle grid
                                             redraw = 2
                                           end
-                                          mouse.temp_val = data.grid_val
-                                          mouse.temp_val2 = data.grid_istriplet
+                                          
+                                          if data.obj_type_int ~= 8 then 
+                                            mouse.temp_val = data.grid_val
+                                            mouse.temp_val2 = data.grid_istriplet
+                                           else
+                                            mouse.temp_val = data.MIDIgrid_val
+                                            mouse.temp_val2 = data.MIDIgrid_istriplet
+                                          end
                                           redraw = 1    
                                         end                        
                                       end,
@@ -120,9 +145,16 @@
                                           elseif mouse.wheel_trig < 0 then div = 0.5 
                                         end 
                                         local lim_max = 1
-                                        if data.grid_istriplet then lim_max = 2/3 end
-                                        local out_val = lim(data.grid_val*div, 0.0078125*lim_max, lim_max)
-                                        GetSetProjectGrid( 0, true,  out_val, data.grid_swingactive_int, data.grid_swingamt )
+                                      
+                                        if data.obj_type_int ~= 8 then 
+                                          if data.grid_istriplet then lim_max = 2/3 end
+                                          local out_val = lim(data.grid_val*div, 0.0078125*lim_max, lim_max)
+                                          GetSetProjectGrid( 0, true,  out_val, data.grid_swingactive_int, data.grid_swingamt )
+                                         else
+                                          if data.MIDIgrid_istriplet then lim_max = 2/3 end
+                                          local out_val = lim(data.MIDIgrid_val*div, 0.0078125*lim_max, lim_max)
+                                          SetMIDIEditorGrid(0,out_val)                                         
+                                        end
                                         redraw = 2                           
                                       end,                                              
                         func_drag =   function() 
@@ -143,10 +175,24 @@
                                           
                                           if div then 
                                             local lim_max = 1
-                                            if data.grid_istriplet then lim_max = 2/3 end
+                                            
+                                            if data.obj_type_int ~= 8 then
+                                              if data.grid_istriplet then lim_max = 2/3 end
+                                             else
+                                              if data.MIDIgrid_istriplet then lim_max = 2/3 end
+                                            end
+                                            
                                             local out_val = lim(mouse.temp_val*div, 0.0078125*lim_max, lim_max)                                         
-                                            GetSetProjectGrid( 0, true,  out_val, data.grid_swingactive_int, data.grid_swingamt )
-                                            _, obj.b.obj_pers_grid_B_val.txt = MPL_GetFormattedGrid()
+                                            if data.obj_type_int == 8 then
+                                              SetMIDIEditorGrid( 0, out_val )
+                                             else 
+                                              GetSetProjectGrid( 0, true,  out_val, data.grid_swingactive_int, data.grid_swingamt )
+                                            end
+                                            if data.obj_type_int ~= 8 then 
+                                              _, obj.b.obj_pers_grid_B_val.txt = MPL_GetFormattedGrid()
+                                             else 
+                                              _, obj.b.obj_pers_grid_B_val.txt = MPL_GetFormattedMIDIGrid()
+                                            end
                                             redraw = 1  
                                           end 
                                         end
@@ -156,14 +202,19 @@
                                           if data.MM_grid_doubleclick == 0 then
                                             Main_OnCommand(40071, 0) -- open settings
                                            elseif data.MM_grid_doubleclick == 1 and data.MM_grid_default_reset_grid then
-                                            GetSetProjectGrid( 0, true,  data.MM_grid_default_reset_grid, data.grid_swingactive_int, data.grid_swingamt )
+                                            if data.obj_type_int ~= 8 then 
+                                              GetSetProjectGrid( 0, true,  conf.MM_grid_default_reset_grid, data.grid_swingactive_int, data.grid_swingamt )
+                                             else
+                                              SetMIDIEditorGrid( 0, conf.MM_grid_default_reset_MIDIgrid )
+                                            end
                                           end
                                           redraw = 2
                                         end
                                       end,
                         func_R =     function()
                                         if data.MM_grid_rightclick == 1 then
-                                          Main_OnCommand(1157, 0) -- toggle grid
+                                          if data.obj_type_int == 8 and data.ME_ptr and MIDIEditor_GetActive() then 
+                                            MIDIEditor_OnCommand( data.ME_ptr, 1014)  else Main_OnCommand(1157, 0) end -- toggle grid -- toggle grid
                                          elseif data.MM_grid_rightclick == 0 then
                                           Main_OnCommand(40071, 0) -- open settings
                                         end
@@ -172,8 +223,8 @@
                                       
                                       
                                       }
-    local tripl_a = obj.frame_a_state
-    if not data.grid_istriplet then  tripl_a = 0 end
+    local tripl_a = 0
+    if (data.grid_istriplet and data.obj_type_int ~= 8) or (data.MIDIgrid_istriplet and data.obj_type_int == 8) then  tripl_a = obj.frame_a_state end
     obj.b.obj_pers_grid_tripl = { persist_buf = true,
                         x = x_margin - grid_widg_w+ grid_widg_val_w-1,
                         y = 0 ,
@@ -187,13 +238,23 @@
                                   if not MOUSE_Match(mouse, obj.b.obj_pers_grid_relsnap) and 
                                       not MOUSE_Match(mouse, obj.b.obj_pers_grid_visible)  then
                                       
-                                        if not data.grid_istriplet then
-                                          GetSetProjectGrid( 0, true, data.grid_val  * 2/3 )
-                                          if data.grid_vis == 0 then  Action(40145) end
-                                         else 
-                                          GetSetProjectGrid( 0, true, data.grid_val  * 3/2  )
-                                          if data.grid_vis == 0 then  Action(40145) end
-                                        end
+                                        if data.obj_type_int ~= 8 then 
+                                          if not data.grid_istriplet then
+                                            GetSetProjectGrid( 0, true, data.grid_val  * 2/3 )
+                                            if data.grid_vis == 0 then  Action(40145) end
+                                           else 
+                                            GetSetProjectGrid( 0, true, data.grid_val  * 3/2  )
+                                            if data.grid_vis == 0 then  Action(40145) end
+                                          end
+                                         elseif data.obj_type_int == 8 and data.ME_ptr and MIDIEditor_GetActive() then
+                                          if not data.MIDIgrid_istriplet then
+                                            SetMIDIEditorGrid( 0, data.MIDIgrid_val  * 2/3 )
+                                            if data.MIDIgrid_vis == 0 then  MIDIEditor_OnCommand( data.ME_ptr, NamedCommandLookup('_NF_ME_TOGGLETRIPLET')) end
+                                           else 
+                                            SetMIDIEditorGrid( 0, data.MIDIgrid_val  * 3/2 )
+                                            if data.MIDIgrid_vis == 0 then  MIDIEditor_OnCommand( data.ME_ptr, NamedCommandLookup('_NF_ME_TOGGLETRIPLET')) end
+                                          end
+                                        end                                          
                                         redraw = 2
                                   end
                                 end}  
@@ -254,7 +315,7 @@
       end
      else
       -- nudge values from first item
-      local out_val = parse_timestr_pos(out_str_toparse,-1) 
+      local out_val = parse_timestr_pos(out_str_toparse,data.ruleroverride) 
       local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
       local nudge = startOut - math.max(0,out_val) 
       GetSet_LoopTimeRange2( 0, true, true, math.max(0,out_val), endOut-nudge, false )
@@ -318,9 +379,9 @@
       end
      else
       -- nudge values from first item
-      local out_val = parse_timestr_pos(out_str_toparse,-1) 
-      local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
-      GetSet_LoopTimeRange2( 0, true, true, startOut, math.max(0,out_value), false )
+      local out_val = reaper.parse_timestr_pos(out_str_toparse,-1) 
+      local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false ) 
+      GetSet_LoopTimeRange2( 0, true, true, startOut, out_val, false )
       redraw = 2   
     end
   end  
@@ -370,16 +431,16 @@
       local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
       GetSet_LoopTimeRange2( 0, true, true, startOut, startOut+math.max(0,out_value), false )
       Main_OnCommand(40749,0) -- Options: Set loop points linked to time selection
-      local new_str = format_timestr_pos( math.max(0,out_value), '', -1 ) 
+      local new_str = format_timestr_len( math.max(0,out_value), '',startOut, -1 ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
         obj.b[butkey..i].txt = new_str_t[i]
       end
      else
-      -- nudge values from first item
-      local out_val = parse_timestr_pos(out_str_toparse,-1) 
       local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
-      GetSet_LoopTimeRange2( 0, true, true, startOut, startOut+math.max(0,out_valu), false )
+      local out_val = parse_timestr_len(out_str_toparse,startOut,data.ruleroverride) 
+      GetSet_LoopTimeRange2( 0, true, true, startOut, startOut+out_val, false )
+      UpdateArrange()
       redraw = 2   
     end
   end  
@@ -511,9 +572,9 @@
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_entry,
                         fontsz = obj.fontsz_entry,
-                        txt = data.TempoMarker_bpm,
+                        txt = data.TempoMarker_bpm_format,
                         func =  function()  
-                                  local retval0,ret_str = GetUserInputs( 'Edit BPM', 1, 'BPM', data.TempoMarker_bpm )
+                                  local retval0,ret_str = GetUserInputs( 'Edit BPM', 1, 'BPM,extrawidth=200', data.TempoMarker_bpm )
                                   if retval0 and tonumber (ret_str) then
                                     if data.TempoMarker_ID == -1 then 
                                       CSurf_OnTempoChange(  tonumber (ret_str) )
@@ -1041,7 +1102,7 @@
   ------------------------------------------------------------
   function Widgets_Persist_swing(data, obj, mouse, x_margin, widgets)
     local grid_widg_swingval_w = 50
-    
+    if data.obj_type_int == 8 then return end
     local frame_a = 0
     local txt_a_swact =obj.txt_a
     if data.grid_swingactive_int == 0 then txt_a_swact = obj.txt_a * 0.3 end

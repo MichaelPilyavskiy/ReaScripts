@@ -137,6 +137,8 @@
       for i = 1, #t do
         local txt
         if t.return_for_calc_only or dont_draw_val then txt = '' elseif t[i] then txt = t[i] end
+        --msg(txt)
+        
         local w_but = gfx.measurestr(t[i]..'. ') 
         obj.b[table_key..i] = { persist_buf = persist_buf,
                                 x = x_offs + measured_x_offs,
