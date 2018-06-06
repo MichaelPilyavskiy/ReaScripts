@@ -117,6 +117,10 @@
       is_takeOK = ValidatePtr2( 0, MEtake, 'MediaItem_Take*' )  
     end
     
+    if env then
+      local is_envOk =  ValidatePtr2( 0, env, 'TrackEnvelope*' )  
+      if not is_envOk then env = nil end
+    end
     
     if  conf.use_context_specific_conditions == 1 and data.last_fsel_tr 
         and data.last_fsel_tr ~= data.fsel_tr 
@@ -337,8 +341,10 @@
   end  
 ------------------------------------------------------------------------
   function DataUpdate_Envelope(data, env)
+    if not env then return end
     data.name = ''  
     data.ep={}
+    
     data.env_ptr = env
     local tr, env_FXid, env_paramid = Envelope_GetParentTrack( env )
    

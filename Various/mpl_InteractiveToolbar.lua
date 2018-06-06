@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.55
+-- @version 1.56
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,17 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Tags/MIDI Editor: #midichan. Set event MIDI channel. MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
---    + Tags/Persist/#grid support MIDI Editor grid (except swing - API limitation of SetMIDIEditorGrid())
---    # Tags/Persist/#timesellen: fix glitch when drag value
---    # Tags/Persist/#timesellen: improve offset calculation on tempo changes
---    # Tags/Persist/#bpm: format double float values
---    # Tags/Envelope/#pos: update ruler
---    # Tags/Envelope/#value: update ruler
---    # Tags/Persist/#bpm: format double float values
---    # Tags/MIDI Editor: fix skipped widgets if non-note event selected
+--    # Context/Envelope: add pointer validation [p=1997655]
 
-    local vrs = '1.55'
+    local vrs = '1.56'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
