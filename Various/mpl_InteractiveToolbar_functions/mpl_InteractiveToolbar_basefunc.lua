@@ -73,7 +73,7 @@
     return ReaperVal  
   end
   ---------------------------------------------------
-  function MPL_GetTableOfCtrlValues(str)  -- split .:
+  function MPL_GetTableOfCtrlValues(str)  -- split -:
     if not str or type(str) ~= 'string' then return end
     local t = {} for val in str:gmatch('[%-%d]+.') do t[#t+1] = val end
     if #t == 0 and str:match('%d+') then t[1] = str end
@@ -119,6 +119,7 @@
        else
         int_str = tostring(int)
       end
+      div = div:sub(0,4)
       return {int_str..'.', tostring(div)}
      else 
       return {'undefined'}
@@ -130,15 +131,13 @@
     local out_val = src_val
     local int_ID0 = int_cnt - int_ID -- ID from end
     if int_ID0 == 0 then  
-      
       if not ignore_fields then 
-        if pow_tol then  out_val = out_val + change_val*10^pow_tol  else  out_val = out_val + change_val*0.001  end
+        if pow_tol then out_val = out_val + change_val*10^pow_tol else out_val = out_val + change_val*0.001  end
        else
         if pow_tol then out_val = out_val + change_val*10^pow_tol else out_val = out_val + change_val*0.01 end
       end    
       
      elseif int_ID0 == 1 then
-      
       if not ignore_fields then 
         if pow_tol then out_val = out_val + change_val*10^pow_tol else out_val = out_val + change_val*0.01 end
        else
@@ -203,6 +202,24 @@
       return out_val
     end
   end 
+  ---------------------------------------------------
+  function MPL_ModifyFloatVal3(src_val,int_ID,int_cnt,change_val,data, positive_only, pow_tol, ignore_fields, pow_tol2)
+    if not src_val then return end
+    local out_val = src_val
+    local int_ID0 = int_cnt - int_ID -- ID from end
+    if int_ID0 == 0 then  
+      out_val = out_val + change_val*10^pow_tol
+     elseif int_ID0 == 1 then
+      out_val = out_val + change_val*10^pow_tol2
+    end
+    
+    if math.abs(out_val) < 0.00001 then   out_val = 0 end            
+    if positive_only == true and type(positive_only) == 'boolean' then return lim(out_val, 0, math.huge) 
+     elseif positive_only and type(positive_only) == 'function' then return positive_only(out_val)
+     else
+      return out_val
+    end
+  end    
   -------------------------------------------------------------------------------
   function MPL_ModifyTimeVal(src_val_sec,int_ID,int_cnt,change_val,data, positive_only)
     local out_val = src_val_sec

@@ -45,6 +45,7 @@
                   mouse_scal_pitch = 5,
                   mouse_scal_pan = 1,
                   mouse_scal_float = 0.5,
+                  mouse_scal_rate = 0.1,
                   mouse_scal_intMIDICC = 5,
                   mouse_scal_intMIDIchan = 10,
                   mouse_scal_FXCtrl = 60,   -- FX wheel
@@ -191,7 +192,7 @@
     -- state
       if o.state then
         if o.state_col then GUI_col(o.state_col, obj) end
-        gfx.a = 0.35
+        if o.state_a then gfx.a = o.state_a else gfx.a = 0.35 end
         gfx.rect(x,y,w,h,1)        
       end
       
@@ -422,6 +423,7 @@ msg(
           #transpose editing item pitch
           #pan editing take pan
           #srclen editing source length (for loop source), update require rebuilding peaks
+          #color set item color from system dialog or use Airon`s Color Swatch tool
           #buttons
             #lock toggle lock
             #loop toggle loop source
@@ -444,6 +446,7 @@ msg(
           #chrecvmixer shows all receive faders if receives existed for the first selected track. Ctrl+drag move on any slider acts as a VCA.
           #fxcontrols allow to store some FX macro controls stores per track (although params can be stored from another track FX). Rightclick slider for options.
           #freeze allow to freeze/unfreeze track, show freeze depth
+          #color set track color from system dialog or use Airon`s Color Swatch tool
           #buttons
             #polarity Toggle inverted polarity ("phase" in REAPER) of track audio output
             #parentsend Toggle Master/Parent send
@@ -602,12 +605,20 @@ msg(
                 { str = '|#Contexts/Widgets'}  ,
                 
                 { str = '>Item: Empty '},
+                { str = '# #color'},
+                { str = 'Use ReaPack/Airon_Colour Swatch.lua|',
+                  state = conf.use_aironCS_item==1,
+                  func = function() conf.use_aironCS_item = math.abs(1-conf.use_aironCS_item) ExtState_Save(conf) redraw = 2 end }  ,  
                 { str = 'Ignore all item contexts',    
                   state = conf.ignore_context&(1<<0) == (1<<0),              
                   func = function() Menu_IgnoreContext(conf, 0) end} , 
                 { str = 'Widgets order|<',                  
                   func = function() Menu_ChangeOrder(widgets, data, conf, 0 ) end} , 
                 { str = '>Item: MIDI'}, 
+                { str = '# #color'},
+                { str = 'Use ReaPack/Airon_Colour Swatch.lua|',
+                  state = conf.use_aironCS_item==1,
+                  func = function() conf.use_aironCS_item = math.abs(1-conf.use_aironCS_item) ExtState_Save(conf) redraw = 2 end }  ,                 
                 { str = 'Ignore all item contexts',    
                   state = conf.ignore_context&(1<<0) == (1<<0),              
                   func = function() Menu_IgnoreContext(conf, 0) end} ,       
@@ -616,6 +627,10 @@ msg(
                 { str = 'Buttons order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 1, true ) end} , 
                 { str = '>Item: Audio'},
+                { str = '# #color'},
+                { str = 'Use ReaPack/Airon_Colour Swatch.lua|',
+                  state = conf.use_aironCS_item==1,
+                  func = function() conf.use_aironCS_item = math.abs(1-conf.use_aironCS_item) ExtState_Save(conf) redraw = 2 end }  ,                 
                 { str = 'Ignore all item contexts',    
                   state = conf.ignore_context&(1<<0) == (1<<0),              
                   func = function() Menu_IgnoreContext(conf, 0) end} , 
@@ -624,6 +639,10 @@ msg(
                 { str = 'Buttons order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 2, true ) end} ,
                 { str = '>Item: Multiple'},
+                { str = '# #color'},
+                { str = 'Use ReaPack/Airon_Colour Swatch.lua|',
+                  state = conf.use_aironCS_item==1,
+                  func = function() conf.use_aironCS_item = math.abs(1-conf.use_aironCS_item) ExtState_Save(conf) redraw = 2 end }  ,                 
                 { str = 'Ignore all item contexts',    
                   state = conf.ignore_context&(1<<0) == (1<<0),              
                   func = function() Menu_IgnoreContext(conf, 0) end} , 
@@ -638,6 +657,10 @@ msg(
                 { str = 'Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} , 
                 { str = '>Track'},
+                { str = '# #color'},
+                { str = 'Use ReaPack/Airon_Colour Swatch.lua|',
+                  state = conf.use_aironCS==1,
+                  func = function() conf.use_aironCS = math.abs(1-conf.use_aironCS) ExtState_Save(conf) redraw = 2 end }  ,                 
                 { str = 'Ignore',    
                   state = conf.ignore_context&(1<<7) == (1<<7),              
                   func = function() Menu_IgnoreContext(conf, 7) end} , 
@@ -646,11 +669,9 @@ msg(
                 { str = 'Buttons order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 7, true ) end} ,
                 { str = '>MIDI editor'},
-                { str = 'Ignore',    
-                  state = conf.ignore_context&(1<<8) == (1<<8),              
-                  func = function() Menu_IgnoreContext(conf, 8) end , 
-                  menu_decr = true},
-                { str = '|>MIDI Pitch formatting mode'},
+                { str = '# #notepitch'},   
+                  
+                { str = '>MIDI Pitch formatting mode'},
                 { str = 'Pitch only',
                   state = conf.pitch_format == 0,
                   func = function() conf.pitch_format = 0 ExtState_Save(conf) redraw = 2 end} ,    
@@ -669,7 +690,7 @@ msg(
                 { str = 'Frequency',
                   state = conf.pitch_format == 5,
                   func = function() conf.pitch_format = 5 ExtState_Save(conf) redraw = 2 end} ,                    
-                { str = '|Octave shift|<',
+                { str = '|Octave shift|<|',
                   func =  function() 
                             local ret, ret_val = GetUserInputs( conf.scr_title, 1, 'Set octave shift', conf.oct_shift )
                             if ret and tonumber(ret_val)  then
@@ -677,14 +698,19 @@ msg(
                               ExtState_Save(conf)
                               redraw = 2 
                             end
-                          end} ,                  
+                          end} , 
+                                                      
+                { str = 'Ignore',    
+                  state = conf.ignore_context&(1<<8) == (1<<8),              
+                  func = function() Menu_IgnoreContext(conf, 8) end , 
+                  },
+                  
+                  
                 { str = 'Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 8 ) end} ,  
                                                                                                      
                 { str = '>Persistent modules'},
-                { str = 'Disable persistent modules',    
-                  state = conf.ignore_context&(1<<9) == (1<<9),              
-                  func = function() Menu_IgnoreContext(conf, 9) end} ,                 
+               
                 { str = '# #grid and #swing'},
                 { str = '(#grid only) Ignore left drag, pass left click as toggle snap',
                   state = conf.MM_grid_ignoreleftdrag==1,
@@ -733,7 +759,9 @@ msg(
                   state = conf.persist_clock_showtimesec == 1,
                   func = function() conf.persist_clock_showtimesec = math.abs(1-conf.persist_clock_showtimesec) ExtState_Save(conf) redraw = 2 end} ,                  
                 
-                 
+                { str = 'Disable persistent modules',    
+                  state = conf.ignore_context&(1<<9) == (1<<9),              
+                  func = function() Menu_IgnoreContext(conf, 9) end} ,                   
                 
                 { str = 'Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 9 ) end} , 

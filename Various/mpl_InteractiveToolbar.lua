@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.56
+-- @version 1.57
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,15 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # Context/Envelope: add pointer validation [p=1997655]
+--    + Tags/Item/#rate: drag to change playrate [p=1997757]
+--    + Tags/Track/#color: set track color from system dialog or use Airon`s Color Swatch tool [p=1997484]
+--    + Tags/Item/#color: set item color from system dialog or use Airon`s Color Swatch tool [p=1997484]
+--    + Tags/Item/#transpose: test mod for ModifyFloatValue(), 4 digits pitch value [p=1997757]
+--    # Tags/Track/#sendto: fix missing function on manual entering dB [p=1997794]
+--    # Tags/Track/#sendto: fix parsing function
+--    # Remove #srcreverse, #fadein, #fadeout for MIDI in default configuration [p=1996035]
 
-    local vrs = '1.56'
+    local vrs = '1.57'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -33,7 +39,6 @@
     dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua")
     dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua")
   end
-  
   RefreshExternalLibs()
   
   
@@ -78,20 +83,20 @@
     return [[
 //Configuration for MPL Interactive Toolbar
 [EmptyItem]
-order=#position #length
+order=#color #position #length
 [MIDIItem]
-order=#buttons#snap #position #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen
-buttons=#lock #loop #srcreverse #mute 
+order=#color #buttons#snap #position #endedge #length #offset #vol #transpose #pan #srclen #rate
+buttons=#lock #loop #mute 
 [AudioItem]
-order=#buttons#snap #position #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen
+order=#color #buttons#snap #position #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen #rate
 buttons=#lock #preservepitch #loop #mute #chanmode #srcreverse #bwfsrc 
 [MultipleItem]
-order=#buttons#position #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen
+order=#color #buttons#position #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen #rate
 buttons=#lock #preservepitch #chanmode #loop #srcreverse #mute   
 [Envelope]
 order=#floatfx #position #value
 [Track]
-order=#fxcontrols #buttons #vol #pan #fxlist #sendto #delay #chsendmixer #chrecvmixer #freeze
+order=#color #fxcontrols #buttons #vol #pan #fxlist #sendto #delay #chsendmixer #chrecvmixer #freeze
 buttons=#polarity #parentsend 
 [MIDIEditor]
 order=#position #CCval #notepitch #notevel #midichan
@@ -129,7 +134,9 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             MM_grid_default_reset_MIDIgrid = 0.25,
             tap_quantize = 0,
             trackfxctrl_use_brutforce = 0,
-            ignore_context = 0}
+            ignore_context = 0,
+            use_aironCS = 0,
+            use_aironCS_item = 0}
   end
   ---------------------------------------------------
   function Run()

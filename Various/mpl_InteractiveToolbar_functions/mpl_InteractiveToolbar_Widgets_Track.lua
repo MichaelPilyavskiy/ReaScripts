@@ -565,7 +565,7 @@
       redraw =  2 
      else
       local out_val = tonumber(out_str_toparse) 
-      out_val = ReaperValfromdB(out_val)
+      out_val = ParseDbVol(out_str_toparse)
       out_val = math.max(0,out_val) 
       data.defsendvol =out_val  
       redraw = 2   
@@ -583,16 +583,7 @@
       obj.b.obj_sendto_pan.val = data.defsendpan_slider
       redraw = 2
      else
-      local out_val = 0
-      if out_str_toparse:lower():match('r') then side = 1 
-          elseif out_str_toparse:lower():match('l') then side = -1 
-          elseif out_str_toparse:lower():match('c') then side = 1
-          else side = 0
-      end 
-      local val = out_str_toparse:match('%d+')
-      if not val then return end
-      local out_val = side * val/100
-      out_val = lim(out_val,-1,1)
+      local out_val = MPL_ParsePanVal(out_str_toparse)
       data.defsendpan= out_val
       redraw = 2   
     end
@@ -1365,4 +1356,46 @@
                         txt = 'Unfreeze',
                         func = function() Action(41644) end} 
     return w
+  end
+  
+  
+  
+  function Widgets_Track_color(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+    local col_w = 20
+    if x_offs + col_w > obj.persist_margin then return end 
+    if not data.tr[1].col then return end
+    local a = 0.5
+    if data.tr[1].col == 0 then a = 0.35 end
+    obj.b.obj_trcolor = { x = x_offs,
+                        y = obj.offs ,
+                        w = col_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        state = data.tr[1].col ~= 0,
+                        state_col = data.tr[1].col,
+                        state_a = a,
+                        func = function() Apply_TrackCol(data, conf) end} 
+    obj.b.obj_trcolor_back = { x =  x_offs,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = col_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        state = data.tr[1].col ~= 0,
+                        state_col = data.tr[1].col,
+                        state_a = a,
+                        func = function() Apply_TrackCol(data, conf) end
+                        }      
+    return col_w                       
+  end  
+  function Apply_TrackCol(data, conf)
+    if conf.use_aironCS == 1 then 
+      Action('_RSf336b8010869358bff1b619168ff2216ea2fb64b')
+     else
+      local retval, colorOut = GR_SelectColor( '' )
+      if retval == 0 then return end
+      for i = 1, #data.tr do
+        local tr= data.tr[i].ptr
+        SetTrackColor( tr, colorOut )
+      end
+    end
   end

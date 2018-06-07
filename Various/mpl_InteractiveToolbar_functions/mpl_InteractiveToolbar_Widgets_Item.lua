@@ -805,20 +805,21 @@
                 
       local pitch_str = data.it[1].pitch_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
-                        t = MPL_GetTableOfCtrlValues2(data.it[1].pitch_format),
+                        t = MPL_GetTableOfCtrlValues2(pitch_str),
                         table_key='pitch_ctrl',
                         x_offs= x_offs,  
                         w_com=pitch_w,--obj.entry_w2,
                         src_val=data.it,
                         src_val_key= 'pitch',
-                        modify_func= MPL_ModifyFloatVal2,
+                        modify_func= MPL_ModifyFloatVal3,
                         app_func= Apply_Item_transpose,                         
                         mouse_scale= obj.mouse_scal_pitch,
-                        pow_tolerance = -2,
+                        pow_tolerance = -3,
                         default_val=0,
-                        modify_wholestr = true,
+                        --modify_wholestr = true,
                         onRelease_ActName = data.scr_title..': Change item properties',
-                        use_mouse_drag_xAxis = data.always_use_x_axis==1,})                          
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
+                        pow_tolerance2 = 0})                          
     return pitch_w--obj.entry_w2                         
   end
   
@@ -1079,3 +1080,115 @@
     end
     redraw = 1 
   end
+
+
+
+
+  function Widgets_Item_color(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+    local col_w = 20
+    if x_offs + col_w > obj.persist_margin then return end 
+    if not data.it[1].col then return end
+    local a = 0.5
+    if data.it[1].col == 0 then a = 0.35 end
+    obj.b.obj_itcolor = { x = x_offs,
+                        y = obj.offs ,
+                        w = col_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        state = data.it[1].col ~= 0,
+                        state_col = data.it[1].col,
+                        state_a = a,
+                        func = function() Apply_ItemCol(data, conf) end} 
+    obj.b.obj_itcolor_back = { x =  x_offs,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = col_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        state = data.it[1].col ~= 0,
+                        state_col = data.it[1].col,
+                        state_a = a,
+                        func = function() Apply_ItemCol(data, conf) end
+                        }      
+    return col_w                       
+  end  
+  function Apply_ItemCol(data, conf)
+    if conf.use_aironCS_item == 1 then 
+      Action('_RSf336b8010869358bff1b619168ff2216ea2fb64b')
+     else
+      local retval, colorOut = GR_SelectColor( '' )
+      if retval == 0 then return end
+      for i = 1, #data.it do
+        local it= data.it[i].ptr_item
+        SetMediaItemInfo_Value( it, 'I_CUSTOMCOLOR', colorOut )
+      end
+    end
+  end
+
+
+
+
+  --------------------------------------------------------------
+  function Widgets_Item_rate(data, obj, mouse, x_offs)    -- generate position controls 
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
+    obj.b.obj_itrate = { x = x_offs,
+                        y = obj.offs ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = 'Playrate'} 
+    obj.b.obj_itrate_back = { x =  x_offs,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt = '',
+                        ignore_mouse = true}  
+                        
+                        
+      local rate_str = data.it[1].rate_format
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues2(rate_str),
+                        table_key='rate_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.it,
+                        src_val_key= 'rate',
+                        modify_func= MPL_ModifyFloatVal,
+                        app_func= Apply_Item_Rate,                         
+                        mouse_scale= obj.mouse_scal_rate,
+                        default_val=1,
+                        onRelease_ActName = data.scr_title..': Change item properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
+                        --dont_draw_val = true
+                        })                            
+    return obj.entry_w2                         
+  end  
+  function Apply_Item_Rate(data, obj, t_out_values, butkey, out_str_toparse)
+    if not out_str_toparse then    
+      for i = 1, #t_out_values do
+        local val = lim(t_out_values[i], 0.1, 10)
+        SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_PLAYRATE', val )
+        SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH', data.it[i].item_len * (data.it[1].rate/val))
+        
+        UpdateItemInProject( data.it[i].ptr_item )                                
+      end
+      local new_str_t = MPL_GetTableOfCtrlValues2(lim(t_out_values[1], 0.1, 10))
+      if new_str_t then 
+        for i = 1, #new_str_t do
+          obj.b[butkey..i].txt = new_str_t[i]
+        end
+      end
+     else
+      -- nudge values from first item
+      local diff = data.it[1].rate - out_str_toparse
+      for i = 1, #t_out_values do
+        SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_PLAYRATE', lim(t_out_values[i] - diff, 0.1, 10) )
+        UpdateItemInProject( data.it[i].ptr_item )                                
+      end
+      redraw = 2   
+    end
+  end    
+  -------------------------------------------------------------- 
+  

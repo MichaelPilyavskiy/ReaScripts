@@ -266,7 +266,7 @@
       data.it[i].snap_offs_format = format_timestr_len( data.it[i].snap_offs, '', 0, data.ruleroverride )
       data.it[i].fadein_len_format = format_timestr_len( data.it[i].fadein_len, '', 0, data.ruleroverride )
       data.it[i].fadeout_len_format = format_timestr_len( data.it[i].fadeout_len, '', 0, data.ruleroverride )
-      
+      data.it[i].col = GetMediaItemInfo_Value( item, 'I_CUSTOMCOLOR' )
       
       
       data.it[i].vol = GetMediaItemInfo_Value( item, 'D_VOL')
@@ -283,7 +283,7 @@
         data.it[i].start_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
         data.it[i].start_offs_format = format_timestr_len(data.it[i].start_offs, '', 0, data.ruleroverride )
         data.it[i].pitch = GetMediaItemTakeInfo_Value( take, 'D_PITCH' )
-        data.it[i].pitch_format = math.floor(data.it[i].pitch *100) / 100
+        data.it[i].pitch_format = math.floor(data.it[i].pitch *1000) / 1000
         data.it[i].name = tk_name
         data.it[i].isMIDI = TakeIsMIDI(take)
         data.it[i].chanmode = GetMediaItemTakeInfo_Value( take, 'I_CHANMODE' )
@@ -292,6 +292,8 @@
         data.it[i].pitchsubmode = GetMediaItemTakeInfo_Value( take, 'I_PITCHMODE' )&65535
         data.it[i].pan = GetMediaItemTakeInfo_Value( take, 'D_PAN' )
         data.it[i].pan_format = MPL_FormatPan(data.it[i].pan)
+        data.it[i].rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+        data.it[i].rate_format = math.floor(data.it[i].rate *100) / 100
         
         local retval, sectionOut, startOut, lengthOut, fadeOut, reverseOut  = BR_GetMediaSourceProperties( take )
         data.it[i].srclen = lengthOut
@@ -300,6 +302,7 @@
         data.it[i].src_start = startOut
         data.it[i].src_fade = fadeOut
         data.it[i].src_section = sectionOut
+        
        else
         local note = ULT_GetMediaItemNote( item )
         if note then 
@@ -663,9 +666,9 @@
         data.tr[i].vol = GetMediaTrackInfo_Value( tr, 'D_VOL' )
         data.tr[i].vol_format = dBFromReaperVal(data.tr[i].vol)..'dB'
         data.tr[i].pol = GetMediaTrackInfo_Value( tr, 'B_PHASE' )
-        data.tr[i].parsend = GetMediaTrackInfo_Value( tr, 'B_MAINSEND' )
-         
-      
+        data.tr[i].parsend = GetMediaTrackInfo_Value( tr, 'B_MAINSEND' )         
+        data.tr[i].col = GetTrackColor( tr )
+        
       -- delay time_adjustment
         data.tr[i].delay = 0
         local delayFX_pos = TrackFX_AddByName( tr, 'time_adjustment', false, 0 )
