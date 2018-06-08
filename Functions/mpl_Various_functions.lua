@@ -1,10 +1,10 @@
 -- @description Various_functions
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
--- @noindex
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
-
--- updated 08.06.2018
+-- @version 1.0
+-- @changelog
+--    + init, added some basic and spectral edit functions. This file is strongly recommended to be installed.
 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
   ------------------------------------------------------------------------------------------------------
