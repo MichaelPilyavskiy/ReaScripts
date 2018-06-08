@@ -1149,7 +1149,7 @@
                         
       local rate_str = data.it[1].rate_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
-                        t = MPL_GetTableOfCtrlValues2(rate_str),
+                        t = MPL_GetTableOfCtrlValues2(rate_str,4),
                         table_key='rate_ctrl',
                         x_offs= x_offs,  
                         w_com=obj.entry_w2,--obj.entry_w2,
@@ -1158,6 +1158,7 @@
                         modify_func= MPL_ModifyFloatVal,
                         app_func= Apply_Item_Rate,                         
                         mouse_scale= obj.mouse_scal_rate,
+                        pow_tolerance = -4,
                         default_val=1,
                         onRelease_ActName = data.scr_title..': Change item properties',
                         use_mouse_drag_xAxis = data.always_use_x_axis==1,
@@ -1174,7 +1175,7 @@
         
         UpdateItemInProject( data.it[i].ptr_item )                                
       end
-      local new_str_t = MPL_GetTableOfCtrlValues2(lim(t_out_values[1], 0.1, 10))
+      local new_str_t = MPL_GetTableOfCtrlValues2(lim(t_out_values[1], 0.1, 10),4)
       if new_str_t then 
         for i = 1, #new_str_t do
           obj.b[butkey..i].txt = new_str_t[i]

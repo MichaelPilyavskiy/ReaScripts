@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.57
+-- @version 1.58
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,15 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Tags/Item/#rate: drag to change playrate [p=1997757]
---    + Tags/Track/#color: set track color from system dialog or use Airon`s Color Swatch tool [p=1997484]
---    + Tags/Item/#color: set item color from system dialog or use Airon`s Color Swatch tool [p=1997484]
---    + Tags/Item/#transpose: test mod for ModifyFloatValue(), 4 digits pitch value [p=1997757]
---    # Tags/Track/#sendto: fix missing function on manual entering dB [p=1997794]
---    # Tags/Track/#sendto: fix parsing function
---    # Remove #srcreverse, #fadein, #fadeout for MIDI in default configuration [p=1996035]
+--    # Tags/Item/#transpose: (test mod for ModifyFloatValue()) fix undefined scaling for mouse wheel
+--    # Tags/Item/#rate: use .000 tolerance
 
-    local vrs = '1.57'
+    local vrs = '1.58'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -47,7 +42,7 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-   data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
+  local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title}
   local mouse = {}

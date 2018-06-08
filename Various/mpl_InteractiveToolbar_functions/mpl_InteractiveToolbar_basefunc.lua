@@ -208,8 +208,10 @@
     local out_val = src_val
     local int_ID0 = int_cnt - int_ID -- ID from end
     if int_ID0 == 0 then  
+      if not pow_tol then pow_tol = -2 end
       out_val = out_val + change_val*10^pow_tol
      elseif int_ID0 == 1 then
+      if not pow_tol2 then pow_tol2 = 0 end
       out_val = out_val + change_val*10^pow_tol2
     end
     
