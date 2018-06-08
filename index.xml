@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fd5ff083479e0913b01c5947ff1d20db195ba820" name="MPL Scripts">
+<index version="1" commit="c75ebe8d092d74a21c4e316ae57360a640e48b39" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -215,6 +215,24 @@
       <version name="1.1" author="MPL" time="2017-06-20T20:04:56Z">
         <changelog><![CDATA[# perform on master track]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0bec563fc22114ad8960e4c9a902623fe679fd43/Envelopes/mpl_Toggle%20bypass%20selected%20tracks%20envelopes.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Functions">
+    <reapack name="mpl_Various_functions.lua" type="script" desc="Various_functions">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-06-08T20:09:46Z">
+        <changelog><![CDATA[+ init, added some basic and spectral edit functions. This file is strongly recommended to be installed.]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c75ebe8d092d74a21c4e316ae57360a640e48b39/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
