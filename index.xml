@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c75ebe8d092d74a21c4e316ae57360a640e48b39" name="MPL Scripts">
+<index version="1" commit="0d2ff87f1c08dcaa7306b8c31383eb00a49b9206" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -233,6 +233,10 @@
       <version name="1.0" author="MPL" time="2018-06-08T20:09:46Z">
         <changelog><![CDATA[+ init, added some basic and spectral edit functions. This file is strongly recommended to be installed.]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c75ebe8d092d74a21c4e316ae57360a640e48b39/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2018-06-10T09:03:13Z">
+        <changelog><![CDATA[+ eugen27771_GetObjStateChunk()]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d2ff87f1c08dcaa7306b8c31383eb00a49b9206/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
@@ -2436,6 +2440,15 @@ setup min gain, attack =0]]></changelog>
     </reapack>
   </category>
   <category name="Stretch Markers">
+    <reapack name="mpl_Copy selected item stretch markers.lua" type="script" desc="Copy selected item stretch markers">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-06-10T09:03:13Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d2ff87f1c08dcaa7306b8c31383eb00a49b9206/Stretch%20Markers/mpl_Copy%20selected%20item%20stretch%20markers.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Move take content under stretch markers 10ms left.lua" type="script" desc="Move take content under stretch markers 10ms left">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Stretch%20Markers/mpl_Move%20take%20content%20under%20stretch%20markers%2010ms%20left.lua</source>
@@ -2444,6 +2457,15 @@ setup min gain, attack =0]]></changelog>
     <reapack name="mpl_Move take content under stretch markers 10ms right.lua" type="script" desc="Move take content under stretch markers 10ms right">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Stretch%20Markers/mpl_Move%20take%20content%20under%20stretch%20markers%2010ms%20right.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Paste and replace stretch markers to selected items.lua" type="script" desc="Paste and replace stretch markers to selected items">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-06-10T09:03:13Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d2ff87f1c08dcaa7306b8c31383eb00a49b9206/Stretch%20Markers/mpl_Paste%20and%20replace%20stretch%20markers%20to%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Randomize stretch markers.lua" type="script" desc="Randomize stretch markers">
