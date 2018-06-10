@@ -2,11 +2,29 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.0
+-- @version 1.01
 -- @changelog
---    + init, added some basic and spectral edit functions. This file is strongly recommended to be installed.
+--    + eugen27771_GetObjStateChunk()
 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
+  ------------------------------------------------------------------------------------------------------
+  function eugen27771_GetObjStateChunk(obj)
+    if not obj then return end
+    local fast_str, chunk
+    fast_str = SNM_CreateFastString("")
+    if SNM_GetSetObjectState(obj, fast_str, false, false) then chunk = SNM_GetFastString(fast_str) end
+    SNM_DeleteFastString(fast_str)  
+    return chunk
+  end 
+  ------------------------------------------------------------------------------------------------------
+  function eugen27771_GetTrackStateChunk(track)
+    if not track then return end
+    local fast_str, track_chunk
+    fast_str = SNM_CreateFastString("")
+    if SNM_GetSetObjectState(track, fast_str, false, false) then track_chunk = SNM_GetFastString(fast_str) end
+    SNM_DeleteFastString(fast_str)  
+    return track_chunk
+  end 
   ------------------------------------------------------------------------------------------------------
   function literalize(str) -- http://stackoverflow.com/questions/1745448/lua-plain-string-gsub
      if str then  return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", function(c) return "%" .. c end) end
