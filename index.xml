@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8415c0c10fbf47f0e4322a7f8ae348722de2b5f3" name="MPL Scripts">
+<index version="1" commit="0736f9b5a1c5ebd341093c00e6d6ba38865ba67d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -251,6 +251,11 @@
 + FloatInstrument
 + ApplyFunctionToTrackInTree]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8415c0c10fbf47f0e4322a7f8ae348722de2b5f3/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2018-06-11T20:13:24Z">
+        <changelog><![CDATA[+ BinaryCheck
++ GetInput]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0736f9b5a1c5ebd341093c00e6d6ba38865ba67d/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
@@ -1256,6 +1261,37 @@ setup min gain, attack =0]]></changelog>
 # GUI: improved waveform draw
 # fix right mouse click pass on left click in some cases]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7eff69f95c397ec3c466d027a4297b07093e01dd/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+      </version>
+      <version name="1.50" author="MPL" time="2018-06-11T20:13:24Z">
+        <changelog><![CDATA[# Cleaning most code, split functions. Because it is serious code change, some functions and parts of GUI was removed to make the whole structure stable. Feel free to post issues into common thread at http://forum.cockos.com/showthread.php?t=188335
+# Basic functions used from MPL Scripts/Funcions/Various functions. This is a must have file for further MPL scripts updates.
+- (structure change) Additional global modes removed, script now working only with one selected track contains RS5k instances
++ (structure change) allows you to have multiple parent tracks depending on parent selection
++ (structure change) provides clean project structure (no need additional tracks by default + MIDI track for input)
++ (structure change) Load note names from parent track. So script config not linket to project state external data. That means you can save track template with you drum maps and use it with other project. [p=1993149]
++ (structure change) Allow to split sample for further use with custom FX chain using MIDI send 
+- Patterns part removed. It will probably return as a separate script for maintain similar MIDI takes (aka patterns) along whole project.
+- Options window removed, all options moved to menu
++ Drandrop samples from MediaExplorer (REAPER 5.91pre1+), Sample Browser removed
++ Send CC123 on mouse release instead loop all notes all channels
++ Allow to auto prepare MIDI input from VirtualKeyboard or from all channels, disabled by default
++ GUI octave shift splitted from Note names return value [p=1992718] [p=1993149]
++ GUI: display section of sample on waveform, changing loop start keep item length
++ GUI: improvements for fitting pad names and buttons
++ GUI: highlight FX buttons if there a external FX chain for this note (aka MIDI send)
++ GUI: muting pads [p=1993149]
++ GUI: solo pad (simply mutes other, note - it doesn`t store mute state) [p=1993149]
++ GUI: option to toggle per-pad controls
++ GUI: waveform color follow parent/send track color
++ Action: Export selected items to RS5k instances without glue each piece, source offset is take from items offset and length
+# Prevent building peaks and check for proper file to add when dropped on pads [p=1998367]]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0736f9b5a1c5ebd341093c00e6d6ba38865ba67d/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_trackfunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0736f9b5a1c5ebd341093c00e6d6ba38865ba67d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_trackfunc.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0736f9b5a1c5ebd341093c00e6d6ba38865ba67d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0736f9b5a1c5ebd341093c00e6d6ba38865ba67d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_PAT.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0736f9b5a1c5ebd341093c00e6d6ba38865ba67d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_PAT.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0736f9b5a1c5ebd341093c00e6d6ba38865ba67d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0736f9b5a1c5ebd341093c00e6d6ba38865ba67d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
