@@ -1,9 +1,9 @@
--- @version 1.2
+-- @version 1.03
 -- @author MPL
 -- @description Float instrument relevant to MIDI editor
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    # fix send instrument lookup (http://github.com/MichaelPilyavskiy/ReaScripts/issues/4)
+--    # use Various_function
 
 
 --[[
@@ -13,13 +13,7 @@
       + Search instruments in send destination tracks
 ]]
 
-function check_instr(track)
-  vsti_id = reaper.TrackFX_GetInstrument(track)
-  if vsti_id and vsti_id >= 0 then 
-    reaper.TrackFX_Show(track, vsti_id, 3) -- float
-    return true
-  end
-end
+local scr_title = 'Float instrument relevant to MIDI Editor'
 
 function main()
   local act_editor = reaper.MIDIEditor_GetActive()
@@ -29,31 +23,30 @@ function main()
   local take_track = reaper.GetMediaItemTake_Track(take)
   
   -- search vsti on parent track
-    ret1 = check_instr(take_track )
+    local ret1 = FloatInstrument(take_track )
     if ret1 then return end
     
-  -- search vsti on tree
-    take_track2 = take_track
-    repeat
-      parent_track = reaper.GetParentTrack(take_track2)
-      if parent_track ~= nil then
-        ret2 = check_instr(parent_track )
-        if ret2 then return end
-        take_track2 = parent_track
-      end
-    until parent_track == nil    
-    
-  -- search sends
-    cnt_sends = reaper.GetTrackNumSends( take_track, 0)
-    for sendidx = 1,  cnt_sends do
-      dest_tr = reaper.BR_GetMediaTrackSendInfo_Track( take_track, 0, sendidx-1, 1 )
-      ret3 = check_instr(dest_tr )
-      if ret3 then return  end
-    end
-  
+  ApplyFunctionToTrackInTree(take_track, FloatInstrument)
 end
-
-script_title = 'Float instrument relevant to MIDI Editor'
-reaper.Undo_BeginBlock()
-main()
-reaper.Undo_EndBlock(script_title, 1)
+---------------------------------------------------------------------
+  function CheckFunctions(str_func)
+    SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
+    local f = io.open(SEfunc_path, 'r')
+    if f then
+      f:close()
+      dofile(SEfunc_path)
+      
+      if not _G[str_func] then 
+        MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
+       else
+        Undo_BeginBlock()
+        main()
+        Undo_EndBlock( scr_title, -1 )
+      end
+      
+     else
+      MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
+    end  
+  end
+--------------------------------------------------------------------
+  CheckFunctions('FloatInstrument')
