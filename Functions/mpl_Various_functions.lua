@@ -2,19 +2,10 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.02
+-- @version 1.03
 -- @changelog
---    + spairs
---    + ExtState_Load/Save (for {conf})
---    + Table: NormalizeT, ScaleT, SmoothT
---    + GetParentFolder
---    + GetShortSmplName
---    + GetNoteStr
---    + ExportSelItemsToRs5k_AddMIDI, ExportSelItemsToRs5k_FormMIDItake_data
---    + math_q, math_q_dec
---    + local table or REAPER functions
---    + FloatInstrument
---    + ApplyFunctionToTrackInTree
+--    + BinaryCheck
+--    + GetInput
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
@@ -53,6 +44,7 @@
   end 
   ------------------------------------------------------------------------------------------------------
   function WDL_DB2VAL(x) return math.exp((x)*0.11512925464970228420089957273422) end  --https://github.com/majek/wdl/blob/master/WDL/db2val.h
+  --function dBFromVal(val) if val < 0.5 then return 20*math.log(val*2, 10) else return (val*12-6) end end
   ------------------------------------------------------------------------------------------------------
   function WDL_VAL2DB(x, reduce)   --https://github.com/majek/wdl/blob/master/WDL/db2val.h
     if not x or x < 0.0000000298023223876953125 then return -150.0 end
@@ -377,3 +369,23 @@
           if ret3 then return  end
         end
     end
+    ----------------------------------------------------------------------- 
+    function GetInput( conf, captions_csv, retvals_csv,floor)
+      local ret, str =  GetUserInputs( conf.scr_title, 1, captions_csv, retvals_csv )
+      if not ret then return end
+      if not tonumber(str) then return end
+      local num = tonumber(str)
+      if floor then num = math.floor(num) end
+      return num
+    end
+    -----------------------------------------------------------
+    function BinaryCheck(value, byte_id, bool_int)
+      local byte_num = 1<<byte_id
+      
+      if value&byte_num == byte_num then 
+        if not bool_int or (bool_int and bool_int == 1) then value = value - byte_num end
+       else 
+        if not bool_int or (bool_int and bool_int == 0) then value = value + byte_num end
+      end
+      return value
+    end   
