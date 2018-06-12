@@ -1,40 +1,24 @@
 -- @description RS5k manager
--- @version 1.50
+-- @version 1.51
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_trackfunc.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua
---    mpl_RS5k_manager_functions/mpl_RS5k_manager_PAT.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    # Cleaning most code, split functions. Because it is serious code change, some functions and parts of GUI was removed to make the whole structure stable. Feel free to post issues into common thread at http://forum.cockos.com/showthread.php?t=188335
---    # Basic functions used from MPL Scripts/Funcions/Various functions. This is a must have file for further MPL scripts updates.
---    - (structure change) Additional global modes removed, script now working only with one selected track contains RS5k instances
---    + (structure change) allows you to have multiple parent tracks depending on parent selection
---    + (structure change) provides clean project structure (no need additional tracks by default + MIDI track for input)
---    + (structure change) Load note names from parent track. So script config not linket to project state external data. That means you can save track template with you drum maps and use it with other project. [p=1993149]
---    + (structure change) Allow to split sample for further use with custom FX chain using MIDI send 
---    - Patterns part removed. It will probably return as a separate script for maintain similar MIDI takes (aka patterns) along whole project.
---    - Options window removed, all options moved to menu
---    + Drandrop samples from MediaExplorer (REAPER 5.91pre1+), Sample Browser removed
---    + Send CC123 on mouse release instead loop all notes all channels
---    + Allow to auto prepare MIDI input from VirtualKeyboard or from all channels, disabled by default
---    + GUI octave shift splitted from Note names return value [p=1992718] [p=1993149]
---    + GUI: display section of sample on waveform, changing loop start keep item length
---    + GUI: improvements for fitting pad names and buttons
---    + GUI: highlight FX buttons if there a external FX chain for this note (aka MIDI send)
---    + GUI: muting pads [p=1993149]
---    + GUI: solo pad (simply mutes other, note - it doesn`t store mute state) [p=1993149]
---    + GUI: option to toggle per-pad controls
---    + GUI: waveform color follow parent/send track color
---    + Action: Export selected items to RS5k instances without glue each piece, source offset is take from items offset and length
---    # Prevent building peaks and check for proper file to add when dropped on pads [p=1998367]
+--    # GUI: improve small waveforms alpha channel
+--    # GUI: improve solo states displaying
+--    # fix proper read MIDI note names
+--    + Allow to have more than one sample per pad (Layering mode)
+--    + Mute/Solo controls for Layering mode
+--    + Splitting FX chain respect sample selection in Layering mode
+--    + Rename track when splitting FX chain
+--    + Add key names only option
   
-  
-  local vrs = 'v1.50'
+  local vrs = 'v1.51'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --  INIT -------------------------------------------------
@@ -56,8 +40,7 @@
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
     dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_trackfunc.lua")
     dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua")
-    dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua")
-    dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_PAT.lua")    
+    dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua")  
     dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua")  
     dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua")  
   end  

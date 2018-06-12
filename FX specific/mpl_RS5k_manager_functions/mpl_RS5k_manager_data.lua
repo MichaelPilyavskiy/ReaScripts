@@ -44,6 +44,7 @@
       if not data[MIDIpitch] then data[MIDIpitch] = {} end
       local int_col = GetTrackColor( tr )
       if int_col == 0 then int_col = nil end
+      local MIDI_name = GetTrackMIDINoteNameEx( 0, tr, MIDIpitch, 1)
       data[MIDIpitch] [#data[MIDIpitch]+1] = {rs5k_pos = fxid-1,
                         pitch    =math.floor(({TrackFX_GetFormattedParamValue( tr, fxid-1, 3, '' )})[2]),
                         MIDIpitch_normal =        TrackFX_GetParamNormalized( tr, fxid-1, 3),
@@ -62,20 +63,49 @@
                         rel =              TrackFX_GetParamNormalized( tr, fxid-1,10),
                         rel_ms =         ({TrackFX_GetFormattedParamValue( tr, fxid-1, 10, '' )})[2],   
                         sample = fn ,
+                        sample_short =    GetShortSmplName(fn),
                         GUID =            TrackFX_GetFXGUID( tr, fxid-1 ) ,
                         src_track = tr  ,
                         src_track_col = int_col,
                         offset_start =      TrackFX_GetParamNormalized( tr, fxid-1, 13)   ,      
                         offset_end =      TrackFX_GetParamNormalized( tr, fxid-1, 14)   ,    
-                        bypass_state =    TrackFX_GetEnabled(tr, fxid-1)                                                    
+                        bypass_state =    TrackFX_GetEnabled(tr, fxid-1)   , 
+                        MIDI_name =        MIDI_name                 
                         }
       ::skipFX::
     end  
+    -- force solo state
+    local glob_bypass_state_cnt = 0
+    local glob_sol
+    for MIDIpitch =0, 128 do
+      if data[MIDIpitch] then
+      
+        if data[MIDIpitch][1] and data[MIDIpitch][1].bypass_state == true then
+          glob_bypass_state_cnt  = glob_bypass_state_cnt+1
+          glob_sol = MIDIpitch
+        end
+        
+        local bypass_state_cnt = 0
+        local sol_spl
+        for spl = 1, #data[MIDIpitch] do
+          if data[MIDIpitch][spl].bypass_state == true then 
+            bypass_state_cnt  = bypass_state_cnt+1
+            sol_spl = spl
+          end
+        end
+        if bypass_state_cnt == 1 and sol_spl and #data[MIDIpitch] > 1 then
+          data[MIDIpitch][sol_spl].solo_state = true
+        end
+      end
+    end
+    if glob_bypass_state_cnt == 1 and glob_sol and #data>1  then  data[glob_sol].solo_state = true end
+    
+    
   end
   
   ---------------------------------------------------
-  function SetRS5kData(data, conf, track, note) 
-    local spl_id = 1
+  function SetRS5kData(data, conf, track, note, spl_id) 
+    if not spl_id then spl_id = 1 end
     if data[note][spl_id] then 
         local rs5k_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -1 )                
         TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'FILE0', data[note][spl_id].sample)
@@ -118,53 +148,13 @@
     end
     return str
   end
-  ---------------------------------------------------
-  function DefineParentTrack(conf, data, refresh)
-    local tr = GetSelectedTrack(0,0)
-    if not tr then return end
-    
-    data.parent_track = tr 
-    data.parent_track_GUID = GetTrackGUID( tr )    
-    GetSetMediaTrackInfo_String( data.parent_track, 'P_NAME', conf.parent_tr_name, 1 ) -- hard link to name
-    
-    BuildTrackTemplate_MIDISendMode(conf, data, refresh)
-    
-    refresh.data = true
-    refresh.conf = true
-    refresh.GUI_onStart = true
-    refresh.projExtData = true                     
-  end
-  ---------------------------------------------------
-  function Data_ValidateTrackConfig(conf, obj, data, refresh, mouse, pat)
-    
-    do return end
-    -- check parent track
-    local c = data.parent_track 
-              and ValidatePtr2( 0, data.parent_track, 'MediaTrack*' )
-              and data.parent_track_GUID
-              and BR_GetMediaTrackByGUID(0,data.parent_track_GUID)
-              and ValidatePtr2( 0, BR_GetMediaTrackByGUID(0,data.parent_track_GUID), 'MediaTrack*' )
-      
-      if c == false then 
-        data.parent_track = nil
-        data.parent_track_GUID = nil         
-       else         
-         if data.parent_track and GetSetMediaTrackInfo_String( data.parent_track, 'P_NAME', '', 0 ) == conf.parent_tr_name and conf.global_mode==1 or conf.global_mode==2 then
-           BuildTrackTemplate_MIDISendMode(conf, data, refresh)
-         end  
-        return true
-      end 
-      
-      
-          
-  end
+
   ---------------------------------------------------
   function Data_Update(conf, obj, data, refresh, mouse, pat)
     local tr = GetSelectedTrack(0,0)
     if not tr  then return end
     data.parent_track = tr
     GetRS5kData(data, tr)
-    GetNoteNames(data, tr)
     for sid = 1,  GetTrackNumSends( tr, 0 ) do
       local srcchan = GetTrackSendInfo_Value( tr, 0, sid-1, 'I_SRCCHAN' )
       local dstchan = GetTrackSendInfo_Value( tr, 0, sid-1, 'I_DSTCHAN' )
@@ -172,146 +162,15 @@
       if srcchan == -1 and dstchan ==0 and midiflags == 0 then
         local desttr = BR_GetMediaTrackSendInfo_Track( tr, 0, sid-1, 1 )
         GetRS5kData(data, desttr)
-        GetNoteNames(data, desttr)
       end
     end
   end 
-  ---------------------------------------------------  
-  function GetNoteNames(data, tr)
-    for pitch = 0, 128 do
-      if not data[pitch] then data[pitch] = {} end
-      local name = GetTrackMIDINoteNameEx( 0, tr, pitch, 1)
-      local out_name
-      if name and name ~= pitch then
-        if data[pitch] and data[pitch][1] then
-          for i = 1, #data[pitch] do
-            local sh_name =  GetShortSmplName(data[pitch][i].sample)
-            if sh_name:match(literalize(name)) then goto skip_next_note end
-          end
-         else
-          out_name = name
-        end
-      end
-      if out_name then data[pitch].MIDInotename = out_name end
-      ::skip_next_note::
-    end
-  end
-  ---------------------------------------------------
-    --[[local ret = Data_ValidateTrackConfig(conf, obj, data, refresh, mouse, pat) 
-    if not ret then return end
-    
-    -- do stuff
-    local tr = data.parent_track
-    if not tr then return end
-    local temp = {}
-    local p_offs = {}    
-    ---------    
-    if conf.global_mode == 0 then
-      GetSetMediaTrackInfo_String( tr, 'P_NAME', conf.parent_tr_name, 1 )
-      local ex = false
-      if ex and conf.prepareMIDI == 1 then MIDI_prepare(tr)   end
-      for i =1, #temp do 
-        if not data[ temp[i].pitch]  then data[ temp[i].pitch] = {} end
-        data[ temp[i].pitch][#data[ temp[i].pitch]+1] = temp[i] 
-      end
-    end
-    ---------   
-    if conf.global_mode==1   then
-      
-      local ex = false
-      local tr_id = CSurf_TrackToID( tr, false )      
-      if GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' ) == 1 then      
-        for i = tr_id+1, CountTracks(0) do
-          local child_tr =  GetTrack( 0, i-1 )
-          if ({GetSetMediaTrackInfo_String(child_tr, 'P_NAME', '', false)})[2] == MIDItr_name then data.parent_trackMIDI = child_tr end
-          local lev = GetMediaTrackInfo_Value( child_tr, 'I_FOLDERDEPTH')
-          GetRS5kData(child_tr,temp,p_offs)   
-          if lev < 0 then break end
-        end
-      end
-      ---------- add from stored data
-      for i =1, #temp do 
-        if not data[ temp[i].pitch]  then data[ temp[i].pitch] = {} end
-        data[ temp[i].pitch][#data[ temp[i].pitch]+1] = temp[i] 
-      end        
-    end
-    ----------
-    if conf.global_mode==2   then
-      GetSetMediaTrackInfo_String( tr, 'P_NAME', conf.parent_tr_name, 1 )
-      local ex = false
-      local tr_id = CSurf_TrackToID( tr, false )
-      --if GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' ) == 1 then      
-        for i = tr_id, CountTracks(0) do
-          local child_tr =  GetTrack( 0, i-1 )
-          if ({GetSetMediaTrackInfo_String(child_tr, 'P_NAME', '', false)})[2] == MIDItr_name then data.parent_trackMIDI = child_tr end
-          local lev = GetMediaTrackInfo_Value( child_tr, 'I_FOLDERDEPTH' )
-          if lev < 0 then break end
-          GetRS5kData(child_tr,temp,p_offs)   
-      
-        end
-      --end
-      ---------- add from stored data
-      for i =1, #temp do 
-        if not data[ temp[i].pitch]  then data[ temp[i].pitch] = {} end
-        data[ temp[i].pitch][#data[ temp[i].pitch]+1] = temp[i] 
-      end        
-    end
-    ------------------------    
-    local is_diff = false
-    local last_val
-    for i = 1, #p_offs do 
-      if last_val and last_val ~= p_offs[i] then is_diff = true break end
-      last_val = p_offs[i]
-    end
-    if is_diff then data.global_pitch_offset = 0.5 else data.global_pitch_offset = last_val end]]
-  ---------------------------------------------------
-  function GetDestTrackByNote(data, conf, main_track, note, insert_new)
-    if not main_track then return end
-    local tr_id = CSurf_TrackToID( main_track, false ) - 1
-    local ex = false
-    local last_id
-    
-    -- search track
-    if GetMediaTrackInfo_Value( main_track, 'I_FOLDERDEPTH' ) == 1 then
-      for i = tr_id+1, CountTracks(0) do        
-        local child_tr =  GetTrack( 0, i-1 )
-        local lev = GetMediaTrackInfo_Value( child_tr, 'I_FOLDERDEPTH' )
-        for fxid = 1,  TrackFX_GetCount( child_tr ) do
-          local retval, buf =TrackFX_GetFXName( child_tr, fxid-1, '' )
-          if buf:lower():match('rs5k') or buf:lower():match(conf.preview_name) then
-            local cur_pitch = TrackFX_GetParamNormalized( child_tr, fxid-1, 3 )
-            if math_q_dec(cur_pitch, 5) == math_q_dec(note/127,5) then
-              ex = true   
-              return child_tr
-            end              
-          end
-        end
-        if lev < 0 then 
-          last_id = i-1
-          break 
-        end
-      end   
-    end
-      
-    -- insert new if not exists
-    if not ex and insert_new then  
-      local insert_id
-      if last_id then insert_id = last_id+1 else insert_id = tr_id+1 end
-      local new_ch = InsertTrack(insert_id)  
-      -- set params 
-      --MIDI_prepare(new_ch, true)
-      SetMediaTrackInfo_Value( GetTrack(0, CSurf_TrackToID(new_ch,false)-2), 'I_FOLDERDEPTH',0 )
-      --SetMediaTrackInfo_Value( new_ch, 'I_FOLDERDEPTH',-1 )
-      if conf.global_mode == 1 then CreateMIDISend(data, new_ch) end
-      return new_ch
-    end
-  end
-  
+
   ---------------------------------------------------------------------------------------------------------------------
-  function GetPeaks(data, note)
-    if note and data[note] and data[note][1] then   
-      local file_name = data[note][1].sample
-      local src = PCM_Source_CreateFromFileEx( data[note][1].sample, true )
+  function GetPeaks(data, note, spl)
+    if note and data[note] and data[note][spl] then   
+      local file_name = data[note][spl].sample
+      local src = PCM_Source_CreateFromFileEx( data[note][spl].sample, true )
       if not src then return end
       local peakrate = 5000
       local src_len =  GetMediaSourceLength( src )

@@ -132,53 +132,7 @@
       reaper.SetTrackStateChunk( track, out_chunk, false )
       reaper.UpdateArrange()
   end
-  ----------------------------------------------------------------------------
-  function Preview_Key(data,conf,refresh, p, refresh) 
-    if conf.global_mode ==0 then -- single track multiple instances                                         
-      ExportItemToRS5K(data,conf,refresh, p, 0, _, 1)
-    end
-  
-    if conf.global_mode == 1 then -- use track as folder
-      --BuildTrackTemplate_MIDISendMode(conf, data, refresh)
-      ExportItemToRS5K(data,conf,refresh, p, 0, data.parent_trackMIDI, 1)
-    end
-  
-    if conf.global_mode == 2 then -- dump mode, use parent track
-      --BuildTrackTemplate_MIDISendMode(conf, data, refresh)
-      ExportItemToRS5K(data,conf,refresh, p, 0,data.parent_track, 1)
-    end
-    
-    StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), 0,100)
-    StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), 0,100)
-    
-  end
-  -----------------------------------------------------------------------  
-  function BuildTrackTemplate_MIDISendMode(conf, data, refresh)
-    if not data.parent_track then return end
-    
-    if conf.global_mode == 1 then
-      if      not data.parent_trackMIDI 
-          or  not ValidatePtr2( 0, data.parent_trackMIDI, 'MediaTrack*' )  then
-          
-        data.parent_trackMIDI = InsertTrack(CSurf_TrackToID( data.parent_track, false ))
-        data.parent_trackMIDI_GUID = GetTrackGUID( data.parent_trackMIDI )
-        GetSetMediaTrackInfo_String(data.parent_trackMIDI, 'P_NAME', conf.MIDItr_name, true)
-        ExplodeRS5K_AddChunkToTrack(data.parent_trackMIDI)
-        MIDI_prepare(data.parent_trackMIDI)
-        SetOnlyTrackSelected(data.parent_trackMIDI)
-        refresh.projExtData = true
-      end
-    end
 
-    -- if not folder then create preview channel and set to folder
-    local par_depth = GetMediaTrackInfo_Value( data.parent_track, 'I_FOLDERDEPTH')
-    if conf.global_mode == 1 or conf.global_mode == 2 and (par_depth <=0) then 
-      SetMediaTrackInfo_Value( data.parent_track, 'I_FOLDERDEPTH',1 ) 
-    end
-        
-    if conf.global_mode == 0 or conf.global_mode == 2 then  MIDI_prepare(data.parent_track)  end
-    
-  end
   --------------------------------------------------
   function CreateMIDISend(data, new_ch)
     local send_id = CreateTrackSend( data.parent_trackMIDI, new_ch)
@@ -196,46 +150,63 @@
         TrackFX_SetNamedConfigParm(  track, data[note][1].rs5k_pos, 'FILE0', filepath)
         TrackFX_SetNamedConfigParm(  track, data[note][1].rs5k_pos, 'DONE', '')  
        else
-        --todo
+        ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, end_offs, track)        
       end
      else
-      local rs5k_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -1 )
-      TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'FILE0', filepath)
-      TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'DONE', '')      
-      TrackFX_SetParamNormalized( track, rs5k_pos, 2, 0) -- gain for min vel
-      TrackFX_SetParamNormalized( track, rs5k_pos, 3, note/128 ) -- note range start
-      TrackFX_SetParamNormalized( track, rs5k_pos, 4, note/128 ) -- note range end
-      TrackFX_SetParamNormalized( track, rs5k_pos, 5, 0.5 ) -- pitch for start
-      TrackFX_SetParamNormalized( track, rs5k_pos, 6, 0.5 ) -- pitch for end
-      TrackFX_SetParamNormalized( track, rs5k_pos, 8, 0 ) -- max voices = 0
-      TrackFX_SetParamNormalized( track, rs5k_pos, 9, 0 ) -- attack
-      TrackFX_SetParamNormalized( track, rs5k_pos, 11, 0 ) -- obey note offs
-      if start_offs and end_offs then
-        TrackFX_SetParamNormalized( track, rs5k_pos, 13, start_offs ) -- attack
-        TrackFX_SetParamNormalized( track, rs5k_pos, 14, end_offs ) -- obey note offs      
-      end
+       ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, end_offs, track)
     end
     
   end
-  
   ----------------------------------------------------------------------- 
-  function SetRS5KParam(data, conf, param, value, linked_note)
+  function ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, end_offs, track)
+    local rs5k_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -1 )
+    TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'FILE0', filepath)
+    TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'DONE', '')      
+    TrackFX_SetParamNormalized( track, rs5k_pos, 2, 0) -- gain for min vel
+    TrackFX_SetParamNormalized( track, rs5k_pos, 3, note/128 ) -- note range start
+    TrackFX_SetParamNormalized( track, rs5k_pos, 4, note/128 ) -- note range end
+    TrackFX_SetParamNormalized( track, rs5k_pos, 5, 0.5 ) -- pitch for start
+    TrackFX_SetParamNormalized( track, rs5k_pos, 6, 0.5 ) -- pitch for end
+    TrackFX_SetParamNormalized( track, rs5k_pos, 8, 0 ) -- max voices = 0
+    TrackFX_SetParamNormalized( track, rs5k_pos, 9, 0 ) -- attack
+    TrackFX_SetParamNormalized( track, rs5k_pos, 11, 0 ) -- obey note offs
+    if start_offs and end_offs then
+      TrackFX_SetParamNormalized( track, rs5k_pos, 13, start_offs ) -- attack
+      TrackFX_SetParamNormalized( track, rs5k_pos, 14, end_offs ) -- obey note offs      
+    end  
+  end
+  ----------------------------------------------------------------------- 
+  function SetRS5KParam(data, conf, param, value, linked_note, linked_spl)
     if not data.parent_track then return end
-    if not linked_note or not data[linked_note]then return end 
     
-    for i = 1, #data[linked_note] do
-      if param >= 0 then
-        TrackFX_SetParamNormalized( data[linked_note][i].src_track, data[linked_note][i].rs5k_pos, param, lim(value))
-       elseif param == -2 then
-        TrackFX_SetEnabled(data[linked_note][i].src_track, data[linked_note][i].rs5k_pos, value )
+    if conf.allow_multiple_spls_per_pad == 0 then
+      if not linked_spl then linked_spl = 1 end
+      SetRS5KParam_Sub(data, conf, param, value, linked_note, linked_spl)
+     else
+      if linked_spl then 
+        SetRS5KParam_Sub(data, conf, param, value, linked_note, linked_spl)
+       else
+        for linked_spl = 1, #data[linked_note] do
+          SetRS5KParam_Sub(data, conf, param, value, linked_note, linked_spl)
+        end
       end
     end
   end
+  function SetRS5KParam_Sub(data, conf, param, value, linked_note, linked_spl)
+      if linked_note and linked_spl and data[linked_note] and data[linked_note][linked_spl] then 
+        if param >= 0 then
+          TrackFX_SetParamNormalized( data[linked_note][linked_spl].src_track, data[linked_note][linked_spl].rs5k_pos, param, lim(value))
+         elseif param == -2 then
+          TrackFX_SetEnabled(data[linked_note][linked_spl].src_track, data[linked_note][linked_spl].rs5k_pos, value )
+        end
+      end  
+  end
   ----------------------------------------------------------------------- 
-  function ShowRS5kChain(data, conf, note)
+  function ShowRS5kChain(data, conf, note, spl)
     if not data[note] or not data[note][1] then return end
-    
-    if data[note][1].src_track == data.parent_track then
+    if not spl then spl = 1 end
+    if not data[note][spl] then return end
+    if data[note][spl].src_track == data.parent_track then
       local ret = MB('Create MIDI send routing for this sample?', conf.scr_title, 4)
       if ret == 6  then
         local tr_id = CSurf_TrackToID( data.parent_track, false )
@@ -245,12 +216,13 @@
         SetTrackSendInfo_Value( data.parent_track, 0, send_id, 'I_SRCCHAN' , -1 )
         SetTrackSendInfo_Value( data.parent_track, 0, send_id, 'I_DSTCHAN' , 0 )
         SetTrackSendInfo_Value( data.parent_track, 0, send_id, 'I_MIDIFLAGS' , 0 )
-        SNM_MoveOrRemoveTrackFX( data.parent_track, data[note][1].rs5k_pos, 0 )
-        SetRS5kData(data, conf, new_tr, note)
+        SNM_MoveOrRemoveTrackFX( data.parent_track, data[note][spl].rs5k_pos, 0 )
+        SetRS5kData(data, conf, new_tr, note, spl)
+        GetSetMediaTrackInfo_String( new_tr, 'P_NAME', data[note][spl].sample_short, 1 )
         TrackList_AdjustWindows( false )
         TrackFX_Show( new_tr, 0, 1 )
       end
      else
-      TrackFX_Show( data[note][1].src_track, 0, 1 )
+      TrackFX_Show( data[note][spl].src_track, 0, 1 )
     end
   end

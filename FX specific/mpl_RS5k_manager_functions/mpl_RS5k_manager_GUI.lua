@@ -24,11 +24,13 @@
     local w = obj.WF_w
     local h = obj.kn_h 
     local cur_note = obj.current_WFkey
-    if cur_note and data[cur_note] and data[cur_note][1] and not ( data[cur_note][1].offset_end == 1 and data[cur_note][1].offset_start ==0) then
+    local cur_spl = obj.current_WFspl
+    if cur_note and data[cur_note] and data[cur_note][cur_spl] and 
+      not ( data[cur_note][cur_spl].offset_end == 1 and data[cur_note][cur_spl].offset_start ==0) then
       
-      local x_sel = w*data[cur_note][1].offset_start+obj.keycntrlarea_w
+      local x_sel = w*data[cur_note][cur_spl].offset_start+obj.keycntrlarea_w
       local y_sel =  0
-      local w_sel = w*data[cur_note][1].offset_end - w*data[cur_note][1].offset_start
+      local w_sel = w*data[cur_note][cur_spl].offset_end - w*data[cur_note][cur_spl].offset_start
       local h_sel = 2--h-1
       --gfx.muladdrect(x_sel,y_sel,w_sel,h_sel,1,1,1,2.5,0,0,0,0 )
       gfx.set(1,1,1,0.6)
@@ -40,23 +42,27 @@
     local w = obj.WF_w
     local h = obj.kn_h
     -- WF
-      if obj.current_WFkey and data[obj.current_WFkey] and data[obj.current_WFkey][1] and data[obj.current_WFkey][1].src_track_col then
-        --col(obj, data[obj.current_WFkey][1].src_track_col)
-        local int_col = data[obj.current_WFkey][1].src_track_col
+      if obj.current_WFkey 
+          and obj.current_WFspl 
+          and data[obj.current_WFkey] 
+          and data[obj.current_WFkey][obj.current_WFspl] 
+          and data[obj.current_WFkey][obj.current_WFspl].src_track_col 
+          then
+        local int_col = data[obj.current_WFkey][obj.current_WFspl].src_track_col
         local r, g, b = ColorFromNative( int_col )
                   if GetOS():match('Win') then gfx.set(r/255,g/255,b/255, 0.2)
                    else gfx.set(b/255,g/255,r/255,  0.2)     end
        else
-        col(obj, 'green', 0.15)
+        col(obj, 'green', 0.2)
       end
       gfx.x, gfx.y = 0, h
-      step = (obj.WF_w / #data.current_spl_peaks)*10
+      local step = lim(w/#data.current_spl_peaks, 0.1,0.2)
       local last_x, cnt = nil, #data.current_spl_peaks
       for i = 1, cnt, step do 
-        val = math.abs(data.current_spl_peaks[math.floor(i)])
-        x = math.floor(w*i / cnt )
-        y = h/2 --h-h*val 
-        h0 =  h*val
+        local val = math.abs(data.current_spl_peaks[math.floor(i)])
+        local x = math.floor(w*i / cnt )
+        local y = h/2 --h-h*val 
+        local h0 =  h*val
         gfx.rect(x,y,math.ceil(w/#data.current_spl_peaks),h0, 1)  
         gfx.rect(x,h/2-h*val+1,math.ceil(w/#data.current_spl_peaks),h0, 1)
       end 
@@ -504,7 +510,7 @@
             GUI_DrawWF_edges(obj, data)    
         -- WF
           if refresh.GUI_WF then
-            GetPeaks(data, obj.current_WFkey)
+            GetPeaks(data, obj.current_WFkey, obj.current_WFspl)
             gfx.setimgdim(6, -1, -1)  
             gfx.setimgdim(6, obj.WF_w,obj.WF_h) 
             if data.current_spl_peaks then 
