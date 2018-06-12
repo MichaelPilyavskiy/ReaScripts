@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.51
+-- @version 1.52
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -9,16 +9,9 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    # GUI: improve small waveforms alpha channel
---    # GUI: improve solo states displaying
---    # fix proper read MIDI note names
---    + Allow to have more than one sample per pad (Layering mode)
---    + Mute/Solo controls for Layering mode
---    + Splitting FX chain respect sample selection in Layering mode
---    + Rename track when splitting FX chain
---    + Add key names only option
+--    # fix adding sample error
   
-  local vrs = 'v1.51'
+  local vrs = 'v1.52'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --  INIT -------------------------------------------------

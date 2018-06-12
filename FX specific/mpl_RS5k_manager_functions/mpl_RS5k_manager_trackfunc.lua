@@ -133,18 +133,12 @@
       reaper.UpdateArrange()
   end
 
-  --------------------------------------------------
-  function CreateMIDISend(data, new_ch)
-    local send_id = CreateTrackSend( data.parent_trackMIDI, new_ch)
-    SetTrackSendInfo_Value( data.parent_trackMIDI, 0, send_id, 'I_SRCCHAN' , -1 )
-    SetTrackSendInfo_Value( data.parent_trackMIDI, 0, send_id, 'I_MIDIFLAGS' , 0 )
-  end
   ---------------------------------------------------
   function ExportItemToRS5K(data,conf,refresh,note,filepath, start_offs, end_offs)
     if not data.parent_track or not note or not filepath then return end
     local track = data.parent_track
     
-    if data[note][1] then 
+    if data[note] and data[note][1] then 
       track = data[note][1].src_track
       if conf.allow_multiple_spls_per_pad == 0 then
         TrackFX_SetNamedConfigParm(  track, data[note][1].rs5k_pos, 'FILE0', filepath)
