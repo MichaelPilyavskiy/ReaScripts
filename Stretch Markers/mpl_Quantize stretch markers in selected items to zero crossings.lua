@@ -1,9 +1,9 @@
 -- @description Quantize stretch markers in selected items to zero crossings
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    # compensate content move
 
   -- NOT gfx NOT reaper
   local scr_title = 'Quantize stretch markers in selected items to zero crossings'
@@ -71,7 +71,8 @@
             local loopcnt = lim(spl+search_area, 0,#peaks_t)
             for spl2 =spl , loopcnt  do
               if math.abs(peaks_t[spl2].val) < 0.1 then
-                SetTakeStretchMarker( take, i-1, sm_t[i].pos, peaks_t[spl2].pos )
+                local srcpos_new = peaks_t[spl2].pos
+                SetTakeStretchMarker( take, i-1, sm_t[i].pos + ( srcpos_new - sm_t[i].src_pos), srcpos_new )
                 break
               end
             end
