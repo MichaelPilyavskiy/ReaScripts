@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.52
+-- @version 1.53
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -9,9 +9,9 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    # fix adding sample error
+--    # fix checking Various_functions
   
-  local vrs = 'v1.52'
+  local vrs = 'v1.53'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --  INIT -------------------------------------------------
@@ -106,7 +106,7 @@
       dofile(SEfunc_path)
       
       if not _G[str_func] then 
-        MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
+        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
        else
         Main_RefreshExternalLibs()
         ExtState_Load(conf)  
