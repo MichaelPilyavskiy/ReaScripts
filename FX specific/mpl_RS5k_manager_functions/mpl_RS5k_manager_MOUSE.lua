@@ -49,7 +49,7 @@
    
      
      -- buttons
-       for key in spairs(obj) do
+       for key in spairs(obj,function(t,a,b) return b < a end) do
          if type(obj[key]) == 'table' and not obj[key].ignore_mouse then
            ------------------------
            MOUSE_Match(mouse, obj[key])
@@ -59,14 +59,20 @@
                                and not mouse.last_LMB_state 
                                and not mouse.Ctrl_state  
                                and MOUSE_Match(mouse, obj[key]) 
-           if mouse.onclick_L and obj[key].func then obj[key].func() end
                  ------------------------
            mouse.onDclick_L = mouse.LMB_state 
                                and not mouse.last_LMB_state 
                                and not mouse.Ctrl_state  
                                and mouse.DLMB_state 
                                and MOUSE_Match(mouse, obj[key]) 
-           if mouse.onDclick_L and obj[key].func_DC then obj[key].func_DC() end
+           if mouse.onDclick_L and obj[key].func_DC then 
+              obj[key].func_DC() 
+              goto skip_mouse_obj 
+            end
+           if mouse.onclick_L and obj[key].func then 
+              obj[key].func() 
+              goto skip_mouse_obj 
+            end
                  ------------------------
            mouse.ondrag_L = -- left drag (persistent even if not moving)
                                mouse.LMB_state 
@@ -113,6 +119,7 @@
          end
        end
        
+       ::skip_mouse_obj::
            
      -- mouse release    
        if mouse.last_LMB_state and not mouse.LMB_state   then          

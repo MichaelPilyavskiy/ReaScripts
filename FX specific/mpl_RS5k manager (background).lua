@@ -1,17 +1,17 @@
 -- @description RS5k manager
--- @version 1.54
+-- @version 1.55
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
---    mpl_RS5k_manager_functions/mpl_RS5k_manager_trackfunc.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    # fix error on drawing peaks
+--    # fix solo logic
+--    # different mouse improvements
   
-  local vrs = 'v1.54'
+  local vrs = 'v1.55'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --  INIT -------------------------------------------------
@@ -24,14 +24,13 @@
                     conf = false}
   local mouse = {}
   local obj = {}
-  local data = {}
+   data = {}
         
   ---------------------------------------------------  
   
   function Main_RefreshExternalLibs()     -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
-    dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_trackfunc.lua")
     dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua")
     dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua")  
     dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua")  

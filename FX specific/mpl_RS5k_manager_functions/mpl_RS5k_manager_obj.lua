@@ -178,7 +178,8 @@
                       fontsz = obj.GUI_fontsz3-2,
                       alpha_back =alpha_back,
                       func =  function() 
-                                  SetRS5KParam(data, conf, -2, not data[cur_note][cur_spl].bypass_state, cur_note, cur_spl)  
+                                  data[cur_note][cur_spl].bypass_state = not data[cur_note][cur_spl].bypass_state
+                                  SetRS5kData(data, conf, data[cur_note][1].src_track, cur_note, cur_spl)
                                   refresh.GUI = true
                                   refresh.data = true
                                 end}
@@ -201,10 +202,14 @@
                       fontsz = obj.GUI_fontsz3-2,
                       alpha_back =alpha_back,
                       func =  function() 
+                                  local solo_state = data[cur_note][cur_spl].solo_state == true
                                   for id_spl = 1, #data[cur_note] do
-                                    if id_spl ~= cur_spl then
-                                      SetRS5KParam(data, conf, -2, not data[cur_note][id_spl].bypass_state, cur_note, id_spl)
+                                    if id_spl == cur_spl then
+                                      data[cur_note][id_spl].bypass_state = true
+                                     else
+                                      data[cur_note][id_spl].bypass_state =  solo_state
                                     end
+                                    SetRS5kData(data, conf, data[cur_note][id_spl].src_track, cur_note, id_spl)
                                   end
                                   refresh.GUI = true
                                   refresh.data = true
@@ -218,7 +223,9 @@
         ---------- gain ----------
         local gain_val = data[cur_note][cur_spl].gain / 2
         local gain_txt
-        if mouse.context_latch and mouse.context_latch == 'splctrl_gain' then 
+        if (mouse.context_latch and mouse.context_latch == 'splctrl_gain') 
+          --or (mouse.context and mouse.context =='splctrl_gain') 
+          then 
           gain_txt  = data[cur_note][cur_spl].gain_dB..'dB'   
          else   
           gain_txt = 'Gain'    
@@ -245,20 +252,23 @@
                           if not mouse.context_latch_val then return end
                           local out_val = lim(mouse.context_latch_val - mouse.dy/200, 0, 2)
                           if not out_val then return end
-                          SetRS5KParam(data, conf, 0, out_val, cur_note, cur_spl)
+                          data[cur_note][cur_spl].gain  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.data = true 
                           refresh.GUI = true 
                         end,
               func_wheel = function()
                           local out_val = lim(data[cur_note][cur_spl].gain  + mouse.wheel_trig/wheel_ratio, 0, 2)
                           if not out_val then return end
-                          SetRS5KParam(data, conf, 0, out_val, cur_note, cur_spl)
+                          data[cur_note][cur_spl].gain  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end,
                         
               func_DC = function ()
-                          SetRS5KParam(data, conf, 0, 0.5, cur_note, cur_spl)
+                          data[cur_note][cur_spl].gain  = 0.5
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end
@@ -266,7 +276,9 @@
         ---------- pan ----------                          
         local pan_val = data[cur_note][cur_spl].pan 
         local pan_txt
-        if mouse.context_latch and mouse.context_latch == 'splctrl_pan' then 
+        if (mouse.context_latch and mouse.context_latch == 'splctrl_pan') 
+          --or (mouse.context and mouse.context == 'splctrl_pan')
+          then 
           pan_txt  = math.floor((-0.5+data[cur_note][cur_spl].pan)*200)
           if pan_txt < 0 then pan_txt = math.abs(pan_txt)..'%L' elseif pan_txt > 0 then pan_txt = math.abs(pan_txt)..'%R' else pan_txt = 'center' end
          else   pan_txt = 'Pan'    
@@ -294,26 +306,31 @@
                           if not mouse.context_latch_val then return end
                           local out_val = lim(mouse.context_latch_val - mouse.dy/200, 0, 1)
                           if not out_val then return end
-                          SetRS5KParam(data, conf, 1, out_val, cur_note, cur_spl)
+                          data[cur_note][cur_spl].pan  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
                           refresh.GUI = true 
                           refresh.data = true 
                         end,
               func_wheel = function()
                           local out_val = lim(data[cur_note][cur_spl].pan  + mouse.wheel_trig/wheel_ratio, 0, 2)
                           if not out_val then return end
-                          SetRS5KParam(data, conf, 1, out_val, cur_note, cur_spl)
+                          data[cur_note][cur_spl].pan  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end,                          
               func_DC = function () 
-                          SetRS5KParam(data, conf, 1, 0.5, cur_note, cur_spl)
+                          data[cur_note][cur_spl].pan  = 0.5
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end}        
         ---------- ptch ----------                          
         local pitch_val = data[cur_note][cur_spl].pitch_offset 
         local pitch_txt
-        if mouse.context_latch and (mouse.context_latch == 'splctrl_pitch1' or mouse.context_latch == 'splctrl_pitch2') then 
+        if    (mouse.context_latch and (mouse.context_latch == 'splctrl_pitch1' or mouse.context_latch == 'splctrl_pitch2')) 
+          --or  (mouse.context       and (mouse.context       == 'splctrl_pitch1' or mouse.context       == 'splctrl_pitch2')) 
+          then 
           pitch_txt  = data[cur_note][cur_spl].pitch_semitones else   pitch_txt = 'Pitch'    
         end                          
         obj.splctrl_pitch1 = { clear = true,
@@ -342,19 +359,22 @@
                           local out_val = lim(mouse.context_latch_val - mouse.dy/400, 0, 1)
                           if not out_val then return end
                           out_val = (math_q(out_val*160)+fract)/160
-                          SetRS5KParam(data, conf, 15, out_val, cur_note, cur_spl)
+                          data[cur_note][cur_spl].pitch_offset  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
                           refresh.GUI = true 
                           refresh.data = true 
                         end,
               func_wheel = function()
                           local out_val = lim(data[cur_note][cur_spl].pitch_offset  + mouse.wheel_trig/wheel_ratio, 0, 2)
                           if not out_val then return end
-                          SetRS5KParam(data, conf, 15, out_val, cur_note, cur_spl)
+                          data[cur_note][cur_spl].pitch_offset  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
                           refresh.GUI = true 
                           refresh.data = true 
                         end,                           
               func_DC = function () 
-                          SetRS5KParam(data, conf, 15, 0.5, cur_note, cur_spl)
+                          data[cur_note][cur_spl].pitch_offset  = 0.5
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
                           refresh.GUI = true 
                           refresh.data = true 
                         end}  
@@ -386,10 +406,17 @@
                           if not mouse.context_latch_val then return end
                           local out_val = lim(mouse.context_latch_val - mouse.dy/100000, 0, 1)
                           if not out_val then return end
-                          SetRS5KParam(data, conf, 15, out_val, cur_note, cur_spl)
+                          data[cur_note][cur_spl].pitch_offset  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
                           refresh.GUI = true 
                           refresh.data = true 
-                        end}   
+                        end,
+              func_DC = function () 
+                          data[cur_note][cur_spl].pitch_offset  = 0.5
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end                        }   
         ---------- attack ----------  
         local att_txt
         if mouse.context_latch and mouse.context_latch == 'splctrl_att' then 
@@ -420,19 +447,23 @@
                           local out_val = lim(mouse.context_latch_val^0.1666 - mouse.dy/300, 0, 1)
                           if not out_val then return end
                           out_val = out_val^6
-                          SetRS5KParam(data, conf, 9, out_val, cur_note, cur_spl)
+                          data[cur_note][cur_spl].attack  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end,
               func_wheel = function()
                           local out_val = lim(data[cur_note][cur_spl].attack^0.1666  + mouse.wheel_trig/wheel_ratio_log, 0, 2)
                           if not out_val then return end
-                          SetRS5KParam(data, conf, 9, out_val^6, cur_note, cur_spl)
+                          out_val = out_val^6
+                          data[cur_note][cur_spl].attack  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end,  
               func_DC = function ()
-                          SetRS5KParam(data, conf, 9, 0, cur_note, cur_spl)
+                          data[cur_note][cur_spl].attack  = 0
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end
@@ -467,19 +498,23 @@
                           local out_val = lim(mouse.context_latch_val^0.1666 - mouse.dy/1000, 0, 1)
                           if not out_val then return end
                           out_val = out_val^6
-                          SetRS5KParam(data, conf, 24, out_val, cur_note, cur_spl)
+                          data[cur_note][cur_spl].decay  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true
                           refresh.data = true
                         end,
               func_wheel = function()
                           local out_val = lim(data[cur_note][cur_spl].decay^0.1666  + mouse.wheel_trig/wheel_ratio_log, 0, 2)
                           if not out_val then return end
-                          SetRS5KParam(data, conf, 24, out_val^6, cur_note, cur_spl)
+                          out_val = out_val^6
+                          data[cur_note][cur_spl].decay  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end,  
               func_DC = function ()
-                          SetRS5KParam(data, conf, 24, 0.016, cur_note, cur_spl)
+                          data[cur_note][cur_spl].decay  = 0.016
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
                           refresh.GUI = true 
                           refresh.data = true 
                         end
@@ -513,19 +548,22 @@
                           if not mouse.context_latch_val then return end
                           local out_val = lim(mouse.context_latch_val - mouse.dy/200, 0, 2)
                           if not out_val then return end
-                          SetRS5KParam(data, conf, 25, out_val, cur_note, cur_spl)
+                          data[cur_note][cur_spl].sust  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end,
               func_wheel = function()
                           local out_val = lim(data[cur_note][cur_spl].sust  + mouse.wheel_trig/wheel_ratio, 0, 2)
                           if not out_val then return end
-                          SetRS5KParam(data, conf, 25, out_val, cur_note, cur_spl)
+                          data[cur_note][cur_spl].sust  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end,  
               func_DC = function ()
-                          SetRS5KParam(data, conf, 25, 0.5, cur_note, cur_spl)
+                          data[cur_note][cur_spl].sust  = 0.5
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end
@@ -560,19 +598,23 @@
                           local out_val = lim(mouse.context_latch_val^0.1666 - mouse.dy/300, 0, 1)
                           if not out_val then return end
                           out_val = out_val^6
-                          SetRS5KParam(data, conf, 10, out_val, cur_note, cur_spl)
+                          data[cur_note][cur_spl].rel  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end,
               func_wheel = function()
                           local out_val = lim(data[cur_note][cur_spl].rel^0.1666  + mouse.wheel_trig/wheel_ratio_log, 0, 2)
                           if not out_val then return end
-                          SetRS5KParam(data, conf, 10, out_val^6, cur_note, cur_spl)
+                          out_val = out_val^6
+                          data[cur_note][cur_spl].rel  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end, 
               func_DC = function ()
-                          SetRS5KParam(data, conf, 10, 0.0004, cur_note, cur_spl)
+                          data[cur_note][cur_spl].rel  = 0.0004
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
                           refresh.data = true 
                         end
@@ -608,17 +650,19 @@
                           local out_val = lim(mouse.context_latch_val - mouse.dy/2000, 0, 1)
                           if not out_val then return end
                           local diff = data[cur_note][cur_spl].offset_end - data[cur_note][cur_spl].offset_start
-                          SetRS5KParam(data, conf, 13, out_val, cur_note, cur_spl)
-                          SetRS5KParam(data, conf, 14, out_val+diff, cur_note, cur_spl)
+                          data[cur_note][cur_spl].offset_start  = out_val
+                          data[cur_note][cur_spl].offset_end  = out_val+diff
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true
                           refresh.data = true 
                         end,
               func_wheel = function()
-                          local out_val = lim(data[cur_note][cur_spl].offset_start  + mouse.wheel_trig/wheel_ratio, 0, 2)
+                          local out_val = lim(data[cur_note][cur_spl].offset_start  + mouse.wheel_trig/wheel_ratio, 0, 1)
                           if not out_val then return end
                           local diff = data[cur_note][cur_spl].offset_end - data[cur_note][cur_spl].offset_start
-                          SetRS5KParam(data, conf, 13, out_val, cur_note, cur_spl)
-                          SetRS5KParam(data, conf, 14, out_val+diff, cur_note, cur_spl)
+                          data[cur_note][cur_spl].offset_start  = out_val
+                          data[cur_note][cur_spl].offset_end  = out_val+diff
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
                           refresh.GUI = true 
                           refresh.data = true 
                         end,
@@ -626,8 +670,9 @@
               func_DC = function ()
                           out_val = 0
                           local diff = data[cur_note][cur_spl].offset_end - data[cur_note][cur_spl].offset_start
-                          SetRS5KParam(data, conf, 13, out_val, cur_note, cur_spl)
-                          SetRS5KParam(data, conf, 14, out_val+diff, cur_note, cur_spl)
+                          data[cur_note][cur_spl].offset_start  = out_val
+                          data[cur_note][cur_spl].offset_end  = out_val+diff
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
                           refresh.GUI = true 
                           refresh.data = true 
                         end
@@ -662,24 +707,25 @@
                           if not mouse.context_latch_val then return end
                           local out_val = lim(mouse.context_latch_val - mouse.dy/2000, 0, 1)
                           if not out_val then return end
-                          local diff = data[cur_note][cur_spl].offset_end - data[cur_note][cur_spl].offset_start
-                          SetRS5KParam(data, conf, 14, lim(out_val,data[cur_note][cur_spl].offset_start,1), cur_note, cur_spl)
+                          out_val = lim(out_val,data[cur_note][cur_spl].offset_start,1)
+                          data[cur_note][cur_spl].offset_end  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
                           refresh.GUI = true
                           refresh.data = true 
                         end,
               func_wheel = function()
-                          local out_val = lim(data[cur_note][cur_spl].offset_start  + mouse.wheel_trig/wheel_ratio, 0, 2)
+                          local out_val = lim(data[cur_note][cur_spl].offset_end  + mouse.wheel_trig/wheel_ratio, 0, 1)
                           if not out_val then return end
-                          local diff = data[cur_note][cur_spl].offset_end - data[cur_note][cur_spl].offset_start
-                          SetRS5KParam(data, conf, 14, lim(out_val,data[cur_note][cur_spl].offset_start,1), cur_note, cur_spl)
+                          out_val = lim(out_val,data[cur_note][cur_spl].offset_start,1)
+                          data[cur_note][cur_spl].offset_end  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
                           refresh.GUI = true 
                           refresh.data = true 
                         end,
                         
               func_DC = function ()
-                          out_val = 0
-                          local diff = data[cur_note][cur_spl].offset_end - data[cur_note][cur_spl].offset_start
-                          SetRS5KParam(data, conf, 14, lim(out_val,data[cur_note][cur_spl].offset_start,1), cur_note, cur_spl)
+                          data[cur_note][cur_spl].offset_end  = 1
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
                           refresh.GUI = true 
                           refresh.data = true 
                         end
@@ -1018,7 +1064,8 @@
                       fontsz = obj.GUI_fontsz3-2,
                       alpha_back =alpha_back,
                       func =  function() 
-                                  SetRS5KParam(data, conf, -2, not data[note][1].bypass_state, note)
+                                  data[note][1].bypass_state = not data[note][1].bypass_state
+                                  SetRS5kData(data, conf, data[note][1].src_track, note, 1)
                                   refresh.GUI = true
                                   refresh.data = true
                                 end}
@@ -1044,10 +1091,16 @@
                       is_but = true,
                       fontsz = obj.GUI_fontsz3-2,
                       alpha_back =alpha_back,
-                      func =  function() 
-                                  for id = 1, #data do
-                                    if id ~= note and data[id][1] then
-                                      SetRS5KParam(data, conf, -2, not data[id][1].bypass_state, id)
+                      func =  function()                                 
+                                  local solo_state = data[note].solo_state == true
+                                  for id in pairs(data) do
+                                    if id and type(id) == 'number' and data[id] and data[id][1] then
+                                      if id == note then 
+                                        data[id][1].bypass_state = true
+                                       else
+                                        data[id][1].bypass_state =  solo_state
+                                      end
+                                      SetRS5kData(data, conf, data[id][1].src_track, id, 1)
                                     end
                                   end
                                   refresh.GUI = true
