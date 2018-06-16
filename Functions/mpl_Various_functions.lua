@@ -2,10 +2,11 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.03
+-- @version 1.04
 -- @changelog
---    + BinaryCheck
---    + GetInput
+--    + Open_URL
+--    + gfx_ColHex
+--    # fix and improve NormalizeT
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
@@ -42,6 +43,8 @@
       end
       return copy
   end 
+-----------------------------------------------------------------------    
+ function Open_URL(url) if GetOS():match("OSX") then os.execute("open ".. url) else os.execute("start ".. url)  end  end  
   ------------------------------------------------------------------------------------------------------
   function WDL_DB2VAL(x) return math.exp((x)*0.11512925464970228420089957273422) end  --https://github.com/majek/wdl/blob/master/WDL/db2val.h
   --function dBFromVal(val) if val < 0.5 then return 20*math.log(val*2, 10) else return (val*12-6) end end
@@ -209,8 +212,22 @@
     --for k,v in spairs(conf, function(t,a,b) return b:lower() > a:lower() end) do SetExtState(conf.ES_key, k, conf[k], true) end  
   end
   ---------------------------------------------------------------------------------------------------------------------
-  function NormalizeT(t)
-    local m = 0 for i = 1, #t do m = math.max(math.abs(t[i]),m) end
+  function NormalizeT(t, key)
+    local m = 0 
+    for i = 1, #t do 
+      if not key then 
+        m = math.max(math.abs(t[i]),m) 
+       else
+        m = math.max(math.abs(t[i][key]),m) 
+      end
+    end
+    for i = 1, #t do 
+      if not key then
+        t[i] = t[i] / m 
+       else 
+        t[i][key] = t[i][key] / m 
+      end
+    end
   end 
   ---------------------------------------------------------------------------------------------------------------------
   function ScaleT(t, scaling)
@@ -389,3 +406,9 @@
       end
       return value
     end   
+    -----------------------------------------------------------
+    function gfx_ColHex(hex_str) -- https://gist.github.com/jasonbradley/4357406
+        local hex = hex_str:gsub("#","")
+        local r,g,b = tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
+        if GetOS():match('Win') then gfx.set(r/255,g/255,b/255) else gfx.set(b/255,g/255,r/255)     end        
+    end

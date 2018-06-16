@@ -192,7 +192,7 @@
       for i=1, spl_cnt do  peaks[#peaks+1] = buf[i]  end
       buf.clear()
       PCM_Source_Destroy( src )
-      NormalizeT(peaks, 1) 
+      NormalizeT(peaks) 
       --SmoothT(peaks, .9)
       --ScaleT(peaks, .9)
       data.current_spl_peaks = peaks
