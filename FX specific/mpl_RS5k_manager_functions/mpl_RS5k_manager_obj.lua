@@ -7,6 +7,7 @@
   ---------------------------------------------------
   function OBJ_init(obj)  
     -- size
+    obj.window = 0
     obj.reapervrs = tonumber(GetAppVersion():match('[%d%.]+')) 
     obj.offs = 5 
     obj.grad_sz = 200 
@@ -733,7 +734,7 @@
   end
 
     ---------------------------------------------------
-    function OBJ_GenKeys(conf, obj, data, refresh, mouse, pat)
+    function OBJ_GenKeys(conf, obj, data, refresh, mouse)
       local shifts,w_div ,h_div
       if conf.keymode ==0 then 
         w_div = 7
@@ -948,18 +949,19 @@
         if note_str then
           local txt = note_str..'\n\r'--..fn
           if data[note] and data[note][1] and data[note][1].MIDI_name and conf.key_names ~= 6 then txt = txt..data[note][1].MIDI_name end
-          if  key_w < obj.fx_rect_side*2.5 or key_h < obj.fx_rect_side*2 then txt = note end
+          if  key_w < obj.fx_rect_side*2.5 or key_h < obj.fx_rect_side*2.8 then txt = note end
           if  key_w < obj.fx_rect_side*1.5 or key_h < obj.fx_rect_side*1.5 then txt = '' end
           if note >= 0 and note <= 127 then
-            
-            OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, key_w, key_h, note,shifts, i, key_area_h)
+            local key_xpos = obj.keycntrlarea_w + shifts[i][1]*key_w  + 2
+            local key_ypos = gfx.h-key_area_h+ shifts[i][2]*key_h
+            OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos, key_w, key_h)
             -------------------------
             -- keys
             
-            obj['keys_p'..i] = 
+            obj['keys_p'..note] = 
                       { clear = true,
-                        x = obj.keycntrlarea_w+shifts[i][1]*key_w + obj.offs,
-                        y = gfx.h-key_area_h+ shifts[i][2]*key_h,
+                        x = key_xpos,
+                        y = key_ypos,
                         w = key_w-1,
                         h = key_h,
                         col = col,
@@ -976,6 +978,7 @@
                         aligh_txt = 5,
                         fontsz = obj.GUI_fontsz2,
                         func =  function() 
+                                  if not data.hasanydata then return end
                                   data.current_spl_peaks = nil
                                   if conf.keypreview == 1 then  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), note,100) end                                  
                                   obj.current_WFkey = note
@@ -1004,7 +1007,7 @@
               or  note%12 == 6 
               or  note%12 == 8 
               or  note%12 == 10 
-              then obj['keys_p'..i].txt_col = 'black' end
+              then obj['keys_p'..note].txt_col = 'black' end
               
               
           end
@@ -1014,45 +1017,30 @@
       
     end
     -------------------------------------------------------------
-  function OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, key_w, key_h, note, shifts, i, key_area_h)
+  function OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos, key_w, key_h, alignformixer)
     if not data[note] or not data[note][1] then return end
+    local i = note
+    local key_xpos = key_xpos -2
             ------------ctrl butts
-            -- FX  
-            local y_shift_butts = -1          
-            if key_h > obj.fx_rect_side and key_w > obj.fx_rect_side*3 then               
-              if conf.FX_buttons&(1<<2) == (1<<2) and conf.allow_multiple_spls_per_pad == 0 then 
-                y_shift_butts = y_shift_butts + 1
-                local  alpha_back = 0.01
-                if data[note] and data[note][1] and data[note][1].src_track ~= data.parent_track then alpha_back = 0.4 end
-                obj['keys_pFX'..i] = { clear = true,
-                      x = obj.keycntrlarea_w + shifts[i][1]*key_w + key_w - obj.fx_rect_side,-- - obj.offs,
-                      y = gfx.h-key_area_h + shifts[i][2]*key_h + obj.fx_rect_side*y_shift_butts,--+obj.offs,
-                      w = obj.fx_rect_side,
-                      h = obj.fx_rect_side,
-                      col = 'white',
-                      txt= 'FX',
-                      --aligh_txt = 16,
-                      show = true,
-                      is_but = true,
-                      fontsz = obj.GUI_fontsz3-2,
-                      alpha_back =alpha_back,
-                      func =  function() 
-                                  ShowRS5kChain(data, conf, note)
-                                  refresh.GUI = true
-                                  refresh.data = true
-                                end}
-              end
-            end
-
+            local y_shift_butts = 0 
+            if alignformixer then y_shift_butts = -1 end   
             -- mute            
-            if key_h > obj.fx_rect_side*2 and key_w > obj.fx_rect_side*3 then 
+            if key_h > obj.fx_rect_side*3 and key_w > obj.fx_rect_side*3 then 
               if conf.FX_buttons&(1<<3) == (1<<3) then 
                 y_shift_butts = y_shift_butts + 1
                 local  alpha_back = 0.01
                 if data[note] and data[note][1] and data[note][1].bypass_state == false then alpha_back = 0.4 end
+                local x_pos, y_pos = 0,0
+                if alignformixer then 
+                  x_pos = key_xpos
+                  y_pos = key_ypos + obj.fx_rect_side*y_shift_butts
+                 else
+                  x_pos = key_xpos + key_w - obj.fx_rect_side
+                  y_pos = key_ypos + key_h - obj.fx_rect_side*y_shift_butts
+                end
                 obj['keys_pMUTE'..i] = { clear = true,
-                      x = obj.keycntrlarea_w + shifts[i][1]*key_w + key_w - obj.fx_rect_side,-- - obj.offs,
-                      y = gfx.h-key_area_h + shifts[i][2]*key_h + obj.fx_rect_side*y_shift_butts,--+obj.offs,
+                      x = x_pos,
+                      y = y_pos,
                       w = obj.fx_rect_side,
                       h = obj.fx_rect_side,
                       col = 'red',
@@ -1073,14 +1061,22 @@
               end
               
             -- solo            
-            if key_h > obj.fx_rect_side*3 and key_w > obj.fx_rect_side*3 then 
+            if key_h > obj.fx_rect_side*2 and key_w > obj.fx_rect_side*3 then 
               if conf.FX_buttons&(1<<4) == (1<<4) then 
                 y_shift_butts = y_shift_butts + 1
                 local  alpha_back = 0.01
                 if data[note].solo_state then  alpha_back = 0.5 end
+                local x_pos, y_pos = 0,0
+                if alignformixer then 
+                  x_pos = key_xpos
+                  y_pos = key_ypos + obj.fx_rect_side*y_shift_butts
+                 else
+                  x_pos = key_xpos + key_w - obj.fx_rect_side
+                  y_pos = key_ypos + key_h - obj.fx_rect_side*y_shift_butts
+                end                
                 obj['keys_pSolo'..i] = { clear = true,
-                      x = obj.keycntrlarea_w + shifts[i][1]*key_w + key_w - obj.fx_rect_side,-- - obj.offs,
-                      y = gfx.h-key_area_h + shifts[i][2]*key_h + obj.fx_rect_side*y_shift_butts,--+obj.offs,
+                      x = x_pos,
+                      y = y_pos,
                       w = obj.fx_rect_side,
                       h = obj.fx_rect_side,
                       col = 'green',
@@ -1110,19 +1106,50 @@
               end              
             end
 
-
+            -- FX                    
+            if key_h > obj.fx_rect_side and key_w > obj.fx_rect_side*3 then               
+              if conf.FX_buttons&(1<<2) == (1<<2) and conf.allow_multiple_spls_per_pad == 0 then 
+                y_shift_butts = y_shift_butts + 1
+                local  alpha_back = 0.01
+                if data[note] and data[note][1] and data[note][1].src_track ~= data.parent_track then alpha_back = 0.4 end
+                if alignformixer then 
+                  x_pos = key_xpos
+                  y_pos = key_ypos + obj.fx_rect_side*y_shift_butts
+                 else
+                  x_pos = key_xpos + key_w - obj.fx_rect_side
+                  y_pos = key_ypos + key_h - obj.fx_rect_side*y_shift_butts
+                end                    
+                obj['keys_pFX'..i] = { clear = true,
+                      x = x_pos,
+                      y = y_pos,
+                      w = obj.fx_rect_side,
+                      h = obj.fx_rect_side,
+                      col = 'white',
+                      txt= 'FX',
+                      --aligh_txt = 16,
+                      show = true,
+                      is_but = true,
+                      fontsz = obj.GUI_fontsz3-2,
+                      alpha_back =alpha_back,
+                      func =  function() 
+                                  ShowRS5kChain(data, conf, note)
+                                  refresh.GUI = true
+                                  refresh.data = true
+                                end}
+              end
+            end
                               
   end
   ---------------------------------------------------
-  function OBJ_Update(conf, obj, data, refresh, mouse, pat) 
-    for key in pairs(obj) do 
-      if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
+  function OBJ_Update(conf, obj, data, refresh, mouse) 
+    for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
       local fx_per_pad if conf.allow_multiple_spls_per_pad == 1 then fx_per_pad = '#' else fx_per_pad = '' end
+      local keyareabut_h = (gfx.h -obj.kn_h-obj.samplename_h)/3
         obj.keys_octaveshiftL = { clear = true,
                     x = 0,
                     y = obj.kn_h+obj.samplename_h,
                     w = obj.keycntrlarea_w,
-                    h = 0.5*(gfx.h -obj.kn_h-obj.samplename_h),
+                    h = keyareabut_h,
                     col = 'white',
                     state = fale,
                     txt= '+',
@@ -1140,9 +1167,9 @@
                             end} 
         obj.keys_octaveshiftR = { clear = true,
                     x = 0,
-                    y = 0.5*(obj.kn_h+obj.samplename_h)+0.5*gfx.h,
+                    y = obj.kn_h+obj.samplename_h + keyareabut_h,
                     w = obj.keycntrlarea_w,
-                    h = 0.5*(gfx.h -obj.kn_h-obj.samplename_h),
+                    h = keyareabut_h-1,
                     col = 'white',
                     state = fale,
                     txt= '-',
@@ -1189,9 +1216,9 @@
                         end   
   }  ,                ]]
   { str = 'Donate to MPL',
-    func = function() F_open_URL('http://www.paypal.me/donate2mpl') end }  ,
+    func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
   { str = 'Cockos Forum thread|',
-    func = function() F_open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } , 
+    func = function() Open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } , 
   { str = '#Options'},    
   { str = '>Key names'},
   
@@ -1219,17 +1246,17 @@
               conf.FX_buttons = ret
             end ,
   },
-  { str = 'Mute (bypass)',  
-    state = conf.FX_buttons&(1<<3) == (1<<3),
-    func =  function() 
-              local ret = BinaryCheck(conf.FX_buttons, 3)
-              conf.FX_buttons = ret
-            end ,
-  },
-  { str = 'Solo (bypass all except current)|<',  
+  { str = 'Solo (bypass all except current)',  
     state = conf.FX_buttons&(1<<4) == (1<<4),
     func =  function() 
               local ret = BinaryCheck(conf.FX_buttons, 4)
+              conf.FX_buttons = ret
+            end ,
+  },
+  { str = 'Mute (bypass)|<',  
+    state = conf.FX_buttons&(1<<3) == (1<<3),
+    func =  function() 
+              local ret = BinaryCheck(conf.FX_buttons, 3)
               conf.FX_buttons = ret
             end ,
   },
@@ -1345,10 +1372,178 @@
                               refresh.data = true
                             end}                            
                             
+        obj.mixer = { clear = true,
+                    x = 0,
+                    y = obj.kn_h+obj.samplename_h + keyareabut_h*2,
+                    w = obj.keycntrlarea_w,
+                    h = keyareabut_h,
+                    col = 'white',
+                    state = fale,
+                    txt= 'M',
+                    show = true,
+                    is_but = true,
+                    mouse_overlay = true,
+                    fontsz = obj.GUI_fontsz,
+                    alpha_back = obj.it_alpha5,
+                    a_frame = 0,
+                    func =  function() 
+                              obj.window = math.abs(obj.window-1)
+                              obj.current_WFkey = nil
+                              obj.current_WFspl = nil
+                              refresh.GUI_WF = true  
+                              refresh.conf = true 
+                              refresh.GUI = true
+                              refresh.data = true                           
+                            end}                             
                             
-                            
-                            
-    OBJ_GenKeys(conf, obj, data, refresh, mouse, pat)
-    OBJ_GenKeys_splCtrl(conf, obj, data, refresh, mouse, pat)
+    if obj.window == 0 then                
+      OBJ_GenKeys(conf, obj, data, refresh, mouse)
+      OBJ_GenKeys_splCtrl(conf, obj, data, refresh, mouse)
+     else
+      OBJ_GenKeysMixer(conf, obj, data, refresh, mouse)
+    end
     for key in pairs(obj) do if type(obj[key]) == 'table' then obj[key].context = key end end    
   end
+    ---------------------------------------------------
+    function OBJ_GenKeysMixer(conf, obj, data, refresh, mouse)
+      local cnt = 0
+      local h_div = 1
+      local wheel_ratio = 12000
+      if conf.keymode ==0 then 
+        cnt = 12
+      elseif conf.keymode ==1 then 
+        cnt = 24  
+       elseif conf.keymode == 2 then -- korg nano
+        cnt = 16 
+       elseif conf.keymode == 3 then -- live dr rack
+        cnt= 16
+       elseif conf.keymode == 4 then -- s1 impact
+        cnt = 16 
+       elseif conf.keymode == 5 then -- ableton push
+        cnt = 64                      
+      end
+      
+
+      local key_area_h = gfx.h -obj.kn_h-obj.samplename_h
+      local key_w = math.ceil((gfx.w-3*obj.offs-obj.keycntrlarea_w)/cnt)
+      local key_h = math.ceil((1/h_div)*(key_area_h)) 
+      obj.h_div = h_div
+      for i = 1, cnt do
+        local id = i-1+conf.oct_shift*12
+        local note = (i-1)+12*conf.oct_shift+conf.start_oct_shift*12
+        local col = 'white'
+        local colint, colint0
+        local alpha_back
+        if  data[note] and data[note][1] then 
+          alpha_back = 0.49        
+          col = 'green'
+          if data[note][1].src_track_col then colint = data[note][1].src_track_col  end    
+         else
+          alpha_back = 0.15 
+        end
+        local note_str = GetNoteStr(conf, note)
+        
+        if note_str then
+          local txt = note_str
+          if data[note] and data[note][1] and data[note][1].MIDI_name and conf.key_names ~= 6 then txt = txt..' '..data[note][1].MIDI_name end
+          if  key_w < obj.fx_rect_side then txt = '' end
+          --
+          if note >= 0 and note <= 127 then
+            local key_xpos = obj.keycntrlarea_w+(i-1)*key_w +2
+            local key_ypos = gfx.h-key_area_h
+            OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos, key_w, key_h, true)
+            -------------------------
+            -- keys
+            local gain_val = 0
+            local scaling = 0.2
+            if data[note] and data[note][1] then 
+              local val = data[note].com_gain
+              local zerolev = 0.78
+              if val <= 0.5 then 
+                val = val*2 * zerolev
+               else
+                val = zerolev + ((val-0.5)/1.5) * (1-zerolev)
+              end
+              gain_val = val
+            end
+            
+            obj['keys_pmix'..i] = 
+                      { clear = true,
+                        x = key_xpos,
+                        y = gfx.h-key_area_h,
+                        w = key_w-1,
+                        h = key_h,
+                        mixer_slider = true,
+                        mixer_slider_val = gain_val,
+                        col = col,
+                        colint = colint,
+                        state = 0,
+                        txt= '',
+                        is_step = true,
+                        vertical_txt = txt:gsub('\n',' '),
+                        linked_note = note,
+                        show = true,
+                        is_but = true,
+                        alpha_back = alpha_back,
+                        a_frame = 0.05,
+                        aligh_txt = 5,
+                        fontsz = obj.GUI_fontsz2,
+                        func =  function() 
+                                  if conf.keypreview == 1 then  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), note,100) end                                  
+                                  if data[note] then 
+                                    mouse.context_latch_t = {}
+                                    for spl =1, #data[note] do
+                                      mouse.context_latch_t[spl] = data[note][spl].gain
+                                    end
+                                  end
+                                end,
+                        func_LD2 = function ()
+                                    if not mouse.context_latch_t then return end
+                                    for cur_spl =1, #mouse.context_latch_t do
+                                      local mouseshift = mouse.dy/300
+                                      local out_val = lim(mouse.context_latch_t[cur_spl] - mouseshift, 0, 2)
+                                      if not out_val then return end
+                                      --out_val = ((out_val /2 ) ^ 0.6)*2
+                                      data[note][cur_spl].gain  = out_val
+                                      SetRS5kData(data, conf, data[note][cur_spl].src_track, note, cur_spl) 
+                                    end 
+                                    
+                                    
+                                    refresh.data = true 
+                                    refresh.GUI = true 
+                                  end,
+                        func_wheel = function()
+                        
+                                    for cur_spl =1, #data[note] do
+                                      local out_val = lim(data[note][cur_spl].gain + mouse.wheel_trig/wheel_ratio, 0, 2)
+                                      if not out_val then return end
+                                      data[note][cur_spl].gain  = out_val
+                                      SetRS5kData(data, conf, data[note][cur_spl].src_track, note, cur_spl) 
+                                    end 
+                                    refresh.GUI = true 
+                                    refresh.data = true 
+                                  end,
+                                  
+                        func_DC = function ()
+                                    for cur_spl =1, #data[note] do                                      
+                                      data[note][cur_spl].gain  = 0.5
+                                      SetRS5kData(data, conf, data[note][cur_spl].src_track, note, cur_spl) 
+                                    end 
+                                    refresh.GUI = true 
+                                    refresh.data = true 
+                                  end                                  
+                                } 
+            if    note%12 == 1 
+              or  note%12 == 3 
+              or  note%12 == 6 
+              or  note%12 == 8 
+              or  note%12 == 10 
+              then obj['keys_pmix'..i].txt_col = 'black' end
+              
+              
+          end
+        end
+      end
+    
+      
+    end

@@ -262,59 +262,30 @@
     if not x or not y or not w or not h then return end
     gfx.a = o.alpha_back or 0.2
     local blit_h, blit_w = obj.grad_sz,obj.grad_sz
-    if o.is_step then 
-      gfx.blit( 5, 1, 0, -- grad back
+    gfx.blit( 5, 1, 0, -- grad back
               0,0,  blit_w,blit_h,
-              x,y,w,h, 0,0)      
-     else
-      gfx.blit( 2, 1, 0, -- grad back
-              0,0,  blit_w,blit_h,
-              x,y,w,h, 0,0)
-    end
+              x,y,w,h, 0,0)     
     
     ------------------ fill back
       local x_sl = x      
       local w_sl = w 
       local y_sl = y      
       local h_sl = h 
-      if o.is_slider and o.steps and (not o.axis or o.axis == 'x') then 
-        x_sl = x + w/o.steps*o.val
-        w_sl = w/o.steps
-       elseif o.is_slider  and o.steps and o.axis == 'y' then 
-        y_sl = y + h/o.steps*o.val
-        h_sl = h - h/o.steps
-       elseif o.is_slider and o.axis == 'x_cent' then 
-        if o.val < 0.5 then
-          x_sl = x + w*o.val
-          w_sl = w*(0.5-o.val)
-         else
-          x_sl = x + w*0.5
-          w_sl = w*(o.val-0.5)          
+      if o.mixer_slider_val then 
+        y_sl = y+ h_sl - o.mixer_slider_val*h_sl 
+        h_sl =o.mixer_slider_val*h_sl 
+      end
+      if o.colint then
+        local r, g, b = ColorFromNative( o.colint )
+        if GetOS():match('Win') then 
+          gfx.set(r/255,g/255,b/255, o.alpha_back or 0.2)
+         else 
+          gfx.set(b/255,g/255,r/255, o.alpha_back or 0.2) 
         end
-      end  
-      if not (o.state and o.alpha_back2) then 
-        if o.colint then
-  
-          local r, g, b = ColorFromNative( o.colint )
-          if GetOS():match('Win') then gfx.set(r/255,g/255,b/255, o.alpha_back or 0.2)
-           else gfx.set(b/255,g/255,r/255, o.alpha_back or 0.2)     end
-                     
-         else
-          col(obj, o.col, o.alpha_back or 0.2)
-        end
-        gfx.rect(x_sl,y_sl,w_sl,h_sl,1)
        else
-        if o.colint then
-        
-          local r, g, b = ColorFromNative( o.colint )
-          if GetOS():match('Win') then gfx.set(r/255,g/255,b/255, o.alpha_back or 0.2)
-           else gfx.set(b/255,g/255,r/255, o.alpha_back or 0.2)     end
-           
-         else
-          col(obj, o.col, o.alpha_back or 0.2)
-        end
-        gfx.rect(x_sl,y_sl,w_sl,h_sl,1)
-      end 
+        col(obj, o.col, o.alpha_back or 0.2)
+      end
+      gfx.rect(x_sl,y_sl,w_sl,h_sl,1)
              
     ------------------ check
       if o.check and o.check == 1 then
@@ -326,28 +297,6 @@
         rect(x+w-h,y,h,h,0)
       end
       
-    ------------------ step
-      if o.is_step and o.val then
-        if tonumber(o.val) then
-          local val = o.val/127
-          local x_sl = x      
-          local w_sl = w 
-          local y_sl = y + h-math.ceil(h *val)  
-          local h_sl = math.ceil(h *val)
-          col(obj, o.col, 0.5)
-          if o.colint then
-          
-            local r, g, b = ColorFromNative( o.colint )
-            if GetOS():match('Win') then gfx.set(r/255,g/255,b/255) else gfx.set(b/255,g/255,r/255)     end
-            gfx.a = 0.7
-            
-           else
-            col(obj, o.col, 0.5)
-          end
-          
-          gfx.rect(x_sl,y_sl,w_sl-1,h_sl,1)      
-        end
-      end
     
     ------------------ tab
       if o.is_tab then
@@ -402,14 +351,15 @@
         gfx.setimgdim(10, -1, -1)  
         gfx.setimgdim(10, h,h) 
         gfx.setfont(1, obj.GUI_font,o.fontsz or obj.GUI_fontsz )
-        gfx.x,gfx.y = 0,h-gfx.texth
+        gfx.x,gfx.y = 2,0
         col(obj, 'white', 0.8)
         gfx.drawstr(o.vertical_txt) 
         gfx.dest = o.blit or 1
         local offs = 0
         gfx.blit(10,1,math.rad(-90),
                   0,0,h,h,
-                  x,y,h,h,-5,h-w+5)
+                  x,y,h,h,0,0)
+                  ---5,h-w+5)
       end
     
     ------------------ line

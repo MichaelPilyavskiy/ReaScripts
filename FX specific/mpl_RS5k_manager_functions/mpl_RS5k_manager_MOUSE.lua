@@ -126,6 +126,7 @@
          -- clear context
            mouse.context_latch = ''
            mouse.context_latch_val = -1
+           mouse.context_latch_t = nil
          -- clear note
            --for i = 1, 127 do StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), i, 100) end
            StuffMIDIMessage( 0, '0xB0', 123, 0)

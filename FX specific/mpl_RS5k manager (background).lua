@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.55
+-- @version 1.56
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -8,10 +8,13 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    # fix solo logic
---    # different mouse improvements
+--    + Mixer view
+--    # move ctrl buttons to the bottom
+--    # fix links
+--    # don`t send midi if no data on selected track
+--    # don`t mark key as solo if it is the only one active
   
-  local vrs = 'v1.55'
+  local vrs = 'v1.56'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --  INIT -------------------------------------------------

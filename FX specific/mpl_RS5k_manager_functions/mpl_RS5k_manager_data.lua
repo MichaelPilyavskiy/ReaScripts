@@ -39,6 +39,7 @@
       local retval, p4 = TrackFX_GetParamName( tr, fxid-1, 4, '' )
       local isRS5k = retval and p3:match('range')~= nil and p4:match('range')~= nil
       if not isRS5k then goto skipFX end
+      data.hasanydata = true
       local MIDIpitch = math.floor(TrackFX_GetParamNormalized( tr, fxid-1, 3)*128)
       local retval, fn = TrackFX_GetNamedConfigParm( tr, fxid-1, 'FILE' )
       if not data[MIDIpitch] then data[MIDIpitch] = {} end
@@ -74,16 +75,17 @@
                         }
       ::skipFX::
     end  
-    -- force solo state
+    
+    -- get solo state
     local glob_bypass_state_cnt = 0
-    local glob_sol
+    local glob_sol, keys_active_cnt = nil, 0
     for MIDIpitch =0, 128 do
-      if data[MIDIpitch] then
-      
+      if data[MIDIpitch] then 
+        keys_active_cnt = keys_active_cnt + 1
         if data[MIDIpitch][1] and data[MIDIpitch][1].bypass_state == true then
           glob_bypass_state_cnt  = glob_bypass_state_cnt+1
           glob_sol = MIDIpitch
-        end
+        end        
         
         local bypass_state_cnt = 0
         local sol_spl
@@ -98,8 +100,19 @@
         end
       end
     end
-    if glob_bypass_state_cnt == 1 and glob_sol   then  data[glob_sol].solo_state = true end
+    if glob_bypass_state_cnt == 1 and glob_sol and keys_active_cnt > 1 then  data[glob_sol].solo_state = true end
     
+    -- get common gain
+    for MIDIpitch =0, 128 do
+      if data[MIDIpitch] then  
+        local com_gain = 0    
+        for spl = 1, #data[MIDIpitch] do
+          com_gain = com_gain + data[MIDIpitch][spl].gain
+        end
+        data[MIDIpitch].com_gain = lim(com_gain/#data[MIDIpitch],0,2)
+      end
+    end      
+          
   end
   
   ---------------------------------------------------
@@ -113,7 +126,7 @@
         TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'FILE0', data[note][spl_id].sample)
         TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'DONE', '')  
         
-        TrackFX_SetParamNormalized( track, rs5k_pos, 0, data[note][spl_id].gain) -- gain
+        TrackFX_SetParamNormalized( track, rs5k_pos, 0, lim(data[note][spl_id].gain,0,2)) -- gain
         TrackFX_SetParamNormalized( track, rs5k_pos, 1, data[note][spl_id].pan) -- pan
         
         TrackFX_SetParamNormalized( track, rs5k_pos, 2, 0) -- gain for min vel
