@@ -275,7 +275,7 @@
         y_sl = y+ h_sl - o.mixer_slider_val*h_sl 
         h_sl =o.mixer_slider_val*h_sl 
       end
-      if o.colint then
+      if o.colint and o.col then
         local r, g, b = ColorFromNative( o.colint )
         if GetOS():match('Win') then 
           gfx.set(r/255,g/255,b/255, o.alpha_back or 0.2)
@@ -283,9 +283,21 @@
           gfx.set(b/255,g/255,r/255, o.alpha_back or 0.2) 
         end
        else
-        col(obj, o.col, o.alpha_back or 0.2)
+        if o.col then col(obj, o.col, o.alpha_back or 0.2) end
       end
-      gfx.rect(x_sl,y_sl,w_sl,h_sl,1)
+      if o.mixer_slider_pan then 
+        local w_sl_fix = w_sl-1
+        local h_sl_fix = h_sl -2
+        local w_slpanL, w_slpanR = 0,0
+        w_slpanL = lim(o.mixer_slider_pan-0.5) * w_sl_fix*2
+        w_slpanR = (lim(o.mixer_slider_pan, 0, 0.5)-0.5) * w_sl_fix*2
+        gfx.triangle( x_sl + w_slpanL,           y_sl,
+                      x_sl+w_sl_fix+w_slpanR,  y_sl,
+                      x_sl+w_sl_fix,  y_sl + h_sl_fix,
+                      x_sl,           y_sl + h_sl_fix)
+       else
+        gfx.rect(x_sl,y_sl,w_sl,h_sl,1)
+      end
              
     ------------------ check
       if o.check and o.check == 1 then
@@ -299,7 +311,7 @@
       
     
     ------------------ tab
-      if o.is_tab then
+      if o.is_tab and o.col then
         col(obj, o.col, 0.6)
         local tab_cnt = o.is_tab >> 7
         local cur_tab = o.is_tab & 127
@@ -315,6 +327,7 @@
     ------------------ txt
       if o.txt and w > 5 then 
         local w0 = w -2
+        if o.limtxtw then w0 = w - o.limtxtw end
         local txt = tostring(o.txt)
         if o.txt_col then 
           col(obj, o.txt_col, o.alpha_txt or 0.8)
@@ -324,7 +337,10 @@
         local f_sz = obj.GUI_fontsz
         gfx.setfont(1, obj.GUI_font,o.fontsz or obj.GUI_fontsz )
         local y_shift = -1
+        local cnt_lines = 0 for line in txt:gmatch('[^\r\n]+') do cnt_lines = cnt_lines + 1 end
+        local cnt = -1
         for line in txt:gmatch('[^\r\n]+') do
+          cnt = cnt + 1 
           if gfx.measurestr(line:sub(2)) > w0 -2 and w0 > 20 then 
             repeat line = line:sub(2) until gfx.measurestr(line..'...')< w0 -2
             line = '...'..line
@@ -335,11 +351,12 @@
           if o.aligh_txt then
             if o.aligh_txt&1==1 then gfx.x = x  end -- align left
             if o.aligh_txt>>2&1==1 then gfx.y = y + y_shift end -- align top
-            if o.aligh_txt>>4&1==1 then gfx.y = h - gfx.texth end -- align bot
+            if o.aligh_txt>>4&1==1 then gfx.y = h - gfx.texth*cnt_lines + cnt*gfx.texth end -- align bot
           end
           if o.bot_al_txt then 
             gfx.y = y+ h-gfx.texth-3 +y_shift
           end
+          if gfx.y + gfx.texth > y + h then break end
           gfx.drawstr(line)
           y_shift = y_shift + gfx.texth
         end
@@ -352,7 +369,7 @@
         gfx.setimgdim(10, h,h) 
         gfx.setfont(1, obj.GUI_font,o.fontsz or obj.GUI_fontsz )
         gfx.x,gfx.y = 2,0
-        col(obj, 'white', 0.8)
+        col(obj, 'white', 0.9)
         gfx.drawstr(o.vertical_txt) 
         gfx.dest = o.blit or 1
         local offs = 0
@@ -363,14 +380,14 @@
       end
     
     ------------------ line
-      if o.a_line then  -- low frame
+      if o.a_line and o.col then  -- low frame
         col(obj, o.col, o.a_frame or 0.2)
         gfx.x,gfx.y = x+1,y+h
         gfx.lineto(x+w,y+h)
       end
       
     ------------------ frame
-      if o.a_frame then  -- low frame
+      if o.a_frame and o.col then  -- low frame
         col(obj, o.col, o.a_frame or 0.2)
         gfx.rect(x,y,w,h,0)
         gfx.x,gfx.y = x,y

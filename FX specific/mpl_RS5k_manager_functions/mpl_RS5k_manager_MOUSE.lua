@@ -57,12 +57,12 @@
            
            mouse.onclick_L = mouse.LMB_state 
                                and not mouse.last_LMB_state 
-                               and not mouse.Ctrl_state  
+                               --and not mouse.Ctrl_state  
                                and MOUSE_Match(mouse, obj[key]) 
                  ------------------------
            mouse.onDclick_L = mouse.LMB_state 
                                and not mouse.last_LMB_state 
-                               and not mouse.Ctrl_state  
+                               --and not mouse.Ctrl_state  
                                and mouse.DLMB_state 
                                and MOUSE_Match(mouse, obj[key]) 
            if mouse.onDclick_L and obj[key].func_DC then 
@@ -82,7 +82,7 @@
                  ------------------------
            mouse.ondrag_L_onmove = -- left drag (only when moving after latch)
                                mouse.LMB_state 
-                               and not mouse.Ctrl_state 
+                               --and not mouse.Ctrl_state 
                                and mouse.is_moving
                                and mouse.context_latch == key
            if mouse.ondrag_L_onmove and obj[key].func_LD2 then obj[key].func_LD2() end 
@@ -96,7 +96,7 @@
            mouse.ondrag_LCtrl = -- left drag (persistent even if not moving)
                                mouse.LMB_state 
                                and mouse.Ctrl_state 
-                               and (mouse.context == key or mouse.context_latch == key) 
+                               and mouse.context_latch == key
            if mouse.ondrag_LCtrl and obj[key].func_ctrlLD then obj[key].func_ctrlLD() end 
                  ------------------------
            mouse.onclick_R = mouse.RMB_state 

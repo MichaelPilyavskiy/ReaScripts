@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.56
+-- @version 1.57
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -8,13 +8,18 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    + Mixer view
---    # move ctrl buttons to the bottom
---    # fix links
---    # don`t send midi if no data on selected track
---    # don`t mark key as solo if it is the only one active
-  
-  local vrs = 'v1.56'
+--    + Mixer view: show global VCA controls
+--    + Mixer view: show VCA pan state on keys
+--    # Mixer view: fix error on doubleclick and scroll on empty key
+--    # Mixer view: indicate mode
+--    + GUI: show layers sample names if multiple otherwise MIDI note name
+--    + GUI: limit key names text until control buttons
+--    + Ctrl+drag finetune values: gain, pan, pitch, loop start/end
+--    - Fine pitch control, use ctrl/cmd instead
+--    # fix add sample to 127 note, fix calculation wrong notes
+--    # limit sample offset start and end to each other
+
+  local vrs = 'v1.57'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --  INIT -------------------------------------------------
@@ -27,7 +32,7 @@
                     conf = false}
   local mouse = {}
   local obj = {}
-   data = {}
+  local data = {}
         
   ---------------------------------------------------  
   
@@ -79,17 +84,17 @@
   function run()
     obj.clock = os.clock()
     
-    MOUSE(conf, obj, data, refresh, mouse, pat)
+    MOUSE(conf, obj, data, refresh, mouse)
     CheckUpdates(obj, conf, refresh)
     
     if refresh.data == true then 
       data = {}
-      Data_Update (conf, obj, data, refresh, mouse, pat) 
+      Data_Update (conf, obj, data, refresh, mouse) 
       refresh.data = nil 
     end    
     if refresh.conf == true                       then ExtState_Save(conf)                                            refresh.conf = nil end
-    if refresh.GUI == true or refresh.GUI_onStart == true then OBJ_Update              (conf, obj, data, refresh, mouse, pat) end  
-                                                GUI_draw               (conf, obj, data, refresh, mouse, pat)    
+    if refresh.GUI == true or refresh.GUI_onStart == true then OBJ_Update              (conf, obj, data, refresh, mouse) end  
+                                                GUI_draw               (conf, obj, data, refresh, mouse)    
                                                
     local char =gfx.getchar()  
     ShortCuts(char)

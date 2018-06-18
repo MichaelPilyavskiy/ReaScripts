@@ -42,6 +42,7 @@
       data.hasanydata = true
       local MIDIpitch = math.floor(TrackFX_GetParamNormalized( tr, fxid-1, 3)*128)
       local retval, fn = TrackFX_GetNamedConfigParm( tr, fxid-1, 'FILE' )
+      --msg(TrackFX_GetParamNormalized( tr, fxid-1, 3)*128)
       if not data[MIDIpitch] then data[MIDIpitch] = {} end
       local int_col = GetTrackColor( tr )
       if int_col == 0 then int_col = nil end
@@ -105,11 +106,13 @@
     -- get common gain
     for MIDIpitch =0, 128 do
       if data[MIDIpitch] then  
-        local com_gain = 0    
+        local com_gain,com_pan = 0  ,0 
         for spl = 1, #data[MIDIpitch] do
           com_gain = com_gain + data[MIDIpitch][spl].gain
+          com_pan = com_pan + data[MIDIpitch][spl].pan
         end
         data[MIDIpitch].com_gain = lim(com_gain/#data[MIDIpitch],0,2)
+        data[MIDIpitch].com_pan = lim(com_pan/#data[MIDIpitch],0,1)
       end
     end      
           
@@ -130,8 +133,8 @@
         TrackFX_SetParamNormalized( track, rs5k_pos, 1, data[note][spl_id].pan) -- pan
         
         TrackFX_SetParamNormalized( track, rs5k_pos, 2, 0) -- gain for min vel
-        TrackFX_SetParamNormalized( track, rs5k_pos, 3, data[note][spl_id].MIDIpitch_normal ) -- note range start
-        TrackFX_SetParamNormalized( track, rs5k_pos, 4, data[note][spl_id].MIDIpitch_normal ) -- note range end
+        TrackFX_SetParamNormalized( track, rs5k_pos, 4, data[note][spl_id].MIDIpitch_normal) -- note range start
+        TrackFX_SetParamNormalized( track, rs5k_pos, 3, data[note][spl_id].MIDIpitch_normal) -- note range end
         TrackFX_SetParamNormalized( track, rs5k_pos, 5, 0.5 ) -- pitch for start
         TrackFX_SetParamNormalized( track, rs5k_pos, 6, 0.5 ) -- pitch for end
         TrackFX_SetParamNormalized( track, rs5k_pos, 15, data[note][spl_id].pitch_offset)
@@ -144,8 +147,8 @@
         TrackFX_SetParamNormalized( track, rs5k_pos, 25, data[note][spl_id].sust )
         TrackFX_SetParamNormalized( track, rs5k_pos, 10, data[note][spl_id].rel )
         
-        TrackFX_SetParamNormalized( track, rs5k_pos, 13, data[note][spl_id].offset_start ) 
-        TrackFX_SetParamNormalized( track, rs5k_pos, 14, data[note][spl_id].offset_end )
+        TrackFX_SetParamNormalized( track, rs5k_pos, 13, lim(data[note][spl_id].offset_start, 0, data[note][spl_id].offset_end ) )
+        TrackFX_SetParamNormalized( track, rs5k_pos, 14, lim(data[note][spl_id].offset_end,   data[note][spl_id].offset_start, 1 )  )
         TrackFX_SetEnabled(track, rs5k_pos, data[note][spl_id].bypass_state)
       end
   end  
@@ -167,7 +170,7 @@
   end
 
   ---------------------------------------------------
-  function Data_Update(conf, obj, data, refresh, mouse, pat)
+  function Data_Update(conf, obj, data, refresh, mouse)
     local tr = GetSelectedTrack(0,0)
     if not tr  then return end
     data.parent_track = tr
@@ -181,6 +184,7 @@
         GetRS5kData(data, desttr)
       end
     end
+    
   end 
 
   ---------------------------------------------------------------------------------------------------------------------
@@ -355,7 +359,6 @@
   function ExportItemToRS5K(data,conf,refresh,note,filepath, start_offs, end_offs)
     if not data.parent_track or not note or not filepath then return end
     local track = data.parent_track
-    
     if data[note] and data[note][1] then 
       track = data[note][1].src_track
       if conf.allow_multiple_spls_per_pad == 0 then
@@ -375,8 +378,8 @@
     TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'FILE0', filepath)
     TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'DONE', '')      
     TrackFX_SetParamNormalized( track, rs5k_pos, 2, 0) -- gain for min vel
-    TrackFX_SetParamNormalized( track, rs5k_pos, 3, note/128 ) -- note range start
-    TrackFX_SetParamNormalized( track, rs5k_pos, 4, note/128 ) -- note range end
+    TrackFX_SetParamNormalized( track, rs5k_pos, 3, note/127 ) -- note range start
+    TrackFX_SetParamNormalized( track, rs5k_pos, 4, note/127 ) -- note range end
     TrackFX_SetParamNormalized( track, rs5k_pos, 5, 0.5 ) -- pitch for start
     TrackFX_SetParamNormalized( track, rs5k_pos, 6, 0.5 ) -- pitch for end
     TrackFX_SetParamNormalized( track, rs5k_pos, 8, 0 ) -- max voices = 0
