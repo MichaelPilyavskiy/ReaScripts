@@ -1,11 +1,9 @@
 -- @description Float instrument on selected track
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # use Various_functions
---    # search instruments in tree
---    # search instruments in sends
+--    # fix checking Various_functions
 
   -- NOT gfx NOT reaper
   local scr_title = 'Float instrument on selected track'
@@ -27,7 +25,7 @@
       dofile(SEfunc_path)
       
       if not _G[str_func] then 
-        MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
+        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
        else
         Undo_BeginBlock()
         main()

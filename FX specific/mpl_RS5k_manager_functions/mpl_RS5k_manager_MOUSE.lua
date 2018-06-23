@@ -33,7 +33,7 @@
      mouse.MMB_state = gfx.mouse_cap&64 == 64
      mouse.Ctrl_LMB_state = gfx.mouse_cap&5 == 5 
      mouse.Ctrl_state = gfx.mouse_cap&4 == 4 
-     mouse.Alt_state = gfx.mouse_cap&17 == 17 -- alt + LB
+     mouse.Alt_state = gfx.mouse_cap&16 == 16 -- alt
      mouse.wheel = gfx.mouse_wheel
       
      if mouse.last_x and mouse.last_y and (mouse.last_x ~= mouse.x or mouse.last_y ~= mouse.y) then mouse.is_moving = true else mouse.is_moving = false end
@@ -65,11 +65,12 @@
                                --and not mouse.Ctrl_state  
                                and mouse.DLMB_state 
                                and MOUSE_Match(mouse, obj[key]) 
-           if mouse.onDclick_L and obj[key].func_DC then 
-              obj[key].func_DC() 
+           if mouse.onDclick_L then 
+              if obj[key].func_DC  then obj[key].func_DC()  end
+              if conf.MM_reset_val&(1<<0) == (1<<0) and obj[key].func_ResetVal then obj[key].func_ResetVal() end
               goto skip_mouse_obj 
             end
-           if mouse.onclick_L and obj[key].func then 
+           if mouse.onclick_L and not mouse.Alt_state and obj[key].func then 
               obj[key].func() 
               goto skip_mouse_obj 
             end
@@ -92,6 +93,16 @@
                                and mouse.Ctrl_state  
                                and MOUSE_Match(mouse, obj[key]) 
            if mouse.onclick_LCtrl and obj[key].func_trigCtrl then obj[key].func_trigCtrl() end
+                 ------------------------              
+           mouse.onclick_LAlt = mouse.LMB_state 
+                               and not mouse.last_LMB_state 
+                               and mouse.Alt_state  
+                               and MOUSE_Match(mouse, obj[key]) 
+          if mouse.onclick_LAlt  then 
+              if obj[key].func_trigAlt then obj[key].func_trigAlt() end
+              if conf.MM_reset_val&(1<<1) == (1<<1) and obj[key].func_ResetVal then obj[key].func_ResetVal() end
+              goto skip_mouse_obj  
+          end           
                  ------------------------            
            mouse.ondrag_LCtrl = -- left drag (persistent even if not moving)
                                mouse.LMB_state 
@@ -122,16 +133,47 @@
        ::skip_mouse_obj::
            
      -- mouse release    
-       if mouse.last_LMB_state and not mouse.LMB_state   then          
-         -- clear context
-           mouse.context_latch = ''
-           mouse.context_latch_val = -1
-           mouse.context_latch_t = nil
-         -- clear note
-           --for i = 1, 127 do StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), i, 100) end
-           StuffMIDIMessage( 0, '0xB0', 123, 0)
-       end
-       
+      if mouse.last_LMB_state and not mouse.LMB_state   then    
+        if data.activedroppedpad then
+          if mouse.context_latch:match('keys_p%d+') and data.activedroppedpad:match('keys_p%d+') then
+            local src_note = mouse.context_latch:match('keys_p(%d+)')
+            local dest_note = data.activedroppedpad:match('keys_p(%d+)')
+            if src_note and tonumber(src_note) and dest_note and tonumber(dest_note) then
+              src_note = tonumber(src_note)
+              dest_note = tonumber(dest_note)
+              if not mouse.Ctrl_state then
+                for id_spl = 1, #data[src_note] do
+                  data[src_note][id_spl].MIDIpitch_normal = dest_note/127
+                  SetRS5kData(data, conf, data[src_note][id_spl].src_track, src_note, id_spl)
+                end
+               else
+                for id_spl = 1, #data[src_note] do
+                  data[src_note][id_spl].MIDIpitch_normal = dest_note/127
+                  SetRS5kData(data, conf, data[src_note][id_spl].src_track, src_note, id_spl, true)
+                end
+              end                
+            end         
+          end
+          refresh.data = true  
+          data.activedroppedpad = nil
+        end      
+        -- clear context
+        mouse.context_latch = ''
+        mouse.context_latch_val = -1
+        mouse.context_latch_t = nil
+        -- clear note
+        --for i = 1, 127 do StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), i, 100) end
+        StuffMIDIMessage( 0, '0xB0', 123, 0)
+        refresh.GUI = true
+      end
+
+       -- drop pads
+        if mouse.context_latch and mouse.context_latch:match('keys_p%d+') and mouse.is_moving then
+          data.activedroppedpad = mouse.context
+          refresh.GUI = true
+        end
+        
+        
        mouse.last_x = mouse.x
        mouse.last_y = mouse.y
        mouse.last_LMB_state = mouse.LMB_state  
@@ -158,5 +200,9 @@
           refresh.GUI_WF = true
           refresh.data = true                         
          end
-       end      
+       end     
+       
+       
+       
+        
    end

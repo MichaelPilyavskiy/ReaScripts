@@ -72,7 +72,8 @@
                         offset_start =      TrackFX_GetParamNormalized( tr, fxid-1, 13)   ,      
                         offset_end =      TrackFX_GetParamNormalized( tr, fxid-1, 14)   ,    
                         bypass_state =    TrackFX_GetEnabled(tr, fxid-1)   , 
-                        MIDI_name =        MIDI_name                 
+                        MIDI_name =        MIDI_name  ,
+                        obeynoteoff =     TrackFX_GetParamNormalized( tr, fxid-1,11),
                         }
       ::skipFX::
     end  
@@ -140,7 +141,7 @@
         TrackFX_SetParamNormalized( track, rs5k_pos, 15, data[note][spl_id].pitch_offset)
         
         TrackFX_SetParamNormalized( track, rs5k_pos, 8, 0 ) -- max voices = 0
-        TrackFX_SetParamNormalized( track, rs5k_pos, 11, 0 ) -- obey note offs
+        TrackFX_SetParamNormalized( track, rs5k_pos, 11, data[note][spl_id].obeynoteoff ) -- obey note offs
                 
         TrackFX_SetParamNormalized( track, rs5k_pos, 9, data[note][spl_id].attack ) -- adsr
         TrackFX_SetParamNormalized( track, rs5k_pos, 24, data[note][spl_id].decay )
@@ -232,17 +233,17 @@
     return CSurf_TrackFromID( tr_id+1, false )
   end
   ---------------------------------------------------
-  function MIDI_prepare(data, conf)
+  function MIDI_prepare(data, conf, mode_override)
     local tr = GetSelectedTrack(0,0)
     if not tr then return end
     if conf.prepareMIDI2 == 0 then return end
-    if conf.prepareMIDI2 == 1 then -- VK
+    if conf.prepareMIDI2 == 1 or (mode_override and mode_override == 0 ) then -- VK
       SetMediaTrackInfo_Value( tr, 'I_RECINPUT', 4096+(62<<5) )
       SetMediaTrackInfo_Value( tr, 'I_RECMON', 1) -- monitor input
       SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) -- arm track 
       SetMediaTrackInfo_Value( tr, 'I_RECMODE',0) -- record MIDI out
     end
-    if conf.prepareMIDI2 == 2 then -- all midi
+    if conf.prepareMIDI2 == 2 or (mode_override and mode_override == 1 ) then -- all midi
       SetMediaTrackInfo_Value( tr, 'I_RECINPUT', 4096+(63<<5) )
       SetMediaTrackInfo_Value( tr, 'I_RECMON', 1) -- monitor input
       SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) -- arm track 

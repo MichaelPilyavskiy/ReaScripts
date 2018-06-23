@@ -1,27 +1,45 @@
 -- @description RS5k manager
--- @version 1.57
+-- @version 1.60
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @about Script for handling ReaSamplomatic data on selected track
 -- @provides
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    + Mixer view: show global VCA controls
---    + Mixer view: show VCA pan state on keys
---    # Mixer view: fix error on doubleclick and scroll on empty key
---    # Mixer view: indicate mode
---    + GUI: show layers sample names if multiple otherwise MIDI note name
---    + GUI: limit key names text until control buttons
---    + Ctrl+drag finetune values: gain, pan, pitch, loop start/end
---    - Fine pitch control, use ctrl/cmd instead
---    # fix add sample to 127 note, fix calculation wrong notes
---    # limit sample offset start and end to each other
+--    + Drag pad move content to other note
+--    + Ctrl+drag pad duplicate content to other note [p=2003020]
+--    + Rename MIDI note name [p=2003111] [p=2002672]
+--    + Remove pad content [p=2002680]
+--    + Remove pad layers [p=2002680]
+--    + Options: don`t display MIDI note names
+--    + Options: invert mouse for release knob [p=2003074]
+--    + Options: allow manually prepare parent track rather than automatically on script start
+--    + Controls: obey noteoff [p=2003004] [p=2002672]
+--    + Link to REAPER blog video on YouTube
+--    + MouseModifiers: doubleclick or alt+click to reset value [p=2003074]
+--    + MouseModifiers: doubleclick float related rs5k instances [p=2002672]
+--    # Mixer View: indentation improvements
+--    # Mixer View: fix pan knob doesnt respond if all pans are centered
+--    # fix pad color match track color in OSX
+--    # fix error click on empty draganddrop space
+--    # fix reset obey note-offs [p=2002672] 
+--    # remove debug message shown at export selected items action
 
-  local vrs = 'v1.57'
+  local vrs = 'v1.60'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
+  
+  -- todo
+  -- MIDI controlled globals [p=1993032]
+  -- moving back rs5k instance to main track
+  -- link to one project track
+  -- dalay ctrl [p=2002275]
+   -- color/theme options [p=2003074]
+   -- listing samples
+  
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local conf = {}  
@@ -76,6 +94,11 @@
             prepareMIDI2 = 0, -- prepare MIDI on start
             FX_buttons = 255,
             
+            displayMIDInotenames = 1,
+            invert_release = 0,
+            
+            MM_reset_val = 1,
+            MM_dc_float = 0,
             }
     return t
   end  

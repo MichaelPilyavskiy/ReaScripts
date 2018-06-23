@@ -28,6 +28,7 @@
     obj.key_h = 250-- keys y/h  
  
     obj.kn_w =42
+    obj.splctrl_butw = 60
     obj.kn_h =56  
     obj.WF_h=obj.kn_h 
     obj.samplename_h = 20   
@@ -40,8 +41,8 @@
     obj.it_alpha2 = 0.28 -- navigation
     obj.it_alpha3 = 0.1 -- option tabs
     obj.it_alpha4 = 0.05 -- option items
-    obj.it_alpha5 = 0.05-- oct lowhigh
-    obj.it_alpha6 = 0.2-- sel
+    obj.it_alpha5 = 0.08-- oct lowhigh
+    obj.it_alpha6 = 0.4-- selected
     obj.GUI_a1 = 0.2 -- pat not sel
     obj.GUI_a2 = 0.45 -- pat sel
        
@@ -202,7 +203,7 @@
                                                                   default_val=0.5,
                                                                   limmax = 1,
                                                                   funcchange =  function(a,b) 
-                                                                                  if a < 0.5 then 
+                                                                                  if a <= 0.5 then 
                                                                                     local p = lim(a,0.1,1)
                                                                                     return (p*b)
                                                                                    elseif a > 0.5 then
@@ -358,11 +359,8 @@
   ---------------------------------------------------
   function OBJ_GenKeys_splCtrl(conf, obj, data, refresh, mouse, pat)
   
-  -- todo
-  -- global ctrls [p=1993032]
-  -- MIDI controlled globals [p=1993032]
     
-    local env_x_shift = 30
+    local env_x_shift = 20
     local knob_back = 0
     local knob_y = 0
     local wheel_ratio = 12000
@@ -402,13 +400,15 @@
               fontsz = obj.GUI_fontsz2,
               alpha_back =0,
               func =  function()
-                        if conf.allow_multiple_spls_per_pad == 1 then
+                        if conf.allow_multiple_spls_per_pad == 1 and cur_note and data[cur_note] then
                           local t = {}
                           for i = 1, #data[cur_note] do
                             t[#t+1] = {str = data[cur_note][i].sample,
                                         func = function() obj.current_WFspl = i end,
                                         state = i == obj.current_WFspl }
                           end
+                          t[#t+1] = { str = '|Remove current sample RS5k instance',
+                                      func = function() SNM_MoveOrRemoveTrackFX( data[cur_note][obj.current_WFspl].src_track, data[cur_note][obj.current_WFspl].rs5k_pos, 0 ) end}
                           Menu(mouse, t)
                           data.current_spl_peaks = nil
                           refresh.GUI_WF = true 
@@ -561,7 +561,7 @@
                           refresh.data = true 
                         end,
                         
-              func_DC = function ()
+              func_ResetVal = function ()
                           data[cur_note][cur_spl].gain  = 0.5
                           SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
@@ -623,7 +623,7 @@
                           refresh.GUI = true 
                           refresh.data = true 
                         end,                          
-              func_DC = function () 
+              func_ResetVal = function () 
                           data[cur_note][cur_spl].pan  = 0.5
                           SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
@@ -688,7 +688,7 @@
                           refresh.GUI = true 
                           refresh.data = true 
                         end,                           
-              func_DC = function () 
+              func_ResetVal = function () 
                           data[cur_note][cur_spl].pitch_offset  = 0.5
                           SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
                           refresh.GUI = true 
@@ -740,7 +740,7 @@
                           refresh.GUI = true 
                           refresh.data = true 
                         end,  
-              func_DC = function ()
+              func_ResetVal = function ()
                           data[cur_note][cur_spl].attack  = 0
                           SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
@@ -791,7 +791,7 @@
                           refresh.GUI = true 
                           refresh.data = true 
                         end,  
-              func_DC = function ()
+              func_ResetVal = function ()
                           data[cur_note][cur_spl].decay  = 0.016
                           SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
                           refresh.GUI = true 
@@ -840,7 +840,7 @@
                           refresh.GUI = true 
                           refresh.data = true 
                         end,  
-              func_DC = function ()
+              func_ResetVal = function ()
                           data[cur_note][cur_spl].sust  = 0.5
                           SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
@@ -854,6 +854,9 @@
          else   
           rel_txt = 'R'    
         end
+        local val = data[cur_note][cur_spl].rel^0.1666
+        local invert_mouse_rel = 1
+        if conf.invert_release == 1 then invert_mouse_rel = -1 end
         obj.splctrl_rel = { clear = true,
               x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*6 + env_x_shift,
               y = knob_y,
@@ -866,7 +869,7 @@
               show = true,
               is_but = true,
               is_knob = true,
-              val = data[cur_note][cur_spl].rel^0.1666,
+              val = val,
               fontsz = obj.GUI_fontsz3,
               alpha_back =knob_back,
               func =  function() 
@@ -874,7 +877,7 @@
                       end,
               func_LD2 = function ()
                           if not mouse.context_latch_val then return end
-                          local out_val = lim(mouse.context_latch_val^0.1666 - mouse.dy/300, 0, 1)
+                          local out_val = lim(mouse.context_latch_val^0.1666 - (invert_mouse_rel * mouse.dy/300), 0, 1)
                           if not out_val then return end
                           out_val = out_val^6
                           data[cur_note][cur_spl].rel  = out_val
@@ -883,7 +886,7 @@
                           refresh.data = true 
                         end,
               func_wheel = function()
-                          local out_val = lim(data[cur_note][cur_spl].rel^0.1666  + mouse.wheel_trig/wheel_ratio_log, 0, 2)
+                          local out_val = lim(data[cur_note][cur_spl].rel^0.1666  + (invert_mouse_rel*mouse.wheel_trig/wheel_ratio_log), 0, 2)
                           if not out_val then return end
                           out_val = out_val^6
                           data[cur_note][cur_spl].rel  = out_val
@@ -891,7 +894,7 @@
                           refresh.GUI = true 
                           refresh.data = true 
                         end, 
-              func_DC = function ()
+              func_ResetVal = function ()
                           data[cur_note][cur_spl].rel  = 0.0004
                           SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
                           refresh.GUI = true 
@@ -957,7 +960,7 @@
                           refresh.data = true 
                         end,
                         
-              func_DC = function ()
+              func_ResetVal = function ()
                           out_val = 0
                           local diff = data[cur_note][cur_spl].offset_end - data[cur_note][cur_spl].offset_start
                           data[cur_note][cur_spl].offset_start  = out_val
@@ -1023,13 +1026,41 @@
                           refresh.data = true 
                         end,
                         
-              func_DC = function ()
+              func_ResetVal = function ()
                           data[cur_note][cur_spl].offset_end  = 1
                           SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
                           refresh.GUI = true 
                           refresh.data = true 
                         end
-              }                                                                                                                                                                                                   
+              }     
+              
+        local obNOstate = data[cur_note][cur_spl].obeynoteoff
+        local alpha_back = obj.it_alpha5
+        if obNOstate ~= 0 then alpha_back = obj.it_alpha6 end
+          
+        obj.splctrl_obeynoteoff = { clear = true,
+                                  x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*9 + env_x_shift*3,
+                                  y = knob_y,
+                                  w = obj.splctrl_butw,
+                                  h = obj.kn_h,
+                                  col = 'white',
+                                  state = fale,
+                                  txt= 'ObNoteOff',
+                                  show = true,
+                                  is_but = true,
+                                  mouse_overlay = true,
+                                  fontsz = obj.GUI_fontsz3,
+                                  alpha_back = alpha_back,
+                                  a_frame = 0,
+                                  func =  function() 
+                                            data[cur_note][cur_spl].obeynoteoff  = math.abs(1-data[cur_note][cur_spl].obeynoteoff)
+                                            SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
+                                            refresh.conf = true 
+                                            refresh.GUI = true
+                                            refresh.data = true
+                                          end
+                                  }
+                                                                                                                                                                                                            
   end
 
     ---------------------------------------------------
@@ -1226,13 +1257,6 @@
       for i = 1, #shifts do
         local id = i-1+conf.oct_shift*12
         local note = (i-1)+12*conf.oct_shift+conf.start_oct_shift*12
-        --[[local fn, ret = GetSampleNameByNote(data, note)
-        fn = ''
-        if data[note] then
-          for spl_id = 1, #data[note] do
-            fn = fn..data[note][spl_id].sample..'\n'
-          end
-        end]]
         local col = 'white'
         local colint, colint0
         local alpha_back
@@ -1247,9 +1271,11 @@
         
         if note_str then
           local txt = note_str..'\n\r'--..fn
-          if data[note] and data[note][1] and data[note][1].MIDI_name and conf.key_names ~= 6 then txt = txt..data[note][1].MIDI_name..' ('..#data[note]..')\n' end
+          if data[note] and data[note][1] and data[note][1].MIDI_name and conf.key_names ~= 6 and conf.displayMIDInotenames==1 and conf.allow_multiple_spls_per_pad == 1 then 
+            txt = txt..data[note][1].MIDI_name..' ('..#data[note]..')\n' 
+          end
           if data[note] and data[note][1] and conf.key_names ~= 6 then 
-            if #data[note] > 1 then
+            if #data[note] >= 1 then
               for spl = 1, #data[note] do
                 local spl = GetShortSmplName(data[note][spl].sample)
                 local pat_reduceext = '(.*)%.[%a]+'
@@ -1267,9 +1293,10 @@
             OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos, key_w, key_h)
             -------------------------
             -- keys
-            
+            local draw_drop_line if data.activedroppedpad and data.activedroppedpad == 'keys_p'..note then draw_drop_line = true end
             obj['keys_p'..note] = 
                       { clear = true,
+                        draw_drop_line = draw_drop_line,
                         x = key_xpos,
                         y = key_ypos,
                         w = key_w-1,
@@ -1298,19 +1325,33 @@
                                   refresh.GUI = true     
                                 end,
                         func_R =  function ()
-                                    --[[Menu(mouse, {
-                                                  { str = 'Remove current opened sample',
+                                    if not data[note] then return end
+                                    Menu(mouse, { { str =   'Rename linked MIDI note',
                                                     func =  function()
-                                                              cur_spl = obj.current_WFspl
-                                                              cur_spl = obj.current_WFspl
-                                                              SNM_MoveOrRemoveTrackFX( data.parent_track, data[note][spl].rs5k_pos, 0 )
-                                                            end
-                                                  }
-                                                
+                                                              local MIDI_name = GetTrackMIDINoteNameEx( 0, data[note][1].src_track, note, 1)
+                                                              local ret, MIDI_name_ret = reaper.GetUserInputs( conf.scr_title, 1, 'Rename MIDI note,extrawidth=200', MIDI_name )
+                                                              if ret then
+                                                                SetTrackMIDINoteNameEx( 0, data[note][1].src_track, note, 1, MIDI_name_ret)
+                                                              end
+                                                            end},
+                                                  { str =   'Remove pad content',
+                                                    func =  function()
+                                                              for spl = #data[note], 1, -1 do
+                                                                SNM_MoveOrRemoveTrackFX( data[note][spl].src_track, data[note][spl].rs5k_pos, 0 )
+                                                              end
+                                                            end},                                                            
                                                 
                                                 })
-                                    refresh.GUI_WF = true  
-                                    refresh.GUI = true ]]                                   
+                                    refresh.GUI = true  
+                                    refresh.data = true                                  
+                                  end,
+                        func_DC = function()
+                                    if conf.MM_dc_float == 1 and data[note] then
+                                      for spl = 1, #data[note] do
+                                        -- TrackFX_SetOpen(  data[note][1].src_track, data[note][1].rs5k_pos, true )
+                                        TrackFX_Show( data[note][spl].src_track, data[note][spl].rs5k_pos,3 )
+                                      end
+                                    end
                                   end
                                 } 
             if    note%12 == 1 
@@ -1331,24 +1372,26 @@
   function OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos, key_w, key_h, alignformixer)
     if not data[note] or not data[note][1] then return end
     local i = note
+    local cnt = 0
     local key_xpos = key_xpos -2
             ------------ctrl butts
             local y_shift_butts = 0 
             if alignformixer then y_shift_butts = -1 end   
             -- mute            
-            if key_h > obj.fx_rect_side*3 and key_w > obj.fx_rect_side*2 then 
+            if key_h > obj.fx_rect_side*3 and key_w > obj.fx_rect_side then 
               if conf.FX_buttons&(1<<3) == (1<<3) then 
                 y_shift_butts = y_shift_butts + 1
                 local  alpha_back = 0.01
                 if data[note] and data[note][1] and data[note][1].bypass_state == false then alpha_back = 0.4 end
                 local x_pos, y_pos = 0,0
                 if alignformixer then 
-                  x_pos = key_xpos + key_w - obj.fx_rect_side
+                  x_pos = key_xpos + key_w - obj.fx_rect_side +1
                   y_pos = key_ypos + obj.fx_rect_side*y_shift_butts
                  else
                   x_pos = key_xpos + key_w - obj.fx_rect_side
                   y_pos = key_ypos + key_h - obj.fx_rect_side*y_shift_butts
                 end
+                cnt=cnt+1
                 obj['keys_pMUTE'..i] = { clear = true,
                       x = x_pos,
                       y = y_pos,
@@ -1372,19 +1415,20 @@
               end
               
             -- solo            
-            if key_h > obj.fx_rect_side*2 and key_w > obj.fx_rect_side*2 then 
+            if key_h > obj.fx_rect_side*2 and key_w > obj.fx_rect_side then 
               if conf.FX_buttons&(1<<4) == (1<<4) then 
                 y_shift_butts = y_shift_butts + 1
                 local  alpha_back = 0.01
                 if data[note].solo_state then  alpha_back = 0.5 end
                 local x_pos, y_pos = 0,0
                 if alignformixer then 
-                  x_pos = key_xpos + key_w - obj.fx_rect_side
+                  x_pos = key_xpos + key_w - obj.fx_rect_side+1
                   y_pos = key_ypos + obj.fx_rect_side*y_shift_butts
                  else
                   x_pos = key_xpos + key_w - obj.fx_rect_side
                   y_pos = key_ypos + key_h - obj.fx_rect_side*y_shift_butts
                 end                
+                cnt=cnt+1
                 obj['keys_pSolo'..i] = { clear = true,
                       x = x_pos,
                       y = y_pos,
@@ -1418,18 +1462,19 @@
             end
 
             -- FX                    
-            if key_h > obj.fx_rect_side and key_w > obj.fx_rect_side*2 then               
+            if key_h > obj.fx_rect_side and key_w > obj.fx_rect_side then               
               if conf.FX_buttons&(1<<2) == (1<<2) and conf.allow_multiple_spls_per_pad == 0 then 
                 y_shift_butts = y_shift_butts + 1
                 local  alpha_back = 0.01
                 if data[note] and data[note][1] and data[note][1].src_track ~= data.parent_track then alpha_back = 0.4 end
                 if alignformixer then 
-                  x_pos = key_xpos + key_w - obj.fx_rect_side
+                  x_pos = key_xpos + key_w - obj.fx_rect_side+1
                   y_pos = key_ypos + obj.fx_rect_side*y_shift_butts
                  else
                   x_pos = key_xpos + key_w - obj.fx_rect_side
                   y_pos = key_ypos + key_h - obj.fx_rect_side*y_shift_butts
-                end                    
+                end     
+                cnt=cnt+1               
                 obj['keys_pFX'..i] = { clear = true,
                       x = x_pos,
                       y = y_pos,
@@ -1449,7 +1494,7 @@
                                 end}
               end
             end
-                              
+    return cnt              
   end
   ---------------------------------------------------
   function OBJ_Update(conf, obj, data, refresh, mouse) 
@@ -1528,28 +1573,18 @@
   }  ,                ]]
   { str = 'Donate to MPL',
     func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
-  { str = 'Cockos Forum thread|',
+  { str = 'Cockos Forum thread',
     func = function() Open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } , 
+  { str = 'YouTube review by REAPER Blog|',
+    func = function() Open_URL('http://www.youtube.com/watch?v=clucnX0WWXc') end  } ,     
+    
   { str = '#Options'},    
-  { str = '>Key names'},
   
-  { str = ({GetNoteStr(conf, 0, 8)})[2],
-    state = conf.key_names == 8,
-    func = function() conf.key_names = 8 end},
-  { str = ({GetNoteStr(conf, 0,7)})[2],
-    state = conf.key_names == 7,
-    func = function() conf.key_names = 7 end},  
-  { str = 'keys + octave',
-    state = conf.key_names == 0,
-    func = function() conf.key_names = 0 end},      
-  { str = ({GetNoteStr(conf, 0,4)})[2],
-    state = conf.key_names == 4,
-    func = function() conf.key_names = 4 end},  
-  { str = ({GetNoteStr(conf, 0,6)})[2]..'|<',
-    state = conf.key_names == 6,
-    func = function() conf.key_names = 6 end},          
   
-  { str = '>Pad controls'},
+    
+  { str = '>Key options',  
+    menu_inc = true},
+  { str = '>Key controls', menu_inc = true},
   { str = fx_per_pad..'FX',  
     state = conf.FX_buttons&(1<<2) == (1<<2),
     func =  function() 
@@ -1571,7 +1606,27 @@
               conf.FX_buttons = ret
             end ,
   },
-    
+  { str = '>Key names'},  
+  { str = ({GetNoteStr(conf, 0, 8)})[2],
+    state = conf.key_names == 8,
+    func = function() conf.key_names = 8 end},
+  { str = ({GetNoteStr(conf, 0,7)})[2],
+    state = conf.key_names == 7,
+    func = function() conf.key_names = 7 end},  
+  { str = 'keys + octave',
+    state = conf.key_names == 0,
+    func = function() conf.key_names = 0 end},      
+  { str = ({GetNoteStr(conf, 0,4)})[2],
+    state = conf.key_names == 4,
+    func = function() conf.key_names = 4 end},  
+  { str = ({GetNoteStr(conf, 0,6)})[2],
+    state = conf.key_names == 6,
+    func = function() conf.key_names = 6 end},          
+  { str = '|Visual octave shift: '..conf.oct_shift..'oct'..'|<',
+    func = function() 
+              ret = GetInput( conf, 'Visual octave shift', conf.oct_shift,true) 
+              if ret then  conf.oct_shift = ret  end end,
+  } ,
   { str = '>Layouts'},
   { str = 'Chromatic Keys',
     func = function() conf.keymode = 0 end ,
@@ -1588,33 +1643,65 @@
   { str = 'Studio One Impact (4x4)',
     func = function() conf.keymode = 4 end ,
     state = conf.keymode == 4},
-  { str = 'Ableton Push (8x8)|<',
+  { str = 'Ableton Push (8x8)|<|',
     func = function() conf.keymode = 5 end ,
-    state = conf.keymode == 5},  
-      
-  { str = '>Auto prepare selected track MIDI input on start'},   
-  { str = 'Disabled',
-    func = function() conf.prepareMIDI2 = 0  end ,
-    state = conf.prepareMIDI2 == 0},    
-  { str = 'Virtual keyboard',
-    func = function() conf.prepareMIDI2 = 1  end ,
-    state = conf.prepareMIDI2 == 1},                   
-  { str = 'All inputs|<',
-    func = function() conf.prepareMIDI2 = 2  end ,
-    state = conf.prepareMIDI2 == 2},   
+    state = conf.keymode == 5},    
     
   { str = 'Send MIDI by clicking on keys',
     func = function() conf.keypreview = math.abs(1-conf.keypreview)  end ,
-    state = conf.keypreview == 1}, 
-  { str = 'Visual octave shift: '..conf.oct_shift..'oct',
-    func = function() 
-              ret = GetInput( conf, 'Visual octave shift', conf.oct_shift,true) 
-              if ret then  conf.oct_shift = ret  end end,
-  } ,
-  { str = 'Allow multiple samples per pad (Layering mode)|',
+    state = conf.keypreview == 1},   
+  { str = 'Display MIDI note names'..'|<',
+    func = function() conf.displayMIDInotenames = math.abs(1-conf.displayMIDInotenames) end,
+    state = conf.displayMIDInotenames == 1, 
+  } , 
+
+
+
+  { str = '>RS5k controls'},
+  { str = 'Invert mouse for release|<',  
+    state = conf.invert_release == 1,
+    func =  function() conf.invert_release = math.abs(1-conf.invert_release)  end ,
+  },  
+
+  { str = '>Mouse Modifiers'},
+  { str = 'Doubleclick reset knob value',  
+    state = conf.MM_reset_val&(1<<0) == (1<<0),
+    func =  function() 
+              local ret = BinaryCheck(conf.MM_reset_val, 0)
+              conf.MM_reset_val = ret
+            end ,},   
+  { str = 'Alt+Click reset knob value|',  
+    state = conf.MM_reset_val&(1<<1) == (1<<1),
+    func =  function() 
+              local ret = BinaryCheck(conf.MM_reset_val, 1)
+              conf.MM_reset_val = ret
+            end }, 
+  { str = 'Doubleclick on pads float related RS5k instances|<',  
+    state = conf.MM_dc_float == 1,
+    func =  function() conf.MM_dc_float = math.abs(1-conf.MM_dc_float)  end }  ,          
+                  
+  { str = '>Prepare selected track MIDI input'},   
+  { str = 'Disabled',
+    func = function() conf.prepareMIDI2 = 0  end ,
+    state = conf.prepareMIDI2 == 0},    
+  { str = 'On script start: Virtual keyboard',
+    func = function() conf.prepareMIDI2 = 1  end ,
+    state = conf.prepareMIDI2 == 1},                   
+  { str = 'On script start: All inputs',
+    func = function() conf.prepareMIDI2 = 2  end ,
+    state = conf.prepareMIDI2 == 2}, 
+  { str = 'Manually: Virtual keyboard',
+    func = function() conf.prepareMIDI2 = 3  end ,
+    state = conf.prepareMIDI2 == 3},     
+  { str = 'Manually: All inputs|<',
+    func = function() conf.prepareMIDI2 = 4  end ,
+    state = conf.prepareMIDI2 == 4},          
+    
+  { str = 'Layering mode: allow multiple samples per pad|',
     func = function() conf.allow_multiple_spls_per_pad = math.abs(1-conf.allow_multiple_spls_per_pad) end,
     state = conf.allow_multiple_spls_per_pad == 1, 
   } ,  
+ 
   
   { str = '#Actions'},  
   { str = 'Export selected items to RS5k instances',
@@ -1647,7 +1734,7 @@
                   local s_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
                   local src_len =GetMediaSourceLength( tk_src )
                   local filepath = reaper.GetMediaSourceFileName( tk_src, '' )
-                  msg(s_offs/src_len)
+                  --msg(s_offs/src_len)
                   ExportItemToRS5K(data,conf,refresh,base_pitch + i-1,filepath, s_offs/src_len, (s_offs+it_len)/src_len)
                   ::skip_to_next_item::
                 end
@@ -1681,22 +1768,29 @@
                               refresh.GUI = true
                               refresh.GUI_onStart = true
                               refresh.data = true
-                            end}                            
-        local a = obj.it_alpha5 
-        if obj.window == 1 then a = obj.it_alpha6 end
+                            end}  
+                            
+                            
+        local mix_y_offs =  obj.kn_h+obj.samplename_h + keyareabut_h*2  
+        local mix_h = keyareabut_h+1                   
+        if conf.prepareMIDI2 == 3 or conf.prepareMIDI2 == 4 then mix_h = keyareabut_h /2 end
+        
+        local cymb_a = obj.it_alpha5
+        if obj.window == 1 then cymb_a = obj.it_alpha6 end
         obj.mixer = { clear = true,
                     x = 0,
-                    y = obj.kn_h+obj.samplename_h + keyareabut_h*2,
+                    y = mix_y_offs,
                     w = obj.keycntrlarea_w,
-                    h = keyareabut_h,
+                    h =mix_h,
+                    cymb = 0,
+                    cymb_a = cymb_a,
                     col = 'white',
-                    state = fale,
-                    txt= 'M',
+                    txt= '',
                     show = true,
                     is_but = true,
                     mouse_overlay = true,
                     fontsz = obj.GUI_fontsz,
-                    alpha_back = a,
+                    alpha_back = obj.it_alpha5 ,
                     a_frame = 0,
                     func =  function() 
                               obj.window = math.abs(obj.window-1)
@@ -1707,6 +1801,34 @@
                               refresh.GUI = true
                               refresh.data = true                           
                             end}                             
+                            
+        if conf.prepareMIDI2 == 3 or conf.prepareMIDI2 == 4 then
+          local mode_override = 0
+          if  conf.prepareMIDI2 == 4 then mode_override = 1 end
+          obj.prepareMIDI = { clear = true,
+                    x = 0,
+                    y = mix_y_offs + mix_h,
+                    w = obj.keycntrlarea_w,
+                    h = mix_h,
+                    col = 'white',
+                    cymb = 1,
+                    cymb_a = obj.it_alpha6,
+                    txt= '',
+                    show = true,
+                    is_but = true,
+                    mouse_overlay = true,
+                    fontsz = obj.GUI_fontsz,
+                    alpha_back = obj.it_alpha5 ,
+                    a_frame = 0,
+                    func =  function() 
+                              MIDI_prepare(data, conf, mode_override)
+                              refresh.conf = true 
+                              refresh.GUI = true
+                              refresh.data = true                           
+                            end}         
+        end                    
+                            
+                            
                             
     if obj.window == 0 then                
       OBJ_GenKeys(conf, obj, data, refresh, mouse)
@@ -1739,7 +1861,7 @@
 
       local key_area_h = gfx.h -obj.kn_h-obj.samplename_h
       local key_w = math.ceil((gfx.w-3*obj.offs-obj.keycntrlarea_w)/cnt)
-      local key_h = math.ceil((1/h_div)*(key_area_h)) 
+      local key_h = math.ceil((1/h_div)*(key_area_h)) +1
       obj.h_div = h_div
       for i = 1, cnt do
         local id = i-1+conf.oct_shift*12
@@ -1764,7 +1886,8 @@
           if note >= 0 and note <= 127 then
             local key_xpos = obj.keycntrlarea_w+(i-1)*key_w +2
             local key_ypos = gfx.h-key_area_h
-            OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos, key_w, key_h, true)
+            local fxctrlcnt = OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos, key_w, key_h, true)
+            if not fxctrlcnt then fxctrlcnt = 0 end
             -------------------------
             -- keys
             local gain_val = 0
@@ -1781,8 +1904,11 @@
               gain_val = val
               pan_val = data[note].com_pan
             end
-            
-            obj['keys_pmix'..i] = 
+            local limtxtw_vert = obj.fx_rect_side*fxctrlcnt
+            if key_w > obj.fx_rect_side*2 then limtxtw_vert = 0 end
+            local verttxt = ''
+            if txt and tostring(txt )then verttxt = tostring(txt ):gsub('\n',' ') end
+            obj['keys_p'..i] = 
                       { clear = true,
                         x = key_xpos,
                         y = gfx.h-key_area_h,
@@ -1795,9 +1921,9 @@
                         colint = colint,
                         state = 0,
                         txt= '',
-                        limtxtw = obj.fx_rect_side,
+                        limtxtw_vert = limtxtw_vert,
                         is_step = true,
-                        vertical_txt = txt:gsub('\n',' '),
+                        vertical_txt = verttxt,
                         linked_note = note,
                         show = true,
                         is_but = true,
@@ -1824,7 +1950,6 @@
                                       data[note][cur_spl].gain  = out_val
                                       SetRS5kData(data, conf, data[note][cur_spl].src_track, note, cur_spl) 
                                     end 
-                                    
                                     
                                     refresh.data = true 
                                     refresh.GUI = true 
@@ -1881,7 +2006,7 @@
               or  note%12 == 6 
               or  note%12 == 8 
               or  note%12 == 10 
-              then obj['keys_pmix'..i].txt_col = 'black' end
+              then obj['keys_p'..i].txt_col = 'black' end
               
               
           end

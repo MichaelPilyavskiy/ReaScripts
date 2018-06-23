@@ -16,7 +16,10 @@
   end
   ---------------------------------------------------
   function col(obj, col_str, a) 
-    gfx.set( table.unpack(obj.GUIcol[col_str])) 
+    local r,g,b= table.unpack(obj.GUIcol[col_str])
+    gfx.set(r,g,b ) 
+    if not GetOS():match('Win') then gfx.set(b,g,r ) end
+    
     if a then gfx.a = a end  
   end
   ---------------------------------------------------
@@ -50,8 +53,7 @@
           then
         local int_col = data[obj.current_WFkey][obj.current_WFspl].src_track_col
         local r, g, b = ColorFromNative( int_col )
-                  if GetOS():match('Win') then gfx.set(r/255,g/255,b/255, 0.2)
-                   else gfx.set(b/255,g/255,r/255,  0.2)     end
+        gfx.set(r/255,g/255,b/255, 0.2)
        else
         col(obj, 'green', 0.2)
       end
@@ -84,9 +86,11 @@
     if ret > 0 then 
       for i = 1, ret do 
         if t[i+incr].menu_decr == true then incr = incr - 1 end
-        if t[i+incr].str:match('>')  then incr = incr + 1 end
+        if t[i+incr].str:match('>') then incr = incr + 1 end
+        if t[i+incr].menu_inc then incr = incr + 1 end
       end
       if t[ret+incr] and t[ret+incr].func then t[ret+incr].func() end 
+      --msg(t[ret+incr].str)
     end
   end  
   ---------------------------------------------------
@@ -277,11 +281,7 @@
       end
       if o.colint and o.col then
         local r, g, b = ColorFromNative( o.colint )
-        if GetOS():match('Win') then 
-          gfx.set(r/255,g/255,b/255, o.alpha_back or 0.2)
-         else 
-          gfx.set(b/255,g/255,r/255, o.alpha_back or 0.2) 
-        end
+        gfx.set(r/255,g/255,b/255, o.alpha_back or 0.2)
        else
         if o.col then col(obj, o.col, o.alpha_back or 0.2) end
       end
@@ -298,6 +298,24 @@
        else
         gfx.rect(x_sl,y_sl,w_sl,h_sl,1)
       end
+           
+    --------- cymb  ----------------
+    if o.cymb then 
+      if o.cymb_a then gfx.a = o.cymb_a end
+      local edgesz = math.min(w,h)
+      gfx.blit( 11, 1, 0, -- grad back
+                100*o.cymb,0,  100,100,
+                x + (w- edgesz)/2,
+                y + (h- edgesz)/2,
+                edgesz,edgesz, 0,0)       
+    end
+    
+   -- pads drop line
+    if o.draw_drop_line then
+      gfx.set(1,1,1,0.6)
+      gfx.line(x,y,x,y+h)
+    end        
+           
              
     ------------------ check
       if o.check and o.check == 1 then
@@ -370,12 +388,27 @@
         gfx.setfont(1, obj.GUI_font,o.fontsz or obj.GUI_fontsz )
         gfx.x,gfx.y = 2,0
         col(obj, 'white', 0.9)
-        gfx.drawstr(o.vertical_txt) 
+        
+        local line = o.vertical_txt
+        
+        if o.limtxtw_vert then
+          lim_cnt = 0
+          local str_len = gfx.measurestr(line)
+          if str_len > h - o.limtxtw_vert - 10 then 
+             repeat 
+             line = line:sub(2)
+             
+             lim_cnt = lim_cnt + 1
+             until gfx.measurestr(line) < h - o.limtxtw_vert -10 or lim_cnt > 200
+             line = '...'..line 
+          end
+        end
+        gfx.drawstr(line) 
         gfx.dest = o.blit or 1
         local offs = 0
         gfx.blit(10,1,math.rad(-90),
                   0,0,h,h,
-                  x,y,h,h,0,0)
+                  x,y-2,h,h,0,0)
                   ---5,h-w+5)
       end
     
@@ -403,7 +436,31 @@
     return true
   end
   ---------------------------------------------------
-  function GUI_draw(conf, obj, data, refresh, mouse, pat)
+  function GUI_symbols(conf, obj, data, refresh, mouse) 
+    
+    -- mixer
+      col(obj, 'green', 1) 
+      gfx.a = 1 
+      --gfx.rect(0,0,100,100,0)   
+      gfx.rect(10,60,20,30,1) 
+      gfx.rect(30,30,20,60,1)
+      gfx.rect(50,50,20,40,1)
+      gfx.rect(70,60,20,30,1)
+      
+    -- preview
+      col(obj, 'white', 1) 
+      gfx.a = 1   
+      --gfx.rect(100,0,100,100,0) 
+      gfx.rect(120,25,30,50,1) 
+      gfx.triangle( 150,25,
+                    150,75,
+                    180,99,
+                    180,0
+                    )
+            
+  end
+  ---------------------------------------------------
+  function GUI_draw(conf, obj, data, refresh, mouse)
     gfx.mode = 0
     
     -- 1 back
@@ -413,6 +470,7 @@
     -- 5 gradient steps
     -- 6 WaveForm
     -- 10 sample keys
+    -- 11 symbols
     
     --  init
       if refresh.GUI_onStart then
@@ -453,7 +511,12 @@
         gfx.gradrect(0,0, obj.grad_sz,obj.grad_sz, 
                         r,g,b,a, 
                         drdx, dgdx, dbdx, dadx, 
-                        drdy, dgdy, dbdy, dady)     
+                        drdy, dgdy, dbdy, dady) 
+                        gfx.dest = -1  
+        gfx.dest = 11
+        gfx.setimgdim(11, -1, -1)  
+        gfx.setimgdim(11, 1000,1000)  
+        GUI_symbols(conf, obj, data, refresh, mouse) 
         refresh.GUI_onStart = nil             
         refresh.GUI = true       
       end
@@ -512,6 +575,7 @@
             gfx.w- obj.keycntrlarea_w  , 
             obj.WF_h-1 , 0,0) 
     end      
+    --GUI_symbols(conf, obj, data, refresh, mouse) 
     
     refresh.GUI = nil
     gfx.update()
