@@ -38,6 +38,7 @@
       
      if mouse.last_x and mouse.last_y and (mouse.last_x ~= mouse.x or mouse.last_y ~= mouse.y) then mouse.is_moving = true else mouse.is_moving = false end
      if mouse.last_wheel then mouse.wheel_trig = (mouse.wheel - mouse.last_wheel) end 
+      mouse.wheel_on_move =     mouse.wheel_trig ~= 0
      if not mouse.LMB_state_TS then mouse.LMB_state_TS = obj.clock end
      if mouse.LMB_state and mouse.LMB_state_TS and obj.clock -mouse.LMB_state_TS < d_click and obj.clock -mouse.LMB_state_TS  > 0 then  mouse.DLMB_state = true  end 
      if mouse.LMB_state and not mouse.last_LMB_state then  
@@ -141,17 +142,21 @@
             if src_note and tonumber(src_note) and dest_note and tonumber(dest_note) then
               src_note = tonumber(src_note)
               dest_note = tonumber(dest_note)
-              if not mouse.Ctrl_state then
-                for id_spl = 1, #data[src_note] do
-                  data[src_note][id_spl].MIDIpitch_normal = dest_note/127
-                  SetRS5kData(data, conf, data[src_note][id_spl].src_track, src_note, id_spl)
-                end
-               else
-                for id_spl = 1, #data[src_note] do
-                  data[src_note][id_spl].MIDIpitch_normal = dest_note/127
-                  SetRS5kData(data, conf, data[src_note][id_spl].src_track, src_note, id_spl, true)
-                end
-              end                
+              if data[src_note] then
+                if not mouse.Ctrl_state then
+                  for id_spl = 1, #data[src_note] do
+                    data[src_note][id_spl].MIDIpitch_normal = dest_note/127
+                    SetRS5kData(data, conf, data[src_note][id_spl].src_track, src_note, id_spl)
+                  end
+                 else
+                  for id_spl = 1, #data[src_note] do
+                    data[src_note][id_spl].MIDIpitch_normal = dest_note/127
+                    SetRS5kData(data, conf, data[src_note][id_spl].src_track, src_note, id_spl, true)
+                  end
+                end 
+              end 
+              obj.current_WFkey = dest_note
+              refresh.GUI_WF = true
             end         
           end
           refresh.data = true  

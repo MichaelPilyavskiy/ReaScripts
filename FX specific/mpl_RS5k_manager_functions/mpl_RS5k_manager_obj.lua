@@ -27,10 +27,7 @@
     obj.comm_h = 30
     obj.key_h = 250-- keys y/h  
  
-    obj.kn_w =42
-    obj.splctrl_butw = 60
-    obj.kn_h =56  
-    obj.WF_h=obj.kn_h 
+ 
     obj.samplename_h = 20   
     obj.keycntrlarea_w = 20
     obj.WF_w=gfx.w- obj.keycntrlarea_w  
@@ -397,7 +394,7 @@
               aligh_txt = 0,
               show = true,
               is_but = true,
-              fontsz = obj.GUI_fontsz2,
+              fontsz = conf.GUI_padfontsz,
               alpha_back =0,
               func =  function()
                         if conf.allow_multiple_spls_per_pad == 1 and cur_note and data[cur_note] then
@@ -408,7 +405,16 @@
                                         state = i == obj.current_WFspl }
                           end
                           t[#t+1] = { str = '|Remove current sample RS5k instance',
-                                      func = function() SNM_MoveOrRemoveTrackFX( data[cur_note][obj.current_WFspl].src_track, data[cur_note][obj.current_WFspl].rs5k_pos, 0 ) end}
+                                      func = function() 
+                                                SNM_MoveOrRemoveTrackFX( data[cur_note][obj.current_WFspl].src_track, data[cur_note][obj.current_WFspl].rs5k_pos, 0 )
+                                                if #data[cur_note] > 1 then
+                                                  obj.current_WFspl = 2
+                                                 else
+                                                  obj.current_WFkey = nil
+                                                  obj.current_WFspl = nil
+                                                end
+                                                refresh.GUI_WF = true  
+                                            end}
                           Menu(mouse, t)
                           data.current_spl_peaks = nil
                           refresh.GUI_WF = true 
@@ -437,7 +443,7 @@
                       --aligh_txt = 16,
                       show = true,
                       is_but = true,
-                      fontsz = obj.GUI_fontsz3-2,
+                      fontsz = conf.GUI_splfontsz,
                       alpha_back =alpha_back,
                       func =  function() 
                                   ShowRS5kChain(data, conf, cur_note, cur_spl)
@@ -460,7 +466,7 @@
                       --aligh_txt = 16,
                       show = true,
                       is_but = true,
-                      fontsz = obj.GUI_fontsz3-2,
+                      fontsz = conf.GUI_splfontsz,
                       alpha_back =alpha_back,
                       func =  function() 
                                   data[cur_note][cur_spl].bypass_state = not data[cur_note][cur_spl].bypass_state
@@ -484,7 +490,7 @@
                       --aligh_txt = 16,
                       show = true,
                       is_but = true,
-                      fontsz = obj.GUI_fontsz3-2,
+                      fontsz = conf.GUI_splfontsz,
                       alpha_back =alpha_back,
                       func =  function() 
                                   local solo_state = data[cur_note][cur_spl].solo_state == true
@@ -508,7 +514,7 @@
         ---------- gain ----------
         local gain_val = data[cur_note][cur_spl].gain / 2
         local gain_txt
-        if (mouse.context_latch and mouse.context_latch == 'splctrl_gain') 
+        if (mouse.context_latch and mouse.context_latch == 'splctrl_gain') or (mouse.context == 'splctrl_gain' and mouse.wheel_on_move)
           --or (mouse.context and mouse.context =='splctrl_gain') 
           then 
           gain_txt  = data[cur_note][cur_spl].gain_dB..'dB'   
@@ -528,7 +534,7 @@
               is_but = true,
               is_knob = true,
               val = gain_val,
-              fontsz = obj.GUI_fontsz3,
+              fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
               func =  function() 
                         mouse.context_latch_val = data[cur_note][cur_spl].gain 
@@ -571,7 +577,7 @@
         ---------- pan ----------                          
         local pan_val = data[cur_note][cur_spl].pan 
         local pan_txt
-        if (mouse.context_latch and mouse.context_latch == 'splctrl_pan') 
+        if (mouse.context_latch and mouse.context_latch == 'splctrl_pan') or (mouse.context == 'splctrl_pan' and mouse.wheel_on_move)
           --or (mouse.context and mouse.context == 'splctrl_pan')
           then 
           pan_txt  = math.floor((-0.5+data[cur_note][cur_spl].pan)*200)
@@ -592,7 +598,7 @@
               is_knob = true,
               is_centered_knob = true,
               val = pan_val,
-              fontsz = obj.GUI_fontsz3,
+              fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
               func =  function() 
                         mouse.context_latch_val = data[cur_note][cur_spl].pan 
@@ -632,7 +638,8 @@
         ---------- ptch ----------                          
         local pitch_val = data[cur_note][cur_spl].pitch_offset 
         local pitch_txt
-        if    (mouse.context_latch and (mouse.context_latch == 'splctrl_pitch1' or mouse.context_latch == 'splctrl_pitch2')) 
+        if    (mouse.context_latch and (mouse.context_latch == 'splctrl_pitch1' or mouse.context_latch == 'splctrl_pitch2'))
+               or (mouse.context == 'splctrl_pitch1' and mouse.wheel_on_move) 
           --or  (mouse.context       and (mouse.context       == 'splctrl_pitch1' or mouse.context       == 'splctrl_pitch2')) 
           then 
           pitch_txt  = data[cur_note][cur_spl].pitch_semitones else   pitch_txt = 'Pitch'    
@@ -651,7 +658,7 @@
               is_knob = true,
               is_centered_knob = true,
               val = pitch_val,
-              fontsz = obj.GUI_fontsz3,
+              fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
               func =  function() 
                         mouse.context_latch_val = data[cur_note][cur_spl].pitch_offset 
@@ -681,13 +688,20 @@
                           refresh.data = true 
                         end,                        
               func_wheel = function()
-                          local out_val = lim(data[cur_note][cur_spl].pitch_offset  + mouse.wheel_trig/wheel_ratio, 0, 2)
-                          if not out_val then return end
-                          data[cur_note][cur_spl].pitch_offset  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,                           
+                              local wheel_rat = 24000
+                              local out_val = lim(data[cur_note][cur_spl].pitch_offset  + mouse.wheel_trig/wheel_rat, 0, 1)*160
+                              local int, fract = math.modf(data[cur_note][cur_spl].pitch_offset*160 )
+                              local out_val = lim(data[cur_note][cur_spl].pitch_offset + mouse.wheel_trig/wheel_rat, 0, 1)
+                              if not out_val then return end
+                              out_val = (math_q(out_val*160)+fract)/160
+                                            
+                              --local out_val = lim(data[cur_note][cur_spl].pitch_offset  + mouse.wheel_trig/wheel_ratio, 0, 2)
+                              --if not out_val then return end
+                              data[cur_note][cur_spl].pitch_offset  = out_val
+                              SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
+                              refresh.GUI = true 
+                              refresh.data = true 
+                            end,                           
               func_ResetVal = function () 
                           data[cur_note][cur_spl].pitch_offset  = 0.5
                           SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
@@ -697,7 +711,7 @@
 
         ---------- attack ----------  
         local att_txt
-        if mouse.context_latch and mouse.context_latch == 'splctrl_att' then 
+        if (mouse.context_latch and mouse.context_latch == 'splctrl_att') or (mouse.context == 'splctrl_att' and mouse.wheel_on_move) then 
           att_txt  = data[cur_note][cur_spl].attack_ms..'ms'   
          else   
           att_txt = 'A'    
@@ -715,7 +729,7 @@
               is_but = true,
               is_knob = true,
               val = data[cur_note][cur_spl].attack^0.1666,
-              fontsz = obj.GUI_fontsz3,
+              fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
               func =  function() 
                         mouse.context_latch_val = data[cur_note][cur_spl].attack 
@@ -749,7 +763,7 @@
               }     
         ---------- decay ----------  
         local dec_txt
-        if mouse.context_latch and mouse.context_latch == 'splctrl_dec' then 
+        if (mouse.context_latch and mouse.context_latch == 'splctrl_dec') or (mouse.context== 'splctrl_dec' and mouse.wheel_on_move) then 
           dec_txt  = data[cur_note][cur_spl].decay_ms..'ms'   
          else   
           dec_txt = 'D'    
@@ -767,7 +781,7 @@
               is_but = true,
               is_knob = true,
               val = data[cur_note][cur_spl].decay^0.1666,
-              fontsz = obj.GUI_fontsz3,
+              fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
               func =  function() 
                         mouse.context_latch_val = data[cur_note][cur_spl].decay 
@@ -800,7 +814,7 @@
               }         
         ---------- sust ----------
         local sust_txt
-        if mouse.context_latch and mouse.context_latch == 'splctrl_sust' then 
+        if (mouse.context_latch and mouse.context_latch == 'splctrl_sust') or (mouse.context== 'splctrl_sust' and mouse.wheel_on_move) then 
           sust_txt  = data[cur_note][cur_spl].sust_dB..'dB'   
          else   
           sust_txt = 'S'    
@@ -818,7 +832,7 @@
               is_but = true,
               is_knob = true,
               val = data[cur_note][cur_spl].sust/2,
-              fontsz = obj.GUI_fontsz3,
+              fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
               func =  function() 
                         mouse.context_latch_val = data[cur_note][cur_spl].sust 
@@ -849,7 +863,7 @@
               }              
         ---------- release ----------  
         local rel_txt
-        if mouse.context_latch and mouse.context_latch == 'splctrl_rel' then 
+        if (mouse.context_latch and mouse.context_latch == 'splctrl_rel') or (mouse.context == 'splctrl_rel' and mouse.wheel_on_move) then 
           rel_txt  = data[cur_note][cur_spl].rel_ms..'ms'   
          else   
           rel_txt = 'R'    
@@ -870,7 +884,7 @@
               is_but = true,
               is_knob = true,
               val = val,
-              fontsz = obj.GUI_fontsz3,
+              fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
               func =  function() 
                         mouse.context_latch_val = data[cur_note][cur_spl].rel 
@@ -904,7 +918,7 @@
         ---------- loop s ----------
         local loops_val = data[cur_note][cur_spl].offset_start
         local loops_val_txt
-        if mouse.context_latch and mouse.context_latch == 'splctrl_loops' then 
+        if (mouse.context_latch and mouse.context_latch == 'splctrl_loops') or (mouse.context== 'splctrl_loops' and mouse.wheel_on_move) then 
           loops_val_txt  = math_q_dec(data[cur_note][cur_spl].offset_start, 3)
          else   
           loops_val_txt = 'LoopSt'    
@@ -922,7 +936,7 @@
               is_but = true,
               is_knob = true,
               val = data[cur_note][cur_spl].offset_start,
-              fontsz = obj.GUI_fontsz3,
+              fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
               func =  function() 
                         mouse.context_latch_val = data[cur_note][cur_spl].offset_start 
@@ -973,7 +987,7 @@
         ---------- loop e ----------
         local loope_val = data[cur_note][cur_spl].offset_end
         local loope_val_txt
-        if mouse.context_latch and mouse.context_latch == 'splctrl_loope' then 
+        if (mouse.context_latch and mouse.context_latch == 'splctrl_loope' ) or (mouse.context== 'splctrl_loope' and mouse.wheel_on_move)then 
           loope_val_txt  = math_q_dec(data[cur_note][cur_spl].offset_end, 3)
          else   
           loope_val_txt = 'LoopEnd'    
@@ -991,7 +1005,7 @@
               is_but = true,
               is_knob = true,
               val = data[cur_note][cur_spl].offset_end,
-              fontsz = obj.GUI_fontsz3,
+              fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
               func =  function() 
                         mouse.context_latch_val = data[cur_note][cur_spl].offset_end 
@@ -1037,19 +1051,19 @@
         local obNOstate = data[cur_note][cur_spl].obeynoteoff
         local alpha_back = obj.it_alpha5
         if obNOstate ~= 0 then alpha_back = obj.it_alpha6 end
-          
+        local b_h = math.floor(obj.kn_h/3)
         obj.splctrl_obeynoteoff = { clear = true,
                                   x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*9 + env_x_shift*3,
                                   y = knob_y,
                                   w = obj.splctrl_butw,
-                                  h = obj.kn_h,
+                                  h = b_h-1,
                                   col = 'white',
                                   state = fale,
                                   txt= 'ObNoteOff',
                                   show = true,
                                   is_but = true,
                                   mouse_overlay = true,
-                                  fontsz = obj.GUI_fontsz3,
+                                  fontsz = conf.GUI_splfontsz,
                                   alpha_back = alpha_back,
                                   a_frame = 0,
                                   func =  function() 
@@ -1060,6 +1074,133 @@
                                             refresh.data = true
                                           end
                                   }
+                                  
+        obj.splctrl_nextspl = { clear = true,
+                                  x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*9 + env_x_shift*3,
+                                  y = knob_y+b_h,
+                                  w = obj.splctrl_butw,
+                                  h = b_h-1,
+                                  col = 'white',
+                                  state = fale,
+                                  txt= 'Next >',
+                                  show = true,
+                                  is_but = true,
+                                  mouse_overlay = true,
+                                  fontsz = conf.GUI_splfontsz,
+                                  alpha_back = obj.it_alpha5,
+                                  a_frame = 0,
+                                  func =  function() 
+                                            local spl = SearchSample(data[cur_note][cur_spl].sample,true )
+                                            if spl then 
+                                              data[cur_note][cur_spl].sample  = spl
+                                              SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
+                                              refresh.conf = true 
+                                              refresh.GUI = true
+                                              refresh.GUI_WF = true
+                                              refresh.data = true
+                                            end
+                                          end
+                                  }  
+                                  
+        obj.splctrl_prevspl = { clear = true,
+                                  x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*9 + env_x_shift*3,
+                                  y = knob_y+2*b_h,
+                                  w = obj.splctrl_butw,
+                                  h = b_h-1,
+                                  col = 'white',
+                                  state = fale,
+                                  txt= '< Prev',
+                                  show = true,
+                                  is_but = true,
+                                  mouse_overlay = true,
+                                  fontsz = conf.GUI_splfontsz,
+                                  alpha_back = obj.it_alpha5,
+                                  a_frame = 0,
+                                  func =  function() 
+                                            local spl = SearchSample(data[cur_note][cur_spl].sample,false )
+                                            if spl then 
+                                              data[cur_note][cur_spl].sample  = spl
+                                              SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
+                                              refresh.conf = true 
+                                              refresh.GUI = true
+                                              refresh.GUI_WF = true
+                                              refresh.data = true
+                                            end
+                                          end
+                                  }                                                                   
+        ---------- del ----------  
+        local del_txt, del_val
+        if (mouse.context_latch and mouse.context_latch == 'splctrl_del') or (mouse.context== 'splctrl_del' and mouse.wheel_on_move)  then 
+          if data[cur_note][cur_spl].del then 
+            del_txt  = data[cur_note][cur_spl].del_ms 
+           else
+            del_txt  = 'Delay' 
+          end
+         else   
+          del_txt = 'Delay' 
+        end
+        obj.splctrl_del = { clear = true,
+              x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*10 + env_x_shift*5,
+              y = knob_y,
+              w = obj.kn_w,
+              h = obj.kn_h,
+              col = 'white',
+              state = 0,
+              txt= del_txt,
+              aligh_txt = 16,
+              show = true,
+              is_but = true,
+              is_knob = true,
+              is_centered_knob = true,
+              val = data[cur_note][cur_spl].del,
+              fontsz = conf.GUI_splfontsz,
+              alpha_back =knob_back,
+              func =  function() 
+                        if data[cur_note][cur_spl].src_track == data.parent_track then
+                          ShowRS5kChain(data, conf, cur_note, cur_spl) 
+                         else
+                          --SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl, false, true)
+                          if data[cur_note][cur_spl].del  then mouse.context_latch_val = data[cur_note][cur_spl].del  else  mouse.context_latch_val =0.5 end
+                        end
+                        
+                      end,
+              func_LD2 = function ()
+                          if not mouse.context_latch_val then return end
+                          local out_val = lim(mouse.context_latch_val - mouse.dy/300, 0, 1)
+                          if not out_val then return end
+                          out_val = out_val
+                          data[cur_note][cur_spl].del  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl, false, true) 
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,
+              func_ctrlLD = function ()
+                          if not mouse.context_latch_val then return end
+                          local out_val = lim(mouse.context_latch_val - 0.1*ctrl_ratio*mouse.dy/300, 0, 1)
+                          if not out_val then return end
+                          out_val = out_val
+                          data[cur_note][cur_spl].del  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl, false, true) 
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,
+                                                
+              func_wheel = function()
+                          local out_val = lim(data[cur_note][cur_spl].del  + mouse.wheel_trig/24000, 0, 1)
+                          if not out_val then return end
+                          out_val = out_val
+                          data[cur_note][cur_spl].del  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl, false, true) 
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,  
+              func_ResetVal = function ()
+                          data[cur_note][cur_spl].del  = 0.5
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl, false, true) 
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end
+              }                                  
                                                                                                                                                                                                             
   end
 
@@ -1294,6 +1435,10 @@
             -------------------------
             -- keys
             local draw_drop_line if data.activedroppedpad and data.activedroppedpad == 'keys_p'..note then draw_drop_line = true end
+            local a_frame = 0.05
+            if obj.current_WFkey and note == obj.current_WFkey then
+              a_frame = 0.4
+            end
             obj['keys_p'..note] = 
                       { clear = true,
                         draw_drop_line = draw_drop_line,
@@ -1312,9 +1457,9 @@
                         show = true,
                         is_but = true,
                         alpha_back = alpha_back,
-                        a_frame = 0.05,
+                        a_frame = a_frame,
                         aligh_txt = 5,
-                        fontsz = obj.GUI_fontsz2,
+                        fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,
                         func =  function() 
                                   if not data.hasanydata then return end
                                   data.current_spl_peaks = nil
@@ -1342,6 +1487,9 @@
                                                             end},                                                            
                                                 
                                                 })
+                                    obj.current_WFkey = nil
+                                    obj.current_WFspl = nil
+                                    refresh.GUI_WF = true  
                                     refresh.GUI = true  
                                     refresh.data = true                                  
                                   end,
@@ -1499,6 +1647,12 @@
   ---------------------------------------------------
   function OBJ_Update(conf, obj, data, refresh, mouse) 
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
+    
+    obj.kn_h = math.floor(56 *  lim(conf.GUI_ctrlscale, 0.5,3)) 
+    obj.kn_w =  math.floor(42 *  lim(conf.GUI_ctrlscale, 0.5,3))
+    obj.splctrl_butw = math.floor(60 *  lim(conf.GUI_ctrlscale, 0.5,3))
+    obj.WF_h=obj.kn_h 
+    
       local fx_per_pad if conf.allow_multiple_spls_per_pad == 1 then fx_per_pad = '#' else fx_per_pad = '' end
       local keyareabut_h = (gfx.h -obj.kn_h-obj.samplename_h)/3
         obj.keys_octaveshiftL = { clear = true,
@@ -1575,7 +1729,7 @@
     func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
   { str = 'Cockos Forum thread',
     func = function() Open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } , 
-  { str = 'YouTube review by REAPER Blog|',
+  { str = 'YouTube overview by Jon Tidey (REAPER Blog)|',
     func = function() Open_URL('http://www.youtube.com/watch?v=clucnX0WWXc') end  } ,     
     
   { str = '#Options'},    
@@ -1637,12 +1791,9 @@
   { str = 'Korg NanoPad (8x2)',
     func = function() conf.keymode = 2 end ,
     state = conf.keymode == 2},
-  { str = 'Ableton Live Drum Rack (4x4)',
+  { str = 'Ableton Live Drum Rack / S1 Impact (4x4)',
     func = function() conf.keymode = 3 end ,
-    state = conf.keymode == 3},
-  { str = 'Studio One Impact (4x4)',
-    func = function() conf.keymode = 4 end ,
-    state = conf.keymode == 4},
+    state = conf.keymode == 3 or conf.keymode == 4},
   { str = 'Ableton Push (8x8)|<|',
     func = function() conf.keymode = 5 end ,
     state = conf.keymode == 5},    
@@ -1664,13 +1815,13 @@
   },  
 
   { str = '>Mouse Modifiers'},
-  { str = 'Doubleclick reset knob value',  
+  { str = 'Doubleclick reset value',  
     state = conf.MM_reset_val&(1<<0) == (1<<0),
     func =  function() 
               local ret = BinaryCheck(conf.MM_reset_val, 0)
               conf.MM_reset_val = ret
             end ,},   
-  { str = 'Alt+Click reset knob value|',  
+  { str = 'Alt+Click reset value|',  
     state = conf.MM_reset_val&(1<<1) == (1<<1),
     func =  function() 
               local ret = BinaryCheck(conf.MM_reset_val, 1)
@@ -1679,7 +1830,37 @@
   { str = 'Doubleclick on pads float related RS5k instances|<',  
     state = conf.MM_dc_float == 1,
     func =  function() conf.MM_dc_float = math.abs(1-conf.MM_dc_float)  end }  ,          
-                  
+
+  { str = '>GUI options'},
+  { str = 'Controls size scaling',
+    func =  function() 
+              local ret = GetInput( conf, 'Pad font', conf.GUI_ctrlscale)
+              if ret then 
+                conf.GUI_ctrlscale = ret
+                refresh.GUI = true
+              end
+            end
+  } ,   
+  { str = 'Sample controls font size',
+    func =  function() 
+              local ret = GetInput( conf, 'Pad font', conf.GUI_splfontsz,true)
+              if ret then 
+                conf.GUI_splfontsz = ret
+                refresh.GUI = true
+              end
+            end
+  } ,  
+  
+  { str = 'Pad font size|<|',
+    func =  function() 
+              local ret = GetInput( conf, 'Pad font', conf.GUI_padfontsz,true)
+              if ret then 
+                conf.GUI_padfontsz = ret
+                refresh.GUI = true
+              end
+            end
+  } ,
+                    
   { str = '>Prepare selected track MIDI input'},   
   { str = 'Disabled',
     func = function() conf.prepareMIDI2 = 0  end ,
@@ -1697,11 +1878,21 @@
     func = function() conf.prepareMIDI2 = 4  end ,
     state = conf.prepareMIDI2 == 4},          
     
-  { str = 'Layering mode: allow multiple samples per pad|',
+  { str = 'Layering mode: allow multiple samples per pad',
     func = function() conf.allow_multiple_spls_per_pad = math.abs(1-conf.allow_multiple_spls_per_pad) end,
     state = conf.allow_multiple_spls_per_pad == 1, 
   } ,  
- 
+  { str = 'Toggle pin selected track as a parent track|',
+    func =  function() 
+              local tr = GetSelectedTrack(0,0)
+              local GUID =  GetTrackGUID( tr )
+              SetProjExtState( 0, 'MPLRS5KMANAGE', 'PINNEDTR', GUID )
+              conf.pintrack = math.abs(1-conf.pintrack) 
+            end,
+    state = conf.pintrack == 1,
+  } ,  
+  
+   
   
   { str = '#Actions'},  
   { str = 'Export selected items to RS5k instances',
@@ -1930,7 +2121,7 @@
                         alpha_back = alpha_back,
                         a_frame = 0.05,
                         aligh_txt = 5,
-                        fontsz = obj.GUI_fontsz2,
+                        fontsz = conf.GUI_padfontsz,
                         func =  function() 
                                   if conf.keypreview == 1 then  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), note,100) end                                  
                                   if data[note] then 
@@ -1966,7 +2157,7 @@
                                     refresh.data = true 
                                   end,
                                   
-                        func_DC = function ()
+                        func_ResetVal = function ()
                                     if not data[note] then return end
                                     for cur_spl =1, #data[note] do                                      
                                       data[note][cur_spl].gain  = 0.5
@@ -1997,7 +2188,7 @@
                               alpha_back = 0,
                               a_frame = 0,
                               aligh_txt = 5,
-                              fontsz = obj.GUI_fontsz2}
+                              fontsz = conf.GUI_splfontsz}
                 end
               end
             end                             

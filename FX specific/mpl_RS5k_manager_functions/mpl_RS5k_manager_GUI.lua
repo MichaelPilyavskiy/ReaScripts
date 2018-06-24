@@ -155,6 +155,7 @@
   ---------------------------------------------------
   function GUI_knob(obj, b)
     local x,y,w,h,val =b.x,b.y,b.w,b.h, b.val
+    if not val then return end
     local arc_r = math.floor(w/2 * 0.8)
     if b.reduce_knob then arc_r = arc_r*b.reduce_knob end
     y = y - arc_r/2 + 1
@@ -180,11 +181,13 @@
     
     -- arc back      
     col(obj, b.col, 0.2)
+    local halfh = math.floor(h/2)
+    local halfw = math.floor(w/2)
     for i = 0, 3, 0.5 do
-      gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
-      gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
-      gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
-      gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)
+      gfx.arc(x+halfw-1,y+halfh+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
+      gfx.arc(x+halfw-1,y+halfh,arc_r-i,    math.rad(-90),math.rad(0),    1)
+      gfx.arc(x+halfw,y+halfh,arc_r-i,    math.rad(0),math.rad(90),    1)
+      gfx.arc(x+halfw,y+halfh+1,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)
     end
     
     

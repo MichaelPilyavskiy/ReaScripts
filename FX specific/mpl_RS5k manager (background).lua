@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.60
+-- @version 1.61
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -9,36 +9,26 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    + Drag pad move content to other note
---    + Ctrl+drag pad duplicate content to other note [p=2003020]
---    + Rename MIDI note name [p=2003111] [p=2002672]
---    + Remove pad content [p=2002680]
---    + Remove pad layers [p=2002680]
---    + Options: don`t display MIDI note names
---    + Options: invert mouse for release knob [p=2003074]
---    + Options: allow manually prepare parent track rather than automatically on script start
---    + Controls: obey noteoff [p=2003004] [p=2002672]
---    + Link to REAPER blog video on YouTube
---    + MouseModifiers: doubleclick or alt+click to reset value [p=2003074]
---    + MouseModifiers: doubleclick float related rs5k instances [p=2002672]
---    # Mixer View: indentation improvements
---    # Mixer View: fix pan knob doesnt respond if all pans are centered
---    # fix pad color match track color in OSX
---    # fix error click on empty draganddrop space
---    # fix reset obey note-offs [p=2002672] 
---    # remove debug message shown at export selected items action
+--    + Options: allow to pin selected track as parent for current project
+--    + Delay control (requre FX chain per pad and delay/time_adjustment JSFX) [p=2002275]
+--    + RS5k controls: listing samples
+--    + Highlight active pad frame
+--    + GUI: allow to change pad font, sample controls font, controls scaling [p=2003074]
+--    # refresh waveform when copying/duplicating pad content
+--    # clear waveform when removing pad content
+--    # RS5k controls: improve attack value formatting
+--    # RS5k controls: wheel change pitch by semitones
+--    # Mixer View: obey reset value mouse modifier preference [p=2003074]
+--    # When adding samples, obey noteoff by default
+--    - Merge Live DrumRack and S1 Impact layouts
 
-  local vrs = 'v1.60'
+  local vrs = 'v1.61'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   
   -- todo
-  -- MIDI controlled globals [p=1993032]
   -- moving back rs5k instance to main track
-  -- link to one project track
-  -- dalay ctrl [p=2002275]
-   -- color/theme options [p=2003074]
-   -- listing samples
+ 
   
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
@@ -65,6 +55,12 @@
 
   ---------------------------------------------------
   function ExtState_Def()
+    local GUI_fontsz2 = 15
+    local GUI_fontsz3 = 13
+    if GetOS():find("OSX") then 
+      GUI_fontsz2 = GUI_fontsz2 - 5 
+      GUI_fontsz3 = GUI_fontsz3 - 4
+    end    
     local t= {
             -- globals
             mb_title = 'RS5K manager',
@@ -75,8 +71,12 @@
             wind_h =  200,
             dock =    0,
             dock2 =    0, -- set manually docked state
+            
             -- GUI
             tab = 0,  -- 0-sample browser
+            GUI_padfontsz = GUI_fontsz2,
+            GUI_splfontsz = GUI_fontsz3,
+            GUI_ctrlscale = 1,
             
             -- GUI control
             mouse_wheel_res = 960,
@@ -99,6 +99,8 @@
             
             MM_reset_val = 1,
             MM_dc_float = 0,
+            
+            pintrack = 0,
             }
     return t
   end  

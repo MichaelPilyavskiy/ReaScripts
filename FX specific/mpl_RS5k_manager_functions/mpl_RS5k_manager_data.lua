@@ -47,6 +47,25 @@
       local int_col = GetTrackColor( tr )
       if int_col == 0 then int_col = nil end
       local MIDI_name = GetTrackMIDINoteNameEx( 0, tr, MIDIpitch, 1)
+      local attack_ms = ({TrackFX_GetFormattedParamValue( tr, fxid-1, 9, '' )})[2]
+      if tonumber(attack_ms) >= 1000 then 
+        attack_ms = string.format('%.0f', attack_ms)
+       else
+        attack_ms = string.format('%.1f', attack_ms)
+      end
+      local delay_pos, del = TrackFX_AddByName( tr, 'time_adjustment', false, 0 )
+      if delay_pos >=0 then  
+        del = TrackFX_GetParamNormalized( tr, delay_pos, 0) 
+        local ms_val = ((del -0.5)*200)
+        if ms_val >= 50 then
+          del_ms = string.format('%.0f',ms_val)..'ms'
+         else
+          del_ms = string.format('%.1f',ms_val)..'ms'
+        end
+       else 
+        del = 0.5
+        del_ms = 0
+      end
       data[MIDIpitch] [#data[MIDIpitch]+1] = {rs5k_pos = fxid-1,
                         pitch    =math.floor(({TrackFX_GetFormattedParamValue( tr, fxid-1, 3, '' )})[2]),
                         MIDIpitch_normal =        TrackFX_GetParamNormalized( tr, fxid-1, 3),
@@ -57,7 +76,7 @@
                         trackGUID =           GetTrackGUID( tr ),
                         pan=                  TrackFX_GetParamNormalized( tr, fxid-1,1),
                         attack =              TrackFX_GetParamNormalized( tr, fxid-1,9),
-                        attack_ms =         ({TrackFX_GetFormattedParamValue( tr, fxid-1, 9, '' )})[2],
+                        attack_ms =         attack_ms,
                         decay =              TrackFX_GetParamNormalized( tr, fxid-1,24),
                         decay_ms =         ({TrackFX_GetFormattedParamValue( tr, fxid-1, 24, '' )})[2],  
                         sust =              TrackFX_GetParamNormalized( tr, fxid-1,25),
@@ -74,6 +93,9 @@
                         bypass_state =    TrackFX_GetEnabled(tr, fxid-1)   , 
                         MIDI_name =        MIDI_name  ,
                         obeynoteoff =     TrackFX_GetParamNormalized( tr, fxid-1,11),
+                        del = del,
+                        del_ms = del_ms,
+                        delay_pos=delay_pos
                         }
       ::skipFX::
     end  
@@ -118,9 +140,50 @@
     end      
           
   end
-  
   ---------------------------------------------------
-  function SetRS5kData(data, conf, track, note, spl_id, add_new_data_entry) 
+  function SearchSample(fn, dir_next )
+    fn = fn:gsub('\\', '/')
+    local path = fn:reverse():match('[%/]+.*'):reverse():sub(0,-2)
+    local cur_file =     fn:reverse():match('.-[%/]'):reverse():sub(2)
+    -- get files list
+      local files = {}
+      local i = 0
+      repeat
+      local file = reaper.EnumerateFiles( path, i )
+      if file then
+        files[#files+1] = file
+      end
+      i = i+1
+      until file == nil
+      
+    -- search file list
+      local trig_file
+      if #files < 2 then return fn end
+      local i_st, i_end, i_step, i_coeff, i_ret
+      if dir_next then 
+      i_st = 2
+      i_end = #files
+      i_step = 1
+      i_coeff = -1
+      i_ret = 1
+      else
+      i_st = #files-1
+      i_end = 1
+      i_step = -1
+      i_coeff = 1
+      i_ret = #files
+      end
+      for i = i_st,i_end,i_step   do
+        if files[i+1*i_coeff] == cur_file then 
+          trig_file = path..'/'..files[i] 
+          break 
+         elseif i == i_end then trig_file = path..'/'..files[i_ret] 
+        end
+      end  
+    return trig_file
+  end
+  ---------------------------------------------------
+  function SetRS5kData(data, conf, track, note, spl_id, add_new_data_entry, force_delay) 
     if not spl_id then spl_id = 1 end
     if data[note][spl_id] then 
         local rs5k_pos = data[note][spl_id].rs5k_pos
@@ -151,6 +214,16 @@
         TrackFX_SetParamNormalized( track, rs5k_pos, 13, lim(data[note][spl_id].offset_start, 0, data[note][spl_id].offset_end ) )
         TrackFX_SetParamNormalized( track, rs5k_pos, 14, lim(data[note][spl_id].offset_end,   data[note][spl_id].offset_start, 1 )  )
         TrackFX_SetEnabled(track, rs5k_pos, data[note][spl_id].bypass_state)
+        
+        if force_delay == true and track ~= data.parent_track then  
+          local delay_pos = TrackFX_AddByName( track, 'time_adjustment', false, 1 )
+          if delay_pos >=0 then 
+            data[note][spl_id].delay_pos = delay_pos
+            local del_val = 0.5
+            if data[note][spl_id].del then del_val = data[note][spl_id].del end
+            TrackFX_SetParamNormalized( track, delay_pos, 0, del_val)
+          end
+        end
       end
   end  
   ---------------------------------------------------
@@ -172,9 +245,19 @@
 
   ---------------------------------------------------
   function Data_Update(conf, obj, data, refresh, mouse)
-    local tr = GetSelectedTrack(0,0)
-    if not tr  then return end
-    data.parent_track = tr
+    local tr
+    
+    if conf.pintrack == 1 then 
+      local ret, trGUID = GetProjExtState( 0, 'MPLRS5KMANAGE', 'PINNEDTR' )
+      tr = BR_GetMediaTrackByGUID( 0, trGUID )
+      if not tr  then return end
+      data.parent_track = tr
+     else
+      tr = GetSelectedTrack(0,0)
+      if not tr  then return end
+      data.parent_track = tr
+    end
+    
     GetRS5kData(data, tr)
     for sid = 1,  GetTrackNumSends( tr, 0 ) do
       local srcchan = GetTrackSendInfo_Value( tr, 0, sid-1, 'I_SRCCHAN' )
@@ -385,7 +468,7 @@
     TrackFX_SetParamNormalized( track, rs5k_pos, 6, 0.5 ) -- pitch for end
     TrackFX_SetParamNormalized( track, rs5k_pos, 8, 0 ) -- max voices = 0
     TrackFX_SetParamNormalized( track, rs5k_pos, 9, 0 ) -- attack
-    TrackFX_SetParamNormalized( track, rs5k_pos, 11, 0 ) -- obey note offs
+    TrackFX_SetParamNormalized( track, rs5k_pos, 11, 1 ) -- obey note offs
     if start_offs and end_offs then
       TrackFX_SetParamNormalized( track, rs5k_pos, 13, start_offs ) -- attack
       TrackFX_SetParamNormalized( track, rs5k_pos, 14, end_offs ) -- obey note offs      
