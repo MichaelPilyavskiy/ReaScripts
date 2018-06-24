@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="71c0f6cd996b382f80fc85059201fb5fb06d6fbe" name="MPL Scripts">
+<index version="1" commit="f1fa7ce64100018a5afd0397cf0196467c583b76" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1419,6 +1419,25 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71c0f6cd996b382f80fc85059201fb5fb06d6fbe/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71c0f6cd996b382f80fc85059201fb5fb06d6fbe/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71c0f6cd996b382f80fc85059201fb5fb06d6fbe/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
+      </version>
+      <version name="1.61" author="MPL" time="2018-06-24T08:10:05Z">
+        <changelog><![CDATA[+ Options: allow to pin selected track as parent for current project
++ Delay control (requre FX chain per pad and delay/time_adjustment JSFX) [p=2002275]
++ RS5k controls: listing samples
++ Highlight active pad frame
++ GUI: allow to change pad font, sample controls font, controls scaling [p=2003074]
+# refresh waveform when copying/duplicating pad content
+# clear waveform when removing pad content
+# RS5k controls: improve attack value formatting
+# RS5k controls: wheel change pitch by semitones
+# Mixer View: obey reset value mouse modifier preference [p=2003074]
+# When adding samples, obey noteoff by default
+- Merge Live DrumRack and S1 Impact layouts]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f1fa7ce64100018a5afd0397cf0196467c583b76/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f1fa7ce64100018a5afd0397cf0196467c583b76/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f1fa7ce64100018a5afd0397cf0196467c583b76/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f1fa7ce64100018a5afd0397cf0196467c583b76/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f1fa7ce64100018a5afd0397cf0196467c583b76/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
