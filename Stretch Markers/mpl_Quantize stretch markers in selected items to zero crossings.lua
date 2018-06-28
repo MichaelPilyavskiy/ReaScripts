@@ -1,9 +1,9 @@
 -- @description Quantize stretch markers in selected items to zero crossings
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # compensate content move
+--    # fix normalize function use
 
   -- NOT gfx NOT reaper
   local scr_title = 'Quantize stretch markers in selected items to zero crossings'
@@ -48,7 +48,7 @@
       local peaks2 = {}
       for i=1, spl_cnt do  peaks[#peaks+1] = buf[i]  end
       buf.clear()
-      NormalizeT(peaks, 1) 
+      NormalizeT(peaks) 
       local pow = 8
       for i=1, spl_cnt do  peaks2[#peaks2+1] = {val = peaks[i],
                                               pos = math.floor((10^pow)*i * src_len / spl_cnt) / (10^pow)}
@@ -92,7 +92,7 @@
       dofile(SEfunc_path)
       
       if not _G[str_func] then 
-        MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
+        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
        else
         Undo_BeginBlock()
         main()
