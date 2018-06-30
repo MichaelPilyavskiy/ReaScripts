@@ -13,7 +13,7 @@
     
     if conf.ignore_context&(1<<9) ~= (1<<9) then
       DataUpdate_TimeSelection(data)
-      DataUpdate_PlayState(data)
+      DataUpdate_PlayState(data, conf)
       DataUpdate_TempoTimeSignature(data)
       DataUpdate_LastTouchedFX(data)
     end
@@ -174,7 +174,7 @@
   end
   ---------------------------------------------------
     
-  function DataUpdate_PlayState(data)
+  function DataUpdate_PlayState(data, conf)
     local int_playstate = GetPlayStateEx( 0 )
     data.play = int_playstate&1==1
     data.pause = int_playstate&2==2
@@ -182,9 +182,15 @@
     data.editcur_pos = GetCursorPositionEx( 0 )
     data.repeat_state = GetToggleCommandStateEx( 0, 1068 ) 
     local editcur_pos_format =  format_timestr_pos( data.editcur_pos, '', data.ruleroverride )
-    local editcur_pos_format2 =  format_timestr_pos( data.editcur_pos, '', 0 )
-    if data.persist_clock_showtimesec == 1 then -- SEE GUI_Main
-      data.editcur_pos_format = editcur_pos_format..' / '..editcur_pos_format2
+    if conf.persist_clock_showtimesec > 0 then -- SEE GUI_Main
+    
+    
+      if conf.persist_clock_showtimesec == 1 then 
+        data.editcur_pos_format = editcur_pos_format..' / '..format_timestr_pos( data.editcur_pos, '', 0 )
+       elseif conf.persist_clock_showtimesec == 2 then 
+        data.editcur_pos_format = editcur_pos_format..' / '..format_timestr_pos( data.editcur_pos, '', 5 )
+      end
+      
      else
       data.editcur_pos_format = editcur_pos_format
     end

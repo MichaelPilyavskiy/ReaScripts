@@ -837,7 +837,7 @@
   ------------------------------------------------------------------------  
   function Widgets_Persist_clock(data, obj, mouse, x_margin, widgets)  
     local clock_w = 130
-    if data.persist_clock_showtimesec == 1 then clock_w = 260 end
+    if data.persist_clock_showtimesec > 0 then clock_w = 260 end
     local frame_a = 0
     obj.b.obj_pers_clock_back1 = {persist_buf = true,
                         x = x_margin - clock_w,

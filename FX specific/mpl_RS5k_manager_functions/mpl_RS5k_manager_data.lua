@@ -480,8 +480,14 @@
     if not spl then spl = 1 end
     if not data[note][spl] then return end
     if data[note][spl].src_track == data.parent_track then
-      local ret = MB('Create MIDI send routing for this sample?', conf.scr_title, 4)
-      if ret == 6  then
+      local ret_com
+      if conf.dontaskforcreatingrouting == 1 then 
+        ret_com = true 
+       else
+        local ret = MB('Create MIDI send routing for this sample?', conf.scr_title, 4)
+        if ret == 6  then ret_com = true  end
+      end
+      if ret_com then
         local tr_id = CSurf_TrackToID( data.parent_track, false )
         InsertTrackAtIndex( tr_id, true)
         local new_tr = CSurf_TrackFromID( tr_id+1, false )

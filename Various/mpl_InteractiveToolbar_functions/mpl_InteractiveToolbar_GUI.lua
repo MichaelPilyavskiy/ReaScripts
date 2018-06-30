@@ -755,9 +755,18 @@ msg(
                   state = conf.MM_grid_rightclick==1,
                   func = function() conf.MM_grid_rightclick = 1 ExtState_Save(conf) redraw = 2 end }  ,                   
                 { str = '# #clock'},
-                { str = 'Show time in seconds|',
-                  state = conf.persist_clock_showtimesec == 1,
-                  func = function() conf.persist_clock_showtimesec = math.abs(1-conf.persist_clock_showtimesec) ExtState_Save(conf) redraw = 2 end} ,                  
+                
+                { str = 'Show additional time',
+                  state = conf.persist_clock_showtimesec > 0,
+                  func =  function() 
+                            if conf.persist_clock_showtimesec> 0 then conf.persist_clock_showtimesec = 0 else conf.persist_clock_showtimesec = 1 end
+                          end} ,                  
+                { str = 'Show additional time in seconds',
+                  state = conf.persist_clock_showtimesec == 1,  
+                  func = function() conf.persist_clock_showtimesec = 1  end} ,                   
+                { str = 'Show additional time in h:m:s:f|',
+                  state = conf.persist_clock_showtimesec ==2,  
+                  func = function() conf.persist_clock_showtimesec = 2  end} ,                  
                 
                 { str = 'Disable persistent modules',    
                   state = conf.ignore_context&(1<<9) == (1<<9),              
@@ -765,6 +774,10 @@ msg(
                 
                 { str = 'Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 9 ) end} , 
+                  
+                  
+                  
+                  
                 {str = '|>Global Configuration'},
                 { str = 'Enable all contexts + persistent widgets',          
                   func =function() 
@@ -785,7 +798,6 @@ msg(
                           local ret = MB('Are you sure you want to reset widget configuration of MPL InteractiveToolbar?',  'MPL InteractiveToolbar', 4)
                           if ret == 6 then 
                             Config_Reset(data.conf_path) 
-                            --MB('Restart script to affect changes', 'MPL InfoTool', 0)
                             Config_ParseIni(data.conf_path, widgets)
                             redraw = 2
                           end
@@ -810,6 +822,8 @@ msg(
                                                                                                                                                            
               }
     Menu(mouse, t)
+    ExtState_Save(conf) 
+    redraw = 2
   end
   -----------------------------------------------------------
   function Menu_IgnoreContext(conf, context_int, set)

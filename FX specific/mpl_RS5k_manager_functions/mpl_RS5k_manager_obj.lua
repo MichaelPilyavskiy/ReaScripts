@@ -1728,7 +1728,7 @@
   { str = 'Donate to MPL',
     func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
   { str = 'Cockos Forum thread',
-    func = function() Open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } , 
+    func = function() Open_URL('http://forum.cockos.com/showthread.php?t=207971') end  } , 
   { str = 'YouTube overview by Jon Tidey (REAPER Blog)|',
     func = function() Open_URL('http://www.youtube.com/watch?v=clucnX0WWXc') end  } ,     
     
@@ -1882,7 +1882,7 @@
     func = function() conf.allow_multiple_spls_per_pad = math.abs(1-conf.allow_multiple_spls_per_pad) end,
     state = conf.allow_multiple_spls_per_pad == 1, 
   } ,  
-  { str = 'Toggle pin selected track as a parent track|',
+  { str = 'Toggle pin selected track as a parent track',
     func =  function() 
               local tr = GetSelectedTrack(0,0)
               local GUID =  GetTrackGUID( tr )
@@ -1890,6 +1890,10 @@
               conf.pintrack = math.abs(1-conf.pintrack) 
             end,
     state = conf.pintrack == 1,
+  } ,  
+  { str = 'Don`t ask for creating FX routing|',
+    func =  function() conf.dontaskforcreatingrouting = math.abs(1-conf.dontaskforcreatingrouting)  end,
+    state = conf.dontaskforcreatingrouting == 1,
   } ,  
   
    

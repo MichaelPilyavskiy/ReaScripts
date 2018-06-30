@@ -1,7 +1,7 @@
 -- @description RS5k manager
--- @version 1.61
+-- @version 1.62
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=188335
+-- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
 -- @provides
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua
@@ -9,25 +9,13 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    + Options: allow to pin selected track as parent for current project
---    + Delay control (requre FX chain per pad and delay/time_adjustment JSFX) [p=2002275]
---    + RS5k controls: listing samples
---    + Highlight active pad frame
---    + GUI: allow to change pad font, sample controls font, controls scaling [p=2003074]
---    # refresh waveform when copying/duplicating pad content
---    # clear waveform when removing pad content
---    # RS5k controls: improve attack value formatting
---    # RS5k controls: wheel change pitch by semitones
---    # Mixer View: obey reset value mouse modifier preference [p=2003074]
---    # When adding samples, obey noteoff by default
---    - Merge Live DrumRack and S1 Impact layouts
+--    + Options: don`t ask for creating FX routing [p=2005575]
+--    # change links for Cockos forum thread
 
-  local vrs = 'v1.61'
+
+  local vrs = 'v1.62'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
-  
-  -- todo
-  -- moving back rs5k instance to main track
  
   
   --  INIT -------------------------------------------------
@@ -101,6 +89,7 @@
             MM_dc_float = 0,
             
             pintrack = 0,
+            dontaskforcreatingrouting = 0,
             }
     return t
   end  

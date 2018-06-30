@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.58
+-- @version 1.59
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,10 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # Tags/Item/#transpose: (test mod for ModifyFloatValue()) fix undefined scaling for mouse wheel
---    # Tags/Item/#rate: use .000 tolerance
+--    + Persist/#clock: show additional time in h:m:s:f
+--    # require /MPL Scripts/Function/Various_functions.lua
 
-    local vrs = '1.58'
+    local vrs = '1.59'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -120,6 +120,7 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             always_use_x_axis = 0,
             use_context_specific_conditions = 0,
             persist_clock_showtimesec = 0,
+            
             MM_doubleclick = 0,
             MM_rightclick = 0,
             MM_grid_rightclick = 0,
@@ -178,18 +179,43 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
       if gfx.getchar() >= 0 and not force_exit then defer(Run) else atexit(gfx.quit) end  
   end
 
-  ---------------------------------------------------
-  ExtState_Load(conf)  
-  gfx.init('MPL InteractiveToolbar',conf.wind_w, conf.wind_h,  conf.dock2 , conf.wind_x, conf.wind_y)
-  obj = Obj_init(conf)
-  Config_ParseIni(data.conf_path, widgets)
-  --widgets_def = LIP_load_MPLmod(Config_DefaultStr())
-  Run()  
+
+
+
+---------------------------------------------------------------------
+  function CheckFunctions(str_func)
+    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
+    local f = io.open(SEfunc_path, 'r')
+    if f then
+      f:close()
+      dofile(SEfunc_path)
+      
+      if not _G[str_func] then 
+        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
+       else
+        ExtState_Load(conf)  
+        gfx.init('MPL InteractiveToolbar',conf.wind_w, conf.wind_h,  conf.dock2 , conf.wind_x, conf.wind_y)
+        obj = Obj_init(conf)
+        Config_ParseIni(data.conf_path, widgets)
+        Run()  
+      end
+      
+     else
+      MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
+    end  
+  end
+--------------------------------------------------------------------
+  CheckFunctions('BinaryCheck') 
   
-  ---------------------------------------------------
+  
+  
+  
+  
+
   
   
   --[[
+  --widgets_def = LIP_load_MPLmod(Config_DefaultStr())
   function LIP_load_MPLmod(str)
     -- http://github.com/Dynodzzo/Lua_INI_Parser/blob/master/LIP.lua
     --- Returns a table containing all the data from the INI file.
