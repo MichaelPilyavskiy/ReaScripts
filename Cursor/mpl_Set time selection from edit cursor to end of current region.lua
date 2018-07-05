@@ -9,6 +9,6 @@
 cur_pos =  reaper.GetCursorPositionEx( 0 )
 _, regionidx = reaper.GetLastMarkerAndCurRegion( 0, cur_pos )
 if regionidx > 0 then 
-  _, _, _, end = reaper.EnumProjectMarkers( regionidx )
-  reaper.GetSet_LoopTimeRange2( 0, true, true, end, cur_pos, false)
+  _, _, _, end_pos = reaper.EnumProjectMarkers( regionidx )
+  reaper.GetSet_LoopTimeRange2( 0, true, true, end_pos, cur_pos, false)
 end
