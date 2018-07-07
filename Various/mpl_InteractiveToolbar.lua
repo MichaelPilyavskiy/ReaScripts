@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.59
+-- @version 1.60
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,10 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Persist/#clock: show additional time in h:m:s:f
---    # require /MPL Scripts/Function/Various_functions.lua
+--    + Optionally override timeselection format [p=2007302]
+--    # Widgets/MIDI_Editor/#position: fix change value in local override mode
 
-    local vrs = '1.59'
+    local vrs = '1.60'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -40,7 +40,7 @@
   -- NOT reaper NOT gfx
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
-  local conf = {} 
+   conf = {} 
   local scr_title = 'InteractiveToolbar'
   local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
@@ -131,8 +131,9 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             tap_quantize = 0,
             trackfxctrl_use_brutforce = 0,
             ignore_context = 0,
-            use_aironCS = 0,
-            use_aironCS_item = 0}
+            use_aironCS = 0, -- track
+            use_aironCS_item = 0,
+            timiselwidgetsformatoverride = -2}
   end
   ---------------------------------------------------
   function Run()

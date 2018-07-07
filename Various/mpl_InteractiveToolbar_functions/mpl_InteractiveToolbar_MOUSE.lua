@@ -104,7 +104,8 @@
                             default_val,
                             onRelease_ActName ,
                             persist_buf,
-                            pow_tolerance2
+                            pow_tolerance2,
+                            rul_format
                             
                             
                             = tbl.data, tbl.obj, tbl.mouse,
@@ -127,7 +128,8 @@
                             tbl.default_val,
                             tbl.onRelease_ActName,
                             tbl.persist_buf,
-                            tbl.pow_tolerance2
+                            tbl.pow_tolerance2,
+                            tbl.rul_format
                             
                             if not obj  then return end
     local measured_x_offs = 0
@@ -173,16 +175,16 @@
                                                   if not src_val[src_val_key] then 
                                                     t_out_values = {}
                                                     for src_valID = 1, #src_val do
-                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, mouse.wheel_trig, data, positive_only, nil, ignore_fields, pow_tolerance2)
+                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, mouse.wheel_trig, data, positive_only, nil, ignore_fields, pow_tolerance2, rul_format)
                                                     end 
                                                    else 
-                                                    t_out_values = modify_func(src_val[src_val_key], i, #t, mouse.wheel_trig, data, positive_only, pow_tolerance, ignore_fields, pow_tolerance2)
+                                                    t_out_values = modify_func(src_val[src_val_key], i, #t, mouse.wheel_trig, data, positive_only, pow_tolerance, ignore_fields, pow_tolerance2, rul_format)
                                                   end
                                                   app_func(data, obj, t_out_values, table_key,nil,mouse)
                                                   redraw = 2 
                                                  else 
                                                   local out_value
-                                                  out_value = modify_func(src_val, i, #t, mouse.wheel_trig, data, positive_only, pow_tolerance, ignore_fields, pow_tolerance2)
+                                                  out_value = modify_func(src_val, i, #t, mouse.wheel_trig, data, positive_only, pow_tolerance, ignore_fields, pow_tolerance2, rul_format)
                                                   app_func(data, obj, out_value, table_key, nil, mouse)
                                                   redraw = 2
                                                 end                         
@@ -195,14 +197,14 @@
                                                     for src_valID = 1, #src_val do
                                                       local mouse_shift = 0
                                                       if use_mouse_drag_xAxis then mouse_shift = -mouse.dx else mouse_shift = mouse.dy end
-                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, math.modf(mouse_shift/mouse_scale), data, positive_only, pow_tolerance, ignore_fields,pow_tolerance2) 
+                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, math.modf(mouse_shift/mouse_scale), data, positive_only, pow_tolerance, ignore_fields,pow_tolerance2, rul_format) 
                                                     end
                                                     app_func(data, obj, t_out_values, table_key, nil, mouse)
                                                     redraw = 1   
                                                    else
                                                     local mouse_shift,out_value = 0
                                                     if use_mouse_drag_xAxis then mouse_shift = -mouse.dx else mouse_shift = mouse.dy end
-                                                    out_value = modify_func(mouse.temp_val, i, #t, math.modf(mouse_shift/mouse_scale), data, positive_only, nil, ignore_fields,pow_tolerance)
+                                                    out_value = modify_func(mouse.temp_val, i, #t, math.modf(mouse_shift/mouse_scale), data, positive_only, nil, ignore_fields,pow_tolerance, rul_format)
                                                     app_func(data, obj, out_value, table_key,nil,mouse)
                                                     redraw = 1                                                     
                                                   end

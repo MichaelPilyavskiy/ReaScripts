@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.62
+-- @version 1.63
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -9,11 +9,13 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    + Options: don`t ask for creating FX routing [p=2005575]
---    # change links for Cockos forum thread
+--    # Optionally disable obey note off by default [p=2007012]
+--    # handle only slower 0.4ms doubleclicks, due to GUI refresh limitation
+--    - Float related FX by doubleclick on pad
+--    + Float related FX by right click on pad
 
 
-  local vrs = 'v1.62'
+  local vrs = 'v1.63'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -90,6 +92,7 @@
             
             pintrack = 0,
             dontaskforcreatingrouting = 0,
+            obeynoteoff_default = 1,
             }
     return t
   end  

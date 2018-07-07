@@ -308,14 +308,14 @@
       local nudge = startOut - math.max(0,out_value)  
       GetSet_LoopTimeRange2( 0, true, true, math.max(0,out_value), endOut-nudge, false )
       Main_OnCommand(40749,0) -- Options: Set loop points linked to time selection
-      local new_str = format_timestr_pos( math.max(0,out_value), '', -1 ) 
+      local new_str = format_timestr_pos( math.max(0,out_value), '', data.timiselwidgetsformatoverride ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
         obj.b[butkey..i].txt = new_str_t[i]
       end
      else
       -- nudge values from first item
-      local out_val = parse_timestr_pos(out_str_toparse,data.ruleroverride) 
+      local out_val = parse_timestr_pos(out_str_toparse,data.timiselwidgetsformatoverride) 
       local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
       local nudge = startOut - math.max(0,out_val) 
       GetSet_LoopTimeRange2( 0, true, true, math.max(0,out_val), endOut-nudge, false )
@@ -372,14 +372,14 @@
       local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
       GetSet_LoopTimeRange2( 0, true, true, startOut, math.max(0,out_value), false )
       Main_OnCommand(40749,0) -- Options: Set loop points linked to time selection
-      local new_str = format_timestr_pos( math.max(0,out_value), '', -1 ) 
+      local new_str = format_timestr_pos( math.max(0,out_value), '',data.timiselwidgetsformatoverride ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
         obj.b[butkey..i].txt = new_str_t[i]
       end
      else
       -- nudge values from first item
-      local out_val = reaper.parse_timestr_pos(out_str_toparse,-1) 
+      local out_val = reaper.parse_timestr_pos(out_str_toparse,data.timiselwidgetsformatoverride) 
       local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false ) 
       GetSet_LoopTimeRange2( 0, true, true, startOut, out_val, false )
       redraw = 2   
@@ -431,14 +431,14 @@
       local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
       GetSet_LoopTimeRange2( 0, true, true, startOut, startOut+math.max(0,out_value), false )
       Main_OnCommand(40749,0) -- Options: Set loop points linked to time selection
-      local new_str = format_timestr_len( math.max(0,out_value), '',startOut, -1 ) 
+      local new_str = format_timestr_len( math.max(0,out_value), '',startOut, data.timiselwidgetsformatoverride ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
       for i = 1, #new_str_t do
         obj.b[butkey..i].txt = new_str_t[i]
       end
      else
       local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
-      local out_val = parse_timestr_len(out_str_toparse,startOut,data.ruleroverride) 
+      local out_val = parse_timestr_len(out_str_toparse,startOut,data.timiselwidgetsformatoverride) 
       GetSet_LoopTimeRange2( 0, true, true, startOut, startOut+out_val, false )
       UpdateArrange()
       redraw = 2   

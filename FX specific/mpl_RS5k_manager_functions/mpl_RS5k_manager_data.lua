@@ -468,10 +468,10 @@
     TrackFX_SetParamNormalized( track, rs5k_pos, 6, 0.5 ) -- pitch for end
     TrackFX_SetParamNormalized( track, rs5k_pos, 8, 0 ) -- max voices = 0
     TrackFX_SetParamNormalized( track, rs5k_pos, 9, 0 ) -- attack
-    TrackFX_SetParamNormalized( track, rs5k_pos, 11, 1 ) -- obey note offs
+    TrackFX_SetParamNormalized( track, rs5k_pos, 11, conf.obeynoteoff_default ) -- obey note offs
     if start_offs and end_offs then
       TrackFX_SetParamNormalized( track, rs5k_pos, 13, start_offs ) -- attack
-      TrackFX_SetParamNormalized( track, rs5k_pos, 14, end_offs ) -- obey note offs      
+      TrackFX_SetParamNormalized( track, rs5k_pos, 14, end_offs )   
     end  
   end
   ----------------------------------------------------------------------- 

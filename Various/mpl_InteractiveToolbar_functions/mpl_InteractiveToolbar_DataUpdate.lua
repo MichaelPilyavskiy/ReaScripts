@@ -12,7 +12,7 @@
     DataUpdate_RulerGrid(data, conf) 
     
     if conf.ignore_context&(1<<9) ~= (1<<9) then
-      DataUpdate_TimeSelection(data)
+      DataUpdate_TimeSelection(data, conf)
       DataUpdate_PlayState(data, conf)
       DataUpdate_TempoTimeSignature(data)
       DataUpdate_LastTouchedFX(data)
@@ -165,12 +165,17 @@
             
   end
   ---------------------------------------------------
-  function DataUpdate_TimeSelection(data)
+  function DataUpdate_TimeSelection(data, conf)
     local TS_st, TSend = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )
     data.timeselectionstart, data.timeselectionend, data.timeselectionlen = TS_st, TSend,  TSend-TS_st
-    data.timeselectionstart_format = format_timestr_pos( data.timeselectionstart, '',data.ruleroverride ) 
-    data.timeselectionend_format = format_timestr_pos( data.timeselectionend, '', data.ruleroverride )
-    data.timeselectionlen_format = format_timestr_len( data.timeselectionlen, '', TS_st, data.ruleroverride )
+    if conf.timiselwidgetsformatoverride == -2 then
+      data.timiselwidgetsformatoverride = data.ruleroverride
+     else
+      data.timiselwidgetsformatoverride = conf.timiselwidgetsformatoverride
+    end
+    data.timeselectionstart_format = format_timestr_pos( data.timeselectionstart, '',data.timiselwidgetsformatoverride ) 
+    data.timeselectionend_format = format_timestr_pos( data.timeselectionend, '', data.timiselwidgetsformatoverride )
+    data.timeselectionlen_format = format_timestr_len( data.timeselectionlen, '', TS_st,data.timiselwidgetsformatoverride )
   end
   ---------------------------------------------------
     

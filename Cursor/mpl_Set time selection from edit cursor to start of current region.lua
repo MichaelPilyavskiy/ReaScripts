@@ -1,9 +1,9 @@
 -- @description Set time selection from edit cursor to start of current region
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    + init release
+--    # fix comparing region ID (http://forum.cockos.com/showpost.php?p=2008307)
 
   
 cur_pos =  reaper.GetCursorPositionEx( 0 )

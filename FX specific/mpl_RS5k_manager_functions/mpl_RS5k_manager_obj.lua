@@ -1471,7 +1471,16 @@
                                 end,
                         func_R =  function ()
                                     if not data[note] then return end
-                                    Menu(mouse, { { str =   'Rename linked MIDI note',
+                                    Menu(mouse, { { str =   'Float linked FX',
+                                                    func =  function()
+                                                              if conf.MM_dc_float == 1 and data[note] then
+                                                                for spl = 1, #data[note] do
+                                                                  -- TrackFX_SetOpen(  data[note][1].src_track, data[note][1].rs5k_pos, true )
+                                                                  TrackFX_Show( data[note][spl].src_track, data[note][spl].rs5k_pos,3 )
+                                                                end
+                                                              end
+                                                            end},
+                                                  { str =   'Rename linked MIDI note',
                                                     func =  function()
                                                               local MIDI_name = GetTrackMIDINoteNameEx( 0, data[note][1].src_track, note, 1)
                                                               local ret, MIDI_name_ret = reaper.GetUserInputs( conf.scr_title, 1, 'Rename MIDI note,extrawidth=200', MIDI_name )
@@ -1494,12 +1503,7 @@
                                     refresh.data = true                                  
                                   end,
                         func_DC = function()
-                                    if conf.MM_dc_float == 1 and data[note] then
-                                      for spl = 1, #data[note] do
-                                        -- TrackFX_SetOpen(  data[note][1].src_track, data[note][1].rs5k_pos, true )
-                                        TrackFX_Show( data[note][spl].src_track, data[note][spl].rs5k_pos,3 )
-                                      end
-                                    end
+                                    
                                   end
                                 } 
             if    note%12 == 1 
@@ -1809,10 +1813,16 @@
 
 
   { str = '>RS5k controls'},
-  { str = 'Invert mouse for release|<',  
+  { str = 'Invert mouse for release',  
     state = conf.invert_release == 1,
     func =  function() conf.invert_release = math.abs(1-conf.invert_release)  end ,
   },  
+  { str = 'Obey noteOff enabled by default|<',  
+    state = conf.obeynoteoff_default == 1,
+    func =  function() conf.obeynoteoff_default = math.abs(1-conf.obeynoteoff_default)  end ,
+  },    
+  
+  
 
   { str = '>Mouse Modifiers'},
   { str = 'Doubleclick reset value',  

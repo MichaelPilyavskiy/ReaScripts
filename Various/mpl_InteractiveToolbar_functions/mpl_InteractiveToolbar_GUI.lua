@@ -768,10 +768,37 @@ msg(
                   state = conf.persist_clock_showtimesec ==2,  
                   func = function() conf.persist_clock_showtimesec = 2  end} ,                  
                 
+
+                { str = '# Time selection widgets format'},
+                
+                { str = 'Follow local override',
+                  state = conf.timiselwidgetsformatoverride == -2,
+                  func =  function() conf.timiselwidgetsformatoverride = -2 end} ,                  
+                { str = 'Project default',
+                  state = conf.timiselwidgetsformatoverride == -1,
+                  func =  function() conf.timiselwidgetsformatoverride = -1 end} ,               
+                { str = 'Time',
+                  state = conf.timiselwidgetsformatoverride == 0,
+                  func = function() conf.timiselwidgetsformatoverride = 0 end} ,   
+                { str = 'measures.beats',
+                  state = conf.timiselwidgetsformatoverride == 2,
+                  func = function() conf.timiselwidgetsformatoverride = 2 end} ,   
+                { str = 'seconds',
+                  state = conf.timiselwidgetsformatoverride == 3,
+                  func = function() conf.timiselwidgetsformatoverride = 3 end} ,   
+                { str = 'samples',
+                  state = conf.timiselwidgetsformatoverride == 4,
+                  func = function() conf.timiselwidgetsformatoverride = 4 end} ,   
+                { str = 'h:m:s:f|',
+                  state = conf.timiselwidgetsformatoverride == 5,
+                  func = function() conf.timiselwidgetsformatoverride = 5 end} ,   
+                  
+                                  
+                
                 { str = 'Disable persistent modules',    
                   state = conf.ignore_context&(1<<9) == (1<<9),              
-                  func = function() Menu_IgnoreContext(conf, 9) end} ,                   
-                
+                  func = function() Menu_IgnoreContext(conf, 9) end} ,       
+                                  
                 { str = 'Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 9 ) end} , 
                   

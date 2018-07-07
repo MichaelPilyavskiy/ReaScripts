@@ -74,16 +74,16 @@
                         app_func= Apply_MEevt_Pos,                         
                         mouse_scale= obj.mouse_scal_time,
                         onRelease_ActName = data.scr_title..': Change MIDI event properties',
-                        use_mouse_drag_xAxis = data.always_use_x_axis==1,})                        
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
+                        rul_format = conf.ruleroverride })                        
     return obj.entry_w2
   end  
   
   function Apply_MEevt_Pos(data, obj, t_out_values, butkey, out_str_toparse, mouse)
     if not out_str_toparse then  
-      
-      local sec_shift = t_out_values[ data.evts.first_selected  ] - data.evts[  data.evts.first_selected  ].pos_sec
-      local ppq_shift = math.floor(MIDI_GetPPQPosFromProjTime( data.take_ptr, sec_shift+data.item_pos ))
       local pos_sec = t_out_values[ data.evts.first_selected  ]
+      local sec_shift = pos_sec - data.evts[  data.evts.first_selected  ].pos_sec
+      local ppq_shift = math.floor(MIDI_GetPPQPosFromProjTime( data.take_ptr, sec_shift+data.item_pos ))
       RawMIDI_shiftppq(data.take_ptr, data.evts, ppq_shift, mouse)
       local new_str = format_timestr_pos( pos_sec, '', data.ruleroverride ) 
       local new_str_t = MPL_GetTableOfCtrlValues(new_str)
@@ -93,9 +93,9 @@
      else
       -- nudge values from first item
       local out_val = parse_timestr_pos(out_str_toparse,data.ruleroverride)
-      local sec_shift = out_val - t_out_values[ data.evts.first_selected  ] 
-      local ppq_shift = math.floor(MIDI_GetPPQPosFromProjTime( data.take_ptr, sec_shift+data.item_pos ))
       local pos_sec = t_out_values[ data.evts.first_selected  ]
+      local sec_shift = out_val - pos_sec
+      local ppq_shift = math.floor(MIDI_GetPPQPosFromProjTime( data.take_ptr, sec_shift+data.item_pos ))
       RawMIDI_shiftppq(data.take_ptr, data.evts, ppq_shift, mouse)
 
       redraw = 2   

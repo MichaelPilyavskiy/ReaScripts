@@ -223,12 +223,14 @@
     end
   end    
   -------------------------------------------------------------------------------
-  function MPL_ModifyTimeVal(src_val_sec,int_ID,int_cnt,change_val,data, positive_only)
+  function MPL_ModifyTimeVal(src_val_sec,int_ID,int_cnt,change_val,data, positive_only, _, _, _, rul_format0)
     local out_val = src_val_sec
     if not src_val_sec then return end
     local int_ID0 = int_cnt - int_ID -- ID from end
     local rul_format = data.rul_format
+    if rul_format0 and rul_format0 ~= -1 then rul_format = rul_format0 end
     
+
     -- Minutes:seconds
       if rul_format == 0 then 
         if int_ID0 == 0 then -- ms

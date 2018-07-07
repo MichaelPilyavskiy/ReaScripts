@@ -2,11 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.04
+-- @version 1.05
 -- @changelog
---    + Open_URL
---    + gfx_ColHex
---    # fix and improve NormalizeT
+--    # SetSpectralData(): handle rate and startoffset
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
@@ -139,19 +137,20 @@
       if open and t[i]:match('>') then
       
         local add_str = ''
-        
+        local take  =GetTake( item, tk_cnt-1 )
         if data[tk_cnt] 
           and data[tk_cnt].edits 
-          and GetTake( item, tk_cnt-1 )
-          and not TakeIsMIDI(GetTake( item, tk_cnt-1 ))
+          and take
+          and not TakeIsMIDI(take)
           then
           for edit_id in pairs(data[tk_cnt].edits) do
             if not data[tk_cnt].FFT_sz then data[tk_cnt].FFT_sz = 1024 end
-            
+            local s_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS'  )
+            local rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE'  ) 
             if not apply_chunk then
               add_str = add_str..'SPECTRAL_EDIT '
-                ..data[tk_cnt].edits[edit_id].pos..' '
-                ..data[tk_cnt].edits[edit_id].len..' '
+                ..data[tk_cnt].edits[edit_id].pos*rate + s_offs..' '
+                ..data[tk_cnt].edits[edit_id].len*rate..' '
                 ..data[tk_cnt].edits[edit_id].gain..' '
                 ..data[tk_cnt].edits[edit_id].fadeinout_horiz..' '
                 ..data[tk_cnt].edits[edit_id].fadeinout_vert..' '

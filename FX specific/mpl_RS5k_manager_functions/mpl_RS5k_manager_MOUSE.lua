@@ -25,7 +25,7 @@
    end
    ---------------------------------------------------
    function MOUSE(conf, obj, data, refresh, mouse, pat)
-     local d_click = 0.2
+     local d_click = 0.4
      mouse.x = gfx.mouse_x
      mouse.y = gfx.mouse_y
      mouse.LMB_state = gfx.mouse_cap&1 == 1 
@@ -39,13 +39,19 @@
      if mouse.last_x and mouse.last_y and (mouse.last_x ~= mouse.x or mouse.last_y ~= mouse.y) then mouse.is_moving = true else mouse.is_moving = false end
      if mouse.last_wheel then mouse.wheel_trig = (mouse.wheel - mouse.last_wheel) end 
       mouse.wheel_on_move =     mouse.wheel_trig ~= 0
-     if not mouse.LMB_state_TS then mouse.LMB_state_TS = obj.clock end
-     if mouse.LMB_state and mouse.LMB_state_TS and obj.clock -mouse.LMB_state_TS < d_click and obj.clock -mouse.LMB_state_TS  > 0 then  mouse.DLMB_state = true  end 
      if mouse.LMB_state and not mouse.last_LMB_state then  
        mouse.last_x_onclick = mouse.x     
        mouse.last_y_onclick = mouse.y 
-       mouse.LMB_state_TS = obj.clock
-     end    
+       mouse.LMB_state_TS = os.clock()
+     end  
+          
+     mouse.DLMB_state = mouse.LMB_state 
+                        and not mouse.last_LMB_state
+                        and mouse.last_LMB_state_TS
+                        and mouse.LMB_state_TS- mouse.last_LMB_state_TS > 0
+                        and mouse.LMB_state_TS -mouse.last_LMB_state_TS < d_click 
+
+  
      if mouse.last_x_onclick and mouse.last_y_onclick then mouse.dx = mouse.x - mouse.last_x_onclick  mouse.dy = mouse.y - mouse.last_y_onclick else mouse.dx, mouse.dy = 0,0 end
    
      
@@ -66,7 +72,7 @@
                                --and not mouse.Ctrl_state  
                                and mouse.DLMB_state 
                                and MOUSE_Match(mouse, obj[key]) 
-           if mouse.onDclick_L then 
+           if mouse.onDclick_L then
               if obj[key].func_DC  then obj[key].func_DC()  end
               if conf.MM_reset_val&(1<<0) == (1<<0) and obj[key].func_ResetVal then obj[key].func_ResetVal() end
               goto skip_mouse_obj 
@@ -189,16 +195,19 @@
        mouse.last_Alt_state = mouse.Alt_state
        mouse.last_wheel = mouse.wheel   
        mouse.last_context_latch = mouse.context_latch
-       mouse.DLMB_state = nil  
+       mouse.last_LMB_state_TS = mouse.LMB_state_TS
+       --mouse.DLMB_state = nil  
        
        -- DragnDrop from MediaExplorer 5.91pre1+
        if obj.reapervrs >= 5.91 then
          local DRret, DRstr = gfx.getdropfile(0)
+          --msg(DRret)
+          --msg(DRstr)
+         
          if    DRret ~= 0 
                and obj[ mouse.context ] 
                and obj[ mouse.context ].linked_note  
                and IsMediaExtension( DRstr:match('.*%.(.*)'), false ) then
-                
            local note = obj[ mouse.context ].linked_note
            ExportItemToRS5K(data,conf,refresh,note,DRstr)   
           refresh.GUI = true
