@@ -72,7 +72,7 @@
                                --and not mouse.Ctrl_state  
                                and mouse.DLMB_state 
                                and MOUSE_Match(mouse, obj[key]) 
-           if mouse.onDclick_L then
+           if mouse.onDclick_L and not key:match('keys_p')then
               if obj[key].func_DC  then obj[key].func_DC()  end
               if conf.MM_reset_val&(1<<0) == (1<<0) and obj[key].func_ResetVal then obj[key].func_ResetVal() end
               goto skip_mouse_obj 

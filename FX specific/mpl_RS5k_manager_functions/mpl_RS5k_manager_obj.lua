@@ -1420,7 +1420,7 @@
               for spl = 1, #data[note] do
                 local spl = GetShortSmplName(data[note][spl].sample)
                 local pat_reduceext = '(.*)%.[%a]+'
-                if spl:match(pat_reduceext) then 
+                if spl and spl:match(pat_reduceext) then 
                   txt = txt .. spl:match(pat_reduceext) ..'\n'
                 end
               end

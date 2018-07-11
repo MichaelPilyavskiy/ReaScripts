@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.63
+-- @version 1.64
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -9,13 +9,10 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    # Optionally disable obey note off by default [p=2007012]
---    # handle only slower 0.4ms doubleclicks, due to GUI refresh limitation
---    - Float related FX by doubleclick on pad
---    + Float related FX by right click on pad
+--    # fix error on bad sample name [p=2009558]
+--    # fix doubleclick state on pads skip onclick state for preview and selection
 
-
-  local vrs = 'v1.63'
+  local vrs = 'v1.64'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
