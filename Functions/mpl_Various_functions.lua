@@ -2,9 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.05
+-- @version 1.06
 -- @changelog
---    # SetSpectralData(): handle rate and startoffset
+--    + SetFXName
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
@@ -411,3 +411,46 @@
         local r,g,b = tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
         if GetOS():match('Win') then gfx.set(r/255,g/255,b/255) else gfx.set(b/255,g/255,r/255)     end        
     end
+  -----------------------------------------------------------------------
+  function SetFXName(track, fx, new_name)
+    if not new_name then return end
+    local edited_line,edited_line_id, segm
+    -- get ref guid
+      if not track or not tonumber(fx) then return end
+      local FX_GUID = reaper.TrackFX_GetFXGUID( track, fx )
+      if not FX_GUID then return else FX_GUID = FX_GUID:gsub('-',''):sub(2,-2) end
+      local plug_type = reaper.TrackFX_GetIOSize( track, fx )
+    -- get chunk t
+      local chunk = eugen27771_GetObjStateChunk( track)
+      local t = {} for line in chunk:gmatch("[^\r\n]+") do t[#t+1] = line end
+    -- find edit line
+      local search
+      for i = #t, 1, -1 do
+        local t_check = t[i]:gsub('-','')
+        if t_check:find(FX_GUID) then search = true  end
+        if t[i]:find('<') and search and not t[i]:find('JS_SER') then
+          edited_line = t[i]:sub(2)
+          edited_line_id = i
+          break
+        end
+      end
+    -- parse line
+      if not edited_line then return end
+      local t1 = {}
+      for word in edited_line:gmatch('[%S]+') do t1[#t1+1] = word end
+      local t2 = {}
+      for i = 1, #t1 do
+        segm = t1[i]
+        if not q then t2[#t2+1] = segm else t2[#t2] = t2[#t2]..' '..segm end
+        if segm:find('"') and not segm:find('""') then if not q then q = true else q = nil end end
+      end
+  
+      if plug_type == 2 then t2[3] = '"'..new_name..'"' end -- if JS
+      if plug_type == 3 then t2[5] = '"'..new_name..'"' end -- if VST
+  
+      local out_line = table.concat(t2,' ')
+      t[edited_line_id] = '<'..out_line
+      local out_chunk = table.concat(t,'\n')
+      --msg(out_chunk)
+      reaper.SetTrackStateChunk( track, out_chunk, false )
+  end
