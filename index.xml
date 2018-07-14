@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8bfde64beb29b2a0f853e024e490c49c0fa724f1" name="MPL Scripts">
+<index version="1" commit="6ce347bd4364918add7acacf3ebc566bd51afc24" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -283,6 +283,10 @@
       <version name="1.06" author="MPL" time="2018-07-11T09:39:33Z">
         <changelog><![CDATA[+ SetFXName]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8bfde64beb29b2a0f853e024e490c49c0fa724f1/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.07" author="MPL" time="2018-07-14T18:07:55Z">
+        <changelog><![CDATA[# fix GetSpectralData eat rate and start offset]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6ce347bd4364918add7acacf3ebc566bd51afc24/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
