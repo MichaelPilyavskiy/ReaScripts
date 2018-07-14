@@ -2,9 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.06
+-- @version 1.07
 -- @changelog
---    + SetFXName
+--    # fix GetSpectralData eat rate and start offset
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
@@ -89,8 +89,15 @@
         if not SE[tk_cnt].edits then SE[tk_cnt].edits = {} end
         local tnum = {} 
         for num in line:gmatch('[^%s]+') do if tonumber(num) then tnum[#tnum+1] = tonumber(num) end end
-        SE[tk_cnt].edits [#SE[tk_cnt].edits+1] =       {pos = tnum[1],
-                       len = tnum[2],
+        
+        local take = GetMediaItemTake( item, tk_cnt-1 )
+        local s_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS'  )
+        local rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE'  ) 
+        
+
+            
+        SE[tk_cnt].edits [#SE[tk_cnt].edits+1] =       {pos = (tnum[1] - s_offs)/rate,
+                       len = tnum[2]/rate,
                        gain = tnum[3],
                        fadeinout_horiz = tnum[4], -- knobleft/2 + knobright/2
                        fadeinout_vert = tnum[5], -- knoblower/2 + knobupper/2
