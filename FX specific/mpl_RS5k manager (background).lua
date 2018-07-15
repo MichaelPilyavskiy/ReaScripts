@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.64
+-- @version 1.65
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -8,11 +8,12 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
+--    mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
 -- @changelog
---    # fix error on bad sample name [p=2009558]
---    # fix doubleclick state on pads skip onclick state for preview and selection
+--    + Added external scripts for manipulating parameters for all instance of RS5k related to current project. Require mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
+--    - Remove float by double click
 
-  local vrs = 'v1.64'
+  local vrs = 'v1.65'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
