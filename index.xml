@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="be639fa12eb73f10b595f0cbdabdbad746c924f6" name="MPL Scripts">
+<index version="1" commit="cb1ce1a2c9ac149811eb2c8e8d5590d7bebeb0dd" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -2748,16 +2748,13 @@ setup min gain, attack =0]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI%20editor/mpl_Set%20selected%20CC.eel</source>
       </version>
     </reapack>
-    <reapack name="mpl_Smart duplicate notes.lua" type="script" desc="Smart duplicate notes">
+    <reapack name="mpl_Smart duplicate events.lua" type="script" desc="Smart duplicate events">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/MIDI%20editor/mpl_Smart%20duplicate%20notes.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2018-01-29T01:18:35Z">
-        <changelog><![CDATA[# fix integer PPQ value]]></changelog>
-        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bccdc68b61ae7779078eee9af71e6b4bdb93c25/MIDI%20editor/mpl_Smart%20duplicate%20notes.lua</source>
+      <version name="1.0" author="MPL" time="2018-07-27T20:34:26Z">
+        <changelog><![CDATA[+ mpl_Smart duplicate notes.lua, recoded for use with GetSetAllEvents. MIDI code based on juliansader MIDI scripts (see ReaTeam repo).]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb1ce1a2c9ac149811eb2c8e8d5590d7bebeb0dd/MIDI%20editor/mpl_Smart%20duplicate%20events.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Snap selected notes to scale.lua" type="script" desc="Snap selected notes to scale">
