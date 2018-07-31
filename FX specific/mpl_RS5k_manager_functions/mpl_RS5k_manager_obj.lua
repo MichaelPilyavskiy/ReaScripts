@@ -1092,12 +1092,14 @@
                                   func =  function() 
                                             local spl = SearchSample(data[cur_note][cur_spl].sample,true )
                                             if spl then 
-                                              data[cur_note][cur_spl].sample  = spl
-                                              SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
-                                              refresh.conf = true 
-                                              refresh.GUI = true
-                                              refresh.GUI_WF = true
-                                              refresh.data = true
+                                              Undo_BeginBlock()  
+                                                data[cur_note][cur_spl].sample  = spl
+                                                SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
+                                                refresh.conf = true 
+                                                refresh.GUI = true
+                                                refresh.GUI_WF = true
+                                                refresh.data = true
+                                              Undo_EndBlock( 'RS5k change sample for note '..cur_note, 0 )
                                             end
                                           end
                                   }  
@@ -1409,11 +1411,16 @@
           alpha_back = 0.15 
         end
         local note_str = GetNoteStr(conf, note)
+        if not note_str then note_str = '' end
         
-        if note_str then
           local txt = note_str..'\n\r'--..fn
-          if data[note] and data[note][1] and data[note][1].MIDI_name and conf.key_names ~= 6 and conf.displayMIDInotenames==1 and conf.allow_multiple_spls_per_pad == 1 then 
-            txt = txt..data[note][1].MIDI_name..' ('..#data[note]..')\n' 
+          if data[note] 
+            and data[note][1] 
+            and data[note][1].MIDI_name 
+            and conf.key_names ~= 6 
+            and conf.displayMIDInotenames==1 
+            and conf.allow_multiple_spls_per_pad == 1 then 
+              txt = txt..data[note][1].MIDI_name..' ('..#data[note]..')\n' 
           end
           if data[note] and data[note][1] and conf.key_names ~= 6 then 
             if #data[note] >= 1 then
@@ -1425,6 +1432,12 @@
                 end
               end
             end
+          end
+          if data[note] 
+                      and data[note][1] 
+                      and data[note][1].MIDI_name 
+                      and conf.key_names == 10 then 
+              txt = note..'\n'..data[note][1].MIDI_name 
           end
           if  key_w < obj.fx_rect_side*2.5 or key_h < obj.fx_rect_side*2.8 then txt = note end
           if  key_w < obj.fx_rect_side*1.5 or key_h < obj.fx_rect_side*1.5 then txt = '' end
@@ -1464,8 +1477,11 @@
                                   if not data.hasanydata then return end
                                   data.current_spl_peaks = nil
                                   if conf.keypreview == 1 then  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), note,100) end                                  
-                                  obj.current_WFkey = note
-                                  obj.current_WFspl = 1
+                                  if obj.current_WFkey ~= note then 
+                                    obj.current_WFspl = 1                                   
+                                    obj.current_WFkey = note
+                                  end
+                                  
                                   refresh.GUI_WF = true  
                                   refresh.GUI = true     
                                 end,
@@ -1485,7 +1501,7 @@
                                                               local MIDI_name = GetTrackMIDINoteNameEx( 0, data[note][1].src_track, note, 1)
                                                               local ret, MIDI_name_ret = reaper.GetUserInputs( conf.scr_title, 1, 'Rename MIDI note,extrawidth=200', MIDI_name )
                                                               if ret then
-                                                                SetTrackMIDINoteNameEx( 0, data[note][1].src_track, note, 1, MIDI_name_ret)
+                                                                SetTrackMIDINoteNameEx( 0, data[note][1].src_track, note, 0, MIDI_name_ret)
                                                               end
                                                             end},
                                                   { str =   'Remove pad content',
@@ -1511,10 +1527,10 @@
               or  note%12 == 6 
               or  note%12 == 8 
               or  note%12 == 10 
-              then obj['keys_p'..note].txt_col = 'black' end
+              then obj['keys_p'..note].txt_col = 'black' 
+            end
               
               
-          end
         end
       end
     
@@ -1700,6 +1716,15 @@
                               refresh.data = true                           
                             end}  
                             
+    -- ask pinned tr
+      local ret, trGUID = GetProjExtState( 0, 'MPLRS5KMANAGE', 'PINNEDTR' )
+      local pinnedtr = BR_GetMediaTrackByGUID( 0, trGUID )
+      local pinnedtr_str = '(none)' 
+      if pinnedtr then 
+        _, pinnedtr_str = GetTrackName( pinnedtr, '' )
+      end
+      
+    --                         
         obj.menu = { clear = true,
                     x = 0,
                     y = 0,
@@ -1777,14 +1802,22 @@
   { str = ({GetNoteStr(conf, 0,4)})[2],
     state = conf.key_names == 4,
     func = function() conf.key_names = 4 end},  
+  { str = ({GetNoteStr(conf, 0,4)})[2]..' + MIDI note names',
+    state = conf.key_names == 10,
+    func = function() conf.key_names = 10 end},     
   { str = ({GetNoteStr(conf, 0,6)})[2],
     state = conf.key_names == 6,
     func = function() conf.key_names = 6 end},          
-  { str = '|Visual octave shift: '..conf.oct_shift..'oct'..'|<',
+  { str = '|Visual octave shift: '..conf.oct_shift..'oct',
     func = function() 
               ret = GetInput( conf, 'Visual octave shift', conf.oct_shift,true) 
               if ret then  conf.oct_shift = ret  end end,
   } ,
+  { str = 'Display MIDI note names|<',
+    func = function() conf.displayMIDInotenames = math.abs(1-conf.displayMIDInotenames) end,
+    state = conf.displayMIDInotenames == 1, 
+  } , 
+  
   { str = '>Layouts'},
   { str = 'Chromatic Keys',
     func = function() conf.keymode = 0 end ,
@@ -1802,14 +1835,9 @@
     func = function() conf.keymode = 5 end ,
     state = conf.keymode == 5},    
     
-  { str = 'Send MIDI by clicking on keys',
+  { str = 'Send MIDI by clicking on keys|<',
     func = function() conf.keypreview = math.abs(1-conf.keypreview)  end ,
     state = conf.keypreview == 1},   
-  { str = 'Display MIDI note names'..'|<',
-    func = function() conf.displayMIDInotenames = math.abs(1-conf.displayMIDInotenames) end,
-    state = conf.displayMIDInotenames == 1, 
-  } , 
-
 
 
   { str = '>RS5k controls'},
@@ -1831,15 +1859,15 @@
               local ret = BinaryCheck(conf.MM_reset_val, 0)
               conf.MM_reset_val = ret
             end ,},   
-  { str = 'Alt+Click reset value|',  
+  { str = 'Alt+Click reset value|<',  
     state = conf.MM_reset_val&(1<<1) == (1<<1),
     func =  function() 
               local ret = BinaryCheck(conf.MM_reset_val, 1)
               conf.MM_reset_val = ret
             end }, 
-  { str = 'Doubleclick on pads float related RS5k instances|<',  
+--[[  { str = 'Doubleclick on pads float related RS5k instances|',  
     state = conf.MM_dc_float == 1,
-    func =  function() conf.MM_dc_float = math.abs(1-conf.MM_dc_float)  end }  ,          
+    func =  function() conf.MM_dc_float = math.abs(1-conf.MM_dc_float)  end }  ,  ]]        
 
   { str = '>GUI options'},
   { str = 'Controls size scaling',
@@ -1861,7 +1889,7 @@
             end
   } ,  
   
-  { str = 'Pad font size|<|',
+  { str = 'Pad font size|<',
     func =  function() 
               local ret = GetInput( conf, 'Pad font', conf.GUI_padfontsz,true)
               if ret then 
@@ -1870,7 +1898,27 @@
               end
             end
   } ,
-                    
+
+  { str = '>FX Chain options'},
+  { str = 'Always export dragged samples to new tracks',
+    func =  function() conf.dragtonewtracks = math.abs(1-conf.dragtonewtracks)  end,
+    state = conf.dragtonewtracks == 1,
+  } ,     
+  { str = 'Don`t ask for creating FX routing',
+    func =  function() conf.dontaskforcreatingrouting = math.abs(1-conf.dontaskforcreatingrouting)  end,
+    state = conf.dontaskforcreatingrouting == 1,
+  } ,                
+  { str = 'Use custom FX chain for newly dragged samples '..conf.draggedfile_fxchain..'|<|',
+    func =  function() 
+              if conf.draggedfile_fxchain ~= '' then conf.draggedfile_fxchain = '' return end
+              local retval, fp = GetUserFileNameForRead('', 'FX chain for newly dragged samples', 'RfxChain')
+              if retval then 
+                conf.draggedfile_fxchain =  fp
+              end
+            end,
+    state = conf.draggedfile_fxchain ~= '',
+  } ,   
+  --        
   { str = '>Prepare selected track MIDI input'},   
   { str = 'Disabled',
     func = function() conf.prepareMIDI2 = 0  end ,
@@ -1894,17 +1942,23 @@
   } ,  
   { str = 'Toggle pin selected track as a parent track',
     func =  function() 
-              local tr = GetSelectedTrack(0,0)
-              local GUID =  GetTrackGUID( tr )
-              SetProjExtState( 0, 'MPLRS5KMANAGE', 'PINNEDTR', GUID )
-              conf.pintrack = math.abs(1-conf.pintrack) 
+              if conf.pintrack == 0 then 
+                local tr = GetSelectedTrack(0,0)
+                local GUID =  GetTrackGUID( tr )
+                SetProjExtState( 0, 'MPLRS5KMANAGE', 'PINNEDTR', GUID )
+                conf.pintrack = math.abs(1-conf.pintrack) 
+               else
+                SetProjExtState( 0, 'MPLRS5KMANAGE', 'PINNEDTR', '' )
+                conf.pintrack = math.abs(1-conf.pintrack)                 
+              end
             end,
     state = conf.pintrack == 1,
   } ,  
-  { str = 'Don`t ask for creating FX routing|',
-    func =  function() conf.dontaskforcreatingrouting = math.abs(1-conf.dontaskforcreatingrouting)  end,
-    state = conf.dontaskforcreatingrouting == 1,
-  } ,  
+  { str = 'Select pinned track: '..pinnedtr_str..'|',
+    func =  function() 
+              if pinnedtr then SetOnlyTrackSelected( pinnedtr ) end
+            end
+  } ,    
   
    
   

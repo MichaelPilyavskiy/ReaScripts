@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.65
+-- @version 1.66
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -10,10 +10,18 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
 -- @changelog
---    + Added external scripts for manipulating parameters for all instance of RS5k related to current project. Require mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
---    - Remove float by double click
+--    + Add sample listing to Undo History [p=2011669]
+--    + Option to auto create routing and float newly dragged samples [p=2014244] [p=2017204]
+--    + Menu/Key names/MIDI pitch+MIDI note names [p=2017204]
+--    + Add action to select pinned track if any [p=2017204]
+--    + Add option for adding custom FX chain when draggin samples and auto creating dedicateed track [p=2014244]
+--    # erase external state when pinned track disabled
+--    # fix storing/parsing MIDI note note name from channel instead 1st [p=2011669]
+--    # move option to hide note names to KeyOptions/KeyNames
+--    # don`t reset peak preview when triggering same note
+--    - remove doubleclick trigger float FX
 
-  local vrs = 'v1.65'
+  local vrs = 'v1.66'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -91,6 +99,8 @@
             pintrack = 0,
             dontaskforcreatingrouting = 0,
             obeynoteoff_default = 1,
+            dragtonewtracks = 0,
+            draggedfile_fxchain = '',
             }
     return t
   end  

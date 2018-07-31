@@ -56,9 +56,20 @@
           reaper.TrackFX_SetParamNormalized( tr, fxid-1, param, math.max(0,math.min(end_val,val + incr)) )
          elseif param == 14 then
           local st_val = reaper.TrackFX_GetParamNormalized( tr, fxid-1, 13 ) +0.001
-          reaper.TrackFX_SetParamNormalized( tr, fxid-1, param, math.max(st_val,math.min(1,val + incr)) )   
+          reaper.TrackFX_SetParamNormalized( tr, fxid-1, param, math.max(st_val,math.min(1,val + incr)) ) 
+         elseif param == 17 or param == 18 then -- velocity max
+          local val = reaper.TrackFX_GetParamNormalized( tr, fxid-1, param ) 
+          reaper.TrackFX_SetParamNormalized( tr, fxid-1, param, math.max(0,math.min(1,val + incr/127)) )  
+         elseif param == 23 then -- loop offs
+          reaper.TrackFX_SetParamNormalized( tr, fxid-1, param, math.max(0,math.min(1,val + incr/30000)) )                   
          elseif param == 24 then
           reaper.TrackFX_SetParamNormalized( tr, fxid-1, param, math.max(0,math.min(1,val + incr/14990)) )                   
+         elseif param == 25 then -- sustain
+          reaper.TrackFX_SetParamNormalized( tr, fxid-1, param, math.max(0,math.min(1,val + incr)) )                 
+          
+         elseif param == 26 then
+          reaper.TrackFX_SetParamNormalized( tr, fxid-1, param, math.max(0,math.min(1,val + incr/4000)) )                   
+          
         end
       end
         

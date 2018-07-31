@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.60
+-- @version 1.61
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,10 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Optionally override timeselection format [p=2007302]
---    # Widgets/MIDI_Editor/#position: fix change value in local override mode
+--    # Persist/#clock: fix show play cursor position when additional time format enabled
 
-    local vrs = '1.60'
+    local vrs = '1.61'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -165,7 +164,7 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
       data.playcur_pos =  GetPlayPositionEx( 0 )
       local playcur_pos_format =  format_timestr_pos( data.playcur_pos, '', data.ruleroverride )
       local playcur_pos_format2 =  format_timestr_pos( data.playcur_pos, '', 0 )
-      if data.persist_clock_showtimesec == 1 then -- SEE GUI_Main
+      if data.persist_clock_showtimesec >0 then -- SEE GUI_Main
         data.playcur_pos_format = playcur_pos_format..' / '..playcur_pos_format2
        else
         data.playcur_pos_format = playcur_pos_format

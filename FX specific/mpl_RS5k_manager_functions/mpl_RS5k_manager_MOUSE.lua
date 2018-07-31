@@ -209,7 +209,16 @@
                and obj[ mouse.context ].linked_note  
                and IsMediaExtension( DRstr:match('.*%.(.*)'), false ) then
            local note = obj[ mouse.context ].linked_note
-           ExportItemToRS5K(data,conf,refresh,note,DRstr)   
+           if conf.dragtonewtracks  == 0 then 
+            ExportItemToRS5K(data,conf,refresh,note,DRstr)  
+           else
+            local last_spl = ExportItemToRS5K(data,conf,refresh,note,DRstr)
+            Data_Update(conf, obj, data, refresh, mouse)
+            local new_tr = ShowRS5kChain(data, conf, note, last_spl)
+            if conf.draggedfile_fxchain ~= '' then
+              AddFXChainToTrack(new_tr, conf.draggedfile_fxchain)
+            end
+          end
           refresh.GUI = true
           refresh.GUI_WF = true
           refresh.data = true                         

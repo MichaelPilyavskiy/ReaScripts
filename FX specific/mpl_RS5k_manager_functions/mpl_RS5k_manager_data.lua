@@ -46,7 +46,7 @@
       if not data[MIDIpitch] then data[MIDIpitch] = {} end
       local int_col = GetTrackColor( tr )
       if int_col == 0 then int_col = nil end
-      local MIDI_name = GetTrackMIDINoteNameEx( 0, tr, MIDIpitch, 1)
+      local MIDI_name = GetTrackMIDINoteNameEx( 0, tr, MIDIpitch, 0)
       local attack_ms = ({TrackFX_GetFormattedParamValue( tr, fxid-1, 9, '' )})[2]
       if tonumber(attack_ms) >= 1000 then 
         attack_ms = string.format('%.0f', attack_ms)
@@ -304,11 +304,6 @@
       return spl_cnt
     end
   end 
--- @description RS5k_manager_trackfunc 
--- @author MPL
--- @website http://forum.cockos.com/member.php?u=70694
--- @noindex
-
   ---------------------------------------------------
   function InsertTrack(tr_id)
     InsertTrackAtIndex(tr_id, true)
@@ -447,12 +442,15 @@
       track = data[note][1].src_track
       if conf.allow_multiple_spls_per_pad == 0 then
         TrackFX_SetNamedConfigParm(  track, data[note][1].rs5k_pos, 'FILE0', filepath)
-        TrackFX_SetNamedConfigParm(  track, data[note][1].rs5k_pos, 'DONE', '')  
+        TrackFX_SetNamedConfigParm(  track, data[note][1].rs5k_pos, 'DONE', '')
+        return 1  
        else
-        ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, end_offs, track)        
+        ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, end_offs, track)  
+        return #data[note]+1        
       end
      else
        ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, end_offs, track)
+       return 1
     end
     
   end
@@ -500,8 +498,62 @@
         GetSetMediaTrackInfo_String( new_tr, 'P_NAME', data[note][spl].sample_short, 1 )
         TrackList_AdjustWindows( false )
         TrackFX_Show( new_tr, 0, 1 )
+        return new_tr
       end
      else
       TrackFX_Show( data[note][spl].src_track, 0, 1 )
     end
   end
+  
+  -----------------------------------------------------------------------   
+  FX_chain_file_path = [[C:\001.RfxChain]]
+  track_id = 1
+  
+  
+  function AddFXChainToTrack_ExtractBlock(str)
+    local s = ''
+    local count = 1
+    count_lines = 0
+    for line in str:gmatch('[^\n]+') do
+      count_lines = count_lines + 1
+      s = s..'\n'..line
+      if line:find('<') then count = count +1 end
+      if line:find('>') then count = count -1 end 
+      if count == 1 then return s, count_lines end     
+    end
+  end   
+  function AddFXChainToTrack(track, chain_fp)
+    -- get some chain file, ex. from GetUserFileForRead()
+      local file = io.open(chain_fp)
+      if not file then return end
+      local external_FX_chain_content = file:read('a')
+      file:close()  
+
+    -- get track chunk
+      local chunk = eugen27771_GetObjStateChunk(track)    
+    -- split chunk by lines into table
+      local t = {} 
+      for line in chunk:gmatch('[^\n]+') do       if line:find('<FXCHAIN') then fx_chain_id0 = #t end       t[#t+1] = line     end 
+    --  find size of FX chain and where it placed
+      local _, cnt_lines = AddFXChainToTrack_ExtractBlock(chunk:match('<FXCHAIN.*'))
+      local fx_chain_id1 = fx_chain_id0 + cnt_lines -1
+    -- insert FX chain
+      local new_chunk = table.concat(t,'\n',  1, fx_chain_id1)..'\n'..
+                external_FX_chain_content..
+                table.concat(t,'\n',  fx_chain_id1)     
+    -- apply new chunk                
+      SetTrackStateChunk(track, new_chunk, false) 
+  end
+  
+  
+  
+  
+   
+  
+  
+
+     
+
+  
+  
+ 
