@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.67
+-- @version 1.70
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -10,9 +10,18 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
 -- @changelog
---    + Keynames modified as a hashtags
+--    + Multiple samples load [rmmedia.ru/threads/132518/#post-2252074]
+--    + undo point on creating FX chain [t.me/joinchat/Er2FHUhlTsH43JzhLeYvNg]
+--    + revert FX buttons on pads for layering mode [t.me/joinchat/Er2FHUhlTsH43JzhLeYvNg]
+--    + separate keyname hashtags for mixer
+--    # prevent creating peaks for source longer than 15 seconds
+--    # prevent listing and dragndropping non-audio formats and RPP as subprojects [p=2017667]
+--    # reduce extension from MIDI send track name
+--    # fix mixer view
+--    # revert mixer for use horizontal text only
 
-  local vrs = 'v1.67'
+
+  local vrs = 'v1.70'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -78,6 +87,7 @@
             oct_shift = -1, -- note names
             start_oct_shift = 0, -- scroll
             key_names2 = '#midipitch #keycsharp |#notename #samplecount |#samplename' ,
+            key_names_mixer = '#midipitch #keycsharp |#notename ' ,
             --key_names = 8, --8 return MIDInotes and keynames
             --displayMIDInotenames = 1,
             prepareMIDI2 = 0, -- prepare MIDI on start
@@ -86,7 +96,7 @@
             invert_release = 0,
             
             MM_reset_val = 1,
-            MM_dc_float = 0,
+            --MM_dc_float = 0,
             
             pintrack = 0,
             dontaskforcreatingrouting = 0,

@@ -66,6 +66,11 @@
         del = 0.5
         del_ms = 0
       end
+      
+      local sample_short = GetShortSmplName(fn)
+      local pat_reduceext = '(.*)%.[%a]+'
+      if sample_short and sample_short:match(pat_reduceext) then sample_short = sample_short:match(pat_reduceext) end
+      
       data[MIDIpitch] [#data[MIDIpitch]+1] = {rs5k_pos = fxid-1,
                         pitch    =math.floor(({TrackFX_GetFormattedParamValue( tr, fxid-1, 3, '' )})[2]),
                         MIDIpitch_normal =        TrackFX_GetParamNormalized( tr, fxid-1, 3),
@@ -84,7 +89,7 @@
                         rel =              TrackFX_GetParamNormalized( tr, fxid-1,10),
                         rel_ms =         ({TrackFX_GetFormattedParamValue( tr, fxid-1, 10, '' )})[2],   
                         sample = fn ,
-                        sample_short =    GetShortSmplName(fn),
+                        sample_short =    sample_short,
                         GUID =            TrackFX_GetFXGUID( tr, fxid-1 ) ,
                         src_track = tr  ,
                         src_track_col = int_col,
@@ -151,7 +156,7 @@
       repeat
       local file = reaper.EnumerateFiles( path, i )
       if file then
-        files[#files+1] = file
+        if IsMediaExtension( file:match('.*%.(.*)'), false ) and not file:lower():match('%.rpp') then files[#files+1] = file end
       end
       i = i+1
       until file == nil
@@ -279,6 +284,7 @@
       if not src then return end
       local peakrate = 5000
       local src_len =  GetMediaSourceLength( src )
+      if src_len > 15 then return end
       local n_spls = math.floor(src_len*peakrate)
       if n_spls < 10 then return end 
       local n_ch = 1
@@ -486,19 +492,22 @@
         if ret == 6  then ret_com = true  end
       end
       if ret_com then
-        local tr_id = CSurf_TrackToID( data.parent_track, false )
-        InsertTrackAtIndex( tr_id, true)
-        local new_tr = CSurf_TrackFromID( tr_id+1, false )
-        local send_id = CreateTrackSend( data.parent_track, new_tr)
-        SetTrackSendInfo_Value( data.parent_track, 0, send_id, 'I_SRCCHAN' , -1 )
-        SetTrackSendInfo_Value( data.parent_track, 0, send_id, 'I_DSTCHAN' , 0 )
-        SetTrackSendInfo_Value( data.parent_track, 0, send_id, 'I_MIDIFLAGS' , 0 )
-        SNM_MoveOrRemoveTrackFX( data.parent_track, data[note][spl].rs5k_pos, 0 )
-        SetRS5kData(data, conf, new_tr, note, spl, true)
-        GetSetMediaTrackInfo_String( new_tr, 'P_NAME', data[note][spl].sample_short, 1 )
-        TrackList_AdjustWindows( false )
-        TrackFX_Show( new_tr, 0, 1 )
+        Undo_BeginBlock()                          
+          local tr_id = CSurf_TrackToID( data.parent_track, false )
+          InsertTrackAtIndex( tr_id, true)
+          local new_tr = CSurf_TrackFromID( tr_id+1, false )
+          local send_id = CreateTrackSend( data.parent_track, new_tr)
+          SetTrackSendInfo_Value( data.parent_track, 0, send_id, 'I_SRCCHAN' , -1 )
+          SetTrackSendInfo_Value( data.parent_track, 0, send_id, 'I_DSTCHAN' , 0 )
+          SetTrackSendInfo_Value( data.parent_track, 0, send_id, 'I_MIDIFLAGS' , 0 )
+          SNM_MoveOrRemoveTrackFX( data.parent_track, data[note][spl].rs5k_pos, 0 )
+          SetRS5kData(data, conf, new_tr, note, spl, true)
+          GetSetMediaTrackInfo_String( new_tr, 'P_NAME', data[note][spl].sample_short, 1 )
+          TrackList_AdjustWindows( false )
+          TrackFX_Show( new_tr, 0, 1 )          
+        Undo_EndBlock( 'Build RS5k MIDI routing for note '..note..' sample '..spl, 0 )
         return new_tr
+        
       end
      else
       TrackFX_Show( data[note][spl].src_track, 0, 1 )
@@ -527,7 +536,8 @@
       file:close()  
 
     -- get track chunk
-      local chunk = eugen27771_GetObjStateChunk(track)    
+      local chunk = eugen27771_GetObjStateChunk(track) 
+      if not chunk then return end   
     -- split chunk by lines into table
       local t = {} 
       for line in chunk:gmatch('[^\n]+') do       if line:find('<FXCHAIN') then fx_chain_id0 = #t end       t[#t+1] = line     end 

@@ -23,8 +23,34 @@
        end
      end  
    end
+  ---------------------------------------------------   
+  function MOUSE_dragndrop(conf, obj, data, refresh, mouse)
+    if not (obj[ mouse.context ] and obj[ mouse.context ].linked_note) then return end
+    local note = obj[ mouse.context ].linked_note
+    for i = 0, 127-note do
+      local DRret, DRstr = gfx.getdropfile(i)
+      if DRret == 0 then return end
+      if not (IsMediaExtension( DRstr:match('.*%.(.*)'), false ) and not DRstr:lower():match('%.rpp')) then goto skip_spl end
+      
+      if conf.dragtonewtracks  == 0 then -- force build new track  MIDI send routing
+        ExportItemToRS5K(data,conf,refresh,note+i,DRstr)
+       else
+        local last_spl = ExportItemToRS5K(data,conf,refresh,note+i,DRstr)
+        Data_Update(conf, obj, data, refresh, mouse)
+        local new_tr = ShowRS5kChain(data, conf, note+i, last_spl)
+        if conf.draggedfile_fxchain ~= '' then AddFXChainToTrack(new_tr, conf.draggedfile_fxchain) end
+      end 
+                
+      ::skip_spl::
+    end
+    refresh.GUI = true
+    refresh.GUI_WF = true
+    refresh.data = true  
+  end      
+      
+
    ---------------------------------------------------
-   function MOUSE(conf, obj, data, refresh, mouse, pat)
+   function MOUSE(conf, obj, data, refresh, mouse)
      local d_click = 0.4
      mouse.x = gfx.mouse_x
      mouse.y = gfx.mouse_y
@@ -198,34 +224,7 @@
        mouse.last_LMB_state_TS = mouse.LMB_state_TS
        --mouse.DLMB_state = nil  
        
-       -- DragnDrop from MediaExplorer 5.91pre1+
-       if obj.reapervrs >= 5.91 then
-         local DRret, DRstr = gfx.getdropfile(0)
-          --msg(DRret)
-          --msg(DRstr)
-         
-         if    DRret ~= 0 
-               and obj[ mouse.context ] 
-               and obj[ mouse.context ].linked_note  
-               and IsMediaExtension( DRstr:match('.*%.(.*)'), false ) then
-           local note = obj[ mouse.context ].linked_note
-           if conf.dragtonewtracks  == 0 then 
-            ExportItemToRS5K(data,conf,refresh,note,DRstr)  
-           else
-            local last_spl = ExportItemToRS5K(data,conf,refresh,note,DRstr)
-            Data_Update(conf, obj, data, refresh, mouse)
-            local new_tr = ShowRS5kChain(data, conf, note, last_spl)
-            if conf.draggedfile_fxchain ~= '' then
-              AddFXChainToTrack(new_tr, conf.draggedfile_fxchain)
-            end
-          end
-          refresh.GUI = true
-          refresh.GUI_WF = true
-          refresh.data = true                         
-         end
-       end     
-       
-       
-       
+      -- DragnDrop from MediaExplorer 5.91pre1+
+      if obj.reapervrs >= 5.91 then MOUSE_dragndrop(conf, obj, data, refresh, mouse) end     
         
    end

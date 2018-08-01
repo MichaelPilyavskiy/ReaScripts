@@ -383,7 +383,7 @@
         end
       end
       
-    ------------------ key txt
+    --[[---------------- key txt
       if o.vertical_txt then
         gfx.dest = 10
         gfx.setimgdim(10, -1, -1)  
@@ -414,7 +414,7 @@
                   x,y-2,h,h,0,0)
                   ---5,h-w+5)
       end
-    
+    ]]
     ------------------ line
       if o.a_line and o.col then  -- low frame
         col(obj, o.col, o.a_frame or 0.2)

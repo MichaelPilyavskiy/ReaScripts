@@ -1207,8 +1207,9 @@
   end
 
   ---------------------------------------------------
-  function BuildKeyName(conf, data, note)
+  function BuildKeyName(conf, data, note, ismixer)
     local str = conf.key_names2..' '
+    if ismixer then str = conf.key_names_mixer..' ' end
     if not str then return "" end
     --------
     str = str:gsub('#midipitch', note)
@@ -1229,11 +1230,7 @@
     local spls = ''
     if data[note] and #data[note] >= 1 then
       for spl = 1, #data[note] do
-        local spl = GetShortSmplName(data[note][spl].sample)
-        local pat_reduceext = '(.*)%.[%a]+'
-        if spl and spl:match(pat_reduceext) then 
-          spls = spls .. spl:match(pat_reduceext) ..'\n'
-        end
+        spls = spls..data[note][spl].sample_short..'\n'
       end
     end
     str = str:gsub('#samplename ', spls)
@@ -1568,7 +1565,7 @@
                 local x_pos, y_pos = 0,0
                 if alignformixer then 
                   x_pos = key_xpos + key_w - obj.fx_rect_side +1
-                  y_pos = key_ypos + obj.fx_rect_side*y_shift_butts
+                  y_pos = key_ypos + key_h - obj.fx_rect_side*(3-y_shift_butts)
                  else
                   x_pos = key_xpos + key_w - obj.fx_rect_side
                   y_pos = key_ypos + key_h - obj.fx_rect_side*y_shift_butts
@@ -1605,7 +1602,7 @@
                 local x_pos, y_pos = 0,0
                 if alignformixer then 
                   x_pos = key_xpos + key_w - obj.fx_rect_side+1
-                  y_pos = key_ypos + obj.fx_rect_side*y_shift_butts
+                  y_pos = key_ypos + key_h - obj.fx_rect_side*(3-y_shift_butts)
                  else
                   x_pos = key_xpos + key_w - obj.fx_rect_side
                   y_pos = key_ypos + key_h - obj.fx_rect_side*y_shift_butts
@@ -1645,13 +1642,13 @@
 
             -- FX                    
             if key_h > obj.fx_rect_side and key_w > obj.fx_rect_side then               
-              if conf.FX_buttons&(1<<2) == (1<<2) and conf.allow_multiple_spls_per_pad == 0 then 
+              if conf.FX_buttons&(1<<2) == (1<<2) then --and conf.allow_multiple_spls_per_pad == 0 then 
                 y_shift_butts = y_shift_butts + 1
                 local  alpha_back = 0.01
                 if data[note] and data[note][1] and data[note][1].src_track ~= data.parent_track then alpha_back = 0.4 end
                 if alignformixer then 
                   x_pos = key_xpos + key_w - obj.fx_rect_side+1
-                  y_pos = key_ypos + obj.fx_rect_side*y_shift_butts
+                  y_pos = key_ypos + key_h - obj.fx_rect_side*(3-y_shift_butts)
                  else
                   x_pos = key_xpos + key_w - obj.fx_rect_side
                   y_pos = key_ypos + key_h - obj.fx_rect_side*y_shift_butts
@@ -1804,9 +1801,10 @@
             end ,
   },
   { str = '>Key names'},  
-  { str = 'Set to default',
+  { str = 'Reset to defaults',
     func = function() 
-              conf.key_names2 = '#midipitch #keycsharp |#notename #samplecount |#samplename'             
+              conf.key_names2 = '#midipitch #keycsharp |#notename #samplecount |#samplename'  
+              conf.key_names_mixer = '#midipitch #keycsharp |#notename '          
             end},  
   { str = 'Edit keyname hashtags',
     func = function() 
@@ -1815,6 +1813,13 @@
                 conf.key_names2 = ret 
               end             
             end},  
+  { str = 'Edit mixer keyname hashtags',
+    func = function() 
+              local ret = GetInput( conf, 'Mixer keyname hashtags', conf.key_names_mixer, _, 400, true) 
+              if ret then  
+                conf.key_names_mixer = ret 
+              end             
+            end},              
   { str = 'Keyname hashtag reference',
     func = function() 
               msg([[
@@ -1917,7 +1922,7 @@ List of available hashtags:
             end
   } ,
 
-  { str = '>FX Chain options'},
+  { str = '>Dragndrop options'},
   { str = 'Always export dragged samples to new tracks',
     func =  function() conf.dragtonewtracks = math.abs(1-conf.dragtonewtracks)  end,
     state = conf.dragtonewtracks == 1,
@@ -2153,12 +2158,10 @@ List of available hashtags:
          else
           alpha_back = 0.15 
         end
-        local note_str = GetNoteStr(conf, note)
         
-        if note_str then
-          local txt = note_str
-          if data[note] and data[note][1] and data[note][1].MIDI_name and conf.key_names ~= 6 then txt = txt..' '..data[note][1].MIDI_name end
-          if  key_w < obj.fx_rect_side then txt = '' end
+        local txt = BuildKeyName(conf, data, note, true)
+        
+        if  key_w < obj.fx_rect_side then txt = '' end
           --
           if note >= 0 and note <= 127 then
             local key_xpos = obj.keycntrlarea_w+(i-1)*key_w +2
@@ -2182,9 +2185,9 @@ List of available hashtags:
               pan_val = data[note].com_pan
             end
             local limtxtw_vert = obj.fx_rect_side*fxctrlcnt
-            if key_w > obj.fx_rect_side*2 then limtxtw_vert = 0 end
-            local verttxt = ''
-            if txt and tostring(txt )then verttxt = tostring(txt ):gsub('\n',' ') end
+            if key_w < obj.fx_rect_side*2 then txt = note end
+            --local verttxt = ''
+            --if txt and tostring(txt )then verttxt = tostring(txt ):gsub('\n',' ') end
             obj['keys_p'..i] = 
                       { clear = true,
                         x = key_xpos,
@@ -2197,7 +2200,8 @@ List of available hashtags:
                         col = col,
                         colint = colint,
                         state = 0,
-                        txt= '',
+                        txt= txt,
+                       -- limtxtw = key_w - obj.fx_rect_side,
                         limtxtw_vert = limtxtw_vert,
                         is_step = true,
                         vertical_txt = verttxt,
@@ -2286,7 +2290,6 @@ List of available hashtags:
               then obj['keys_p'..i].txt_col = 'black' end
               
               
-          end
         end
       end
     
