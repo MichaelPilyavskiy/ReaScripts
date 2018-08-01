@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.66
+-- @version 1.67
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -10,18 +10,9 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
 -- @changelog
---    + Add sample listing to Undo History [p=2011669]
---    + Option to auto create routing and float newly dragged samples [p=2014244] [p=2017204]
---    + Menu/Key names/MIDI pitch+MIDI note names [p=2017204]
---    + Add action to select pinned track if any [p=2017204]
---    + Add option for adding custom FX chain when draggin samples and auto creating dedicateed track [p=2014244]
---    # erase external state when pinned track disabled
---    # fix storing/parsing MIDI note note name from channel instead 1st [p=2011669]
---    # move option to hide note names to KeyOptions/KeyNames
---    # don`t reset peak preview when triggering same note
---    - remove doubleclick trigger float FX
+--    + Keynames modified as a hashtags
 
-  local vrs = 'v1.66'
+  local vrs = 'v1.67'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -86,11 +77,12 @@
             keypreview = 1, -- send MIDI by clicking on keys
             oct_shift = -1, -- note names
             start_oct_shift = 0, -- scroll
-            key_names = 8, --8 return MIDInotes and keynames
+            key_names2 = '#midipitch #keycsharp |#notename #samplecount |#samplename' ,
+            --key_names = 8, --8 return MIDInotes and keynames
+            --displayMIDInotenames = 1,
             prepareMIDI2 = 0, -- prepare MIDI on start
             FX_buttons = 255,
             
-            displayMIDInotenames = 1,
             invert_release = 0,
             
             MM_reset_val = 1,

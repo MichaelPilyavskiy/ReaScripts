@@ -1206,6 +1206,46 @@
                                                                                                                                                                                                             
   end
 
+  ---------------------------------------------------
+  function BuildKeyName(conf, data, note)
+    local str = conf.key_names2..' '
+    if not str then return "" end
+    --------
+    str = str:gsub('#midipitch', note)
+    --------
+    local ntname = GetNoteStr(conf, note, 0)
+    str = str:gsub('#keycsharp ', ntname)
+    local ntname = GetNoteStr(conf, note, 7)
+    str = str:gsub('#keycsharpRU ', ntname)
+    --------
+    if data[note] and data[note][1] and data[note][1].MIDI_name and data[note][1].MIDI_name ~= '' then 
+      str = str:gsub('#notename ', data[note][1].MIDI_name) else str = str:gsub('#notename', '')
+    end
+    --------
+    if data[note] then 
+      str = str:gsub('#samplecount ', '('..#data[note]..')') else str = str:gsub('#samplecount', '')
+    end 
+    --------
+    local spls = ''
+    if data[note] and #data[note] >= 1 then
+      for spl = 1, #data[note] do
+        local spl = GetShortSmplName(data[note][spl].sample)
+        local pat_reduceext = '(.*)%.[%a]+'
+        if spl and spl:match(pat_reduceext) then 
+          spls = spls .. spl:match(pat_reduceext) ..'\n'
+        end
+      end
+    end
+    str = str:gsub('#samplename ', spls)
+    --------
+    str = str:gsub('|  |', '|')
+    str = str:gsub('|', '\n')
+    --------
+    
+    return str
+
+    
+  end
     ---------------------------------------------------
     function OBJ_GenKeys(conf, obj, data, refresh, mouse)
       local shifts,w_div ,h_div
@@ -1410,35 +1450,9 @@
          else
           alpha_back = 0.15 
         end
-        local note_str = GetNoteStr(conf, note)
-        if not note_str then note_str = '' end
-        
-          local txt = note_str..'\n\r'--..fn
-          if data[note] 
-            and data[note][1] 
-            and data[note][1].MIDI_name 
-            and conf.key_names ~= 6 
-            and conf.displayMIDInotenames==1 
-            and conf.allow_multiple_spls_per_pad == 1 then 
-              txt = txt..data[note][1].MIDI_name..' ('..#data[note]..')\n' 
-          end
-          if data[note] and data[note][1] and conf.key_names ~= 6 then 
-            if #data[note] >= 1 then
-              for spl = 1, #data[note] do
-                local spl = GetShortSmplName(data[note][spl].sample)
-                local pat_reduceext = '(.*)%.[%a]+'
-                if spl and spl:match(pat_reduceext) then 
-                  txt = txt .. spl:match(pat_reduceext) ..'\n'
-                end
-              end
-            end
-          end
-          if data[note] 
-                      and data[note][1] 
-                      and data[note][1].MIDI_name 
-                      and conf.key_names == 10 then 
-              txt = note..'\n'..data[note][1].MIDI_name 
-          end
+          
+          local txt = BuildKeyName(conf, data, note)
+          
           if  key_w < obj.fx_rect_side*2.5 or key_h < obj.fx_rect_side*2.8 then txt = note end
           if  key_w < obj.fx_rect_side*1.5 or key_h < obj.fx_rect_side*1.5 then txt = '' end
           if note >= 0 and note <= 127 then
@@ -1790,33 +1804,37 @@
             end ,
   },
   { str = '>Key names'},  
-  { str = ({GetNoteStr(conf, 0, 8)})[2],
-    state = conf.key_names == 8,
-    func = function() conf.key_names = 8 end},
-  { str = ({GetNoteStr(conf, 0,7)})[2],
-    state = conf.key_names == 7,
-    func = function() conf.key_names = 7 end},  
-  { str = 'keys + octave',
-    state = conf.key_names == 0,
-    func = function() conf.key_names = 0 end},      
-  { str = ({GetNoteStr(conf, 0,4)})[2],
-    state = conf.key_names == 4,
-    func = function() conf.key_names = 4 end},  
-  { str = ({GetNoteStr(conf, 0,4)})[2]..' + MIDI note names',
-    state = conf.key_names == 10,
-    func = function() conf.key_names = 10 end},     
-  { str = ({GetNoteStr(conf, 0,6)})[2],
-    state = conf.key_names == 6,
-    func = function() conf.key_names = 6 end},          
-  { str = '|Visual octave shift: '..conf.oct_shift..'oct',
+  { str = 'Set to default',
+    func = function() 
+              conf.key_names2 = '#midipitch #keycsharp |#notename #samplecount |#samplename'             
+            end},  
+  { str = 'Edit keyname hashtags',
+    func = function() 
+              local ret = GetInput( conf, 'Keyname hashtags', conf.key_names2, _, 400, true) 
+              if ret then  
+                conf.key_names2 = ret 
+              end             
+            end},  
+  { str = 'Keyname hashtag reference',
+    func = function() 
+              msg([[
+List of available hashtags:
+
+#midipitch
+#keycsharp - formatted as C#5
+#keycsharpRU
+#notename - note name in MIDI Editor
+#samplecount - return count of samples linked to current note in parentheses
+#samplename - return sample names linked to current note, separated by new line
+| - new line
+]]
+ )       
+            end},                       
+  { str = '|Visual octave shift: '..conf.oct_shift..'oct|<',
     func = function() 
               ret = GetInput( conf, 'Visual octave shift', conf.oct_shift,true) 
               if ret then  conf.oct_shift = ret  end end,
   } ,
-  { str = 'Display MIDI note names|<',
-    func = function() conf.displayMIDInotenames = math.abs(1-conf.displayMIDInotenames) end,
-    state = conf.displayMIDInotenames == 1, 
-  } , 
   
   { str = '>Layouts'},
   { str = 'Chromatic Keys',

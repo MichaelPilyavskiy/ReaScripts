@@ -505,10 +505,7 @@
     end
   end
   
-  -----------------------------------------------------------------------   
-  FX_chain_file_path = [[C:\001.RfxChain]]
-  track_id = 1
-  
+  ----------------------------------------------------------------------- 
   
   function AddFXChainToTrack_ExtractBlock(str)
     local s = ''

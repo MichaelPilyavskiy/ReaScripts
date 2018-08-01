@@ -2,9 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.07
+-- @version 1.08
 -- @changelog
---    # fix GetSpectralData eat rate and start offset
+--    # mod for GetNotestr
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
@@ -299,8 +299,8 @@
         local oct = math.floor(val / 12)
         local note = math.fmod(val,  12)
         local key_names = {'До', 'До#', 'Ре', 'Ре#', 'Ми', 'Фа', 'Фа#', 'Соль', 'Соль#', 'Ля', 'Ля#', 'Си'}
-        if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift..'\n'..val,
-                                                          'keys (RU) + octave + MIDI pitch' end  
+        if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift,
+                                                          'keys (RU) + octave' end  
        elseif int_mode == 8 then
         if not val then return end
         local val = math.floor(val)
@@ -393,13 +393,20 @@
         end
     end
     ----------------------------------------------------------------------- 
-    function GetInput( conf, captions_csv, retvals_csv,floor)
+    function GetInput( conf, captions_csv, retvals_csv,floor, linew, is_string)
+      if linew and tonumber(linew) then captions_csv = captions_csv..',extrawidth='..math.floor(linew) end
       local ret, str =  GetUserInputs( conf.scr_title, 1, captions_csv, retvals_csv )
       if not ret then return end
-      if not tonumber(str) then return end
-      local num = tonumber(str)
-      if floor then num = math.floor(num) end
-      return num
+      
+      if not is_string then 
+        if not tonumber(str) then return end
+        local out = tonumber(str)
+        if floor then out = math.floor(out) end
+        return out
+       else
+        return str
+      end
+      
     end
     -----------------------------------------------------------
     function BinaryCheck(value, byte_id, bool_int)
