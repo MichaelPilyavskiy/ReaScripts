@@ -2,9 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.08
+-- @version 1.09
 -- @changelog
---    # mod for GetNotestr
+--    + HasWindXYWHChanged
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
@@ -20,6 +20,7 @@
   ------------------------------------------------------------------------------------------------------
   function literalize(str) -- http://stackoverflow.com/questions/1745448/lua-plain-string-gsub
      if str then  return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", function(c) return "%" .. c end) end
+
   end  
   ------------------------------------------------------------------------------------------------------
   function lim(val, min,max) --local min,max 
@@ -467,4 +468,14 @@
       local out_chunk = table.concat(t,'\n')
       --msg(out_chunk)
       reaper.SetTrackStateChunk( track, out_chunk, false )
+  end
+  ----------------------------------------------------------------------
+  function HasWindXYWHChanged(obj)  
+    local  _, wx,wy,ww,wh = gfx.dock(-1, 0,0,0,0)
+    local retval=0
+    if wx ~= obj.last_gfxx or wy ~= obj.last_gfxy then retval= 2 end --- minor
+    if ww ~= obj.last_gfxw or wh ~= obj.last_gfxh then retval= 1 end --- major
+    if not obj.last_gfxx then retval = -1 end
+    obj.last_gfxx, obj.last_gfxy, obj.last_gfxw, obj.last_gfxh = wx,wy,ww,wh
+    return retval
   end
