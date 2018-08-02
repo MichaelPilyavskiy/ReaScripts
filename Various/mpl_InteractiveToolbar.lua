@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.62
+-- @version 1.64
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,12 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # Persist/#lasttouchedfx: remove knob, add triangle indicator, 
---    # Persist/#lasttouchedfx: minimize
---    # Persist/#lasttouchedfx: fix use normalized param
---    # fix ReduceFXName
+--    # force external HasWindXYWHChanged()
+--    # Persist/#lasttouchedfx: fix error on nil formatted param
 
-    local vrs = '1.62'
+    local vrs = '1.64'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -152,7 +150,7 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
       if not SCC_trig and HasPlayStateChanged() then SCC_trig = true end 
       if not SCC_trig and HasSelEnvChanged() then SCC_trig = true end  
       if not SCC_trig and HasGridChanged() then SCC_trig = true end      
-      local ret =  HasWindXYWHChanged() 
+      local ret =  HasWindXYWHChanged(obj) 
       if ret == 1 then  redraw = 2  ExtState_Save(conf)  elseif ret == 2 then  ExtState_Save(conf)  end
     -- perf mouse
       local SCC_trig2 = MOUSE(obj,mouse, clock) 

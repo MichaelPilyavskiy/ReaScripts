@@ -500,16 +500,7 @@
     if not min or not max then min, max = 0,1 end 
     return math.max(min,  math.min(val, max) ) 
   end
-  ---------------------------------------------------
-  function HasWindXYWHChanged()
-    local dock, wx,wy,ww,wh = gfx.dock(-1, 0,0,0,0)
-    local retval=0
-    if wx ~= last_gfxx or wy ~= last_gfxy then retval= 2 end --- minor
-    if ww ~= last_gfxw or wh ~= last_gfxh or dock ~= last_dock then retval= 1 end --- major
-    if not last_gfxx then retval = -1 end
-    last_gfxx, last_gfxy, last_gfxw, last_gfxh, last_dock = wx,wy,ww,wh,dock
-    return retval
-  end
+
   ---------------------------------------------------
   function CopyTable(orig)--http://lua-users.org/wiki/CopyTable
       local orig_type = type(orig)

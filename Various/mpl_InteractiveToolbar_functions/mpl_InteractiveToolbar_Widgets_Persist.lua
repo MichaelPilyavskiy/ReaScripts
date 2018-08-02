@@ -788,8 +788,9 @@
                         func = function() 
                           --TrackFX_Show( data.LTFX_trptr, data.LTFX_fxID, 3 ) 
                         end}
-                        
-                        
+    local LTFX_parname, LTFX_val_format    = '',''         
+    if data.LTFX_parname then LTFX_parname = data.LTFX_parname   end
+    if data.LTFX_val_format   then LTFX_val_format = data.LTFX_val_format  end                
     obj.b.obj_lasttouchfx_param = { persist_buf = true,
                         x =  x_margin-lasttouchfx_w,
                         y = obj.offs *2 +obj.entry_h ,
