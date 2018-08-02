@@ -383,7 +383,7 @@
     end
       local cond_reduce = 0
       if conf.allow_multiple_spls_per_pad == 1 then cond_reduce = obj.fx_rect_side*4 end -- fx, M
-      obj.spl_WF_filename = { clear = true,
+      obj._spl_WF_filename = { clear = true,
               x = obj.keycntrlarea_w  ,
               y = obj.kn_h,--gfx.h - obj.WF_h-obj.key_h,
               w = gfx.w -obj.keycntrlarea_w-cond_reduce,
@@ -521,7 +521,7 @@
          else   
           gain_txt = 'Gain'    
         end
-        obj.splctrl_gain = { clear = true,
+        obj._splctrl_gain = { clear = true,
               x = obj.keycntrlarea_w   + obj.offs,
               y = knob_y,
               w = obj.kn_w,
@@ -584,7 +584,7 @@
           if pan_txt < 0 then pan_txt = math.abs(pan_txt)..'%L' elseif pan_txt > 0 then pan_txt = math.abs(pan_txt)..'%R' else pan_txt = 'center' end
          else   pan_txt = 'Pan'    
         end                          
-        obj.splctrl_pan = { clear = true,
+        obj._splctrl_pan = { clear = true,
               x = obj.keycntrlarea_w   + obj.offs + obj.kn_w,
               y = knob_y,
               w = obj.kn_w,
@@ -644,7 +644,7 @@
           then 
           pitch_txt  = data[cur_note][cur_spl].pitch_semitones else   pitch_txt = 'Pitch'    
         end                          
-        obj.splctrl_pitch1 = { clear = true,
+        obj._splctrl_pitch1 = { clear = true,
               x = obj.keycntrlarea_w   + obj.offs + obj.kn_w*2,
               y = knob_y,
               w = obj.kn_w,
@@ -716,7 +716,7 @@
          else   
           att_txt = 'A'    
         end
-        obj.splctrl_att = { clear = true,
+        obj._splctrl_att = { clear = true,
               x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*3 + env_x_shift,
               y = knob_y,
               w = obj.kn_w,
@@ -768,7 +768,7 @@
          else   
           dec_txt = 'D'    
         end
-        obj.splctrl_dec = { clear = true,
+        obj._splctrl_dec = { clear = true,
               x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*4 + env_x_shift,
               y = knob_y,
               w = obj.kn_w,
@@ -819,7 +819,7 @@
          else   
           sust_txt = 'S'    
         end
-        obj.splctrl_sust = { clear = true,
+        obj._splctrl_sust = { clear = true,
               x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*5 + env_x_shift,
               y = knob_y,
               w = obj.kn_w,
@@ -871,7 +871,7 @@
         local val = data[cur_note][cur_spl].rel^0.1666
         local invert_mouse_rel = 1
         if conf.invert_release == 1 then invert_mouse_rel = -1 end
-        obj.splctrl_rel = { clear = true,
+        obj._splctrl_rel = { clear = true,
               x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*6 + env_x_shift,
               y = knob_y,
               w = obj.kn_w,
@@ -923,7 +923,7 @@
          else   
           loops_val_txt = 'LoopSt'    
         end              
-        obj.splctrl_loops = { clear = true,
+        obj._splctrl_loops = { clear = true,
               x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*7 + env_x_shift*2,
               y = knob_y,
               w = obj.kn_w,
@@ -992,7 +992,7 @@
          else   
           loope_val_txt = 'LoopEnd'    
         end              
-        obj.splctrl_loope = { clear = true,
+        obj._splctrl_loope = { clear = true,
               x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*8 + env_x_shift*2,
               y = knob_y,
               w = obj.kn_w,
@@ -1052,7 +1052,7 @@
         local alpha_back = obj.it_alpha5
         if obNOstate ~= 0 then alpha_back = obj.it_alpha6 end
         local b_h = math.floor(obj.kn_h/3)
-        obj.splctrl_obeynoteoff = { clear = true,
+        obj._splctrl_obeynoteoff = { clear = true,
                                   x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*9 + env_x_shift*3,
                                   y = knob_y,
                                   w = obj.splctrl_butw,
@@ -1075,7 +1075,7 @@
                                           end
                                   }
                                   
-        obj.splctrl_nextspl = { clear = true,
+        obj._splctrl_nextspl = { clear = true,
                                   x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*9 + env_x_shift*3,
                                   y = knob_y+b_h,
                                   w = obj.splctrl_butw,
@@ -1104,7 +1104,7 @@
                                           end
                                   }  
                                   
-        obj.splctrl_prevspl = { clear = true,
+        obj._splctrl_prevspl = { clear = true,
                                   x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*9 + env_x_shift*3,
                                   y = knob_y+2*b_h,
                                   w = obj.splctrl_butw,
@@ -1141,7 +1141,7 @@
          else   
           del_txt = 'Delay' 
         end
-        obj.splctrl_del = { clear = true,
+        obj._splctrl_del = { clear = true,
               x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*10 + env_x_shift*5,
               y = knob_y,
               w = obj.kn_w,
@@ -1466,6 +1466,7 @@
             obj['keys_p'..note] = 
                       { clear = true,
                         draw_drop_line = draw_drop_line,
+                        drop_line_text = data.activedroppedpad_action,
                         x = key_xpos,
                         y = key_ypos,
                         w = key_w-1,
@@ -1500,13 +1501,22 @@
                                     if not data[note] then return end
                                     Menu(mouse, { { str =   'Float linked FX',
                                                     func =  function()
-                                                              if conf.MM_dc_float == 1 and data[note] then
+                                                              if data[note] then
                                                                 for spl = 1, #data[note] do
                                                                   -- TrackFX_SetOpen(  data[note][1].src_track, data[note][1].rs5k_pos, true )
                                                                   TrackFX_Show( data[note][spl].src_track, data[note][spl].rs5k_pos,3 )
                                                                 end
                                                               end
                                                             end},
+                                                    { str =   'Show linked FX chain',
+                                                    func =  function()
+                                                              if data[note] then
+                                                                for spl = 1, #data[note] do
+                                                                  -- TrackFX_SetOpen(  data[note][1].src_track, data[note][1].rs5k_pos, true )
+                                                                  TrackFX_Show( data[note][spl].src_track, data[note][spl].rs5k_pos,1 )
+                                                                end
+                                                              end
+                                                            end},                                                            
                                                   { str =   'Rename linked MIDI note',
                                                     func =  function()
                                                               local MIDI_name = GetTrackMIDINoteNameEx( 0, data[note][1].src_track, note, 1)

@@ -315,8 +315,27 @@
     
    -- pads drop line
     if o.draw_drop_line then
-      gfx.set(1,1,1,0.6)
-      gfx.line(x,y,x,y+h)
+      gfx.set(1,1,1,0.8)
+      gfx.rect(x,y,w,h, 0)
+      xshift = 20   
+      yshift = 30     
+      x_drop_rect = x+xshift
+      y_drop_rect = y-yshift
+      w_drop_rect = 150
+      h_drop_rect = 20
+      if x_drop_rect + w_drop_rect > gfx.w then x_drop_rect = gfx.w - w_drop_rect end
+      if y_drop_rect + h_drop_rect > gfx.h then y_drop_rect = gfx.h - h_drop_rect end
+      if y_drop_rect + h_drop_rect <= 0  then y_drop_rect = 0 end
+      gfx.line(x,y,x_drop_rect,y_drop_rect+h_drop_rect/2)
+      gfx.set(0,0,0,0.8)
+      gfx.rect(x_drop_rect,y_drop_rect,w_drop_rect,h_drop_rect,1)
+      
+      if o.drop_line_text then 
+        gfx.setfont(1, obj.GUI_font,obj.GUI_fontsz )
+        gfx.set(1,1,1,0.8)
+        gfx.x,gfx.y = x_drop_rect+1,y_drop_rect+1
+        gfx.drawstr(o.drop_line_text)
+      end
     end        
            
              

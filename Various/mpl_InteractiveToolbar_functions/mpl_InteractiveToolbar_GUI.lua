@@ -226,6 +226,14 @@
       
     -- knob
       if o.is_knob then GUI_knob(o, obj) end
+    -- tri
+      if o.is_triangle_slider then
+        gfx.set(1,1,1,0.2)
+        gfx.triangle(x,y+h,
+                     x+w*o.val, y+h-h*o.val,
+                     x+w*o.val, y+h)
+      end 
+      
       
     -- text 
       local txt

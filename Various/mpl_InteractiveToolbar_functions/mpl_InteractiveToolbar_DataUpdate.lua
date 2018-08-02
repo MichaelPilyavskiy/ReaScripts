@@ -213,8 +213,9 @@
       data.LTFX_fxID = fx
       data.LTFX_parID = param
       _, data.LTFX_fxname = TrackFX_GetFXName( tr, fx, '' )
+      
       _, data.LTFX_parname = TrackFX_GetParamName( tr, fx, param, '' )
-      data.LTFX_val,data.LTFX_minval,data.LTFX_maxval = TrackFX_GetParamEx( tr, fx, param )
+      data.LTFX_val =  TrackFX_GetParamNormalized( tr, fx, param )
       local _, LTFX_val_format = TrackFX_GetFormattedParamValue( tr, fx, param, '' )
       data.LTFX_val_format = LTFX_val_format:match('%d+')
     end

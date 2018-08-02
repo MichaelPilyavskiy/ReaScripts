@@ -46,12 +46,42 @@
     refresh.GUI = true
     refresh.GUI_WF = true
     refresh.data = true  
-  end      
-      
-
-   ---------------------------------------------------
+  end   
+  
+  ------------------------------------------------------------------------------------------------------
+  function MOUSE_droppad(conf, obj, data, refresh, mouse)   
+        if data.activedroppedpad then
+          if mouse.context_latch:match('keys_p%d+') and data.activedroppedpad:match('keys_p%d+') then
+            local src_note = mouse.context_latch:match('keys_p(%d+)')
+            local dest_note = data.activedroppedpad:match('keys_p(%d+)')
+            if src_note and tonumber(src_note) and dest_note and tonumber(dest_note) then
+              src_note = tonumber(src_note)
+              dest_note = tonumber(dest_note)
+              if data[src_note] then
+                if not mouse.Ctrl_state then
+                  for id_spl = 1, #data[src_note] do
+                    data[src_note][id_spl].MIDIpitch_normal = dest_note/127
+                    SetRS5kData(data, conf, data[src_note][id_spl].src_track, src_note, id_spl)
+                  end
+                 else
+                  for id_spl = 1, #data[src_note] do
+                    data[src_note][id_spl].MIDIpitch_normal = dest_note/127
+                    SetRS5kData(data, conf, data[src_note][id_spl].src_track, src_note, id_spl, true)
+                  end
+                end 
+              end 
+              obj.current_WFkey = dest_note
+              refresh.GUI_WF = true
+            end         
+          end
+          refresh.data = true  
+          data.activedroppedpad = nil
+        end       
+    end
+   ------------------------------------------------------------------------------------------------------
    function MOUSE(conf, obj, data, refresh, mouse)
      local d_click = 0.4
+     mouse.cap = gfx.mouse_cap
      mouse.x = gfx.mouse_x
      mouse.y = gfx.mouse_y
      mouse.LMB_state = gfx.mouse_cap&1 == 1 
@@ -59,6 +89,7 @@
      mouse.MMB_state = gfx.mouse_cap&64 == 64
      mouse.Ctrl_LMB_state = gfx.mouse_cap&5 == 5 
      mouse.Ctrl_state = gfx.mouse_cap&4 == 4 
+     mouse.Shift_state = gfx.mouse_cap&8 == 8 
      mouse.Alt_state = gfx.mouse_cap&16 == 16 -- alt
      mouse.wheel = gfx.mouse_wheel
       
@@ -167,33 +198,9 @@
            
      -- mouse release    
       if mouse.last_LMB_state and not mouse.LMB_state   then    
-        if data.activedroppedpad then
-          if mouse.context_latch:match('keys_p%d+') and data.activedroppedpad:match('keys_p%d+') then
-            local src_note = mouse.context_latch:match('keys_p(%d+)')
-            local dest_note = data.activedroppedpad:match('keys_p(%d+)')
-            if src_note and tonumber(src_note) and dest_note and tonumber(dest_note) then
-              src_note = tonumber(src_note)
-              dest_note = tonumber(dest_note)
-              if data[src_note] then
-                if not mouse.Ctrl_state then
-                  for id_spl = 1, #data[src_note] do
-                    data[src_note][id_spl].MIDIpitch_normal = dest_note/127
-                    SetRS5kData(data, conf, data[src_note][id_spl].src_track, src_note, id_spl)
-                  end
-                 else
-                  for id_spl = 1, #data[src_note] do
-                    data[src_note][id_spl].MIDIpitch_normal = dest_note/127
-                    SetRS5kData(data, conf, data[src_note][id_spl].src_track, src_note, id_spl, true)
-                  end
-                end 
-              end 
-              obj.current_WFkey = dest_note
-              refresh.GUI_WF = true
-            end         
-          end
-          refresh.data = true  
-          data.activedroppedpad = nil
-        end      
+        
+        MOUSE_droppad(conf, obj, data, refresh, mouse)  
+           
         -- clear context
         mouse.context_latch = ''
         mouse.context_latch_val = -1
@@ -206,7 +213,12 @@
 
        -- drop pads
         if mouse.context_latch and mouse.context_latch:match('keys_p%d+') and mouse.is_moving then
+          local C = mouse.Ctrl_state 
+          local A = mouse.Alt_state
+          local S = mouse.Shift_state
           data.activedroppedpad = mouse.context
+          if not C and not A and not S then data.activedroppedpad_action = 'Move/Add to layer' end
+          if     C and not A and not S then data.activedroppedpad_action = 'Copy/Add to layer' end
           refresh.GUI = true
         end
         

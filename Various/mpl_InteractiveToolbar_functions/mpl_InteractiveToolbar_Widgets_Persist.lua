@@ -695,9 +695,7 @@
   
   ----------------------------------------------------------------------------
   function Widgets_Persist_lasttouchfx(data, obj, mouse, x_margin, widgets)
-    local lasttouchfx_w = 160 
-    local val_w = 50
-    local knob_x_offs = 5
+    local lasttouchfx_w = 120 
     if not data.LTFX.exist or data.LTFX_parname == 'Bypass' or data.LTFX_fxname == 'JS: time_adjustment' then return end
     obj.b.obj_lasttouchfx_back1 = { persist_buf = true,
                         x = x_margin-lasttouchfx_w,
@@ -709,32 +707,7 @@
                         txt_col = obj.txt_col_header,
                         fontsz = obj.fontsz_entry,
                         txt = '',
-                        ignore_mouse = true}    
-    obj.b.obj_lasttouchfx = { persist_buf = true,
-                        x = x_margin-lasttouchfx_w,
-                        y = obj.offs ,
-                        w = lasttouchfx_w-val_w,--obj.entry_w2,
-                        h = obj.entry_h,
-                        frame_a = 0,
-                        txt_a = obj.txt_a,
-                        txt_col = obj.txt_col_header,
-                        fontsz = obj.fontsz_entry,
-                        txt = MPL_ReduceFXname(data.LTFX_fxname),
-                        func = function() 
-                          TrackFX_Show( data.LTFX_trptr, data.LTFX_fxID, 3 ) 
-                        end} 
-    obj.b.obj_lasttouchfx_param = { persist_buf = true,
-                        x =  x_margin-lasttouchfx_w,
-                        y = obj.offs *2 +obj.entry_h ,
-                        w = lasttouchfx_w-val_w,--obj.entry_w2,
-                        h = obj.entry_h,
-                        frame_a = 0,
-                        txt = data.LTFX_parname,
-                        fontsz = obj.fontsz_entry,
-                        func = function () 
-                                  --Main_OnCommand(41984,0)--FX: Arm track envelope for last touched FX parameter
-                                  TrackFX_Show( data.LTFX_trptr, data.LTFX_fxID, 3 )
-                                end} 
+                        ignore_mouse = true}  
     obj.b.obj_lasttouchfx_param_back = { persist_buf = true,
                         x =  x_margin-lasttouchfx_w,
                         y = obj.offs *2 +obj.entry_h ,
@@ -743,39 +716,20 @@
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         fontsz = obj.fontsz_entry,
-                        ignore_mouse = true}      
-                 
-    local txt_val = string.format('%.3f',data.LTFX_val)
-    obj.b.obj_lasttouchfx_knobval = { persist_buf = true,
-                        x = x_margin-val_w-knob_x_offs,
-                                    y = obj.offs,
-                                    w = val_w,
-                                    h = obj.entry_h,
-                                    frame_a = 0,
-                                    txt = txt_val,
-                                    txt_a = obj.txt_a,
-                                    fontsz = obj.fontsz_entry,
-                                    ignore_mouse = true}
-    obj.b.obj_lasttouchfx_knobval2 = { persist_buf = true,
-                        x = x_margin-val_w-knob_x_offs,
-                                    y = obj.offs+obj.entry_h,
-                                    w = val_w,
-                                    h = obj.entry_h,
-                                    frame_a = 0,
-                                    txt = data.LTFX_val_format,
-                                    txt_a = obj.txt_a,
-                                    fontsz = obj.fontsz_entry,
-                                    ignore_mouse = true}                                    
+                        ignore_mouse = true}
+                        
+                        
+                                 
     obj.b.obj_lasttouchfx_knob = { persist_buf = true,
-                        x = x_margin-val_w-knob_x_offs,
+                        x = x_margin-lasttouchfx_w,
                                 y = obj.offs,
-                                w = val_w,
+                                w = lasttouchfx_w,
                                 h = obj.entry_h*2,
                                 frame_a = 0,
                                 txt = '',
                                 txt_a = obj.txt_a,
                                 fontsz = obj.fontsz_entry,
-                                is_knob = true,
+                                is_triangle_slider = true,
                                 knob_col = obj.txt_col_header,
                                 val = lim(data.LTFX_val),
                                 func =        function()
@@ -798,7 +752,7 @@
                                                 local pow_tol = -2
                                                 local out_value, mouse_shift 
                                                 
-                                                if data.always_use_x_axis==1 then mouse_shift = -mouse.dx else mouse_shift = mouse.dx end
+                                                if data.always_use_x_axis==1 then mouse_shift = -mouse.dx else mouse_shift = -mouse.dx end
                                                 
                                                 out_value = MPL_ModifyFloatVal(mouse.temp_val, 1, 1, math.modf(mouse_shift/obj.mouse_scal_float), data, nil, pow_tol)
                                                 out_value = lim(out_value,data.LTFX_minval,data.LTFX_maxval)
@@ -818,11 +772,65 @@
                                                 if not retval0 or not tonumber(ret_str) then return end
                                                 ApplyFXVal(tonumber(ret_str), data.LTFX_trptr, data.LTFX_fxID, data.LTFX_parID)                                                                 
                                               end} 
+                                              
+                                                   
+    obj.b.obj_lasttouchfx = { persist_buf = true,
+                        x = x_margin-lasttouchfx_w,
+                        y = obj.offs ,
+                        w = lasttouchfx_w,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        fontsz = obj.fontsz_entry,
+                        txt = MPL_ReduceFXname(data.LTFX_fxname),
+                        ignore_mouse = true,
+                        func = function() 
+                          --TrackFX_Show( data.LTFX_trptr, data.LTFX_fxID, 3 ) 
+                        end}
+                        
+                        
+    obj.b.obj_lasttouchfx_param = { persist_buf = true,
+                        x =  x_margin-lasttouchfx_w,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = lasttouchfx_w,--obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = 0,
+                        txt = data.LTFX_parname..': '..data.LTFX_val_format,
+                        fontsz = obj.fontsz_entry,
+                        ignore_mouse = true,
+                        func = function () 
+                                  --Main_OnCommand(41984,0)--FX: Arm track envelope for last touched FX parameter
+                                  --TrackFX_Show( data.LTFX_trptr, data.LTFX_fxID, 3 )
+                                end} 
+  --[[
+                 
+    local txt_val = string.format('%.3f',data.LTFX_val)
+    obj.b.obj_lasttouchfx_knobval = { persist_buf = true,
+                        x = x_margin-val_w-knob_x_offs,
+                                    y = obj.offs,
+                                    w = lasttouchfx_w,
+                                    h = obj.entry_h,
+                                    frame_a = 0,
+                                    txt = txt_val,
+                                    txt_a = obj.txt_a,
+                                    fontsz = obj.fontsz_entry,
+                                    ignore_mouse = true}
+    obj.b.obj_lasttouchfx_knobval2 = { persist_buf = true,
+                        x = x_margin-val_w-knob_x_offs,
+                                    y = obj.offs+obj.entry_h,
+                                    w = val_w,
+                                    h = obj.entry_h,
+                                    frame_a = 0,
+                                    txt = data.LTFX_val_format,
+                                    txt_a = obj.txt_a,
+                                    fontsz = obj.fontsz_entry,
+                                    ignore_mouse = true}  ]]                                               
     return lasttouchfx_w                        
   end  
   ------------------------------------------------------------------------  
   function ApplyFXVal(val, track, fx, param) 
-    TrackFX_SetParam( track, fx, param, val )
+    TrackFX_SetParamNormalized( track, fx, param, val )
   end 
   
   

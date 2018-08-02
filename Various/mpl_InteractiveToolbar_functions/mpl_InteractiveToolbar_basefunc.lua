@@ -491,7 +491,9 @@
     if not s_out then return s end
     s_out = s_out:gsub('%(.-%)','') 
     if s_out:match('%/(.*)') then s_out = s_out:match('%/(.*)') end
-    if not s_out then return s else return s_out end
+    if not s_out then return s else 
+      if s_out ~= '' then return s_out else return s end
+    end
   end
  ---------------------------------------------------  
   function lim(val, min,max) --local min,max 

@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.70
+-- @version 1.71
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -10,18 +10,12 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
 -- @changelog
---    + Multiple samples load [rmmedia.ru/threads/132518/#post-2252074]
---    + undo point on creating FX chain [t.me/joinchat/Er2FHUhlTsH43JzhLeYvNg]
---    + revert FX buttons on pads for layering mode [t.me/joinchat/Er2FHUhlTsH43JzhLeYvNg]
---    + separate keyname hashtags for mixer
---    # prevent creating peaks for source longer than 15 seconds
---    # prevent listing and dragndropping non-audio formats and RPP as subprojects [p=2017667]
---    # reduce extension from MIDI send track name
---    # fix mixer view
---    # revert mixer for use horizontal text only
+--    + draw action type when draggin pad
+--    + add 'Pad/Show linked FX chain'
+--    # fix 'Pad/Float linked FX'
 
 
-  local vrs = 'v1.70'
+  local vrs = 'v1.71'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -34,7 +28,7 @@
                     data = false,
                     GUI_WF = false,
                     conf = false}
-  local mouse = {}
+   mouse = {}
   local obj = {}
   local data = {}
         

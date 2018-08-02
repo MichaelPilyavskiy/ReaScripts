@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.61
+-- @version 1.62
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,12 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # Persist/#clock: fix show play cursor position when additional time format enabled
+--    # Persist/#lasttouchedfx: remove knob, add triangle indicator, 
+--    # Persist/#lasttouchedfx: minimize
+--    # Persist/#lasttouchedfx: fix use normalized param
+--    # fix ReduceFXName
 
-    local vrs = '1.61'
+    local vrs = '1.62'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
