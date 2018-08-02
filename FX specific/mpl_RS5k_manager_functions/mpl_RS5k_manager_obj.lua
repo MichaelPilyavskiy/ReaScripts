@@ -1215,9 +1215,11 @@
     str = str:gsub('#midipitch', note)
     --------
     local ntname = GetNoteStr(conf, note, 0)
+    if not ntname then ntname = '' end
     str = str:gsub('#keycsharp ', ntname)
-    local ntname = GetNoteStr(conf, note, 7)
-    str = str:gsub('#keycsharpRU ', ntname)
+    local ntname2 = GetNoteStr(conf, note, 7)
+    if not ntname2 then ntname2 = '' end
+    str = str:gsub('#keycsharpRU ', ntname2)
     --------
     if data[note] and data[note][1] and data[note][1].MIDI_name and data[note][1].MIDI_name ~= '' then 
       str = str:gsub('#notename ', data[note][1].MIDI_name) else str = str:gsub('#notename', '')

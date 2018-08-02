@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.71
+-- @version 1.72
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -10,12 +10,10 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
 -- @changelog
---    + draw action type when draggin pad
---    + add 'Pad/Show linked FX chain'
---    # fix 'Pad/Float linked FX'
+--    # fix error on nil note name [p=2018463]
 
 
-  local vrs = 'v1.71'
+  local vrs = 'v1.72'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
