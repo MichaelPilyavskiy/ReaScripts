@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b30f660ab81a86e4fe0bc339d044a6b0c5c112d0" name="MPL Scripts">
+<index version="1" commit="875d4a7004950b7dac3cc797045bdd526752c10f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1581,6 +1581,17 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b30f660ab81a86e4fe0bc339d044a6b0c5c112d0/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b30f660ab81a86e4fe0bc339d044a6b0c5c112d0/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
         <source file="mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b30f660ab81a86e4fe0bc339d044a6b0c5c112d0/FX%20specific/mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua</source>
+      </version>
+      <version name="1.71" author="MPL" time="2018-08-02T05:30:56Z">
+        <changelog><![CDATA[+ draw action type when draggin pad
++ add 'Pad/Show linked FX chain'
+# fix 'Pad/Float linked FX']]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
+        <source file="mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/FX%20specific/mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
@@ -4550,6 +4561,22 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3a2b6dabd8149ec15bce4a58bbc6ca862980e258/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3a2b6dabd8149ec15bce4a58bbc6ca862980e258/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3a2b6dabd8149ec15bce4a58bbc6ca862980e258/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
+      </version>
+      <version name="1.62" author="MPL" time="2018-08-02T05:30:56Z">
+        <changelog><![CDATA[# Persist/#lasttouchedfx: remove knob, add triangle indicator, 
+# Persist/#lasttouchedfx: minimize
+# Persist/#lasttouchedfx: fix use normalized param
+# fix ReduceFXName]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/Various/mpl_InteractiveToolbar.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/875d4a7004950b7dac3cc797045bdd526752c10f/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">
