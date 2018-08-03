@@ -2,9 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.09
+-- @version 1.10
 -- @changelog
---    + HasWindXYWHChanged
+--    + Menu
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
@@ -479,3 +479,27 @@
     obj.last_gfxx, obj.last_gfxy, obj.last_gfxw, obj.last_gfxh = wx,wy,ww,wh
     return retval
   end
+  ---------------------------------------------------
+  function Menu(mouse, t)
+    local str, check ,hidden= '', '',''
+    for i = 1, #t do
+      if t[i].state then check = '!' else check ='' end
+      if t[i].hidden then hidden = '#' else hidden ='' end
+      local add_str = hidden..check..t[i].str 
+      str = str..add_str
+      str = str..'|'
+    end
+    gfx.x = mouse.x
+    gfx.y = mouse.y
+    local ret = gfx.showmenu(str)
+    local incr = 0
+    if ret > 0 then 
+      for i = 1, ret do 
+        if t[i+incr].menu_decr == true then incr = incr - 1 end
+        if t[i+incr].str:match('>') then incr = incr + 1 end
+        if t[i+incr].menu_inc then incr = incr + 1 end
+      end
+      if t[ret+incr] and t[ret+incr].func then t[ret+incr].func() end 
+      --msg(t[ret+incr].str)
+    end
+  end  
