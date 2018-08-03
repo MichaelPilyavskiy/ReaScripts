@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cfdc1675606ac1655e1e60f773af716d1e2d4c06" name="MPL Scripts">
+<index version="1" commit="087857ad164df4fa28e7fe35e7925c1161bcff7e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -304,6 +304,10 @@
       <version name="1.09" author="MPL" time="2018-08-02T22:03:13Z">
         <changelog><![CDATA[+ HasWindXYWHChanged]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cfdc1675606ac1655e1e60f773af716d1e2d4c06/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.10" author="MPL" time="2018-08-03T04:24:28Z">
+        <changelog><![CDATA[+ Menu]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/087857ad164df4fa28e7fe35e7925c1161bcff7e/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
