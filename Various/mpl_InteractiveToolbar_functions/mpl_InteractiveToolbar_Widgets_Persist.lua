@@ -797,7 +797,7 @@
                         w = lasttouchfx_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = 0,
-                        txt = data.LTFX_parname..': '..data.LTFX_val_format,
+                        txt = LTFX_parname..': '..LTFX_val_format,
                         fontsz = obj.fontsz_entry,
                         ignore_mouse = true,
                         func = function () 
