@@ -2,9 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.10
+-- @version 1.11
 -- @changelog
---    + Menu
+--    + MPL_ReduceFXname()
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
@@ -503,3 +503,13 @@
       --msg(t[ret+incr].str)
     end
   end  
+  ---------------------------------------------------
+  function MPL_ReduceFXname(s)
+    local s_out = s:match('[%:%/%s]+(.*)')
+    if not s_out then return s end
+    s_out = s_out:gsub('%(.-%)','') 
+    if s_out:match('%/(.*)') then s_out = s_out:match('%/(.*)') end
+    if not s_out then return s else 
+      if s_out ~= '' then return s_out else return s end
+    end
+  end
