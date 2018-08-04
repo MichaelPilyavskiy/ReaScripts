@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,10 +9,17 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    + init
+--    + When drag to FX standing before source, automatically move destination FX right after source
+--    + Menu/Rearranging FX
+--    + FX/ContextMenu/Float FX
+--    + FX/ContextMenu/Duplicate FX
+--    + FX/ContextMenu/Remove FX
+--    + Undo some actions
+--    + Auto increase track channel count when release wire on pin with id more than track channels
+--    # When not using custom positions, properly indent FX if not fit GUI edges
+--    # fix build pin mask when linking two closer FX
 
-
-  local vrs = 'v1.0'
+  local vrs = 'v1.01'
   --NOT gfx NOT reaper
   
   
@@ -27,7 +34,7 @@
                     data_proj = false,
                     GUI_WF = false,
                     conf = false}
-  local mouse = {}
+   mouse = {}
   local obj = {}
   local data = {}
   

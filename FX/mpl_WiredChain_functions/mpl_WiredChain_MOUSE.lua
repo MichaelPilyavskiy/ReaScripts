@@ -48,7 +48,7 @@
        mouse.last_y_onclick = mouse.y 
        mouse.LMB_state_TS = os.clock()
     end  
-          
+    
      mouse.DLMB_state = mouse.LMB_state 
                         and not mouse.last_LMB_state
                         and mouse.last_LMB_state_TS
@@ -71,9 +71,8 @@
             ------------------------
            if MOUSE_Match(mouse, obj[key]) and mouse.LMB_state and not mouse.last_LMB_state then mouse.context_latch = key end
            ------------------------
-           mouse.onclick_L = mouse.LMB_state 
-                               and not mouse.last_LMB_state 
-                               --and not mouse.Ctrl_state  
+           mouse.onclick_L = not mouse.last_LMB_state 
+                               and mouse.cap == 1
                                and MOUSE_Match(mouse, obj[key]) 
           if mouse.onclick_L and obj[key].func then obj[key].func() goto skip_mouse_obj end
            ------------------------
@@ -83,17 +82,6 @@
                                and MOUSE_Match(mouse, obj[key]) 
           if mouse.onrelease_L and obj[key].onrelease_L then obj[key].onrelease_L() goto skip_mouse_obj end          
            ------------------------
-           mouse.onDclick_L = mouse.LMB_state 
-                               and not mouse.last_LMB_state 
-                               --and not mouse.Ctrl_state  
-                               and mouse.DLMB_state 
-                               and MOUSE_Match(mouse, obj[key]) 
-           if mouse.onDclick_L and not key:match('keys_p')then
-              if obj[key].func_DC  then obj[key].func_DC()  end
-              if conf.MM_reset_val&(1<<0) == (1<<0) and obj[key].func_ResetVal then obj[key].func_ResetVal() end
-              goto skip_mouse_obj 
-            end
-                 ------------------------
            mouse.ondrag_L = -- left drag (persistent even if not moving)
                                mouse.LMB_state 
                                and not mouse.Ctrl_state 
@@ -113,13 +101,11 @@
                                and MOUSE_Match(mouse, obj[key]) 
            if mouse.onclick_LCtrl and obj[key].func_trigCtrl then obj[key].func_trigCtrl() end
                  ------------------------              
-           mouse.onclick_LAlt = mouse.LMB_state 
-                               and not mouse.last_LMB_state 
-                               and mouse.Alt_state  
+           mouse.onclick_LAlt = not mouse.last_LMB_state 
+                               and mouse.cap == 17   -- alt + lclick
                                and MOUSE_Match(mouse, obj[key]) 
           if mouse.onclick_LAlt  then 
-              if obj[key].func_trigAlt then obj[key].func_trigAlt() end
-              if conf.MM_reset_val&(1<<1) == (1<<1) and obj[key].func_ResetVal then obj[key].func_ResetVal() end
+              if obj[key].func_L_Alt then obj[key].func_L_Alt() end
               goto skip_mouse_obj  
           end           
                  ------------------------            

@@ -10,7 +10,7 @@
     obj.reapervrs = tonumber(GetAppVersion():match('[%d%.]+')) 
     obj.offs = 5 
     obj.grad_sz = 200 
-    obj.module_h = 12
+    obj.module_h = 15 -- pin height
     
     -- module
     obj.module_a_frame = 0.1   
@@ -28,7 +28,8 @@
     obj.trIO_h = obj.module_h
     
     -- fx
-    obj.fx_x_space = 60 -- defautf offset from IO when generating FX positions
+    obj.fx_x_space = 50 -- defautf offset from IO when generating FX positions
+    obj.fx_y_space = 80
     obj.fx_y_shift = 0 -- defautf shoft from IO when generating FX positions
     obj.fxmod_w = 110
     
@@ -86,6 +87,14 @@
     func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
   { str = 'Cockos Forum thread|',
     func = function() Open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } , 
+    
+  { str = 'Rearrange FX|',
+    func = function() 
+              data.ext_data[data.GUID] = {}
+              Data_Update_ExtState_ProjData_Save (conf, obj, data, refresh, mouse)
+              refresh.GUI = true 
+            end  
+  } ,     
     
   { str = '#Options'},    
   { str = 'Snap FX on drag|',  
@@ -183,7 +192,8 @@
                     fontsz = obj.GUI_fontsz3,
                     a_frame =obj.module_a_frame,
                     alpha_back = obj.module_alpha_back,
-                    onrelease_L = function() Data_BuildRouting(conf, obj, data, refresh, mouse, { routingtype = 0,
+                    onrelease_L = function() 
+                                              Data_BuildRouting(conf, obj, data, refresh, mouse, { routingtype = 0,
                                                                                                   dest = pkey,
                                                                                                   src = mouse.context_latch
                                                                                                   })  end                            
@@ -229,16 +239,32 @@
     -- default position
       local x = obj.trIO_x_offset + obj.trIO_w + obj.fx_x_space
       local y = obj.trIO_y
-    
+    local x_shift = 0
+    local y_shift = 0
     for i = 1, #data.fx do
-      local xFX = x + (obj.fx_x_space + obj.fxmod_w)* (i-1)
-      local yFX = y + obj.fx_y_shift*((i-1)%2)
+      
+      local xFX = x + x_shift
+      if xFX +  obj.fxmod_w  > gfx.w then        
+        xFX = xFX - x_shift
+        x_shift = 0
+        y_shift = y_shift + obj.fx_y_space 
+      end
+      x_shift = x_shift + obj.fx_x_space + obj.fxmod_w
+      local yFX = y + obj.fx_y_shift*((i-1)%2) + y_shift
+      --[[
+      x_shift = x_shift + 
+      if xFX +  obj.fxmod_w  > gfx.w then 
+        y_shift = y_shift + obj.fx_y_space 
+        x_shift = 0
+      end]]
+      
       if data.ext_data 
         and data.ext_data[data.GUID]
         and data.ext_data[data.GUID][data.fx[i].GUID] then
         xFX = data.ext_data[data.GUID][data.fx[i].GUID].x
         yFX = data.ext_data[data.GUID][data.fx[i].GUID].y
       end
+      
       local hFX = (obj.module_h+1)*math.max(data.fx[i].inpins, data.fx[i].outpins)-1
       obj['fx_'..i] ={ clear = true,
                     x = xFX,
@@ -285,7 +311,28 @@
                                 end,
                     onrelease_L = function()
                                     refresh.conf = true
-                                  end
+                                  end,
+                    func_R = function()
+                                  Menu(mouse, { { str = 'Float FX',
+                                                  func = function() TrackFX_Show( data.tr, i-1, 3 ) end},
+                                                { str = 'Duplicate FX',
+                                                  func = function() 
+                                                            Undo_BeginBlock()
+                                                            MPL_HandleFX( data.tr, i, 0) 
+                                                            refresh.data = true
+                                                            refresh.GUI = true
+                                                            Undo_EndBlock2(0, 'WiredChain - duplicate FX', -1 )
+                                                          end}  ,                                                
+                                                { str = 'Remove FX',
+                                                  func = function()  
+                                                            Undo_BeginBlock()
+                                                            MPL_HandleFX( data.tr, i, 1) 
+                                                            refresh.data = true
+                                                            refresh.GUI = true
+                                                            Undo_EndBlock2(0, 'WiredChain - remove FX', -1 )
+                                                          end}
+                                                })
+                              end,
                    } 
       Obj_FormFXPins(conf, obj, data, refresh, mouse, i) 
                        
@@ -310,9 +357,11 @@
                       fontsz = obj.GUI_fontsz3,
                       a_frame =obj.module_a_frame,
                       alpha_back = obj.module_alpha_back,
-                      func =  function() 
-                      
-                              end,
+                      func_L_Alt = function() 
+                                      for chan = 1, data.trchancnt do SetPin(data.tr, fx_id, 0, inpin, chan, 0) end
+                                      refresh.data = true
+                                      refresh.GUI = true
+                                    end,
                       onrelease_L = function() Data_BuildRouting(conf, obj, data, refresh, mouse, { routingtype = 0,
                                                                                                   dest = pkey,
                                                                                                   src = mouse.context_latch
@@ -338,6 +387,11 @@
                       fontsz = obj.GUI_fontsz3,
                       a_frame =obj.module_a_frame,
                       alpha_back = obj.module_alpha_back,
+                      func_L_Alt = function() 
+                                      for chan = 1, data.trchancnt do SetPin(data.tr, fx_id, 1, outpin, chan, 0) end
+                                      refresh.data = true
+                                      refresh.GUI = true
+                                    end,                      
                       func =  function() 
                                 Obj_MarkConnections(conf, obj, data, refresh, mouse, true) 
                                 if not obj[pkey].wire then obj[pkey].wire = {} end
@@ -390,7 +444,9 @@
                   if not obj['mod_fx_'..fx_seek..'_O_'..pin_outid].wire then obj['mod_fx_'..fx_seek..'_O_'..pin_outid].wire = {} end
                   local tempt2 = obj['mod_fx_'..fx_seek..'_O_'..pin_outid].wire
                   tempt2[#tempt2+1] = { wiretype = 0, dest = 'mod_fx_'..fx..'_I_'..pinid}
+                  
                   has_signal_coming_from_fx = true
+                  
                 end
                 break
               end

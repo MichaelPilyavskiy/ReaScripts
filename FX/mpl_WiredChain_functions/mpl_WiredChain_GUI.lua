@@ -438,7 +438,14 @@
           0,0,gfx.w, gfx.h,
           0,0,gfx.w, gfx.h, 0,0)  
     --GUI_symbols(conf, obj, data, refresh, mouse) 
-
+    
+    -- clear X
+      if mouse.Alt_state then 
+        local X = 10
+        gfx.set(1,0.8,0.8,0.8)
+        gfx.line(mouse.x-X, mouse.y-X,mouse.x+X, mouse.y+X)
+        gfx.line(mouse.x-X, mouse.y+X,mouse.x+X, mouse.y-X)
+      end
 
          
     refresh.GUI = nil

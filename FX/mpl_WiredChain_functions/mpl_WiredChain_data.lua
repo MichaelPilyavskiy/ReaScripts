@@ -9,22 +9,28 @@
   function Data_BuildRouting(conf, obj, data, refresh, mouse, routing_t )
     if not routing_t or not routing_t.src or not routing_t.dest then return end -- make sure sorce/destination exists
     if not (routing_t.src:match('mod_') and routing_t.dest:match('mod_')) then return end -- make sure src/dest is modules
+    
+    Undo_BeginBlock()
     if routing_t.routingtype == 0 then
       Data_BuildRouting_Audio(conf, obj, data, refresh, mouse, routing_t )
     end
+    
+    Undo_EndBlock2( 0, 'WiredChain - rebuild pins', -1 )
     refresh.data = true
     refresh.GUI = true
   end
  ---------------------------------------------------   
-  function SetPin(track, fx_id, isOut_int, pin_id, chan, set)
-    local pinflags = TrackFX_GetPinMappings ( track, fx_id, isOut_int, pin_id )
+  function SetPin(track, fx_id, isOut_int, pin_id, chan, set) 
+    -- chan is 1 based
+    local pinflags = TrackFX_GetPinMappings ( track, fx_id-1, isOut_int, pin_id-1 )
     local state =  pinflags&(2^(chan-1))==2^(chan-1) 
     if set == 0 then
       if state then pinflags = pinflags - 2^(chan-1) end
      else
       if not state then pinflags = pinflags + 2^(chan-1) end
     end
-    TrackFX_SetPinMappings ( track, fx_id, isOut_int, pin_id, pinflags, 0 )
+    
+    TrackFX_SetPinMappings ( track, fx_id-1, isOut_int, pin_id-1, pinflags, 0 )
   end
   
   ---------------------------------------------------    
@@ -41,20 +47,32 @@
               FXid = destfxid,
               isOut= routing_t.dest:match('_O_')~= nil,
               chan = math.floor(routing_t.dest:match('_[IO]_(%d+)'))}   
-              
+    
+    if dest_t.chan > data.trchancnt then 
+      SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', dest_t.chan + dest_t.chan % 2 )
+    end
+    
     -- link beetween FX
     if  src_t.isFX and dest_t.isFX then 
       if src_t.FXid < dest_t.FXid then -- valid FX order
         -- set on destination channel for source FX
         -- disable dest channel out for FX beetween        
-        SetPin(data.tr, src_t.FXid-1, 1, src_t.pin-1, dest_t.chan, 1)
-        for fx_id = src_t.FXid+1, lim(dest_t.FXid -1, src_t.FXid+1, math.huge) do
-          if data.fx[fx_id] then
+        SetPin(data.tr, src_t.FXid, 1, src_t.pin, dest_t.chan, 1)
+        SetPin(data.tr, dest_t.FXid, 0, dest_t.chan, src_t.pin, 1)
+        if dest_t.FXid - src_t.FXid > 1 then
+          for fx_id = src_t.FXid+1, dest_t.FXid do
             for pin_id = 1, data.fx[fx_id].outpins do
-              SetPin(data.tr, fx_id-1, 1, pin_id-1, dest_t.chan, 0)
+              SetPin(data.tr, fx_id, 1, pin_id, dest_t.chan, 0)
             end
           end
         end
+       elseif src_t.FXid > dest_t.FXid then-- invalid order
+        local inc = src_t.FXid-dest_t.FXid
+        --for i = 1, inc do SNM_MoveOrRemoveTrackFX( data.tr, dest_t.FXid-1 + (i -1) , 1 ) end
+        MPL_HandleFX(data.tr, dest_t.FXid, 2, inc )
+        Data_Update(conf, obj, data, refresh, mouse)
+        SetPin(data.tr, src_t.FXid-1, 1, src_t.pin, dest_t.chan, 1)
+        SetPin(data.tr, src_t.FXid, 0, dest_t.chan, src_t.pin, 1)
       end
     end
 
@@ -62,11 +80,11 @@
     if  not src_t.isFX and dest_t.isFX then 
         -- set on destination channel for source FX
         -- disable dest channel out for FX up to destination FX  
-        SetPin(data.tr, dest_t.FXid-1, 0, dest_t.chan-1, src_t.pin, 1)
+        SetPin(data.tr, dest_t.FXid, 0, dest_t.chan, src_t.pin, 1)
         for fx_id = 0, dest_t.FXid-1 do
           if data.fx[fx_id] then
             for pin_id = 1, data.fx[fx_id].outpins do
-              SetPin(data.tr, fx_id-1, 1, pin_id-1, src_t.pin, 0)
+              SetPin(data.tr, fx_id, 1, pin_id, src_t.pin, 0)
             end
           end
         end
@@ -76,11 +94,11 @@
     if  src_t.isFX and not dest_t.isFX then 
         -- set on destination channel for source FX
         -- disable dest channel out for FX down to track out  
-        SetPin(data.tr, src_t.FXid-1, 1, src_t.pin-1, dest_t.chan, 1)
+        SetPin(data.tr, src_t.FXid, 1, src_t.pin, dest_t.chan, 1)
         for fx_id = src_t.FXid+1, #data.fx do
           if data.fx[fx_id] then
             for pin_id = 1, data.fx[fx_id].outpins do
-              SetPin(data.tr, fx_id-1, 1, pin_id-1, dest_t.chan, 0)
+              SetPin(data.tr, fx_id, 1, pin_id, dest_t.chan, 0)
             end
           end
         end
@@ -91,7 +109,7 @@
       -- disable dest channel out for FX down to track out  
       for fx_id = 1, #data.fx do
         for pin_id = 1, data.fx[fx_id].outpins do
-          SetPin(data.tr, fx_id-1, 1, pin_id-1, src_t.pin, 0)
+          SetPin(data.tr, fx_id, 1, pin_id, src_t.pin, 0)
         end
       end
     end 
@@ -262,4 +280,56 @@
     F_MCP_SENDRGN_SCALE : float * : scale of send area as proportion of the fx+send total area (0=min allow, 1=max)
     ]]
  
-
+  function MPL_HandleFX(track, fx_id, action, increment_move)
+    local chunk = eugen27771_GetObjStateChunk(track)
+    
+    -- get fx block
+      local t = {}
+      local fx_block
+      local relay
+      for line in chunk:gmatch('[^\r\n]+') do
+        t[#t+1] = line
+        if line:match('<FXCHAIN$') then 
+          fx_block = '' 
+          relay = -1 
+        end
+        if fx_block then 
+          if line:match('>') then relay = relay - 1 end
+          if line:match('<') then relay = relay + 1 end
+          fx_block = fx_block..'\n'..line
+        end
+        if relay == -1 then break end
+      end    
+      if not ( fx_block and fx_block ~= '') then return end
+      
+      
+    -- split by FX
+      local fx_chunks = {}
+      local fxGUIDs = {}
+      for fx_chunk in fx_block:gmatch('BYPASS.-WAK') do 
+        fxGUIDs[#fxGUIDs+1] = fx_chunk:match('FXID%s{.-}')
+        fx_chunks[#fx_chunks+1] = fx_chunk 
+      end
+      
+    -- mod
+      local str_replace = fx_block
+      if action == 0 then -- duplicate
+        local chunk2insert = fx_chunks[fx_id]
+        chunk2insert = chunk2insert:gsub('FXID%s{.-}', 'FXID '..genGuid('' ))
+        table.insert(fx_chunks, fx_id , chunk2insert)  
+       elseif action == 1 then -- remove
+        table.remove(fx_chunks, fx_id )        
+       elseif action == 2 then -- move  
+        local temp_entry = fx_chunks[fx_id]
+        table.remove(fx_chunks, fx_id )  
+        table.insert(fx_chunks, fx_id+increment_move , temp_entry) 
+        for i = 1, #fx_chunks do
+          fx_chunks[i] = fx_chunks[i]:gsub('FXID%s{.-}', fxGUIDs[i])
+        end
+      end
+      str_replace = table.concat(fx_chunks,'\n') 
+      
+    local out_chunk = chunk:gsub(literalize(fx_block), '\n<FXCHAIN\n'..str_replace..'\n>')
+    --msg(out_chunk)
+    SetTrackStateChunk(track, out_chunk, true)
+  end
