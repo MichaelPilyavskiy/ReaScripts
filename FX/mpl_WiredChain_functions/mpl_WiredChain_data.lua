@@ -8,14 +8,12 @@
   ---------------------------------------------------  
   function Data_BuildRouting(conf, obj, data, refresh, mouse, routing_t )
     if not routing_t or not routing_t.src or not routing_t.dest then return end -- make sure sorce/destination exists
-    if not (routing_t.src:match('mod_') and routing_t.dest:match('mod_')) then return end -- make sure src/dest is modules
+    if not (routing_t.src:match('mod_') and routing_t.dest:match('mod_')) or (routing_t.src:match('_I_')) then return end -- make sure src/dest is modules
     
-    Undo_BeginBlock()
     if routing_t.routingtype == 0 then
       Data_BuildRouting_Audio(conf, obj, data, refresh, mouse, routing_t )
     end
     
-    Undo_EndBlock2( 0, 'WiredChain - rebuild pins', -1 )
     refresh.data = true
     refresh.GUI = true
   end
@@ -32,22 +30,32 @@
     
     TrackFX_SetPinMappings ( track, fx_id-1, isOut_int, pin_id-1, pinflags, 0 )
   end
-  
-  ---------------------------------------------------    
-  function Data_BuildRouting_Audio(conf, obj, data, refresh, mouse, routing_t )
-    local srcfxid = routing_t.src:match('fx_(%d+)')
-    if srcfxid then srcfxid = tonumber(srcfxid) end
-    local destfxid = routing_t.dest:match('fx_(%d+)')
-    if destfxid then destfxid = tonumber(destfxid) end    
-    local src_t = { isFX = routing_t.src:match('_fx_')~= nil,
+  --------------------------------------------------- 
+  function Data_ParseRouteStr(routing_t) local src_t, dest_t
+    if routing_t.src then
+      local srcfxid = routing_t.src:match('fx_(%d+)')
+      if srcfxid then srcfxid = tonumber(srcfxid) end
+      src_t = { isFX = routing_t.src:match('_fx_')~= nil,
               FXid = srcfxid,
               isOut= routing_t.src:match('_O_')~= nil,
-              pin = math.floor(routing_t.src:match('_[IO]_(%d+)'))}
-    local dest_t = { isFX = routing_t.dest:match('_fx_')~= nil,
+              pin = math.floor(routing_t.src:match('_[IO]_(%d+)'))}      
+    end
+    if routing_t.dest then
+      local destfxid = routing_t.dest:match('fx_(%d+)')
+      if destfxid then destfxid = tonumber(destfxid) end   
+      local chan = routing_t.dest:match('_[IO]_(%d+)')
+      if chan then chan =  math.floor(chan) end
+      dest_t = { isFX = routing_t.dest:match('_fx_')~= nil,
               FXid = destfxid,
               isOut= routing_t.dest:match('_O_')~= nil,
-              chan = math.floor(routing_t.dest:match('_[IO]_(%d+)'))}   
-    
+              chan = chan}        
+    end
+ 
+    return src_t, dest_t
+  end
+  ---------------------------------------------------    
+  function Data_BuildRouting_Audio(conf, obj, data, refresh, mouse, routing_t )
+    src_t, dest_t = Data_ParseRouteStr(routing_t)
     if dest_t.chan > data.trchancnt then 
       SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', dest_t.chan + dest_t.chan % 2 )
     end
@@ -55,10 +63,15 @@
     -- link beetween FX
     if  src_t.isFX and dest_t.isFX then 
       if src_t.FXid < dest_t.FXid then -- valid FX order
-        -- set on destination channel for source FX
-        -- disable dest channel out for FX beetween        
+        -- set on destination channel for source FX      
         SetPin(data.tr, src_t.FXid, 1, src_t.pin, dest_t.chan, 1)
-        SetPin(data.tr, dest_t.FXid, 0, dest_t.chan, src_t.pin, 1)
+        
+        -- handle destination FX
+          --SetPin(data.tr, dest_t.FXid, 0, dest_t.chan, src_t.pin, 1) -- 1.02
+          for chan = 1, data.trchancnt do SetPin(data.tr, dest_t.FXid, 0, dest_t.chan, chan, 0) end
+          SetPin(data.tr, dest_t.FXid, 0, dest_t.chan,dest_t.chan, 1)
+          
+        -- clear output destination channel in beetween
         if dest_t.FXid - src_t.FXid > 1 then
           for fx_id = src_t.FXid+1, dest_t.FXid do
             for pin_id = 1, data.fx[fx_id].outpins do
@@ -66,13 +79,16 @@
             end
           end
         end
+        
        elseif src_t.FXid > dest_t.FXid then-- invalid order
         local inc = src_t.FXid-dest_t.FXid
         --for i = 1, inc do SNM_MoveOrRemoveTrackFX( data.tr, dest_t.FXid-1 + (i -1) , 1 ) end
         MPL_HandleFX(data.tr, dest_t.FXid, 2, inc )
         Data_Update(conf, obj, data, refresh, mouse)
         SetPin(data.tr, src_t.FXid-1, 1, src_t.pin, dest_t.chan, 1)
-        SetPin(data.tr, src_t.FXid, 0, dest_t.chan, src_t.pin, 1)
+        --SetPin(data.tr, src_t.FXid, 0, dest_t.chan, src_t.pin, 1)
+        for chan = 1, data.trchancnt do SetPin(data.tr, src_t.FXid, 0, dest_t.chan, chan, 0) end
+        SetPin(data.tr, src_t.FXid, 0, dest_t.chan,dest_t.chan, 1)
       end
     end
 
@@ -80,7 +96,11 @@
     if  not src_t.isFX and dest_t.isFX then 
         -- set on destination channel for source FX
         -- disable dest channel out for FX up to destination FX  
-        SetPin(data.tr, dest_t.FXid, 0, dest_t.chan, src_t.pin, 1)
+        for chan = 1, data.trchancnt do
+          local int_set = 0 
+          if chan == src_t.pin then int_set = 1 end
+          SetPin(data.tr, dest_t.FXid, 0, dest_t.chan, chan, int_set)
+        end
         for fx_id = 0, dest_t.FXid-1 do
           if data.fx[fx_id] then
             for pin_id = 1, data.fx[fx_id].outpins do
@@ -211,7 +231,7 @@
           pins.O[outpin] = pinmap
         end
         
-      -- tracking channels to pins
+      --[[ tracking channels to pins
         local chantopins = {}
         for chan = 1, data.trchancnt do
           for pinI = 1, #pins.I do
@@ -228,7 +248,7 @@
               chantopins[chan].O[#chantopins[chan].O+1] = pinO
             end
           end          
-        end
+        end]]
             
       data.fx[i] = { GUID =  TrackFX_GetFXGUID( tr,i-1 ),
                     name = fxname,

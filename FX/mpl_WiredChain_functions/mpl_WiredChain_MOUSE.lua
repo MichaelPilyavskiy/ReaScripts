@@ -23,8 +23,29 @@
       end
     end  
   end
-
-
+   ------------------------------------------------------------------------------------------------------  
+  function MOUSE_Mod_ToolTips(conf, obj, data, refresh, mouse)
+    if not mouse.context:match('mod_') then  obj.tooltip = '' end
+    if not mouse.is_moving and obj.tooltip then 
+      
+      -- format tip
+      local strTT = obj.tooltip
+      local str = ''
+      for line in strTT:gmatch('[^\r\n]+') do
+        local t, t2 = Data_ParseRouteStr({dest = line})
+        if t2 then
+          if t2.isFX then str = str..'to FX' else str = str..'to track IO' end
+          if t2.isFX then str = str..' '..t2.FXid..' pin'..t2.chan end
+          if not t2.isFX and t2.chan then str = str..' chan'..t2.chan end
+        end
+        str = str..'\n'
+      end
+      
+            
+      local x, y = GetMousePosition()
+      TrackCtl_SetToolTip( str, x+20, y+20, false ) 
+    end
+  end
    ------------------------------------------------------------------------------------------------------
   function MOUSE(conf, obj, data, refresh, mouse)
     local d_click = 0.4
@@ -66,6 +87,7 @@
            
            if MOUSE_Match(mouse, obj[key]) and key:match('mod_')  then
               obj[key].highlighted_pin = true
+              if obj[key].func_mouseover then obj[key].func_mouseover() end
               refresh.GUI_minor = true
             end
             ------------------------
@@ -136,9 +158,10 @@
        end
        
        ::skip_mouse_obj::
-     
-     
-           
+    
+    MOUSE_Mod_ToolTips(conf, obj, data, refresh, mouse)
+    
+    if not MOUSE_Match(mouse, {x=0,y=0,w=gfx.w, h=gfx.h}) then obj.tooltip = '' end
      -- mouse release    
       if mouse.last_LMB_state and not mouse.LMB_state   then   
         mouse.drag_obj = nil

@@ -88,14 +88,28 @@
   { str = 'Cockos Forum thread|',
     func = function() Open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } , 
     
-  { str = 'Rearrange FX|',
+  { str = 'Rearrange FX',
     func = function() 
               data.ext_data[data.GUID] = {}
               Data_Update_ExtState_ProjData_Save (conf, obj, data, refresh, mouse)
               refresh.GUI = true 
             end  
   } ,     
-    
+  { str = 'Clear ALL plugins pins',
+    func = function() 
+              Undo_BeginBlock()
+              for fx_id = 1, #data.fx do
+                for chan = 1, data.trchancnt do
+                  for pinI = 1, data.fx[fx_id].inpins do SetPin(data.tr, fx_id, 0, pinI, chan, 0)  end
+                  for pinO = 1, data.fx[fx_id].outpins do SetPin(data.tr, fx_id, 1, pinO, chan, 0)  end
+                end
+              end
+              Undo_EndBlock2(0, 'WiredChain - clear ALL pins', -1 )
+              refresh.data = true
+              refresh.GUI = true
+            end  
+  } , 
+      
   { str = '#Options'},    
   { str = 'Snap FX on drag|',  
     func =  function() conf.snapFX = math.abs(1-conf.snapFX)  end,
@@ -120,8 +134,6 @@
                               refresh.data = true
                             end}  
                          
-                            
-                            
                             
         obj.trackname = { clear = true,
                     x = obj.menu_w+1,
@@ -179,6 +191,14 @@
                               Obj_MarkConnections(conf, obj, data, refresh, mouse, true) 
                               refresh.GUI_minor = true
                             end,
+                      func_mouseover =  function()
+                                          if not obj[pkey].wire then return end
+                                          local str = ''
+                                          for wire = 1, #obj[pkey].wire do
+                                            str = str..obj[pkey].wire[wire].dest..'\n'
+                                          end
+                                          obj.tooltip = str
+                                        end                              
                    }  
       local pkey = 'mod_tr_0_I_'..i
       obj[pkey] ={ clear = true,
@@ -193,10 +213,22 @@
                     a_frame =obj.module_a_frame,
                     alpha_back = obj.module_alpha_back,
                     onrelease_L = function() 
+                                    Undo_BeginBlock()
                                               Data_BuildRouting(conf, obj, data, refresh, mouse, { routingtype = 0,
                                                                                                   dest = pkey,
                                                                                                   src = mouse.context_latch
-                                                                                                  })  end                            
+                                                                                                  })  
+                                    Undo_EndBlock2( 0, 'WiredChain - rebuild pins', -1 )   
+                                  end     ,
+                      func_L_Alt = function() 
+                                      for fx_id = 1, #data.fx do 
+                                        for pinO = 1, data.fx[fx_id].outpins do
+                                          SetPin(data.tr, fx_id, 1, pinO, i, 0)
+                                        end
+                                      end
+                                      refresh.data = true
+                                      refresh.GUI = true
+                                    end,                                                                                                                           
                    }                    
     end
     obj.trIO_setcntup ={ clear = true,
@@ -330,7 +362,15 @@
                                                             refresh.data = true
                                                             refresh.GUI = true
                                                             Undo_EndBlock2(0, 'WiredChain - remove FX', -1 )
-                                                          end}
+                                                          end},
+                                                { str = 'Clear plugin pins',
+                                                  func = function()                                                            
+                                                            for chan = 1, data.trchancnt do
+                                                              for pinI = 1, data.fx[i].inpins do SetPin(data.tr, i, 0, pinI, chan, 0)  end
+                                                              for pinO = 1, data.fx[i].outpins do SetPin(data.tr, i, 1, pinO, chan, 0)  end
+                                                            end
+                                                            Undo_EndBlock2(0, 'WiredChain - clear ALL pins', -1 ) 
+                                                          end },                                                        
                                                 })
                               end,
                    } 
@@ -339,7 +379,7 @@
     end
   end
   ---------------------------------------------------
-  function Obj_FormFXPins(conf, obj, data, refresh, mouse, fx_id, refresh_pos_only) 
+  function Obj_FormFXPins(conf, obj, data, refresh, mouse, fx_id, refresh_pos_only)
       for inpin = 1,  data.fx[fx_id].inpins do
         if refresh_pos_only then
           obj['mod_fx_'..fx_id..'_I_'..inpin].x = obj['fx_'..fx_id].x-obj.trIO_w-1
@@ -358,14 +398,20 @@
                       a_frame =obj.module_a_frame,
                       alpha_back = obj.module_alpha_back,
                       func_L_Alt = function() 
+                                      Undo_BeginBlock()
                                       for chan = 1, data.trchancnt do SetPin(data.tr, fx_id, 0, inpin, chan, 0) end
+                                      Undo_EndBlock2(0, 'WiredChain - clear pin', -1 )
                                       refresh.data = true
                                       refresh.GUI = true
                                     end,
-                      onrelease_L = function() Data_BuildRouting(conf, obj, data, refresh, mouse, { routingtype = 0,
-                                                                                                  dest = pkey,
-                                                                                                  src = mouse.context_latch
-                                                                                                  })  end                               
+                      onrelease_L = function()
+                                      Undo_BeginBlock()
+                                      Data_BuildRouting(conf, obj, data, refresh, mouse, {  routingtype = 0,
+                                                                                            dest = pkey,
+                                                                                            src = mouse.context_latch
+                                                                                          })  end ,
+                                      Undo_EndBlock2( 0, 'WiredChain - rebuild pins', -1 )
+                             
                      }  
         end 
       end   
@@ -397,69 +443,119 @@
                                 if not obj[pkey].wire then obj[pkey].wire = {} end
                                 local temp_t = obj[pkey].wire
                                 temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
-                              end
+                              end,
+                      func_mouseover =  function()
+                                          if not obj[pkey].wire then return end
+                                          local str = ''
+                                          for wire = 1, #obj[pkey].wire do
+                                            str = str..obj[pkey].wire[wire].dest..'\n'
+                                          end
+                                          obj.tooltip = str
+                                        end                               
                      }   
         end
       end    
   end
+  
+  
+  
   ---------------------------------------------------
   function Obj_FormWires(conf, obj, data, refresh, mouse) 
-    -- scan channels for trO
-    for chan = 1, data.trchancnt do
-      local has_linked_to_fx = false
-      for fx = #data.fx, 1, -1 do
-          if    data.fx[fx].chantopins[chan] 
-            and data.fx[fx].chantopins[chan].O  then 
-              for pin = 1, #data.fx[fx].chantopins[chan].O do
-                local pinid = data.fx[fx].chantopins[chan].O[pin]
-                if not obj['mod_fx_'..fx..'_O_'..pinid].wire then obj['mod_fx_'..fx..'_O_'..pinid].wire = {} end
-                local temp_t = obj['mod_fx_'..fx..'_O_'..pinid].wire
-                temp_t[#temp_t+1] =  { wiretype = 0, dest = 'mod_tr_0_I_'..chan}
-              end
-            has_linked_to_fx = true
-            break
-          end
-      end
-      if not has_linked_to_fx then
-        obj['mod_tr_0_O_'..chan].wire =  {   { wiretype = 0, dest = 'mod_tr_0_I_'..chan}       }
-      end
-    end
-
-
-  -- scan plugins in reversed order
-    for fx = #data.fx, 1, -1 do
+    Obj_FormWires_trO(conf, obj, data, refresh, mouse) 
+    Obj_FormWires_FX(conf, obj, data, refresh, mouse) 
+    Obj_FormWires_trI(conf, obj, data, refresh, mouse) 
+  end  
+  ---------------------------------------------------
+  function Obj_FormWires_trO(conf, obj, data, refresh, mouse) 
+    -- scan channels from output side
       for chan = 1, data.trchancnt do
-        if    data.fx[fx].chantopins[chan] 
-          and data.fx[fx].chantopins[chan].I   then
-          
-          for pin = 1, #data.fx[fx].chantopins[chan].I do
-            local pinid = data.fx[fx].chantopins[chan].I[pin] -- to which pin  incoming current channel
-            local has_signal_coming_from_fx = false
-            for fx_seek = fx-1, 1, -1 do
-              if    data.fx[fx_seek].chantopins[chan] 
-                and data.fx[fx_seek].chantopins[chan].O then
-                local temp_t = data.fx[fx_seek].chantopins[chan].O
-                for outpin = 1, #temp_t do
-                  local pin_outid = temp_t[outpin]
-                  if not obj['mod_fx_'..fx_seek..'_O_'..pin_outid].wire then obj['mod_fx_'..fx_seek..'_O_'..pin_outid].wire = {} end
-                  local tempt2 = obj['mod_fx_'..fx_seek..'_O_'..pin_outid].wire
-                  tempt2[#tempt2+1] = { wiretype = 0, dest = 'mod_fx_'..fx..'_I_'..pinid}
-                  
-                  has_signal_coming_from_fx = true
-                  
+        local channel_bit = 2^(chan-1)
+        local has_linked_to_fx = false
+        for fx = #data.fx, 1, -1 do
+          for pin = 1, #data.fx[fx].pins.O do
+            if data.fx[fx].pins.O[pin]  & channel_bit == channel_bit then            
+              if not obj['mod_fx_'..fx..'_O_'..pin].wire then obj['mod_fx_'..fx..'_O_'..pin].wire = {} end
+              local temp_t = obj['mod_fx_'..fx..'_O_'..pin].wire
+              temp_t[#temp_t+1] =  { wiretype = 0, dest = 'mod_tr_0_I_'..chan}
+              has_linked_to_fx = true
+            end
+          end
+          if has_linked_to_fx then break  end          
+        end
+      end     
+  end
+  ---------------------------------------------------  
+  function Obj_FormWires_FX(conf, obj, data, refresh, mouse)   
+    -- scan FX
+      for fx_id = #data.fx, 1, -1 do
+      
+        
+        if data.fx[fx_id].pins and data.fx[fx_id].pins.I then
+          for pinI = 1, #data.fx[fx_id].pins.I do
+            local pinmaskI = data.fx[fx_id].pins.I[pinI]
+            for channel = 1, data.trchancnt do
+              local channel_bit = 2^(channel-1)
+              if pinmaskI&channel_bit==channel_bit then
+                
+                
+                -- seek something goint to _channel_ before current FX
+                local has_send_found = false
+                for fx_id_seek = fx_id-1, 1, -1 do
+                  for pinO = 1, data.fx[fx_id_seek].outpins do
+                    local pinmaskO = data.fx[fx_id_seek].pins.O[pinO]
+                    if pinmaskO&channel_bit==channel_bit then
+                      if not obj['mod_fx_'..fx_id_seek..'_O_'..pinO].wire then obj['mod_fx_'..fx_id_seek..'_O_'..pinO].wire = {} end
+                      local temp_t = obj['mod_fx_'..fx_id_seek..'_O_'..pinO].wire
+                      temp_t[#temp_t+1] = { wiretype = 0, dest = 'mod_fx_'..fx_id..'_I_'..pinI}
+                      has_send_found =  true
+                    end
+                  end
+                  if has_send_found then break end
                 end
-                break
+                
+                if not has_send_found then 
+                  if not obj['mod_tr_0_O_'..channel].wire then obj['mod_tr_0_O_'..channel].wire = {} end
+                  local temp_t = obj['mod_tr_0_O_'..channel].wire
+                  temp_t[#temp_t+1] =  { wiretype = 0, dest = 'mod_fx_'..fx_id..'_I_'..pinI}                
+                end
+                
               end
             end
-            if not has_signal_coming_from_fx  then
+          end
+        end
+      end  
+    end
+  ---------------------------------------------------
+  function Obj_FormWires_trI(conf, obj, data, refresh, mouse)     
+    -- scan channels from input side
+      for chan = 1, data.trchancnt do
+        local channel_bit = 2^(chan-1)
+        
+        --[[local has_linked_to_fx = false
+        for fx = #data.fx, 1, -1 do
+          for pin = 1, #data.fx[fx].pins.I do
+            if data.fx[fx].pins.I[pin] & channel_bit == channel_bit then
               if not obj['mod_tr_0_O_'..chan].wire then obj['mod_tr_0_O_'..chan].wire = {} end
               local temp_t = obj['mod_tr_0_O_'..chan].wire
-              temp_t[#temp_t+1]={ wiretype = 0, dest = 'mod_fx_'..fx..'_I_'..pinid}  
+              temp_t[#temp_t+1] =  { wiretype = 0, dest = 'mod_fx_'..fx..'_I_'..pin}
+              has_linked_to_fx = true
             end
           end
-          
+          --if has_linked_to_fx then break  end         
+        end]]
+        
+        -- check for skipping chan
+        local breakbyFX = false
+        for fx = 1, #data.fx do 
+          for pin = 1, #data.fx[fx].pins.O do
+            if data.fx[fx].pins.O[pin] & channel_bit == channel_bit then breakbyFX = true end
+          end
         end
-      end
-    end
-    
-  end
+        if not breakbyFX then 
+          if not obj['mod_tr_0_O_'..chan].wire then obj['mod_tr_0_O_'..chan].wire = {} end
+          local temp_t = obj['mod_tr_0_O_'..chan].wire 
+          temp_t[#temp_t+1] = { wiretype = 0, dest = 'mod_tr_0_I_'..chan}
+        end
+      end 
+  end    
+    ---------------------------------------------------
