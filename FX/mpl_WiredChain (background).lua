@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.03
+-- @version 1.05
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,14 +9,13 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    + Show tooltips for output pins
---    # FormWires: another testing build
---    # Data_BuildRouting_Audio: clear input and force behaviour 'pin == channel', send source to output pin channel
---    # prevent removing signal flow by touching track output pins
---    + Undo for DataBuildRouting
---    + Undo for clear pin
+--    + Enable wiring inputs
+--    + Menu/Clear and reset ALL plugins pins
+--    + FX/Clear and reset plugin pins
+--    # improve pins indentation/snap
+--    # fix refresh data/GUI after FX/Clear plugin pins
 
-  local vrs = 'v1.03'
+  local vrs = 'v1.05'
   --NOT gfx NOT reaper
   
   

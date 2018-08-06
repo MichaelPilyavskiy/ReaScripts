@@ -109,7 +109,23 @@
               refresh.GUI = true
             end  
   } , 
-      
+  { str = 'Clear/Reset ALL plugins pins',
+    func = function() 
+              Undo_BeginBlock()
+              for fx_id = 1, #data.fx do
+                for chan = 1, data.trchancnt do
+                  for pinI = 1, data.fx[fx_id].inpins do SetPin(data.tr, fx_id, 0, pinI, chan, 0)  end
+                  for pinO = 1, data.fx[fx_id].outpins do SetPin(data.tr, fx_id, 1, pinO, chan, 0)  end
+                end
+                for pinI = 1, data.fx[fx_id].inpins do SetPin(data.tr, fx_id, 0, pinI, pinI, 1)  end
+                for pinO = 1, data.fx[fx_id].outpins do SetPin(data.tr, fx_id, 1, pinO, pinO, 1)  end
+              end
+              Undo_EndBlock2(0, 'WiredChain - Reset ALL pins', -1 )
+              refresh.data = true
+              refresh.GUI = true
+            end  
+  } , 
+        
   { str = '#Options'},    
   { str = 'Snap FX on drag|',  
     func =  function() conf.snapFX = math.abs(1-conf.snapFX)  end,
@@ -159,9 +175,9 @@
     for key in pairs(obj) do 
       if type(obj[key]) == 'table' then 
         if mark_output then
-          if key:match('_I_') then
-            obj[key].is_marked_pin = true
-          end 
+          if key:match('_I_') then obj[key].is_marked_pin = true end 
+         else
+          if key:match('_O_') then obj[key].is_marked_pin = true end 
         end
       end 
     end
@@ -172,9 +188,9 @@
       local pkey = 'mod_tr_0_O_'..i
       obj[pkey] ={ clear = true,
                     x = obj.trIO_x_offset,
-                    y = obj.trIO_y + (i-1)*(obj.trIO_h+1),
+                    y = obj.trIO_y + (i-1)*obj.trIO_h,
                     w = obj.trIO_w,
-                    h = obj.trIO_h,
+                    h = obj.trIO_h-1,
                     col = 'white',
                     txt= i,
                     show = true,
@@ -203,9 +219,9 @@
       local pkey = 'mod_tr_0_I_'..i
       obj[pkey] ={ clear = true,
                     x = gfx.w - obj.trIO_x_offset - obj.trIO_w,
-                    y = obj.trIO_y + (i-1)*(obj.trIO_h+1),
+                    y = obj.trIO_y + (i-1)*obj.trIO_h,
                     w = obj.trIO_w,
-                    h = obj.trIO_h,
+                    h = obj.trIO_h-1,
                     col = 'white',
                     txt= i,
                     show = true,
@@ -233,7 +249,7 @@
     end
     obj.trIO_setcntup ={ clear = true,
                   x = obj.trIO_x_offset,
-                  y = obj.trIO_y + data.trchancnt*(obj.trIO_h+1),
+                  y = obj.trIO_y + data.trchancnt*obj.trIO_h,
                   w = obj.trIO_w,
                   h = obj.trIO_h,
                   col = 'white',
@@ -249,7 +265,7 @@
                  } 
     obj.trIO_setcntdown ={ clear = true,
                   x = obj.trIO_x_offset,
-                  y = obj.trIO_y + (data.trchancnt+1)*(obj.trIO_h+1),
+                  y = obj.trIO_y + (data.trchancnt+1)*obj.trIO_h,
                   w = obj.trIO_w,
                   h = obj.trIO_h,
                   col = 'white',
@@ -297,7 +313,7 @@
         yFX = data.ext_data[data.GUID][data.fx[i].GUID].y
       end
       
-      local hFX = (obj.module_h+1)*math.max(data.fx[i].inpins, data.fx[i].outpins)-1
+      local hFX = obj.module_h*math.max(data.fx[i].inpins, data.fx[i].outpins)-1
       obj['fx_'..i] ={ clear = true,
                     x = xFX,
                     y = yFX,
@@ -370,7 +386,21 @@
                                                               for pinO = 1, data.fx[i].outpins do SetPin(data.tr, i, 1, pinO, chan, 0)  end
                                                             end
                                                             Undo_EndBlock2(0, 'WiredChain - clear ALL pins', -1 ) 
-                                                          end },                                                        
+                                                            refresh.data = true
+                                                            refresh.GUI = true
+                                                          end },      
+                                                { str = 'Clear and reset plugin pins',
+                                                  func = function()                                                            
+                                                            for chan = 1, data.trchancnt do
+                                                              for pinI = 1, data.fx[i].inpins do SetPin(data.tr, i, 0, pinI, chan, 0)  end
+                                                              for pinO = 1, data.fx[i].outpins do SetPin(data.tr, i, 1, pinO, chan, 0)  end
+                                                            end
+                                                            for pinI = 1, data.fx[i].inpins do SetPin(data.tr, i, 0, pinI, pinI, 1)  end
+                                                            for pinO = 1, data.fx[i].outpins do SetPin(data.tr, i, 1, pinO, pinO, 1)  end
+                                                            Undo_EndBlock2(0, 'WiredChain - clear and reset pins', -1 ) 
+                                                            refresh.data = true
+                                                            refresh.GUI = true
+                                                          end },                                                                                                              
                                                 })
                               end,
                    } 
@@ -383,20 +413,26 @@
       for inpin = 1,  data.fx[fx_id].inpins do
         if refresh_pos_only then
           obj['mod_fx_'..fx_id..'_I_'..inpin].x = obj['fx_'..fx_id].x-obj.trIO_w-1
-          obj['mod_fx_'..fx_id..'_I_'..inpin].y = obj['fx_'..fx_id].y + (inpin-1)*(obj.trIO_h+1)
+          obj['mod_fx_'..fx_id..'_I_'..inpin].y = obj['fx_'..fx_id].y + (inpin-1)*obj.trIO_h
          else
           local pkey = 'mod_fx_'..fx_id..'_I_'..inpin
           obj[pkey] ={ clear = true,
                       x = obj['fx_'..fx_id].x-obj.trIO_w-1,
-                      y = obj['fx_'..fx_id].y + (inpin-1)*(obj.trIO_h+1),
+                      y = obj['fx_'..fx_id].y + (inpin-1)*obj.trIO_h,
                       w = obj.trIO_w,
-                      h = obj.trIO_h,
+                      h = obj.trIO_h-1,
                       col = 'white',
                       txt= inpin,
                       show = true,
                       fontsz = obj.GUI_fontsz3,
                       a_frame =obj.module_a_frame,
                       alpha_back = obj.module_alpha_back,
+                      func =  function() 
+                                Obj_MarkConnections(conf, obj, data, refresh, mouse) 
+                                if not obj[pkey].wire then obj[pkey].wire = {} end
+                                local temp_t = obj[pkey].wire
+                                temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
+                              end,                      
                       func_L_Alt = function() 
                                       Undo_BeginBlock()
                                       for chan = 1, data.trchancnt do SetPin(data.tr, fx_id, 0, inpin, chan, 0) end
@@ -419,14 +455,14 @@
       for outpin = 1,  data.fx[fx_id].outpins do
         if refresh_pos_only then
           obj['mod_fx_'..fx_id..'_O_'..outpin].x = obj['fx_'..fx_id].x+obj['fx_'..fx_id].w+1
-          obj['mod_fx_'..fx_id..'_O_'..outpin].y = obj['fx_'..fx_id].y + (outpin-1)*(obj.trIO_h+1)
+          obj['mod_fx_'..fx_id..'_O_'..outpin].y = obj['fx_'..fx_id].y + (outpin-1)*obj.trIO_h
          else
           local pkey = 'mod_fx_'..fx_id..'_O_'..outpin
           obj[pkey] ={ clear = true,
                       x = obj['fx_'..fx_id].x+obj['fx_'..fx_id].w+1,
-                      y = obj['fx_'..fx_id].y + (outpin-1)*(obj.trIO_h+1),
+                      y = obj['fx_'..fx_id].y + (outpin-1)*obj.trIO_h,
                       w = obj.trIO_w,
-                      h = obj.trIO_h,
+                      h = obj.trIO_h-1,
                       col = 'white',
                       txt= outpin,
                       show = true,
@@ -451,7 +487,14 @@
                                             str = str..obj[pkey].wire[wire].dest..'\n'
                                           end
                                           obj.tooltip = str
-                                        end                               
+                                        end ,
+                      onrelease_L = function()
+                                      Undo_BeginBlock()
+                                      Data_BuildRouting(conf, obj, data, refresh, mouse, {  routingtype = 0,
+                                                                                            src = pkey,
+                                                                                            dest = mouse.context_latch
+                                                                                          })  end ,
+                                      Undo_EndBlock2( 0, 'WiredChain - rebuild pins', -1 )                                                                     
                      }   
         end
       end    

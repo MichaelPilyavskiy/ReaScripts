@@ -301,7 +301,15 @@
           if wire_t.dest and obj[wire_t.dest] then 
             gfx.line(x+w,y+h/2,obj[wire_t.dest].x, obj[wire_t.dest].y+obj[wire_t.dest].h/2)
            else
-            if wire_t.dest == 'mouse' then gfx.line(x+w,y+h/2,mouse.x,mouse.y)   end
+            -- drag mouse
+            if wire_t.dest == 'mouse' then 
+              if o.context:match('_O_') then 
+                gfx.line(x+w,y+h/2,mouse.x,mouse.y)   
+               else
+                gfx.line(x,y+h/2,mouse.x,mouse.y)  
+              end 
+            end
+            
           end
         end
       end
