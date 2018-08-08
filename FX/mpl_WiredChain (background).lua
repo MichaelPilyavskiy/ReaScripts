@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,13 +9,20 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    + Enable wiring inputs
---    + Menu/Clear and reset ALL plugins pins
---    + FX/Clear and reset plugin pins
---    # improve pins indentation/snap
---    # fix refresh data/GUI after FX/Clear plugin pins
+--    # using TrackFX_CopyToTrack/TrackFX_Delete instead chunking: supported REAPER now 5.93pre3+
+--    + Selecting FX [t.me/mplscripts_chat]
+--    + Group moving FX [t.me/mplscripts_chat]
+--    + Delete key remove selected FX [t.me/mplscripts_chat]
+--    + display tooltip for inputs
+--    + redesign tooltip to internal GUI
+--    # reduce GUI minor refresh
+--    # fix show on drag wire for track output
+--    # fix check Various_functions
+--    # temporary limit channel count to 32
 
-  local vrs = 'v1.05'
+
+
+  local vrs = 'v1.06'
   --NOT gfx NOT reaper
   
   
@@ -28,7 +35,6 @@
                     GUI_minor = false,
                     data = false,
                     data_proj = false,
-                    GUI_WF = false,
                     conf = false}
   local mouse = {}
   local data = {}
@@ -62,7 +68,7 @@
             mouse_wheel_res = 960,
             
             -- data
-            chan_limit = 32,
+            autoroutestereo = 0,
             
             -- GUI
             snapFX = 1,
@@ -100,7 +106,7 @@
     GUI_draw               (conf, obj, data, refresh, mouse)    
                                                
     local char =gfx.getchar()  
-    ShortCuts(char)
+    ShortCuts(char, conf, obj, data, refresh, mouse)
     if char >= 0 and char ~= 27 then defer(run) else atexit(gfx.quit) end
   end
     
@@ -118,8 +124,27 @@
       if not _G[str_func] then 
         reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
        else
-         conf.dev_mode = 0
-         conf.vrs = vrs
+        return true
+      end
+      
+     else
+      reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
+    end  
+  end
+  function CheckReaperVrs(rvrs) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0)
+      return
+     else
+      return true
+    end
+  end
+--------------------------------------------------------------------
+  function main()
+        conf.dev_mode = 0
+        conf.vrs = vrs
         Main_RefreshExternalLibs()
         ExtState_Load(conf)  
         gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
@@ -128,12 +153,9 @@
                   conf.dock2, conf.wind_x, conf.wind_y)
         OBJ_init(obj)
         OBJ_Update(conf, obj, data, refresh, mouse) 
-        run()
-      end
-      
-     else
-      MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
-    end  
+        run()  
   end
---------------------------------------------------------------------
-  CheckFunctions('MPL_ReduceFXname')     
+--------------------------------------------------------------------  
+  local ret = CheckFunctions('MPL_ReduceFXname') 
+  local ret2 = CheckReaperVrs(5.95)    
+  if ret and ret2 then main() end

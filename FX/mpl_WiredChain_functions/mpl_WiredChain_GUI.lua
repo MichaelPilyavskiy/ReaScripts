@@ -316,12 +316,12 @@
       
     
     -- highlight
-    if o.highlighted_pin and mouse.context == o.context then -- and not (mouse.LMB_state and mouse.last_LMB_state) then
-      col(obj, 'green', 0.3)
+    if o.is_selected then
+      col(obj, 'white', 0.3)
       gfx.rect(x,y,w,h,1)
     end
     
-    -- is_marked_pin
+    -- is_marked_pin on drag
       if o.is_marked_pin then
         col(obj, 'green', 0.45)
         gfx.rect(x-1,y-1,w+2,h+2,0)
@@ -354,6 +354,25 @@
                     )
             
   end
+  ---------------------------------------------------
+  function GUI_drawTooltip(conf, obj, data, refresh, mouse)
+    gfx.set(0.2,0.2,0.2,0.9)
+    local x_offs= 5
+    local tt_w = 100
+    local tt_h = 90
+    local x,y,w,h = mouse.x-tt_w-x_offs*2, mouse.y, tt_w, tt_h
+    
+    x = lim(x, obj.trIO_x_offset+obj.trIO_w+ x_offs, gfx.w -tt_w)
+    y = lim(y, obj.topline_h, gfx.h - tt_h)
+    gfx.rect(x,y,w,h,1)
+    gfx.set(1,1,1,0.2)
+    gfx.rect(x,y,w,h,0)
+    
+    gfx.setfont(1, obj.GUI_font,obj.GUI_fontsz_tooltip )
+    gfx.set(1,1,1,0.8)
+    gfx.x, gfx.y = x+5,y+5
+    gfx.drawstr(obj.tooltip_str)
+  end  
   ---------------------------------------------------
   function GUI_draw(conf, obj, data, refresh, mouse)
     gfx.mode = 0
@@ -454,8 +473,12 @@
         gfx.line(mouse.x-X, mouse.y-X,mouse.x+X, mouse.y+X)
         gfx.line(mouse.x-X, mouse.y+X,mouse.x+X, mouse.y-X)
       end
-
-         
+    
+    if obj.tooltip ~= '' and obj.tooltip_str then
+      GUI_drawTooltip(conf, obj, data, refresh, mouse) 
+    end
+    
     refresh.GUI = nil
+    refresh.GUI_minor = nil
     gfx.update()
   end

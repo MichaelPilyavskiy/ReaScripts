@@ -20,15 +20,29 @@
  ---------------------------------------------------   
   function SetPin(track, fx_id, isOut_int, pin_id, chan, set) 
     -- chan is 1 based
-    local pinflags = TrackFX_GetPinMappings ( track, fx_id-1, isOut_int, pin_id-1 )
-    local state =  pinflags&(2^(chan-1))==2^(chan-1) 
-    if set == 0 then
-      if state then pinflags = pinflags - 2^(chan-1) end
+    local pinflags, high32 = TrackFX_GetPinMappings ( track, fx_id-1, isOut_int, pin_id-1 )
+
+    if chan < 64 then 
+      local state =  pinflags&(2^(chan-1))==2^(chan-1) 
+      if set == 0 then
+        if state then pinflags = pinflags - 2^(chan-1) end
+       else
+        if not state then pinflags = pinflags + 2^(chan-1) end
+      end
+      
+      TrackFX_SetPinMappings ( track, fx_id-1, isOut_int, pin_id-1, pinflags, 0 )
      else
-      if not state then pinflags = pinflags + 2^(chan-1) end
+      chan = chan - 63
+      
+      local state =  high32&(2^(chan-1))==2^(chan-1) 
+      if set == 0 then
+        if state then high32 = high32 - 2^(chan-1) end
+       else
+        if not state then high32 = high32 + 2^(chan-1) end
+      end
+      
+      TrackFX_SetPinMappings ( track, fx_id-1, isOut_int, pin_id-1, pinflags, high32 )      
     end
-    
-    TrackFX_SetPinMappings ( track, fx_id-1, isOut_int, pin_id-1, pinflags, 0 )
   end
   --------------------------------------------------- 
   function Data_ParseRouteStr(routing_t) local src_t, dest_t
@@ -55,40 +69,55 @@
   end
   ---------------------------------------------------    
   function Data_BuildRouting_Audio(conf, obj, data, refresh, mouse, routing_t )
-    src_t, dest_t = Data_ParseRouteStr(routing_t)
-    if dest_t.chan > data.trchancnt then 
-      SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', dest_t.chan + dest_t.chan % 2 )
-    end
+    local src_t, dest_t = Data_ParseRouteStr(routing_t)
+    local dest_chan = dest_t.chan
+    
+    local dest_chan0
+    if conf.autoroutestereo == 1 then dest_chan0 = dest_chan + 1 end    
+    if dest_chan0 > data.trchancnt then SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', dest_chan0 + dest_chan0 % 2 ) end
     
     -- link beetween FX
     if  src_t.isFX and dest_t.isFX then 
       if src_t.FXid < dest_t.FXid then -- valid FX order
+      
         -- set on destination channel for source FX      
         SetPin(data.tr, src_t.FXid, 1, src_t.pin, dest_t.chan, 1)
+        if conf.autoroutestereo == 1 then SetPin(data.tr, src_t.FXid, 1, src_t.pin+1, dest_t.chan+1, 1) end  
         
         -- handle destination FX
           --SetPin(data.tr, dest_t.FXid, 0, dest_t.chan, src_t.pin, 1) -- 1.02
-          for chan = 1, data.trchancnt do SetPin(data.tr, dest_t.FXid, 0, dest_t.chan, chan, 0) end
+          for chan = 1, data.trchancnt do 
+            SetPin(data.tr, dest_t.FXid, 0, dest_t.chan, chan, 0) 
+            if conf.autoroutestereo == 1 then SetPin(data.tr, dest_t.FXid, 0, dest_t.chan+1, chan, 0) end
+          end
           SetPin(data.tr, dest_t.FXid, 0, dest_t.chan,dest_t.chan, 1)
+          if conf.autoroutestereo == 1 then SetPin(data.tr, dest_t.FXid, 0, dest_t.chan+1,dest_t.chan+1, 1) end
           
         -- clear output destination channel in beetween
         if dest_t.FXid - src_t.FXid > 1 then
           for fx_id = src_t.FXid+1, dest_t.FXid do
             for pin_id = 1, data.fx[fx_id].outpins do
               SetPin(data.tr, fx_id, 1, pin_id, dest_t.chan, 0)
+              if conf.autoroutestereo == 1 then SetPin(data.tr, fx_id, 1, pin_id+1, dest_t.chan+1, 0) end
             end
           end
         end
         
        elseif src_t.FXid > dest_t.FXid then-- invalid order
         local inc = src_t.FXid-dest_t.FXid
-        --for i = 1, inc do SNM_MoveOrRemoveTrackFX( data.tr, dest_t.FXid-1 + (i -1) , 1 ) end
         MPL_HandleFX(data.tr, dest_t.FXid, 2, inc )
         Data_Update(conf, obj, data, refresh, mouse)
+        
         SetPin(data.tr, src_t.FXid-1, 1, src_t.pin, dest_t.chan, 1)
+        if conf.autoroutestereo == 1 then SetPin(data.tr, src_t.FXid-1, 1, src_t.pin+1, dest_t.chan+1, 1) end
         --SetPin(data.tr, src_t.FXid, 0, dest_t.chan, src_t.pin, 1)
-        for chan = 1, data.trchancnt do SetPin(data.tr, src_t.FXid, 0, dest_t.chan, chan, 0) end
+        
+        for chan = 1, data.trchancnt do 
+          SetPin(data.tr, src_t.FXid, 0, dest_t.chan, chan, 0) 
+          if conf.autoroutestereo == 1 then SetPin(data.tr, src_t.FXid, 0, dest_t.chan+1, chan, 0)  end
+        end
         SetPin(data.tr, src_t.FXid, 0, dest_t.chan,dest_t.chan, 1)
+        if conf.autoroutestereo == 1 then SetPin(data.tr, src_t.FXid, 0, dest_t.chan+1,dest_t.chan+1, 1) end
       end
     end
 
@@ -100,11 +129,14 @@
           local int_set = 0 
           if chan == src_t.pin then int_set = 1 end
           SetPin(data.tr, dest_t.FXid, 0, dest_t.chan, chan, int_set)
+          if conf.autoroutestereo == 1 then SetPin(data.tr, dest_t.FXid, 0, dest_t.chan+1, chan+1, int_set) end
         end
+        -- clear beetween fx
         for fx_id = 0, dest_t.FXid-1 do
           if data.fx[fx_id] then
             for pin_id = 1, data.fx[fx_id].outpins do
               SetPin(data.tr, fx_id, 1, pin_id, src_t.pin, 0)
+              if conf.autoroutestereo == 1 then SetPin(data.tr, fx_id, 1, pin_id+1, src_t.pin+1, 0) end
             end
           end
         end
@@ -115,11 +147,16 @@
         -- set on destination channel for source FX
         -- disable dest channel out for FX down to track out  
         SetPin(data.tr, src_t.FXid, 1, src_t.pin, dest_t.chan, 1)
+        if conf.autoroutestereo == 1 then SetPin(data.tr, src_t.FXid, 1, src_t.pin+1, dest_t.chan+1, 1) end
         for fx_id = src_t.FXid+1, #data.fx do
           if data.fx[fx_id] then
+          
+            -- clear pins beetween src FX and track out
             for pin_id = 1, data.fx[fx_id].outpins do
               SetPin(data.tr, fx_id, 1, pin_id, dest_t.chan, 0)
+              if conf.autoroutestereo == 1 then SetPin(data.tr, fx_id, 1, pin_id, dest_t.chan+1, 0) end
             end
+            
           end
         end
     end    
@@ -130,6 +167,7 @@
       for fx_id = 1, #data.fx do
         for pin_id = 1, data.fx[fx_id].outpins do
           SetPin(data.tr, fx_id, 1, pin_id, src_t.pin, 0)
+          if conf.autoroutestereo == 1 then SetPin(data.tr, fx_id, 1, pin_id+1, src_t.pin+1, 0) end
         end
       end
     end 
@@ -202,9 +240,22 @@
     SetProjExtState( 0, conf.ES_key, 'FXPOS', str )
   end 
   ---------------------------------------------------
+  function Data_DeleteSelectedFX(conf, obj, data, refresh, mouse)
+    local t = {}
+    for key in pairs(obj) do  
+      if type(obj[key]) == 'table' and key:match('fx_%d+$') and obj[key].is_selected ==true then
+        fx_id = key:match('fx_(%d+)$')
+        t[#t+1] = tonumber(fx_id)
+      end
+    end
+    table.sort(t, function(a,b) return a>b end)
+    for i = 1, #t do
+      TrackFX_Delete(data.tr, t[i]-1)
+    end
+  end
+  ---------------------------------------------------
   function Data_Update(conf, obj, data, refresh, mouse)
-    
-    
+    data.chan_lim = 32
     local tr = GetSelectedTrack(0,0)
     if not tr then return end
     
@@ -223,12 +274,12 @@
         local pins = {I={},O={}}
         local retval, inpins, outpins = TrackFX_GetIOSize( tr, i-1 )
         for inpin = 1, inpins do
-          local pinmap = reaper.TrackFX_GetPinMappings( tr, i-1, 0, inpin-1 )
-          pins.I[inpin] = pinmap
+          local pinmap, high32 = reaper.TrackFX_GetPinMappings( tr, i-1, 0, inpin-1 )
+          pins.I[inpin] = pinmap --+ high32<<32
         end
         for outpin = 1, outpins do
-          local pinmap = reaper.TrackFX_GetPinMappings( tr, i-1, 1, outpin-1 )
-          pins.O[outpin] = pinmap
+          local pinmap, high32 = reaper.TrackFX_GetPinMappings( tr, i-1, 1, outpin-1 )
+          pins.O[outpin] = pinmap --+ high32<<32
         end
         
       --[[ tracking channels to pins
@@ -301,8 +352,16 @@
     ]]
  
   function MPL_HandleFX(track, fx_id, action, increment_move)
-    local chunk = eugen27771_GetObjStateChunk(track)
+    -- 5.95pre3
+    if action == 0 then -- duplicate
+      TrackFX_CopyToTrack(track, fx_id-1, track, fx_id-1, false)
+     elseif action == 1 then -- remove
+      TrackFX_Delete(track, fx_id-1)
+     elseif action == 2 then -- move  
+      TrackFX_CopyToTrack(track, fx_id-1, track, fx_id+increment_move-1, true)
+    end
     
+    --[[local chunk = eugen27771_GetObjStateChunk(track)    
     -- get fx block
       local t = {}
       local fx_block
@@ -321,8 +380,6 @@
         if relay == -1 then break end
       end    
       if not ( fx_block and fx_block ~= '') then return end
-      
-      
     -- split by FX
       local fx_chunks = {}
       local fxGUIDs = {}
@@ -330,7 +387,6 @@
         fxGUIDs[#fxGUIDs+1] = fx_chunk:match('FXID%s{.-}')
         fx_chunks[#fx_chunks+1] = fx_chunk 
       end
-      
     -- mod
       local str_replace = fx_block
       if action == 0 then -- duplicate
@@ -348,8 +404,8 @@
         end
       end
       str_replace = table.concat(fx_chunks,'\n') 
-      
     local out_chunk = chunk:gsub(literalize(fx_block), '\n<FXCHAIN\n'..str_replace..'\n>')
     --msg(out_chunk)
-    SetTrackStateChunk(track, out_chunk, true)
+    SetTrackStateChunk(track, out_chunk, true)]]
+    
   end

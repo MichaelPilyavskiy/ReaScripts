@@ -42,10 +42,12 @@
     obj.GUI_fontsz = 20  -- 
     obj.GUI_fontsz2 = 15 -- 
     obj.GUI_fontsz3 = 13-- 
+    obj.GUI_fontsz_tooltip = 13
     if GetOS():find("OSX") then 
       obj.GUI_fontsz = obj.GUI_fontsz - 6 
       obj.GUI_fontsz2 = obj.GUI_fontsz2 - 5 
       obj.GUI_fontsz3 = obj.GUI_fontsz3 - 4
+      obj.GUI_fontsz_tooltip = obj.GUI_fontsz_tooltip - 4
     end 
     
     -- colors    
@@ -109,7 +111,7 @@
               refresh.GUI = true
             end  
   } , 
-  { str = 'Clear/Reset ALL plugins pins',
+  { str = 'Clear/Reset ALL plugins pins|',
     func = function() 
               Undo_BeginBlock()
               for fx_id = 1, #data.fx do
@@ -127,10 +129,15 @@
   } , 
         
   { str = '#Options'},    
-  { str = 'Snap FX on drag|',  
+  { str = 'Snap FX on drag',  
     func =  function() conf.snapFX = math.abs(1-conf.snapFX)  end,
     state = conf.snapFX == 1,
   } , 
+  { str = 'Auto route further channel|',  
+    func =  function() conf.autoroutestereo = math.abs(1-conf.autoroutestereo)  end,
+    state = conf.autoroutestereo == 1,
+  } , 
+
   
   { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
     func = function() 
@@ -168,7 +175,9 @@
     Obj_FormTrackIO(conf, obj, data, refresh, mouse) 
     Obj_FormFX(conf, obj, data, refresh, mouse) 
     Obj_FormWires(conf, obj, data, refresh, mouse) 
-    for key in pairs(obj) do if type(obj[key]) == 'table' then obj[key].context = key end end    
+    for key in pairs(obj) do if type(obj[key]) == 'table' then 
+      obj[key].context = key 
+    end end    
   end
   ---------------------------------------------------  
   function Obj_MarkConnections(conf, obj, data, refresh, mouse, mark_output) 
@@ -184,7 +193,7 @@
   end
   ---------------------------------------------------
   function Obj_FormTrackIO(conf, obj, data, refresh, mouse) 
-    for i = 1, data.trchancnt do
+    for i = 1, math.min(data.trchancnt, data.chan_lim) do
       local pkey = 'mod_tr_0_O_'..i
       obj[pkey] ={ clear = true,
                     x = obj.trIO_x_offset,
@@ -194,6 +203,7 @@
                     col = 'white',
                     txt= i,
                     show = true,
+                    is_pin = true,
                     fontsz = obj.GUI_fontsz3,
                     a_frame =obj.module_a_frame,
                     alpha_back = obj.module_alpha_back,
@@ -225,9 +235,17 @@
                     col = 'white',
                     txt= i,
                     show = true,
+                    is_pin = true,
                     fontsz = obj.GUI_fontsz3,
                     a_frame =obj.module_a_frame,
                     alpha_back = obj.module_alpha_back,
+                    func_LD = function() refresh.GUI_minor = true end,
+                    func =  function() 
+                              Obj_MarkConnections(conf, obj, data, refresh, mouse, true) 
+                              if not obj[pkey].wire then obj[pkey].wire = {} end
+                              local temp_t = obj[pkey].wire
+                              temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
+                            end ,                    
                     onrelease_L = function() 
                                     Undo_BeginBlock()
                                               Data_BuildRouting(conf, obj, data, refresh, mouse, { routingtype = 0,
@@ -244,7 +262,18 @@
                                       end
                                       refresh.data = true
                                       refresh.GUI = true
-                                    end,                                                                                                                           
+                                    end, 
+                      func_mouseover =  function()
+                                          local str = ''
+                                          for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].wire then 
+                                            for wire = 1, #obj[key].wire do
+                                              if obj[key].wire[wire].dest == pkey then
+                                                str = str..key..'\n'
+                                              end
+                                            end
+                                          end end  
+                                          obj.tooltip = str
+                                        end ,                                                                                                                                                               
                    }                    
     end
     obj.trIO_setcntup ={ clear = true,
@@ -258,7 +287,7 @@
                   fontsz = obj.GUI_fontsz3,
                   a_frame = 0,
                   func =  function() 
-                            SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', lim(data.trchancnt+2,2,conf.chan_limit ))
+                            SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', lim(data.trchancnt+2,2,data.chan_lim ))
                             refresh.GUI = true
                             refresh.data = true
                           end
@@ -274,12 +303,27 @@
                   fontsz = obj.GUI_fontsz3,
                   a_frame = 0,
                   func =  function() 
-                            SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', lim(data.trchancnt-2,2,conf.chan_limit ))
+                            SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', lim(data.trchancnt-2,2,data.chan_lim ))
                             refresh.GUI = true
                             refresh.data = true
                           end
                  }                  
   end
+  ---------------------------------------------------
+  function Obj_ResetSelection(conf, obj, data, refresh, mouse) 
+    for key in spairs(obj,function(t,a,b) return b < a end) do  if type(obj[key]) == 'table' then obj[key].is_selected = false end end
+  end
+  ---------------------------------------------------
+  function Obj_CountSelectedObjects(conf, obj, data, refresh, mouse) 
+    local cnt,id_t = 0, {}
+    for key in spairs(obj,function(t,a,b) return b < a end) do  
+      if type(obj[key]) == 'table' and obj[key].is_selected == true then 
+        cnt = cnt + 1  
+        id_t [#id_t+1] = key
+      end
+    end
+    return cnt, id_t
+  end  
   ---------------------------------------------------
   function Obj_FormFX(conf, obj, data, refresh, mouse) 
     if not data.fx then return end
@@ -312,8 +356,9 @@
         xFX = data.ext_data[data.GUID][data.fx[i].GUID].x
         yFX = data.ext_data[data.GUID][data.fx[i].GUID].y
       end
-      
-      local hFX = obj.module_h*math.max(data.fx[i].inpins, data.fx[i].outpins)-1
+      local cntpins = math.max(data.fx[i].inpins, data.fx[i].outpins)
+      cntpins = math.min(cntpins, data.chan_lim)
+      local hFX = obj.module_h*cntpins-1
       obj['fx_'..i] ={ clear = true,
                     x = xFX,
                     y = yFX,
@@ -326,34 +371,57 @@
                     a_frame =obj.module_a_frame,
                     alpha_back = obj.module_alpha_back,
                     func =  function() 
-                              mouse.drag_obj = CopyTable(obj['fx_'..i])
+                              mouse.drag_obj = {CopyTable(obj['fx_'..i])}
+                              local cnt, ids_table = Obj_CountSelectedObjects(conf, obj, data, refresh, mouse)
+                              if cnt > 1 then
+                                mouse.drag_obj = {}
+                                for sel_fx = 1, cnt do
+                                  mouse.drag_obj[#mouse.drag_obj+1] = CopyTable(obj[ids_table[sel_fx]])
+                                end
+                               else
+                                Obj_ResetSelection(conf, obj, data, refresh, mouse) 
+                                obj['fx_'..i].is_selected = true
+                                refresh.GUI_minor = true
+                              end
                             end,
+                    func_trigCtrl =  function() 
+                              obj['fx_'..i].is_selected = true
+                              refresh.GUI_minor = true
+                            end,                            
+                            
                     func_LD2 =  function()
-                                  local newpos_x = mouse.drag_obj.x + mouse.dx
-                                  local newpos_y = mouse.drag_obj.y + mouse.dy
-                                  
-                                  if conf.snapFX == 1 then
-                                    local multx = math.modf(newpos_x/conf.snap_px)
-                                    newpos_x = conf.snap_px * multx
-                                    local multy = math.modf(newpos_y/conf.snap_px)
-                                    newpos_y = conf.snap_px * multy
+                                  if not mouse.drag_obj then return end
+                                  for drag_t = 1, #mouse.drag_obj do
+                                    local i = mouse.drag_obj[drag_t].context:match('fx_(%d+)')
+                                    if i and tonumber(i) then i = tonumber(i) end
+                                    if i and obj['fx_'..i] then
+                                      
+                                      local newpos_x = mouse.drag_obj[drag_t].x + mouse.dx
+                                      local newpos_y = mouse.drag_obj[drag_t].y + mouse.dy
+                                      
+                                      if conf.snapFX == 1 then
+                                        local multx = math.modf(newpos_x/conf.snap_px)
+                                        newpos_x = conf.snap_px * multx
+                                        local multy = math.modf(newpos_y/conf.snap_px)
+                                        newpos_y = conf.snap_px * multy
+                                      end
+                                      
+                                      -- temporary limits before scroll/middle drag implemented
+                                        local lim_edge = 60
+                                        newpos_x = lim(newpos_x, lim_edge, gfx.w - obj.fxmod_w-lim_edge)
+                                        newpos_y = lim(newpos_y, obj.topline_h, gfx.h - hFX)
+                                        
+                                        obj['fx_'..i].x = newpos_x
+                                        obj['fx_'..i].y = newpos_y
+                                        Obj_FormFXPins(conf, obj, data, refresh, mouse, i, true) 
+                                      
+                                      if not data.ext_data then data.ext_data = {} end
+                                      if not data.ext_data[data.GUID] then data.ext_data[data.GUID] = {} end
+                                      if not data.ext_data[data.GUID][data.fx[i].GUID] then data.ext_data[data.GUID][data.fx[i].GUID] = {} end
+                                      data.ext_data[data.GUID][data.fx[i].GUID].x = newpos_x
+                                      data.ext_data[data.GUID][data.fx[i].GUID].y = newpos_y
+                                    end
                                   end
-                                  
-                                  -- temporary limits before scroll/middle drag implemented
-                                    local lim_edge = 60
-                                    newpos_x = lim(newpos_x, lim_edge, gfx.w - obj.fxmod_w-lim_edge)
-                                    newpos_y = lim(newpos_y, obj.topline_h, gfx.h - hFX)
-                                    
-                                  obj['fx_'..i].x = newpos_x
-                                  obj['fx_'..i].y = newpos_y
-                                  Obj_FormFXPins(conf, obj, data, refresh, mouse, i, true) 
-                                  
-                                  if not data.ext_data then data.ext_data = {} end
-                                  if not data.ext_data[data.GUID] then data.ext_data[data.GUID] = {} end
-                                  if not data.ext_data[data.GUID][data.fx[i].GUID] then data.ext_data[data.GUID][data.fx[i].GUID] = {} end
-                                  data.ext_data[data.GUID][data.fx[i].GUID].x = newpos_x
-                                  data.ext_data[data.GUID][data.fx[i].GUID].y = newpos_y
-                                  
                                   refresh.GUI_minor = true
                                   
                                 end,
@@ -410,7 +478,7 @@
   end
   ---------------------------------------------------
   function Obj_FormFXPins(conf, obj, data, refresh, mouse, fx_id, refresh_pos_only)
-      for inpin = 1,  data.fx[fx_id].inpins do
+      for inpin = 1,  math.min(data.fx[fx_id].inpins, data.chan_lim) do
         if refresh_pos_only then
           obj['mod_fx_'..fx_id..'_I_'..inpin].x = obj['fx_'..fx_id].x-obj.trIO_w-1
           obj['mod_fx_'..fx_id..'_I_'..inpin].y = obj['fx_'..fx_id].y + (inpin-1)*obj.trIO_h
@@ -423,16 +491,31 @@
                       h = obj.trIO_h-1,
                       col = 'white',
                       txt= inpin,
+                      is_pin = true,
                       show = true,
                       fontsz = obj.GUI_fontsz3,
                       a_frame =obj.module_a_frame,
                       alpha_back = obj.module_alpha_back,
+                      func_LD = function() refresh.GUI_minor = true end,
                       func =  function() 
                                 Obj_MarkConnections(conf, obj, data, refresh, mouse) 
                                 if not obj[pkey].wire then obj[pkey].wire = {} end
                                 local temp_t = obj[pkey].wire
                                 temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
                               end,                      
+                      func_mouseover =  function()
+                                          local str = ''
+                                          for key in pairs(obj) do if type(obj[key]) == 'table' then
+                                            if obj[key].wire then 
+                                              for wire = 1, #obj[key].wire do
+                                                if obj[key].wire[wire].dest == pkey then
+                                                  str = str..key..'\n'
+                                                end
+                                              end
+                                            end
+                                          end end  
+                                          obj.tooltip = str
+                                        end ,                              
                       func_L_Alt = function() 
                                       Undo_BeginBlock()
                                       for chan = 1, data.trchancnt do SetPin(data.tr, fx_id, 0, inpin, chan, 0) end
@@ -452,7 +535,7 @@
         end 
       end   
       
-      for outpin = 1,  data.fx[fx_id].outpins do
+      for outpin = 1,  math.min(data.fx[fx_id].outpins, data.chan_lim) do
         if refresh_pos_only then
           obj['mod_fx_'..fx_id..'_O_'..outpin].x = obj['fx_'..fx_id].x+obj['fx_'..fx_id].w+1
           obj['mod_fx_'..fx_id..'_O_'..outpin].y = obj['fx_'..fx_id].y + (outpin-1)*obj.trIO_h
@@ -464,11 +547,13 @@
                       w = obj.trIO_w,
                       h = obj.trIO_h-1,
                       col = 'white',
+                      is_pin = true,
                       txt= outpin,
                       show = true,
                       fontsz = obj.GUI_fontsz3,
                       a_frame =obj.module_a_frame,
                       alpha_back = obj.module_alpha_back,
+                      func_LD = function() refresh.GUI_minor = true end,
                       func_L_Alt = function() 
                                       for chan = 1, data.trchancnt do SetPin(data.tr, fx_id, 1, outpin, chan, 0) end
                                       refresh.data = true
@@ -511,7 +596,7 @@
   ---------------------------------------------------
   function Obj_FormWires_trO(conf, obj, data, refresh, mouse) 
     -- scan channels from output side
-      for chan = 1, data.trchancnt do
+      for chan = 1, math.min(data.trchancnt,data.chan_lim) do
         local channel_bit = 2^(chan-1)
         local has_linked_to_fx = false
         for fx = #data.fx, 1, -1 do
@@ -536,7 +621,7 @@
         if data.fx[fx_id].pins and data.fx[fx_id].pins.I then
           for pinI = 1, #data.fx[fx_id].pins.I do
             local pinmaskI = data.fx[fx_id].pins.I[pinI]
-            for channel = 1, data.trchancnt do
+            for channel = 1, math.min(data.trchancnt,data.chan_lim) do
               local channel_bit = 2^(channel-1)
               if pinmaskI&channel_bit==channel_bit then
                 
@@ -571,7 +656,7 @@
   ---------------------------------------------------
   function Obj_FormWires_trI(conf, obj, data, refresh, mouse)     
     -- scan channels from input side
-      for chan = 1, data.trchancnt do
+      for chan = 1, math.min(data.trchancnt,data.chan_lim) do
         local channel_bit = 2^(chan-1)
         
         --[[local has_linked_to_fx = false

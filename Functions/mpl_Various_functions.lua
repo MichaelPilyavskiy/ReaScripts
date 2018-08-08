@@ -2,20 +2,31 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.11
+-- @version 1.12
 -- @changelog
---    + MPL_ReduceFXname()
+--    # use GetTrackStateChunk with REAPER 5.93+
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
   ------------------------------------------------------------------------------------------------------
   function eugen27771_GetObjStateChunk(obj)
-    if not obj then return end
-    local fast_str, chunk
-    fast_str = SNM_CreateFastString("")
-    if SNM_GetSetObjectState(obj, fast_str, false, false) then chunk = SNM_GetFastString(fast_str) end
-    SNM_DeleteFastString(fast_str)  
-    return chunk
+    
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if vrs_num >= 5.93 then 
+      if  ValidatePtr2( 0, obj, 'MediaTrack*' ) then
+        local retval, chunk = GetTrackStateChunk( obj, '', false )
+        return chunk
+      end
+     else
+      if not obj then return end
+      local fast_str, chunk
+      fast_str = SNM_CreateFastString("")
+      if SNM_GetSetObjectState(obj, fast_str, false, false) then chunk = SNM_GetFastString(fast_str) end
+      SNM_DeleteFastString(fast_str)  
+      return chunk    
+    end
+    
   end 
   ------------------------------------------------------------------------------------------------------
   function literalize(str) -- http://stackoverflow.com/questions/1745448/lua-plain-string-gsub
