@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="56a4687c29dce067d1047bf40d42f8ff0bf2ff0c" name="MPL Scripts">
+<index version="1" commit="0206efdc18c133ef0010d09704a84a420385eff4" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -312,6 +312,10 @@
       <version name="1.11" author="MPL" time="2018-08-04T17:00:12Z">
         <changelog><![CDATA[+ MPL_ReduceFXname()]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f59b4f0d83a50a34c2494440b1a03784e3c65c0a/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.12" author="MPL" time="2018-08-08T05:47:30Z">
+        <changelog><![CDATA[# use GetTrackStateChunk with REAPER 5.93+]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0206efdc18c133ef0010d09704a84a420385eff4/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
@@ -971,6 +975,23 @@
         <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56a4687c29dce067d1047bf40d42f8ff0bf2ff0c/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
         <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56a4687c29dce067d1047bf40d42f8ff0bf2ff0c/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
         <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56a4687c29dce067d1047bf40d42f8ff0bf2ff0c/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
+      </version>
+      <version name="1.06" author="MPL" time="2018-08-08T05:47:30Z">
+        <changelog><![CDATA[# using TrackFX_CopyToTrack/TrackFX_Delete instead chunking: supported REAPER now 5.93pre3+
++ Selecting FX [t.me/mplscripts_chat]
++ Group moving FX [t.me/mplscripts_chat]
++ Delete key remove selected FX [t.me/mplscripts_chat]
++ display tooltip for inputs
++ redesign tooltip to internal GUI
+# reduce GUI minor refresh
+# fix show on drag wire for track output
+# fix check Various_functions
+# temporary limit channel count to 32]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0206efdc18c133ef0010d09704a84a420385eff4/FX/mpl_WiredChain%20(background).lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0206efdc18c133ef0010d09704a84a420385eff4/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0206efdc18c133ef0010d09704a84a420385eff4/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0206efdc18c133ef0010d09704a84a420385eff4/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0206efdc18c133ef0010d09704a84a420385eff4/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_XYPad (background).lua" type="script" desc="XYPad">
