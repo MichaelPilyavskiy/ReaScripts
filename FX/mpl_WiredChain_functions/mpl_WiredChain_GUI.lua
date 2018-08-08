@@ -258,7 +258,7 @@
             line = '...'..line
           end
           if o.txt2 then line = o.txt2..' '..line end
-          gfx.x = x+ math.ceil((w-gfx.measurestr(line))/2)
+          gfx.x = x+ math.floor((w-gfx.measurestr(line))/2)
           gfx.y = y+ (h-gfx.texth)/2 + y_shift 
           if o.aligh_txt then
             if o.aligh_txt&1==1 then gfx.x = x  end -- align left
@@ -298,7 +298,11 @@
           if wire_t.wiretype == 0 then -- audio
             col(obj, obj.audiowire_col,obj.audiowire_a)
           end
-          if wire_t.dest and obj[wire_t.dest] then 
+          if wire_t.dest 
+            and obj[wire_t.dest] 
+            and obj[wire_t.dest].x 
+            and obj[wire_t.dest].y 
+            and obj[wire_t.dest].h then 
             gfx.line(x+w,y+h/2,obj[wire_t.dest].x, obj[wire_t.dest].y+obj[wire_t.dest].h/2)
            else
             -- drag mouse

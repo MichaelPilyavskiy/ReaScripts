@@ -70,14 +70,19 @@
   ---------------------------------------------------    
   function Data_BuildRouting_Audio(conf, obj, data, refresh, mouse, routing_t )
     local src_t, dest_t = Data_ParseRouteStr(routing_t)
-    local dest_chan = dest_t.chan
     
-    local dest_chan0
-    if conf.autoroutestereo == 1 then dest_chan0 = dest_chan + 1 end    
-    if dest_chan0 > data.trchancnt then SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', dest_chan0 + dest_chan0 % 2 ) end
+       
+    if dest_t.chan > data.trchancnt then SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', dest_t.chan + dest_t.chan % 2 ) end
+    if conf.autoroutestereo == 1 then if dest_t.chan+1 > data.trchancnt then SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', dest_t.chan+1 + (dest_t.chan+1) % 2 ) end end
     
     -- link beetween FX
     if  src_t.isFX and dest_t.isFX then 
+      -- clear output destination channel in other pins on source FX
+      for outpin = 1, data.fx[src_t.FXid].outpins do
+        SetPin(data.tr, src_t.FXid, 1, outpin, dest_t.chan, 0)
+        if conf.autoroutestereo == 1 then SetPin(data.tr, src_t.FXid, 1, outpin, dest_t.chan+1, 0) end
+      end
+      
       if src_t.FXid < dest_t.FXid then -- valid FX order
       
         -- set on destination channel for source FX      
@@ -94,14 +99,14 @@
           if conf.autoroutestereo == 1 then SetPin(data.tr, dest_t.FXid, 0, dest_t.chan+1,dest_t.chan+1, 1) end
           
         -- clear output destination channel in beetween
-        if dest_t.FXid - src_t.FXid > 1 then
-          for fx_id = src_t.FXid+1, dest_t.FXid do
-            for pin_id = 1, data.fx[fx_id].outpins do
-              SetPin(data.tr, fx_id, 1, pin_id, dest_t.chan, 0)
-              if conf.autoroutestereo == 1 then SetPin(data.tr, fx_id, 1, pin_id+1, dest_t.chan+1, 0) end
+          if dest_t.FXid - src_t.FXid > 1 then
+            for fx_id = src_t.FXid+1, dest_t.FXid do
+              for pin_id = 1, data.fx[fx_id].outpins do
+                SetPin(data.tr, fx_id, 1, pin_id, dest_t.chan, 0)
+                if conf.autoroutestereo == 1 then SetPin(data.tr, fx_id, 1, pin_id+1, dest_t.chan+1, 0) end
+              end
             end
           end
-        end
         
        elseif src_t.FXid > dest_t.FXid then-- invalid order
         local inc = src_t.FXid-dest_t.FXid
@@ -307,7 +312,9 @@
                     inpins=inpins,
                     outpins =outpins,
                     pins = pins,
-                    chantopins = chantopins
+                    chantopins = chantopins,
+                    offline = TrackFX_GetOffline(tr,i-1),
+                    enabled = TrackFX_GetEnabled(tr,i-1),
                   }
     end
   end    

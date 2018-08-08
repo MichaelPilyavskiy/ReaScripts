@@ -363,8 +363,8 @@
   --------------------------------------------------------------   
   function Widgets_Track_fxlist(data, obj, mouse, x_offs)
     if not data.tr[1].fx_names or #data.tr[1].fx_names < 1 then return end
-    local fxlist_w = 130 
-    local fxlist_state = 20
+    local fxlist_w = 120 
+    local fxlist_state = 30
     if x_offs + fxlist_w > obj.persist_margin then return x_offs end 
     local fxid = lim(math.modf(data.curent_trFXID),1, #data.tr[1].fx_names)
     obj.b.obj_fxlist_back1 = { x = x_offs,
@@ -407,8 +407,10 @@
                                 func_wheel =  function() Apply_TrackFXListChange(data, mouse.wheel_trig) end, 
                                 func = function () Apply_TrackFXListChange_floatFX(data, mouse, data.tr[1].fx_names[i].is_enabled) end              }   
       local txt,txt_col
-      if not data.tr[1].fx_names[i].is_enabled then 
-        txt ='X' 
+      if not data.tr[1].fx_names[i].is_enabled or not data.tr[1].fx_names[i].is_online then 
+        txt = ''
+        if not data.tr[1].fx_names[i].is_enabled then txt ='B ' end
+        if not data.tr[1].fx_names[i].is_online then txt = txt..'O' end
         txt_col = 'red'
        else 
         txt =i 
@@ -439,6 +441,13 @@
     local fx_id = lim( math.modf(data.curent_trFXID), 1 ,#data.tr[1].fx_names) 
     if mouse.Shift then 
       TrackFX_SetEnabled( data.tr[1].ptr, fx_id-1, not state)
+     elseif mouse.Ctrl then 
+      local vrs_num =  GetAppVersion()
+      local vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+      if vrs_num >= 5.93 then      
+        local offl_state = TrackFX_GetOffline(data.tr[1].ptr, fx_id-1)
+        TrackFX_SetOffline(data.tr[1].ptr, fx_id-1, not offl_state)
+      end
      else
       TrackFX_Show( data.tr[1].ptr, fx_id-1, 3 )
     end

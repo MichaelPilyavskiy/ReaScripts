@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,20 +9,19 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    # using TrackFX_CopyToTrack/TrackFX_Delete instead chunking: supported REAPER now 5.93pre3+
---    + Selecting FX [t.me/mplscripts_chat]
---    + Group moving FX [t.me/mplscripts_chat]
---    + Delete key remove selected FX [t.me/mplscripts_chat]
---    + display tooltip for inputs
---    + redesign tooltip to internal GUI
---    # reduce GUI minor refresh
---    # fix show on drag wire for track output
---    # fix check Various_functions
---    # temporary limit channel count to 32
+--    + Shift+click selection support [t.me/mplscripts_chat] 
+--    + Show FX indexes
+--    + Float FX button [p=2020564]
+--    + Bypass toggle [p=2020564]
+--    + Offline toggle [p=2020564]
+--    + Option to not 3+ channel pins and wires of track output
+--    # clear sends to destination channel when drag wire from FX to FX [p=2020476]
+--    # fix auto adding channel in auto_route_further_channel mode [t.me/mplscripts_chat] 
+--    # clear wires dropped on empty space on mouse release [p=2020476]
+--    # increase Y space for init/rearranging FX
 
 
-
-  local vrs = 'v1.06'
+  local vrs = 'v1.07'
   --NOT gfx NOT reaper
   
   
@@ -37,7 +36,7 @@
                     data_proj = false,
                     conf = false}
   local mouse = {}
-  local data = {}
+  data = {}
   local obj = {}
   
   ---------------------------------------------------  
@@ -69,6 +68,7 @@
             
             -- data
             autoroutestereo = 0,
+            reducetrackouts = 0,
             
             -- GUI
             snapFX = 1,

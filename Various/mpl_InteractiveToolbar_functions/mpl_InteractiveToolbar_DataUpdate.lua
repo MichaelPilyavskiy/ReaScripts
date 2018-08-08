@@ -657,10 +657,15 @@
         if i ==1 then
           data.tr[i].fx_names= {}
           local instr = TrackFX_GetInstrument( tr )
-          for fxid = 1, TrackFX_GetCount( tr ) do          
+          for fxid = 1, TrackFX_GetCount( tr ) do 
+            local vrs_num =  GetAppVersion()
+            local vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+            local is_online = true 
+            if vrs_num >= 5.93 then is_online = not TrackFX_GetOffline( tr, fxid-1 )  end      
             data.tr[i].fx_names[fxid] = {name = MPL_ReduceFXname(({TrackFX_GetFXName( tr, fxid-1, '' )})[2]),
                                           is_instr = instr==fxid-1,
-                                          is_enabled =  TrackFX_GetEnabled( tr, fxid-1 )}
+                                          is_enabled =  TrackFX_GetEnabled( tr, fxid-1 ),
+                                          is_online =  is_online}
           end
         end
         

@@ -1525,6 +1525,7 @@
                                                               local ret, MIDI_name_ret = reaper.GetUserInputs( conf.scr_title, 1, 'Rename MIDI note,extrawidth=200', MIDI_name )
                                                               if ret then
                                                                 SetTrackMIDINoteNameEx( 0, data[note][1].src_track, note, 0, MIDI_name_ret)
+                                                                SetTrackMIDINoteNameEx( 0, data.parent_track, note, 0, MIDI_name_ret)
                                                               end
                                                             end},
                                                   { str =   'Remove pad content',

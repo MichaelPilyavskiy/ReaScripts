@@ -131,6 +131,11 @@
                                and mouse.cap == 5
                                and is_mouse_over
            if mouse.onclick_LCtrl and obj[key].func_trigCtrl then obj[key].func_trigCtrl() end
+           mouse.onclick_LShift = mouse.LMB_state 
+                               and not mouse.last_LMB_state 
+                               and mouse.cap == 9
+                               and is_mouse_over
+           if mouse.onclick_LShift and obj[key].func_trigShift then obj[key].func_trigShift() end           
                  ------------------------              
            mouse.onclick_LAlt = not mouse.last_LMB_state 
                                and mouse.cap == 17   -- alt + lclick
@@ -197,9 +202,12 @@
     MOUSE_Mod_ToolTips(conf, obj, data, refresh, mouse)
     
     if not MOUSE_Match(mouse, {x=0,y=0,w=gfx.w, h=gfx.h}) then obj.tooltip = '' end
+    
+    
      -- mouse release    
       if mouse.last_LMB_state and not mouse.LMB_state   then   
         mouse.drag_obj = nil
+        if mouse.context_latch and  mouse.context_latch:match('mod_') then refresh.GUI = true end
         -- clear context
         mouse.context_latch = ''
         mouse.context_latch_val = -1

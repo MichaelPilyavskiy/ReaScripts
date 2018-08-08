@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.72
+-- @version 1.73
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -10,10 +10,10 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
 -- @changelog
---    # fix error on nil note name [p=2018463]
+--    # when rename MIDI Note name, also rename parent track
 
 
-  local vrs = 'v1.72'
+  local vrs = 'v1.73'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
