@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f796fb7ee80aec7289d049eabde20aa2ffe11c25" name="MPL Scripts">
+<index version="1" commit="12f642994cdc098eb6572d2fd8991dc7e6b2a43b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1011,6 +1011,14 @@
         <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cec561562bdc2447c4c10c164202856c8604fa37/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
         <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cec561562bdc2447c4c10c164202856c8604fa37/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
         <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cec561562bdc2447c4c10c164202856c8604fa37/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
+      </version>
+      <version name="1.09" author="MPL" time="2018-08-10T15:24:08Z">
+        <changelog><![CDATA[# route FX to FX: fix clear destination FX output channels when there are FX in beetween [p=2021358]]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/12f642994cdc098eb6572d2fd8991dc7e6b2a43b/FX/mpl_WiredChain%20(background).lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/12f642994cdc098eb6572d2fd8991dc7e6b2a43b/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/12f642994cdc098eb6572d2fd8991dc7e6b2a43b/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/12f642994cdc098eb6572d2fd8991dc7e6b2a43b/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/12f642994cdc098eb6572d2fd8991dc7e6b2a43b/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_XYPad (background).lua" type="script" desc="XYPad">
