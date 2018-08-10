@@ -77,6 +77,7 @@
     
     -- link beetween FX
     if  src_t.isFX and dest_t.isFX then 
+    
       -- clear output destination channel in other pins on source FX
       for outpin = 1, data.fx[src_t.FXid].outpins do
         SetPin(data.tr, src_t.FXid, 1, outpin, dest_t.chan, 0)
@@ -100,7 +101,7 @@
           
         -- clear output destination channel in beetween
           if dest_t.FXid - src_t.FXid > 1 then
-            for fx_id = src_t.FXid+1, dest_t.FXid do
+            for fx_id = src_t.FXid+1, dest_t.FXid-1 do
               for pin_id = 1, data.fx[fx_id].outpins do
                 SetPin(data.tr, fx_id, 1, pin_id, dest_t.chan, 0)
                 if conf.autoroutestereo == 1 then SetPin(data.tr, fx_id, 1, pin_id+1, dest_t.chan+1, 0) end

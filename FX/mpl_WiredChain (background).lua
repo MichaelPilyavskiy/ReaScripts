@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,11 +9,10 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    + Movable track IO
---    + Middle drag move whole structure, click on XY offsets reset view shifting
+--    # route FX to FX: fix clear destination FX output channels when there are FX in beetween [p=2021358]
 
 
-  local vrs = 'v1.08'
+  local vrs = 'v1.09'
   --NOT gfx NOT reaper
   
   

@@ -87,8 +87,6 @@
     func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
   { str = 'Cockos Forum thread',
     func = function() Open_URL('http://forum.cockos.com/showthread.php?t=209768') end  } , 
-  { str = 'MPL scripts Telegram chat',
-    func = function() Open_URL('http://web.telegram.org/mplscripts_chat') end  } ,     
   { str = 'MPL on VK',
     func = function() Open_URL('http://vk.com/mpl57') end  } ,     
   { str = 'MPL on SoundCloud|<|',
