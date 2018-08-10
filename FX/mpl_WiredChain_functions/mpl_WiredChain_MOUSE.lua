@@ -77,7 +77,7 @@
     mouse.is_moving = mouse.last_x and mouse.last_y and (mouse.last_x ~= mouse.x or mouse.last_y ~= mouse.y)
     mouse.wheel_trig = mouse.last_wheel and (mouse.wheel - mouse.last_wheel) 
     mouse.wheel_on_move = mouse.wheel_trig and mouse.wheel_trig ~= 0
-    if mouse.LMB_state and not mouse.last_LMB_state then  
+    if (mouse.LMB_state and not mouse.last_LMB_state) or (mouse.MMB_state and not mouse.last_MMB_state) then  
        mouse.last_x_onclick = mouse.x     
        mouse.last_y_onclick = mouse.y 
        mouse.LMB_state_TS = os.clock()
@@ -91,7 +91,11 @@
                         and mouse.LMB_state_TS -mouse.last_LMB_state_TS < d_click 
 
   
-     if mouse.last_x_onclick and mouse.last_y_onclick then mouse.dx = mouse.x - mouse.last_x_onclick  mouse.dy = mouse.y - mouse.last_y_onclick else mouse.dx, mouse.dy = 0,0 end
+     if mouse.last_x_onclick and mouse.last_y_onclick then 
+      mouse.dx = mouse.x - mouse.last_x_onclick  mouse.dy = mouse.y - mouse.last_y_onclick 
+     else 
+      mouse.dx, mouse.dy = 0,0 
+    end
    
 
         -- loop with break
@@ -215,7 +219,27 @@
         --Main_OnCommand(NamedCommandLookup('_BR_FOCUS_ARRANGE_WND'),0)
         refresh.GUI_minor = true
       end
+    
+    -- Middle drag
+      if mouse.MMB_state and not mouse.last_MMB_state then       
+        mouse.context_latch_t = {x= conf.struct_xshift,
+                                y= conf.struct_yshift}
+      end
       
+      if mouse.MMB_state and mouse.last_MMB_state and  mouse.is_moving then 
+        conf.struct_xshift = mouse.context_latch_t.x  + mouse.dx
+        conf.struct_yshift = mouse.context_latch_t.y + mouse.dy
+        refresh.GUI = true
+        refresh.conf = true
+      end
+            
+
+      if not mouse.MMB_state and mouse.last_MMB_state then
+        mouse.context_latch_t = nil
+        refresh.GUI = true
+        refresh.conf = true
+      end
+          
       mouse.last_context = mouse.context
        mouse.last_x = mouse.x
        mouse.last_y = mouse.y

@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,19 +9,11 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    + Shift+click selection support [t.me/mplscripts_chat] 
---    + Show FX indexes
---    + Float FX button [p=2020564]
---    + Bypass toggle [p=2020564]
---    + Offline toggle [p=2020564]
---    + Option to not 3+ channel pins and wires of track output
---    # clear sends to destination channel when drag wire from FX to FX [p=2020476]
---    # fix auto adding channel in auto_route_further_channel mode [t.me/mplscripts_chat] 
---    # clear wires dropped on empty space on mouse release [p=2020476]
---    # increase Y space for init/rearranging FX
+--    + Movable track IO
+--    + Middle drag move whole structure, click on XY offsets reset view shifting
 
 
-  local vrs = 'v1.07'
+  local vrs = 'v1.08'
   --NOT gfx NOT reaper
   
   
@@ -35,8 +27,8 @@
                     data = false,
                     data_proj = false,
                     conf = false}
-  local mouse = {}
-  data = {}
+  local  mouse = {}
+   data = {}
   local obj = {}
   
   ---------------------------------------------------  
@@ -73,6 +65,8 @@
             -- GUI
             snapFX = 1,
             snap_px = 10, -- snap FX when drag
+            struct_xshift = 0,
+            struct_yshift = 0,
             
             }
     return t
@@ -83,6 +77,8 @@
     GUI_fontsz2 = GUI_fontsz2 - 5 
     GUI_fontsz3 = GUI_fontsz3 - 4
   end ]] 
+  
+  
   ---------------------------------------------------    
   function run()
     obj.clock = os.clock()
@@ -100,7 +96,7 @@
       Data_Update_ExtState_ProjData_Save (conf, obj, data, refresh, mouse)
       ExtState_Save(conf)
       refresh.conf = nil end
-    if refresh.data_proj == true then ExtState_ProjData_Load (conf, obj, data, refresh, mouse, ext_data) refresh.data_proj = nil end
+    if refresh.data_proj == true then Data_Update_ExtState_ProjData_Load (conf, obj, data, refresh, mouse) refresh.data_proj = nil end
     if refresh.GUI == true or refresh.GUI_onStart == true then OBJ_Update              (conf, obj, data, refresh, mouse) end  
     if refresh.GUI_minor == true then refresh.GUI = true end
     GUI_draw               (conf, obj, data, refresh, mouse)    

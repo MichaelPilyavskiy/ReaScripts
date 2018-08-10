@@ -237,43 +237,46 @@
       if o.is_knob then GUI_knob(obj, o) end
   
     ------------------ txt
-      if o.txt and w > 5 then 
-        local w0 = w -2
-        if o.limtxtw then w0 = w - o.limtxtw end
-        local txt = tostring(o.txt)
-        if o.txt_col then 
-          col(obj, o.txt_col, o.alpha_txt or 0.8)
-         else
-          col(obj, 'white', o.alpha_txt or 0.8)
-        end
-        local f_sz = obj.GUI_fontsz
-        gfx.setfont(1, obj.GUI_font,o.fontsz or obj.GUI_fontsz )
-        local y_shift = -1
-        local cnt_lines = 0 for line in txt:gmatch('[^\r\n]+') do cnt_lines = cnt_lines + 1 end
-        local cnt = -1
-        for line in txt:gmatch('[^\r\n]+') do
-          cnt = cnt + 1 
-          if gfx.measurestr(line:sub(2)) > w0 -2 and w0 > 20 then 
-            repeat line = line:sub(2) until gfx.measurestr(line..'...')< w0 -2
-            line = '...'..line
+    -- text 
+      local txt
+      if not o.txt then txt = '' else txt = tostring(o.txt) end
+      --if not o.txt then txt = '>' else txt = o.txt..'|' end
+      ------------------ txt
+        if txt and w > 0 then 
+          if o.txt_col then col(obj, o.txt_col)else col(obj, 'white') end
+          if o.txt_a then 
+            gfx.a = o.txt_a 
+            if o.outside_buf then gfx.a = o.txt_a*0.8 end
+           else 
+            gfx.a = 0.8 
           end
-          if o.txt2 then line = o.txt2..' '..line end
-          gfx.x = x+ math.floor((w-gfx.measurestr(line))/2)
-          gfx.y = y+ (h-gfx.texth)/2 + y_shift 
-          if o.aligh_txt then
-            if o.aligh_txt&1==1 then gfx.x = x  end -- align left
-            if o.aligh_txt>>2&1==1 then gfx.y = y + y_shift end -- align top
-            if o.aligh_txt>>4&1==1 then gfx.y = h - gfx.texth*cnt_lines + cnt*gfx.texth end -- align bot
+          gfx.setfont(1, obj.GUI_font, o.fontsz or obj.GUI_fontsz )
+          local shift = 2
+          local cnt = 0
+          for line in txt:gmatch('[^\r\n]+') do cnt = cnt + 1 end
+          local com_texth = gfx.texth*cnt
+          local i = 0
+          local reduce1, reduce2 = 2, nil
+          if o.aligh_txt and o.aligh_txt&8==8 then reduce1, reduce2 = 0,-2 end
+          for line in txt:gmatch('[^\r\n]+') do
+            if gfx.measurestr(line:sub(2)) > w -5 and w > 20 then 
+              repeat line = line:sub(reduce1, reduce2) until gfx.measurestr(line..'...') < w -5
+              if o.aligh_txt and o.aligh_txt&8==8 then line = line..'...'
+                else line = '...'..line end
+            end
+            gfx.x = x+ math.ceil((w-gfx.measurestr(line))/2)
+            gfx.y = y+ h/2 - com_texth/2 + i*gfx.texth
+            if o.aligh_txt then
+              if o.aligh_txt&1==1 then gfx.x = x + shift  end -- align left
+              if o.aligh_txt&2==2 then gfx.y = y + i*gfx.texth end -- align top
+              if o.aligh_txt&4==4 then gfx.y = h - com_texth+ i*gfx.texth-shift end -- align bot
+              if o.aligh_txt&8==8 then gfx.x = x + w - gfx.measurestr(line) - shift end -- align right
+            end
+            gfx.drawstr(line)
+            --shift = shift + gfx.texth
+            i = i + 1
           end
-          if o.bot_al_txt then 
-            gfx.y = y+ h-gfx.texth-3 +y_shift
-          end
-          if gfx.y + gfx.texth > y + h then break end
-          gfx.y = gfx.y + 1 
-          gfx.drawstr(line)
-          y_shift = y_shift + gfx.texth
-        end
-      end
+        end                
 
 
       
