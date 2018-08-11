@@ -244,9 +244,14 @@
         if obj.textbox.match_t 
           and obj.textbox.matched_id
           and obj.textbox.match_t [obj.textbox.matched_id] then
-            local name = obj.textbox.match_t [obj.textbox.matched_id]
-            TrackFX_AddByName( data.tr, name, false, -1 )
+            local name = obj.textbox.match_t [obj.textbox.matched_id].name
+            local plugtype = obj.textbox.match_t [obj.textbox.matched_id].plugtype
+            local reduced_name = obj.textbox.match_t [obj.textbox.matched_id].reduced_name
+            if plugtype == 4 then name = 'JS:'..name end
+            ret = TrackFX_AddByName( data.tr, name, false, -1 )
+            if ret < 0 and reduced_name then  TrackFX_AddByName( data.tr, reduced_name, false, -1 ) end
             local new_GUID =  TrackFX_GetFXGUID( data.tr, #data.fx )
+            if ret< 0  then goto skip_replace end
             
             if obj.textbox.is_replace then
               local fx_id = obj.textbox.is_replace +1
@@ -254,14 +259,10 @@
               MPL_HandleFX(data.tr, #data.fx, 2, -(#data.fx-fx_id)+1)
               -- set pins
               if data.fx[fx_id].inpins then 
-                for pin = 1, data.fx[fx_id].inpins do
-                  TrackFX_SetPinMappings( data.tr, fx_id-1, 0, pin-1 , data.fx[fx_id].pins.I[pin], 0)
-                end
+                for pin = 1, data.fx[fx_id].inpins do  TrackFX_SetPinMappings( data.tr, fx_id-1, 0, pin-1 , data.fx[fx_id].pins.I[pin], 0)  end
               end
               if data.fx[fx_id].outpins then 
-                for pin = 1, data.fx[fx_id].outpins do
-                  TrackFX_SetPinMappings( data.tr, fx_id-1, 1, pin-1 , data.fx[fx_id].pins.O[pin], 0)
-                end
+                for pin = 1, data.fx[fx_id].outpins do TrackFX_SetPinMappings( data.tr, fx_id-1, 1, pin-1 , data.fx[fx_id].pins.O[pin], 0)  end
               end  
               -- handle_xy    
               if obj['fx_'..fx_id] then
@@ -270,9 +271,20 @@
                 data.ext_data[data.GUID][new_GUID].x = obj['fx_'..fx_id].x
                 data.ext_data[data.GUID][new_GUID].y = obj['fx_'..fx_id].y
                 Data_Update_ExtState_ProjData_Save (conf, obj, data, refresh, mouse)
-              end        
+              end 
+              
+                
+             else -- NOT replace
+              if new_GUID then
+                if not data.ext_data[data.GUID] then data.ext_data[data.GUID] = {} end
+                if not data.ext_data[data.GUID][new_GUID] then data.ext_data[data.GUID][new_GUID] = {} end
+                data.ext_data[data.GUID][new_GUID].x = mouse.x - conf.struct_xshift
+                data.ext_data[data.GUID][new_GUID].y = mouse.y - conf.struct_yshift
+                Data_Update_ExtState_ProjData_Save (conf, obj, data, refresh, mouse)      
+              end             
             end
             
+          ::skip_replace::
           obj.textbox.enable = false
           refresh.GUI = true
           refresh.data = true

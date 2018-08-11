@@ -65,13 +65,19 @@
   function Obj_EnumeratePlugins(conf, obj, data, refresh, mouse)
     obj.plugs_data = {}
     local res_path = GetResourcePath()
-    Obj_EnumeratePlugins_VST(conf, obj, data, refresh, mouse, res_path)
-
+    Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-vstplugins.ini',  '%=.*%,(.*)', 0)
+    Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-vstplugins64.ini',  '%=.*%,(.*)', 0)
+    Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-dxplugins.ini',  'Name=(.*)', 2)  
+    Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-dxplugins64.ini',  'Name=(.*)', 2) 
+    Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-auplugins.ini',  'AU%s%"(.-)%"', 3) 
+    Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-auplugins64.ini',  'AU%s%"(.-)%"', 3)  
+    Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-jsfx.ini',  'NAME (.-)%s', 4) 
   end
+
   --------------------------------------------------------------------
-  function Obj_EnumeratePlugins_VST(conf, obj, data, refresh, mouse, res_path)
+  function Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, file, pat, plugtype)
     -- validate file
-      local fp = res_path..'/'..'reaper-vstplugins.ini'
+      local fp = res_path..file
       local f = io.open(fp, 'r')
       local content
       if f then 
@@ -86,13 +92,20 @@
       if not obj.plugs_data then obj.plugs_data = {} end
     -- parse
       for line in content:gmatch('[^\r\n]+') do
-        local str = line:match('%=.*%,(.*)')
+        local str = line:match(pat)
+        if plugtype == 4 and line:match('NAME "') then
+          str = line:match('NAME "(.-)"') 
+          --str = str:gsub('.jsfx','')
+        end
         if str then 
-          local plugtype = 0
-          if str:match('!!!VSTi') then plugtype = 1 end
-          str = str:gsub('!!!VSTi','')
-          --str = str:gsub('%s%(.*%)', '')
-          obj.plugs_data[#obj.plugs_data+1] = {name = str, plugtype = plugtype}
+          if str:match('!!!VSTi') and plugtype == 0 then             
+            plugtype = 1 
+          end
+          str = str:gsub('!!!VSTi',' VSTi')
+          --if plugtype == 3 then  if str:match('%:.*') then str = str:match('%:(.*)') end    end
+          obj.plugs_data[#obj.plugs_data+1] = {name = str, 
+                                                --reduced_name = name:match('.*[%/\\](.-)'),
+                                                plugtype = plugtype}
         end
       end
   end  
@@ -126,7 +139,7 @@
       for key in pairs(matched_words) do matched_words_cnt = matched_words_cnt + 1 end
 
       if matched_words_cnt >= box_wrds then
-        obj.textbox.match_t[#obj.textbox.match_t+1] = plugname
+        obj.textbox.match_t[#obj.textbox.match_t+1] = obj.plugs_data[i]
       end
       if #obj.textbox.match_t > results_lim then break end
     end
@@ -213,7 +226,7 @@
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
 
     if not data.tr then return end
-    obj.fxsearch_w = 0.3*gfx.w
+    obj.fxsearch_w = 0.4*gfx.w
     obj.fxsearch_h = 0.8*gfx.h
     obj.fxsearch_x = math.floor((gfx.w - obj.fxsearch_w ) / 2) 
     obj.fxsearch_y = math.floor((gfx.h - obj.fxsearch_h ) / 2) 

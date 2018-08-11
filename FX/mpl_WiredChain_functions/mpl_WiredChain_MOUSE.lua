@@ -200,7 +200,7 @@
     
     local addfx_context
     if obj.textbox.enable then
-      MOUSE_Match(mouse, {x = obj.fxsearch_x ,
+      addfx_context = MOUSE_Match(mouse, {x = obj.fxsearch_x ,
                                                                y = obj.fxsearch_y ,
                                                                w = obj.fxsearch_w,
                                                                h = obj.fxsearch_h })
@@ -208,12 +208,7 @@
     
     if addfx_context and obj.textbox.enable  then 
       if obj.textbox.match_t then 
-        local val =  ( #obj.textbox.match_t+2) * mouse.y/(obj.fxsearch_h-obj.offs)
-        val = math.floor(val) - 1
-        if val >= 1 and val <= #obj.textbox.match_t then 
-          obj.textbox.matched_id = val   
-          refresh.GUI_minor = true      
-        end
+        MOUSE_ContextAddFX(conf, obj, data, refresh, mouse, commit)
       end
     end
     
@@ -227,17 +222,8 @@
           refresh.GUI = true
         elseif obj.textbox.enable and addfx_context then
                                                                
-                                                               
-          --obj.textbox.match_t = 
-          if obj.textbox.match_t then 
-            local val =  ( #obj.textbox.match_t+2) * mouse.y/(obj.fxsearch_h-obj.offs)
-            val = math.floor(val) - 1
-            if val >= 1 and val <= #obj.textbox.match_t then 
-              obj.textbox.matched_id = val
-              Data_AddReplaceFX(conf, obj, data, refresh, mouse)
-              refresh.GUI_minor = true     
-            end
-          end     
+                                            
+          if obj.textbox.match_t then  MOUSE_ContextAddFX(conf, obj, data, refresh, mouse, true)       end
         end
       end
       
@@ -323,4 +309,15 @@
        mouse.last_LMB_state_TS = mouse.LMB_state_TS
        --mouse.DLMB_state = nil  
         
+   end
+   --------------------------------------------------
+   function MOUSE_ContextAddFX(conf, obj, data, refresh, mouse, commit)
+     local cnt = math.floor((obj.fxsearch_h-obj.offs*2)/obj.fxsearch_item_h )
+     local val =  (mouse.y-obj.fxsearch_y)/(obj.fxsearch_h-obj.fxsearch_y)
+     val = math.floor(val* cnt)
+     if val >= 1 and val <= #obj.textbox.match_t then 
+       obj.textbox.matched_id = val 
+       if commit then Data_AddReplaceFX(conf, obj, data, refresh, mouse) end
+       refresh.GUI_minor = true      
+     end
    end

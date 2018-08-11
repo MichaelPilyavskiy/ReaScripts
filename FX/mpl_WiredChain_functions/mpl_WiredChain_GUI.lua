@@ -523,7 +523,7 @@
       local limw = obj.fxsearch_w - obj.offs*4
       if obj.textbox.match_t then
         for i = 1, #obj.textbox.match_t do
-          local txt = obj.textbox.match_t[i]
+          local txt = obj.textbox.match_t[i].name
           if gfx.measurestr(txt) > limw then 
             local len = string.len(txt)
             for i = len, 1, -1 do

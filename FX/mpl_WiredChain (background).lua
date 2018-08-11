@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.11
+-- @version 1.12
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,9 +9,10 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    # fix moving FX 1 position before when replacing FX
+--    + Add/Replace FX: support for VST64, AU32/64, DX32/64, JSFX
+--    + Add/Replace FX: set XY position to mouse position (scroll compensated) for newly added FX
 
-  local vrs = 'v1.11'
+  local vrs = 'v1.12'
   --NOT gfx NOT reaper
   
   
