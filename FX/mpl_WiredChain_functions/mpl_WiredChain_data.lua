@@ -251,7 +251,7 @@
             if obj.textbox.is_replace then
               local fx_id = obj.textbox.is_replace +1
               MPL_HandleFX(data.tr, fx_id, 1)
-              MPL_HandleFX(data.tr, #data.fx, 2, -(#data.fx-fx_id))
+              MPL_HandleFX(data.tr, #data.fx, 2, -(#data.fx-fx_id)+1)
               -- set pins
               if data.fx[fx_id].inpins then 
                 for pin = 1, data.fx[fx_id].inpins do

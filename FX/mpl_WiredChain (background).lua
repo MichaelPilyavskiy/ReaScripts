@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,19 +9,9 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    + Add/Replace FX action, called by menu item or Enter, closed by escape or click at empty area
---    + Actions moved to right click menu
---    + Actions/Select bypassed FX
---    + Actions/Select offline FX
---    + Action/Various FX reposition
---    + Add solo FX buttons (bypass others)
---    # rename 'bypass' to 'mute'
---    # tooltip indentation improvements
---    # wrap FX names
---    # snap to halfed pin height
---    # routing performance improvements
+--    # fix moving FX 1 position before when replacing FX
 
-  local vrs = 'v1.10'
+  local vrs = 'v1.11'
   --NOT gfx NOT reaper
   
   
