@@ -129,7 +129,7 @@
     end 
   end
   ---------------------------------------------------
-  function GUI_DrawObj(obj, o, mouse) 
+  function GUI_DrawObj(obj, o, mouse)
     if not o then return end
     local x,y,w,h, txt = o.x, o.y, o.w, o.h, o.txt
     --[[
@@ -178,7 +178,7 @@
     if o.cymb then 
       if o.cymb_a then gfx.a = o.cymb_a end
       local edgesz = math.min(w,h)
-      gfx.blit( 11, 1, 0, -- grad back
+      gfx.blit( 11, 1, 0, 
                 100*o.cymb,0,  100,100,
                 x + (w- edgesz)/2,
                 y + (h- edgesz)/2,
@@ -258,24 +258,48 @@
           local i = 0
           local reduce1, reduce2 = 2, nil
           if o.aligh_txt and o.aligh_txt&8==8 then reduce1, reduce2 = 0,-2 end
-          for line in txt:gmatch('[^\r\n]+') do
-            if gfx.measurestr(line:sub(2)) > w -5 and w > 20 then 
-              repeat line = line:sub(reduce1, reduce2) until gfx.measurestr(line..'...') < w -5
-              if o.aligh_txt and o.aligh_txt&8==8 then line = line..'...'
-                else line = '...'..line end
+            local txt_t = {}
+            
+            if not o.txt_wrap then 
+              for line in txt:gmatch('[^\r\n]+') do txt_t[#txt_t+1] = line end
+             else
+              for line in txt:gmatch('[^\r\n]+') do 
+                if gfx.measurestr(line) > w -5 then 
+                  local str = ''
+                  for symb = 1, string.len(line) do
+                    str = str..line:sub(symb,symb)
+                    if gfx.measurestr(str) > w -5 then 
+                      txt_t[#txt_t+1] = str
+                      str = ''
+                    end
+                  end
+                  txt_t[#txt_t+1] = str
+                 else
+                  txt_t[#txt_t+1] = line
+                end   
+              end
             end
-            gfx.x = x+ math.ceil((w-gfx.measurestr(line))/2)
-            gfx.y = y+ h/2 - com_texth/2 + i*gfx.texth
-            if o.aligh_txt then
-              if o.aligh_txt&1==1 then gfx.x = x + shift  end -- align left
-              if o.aligh_txt&2==2 then gfx.y = y + i*gfx.texth end -- align top
-              if o.aligh_txt&4==4 then gfx.y = h - com_texth+ i*gfx.texth-shift end -- align bot
-              if o.aligh_txt&8==8 then gfx.x = x + w - gfx.measurestr(line) - shift end -- align right
+            
+            local comy_shift = ((#txt_t-1) * gfx.texth)/2
+            for lineid = 1, #txt_t do
+              local line = txt_t[lineid]
+              if gfx.measurestr(line:sub(2)) > w -5 and w > 20 then                 
+                repeat line = line:sub(reduce1, reduce2) until gfx.measurestr(line..'...') < w -5
+                if o.aligh_txt and o.aligh_txt&8==8 then line = line..'...' else line = '...'..line end                
+              end
+              gfx.x = x+ math.ceil((w-gfx.measurestr(line))/2)
+              gfx.y = y+ h/2 - com_texth/2 + i*gfx.texth - comy_shift
+              if o.aligh_txt then
+                if o.aligh_txt&1==1 then gfx.x = x + shift  end -- align left
+                if o.aligh_txt&2==2 then gfx.y = y + i*gfx.texth end -- align top
+                if o.aligh_txt&4==4 then gfx.y = h - com_texth+ i*gfx.texth-shift end -- align bot
+                if o.aligh_txt&8==8 then gfx.x = x + w - gfx.measurestr(line) - shift end -- align right
+              end
+              gfx.drawstr(line)
+              --shift = shift + gfx.texth
+              i = i + 1
             end
-            gfx.drawstr(line)
-            --shift = shift + gfx.texth
-            i = i + 1
-          end
+            
         end                
 
 
@@ -324,8 +348,16 @@
     
     -- highlight
     if o.is_selected then
-      col(obj, 'white', 0.3)
-      gfx.rect(x,y,w,h,1)
+      col(obj, 'white', 0.4)
+      --gfx.rect(x,y,w,h,1)
+      gfx.a = 0.8
+      local h0 = math.floor(h/2)
+      gfx.blit( 3, 1, math.rad(180), -- grad back
+                0,0,  obj.grad_sz,obj.grad_sz,
+                x,y,w,h0, 0,0)  
+      gfx.blit( 3, 1, 0, -- grad back
+                0,0,  obj.grad_sz,obj.grad_sz,
+                x,y+h0,w,h0, 0,0)                  
     end
     
     -- is_marked_pin on drag
@@ -362,78 +394,178 @@
             
   end
   ---------------------------------------------------
-  function GUI_drawTooltip(conf, obj, data, refresh, mouse)
-    gfx.set(0.2,0.2,0.2,0.9)
-    local x_offs= 5
-    local tt_w = 100
-    local tt_h = 90
-    local x,y,w,h = mouse.x-tt_w-x_offs*2, mouse.y, tt_w, tt_h
-    
-    x = lim(x, obj.trIO_x_offset+obj.trIO_w+ x_offs, gfx.w -tt_w)
-    y = lim(y, obj.topline_h, gfx.h - tt_h)
+  function GUI_darkBack(x,y,w,h)
+    gfx.set(0.2,0.2,0.2,0.9)    
     gfx.rect(x,y,w,h,1)
     gfx.set(1,1,1,0.2)
     gfx.rect(x,y,w,h,0)
+  end
+  ---------------------------------------------------
+  function GUI_drawTooltip(conf, obj, data, refresh, mouse)
+    local x_offs= 10
+    local tt_w = 190
+    local tt_h = 90
+    local x,y=mouse.x+x_offs, mouse.y+x_offs
+    local w,h = tt_w, tt_h
     
+    if x + tt_w  > gfx.w then x = mouse.x - tt_w - x_offs end
+    if y + tt_h  > gfx.h then y = gfx.h - tt_h end
+    
+    GUI_darkBack(x,y,w,h)
     gfx.setfont(1, obj.GUI_font,obj.GUI_fontsz_tooltip )
     gfx.set(1,1,1,0.8)
     gfx.x, gfx.y = x+5,y+5
     gfx.drawstr(obj.tooltip_str)
   end  
-  ---------------------------------------------------
-  function GUI_draw(conf, obj, data, refresh, mouse)
-    gfx.mode = 0
-    
-    -- 1 back
-    -- 2 gradient
-    -- 3 smpl browser blit
-    -- 4 stepseq 
-    -- 5 gradient steps
-    -- 6 WaveForm
-    -- 10 sample keys
-    -- 11 symbols
-    
-    --  init
-      if refresh.GUI_onStart then
-        -- com grad
-        gfx.dest = 2
-        gfx.setimgdim(2, -1, -1)  
-        gfx.setimgdim(2, obj.grad_sz,obj.grad_sz)  
-        local r,g,b,a = 1,1,1,0.72
+  ---------------------------------------------------  
+  function GUI_gradBack(conf, obj, data, refresh, mouse)
+    -- com grad
+    gfx.dest = 2
+    gfx.setimgdim(2, -1, -1)  
+    gfx.setimgdim(2, obj.grad_sz,obj.grad_sz)  
+    local r,g,b,a = 1,1,1,0.72
+    gfx.x, gfx.y = 0,0
+    local c = 0.8
+    local drdx = c*0.00001
+    local drdy = c*0.00001
+    local dgdx = c*0.00008
+    local dgdy = c*0.0001    
+    local dbdx = c*0.00008
+    local dbdy = c*0.00001
+    local dadx = c*0.0001
+    local dady = c*0.0001       
+    gfx.gradrect(0,0, obj.grad_sz,obj.grad_sz, 
+                    r,g,b,a, 
+                    drdx, dgdx, dbdx, dadx, 
+                    drdy, dgdy, dbdy, dady) 
+  end
+    ---------------------------------------------------  
+  function GUI_gradDrawObj(conf, obj, data, refresh, mouse)
+    gfx.dest = 5
+    gfx.setimgdim(5, -1, -1)  
+    gfx.setimgdim(5, obj.grad_sz,obj.grad_sz)  
+    local r,g,b,a = 1,1,1,0.5
+    gfx.x, gfx.y = 0,0
+    local c = 1
+    local drdx = c*0.001
+    local drdy = c*0.01
+    local dgdx = c*0.001
+    local dgdy = c*0.001    
+    local dbdx = c*0.00008
+    local dbdy = c*0.001
+    local dadx = c*0.001
+    local dady = c*0.001       
+    gfx.gradrect(0,0, obj.grad_sz,obj.grad_sz, 
+                    r,g,b,a, 
+                    drdx, dgdx, dbdx, dadx, 
+                    drdy, dgdy, dbdy, dady) 
+                    gfx.dest = -1  
+  end    
+  ---------------------------------------------------  
+  function GUI_gradSelection(conf, obj, data, refresh, mouse)
+        gfx.dest = 3
+        gfx.setimgdim(3, -1, -1)  
+        gfx.setimgdim(3, obj.grad_sz,obj.grad_sz)  
+        local r,g,b,a = 1,1,1,0.2
         gfx.x, gfx.y = 0,0
         local c = 0.8
         local drdx = c*0.00001
         local drdy = c*0.00001
         local dgdx = c*0.00008
-        local dgdy = c*0.0001    
+        local dgdy = c*0.00001    
         local dbdx = c*0.00008
         local dbdy = c*0.00001
-        local dadx = c*0.0001
-        local dady = c*0.0001       
+        local dadx = c*0.0005
+        local dady = c*0.003       
         gfx.gradrect(0,0, obj.grad_sz,obj.grad_sz, 
                         r,g,b,a, 
                         drdx, dgdx, dbdx, dadx, 
-                        drdy, dgdy, dbdy, dady) 
-        -- steps grad
-        gfx.dest = 5
-        gfx.setimgdim(5, -1, -1)  
-        gfx.setimgdim(5, obj.grad_sz,obj.grad_sz)  
-        local r,g,b,a = 1,1,1,0.5
-        gfx.x, gfx.y = 0,0
-        local c = 1
-        local drdx = c*0.001
-        local drdy = c*0.01
-        local dgdx = c*0.001
-        local dgdy = c*0.001    
-        local dbdx = c*0.00008
-        local dbdy = c*0.001
-        local dadx = c*0.001
-        local dady = c*0.001       
-        gfx.gradrect(0,0, obj.grad_sz,obj.grad_sz, 
-                        r,g,b,a, 
-                        drdx, dgdx, dbdx, dadx, 
-                        drdy, dgdy, dbdy, dady) 
-                        gfx.dest = -1  
+                        drdy, dgdy, dbdy, dady)  
+  end    
+  ---------------------------------------------------   
+  function GUI_drawSearchFX(conf, obj, data, refresh, mouse)  
+    local fsz =  obj.GUI_fontsz2
+    gfx.setfont(1, obj.GUI_font, fsz )
+    
+    local x = obj.fxsearch_x 
+    local y = obj.fxsearch_y 
+    local w = obj.fxsearch_w
+    local h = obj.fxsearch_h
+    GUI_darkBack(x,y,w,h)
+    
+    local search_box_x = x+obj.offs
+    local search_box_y = y+obj.offs
+    local search_box_w = w-obj.offs*2
+    local search_box_h = obj.fxsearch_item_h
+    local alpha  = math.abs((os.clock()%1) -0.5)
+    --  draw frame
+      gfx.set(  1,1,1,  0.05,  0) --rgb a mode
+      gfx.rect(search_box_x,search_box_y,search_box_w,search_box_h ,1) 
+      
+    -- active char
+      if obj.textbox.active_char ~= nil then
+        gfx.set(  1,1,1, alpha,  0) --rgb a mode
+        gfx.x = search_box_x +obj.offs -2 +
+                gfx.measurestr(obj.textbox.text:sub(0,obj.textbox.active_char))  
+        gfx.y = search_box_y
+        gfx.drawstr('|')
+      end  
+      
+    -- txt
+      gfx.x = search_box_x +obj.offs
+      gfx.y = search_box_y
+      gfx.set(  1,1,1, 0.8,  0) --rgb a mode
+      gfx.drawstr(obj.textbox.text)   
+      
+    -- draw results
+      local res_a = 0.9
+      local dec = res_a / (obj.fxsearch_h / (1+obj.fxsearch_item_h))
+      local limw = obj.fxsearch_w - obj.offs*4
+      if obj.textbox.match_t then
+        for i = 1, #obj.textbox.match_t do
+          local txt = obj.textbox.match_t[i]
+          if gfx.measurestr(txt) > limw then 
+            local len = string.len(txt)
+            for i = len, 1, -1 do
+              txt = txt:sub(0,i)
+              if gfx.measurestr(txt) < limw then break end
+            end
+          end
+          if search_box_y + obj.fxsearch_item_h * (i+1) > obj.fxsearch_y + obj.fxsearch_h then break end  
+          res_a = math.max(0, res_a -dec)
+          -- txt
+            gfx.x = search_box_x +obj.offs
+            gfx.y = search_box_y + obj.fxsearch_item_h * i
+            gfx.set(  1,1,1, res_a,  0) --rgb a mode
+            gfx.drawstr(txt)     
+        end        
+      end   
+      
+    -- draw match frame
+      if obj.textbox.text ~= '' and obj.textbox.matched_id then 
+        gfx.set(  0.8,1,0.8, 0.15,  0)
+        gfx.rect(search_box_x ,
+                 search_box_y + obj.fxsearch_item_h * obj.textbox.matched_id,
+                 search_box_w,
+                 search_box_h,
+                 0)
+      end 
+  end              
+    ---------------------------------------------------
+  function GUI_draw(conf, obj, data, refresh, mouse)
+    gfx.mode = 0
+    
+
+    -- 2 gradient back
+    --  3 grad selection
+    -- 5 gradient Draw Obj
+    -- 11 symbols
+    
+    --  init
+      if refresh.GUI_onStart then
+        GUI_gradBack(conf, obj, data, refresh, mouse)
+        GUI_gradDrawObj(conf, obj, data, refresh, mouse)
+        GUI_gradSelection(conf, obj, data, refresh, mouse)
         gfx.dest = 11
         gfx.setimgdim(11, -1, -1)  
         gfx.setimgdim(11, 1000,1000)  
@@ -481,8 +613,10 @@
         gfx.line(mouse.x-X, mouse.y+X,mouse.x+X, mouse.y-X)
       end
     
-    if obj.tooltip ~= '' and obj.tooltip_str then
-      GUI_drawTooltip(conf, obj, data, refresh, mouse) 
+    if obj.textbox and obj.textbox.enable then
+      GUI_drawSearchFX(conf, obj, data, refresh, mouse)
+     else
+      if obj.tooltip ~= '' and obj.tooltip_str then GUI_drawTooltip(conf, obj, data, refresh, mouse) end
     end
     
     refresh.GUI = nil

@@ -4,25 +4,48 @@
 -- @noindex
 
   ---------------------------------------------------
-  function ShortCuts(char, conf, obj, data, refresh, mouse)
-    if char == 6579564 then -- delete
-      Data_DeleteSelectedFX(conf, obj, data, refresh, mouse)
+  function ShortCuts(conf, obj, data, refresh, mouse)
+    if not obj.textbox.enable then
+      if mouse.char == 6579564 then -- delete
+        Data_DeleteSelectedFX(conf, obj, data, refresh, mouse)
+      end
+      if mouse.char == 32 then Main_OnCommandEx(40044, 0,0) end -- space: play/pause
+      if mouse.char == 13 then --enter
+        mouse.char = 0 
+        Obj_EnumeratePlugins(conf, obj, data, refresh, mouse)
+        obj.textbox.enable = true
+        obj.textbox.is_replace = false
+        refresh.GUI = true
+      end
+    end  
+    
+    
+    -- text box
+    if obj.textbox.enable then
+      if mouse.char == 27 then --escape
+        obj.textbox.enable = false
+        mouse.char = 0 
+        refresh.GUI = true
+      end     
+      
+      if mouse.char == 13 then --enter
+        mouse.char = 0
+        Data_AddReplaceFX(conf, obj, data, refresh, mouse)
+      end      
+      
     end
-    if char == 32 then Main_OnCommandEx(40044, 0,0) end -- space: play/pause
   end
   ---------------------------------------------------
   function MOUSE_Match(mouse, b)
     if not b then return end
-    if not b.mouse_offs_x then b.mouse_offs_x = 0 end 
-    if not b.mouse_offs_y then b.mouse_offs_y = 0 end
     if b.x and b.y and b.w and b.h then 
-      local state= mouse.x > b.x  + b.mouse_offs_x
-               and mouse.x < b.x+b.w + b.mouse_offs_x
-               and mouse.y > b.y - b.mouse_offs_y
-               and mouse.y < b.y+b.h - b.mouse_offs_y
+      local state= mouse.x > b.x
+               and mouse.x < b.x+b.w
+               and mouse.y > b.y
+               and mouse.y < b.y+b.h
       if state and not b.ignore_mouse then 
         mouse.context = b.context 
-        return true, (mouse.x - b.x- b.mouse_offs_x) / b.w
+        return true, (mouse.x - b.x) / b.w
       end
     end  
   end
@@ -34,34 +57,24 @@
       local strTT = obj.tooltip
       local str = ''
       for line in strTT:gmatch('[^\r\n]+') do
-        local t1, t2 
-        if mouse.context:match('_O_') then 
-          t1, t2 = Data_ParseRouteStr({dest = line})
-         else 
-          t1, t2 = Data_ParseRouteStr({src = line})
+        local t = obj[line]
+        if t and t.is_pin then
+          local pin = t.pin_idx
+          if t.pin_type == 1 then str = str..'track IO' end
+          if t.pin_type == 0 and pin then str = str..t.pin_idxFX..':'..data.fx[t.pin_idxFX].reducedname..' pin'..pin end
+          if t.pin_type == 1 and pin then str = str..' pin'..pin end
+          str = str..'\n'       
         end
-        local t
-        if t2 then t = t2 else t = t1 end
-        if not t then return end
-        --[[
-        if t2 then str = 'to '..str end
-        if t1 then str = 'from '..str end]]
-        local pin = t.chan
-        if not pin then pin = t.pin end
-        if not t.isFX then str = str..'track IO' end
-        if t.isFX and pin then str = str..t.FXid..':'..data.fx[tonumber(t.FXid)].reducedname..' pin'..pin end
-        if not t.isFX and pin then str = str..' pin'..pin end
-        str = str..'\n'
       end
       
-           obj.tooltip_str = str 
-      --local x, y = GetMousePosition()
-      --TrackCtl_SetToolTip( str, x+20, y+20, false ) 
+      obj.tooltip_str = str 
     end
   end
    ------------------------------------------------------------------------------------------------------
   function MOUSE(conf, obj, data, refresh, mouse)
     local d_click = 0.4
+    mouse.char =gfx.getchar() 
+    
     mouse.cap = gfx.mouse_cap
     mouse.x = gfx.mouse_x
     mouse.y = gfx.mouse_y
@@ -97,7 +110,7 @@
       mouse.dx, mouse.dy = 0,0 
     end
    
-
+    if obj.textbox.enable then goto skip_mouse_obj end
         -- loop with break
         for key in spairs(obj,function(t,a,b) return b < a end) do
          if type(obj[key]) == 'table' and not obj[key].ignore_mouse then
@@ -155,9 +168,8 @@
                                and mouse.context_latch == key
            if mouse.ondrag_LCtrl and obj[key].func_ctrlLD then obj[key].func_ctrlLD() end 
                  ------------------------
-           mouse.onclick_R = mouse.RMB_state 
+           mouse.onclick_R = mouse.cap == 2
                                and not mouse.last_RMB_state 
-                               and not mouse.Ctrl_state  
                                and is_mouse_over 
            if mouse.onclick_R and obj[key].func_R then obj[key].func_R() end
                  ------------------------                
@@ -176,11 +188,61 @@
        end
        
        ::skip_mouse_obj::
-    -- reset slecteion
-      if not mouse.last_LMB_state and mouse.cap == 1 and (not mouse.context or mouse.context == '' ) then
+      
+    if not mouse.context and mouse.cap == 2 and not mouse.last_RMB_state then 
+      if obj.textbox.enable then
+        obj.textbox.enable = false 
         refresh.GUI = true
+       else
+        Obj_Actions(conf, obj, data, refresh, mouse)  
       end
-     -- buttons
+    end  
+    
+    local addfx_context
+    if obj.textbox.enable then
+      MOUSE_Match(mouse, {x = obj.fxsearch_x ,
+                                                               y = obj.fxsearch_y ,
+                                                               w = obj.fxsearch_w,
+                                                               h = obj.fxsearch_h })
+    end
+    
+    if addfx_context and obj.textbox.enable  then 
+      if obj.textbox.match_t then 
+        local val =  ( #obj.textbox.match_t+2) * mouse.y/(obj.fxsearch_h-obj.offs)
+        val = math.floor(val) - 1
+        if val >= 1 and val <= #obj.textbox.match_t then 
+          obj.textbox.matched_id = val   
+          refresh.GUI_minor = true      
+        end
+      end
+    end
+    
+    -- reset selection/textbox
+      if not mouse.last_LMB_state and mouse.cap == 1  then
+        if not obj.textbox.enable and (not mouse.context or mouse.context == '' ) then 
+          obj.textbox.enable = false
+          refresh.GUI = true
+         elseif obj.textbox.enable and not addfx_context then
+          obj.textbox.enable = false
+          refresh.GUI = true
+        elseif obj.textbox.enable and addfx_context then
+                                                               
+                                                               
+          --obj.textbox.match_t = 
+          if obj.textbox.match_t then 
+            local val =  ( #obj.textbox.match_t+2) * mouse.y/(obj.fxsearch_h-obj.offs)
+            val = math.floor(val) - 1
+            if val >= 1 and val <= #obj.textbox.match_t then 
+              obj.textbox.matched_id = val
+              Data_AddReplaceFX(conf, obj, data, refresh, mouse)
+              refresh.GUI_minor = true     
+            end
+          end     
+        end
+      end
+      
+              
+     -- pins
         if mouse.context and mouse.context:match('mod_') then
           local do_upd_minor = false 
           for key in spairs(obj,function(t,a,b) return b < a end) do
@@ -207,7 +269,6 @@
     
     if not MOUSE_Match(mouse, {x=0,y=0,w=gfx.w, h=gfx.h}) then obj.tooltip = '' end
     
-    
      -- mouse release    
       if mouse.last_LMB_state and not mouse.LMB_state   then   
         mouse.drag_obj = nil
@@ -219,6 +280,8 @@
         --Main_OnCommand(NamedCommandLookup('_BR_FOCUS_ARRANGE_WND'),0)
         refresh.GUI_minor = true
       end
+    
+    
     
     -- Middle drag
       if mouse.MMB_state and not mouse.last_MMB_state then       
@@ -232,14 +295,20 @@
         refresh.GUI = true
         refresh.conf = true
       end
-            
 
       if not mouse.MMB_state and mouse.last_MMB_state then
         mouse.context_latch_t = nil
         refresh.GUI = true
         refresh.conf = true
       end
-          
+      
+    -- any key to refresh
+      if not mouse.last_char or mouse.last_char ~= mouse.char then 
+        refresh.GUI = true 
+      end
+      
+      
+      mouse.last_char =mouse.char
       mouse.last_context = mouse.context
        mouse.last_x = mouse.x
        mouse.last_y = mouse.y

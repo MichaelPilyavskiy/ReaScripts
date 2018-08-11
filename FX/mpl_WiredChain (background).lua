@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.09
+-- @version 1.10
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,10 +9,19 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    # route FX to FX: fix clear destination FX output channels when there are FX in beetween [p=2021358]
+--    + Add/Replace FX action, called by menu item or Enter, closed by escape or click at empty area
+--    + Actions moved to right click menu
+--    + Actions/Select bypassed FX
+--    + Actions/Select offline FX
+--    + Action/Various FX reposition
+--    + Add solo FX buttons (bypass others)
+--    # rename 'bypass' to 'mute'
+--    # tooltip indentation improvements
+--    # wrap FX names
+--    # snap to halfed pin height
+--    # routing performance improvements
 
-
-  local vrs = 'v1.09'
+  local vrs = 'v1.10'
   --NOT gfx NOT reaper
   
   
@@ -26,9 +35,15 @@
                     data = false,
                     data_proj = false,
                     conf = false}
-  local  mouse = {}
-   data = {}
-  local obj = {}
+  local mouse = {}
+  local data = {}
+  local  obj = {
+            plugs_data = {},
+            textbox = {
+                      --enable = true,
+                        },
+            
+          }
   
   ---------------------------------------------------  
   
@@ -95,14 +110,15 @@
       Data_Update_ExtState_ProjData_Save (conf, obj, data, refresh, mouse)
       ExtState_Save(conf)
       refresh.conf = nil end
-    if refresh.data_proj == true then Data_Update_ExtState_ProjData_Load (conf, obj, data, refresh, mouse) refresh.data_proj = nil end
+    --if refresh.data_proj == true then Data_Update_ExtState_ProjData_Load (conf, obj, data, refresh, mouse) refresh.data_proj = nil end
     if refresh.GUI == true or refresh.GUI_onStart == true then OBJ_Update              (conf, obj, data, refresh, mouse) end  
     if refresh.GUI_minor == true then refresh.GUI = true end
     GUI_draw               (conf, obj, data, refresh, mouse)    
                                                
-    local char =gfx.getchar()  
-    ShortCuts(char, conf, obj, data, refresh, mouse)
-    if char >= 0 and char ~= 27 then defer(run) else atexit(gfx.quit) end
+ 
+    ShortCuts(conf, obj, data, refresh, mouse)
+    if mouse.char >= 0 and mouse.char ~= 27 
+      then defer(run) else atexit(gfx.quit) end
   end
     
 
@@ -126,6 +142,7 @@
       reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
     end  
   end
+  ---------------------------------------------------
   function CheckReaperVrs(rvrs) 
     local vrs_num =  GetAppVersion()
     vrs_num = tonumber(vrs_num:match('[%d%.]+'))

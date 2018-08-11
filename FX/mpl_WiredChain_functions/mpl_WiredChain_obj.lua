@@ -15,6 +15,7 @@
     -- module
     obj.module_a_frame = 0.1   
     obj.module_alpha_back = 0.05
+    obj.module_alpha_back2= 0.49
         
     -- topline
     obj.menu_w = 50
@@ -29,7 +30,9 @@
     obj.fx_x_space = 50 -- defautf offset from IO when generating FX positions
     obj.fx_y_space = 110
     obj.fx_y_shift = 0 -- defautf shoft from IO when generating FX positions
-    obj.fxmod_w = 110
+    obj.fxmod_w = 120
+    
+    obj.fxsearch_item_h = 20
     
     -- wire
     obj.audiowire_col = 'green'
@@ -37,7 +40,7 @@
     
     -- font
     obj.GUI_font = 'Calibri'
-    obj.GUI_fontsz = 20  -- 
+    obj.GUI_fontsz = 19  -- 
     obj.GUI_fontsz2 = 15 -- 
     obj.GUI_fontsz3 = 13-- 
     obj.GUI_fontsz_tooltip = 13
@@ -58,13 +61,163 @@
     
     -- other
   end
+  --------------------------------------------------- 
+  function Obj_EnumeratePlugins(conf, obj, data, refresh, mouse)
+    obj.plugs_data = {}
+    local res_path = GetResourcePath()
+    Obj_EnumeratePlugins_VST(conf, obj, data, refresh, mouse, res_path)
+
+  end
+  --------------------------------------------------------------------
+  function Obj_EnumeratePlugins_VST(conf, obj, data, refresh, mouse, res_path)
+    -- validate file
+      local fp = res_path..'/'..'reaper-vstplugins.ini'
+      local f = io.open(fp, 'r')
+      local content
+      if f then 
+        content = f:read('a')
+        f:close()
+       else 
+        return 
+      end
+      if not content then return end
+      
+    -- create if not exist
+      if not obj.plugs_data then obj.plugs_data = {} end
+    -- parse
+      for line in content:gmatch('[^\r\n]+') do
+        local str = line:match('%=.*%,(.*)')
+        if str then 
+          local plugtype = 0
+          if str:match('!!!VSTi') then plugtype = 1 end
+          str = str:gsub('!!!VSTi','')
+          --str = str:gsub('%s%(.*%)', '')
+          obj.plugs_data[#obj.plugs_data+1] = {name = str, plugtype = plugtype}
+        end
+      end
+  end  
+    ---------------------------------------------------
+  function Obj_PluginSearch(conf, obj, data, refresh, mouse)
+    if not obj.textbox.active_char then obj.textbox.active_char = 0 end
+    Obj_PluginSearch_textbox(conf, obj, data, refresh, mouse)
+    if #obj.plugs_data>1 then
+      obj.textbox.match_t = {}
+      if not obj.textbox.matched_id then obj.textbox.matched_id = 1 end
+      Obj_PluginSearch_FormResults(conf, obj, data, refresh, mouse)
+    end
+  end
+  function Obj_PluginSearch_FormResults(conf, obj, data, refresh, mouse)
+    if not obj.textbox.text or obj.textbox.text == '' then return end
+    
+    local results_lim = math.floor(obj.fxsearch_h / obj.fxsearch_item_h )-3
+    local str_text = obj.textbox.text
+    local box_wrds = 0 for word_box in str_text:gmatch('[^%s]+') do box_wrds = box_wrds + 1 end
+    for i = 1, #obj.plugs_data do
+      local plugname = obj.plugs_data[i].name
+      local matched_words = {}
+      for word in plugname:gmatch('[^%s]+') do
+        for word_box in str_text:gmatch('[^%s]+') do
+          if word:lower():match(word_box:lower()) then 
+            matched_words[word] = true
+          end
+        end
+      end
+      local matched_words_cnt = 0
+      for key in pairs(matched_words) do matched_words_cnt = matched_words_cnt + 1 end
+
+      if matched_words_cnt >= box_wrds then
+        obj.textbox.match_t[#obj.textbox.match_t+1] = plugname
+      end
+      if #obj.textbox.match_t > results_lim then break end
+    end
+  end
+  ---------------------------------------------------
+  function Obj_PluginSearch_textbox(conf, obj, data, refresh, mouse)
+    local char = mouse.char
+    if not obj.textbox.text then obj.textbox.text = '' end
+    --if char ==  1919379572 or char == 1818584692 then return end -- Ctrl+ArrLeft/Right  
+    --msg(char)
+    if  -- regular input
+        (
+            (char >= 65 -- a
+            and char <= 90) --z
+            or (char >= 97 -- a
+            and char <= 122) --z
+            or ( char >= 212 -- A
+            and char <= 223) --Z
+            or ( char >= 48 -- 0
+            and char <= 57) --Z
+            or char == 95 -- _
+            or char == 44 -- ,
+            or char == 32 -- (space)
+            or char == 45 -- (-)
+        )
+        then        
+          obj.textbox.text = obj.textbox.text:sub(0,obj.textbox.active_char)..
+            string.char(char)..
+            obj.textbox.text:sub(obj.textbox.active_char+1)
+          obj.textbox.active_char = obj.textbox.active_char + 1
+          obj.textbox.matched_id = 1
+      end
+      
+      if char == 8 then -- backspace
+        obj.textbox.text = obj.textbox.text:sub(0,obj.textbox.active_char-1)..
+          obj.textbox.text:sub(obj.textbox.active_char+1)
+        obj.textbox.active_char = obj.textbox.active_char - 1
+        obj.textbox.matched_id = 1
+      end
+  
+      if char == 6579564 then -- delete
+        obj.textbox.text = obj.textbox.text:sub(0,obj.textbox.active_char)..
+          obj.textbox.text:sub(obj.textbox.active_char+2)
+        obj.textbox.active_char = obj.textbox.active_char
+        obj.textbox.matched_id = 1
+      end
+            
+      if char == 1818584692 then -- left arrow
+        obj.textbox.active_char = obj.textbox.active_char - 1
+      end
+      
+      if char == 1919379572 then -- right arrow
+        obj.textbox.active_char = obj.textbox.active_char + 1
+      end
+    
+      if char == 30064 then -- up 
+        obj.textbox.matched_id = lim(obj.textbox.matched_id - 1, 1, #obj.textbox.match_t)
+        refresh.GUI_minor = true
+       elseif char == 1685026670 then --down
+        obj.textbox.matched_id = lim(obj.textbox.matched_id + 1, 1, #obj.textbox.match_t)
+        refresh.GUI_minor = true
+      end
+      
+    if obj.textbox.active_char < 0 then obj.textbox.active_char = 0 end
+    if obj.textbox.active_char > obj.textbox.text:len()  then obj.textbox.active_char = obj.textbox.text:len() end
+  end
+  ---------------------------------------------------
+  function Obj_CascadeFX(conf, obj, data, refresh, mouse, shift_x)
+    local casc_y = 0
+    local x = obj.trIO_x_offset + obj.fxmod_w +  obj.fx_x_space
+    local y = obj.trIO_y
+    if shift_x then shift_x = 1 else shift_x = 0 end
+    
+    for i = 1, #data.fx do   
+      local cntpins = math.max(data.fx[i].inpins, data.fx[i].outpins)
+      if not data.ext_data[data.GUID][data.fx[i].GUID] then data.ext_data[data.GUID][data.fx[i].GUID] =  {} end
+      data.ext_data[data.GUID][data.fx[i].GUID].x = x + (obj.fx_x_space * (i-1))*shift_x
+      data.ext_data[data.GUID][data.fx[i].GUID].y = y + casc_y
+      casc_y = obj.trIO_h * (cntpins+1) + casc_y
+    end
+  end
   ---------------------------------------------------
   function OBJ_Update(conf, obj, data, refresh, mouse) 
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
 
     if not data.tr then return end
-
-                   
+    obj.fxsearch_w = 0.3*gfx.w
+    obj.fxsearch_h = 0.8*gfx.h
+    obj.fxsearch_x = math.floor((gfx.w - obj.fxsearch_w ) / 2) 
+    obj.fxsearch_y = math.floor((gfx.h - obj.fxsearch_h ) / 2) 
+    
         obj.menu = { clear = true,
                     x = 0,
                     y = 0,
@@ -90,47 +243,8 @@
   { str = 'MPL on VK',
     func = function() Open_URL('http://vk.com/mpl57') end  } ,     
   { str = 'MPL on SoundCloud|<|',
-    func = function() Open_URL('http://soundcloud.com/mp57') end  } ,     
+    func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
     
-    
-  { str = 'Rearrange FX',
-    func = function() 
-              data.ext_data[data.GUID] = {}
-              Data_Update_ExtState_ProjData_Save (conf, obj, data, refresh, mouse)
-              refresh.GUI = true 
-            end  
-  } ,     
-  { str = 'Clear ALL plugins pins',
-    func = function() 
-              Undo_BeginBlock()
-              for fx_id = 1, #data.fx do
-                for chan = 1, data.trchancnt do
-                  for pinI = 1, data.fx[fx_id].inpins do SetPin(data.tr, fx_id, 0, pinI, chan, 0)  end
-                  for pinO = 1, data.fx[fx_id].outpins do SetPin(data.tr, fx_id, 1, pinO, chan, 0)  end
-                end
-              end
-              Undo_EndBlock2(0, 'WiredChain - clear ALL pins', -1 )
-              refresh.data = true
-              refresh.GUI = true
-            end  
-  } , 
-  { str = 'Clear/Reset ALL plugins pins|',
-    func = function() 
-              Undo_BeginBlock()
-              for fx_id = 1, #data.fx do
-                for chan = 1, data.trchancnt do
-                  for pinI = 1, data.fx[fx_id].inpins do SetPin(data.tr, fx_id, 0, pinI, chan, 0)  end
-                  for pinO = 1, data.fx[fx_id].outpins do SetPin(data.tr, fx_id, 1, pinO, chan, 0)  end
-                end
-                for pinI = 1, data.fx[fx_id].inpins do SetPin(data.tr, fx_id, 0, pinI, pinI, 1)  end
-                for pinO = 1, data.fx[fx_id].outpins do SetPin(data.tr, fx_id, 1, pinO, pinO, 1)  end
-              end
-              Undo_EndBlock2(0, 'WiredChain - Reset ALL pins', -1 )
-              refresh.data = true
-              refresh.GUI = true
-            end  
-  } , 
-        
   { str = '#Options'},    
   { str = 'Snap FX on drag',  
     func =  function() conf.snapFX = math.abs(1-conf.snapFX)  end,
@@ -141,7 +255,10 @@
     state = conf.autoroutestereo == 1,
   } , 
   { str = 'Not interested in 3+ track channel outs|',  
-    func =  function() conf.reducetrackouts = math.abs(1-conf.reducetrackouts)  end,
+    func =  function() 
+              conf.reducetrackouts = math.abs(1-conf.reducetrackouts)  
+              refresh.GUI = true
+            end,
     state = conf.reducetrackouts == 1,
   } , 
   
@@ -158,21 +275,129 @@
 }
 )
                               refresh.conf = true 
-                              refresh.GUI = true
-                              refresh.GUI_onStart = true
+                              --refresh.GUI = true
+                              --refresh.GUI_onStart = true
                               refresh.data = true
                             end}  
                          
-    Obj_InfoLine(conf, obj, data, refresh, mouse)              
-                              
+    Obj_InfoLine(conf, obj, data, refresh, mouse)                                
     Obj_FormTrackIO(conf, obj, data, refresh, mouse) 
     Obj_FormTrackIOpins(conf, obj, data, refresh, mouse) 
     Obj_FormFX(conf, obj, data, refresh, mouse) 
     Obj_FormWires(conf, obj, data, refresh, mouse) 
+    
+    if obj.textbox.enable then
+      Obj_PluginSearch(conf, obj, data, refresh, mouse)
+    end
+    
     for key in pairs(obj) do if type(obj[key]) == 'table' then 
       obj[key].context = key 
     end end    
   end
+  ---------------------------------------------------
+  function Obj_Actions(conf, obj, data, refresh, mouse) 
+    Menu(mouse,               
+    {
+    { str = 'Add FX|',
+      func = function() 
+                Obj_EnumeratePlugins(conf, obj, data, refresh, mouse)
+                obj.textbox.enable = true
+                obj.textbox.is_replace = false
+                refresh.GUI = true 
+              end  
+    } ,     
+   
+    { str = 'FX positions: reset/initialize ',
+      func = function() 
+                data.ext_data[data.GUID] = {}
+                Data_Update_ExtState_ProjData_Save (conf, obj, data, refresh, mouse)
+                refresh.GUI = true 
+              end  
+    } ,   
+    { str = 'FX positions: cascade ',
+      func = function() 
+                data.ext_data[data.GUID] = {}
+                Obj_CascadeFX(conf, obj, data, refresh, mouse, true)
+                Data_Update_ExtState_ProjData_Save (conf, obj, data, refresh, mouse)
+                refresh.GUI = true 
+              end  
+    } ,     
+    { str = 'FX positions: align vertically|',
+      func = function() 
+                data.ext_data[data.GUID] = {}
+                Obj_CascadeFX(conf, obj, data, refresh, mouse)
+                Data_Update_ExtState_ProjData_Save (conf, obj, data, refresh, mouse)
+                refresh.GUI = true 
+              end  
+    } ,  
+    { str = 'Clear ALL plugins output pins',
+      func = function() 
+                Undo_BeginBlock()
+                for fx_id = 1, #data.fx do
+                  for chan = 1, data.trchancnt do
+                    for pinO = 1, data.fx[fx_id].outpins do SetPin(data.tr, fx_id, 1, pinO, chan, 0)  end
+                  end
+                end
+                Undo_EndBlock2(0, 'WiredChain - clear ALL pins', -1 )
+                refresh.data = true
+                refresh.GUI = true
+              end  
+    } ,     
+    { str = 'Clear ALL plugins pins',
+      func = function() 
+                Undo_BeginBlock()
+                for fx_id = 1, #data.fx do
+                  for chan = 1, data.trchancnt do
+                    for pinI = 1, data.fx[fx_id].inpins do SetPin(data.tr, fx_id, 0, pinI, chan, 0)  end
+                    for pinO = 1, data.fx[fx_id].outpins do SetPin(data.tr, fx_id, 1, pinO, chan, 0)  end
+                  end
+                end
+                Undo_EndBlock2(0, 'WiredChain - clear ALL pins', -1 )
+                refresh.data = true
+                refresh.GUI = true
+              end  
+    } , 
+    { str = 'Clear/Reset ALL plugins pins|',
+      func = function() 
+                Undo_BeginBlock()
+                for fx_id = 1, #data.fx do
+                  for chan = 1, data.trchancnt do
+                    for pinI = 1, data.fx[fx_id].inpins do SetPin(data.tr, fx_id, 0, pinI, chan, 0)  end
+                    for pinO = 1, data.fx[fx_id].outpins do SetPin(data.tr, fx_id, 1, pinO, chan, 0)  end
+                  end
+                  for pinI = 1, data.fx[fx_id].inpins do SetPin(data.tr, fx_id, 0, pinI, pinI, 1)  end
+                  for pinO = 1, data.fx[fx_id].outpins do SetPin(data.tr, fx_id, 1, pinO, pinO, 1)  end
+                end
+                Undo_EndBlock2(0, 'WiredChain - Reset ALL pins', -1 )
+                refresh.data = true
+                refresh.GUI = true
+              end  
+    } , 
+    { str = 'Select offline FX',
+      func = function() 
+                Obj_ResetSelection(conf, obj, data, refresh, mouse) 
+                for fx_id = 1, #data.fx do
+                  if data.fx[fx_id].offline then obj['fx_'..fx_id].is_selected = true end
+                end
+                refresh.GUI_minor = true
+              end  
+    } , 
+    { str = 'Select bypassed FX',
+      func = function() 
+                Obj_ResetSelection(conf, obj, data, refresh, mouse) 
+                for fx_id = 1, #data.fx do
+                  if not data.fx[fx_id].enabled then obj['fx_'..fx_id].is_selected = true end
+                end
+                refresh.GUI_minor = true
+              end  
+    } 
+    })
+    
+                                  refresh.conf = true 
+                                  --refresh.GUI = true
+                                  --refresh.GUI_onStart = true
+                                  refresh.data = true
+  end    
   ---------------------------------------------------  
   function Obj_InfoLine(conf, obj, data, refresh, mouse)  
     obj.trackname_w = (gfx.w - obj.menu_w ) *0.8                       
@@ -215,6 +440,7 @@
   end
   ---------------------------------------------------  
   function Obj_MarkConnections(conf, obj, data, refresh, mouse, mark_output) 
+    do return end
     for key in pairs(obj) do 
       if type(obj[key]) == 'table' then 
         if mark_output then
@@ -313,10 +539,13 @@
                                     local newpos_y = mouse.drag_obj[i].y + mouse.dy
                                         
                                     if conf.snapFX == 1 then
-                                      local multx = math.modf(newpos_x/conf.snap_px)
-                                      newpos_x = conf.snap_px * multx
-                                      local multy = math.modf(newpos_y/conf.snap_px)
-                                      newpos_y = conf.snap_px * multy
+                                      
+                                      local snap = obj.trIO_h/2--conf.snap_px
+                                      
+                                      local multx = math.modf(newpos_x/snap)
+                                      newpos_x = snap * multx
+                                      local multy = math.modf(newpos_y/snap)
+                                      newpos_y = snap * multy
                                     end
                                         
                                     --[[ temporary limits before scroll/middle drag implemented
@@ -333,6 +562,7 @@
                                       if not data.ext_data[data.GUID] then data.ext_data[data.GUID] = {} end
                                       
                                       local fxid = key:match('fx_(%d+)')
+                                      local ext_key
                                       if key:match('fx_%d+') and fxid then ext_key = data.fx[tonumber(fxid)].GUID 
                                         elseif key == 'trI' then ext_key = data.GUID..'I'
                                         elseif key == 'trO' then ext_key = data.GUID..'O'
@@ -360,14 +590,14 @@
   function Obj_FormTrackIOpins(conf, obj, data, refresh, mouse, refresh_pos_only) 
     for i = 1, math.min(data.trchancnt, data.chan_lim) do
       local pkey = 'mod_tr_0_O_'..i
-      local xpos = obj.trI.x+obj.trI.w
+      local xpos = obj.trI.x+obj.trI.w+1
       local ypos = obj.trI.y + (i-1)*obj.trIO_h
       if refresh_pos_only then
         obj[pkey].x = xpos
         obj[pkey].y = ypos
        else
         obj[pkey] ={ clear = true,
-                    x = xpos+1,
+                    x = xpos,
                     y = ypos,
                     w = obj.trIO_w,
                     h = obj.trIO_h-1,
@@ -375,6 +605,9 @@
                     txt= i,
                     show = true,
                     is_pin = true,
+                    pin_dir = 0,
+                    pin_type = 1,
+                    pin_idx = i,
                     fontsz = obj.GUI_fontsz3,
                     a_frame =obj.module_a_frame,
                     alpha_back = obj.module_alpha_back,
@@ -388,6 +621,23 @@
                               Obj_MarkConnections(conf, obj, data, refresh, mouse, true) 
                               refresh.GUI_minor = true
                             end,
+                      onrelease_L = function() 
+                                      Undo_BeginBlock()
+                                                Data_BuildRouting(conf, obj, data, refresh, mouse, { routingtype = 0,
+                                                                                                    dest = mouse.context_latch,
+                                                                                                    src = pkey
+                                                                                                    })  
+                                      Undo_EndBlock2( 0, 'WiredChain - rebuild pins', -1 )   
+                                    end     ,
+                        func_L_Alt = function() 
+                                        for fx_id = 1, #data.fx do 
+                                          for pinO = 1, data.fx[fx_id].outpins do
+                                            SetPin(data.tr, fx_id, 1, pinO, i, 0)
+                                          end
+                                        end
+                                        refresh.data = true
+                                        refresh.GUI = true
+                                      end,                             
                       func_mouseover =  function()
                                           if not obj[pkey].wire then return end
                                           local str = ''
@@ -409,6 +659,9 @@
                       txt= i,
                       show = true,
                       is_pin = true,
+                      pin_dir = 1,
+                      pin_type = 1,
+                      pin_idx = i,
                       fontsz = obj.GUI_fontsz3,
                       a_frame =obj.module_a_frame,
                       alpha_back = obj.module_alpha_back,
@@ -547,6 +800,7 @@
                     h = hFX,
                     col = 'white',
                     txt= i..'. '..data.fx[i].reducedname,
+                    txt_wrap = true,
                     show = true,
                     fontsz = obj.GUI_fontsz3,
                     a_frame =obj.module_a_frame,
@@ -578,47 +832,20 @@
                             
                     func_LD2 =  function()
                                   Obj_MouseDrag(conf, obj, data, refresh, mouse)
-                                  --[[
-                                  if not mouse.drag_obj then return end
-                                  for drag_t = 1, #mouse.drag_obj do
-                                    local i = mouse.drag_obj[drag_t].context:match('fx_(%d+)')
-                                    if i and tonumber(i) then i = tonumber(i) end
-                                    if i and obj['fx_'..i] then
-                                      
-                                      local newpos_x = mouse.drag_obj[drag_t].x + mouse.dx
-                                      local newpos_y = mouse.drag_obj[drag_t].y + mouse.dy
-                                      
-                                      if conf.snapFX == 1 then
-                                        local multx = math.modf(newpos_x/conf.snap_px)
-                                        newpos_x = conf.snap_px * multx
-                                        local multy = math.modf(newpos_y/conf.snap_px)
-                                        newpos_y = conf.snap_px * multy
-                                      end
-                                      
-                                      -- temporary limits before scroll/middle drag implemented
-                                        local lim_edge = 60
-                                        newpos_x = lim(newpos_x, lim_edge, gfx.w - obj.fxmod_w-lim_edge)
-                                        newpos_y = lim(newpos_y, obj.trIO_y, gfx.h - hFX)
-                                        
-                                        obj['fx_'..i].x = newpos_x
-                                        obj['fx_'..i].y = newpos_y
-                                        Obj_FormFXPins(conf, obj, data, refresh, mouse, i, true) 
-                                        Obj_FormFXButtons(conf, obj, data, refresh, mouse, i) 
-                                      if not data.ext_data then data.ext_data = {} end
-                                      if not data.ext_data[data.GUID] then data.ext_data[data.GUID] = {} end
-                                      if not data.ext_data[data.GUID][data.fx[i].GUID] then data.ext_data[data.GUID][data.fx[i].GUID] = {} end
-                                      data.ext_data[data.GUID][data.fx[i].GUID].x = newpos_x
-                                      data.ext_data[data.GUID][data.fx[i].GUID].y = newpos_y
-                                    end
-                                  end
-                                  refresh.GUI_minor = true
-                                  ]]
                                 end,
                     onrelease_L = function()
                                     refresh.conf = true
                                   end,
                     func_R = function()
-                                  Menu(mouse, { { str = 'Float FX',
+                                  Menu(mouse, { { str = 'Replace FX',
+                                                  func = function() 
+                                                            Obj_EnumeratePlugins(conf, obj, data, refresh, mouse)
+                                                            obj.textbox.enable = true
+                                                            obj.textbox.is_replace = i-1
+                                                            refresh.GUI = true 
+                                                          end  
+                                                } ,   
+                                                { str = 'Float FX',
                                                   func = function() TrackFX_Show( data.tr, i-1, 3 ) end},
                                                 { str = 'Duplicate FX',
                                                   func = function() 
@@ -687,15 +914,15 @@
     local alpha_txt = 0.2
     if not data.fx[i].enabled then 
       byp_a = obj.module_alpha_back2 
-      alpha_txt = 0.8
+      alpha_txt = 1
     end
     obj['fx_'..i..'_bypass'] ={ clear = true,
-                  x = obj['fx_'..i].x + (obj.trIO_w+1),
+                  x = obj['fx_'..i].x + (obj.trIO_w+1)*2,
                   y = obj['fx_'..i].y - obj.trIO_h,
                   w = obj.trIO_w,
                   h = obj.trIO_h-1,
                   col = 'red',
-                  txt= 'B',
+                  txt= 'M',
                   is_pin = true,
                   show = true,
                   fontsz = obj.GUI_fontsz3,
@@ -714,7 +941,7 @@
       off_a_txt = 0.8
     end                          
     obj['fx_'..i..'_offline'] ={ clear = true,
-                  x = obj['fx_'..i].x + (obj.trIO_w+1)*2,
+                  x = obj['fx_'..i].x + (obj.trIO_w+1),
                   y = obj['fx_'..i].y - obj.trIO_h,
                   w = obj.trIO_w,
                   h = obj.trIO_h-1,
@@ -730,7 +957,44 @@
                             TrackFX_SetOffline(data.tr,i-1, not data.fx[i].offline)
                             refresh.data = true
                             refresh.GUI = true
-                          end,  }   
+                          end,  } 
+    local sol_a = obj.module_alpha_back
+    if data.fx[i].is_solo then 
+      sol_a = obj.module_alpha_back2 
+    end                          
+    obj['fx_'..i..'_solo'] ={ clear = true,
+                  x = obj['fx_'..i].x + (obj.trIO_w+1)*3,
+                  y = obj['fx_'..i].y - obj.trIO_h,
+                  w = obj.trIO_w,
+                  h = obj.trIO_h-1,
+                  col = 'green',
+                  txt= 'S',
+                  is_pin = true,
+                  show = true,
+                  fontsz = obj.GUI_fontsz3,
+                  a_frame =obj.module_a_frame,
+                  alpha_back = sol_a,
+                  func =  function() 
+                            local state = data.fx[i].is_solo == true
+                            
+                            if state then 
+                              for i_fx = 1, #data.fx do
+                                TrackFX_SetEnabled(data.tr,i_fx-1, true)
+                              end
+                             else
+                              for i_fx = 1, #data.fx do
+                                if i_fx ~= i then 
+                                  TrackFX_SetEnabled(data.tr,i_fx-1, state)
+                                 else
+                                  TrackFX_SetEnabled(data.tr,i_fx-1, not state)
+                                end
+                              end
+                            end
+                            refresh.data = true
+                            refresh.GUI = true
+                          end,  }                           
+                          
+                            
                                                 
   end 
   ---------------------------------------------------
@@ -753,6 +1017,10 @@
                       col = 'white',
                       txt= inpin,
                       is_pin = true,
+                      pin_dir = 0,
+                      pin_type = 0,
+                      pin_idx = inpin,
+                      pin_idxFX = fx_id,
                       show = true,
                       fontsz = obj.GUI_fontsz3,
                       a_frame =obj.module_a_frame,
@@ -809,6 +1077,10 @@
                       h = obj.trIO_h-1,
                       col = 'white',
                       is_pin = true,
+                      pin_dir = 1,
+                      pin_type = 0,
+                      pin_idx = outpin,
+                      pin_idxFX = fx_id,
                       txt= outpin,
                       show = true,
                       fontsz = obj.GUI_fontsz3,
@@ -947,4 +1219,3 @@
         end
       end 
   end    
-    ---------------------------------------------------
