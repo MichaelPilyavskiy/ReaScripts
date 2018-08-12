@@ -7,8 +7,10 @@
   function ShortCuts(conf, obj, data, refresh, mouse)
     if not obj.textbox.enable then
       if mouse.char == 6579564 then -- delete
+        
         Data_DeleteSelectedFX(conf, obj, data, refresh, mouse)
       end
+      
       if mouse.char == 32 then Main_OnCommandEx(40044, 0,0) end -- space: play/pause
       if mouse.char == 13 then --enter
         mouse.char = 0 
@@ -214,7 +216,9 @@
     
     -- reset selection/textbox
       if not mouse.last_LMB_state and mouse.cap == 1  then
-        if not obj.textbox.enable and (not mouse.context or mouse.context == '' ) then 
+        if not obj.textbox.enable 
+          and (not mouse.context or mouse.context == '' ) 
+           then 
           obj.textbox.enable = false
           refresh.GUI = true
          elseif obj.textbox.enable and not addfx_context then
@@ -290,9 +294,12 @@
       
     -- any key to refresh
       if not mouse.last_char or mouse.last_char ~= mouse.char then 
-        refresh.GUI = true 
+        if obj.textbox.enable then 
+          refresh.GUI = true 
+         else
+          refresh.GUI_minor = true 
+        end
       end
-      
       
       mouse.last_char =mouse.char
       mouse.last_context = mouse.context

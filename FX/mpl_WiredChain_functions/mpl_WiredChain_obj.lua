@@ -98,13 +98,20 @@
           --str = str:gsub('.jsfx','')
         end
         if str then 
-          if str:match('!!!VSTi') and plugtype == 0 then             
-            plugtype = 1 
-          end
-          str = str:gsub('!!!VSTi',' VSTi')
-          --if plugtype == 3 then  if str:match('%:.*') then str = str:match('%:(.*)') end    end
+          if str:match('!!!VSTi') and plugtype == 0 then plugtype = 1 end
+          str = str:gsub('!!!VSTi','')
+          
+          -- reduced_name
+            reduced_name = str
+            if plugtype == 3 then  if reduced_name:match('%:.*') then reduced_name = reduced_name:match('%:(.*)') end    end
+            if plugtype == 4 then  
+            
+              --reduced_name = reduced_name:sub(5)
+              local pat_js = '.*[%/](.*)'
+              if reduced_name:match(pat_js) then reduced_name = reduced_name:match(pat_js) end    
+            end
           obj.plugs_data[#obj.plugs_data+1] = {name = str, 
-                                                --reduced_name = name:match('.*[%/\\](.-)'),
+                                                reduced_name = reduced_name ,
                                                 plugtype = plugtype}
         end
       end
@@ -120,7 +127,10 @@
     end
   end
   function Obj_PluginSearch_FormResults(conf, obj, data, refresh, mouse)
-    if not obj.textbox.text or obj.textbox.text == '' then return end
+    if not obj.textbox.text 
+      or obj.textbox.text == '' 
+      or obj.textbox.text:len() < 2
+      then return end
     
     local results_lim = math.floor(obj.fxsearch_h / obj.fxsearch_item_h )-3
     local str_text = obj.textbox.text
@@ -225,74 +235,17 @@
   function OBJ_Update(conf, obj, data, refresh, mouse) 
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
 
-    if not data.tr then return end
     obj.fxsearch_w = 0.4*gfx.w
     obj.fxsearch_h = 0.8*gfx.h
     obj.fxsearch_x = math.floor((gfx.w - obj.fxsearch_w ) / 2) 
     obj.fxsearch_y = math.floor((gfx.h - obj.fxsearch_h ) / 2) 
+    obj.menu_y = gfx.h - obj.trIO_h
+    if conf.show_info_ontop == 0 then  obj.menu_y = 0 end
     
-        obj.menu = { clear = true,
-                    x = 0,
-                    y = 0,
-                    w = obj.menu_w,
-                    h = obj.trIO_h,
-                    col = 'white',
-                    state = fale,
-                    txt= '>',
-                    show = true,
-                    fontsz = obj.GUI_fontsz,
-                    a_frame = 0,
-                    func =  function() 
-                              Menu(mouse,               
-{
-  { str = conf.mb_title..' '..conf.vrs,
-    hidden = true
-  },
-  { str = '|>Donate / Links / Info'},
-  { str = 'Donate to MPL',
-    func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
-  { str = 'Cockos Forum thread',
-    func = function() Open_URL('http://forum.cockos.com/showthread.php?t=209768') end  } , 
-  { str = 'MPL on VK',
-    func = function() Open_URL('http://vk.com/mpl57') end  } ,     
-  { str = 'MPL on SoundCloud|<|',
-    func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
     
-  { str = '#Options'},    
-  { str = 'Snap FX on drag',  
-    func =  function() conf.snapFX = math.abs(1-conf.snapFX)  end,
-    state = conf.snapFX == 1,
-  } , 
-  { str = 'Auto route further channel',  
-    func =  function() conf.autoroutestereo = math.abs(1-conf.autoroutestereo)  end,
-    state = conf.autoroutestereo == 1,
-  } , 
-  { str = 'Not interested in 3+ track channel outs|',  
-    func =  function() 
-              conf.reducetrackouts = math.abs(1-conf.reducetrackouts)  
-              refresh.GUI = true
-            end,
-    state = conf.reducetrackouts == 1,
-  } , 
-  
-  { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
-    func = function() 
-              conf.dock2 = math.abs(1-conf.dock2) 
-              gfx.quit() 
-              gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
-                        conf.wind_w, 
-                        conf.wind_h, 
-                        conf.dock2, conf.wind_x, conf.wind_y)
-          end ,
-    state = conf.dock2 == 1},                                                                            
-}
-)
-                              refresh.conf = true 
-                              --refresh.GUI = true
-                              --refresh.GUI_onStart = true
-                              refresh.data = true
-                            end}  
-                         
+    if not data.tr then return end
+        
+    Obj_MenuMain(conf, obj, data, refresh, mouse)              
     Obj_InfoLine(conf, obj, data, refresh, mouse)                                
     Obj_FormTrackIO(conf, obj, data, refresh, mouse) 
     Obj_FormTrackIOpins(conf, obj, data, refresh, mouse) 
@@ -306,6 +259,86 @@
     for key in pairs(obj) do if type(obj[key]) == 'table' then 
       obj[key].context = key 
     end end    
+  end
+  -----------------------------------------------
+  function Obj_MenuMain(conf, obj, data, refresh, mouse)
+            obj.menu = { clear = true,
+                        x = 0,
+                        y = obj.menu_y,
+                        w = obj.menu_w,
+                        h = obj.trIO_h,
+                        col = 'white',
+                        state = fale,
+                        txt= 'Menu',
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,
+                        func =  function() 
+                                  Menu(mouse,               
+    {
+      { str = conf.mb_title..' '..conf.vrs,
+        hidden = true
+      },
+      { str = '|>Donate / Links / Info'},
+      { str = 'Donate to MPL',
+        func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
+      { str = 'Cockos Forum thread',
+        func = function() Open_URL('http://forum.cockos.com/showthread.php?t=209768') end  } , 
+      { str = 'MPL on VK',
+        func = function() Open_URL('http://vk.com/mpl57') end  } ,     
+      { str = 'MPL on SoundCloud|<|',
+        func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
+        
+      { str = '#Options'},    
+      { str = 'Snap FX on drag',  
+        func =  function() conf.snapFX = math.abs(1-conf.snapFX)  end,
+        state = conf.snapFX == 1,
+      } , 
+      { str = 'Auto route further channel',  
+        func =  function() conf.autoroutestereo = math.abs(1-conf.autoroutestereo)  end,
+        state = conf.autoroutestereo == 1,
+      } , 
+      { str = 'Not interested in 3+ track channel outs',  
+        func =  function() 
+                  conf.reducetrackouts = math.abs(1-conf.reducetrackouts)  
+                  refresh.GUI = true
+                end,
+        state = conf.reducetrackouts == 1,
+      } , 
+      { str = 'Use bezier wires',  
+        func =  function() 
+                  conf.use_bezier_curves = math.abs(1-conf.use_bezier_curves)  
+                  refresh.GUI = true
+                end,
+        state = conf.use_bezier_curves == 1,
+      } ,   
+      { str = 'Show info line on top|',  
+        func =  function() 
+                  conf.show_info_ontop = math.abs(1-conf.show_info_ontop)  
+                  refresh.GUI = true
+                end,
+        state = conf.show_info_ontop == 0,
+      } ,         
+      
+      
+      
+      { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
+        func = function() 
+                  conf.dock2 = math.abs(1-conf.dock2) 
+                  gfx.quit() 
+                  gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
+                            conf.wind_w, 
+                            conf.wind_h, 
+                            conf.dock2, conf.wind_x, conf.wind_y)
+              end ,
+        state = conf.dock2 == 1},                                                                            
+    }
+    )
+                                  refresh.conf = true 
+                                  --refresh.GUI = true
+                                  --refresh.GUI_onStart = true
+                                  refresh.data = true
+                                end}  
   end
   ---------------------------------------------------
   function Obj_Actions(conf, obj, data, refresh, mouse) 
@@ -413,10 +446,38 @@
   end    
   ---------------------------------------------------  
   function Obj_InfoLine(conf, obj, data, refresh, mouse)  
-    obj.trackname_w = (gfx.w - obj.menu_w ) *0.8                       
+    obj.undo = { clear = true,
+                    x = obj.menu_w + 1,
+                    y = obj.menu_y,
+                    w = obj.menu_w,
+                    h = obj.trIO_h,
+                    col = 'white',
+                    txt= '<Undo',
+                    show = true,
+                    fontsz = obj.GUI_fontsz2,
+                    a_frame = 0,
+                    func =  function() 
+                              Action(40029)
+                            end
+                   }
+    obj.redo = { clear = true,
+                    x = obj.menu_w*2 + 1,
+                    y = obj.menu_y,
+                    w = obj.menu_w,
+                    h = obj.trIO_h,
+                    col = 'white',
+                    txt= 'Redo>',
+                    show = true,
+                    fontsz = obj.GUI_fontsz2,
+                    a_frame = 0,
+                    func =  function() 
+                              Action(40030)
+                            end
+                   }                   
+    obj.trackname_w = (gfx.w - obj.menu_w*3 ) *0.8                       
     obj.trackname = { clear = true,
-                    x = obj.menu_w+1,
-                    y = 0,
+                    x = obj.menu_w*3+2,
+                    y = obj.menu_y,
                     w = obj.trackname_w,
                     h = obj.trIO_h,
                     col = 'white',
@@ -431,11 +492,11 @@
                             end
                    }    
     
-    local infoline_xpos = obj.menu_w + obj.trackname_w + 2
+    local infoline_xpos = obj.menu_w*3 + obj.trackname_w 
     local txt = 'X:'..math.floor(-conf.struct_xshift)..'    Y:'..math.floor(-conf.struct_yshift)
     obj.XYpos = { clear = true,
-                    x = obj.menu_w + obj.trackname_w + 2,
-                    y = 0,
+                    x = obj.menu_w*3 + obj.trackname_w + 3,
+                    y = obj.menu_y,
                     w = gfx.w-infoline_xpos,
                     h = obj.trIO_h,
                     col = 'white',
@@ -805,7 +866,8 @@
       end
       local cntpins = math.max(data.fx[i].inpins, data.fx[i].outpins)
       cntpins = math.min(cntpins, data.chan_lim)
-      local hFX = obj.trIO_h*cntpins-1
+      if cntpins < 2 then cntpins = 2 end
+      local hFX = obj.trIO_h*cntpins
       obj['fx_'..i] ={ clear = true,
                     x = xFX + conf.struct_xshift,
                     y = yFX + conf.struct_yshift,
@@ -921,7 +983,9 @@
                   a_frame =obj.module_a_frame,
                   alpha_back = obj.module_alpha_back,
                   func =  function() 
-                            TrackFX_Show( data.tr, i-1, 3 )
+                            local open = TrackFX_GetOpen( data.tr, i-1 )
+                            if open then open = 2 else open = 3 end
+                            TrackFX_Show( data.tr, i-1, open )
                           end,  }      
     local byp_a = obj.module_alpha_back
     local alpha_txt = 0.2
@@ -943,9 +1007,21 @@
                   alpha_back = byp_a,
                   alpha_txt = alpha_txt,
                   func =  function() 
-                            TrackFX_SetEnabled(data.tr,i-1, not data.fx[i].enabled)
-                            refresh.data = true
-                            refresh.GUI = true
+                            local state = data.fx[i].enabled
+                            TrackFX_SetEnabled(data.tr,i-1, not state)
+                            Undo_BeginBlock()
+                            local t = {}
+                            local cnt, ids_table = Obj_CountSelectedObjects(conf, obj, data, refresh, mouse)
+                            for sel_fx = 1, cnt do 
+                              local key = ids_table[sel_fx] 
+                              local fx_id = key:match('fx_(%d+)')
+                              local fx_id = tonumber(fx_id)
+                              TrackFX_SetEnabled(data.tr,fx_id-1, not state)
+                            end
+                            Undo_EndBlock2(0, 'WiredChain - bypass FX', -1 )
+                            
+                            --refresh.data = true
+                            --refresh.GUI_minor = true
                           end,  } 
     local off_a = obj.module_alpha_back
     local off_a_txt = 0.2

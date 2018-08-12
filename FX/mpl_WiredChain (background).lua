@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.12
+-- @version 1.13
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,10 +9,17 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    + Add/Replace FX: support for VST64, AU32/64, DX32/64, JSFX
---    + Add/Replace FX: set XY position to mouse position (scroll compensated) for newly added FX
+--    + DataBuildRouting(): use lowest channel for connecting [p=2021919]
+--    + Undo/redo buttons
+--    + option to show info line on bottom (ex. if docked)
+--    # set search lower limit to 2 symbols to prevent long searching for big FX listts [p=2021919]
+--    # float FX acts like a toggle [p=2021882]
+--    # JSFX name formatting improvements
+--    # increase minimum heigth for non-audio JSFX
+--    # improve bypass selected FX
+--    + Bezier curves (experimental/developer test)
 
-  local vrs = 'v1.12'
+  local vrs = 'v1.13'
   --NOT gfx NOT reaper
   
   
@@ -72,7 +79,8 @@
             snap_px = 10, -- snap FX when drag
             struct_xshift = 0,
             struct_yshift = 0,
-            
+            use_bezier_curves = 0,
+            show_info_ontop = 1,
             }
     return t
   end  
@@ -102,7 +110,7 @@
       ExtState_Save(conf)
       refresh.conf = nil end
     --if refresh.data_proj == true then Data_Update_ExtState_ProjData_Load (conf, obj, data, refresh, mouse) refresh.data_proj = nil end
-    if refresh.GUI == true or refresh.GUI_onStart == true then OBJ_Update              (conf, obj, data, refresh, mouse) end  
+    if refresh.GUI == true or refresh.GUI_onStart == true then            OBJ_Update              (conf, obj, data, refresh, mouse) end  
     if refresh.GUI_minor == true then refresh.GUI = true end
     GUI_draw               (conf, obj, data, refresh, mouse)    
                                                

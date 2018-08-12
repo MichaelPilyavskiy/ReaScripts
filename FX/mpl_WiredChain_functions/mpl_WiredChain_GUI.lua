@@ -129,7 +129,26 @@
     end 
   end
   ---------------------------------------------------
-  function GUI_DrawObj(obj, o, mouse)
+  function DrawBezierCurve_Calc(x1,y1,x2,y2)
+    local ratio = math.min(     (math.abs(x2-x1)*0.5   +   math.abs(y2-y1) * 0.7 )   /200, 2)
+    --local pinoffs = 5
+    --if math.abs(x2-x1) < 20 then pinoffs = 0  end
+    local xt = {x1-1,
+                --x1 + pinoffs,
+                x1 + (x2-x1)/2,
+                --x2-pinoffs,
+                x2}
+    local yt = {y1,
+                --y1,
+                math.min(y1,y2)+ math.max(y1,y2)  - math.abs(y2-y1)/2,-- + 100*ratio,
+                --y2,
+                y2}
+    
+    
+    return xt, yt
+  end
+  ---------------------------------------------------
+  function GUI_DrawObj(obj, o, mouse, conf)
     if not o then return end
     local x,y,w,h, txt = o.x, o.y, o.w, o.h, o.txt
     --[[
@@ -263,12 +282,13 @@
             if not o.txt_wrap then 
               for line in txt:gmatch('[^\r\n]+') do txt_t[#txt_t+1] = line end
              else
+              local lim_wr = 10
               for line in txt:gmatch('[^\r\n]+') do 
-                if gfx.measurestr(line) > w -5 then 
+                if gfx.measurestr(line) > w -lim_wr then 
                   local str = ''
                   for symb = 1, string.len(line) do
                     str = str..line:sub(symb,symb)
-                    if gfx.measurestr(str) > w -5 then 
+                    if gfx.measurestr(str) > w -lim_wr then 
                       txt_t[#txt_t+1] = str
                       str = ''
                     end
@@ -319,7 +339,8 @@
       end    
     
     -- wire
-      if o.wire then      
+      if o.wire then  
+        local bezier = conf.use_bezier_curves    
         for i = 1, #o.wire do
           local wire_t = o.wire[i]
           if wire_t.wiretype == 0 then -- audio
@@ -330,14 +351,29 @@
             and obj[wire_t.dest].x 
             and obj[wire_t.dest].y 
             and obj[wire_t.dest].h then 
-            gfx.line(x+w,y+h/2,obj[wire_t.dest].x, obj[wire_t.dest].y+obj[wire_t.dest].h/2)
+            if bezier == 1 then
+              local x_table0, y_table0 = DrawBezierCurve_Calc(x+w,y+h/2,obj[wire_t.dest].x, obj[wire_t.dest].y+obj[wire_t.dest].h/2)
+              DrawBezierCurve(x_table0, y_table0)
+             else 
+              gfx.line(x+w,y+h/2,obj[wire_t.dest].x, obj[wire_t.dest].y+obj[wire_t.dest].h/2)
+            end
            else
             -- drag mouse
             if wire_t.dest == 'mouse' then 
               if o.context:match('_O_') then 
-                gfx.line(x+w,y+h/2,mouse.x,mouse.y)   
+                if bezier == 1 then 
+                  local x_table0, y_table0 = DrawBezierCurve_Calc(x+w,y+h/2,mouse.x,mouse.y)
+                  DrawBezierCurve(x_table0, y_table0)
+                 else 
+                  gfx.line(x+w,y+h/2,mouse.x,mouse.y)  
+                end 
                else
-                gfx.line(x,y+h/2,mouse.x,mouse.y)  
+                if bezier == 1 then 
+                  local x_table0, y_table0 = DrawBezierCurve_Calc(x,y+h/2,mouse.x,mouse.y)
+                  DrawBezierCurve(x_table0, y_table0)
+                 else
+                  gfx.line(x,y+h/2,mouse.x,mouse.y)  
+                end
               end 
             end
             
@@ -523,7 +559,7 @@
       local limw = obj.fxsearch_w - obj.offs*4
       if obj.textbox.match_t then
         for i = 1, #obj.textbox.match_t do
-          local txt = obj.textbox.match_t[i].name
+          local txt = obj.textbox.match_t[i].reduced_name
           if gfx.measurestr(txt) > limw then 
             local len = string.len(txt)
             for i = len, 1, -1 do
@@ -586,7 +622,7 @@
         -- refresh all buttons
           for key in spairs(obj) do 
             if type(obj[key]) == 'table' and obj[key].show and not obj[key].blit and key~= 'set_par_tr'  then 
-              GUI_DrawObj(obj, obj[key], mouse) 
+              GUI_DrawObj(obj, obj[key], mouse, conf) 
             end  
           end  
       end
@@ -622,4 +658,44 @@
     refresh.GUI = nil
     refresh.GUI_minor = nil
     gfx.update()
+  end
+  ---------------------------------------------------
+  function fact(n) if n == 0 then return 1 else return n * fact(n-1) end end
+  ---------------------------------------------------
+  function bezier_eq(n, tab_xy, dt)
+    local B = 0
+    for i = 0, n-1 do
+      B = B + 
+        ( fact(n) / ( fact(i) * fact(n-i) ) ) 
+        *  (1-dt)^(n-i)  
+        * dt ^ i
+        * tab_xy[i+1]
+    end 
+    return B
+  end  
+---------------------------------------------------
+  function DrawBezierCurve(x_table0, y_table0)
+    local x_table, y_table = {}, {}
+    for i = 1, #x_table0 do
+      if x_table0[i] and y_table0[i] then 
+        x_table[#x_table+1] = x_table0[i]
+        y_table[#y_table+1] = y_table0[i]
+      end
+    end
+    local order = #x_table
+    local last_x_point,last_y_point,x_point,y_point
+    for t = 0, 1, 0.08 do
+      local t0 = t--(1+math.sin((1.5+t)*math.pi))*0.5
+      x_point = bezier_eq(order, x_table, t0)+ t0^order*x_table[order]
+      y_point = bezier_eq(order, y_table, t0)+ t0^order*y_table[order] 
+      gfx.x = math.floor(x_point)
+      gfx.y = math.floor(y_point)
+      --gfx.setpixel(gfx.r,gfx.g,gfx.b)
+      if last_x_point then 
+        --if last_y_point - y_point < 1 then y_point = y_point-2 end
+        gfx.line(x_point,y_point,last_x_point,last_y_point)
+      end
+      last_x_point = x_point+1
+      last_y_point = y_point
+    end    
   end
