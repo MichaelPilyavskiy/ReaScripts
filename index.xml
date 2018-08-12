@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0767665eaf1c3332dd35ab33c8f66cb4a97a7e88" name="MPL Scripts">
+<index version="1" commit="d2dc9eb3fe0809974b541911dcf2305cd856e439" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -316,6 +316,11 @@
       <version name="1.12" author="MPL" time="2018-08-08T05:47:30Z">
         <changelog><![CDATA[# use GetTrackStateChunk with REAPER 5.93+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0206efdc18c133ef0010d09704a84a420385eff4/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.13" author="MPL" time="2018-08-12T05:44:37Z">
+        <changelog><![CDATA[# improve ReduceFXName()
++ add Action()]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d2dc9eb3fe0809974b541911dcf2305cd856e439/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
