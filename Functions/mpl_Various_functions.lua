@@ -2,9 +2,10 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.12
+-- @version 1.13
 -- @changelog
---    # use GetTrackStateChunk with REAPER 5.93+
+--    # improve ReduceFXName()
+--    + add Action()
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
@@ -519,8 +520,12 @@
     local s_out = s:match('[%:%/%s]+(.*)')
     if not s_out then return s end
     s_out = s_out:gsub('%(.-%)','') 
-    if s_out:match('%/(.*)') then s_out = s_out:match('%/(.*)') end
+    --if s_out:match('%/(.*)') then s_out = s_out:match('%/(.*)') end
+    local pat_js = '.*[%/](.*)'
+    if s_out:match(pat_js) then s_out = s_out:match(pat_js) end  
     if not s_out then return s else 
       if s_out ~= '' then return s_out else return s end
     end
   end
+  ---------------------------------------------------
+  function Action(s) Main_OnCommand(NamedCommandLookup(s), 0) end
