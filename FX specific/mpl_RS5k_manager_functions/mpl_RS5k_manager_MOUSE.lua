@@ -33,8 +33,10 @@
       if not (IsMediaExtension( DRstr:match('.*%.(.*)'), false ) and not DRstr:lower():match('%.rpp')) then goto skip_spl end
       
       if conf.dragtonewtracks  == 0 then -- force build new track  MIDI send routing
+        --if conf.copy_src_media == 1 then DRstr = MoveSourceMedia(DRstr) end
         ExportItemToRS5K(data,conf,refresh,note+i,DRstr)
        else
+        --if conf.copy_src_media == 1 then DRstr = MoveSourceMedia(DRstr) end
         local last_spl = ExportItemToRS5K(data,conf,refresh,note+i,DRstr)
         Data_Update(conf, obj, data, refresh, mouse)
         local new_tr = ShowRS5kChain(data, conf, note+i, last_spl)

@@ -129,7 +129,6 @@
            ------------------------
            mouse.onrelease_L = not mouse.LMB_state 
                                and mouse.last_LMB_state 
-                               --and not mouse.Ctrl_state  
                                and is_mouse_over 
           if mouse.onrelease_L and obj[key].onrelease_L then obj[key].onrelease_L() goto skip_mouse_obj end          
            ------------------------

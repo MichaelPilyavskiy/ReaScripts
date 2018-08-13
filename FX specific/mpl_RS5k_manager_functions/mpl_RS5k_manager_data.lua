@@ -31,6 +31,18 @@
         refresh.data = true
       end
   end
+  function MoveSourceMedia(DRstr)
+    local buf = reaper.GetProjectPathEx( 0, '' )
+    if GetOS():lower():match('win') then
+      local spl_name = GetShortSmplName(DRstr) 
+      local cmd = 'copy "'..DRstr..'" "'..buf..'/RS5k_samples/'..spl_name..'"'
+      cmd = cmd:gsub('\\', '/')
+      os.execute(cmd)
+      msg(cmd)
+      return buf..'/RS5k_samples/'..spl_name
+    end
+    return DRstr
+  end
   ---------------------------------------------------
   function GetRS5kData(data, tr) 
     for fxid = 1,  TrackFX_GetCount( tr ) do
@@ -69,7 +81,11 @@
       
       local sample_short = GetShortSmplName(fn)
       local pat_reduceext = '(.*)%.[%a]+'
-      if sample_short and sample_short:match(pat_reduceext) then sample_short = sample_short:match(pat_reduceext) end
+      if sample_short and sample_short:match(pat_reduceext) then 
+        sample_short = sample_short:match(pat_reduceext) 
+       else
+        sample_short = fn
+      end
       
       data[MIDIpitch] [#data[MIDIpitch]+1] = {rs5k_pos = fxid-1,
                         pitch    =math.floor(({TrackFX_GetFormattedParamValue( tr, fxid-1, 3, '' )})[2]),

@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.66
+-- @version 1.67
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Track/#fxlist: toggle offline state by ctrl/cmd+click on fx (REAPER 5.95+)
+--    # Validate Take pointer for MIDI grid formatting [p=2022189]
 
-    local vrs = '1.66'
+    local vrs = '1.67'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])

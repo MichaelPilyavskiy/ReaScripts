@@ -1943,7 +1943,12 @@ List of available hashtags:
   { str = 'Don`t ask for creating FX routing',
     func =  function() conf.dontaskforcreatingrouting = math.abs(1-conf.dontaskforcreatingrouting)  end,
     state = conf.dontaskforcreatingrouting == 1,
-  } ,                
+  } ,       
+ --[[ { str = 'Copy samples to project folder (render path otherwise) on drop',
+    func =  function() conf.copy_src_media = math.abs(1-conf.copy_src_media)  end,
+    state = conf.copy_src_media == 1,
+  } ,             
+  ]]
   { str = 'Use custom FX chain for newly dragged samples '..conf.draggedfile_fxchain..'|<|',
     func =  function() 
               if conf.draggedfile_fxchain ~= '' then conf.draggedfile_fxchain = '' return end

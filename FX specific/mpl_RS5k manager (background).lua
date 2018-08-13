@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.73
+-- @version 1.74
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -10,10 +10,10 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
 -- @changelog
---    # when rename MIDI Note name, also rename parent track
+--    # prevent crash on empty name
 
 
-  local vrs = 'v1.73'
+  local vrs = 'v1.74'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -95,6 +95,7 @@
             obeynoteoff_default = 1,
             dragtonewtracks = 0,
             draggedfile_fxchain = '',
+            --copy_src_media = 0,
             }
     return t
   end  

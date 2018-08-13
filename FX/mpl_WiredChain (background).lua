@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.13
+-- @version 1.14
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,17 +9,11 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    + DataBuildRouting(): use lowest channel for connecting [p=2021919]
---    + Undo/redo buttons
---    + option to show info line on bottom (ex. if docked)
---    # set search lower limit to 2 symbols to prevent long searching for big FX listts [p=2021919]
---    # float FX acts like a toggle [p=2021882]
---    # JSFX name formatting improvements
---    # increase minimum heigth for non-audio JSFX
---    # improve bypass selected FX
---    + Bezier curves (experimental/developer test)
+--    # try to guess which channel destination FX go through
+--    + Cltr+Drag route next channel also
+--    + Added shortcuts/mouse menu info
 
-  local vrs = 'v1.13'
+  local vrs = 'v1.14'
   --NOT gfx NOT reaper
   
   
@@ -167,6 +161,6 @@
         run()  
   end
 --------------------------------------------------------------------  
-  local ret = CheckFunctions('MPL_ReduceFXname') 
+  local ret = CheckFunctions('Action') 
   local ret2 = CheckReaperVrs(5.95)    
   if ret and ret2 then main() end

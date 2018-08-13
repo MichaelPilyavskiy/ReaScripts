@@ -284,6 +284,23 @@
         func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
       { str = 'Cockos Forum thread',
         func = function() Open_URL('http://forum.cockos.com/showthread.php?t=209768') end  } , 
+      { str = 'ShortCuts/MouseModifiers|',
+        func = function()
+msg(
+[[
+Main window
+  enter: add FX
+  space: transport play/stop
+  escape: exit
+
+Selected FX
+  delete: remove selected FX
+  
+Drag wires
+  ctrl+drag: add link to further channel
+
+]])        
+        end  } ,         
       { str = 'MPL on VK',
         func = function() Open_URL('http://vk.com/mpl57') end  } ,     
       { str = 'MPL on SoundCloud|<|',
@@ -376,19 +393,7 @@
                 refresh.GUI = true 
               end  
     } ,  
-    { str = 'Clear ALL plugins output pins',
-      func = function() 
-                Undo_BeginBlock()
-                for fx_id = 1, #data.fx do
-                  for chan = 1, data.trchancnt do
-                    for pinO = 1, data.fx[fx_id].outpins do SetPin(data.tr, fx_id, 1, pinO, chan, 0)  end
-                  end
-                end
-                Undo_EndBlock2(0, 'WiredChain - clear ALL pins', -1 )
-                refresh.data = true
-                refresh.GUI = true
-              end  
-    } ,     
+    
     { str = 'Clear ALL plugins pins',
       func = function() 
                 Undo_BeginBlock()
@@ -403,7 +408,7 @@
                 refresh.GUI = true
               end  
     } , 
-    { str = 'Clear/Reset ALL plugins pins|',
+    { str = 'Clear/Reset ALL plugins pins',
       func = function() 
                 Undo_BeginBlock()
                 for fx_id = 1, #data.fx do
@@ -415,6 +420,19 @@
                   for pinO = 1, data.fx[fx_id].outpins do SetPin(data.tr, fx_id, 1, pinO, pinO, 1)  end
                 end
                 Undo_EndBlock2(0, 'WiredChain - Reset ALL pins', -1 )
+                refresh.data = true
+                refresh.GUI = true
+              end  
+    } , 
+    { str = 'Clear ALL plugins output pins|',
+      func = function() 
+                Undo_BeginBlock()
+                for fx_id = 1, #data.fx do
+                  for chan = 1, data.trchancnt do
+                    for pinO = 1, data.fx[fx_id].outpins do SetPin(data.tr, fx_id, 1, pinO, chan, 0)  end
+                  end
+                end
+                Undo_EndBlock2(0, 'WiredChain - clear ALL pins', -1 )
                 refresh.data = true
                 refresh.GUI = true
               end  
@@ -697,10 +715,12 @@
                             end,
                       onrelease_L = function() 
                                       Undo_BeginBlock()
+                                      local add_next
+                                      if mouse.Ctrl_state then add_next = 1 end
                                                 Data_BuildRouting(conf, obj, data, refresh, mouse, { routingtype = 0,
                                                                                                     dest = mouse.context_latch,
-                                                                                                    src = pkey
-                                                                                                    })  
+                                                                                                    src = pkey,
+                                                                                                    add_next=add_next})  
                                       Undo_EndBlock2( 0, 'WiredChain - rebuild pins', -1 )   
                                     end     ,
                         func_L_Alt = function() 
@@ -748,10 +768,12 @@
                               end ,                    
                       onrelease_L = function() 
                                       Undo_BeginBlock()
+                                      local add_next
+                                      if mouse.Ctrl_state then add_next = 1 end
                                                 Data_BuildRouting(conf, obj, data, refresh, mouse, { routingtype = 0,
                                                                                                     dest = pkey,
-                                                                                                    src = mouse.context_latch
-                                                                                                    })  
+                                                                                                    src = mouse.context_latch,
+                                                                                                    add_next=add_next})  
                                       Undo_EndBlock2( 0, 'WiredChain - rebuild pins', -1 )   
                                     end     ,
                         func_L_Alt = function() 
@@ -872,7 +894,7 @@
                     x = xFX + conf.struct_xshift,
                     y = yFX + conf.struct_yshift,
                     w = obj.fxmod_w,
-                    h = hFX,
+                    h = hFX-1,
                     col = 'white',
                     txt= i..'. '..data.fx[i].reducedname,
                     txt_wrap = true,
@@ -1115,12 +1137,19 @@
                       a_frame =obj.module_a_frame,
                       alpha_back = obj.module_alpha_back,
                       func_LD = function() refresh.GUI_minor = true end,
+                      func_ctrlLD = function() refresh.GUI_minor = true end,
                       func =  function() 
                                 Obj_MarkConnections(conf, obj, data, refresh, mouse) 
                                 if not obj[pkey].wire then obj[pkey].wire = {} end
                                 local temp_t = obj[pkey].wire
                                 temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
-                              end,                      
+                              end,        
+                      func_trigCtrl = 
+                              function() 
+                                if not obj[pkey].wire then obj[pkey].wire = {} end
+                                                                local temp_t = obj[pkey].wire
+                                                                temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
+                              end,                                             
                       func_mouseover =  function()
                                           local str = ''
                                           for key in pairs(obj) do if type(obj[key]) == 'table' then
@@ -1143,9 +1172,12 @@
                                     end,
                       onrelease_L = function()
                                       Undo_BeginBlock()
+                                      local add_next
+                                      if mouse.Ctrl_state then add_next = 1 end
                                       Data_BuildRouting(conf, obj, data, refresh, mouse, {  routingtype = 0,
                                                                                             dest = pkey,
-                                                                                            src = mouse.context_latch
+                                                                                            src = mouse.context_latch,
+                                                                                            add_next = add_next,
                                                                                           })  end ,
                                       Undo_EndBlock2( 0, 'WiredChain - rebuild pins', -1 )
                              
@@ -1176,17 +1208,24 @@
                       a_frame =obj.module_a_frame,
                       alpha_back = obj.module_alpha_back,
                       func_LD = function() refresh.GUI_minor = true end,
+                      func_ctrlLD = function() refresh.GUI_minor = true end,
                       func_L_Alt = function() 
                                       for chan = 1, data.trchancnt do SetPin(data.tr, fx_id, 1, outpin, chan, 0) end
                                       refresh.data = true
                                       refresh.GUI = true
                                     end,                      
                       func =  function() 
-                                Obj_MarkConnections(conf, obj, data, refresh, mouse, true) 
+                                --Obj_MarkConnections(conf, obj, data, refresh, mouse, true) 
                                 if not obj[pkey].wire then obj[pkey].wire = {} end
                                 local temp_t = obj[pkey].wire
                                 temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
                               end,
+                      func_trigCtrl = 
+                              function() 
+                                if not obj[pkey].wire then obj[pkey].wire = {} end
+                                                                local temp_t = obj[pkey].wire
+                                                                temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
+                              end, 
                       func_mouseover =  function()
                                           if not obj[pkey].wire then return end
                                           local str = ''
@@ -1197,9 +1236,12 @@
                                         end ,
                       onrelease_L = function()
                                       Undo_BeginBlock()
+                                      local add_next
+                                        if mouse.Ctrl_state then add_next = 1 end
                                       Data_BuildRouting(conf, obj, data, refresh, mouse, {  routingtype = 0,
                                                                                             src = pkey,
-                                                                                            dest = mouse.context_latch
+                                                                                            dest = mouse.context_latch,
+                                                                                            add_next = add_next
                                                                                           })  end ,
                                       Undo_EndBlock2( 0, 'WiredChain - rebuild pins', -1 )                                                                     
                      }   

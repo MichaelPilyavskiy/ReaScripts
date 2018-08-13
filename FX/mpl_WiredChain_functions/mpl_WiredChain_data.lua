@@ -14,11 +14,20 @@
     refresh.data = true
     refresh.GUI = true
   end
+  --------------------------------------------------- 
+  function GetPin(track, fx_id, isOut_int, pin_id, chan, set) 
+    -- chan is 1 based
+    local pinflags, high32 = TrackFX_GetPinMappings ( track, fx_id-1, isOut_int, pin_id-1 )
+    if chan < 32 then 
+      local state =  pinflags&(2^(chan-1))==2^(chan-1) 
+      return state
+    end
+  end
  ---------------------------------------------------   
   function SetPin(track, fx_id, isOut_int, pin_id, chan, set) 
     -- chan is 1 based
     local pinflags, high32 = TrackFX_GetPinMappings ( track, fx_id-1, isOut_int, pin_id-1 )
-
+    
     if chan < 64 then 
       local state =  pinflags&(2^(chan-1))==2^(chan-1) 
       if set == 0 then
@@ -57,17 +66,28 @@
     
     local dest_chan = math.max(src_pin, dest_pin)
     
+    local add_next = conf.autoroutestereo == 1 or routing_t.add_next == 1 
+    
     if dest_chan > data.trchancnt then SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', dest_chan + dest_chan % 2 ) end
-    if conf.autoroutestereo == 1 then 
+    if add_next then 
       if dest_chan+1 > data.trchancnt then SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', dest_chan+1 + (dest_chan+1) % 2 ) end end
     
     -- link beetween FX
     if src_type == 0 and dest_type == 0 then 
-    
+      
+      -- check dest fx out pin channel
+      for trch = 1, data.trchancnt do
+        local state = GetPin(data.tr, dest_idxFX, 1, dest_pin, trch)
+        if state then
+          dest_chan = trch
+          break
+        end
+      end
+      
       -- clear output destination channel in other pins on source FX
       for outpin = 1, data.fx[src_idxFX].outpins do
         SetPin(data.tr, src_idxFX, 1, outpin, dest_chan, 0)
-        if conf.autoroutestereo == 1 then SetPin(data.tr,src_idxFX, 1, outpin, dest_pin+1, 0) end
+        if add_next then SetPin(data.tr,src_idxFX, 1, outpin, dest_pin+1, 0) end
       end
       -- clear source pin
       for trch = 1, data.trchancnt do
@@ -79,25 +99,25 @@
       
         -- set on destination channel for source FX      
         SetPin(data.tr, src_idxFX, 1, src_pin, dest_chan, 1)
-        if conf.autoroutestereo == 1 then SetPin(data.tr, src_idxFX, 1, src_pin+1, dest_chan+1, 1) end  
+        if add_next then SetPin(data.tr, src_idxFX, 1, src_pin+1, dest_chan+1, 1) end  
         
         -- handle destination FX
           -- clear pins
           --SetPin(data.tr, dest_idxFX, 0, dest_t.chan, src_pin, 1) -- 1.02
           for chan = 1, data.trchancnt do 
             SetPin(data.tr, dest_idxFX, 0, dest_pin, chan, 0) 
-            if conf.autoroutestereo == 1 then SetPin(data.tr, dest_idxFX, 0,dest_pin+1, chan, 0) end
+            if add_next then SetPin(data.tr, dest_idxFX, 0,dest_pin+1, chan, 0) end
           end
           -- set pin
           SetPin(data.tr, dest_idxFX, 0, dest_pin,dest_chan, 1)
-          if conf.autoroutestereo == 1 then SetPin(data.tr, dest_idxFX, 0, dest_pin+1,dest_chan+1, 1) end
+          if add_next then SetPin(data.tr, dest_idxFX, 0, dest_pin+1,dest_chan+1, 1) end
           
         -- clear output destination channel in beetween
           if dest_idxFX - src_idxFX > 1 then
             for fx_id = src_idxFX+1, dest_idxFX-1 do
               for pin_id = 1, data.fx[fx_id].outpins do
                 SetPin(data.tr, fx_id, 1, pin_id, dest_chan, 0)
-                if conf.autoroutestereo == 1 then SetPin(data.tr, fx_id, 1, pin_id+1, dest_chan+1, 0) end
+                if add_next then SetPin(data.tr, fx_id, 1, pin_id+1, dest_chan+1, 0) end
               end
             end
           end
@@ -108,14 +128,14 @@
         Data_Update(conf, obj, data, refresh, mouse)
         -- source
         SetPin(data.tr, src_idxFX-1, 1, src_pin, dest_chan, 1)
-        if conf.autoroutestereo == 1 then SetPin(data.tr, src_idxFX-1, 1, src_pin+1, dest_chan+1, 1) end
+        if add_next then SetPin(data.tr, src_idxFX-1, 1, src_pin+1, dest_chan+1, 1) end
         -- destination
         for chan = 1, data.trchancnt do 
           SetPin(data.tr, src_idxFX, 0, dest_pin, chan, 0) 
-          if conf.autoroutestereo == 1 then SetPin(data.tr, src_idxFX, 0, dest_pin+1, chan, 0)  end
+          if add_next then SetPin(data.tr, src_idxFX, 0, dest_pin+1, chan, 0)  end
         end
         SetPin(data.tr, src_idxFX, 0, dest_pin,dest_chan, 1)
-        if conf.autoroutestereo == 1 then SetPin(data.tr, src_idxFX, 0, dest_pin+1,dest_chan+1, 1) end
+        if add_next then SetPin(data.tr, src_idxFX, 0, dest_pin+1,dest_chan+1, 1) end
       end
     end
 
@@ -127,14 +147,14 @@
           local int_set = 0 
           if chan == dest_chan then int_set = 1 end
           SetPin(data.tr, dest_idxFX, 0, dest_pin, chan, int_set)
-          if conf.autoroutestereo == 1 then SetPin(data.tr, dest_idxFX, 0, dest_pin+1, chan+1, int_set) end
+          if add_next then SetPin(data.tr, dest_idxFX, 0, dest_pin+1, chan+1, int_set) end
         end
         -- clear beetween fx
         for fx_id = 0, dest_idxFX-1 do
           if data.fx[fx_id] then
             for pin_id = 1, data.fx[fx_id].outpins do
               SetPin(data.tr, fx_id, 1, pin_id, dest_chan, 0)
-              if conf.autoroutestereo == 1 then SetPin(data.tr, fx_id, 1, pin_id+1, dest_chan+1, 0) end
+              if add_next then SetPin(data.tr, fx_id, 1, pin_id+1, dest_chan+1, 0) end
             end
           end
         end
@@ -151,13 +171,13 @@
             -- clear pins beetween src FX and track out
             for pin_id = 1, data.fx[fx_id].outpins do
               SetPin(data.tr, fx_id, 1, pin_id, dest_chan, 0)
-              if conf.autoroutestereo == 1 then SetPin(data.tr, fx_id, 1, pin_id, dest_chan+1, 0) end
+              if add_next then SetPin(data.tr, fx_id, 1, pin_id, dest_chan+1, 0) end
             end            
           end
         end
         
         SetPin(data.tr, src_idxFX, 1, src_pin, dest_chan, 1)
-        if conf.autoroutestereo == 1 then SetPin(data.tr, src_idxFX, 1, src_pin+1, dest_chan+1, 1) end
+        if add_next then SetPin(data.tr, src_idxFX, 1, src_pin+1, dest_chan+1, 1) end
     end    
 
     -- if through
@@ -166,7 +186,7 @@
       for fx_id = 1, #data.fx do
         for pin_id = 1, data.fx[fx_id].outpins do
           SetPin(data.tr, fx_id, 1, pin_id, src_pin, 0)
-          if conf.autoroutestereo == 1 then SetPin(data.tr, fx_id, 1, pin_id+1, src_pin+1, 0) end
+          if add_next then SetPin(data.tr, fx_id, 1, pin_id+1, src_pin+1, 0) end
         end
       end
     end 

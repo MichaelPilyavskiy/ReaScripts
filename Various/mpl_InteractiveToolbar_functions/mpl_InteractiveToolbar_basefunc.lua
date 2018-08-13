@@ -460,12 +460,14 @@
   end     
   ---------------------------------------------------
   function MPL_GetFormattedMIDIGrid()
+    
     --SN_FocusMIDIEditor()
     
     local ME = MIDIEditor_GetActive()
     if not ME then return end
     take = MIDIEditor_GetTake( ME )
-    if not take then return end
+    local is_valid = ValidatePtr2( 0, take, 'MediaItem_Take*' )
+    if not take or not is_valid then return end
     local grid_flags, grid_division, grid_swingmode, grid_swingamt 
     grid_division, grid_swingamt = MIDI_GetGrid( take )
     grid_division = grid_division/4
