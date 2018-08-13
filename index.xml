@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d2dc9eb3fe0809974b541911dcf2305cd856e439" name="MPL Scripts">
+<index version="1" commit="08c845dd6809d8b96d8fa1084f2dd3c1852a453e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1076,6 +1076,16 @@
         <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0767665eaf1c3332dd35ab33c8f66cb4a97a7e88/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
         <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0767665eaf1c3332dd35ab33c8f66cb4a97a7e88/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
       </version>
+      <version name="1.14" author="MPL" time="2018-08-13T20:21:49Z">
+        <changelog><![CDATA[# try to guess which channel destination FX go through
++ Cltr+Drag route next channel also
++ Added shortcuts/mouse menu info]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX/mpl_WiredChain%20(background).lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_XYPad (background).lua" type="script" desc="XYPad">
       <metadata>
@@ -1787,6 +1797,15 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b13cc05a34c162031a220db9cd8d7314139ac62/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b13cc05a34c162031a220db9cd8d7314139ac62/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
         <source file="mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b13cc05a34c162031a220db9cd8d7314139ac62/FX%20specific/mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua</source>
+      </version>
+      <version name="1.74" author="MPL" time="2018-08-13T20:21:49Z">
+        <changelog><![CDATA[# prevent crash on empty name]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
+        <source file="mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX%20specific/mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
@@ -4812,6 +4831,19 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b13cc05a34c162031a220db9cd8d7314139ac62/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b13cc05a34c162031a220db9cd8d7314139ac62/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b13cc05a34c162031a220db9cd8d7314139ac62/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
+      </version>
+      <version name="1.67" author="MPL" time="2018-08-13T20:21:49Z">
+        <changelog><![CDATA[# Validate Take pointer for MIDI grid formatting [p=2022189]]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/Various/mpl_InteractiveToolbar.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">
