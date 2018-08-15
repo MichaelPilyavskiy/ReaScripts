@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dadf0c172d742d93ab400821847fc6348e397afe" name="MPL Scripts">
+<index version="1" commit="076776ff3855b43a85ca137d1baecfc9e5fb8fd0" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1096,6 +1096,17 @@
         <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dadf0c172d742d93ab400821847fc6348e397afe/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
         <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dadf0c172d742d93ab400821847fc6348e397afe/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
         <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dadf0c172d742d93ab400821847fc6348e397afe/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
+      </version>
+      <version name="1.16" author="MPL" time="2018-08-15T23:31:53Z">
+        <changelog><![CDATA[+ Menu/Clear plugin pins when adding FX
++ ContextMenu/Clear all FX input pins
++ FX menu/Clear input pins
++ Added expert options for audio routing]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/076776ff3855b43a85ca137d1baecfc9e5fb8fd0/FX/mpl_WiredChain%20(background).lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/076776ff3855b43a85ca137d1baecfc9e5fb8fd0/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/076776ff3855b43a85ca137d1baecfc9e5fb8fd0/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/076776ff3855b43a85ca137d1baecfc9e5fb8fd0/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/076776ff3855b43a85ca137d1baecfc9e5fb8fd0/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_XYPad (background).lua" type="script" desc="XYPad">
