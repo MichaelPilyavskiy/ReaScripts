@@ -150,6 +150,7 @@
   ---------------------------------------------------
   function GUI_DrawObj(obj, o, mouse, conf)
     if not o then return end
+    gfx.dest = 1
     local x,y,w,h, txt = o.x, o.y, o.w, o.h, o.txt
     --[[
     gfx.set(1,1,1,1)
@@ -340,12 +341,11 @@
     
     -- wire
       if o.wire then  
-        local bezier = conf.use_bezier_curves    
-        for i = 1, #o.wire do
-          local wire_t = o.wire[i]
-          if wire_t.wiretype == 0 then -- audio
-            col(obj, obj.audiowire_col,obj.audiowire_a)
-          end
+        --gfx.dest = 4
+        local bezier = conf.use_bezier_curves 
+        for i = 1,#o.wire do
+           wire_t = o.wire[i]
+          if wire_t.wiretype == 0 then col(obj, obj.audiowire_col,obj.audiowire_a) end-- audio
           if wire_t.dest 
             and obj[wire_t.dest] 
             and obj[wire_t.dest].x 
@@ -354,31 +354,26 @@
             if bezier == 1 then
               local x_table0, y_table0 = DrawBezierCurve_Calc(x+w,y+h/2,obj[wire_t.dest].x, obj[wire_t.dest].y+obj[wire_t.dest].h/2)
               DrawBezierCurve(x_table0, y_table0)
-             else 
-              gfx.line(x+w,y+h/2,obj[wire_t.dest].x, obj[wire_t.dest].y+obj[wire_t.dest].h/2)
+             else
+              GUI_DrawLine(x+w,y+h/2,obj[wire_t.dest].x, obj[wire_t.dest].y+obj[wire_t.dest].h/2) 
             end
            else
             -- drag mouse
             if wire_t.dest == 'mouse' then 
-              if o.context:match('_O_') then 
+              local x1,y1,x2,y2 = x,y+h/2,mouse.x,mouse.y
+              if obj[wire_t.src].pin_dir == 1 then
+                x1,y1,x2,y2 = x+w,y+h/2,mouse.x,mouse.y
+              end
                 if bezier == 1 then 
-                  local x_table0, y_table0 = DrawBezierCurve_Calc(x+w,y+h/2,mouse.x,mouse.y)
-                  DrawBezierCurve(x_table0, y_table0)
-                 else 
-                  gfx.line(x+w,y+h/2,mouse.x,mouse.y)  
-                end 
-               else
-                if bezier == 1 then 
-                  local x_table0, y_table0 = DrawBezierCurve_Calc(x,y+h/2,mouse.x,mouse.y)
+                  local x_table0, y_table0 = DrawBezierCurve_Calc( x1,y1,x2,y2)
                   DrawBezierCurve(x_table0, y_table0)
                  else
-                  gfx.line(x,y+h/2,mouse.x,mouse.y)  
+                  GUI_DrawLine( x1,y1,x2,y2)  
                 end
-              end 
             end
-            
           end
         end
+        --gfx.dest = 1
       end
       
     
@@ -404,6 +399,10 @@
       
     
     return true
+  end
+  ---------------------------------------------------
+  function GUI_DrawLine(x1,y1,x2,y2)
+    gfx.line(x1,y1,x2,y2)
   end
   ---------------------------------------------------
   function GUI_symbols(conf, obj, data, refresh, mouse) 
@@ -591,9 +590,10 @@
   function GUI_draw(conf, obj, data, refresh, mouse)
     gfx.mode = 0
     
-
+    -- 1 main
     -- 2 gradient back
     --  3 grad selection
+    -- ///4 wires
     -- 5 gradient Draw Obj
     -- 11 symbols
     
@@ -612,13 +612,18 @@
       
     -- refresh
       if refresh.GUI then 
+        --[[ wires
+          gfx.dest = 4
+          gfx.setimgdim(4, -1, -1)  
+          gfx.setimgdim(4, gfx.w, gfx.h)   
+      ]]          
         -- refresh backgroung
           gfx.dest = 1
           gfx.setimgdim(1, -1, -1)  
           gfx.setimgdim(1, gfx.w, gfx.h) 
           gfx.blit( 2, 1, 0, -- grad back
                     0,0,  obj.grad_sz,obj.grad_sz/2,
-                    0,0,  gfx.w,gfx.h, 0,0)
+                    0,0,  gfx.w,gfx.h, 0,0)                
         -- refresh all buttons
           for key in spairs(obj) do 
             if type(obj[key]) == 'table' and obj[key].show and not obj[key].blit and key~= 'set_par_tr'  then 
@@ -636,6 +641,9 @@
       --gfx.set(1,1,1,0.2)
       --gfx.rect(0,0,gfx.w, gfx.h/4,1)
     --  back
+      gfx.blit(4, 1, 0, -- backgr
+          0,0,gfx.w, gfx.h,
+          0,0,gfx.w, gfx.h, 0,0)      
       gfx.blit(1, 1, 0, -- backgr
           0,0,gfx.w, gfx.h,
           0,0,gfx.w, gfx.h, 0,0)  
@@ -651,13 +659,25 @@
     
     if obj.textbox and obj.textbox.enable then
       GUI_drawSearchFX(conf, obj, data, refresh, mouse)
-     else
-      if obj.tooltip ~= '' and obj.tooltip_str then GUI_drawTooltip(conf, obj, data, refresh, mouse) end
+     elseif obj.tooltip ~= '' and obj.tooltip_str then GUI_drawTooltip(conf, obj, data, refresh, mouse)
+     elseif obj.selection_rect then GUI_drawSelRect(conf, obj, data, refresh, mouse)
+           
     end
+    
+    
     
     refresh.GUI = nil
     refresh.GUI_minor = nil
     gfx.update()
+  end
+  ---------------------------------------------------
+  function GUI_drawSelRect(conf, obj, data, refresh, mouse) local x,y,w,h
+    if not obj.selection_rect.x then return end
+    local x,y,w,h  =obj.selection_rect.x, obj.selection_rect.y,obj.selection_rect.w,obj.selection_rect.h
+    gfx.set(1,1,1,0.5)
+    gfx.rect(x,y,w,h,0)
+    gfx.a = 0.05
+    gfx.rect(x+1,y+1,w-2,h-2,1)
   end
   ---------------------------------------------------
   function fact(n) if n == 0 then return 1 else return n * fact(n-1) end end

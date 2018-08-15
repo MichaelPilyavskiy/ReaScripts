@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.14
+-- @version 1.15
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,11 +9,12 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    # try to guess which channel destination FX go through
---    + Cltr+Drag route next channel also
---    + Added shortcuts/mouse menu info
+--    + add plugin selection by selecting area
+--    # fix ctrl+drag from Track IO
+--    # Data_BuildRouting_Audio: prevent connection input to inputs and outputs to outputs
+--    # Data_BuildRouting_Audio: fix clear output pins FX pin in beetween based on dest pin instead dest channel
 
-  local vrs = 'v1.14'
+  local vrs = 'v1.15'
   --NOT gfx NOT reaper
   
   
@@ -27,7 +28,7 @@
                     data = false,
                     data_proj = false,
                     conf = false}
-  local mouse = {}
+   mouse = {}
   local data = {}
   local  obj = {
             plugs_data = {},

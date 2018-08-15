@@ -59,10 +59,14 @@
     local src_pin = src_t.pin_idx
     local src_type = src_t.pin_type -- 0 FX 1 track
     local src_idxFX = src_t.pin_idxFX
+    local src_pin_dir = src_t.pin_dir
     
     local dest_pin = dest_t.pin_idx
     local dest_type = dest_t.pin_type -- 0 FX 1 track
     local dest_idxFX = dest_t.pin_idxFX
+    local dest_pin_dir = dest_t.pin_dir
+    
+    if src_pin_dir == dest_pin_dir then return end
     
     local dest_chan = math.max(src_pin, dest_pin)
     
@@ -87,7 +91,7 @@
       -- clear output destination channel in other pins on source FX
       for outpin = 1, data.fx[src_idxFX].outpins do
         SetPin(data.tr, src_idxFX, 1, outpin, dest_chan, 0)
-        if add_next then SetPin(data.tr,src_idxFX, 1, outpin, dest_pin+1, 0) end
+        if add_next then SetPin(data.tr,src_idxFX, 1, outpin, dest_chan+1, 0) end
       end
       -- clear source pin
       for trch = 1, data.trchancnt do

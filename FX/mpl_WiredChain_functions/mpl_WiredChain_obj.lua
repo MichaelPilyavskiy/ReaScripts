@@ -15,7 +15,7 @@
     -- module
     obj.module_a_frame = 0.1   
     obj.module_alpha_back = 0.05
-    obj.module_alpha_back2= 0.49
+    obj.module_alpha_back2= 0.5
         
     -- topline
     obj.menu_w = 50
@@ -60,6 +60,22 @@
                    }    
     
     -- other
+  end
+  function IsRectInSelection(obj, obj_test)
+    if not obj.selection_rect then return end
+    local x1,y1,w1,h1  =obj.selection_rect.x, obj.selection_rect.y,obj.selection_rect.w,obj.selection_rect.h
+    local x2,y2,w2,h2  =obj_test.x, obj_test.y,obj_test.w,obj_test.h
+    return not (
+            x2 > x1+w1 or
+            x2+w2 < x1 or 
+            y2 > y1+h1 or
+            y2+h2 < y1)
+  end
+  --------------------------------------------------- 
+  function ObjSelectRect(conf, obj, data, refresh, mouse) 
+    for fxid = 1, #data.fx do
+      if IsRectInSelection(obj, obj['fx_'..fxid]) then obj['fx_'..fxid].is_selected = true end
+    end
   end
   --------------------------------------------------- 
   function Obj_EnumeratePlugins(conf, obj, data, refresh, mouse)
@@ -697,18 +713,25 @@ Drag wires
                     txt= i,
                     show = true,
                     is_pin = true,
-                    pin_dir = 0,
+                    pin_dir = 1,
                     pin_type = 1,
                     pin_idx = i,
                     fontsz = obj.GUI_fontsz3,
                     a_frame =obj.module_a_frame,
                     alpha_back = obj.module_alpha_back,
+                    func_ctrlLD = function() refresh.GUI_minor = true end,
                     func =  function() 
                               Obj_MarkConnections(conf, obj, data, refresh, mouse, true) 
                               if not obj[pkey].wire then obj[pkey].wire = {} end
                               local temp_t = obj[pkey].wire
-                              temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
-                            end ,                   
+                              temp_t[#temp_t+1] = { wiretype = 0, src = pkey, dest = 'mouse'}
+                            end ,       
+                      func_trigCtrl = 
+                              function() 
+                                if not obj[pkey].wire then obj[pkey].wire = {} end
+                                                                local temp_t = obj[pkey].wire
+                                                                temp_t[#temp_t+1] = { wiretype = 0, src = pkey, dest = 'mouse'}
+                              end,                                         
                     func_LD =  function() 
                               Obj_MarkConnections(conf, obj, data, refresh, mouse, true) 
                               refresh.GUI_minor = true
@@ -733,6 +756,7 @@ Drag wires
                                         refresh.GUI = true
                                       end,                             
                       func_mouseover =  function()
+                                            if obj.selection_rect then return end
                                           if not obj[pkey].wire then return end
                                           local str = ''
                                           for wire = 1, #obj[pkey].wire do
@@ -753,7 +777,7 @@ Drag wires
                       txt= i,
                       show = true,
                       is_pin = true,
-                      pin_dir = 1,
+                      pin_dir = 0,
                       pin_type = 1,
                       pin_idx = i,
                       fontsz = obj.GUI_fontsz3,
@@ -764,8 +788,14 @@ Drag wires
                                 Obj_MarkConnections(conf, obj, data, refresh, mouse, true) 
                                 if not obj[pkey].wire then obj[pkey].wire = {} end
                                 local temp_t = obj[pkey].wire
-                                temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
-                              end ,                    
+                                temp_t[#temp_t+1] = { wiretype = 0, src = pkey, dest = 'mouse'}
+                              end ,         
+                      func_trigCtrl = 
+                              function() 
+                                if not obj[pkey].wire then obj[pkey].wire = {} end
+                                local temp_t = obj[pkey].wire
+                                temp_t[#temp_t+1] = { wiretype = 0, src = pkey, dest = 'mouse'}
+                              end,                                          
                       onrelease_L = function() 
                                       Undo_BeginBlock()
                                       local add_next
@@ -786,6 +816,7 @@ Drag wires
                                         refresh.GUI = true
                                       end, 
                         func_mouseover =  function()
+                                            if obj.selection_rect then return end
                                             local str = ''
                                             for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].wire then 
                                               for wire = 1, #obj[key].wire do
@@ -901,7 +932,7 @@ Drag wires
                     show = true,
                     fontsz = obj.GUI_fontsz3,
                     a_frame =obj.module_a_frame,
-                    alpha_back = obj.module_alpha_back,
+                    solidrect_a = 1,
                     func =  function() 
                               Obj_SelectionClick(conf, obj, data, refresh, mouse, 'fx_'..i)
                             end,
@@ -1142,15 +1173,16 @@ Drag wires
                                 Obj_MarkConnections(conf, obj, data, refresh, mouse) 
                                 if not obj[pkey].wire then obj[pkey].wire = {} end
                                 local temp_t = obj[pkey].wire
-                                temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
+                                temp_t[#temp_t+1] = { wiretype = 0, src = pkey, dest = 'mouse'}
                               end,        
                       func_trigCtrl = 
                               function() 
                                 if not obj[pkey].wire then obj[pkey].wire = {} end
                                                                 local temp_t = obj[pkey].wire
-                                                                temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
+                                                                temp_t[#temp_t+1] = { wiretype = 0,src = pkey,  dest = 'mouse'}
                               end,                                             
                       func_mouseover =  function()
+                                          if obj.selection_rect then return end
                                           local str = ''
                                           for key in pairs(obj) do if type(obj[key]) == 'table' then
                                             if obj[key].wire then 
@@ -1178,6 +1210,7 @@ Drag wires
                                                                                             dest = pkey,
                                                                                             src = mouse.context_latch,
                                                                                             add_next = add_next,
+                                                                                            
                                                                                           })  end ,
                                       Undo_EndBlock2( 0, 'WiredChain - rebuild pins', -1 )
                              
@@ -1218,15 +1251,16 @@ Drag wires
                                 --Obj_MarkConnections(conf, obj, data, refresh, mouse, true) 
                                 if not obj[pkey].wire then obj[pkey].wire = {} end
                                 local temp_t = obj[pkey].wire
-                                temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
+                                temp_t[#temp_t+1] = { wiretype = 0,src = pkey,  dest = 'mouse'}
                               end,
                       func_trigCtrl = 
                               function() 
                                 if not obj[pkey].wire then obj[pkey].wire = {} end
                                                                 local temp_t = obj[pkey].wire
-                                                                temp_t[#temp_t+1] = { wiretype = 0, dest = 'mouse'}
+                                                                temp_t[#temp_t+1] = { wiretype = 0, src = pkey, dest = 'mouse'}
                               end, 
                       func_mouseover =  function()
+                                          if obj.selection_rect then return end
                                           if not obj[pkey].wire then return end
                                           local str = ''
                                           for wire = 1, #obj[pkey].wire do

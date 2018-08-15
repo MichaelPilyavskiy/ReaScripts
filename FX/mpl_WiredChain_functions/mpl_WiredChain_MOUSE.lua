@@ -113,6 +113,9 @@
     end
    
     if obj.textbox.enable then goto skip_mouse_obj end
+    
+    
+    
         -- loop with break
         for key in spairs(obj,function(t,a,b) return b < a end) do
          if type(obj[key]) == 'table' and not obj[key].ignore_mouse then
@@ -190,6 +193,8 @@
        
        ::skip_mouse_obj::
       
+      
+      
     if not mouse.context and mouse.cap == 2 and not mouse.last_RMB_state then 
       if obj.textbox.enable then
         obj.textbox.enable = false 
@@ -199,33 +204,26 @@
       end
     end  
     
+    -- add fx
     local addfx_context
     if obj.textbox.enable then
       addfx_context = MOUSE_Match(mouse, {x = obj.fxsearch_x ,
                                                                y = obj.fxsearch_y ,
                                                                w = obj.fxsearch_w,
                                                                h = obj.fxsearch_h })
+      if addfx_context and obj.textbox.match_t then MOUSE_ContextAddFX(conf, obj, data, refresh, mouse, commit) end
     end
     
-    if addfx_context and obj.textbox.enable  then 
-      if obj.textbox.match_t then 
-        MOUSE_ContextAddFX(conf, obj, data, refresh, mouse, commit)
-      end
-    end
     
     -- reset selection/textbox
       if not mouse.last_LMB_state and mouse.cap == 1  then
-        if not obj.textbox.enable 
-          and (not mouse.context or mouse.context == '' ) 
-           then 
+        if not obj.textbox.enable  and (not mouse.context or mouse.context == '' )  then 
           obj.textbox.enable = false
           refresh.GUI = true
          elseif obj.textbox.enable and not addfx_context then
           obj.textbox.enable = false
           refresh.GUI = true
         elseif obj.textbox.enable and addfx_context then
-                                                               
-                                            
           if obj.textbox.match_t then  MOUSE_ContextAddFX(conf, obj, data, refresh, mouse, true)       end
         end
       end
@@ -253,7 +251,29 @@
           end
           if do_upd_minor == true then refresh.GUI_minor = true  end
         end
-            
+          
+   -- selection
+      if (not mouse.context_latch or mouse.context_latch == '') and  mouse.last_LMB_state and mouse.LMB_state then 
+        
+        local x,y,w,h
+        x = mouse.x - mouse.dx
+        y = mouse.y - mouse.dy
+        w = mouse.dx
+        h = mouse.dy
+        if h < 0 then 
+          y = y + h 
+          h = -h
+        end
+        if w < 0 then 
+          x = x + w
+          w = -w
+        end        
+        obj.selection_rect = {x=x,y=y,w=w,h=h} 
+      end
+      if (not mouse.context_latch or mouse.context_latch == '') and  mouse.last_LMB_state and not mouse.LMB_state then 
+        ObjSelectRect(conf, obj, data, refresh, mouse) 
+      end
+    
     MOUSE_Mod_ToolTips(conf, obj, data, refresh, mouse)
     
     if not MOUSE_Match(mouse, {x=0,y=0,w=gfx.w, h=gfx.h}) then obj.tooltip = '' end
@@ -261,6 +281,7 @@
      -- mouse release    
       if mouse.last_LMB_state and not mouse.LMB_state   then   
         mouse.drag_obj = nil
+        obj.selection_rect = nil
         if mouse.context_latch and  mouse.context_latch:match('mod_') then refresh.GUI = true end
         -- clear context
         mouse.context_latch = ''
