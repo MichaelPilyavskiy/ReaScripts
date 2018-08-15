@@ -344,7 +344,7 @@
         --gfx.dest = 4
         local bezier = conf.use_bezier_curves 
         for i = 1,#o.wire do
-           wire_t = o.wire[i]
+          local wire_t = o.wire[i]
           if wire_t.wiretype == 0 then col(obj, obj.audiowire_col,obj.audiowire_a) end-- audio
           if wire_t.dest 
             and obj[wire_t.dest] 

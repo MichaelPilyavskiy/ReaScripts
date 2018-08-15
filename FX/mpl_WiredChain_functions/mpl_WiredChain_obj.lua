@@ -338,20 +338,56 @@ Drag wires
                 end,
         state = conf.reducetrackouts == 1,
       } , 
-      { str = 'Use bezier wires',  
-        func =  function() 
-                  conf.use_bezier_curves = math.abs(1-conf.use_bezier_curves)  
-                  refresh.GUI = true
-                end,
-        state = conf.use_bezier_curves == 1,
-      } ,   
-      { str = 'Show info line on top|',  
+  
+      { str = 'Show info line on top',  
         func =  function() 
                   conf.show_info_ontop = math.abs(1-conf.show_info_ontop)  
                   refresh.GUI = true
                 end,
         state = conf.show_info_ontop == 0,
       } ,         
+      { str = 'Clear pins for newly added plugins|',  
+        func =  function() 
+                  conf.clear_pins_on_add = math.abs(1-conf.clear_pins_on_add)  
+                  refresh.GUI = true
+                end,
+        state = conf.clear_pins_on_add == 1,
+      } ,        
+      
+      
+      { str = '>Expert settings'},
+      { str = 'Data_BuildRouting_Audio: Clear sends to destination channel from all pins of source FX',  
+        func =  function() 
+                  conf.clearoutpinschan = math.abs(1-conf.clearoutpinschan)  
+                  refresh.GUI = true
+                end,
+        state = conf.clearoutpinschan == 1,
+      } ,       
+      { str = 'Data_BuildRouting_Audio: Clear source FX source pin',  
+        func =  function() 
+                  conf.cleasrcpin = math.abs(1-conf.cleasrcpin)  
+                  refresh.GUI = true
+                end,
+        state = conf.cleasrcpin == 1,
+      } ,        
+      { str = 'Data_BuildRouting_Audio: Clear dest FX dest pin',  
+        func =  function() 
+                  conf.cleadestpin = math.abs(1-conf.cleadestpin)  
+                  refresh.GUI = true
+                end,
+        state = conf.cleadestpin == 1,
+      } ,        
+      
+      { str = 'Use bezier wires|<|',  
+        func =  function() 
+                  conf.use_bezier_curves = math.abs(1-conf.use_bezier_curves)  
+                  refresh.GUI = true
+                end,
+        state = conf.use_bezier_curves == 1,
+      } , 
+      
+      
+      
       
       
       
@@ -440,6 +476,19 @@ Drag wires
                 refresh.GUI = true
               end  
     } , 
+    { str = 'Clear ALL plugins input pins',
+      func = function() 
+                Undo_BeginBlock()
+                for fx_id = 1, #data.fx do
+                  for chan = 1, data.trchancnt do
+                    for pinO = 1, data.fx[fx_id].inpins do SetPin(data.tr, fx_id, 0, pinO, chan, 0)  end
+                  end
+                end
+                Undo_EndBlock2(0, 'WiredChain - clear ALL pins', -1 )
+                refresh.data = true
+                refresh.GUI = true
+              end  
+    } ,    
     { str = 'Clear ALL plugins output pins|',
       func = function() 
                 Undo_BeginBlock()
@@ -965,16 +1014,17 @@ Drag wires
                                     refresh.conf = true
                                   end,
                     func_R = function()
-                                  Menu(mouse, { { str = 'Replace FX',
+                                  Menu(mouse, {  
+                                                { str = 'Float FX|',
+                                                  func = function() TrackFX_Show( data.tr, i-1, 3 ) end},
+                                                { str = 'Replace FX',
                                                   func = function() 
                                                             Obj_EnumeratePlugins(conf, obj, data, refresh, mouse)
                                                             obj.textbox.enable = true
                                                             obj.textbox.is_replace = i-1
                                                             refresh.GUI = true 
                                                           end  
-                                                } ,   
-                                                { str = 'Float FX',
-                                                  func = function() TrackFX_Show( data.tr, i-1, 3 ) end},
+                                                } ,                                                    
                                                 { str = 'Duplicate FX',
                                                   func = function() 
                                                             Undo_BeginBlock()
@@ -983,7 +1033,7 @@ Drag wires
                                                             refresh.GUI = true
                                                             Undo_EndBlock2(0, 'WiredChain - duplicate FX', -1 )
                                                           end}  ,                                                
-                                                { str = 'Remove FX',
+                                                { str = 'Remove FX|',
                                                   func = function()  
                                                             Undo_BeginBlock()
                                                             MPL_HandleFX( data.tr, i, 1) 
@@ -997,10 +1047,29 @@ Drag wires
                                                               for pinI = 1, data.fx[i].inpins do SetPin(data.tr, i, 0, pinI, chan, 0)  end
                                                               for pinO = 1, data.fx[i].outpins do SetPin(data.tr, i, 1, pinO, chan, 0)  end
                                                             end
-                                                            Undo_EndBlock2(0, 'WiredChain - clear ALL pins', -1 ) 
+                                                            Undo_EndBlock2(0, 'WiredChain - clear  pins', -1 ) 
                                                             refresh.data = true
                                                             refresh.GUI = true
-                                                          end },      
+                                                          end },   
+                                                { str = 'Clear plugin input pins',
+                                                  func = function()                                                            
+                                                            for chan = 1, data.trchancnt do
+                                                              for pinI = 1, data.fx[i].inpins do SetPin(data.tr, i, 0, pinI, chan, 0)  end
+                                                              
+                                                            end
+                                                            Undo_EndBlock2(0, 'WiredChain - clear in pins', -1 ) 
+                                                            refresh.data = true
+                                                            refresh.GUI = true
+                                                          end },     
+                                                { str = 'Clear plugin output pins',
+                                                  func = function()                                                            
+                                                            for chan = 1, data.trchancnt do
+                                                              for pinO = 1, data.fx[i].outpins do SetPin(data.tr, i, 1, pinO, chan, 0)  end
+                                                            end
+                                                            Undo_EndBlock2(0, 'WiredChain - clear out pins', -1 ) 
+                                                            refresh.data = true
+                                                            refresh.GUI = true
+                                                          end },                                                                                                                     
                                                 { str = 'Clear and reset plugin pins',
                                                   func = function()                                                            
                                                             for chan = 1, data.trchancnt do

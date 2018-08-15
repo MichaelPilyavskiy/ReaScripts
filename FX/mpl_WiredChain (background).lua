@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.15
+-- @version 1.16
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,12 +9,13 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    + add plugin selection by selecting area
---    # fix ctrl+drag from Track IO
---    # Data_BuildRouting_Audio: prevent connection input to inputs and outputs to outputs
---    # Data_BuildRouting_Audio: fix clear output pins FX pin in beetween based on dest pin instead dest channel
+--    + Menu/Clear plugin pins when adding FX
+--    + ContextMenu/Clear all FX input pins
+--    + FX menu/Clear input pins
+--    + Added expert options for audio routing
 
-  local vrs = 'v1.15'
+
+  local vrs = 'v1.16'
   --NOT gfx NOT reaper
   
   
@@ -26,10 +27,10 @@
                     GUI = false, 
                     GUI_minor = false,
                     data = false,
-                    data_proj = false,
+                    data_proj = false, 
                     conf = false}
-   mouse = {}
-  local data = {}
+  local mouse = {}
+   data = {}
   local  obj = {
             plugs_data = {},
             textbox = {
@@ -69,6 +70,12 @@
             autoroutestereo = 0,
             reducetrackouts = 0,
             
+            -- expert mode
+            clearoutpinschan = 1, -- clear output destination channel in other pins on source FX
+            cleasrcpin = 1, --clear source pin
+            cleadestpin = 1, 
+            
+            
             -- GUI
             snapFX = 1,
             snap_px = 10, -- snap FX when drag
@@ -76,6 +83,7 @@
             struct_yshift = 0,
             use_bezier_curves = 0,
             show_info_ontop = 1,
+            clear_pins_on_add = 0, 
             }
     return t
   end  

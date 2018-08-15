@@ -211,7 +211,7 @@
                                                                y = obj.fxsearch_y ,
                                                                w = obj.fxsearch_w,
                                                                h = obj.fxsearch_h })
-      if addfx_context and obj.textbox.match_t then MOUSE_ContextAddFX(conf, obj, data, refresh, mouse, commit) end
+      if addfx_context and obj.textbox.match_t then MOUSE_ContextAddFX(conf, obj, data, refresh, mouse) end
     end
     
     

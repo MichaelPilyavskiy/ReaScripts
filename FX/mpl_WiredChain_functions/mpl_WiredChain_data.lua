@@ -89,29 +89,36 @@
       end
       
       -- clear output destination channel in other pins on source FX
-      for outpin = 1, data.fx[src_idxFX].outpins do
-        SetPin(data.tr, src_idxFX, 1, outpin, dest_chan, 0)
-        if add_next then SetPin(data.tr,src_idxFX, 1, outpin, dest_chan+1, 0) end
-      end
+        if conf.clearoutpinschan == 1 then 
+          for outpin = 1, data.fx[src_idxFX].outpins do
+            SetPin(data.tr, src_idxFX, 1, outpin, dest_chan, 0)
+            if add_next then SetPin(data.tr,src_idxFX, 1, outpin, dest_chan+1, 0) end
+          end
+        end
+        
       -- clear source pin
-      for trch = 1, data.trchancnt do
-        SetPin(data.tr, src_idxFX, 1, src_pin, trch, 0)
-      end
+        if conf.cleasrcpin == 1 then 
+          for trch = 1, data.trchancnt do SetPin(data.tr, src_idxFX, 1, src_pin, trch, 0) end
+        end
       
       
       if src_idxFX < dest_idxFX then -- valid FX order
       
         -- set on destination channel for source FX      
-        SetPin(data.tr, src_idxFX, 1, src_pin, dest_chan, 1)
-        if add_next then SetPin(data.tr, src_idxFX, 1, src_pin+1, dest_chan+1, 1) end  
+          SetPin(data.tr, src_idxFX, 1, src_pin, dest_chan, 1)
+          if add_next then SetPin(data.tr, src_idxFX, 1, src_pin+1, dest_chan+1, 1) end  
         
         -- handle destination FX
-          -- clear pins
+          
           --SetPin(data.tr, dest_idxFX, 0, dest_t.chan, src_pin, 1) -- 1.02
-          for chan = 1, data.trchancnt do 
-            SetPin(data.tr, dest_idxFX, 0, dest_pin, chan, 0) 
-            if add_next then SetPin(data.tr, dest_idxFX, 0,dest_pin+1, chan, 0) end
+          -- clear dest pins
+          if conf.cleadestpin == 1 then 
+            for chan = 1, data.trchancnt do 
+              SetPin(data.tr, dest_idxFX, 0, dest_pin, chan, 0) 
+              if add_next then SetPin(data.tr, dest_idxFX, 0,dest_pin+1, chan, 0) end
+            end
           end
+          
           -- set pin
           SetPin(data.tr, dest_idxFX, 0, dest_pin,dest_chan, 1)
           if add_next then SetPin(data.tr, dest_idxFX, 0, dest_pin+1,dest_chan+1, 1) end
@@ -312,7 +319,14 @@
                 if not data.ext_data[data.GUID][new_GUID] then data.ext_data[data.GUID][new_GUID] = {} end
                 data.ext_data[data.GUID][new_GUID].x = mouse.x - conf.struct_xshift
                 data.ext_data[data.GUID][new_GUID].y = mouse.y - conf.struct_yshift
-                Data_Update_ExtState_ProjData_Save (conf, obj, data, refresh, mouse)      
+                Data_Update_ExtState_ProjData_Save (conf, obj, data, refresh, mouse)  
+                if conf.clear_pins_on_add == 1 then 
+                  local retval, inpins, outpins = TrackFX_GetIOSize( data.tr, #data.fx )
+                  for ip = 1, math.max(inpins,outpins) do
+                    TrackFX_SetPinMappings( data.tr, #data.fx, 0, ip-1 , 0, 0)
+                    TrackFX_SetPinMappings( data.tr, #data.fx, 1, ip-1 , 0, 0)
+                  end
+                end   
               end             
             end
             
@@ -345,7 +359,7 @@
       
       -- check pins
         local pins = {I={},O={}}
-        local retval, inpins, outpins = TrackFX_GetIOSize( tr, i-1 )
+        local  retval1, inpins, outpins = TrackFX_GetIOSize( tr, i-1 )
         for inpin = 1, inpins do
           local pinmap, high32 = reaper.TrackFX_GetPinMappings( tr, i-1, 0, inpin-1 )
           pins.I[inpin] = pinmap --+ high32<<32
