@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="08c845dd6809d8b96d8fa1084f2dd3c1852a453e" name="MPL Scripts">
+<index version="1" commit="dadf0c172d742d93ab400821847fc6348e397afe" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1085,6 +1085,17 @@
         <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
         <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
         <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
+      </version>
+      <version name="1.15" author="MPL" time="2018-08-15T04:59:47Z">
+        <changelog><![CDATA[+ add plugin selection by selecting area
+# fix ctrl+drag from Track IO
+# Data_BuildRouting_Audio: prevent connection input to inputs and outputs to outputs
+# Data_BuildRouting_Audio: fix clear output pins FX pin in beetween based on dest pin instead dest channel]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dadf0c172d742d93ab400821847fc6348e397afe/FX/mpl_WiredChain%20(background).lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dadf0c172d742d93ab400821847fc6348e397afe/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dadf0c172d742d93ab400821847fc6348e397afe/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dadf0c172d742d93ab400821847fc6348e397afe/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dadf0c172d742d93ab400821847fc6348e397afe/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_XYPad (background).lua" type="script" desc="XYPad">
