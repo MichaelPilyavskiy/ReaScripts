@@ -444,7 +444,7 @@
      elseif mouse.Ctrl then 
       local vrs_num =  GetAppVersion()
       local vrs_num = tonumber(vrs_num:match('[%d%.]+'))
-      if vrs_num >= 5.93 then      
+      if vrs_num >= 5.95 then      
         local offl_state = TrackFX_GetOffline(data.tr[1].ptr, fx_id-1)
         TrackFX_SetOffline(data.tr[1].ptr, fx_id-1, not offl_state)
       end

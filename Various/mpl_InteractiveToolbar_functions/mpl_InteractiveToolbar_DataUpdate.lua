@@ -661,7 +661,7 @@
             local vrs_num =  GetAppVersion()
             local vrs_num = tonumber(vrs_num:match('[%d%.]+'))
             local is_online = true 
-            if vrs_num >= 5.93 then is_online = not TrackFX_GetOffline( tr, fxid-1 )  end      
+            if vrs_num >= 5.95 then is_online = not TrackFX_GetOffline( tr, fxid-1 )  end      
             data.tr[i].fx_names[fxid] = {name = MPL_ReduceFXname(({TrackFX_GetFXName( tr, fxid-1, '' )})[2]),
                                           is_instr = instr==fxid-1,
                                           is_enabled =  TrackFX_GetEnabled( tr, fxid-1 ),
