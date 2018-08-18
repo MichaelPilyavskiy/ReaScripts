@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0f8073ab62df7ebc26b3d304332c16c220baa33d" name="MPL Scripts">
+<index version="1" commit="920189885012790e094f3238c7d916372f10d023" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -3437,6 +3437,10 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d2ff87f1c08dcaa7306b8c31383eb00a49b9206/Stretch%20Markers/mpl_Copy%20selected%20item%20stretch%20markers.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2018-08-18T07:21:08Z">
+        <changelog><![CDATA[# use native chunk functions, REAPER 5.95pre3+]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/920189885012790e094f3238c7d916372f10d023/Stretch%20Markers/mpl_Copy%20selected%20item%20stretch%20markers.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Move take content under stretch markers 10ms left.lua" type="script" desc="Move take content under stretch markers 10ms left">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
@@ -3455,6 +3459,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2018-06-10T09:03:13Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d2ff87f1c08dcaa7306b8c31383eb00a49b9206/Stretch%20Markers/mpl_Paste%20and%20replace%20stretch%20markers%20to%20selected%20items.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2018-08-18T07:21:08Z">
+        <changelog><![CDATA[# use native chunk functions, REAPER 5.95pre3+]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/920189885012790e094f3238c7d916372f10d023/Stretch%20Markers/mpl_Paste%20and%20replace%20stretch%20markers%20to%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Quantize stretch markers in selected items to zero crossings.lua" type="script" desc="Quantize stretch markers in selected items to zero crossings">
