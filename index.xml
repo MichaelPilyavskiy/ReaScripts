@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="69a37f629b4d5a5fe17a4b6778852d0530832f76" name="MPL Scripts">
+<index version="1" commit="88dbe43d7353973866e042702fcb46f43d977f7b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1300,6 +1300,15 @@ setup min gain, attack =0]]></changelog>
       <version name="1.16" author="MPL" time="2017-07-05T18:58:14Z">
         <changelog><![CDATA[# try preventin line60 error]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dc11226898e8bc7a6843ae6492bb38205c323551/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(drum%20mode).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Export selected items to RS5k instances on selected track (use original source).lua" type="script" desc="Export selected items to RS5k instances on selected track (use original source)">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-08-19T13:29:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/88dbe43d7353973866e042702fcb46f43d977f7b/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Export selected items to RS5k instances on selected track.lua" type="script" desc="Export selected items to RS5k instances on selected track">
