@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.68
+-- @version 1.69
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # fix requeiments for GetSetOffline()
+--    # update GUI on repeat state change
 
-    local vrs = '1.68'
+    local vrs = '1.69'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -39,7 +39,7 @@
   -- NOT reaper NOT gfx
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
-   conf = {} 
+  local conf = {} 
   local scr_title = 'InteractiveToolbar'
   local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
@@ -60,7 +60,7 @@
                         }
                   }
   local cycle_cnt,clock = 0
-  local SCC, SCC_trig, lastSCC
+  --local SCC, SCC_trig, lastSCC
   local lastcur_pos
   local last_FormTS
   local lastTS_st, lastTSend

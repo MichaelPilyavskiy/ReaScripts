@@ -574,9 +574,14 @@
   ---------------------------------------------------
   function HasPlayStateChanged()
     local int_playstate = GetPlayStateEx( 0 )
+    local int_repeat =  GetToggleCommandState( 1068 )
     local ret = false
-    if lastint_playstate and lastint_playstate ~= int_playstate  then  ret = true end
+    if (lastint_playstate and lastint_playstate ~= int_playstate)
+        or (lastint_repeat and lastint_repeat ~= int_repeat)  then  
+      ret = true 
+    end
     lastint_playstate = int_playstate
+    lastint_repeat = int_repeat
     return ret
   end 
   ---------------------------------------------------
