@@ -1,14 +1,13 @@
-﻿-- @version 1.33
+-- @version 1.34
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description SendFader
 -- @changelog
---    + Support master harware sends (REAPER 5.15+)
---    # change link to common discussion
+--    + master/parent send toggle
 
 
   -------------------------------------------------------------------- 
-  vrs = '1.33'
+  vrs = '1.34'
   name = 'MPL SendFader'
   --------------------------------------------------------------------           
 
@@ -202,14 +201,20 @@
                             h = fad_b_h,
                             name = 'Mixer'}  
       obj.b.mixer = F_cond_button(obj.b.mixer, obj.b.fader_area)   
-      obj.b.remote =            {x = peakL_ind_x,
+      obj.b.parent =            {x = peakL_ind_x,
                             y = obj.b.fader.y + obj.offs*7+fad_b_h*7+sep,
+                            w =  fad_b_w,
+                            h = fad_b_h,
+                            name = 'Parent'}  
+      obj.b.parent = F_cond_button(obj.b.parent, obj.b.fader_area)        
+      obj.b.remote =            {x = peakL_ind_x,
+                            y = obj.b.fader.y + obj.offs*8+fad_b_h*8+sep,
                             w =  fad_b_w,
                             h = fad_b_h,
                             name = 'Remote'}
       obj.b.remote = F_cond_button(obj.b.remote, obj.b.fader_area)                                                       
       obj.b.remove =            {x = peakL_ind_x,
-                            y = obj.b.fader.y + obj.offs*8+fad_b_h*8+sep*2,
+                            y = obj.b.fader.y + obj.offs*9+fad_b_h*9+sep*2,
                             w =  fad_b_w,
                             h = fad_b_h,
                             name = 'Delete'} 
@@ -359,7 +364,7 @@
               if data.send_t[data.cur_send_id].mute == 1 then m_col = 'red' m_alp = 0.9 end
               GUI_button(obj.b.mute, nil, m_col, m_alp)
               
-            -- mute
+            -- solo
               local m_col, m_alp = nil,0.3
               if data.send_t[data.cur_send_id].solo == 1 then m_col = 'green' m_alp = 0.9 end
               GUI_button(obj.b.solo, nil, m_col, m_alp)
@@ -416,7 +421,11 @@
                 remote_alpha = 0.8 
                 remote_col = 'green'
               end
-              GUI_button(obj.b.remote , nil, remote_col,remote_alpha)               
+              GUI_button(obj.b.remote , nil, remote_col,remote_alpha)  
+            -- parent
+              local m_col, m_alp = nil,0.3
+              if data.send_t[data.cur_send_id].parentsend == 1 then m_col = 'green' m_alp = 0.9 end
+              GUI_button(obj.b.parent, nil, m_col, m_alp)                     
             -- mixer
               GUI_button(obj.b.mixer, nil, nil,0.8)
             -- remove
@@ -1098,7 +1107,8 @@
                                       peakL = peakL,
                                       peakR = peakR,
                                       dest_GUID = dest_GUID,
-                                      sendEQ = sendEQ, }
+                                      sendEQ = sendEQ, 
+                                      parentsend =  reaper.GetMediaTrackInfo_Value( data.track_pointer, 'B_MAINSEND' )}
       end
       
       -- define solo states
@@ -1752,7 +1762,12 @@
         reaper.RemoveTrackSend( data.track_pointer, 0, data.cur_send_id-1 )
         update_gfx = true
       end
-      
+    -- show mixer
+      if MOUSE_button(obj.b.parent  ) then
+        local st = reaper.GetMediaTrackInfo_Value( data.track_pointer, 'B_MAINSEND'  )
+        reaper.SetMediaTrackInfo_Value( data.track_pointer, 'B_MAINSEND',  math.abs(1-st))
+        update_gfx = true
+      end      
     -- show mixer
       if MOUSE_button(obj.b.mixer  ) then
         data.show_mixer = math.abs(1-data.show_mixer)

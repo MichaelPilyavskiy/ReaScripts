@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.74
+-- @version 1.75
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -10,10 +10,10 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
 -- @changelog
---    # prevent crash on empty name
+--    # when dropping samples onto pad in "Auto create childrens" mode, rename MIDI note names in parent track also
 
 
-  local vrs = 'v1.74'
+  local vrs = 'v1.75'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  

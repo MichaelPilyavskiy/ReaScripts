@@ -460,20 +460,36 @@
   function ExportItemToRS5K(data,conf,refresh,note,filepath, start_offs, end_offs)
     if not data.parent_track or not note or not filepath then return end
     local track = data.parent_track
+    local val
+    
     if data[note] and data[note][1] then 
       track = data[note][1].src_track
       if conf.allow_multiple_spls_per_pad == 0 then
         TrackFX_SetNamedConfigParm(  track, data[note][1].rs5k_pos, 'FILE0', filepath)
         TrackFX_SetNamedConfigParm(  track, data[note][1].rs5k_pos, 'DONE', '')
-        return 1  
+        val= 1
+        goto rename_note 
        else
         ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, end_offs, track)  
-        return #data[note]+1        
+        val= #data[note]+1
+        goto rename_note               
       end
      else
        ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, end_offs, track)
-       return 1
+       val= 1
+       goto rename_note
     end
+    
+    ::rename_note::
+    -- rename note in ME
+      local MIDI_notename = GetShortSmplName(filepath)
+      if MIDI_notename and MIDI_notename ~= '' and track then
+        MIDI_notename = MIDI_notename:match('(.*)%.')
+          SetTrackMIDINoteNameEx( 0, track, note, 0, MIDI_notename)
+          SetTrackMIDINoteNameEx( 0,track, note, 0, MIDI_notename)
+      end
+    
+    return val
     
   end
   ----------------------------------------------------------------------- 
