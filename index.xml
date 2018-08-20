@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="70ba0aa9b0f3a63b94942e28c88cc42f7d68af54" name="MPL Scripts">
+<index version="1" commit="984379787bc63f8e422a222c46a6a3d7be0d1670" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1873,6 +1873,15 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
         <source file="mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX%20specific/mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua</source>
+      </version>
+      <version name="1.75" author="MPL" time="2018-08-20T17:15:26Z">
+        <changelog><![CDATA[# when dropping samples onto pad in "Auto create childrens" mode, rename MIDI note names in parent track also]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/984379787bc63f8e422a222c46a6a3d7be0d1670/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/984379787bc63f8e422a222c46a6a3d7be0d1670/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/984379787bc63f8e422a222c46a6a3d7be0d1670/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/984379787bc63f8e422a222c46a6a3d7be0d1670/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/984379787bc63f8e422a222c46a6a3d7be0d1670/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
+        <source file="mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/984379787bc63f8e422a222c46a6a3d7be0d1670/FX%20specific/mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
@@ -5114,6 +5123,10 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[+ Support master harware sends (REAPER 5.15+)
 # change link to common discussion]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_SendFader%20(background).lua</source>
+      </version>
+      <version name="1.34" author="MPL" time="2018-08-20T17:15:26Z">
+        <changelog><![CDATA[+ master/parent send toggle]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/984379787bc63f8e422a222c46a6a3d7be0d1670/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_SendFader - set active send (MIDI OSC only).lua" type="script" desc="SendFader - set active send (MIDI OSC only)">
