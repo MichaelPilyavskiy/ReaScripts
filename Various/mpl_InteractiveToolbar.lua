@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.69
+-- @version 1.70
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # update GUI on repeat state change
+--    # fix access to conf table in MIDI Editor widgets
+--
 
-    local vrs = '1.69'
+    local vrs = '1.70'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])

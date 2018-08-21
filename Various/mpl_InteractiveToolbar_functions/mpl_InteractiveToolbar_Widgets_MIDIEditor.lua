@@ -27,7 +27,7 @@
       for i = 1, #widgets[widg_key] do
         local key = widgets[widg_key][i]
         if _G['Widgets_MIDIEditor_'..key] then
-            local ret = _G['Widgets_MIDIEditor_'..key](data, obj, mouse, x_offs, widgets) 
+            local ret = _G['Widgets_MIDIEditor_'..key](data, obj, mouse, x_offs, widgets, conf) 
             if ret then x_offs = x_offs + obj.offs + ret end
         end
       end  
@@ -42,7 +42,7 @@
 
 
   --------------------------------------------------------------
-  function Widgets_MIDIEditor_position(data, obj, mouse, x_offs)    -- generate position controls 
+  function Widgets_MIDIEditor_position(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
     if not data.evts or not data.evts.first_selected or not data.evts[  data.evts.first_selected  ] then return  x_offs end
     if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_MEevtpos = { x = x_offs,
@@ -72,7 +72,7 @@
                         src_val_key= 'pos_sec',
                         modify_func= MPL_ModifyTimeVal,
                         app_func= Apply_MEevt_Pos,                         
-                        mouse_scale= obj.mouse_scal_time,
+                        mouse_scale= obj.mouse_scal_time2,
                         onRelease_ActName = data.scr_title..': Change MIDI event properties',
                         use_mouse_drag_xAxis = data.always_use_x_axis==1,
                         rul_format = conf.ruleroverride })                        
@@ -142,7 +142,7 @@
   
   
   --------------------------------------------------------------
-  function Widgets_MIDIEditor_CCval(data, obj, mouse, x_offs)    -- generate position controls 
+  function Widgets_MIDIEditor_CCval(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
     if not data.evts or data.evts.cnt_sel_CC == 0 then return end
     if x_offs + obj.entry_w2 > obj.persist_margin then return end 
     obj.b.obj_MEevtCC = { x = x_offs,
@@ -223,7 +223,7 @@
   
   
   --------------------------------------------------------------
-  function Widgets_MIDIEditor_notepitch(data, obj, mouse, x_offs)    -- generate position controls 
+  function Widgets_MIDIEditor_notepitch(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
     if not data.evts or data.evts.cnt_sel_notes == 0 then return   end
     if x_offs + obj.entry_w2 > obj.persist_margin then return  end 
     obj.b.obj_MEevtnotepitch = { x = x_offs,
@@ -312,7 +312,7 @@
   
   
   --------------------------------------------------------------
-  function Widgets_MIDIEditor_notevel(data, obj, mouse, x_offs)    -- generate position controls 
+  function Widgets_MIDIEditor_notevel(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
     if not data.evts or data.evts.cnt_sel_notes == 0 then return   end
     if x_offs + obj.entry_w2 > obj.persist_margin then return  end 
     obj.b.obj_MEevtnotevel = { x = x_offs,
@@ -394,7 +394,7 @@
 
 
   --------------------------------------------------------------
-  function Widgets_MIDIEditor_midichan(data, obj, mouse, x_offs)    -- generate position controls 
+  function Widgets_MIDIEditor_midichan(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
     if not data.evts or not data.evts.first_selected or not data.evts[data.evts.first_selected]  then return  x_offs end
     if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_MEevtchan = { x = x_offs,

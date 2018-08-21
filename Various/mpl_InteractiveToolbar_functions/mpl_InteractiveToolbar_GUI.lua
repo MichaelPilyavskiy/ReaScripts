@@ -40,6 +40,7 @@
                   b = {},             -- buttons table
                   
                   mouse_scal_time = 5,
+                  mouse_scal_time2 = 0.2, -- note pos
                   mouse_scal_vol = 5,
                   mouse_scal_sendmixvol = 5,
                   mouse_scal_pitch = 5,
