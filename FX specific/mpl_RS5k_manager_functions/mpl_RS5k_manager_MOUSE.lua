@@ -209,7 +209,9 @@
         mouse.context_latch_t = nil
         -- clear note
         --for i = 1, 127 do StuffMIDIMessage( 0, '0x8'..string.format("%x", 0), i, 100) end
-        StuffMIDIMessage( 0, '0xB0', 123, 0)
+        if conf.sendnoteoffonrelease == 1 then
+          StuffMIDIMessage( 0, '0xB0', 123, 0)
+        end
         refresh.GUI = true
       end
 

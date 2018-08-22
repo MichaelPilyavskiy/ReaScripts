@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.75
+-- @version 1.76
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -10,10 +10,12 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
 -- @changelog
---    # when dropping samples onto pad in "Auto create childrens" mode, rename MIDI note names in parent track also
+--    + Option to not send note off on mouse release
+--    + Option to separate waveform from knobs
 
 
-  local vrs = 'v1.75'
+
+  local vrs = 'v1.76'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -68,6 +70,7 @@
             
             -- GUI control
             mouse_wheel_res = 960,
+            separate_spl_peak = 0,
             
             -- Samples
             allow_multiple_spls_per_pad = 0,
@@ -96,6 +99,7 @@
             dragtonewtracks = 0,
             draggedfile_fxchain = '',
             --copy_src_media = 0,
+            sendnoteoffonrelease = 1,
             }
     return t
   end  

@@ -1431,8 +1431,9 @@
                 }                                               
       end
       
-
-      local key_area_h = gfx.h -obj.kn_h-obj.samplename_h
+      local WF_shift = 0
+      if conf.separate_spl_peak == 1 then WF_shift = obj.WF_h end
+      local key_area_h = gfx.h -obj.kn_h-obj.samplename_h-WF_shift
       local key_w = math.ceil((gfx.w-3*obj.offs-obj.keycntrlarea_w)/w_div)
       local key_h = math.ceil((1/h_div)*(key_area_h)) 
       obj.h_div = h_div
@@ -1871,9 +1872,13 @@ List of available hashtags:
     func = function() conf.keymode = 5 end ,
     state = conf.keymode == 5},    
     
-  { str = 'Send MIDI by clicking on keys|<',
+  { str = 'Send MIDI by clicking on keys',
     func = function() conf.keypreview = math.abs(1-conf.keypreview)  end ,
-    state = conf.keypreview == 1},   
+    state = conf.keypreview == 1},  
+  { str = 'Send MIDI noteoff on mouse release (leave notes unclosed!)|<',
+    func = function() conf.sendnoteoffonrelease = math.abs(1-conf.sendnoteoffonrelease)  end ,
+    state = conf.sendnoteoffonrelease == 1},      
+     
 
 
   { str = '>RS5k controls'},
@@ -1925,7 +1930,7 @@ List of available hashtags:
             end
   } ,  
   
-  { str = 'Pad font size|<',
+  { str = 'Pad font size',
     func =  function() 
               local ret = GetInput( conf, 'Pad font', conf.GUI_padfontsz,true)
               if ret then 
@@ -1934,6 +1939,11 @@ List of available hashtags:
               end
             end
   } ,
+  { str = 'Separate waveform from knobs|<',
+    func =  function() conf.separate_spl_peak = math.abs(1-conf.separate_spl_peak)  end,
+    state = conf.separate_spl_peak == 1,
+  } ,   
+  
 
   { str = '>Dragndrop options'},
   { str = 'Always export dragged samples to new tracks',

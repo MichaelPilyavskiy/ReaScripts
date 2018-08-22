@@ -590,10 +590,13 @@
     if conf.tab == 0 then 
       gfx.a = 1
       gfx.mode = 0
-        gfx.blit(6, 1, 0, -- backgr
+      local WFy = 0 
+      if conf.separate_spl_peak == 1 then WFy = obj.WF_h+obj.samplename_h end
+      gfx.blit(6, 1, 0, -- backgr
             0,0,obj.WF_w, obj.WF_h-1,
+            
             obj.keycntrlarea_w  ,
-            0,--gfx.h-obj.WF_h-obj.key_h,
+            WFy,--gfx.h-obj.WF_h-obj.key_h,
             gfx.w- obj.keycntrlarea_w  , 
             obj.WF_h-1 , 0,0) 
     end      
