@@ -1,9 +1,9 @@
 -- @description Smart duplicate events
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + mpl_Smart duplicate notes.lua, recoded for use with GetSetAllEvents. MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
+--    # fix maxppq var miss
 
 -----------------------------------------------------------------------------------------  
   function SmartDuplicateNotes()
@@ -14,9 +14,9 @@
     local data = ParseRAWMIDI(take)
     local item = GetMediaItemTake_Item( take )
     local item_pos =  GetMediaItemInfo_Value( item, 'D_POSITION')
-    local ret, ppq_shift = CalcShift(item, item_pos, take, data)
+     ret, ppq_shift = CalcShift(item, item_pos, take, data)
     if not ret then return end
-    local extendMIDI, noteoff_ppq = AddShiftedSelectedEvents(take, data, ppq_shift )
+     extendMIDI, noteoff_ppq = AddShiftedSelectedEvents(take, data, ppq_shift )
     if extendMIDI then
       local start_qn =  TimeMap2_timeToQN( 0, item_pos )
       local end_qn =  reaper.MIDI_GetProjQNFromPPQPos( take, noteoff_ppq )
@@ -65,7 +65,7 @@
       if data[i].selected and not min_ppq then min_ppq = data[i].ppq_pos end
       if data[i].selected                 then max_ppq = data[i].ppq_pos end      
     end
-    if not max_ppq or min_ppq then return end
+    if not max_ppq or not min_ppq then return end
     local ppq_dif = max_ppq - min_ppq    
     local time_dif = MIDI_GetProjTimeFromPPQPos(take, ppq_dif) - item_pos
     local retval, measures, cml = TimeMap2_timeToBeats(0, time_dif)
