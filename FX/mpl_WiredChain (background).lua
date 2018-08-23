@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.16
+-- @version 1.17
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,13 +9,10 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    + Menu/Clear plugin pins when adding FX
---    + ContextMenu/Clear all FX input pins
---    + FX menu/Clear input pins
---    + Added expert options for audio routing
+--    # fix selection error
 
 
-  local vrs = 'v1.16'
+  local vrs = 'v1.17'
   --NOT gfx NOT reaper
   
   

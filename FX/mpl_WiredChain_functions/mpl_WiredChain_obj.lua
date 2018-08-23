@@ -74,7 +74,7 @@
   --------------------------------------------------- 
   function ObjSelectRect(conf, obj, data, refresh, mouse) 
     for fxid = 1, #data.fx do
-      if IsRectInSelection(obj, obj['fx_'..fxid]) then obj['fx_'..fxid].is_selected = true end
+      if obj['fx_'..fxid] and IsRectInSelection(obj, obj['fx_'..fxid]) then obj['fx_'..fxid].is_selected = true end
     end
   end
   --------------------------------------------------- 
