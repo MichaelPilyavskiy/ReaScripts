@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.17
+-- @version 1.18
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,10 +9,10 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    # fix selection error
+--    # fix selection error #2
 
 
-  local vrs = 'v1.17'
+  local vrs = 'v1.18'
   --NOT gfx NOT reaper
   
   
