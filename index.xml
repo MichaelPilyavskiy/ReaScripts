@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="16bcafc704008a1c1b27365a9ce84292a6f87139" name="MPL Scripts">
+<index version="1" commit="49c24e2ddea09d8066e055902a78a20517088a03" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -4067,6 +4067,26 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[+ respect TCP hidden tracks when checking items crossing
 + restore hidden track state on enabling TCP view back]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e240c240fd1ac1b6d5ea10cdab96f992c7d42d/Tracks%20Properties/mpl_Toggle%20show%20tracks%20if%20time%20selection%20crossing%20any%20of%20their%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_VisualMixer (background).lua" type="script" desc="VisualMixer">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Pretty same as what Izotope Neutron Visual mixer do, probably with some things act different. I built ReaScript prototype slightly before Izotope thing was released, but it was also inspired by Izotope stuff.\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-08-26T14:00:45Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/49c24e2ddea09d8066e055902a78a20517088a03/Tracks%20Properties/mpl_VisualMixer%20(background).lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/49c24e2ddea09d8066e055902a78a20517088a03/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_GUI.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/49c24e2ddea09d8066e055902a78a20517088a03/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/49c24e2ddea09d8066e055902a78a20517088a03/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_data.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/49c24e2ddea09d8066e055902a78a20517088a03/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua</source>
       </version>
     </reapack>
   </category>
