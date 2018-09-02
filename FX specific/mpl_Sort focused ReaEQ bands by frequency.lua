@@ -1,13 +1,13 @@
 -- @description Sort focused ReaEQ bands by frequency
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix version check
+--    # use native chunk function (REAPER 5.95)
+--    # force use mpl_Various_functions.lua
+--    # update version check
 
   -- NOT reaper NOT gfx
-  for key in pairs(reaper) do _G[key]=reaper[key]  end 
-  function msg(s) ShowConsoleMsg(s..'\n') end
   -----------------------------------------------------------------------------
   function MPL_SortReaEQByFreq(track, fx)
     if not track or not fx then return end
@@ -60,19 +60,7 @@
     table.sort(keys, function(a, b) return sortFunction(tbl[a][param], tbl[b][param])  end)  
     return keys
   end  
-  -----------------------------------------------------------------------------
-  function eugen27771_GetTrackStateChunk(track)
-    if not track then return end
-    local fast_str, track_chunk
-    fast_str = SNM_CreateFastString("")
-    if SNM_GetSetObjectState(track, fast_str, false, false) then track_chunk = SNM_GetFastString(fast_str) end
-    SNM_DeleteFastString(fast_str)  
-    return track_chunk
-  end 
-  ----------------------------------------------------------------------------- 
-  function literalize(str) -- http://stackoverflow.com/questions/1745448/lua-plain-string-gsub
-     if str then  return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", function(c) return "%" .. c end) end
-  end  
+
   -----------------------------------------------------------------------------
   function ModFXChunk(src_chunk, map_t) -- FXID.....WAK
     -- mod TCP controls
@@ -202,20 +190,7 @@
         return src_chunk
       end
   end
-  -----------------------------------------------------------------------------
-  function VsrCheck(vrs, pre)
-    local appvrs = GetAppVersion()
-    local app_full = appvrs:match('[%d%p]+') if app_full then app_full = tonumber(app_full) end
-    local app_pre = appvrs:match('pre([%d]+)') if app_pre then app_pre = tonumber(app_pre) end
-    if not app_pre then app_pre = math.huge end
-    if app_full and app_full>=vrs then
-      if not pre then 
-        return true
-       elseif app_pre and pre and app_pre>=pre then
-        return true
-      end
-    end
-  end
+
   -----------------------------------------------------------------------------
   function main()
     local retval, tracknumber, itemnumber, fxnumber = GetFocusedFX()  
@@ -223,7 +198,7 @@
       local tr = CSurf_TrackFromID( tracknumber, false )
       local map_t = MPL_SortReaEQByFreq(tr, fxnumber)
       local fxGUID = TrackFX_GetFXGUID( tr, fxnumber )
-      local chunk = eugen27771_GetTrackStateChunk(tr)
+      local retval, chunk = GetTrackStateChunk( tr, '', false )
       local pat = 'FXID '..literalize(fxGUID)..'.-WAK'
       local lim,lim2 =  chunk:find(pat)
       local mod_chunk = ModFXChunk(chunk:match(pat), map_t)
@@ -234,10 +209,35 @@
       if out_chunk0 then SetTrackStateChunk( tr, out_chunk0, true )  end      
     end
   end
+  ---------------------------------------------------------------------
+    function CheckFunctions(str_func)
+      local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
+      local f = io.open(SEfunc_path, 'r')
+      if f then
+        f:close()
+        dofile(SEfunc_path)      
+        if not _G[str_func] then 
+          reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
+         else
+          return true
+        end
+        
+       else
+        reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
+      end  
+    end
+    ---------------------------------------------------
+    function CheckReaperVrs(rvrs) 
+      local vrs_num =  GetAppVersion()
+      vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+      if rvrs > vrs_num then 
+        reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0)
+        return
+       else
+        return true
+      end
+    end
   -----------------------------------------------------------------------------  
-  local ret = VsrCheck(5.81, 5)
-  if ret then main() else
-    MB('Script requre REAPER 5.81pre5+','Sort ReaEQ bands',0)
-  end
-  
-  
+  local ret = CheckFunctions('Action') 
+  local ret2 = CheckReaperVrs(5.95)    
+  if ret and ret2 then main() end

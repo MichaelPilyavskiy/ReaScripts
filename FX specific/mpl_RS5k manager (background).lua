@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.76
+-- @version 1.77
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic data on selected track
@@ -10,12 +10,11 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
 -- @changelog
---    + Option to not send note off on mouse release
---    + Option to separate waveform from knobs
+--    + Show state of running script in toolbar
 
 
 
-  local vrs = 'v1.76'
+  local vrs = 'v1.77'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -104,6 +103,24 @@
     return t
   end  
   
+   -- Set ToolBar Button ON
+  function SetButtonON()
+    is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
+    state = reaper.GetToggleCommandStateEx( sec, cmd )
+    reaper.SetToggleCommandState( sec, cmd, 1 ) -- Set ON
+    reaper.RefreshToolbar2( sec, cmd )
+    return state==0
+  end
+  
+  -- Set ToolBar Button OFF
+  function SetButtonOFF()
+    is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
+    state = reaper.GetToggleCommandStateEx( sec, cmd )
+    reaper.SetToggleCommandState( sec, cmd, 0 ) -- Set OFF
+    reaper.RefreshToolbar2( sec, cmd )
+    gfx.quit()
+  end
+  
   ---------------------------------------------------    
   function run()
     obj.clock = os.clock()
@@ -122,7 +139,7 @@
                                                
     local char =gfx.getchar()  
     ShortCuts(char)
-    if char >= 0 and char ~= 27 then defer(run) else atexit(gfx.quit) end
+    if char >= 0 and char ~= 27 then defer(run) else atexit(SetButtonOFF) end
   end
     
 
@@ -139,6 +156,7 @@
       if not _G[str_func] then 
         reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
        else
+        local ret = SetButtonON()
         Main_RefreshExternalLibs()
         ExtState_Load(conf)  
         gfx.init('MPL RS5k manager '..vrs,

@@ -1,5 +1,5 @@
 -- @description VisualMixer
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Pretty same as what Izotope Neutron Visual mixer do, probably with some things act different. I built ReaScript prototype slightly before Izotope thing was released, but it was also inspired by Izotope stuff.
@@ -9,13 +9,13 @@
 --    mpl_VisualMixer_functions/mpl_VisualMixer_data.lua
 --    mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua
 -- @changelog
---    + init
+--    + Width controls
+--    + Snapshot system
 
 
-  local vrs = 'v1.0'
+  local vrs = 'v1.01'
   --NOT gfx NOT reaper
   
-    
   
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
@@ -24,10 +24,10 @@
                     GUI = false, 
                     GUI_minor = false,
                     data = false,
-                    data_proj = false, 
+                    data_proj = true, 
                     conf = false}
   local mouse = {}
-  local data = {}
+   data = {}
   local obj = {}
   local ext_path_name = 'VisualMixer'
   ---------------------------------------------------  
@@ -71,13 +71,24 @@
     if refresh.data == true then 
       data = {}
       Data_Update (conf, obj, data, refresh, mouse) 
+      Data_Update_Snapshots (conf, obj, data, refresh, mouse) 
       refresh.data = nil 
     end    
+    
+    if refresh.save_data_proj == true then 
+      local str = Data_Snapshot_FormStr(data)
+      Data_Snapshot_SaveExtState(data, data.currentsnapshotID, str) 
+      refresh.save_data_proj = nil
+    end
+    
     if refresh.conf == true then 
       ExtState_Save(conf)
       refresh.conf = nil 
     end
-    if refresh.GUI == true or refresh.GUI_onStart == true then            OBJ_Update              (conf, obj, data, refresh, mouse) end  
+    
+     
+    OBJ_Update(conf, obj, data, refresh, mouse) 
+    
     if refresh.GUI_minor == true then refresh.GUI = true end
 
     Data_Update2(conf, obj, data, refresh, mouse)
@@ -129,7 +140,7 @@
                   conf.wind_h, 
                   conf.dock2, conf.wind_x, conf.wind_y)
         OBJ_init(obj)
-        OBJ_Update(conf, obj, data, refresh, mouse) 
+        OBJ_Update(conf, obj, data, refresh, mouse, data_ext) 
         run()  
   end
 --------------------------------------------------------------------  

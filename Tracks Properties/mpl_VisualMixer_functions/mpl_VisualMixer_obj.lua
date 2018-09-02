@@ -36,6 +36,7 @@
       obj.GUI_fontsz_tooltip = obj.GUI_fontsz_tooltip - 4
     end 
   end
+
   ---------------------------------------------------
   function Obj_TrackObj(conf, obj, data, refresh, mouse)
     if not data.tracks then return end
@@ -82,17 +83,195 @@
                                             Data_ApplyTrVol(temp_obj_t.GUID,vol_reap )                                            
                                           
                                         end
+                                        
+                                        Obj_TrackObjCtrl(conf, obj, data, refresh, mouse)
                                         refresh.GUI_minor = true
+                                        refresh.data = true
+                                        refresh.save_data_proj = true 
                                       end}
+                                                                       
     end  
   end
-    
+  -----------------------------------------------------------
+  function Obj_TrackObjCtrl(conf, obj, data, refresh, mouse)
+    if not data or not data.tracks then return end
+    local width_rect = 10
+    for trGUID in pairs(data.tracks) do
+      local temp_t = obj['tr'..trGUID]
+        obj['tr'..trGUID..'w1'] = {
+                        clear = true,
+                        x = temp_t.x-width_rect/2,
+                        y = temp_t.y + (temp_t.h-width_rect)/2,
+                        w = width_rect,
+                        h = width_rect,
+                        txt= '',
+                        col =data.tracks[trGUID].col,
+                        GUID = trGUID,
+                        --show = true,
+                        mouse_Lclick =  function ()
+                                          mouse.context_latch_content = {obj['tr'..trGUID]
+                                                                }
+                                        end,
+                        mouse_Ldrag = function()
+                                        if not mouse.context_latch_content then return end
+                                        for i = 1, #mouse.context_latch_content do
+                                          local temp_obj_t = CopyTable(mouse.context_latch_content[i])
+                                          obj['tr'..temp_obj_t.GUID] = temp_obj_t
+                                          
+                                          --width
+                                            local src_w = lim((temp_obj_t.w-obj.tr_base_rect)/(obj.tr_max_rect-obj.tr_base_rect), 0, 1)
+                                            local outval = lim(src_w - mouse.dx/100,0,1)
+                                            Data_ApplyTrWidth(temp_obj_t.GUID, outval )
+                                            refresh.GUI = true
+                                            refresh.data = true
+                                            refresh.data_proj = true
+                                        end
+                                      end}       
+        obj['tr'..trGUID..'w2'] = {
+                        clear = true,
+                        x = temp_t.x+temp_t.w-width_rect/2,
+                        y = temp_t.y + (temp_t.h-width_rect)/2,
+                        w = width_rect,
+                        h = width_rect,
+                        txt= '',
+                        col =data.tracks[trGUID].col,
+                        GUID = trGUID,
+                        --show = true,
+                        mouse_Lclick =  function ()
+                                          mouse.context_latch_content = {obj['tr'..trGUID]
+                                                                }
+                                        end,
+                        mouse_Ldrag = function()
+                                        if not mouse.context_latch_content then return end
+                                        for i = 1, #mouse.context_latch_content do
+                                          local temp_obj_t = CopyTable(mouse.context_latch_content[i])
+                                          obj['tr'..temp_obj_t.GUID] = temp_obj_t
+                                          
+                                          --width
+                                            local src_w = lim(temp_obj_t.w/obj.tr_max_rect, 0, 1)
+                                            local outval = lim(src_w + mouse.dx/100,0,1)
+                                            Data_ApplyTrWidth(temp_obj_t.GUID, outval )
+                                            refresh.data_proj = true
+                                            refresh.GUI = true
+                                            refresh.data = true
+                                        end
+                                      end} 
+    end
+  end    
   ---------------------------------------------------
   function OBJ_Update(conf, obj, data, refresh, mouse) 
-    for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
-    Obj_TrackObj(conf, obj, data, refresh, mouse) 
-    Obj_MenuMain(conf, obj, data, refresh, mouse)
-    for key in pairs(obj) do if type(obj[key]) == 'table' then obj[key].context = key end end    
+    if refresh.GUI == true or refresh.GUI_onStart == true then          
+      for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
+      Obj_TrackObj(conf, obj, data, refresh, mouse) 
+      Obj_TrackObjCtrl(conf, obj, data, refresh, mouse)
+      
+      if not obj.currentsnapshotID then obj.currentsnapshotID = 1 end
+      
+      obj.menu_w = gfx.w * 0.3
+      obj.snsh_w = gfx.w -obj.menu_w-1
+      obj.snsh_w_funcbut = 40
+      obj.snsh_w_call = 15
+      obj.ssnmbp = math.ceil((obj.snsh_w - obj.snsh_w_funcbut * 3) / obj.snsh_w_call)
+      if obj.ssnmbp < 2 then 
+        obj.menu_w = gfx.w 
+       else
+        obj.ssnmbp = lim(obj.ssnmbp, 2, 8)
+        obj.menu_w = gfx.w - obj.snsh_w_funcbut * 2 - obj.ssnmbp * obj.snsh_w_call - obj.offs * 1
+        obj.snsh_w = gfx.w -obj.menu_w-1
+        Obj_SnapShots(conf, obj, data, refresh, mouse)
+      end
+      Obj_MenuMain(conf, obj, data, refresh, mouse)
+      for key in pairs(obj) do if type(obj[key]) == 'table' then obj[key].context = key end end 
+    end 
+  end
+                                   
+  -----------------------------------------------
+  function Obj_SnapShots(conf, obj, data, refresh, mouse)
+    if obj.ssnmbp < 2 then return end
+    
+    for i = 1, obj.ssnmbp do
+      local a_frame = 0
+      local alpha_back = 0.1
+      if data.currentsnapshotID and data.currentsnapshotID == i then a_frame = 0.25 alpha_back = 0.3 end
+      local txt_a = 0.2
+      if Data_Snapshot_HasExist(data, i)  then txt_a = 0.9 end
+      obj['s_sh'..i] = { clear = true,
+                        x = obj.menu_w + 1 +obj.snsh_w_call * (i-1),
+                        y = obj.menu_y,
+                        w = obj.snsh_w_call,
+                        h = obj.but_h,
+                        col = 'white',
+                        state = false,
+                        txt= i,
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = a_frame,
+                        txt_a = txt_a,
+                        alpha_back = alpha_back,
+                        mouse_Lclick =  function()  
+                                          data.currentsnapshotID = i
+                                          Data_Snapshot_SaveExtState(data, data.currentsnapshotID)  
+                                          refresh.GUI = true
+                                          local snshstr = Data_SnapShot_GetString(data, i)
+                                          Data_SnapshotRecall(snshstr )
+                                        end
+                }
+    end              
+      --[[obj.ssh_store = { clear = true,
+                        x = obj.menu_w + obj.offs*2 + obj.snsh_w_call *obj.ssnmbp,
+                        y = obj.menu_y,
+                        w = obj.snsh_w_funcbut,
+                        h = obj.but_h,
+                        col = 'white',
+                        state = false,
+                        txt= 'Store',
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,
+                        mouse_Lclick =  function() 
+                                          
+                                        end
+                } ]]
+      obj.ssh_copy = { clear = true,
+                        x = obj.menu_w + 2 + obj.snsh_w_call *obj.ssnmbp,
+                        y = obj.menu_y,
+                        w = obj.snsh_w_funcbut,
+                        h = obj.but_h,
+                        col = 'white',
+                        state = false,
+                        txt= 'Copy',
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,
+                        mouse_Lclick =  function() 
+                                          local snshstr = Data_SnapShot_GetString(data, data.currentsnapshotID)
+                                          mouse.clipboard = snshstr
+                                        end
+                }    
+      obj.ssh_paste = { clear = true,
+                        x = obj.menu_w + 2 + obj.snsh_w_call *obj.ssnmbp + obj.snsh_w_funcbut,
+                        y = obj.menu_y,
+                        w = obj.snsh_w_funcbut,
+                        h = obj.but_h,
+                        col = 'white',
+                        state = false,
+                        txt= 'Paste',
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,
+                        mouse_Lclick =  function()
+                                          if mouse.clipboard then 
+                                            -- store ext state
+                                              local str = mouse.clipboard
+                                              Data_Snapshot_SaveExtState(data, data.currentsnapshotID, str) 
+                                            -- recall
+                                              Data_SnapshotRecall(str )
+                                              refresh.GUI = true
+                                              refresh.data = true
+                                          end
+                         
+                                        end
+                }                                 
   end
   -----------------------------------------------
   function Obj_GetXPos(obj, pan, mouse_x)
@@ -148,8 +327,6 @@
   -----------------------------------------------
   function Obj_MenuMain(conf, obj, data, refresh, mouse)
     obj.menu_y = 0
-    obj.menu_w = gfx.w * 1
-    
     
     obj.menu = { clear = true,
                         x = 0,

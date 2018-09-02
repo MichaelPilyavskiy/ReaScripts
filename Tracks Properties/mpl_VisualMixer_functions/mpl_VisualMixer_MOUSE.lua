@@ -81,6 +81,7 @@
     if mouse.last_LMB_state and not mouse.LMB_state then 
       mouse.context_latch_content = nil 
       mouse.context_latch = nil 
+      refresh.GUI = true
     end
      
     mouse.last_char =mouse.char

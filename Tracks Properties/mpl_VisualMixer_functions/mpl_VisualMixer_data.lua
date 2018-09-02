@@ -21,6 +21,64 @@
       end
     end
   end
+  
+  ---------------------------------------------------
+  function Data_SnapshotRecall(snshstr )
+    if not snshstr then return end
+    Action(40297) -- unselect all tracks
+    for line in snshstr:gmatch('[^\r\n]+') do
+      local t = {}
+      for val in line:gmatch('[^%s]+') do t [#t+1] = val end
+      if #t == 4 then
+        local GUID = t[1]
+        local vol = tonumber(t[2])
+        local pan = tonumber(t[3])
+        local width = tonumber(t[4])
+        local tr = BR_GetMediaTrackByGUID( 0, GUID )
+        SetTrackSelected( tr, true )
+        Data_ApplyTrVol(GUID, vol )
+        Data_ApplyTrPan(GUID, pan )
+        Data_ApplyTrWidth(GUID, width )
+      end      
+    end
+  end
+  -----------------------------------------------  
+  function Data_Snapshot_FormStr(data)
+    local str = ''
+    for GUID in pairs(data.tracks) do
+      str = str..
+           GUID..' '..
+           data.tracks[GUID].vol..' '..
+           data.tracks[GUID].pan..' '..
+           data.tracks[GUID].width..'\n'
+    end
+    return str
+  end   
+  --------------------------------------------------- 
+  function Data_Update_Snapshots (conf, obj, data, refresh, mouse) 
+    data.currentsnapshotID = 1
+    local retval, cur_id = GetProjExtState(0, 'MPL_VisMix', 'CUR_ID' )
+    if tonumber(cur_id) then data.currentsnapshotID = tonumber(cur_id) end
+  end
+  ---------------------------------------------------
+  function Data_Snapshot_SaveExtState(data, ID, str)  
+    if not ID then return end    
+    if str then SetProjExtState(0, 'MPL_VisMix', 'SNAPSHOT'..ID, str  ) end
+    SetProjExtState(0, 'MPL_VisMix', 'CUR_ID', ID  )
+  end
+  ---------------------------------------------------
+  function Data_SnapShot_GetString(data, ID)
+  if not ID then return end
+    local retval, s_state = GetProjExtState(0, 'MPL_VisMix', 'SNAPSHOT'..ID  )
+    return s_state
+  end
+  ---------------------------------------------------
+  function Data_Snapshot_HasExist(data, ID)  
+    if not ID then return end
+    local retval, val = GetProjExtState(0, 'MPL_VisMix', 'SNAPSHOT'..ID )
+    if retval and  val ~= '' then return true end    
+  end 
+  
   ---------------------------------------------------
   function Data_Update(conf, obj, data, refresh, mouse)
     data.tracks = {}
@@ -71,6 +129,13 @@
       SetMediaTrackInfo_Value( tr, 'D_VOL', lim(vol,0,4))
     end
   end
+  ---------------------------------------------------   
+  function Data_ApplyTrWidth(GUID, w )
+    local tr=  BR_GetMediaTrackByGUID( 0, GUID )
+    if tr then 
+      SetMediaTrackInfo_Value( tr, 'D_WIDTH', w)
+    end
+  end  
   ---------------------------------------------------  
   function CheckUpdates(obj, conf, refresh)
   
@@ -99,3 +164,4 @@
         refresh.data = true
       end
   end
+  

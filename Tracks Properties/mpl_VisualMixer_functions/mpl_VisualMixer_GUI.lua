@@ -18,12 +18,9 @@
   function col(obj, col_str, a) 
     local r,g,b= table.unpack({1,1,1})
     gfx.set(r,g,b ) 
-    if not GetOS():match('Win') then gfx.set(b,g,r ) end
-    
+    if not GetOS():match('Win') then gfx.set(b,g,r ) end    
     if a then gfx.a = a end  
-  end
-
-  
+  end  
   ---------------------------------------------------
   function GUI_knob(obj, b)
     local x,y,w,h,val =b.x,b.y,b.w,b.h, b.val
@@ -320,42 +317,6 @@
         gfx.lineto(x+1,y)
       end    
     
-    -- wire
-      if o.wire then  
-        --gfx.dest = 4
-        local bezier = conf.use_bezier_curves 
-        for i = 1,#o.wire do
-          local wire_t = o.wire[i]
-          if wire_t.wiretype == 0 then col(obj, obj.audiowire_col,obj.audiowire_a) end-- audio
-          if wire_t.dest 
-            and obj[wire_t.dest] 
-            and obj[wire_t.dest].x 
-            and obj[wire_t.dest].y 
-            and obj[wire_t.dest].h then 
-            if bezier == 1 then
-              local x_table0, y_table0 = DrawBezierCurve_Calc(x+w,y+h/2,obj[wire_t.dest].x, obj[wire_t.dest].y+obj[wire_t.dest].h/2)
-              DrawBezierCurve(x_table0, y_table0)
-             else
-              GUI_DrawLine(x+w,y+h/2,obj[wire_t.dest].x, obj[wire_t.dest].y+obj[wire_t.dest].h/2) 
-            end
-           else
-            -- drag mouse
-            if wire_t.dest == 'mouse' then 
-              local x1,y1,x2,y2 = x,y+h/2,mouse.x,mouse.y
-              if obj[wire_t.src].pin_dir == 1 then
-                x1,y1,x2,y2 = x+w,y+h/2,mouse.x,mouse.y
-              end
-                if bezier == 1 then 
-                  local x_table0, y_table0 = DrawBezierCurve_Calc( x1,y1,x2,y2)
-                  DrawBezierCurve(x_table0, y_table0)
-                 else
-                  GUI_DrawLine( x1,y1,x2,y2)  
-                end
-            end
-          end
-        end
-        --gfx.dest = 1
-      end
       
     
     -- highlight
@@ -442,7 +403,7 @@
     local dbdx = c*0.00008
     local dbdy = c*0.001
     local dadx = c*0.001
-    local dady = c*0.001       
+    local dady = c*0.0007       
     gfx.gradrect(0,0, obj.grad_sz,obj.grad_sz, 
                     r,g,b,a, 
                     drdx, dgdx, dbdx, dadx, 
@@ -600,7 +561,7 @@
     local x,y,w,h, txt = o.x, o.y, o.w, o.h, o.txt
     -- frame
       gfx.set(1,1,1,0.3)
-      gfx.rect(x,y,w,h,0)
+      gfx.rect(x,y,w,h,1)
     -- txt
       local trname = o.txt
       gfx.set(1,1,1,0.8)
@@ -611,4 +572,7 @@
     -- cent line
       gfx.set(1,1,1,0.2)
       gfx.line(x+w/2, y+1,x+w/2, y + 5 )
+    -- w circle
+      gfx.circle(x,y+h/2, 5)
+      gfx.circle(x+w,y+h/2, 5)
   end  
