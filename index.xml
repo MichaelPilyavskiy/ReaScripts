@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="49c24e2ddea09d8066e055902a78a20517088a03" name="MPL Scripts">
+<index version="1" commit="5402e21b88544611ce8ad9d779917478e5e1c72b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
@@ -1918,6 +1918,15 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/99c9d2e029a2a33f0d43e7506c309e62fe4c6aa5/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
         <source file="mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/99c9d2e029a2a33f0d43e7506c309e62fe4c6aa5/FX%20specific/mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua</source>
       </version>
+      <version name="1.77" author="MPL" time="2018-09-02T15:37:54Z">
+        <changelog><![CDATA[+ Show state of running script in toolbar]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5402e21b88544611ce8ad9d779917478e5e1c72b/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5402e21b88544611ce8ad9d779917478e5e1c72b/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5402e21b88544611ce8ad9d779917478e5e1c72b/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5402e21b88544611ce8ad9d779917478e5e1c72b/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5402e21b88544611ce8ad9d779917478e5e1c72b/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
+        <source file="mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5402e21b88544611ce8ad9d779917478e5e1c72b/FX%20specific/mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
       <metadata>
@@ -1998,6 +2007,12 @@ setup min gain, attack =0]]></changelog>
       <version name="1.01" author="MPL" time="2018-05-05T18:45:29Z">
         <changelog><![CDATA[# fix version check]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e8d4f33a394d12cc4e4e251497ca25476793c38a/FX%20specific/mpl_Sort%20focused%20ReaEQ%20bands%20by%20frequency.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2018-09-02T15:37:54Z">
+        <changelog><![CDATA[# use native chunk function (REAPER 5.95)
+# force use mpl_Various_functions.lua
+# update version check]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5402e21b88544611ce8ad9d779917478e5e1c72b/FX%20specific/mpl_Sort%20focused%20ReaEQ%20bands%20by%20frequency.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Split focused ReaEQ to LR routing.lua" type="script" desc="Split focused ReaEQ to LR routing">
@@ -4087,6 +4102,15 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/49c24e2ddea09d8066e055902a78a20517088a03/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua</source>
         <source file="mpl_VisualMixer_functions/mpl_VisualMixer_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/49c24e2ddea09d8066e055902a78a20517088a03/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_data.lua</source>
         <source file="mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/49c24e2ddea09d8066e055902a78a20517088a03/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2018-09-02T15:37:54Z">
+        <changelog><![CDATA[+ Width controls
++ Snapshot system]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5402e21b88544611ce8ad9d779917478e5e1c72b/Tracks%20Properties/mpl_VisualMixer%20(background).lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5402e21b88544611ce8ad9d779917478e5e1c72b/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_GUI.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5402e21b88544611ce8ad9d779917478e5e1c72b/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5402e21b88544611ce8ad9d779917478e5e1c72b/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_data.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5402e21b88544611ce8ad9d779917478e5e1c72b/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua</source>
       </version>
     </reapack>
   </category>
