@@ -1,5 +1,5 @@
 -- @description VisualMixer
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Pretty same as what Izotope Neutron Visual mixer do, probably with some things act different. I built ReaScript prototype slightly before Izotope thing was released, but it was also inspired by Izotope stuff.
@@ -9,11 +9,10 @@
 --    mpl_VisualMixer_functions/mpl_VisualMixer_data.lua
 --    mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua
 -- @changelog
---    + Width controls
---    + Snapshot system
+--    + pass space as Transport: play/stop
 
 
-  local vrs = 'v1.01'
+  local vrs = 'v1.02'
   --NOT gfx NOT reaper
   
   
@@ -26,8 +25,8 @@
                     data = false,
                     data_proj = true, 
                     conf = false}
-  local mouse = {}
-   data = {}
+   mouse = {}
+  local data = {}
   local obj = {}
   local ext_path_name = 'VisualMixer'
   ---------------------------------------------------  

@@ -5,7 +5,7 @@
 
   ---------------------------------------------------
   function ShortCuts(conf, obj, data, refresh, mouse)
-  --    if mouse.char == 
+      if mouse.char == 32 then Action(40044) end
   end
   ---------------------------------------------------
   function MOUSE_Match(mouse, b)
