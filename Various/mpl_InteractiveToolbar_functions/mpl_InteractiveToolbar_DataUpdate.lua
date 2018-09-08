@@ -471,6 +471,7 @@
       local ppq_pos = 0
       local nextPos, prevPos = 1, 1 
       local cnt_sel_notes, cnt_sel_CC, cnt_sel_evts_other = 0,0,0
+      local last_note_id = {}
       while nextPos <= MIDIlen do  
           prevPos = nextPos
           offset, flags, msg1, nextPos = s_unpack("i4Bs4", MIDIstring, prevPos)
@@ -482,6 +483,8 @@
           local pos_sec_format = format_timestr_pos( pos_sec, '', data.ruleroverride ) 
           local CClane, pitch, CCval,vel, pitch_format
           local isNoteOn = msg1:byte(1)>>4 == 0x9
+          
+          
           local isNoteOff = msg1:byte(1)>>4 == 0x8
           local isCC = msg1:byte(1)>>4 == 0xB
           local chan = 1+(msg1:byte(1)&0xF)
@@ -490,6 +493,10 @@
           
           if isNoteOn or isNoteOff then 
             pitch = msg1:byte(2) 
+            
+            if isNoteOn then last_note_id[pitch] = idx end
+            
+            
             pitch_format = MPL_FormatMIDIPitch(data, pitch)
             vel = msg1:byte(3) 
             if selected then cnt_sel_notes = cnt_sel_notes+1  end
@@ -518,6 +525,16 @@
                             CCval=CCval,
                             chan = chan,
                             vel=vel}
+        if last_note_id[pitch] and isNoteOff==true then 
+          local last_rel_pitchid = last_note_id[pitch]
+          local ppq_len = ppq_pos - data.evts[last_rel_pitchid].ppq_pos
+          local len_sec = MIDI_GetProjTimeFromPPQPos( take, ppq_pos ) - data.evts[last_rel_pitchid].pos_sec
+          local notelen_format = format_timestr_len(len_sec, '', 0, data.ruleroverride ) 
+          data.evts[last_rel_pitchid].notelen = ppq_len
+          data.evts[last_rel_pitchid].notelen_sec = len_sec
+          data.evts[last_rel_pitchid].notelen_format = notelen_format
+          last_note_id[pitch] = nil
+        end
       end
       
       data.evts.first_selected = first_selected

@@ -461,6 +461,7 @@ msg(
             #parentsend Toggle Master/Parent send
         MIDIEditor
           #position perform a PPQ<>ProjectTime convertion as absolute time of note
+          #notelen change note length , MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
           #CCval change CC value, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
           #notepitch change note pitch, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).
           #notevel change note velocity, MIDI code based on juliansader MIDI scripts (see ReaTeam repo).

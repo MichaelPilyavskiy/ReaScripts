@@ -471,3 +471,103 @@
   end  
   --------------------------------------------------------------    
   
+
+
+
+
+
+
+  --------------------------------------------------------------
+  function Widgets_MIDIEditor_notelen(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+    if not data.evts or data.evts.cnt_sel_notes == 0 then return   end
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
+    obj.b.obj_MEevtnotelen = { x = x_offs,
+                        y = obj.offs ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = 'NoteLength'} 
+    obj.b.obj_MEevtnotelen_back = { x =  x_offs,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt = '',
+                        ignore_mouse = true}  
+                        
+      
+      local notelen_str = data.evts[  data.evts.first_selectednote  ].notelen_format
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(notelen_str),
+                        table_key='MEnotelen_ctrl',
+                        x_offs= x_offs,  
+                        w_com=obj.entry_w2,--obj.entry_w2,
+                        src_val=data.evts,
+                        src_val_key= 'notelen_sec',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_MEevt_Len,                         
+                        mouse_scale= obj.mouse_scal_time2,
+                        onRelease_ActName = data.scr_title..': Change MIDI event properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
+                        rul_format = conf.ruleroverride })                        
+    return obj.entry_w2
+  end  
+  
+  function Apply_MEevt_Len(data, obj, t_out_values, butkey, out_str_toparse, mouse)
+    if not out_str_toparse then  
+      local notelen_sec = t_out_values[ data.evts.first_selectednote  ]
+      local sec_adjust = notelen_sec - data.evts[  data.evts.first_selectednote  ].notelen_sec      
+      local ppq_newend = MIDI_GetPPQPosFromProjTime( data.take_ptr, 
+                                                    sec_adjust 
+                                                    + data.evts[  data.evts.first_selectednote  ].pos_sec
+                                                    + data.evts[  data.evts.first_selectednote  ].notelen_sec
+                                                    ) 
+      local ppq_shift = math.floor(data.evts[  data.evts.first_selectednote  ].ppq_pos + data.evts[  data.evts.first_selectednote  ].notelen - ppq_newend)
+      
+      RawMIDI_adjustendppq(data.take_ptr, data.evts, ppq_shift, mouse)
+      local new_str = format_timestr_len(notelen_sec+sec_adjust, '', 0, data.ruleroverride ) 
+      local new_str_t = MPL_GetTableOfCtrlValues(new_str)
+      for i = 1, #new_str_t do
+        obj.b[butkey..i].txt = new_str_t[i]
+      end
+     else
+      -- nudge values from first item
+      local notelen_sec =  reaper.parse_timestr_len( out_str_toparse, 0, data.ruleroverride )
+      local sec_adjust = notelen_sec - data.evts[  data.evts.first_selectednote  ].notelen_sec      
+      local ppq_newend = MIDI_GetPPQPosFromProjTime( data.take_ptr, 
+                                                    sec_adjust 
+                                                    + data.evts[  data.evts.first_selectednote  ].pos_sec
+                                                    + data.evts[  data.evts.first_selectednote  ].notelen_sec
+                                                    ) 
+      local ppq_shift = math.floor(data.evts[  data.evts.first_selectednote  ].ppq_pos + data.evts[  data.evts.first_selectednote  ].notelen - ppq_newend)
+      
+      RawMIDI_adjustendppq(data.take_ptr, data.evts, ppq_shift, mouse)    
+      redraw = 2   
+    end
+  end  
+  -------------------------------------------------------------- 
+  function RawMIDI_adjustendppq(take, t0, ppq_shift, mouse)
+    if not take or not t0 or ppq_shift == 0 then return end    
+    local str = ''
+    local t = CopyTable(t0)
+    local ppq_shift0 = 0
+    for i = 1, #t do      
+      local str_per_msg = string.pack("i4Bs4", t[i].offset, t[i].flags , t[i].msg1)
+      
+      if t[i].selected and t[i].isNoteOff then 
+        ppq_shift0 = ppq_shift
+        t[i].offset = t[i].offset - ppq_shift0 
+       else
+          t[i].offset = t[i].offset + ppq_shift0 
+          ppq_shift0 = 0   
+      end
+      
+      str_per_msg = string.pack("i4Bs4", t[i].offset,  t[i].flags , t[i].msg1)
+      str = str..str_per_msg
+    end
+    MIDI_SetAllEvts(take, str)
+    MIDI_Sort(take)
+  end
+  --------------------------------------------------------------

@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.70
+-- @version 1.71
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,10 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # fix access to conf table in MIDI Editor widgets
---
+--    + Tags/MIDI Editor: #notelen. Set note length. MIDI code based on juliansader MIDI scripts (see ReaTeam repo). This module is coded pretty rough, so for now use it at your own risk.
 
-    local vrs = '1.70'
+
+    local vrs = '1.71'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -94,7 +94,7 @@ order=#floatfx #position #value
 order=#color #fxcontrols #buttons #vol #pan #fxlist #sendto #delay #chsendmixer #chrecvmixer #freeze
 buttons=#polarity #parentsend 
 [MIDIEditor]
-order=#position #CCval #notepitch #notevel #midichan
+order=#position #notelen #CCval #notepitch #notevel #midichan
 [Persist]
 order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap
 ]]
