@@ -1,15 +1,10 @@
--- @version 1.01
+-- @description Delete non-existing scripts from Action List
+-- @version 1.02
 -- @author MPL
+-- @website https://forum.cockos.com/showthread.php?t=188335
+-- @about Remove entries from reaper-kb.ini if they linked to files not currently presented in Reaper/Scripts path, make backup of reaper-kb.ini just in case
 -- @changelog
---   # backup msg
-
---[[
-   * ReaScript Name: Delete non-existent scripts from Action List
-   * Lua script for Cockos REAPER
-   * Author: Michael Pilyavskiy (mpl)
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-  ]]
+--    # rename title
 
 
   function main()
