@@ -339,11 +339,11 @@
    end
    --------------------------------------------------
    function MOUSE_ContextAddFX(conf, obj, data, refresh, mouse, commit)
-     local cnt = math.floor((obj.fxsearch_h-obj.offs*2)/obj.fxsearch_item_h )
-     local val =  (mouse.y-obj.fxsearch_y)/(obj.fxsearch_h-obj.fxsearch_y)
-     val = math.floor(val* cnt)
-     if val >= 1 and val <= #obj.textbox.match_t then 
-       obj.textbox.matched_id = val 
+      cnt =math.modf((obj.fxsearch_h-obj.offs*2)/(obj.fxsearch_item_h +2))
+      val =  (mouse.y-obj.fxsearch_y)/(obj.fxsearch_h-obj.fxsearch_y)
+     val = math.ceil(val* cnt)
+     if val >= 2 and val <= #obj.textbox.match_t+1 then 
+       obj.textbox.matched_id = val -1
        if commit then Data_AddReplaceFX(conf, obj, data, refresh, mouse) end
        refresh.GUI_minor = true      
      end

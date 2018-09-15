@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.18
+-- @version 1.19
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,10 +9,10 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    # fix selection error #2
+--    # improve FX search navigation
 
 
-  local vrs = 'v1.18'
+  local vrs = 'v1.19'
   --NOT gfx NOT reaper
   
   
@@ -27,7 +27,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-   data = {}
+  local data = {}
   local  obj = {
             plugs_data = {},
             textbox = {
@@ -35,7 +35,10 @@
                         },
             
           }
-  
+  --snapsjot
+  --color
+  --jsfx
+  --template chains
   ---------------------------------------------------  
   
   function Main_RefreshExternalLibs()     -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua
