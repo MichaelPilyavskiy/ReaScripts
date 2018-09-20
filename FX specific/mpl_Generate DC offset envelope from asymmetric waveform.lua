@@ -1,9 +1,9 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @description Generate DC offset envelope from asymmetric waveform
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   + init
+--   # hardcoded buffer limit = 2^21 (approximately 48 seconds for 44100 SR)
     
   window = 0.02
   scale = 1
@@ -19,7 +19,7 @@
     local samplerate =  GetMediaSourceSampleRate( src )
     local buf_samples = math.ceil(len*samplerate)
     local numchannels = 1
-    local buf = new_array(buf_samples * numchannels)
+    local buf = new_array(math.min(buf_samples * numchannels, 2^21))
     local accessor = CreateTakeAudioAccessor( take )
     GetAudioAccessorSamples( accessor, 
                               samplerate, 

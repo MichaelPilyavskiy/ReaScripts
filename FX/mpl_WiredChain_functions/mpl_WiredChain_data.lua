@@ -76,8 +76,12 @@
     if add_next then 
       if dest_chan+1 > data.trchancnt then SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', dest_chan+1 + (dest_chan+1) % 2 ) end end
     
+    
+    
+    
+    
     -- link beetween FX
-    if src_type == 0 and dest_type == 0 then 
+    if src_type == 0 and dest_type == 0 and conf.use_free_channel_mode == 0 then 
       
       -- check dest fx out pin channel
       for trch = 1, data.trchancnt do
@@ -150,6 +154,35 @@
       end
     end
 
+
+
+    -- link beetween FX
+    if src_type == 0 and dest_type == 0 and conf.use_free_channel_mode == 1 then 
+      
+      if src_idxFX < dest_idxFX then -- valid FX order
+        
+        -- search free channel
+          local free_ch = SearchFreeChannel(data)
+          if data.trchancnt < free_ch then SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', free_ch + free_ch % 2 ) end
+          SetPin(data.tr, src_idxFX, 1, src_pin, free_ch, 1)
+          SetPin(data.tr, dest_idxFX, 0, dest_pin, free_ch, 1)
+        
+       elseif src_idxFX > dest_idxFX then-- invalid order
+        local inc = src_idxFX-dest_idxFX
+        MPL_HandleFX(data.tr, dest_idxFX, 2, inc )
+        Data_Update(conf, obj, data, refresh, mouse)
+
+        -- search free channel
+          local free_ch = SearchFreeChannel(data)
+          if data.trchancnt < free_ch then SetMediaTrackInfo_Value( data.tr, 'I_NCHAN', free_ch + free_ch % 2 ) end
+          SetPin(data.tr, src_idxFX-1, 1, src_pin, free_ch, 1)
+          SetPin(data.tr, src_idxFX, 0, dest_pin, free_ch, 1)
+          
+      end
+    end
+    
+    
+    
     -- if in is track in
     if src_type == 1 and dest_type == 0 then 
         -- set on destination channel for source FX
@@ -201,7 +234,30 @@
         end
       end
     end 
+
+    
+    if conf.prevent_connecting_to_channels == 1 then 
+      for fx_id = 1, #data.fx do
+        -- first FX
+        if fx_id == 1 then
+          for chan = conf.limit_ch+1, data.trchancnt do 
+            for pin_id = 1, data.fx[fx_id].inpins do
+              SetPin(data.tr, fx_id, 0, pin_id, chan, 0)
+            end
+          end
+        end
+
+        if fx_id == data.fx then
+          for chan = conf.limit_ch+1, data.trchancnt do 
+            for pin_id = 1, data.fx[fx_id].outpins do
+              SetPin(data.tr, fx_id, 1, pin_id, chan, 0)
+            end
+          end
+        end        
         
+      end
+    end
+            
   end
   ---------------------------------------------------  
   function CheckUpdates(obj, conf, refresh)
@@ -506,4 +562,24 @@
     --msg(out_chunk)
     SetTrackStateChunk(track, out_chunk, true)]]
     
+  end
+
+  ---------------------------------------------------   
+  function SearchFreeChannel(data)
+    for chan = 1, 32 do
+      local match = false
+      for fx_id = 1, #data.fx do
+        for pin_id = 1, data.fx[fx_id].outpins do
+          local pinmask = data.fx[fx_id].pins.O[pin_id]
+          if pinmask&(2^(chan-1))==(2^(chan-1)) then goto skipnextch end
+        end
+        for pin_id = 1, data.fx[fx_id].inpins do
+          local pinmask = data.fx[fx_id].pins.I[pin_id]
+          if pinmask&(2^(chan-1))==(2^(chan-1)) then goto skipnextch end
+        end
+      end
+      
+      if not match then return chan end
+      ::skipnextch::
+    end
   end

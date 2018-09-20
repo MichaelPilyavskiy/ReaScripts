@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.19
+-- @version 1.20
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,16 +9,19 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    # improve FX search navigation
+--    + list /REAPER/FXChains in Add FX dialog
+--    + option to hide direct track IO links
+--    + option to hide FX to track IO 3+ channel links
+--    + option to prevent 3+ track IO linking
+--    + Data_BuildRouting_Audio: optionally use free channels (limited to 32)
 
 
-  local vrs = 'v1.19'
+  local vrs = 'v1.20'
   --NOT gfx NOT reaper
   
   
   
   --  INIT -------------------------------------------------
-  for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local conf = {}  
   local refresh = { GUI_onStart = true, 
                     GUI = false, 
@@ -74,7 +77,9 @@
             clearoutpinschan = 1, -- clear output destination channel in other pins on source FX
             cleasrcpin = 1, --clear source pin
             cleadestpin = 1, 
-            
+            prevent_connecting_to_channels = 0,
+            limit_ch = 2,
+            use_free_channel_mode = 0,
             
             -- GUI
             snapFX = 1,
@@ -84,6 +89,8 @@
             use_bezier_curves = 0,
             show_info_ontop = 1,
             clear_pins_on_add = 0, 
+            show_direct_trackIOlinks = 1,
+            show_FX_trackIOlinks = 1
             }
     return t
   end  

@@ -90,8 +90,22 @@
     Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-auplugins.ini',  'AU%s%"(.-)%"', 3) 
     Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-auplugins64.ini',  'AU%s%"(.-)%"', 3)  
     Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-jsfx.ini',  'NAME (.-)%s', 4) 
+    Obj_EnumerateChains(conf, obj, data, refresh, mouse, res_path..'/FXChains') 
   end
-
+  --------------------------------------------------------------------
+  function Obj_EnumerateChains(conf, obj, data, refresh, mouse, path)
+      
+    -- create if not exist
+      if not obj.plugs_data then obj.plugs_data = {} end
+      for i = 0 , 500 do
+        local file =  EnumerateFiles( path, i )
+        if not file then break end
+        obj.plugs_data[#obj.plugs_data+1] = {name = file, 
+                                                reduced_name = file ,
+                                                plugtype = 1024}
+              
+      end
+  end  
   --------------------------------------------------------------------
   function Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, file, pat, plugtype)
     -- validate file
@@ -348,13 +362,27 @@ Drag wires
                 end,
         state = conf.show_info_ontop == 0,
       } ,         
-      { str = 'Clear pins for newly added plugins|',  
+      { str = 'Clear pins for newly added plugins',  
         func =  function() 
                   conf.clear_pins_on_add = math.abs(1-conf.clear_pins_on_add)  
                   refresh.GUI = true
                 end,
         state = conf.clear_pins_on_add == 1,
       } ,        
+      { str = 'Show direct track IO links',  
+        func =  function() 
+                  conf.show_direct_trackIOlinks = math.abs(1-conf.show_direct_trackIOlinks)  
+                  refresh.GUI = true
+                end,
+        state = conf.show_direct_trackIOlinks == 1,
+      } ,       
+      { str = 'Show FX track IO links for 3+ channels|',  
+        func =  function() 
+                  conf.show_FX_trackIOlinks = math.abs(1-conf.show_FX_trackIOlinks)  
+                  refresh.GUI = true
+                end,
+        state = conf.show_FX_trackIOlinks == 1,
+      } ,           
       
       
       { str = '>Expert settings'},
@@ -378,7 +406,25 @@ Drag wires
                   refresh.GUI = true
                 end,
         state = conf.cleadestpin == 1,
-      } ,        
+      } ,    
+         
+      { str = 'Data_BuildRouting_Audio: drop all 4+ track IO linked connections',  
+        func =  function() 
+                  conf.prevent_connecting_to_channels = math.abs(1-conf.prevent_connecting_to_channels)  
+                  refresh.GUI = true
+                end,
+        state = conf.prevent_connecting_to_channels == 1,
+      } ,
+      
+      { str = 'Data_BuildRouting_Audio: search for free channels for (FX to FX)',  
+        func =  function() 
+                  conf.use_free_channel_mode = math.abs(1-conf.use_free_channel_mode)  
+                  refresh.GUI = true
+                end,
+        state = conf.use_free_channel_mode == 1,
+      } ,              
+            
+      
       
       { str = 'Use bezier wires|<|',  
         func =  function() 
@@ -1370,7 +1416,8 @@ Drag wires
         local has_linked_to_fx = false
         for fx = #data.fx, 1, -1 do
           for pin = 1, #data.fx[fx].pins.O do
-            if data.fx[fx].pins.O[pin]  & channel_bit == channel_bit then            
+            if data.fx[fx].pins.O[pin]  & channel_bit == channel_bit 
+              and (conf.show_FX_trackIOlinks == 1 or (conf.show_FX_trackIOlinks == 0 and chan < conf.limit_ch+1) )then            
               if not obj['mod_fx_'..fx..'_O_'..pin].wire then obj['mod_fx_'..fx..'_O_'..pin].wire = {} end
               local temp_t = obj['mod_fx_'..fx..'_O_'..pin].wire
               temp_t[#temp_t+1] =  { wiretype = 0, dest = 'mod_tr_0_I_'..chan}
@@ -1382,7 +1429,7 @@ Drag wires
       end     
   end
   ---------------------------------------------------  
-  function Obj_FormWires_FX(conf, obj, data, refresh, mouse)   
+  function Obj_FormWires_FX(conf, obj, data, refresh, mouse) 
     -- scan FX
       for fx_id = #data.fx, 1, -1 do
       
@@ -1403,14 +1450,15 @@ Drag wires
                     if pinmaskO&channel_bit==channel_bit then
                       if not obj['mod_fx_'..fx_id_seek..'_O_'..pinO].wire then obj['mod_fx_'..fx_id_seek..'_O_'..pinO].wire = {} end
                       local temp_t = obj['mod_fx_'..fx_id_seek..'_O_'..pinO].wire
-                      temp_t[#temp_t+1] = { wiretype = 0, dest = 'mod_fx_'..fx_id..'_I_'..pinI}
+                      temp_t[#temp_t+1] = { wiretype = 0, dest = 'mod_fx_'..fx_id..'_I_'..pinI, channel = channel}
                       has_send_found =  true
                     end
                   end
                   if has_send_found then break end
                 end
                 
-                if not has_send_found then 
+                if not has_send_found  and 
+                  (conf.show_FX_trackIOlinks == 1 or (conf.show_FX_trackIOlinks == 0 and channel < conf.limit_ch+1) )  then 
                   if not obj['mod_tr_0_O_'..channel].wire then obj['mod_tr_0_O_'..channel].wire = {} end
                   local temp_t = obj['mod_tr_0_O_'..channel].wire
                   temp_t[#temp_t+1] =  { wiretype = 0, dest = 'mod_fx_'..fx_id..'_I_'..pinI}                
@@ -1448,7 +1496,7 @@ Drag wires
             if data.fx[fx].pins.O[pin] & channel_bit == channel_bit then breakbyFX = true end
           end
         end
-        if not breakbyFX then 
+        if not breakbyFX and conf.show_direct_trackIOlinks == 1 then 
           if not obj['mod_tr_0_O_'..chan].wire then obj['mod_tr_0_O_'..chan].wire = {} end
           local temp_t = obj['mod_tr_0_O_'..chan].wire 
           temp_t[#temp_t+1] = { wiretype = 0, dest = 'mod_tr_0_I_'..chan}

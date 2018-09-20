@@ -59,7 +59,8 @@
       local strTT = obj.tooltip
       local str = ''
       for line in strTT:gmatch('[^\r\n]+') do
-        local t = obj[line]
+          t = obj[line]
+        
         if t and t.is_pin then
           local pin = t.pin_idx
           if t.pin_type == 1 then str = str..'track IO' end
