@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f3447edf14751dc3dad9046780df60d76ab7974f" name="MPL Scripts">
+<index version="1" commit="e166a73e47f7adfa0a403e6569f8dc8a428d95d5" name="MPL Scripts">
   <category name="Automation Items">
+    <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Select envelope, selecte track, define time selection (contain media items on selected track), run script\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-09-20T21:35:00Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/Automation%20Items/mpl_Generate%20pooled%20automation%20items%20for%20selected%20envelope%20based%20on%20selected%20track%20peaks.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -1141,6 +1157,18 @@
         <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3447edf14751dc3dad9046780df60d76ab7974f/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
         <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3447edf14751dc3dad9046780df60d76ab7974f/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
       </version>
+      <version name="1.20" author="MPL" time="2018-09-20T21:35:00Z">
+        <changelog><![CDATA[+ list /REAPER/FXChains in Add FX dialog
++ option to hide direct track IO links
++ option to hide FX to track IO 3+ channel links
++ option to prevent 3+ track IO linking
++ Data_BuildRouting_Audio: optionally use free channels (limited to 32)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/FX/mpl_WiredChain%20(background).lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_XYPad (background).lua" type="script" desc="XYPad">
       <metadata>
@@ -1454,6 +1482,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-09-13T11:26:00Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f8350aefe752113c7cff825e8cad62cab2e59eb5/FX%20specific/mpl_Generate%20DC%20offset%20envelope%20from%20asymmetric%20waveform.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2018-09-20T21:35:00Z">
+        <changelog><![CDATA[# hardcoded buffer limit = 2^21 (approximately 48 seconds for 44100 SR)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/FX%20specific/mpl_Generate%20DC%20offset%20envelope%20from%20asymmetric%20waveform.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take.lua" type="script" desc="Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take">
