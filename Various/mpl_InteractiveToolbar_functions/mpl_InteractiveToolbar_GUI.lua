@@ -171,7 +171,7 @@
   
     
     ---------------------------------------------------
-  function GUI_DrawObj(o, obj)
+  function GUI_DrawObj(o, obj, conf)
     if not o then return end
     local x,y,w,h = o.x, o.y, o.w, o.h
     if not x or not y or not w or not h then return end
@@ -277,6 +277,69 @@
           end
         end                
               
+    -- peaks
+      if o.peaks_src then
+        -- levels
+        local meter_w = 2
+        local entries = 3
+        
+        local RMSL = 0
+        local entries = math.min(#o.peaks_src.peakL, entries)
+        for i = 1, entries do RMSL = math.abs(o.peaks_src.peakL[i]) + RMSL end
+        RMSL = RMSL / entries
+        gfx.rect(x + conf.master_buf + 5, y+h-h*RMSL, meter_w,h*RMSL)
+        
+        local RMSR = 0
+        local entries = math.min(#o.peaks_src.peakR, entries)
+        for i = 1, entries do RMSR = math.abs(o.peaks_src.peakR[i]) + RMSR end
+        RMSR = RMSR / entries
+        gfx.rect(x + conf.master_buf + 5 + meter_w, y+h-h*RMSR, meter_w,h*RMSR)
+        
+        -- goniometer
+        local gonio_h = obj.entry_h*2
+        local gonio_x = x + conf.master_buf + 5 + meter_w*2
+        local gonio_w = obj.entry_h*2
+        local gonio_y = y+ h - gonio_h-1
+        
+        gfx.set(1,1,1,0.1)
+        --gfx.rect(gonio_x,gonio_y+2,gonio_w,gonio_h-2, 0)
+        
+        -- oscillogram
+        local a = 0.6
+        local gonio_lim = 7
+        for i = 1, #o.peaks_src.peakL do
+            -- L
+            local peakvalL = o.peaks_src.peakL[i]
+            local peakvalR = o.peaks_src.peakR[i]
+            local x0 = x +conf.master_buf - i + 3
+            
+            
+            if peakvalL > 1 then 
+              gfx.set(1,0.1,0.1, a)
+              gfx.line(x0+1, y, x0, y+h/2-1)
+             else
+              peakvalL = lim(peakvalL, 0,1)
+              gfx.set(1,1,1, a)     
+              gfx.line( x0,
+                        y +  h/4 -peakvalL*h/4,
+                        x0,
+                        y +  h/4 +peakvalL*h/4)
+             end
+             
+            --R
+            if peakvalR > 1 then 
+              gfx.set(1,0.1,0.1, a)
+              gfx.line(x0, y+h/2, x0, y+h-1)
+             else
+              peakvalL = lim(peakvalL, 0,1)
+              gfx.set(1,1,1,a)   
+              gfx.line( x0,
+                        y +  3*h/4 -peakvalR*h/4,
+                        x0,
+                        y +  3*h/4 +peakvalR*h/4)
+             end
+        end                 
+      end
   end
   ---------------------------------------------------
   function GUI_col(col_s, obj) 
@@ -291,7 +354,7 @@
     end
   end
   ---------------------------------------------------
-  function GUI_Main(obj, cycle_cnt, redraw, data, clock)
+  function GUI_Main(obj, cycle_cnt, redraw, data, clock, conf)
     gfx.mode = 0
     -- redraw: -1 init, 1 maj changes, 2 minor changes
     -- 1 back
@@ -334,7 +397,7 @@
         -- refresh all buttons
           if obj.b then 
             for key in spairs(obj.b) do 
-              if not obj.b[key].persist_buf and not obj.b[key].outside_buf then GUI_DrawObj(obj.b[key], obj) end
+              if not obj.b[key].persist_buf and not obj.b[key].outside_buf then GUI_DrawObj(obj.b[key], obj, conf) end
             end 
           end
       end
@@ -350,7 +413,7 @@
         -- refresh all buttons
           if obj.b then 
             for key in spairs(obj.b) do 
-              if obj.b[key].persist_buf then GUI_DrawObj(obj.b[key], obj) end
+              if obj.b[key].persist_buf then GUI_DrawObj(obj.b[key], obj, conf) end
             end 
           end
       end
@@ -387,7 +450,8 @@
        else
         if obj.b.obj_pers_clock then obj.b.obj_pers_clock.txt = data.editcur_pos_format end
       end
-      GUI_DrawObj(obj.b.obj_pers_clock, obj)
+      GUI_DrawObj(obj.b.obj_pers_clock, obj, conf)
+      GUI_DrawObj(obj.b.obj_pers_master, obj, conf)
                                         
     --[[ draw vrs
       gfx.x, gfx.y = gfx.w-150,0
@@ -477,6 +541,7 @@ msg(
           #bpm shows/edit tempo and time signature for project (or tempo marker falling at edit cursor if any)
           #clock shows play/edit cursor positions
           #tap Get a tempo from tap, allow to distribute that info in different ways. RightClick reset taps data and force current tempo to convertion chart.      
+          #master Shows master track peaks
  ]] )  
                  
                         end   

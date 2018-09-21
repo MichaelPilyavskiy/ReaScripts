@@ -5,7 +5,27 @@
 
   -- update obj/project data for 
   
-  
+  function DataUpdate2(data, mouse, widgets, obj, conf)
+    -- update master track peaks
+    if not data.masterdata.peakR then 
+      data.masterdata.peakR = {} 
+      data.masterdata.peakL = {} 
+    end
+    local id = #data.masterdata.peakL +1
+    local pkL =  Track_GetPeakInfo( data.masterdata.ptr,0 )
+    if pkL < 0.001 then pkL = 0 end
+    local pkR = Track_GetPeakInfo( data.masterdata.ptr,1 )
+    if pkR < 0.001 then pkR = 0 end
+    
+    table.insert(data.masterdata.peakL, 1 , pkL)
+    table.insert(data.masterdata.peakR, 1 , pkR)
+    if #data.masterdata.peakL > conf.master_buf then 
+      table.remove(data.masterdata.peakL, #data.masterdata.peakL)
+      table.remove(data.masterdata.peakR, #data.masterdata.peakL)
+    end
+    data.masterdata.peakL[#data.masterdata.peakL] = 0 
+    data.masterdata.peakR[#data.masterdata.peakL] = 0 
+  end
   ---------------------------------------------------
   function DataUpdate(data, mouse, widgets, obj, conf)
   

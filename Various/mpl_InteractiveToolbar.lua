@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.71
+-- @version 1.72
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,10 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Tags/MIDI Editor: #notelen. Set note length. MIDI code based on juliansader MIDI scripts (see ReaTeam repo). This module is coded pretty rough, so for now use it at your own risk.
+--    + Tags/Persist: #master. Draw master track peaks.
 
 
-    local vrs = '1.71'
+    local vrs = '1.72'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -44,7 +44,8 @@
   local scr_title = 'InteractiveToolbar'
   local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
-          scr_title=scr_title}
+          scr_title=scr_title,
+          masterdata = {ptr =  GetMasterTrack( 0 )}}
   local mouse = {}
   local obj = {}
   local  widgets = {    -- map types to data.obj_type_int order
@@ -96,7 +97,7 @@ buttons=#polarity #parentsend
 [MIDIEditor]
 order=#position #notelen #CCval #notepitch #notevel #midichan
 [Persist]
-order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap
+order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap #master
 ]]
   end  
   ---------------------------------------------------
@@ -129,21 +130,26 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             MM_grid_default_reset_grid = 0.25,
             MM_grid_default_reset_MIDIgrid = 0.25,
             tap_quantize = 0,
-            trackfxctrl_use_brutforce = 0,
+            trackfxctrl_use_brutforce = 0, 
             ignore_context = 0,
             use_aironCS = 0, -- track
-            use_aironCS_item = 0,
-            timiselwidgetsformatoverride = -2}
+            use_aironCS_item = 0, 
+            timiselwidgetsformatoverride = -2,
+            master_buf = 100
+            
+            }
   end
   ---------------------------------------------------
-  function Run()
+  function Run() 
     -- global clock/cycle
       clock = os.clock()
       cycle_cnt = cycle_cnt+1      
+    -- update dynamic data
+      DataUpdate2(data, mouse, widgets, obj, conf)
     -- check is something happen 
       SCC =  GetProjectStateChangeCount( 0 )       
       SCC_trig = (lastSCC and lastSCC ~= SCC) or cycle_cnt == 1
-      lastSCC = SCC      
+      lastSCC = SCC       
       if not SCC_trig and HasCurPosChanged() then SCC_trig = true end
       if not SCC_trig and HasTimeSelChanged() then SCC_trig = true end
       if not SCC_trig and HasRulerFormChanged() then SCC_trig = true end    
@@ -154,6 +160,7 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
       if ret == 1 then  redraw = 2  ExtState_Save(conf)  elseif ret == 2 then  ExtState_Save(conf)  end
     -- perf mouse
       local SCC_trig2 = MOUSE(obj,mouse, clock) 
+      
     -- produce update if yes
       if redraw == 2 or SCC_trig2 then DataUpdate(data, mouse, widgets, obj, conf) redraw = 1 end
       if SCC_trig then 
@@ -172,7 +179,7 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
       end
       
     -- perf GUI 
-      GUI_Main(obj, cycle_cnt, redraw, data, clock)
+      GUI_Main(obj, cycle_cnt, redraw, data, clock, conf)
       redraw = 0 
     -- perform shortcuts
       GUI_shortcuts(gfx.getchar())

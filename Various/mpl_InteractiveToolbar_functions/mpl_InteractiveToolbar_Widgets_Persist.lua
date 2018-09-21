@@ -1216,3 +1216,48 @@
                                       end}
     return grid_widg_swingval_w
   end    
+  
+  
+  
+  
+  
+  ------------------------------------------------------------------------  
+  function Widgets_Persist_master(data, obj, mouse, x_margin, widgets, conf)  
+    local master_w = conf.master_buf + 10
+    local frame_a = 0
+    obj.b.obj_pers_master_back1 = {persist_buf = true,
+                        x = x_margin - master_w,
+                        y = obj.offs ,
+                        w = master_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}
+    obj.b.obj_pers_master_back2 = {persist_buf = true,
+                        x = x_margin - master_w,
+                        y = obj.offs+obj.entry_h ,
+                        w = master_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}  
+    obj.b.obj_pers_master = { outside_buf = true,
+                        x = x_margin - master_w,
+                        y = obj.offs ,
+                        w = master_w,
+                        h = obj.entry_h*2,
+                        frame_a = 0,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock,
+                        txt = '',
+                        peaks_src = data.masterdata
+                        }
+                                
+    return master_w   
+  end
