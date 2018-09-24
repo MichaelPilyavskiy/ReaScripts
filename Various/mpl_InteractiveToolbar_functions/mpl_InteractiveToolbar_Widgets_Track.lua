@@ -394,6 +394,7 @@
       local i_shift if data.curent_trFXID then i_shift = lim(math.modf(data.curent_trFXID),1, #data.tr[1].fx_names)-1 else  i_shift= 0 end
       local txt_col = obj.txt_col_header
       if not data.tr[1].fx_names[i].is_enabled then txt_col = 'red'end
+      if not data.tr[1].fx_names[i].is_online then txt_col = 'grey'end
       obj.b['obj_fxlist_val'..i] = { x =  x_offs+fxlist_state,
                                 y = obj.offs *2 + obj.entry_h/2 + h_entr*(i-i_shift-1) ,
                                 w = fxlist_w-fxlist_state,--obj.entry_w2,
@@ -407,7 +408,7 @@
                                 func_wheel =  function() Apply_TrackFXListChange(data, mouse.wheel_trig) end, 
                                 func = function () Apply_TrackFXListChange_floatFX(data, mouse, data.tr[1].fx_names[i].is_enabled) end              }   
       local txt,txt_col
-      if not data.tr[1].fx_names[i].is_enabled or not data.tr[1].fx_names[i].is_online then 
+--[[      if not data.tr[1].fx_names[i].is_enabled or not data.tr[1].fx_names[i].is_online then 
         txt = ''
         if not data.tr[1].fx_names[i].is_enabled then txt ='B ' end
         if not data.tr[1].fx_names[i].is_online then txt = txt..'O' end
@@ -415,7 +416,9 @@
        else 
         txt =i 
         txt_col = obj.txt_col_header
-      end     
+      end     ]]
+      txt =i 
+      txt_col = obj.txt_col_header
         obj.b['obj_fxlist_val'..i..'state'] = { x =  x_offs,
                                 y = obj.offs *2 + obj.entry_h/2 + h_entr*(i-i_shift-1) ,
                                 w = fxlist_state,--obj.entry_w2,
@@ -438,19 +441,22 @@
     redraw = 2  
   end
   function Apply_TrackFXListChange_floatFX(data, mouse, state)
-    local fx_id = lim( math.modf(data.curent_trFXID), 1 ,#data.tr[1].fx_names) 
-    if mouse.Shift then 
-      TrackFX_SetEnabled( data.tr[1].ptr, fx_id-1, not state)
-     elseif mouse.Ctrl then 
-      local vrs_num =  GetAppVersion()
-      local vrs_num = tonumber(vrs_num:match('[%d%.]+'))
-      if vrs_num >= 5.95 then      
-        local offl_state = TrackFX_GetOffline(data.tr[1].ptr, fx_id-1)
-        TrackFX_SetOffline(data.tr[1].ptr, fx_id-1, not offl_state)
-      end
-     else
+    local fx_id = lim( math.modf(data.curent_trFXID), 1 ,#data.tr[1].fx_names)
+    local vrs_num =  GetAppVersion()
+    local vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    local support_FX_change =  vrs_num >= 5.95
+    
+    if mouse.Shift and not mouse.Ctrl then 
+      TrackFX_SetEnabled( data.tr[1].ptr, fx_id-1, not state) 
+     elseif support_FX_change and mouse.Ctrl and mouse.Shift then
+      local offl_state = TrackFX_GetOffline(data.tr[1].ptr, fx_id-1)
+      TrackFX_SetOffline(data.tr[1].ptr, fx_id-1, not offl_state)
+     elseif mouse.Alt and support_FX_change then
+      TrackFX_Delete( data.tr[1].ptr, fx_id-1 )
+     elseif not mouse.Ctrl and not mouse.Shift and not mouse.Alt then
       TrackFX_Show( data.tr[1].ptr, fx_id-1, 3 )
     end
+    
   end
 ----------------------------------------------------------- 
 

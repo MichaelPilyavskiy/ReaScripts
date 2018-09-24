@@ -1223,7 +1223,7 @@
   
   ------------------------------------------------------------------------  
   function Widgets_Persist_master(data, obj, mouse, x_margin, widgets, conf)  
-    local master_w = conf.master_buf + 10
+    local master_w = conf.master_buf + 14
     local frame_a = 0
     obj.b.obj_pers_master_back1 = {persist_buf = true,
                         x = x_margin - master_w,

@@ -6,11 +6,11 @@
   -- GUI functions for mpl_InteractiveToolbar 
   -- common objects functions for mpl_InteractiveToolbar
   
-  
+  ---------------------------------------------------  
   function GUI_shortcuts(char)
     --if char == 32 then Main_OnCommand(40044,0) end --Transport: Play/stop
   end
-  ---------------------------------------------------
+  ---------------------------------------------------  
   function Obj_init(conf)  
     local obj = {       aa = 1,
                   mode = 0,
@@ -279,8 +279,9 @@
               
     -- peaks
       if o.peaks_src then
+        --GUI_Goniometer(o, obj, conf)
         -- levels
-        local meter_w = 2
+        local meter_w = 4
         local entries = 3
         
         local RMSL = 0
@@ -341,6 +342,49 @@
         end                 
       end
   end
+  ---------------------------------------------------
+  function GUI_Goniometer(o, obj, conf)
+  
+  end
+  ---------------------------------------------------
+  --[[--[[
+@init
+off = 50000;
+rot=-45*0.017453292;
+MAXDRAWSPLS = 100;
+
+@sample
+s0 = sign(spl0);
+s1 = sign(spl1);
+angle = atan( spl0 / spl1 );
+(s0 == 1 && s1 == -1) || (s0 == -1 && s1 == -1) ? angle += 3.141592654;
+s0 == -1 && s1 == 1 ? angle += 6.283185307;
+spl1 == 0 ? spl0 > 0 ? angle = 1.570796327 : angle = 4.71238898;
+spl0 == 0 ? spl1 > 0 ? angle = 0 : angle = 3.141592654;
+radius = sqrt( sqr(spl0)+sqr(spl1) ) ;
+angle -= rot;
+0[b] = cos(angle)*radius;
+off[b] = sin(angle)*radius;
+b<MAXDRAWSPLS ? b += 1;
+s0 != s1 ? phC-=1:phC+=1;
+
+@gfx
+
+size = min(gfx_w,gfx_h-20);
+sizeH = size/2;
+sizeDSqr05 = sizeH * 0.70710681;
+x = y = sizeH;
+
+i = 1000;
+while (
+   gfx_x=x; gfx_y=y;
+   x=sizeH+0[i]*sizeDSqr05;
+   y=sizeH-off[i]*sizeDSqr05;
+   gfx_r=0.5; gfx_g=1; gfx_b=0; gfx_a=0.6;
+  gfx_lineto(x,y,0);
+  (i-=1)>0;
+);
+b=0;]]  
   ---------------------------------------------------
   function GUI_col(col_s, obj) 
     if type(col_s) == 'string' then 
@@ -867,8 +911,16 @@ msg(
                 { str = 'h:m:s:f|',
                   state = conf.timiselwidgetsformatoverride == 5,
                   func = function() conf.timiselwidgetsformatoverride = 5 end} ,   
-                  
-                                  
+                  { str = '#master'},
+                { str = 'Samples buffer (default = 100)|',
+                  func = function()
+                            local ret, str = GetUserInputs( conf.scr_title, 1, 'Samples buffer', conf.master_buf)
+                            if ret and tonumber(str ) then 
+                              conf.master_buf = lim(  math.floor(tonumber(str)), 10, 500) 
+                              data.masterdata.peakL = {}
+                              data.masterdata.peakR = {}
+                            end
+                          end},
                 
                 { str = 'Disable persistent modules',    
                   state = conf.ignore_context&(1<<9) == (1<<9),              
