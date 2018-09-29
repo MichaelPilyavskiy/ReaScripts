@@ -1,27 +1,14 @@
 -- @description Solo last touched ReaEQ band
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix version check
+--    # fix version check2
 
   -- NOT reaper NOT gfx
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if s then ShowConsoleMsg(s..'\n') end end
-  -----------------------------------------------------------------------------
-  function VsrCheck(vrs, pre)
-    local appvrs = GetAppVersion()
-    local app_full = appvrs:match('[%d%p]+') if app_full then app_full = tonumber(app_full) end
-    local app_pre = appvrs:match('pre([%d]+)') if app_pre then app_pre = tonumber(app_pre) end
-    if not app_pre then app_pre = math.huge end
-    if app_full and app_full>=vrs then
-      if not pre then 
-        return true
-       elseif app_pre and pre and app_pre>=pre then
-        return true
-      end
-    end
-  end
+
   -----------------------------------------------------------------------------
   function ParseExtState(extstate)
     if not extstate or extstate == '' then return end
@@ -63,7 +50,7 @@
         local retval, b_state = TrackFX_GetNamedConfigParm( tr, fx, 'BANDENABLED'..i-1 )
         str_state = str_state..' '..b_type..' '..b_state
         if i == cur_band then
-          msg(b_type)
+          --msg(b_type)
           if b_type == 8 or b_type == 2 or b_type == 9 then -- band/alt1/alr2
             TrackFX_SetNamedConfigParm( tr, fx, 'BANDTYPE'..i-1, 7 ) -- bandpass
            elseif b_type == 3 then -- LP
@@ -107,10 +94,21 @@
       if fxGUID == FX_GUID then return i-1 end
     end
   end
+  ---------------------------------------------------
+  function CheckReaperVrs(rvrs) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0)
+      return
+     else
+      return true
+    end
+  end
   ----------------------------------------------------------------------------- 
   --ClearConsole() 
   --EraseState() 
-  local ret = VsrCheck(5.81, 5)
+  local ret = CheckReaperVrs(5.81, 5)
   if ret then 
     local extstate = GetExtState( 'MPL_SOLOEQBAND', 'state' )
     MPL_SoloReaEqBand(extstate)
