@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="009b1423048b676da98415ba7461c3c87d9f400a" name="MPL Scripts">
+<index version="1" commit="20e7cebeea73b7154ad259083d442d0d639383f7" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1247,13 +1247,13 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/16bcafc704008a1c1b27365a9ce84292a6f87139/FX%20specific/mpl_Add%20pre-fx%20control%20to%20selected%20tracks%20TCP.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Add ReaEQ to selected tracks (with low and high shelf TCP).lua" type="script" desc="Add ReaEQ to selected tracks (with low and high shelf TCP)">
+    <reapack name="mpl_Add ReaEQ to selected tracks (ignore default preset).lua" type="script" desc="Add ReaEQ to selected tracks (ignore default preset)">
       <metadata>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2017-11-19T19:10:19Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1003383f5153dc76aba4020eba8848b023f4c40/FX%20specific/mpl_Add%20ReaEQ%20to%20selected%20tracks%20(with%20low%20and%20high%20shelf%20TCP).lua</source>
+      <version name="1.01" author="MPL" time="2018-10-04T21:00:37Z">
+        <changelog><![CDATA[# use HP/LP instead shelfs, REAPER 5.90+ [p=2042020]]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/20e7cebeea73b7154ad259083d442d0d639383f7/FX%20specific/mpl_Add%20ReaEQ%20to%20selected%20tracks%20(ignore%20default%20preset).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Add time adjustment JSFX to selected tracks (with delay TCP).lua" type="script" desc="Add time adjustment JSFX to selected tracks (with delay TCP)">
@@ -1277,6 +1277,11 @@ setup min gain, attack =0]]></changelog>
 + bands gain reduce factor
 + remember settings]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a8d90fc1720b46e123ab3336b7e62931ca72d9be/FX%20specific/mpl_Build%20harmonic%20series%20bands%20for%20focused%20ReaEQ.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2018-10-04T21:00:37Z">
+        <changelog><![CDATA[# smaller init Q
++ option to link Gain [p=2042020]]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/20e7cebeea73b7154ad259083d442d0d639383f7/FX%20specific/mpl_Build%20harmonic%20series%20bands%20for%20focused%20ReaEQ.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Bypass all UAD FX on all tracks.lua" type="script" desc="Bypass all UAD FX on all tracks">
