@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="20e7cebeea73b7154ad259083d442d0d639383f7" name="MPL Scripts">
+<index version="1" commit="c93f607301115407928216d6138f21a8cce92ec9" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3169,6 +3169,11 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[# refactoring for using PPQ-ProjTime-Beats convertion
 + Undo History point]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/438f05851f7b82ced136391f9f676f9e27424ecf/MIDI%20editor/mpl_Quantize%20selected%20MIDI%20notes%20ends.lua</source>
+      </version>
+      <version name="1.11" author="MPL" time="2018-10-06T16:28:44Z">
+        <changelog><![CDATA[# improve/handle math around closest MIDI Editor grid
++ prevent less than 2 PPQ length notes]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c93f607301115407928216d6138f21a8cce92ec9/MIDI%20editor/mpl_Quantize%20selected%20MIDI%20notes%20ends.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove MIDI AfterTouch.lua" type="script" desc="Remove MIDI AfterTouch">
