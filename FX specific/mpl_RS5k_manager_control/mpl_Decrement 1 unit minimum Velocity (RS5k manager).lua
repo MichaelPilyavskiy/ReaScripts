@@ -4,7 +4,7 @@
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @changelog
 --    + init
-
+-- @noindex
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   
