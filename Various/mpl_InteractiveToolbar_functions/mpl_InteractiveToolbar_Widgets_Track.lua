@@ -804,8 +804,13 @@
                         txt = txt,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_entry,
-                        ignore_mouse = true,
-                        fontsz = obj.fontsz_entry} 
+                        --ignore_mouse = true,
+                        fontsz = obj.fontsz_entry,
+                        func = function() 
+                                 local send_id = data.active_context_id                                 
+                                 local str_ptr = BR_GetMediaTrackSendInfo_Track( data.tr[1].ptr, 0, send_id-1, 1 )
+                                 TrackFX_SetOpen( str_ptr, 0, true )
+                                end} 
     if data.active_context_sendmixer_val then
 
       obj.b.obj_sendmix_tr_s_vol = { x = x_offs+mix_fields,
@@ -986,8 +991,13 @@
                         txt = txt,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_entry,
-                        ignore_mouse = true,
-                        fontsz = obj.fontsz_entry} 
+                        --ignore_mouse = true,
+                        fontsz = obj.fontsz_entry,
+                        func =  function() 
+                                  if data.active_context_id2 and data.tr_recv[data.active_context_id2] then
+                                    SetOnlyTrackSelected(  data.tr_recv[data.active_context_id2].srctr_ptr)
+                                  end
+                                end  } 
     if data.active_context_sendmixer_val2 then
 
       obj.b.obj_recvmix_tr_s_vol = { x = x_offs,
