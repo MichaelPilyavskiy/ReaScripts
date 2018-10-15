@@ -1,9 +1,9 @@
 -- @description Solo last touched ReaEQ band
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix version check2
+--    # fix version from wrong ReaPack branch (in this version it shouldn`t alter type of bands)
 
   -- NOT reaper NOT gfx
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
@@ -51,13 +51,7 @@
         str_state = str_state..' '..b_type..' '..b_state
         if i == cur_band then
           --msg(b_type)
-          if b_type == 8 or b_type == 2 or b_type == 9 then -- band/alt1/alr2
-            TrackFX_SetNamedConfigParm( tr, fx, 'BANDTYPE'..i-1, 7 ) -- bandpass
-           elseif b_type == 3 then -- LP
-            TrackFX_SetNamedConfigParm( tr, fx, 'BANDTYPE'..i-1, 4 ) -- HP
-           elseif b_type == 4 then -- LP
-            TrackFX_SetNamedConfigParm( tr, fx, 'BANDTYPE'..i-1, 3 ) -- HP            
-          end
+          
           TrackFX_SetNamedConfigParm( tr, fx, 'BANDENABLED'..i-1, 1 )
          else
           TrackFX_SetNamedConfigParm( tr, fx, 'BANDENABLED'..i-1, 0 )

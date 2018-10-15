@@ -1,10 +1,10 @@
 -- @description Build harmonic series bands for focused ReaEQ
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # smaller init Q
---    + option to link Gain [p=2042020]
+--    # rename 'reduce Gain' to 'Gain decrement/increment'
+--    # allow positive init gain
   
   
   
@@ -31,7 +31,8 @@
     for param = 1, num_params - 2, 3 do
       local band_id = math.floor(param/3)
       TrackFX_SetNamedConfigParm( tr, fx, 'BANDTYPE'..band_id, 2 )
-      TrackFX_SetParamNormalized( tr, fx, param, lim(gain + band_id * slope, 0, 0.5)) -- -2.0dB gain
+      local gain_new = lim(gain + band_id * slope, 0.01,0.99)
+      TrackFX_SetParamNormalized( tr, fx,  param,gain_new) -- -2.0dB gain
       local startQdenom = 40
       TrackFX_SetParamNormalized( tr, fx, param+1, lim(1/(startQdenom* (band_id+1)), 0.01, 1)) -- 0.5 Q
       local ConvertedF = F2ReaEQVal(freq * (band_id+1) )
@@ -54,6 +55,8 @@
         end
         
         if linkgain then
+          local scale = 1
+          local offset = 0
           linkBW_str = linkBW_str..'\n'..
         -- Q
 [[      <PROGRAMENV ]]..(param)..[[ 0
@@ -62,7 +65,7 @@
         LFOWT 1 1
         AUDIOCTL 0
         AUDIOCTLWT 1 1
-        PLINK 1 0:0 1 0
+        PLINK 1 0:0 ]]..scale..' '..offset..[[ 
         MODWND 0
       >      
 ]]   
@@ -107,7 +110,6 @@
     out_val = lim(out_val, -150, 12)
     out_val = WDL_DB2VAL(out_val)
     if out_val <= 1 then out_val = out_val / 2 else out_val = 0.5 + out_val / 8 end
-    
     return out_val
   end
   ----------------------------------------------------------------------------- 
@@ -120,7 +122,7 @@
   local def_params = '50,-150,0.01,Y,N'
   local extstate = GetExtState('MPL_BUILDHARMSERREAEQ', 'params')
   if extstate ~= '' then def_params = extstate end
-  local retval, str = GetUserInputs('Build harmonic bands', 5, 'Base frequency(Hz) (def=50),Gain Reduction(dB) (def=-150),Gain reduce (def=0.01),Link banwidth (Y/N),Link gain (Y/N)', def_params)
+  local retval, str = GetUserInputs('Build harmonic bands', 5, 'Base frequency(Hz) (def=50),Gain Reduction(dB) (def=-150),Gain increment/decrement (dB),Link banwidth (Y/N),Link gain (Y/N)', def_params)
   if retval then 
     local t, freq, gain, slope, linkbands, linkgain = {}, _, 0, 0.01, true, false
     for val in str:gmatch('[^,]+') do  t[#t+1] = val end
@@ -132,5 +134,5 @@
     if freq and gain and slope then 
       SetExtState( 'MPL_BUILDHARMSERREAEQ', 'params', table.concat(t, ','), true )
     end
-    MPL_BuildEQReduce(freq, lim(gain, 0, 0.5), slope, linkbands, linkgain)
+    MPL_BuildEQReduce(freq, lim(gain, 0,1), slope, linkbands, linkgain)
   end
