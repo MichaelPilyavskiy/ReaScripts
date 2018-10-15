@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7275d40832716c44ac9fd62f4502c038e39c7dc3" name="MPL Scripts">
+<index version="1" commit="343f7fd4199c72aca9808957adb4cba9981867a9" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1283,6 +1283,11 @@ setup min gain, attack =0]]></changelog>
 + option to link Gain [p=2042020]]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/20e7cebeea73b7154ad259083d442d0d639383f7/FX%20specific/mpl_Build%20harmonic%20series%20bands%20for%20focused%20ReaEQ.lua</source>
       </version>
+      <version name="1.03" author="MPL" time="2018-10-15T18:18:34Z">
+        <changelog><![CDATA[# rename 'reduce Gain' to 'Gain decrement/increment'
+# allow positive init gain]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/343f7fd4199c72aca9808957adb4cba9981867a9/FX%20specific/mpl_Build%20harmonic%20series%20bands%20for%20focused%20ReaEQ.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Bypass all UAD FX on all tracks.lua" type="script" desc="Bypass all UAD FX on all tracks">
       <metadata>
@@ -2057,6 +2062,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.02" author="MPL" time="2018-09-29T19:16:42Z">
         <changelog><![CDATA[# fix version check2]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/009b1423048b676da98415ba7461c3c87d9f400a/FX%20specific/mpl_Solo%20last%20touched%20ReaEQ%20band.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2018-10-15T18:18:34Z">
+        <changelog><![CDATA[# fix version from wrong ReaPack branch (in this version it shouldn`t alter type of bands)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/343f7fd4199c72aca9808957adb4cba9981867a9/FX%20specific/mpl_Solo%20last%20touched%20ReaEQ%20band.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Sort focused ReaEQ bands by frequency.lua" type="script" desc="Sort focused ReaEQ bands by frequency">
