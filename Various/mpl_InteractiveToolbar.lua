@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.74
+-- @version 1.75
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,10 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Track/#chsendmixer: open first FX on destination track on left click by destination track name
---    + Track/#chrecvmixer: select source track on left click by destination track name
+--    # fix error on closing project tab [rmmedia.ru/threads/131061/page-3#post-2287089]. For some reason getting peaks in realtime doesn`t work for multiple tabs. Not sure it is a bug on REAPER side or I missed something, any help appreciated here.
 
-    local vrs = '1.74'
+    local vrs = '1.75'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -42,10 +41,10 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-  local data = {conf_path = script_path:gsub('\\','/') .. "mpl_InteractiveToolbar_Config.ini",
+  local data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title,
-          masterdata = {ptr =  GetMasterTrack( 0 )}}
+          masterdata = {ptr =  GetMasterTrack(0)}}
   local mouse = {}
   local obj = {}
   local  widgets = {    -- map types to data.obj_type_int order

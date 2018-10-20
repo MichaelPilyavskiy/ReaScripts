@@ -11,6 +11,7 @@
       data.masterdata.peakR = {} 
       data.masterdata.peakL = {} 
     end
+    if not ValidatePtr2( 0, data.masterdata.ptr, 'MediaTrack*') then return end
     local id = #data.masterdata.peakL +1
     local pkL =  Track_GetPeakInfo( data.masterdata.ptr,0 )
     if pkL < 0.001 then pkL = 0 end
