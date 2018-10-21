@@ -2,10 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.13
+-- @version 1.14
 -- @changelog
---    # improve ReduceFXName()
---    + add Action()
+--    # update OpenURL
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
@@ -55,7 +54,7 @@
       return copy
   end 
 -----------------------------------------------------------------------    
- function Open_URL(url) if GetOS():match("OSX") then os.execute("open ".. url) else os.execute("start ".. url)  end  end  
+ function Open_URL(url) if GetOS():match("OSX") then os.execute('open "" '.. url) else os.execute('start "" '.. url)  end  end  
   ------------------------------------------------------------------------------------------------------
   function WDL_DB2VAL(x) return math.exp((x)*0.11512925464970228420089957273422) end  --https://github.com/majek/wdl/blob/master/WDL/db2val.h
   --function dBFromVal(val) if val < 0.5 then return 20*math.log(val*2, 10) else return (val*12-6) end end
