@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4fa1c79f0e3fdaa56e4b351ce1980b680342e939" name="MPL Scripts">
+<index version="1" commit="4202683a134835e07d4904bdfe804b13d2cbcd26" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -346,6 +346,10 @@
         <changelog><![CDATA[# improve ReduceFXName()
 + add Action()]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d2dc9eb3fe0809974b541911dcf2305cd856e439/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.14" author="MPL" time="2018-10-21T21:18:00Z">
+        <changelog><![CDATA[# update OpenURL]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
@@ -4969,6 +4973,38 @@ setup min gain, attack =0]]></changelog>
     <reapack name="mpl_Quantize Tool set swing (MIDI CC and OSC only).lua" type="script" desc="Quantize Tool set swing (MIDI CC and OSC only)">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Various/mpl_Quantize%20Tool%20set%20swing%20(MIDI%20CC%20and%20OSC%20only).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_QuantizeTool.lua" type="script" desc="QuantizeTool">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for handling FX chain data on selected track\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="2.0alpha1" author="MPL" time="2018-10-21T21:18:00Z">
+        <changelog><![CDATA[+ Complete script rebuild. This is an early developer test alpha. It is more about replacing old buggy code that adding new functions.
++ GUI: split into 4 sections: reference, source, action, and contol area
++ Strategy: all objects handling follows strategy
++ Strategy: load/save from/to file 
++ Strategy: load/save from/to <res_path>/mpl_QuantizeTool_Strategies list
++ Strategy: load/save from/to action list (non-persist external state reading on initialization)
++ Strategy/Action/Type/Position-based Align: deductive brutforce engine
++ Strategy/Action/Type/Position-based Align: independent position/value sliders
++ Strategy/Action/Initialization/Catch reference on init
++ Strategy/Action/Initialization/Catch source on init
++ Strategy/Action/Initialization/Apply action on init
++ Strategy/Action/Option/Sort positions before taking values (so values aren`t attached to src positions)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
+        <source file="mpl_QuantizeTool_Strategies/default.qtstr">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool_Strategies/default.qtstr</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
