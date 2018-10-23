@@ -741,7 +741,7 @@
                                 end,
                           func_DC =     function() 
                                                 if data.MM_doubleclick == 0 then
-                                                  Apply_SendMix_vol_input(data.tr_send[data.active_context_id].s_vol_dB)
+                                                  Apply_SendMix_vol_input(data.tr_send[data.active_context_id].s_vol_dB, data)
                                                  elseif data.MM_doubleclick == 1 then
                                                   Apply_SendMix_vol_reset()
                                                 end
@@ -750,7 +750,7 @@
                                                 if data.MM_rightclick == 0 then 
                                                   Apply_SendMix_vol_reset()
                                                  elseif data.MM_rightclick == 1 then
-                                                  Apply_SendMix_vol_input(data.tr_send[data.active_context_id].s_vol_dB)
+                                                  Apply_SendMix_vol_input(data.tr_send[data.active_context_id].s_vol_dB, data)
                                                 end
                                               end ,                               
                         func_onRelease = function() Undo_OnStateChange( data.scr_title..': Change track send properties' ) end,
@@ -825,16 +825,16 @@
                           fontsz = obj.fontsz_entry,
                           func_DC =     function() 
                                                 if data.MM_doubleclick == 0 then
-                                                  Apply_SendMix_vol_input(data.tr_send[data.active_context_id].s_vol_dB)
+                                                  Apply_SendMix_vol_input(data.tr_send[data.active_context_id].s_vol_dB, data)
                                                  elseif data.MM_doubleclick == 1 then
-                                                  Apply_SendMix_vol_reset()
+                                                  Apply_SendMix_vol_reset(data)
                                                 end
                                               end,
                           func_R =      function()
                                                 if data.MM_rightclick == 0 then 
-                                                  Apply_SendMix_vol_reset()
+                                                  Apply_SendMix_vol_reset(data)
                                                  elseif data.MM_rightclick == 1 then
-                                                  Apply_SendMix_vol_input(data.tr_send[data.active_context_id].s_vol_dB)
+                                                  Apply_SendMix_vol_input(data.tr_send[data.active_context_id].s_vol_dB, data)
                                                 end
                                               end
                       } 
@@ -842,7 +842,7 @@
     return send_w
   end
   -------------------
-  function Apply_SendMix_vol_input(srcval)
+  function Apply_SendMix_vol_input(srcval, data)
     local ret, outstr = GetUserInputs( 'Edit', 1, '', srcval )
     if not ret then return end
     local out_val = ParseDbVol(outstr)
@@ -852,7 +852,7 @@
     redraw = 2   
   end
   -------------------
-  function Apply_SendMix_vol_reset()
+  function Apply_SendMix_vol_reset(data)
     if not data.tr[1] or not data.active_context_id then return end
     SetTrackSendInfo_Value( data.tr[1].ptr, 0, data.active_context_id-1-data.tr_cnt_sendsHW, 'D_VOL', 1 )
     data.active_context_sendmixer_val = 1
