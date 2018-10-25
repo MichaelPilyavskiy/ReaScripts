@@ -1,12 +1,8 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @description Send selected tracks to track under mouse cursor (channel 3-4)
 -- @changelog
---    # respect reaper default send volume
---    # respect reaper default send flag
---    # use native APIs relative to Send parameters
---    # code improvements
---    # change forum link
+--    # adjust channels count for destination track if need [rmmedia.ru/threads/118091/page-77#post-2289226]
 -- @website http://forum.cockos.com/showthread.php?t=188335    
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
@@ -55,6 +51,7 @@
         SetTrackSendInfo_Value( src_tr, 0, new_id, 'D_VOL', defsendvol)
         SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SENDMODE', defsendflag)
         SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', 2)
+        if GetMediaTrackInfo_Value( dest_tr, 'I_NCHAN'  ) == 2 then SetMediaTrackInfo_Value( dest_tr, 'I_NCHAN', 4  ) end
       end
     end
   end
