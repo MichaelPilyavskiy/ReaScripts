@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7eda09cb8037b76bcb5d5d69fecc1d24431602a1" name="MPL Scripts">
+<index version="1" commit="aff41b586d09404184116394c7db69092c7d375b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4998,7 +4998,7 @@ setup min gain, attack =0]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Script for handling FX chain data on selected track\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for manipulating REAPER objects time and values\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
@@ -5022,6 +5022,20 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
         <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
         <source file="mpl_QuantizeTool_Strategies/default.qtstr">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool_Strategies/default.qtstr</source>
+      </version>
+      <version name="2.0alpha2" author="MPL" time="2018-10-25T22:38:58Z">
+        <changelog><![CDATA[+ Strategy/Reference/Pattern (no actual reference from pattern yet)
++ Strategy/Reference/Pattern: new FNG Groove Tool parser
++ Strategy/Reference/Pattern: save as .rgt in /Grooves
++ Strategy/Reference/Pattern: list /Grooves
++ Strategy/Reference/Pattern: allow to draw pattern manually, autosave to /Grooves/last_touched.rgt
++ Strategy/Reference/Pattern: change length (in beats)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
+        <source file="mpl_QuantizeTool_Strategies/default.qtstr">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool_Strategies/default.qtstr</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
