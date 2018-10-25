@@ -2,12 +2,20 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.14
+-- @version 1.15
 -- @changelog
---    # update OpenURL
+--    + getKeysSortedByValue()
+--	 + deliteralize() 
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
+  ------------------------------------------------------------------------------------------------------
+  function getKeysSortedByValue(tbl, sortFunction, param) -- https://stackoverflow.com/questions/2038418/associatively-sorting-a-table-by-value-in-lua
+    local keys = {}
+    for key in pairs(tbl) do table.insert(keys, key) end  
+    table.sort(keys, function(a, b) return sortFunction(tbl[a][param], tbl[b][param])  end)  
+    return keys
+  end  
   ------------------------------------------------------------------------------------------------------
   function eugen27771_GetObjStateChunk(obj)
     
@@ -31,7 +39,10 @@
   ------------------------------------------------------------------------------------------------------
   function literalize(str) -- http://stackoverflow.com/questions/1745448/lua-plain-string-gsub
      if str then  return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", function(c) return "%" .. c end) end
-
+  end  
+  ------------------------------------------------------------------------------------------------------
+  function deliteralize(str) 
+     if str then  return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", '') end
   end  
   ------------------------------------------------------------------------------------------------------
   function lim(val, min,max) --local min,max 
