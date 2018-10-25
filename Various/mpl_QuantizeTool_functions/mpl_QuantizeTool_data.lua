@@ -34,10 +34,48 @@
   ---------------------------------------------------    
   function Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy)
     data.ref = {}
+    data.ref_pat = {}
     Data_ApplyStrategy_reference_pos(conf, obj, data, refresh, mouse, strategy)
     if strategy.ref_values&2==2 then table.sort(data.ref, function (a,b) return a.pos and b.pos and a.pos<b.pos end) end
     Data_ApplyStrategy_reference_val(conf, obj, data, refresh, mouse, strategy)
-    if strategy.ref_values&2~=2 then table.sort(data.ref, function (a,b) return a.pos and b.pos and a.pos<b.pos end) end
+    if strategy.ref_values&2~=2 then table.sort(data.ref, function (a,b) return a.pos and b.pos and a.pos<b.pos end) end    
+    if strategy.ref_pattern&1==1 then Data_ApplyStrategy_reference_pattern(conf, obj, data, refresh, mouse, strategy) end      
+  end
+  --------------------------------------------------- 
+  function Data_PatternParseRGT(data, strategy, content, take_len)
+    local len = content:match('Number of beats in groove: (%d+)')
+    if len and take_len  and tonumber(len) then strategy.ref_pattern_len = tonumber(len) end
+    local pat = '[%d%.%-%e]+'
+    for line in content:gmatch('[^\r\n]+') do
+    
+      -- test first symb is number
+        if not line:sub(1,1):match('%d') then goto next_line end
+        
+      -- pos
+        local pos = tonumber(line:match(pat))
+        local val = 1
+        
+        local check_val = line:match(pat..'%s('..pat..')')
+        if check_val and tonumber(check_val) then val = tonumber(check_val) end
+        
+      if pos and val then data.ref_pat[#data.ref_pat +1] = {  pos = pos, val = val} end
+      
+      
+      ::next_line::
+    end
+  end
+  --------------------------------------------------- 
+  function Data_ApplyStrategy_reference_pattern(conf, obj, data, refresh, mouse, strategy)
+    
+    local name = strategy.ref_pattern_name
+    local fp =  GetResourcePath()..'/Grooves/'..name..'.rgt'
+    local f = io.open(fp, 'r')
+    local content
+    if f then 
+      content = f:read("*all")
+      f:close()
+    end
+    if not content or content == '' then return else Data_PatternParseRGT(data, strategy, content, false) end
   end
   ---------------------------------------------------   
   function Data_ApplyStrategy_reference_pos(conf, obj, data, refresh, mouse, strategy)
@@ -69,7 +107,25 @@
       end
     end     
      
-  end  
+  end 
+  ---------------------------------------------------    
+  function Data_ExportPattern(conf, obj, data, refresh, mouse, strategy, persist)
+    if data.ref_pat == 0 then return end
+    local str = 'Version: 1'..
+          '\nNumber of beats in groove: '..tostring(strategy.ref_pattern_len)..
+          '\nGroove: '..#data.ref_pat..' positions'
+          
+    for i = 1, #data.ref_pat do  str = str..'\n'..data.ref_pat[i].pos..' '..data.ref_pat[i].val  end
+    local name
+    if persist then name = 'last_touched' else name = strategy.ref_pattern_name end
+    local out_fp =  GetResourcePath()..'/Grooves/'..name..'.rgt'
+    local f = io.open(out_fp, 'w')
+    if f then 
+      f:write(str)
+      f:close()
+    end
+    
+  end
   ---------------------------------------------------     
   function     Data_ApplyStrategy_reference_val(conf, obj, data, refresh, mouse, strategy)
     if strategy.ref_values&1~=1 then return end
@@ -167,7 +223,7 @@
   end
   --------------------------------------------------- 
   function Data_Execute_Align(conf, obj, data, refresh, mouse, strategy)
-    
+    if not data.src or not data.ref then return end
     for i = 1 , #data.src do
       local t = data.src[i]
       if t.srctype=='item' then
@@ -178,7 +234,7 @@
             out_pos = TimeMap2_beatsToTime( 0, out_pos)
             SetMediaItemInfo_Value( it, 'D_POSITION', out_pos )
           end 
-          if strategy.src_values&1==1 then
+          if strategy.src_values&1==1 and t.out_val then
             SetMediaItemInfo_Value( it, 'D_VOL', t.val + (t.out_val - t.val)*strategy.exe_val2 )  
           end
           UpdateItemInProject( it )

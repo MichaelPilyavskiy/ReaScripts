@@ -11,7 +11,7 @@
     obj.offs = 5 
     obj.grad_sz = 200 
     
-    
+    obj.strategy_frame = 0
     
     -- font
     obj.GUI_font = 'Calibri'
@@ -54,6 +54,7 @@
     obj.strat_x_ind = 10
     obj.strat_y_ind = 20
     obj.knob_area = 0.3
+    obj.grid_area = 10
     
     Obj_MenuMain  (conf, obj, data, refresh, mouse, strategy)
     Obj_TabRef    (conf, obj, data, refresh, mouse, strategy)
@@ -90,16 +91,20 @@
     if conf.activetab ~= 1 then return end
     
                         
-    Obj_TabRef_Strategy(conf, obj, data, refresh, mouse, strategy)    
+    Obj_TabRef_Strategy(conf, obj, data, refresh, mouse, strategy)  
+    local ref_showpos_txt =  'Show\npattern'
+    local ref_showpos_h = obj.strategy_h/2
+    if strategy.ref_pattern&1 ==1 then ref_showpos_h = (obj.strategy_h - obj.pat_h-obj.offs) end
+      
     local cnt = 0
-    if data.ref then cnt = #data.ref end                
+    if data.ref and strategy.ref_pattern&1 ~=1  then ref_showpos_txt = 'Show\nreference\n('..#data.ref..')'  end                
     obj.ref_showpos =  { clear = true,
-                        x = obj.strategy_w + obj.offs*2,
+                        x = obj.strategy_w + obj.offs,
                         y = obj.tab_h+obj.offs,
-                        w = gfx.w - obj.strategy_w - obj.offs*3,
-                        h = obj.strategy_h/2 - obj.offs,
+                        w = gfx.w - obj.strategy_w - obj.offs*2,
+                        h = ref_showpos_h,
                         col = 'green',
-                        txt= 'Show\nreference\n('..cnt..')',
+                        txt= ref_showpos_txt,
                         txt_col = 'green',
                         txt_a =1,
                         aligh_txt = 16,
@@ -113,11 +118,12 @@
                                   Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
                                 end,
                         } 
-    obj.ref_catch =  { clear = true,
-                        x = obj.strategy_w + obj.offs*2,
-                        y = obj.tab_h+obj.offs +obj.strategy_h/2,
-                        w = gfx.w - obj.strategy_w - obj.offs*3,
-                        h = obj.strategy_h/2,
+    if strategy.ref_pattern&1 ~=1 then
+      obj.ref_catch =  { clear = true,
+                        x = obj.strategy_w + obj.offs,
+                        y = obj.tab_h+obj.offs +ref_showpos_h,
+                        w = gfx.w - obj.strategy_w - obj.offs*2,
+                        h = ref_showpos_h,
                         col = 'green',
                         txt= 'Catch\nreference',
                         txt_col = 'green',
@@ -130,7 +136,8 @@
                                   Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy)
                                   refresh.GUI = true
                                 end
-                        }                         
+                        } 
+    end                       
                         
                         
                         
@@ -182,21 +189,24 @@
   end
   ----------------------------------------------- 
   function Obj_TabRef_Strategy(conf, obj, data, refresh, mouse, strategy) 
-    --[[local val_str
-    if strategy.ref_values&2~=2 then val_str ='Attached to positions' else val_str ='Ordered' end]]
     local ref_strtUI = {  { name = 'Positions',
                             state = strategy.ref_positions,
                             show = true,
                             has_blit = true,
                             level = 0,
                             func =  function()
-                                      strategy.ref_positions = BinaryCheck(strategy.ref_positions, 0)
+                                      if strategy.ref_positions&1 ~= 1 then 
+                                        strategy.ref_pattern = BinaryCheck(strategy.ref_pattern, 0, 1)
+                                        strategy.ref_positions = BinaryCheck(strategy.ref_positions, 0, 0)
+                                       else
+                                        strategy.ref_positions = BinaryCheck(strategy.ref_positions, 0, 1)                       
+                                      end 
                                       refresh.GUI = true
                                     end,                            
                           },
                             { name = 'Items',
                               state = strategy.ref_selitems,
-                              show = strategy.ref_positions&1==1,
+                              show = strategy.act_action&1==1 and strategy.ref_pattern&1~=1,
                               level = 1,
                             func =  function()
                                       if strategy.ref_selitems&1 ~= 1 then 
@@ -208,7 +218,7 @@
                             },    
                             { name = 'Envelope points',
                               state = strategy.ref_envpoints,
-                              show = strategy.ref_positions&1==1,
+                              show = strategy.act_action&1==1 and strategy.ref_pattern&1~=1 ,
                               level = 1,
                             func =  function()
                                       if strategy.ref_envpoints&1 ~= 1 then 
@@ -222,27 +232,19 @@
                             ------------------------   
                           { name = 'Values',
                             state = strategy.ref_values,
-                            state_cnt = 2,
+                            --state_cnt = 2,
                             show = true,
                             has_blit = true,
                             level = 0,
                             func =  function()
-                                      strategy.ref_values = BinaryCheck(strategy.ref_values, 0)
+                                      if strategy.ref_values&1 ~= 1 then 
+                                        strategy.ref_pattern = BinaryCheck(strategy.ref_pattern, 0, 1)
+                                        strategy.ref_values = BinaryCheck(strategy.ref_values, 0, 0)
+                                       else
+                                        strategy.ref_values = BinaryCheck(strategy.ref_values, 0, 1)                               
+                                      end 
                                       refresh.GUI = true
-                                    end,
-                            --[[func_R = function()
-                                      Menu(mouse, {
-                                                    {str = '#Values'},
-                                                    {str = 'Attached to positions',
-                                                    state = strategy.ref_values&2~=2,
-                                                    func = function() strategy.ref_values = BinaryCheck(strategy.ref_values, 1, 1) end},
-                                                    {str = 'Ordered',
-                                                    state = strategy.ref_values&2==2,
-                                                    func = function() strategy.ref_values = BinaryCheck(strategy.ref_values, 1, 0) end},
-                                                  })
-                                      refresh.GUI = true
-                                      
-                                    end ]]                                   
+                                    end,                                  
                           },                           
                             { name = 'Items gain',
                               state = strategy.ref_val_itemvol,
@@ -272,39 +274,244 @@
    
                           ------------------------                                                 
                           { name = 'Pattern',
-                            state = false,
+                            state = strategy.ref_pattern,
                             show = true,
                             has_blit = true,
-                            level = 0
+                            level = 0,
+                              func =  function()
+                                      if strategy.ref_pattern&1 ~= 1 then 
+                                        strategy.ref_pattern = BinaryCheck(strategy.ref_pattern, 0, 0)
+                                        strategy.ref_positions = BinaryCheck(strategy.ref_positions, 0, 1)
+                                        strategy.ref_values = BinaryCheck(strategy.ref_values, 0, 1)
+                                       else
+                                        strategy.ref_pattern = BinaryCheck(strategy.ref_pattern, 0, 1) 
+                                        strategy.ref_positions = BinaryCheck(strategy.ref_positions, 0, 0)
+                                        strategy.ref_values = BinaryCheck(strategy.ref_values, 0, 0)                               
+                                      end 
+                                      refresh.GUI = true
+                                    end                             
                           }, 
-                            ------------------------
-                            { name = 'User groove',
-                              state = false,
-                              show = true,
-                              level = 1
-                            }, 
-                            ------------------------  
-                            { name = 'Project grid',
-                              state = false,
-                              show = true,
-                              level = 1
-                            },                                                                           
+                          
+  
+                            { name = 'Groove name: '..strategy.ref_pattern_name,
+                              show = strategy.ref_pattern&1 == 1,
+                              prevent_app = true,
+                              level = 1,
+                            },
+                            { name = '',
+                              show = strategy.ref_pattern&1 == 1,
+                              -- prevent_app = true,
+                              level = 2,              
+                              follow_obj = {
+                                              { clear = true,
+                                                w = obj.strategy_itemh*3,
+                                                col = 'white',
+                                                txt= '< prev',
+                                                show = true,
+                                                fontsz = obj.GUI_fontsz2,
+                                                func = function()
+                                                          local prev_fp = Data_GetListedFile(GetResourcePath()..'/Grooves/', strategy.ref_pattern_name..'.rgt', -1)
+                                                          
+                                                          if prev_fp then 
+                                                            local f,content = io.open(GetResourcePath()..'/Grooves/'..prev_fp, 'r')
+                                                            if f then 
+                                                              content = f:read('a')
+                                                              f:close()
+                                                            end
+                                                            if content then
+                                                              data.ref_pat = {}
+                                                              Data_PatternParseRGT(data, strategy, content, true)
+                                                              strategy.ref_pattern_name = prev_fp:gsub('%.rgt', '')
+                                                              SaveStrategy(conf, strategy, 1, true)
+                                                              refresh.GUI = true
+                                                            end
+                                                          end
+                                                       end
+                                                },
+                                              { clear = true,
+                                                w = obj.strategy_itemh*3,
+                                                col = 'white',
+                                                txt= 'next >',
+                                                show = true,
+                                                fontsz = obj.GUI_fontsz2,
+                                                func = function()
+                                                          local next_fp = Data_GetListedFile(GetResourcePath()..'/Grooves/', strategy.ref_pattern_name..'.rgt', 1)
+                                                          
+                                                          if next_fp then 
+                                                            local f,content = io.open(GetResourcePath()..'/Grooves/'..next_fp, 'r')
+                                                            if f then 
+                                                              content = f:read('a')
+                                                              f:close()
+                                                            end
+                                                            if content then
+                                                              data.ref_pat = {}
+                                                              Data_PatternParseRGT(data, strategy, content, true)
+                                                              strategy.ref_pattern_name = next_fp:gsub('%.rgt', '')
+                                                              SaveStrategy(conf, strategy, 1, true)
+                                                              refresh.GUI = true
+                                                            end
+                                                          end
+                                                       end
+                                                },   
+                                                
+                                              { clear = true,
+                                                w = obj.strategy_itemh*4,
+                                                col = 'white',
+                                                txt= 'rename',
+                                                show = true,
+                                                fontsz = obj.GUI_fontsz2,
+                                                func = function()
+                                                          local ret, str_input = GetUserInputs(conf.mb_title, 1, 'Rename groove,extrawidth=200' , strategy.ref_pattern_name)
+                                                          if ret then 
+                                                            strategy.ref_pattern_name = str_input
+                                                            refresh.GUI = true
+                                                          end
+                                                       end
+                                                }, 
+                                                
+                                         { clear = true,
+                                                w = obj.strategy_itemh*4,
+                                                col = 'white',
+                                                txt= 'save',
+                                                show = true,
+                                                fontsz = obj.GUI_fontsz2,
+                                                func = function()
+                                                          Data_ExportPattern(conf, obj, data, refresh, mouse, strategy, false)
+                                                       end
+                                                },                                                                                                                                                             
+                                            },
+                            },                         
+                            { name = 'Length (beats): '..strategy.ref_pattern_len,
+                              prevent_app = true,
+                              show = strategy.ref_pattern&1 == 1,
+                              level = 1,
+                              follow_obj = {
+                                              { clear = true,
+                                                w = obj.strategy_itemh,
+                                                col = 'white',
+                                                txt= '-',
+                                                show = true,
+                                                fontsz = obj.GUI_fontsz2,
+                                                func = function()
+                                                          strategy.ref_pattern_len = lim(strategy.ref_pattern_len -1, 2, 16)
+                                                          SaveStrategy(conf, strategy, 1, true)
+                                                          refresh.GUI = true
+                                                       end
+                                                },
+                                              { clear = true,
+                                                w = obj.strategy_itemh,
+                                                col = 'white',
+                                                txt= '+',
+                                                show = true,
+                                                fontsz = obj.GUI_fontsz2,
+                                                func = function()
+                                                          strategy.ref_pattern_len = lim(strategy.ref_pattern_len +1, 2, 16)
+                                                          SaveStrategy(conf, strategy, 1, true)
+                                                          refresh.GUI = true
+                                                       end
+                                                }                                                                                               
+                                            },
+                            },                                          
                         }
-    Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, 'ref_strtUI_it', 1)
+    local y_offs = Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, 'ref_strtUI_it', 1)
+    if strategy.ref_pattern&1==1 then 
+      obj.pat_x = obj.offs
+      obj.pat_y = obj.tab_h + y_offs+obj.offs*2
+      obj.pat_w = gfx.w-obj.offs*2--obj.strategy_w-
+      obj.pat_h =  obj.strategy_h - y_offs-obj.offs
+      Obj_TabRef_Pattern(conf, obj, data, refresh, mouse, strategy) 
+    end
   end
-  -----------------------------------------------  
+  -----------------------------------------------
+  function Data_GetListedFile(path, fname_check, position)
+    -- get files list
+     files = {}
+    local i = 0
+    repeat
+    local file = reaper.EnumerateFiles( path, i )
+    if file then
+      files[#files+1] = file
+    end
+    i = i+1
+    until file == nil
+    
+  -- search file list
+    for i = 1, #files do
+      --if files[i]:gsub('%%',''):lower():match(literalize(fname_check:lower():gsub('%%',''))) then 
+      local ref_file = deliteralize(files[i]:lower())
+      local test_file = deliteralize(fname_check:lower())
+      if ref_file:match(test_file) then 
+        if position == -1 then -- prev
+          if i ==1 then return files[#files] else return files[i-1] end
+         elseif position == 1 then -- next
+          if i ==#files then return files[1] else return files[i+1] end
+        end
+      end
+    end
+    return files[1]
+  end
+  -----------------------------------------------
+  function Obj_TabRef_Pattern(conf, obj, data, refresh, mouse, strategy)  
+  
+    obj.pat_workarea = { clear = true,
+                        disable_blitback = true,
+                        --alpha_back = 0.05,
+                        x = obj.pat_x,
+                        y = obj.pat_y,
+                        w = obj.pat_w,
+                        h = obj.pat_h - obj.grid_area,
+                        col = 'white',
+                        txt= '',
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0.05,
+                        func = function()
+                                -- get XY
+                                  local X = (mouse.x - obj.pat_workarea.x) / obj.pat_workarea.w
+                                  local Y = 1-(mouse.y - obj.pat_workarea.y) / obj.pat_workarea.h
+                                -- convert to pattern values
+                                  local beat_pos = strategy.ref_pattern_len * X
+                                  local val = Y
+                                -- add to pattern table  
+                                  if not data.ref_pat then data.ref_pat = {} end
+                                  data.ref_pat  [#data.ref_pat + 1] = { pos = math_q_dec( beat_pos, 6),
+                                                                        val = math_q_dec( val, 6) }
+                                -- sort pattern table                         
+                                  local t_sorted = {}
+                                  for _, key in ipairs(getKeysSortedByValue(data.ref_pat, function(a, b) return a < b end, 'pos')) do t_sorted[#t_sorted+1] = data.ref_pat[key]  end
+                                  data.ref_pat = t_sorted
+                                  refresh.GUI_minor = true
+                                  Data_ExportPattern(conf, obj, data, refresh, mouse, strategy, true)
+                                end,
+                        func_RD = function()
+                                    local X = (mouse.x - obj.pat_workarea.x) / obj.pat_workarea.w
+                                    local beat_pos = strategy.ref_pattern_len * X
+                                    
+                                    for i = #data.ref_pat, 1, -1 do
+                                      if math.abs(data.ref_pat[i].pos - beat_pos) < 0.005*strategy.ref_pattern_len then 
+                                        table.remove(data.ref_pat, i) 
+                                        
+                                      end
+                                    end
+                                    refresh.GUI_minor = true
+                                    Data_ExportPattern(conf, obj, data, refresh, mouse, strategy, true)
+                                end
+                        }       
+                      
+  end  
+  -----------------------------------------------   
   function Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, name, strategytype) 
     obj[name..'_frame'] = { clear = true,
                       disable_blitback = true,
-                        x = obj.offs,
-                        y = obj.tab_h+obj.offs,
+                        x = 0,obj.offs,
+                        y = obj.tab_h,--+obj.offs,
                         w = obj.strategy_w,
                         h = obj.strategy_h,
                         col = 'white',
                         txt= '',
                         show = true,
                         fontsz = obj.GUI_fontsz2,
-                        a_frame = 0.1,
+                        a_frame = obj.strategy_frame,
                         ignoremouse = true
                         }   
     local y_offs = 0
@@ -318,9 +525,9 @@
           elseif strategytype == 3 then  col_str = 'red' 
         end
         obj[name..i] =  { clear = true,
-                        x = obj.offs*2 + ref_strtUI[i].level *obj.strat_x_ind ,
-                        y = obj.tab_h + obj.offs*2 + y_offs,
-                        w = obj.strategy_w - obj.offs*2 - ref_strtUI[i].level *obj.strat_x_ind ,
+                        x = obj.offs + ref_strtUI[i].level *obj.strat_x_ind ,
+                        y = obj.tab_h + obj.offs + y_offs,
+                        w = obj.strategy_w - obj.offs - ref_strtUI[i].level *obj.strat_x_ind ,
                         h = obj.strategy_itemh,
                         col = col_str,
                         check = ref_strtUI[i].state,
@@ -333,22 +540,36 @@
                         disable_blitback = disable_blitback,
                         func = function() 
                                 if ref_strtUI[i].func then ref_strtUI[i].func() end
-                                if conf.app_on_strategy_change == 1 and strategytype == 1 then Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy) end
-                                if conf.app_on_strategy_change == 1 and strategytype == 2 then Data_ApplyStrategy_source(conf, obj, data, refresh, mouse, strategy) end
+                                if conf.app_on_strategy_change == 1 and strategytype == 1 and not ref_strtUI[i].prevent_app then Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy) end
+                                if conf.app_on_strategy_change == 1 and strategytype == 2 and not ref_strtUI[i].prevent_app then Data_ApplyStrategy_source(conf, obj, data, refresh, mouse, strategy) end
                                 obj.is_strategy_dirty = true
                                 SaveStrategy(conf, strategy, 1, true)
                               end,
                         func_R = function()  
                                   if ref_strtUI[i].func_R then ref_strtUI[i].func_R() end
-                                  if conf.app_on_strategy_change == 1 and strategytype == 1 then Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy) end
-                                  if conf.app_on_strategy_change == 1 and strategytype == 2 then Data_ApplyStrategy_source(conf, obj, data, refresh, mouse, strategy) end
+                                  if conf.app_on_strategy_change == 1 and strategytype == 1 and not ref_strtUI[i].prevent_app then Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy) end
+                                  if conf.app_on_strategy_change == 1 and strategytype == 2 and not ref_strtUI[i].prevent_app then Data_ApplyStrategy_source(conf, obj, data, refresh, mouse, strategy) end
                                   obj.is_strategy_dirty = true
                                   SaveStrategy(conf, strategy, 1, true)
                                 end
                         } 
+        if ref_strtUI[i].follow_obj then
+          local y_off_followobj_offs = 2
+          local last_it_w = obj.strategy_itemh
+          for i_obj =1, #ref_strtUI[i].follow_obj do
+            gfx.setfont(1, obj.GUI_font, obj[name..i].fontsz )
+            local str_len = gfx.measurestr(obj[name..i].txt)
+            obj[name..i..'_folobj_'..i_obj] = CopyTable(ref_strtUI[i].follow_obj[i_obj])
+            obj[name..i..'_folobj_'..i_obj].x = obj.offs + ref_strtUI[i].level *obj.strat_x_ind    + str_len  + last_it_w
+            obj[name..i..'_folobj_'..i_obj].y = obj.tab_h + obj.offs + y_offs +1
+            obj[name..i..'_folobj_'..i_obj].h = obj.strategy_itemh - 1
+            last_it_w = last_it_w + obj[name..i..'_folobj_'..i_obj].w + 1
+          end
+        end
         y_offs = y_offs + obj.strategy_itemh
       end 
     end
+    return y_offs
   end    
   -----------------------------------------------
   function Obj_TabSrc(conf, obj, data, refresh, mouse, strategy)
@@ -375,10 +596,10 @@
     local cnt = 0
     if data.src then cnt = #data.src end
     obj.src_showpos =  { clear = true,
-                        x = obj.strategy_w + obj.offs*2,
+                        x = obj.strategy_w + obj.offs,
                         y = obj.tab_h+obj.offs,
-                        w = gfx.w - obj.strategy_w - obj.offs*3,
-                        h = obj.strategy_h/2 - obj.offs,
+                        w = gfx.w - obj.strategy_w - obj.offs*2,
+                        h = obj.strategy_h/2 ,
                         col = 'blue',
                         txt= 'Show\nsource\n('..cnt..')',
                         txt_col = 'blue',
@@ -395,9 +616,9 @@
                                 end,
                         } 
     obj.src_catch =  { clear = true,
-                        x = obj.strategy_w + obj.offs*2,
+                        x = obj.strategy_w + obj.offs,
                         y = obj.tab_h+obj.offs +obj.strategy_h/2,
-                        w = gfx.w - obj.strategy_w - obj.offs*3,
+                        w = gfx.w - obj.strategy_w - obj.offs*2,
                         h = obj.strategy_h/2,
                         col = 'blue',
                         txt= 'Catch\nsource',
@@ -416,6 +637,7 @@
   end    
   -----------------------------------------------
   function Obj_TabAct(conf, obj, data, refresh, mouse, strategy) 
+    local x_offs = obj.strategy_w + obj.offs
             obj.TabAct = { clear = true,
                         x = obj.tab_w*2,
                         y = 0,
@@ -441,9 +663,9 @@
     local cnt = 0
     if data.ref then cnt = #data.ref end
     obj.ref_catch =  { clear = true,
-                        x = obj.strategy_w + obj.offs*2,
+                        x = x_offs,
                         y = obj.tab_h +obj.offs ,
-                        w = gfx.w - obj.strategy_w - obj.offs*3,
+                        w = gfx.w - x_offs - obj.offs,
                         h = h_buts - h_butsspace,
                         col = 'green',
                         txt= 'Catch\nreference',
@@ -459,9 +681,9 @@
                                 end
                         }                    
     obj.ref_showpos =  { clear = true,
-                        x = obj.strategy_w + obj.offs*2,
+                        x = x_offs,
                         y = obj.tab_h+obj.offs+h_buts,
-                        w = gfx.w - obj.strategy_w - obj.offs*3,
+                        w = gfx.w - x_offs - obj.offs,
                         h = h_buts - h_butsspace,
                         col = 'green',
                         txt= 'Show\nreference\n('..cnt..')',
@@ -484,9 +706,9 @@
     if data.src then cnt = #data.src end
    
     obj.src_catch =  { clear = true,
-                        x = obj.strategy_w + obj.offs*2,
+                        x = x_offs,
                         y = obj.tab_h+obj.offs +h_buts*2,
-                        w = gfx.w - obj.strategy_w - obj.offs*3,
+                        w = gfx.w - x_offs - obj.offs,
                         h = h_buts  - h_butsspace,
                         col = 'blue',
                         txt= 'Catch\nsource',
@@ -502,9 +724,9 @@
                                 end
                         }    
     obj.src_showpos =  { clear = true,
-                        x = obj.strategy_w + obj.offs*2,
+                        x = x_offs,
                         y = obj.tab_h+obj.offs+h_buts*3,
-                        w = gfx.w - obj.strategy_w - obj.offs*3,
+                        w = gfx.w - x_offs - obj.offs,
                         h = h_buts - h_butsspace,
                         col = 'blue',
                         txt= 'Show\nsource\n('..cnt..')',
@@ -522,10 +744,10 @@
                                 end,
                         }                          
     obj.act_calc =  { clear = true,
-                        x = obj.strategy_w + obj.offs*2,
+                        x = x_offs,
                         y = obj.tab_h+obj.offs +h_buts*4,
-                        w = gfx.w - obj.strategy_w - obj.offs*3,
-                        h = h_buts,
+                        w = gfx.w - x_offs - obj.offs,
+                        h = h_buts+obj.offs,
                         col = 'blue',
                         txt= 'Calculate\naction\noutput',
                         txt_col = 'red',
@@ -652,7 +874,7 @@
                         is_knob = true,
                         x =   obj.menu_w + 1+knob_w,
                         y = gfx.h - obj.slider_tab_h,
-                        w = knob_w-1,
+                        w = knob_w,
                         h = obj.slider_tab_h,
                         col = 'white',
                         state = fale,

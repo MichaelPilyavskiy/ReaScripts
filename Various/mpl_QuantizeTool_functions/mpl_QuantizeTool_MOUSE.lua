@@ -87,6 +87,7 @@
                                mouse.cap == 1
                                and not mouse.Ctrl_state 
                                and (mouse.context == key or mouse.context_latch == key) 
+                               
            if mouse.ondrag_L and obj[key].func_LD then obj[key].func_LD() end 
                  ------------------------
            mouse.ondrag_L_onmove = -- left drag (only when moving after latch)
@@ -118,6 +119,7 @@
                                mouse.LMB_state 
                                and mouse.Ctrl_state 
                                and mouse.context_latch == key
+                               
            if mouse.ondrag_LCtrl and obj[key].func_ctrlLD then obj[key].func_ctrlLD() end 
                  ------------------------
            mouse.onclick_R = mouse.cap == 2
@@ -125,10 +127,11 @@
                                and is_mouse_over 
            if mouse.onclick_R and obj[key].func_R then obj[key].func_R() end
                  ------------------------                
-           mouse.ondrag_R = -- left drag (persistent even if not moving)
+           mouse.ondrag_R = --
                                mouse.RMB_state 
                                and not mouse.Ctrl_state 
                                and (mouse.context == key or mouse.context_latch == key) 
+                               and mouse.is_moving
            if mouse.ondrag_R and obj[key].func_RD then obj[key].func_RD() end 
                  ------------------------  
            mouse.onwheel = mouse.wheel_trig 

@@ -1,8 +1,8 @@
 -- @description QuantizeTool
--- @version 2.0alpha1
+-- @version 2.0alpha2
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
--- @about Script for handling FX chain data on selected track
+-- @about Script for manipulating REAPER objects time and values
 -- @provides
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua
@@ -10,20 +10,14 @@
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua
 --    mpl_QuantizeTool_Strategies/default.qtstr
 -- @changelog
---    + Complete script rebuild. This is an early developer test alpha. It is more about replacing old buggy code that adding new functions.
---    + GUI: split into 4 sections: reference, source, action, and contol area
---    + Strategy: all objects handling follows strategy
---    + Strategy: load/save from/to file 
---    + Strategy: load/save from/to <res_path>/mpl_QuantizeTool_Strategies list
---    + Strategy: load/save from/to action list (non-persist external state reading on initialization)
---    + Strategy/Action/Type/Position-based Align: deductive brutforce engine
---    + Strategy/Action/Type/Position-based Align: independent position/value sliders
---    + Strategy/Action/Initialization/Catch reference on init
---    + Strategy/Action/Initialization/Catch source on init
---    + Strategy/Action/Initialization/Apply action on init
---    + Strategy/Action/Option/Sort positions before taking values (so values aren`t attached to src positions)
+--    + Strategy/Reference/Pattern (no actual reference from pattern yet)
+--    + Strategy/Reference/Pattern: new FNG Groove Tool parser
+--    + Strategy/Reference/Pattern: save as .rgt in /Grooves
+--    + Strategy/Reference/Pattern: list /Grooves
+--    + Strategy/Reference/Pattern: allow to draw pattern manually, autosave to /Grooves/last_touched.rgt
+--    + Strategy/Reference/Pattern: change length (in beats)
 
-  local vrs = 'v2.0alpha1'
+  local vrs = 'v2.0alpha2'
   --NOT gfx NOT reaper
   
 
@@ -56,7 +50,7 @@
   function LoadStrategy_Default(strategy)
     strategy.name = 'default' 
     
-    -- reference
+    -- reference -----------------------
       -- positions
         strategy.ref_positions = 1
         strategy.ref_selitems = 0
@@ -65,8 +59,12 @@
         strategy.ref_values = 1 -- &2 ordered sort
         strategy.ref_val_itemvol = 0
         strategy.ref_val_envpoint = 1
+      -- pattern
+        strategy.ref_pattern = 0
+        strategy.ref_pattern_len = 4
+        strategy.ref_pattern_name = 'last_touched'
         
-    -- source
+    -- source -----------------------
       -- positions
         strategy.src_positions = 1
         strategy.src_selitems = 1
@@ -74,7 +72,7 @@
         strategy.src_values = 1
         strategy.src_val_itemvol = 1  
          
-    -- action
+    -- action -----------------------
       --  align
         strategy.act_action = 1  
         
@@ -83,7 +81,7 @@
         strategy.act_initcatchsrc = 0 
         strategy.act_initact = 0  
         
-    -- execute
+    -- execute -----------------------
       strategy.exe_val1 = 0
       strategy.exe_val2 = 0
   end
@@ -130,11 +128,13 @@
   
     if refresh.conf == true then 
       ExtState_Save(conf)
-      refresh.conf = nil end
+      refresh.conf = nil 
+    end
+
     --if refresh.data_proj == true then Data_Update_ExtState_ProjData_Load (conf, obj, data, refresh, mouse) refresh.data_proj = nil end
     if refresh.GUI == true or refresh.GUI_onStart == true then            OBJ_Update              (conf, obj, data, refresh, mouse,strategy) end  
     if refresh.GUI_minor == true then refresh.GUI = true end
-    GUI_draw               (conf, obj, data, refresh, mouse)    
+    GUI_draw               (conf, obj, data, refresh, mouse, strategy)    
                                                
  
     ShortCuts(conf, obj, data, refresh, mouse)
@@ -177,8 +177,8 @@
 --------------------------------------------------------------------
   function LoadStrategy(conf, strategy)
     obj.is_strategy_dirty = false
-     cur_strat = GetExtState( conf.ES_key, 'ext_strategy_name' )
-     ext_state = GetExtState( conf.ES_key, 'ext_state' )
+    local cur_strat = GetExtState( conf.ES_key, 'ext_strategy_name' )
+    local ext_state = GetExtState( conf.ES_key, 'ext_state' )
     if ext_state and ext_state=='1' then 
       SetExtState( conf.ES_key, 'ext_state', 0, false )
       ext_state = true
@@ -264,7 +264,7 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
         conf.dev_mode = 0
         conf.vrs = vrs
         Main_RefreshExternalLibs()
-        ExtState_Load(conf)  
+        ExtState_Load(conf)
         LoadStrategy(conf, strategy)
         if strategy.act_initcatchref == 1 then  Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy) end
         if strategy.act_initcatchsrc == 1 then  Data_ApplyStrategy_source   (conf, obj, data, refresh, mouse, strategy) end

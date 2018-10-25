@@ -352,15 +352,45 @@
                         r,g,b,a, 
                         drdx, dgdx, dbdx, dadx, 
                         drdy, dgdy, dbdy, dady)  
-  end    
+  end 
+  ---------------------------------------------------   
+  function GUI_Pattern(conf, obj, data, refresh, mouse, strategy)
+    if not obj.pat_workarea or not strategy.ref_pattern_len or not obj.pat_workarea.w then return end
+    local beatw = obj.pat_workarea.w / strategy.ref_pattern_len
+    gfx.set(1,1,1,0.2)
+    for i = 1, strategy.ref_pattern_len do
+      gfx.line( obj.pat_workarea.x + beatw * (i-1), 
+                obj.pat_workarea.y + obj.pat_workarea.h+obj.grid_area,
+                obj.pat_workarea.x + beatw * (i-1),
+                obj.pat_workarea.y + obj.pat_workarea.h +obj.grid_area*(1-0.7))
+    end
+    gfx.a = 0.15
+    gfx.rect( obj.pat_workarea.x,
+              obj.pat_workarea.y+obj.pat_workarea.h+2,
+              obj.pat_workarea.w,
+              obj.grid_area+1,1)
+    
+    if data.ref_pat then
+      local grid_h = 11
+      col(obj, 'green')
+      gfx.a = 0.45
+      for i = 1, #data.ref_pat do
+        local norm_pos = data.ref_pat[i].pos / strategy.ref_pattern_len
+        local norm_val = data.ref_pat[i].val
+        gfx.line( obj.pat_workarea.x + norm_pos * obj.pat_workarea.w, 
+                  obj.pat_workarea.y+obj.pat_workarea.h-1,
+                  obj.pat_workarea.x + norm_pos * obj.pat_workarea.w, 
+                  obj.pat_workarea.y+obj.pat_workarea.h - math.floor(obj.pat_workarea.h *norm_val))
+      end
+    end
+  end
     ---------------------------------------------------
-  function GUI_draw(conf, obj, data, refresh, mouse)
+  function GUI_draw(conf, obj, data, refresh, mouse, strategy)
     gfx.mode = 0
     
     -- 1 main
     -- 2 gradient back
     --  3 grad selection
-    -- ///4 wires
     -- 5 gradient Draw Obj\
     
     --  init
@@ -388,10 +418,13 @@
                     0,0,  gfx.w,gfx.h, 0,0)                
         -- refresh all buttons
           for key in spairs(obj) do 
-            if type(obj[key]) == 'table' and obj[key].show and not obj[key].blit and key~= 'set_par_tr'  then 
+            if type(obj[key]) == 'table' and obj[key].show and not obj[key].blit and not obj[key].strategy_reserved then 
               GUI_DrawObj(obj, obj[key], mouse, conf) 
             end  
           end  
+          if conf.activetab==1 and strategy.ref_pattern&1==1 then
+            GUI_Pattern(conf, obj, data, refresh, mouse, strategy)
+          end
       end
     
  
@@ -409,24 +442,7 @@
       gfx.blit(1, 1, 0, -- backgr
           0,0,gfx.w, gfx.h,
           0,0,gfx.w, gfx.h, 0,0)  
-    --GUI_symbols(conf, obj, data, refresh, mouse) 
-    
-    -- clear X
-      if mouse.Alt_state then 
-        local X = 10
-        gfx.set(1,0.8,0.8,0.8)
-        gfx.line(mouse.x-X, mouse.y-X,mouse.x+X, mouse.y+X)
-        gfx.line(mouse.x-X, mouse.y+X,mouse.x+X, mouse.y-X)
-      end
-    
-    if obj.textbox and obj.textbox.enable then
-      GUI_drawSearchFX(conf, obj, data, refresh, mouse)
-     elseif obj.tooltip ~= '' and obj.tooltip_str then GUI_drawTooltip(conf, obj, data, refresh, mouse)
-     elseif obj.selection_rect then GUI_drawSelRect(conf, obj, data, refresh, mouse)
-           
-    end
-    
-    
+
     
     refresh.GUI = nil
     refresh.GUI_minor = nil
