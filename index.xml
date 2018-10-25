@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2b1f91225f8d4e397d910518fdb639aa00ab79db" name="MPL Scripts">
+<index version="1" commit="7eda09cb8037b76bcb5d5d69fecc1d24431602a1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3591,6 +3591,10 @@ setup min gain, attack =0]]></changelog>
 # code improvements
 # change forum link]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8a61c0af8b1cab38ec99ced0aad78e6603d6e16b/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor%20(channel%203-4).lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2018-10-25T18:33:58Z">
+        <changelog><![CDATA[# adjust channels count for destination track if need [rmmedia.ru/threads/118091/page-77#post-2289226]]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7eda09cb8037b76bcb5d5d69fecc1d24431602a1/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor%20(channel%203-4).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Send selected tracks to track under mouse cursor.lua" type="script" desc="Send selected tracks to track under mouse cursor">
