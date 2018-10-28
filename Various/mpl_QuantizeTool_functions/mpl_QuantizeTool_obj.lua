@@ -149,27 +149,25 @@
   end  
   ----------------------------------------------- 
   function Obj_TabSrc_Strategy(conf, obj, data, refresh, mouse, strategy) 
-    local src_strtUI = {  { name = 'Positions',
+    local src_strtUI = {  { name = 'Positions and values',
                             state = strategy.src_positions,
                             show = true,
                             has_blit = true,
                             level = 0,
-                            func =  function()
+                            --[[func =  function()
                                       strategy.src_positions = BinaryToggle(strategy.src_positions, 0)
                                       refresh.GUI = true
-                                    end,                            
+                                    end,    ]]                        
                           },
                             { name = 'Selected items',
                               state = strategy.src_selitems,
                               show = strategy.src_positions&1==1,
                               level = 1,
                             func =  function()
-                                      if strategy.src_selitems&1==1 then
-                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems, 0,0)
-                                        strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 1)
-                                       else
+                                      if strategy.src_selitems&1~=1 then
                                         strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 1)
                                         strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 0)
+                                        strategy.src_midi = BinaryToggle(strategy.src_midi,0, 0)
                                       end
                                       refresh.GUI = true
                                     end,                               
@@ -179,66 +177,35 @@
                               show = strategy.src_positions&1==1,
                               level = 1,
                             func =  function()
-                                      if strategy.src_envpoint&1==1 then
-                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems, 0, 1)
-                                        strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 0)
-                                       else
+                                      if strategy.src_envpoint&1~=1 then
                                         strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
                                         strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 1)
+                                        strategy.src_midi = BinaryToggle(strategy.src_midi,0, 0)
                                       end
                                       refresh.GUI = true
                                     end,                               
-                            },                              
-                                
-                            ------------------------   
-                          { name = 'Values',
-                            state = strategy.src_values,
-                            state_cnt = 2,
-                            show = true,
-                            has_blit = true,
-                            level = 0,
+                            },  
+                            { name = 'MIDI notes (0x90 and 0x80)',
+                              state = strategy.src_midi,
+                              show = strategy.src_positions&1==1,
+                              level = 1,
                             func =  function()
-                                      strategy.src_values = BinaryToggle(strategy.src_values, 0)
+                                      if strategy.src_midi&1~=1 then
+                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
+                                        strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 0)
+                                        strategy.src_midi = BinaryToggle(strategy.src_midi,0, 1)
+                                      end
                                       refresh.GUI = true
-                                    end,                       
-                          }, 
-                            { name = 'Items gain',
-                              state = strategy.src_val_itemvol,
-                              show = strategy.src_values&1==1,
-                              level = 1,
-                              func =  function()
-                                        if strategy.src_val_itemvol&1==1 then
-                                          strategy.src_val_itemvol = BinaryToggle(strategy.src_val_itemvol, 0, 0)
-                                          strategy.src_val_envpoint = BinaryToggle(strategy.src_val_envpoint, 0, 1)
-                                         else
-                                          strategy.src_val_itemvol = BinaryToggle(strategy.src_val_itemvol, 0, 1)
-                                          strategy.src_val_envpoint = BinaryToggle(strategy.src_val_envpoint, 0, 0)                                          
-                                        end
-                                        refresh.GUI = true
-                                    end                              
-                            },
-                            { name = 'Envelope Points',
-                              state = strategy.src_val_envpoint,
-                              show = strategy.src_values&1==1,
-                              level = 1,
-                              func =  function()
-                                        if strategy.src_val_envpoint&1==1 then
-                                          strategy.src_val_itemvol = BinaryToggle(strategy.src_val_itemvol, 0, 1)
-                                          strategy.src_val_envpoint = BinaryToggle(strategy.src_val_envpoint, 0, 0)
-                                         else
-                                          strategy.src_val_itemvol = BinaryToggle(strategy.src_val_itemvol, 0, 0)
-                                          strategy.src_val_envpoint = BinaryToggle(strategy.src_val_envpoint, 0, 1)                                          
-                                        end
-                                      refresh.GUI = true
-                                    end                              
-                            },                            
+                                    end,                               
+                            },                                                         
+                       
                                                                                                        
                         }
     Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, src_strtUI, 'src_strtUI_it', 2)  
   end
   ----------------------------------------------- 
   function Obj_TabRef_Strategy(conf, obj, data, refresh, mouse, strategy) 
-    local ref_strtUI = {  { name = 'Positions',
+    local ref_strtUI = {  { name = 'Positions and values',
                             state = strategy.ref_positions,
                             show = true,
                             has_blit = true,
@@ -248,78 +215,51 @@
                                         strategy.ref_pattern = BinaryToggle(strategy.ref_pattern, 0, 0)
                                         strategy.ref_positions = BinaryToggle(strategy.ref_positions, 0, 1)
                                        else
-                                        strategy.ref_positions = BinaryToggle(strategy.ref_positions, 0, 0)                       
+                                        strategy.ref_positions = BinaryToggle(strategy.ref_positions, 0, 0)   
+                                        strategy.ref_pattern = BinaryToggle(strategy.ref_pattern, 0, 1)                    
                                       end 
                                       refresh.GUI = true
                                     end,                            
                           },
                             { name = 'Items',
                               state = strategy.ref_selitems,
-                              show = strategy.act_action&1==1 and strategy.ref_pattern&1~=1,
+                              show = strategy.ref_positions&1==1,
                               level = 1,
                             func =  function()
                                       if strategy.ref_selitems&1 ~= 1 then 
                                         strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 1)
-                                        strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)                                        
+                                        strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)     
+                                        strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0, 0)                                    
                                       end
                                       refresh.GUI = true
                                     end,                               
                             },    
                             { name = 'Envelope points',
                               state = strategy.ref_envpoints,
-                              show = strategy.act_action&1==1 and strategy.ref_pattern&1~=1 ,
+                              show = strategy.ref_positions&1==1 ,
                               level = 1,
                             func =  function()
                                       if strategy.ref_envpoints&1 ~= 1 then 
                                         strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 1)
-                                        strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0)                                        
+                                        strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0)  
+                                        strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0, 0)                                         
                                       end
                                       refresh.GUI = true
                                     end,                               
-                            },                             
-                              
-                            ------------------------   
-                          { name = 'Values',
-                            state = strategy.ref_values,
-                            --state_cnt = 2,
-                            show = true,
-                            has_blit = true,
-                            level = 0,
+                            }, 
+                            { name = 'MIDI notes (0x90)',
+                              state = strategy.ref_midi,
+                              show = strategy.ref_positions&1==1 ,
+                              level = 1,
                             func =  function()
-                                      if strategy.ref_values&1 ~= 1 then 
-                                        strategy.ref_pattern = BinaryToggle(strategy.ref_pattern, 0, 0)
-                                        strategy.ref_values = BinaryToggle(strategy.ref_values, 0, 1)
-                                       else
-                                        strategy.ref_values = BinaryToggle(strategy.ref_values, 0, 0)                               
-                                      end 
+                                      if strategy.ref_midi&1 ~= 1 then 
+                                        strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)
+                                        strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0) 
+                                        strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0, 1)                                          
+                                      end
                                       refresh.GUI = true
-                                    end,                                  
-                          },                           
-                            { name = 'Items gain',
-                              state = strategy.ref_val_itemvol,
-                              show = strategy.ref_values&1==1,
-                              level = 1,
-                              func =  function()
-                                      if strategy.ref_val_itemvol&1 ~= 1 then 
-                                        strategy.ref_val_itemvol = BinaryToggle(strategy.ref_val_itemvol, 0, 1)
-                                        strategy.ref_val_envpoint = BinaryToggle(strategy.ref_val_envpoint, 0, 0)                                        
-                                      end 
-                                      refresh.GUI = true
-                                    end                              
-                            },  
-                            { name = 'Envelope points',
-                              state = strategy.ref_val_envpoint,
-                              show = strategy.ref_values&1==1,
-                              level = 1,
-                              func =  function()
-                                      if strategy.ref_val_envpoint&1 ~= 1 then 
-                                        strategy.ref_val_envpoint = BinaryToggle(strategy.ref_val_envpoint, 0, 1)
-                                        strategy.ref_val_itemvol = BinaryToggle(strategy.ref_val_itemvol, 0, 0)                                        
-                                      end                              
-                                      refresh.GUI = true
-                                    end                              
-                            },                                                        
-                                                         
+                                    end,                               
+                            },                                                         
    
                           ------------------------                                                 
                           { name = 'Pattern',
@@ -331,11 +271,9 @@
                                       if strategy.ref_pattern&1 ~= 1 then 
                                         strategy.ref_pattern = BinaryToggle(strategy.ref_pattern, 0, 1)
                                         strategy.ref_positions = BinaryToggle(strategy.ref_positions, 0, 0)
-                                        strategy.ref_values = BinaryToggle(strategy.ref_values, 0, 0)
                                        else
                                         strategy.ref_pattern = BinaryToggle(strategy.ref_pattern, 0, 0) 
-                                        strategy.ref_positions = BinaryToggle(strategy.ref_positions, 0, 1)
-                                        strategy.ref_values = BinaryToggle(strategy.ref_values, 0, 1)                               
+                                        strategy.ref_positions = BinaryToggle(strategy.ref_positions, 0, 1)                       
                                       end 
                                       refresh.GUI = true
                                     end                             

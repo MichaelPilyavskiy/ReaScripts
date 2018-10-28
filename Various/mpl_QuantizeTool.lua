@@ -11,8 +11,10 @@
 --    mpl_QuantizeTool_Strategies/default.qtstr
 -- @changelog
 --    + Strategy/Reference/Pattern: reference from pattern (working code, show pattern points relative to edit cursor works also)
---    + Strategy: unify code for collecting ref/src data
+--    + Performance: unify code for collecting ref/src data
+--    + Strategy/Reference: MIDI noteOn
 --    + Strategy/Source: envelope points
+--    + Strategy/Source: MIDI notes (0x90 0x80) disabled until working under MIDI code
 
   local vrs = 'v2.0alpha3'
   --NOT gfx NOT reaper
@@ -52,10 +54,11 @@
         strategy.ref_positions = 1
         strategy.ref_selitems = 0
         strategy.ref_envpoints = 1
-      -- values
+        strategy.ref_midi = 0
+      --[[ values
         strategy.ref_values = 1 -- &2 ordered sort
         strategy.ref_val_itemvol = 0
-        strategy.ref_val_envpoint = 1
+        strategy.ref_val_envpoint = 1]]
       -- pattern
         strategy.ref_pattern = 0
         strategy.ref_pattern_len = 4
@@ -66,10 +69,12 @@
         strategy.src_positions = 1
         strategy.src_selitems = 1
         strategy.src_envpoint = 0
-      -- values
+        strategy.src_midi = 0 
+        
+      --[[ values
         strategy.src_values = 1
         strategy.src_val_itemvol = 1  
-        strategy.src_val_envpoint = 0
+        strategy.src_val_envpoint = 0]]
          
     -- action -----------------------
       --  align
