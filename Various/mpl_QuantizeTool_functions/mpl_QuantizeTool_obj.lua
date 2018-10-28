@@ -42,13 +42,14 @@
   function OBJ_Update(conf, obj, data, refresh, mouse, strategy) 
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
     
+    gfx.w  = math.max(450,gfx.w)
     gfx.h  = math.max(300,gfx.h)
     
     obj.menu_w = 15
     obj.tab_h = 20
     obj.tab_w = math.ceil(gfx.w/3)
     obj.slider_tab_h = math.floor(obj.tab_h*2)
-    obj.strategy_w = gfx.w * 0.8
+    obj.strategy_w = gfx.w * 0.85
     obj.strategy_h = gfx.h-obj.tab_h-obj.offs-obj.slider_tab_h - obj.tab_h
     obj.strategy_itemh = 15
     obj.strat_x_ind = 10
@@ -112,7 +113,11 @@
                         fontsz = obj.GUI_fontsz2,
                         a_frame =0,
                         func =  function() 
-                                  Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.ref, 'green_marker') 
+                                  if strategy.ref_pattern&1==1 then
+                                    Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.ref_pat, 'green_marker', true) 
+                                   else
+                                    Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.ref, 'green_marker', false) 
+                                  end
                                 end,
                         onrelease_L = function() 
                                   Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
@@ -150,7 +155,7 @@
                             has_blit = true,
                             level = 0,
                             func =  function()
-                                      strategy.src_positions = BinaryCheck(strategy.src_positions, 0)
+                                      strategy.src_positions = BinaryToggle(strategy.src_positions, 0)
                                       refresh.GUI = true
                                     end,                            
                           },
@@ -159,10 +164,32 @@
                               show = strategy.src_positions&1==1,
                               level = 1,
                             func =  function()
-                                      strategy.src_selitems = BinaryCheck(strategy.src_selitems, 0)
+                                      if strategy.src_selitems&1==1 then
+                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems, 0,0)
+                                        strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 1)
+                                       else
+                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 1)
+                                        strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 0)
+                                      end
                                       refresh.GUI = true
                                     end,                               
-                            },      
+                            },  
+                            { name = 'Envelope points',
+                              state = strategy.src_envpoint,
+                              show = strategy.src_positions&1==1,
+                              level = 1,
+                            func =  function()
+                                      if strategy.src_envpoint&1==1 then
+                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems, 0, 1)
+                                        strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 0)
+                                       else
+                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
+                                        strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 1)
+                                      end
+                                      refresh.GUI = true
+                                    end,                               
+                            },                              
+                                
                             ------------------------   
                           { name = 'Values',
                             state = strategy.src_values,
@@ -171,7 +198,7 @@
                             has_blit = true,
                             level = 0,
                             func =  function()
-                                      strategy.src_values = BinaryCheck(strategy.src_values, 0)
+                                      strategy.src_values = BinaryToggle(strategy.src_values, 0)
                                       refresh.GUI = true
                                     end,                       
                           }, 
@@ -180,10 +207,32 @@
                               show = strategy.src_values&1==1,
                               level = 1,
                               func =  function()
-                                      strategy.src_val_itemvol = BinaryCheck(strategy.src_val_itemvol, 0)
+                                        if strategy.src_val_itemvol&1==1 then
+                                          strategy.src_val_itemvol = BinaryToggle(strategy.src_val_itemvol, 0, 0)
+                                          strategy.src_val_envpoint = BinaryToggle(strategy.src_val_envpoint, 0, 1)
+                                         else
+                                          strategy.src_val_itemvol = BinaryToggle(strategy.src_val_itemvol, 0, 1)
+                                          strategy.src_val_envpoint = BinaryToggle(strategy.src_val_envpoint, 0, 0)                                          
+                                        end
+                                        refresh.GUI = true
+                                    end                              
+                            },
+                            { name = 'Envelope Points',
+                              state = strategy.src_val_envpoint,
+                              show = strategy.src_values&1==1,
+                              level = 1,
+                              func =  function()
+                                        if strategy.src_val_envpoint&1==1 then
+                                          strategy.src_val_itemvol = BinaryToggle(strategy.src_val_itemvol, 0, 1)
+                                          strategy.src_val_envpoint = BinaryToggle(strategy.src_val_envpoint, 0, 0)
+                                         else
+                                          strategy.src_val_itemvol = BinaryToggle(strategy.src_val_itemvol, 0, 0)
+                                          strategy.src_val_envpoint = BinaryToggle(strategy.src_val_envpoint, 0, 1)                                          
+                                        end
                                       refresh.GUI = true
                                     end                              
-                            },                                                                           
+                            },                            
+                                                                                                       
                         }
     Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, src_strtUI, 'src_strtUI_it', 2)  
   end
@@ -196,10 +245,10 @@
                             level = 0,
                             func =  function()
                                       if strategy.ref_positions&1 ~= 1 then 
-                                        strategy.ref_pattern = BinaryCheck(strategy.ref_pattern, 0, 1)
-                                        strategy.ref_positions = BinaryCheck(strategy.ref_positions, 0, 0)
+                                        strategy.ref_pattern = BinaryToggle(strategy.ref_pattern, 0, 0)
+                                        strategy.ref_positions = BinaryToggle(strategy.ref_positions, 0, 1)
                                        else
-                                        strategy.ref_positions = BinaryCheck(strategy.ref_positions, 0, 1)                       
+                                        strategy.ref_positions = BinaryToggle(strategy.ref_positions, 0, 0)                       
                                       end 
                                       refresh.GUI = true
                                     end,                            
@@ -210,8 +259,8 @@
                               level = 1,
                             func =  function()
                                       if strategy.ref_selitems&1 ~= 1 then 
-                                        strategy.ref_selitems = BinaryCheck(strategy.ref_selitems, 0, 0)
-                                        strategy.ref_envpoints = BinaryCheck(strategy.ref_envpoints, 0, 1)                                        
+                                        strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 1)
+                                        strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)                                        
                                       end
                                       refresh.GUI = true
                                     end,                               
@@ -222,8 +271,8 @@
                               level = 1,
                             func =  function()
                                       if strategy.ref_envpoints&1 ~= 1 then 
-                                        strategy.ref_envpoints = BinaryCheck(strategy.ref_envpoints, 0, 0)
-                                        strategy.ref_selitems = BinaryCheck(strategy.ref_selitems, 0, 1)                                        
+                                        strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 1)
+                                        strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0)                                        
                                       end
                                       refresh.GUI = true
                                     end,                               
@@ -238,10 +287,10 @@
                             level = 0,
                             func =  function()
                                       if strategy.ref_values&1 ~= 1 then 
-                                        strategy.ref_pattern = BinaryCheck(strategy.ref_pattern, 0, 1)
-                                        strategy.ref_values = BinaryCheck(strategy.ref_values, 0, 0)
+                                        strategy.ref_pattern = BinaryToggle(strategy.ref_pattern, 0, 0)
+                                        strategy.ref_values = BinaryToggle(strategy.ref_values, 0, 1)
                                        else
-                                        strategy.ref_values = BinaryCheck(strategy.ref_values, 0, 1)                               
+                                        strategy.ref_values = BinaryToggle(strategy.ref_values, 0, 0)                               
                                       end 
                                       refresh.GUI = true
                                     end,                                  
@@ -252,20 +301,20 @@
                               level = 1,
                               func =  function()
                                       if strategy.ref_val_itemvol&1 ~= 1 then 
-                                        strategy.ref_val_itemvol = BinaryCheck(strategy.ref_val_itemvol, 0, 0)
-                                        strategy.ref_val_envpoint = BinaryCheck(strategy.ref_val_envpoint, 0, 1)                                        
+                                        strategy.ref_val_itemvol = BinaryToggle(strategy.ref_val_itemvol, 0, 1)
+                                        strategy.ref_val_envpoint = BinaryToggle(strategy.ref_val_envpoint, 0, 0)                                        
                                       end 
                                       refresh.GUI = true
                                     end                              
                             },  
-                            { name = 'Envelope points values',
+                            { name = 'Envelope points',
                               state = strategy.ref_val_envpoint,
                               show = strategy.ref_values&1==1,
                               level = 1,
                               func =  function()
                                       if strategy.ref_val_envpoint&1 ~= 1 then 
-                                        strategy.ref_val_envpoint = BinaryCheck(strategy.ref_val_envpoint, 0, 0)
-                                        strategy.ref_val_itemvol = BinaryCheck(strategy.ref_val_itemvol, 0, 1)                                        
+                                        strategy.ref_val_envpoint = BinaryToggle(strategy.ref_val_envpoint, 0, 1)
+                                        strategy.ref_val_itemvol = BinaryToggle(strategy.ref_val_itemvol, 0, 0)                                        
                                       end                              
                                       refresh.GUI = true
                                     end                              
@@ -280,13 +329,13 @@
                             level = 0,
                               func =  function()
                                       if strategy.ref_pattern&1 ~= 1 then 
-                                        strategy.ref_pattern = BinaryCheck(strategy.ref_pattern, 0, 0)
-                                        strategy.ref_positions = BinaryCheck(strategy.ref_positions, 0, 1)
-                                        strategy.ref_values = BinaryCheck(strategy.ref_values, 0, 1)
+                                        strategy.ref_pattern = BinaryToggle(strategy.ref_pattern, 0, 1)
+                                        strategy.ref_positions = BinaryToggle(strategy.ref_positions, 0, 0)
+                                        strategy.ref_values = BinaryToggle(strategy.ref_values, 0, 0)
                                        else
-                                        strategy.ref_pattern = BinaryCheck(strategy.ref_pattern, 0, 1) 
-                                        strategy.ref_positions = BinaryCheck(strategy.ref_positions, 0, 0)
-                                        strategy.ref_values = BinaryCheck(strategy.ref_values, 0, 0)                               
+                                        strategy.ref_pattern = BinaryToggle(strategy.ref_pattern, 0, 0) 
+                                        strategy.ref_positions = BinaryToggle(strategy.ref_positions, 0, 1)
+                                        strategy.ref_values = BinaryToggle(strategy.ref_values, 0, 1)                               
                                       end 
                                       refresh.GUI = true
                                     end                             
@@ -369,7 +418,7 @@
                                                        end
                                                 }, 
                                                 
-                                         { clear = true,
+                                              { clear = true,
                                                 w = obj.strategy_itemh*4,
                                                 col = 'white',
                                                 txt= 'save',
@@ -378,7 +427,19 @@
                                                 func = function()
                                                           Data_ExportPattern(conf, obj, data, refresh, mouse, strategy, false)
                                                        end
-                                                },                                                                                                                                                             
+                                                },  
+                                                
+                                              { clear = true,
+                                                w = obj.strategy_itemh*4,
+                                                col = 'white',
+                                                txt= 'clear',
+                                                show = true,
+                                                fontsz = obj.GUI_fontsz2,
+                                                func = function()
+                                                          data.ref_pat = {}
+                                                          refresh.GUI = true
+                                                       end
+                                                },                                                                                                                                                                                                           
                                             },
                             },                         
                             { name = 'Length (beats): '..strategy.ref_pattern_len,
@@ -686,7 +747,7 @@
                         w = gfx.w - x_offs - obj.offs,
                         h = h_buts - h_butsspace,
                         col = 'green',
-                        txt= 'Show\nreference\n('..cnt..')',
+                        txt= 'Show ref\n('..cnt..')',
                         txt_col = 'green',
                         txt_a =1,
                         aligh_txt = 16,
@@ -729,7 +790,7 @@
                         w = gfx.w - x_offs - obj.offs,
                         h = h_buts - h_butsspace,
                         col = 'blue',
-                        txt= 'Show\nsource\n('..cnt..')',
+                        txt= 'Show src\n('..cnt..')',
                         txt_col = 'blue',
                         txt_a =1,                        
                         aligh_txt = 16,
@@ -793,7 +854,7 @@
                             has_blit = false,
                             level = 1,
                             func =  function()
-                                      strategy.act_initcatchref = BinaryCheck(strategy.act_initcatchref, 0)
+                                      strategy.act_initcatchref = BinaryToggle(strategy.act_initcatchref, 0)
                                       refresh.GUI = true
                                     end,             
                           } ,   
@@ -803,7 +864,7 @@
                             has_blit = false,
                             level = 1,
                             func =  function()
-                                      strategy.act_initcatchsrc = BinaryCheck(strategy.act_initcatchsrc, 0)
+                                      strategy.act_initcatchsrc = BinaryToggle(strategy.act_initcatchsrc, 0)
                                       refresh.GUI = true
                                     end,             
                           } ,  
@@ -813,7 +874,7 @@
                             has_blit = false,
                             level = 1,
                             func =  function()
-                                      strategy.act_initact = BinaryCheck(strategy.act_initact, 0)
+                                      strategy.act_initact = BinaryToggle(strategy.act_initact, 0)
                                       refresh.GUI = true
                                     end,             
                           } ,                            
@@ -828,7 +889,7 @@
                             has_blit = false,
                             level = 1,
                             func =  function()
-                                      strategy.ref_values = BinaryCheck(strategy.ref_values, 1)
+                                      strategy.ref_values = BinaryToggle(strategy.ref_values, 1)
                                       refresh.GUI = true
                                     end,             
                           } ,                                                                                      

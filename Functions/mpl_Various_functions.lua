@@ -2,10 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.15
+-- @version 1.16
 -- @changelog
---    + getKeysSortedByValue()
---	 + deliteralize() 
+--    + BinaryToggle
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
@@ -441,7 +440,18 @@
         if not bool_int or (bool_int and bool_int == 0) then value = value + byte_num end
       end
       return value
-    end   
+    end  
+    -----------------------------------------------------------
+    function BinaryToggle(value, byte_id, bool_int)
+      local byte_num = 1<<byte_id
+      
+      if value&byte_num == byte_num then 
+        if not bool_int or (bool_int and bool_int == 0) then value = value - byte_num end
+       else 
+        if not bool_int or (bool_int and bool_int == 1) then value = value + byte_num end
+      end
+      return value
+    end  
     -----------------------------------------------------------
     function gfx_ColHex(hex_str) -- https://gist.github.com/jasonbradley/4357406
         local hex = hex_str:gsub("#","")

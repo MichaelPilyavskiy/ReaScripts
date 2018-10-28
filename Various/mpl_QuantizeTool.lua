@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.0alpha2
+-- @version 2.0alpha3
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for manipulating REAPER objects time and values
@@ -10,14 +10,11 @@
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua
 --    mpl_QuantizeTool_Strategies/default.qtstr
 -- @changelog
---    + Strategy/Reference/Pattern (no actual reference from pattern yet)
---    + Strategy/Reference/Pattern: new FNG Groove Tool parser
---    + Strategy/Reference/Pattern: save as .rgt in /Grooves
---    + Strategy/Reference/Pattern: list /Grooves
---    + Strategy/Reference/Pattern: allow to draw pattern manually, autosave to /Grooves/last_touched.rgt
---    + Strategy/Reference/Pattern: change length (in beats)
+--    + Strategy/Reference/Pattern: reference from pattern (working code, show pattern points relative to edit cursor works also)
+--    + Strategy: unify code for collecting ref/src data
+--    + Strategy/Source: envelope points
 
-  local vrs = 'v2.0alpha2'
+  local vrs = 'v2.0alpha3'
   --NOT gfx NOT reaper
   
 
@@ -68,9 +65,11 @@
       -- positions
         strategy.src_positions = 1
         strategy.src_selitems = 1
+        strategy.src_envpoint = 0
       -- values
         strategy.src_values = 1
         strategy.src_val_itemvol = 1  
+        strategy.src_val_envpoint = 0
          
     -- action -----------------------
       --  align
@@ -268,7 +267,7 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
         LoadStrategy(conf, strategy)
         if strategy.act_initcatchref == 1 then  Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy) end
         if strategy.act_initcatchsrc == 1 then  Data_ApplyStrategy_source   (conf, obj, data, refresh, mouse, strategy) end
-        if strategy.act_initact > 0 then Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy) end
+        if strategy.act_initact == 1 then Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy) end
         gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
                   conf.wind_w, 
                   conf.wind_h, 
