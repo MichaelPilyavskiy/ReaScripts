@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4be1840a710bad1cff78c3300821786e9f2f52e9" name="MPL Scripts">
+<index version="1" commit="8d7837b525147309d21f933008abc6c4418993ba" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -354,6 +354,10 @@
       <version name="1.15" author="MPL" time="2018-10-25T22:46:16Z">
         <changelog><![CDATA[+ getKeysSortedByValue()]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bd71763a1683eb2e822e04cdca41f4508a36da27/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.16" author="MPL" time="2018-10-28T14:01:58Z">
+        <changelog><![CDATA[+ BinaryToggle]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384354653a16af070a9d3274c3de93f5dcee41ca/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
@@ -5054,6 +5058,17 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
         <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
         <source file="mpl_QuantizeTool_Strategies/default.qtstr">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool_Strategies/default.qtstr</source>
+      </version>
+      <version name="2.0alpha3" author="MPL" time="2018-10-28T14:01:58Z">
+        <changelog><![CDATA[+ Strategy/Reference/Pattern: reference from pattern (working code, show pattern points relative to edit cursor works also)
++ Strategy: unify code for collecting ref/src data
++ Strategy/Source: envelope points]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384354653a16af070a9d3274c3de93f5dcee41ca/Various/mpl_QuantizeTool.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384354653a16af070a9d3274c3de93f5dcee41ca/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384354653a16af070a9d3274c3de93f5dcee41ca/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384354653a16af070a9d3274c3de93f5dcee41ca/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384354653a16af070a9d3274c3de93f5dcee41ca/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
+        <source file="mpl_QuantizeTool_Strategies/default.qtstr">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384354653a16af070a9d3274c3de93f5dcee41ca/Various/mpl_QuantizeTool_Strategies/default.qtstr</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
