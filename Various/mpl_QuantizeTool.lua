@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.0alpha3
+-- @version 2.0alpha5
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for manipulating REAPER objects time and values
@@ -10,13 +10,10 @@
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua
 --    mpl_QuantizeTool_Strategies/default.qtstr
 -- @changelog
---    + Strategy/Reference/Pattern: reference from pattern (working code, show pattern points relative to edit cursor works also)
---    + Performance: unify code for collecting ref/src data
---    + Strategy/Reference: MIDI noteOn
---    + Strategy/Source: envelope points
---    + Strategy/Source: MIDI notes (0x90 0x80) disabled until working under MIDI code
+--    - remove Strategy/Action/Options/Sort values
+--    + Strategy/Source/MIDI notes (0x9 +folowing0x8)
 
-  local vrs = 'v2.0alpha3'
+  local vrs = 'v2.0alpha5'
   --NOT gfx NOT reaper
   
 
@@ -146,7 +143,6 @@
       then defer(run) else atexit(gfx.quit) end
   end
     
-
   
   
 ---------------------------------------------------------------------

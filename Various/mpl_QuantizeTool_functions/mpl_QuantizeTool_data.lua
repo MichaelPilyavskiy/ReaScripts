@@ -128,6 +128,8 @@
     local MIDIlen = MIDIstring:len()
     local offset, flags, msg1
     local ppq_pos, nextPos, prevPos, idx = 0, 1, 1 , 0
+    data[table_name].src_cnt = 0
+    data[table_name].ptr = take
     while nextPos <= MIDIlen do  
       prevPos = nextPos
       offset, flags, msg1, nextPos = s_unpack("i4Bs4", MIDIstring, prevPos)
@@ -147,50 +149,64 @@
                                  pos_beats = beats,
                                  val = msg1:byte(2)/127
                                  }
+      
        elseif mode == -1 then
-        data[table_name][#data[table_name]+1] = {pos = fullbeats,
-                                 pos_beats = beats,
-                                 val = msg1:byte(2)/127,
-                                 pitch = msg1:byte(2),
-                                 rawevt = s_pack("i4Bs4", offset, flags , msg1),
-                                 offset=offset,
-                                 flags=flags,
-                                 msg1=msg1,
-                                 ptr = take,
-                                 isNoteOn=isNoteOn,
-                                 isNoteOff=isNoteOff,
-                                 ppq_pos=ppq_pos
+        local ignore_search
+        if not isNoteOn then 
+          ignore_search = true 
+         else
+          data[table_name].src_cnt = data[table_name].src_cnt + 1
+        end
+        data[table_name][#data[table_name]+1] = 
+                          {       pos = fullbeats,
+                                  pos_beats = beats,
+                                  pitch = msg1:byte(2),
+                                  flags=flags,
+                                  msg1=msg1,
+                                  ppq_pos=ppq_pos,
+                                  ignore_search = ignore_search,
+                                  offset=offset
                                  }
       end
     end   
   end
   ---------------------------------------------------
   function Data_Execute_Align_MIDI(conf, obj, data, refresh, mouse, strategy) 
-    local str_per_msg = ''
-    if #data.src < 1 then return end
-    local take_ptr = data.src[1].ptr
-    for i = 1 , #data.src do
-      local t = data.src[i]
-      if t.isNoteOn and t.out_pos then
-        local out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1
-        out_pos = TimeMap2_beatsToTime( 0, out_pos)
-        local out_pos_ppq = MIDI_GetPPQPosFromProjTime( take_ptr, out_pos )
-        local diff = out_pos_ppq - t.ppq_pos 
-        msg(diff)
-        t.offset = math.floor(t.offset + diff)
-        -- search for further noteoff
-        for i2 =i, #data.src do
-          if data.src[i2].isNoteOff and data.src[i2].pitch == t.pitch then
-            data.src[i2].offset = math.floor(data.src[i2].offset + diff)
+    
+    if data.src.src_cnt < 1 then return end
+    local take = data.src.ptr
+    
+    -- convert out_pos to ppq
+    for i = 1, #data.src do
+      if data.src[i] and not data.src[i].ignore_search and data.src[i].out_pos then
+        local out_pos = data.src[i].pos + (data.src[i].out_pos - data.src[i].pos)*strategy.exe_val1
+        local out_pos_sec = TimeMap2_beatsToTime( 0, out_pos)
+        data.src[i].ppq_posOUT = MIDI_GetPPQPosFromProjTime( take, out_pos_sec )
+        for i2 = i+1, #data.src do
+          if data.src[i2].msg1:byte(1)>>4 == 0x8 and data.src[i2].msg1:byte(2)  == data.src[i].msg1:byte(2) then
+            data.src[i2].ppq_posOUT = data.src[i2].ppq_pos +  (data.src[i].ppq_posOUT-data.src[i].ppq_pos)
             break
-           else
-            data.src[i2].offset = math.floor(data.src[i2].offset- diff)
           end
         end
+       else
+        if not data.src[i].ppq_posOUT then data.src[i].ppq_posOUT = data.src[i].ppq_pos end
       end
-      str_per_msg = str_per_msg.. string.pack("i4Bs4", t.offset,  t.flags , t.msg1)
     end
-    --MIDI_SetAllEvts( take_ptr, str_per_msg )
+    
+      
+    
+    -- return back all stuff
+    local str_per_msg  = ''
+    for i = 1, #data.src do
+      local offset
+      if i ==1 then offset = data.src[i].offset  + (data.src[i].ppq_posOUT - data.src[i].ppq_pos) else
+        offset = data.src[i].ppq_posOUT - data.src[i-1].ppq_posOUT
+      end
+      str_per_msg = str_per_msg.. string.pack("i4Bs4", math.modf(offset),  data.src[i].flags , data.src[i].msg1)
+    end
+    
+    MIDI_SetAllEvts( take, str_per_msg )
+    
   end
   --------------------------------------------------- 
   function Data_GetEP(data, table_name) 
@@ -268,12 +284,9 @@
     end
   end
   --------------------------------------------------- 
-  function Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy)    
-    if not data.ref or not data.src then return end
-    
-    if strategy.act_action == 1 then
+  function Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy) 
       for i = 1, #data.src do        
-        if data.src[i].pos then
+        if data.src[i].pos and not data.src[i].ignore_search then
           if strategy.ref_pattern&1~=1 then 
             local refID = Data_brutforce_RefID(conf, data, strategy, data.src[i].pos)
             if refID and data.ref[refID] then 
@@ -289,8 +302,12 @@
           end            
         end
       end
-    end
+  end  
+  --------------------------------------------------- 
+  function Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy)    
+    if not data.ref or not data.src then return end
     
+    if strategy.act_action == 1 then Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy)  end
   end
   ---------------------------------------------------    
   function Data_brutforce_RefID(conf, data, strategy, pos_src)
@@ -388,20 +405,22 @@
     end
     
     for i = 1, #passed_t do
-      local pos_beats = passed_t[i].pos
-      local pos_sec =  TimeMap2_beatsToTime( 0, pos_beats )
-      local r,g,b = table.unpack(obj.GUIcol[col_str])
-      local val_str = i 
-      if passed_t[i].val then 
-        val_str = passed_t[i].val
-        if passed_t[i].val2 then val_str = val_str ..'_'..passed_t[i].val2 end
+      if not passed_t[i].ignore_search then
+        local pos_beats = passed_t[i].pos
+        local pos_sec =  TimeMap2_beatsToTime( 0, pos_beats )
+        local r,g,b = table.unpack(obj.GUIcol[col_str])
+        local val_str = i 
+        if passed_t[i].val then 
+          val_str = passed_t[i].val
+          if passed_t[i].val2 then val_str = val_str ..'_'..passed_t[i].val2 end
+        end
+        AddProjectMarker2( 0, false, 
+                          pos_sec, 
+                          -1, 
+                          'QT_'..val_str, 
+                          -1, 
+                          ColorToNative( math.floor(r*255),math.floor(g*255),math.floor(b*255))  |0x1000000 )
       end
-      AddProjectMarker2( 0, false, 
-                        pos_sec, 
-                        -1, 
-                        'QT_'..val_str, 
-                        -1, 
-                        ColorToNative( math.floor(r*255),math.floor(g*255),math.floor(b*255))  |0x1000000 )
     end
     
     

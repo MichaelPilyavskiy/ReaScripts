@@ -593,7 +593,10 @@
 
     Obj_TabSrc_Strategy(conf, obj, data, refresh, mouse, strategy)   
     local cnt = 0
-    if data.src then cnt = #data.src end
+    if data.src then 
+      cnt = #data.src 
+      if data.src.src_cnt then cnt = data.src.src_cnt end
+    end
     obj.src_showpos =  { clear = true,
                         x = obj.strategy_w + obj.offs,
                         y = obj.tab_h+obj.offs,
@@ -658,6 +661,8 @@
     
     local h_buts = math.floor(obj.strategy_h/5)
     local h_butsspace = math.floor(obj.offs/2)
+    
+    
     -- show/catch ref
     local cnt = 0
     if data.ref then cnt = #data.ref end
@@ -702,8 +707,11 @@
    
     -- show/catch src                          
     local cnt = 0
-    if data.src then cnt = #data.src end
-   
+    if data.src then 
+      cnt = #data.src 
+      if data.src.src_cnt then cnt = data.src.src_cnt end
+    end
+    
     obj.src_catch =  { clear = true,
                         x = x_offs,
                         y = obj.tab_h+obj.offs +h_buts*2,
@@ -821,7 +829,7 @@
                             has_blit = true,
                             level = 0             
                         },                           
-                          { name = 'Sort positions before taking values',
+                         --[[ { name = 'Sort positions before taking values',
                             state = strategy.ref_values&2==2,
                             show = true,
                             has_blit = false,
@@ -830,7 +838,7 @@
                                       strategy.ref_values = BinaryToggle(strategy.ref_values, 1)
                                       refresh.GUI = true
                                     end,             
-                          } ,                                                                                      
+                          } ,     ]]                                                                                 
                         }
     Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, act_strtUI, 'act_strtUI_it', 3)  
   end  
