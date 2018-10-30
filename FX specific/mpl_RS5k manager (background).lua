@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.78
+-- @version 1.79
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -8,14 +8,12 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
---    mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
 -- @changelog
---    + GUI/Options: hide waveform [p=2051416]
---    # GUI/Knob area: proper update loop edges
+--    #ReaPack: remove control functions from @provides package requements (Moved to github.com/MichaelPilyavskiy/ReaScript_Additional)
 
 
 
-  local vrs = 'v1.78'
+  local vrs = 'v1.79'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
