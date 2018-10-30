@@ -24,7 +24,7 @@
   end
   ---------------------------------------------------
   function GUI_DrawWF_edges(obj, data)   
-    local w = obj.WF_w
+    local w = (gfx.w-obj.keycntrlarea_w)--obj.WF_w
     local h = obj.kn_h 
     local cur_note = obj.current_WFkey
     local cur_spl = obj.current_WFspl
@@ -559,9 +559,11 @@
             end  
           end  
         -- 
+          if conf.show_wf == 1 then
             GUI_DrawWF_edges(obj, data)    
+          end
         -- WF
-          if refresh.GUI_WF then
+          if conf.show_wf == 1 and refresh.GUI_WF then
             GetPeaks(data, obj.current_WFkey, obj.current_WFspl)
             gfx.setimgdim(6, -1, -1)  
             gfx.setimgdim(6, obj.WF_w,obj.WF_h) 
@@ -591,7 +593,7 @@
       gfx.a = 1
       gfx.mode = 0
       local WFy = 0 
-      if conf.separate_spl_peak == 1 then WFy = obj.WF_h+obj.samplename_h end
+      if conf.show_wf == 1 and conf.separate_spl_peak == 1 then WFy = obj.WF_h+obj.samplename_h end
       gfx.blit(6, 1, 0, -- backgr
             0,0,obj.WF_w, obj.WF_h-1,
             

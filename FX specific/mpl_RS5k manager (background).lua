@@ -1,8 +1,8 @@
 -- @description RS5k manager
--- @version 1.77
+-- @version 1.78
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
--- @about Script for handling ReaSamplomatic data on selected track
+-- @about Script for handling ReaSamplomatic5000 data on selected track
 -- @provides
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua
@@ -10,11 +10,12 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_control/mpl_RS5k_manager_control_functions.lua
 -- @changelog
---    + Show state of running script in toolbar
+--    + GUI/Options: hide waveform [p=2051416]
+--    # GUI/Knob area: proper update loop edges
 
 
 
-  local vrs = 'v1.77'
+  local vrs = 'v1.78'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -66,6 +67,7 @@
             GUI_padfontsz = GUI_fontsz2,
             GUI_splfontsz = GUI_fontsz3,
             GUI_ctrlscale = 1,
+            show_wf = 1,
             
             -- GUI control
             mouse_wheel_res = 960,

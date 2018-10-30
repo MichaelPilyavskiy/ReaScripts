@@ -1432,7 +1432,7 @@
       end
       
       local WF_shift = 0
-      if conf.separate_spl_peak == 1 then WF_shift = obj.WF_h end
+      if conf.show_wf == 1 and conf.separate_spl_peak == 1 then WF_shift = obj.WF_h end
       local key_area_h = gfx.h -obj.kn_h-obj.samplename_h-WF_shift
       local key_w = math.ceil((gfx.w-3*obj.offs-obj.keycntrlarea_w)/w_div)
       local key_h = math.ceil((1/h_div)*(key_area_h)) 
@@ -1749,7 +1749,9 @@
         _, pinnedtr_str = GetTrackName( pinnedtr, '' )
       end
       
-    --                         
+    -- 
+      local wf_active = conf.show_wf == 0  
+      if wf_active then wf_active = '#' else wf_active = '' end
         obj.menu = { clear = true,
                     x = 0,
                     y = 0,
@@ -1939,7 +1941,12 @@ List of available hashtags:
               end
             end
   } ,
-  { str = 'Separate waveform from knobs|<',
+  
+  { str = 'Show waveform',
+    func =  function() conf.show_wf = math.abs(1-conf.show_wf)  end,
+    state = conf.show_wf == 1,
+  } , 
+  { str = wf_active..'Separate waveform from knobs|<',
     func =  function() conf.separate_spl_peak = math.abs(1-conf.separate_spl_peak)  end,
     state = conf.separate_spl_peak == 1,
   } ,   
