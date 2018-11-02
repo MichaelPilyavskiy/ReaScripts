@@ -142,9 +142,14 @@
         gfx.set(r/255,g/255,b/255, o.alpha_back or 0.2)
        else
         if o.col then col(obj, o.col, o.alpha_back or 0.2) end
+        
       end
 
-           
+    -- color fill
+      if o.colfill_col then
+        col(obj, o.colfill_col, o.colfill_a or 1) 
+        gfx.rect(x,y,w,h,1)      
+      end
              
     ------------------ check
     local check_ex = ((type(o.check)=='boolean' and o.check==true) or (o.check and o.check&1==1))
@@ -324,8 +329,8 @@
     local dgdy = c*0.001    
     local dbdx = c*0.00003
     local dbdy = c*0.001
-    local dadx = c*0.0005
-    local dady = c*0.001       
+    local dadx = c*0.0004
+    local dady = c*0.0001       
     gfx.gradrect(0,0, obj.grad_sz,obj.grad_sz, 
                     r,g,b,a, 
                     drdx, dgdx, dbdx, dadx, 

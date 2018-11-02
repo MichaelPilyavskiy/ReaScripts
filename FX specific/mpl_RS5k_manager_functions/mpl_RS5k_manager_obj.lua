@@ -1428,7 +1428,83 @@
                     {5,0}, 
                     {6,0}, 
                     {7,0},                                                                              
-                }                                               
+                }        
+       elseif conf.keymode == 6 then -- 8x8 segmented
+        w_div = 8
+        h_div = 8  
+        shifts  = { 
+                    {0,7},    
+                    {1,7}, 
+                    {2,7}, 
+                    {3,7},
+                    {0,6},
+                    {1,6},
+                    {2,6},
+                    {3,6},
+                            
+                    {0,5},    
+                    {1,5}, 
+                    {2,5}, 
+                    {3,5},
+                    {0,4},
+                    {1,4},
+                    {2,4},
+                    {3,4},
+                            
+                    {0,3},    
+                    {1,3}, 
+                    {2,3}, 
+                    {3,3},
+                    {0,2},
+                    {1,2},
+                    {2,2},
+                    {3,2},
+                                               
+                    {0,1},    
+                    {1,1}, 
+                    {2,1}, 
+                    {3,1},
+                    {0,0},
+                    {1,0},
+                    {2,0},
+                    {3,0},
+                    
+                    {4,7},    
+                    {5,7}, 
+                    {6,7}, 
+                    {7,7},
+                    {4,6},
+                    {5,6},
+                    {6,6},
+                    {7,6},
+                    
+                    {4,5},    
+                    {5,5}, 
+                    {6,5}, 
+                    {7,5},
+                    {4,4},
+                    {5,4},
+                    {6,4},
+                    {7,4},                   
+                    
+                    {4,3},    
+                    {5,3}, 
+                    {6,3}, 
+                    {7,3},
+                    {4,2},
+                    {5,2},
+                    {6,2},
+                    {7,2}, 
+                    
+                    {4,1},    
+                    {5,1}, 
+                    {6,1}, 
+                    {7,1},
+                    {4,0},
+                    {5,0},
+                    {6,0},
+                    {7,0},                                                                              
+                }                                                             
       end
       
       local WF_shift = 0
@@ -1442,15 +1518,17 @@
         local note = (i-1)+12*conf.oct_shift+conf.start_oct_shift*12
         local col = 'white'
         local colint, colint0
+        
         local alpha_back
         if  data[note] and data[note][1] then 
-          alpha_back = 0.37        
+          alpha_back = 0.6       
           col = 'green'
           if data[note][1].src_track_col then colint = data[note][1].src_track_col  end    
          else
           alpha_back = 0.15 
         end
-          
+
+        
           local txt = BuildKeyName(conf, data, note)
           
           if  key_w < obj.fx_rect_side*2.5 or key_h < obj.fx_rect_side*2.8 then txt = note end
@@ -1870,9 +1948,12 @@ List of available hashtags:
   { str = 'Ableton Live Drum Rack / S1 Impact (4x4)',
     func = function() conf.keymode = 3 end ,
     state = conf.keymode == 3 or conf.keymode == 4},
-  { str = 'Ableton Push (8x8)|<|',
+  { str = 'Ableton Push (8x8)',
     func = function() conf.keymode = 5 end ,
     state = conf.keymode == 5},    
+    { str = '8x8 segmented|<|',
+      func = function() conf.keymode = 6 end ,
+      state = conf.keymode == 6}, 
     
   { str = 'Send MIDI by clicking on keys',
     func = function() conf.keypreview = math.abs(1-conf.keypreview)  end ,
@@ -1946,10 +2027,16 @@ List of available hashtags:
     func =  function() conf.show_wf = math.abs(1-conf.show_wf)  end,
     state = conf.show_wf == 1,
   } , 
-  { str = wf_active..'Separate waveform from knobs|<',
+  { str = wf_active..'Separate waveform from knobs',
     func =  function() conf.separate_spl_peak = math.abs(1-conf.separate_spl_peak)  end,
     state = conf.separate_spl_peak == 1,
   } ,   
+  { str = 'Show input notes|<',
+    func = function() 
+              if conf.allow_track_notes == 0 then MB('This function require REAPER 5.961+ and RS5K_Manager_tracker JSFX installed and inserted at 1st slot of parent RS5k Manager track', 'Attention', 0) end
+              conf.allow_track_notes = math.abs(1-conf.allow_track_notes)  
+            end ,
+    state = conf.allow_track_notes == 1},  
   
 
   { str = '>Dragndrop options'},
@@ -2016,8 +2103,7 @@ List of available hashtags:
     func =  function() 
               if pinnedtr then SetOnlyTrackSelected( pinnedtr ) end
             end
-  } ,    
-  
+  } , 
    
   
   { str = '#Actions'},  

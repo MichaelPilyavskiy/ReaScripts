@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.0alpha5
+-- @version 2.0alpha6
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for manipulating REAPER objects time and values
@@ -8,12 +8,18 @@
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua
---    mpl_QuantizeTool_Strategies/default.qtstr
+--    mpl_QuantizeTool_presets/default.qt
+--    mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua
 -- @changelog
---    - remove Strategy/Action/Options/Sort values
---    + Strategy/Source/MIDI notes (0x9 +folowing0x8)
+--    + GUI: reduced view
+--    + GUI: various naming changes [p=2052215]
+--    + GUI: move detection buttons to control panel
+--    + Preset/AnchorPoints/Stretch markers
+--    + Preset/Target/Stretch markers (only GUI, disabled for now)
+--    + Preset/Action/Apply action on init
+--    + Preset/Action/Run QT without GUI
 
-  local vrs = 'v2.0alpha5'
+  local vrs = 'v2.0alpha6'
   --NOT gfx NOT reaper
   
 
@@ -52,10 +58,7 @@
         strategy.ref_selitems = 0
         strategy.ref_envpoints = 1
         strategy.ref_midi = 0
-      --[[ values
-        strategy.ref_values = 1 -- &2 ordered sort
-        strategy.ref_val_itemvol = 0
-        strategy.ref_val_envpoint = 1]]
+        strategy.ref_strmarkers = 0
       -- pattern
         strategy.ref_pattern = 0
         strategy.ref_pattern_len = 4
@@ -67,11 +70,7 @@
         strategy.src_selitems = 1
         strategy.src_envpoint = 0
         strategy.src_midi = 0 
-        
-      --[[ values
-        strategy.src_values = 1
-        strategy.src_val_itemvol = 1  
-        strategy.src_val_envpoint = 0]]
+        strategy.src_strmarkers = 0
          
     -- action -----------------------
       --  align
@@ -81,6 +80,8 @@
         strategy.act_initcatchref = 1    
         strategy.act_initcatchsrc = 0 
         strategy.act_initact = 0  
+        strategy.act_initapp = 0
+        strategy.act_initgui = 1
         
     -- execute -----------------------
       strategy.exe_val1 = 0
@@ -94,7 +95,7 @@
             ES_key = 'MPL_QuantizeTool',
             wind_x =  50,
             wind_y =  50,
-            wind_w =  400,
+            wind_w =  300,
             wind_h =  450,
             dock =    0,
             dock2 =    0, -- set manually docked state
@@ -192,9 +193,9 @@
       LoadStrategy_Default(strategy)
       SetExtState( conf.ES_key, 'ext_strategy_name', 'default', false )
      elseif cur_strat ~= '' and not ext_state then 
-      LoadStrategy_Parse(strategy, obj.script_path .. 'mpl_QuantizeTool_Strategies/last saved.qtstr'   ) 
+      LoadStrategy_Parse(strategy, obj.script_path .. 'mpl_QuantizeTool_presets/last saved.qt'   ) 
      elseif cur_strat ~= '' and ext_state then 
-      LoadStrategy_Parse(strategy, obj.script_path .. 'mpl_QuantizeTool_Strategies/'..cur_strat..'.qtstr'   ) 
+      LoadStrategy_Parse(strategy, obj.script_path .. 'mpl_QuantizeTool_presets/'..cur_strat..'.qt'   ) 
     end
     
     -- inspect keys
@@ -212,26 +213,28 @@
     if lastsaved then name = 'last saved' end
     
     name = name:gsub('*','')
-    local out_fp = script_path .. "mpl_QuantizeTool_Strategies/"..name..'.qtstr'
-    local out_str = '//strategy for MPL`s QuantizeTool v2\n'
+    local out_fp = script_path .. "mpl_QuantizeTool_presets/"..name..'.qt'
+    local out_str = '//Preset for MPL`s QuantizeTool v2\n'
     for val in spairs(strategy) do out_str = out_str..'\n'..val..'='..strategy[val] end
     
     if flag&1==1 then
       -- save to file
         local f = io.open(out_fp, 'w')
-        f:write(out_str)
-        f:close()
+        if f then
+          f:write(out_str)
+          f:close()
+        end
     end
     
     if flag&2==2 then
       -- save to action list
-        local out_fp_script = script_path .. "mpl_QuantizeTool_Strategies/mpl_QuantizeTool - "..name..'.lua'
+        local out_fp_script = script_path .. "mpl_QuantizeTool_presets/mpl_QuantizeTool preset - "..name..'.lua'
         local out_str = 
 [[
--- generated from MPL QuantizeTool v2
--- @description Set QuantizeTool strategy to ']]..strategy.name..[['
+-- @description Set QuantizeTool preset to ']]..strategy.name..[['
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
+-- generated from MPL QuantizeTool v2
 
 reaper.SetExtState("]].. conf.ES_key..'", "ext_strategy_name", "'..strategy.name..[[",false)
 reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
@@ -269,13 +272,16 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
         if strategy.act_initcatchref == 1 then  Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy) end
         if strategy.act_initcatchsrc == 1 then  Data_ApplyStrategy_source   (conf, obj, data, refresh, mouse, strategy) end
         if strategy.act_initact == 1 then Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy) end
-        gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
-                  conf.wind_w, 
-                  conf.wind_h, 
-                  conf.dock2, conf.wind_x, conf.wind_y)
-        OBJ_init(obj)
-        OBJ_Update(conf, obj, data, refresh, mouse,strategy) 
-        run()  
+        if strategy.act_initapp == 1 then Data_Execute(conf, obj, data, refresh, mouse, strategy) end
+        if strategy.act_initgui == 1 then 
+          gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
+                    conf.wind_w, 
+                    conf.wind_h, 
+                    conf.dock2, conf.wind_x, conf.wind_y)
+          OBJ_init(obj)
+          OBJ_Update(conf, obj, data, refresh, mouse,strategy) 
+          run()  
+        end
   end
 --------------------------------------------------------------------  
   local ret = CheckFunctions('Action') 

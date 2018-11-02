@@ -317,12 +317,12 @@
     if o.draw_drop_line then
       gfx.set(1,1,1,0.8)
       gfx.rect(x,y,w,h, 0)
-      xshift = 20   
-      yshift = 30     
-      x_drop_rect = x+xshift
-      y_drop_rect = y-yshift
-      w_drop_rect = 150
-      h_drop_rect = 20
+      local xshift = 20   
+      local yshift = 30     
+      local x_drop_rect = x+xshift
+      local y_drop_rect = y-yshift
+      local w_drop_rect = 150
+      local h_drop_rect = 20
       if x_drop_rect + w_drop_rect > gfx.w then x_drop_rect = gfx.w - w_drop_rect end
       if y_drop_rect + h_drop_rect > gfx.h then y_drop_rect = gfx.h - h_drop_rect end
       if y_drop_rect + h_drop_rect <= 0  then y_drop_rect = 0 end
@@ -603,7 +603,36 @@
             obj.WF_h-1 , 0,0) 
     end      
     --GUI_symbols(conf, obj, data, refresh, mouse) 
-    
+
+    if obj.allow_track_notes and conf.allow_track_notes == 1 then GUI_TrackInputNotes(obj) end
+        
     refresh.GUI = nil
     gfx.update()
+  end
+  ---------------------------------------------------  
+  function GUI_TrackInputNotes(obj)
+    local buf = 20
+    local time_fall = 1
+    local cur_ts = reaper.gmem_read(buf+1)
+    local circ_r = 10
+    
+    local t_out = {}
+    for i = 1, buf/2 do
+      local alpha = time_fall - math.min(cur_ts - reaper.gmem_read(i+buf/2) , time_fall)
+      t_out[i] = {note = reaper.gmem_read(i),
+                  alpha =alpha/time_fall}
+    end
+    local t_sorted = {}
+    -- sort/get last values
+    for i = 1, #t_out do if t_out[i].alpha ~= 0 then t_sorted[ t_out[i].note ]= t_out[i].alpha end end
+    
+    for note in pairs(t_sorted) do
+      if obj['keys_p'..note] and obj['keys_p'..note].w then
+        gfx.a = t_sorted[note]
+        
+        gfx.circle(obj['keys_p'..note].x + obj['keys_p'..note].w/2,
+                  obj['keys_p'..note].y + obj['keys_p'..note].h/2,
+                  10,1)
+      end
+    end
   end

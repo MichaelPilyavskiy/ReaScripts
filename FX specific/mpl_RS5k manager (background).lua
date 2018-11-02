@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.79
+-- @version 1.80
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -9,11 +9,13 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    #ReaPack: remove control functions from @provides package requements (Moved to github.com/MichaelPilyavskiy/ReaScript_Additional)
+--    + Layout: 8x8 segmented
+--    + GUI Options: show input note (REAPER 5.961+dev1031, MPL`s RS5K_Manager_tracker JSFX)
+--    # GUI: Sligtly brighter keys [p=2052726]
 
 
 
-  local vrs = 'v1.79'
+  local vrs = 'v1.80'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -26,7 +28,7 @@
                     data = false,
                     GUI_WF = false,
                     conf = false}
-   mouse = {}
+  local mouse = {}
   local obj = {}
   local data = {}
         
@@ -86,6 +88,7 @@
             --displayMIDInotenames = 1,
             prepareMIDI2 = 0, -- prepare MIDI on start
             FX_buttons = 255,
+            allow_track_notes = 0,
             
             invert_release = 0,
             
@@ -102,20 +105,20 @@
             }
     return t
   end  
-  
+  ---------------------------------------------------  
    -- Set ToolBar Button ON
   function SetButtonON()
-    is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
-    state = reaper.GetToggleCommandStateEx( sec, cmd )
+    local is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
+    local state = reaper.GetToggleCommandStateEx( sec, cmd )
     reaper.SetToggleCommandState( sec, cmd, 1 ) -- Set ON
     reaper.RefreshToolbar2( sec, cmd )
     return state==0
   end
-  
+  ---------------------------------------------------  
   -- Set ToolBar Button OFF
   function SetButtonOFF()
-    is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
-    state = reaper.GetToggleCommandStateEx( sec, cmd )
+    local is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
+    local state = reaper.GetToggleCommandStateEx( sec, cmd )
     reaper.SetToggleCommandState( sec, cmd, 0 ) -- Set OFF
     reaper.RefreshToolbar2( sec, cmd )
     gfx.quit()
@@ -124,10 +127,10 @@
   ---------------------------------------------------    
   function run()
     obj.clock = os.clock()
-    
     MOUSE(conf, obj, data, refresh, mouse)
     CheckUpdates(obj, conf, refresh)
-    
+
+        
     if refresh.data == true then 
       data = {}
       Data_Update (conf, obj, data, refresh, mouse) 
@@ -141,21 +144,10 @@
     ShortCuts(char)
     if char >= 0 and char ~= 27 then defer(run) else atexit(SetButtonOFF) end
   end
+---------------------------------------------------------------------    
+  function main()
+    if VF_CheckReaperVrs(5.961) then gmem_attach('RS5KManTrack') end
     
-
-  
-  
----------------------------------------------------------------------
-  function CheckFunctions(str_func)
-    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
-    local f = io.open(SEfunc_path, 'r')
-    if f then
-      f:close()
-      dofile(SEfunc_path)
-      
-      if not _G[str_func] then 
-        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
-       else
         local ret = SetButtonON()
         Main_RefreshExternalLibs()
         ExtState_Load(conf)  
@@ -168,13 +160,29 @@
         conf.dev_mode = 0
         conf.scr_title = scr_title
         conf.vrs = vrs
+        obj.allow_track_notes = VF_CheckReaperVrs and VF_CheckReaperVrs(5.961)
         MIDI_prepare(data, conf)
-        run()
+        run() 
+  end 
+  
+---------------------------------------------------------------------
+
+  function CheckFunctions(str_func)
+    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
+    local f = io.open(SEfunc_path, 'r')
+    if f then
+      f:close()
+      dofile(SEfunc_path)
+      
+      if not _G[str_func] then 
+        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
+       else
+        return true
       end
       
      else
-      MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
+      reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
     end  
   end
 --------------------------------------------------------------------
-  CheckFunctions('GetInput')     
+  if CheckFunctions('VF_CheckReaperVrs') then main() end  

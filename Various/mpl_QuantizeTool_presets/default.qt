@@ -1,0 +1,22 @@
+//Preset for MPL`s QuantizeTool v2
+
+act_action=1
+act_initact=0
+act_initcatchref=1
+act_initcatchsrc=0
+exe_val1=0
+exe_val2=0
+name=savc
+ref_envpoints=1
+ref_midi=0
+ref_pattern=0
+ref_pattern_len=4
+ref_pattern_name=last_touched
+ref_positions=1
+ref_selitems=0
+ref_strmarkers=0
+src_envpoint=0
+src_midi=0
+src_positions=1
+src_selitems=1
+src_strmarkers=0

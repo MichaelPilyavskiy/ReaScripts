@@ -39,6 +39,7 @@
     if strategy.ref_positions&1 ==1 and strategy.ref_selitems&1==1 then Data_GetItems(data, 'ref')  end       
     if strategy.ref_positions&1 ==1 and strategy.ref_envpoints&1==1 then Data_GetEP(data, 'ref')  end
     if strategy.ref_positions&1 ==1 and strategy.ref_midi&1==1 then Data_GetMIDI(data, 'ref', 1)  end
+    if strategy.ref_positions&1 ==1 and strategy.ref_strmarkers&1==1 then Data_GetSM(data, 'ref', 1)  end
     if strategy.ref_pattern&1==1 then Data_ApplyStrategy_reference_pattern(conf, obj, data, refresh, mouse, strategy) end  
     
     --[[if strategy.ref_values&2==2 then table.sort(data.ref, function (a,b) return a.pos and b.pos and a.pos<b.pos end) end
@@ -117,6 +118,40 @@
       end      
   end  
   --------------------------------------------------- 
+  function Data_GetSM(data, table_name) 
+    data[table_name].src_cnt = 0
+    local item =  GetSelectedMediaItem( 0, 0 )
+    if not item then return end
+    local it_pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
+    local it_len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
+    local take = GetActiveTake(item)
+    
+    if not TakeIsMIDI(take) then
+      data[table_name].tkGUID = BR_GetMediaItemTakeGUID( take )
+      for idx = 1, GetTakeNumStretchMarkers( take ) do
+        local retval, sm_pos, srcpos_sec = GetTakeStretchMarker( take, idx-1 )
+        local slope = GetTakeStretchMarkerSlope( take, idx-1 )
+        pos = it_pos + sm_pos            
+        local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
+              
+        local ignore_search = false         
+        if sm_pos < 0.0001 or math.abs(sm_pos - it_len) < 0.001 then ignore_search = true end -- boundary SM
+        if not ignore_search then data[table_name].src_cnt = data[table_name].src_cnt + 1 end  
+                        
+        data[table_name][#data[table_name]+1] =
+                { pos = fullbeats,
+                  pos_beats = beats,
+                  sm_pos_sec=sm_pos,
+                  srcpos_sec = srcpos_sec,
+                  slope=slope,
+                  srctype='strmark',
+                  val =1,
+                  ignore_search = ignore_search
+              }
+      end
+    end      
+  end    
+  --------------------------------------------------- 
   function Data_GetMIDI(data, table_name, mode) 
     local ME = MIDIEditor_GetActive()
     local take = MIDIEditor_GetTake( ME ) 
@@ -152,11 +187,7 @@
       
        elseif mode == -1 then
         local ignore_search
-        if not isNoteOn then 
-          ignore_search = true 
-         else
-          data[table_name].src_cnt = data[table_name].src_cnt + 1
-        end
+        if not isNoteOn then  ignore_search = true  else data[table_name].src_cnt = data[table_name].src_cnt + 1 end
         data[table_name][#data[table_name]+1] = 
                           {       pos = fullbeats,
                                   pos_beats = beats,
@@ -232,7 +263,7 @@
       end
     end
   end  
-  
+
   --------------------------------------------------- 
   function Data_ApplyStrategy_source(conf, obj, data, refresh, mouse, strategy)
     data.src = {}
@@ -241,6 +272,7 @@
     if strategy.src_positions&1 ==1 and strategy.src_selitems&1==1 then Data_GetItems(data, 'src') end   
     if strategy.src_positions&1 ==1 and strategy.src_envpoint&1==1 then Data_GetEP(data, 'src') end   
     if strategy.src_positions&1 ==1 and strategy.src_midi&1==1 then Data_GetMIDI(data, 'src', -1) end 
+    if strategy.src_positions&1 ==1 and strategy.src_strmarkers&1==1 then Data_GetSM(data, 'src') end 
     
   end
   --------------------------------------------------- 
@@ -355,6 +387,39 @@
       end  
   end
   --------------------------------------------------- 
+  function Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy)
+    local take =  reaper.GetMediaItemTakeByGUID( 0, t.tkGUID ) 
+    if not take then return end
+    for i = 1 , #data.src do
+      local t = data.src[i]
+      
+      --[[data[table_name][#data[table_name]+1] =
+        { pos = fullbeats,
+          pos_beats = beats,
+          sm_pos_sec=sm_pos,
+          srcpos_sec = srcpos_sec,
+          slope=slope,
+          GUID = BR_GetMediaItemTakeGUID( take ),
+          srctype='strmark',
+          val =1,
+          ignore_search = ignore_search
+      }
+      ]]
+        --[[local it =  BR_GetMediaItemByGUID( 0, t.GUID )
+        if it then 
+          if strategy.src_positions&1==1 and t.out_pos then 
+            local out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1
+            out_pos = TimeMap2_beatsToTime( 0, out_pos)
+            SetMediaItemInfo_Value( it, 'D_POSITION', out_pos )
+          end 
+          if strategy.src_values&1==1 and t.out_val then
+            SetMediaItemInfo_Value( it, 'D_VOL', t.val + (t.out_val - t.val)*strategy.exe_val2 )  
+          end
+          UpdateItemInProject( it )
+        end]]
+      end  
+  end
+  --------------------------------------------------- 
   function Data_Execute_Align_EnvPt(conf, obj, data, refresh, mouse, strategy)
     if not data.src[1] then return end
     local env = data.src[1].ptr
@@ -377,6 +442,7 @@
     if strategy.src_selitems&1==1 then  Data_Execute_Align_Items(conf, obj, data, refresh, mouse, strategy) end
     if strategy.src_envpoint&1==1 then  Data_Execute_Align_EnvPt(conf, obj, data, refresh, mouse, strategy) end
     if strategy.src_midi&1==1 then      Data_Execute_Align_MIDI(conf, obj, data, refresh, mouse, strategy) end
+    if strategy.src_strmarkers&1==1 then      Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy) end
   end
   ---------------------------------------------------   
   function Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, passed_t0, col_str, is_pat)

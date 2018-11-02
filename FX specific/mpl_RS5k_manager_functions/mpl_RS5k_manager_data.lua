@@ -65,7 +65,7 @@
        else
         attack_ms = string.format('%.1f', attack_ms)
       end
-      local delay_pos, del = TrackFX_AddByName( tr, 'time_adjustment', false, 0 )
+      local delay_pos, del, del_ms = TrackFX_AddByName( tr, 'time_adjustment', false, 0 )
       if delay_pos >=0 then  
         del = TrackFX_GetParamNormalized( tr, delay_pos, 0) 
         local ms_val = ((del -0.5)*200)

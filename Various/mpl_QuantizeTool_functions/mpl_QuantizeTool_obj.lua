@@ -42,8 +42,10 @@
   function OBJ_Update(conf, obj, data, refresh, mouse, strategy) 
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
     
+    local min_h = 300
+    local reduced_view = gfx.h  <= min_h
     gfx.w  = math.max(450,gfx.w)
-    gfx.h  = math.max(300,gfx.h)
+    gfx.h  = math.max(min_h,gfx.h)
     
     obj.menu_w = 15
     obj.tab_h = 20
@@ -55,12 +57,21 @@
     obj.strat_x_ind = 10
     obj.strat_y_ind = 20
     obj.knob_area = 0.3
+    obj.exe_but_w = 20
     obj.grid_area = 10
     
+    
+    if not reduced_view then 
+      obj.exec_line_y = gfx.h -obj.slider_tab_h - obj.tab_h
+      Obj_TabRef    (conf, obj, data, refresh, mouse, strategy)
+      Obj_TabSrc    (conf, obj, data, refresh, mouse, strategy)
+      Obj_TabAct    (conf, obj, data, refresh, mouse, strategy)
+     else
+      obj.exec_line_y = 0
+    end
+    
+    
     Obj_MenuMain  (conf, obj, data, refresh, mouse, strategy)
-    Obj_TabRef    (conf, obj, data, refresh, mouse, strategy)
-    Obj_TabSrc    (conf, obj, data, refresh, mouse, strategy)
-    Obj_TabAct    (conf, obj, data, refresh, mouse, strategy)
     Obj_TabExecute(conf, obj, data, refresh, mouse, strategy)
     
     for key in pairs(obj) do if type(obj[key]) == 'table' then 
@@ -79,7 +90,7 @@
                         h = obj.tab_h,
                         col = 'white',
                         is_selected = conf.activetab == 1,
-                        txt= 'Reference',
+                        txt= 'Anchor points',
                         show = true,
                         fontsz = obj.GUI_fontsz2,
                         a_frame = 0,
@@ -98,7 +109,7 @@
     if strategy.ref_pattern&1 ==1 then ref_showpos_h = (obj.strategy_h - obj.pat_h-obj.offs) end
       
     local cnt = 0
-    if data.ref and strategy.ref_pattern&1 ~=1  then ref_showpos_txt = 'Show\nreference\n('..#data.ref..')'  end                
+    if data.ref and strategy.ref_pattern&1 ~=1  then ref_showpos_txt = 'Show\nanchor\npoints\n('..#data.ref..')'  end                
     obj.ref_showpos =  { clear = true,
                         x = obj.strategy_w + obj.offs,
                         y = obj.tab_h+obj.offs,
@@ -130,7 +141,7 @@
                         w = gfx.w - obj.strategy_w - obj.offs*2,
                         h = ref_showpos_h,
                         col = 'green',
-                        txt= 'Catch\nreference',
+                        txt= 'Detect\nanchor\npoints',
                         txt_col = 'green',
                         txt_a =1,                        
                         aligh_txt = 16,
@@ -168,6 +179,7 @@
                                         strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 1)
                                         strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 0)
                                         strategy.src_midi = BinaryToggle(strategy.src_midi,0, 0)
+                                        strategy.src_strmarkers = BinaryToggle(strategy.src_strmarkers,0, 0)
                                       end
                                       refresh.GUI = true
                                     end,                               
@@ -181,11 +193,12 @@
                                         strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
                                         strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 1)
                                         strategy.src_midi = BinaryToggle(strategy.src_midi,0, 0)
+                                        strategy.src_strmarkers = BinaryToggle(strategy.src_strmarkers,0, 0)
                                       end
                                       refresh.GUI = true
                                     end,                               
                             },  
-                            { name = 'MIDI notes (0x90 and 0x80)',
+                            { name = 'MIDI notes (MIDI Editor, 0x90/0x80)',
                               state = strategy.src_midi,
                               show = strategy.src_positions&1==1,
                               level = 1,
@@ -194,10 +207,27 @@
                                         strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
                                         strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 0)
                                         strategy.src_midi = BinaryToggle(strategy.src_midi,0, 1)
+                                        strategy.src_strmarkers = BinaryToggle(strategy.src_strmarkers,0, 0)
                                       end
                                       refresh.GUI = true
                                     end,                               
-                            },                                                         
+                            }, 
+                            { name = 'Stretch markers',
+                              state = strategy.src_strmarkers,
+                              show = strategy.src_positions&1==1,
+                              level = 1,
+                            func =  function()
+                                      do return end
+                                      if strategy.src_strmarkers&1~=1 then
+                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
+                                        strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 0)
+                                        strategy.src_midi = BinaryToggle(strategy.src_midi,0, 0)
+                                        strategy.src_strmarkers = BinaryToggle(strategy.src_strmarkers,0, 1)
+                                      end
+                                      refresh.GUI = true
+                                    end,                               
+                            },                             
+                                                                                    
                        
                                                                                                        
                         }
@@ -229,7 +259,8 @@
                                       if strategy.ref_selitems&1 ~= 1 then 
                                         strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 1)
                                         strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)     
-                                        strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0, 0)                                    
+                                        strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0, 0)   
+                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 0)                                   
                                       end
                                       refresh.GUI = true
                                     end,                               
@@ -242,12 +273,13 @@
                                       if strategy.ref_envpoints&1 ~= 1 then 
                                         strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 1)
                                         strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0)  
-                                        strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0, 0)                                         
+                                        strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0, 0)  
+                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 0)                                        
                                       end
                                       refresh.GUI = true
                                     end,                               
                             }, 
-                            { name = 'MIDI notes (0x90)',
+                            { name = 'MIDI notes (MIDI Editor, 0x90)',
                               state = strategy.ref_midi,
                               show = strategy.ref_positions&1==1 ,
                               level = 1,
@@ -255,12 +287,26 @@
                                       if strategy.ref_midi&1 ~= 1 then 
                                         strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)
                                         strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0) 
-                                        strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0, 1)                                          
+                                        strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0, 1)  
+                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 0)                                         
                                       end
                                       refresh.GUI = true
                                     end,                               
                             },                                                         
-   
+                            { name = 'Stretch markers',
+                              state = strategy.ref_strmarkers,
+                              show = strategy.ref_positions&1==1 ,
+                              level = 1,
+                            func =  function()
+                                      if strategy.ref_strmarkers&1 ~= 1 then 
+                                        strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)
+                                        strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0) 
+                                        strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0,0)  
+                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 1)                                         
+                                      end
+                                      refresh.GUI = true
+                                    end,                               
+                            },    
                           ------------------------                                                 
                           { name = 'Pattern',
                             state = strategy.ref_pattern,
@@ -499,12 +545,14 @@
                       
   end  
   -----------------------------------------------   
-  function Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, name, strategytype) 
+  function Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, name, strategytype, override_w) 
+    local wstr = obj.strategy_w
+    if override_w then  wstr = override_w end
     obj[name..'_frame'] = { clear = true,
                       disable_blitback = true,
                         x = 0,obj.offs,
                         y = obj.tab_h,--+obj.offs,
-                        w = obj.strategy_w,
+                        w = wstr,
                         h = obj.strategy_h,
                         col = 'white',
                         txt= '',
@@ -526,7 +574,7 @@
         obj[name..i] =  { clear = true,
                         x = obj.offs + ref_strtUI[i].level *obj.strat_x_ind ,
                         y = obj.tab_h + obj.offs + y_offs,
-                        w = obj.strategy_w - obj.offs - ref_strtUI[i].level *obj.strat_x_ind ,
+                        w = wstr - obj.offs - ref_strtUI[i].level *obj.strat_x_ind ,
                         h = obj.strategy_itemh,
                         col = col_str,
                         check = ref_strtUI[i].state,
@@ -579,7 +627,7 @@
                         h = obj.tab_h,
                         col = 'white',
                         is_selected = conf.activetab == 2,
-                        txt= 'Source to modify',
+                        txt= 'Target',
                         show = true,
                         fontsz = obj.GUI_fontsz2,
                         a_frame = 0,
@@ -603,7 +651,7 @@
                         w = gfx.w - obj.strategy_w - obj.offs*2,
                         h = obj.strategy_h/2 ,
                         col = 'blue',
-                        txt= 'Show\nsource\n('..cnt..')',
+                        txt= 'Show\ntarget\n('..cnt..')',
                         txt_col = 'blue',
                         txt_a =1,                        
                         aligh_txt = 16,
@@ -623,7 +671,7 @@
                         w = gfx.w - obj.strategy_w - obj.offs*2,
                         h = obj.strategy_h/2,
                         col = 'blue',
-                        txt= 'Catch\nsource',
+                        txt= 'Detect\ntarget',
                         txt_col = 'blue',
                         txt_a =1,                        
                         aligh_txt = 16,
@@ -658,117 +706,6 @@
                                 end
                         } 
     if conf.activetab ~= 3 then return end 
-    
-    local h_buts = math.floor(obj.strategy_h/5)
-    local h_butsspace = math.floor(obj.offs/2)
-    
-    
-    -- show/catch ref
-    local cnt = 0
-    if data.ref then cnt = #data.ref end
-    obj.ref_catch =  { clear = true,
-                        x = x_offs,
-                        y = obj.tab_h +obj.offs ,
-                        w = gfx.w - x_offs - obj.offs,
-                        h = h_buts - h_butsspace,
-                        col = 'green',
-                        txt= 'Catch\nreference',
-                        txt_col = 'green',
-                        txt_a =1,
-                        aligh_txt = 16,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        a_frame =0,
-                        func =  function() 
-                                  Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy)
-                                  refresh.GUI = true
-                                end
-                        }                    
-    obj.ref_showpos =  { clear = true,
-                        x = x_offs,
-                        y = obj.tab_h+obj.offs+h_buts,
-                        w = gfx.w - x_offs - obj.offs,
-                        h = h_buts - h_butsspace,
-                        col = 'green',
-                        txt= 'Show ref\n('..cnt..')',
-                        txt_col = 'green',
-                        txt_a =1,
-                        aligh_txt = 16,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        a_frame =0,
-                        func =  function() 
-                                  Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.ref, 'green_marker') 
-                                end,
-                        onrelease_L = function() 
-                                  Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
-                                end,
-                        } 
-   
-    -- show/catch src                          
-    local cnt = 0
-    if data.src then 
-      cnt = #data.src 
-      if data.src.src_cnt then cnt = data.src.src_cnt end
-    end
-    
-    obj.src_catch =  { clear = true,
-                        x = x_offs,
-                        y = obj.tab_h+obj.offs +h_buts*2,
-                        w = gfx.w - x_offs - obj.offs,
-                        h = h_buts  - h_butsspace,
-                        col = 'blue',
-                        txt= 'Catch\nsource',
-                        txt_col = 'blue',
-                        txt_a =1,                          
-                        aligh_txt = 16,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        a_frame =0,
-                        func =  function() 
-                                  Data_ApplyStrategy_source(conf, obj, data, refresh, mouse, strategy)
-                                  refresh.GUI = true
-                                end
-                        }    
-    obj.src_showpos =  { clear = true,
-                        x = x_offs,
-                        y = obj.tab_h+obj.offs+h_buts*3,
-                        w = gfx.w - x_offs - obj.offs,
-                        h = h_buts - h_butsspace,
-                        col = 'blue',
-                        txt= 'Show src\n('..cnt..')',
-                        txt_col = 'blue',
-                        txt_a =1,                        
-                        aligh_txt = 16,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        a_frame =0,
-                        func =  function() 
-                                  Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.src, 'blue_marker') 
-                                end,
-                        onrelease_L = function() 
-                                  Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
-                                end,
-                        }                          
-    obj.act_calc =  { clear = true,
-                        x = x_offs,
-                        y = obj.tab_h+obj.offs +h_buts*4,
-                        w = gfx.w - x_offs - obj.offs,
-                        h = h_buts+obj.offs,
-                        col = 'blue',
-                        txt= 'Calculate\naction\noutput',
-                        txt_col = 'red',
-                        txt_a =1,                          
-                        aligh_txt = 16,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        a_frame =0,
-                        func =  function() 
-                                  Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy)  
-                                  refresh.GUI = true
-                                end
-                        }                                              
-                        
      Obj_TabAct_Strategy(conf, obj, data, refresh, mouse, strategy)                      
   end 
   -----------------------------------------------
@@ -779,7 +716,7 @@
                             has_blit = true,
                             level = 0             
                         },
-                          { name = 'Position-based aligning',
+                          { name = 'Position-based alignment',
                             state = strategy.act_action==1,
                             show = true,
                             has_blit = false,
@@ -794,7 +731,7 @@
                             has_blit = true,
                             level = 0             
                         }, 
-                          { name = 'Catch reference on init',
+                          { name = 'Detect anchor points on init',
                             state = strategy.act_initcatchref,
                             show = true,
                             has_blit = false,
@@ -804,7 +741,7 @@
                                       refresh.GUI = true
                                     end,             
                           } ,   
-                          { name = 'Catch source on init',
+                          { name = 'Detect target on init',
                             state = strategy.act_initcatchsrc,
                             show = true,
                             has_blit = false,
@@ -823,7 +760,29 @@
                                       strategy.act_initact = BinaryToggle(strategy.act_initact, 0)
                                       refresh.GUI = true
                                     end,             
+                          } ,   
+                          { name = 'Apply action output on init',
+                            state = strategy.act_initapp&1==1,
+                            show = true,
+                            has_blit = false,
+                            level = 1,
+                            func =  function()
+                                      strategy.act_initapp = BinaryToggle(strategy.act_initapp, 0)
+                                      if strategy.act_initapp&1==1 then strategy.act_initact = BinaryToggle(strategy.act_initact, 0, 1) end
+                                      refresh.GUI = true
+                                    end,             
+                          } ,    
+                          { name = 'Initialize ReaScript GUI',
+                            state = strategy.act_initgui&1==1,
+                            show = true,
+                            has_blit = false,
+                            level = 1,
+                            func =  function()
+                                      strategy.act_initgui = BinaryToggle(strategy.act_initgui, 0)
+                                      refresh.GUI = true
+                                    end,             
                           } ,                            
+                                                                          
                         { name = 'Options',
                             show = true,
                             has_blit = true,
@@ -840,17 +799,85 @@
                                     end,             
                           } ,     ]]                                                                                 
                         }
-    Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, act_strtUI, 'act_strtUI_it', 3)  
+    Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, act_strtUI, 'act_strtUI_it', 3, gfx.w - 2*obj.offs)  
   end  
   -----------------------------------------------
-  function Obj_TabExecute_Align(conf, obj, data, refresh, mouse, strategy)  
-    local com_exe_w = gfx.w - obj.menu_w - 1
+  function Obj_TabExecute_Align(conf, obj, data, refresh, mouse, strategy) 
+    local but_cnt = 3 
+    local com_exe_w = gfx.w - obj.menu_w - but_cnt * obj.exe_but_w - 1
     local knob_cnt = 2
     local knob_w = math.floor((com_exe_w * obj.knob_area)/knob_cnt)
+    local but_a = 0.7
+    -- show/catch ref
+    local cnt = 0
+    if data.ref then cnt = #data.ref end
+    obj.ref_catch =  { clear = true,
+                        x = obj.menu_w + 1,
+                        y = obj.tab_h + obj.exec_line_y,
+                        w = obj.exe_but_w,
+                        h = obj.slider_tab_h,
+                        txt_a =1,
+                        aligh_txt = 16,
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        colfill_col = 'green',
+                        colfill_a = but_a,
+                        func =  function() 
+                                  Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy)
+                                  refresh.GUI = true
+                                end,
+                        func_mouseover =  function()
+                                      obj.knob_txt.txt = 'Detect anchor points '..'('..cnt..')'
+                                      refresh.GUI_minor = true
+                                    end                                 
+                        }
+                        
+    -- show/catch src                          
+    local cnt = 0
+    if data.src then 
+      cnt = #data.src 
+      if data.src.src_cnt then cnt = data.src.src_cnt end
+    end   
+    obj.src_catch =  { clear = true,
+                        x = obj.menu_w + 1 + obj.exe_but_w,
+                        y = obj.tab_h + obj.exec_line_y,
+                        w = obj.exe_but_w,
+                        h = obj.slider_tab_h,
+                        colfill_col = 'blue',
+                        colfill_a =but_a,
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        func =  function() 
+                                  Data_ApplyStrategy_source(conf, obj, data, refresh, mouse, strategy)
+                                  refresh.GUI = true
+                                end,
+                        func_mouseover =  function()
+                                      obj.knob_txt.txt = 'Detect targets '..'('..cnt..')'
+                                      refresh.GUI_minor = true
+                                    end                                 
+                        }                                             
+    obj.act_calc =  { clear = true,
+                        x = obj.menu_w + 1 + obj.exe_but_w*2,
+                        y = obj.tab_h + obj.exec_line_y,
+                        w = obj.exe_but_w,
+                        h = obj.slider_tab_h,
+                        colfill_col = 'red',
+                        colfill_a =but_a,
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        func =  function() 
+                                  Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy)  
+                                  refresh.GUI = true
+                                end,
+                        func_mouseover =  function()
+                                      obj.knob_txt.txt = 'Calculate output'
+                                      refresh.GUI_minor = true
+                                    end                                 
+                        }                               
     obj.exe_val1 = { clear = true,
                         is_knob = true,
-                        x =   obj.menu_w + 1,
-                        y = gfx.h - obj.slider_tab_h,
+                        x =   obj.menu_w + but_cnt * obj.exe_but_w + 1,
+                        y =  obj.tab_h + obj.exec_line_y,
                         w = knob_w,
                         h = obj.slider_tab_h,
                         col = 'white',
@@ -879,8 +906,8 @@
                         } 
     obj.exe_val2 = { clear = true,
                         is_knob = true,
-                        x =   obj.menu_w + 1+knob_w,
-                        y = gfx.h - obj.slider_tab_h,
+                        x =   obj.menu_w + 1+but_cnt * obj.exe_but_w+knob_w,
+                        y = obj.tab_h + obj.exec_line_y,
                         w = knob_w,
                         h = obj.slider_tab_h,
                         col = 'white',
@@ -909,8 +936,8 @@
                                     end                                        
                         }                           
       obj.knob_txt = { clear = true,
-                        x =   obj.menu_w + 1 + com_exe_w * obj.knob_area,
-                        y = gfx.h - obj.slider_tab_h,
+                        x =   obj.menu_w + 1 + com_exe_w * obj.knob_area+but_cnt * obj.exe_but_w,
+                        y = obj.tab_h + obj.exec_line_y,
                         w = com_exe_w - com_exe_w * obj.knob_area,
                         h = obj.slider_tab_h,
                         col = 'white',
@@ -929,7 +956,7 @@
       obj.TabExe_stratname = { clear = true,
                         disable_blitback = true,
                         x =  0,
-                        y = gfx.h -obj.slider_tab_h - obj.tab_h ,
+                        y = obj.exec_line_y,
                         w = gfx.w,
                         h = obj.tab_h ,
                         col = 'white',
@@ -940,50 +967,50 @@
                         
                         func =  function() 
                                   local t = {  
-                                   { str = 'Rename strategy|',
+                                   { str = 'Rename preset|',
                                             func = function() 
-                                                      local ret, str_input = GetUserInputs(conf.mb_title, 1, 'Rename strategy,extrawidth=200' , strategy.name)
+                                                      local ret, str_input = GetUserInputs(conf.mb_title, 1, 'Rename preset,extrawidth=200' , strategy.name)
                                                       if ret then 
                                                         strategy.name = str_input
                                                         refresh.GUI = true
                                                       end
                                                     end
                                           },                                  
-                                   { str = 'Load default strategy',
+                                   { str = 'Load default preset',
                                             func = function() 
                                                       LoadStrategy_Default(strategy)
                                                       refresh.GUI = true
                                                     end
                                           },
-                                          { str = 'Load strategy from file',
+                                          { str = 'Load preset from file',
                                             func = function() 
-                                                      local retval, qtstr_file = GetUserFileNameForRead('', 'Load strategy from file', 'qtstr' )
+                                                      local retval, qtstr_file = GetUserFileNameForRead('', 'Load preset from file', 'qt' )
                                                       LoadStrategy_Parse(strategy, qtstr_file)
                                                       refresh.GUI = true
                                                     end
                                           } ,    
-                                          { str = 'Save strategy to file',
+                                          { str = 'Save preset to file',
                                             func = function() SaveStrategy(conf, strategy, 1 ) end
                                           }   ,                                        
-                                          { str = 'Save strategy to file and action list',
+                                          { str = 'Save preset to file and action list',
                                             func = function() SaveStrategy(conf, strategy, 2) end
                                           }  ,
-                                          { str = 'Open strategy path|',
+                                          { str = 'Open preset path|',
                                             func = function() 
-                                                    local strat_fp = '"'..obj.script_path .. 'mpl_QuantizeTool_Strategies\\"'  
+                                                    local strat_fp = '"'..obj.script_path .. 'mpl_QuantizeTool_presets\\"'  
                                                     Open_URL(strat_fp) 
                                                   end
                                           }  ,
-                                          { str = '#Strategy list'}  ,                                                                                                                            
+                                          { str = '#Presets list'}  ,                                                                                                                            
                                                                               
                                         }
                                   for i = 1, 100 do
-                                    local fp = EnumerateFiles( obj.script_path .. 'mpl_QuantizeTool_Strategies/', i-1 )
+                                    local fp = EnumerateFiles( obj.script_path .. 'mpl_QuantizeTool_presets/', i-1 )
                                     if not fp or fp == '' then break end
-                                    if fp:match('%.qtstr') and not fp:match('default') and not fp:match('last saved')then
-                                      t[#t+1] = { str = fp:gsub('.qtstr', ''),
+                                    if fp:match('%.qt') and not fp:match('default') and not fp:match('last saved')then
+                                      t[#t+1] = { str = fp:gsub('.qt', ''),
                                                   func =  function() 
-                                                            LoadStrategy_Parse(strategy, obj.script_path .. 'mpl_QuantizeTool_Strategies/'..fp)
+                                                            LoadStrategy_Parse(strategy, obj.script_path .. 'mpl_QuantizeTool_presets/'..fp)
                                                             refresh.GUI = true
                                                           end
                                                 }
@@ -1006,7 +1033,7 @@
   function Obj_MenuMain(conf, obj, data, refresh, mouse)
             obj.menu = { clear = true,
                         x = 0,
-                        y = gfx.h - obj.slider_tab_h,
+                        y = obj.tab_h + obj.exec_line_y,
                         w = obj.menu_w,
                         h = obj.slider_tab_h,
                         col = 'white',
@@ -1033,7 +1060,7 @@
         func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
         
       { str = '#Options'},    
-      { str = 'Apply ref/src strategy on parameter change|',
+      { str = 'Apply ref/src preset on parameter change|',
         func = function() 
                 conf.app_on_strategy_change = math.abs(1-conf.app_on_strategy_change) 
               end,
