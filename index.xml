@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fc3056400b3c48faf486f47b3fafaba0511a689e" name="MPL Scripts">
+<index version="1" commit="eeeed4fc4be9f433096e5e54386557bd8c43e7c9" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5125,6 +5125,23 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1097dfbb15d45ebc4ed555728a707adbfafd0c33/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
         <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1097dfbb15d45ebc4ed555728a707adbfafd0c33/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
         <source file="mpl_QuantizeTool_Strategies/default.qtstr">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1097dfbb15d45ebc4ed555728a707adbfafd0c33/Various/mpl_QuantizeTool_Strategies/default.qtstr</source>
+      </version>
+      <version name="2.0alpha7" author="MPL" time="2018-11-03T11:44:47Z">
+        <changelog><![CDATA[+ GUI: reduced view
++ GUI: various naming changes [p=2052215]
++ GUI: move detection buttons to control panel
++ Preset/AnchorPoints/Stretch markers
++ Preset/Target/Stretch markers (only GUI, disabled for now)
++ Preset/Action/Apply action on init
++ Preset/Action/Run QT without GUI
+# change default width]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
+        <source file="mpl_QuantizeTool_presets/default.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_presets/default.qt</source>
+        <source file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
