@@ -612,8 +612,9 @@
   ---------------------------------------------------  
   function GUI_TrackInputNotes(obj)
     local buf = 20
-    local time_fall = 1
+    local time_fall = 0.5
     local cur_ts = reaper.gmem_read(buf+1)
+    if not cur_ts then return end
     local circ_r = 10
     
     local t_out = {}
@@ -622,7 +623,7 @@
       t_out[i] = {note = reaper.gmem_read(i),
                   alpha =alpha/time_fall}
     end
-    local t_sorted = {}
+     t_sorted = {}
     -- sort/get last values
     for i = 1, #t_out do if t_out[i].alpha ~= 0 then t_sorted[ t_out[i].note ]= t_out[i].alpha end end
     

@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.81
+-- @version 1.82
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -9,7 +9,7 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    # check for gmem function exists (support from 5.961+dev1031)
+--    # gmem related thread small fixes (support from 5.961+dev1031)
 
 
 

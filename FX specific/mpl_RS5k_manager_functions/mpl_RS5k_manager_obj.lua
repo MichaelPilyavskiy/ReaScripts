@@ -1830,6 +1830,8 @@
     -- 
       local wf_active = conf.show_wf == 0  
       if wf_active then wf_active = '#' else wf_active = '' end
+      local note_active = APIExists('gmem_attach')
+      if note_active then note_active = '' else note_active = '#' end
         obj.menu = { clear = true,
                     x = 0,
                     y = 0,
@@ -2031,10 +2033,13 @@ List of available hashtags:
     func =  function() conf.separate_spl_peak = math.abs(1-conf.separate_spl_peak)  end,
     state = conf.separate_spl_peak == 1,
   } ,   
-  { str = 'Show input notes|<',
+  { str = note_active..'Show input notes|<',
     func = function() 
-              if conf.allow_track_notes == 0 then MB('This function require REAPER 5.961+ and RS5K_Manager_tracker JSFX installed and inserted at 1st slot of parent RS5k Manager track', 'Attention', 0) end
               conf.allow_track_notes = math.abs(1-conf.allow_track_notes)  
+              if conf.allow_track_notes == 1 then                 
+                MB('This function require REAPER 5.961+dev1031 and RS5K_Manager_tracker JSFX installed and inserted at 1st slot of parent RS5k Manager track', 'Attention', 0)
+              end
+              
             end ,
     state = conf.allow_track_notes == 1},  
   
