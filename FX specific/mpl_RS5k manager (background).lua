@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.80
+-- @version 1.81
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -9,13 +9,11 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 -- @changelog
---    + Layout: 8x8 segmented
---    + GUI Options: show input note (REAPER 5.961+dev1031, MPL`s RS5K_Manager_tracker JSFX)
---    # GUI: Sligtly brighter keys [p=2052726]
+--    # check for gmem function exists (support from 5.961+dev1031)
 
 
 
-  local vrs = 'v1.80'
+  local vrs = 'v1.81'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -146,7 +144,7 @@
   end
 ---------------------------------------------------------------------    
   function main()
-    if VF_CheckReaperVrs(5.961) then gmem_attach('RS5KManTrack') end
+    if VF_CheckReaperVrs(5.961) and gmem_attach then gmem_attach('RS5KManTrack') end
     
         local ret = SetButtonON()
         Main_RefreshExternalLibs()
