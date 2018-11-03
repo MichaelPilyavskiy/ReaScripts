@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.0alpha6
+-- @version 2.0alpha7
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for manipulating REAPER objects time and values
@@ -18,6 +18,7 @@
 --    + Preset/Target/Stretch markers (only GUI, disabled for now)
 --    + Preset/Action/Apply action on init
 --    + Preset/Action/Run QT without GUI
+--    # change default width
 
   local vrs = 'v2.0alpha6'
   --NOT gfx NOT reaper
@@ -95,7 +96,7 @@
             ES_key = 'MPL_QuantizeTool',
             wind_x =  50,
             wind_y =  50,
-            wind_w =  300,
+            wind_w =  450,
             wind_h =  450,
             dock =    0,
             dock2 =    0, -- set manually docked state
