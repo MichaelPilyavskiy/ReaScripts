@@ -645,6 +645,7 @@
   end
   ---------------------------------------------------  
   function GUI_TrackInputNotes(obj, conf)
+    if not gmem_read then return end
     local buf = 20
     local time_fall = 0.5
     local cur_ts = reaper.gmem_read(buf+1)

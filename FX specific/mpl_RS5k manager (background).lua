@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.84
+-- @version 1.85
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,20 +10,13 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + Action: add RS5k manager note tracker to parent track
---    + GUI: split into 3-positions selector Pad/Mixer/Pattern
---    + Store last open tab
---    # change default oct shift
---    # additional gmem check
---    - remove option to monitor track input automatically on initialization, always show monitor button
+--    # another gmem check
 
 
-
-  local vrs = 'v1.84'
+  local vrs = 'v1.85'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
-  
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local conf = {}  
