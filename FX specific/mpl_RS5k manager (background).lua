@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.82
+-- @version 1.84
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -8,12 +8,18 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
+--    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    # gmem related thread small fixes (support from 5.961+dev1031)
+--    + Action: add RS5k manager note tracker to parent track
+--    + GUI: split into 3-positions selector Pad/Mixer/Pattern
+--    + Store last open tab
+--    # change default oct shift
+--    # additional gmem check
+--    - remove option to monitor track input automatically on initialization, always show monitor button
 
 
 
-  local vrs = 'v1.81'
+  local vrs = 'v1.84'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -28,8 +34,10 @@
                     conf = false}
   local mouse = {}
   local obj = {}
-  local data = {}
-        
+   data = {}
+  local pat = {}    
+   
+    
   ---------------------------------------------------  
   
   function Main_RefreshExternalLibs()     -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua
@@ -39,6 +47,7 @@
     dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua")  
     dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua")  
     dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua")  
+    dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua")
   end  
 
   ---------------------------------------------------
@@ -79,12 +88,11 @@
             keymode = 0,  -- 0-keys
             keypreview = 1, -- send MIDI by clicking on keys
             oct_shift = -1, -- note names
-            start_oct_shift = 0, -- scroll
+            start_oct_shift = 2, -- scroll
             key_names2 = '#midipitch #keycsharp |#notename #samplecount |#samplename' ,
             key_names_mixer = '#midipitch #keycsharp |#notename ' ,
-            --key_names = 8, --8 return MIDInotes and keynames
-            --displayMIDInotenames = 1,
-            prepareMIDI2 = 0, -- prepare MIDI on start
+            key_names_pat = '#midipitch #keycsharp  #notename ',
+            prepareMIDI3 = 0,
             FX_buttons = 255,
             allow_track_notes = 0,
             
@@ -100,9 +108,13 @@
             draggedfile_fxchain = '',
             --copy_src_media = 0,
             sendnoteoffonrelease = 1,
+            
+            -- patterns
+            def_steps = 16
             }
     return t
   end  
+  
   ---------------------------------------------------  
    -- Set ToolBar Button ON
   function SetButtonON()
@@ -135,7 +147,7 @@
       refresh.data = nil 
     end    
     if refresh.conf == true                       then ExtState_Save(conf)                                            refresh.conf = nil end
-    if refresh.GUI == true or refresh.GUI_onStart == true then OBJ_Update              (conf, obj, data, refresh, mouse) end  
+    if refresh.GUI == true or refresh.GUI_onStart == true then OBJ_Update              (conf, obj, data, refresh, mouse, pat) end  
                                                 GUI_draw               (conf, obj, data, refresh, mouse)    
                                                
     local char =gfx.getchar()  
@@ -159,7 +171,6 @@
         conf.scr_title = scr_title
         conf.vrs = vrs
         obj.allow_track_notes = VF_CheckReaperVrs and VF_CheckReaperVrs(5.961)
-        MIDI_prepare(data, conf)
         run() 
   end 
   

@@ -29,7 +29,7 @@
  
  
     obj.samplename_h = 20   
-    obj.keycntrlarea_w = 20
+    obj.keycntrlarea_w = 25
     obj.WF_w=gfx.w- obj.keycntrlarea_w  
     obj.fx_rect_side = 15
     
@@ -38,7 +38,7 @@
     obj.it_alpha2 = 0.28 -- navigation
     obj.it_alpha3 = 0.1 -- option tabs
     obj.it_alpha4 = 0.05 -- option items
-    obj.it_alpha5 = 0.08-- oct lowhigh
+    obj.it_alpha5 = 0.08-- but left
     obj.it_alpha6 = 0.4-- selected
     obj.GUI_a1 = 0.2 -- pat not sel
     obj.GUI_a2 = 0.45 -- pat sel
@@ -59,8 +59,10 @@
     obj.GUIcol = { grey =    {0.5, 0.5,  0.5 },
                    white =   {1,   1,    1   },
                    red =     {1,   0,    0   },
+                   blue =     {0,   0.5,    1   },
                    green =   {0.3,   0.9,    0.3   },
-                   black =   {0,0,0 }
+                   black =   {0,0,0 },
+                   yellow =   {1,0.8,0.3 }
                    }    
     
     -- other
@@ -1207,9 +1209,7 @@
   end
 
   ---------------------------------------------------
-  function BuildKeyName(conf, data, note, ismixer)
-    local str = conf.key_names2..' '
-    if ismixer then str = conf.key_names_mixer..' ' end
+  function BuildKeyName(conf, data, note, str)
     if not str then return "" end
     --------
     str = str:gsub('#midipitch', note)
@@ -1240,13 +1240,14 @@
     str = str:gsub('|  |', '|')
     str = str:gsub('|', '\n')
     --------
+
     
     return str
 
     
   end
-    ---------------------------------------------------
-    function OBJ_GenKeys(conf, obj, data, refresh, mouse)
+  -------------------------------------------------------------
+  function OBJ_Layouts(conf, obj, data, refresh, mouse)
       local shifts,w_div ,h_div
       if conf.keymode ==0 then 
         w_div = 7
@@ -1506,7 +1507,11 @@
                     {7,0},                                                                              
                 }                                                             
       end
-      
+      return  shifts,w_div ,h_div
+  end
+    ---------------------------------------------------
+    function OBJ_GenKeys(conf, obj, data, refresh, mouse)
+      local shifts,w_div ,h_div = OBJ_Layouts(conf, obj, data, refresh, mouse)
       local WF_shift = 0
       if conf.show_wf == 1 and conf.separate_spl_peak == 1 then WF_shift = obj.WF_h end
       local key_area_h = gfx.h -obj.kn_h-obj.samplename_h-WF_shift
@@ -1529,7 +1534,7 @@
         end
 
         
-          local txt = BuildKeyName(conf, data, note)
+          local txt = BuildKeyName(conf, data, note, conf.key_names2)
           
           if  key_w < obj.fx_rect_side*2.5 or key_h < obj.fx_rect_side*2.8 then txt = note end
           if  key_w < obj.fx_rect_side*1.5 or key_h < obj.fx_rect_side*1.5 then txt = '' end
@@ -1767,58 +1772,9 @@
             end
     return cnt              
   end
-  ---------------------------------------------------
-  function OBJ_Update(conf, obj, data, refresh, mouse) 
-    for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
-    
-    obj.kn_h = math.floor(56 *  lim(conf.GUI_ctrlscale, 0.5,3)) 
-    obj.kn_w =  math.floor(42 *  lim(conf.GUI_ctrlscale, 0.5,3))
-    obj.splctrl_butw = math.floor(60 *  lim(conf.GUI_ctrlscale, 0.5,3))
-    obj.WF_h=obj.kn_h 
-    
-      local fx_per_pad if conf.allow_multiple_spls_per_pad == 1 then fx_per_pad = '#' else fx_per_pad = '' end
-      local keyareabut_h = (gfx.h -obj.kn_h-obj.samplename_h)/3
-        obj.keys_octaveshiftL = { clear = true,
-                    x = 0,
-                    y = obj.kn_h+obj.samplename_h,
-                    w = obj.keycntrlarea_w,
-                    h = keyareabut_h,
-                    col = 'white',
-                    state = fale,
-                    txt= '+',
-                    show = true,
-                    is_but = true,
-                    mouse_overlay = true,
-                    fontsz = obj.GUI_fontsz,
-                    alpha_back = obj.it_alpha5,
-                    a_frame = 0,
-                    func =  function() 
-                              conf.start_oct_shift = lim(conf.start_oct_shift + 1,-conf.oct_shift-1,10-conf.oct_shift)
-                              refresh.conf = true 
-                              refresh.GUI = true
-                              refresh.data = true
-                            end} 
-        obj.keys_octaveshiftR = { clear = true,
-                    x = 0,
-                    y = obj.kn_h+obj.samplename_h + keyareabut_h,
-                    w = obj.keycntrlarea_w,
-                    h = keyareabut_h-1,
-                    col = 'white',
-                    state = fale,
-                    txt= '-',
-                    show = true,
-                    is_but = true,
-                    mouse_overlay = true,
-                    fontsz = obj.GUI_fontsz,
-                    alpha_back = obj.it_alpha5,
-                    a_frame = 0,
-                    func =  function() 
-                              conf.start_oct_shift = lim(conf.start_oct_shift - 1,-conf.oct_shift-1,10-conf.oct_shift)
-                              refresh.conf = true 
-                              refresh.GUI = true
-                              refresh.data = true                           
-                            end}  
-                            
+  ---------------------------------------------------------
+  function OBJ_Menu(conf, obj, data, refresh, mouse)
+    local fx_per_pad if conf.allow_multiple_spls_per_pad == 1 then fx_per_pad = '#' else fx_per_pad = '' end
     -- ask pinned tr
       local ret, trGUID = GetProjExtState( 0, 'MPLRS5KMANAGE', 'PINNEDTR' )
       local pinnedtr = BR_GetMediaTrackByGUID( 0, trGUID )
@@ -1830,8 +1786,10 @@
     -- 
       local wf_active = conf.show_wf == 0  
       if wf_active then wf_active = '#' else wf_active = '' end
-      local note_active = APIExists('gmem_attach')
+      
+      local note_active = gmem_attach
       if note_active then note_active = '' else note_active = '#' end
+      
         obj.menu = { clear = true,
                     x = 0,
                     y = 0,
@@ -1900,22 +1858,31 @@
   { str = 'Reset to defaults',
     func = function() 
               conf.key_names2 = '#midipitch #keycsharp |#notename #samplecount |#samplename'  
-              conf.key_names_mixer = '#midipitch #keycsharp |#notename '          
+              conf.key_names_mixer = '#midipitch #keycsharp |#notename '  
+              conf.key_names_pat   = '#midipitch #keycsharp  #notename '      
             end},  
-  { str = 'Edit keyname hashtags',
+  { str = 'Edit keyname hashtags (pads)',
     func = function() 
               local ret = GetInput( conf, 'Keyname hashtags', conf.key_names2, _, 400, true) 
               if ret then  
                 conf.key_names2 = ret 
               end             
             end},  
-  { str = 'Edit mixer keyname hashtags',
+  { str = 'Edit keyname hashtags (mixer)',
     func = function() 
               local ret = GetInput( conf, 'Mixer keyname hashtags', conf.key_names_mixer, _, 400, true) 
               if ret then  
                 conf.key_names_mixer = ret 
               end             
-            end},              
+            end},  
+  { str = 'Edit keyname hashtags (pattern)',
+    func = function() 
+              local ret = GetInput( conf, 'Pattern keyname hashtags', conf.key_names_pat, _, 400, true) 
+              if ret then  
+                conf.key_names_pat = ret 
+              end             
+            end},             
+                        
   { str = 'Keyname hashtag reference',
     func = function() 
               msg([[
@@ -2058,7 +2025,7 @@ List of available hashtags:
     state = conf.copy_src_media == 1,
   } ,             
   ]]
-  { str = 'Use custom FX chain for newly dragged samples '..conf.draggedfile_fxchain..'|<|',
+  { str = 'Use custom FX chain for newly dragged samples '..conf.draggedfile_fxchain..'|<',
     func =  function() 
               if conf.draggedfile_fxchain ~= '' then conf.draggedfile_fxchain = '' return end
               local retval, fp = GetUserFileNameForRead('', 'FX chain for newly dragged samples', 'RfxChain')
@@ -2068,28 +2035,23 @@ List of available hashtags:
             end,
     state = conf.draggedfile_fxchain ~= '',
   } ,   
-  --        
+  -- 
+  { str = '>Global'},      
   { str = '>Prepare selected track MIDI input'},   
-  { str = 'Disabled',
-    func = function() conf.prepareMIDI2 = 0  end ,
-    state = conf.prepareMIDI2 == 0},    
-  { str = 'On script start: Virtual keyboard',
-    func = function() conf.prepareMIDI2 = 1  end ,
-    state = conf.prepareMIDI2 == 1},                   
-  { str = 'On script start: All inputs',
-    func = function() conf.prepareMIDI2 = 2  end ,
-    state = conf.prepareMIDI2 == 2}, 
-  { str = 'Manually: Virtual keyboard',
-    func = function() conf.prepareMIDI2 = 3  end ,
-    state = conf.prepareMIDI2 == 3},     
-  { str = 'Manually: All inputs|<',
-    func = function() conf.prepareMIDI2 = 4  end ,
-    state = conf.prepareMIDI2 == 4},          
+
+  { str = 'Virtual keyboard',
+    func = function() conf.prepareMIDI3 =0  end ,
+    state = conf.prepareMIDI3 == 0},     
+  { str = 'All inputs|<',
+    func = function() conf.prepareMIDI3 = 1  end ,
+    state = conf.prepareMIDI3 == 1},          
     
-  { str = 'Layering mode: allow multiple samples per pad',
+  { str = 'Layering mode: allow multiple samples per pad|<|',
     func = function() conf.allow_multiple_spls_per_pad = math.abs(1-conf.allow_multiple_spls_per_pad) end,
     state = conf.allow_multiple_spls_per_pad == 1, 
   } ,  
+  
+  { str = '>Project-related options'},   
   { str = 'Toggle pin selected track as a parent track',
     func =  function() 
               if conf.pintrack == 0 then 
@@ -2104,14 +2066,15 @@ List of available hashtags:
             end,
     state = conf.pintrack == 1,
   } ,  
-  { str = 'Select pinned track: '..pinnedtr_str..'|',
+  { str = 'Select pinned track: '..pinnedtr_str..'|<|',
     func =  function() 
               if pinnedtr then SetOnlyTrackSelected( pinnedtr ) end
             end
   } , 
    
   
-  { str = '#Actions'},  
+  { str = '#Actions',
+    menu_inc = true},  
   { str = 'Export selected items to RS5k instances',
     func =  function() 
               reaper.Undo_BeginBlock2( 0 )
@@ -2152,7 +2115,13 @@ List of available hashtags:
                 if proceed_MIDI then ExportSelItemsToRs5k_AddMIDI(track, MIDI,base_pitch) end        
                 reaper.Undo_EndBlock2( 0, 'Export selected items to RS5k instances', -1 )       
             end,
-  } ,    
+  } , 
+  { str = 'Add RS5K_Manager_tracker.jsfx to first slot of parent track',
+    func =  function()    
+              local out_id = TrackFX_AddByName( data.parent_track, 'JS:MPL Scripts/JSFX/RS5K_Manager_tracker.jsfx', false, 1 )
+              TrackFX_CopyToTrack(  data.parent_track, out_id,  data.parent_track, 0, true )
+            end
+  },
     
     
     
@@ -2177,20 +2146,106 @@ List of available hashtags:
                               refresh.GUI_onStart = true
                               refresh.data = true
                             end}  
-                            
-                            
-        local mix_y_offs =  obj.kn_h+obj.samplename_h + keyareabut_h*2  
-        local mix_h = keyareabut_h+1                   
-        if conf.prepareMIDI2 == 3 or conf.prepareMIDI2 == 4 then mix_h = keyareabut_h /2 end
-        
-        local cymb_a = obj.it_alpha5
-        if obj.window == 1 then cymb_a = obj.it_alpha6 end
-        obj.mixer = { clear = true,
+
+  end  
+  ----------------------------------------------------------------------------
+  function  OBJ_GenMainControl(conf, obj, data, refresh, mouse)
+      local keyareabut_h = (gfx.h -obj.kn_h-obj.samplename_h)/6
+      
+        obj._mode_fr = { clear = true,
                     x = 0,
-                    y = mix_y_offs,
+                    y = obj.kn_h+obj.samplename_h,
                     w = obj.keycntrlarea_w,
-                    h =mix_h,
-                    cymb = 0,
+                    h = keyareabut_h*2,
+                    col = 'blue',
+                    state = fale,
+                    txt= '',
+                    show = true,
+                    is_but = true,
+                    ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz2,
+                    a_frame = 0.01} 
+                          
+        obj._mode_fr2 = { clear = true,
+                    x = 0,
+                    y = obj.kn_h+obj.samplename_h+keyareabut_h*2,
+                    w = obj.keycntrlarea_w,
+                    h = keyareabut_h*3,
+                    col = 'green',
+                    state = fale,
+                    txt= '',
+                    show = true,
+                    is_but = true,
+                    ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz2,
+                    a_frame = 0.01}  
+
+        obj._mode_fr3 = { clear = true,
+                    x = 0,
+                    y = obj.kn_h+obj.samplename_h+keyareabut_h*5,
+                    w = obj.keycntrlarea_w,
+                    h = keyareabut_h,
+                    col = 'red',
+                    state = fale,
+                    txt= '',
+                    show = true,
+                    is_but = true,
+                    ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz2,
+                    a_frame = 0.01}  
+                                          
+       if conf.tab ==0 or conf.tab==1 then                
+        obj.keys_octaveshiftL = { clear = true,
+                    x = 0,
+                    y = obj.kn_h+obj.samplename_h,
+                    w = obj.keycntrlarea_w,
+                    h = keyareabut_h,
+                    col = 'white',
+                    state = fale,
+                    txt= '+1\noct',
+                    show = true,
+                    is_but = true,
+                    mouse_overlay = true,
+                    fontsz = obj.GUI_fontsz2,
+                    alpha_back = obj.it_alpha5,
+                    a_frame = 0,
+                    func =  function() 
+                              conf.start_oct_shift = lim(conf.start_oct_shift + 1,-conf.oct_shift-1,10-conf.oct_shift)
+                              refresh.conf = true 
+                              refresh.GUI = true
+                              refresh.data = true
+                            end} 
+        obj.keys_octaveshiftR = { clear = true,
+                    x = 0,
+                    y = obj.kn_h+obj.samplename_h + keyareabut_h,
+                    w = obj.keycntrlarea_w,
+                    h = keyareabut_h-1,
+                    col = 'white',
+                    state = fale,
+                    txt= '-1\noct',
+                    show = true,
+                    is_but = true,
+                    mouse_overlay = true,
+                    fontsz = obj.GUI_fontsz2,
+                    alpha_back = obj.it_alpha5,
+                    a_frame = 0,
+                    func =  function() 
+                              conf.start_oct_shift = lim(conf.start_oct_shift - 1,-conf.oct_shift-1,10-conf.oct_shift)
+                              refresh.conf = true 
+                              refresh.GUI = true
+                              refresh.data = true                           
+                            end}  
+        end           
+        OBJ_Menu(conf, obj, data, refresh, mouse)
+
+        local cymb_a = 0.2
+        if conf.tab == 0 then cymb_a = 0.7 end        
+        obj.pad_wind = { clear = true,
+                    x = 0,
+                    y = obj.kn_h+obj.samplename_h + keyareabut_h*2,
+                    w = obj.keycntrlarea_w,
+                    h =keyareabut_h,
+                    cymb = 2,
                     cymb_a = cymb_a,
                     col = 'white',
                     txt= '',
@@ -2201,7 +2256,36 @@ List of available hashtags:
                     alpha_back = obj.it_alpha5 ,
                     a_frame = 0,
                     func =  function() 
-                              obj.window = math.abs(obj.window-1)
+                              conf.tab = 0
+                              obj.window = 0
+                              obj.current_WFkey = nil
+                              obj.current_WFspl = nil
+                              refresh.GUI_WF = true  
+                              refresh.conf = true 
+                              refresh.GUI = true
+                              refresh.data = true                           
+                            end}         
+        
+        local cymb_a = 0.2
+        if conf.tab == 1 then cymb_a = 0.7 end
+        obj.mixer = { clear = true,
+                    x = 0,
+                    y = obj.kn_h+obj.samplename_h + keyareabut_h*3,
+                    w = obj.keycntrlarea_w,
+                    h =keyareabut_h,
+                    cymb = 0,
+                    cymb_a = cymb_a,
+                    col = 'white',
+                    --txt= 'MIX',
+                    show = true,
+                    is_but = true,
+                    mouse_overlay = true,
+                    fontsz = obj.GUI_fontsz,
+                    alpha_back = obj.it_alpha5 ,
+                    a_frame = 0,
+                    func =  function() 
+                              conf.tab = 1
+                              obj.window = 1
                               obj.current_WFkey = nil
                               obj.current_WFspl = nil
                               refresh.GUI_WF = true  
@@ -2210,14 +2294,41 @@ List of available hashtags:
                               refresh.data = true                           
                             end}                             
                             
-        if conf.prepareMIDI2 == 3 or conf.prepareMIDI2 == 4 then
-          local mode_override = 0
-          if  conf.prepareMIDI2 == 4 then mode_override = 1 end
+
+ 
+                            
+         local cymb_a = 0.2
+         if conf.tab == 2 then cymb_a = 0.7 end  
+        obj.pat_wind = { clear = true,
+                    x = 0,
+                    y = obj.kn_h+obj.samplename_h + keyareabut_h*4,
+                    w = obj.keycntrlarea_w,
+                    h =keyareabut_h,
+                    col = 'white',
+                    cymb = 3,
+                    cymb_a = cymb_a,                    
+                    txt= '',
+                    show = true,
+                    is_but = true,
+                    mouse_overlay = true,
+                    fontsz = obj.GUI_fontsz,
+                    alpha_back = obj.it_alpha5 ,
+                    a_frame = 0,
+                    func =  function() 
+                              conf.tab = 2 
+                              obj.window = 2
+                              obj.current_WFkey = nil
+                              obj.current_WFspl = nil
+                              refresh.GUI_WF = true  
+                              refresh.conf = true 
+                              refresh.GUI = true
+                              refresh.data = true                           
+                            end}                                
           obj.prepareMIDI = { clear = true,
                     x = 0,
-                    y = mix_y_offs + mix_h,
+                    y = obj.kn_h+obj.samplename_h + keyareabut_h*5,
                     w = obj.keycntrlarea_w,
-                    h = mix_h,
+                    h =keyareabut_h,
                     col = 'white',
                     cymb = 1,
                     cymb_a = obj.it_alpha6,
@@ -2229,24 +2340,283 @@ List of available hashtags:
                     alpha_back = obj.it_alpha5 ,
                     a_frame = 0,
                     func =  function() 
-                              MIDI_prepare(data, conf, mode_override)
+                              MIDI_prepare(data, conf, conf.prepareMIDI3)
                               refresh.conf = true 
                               refresh.GUI = true
                               refresh.data = true                           
-                            end}         
-        end                    
+                            end}  
                             
+    if conf.tab ==2 then
+      --[[obj.keys_octaveshiftL = { clear = true,
+                  x = 0,
+                  y = obj.kn_h+obj.samplename_h,
+                  w = obj.keycntrlarea_w,
+                  h = keyareabut_h*2-2,
+                  col = 'white',
+                  state = fale,
+                  txt= 'PAT\n>',
+                  show = true,
+                  is_but = true,
+                  mouse_overlay = true,
+                  fontsz = obj.GUI_fontsz2,
+                  alpha_back = obj.it_alpha5,
+                  a_frame = 0,
+                  func =  function() 
                             
-                            
-    if obj.window == 0 then                
+                            refresh.conf = true 
+                            refresh.GUI = true
+                            refresh.data = true
+                          end} ]]
+  end                           
+  end  
+  ---------------------------------------------------
+  function OBJ_Update(conf, obj, data, refresh, mouse, pat) 
+    for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
+    
+    obj.kn_h = math.floor(56 *  lim(conf.GUI_ctrlscale, 0.5,3)) 
+    obj.kn_w =  math.floor(42 *  lim(conf.GUI_ctrlscale, 0.5,3))
+    obj.splctrl_butw = math.floor(60 *  lim(conf.GUI_ctrlscale, 0.5,3))
+    obj.WF_h=obj.kn_h 
+    obj.pat_area_w = gfx.w - obj.keycntrlarea_w   - obj.offs*2
+    obj.pat_area_h = 25
+    
+    OBJ_GenMainControl(conf, obj, data, refresh, mouse)
+                           
+    if conf.tab == 0 then                
       OBJ_GenKeys(conf, obj, data, refresh, mouse)
       OBJ_GenKeys_splCtrl(conf, obj, data, refresh, mouse)
-     else
+     elseif conf.tab == 1 then
       OBJ_GenKeysMixer(conf, obj, data, refresh, mouse)
       OBJ_GenKeys_GlobalCtrl(conf, obj, data, refresh, mouse)
+     elseif conf.tab == 2 then
+      OBJ_GenPat_Keys(conf, obj, data, refresh, mouse, pat)
+      local ret = OBJ_GenPatCheck(conf, obj, data, refresh, mouse, pat) 
+      OBJ_GenPat_Ctrl(conf, obj, data, refresh, mouse, pat)
+      if ret then OBJ_GenPat_Steps(conf, obj, data, refresh, mouse, pat)  end
     end
     for key in pairs(obj) do if type(obj[key]) == 'table' then obj[key].context = key end end    
   end
+  ---------------------------------------------------  
+  function OBJ_GenPatCheck(conf, obj, data, refresh, mouse, pat) 
+    local ret, poolGUID, take_name = Pattern_GetSrcData()
+    pat.name = '(take not selected)'
+    for key in pairs(pat) do if tonumber(key) then pat[key] = nil end end
+    if ret then 
+      pat.poolGUID=poolGUID
+      pat.name = take_name
+      Pattern_Parse(conf, pat, poolGUID, take_name) 
+      return true
+    end
+  end
+  ---------------------------------------------------        
+  function OBJ_GenPat_Steps(conf, obj, data, refresh, mouse, pat) 
+    local key_ypos = obj.samplename_h + obj.kn_h
+    local step_cnt_w = obj.pat_area_h
+    local key_w = math.max(100,math.floor(obj.pat_area_w * 0.2))
+    local pat_w = gfx.w - key_w - obj.keycntrlarea_w - obj.offs*4 - step_cnt_w
+    for note = 0, 127 do
+      if not data[note]  then goto skip_step_gen end
+      
+      local col = 'green'
+      local colint
+      if data[note][1].src_track_col then colint = data[note][1].src_track_col  end  
+      local step = conf.def_steps
+      if pat[note] and pat[note].cnt_steps then
+        step = pat[note].cnt_steps
+      end
+        obj['keys_p'..note..'patcntstep'] = 
+                      { clear = true,
+                        x = obj.keycntrlarea_w + obj.offs*3 + key_w + pat_w,
+                        y = key_ypos,
+                        w = step_cnt_w,
+                        h = obj.pat_area_h,
+                        txt = step,
+                        col = col,
+                        colint = colint,
+                        state = 1,
+                        show = true,
+                        is_but = true,
+                        alpha_back = 0.2,
+                        fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,
+                        func =  function() 
+                                  mouse.context_latch_val = step
+                                end,
+                        func_LD2 = function ()
+                          if not mouse.context_latch_val then return end
+                          local dragratio = 50
+                          local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 1, 32)
+                          if not out_val then return end
+                          pat[note].cnt_steps  = out_val
+                          local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData()
+                          Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                          Pattern_SaveExtState(conf, pat, poolGUID)
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,                        }      
+      
+      
+      local pat_w_step = pat_w / step
+      for i_step = 1, step do
+        local step_exist = false 
+        local vel = 0       
+        if pat[note] and pat[note].steps and pat[note].steps[i_step] then 
+          vel = pat[note].steps[i_step]
+          step_exist = true
+        end
+        obj['keys_p'..note..'pat'..i_step] = 
+                      { clear = true,
+                        x = obj.keycntrlarea_w + obj.offs*2 + key_w + pat_w_step * (i_step-1),
+                        y = key_ypos,
+                        w = pat_w_step-1,
+                        h = obj.pat_area_h,
+                        col = col,
+                        colint = colint,
+                        state = 1,
+                        limtxtw = obj.fx_rect_side,
+                        is_step = true,
+                        val = vel/127,
+                        --vertical_txt = fn,
+                        linked_note = note,
+                        show = true,
+                        is_but = true,
+                        alpha_back = 0.2,
+                        aligh_txt = 5,
+                        fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,
+                        func =  function() 
+                                  local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData()
+                                  if ret then 
+                                    Pattern_Change(conf, pat, poolGUID, note, i_step, 120)
+                                    Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                                    Pattern_SaveExtState(conf, pat, poolGUID)
+                                    refresh.GUI = true  
+                                  end   
+                                end}
+      end           
+      key_ypos = key_ypos + 1 +obj.pat_area_h
+      ::skip_step_gen::
+    end  
+  end
+  ---------------------------------------------------
+  function OBJ_GenPat_Keys(conf, obj, data, refresh, mouse,pat) 
+    local key_ypos = obj.samplename_h + obj.kn_h
+    local key_w = math.max(100,math.floor(obj.pat_area_w * 0.2))
+    for note = 0, 127 do
+      if data[note] then
+        local col = 'green'
+        local colint
+        if data[note][1].src_track_col then 
+          colint = data[note][1].src_track_col  
+        end  
+      
+      
+        local txt = BuildKeyName(conf, data, note, conf.key_names_pat)
+            obj['keys_p'..note] = 
+                      { clear = true,
+                        x = obj.keycntrlarea_w + obj.offs,
+                        y = key_ypos,
+                        w = key_w,
+                        h = obj.pat_area_h,
+                        col = col,
+                        colint = colint,
+                        txt= txt,
+                        limtxtw = obj.fx_rect_side,
+                        --vertical_txt = fn,
+                        linked_note = note,
+                        show = true,
+                        is_but = true,
+                        alpha_back = 0.6,
+                        aligh_txt = 5,
+                        fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,
+                        func =  function() 
+                                  if not data.hasanydata then return end
+                                  data.current_spl_peaks = nil
+                                  if conf.keypreview == 1 then  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), note,100) end                                  
+                                  if obj.current_WFkey ~= note then 
+                                    obj.current_WFspl = 1                                   
+                                    obj.current_WFkey = note
+                                  end
+                                  
+                                  refresh.GUI_WF = true  
+                                  refresh.GUI = true     
+                                end,
+                        func_R =  function ()
+                                    if not data[note] then return end
+                                    Menu(mouse, { { str =   'Float linked FX',
+                                                    func =  function()
+                                                              if data[note] then
+                                                                for spl = 1, #data[note] do
+                                                                  -- TrackFX_SetOpen(  data[note][1].src_track, data[note][1].rs5k_pos, true )
+                                                                  TrackFX_Show( data[note][spl].src_track, data[note][spl].rs5k_pos,3 )
+                                                                end
+                                                              end
+                                                            end},
+                                                    { str =   'Show linked FX chain',
+                                                    func =  function()
+                                                              if data[note] then
+                                                                for spl = 1, #data[note] do
+                                                                  -- TrackFX_SetOpen(  data[note][1].src_track, data[note][1].rs5k_pos, true )
+                                                                  TrackFX_Show( data[note][spl].src_track, data[note][spl].rs5k_pos,1 )
+                                                                end
+                                                              end
+                                                            end},                                                            
+                                                  { str =   'Rename linked MIDI note',
+                                                    func =  function()
+                                                              local MIDI_name = GetTrackMIDINoteNameEx( 0, data[note][1].src_track, note, 1)
+                                                              local ret, MIDI_name_ret = reaper.GetUserInputs( conf.scr_title, 1, 'Rename MIDI note,extrawidth=200', MIDI_name )
+                                                              if ret then
+                                                                SetTrackMIDINoteNameEx( 0, data[note][1].src_track, note, 0, MIDI_name_ret)
+                                                                SetTrackMIDINoteNameEx( 0, data.parent_track, note, 0, MIDI_name_ret)
+                                                              end
+                                                            end},
+                                                  { str =   'Remove pad content',
+                                                    func =  function()
+                                                              for spl = #data[note], 1, -1 do
+                                                                SNM_MoveOrRemoveTrackFX( data[note][spl].src_track, data[note][spl].rs5k_pos, 0 )
+                                                              end
+                                                            end},                                                            
+                                                
+                                                })
+                                    obj.current_WFkey = nil
+                                    obj.current_WFspl = nil
+                                    refresh.GUI_WF = true  
+                                    refresh.GUI = true  
+                                    refresh.data = true                                  
+                                  end,  }
+                                  
+        key_ypos = key_ypos + 1 +obj.pat_area_h
+      end
+    end
+  end
+  ---------------------------------------------------  
+  function OBJ_GenPat_Ctrl(conf, obj, data, refresh, mouse,pat)
+    obj.patframe = { clear = true,
+                    x = obj.keycntrlarea_w   + obj.offs,
+                    y = 0,
+                    w = obj.pat_area_w,
+                    h =obj.kn_h,
+                    col = 'white',
+                    txt= '',
+                    show = true,
+                    mouse_overlay = true,
+                    ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz,
+                    alpha_back = obj.it_alpha5 ,
+                    a_frame = 0.1 }
+      obj._patname = { clear = true,
+              x = obj.keycntrlarea_w  ,
+              y = obj.kn_h,--gfx.h - obj.WF_h-obj.key_h,
+              w = gfx.w -obj.keycntrlarea_w,
+              h = obj.samplename_h,
+              col = 'white',
+              state = 0,
+              txt= pat.name,
+              aligh_txt = 0,
+              show = true,
+              is_but = true,
+              fontsz = conf.GUI_padfontsz,
+              alpha_back =0}
+  end
+  
     ---------------------------------------------------
     function OBJ_GenKeysMixer(conf, obj, data, refresh, mouse)
       local cnt = 0
@@ -2285,7 +2655,7 @@ List of available hashtags:
           alpha_back = 0.15 
         end
         
-        local txt = BuildKeyName(conf, data, note, true)
+        local txt = BuildKeyName(conf, data, note, conf.key_names_mixer)
         
         if  key_w < obj.fx_rect_side then txt = '' end
           --
@@ -2314,7 +2684,7 @@ List of available hashtags:
             if key_w < obj.fx_rect_side*2 then txt = note end
             --local verttxt = ''
             --if txt and tostring(txt )then verttxt = tostring(txt ):gsub('\n',' ') end
-            obj['keys_p'..i] = 
+            obj['keys_p'..note] = 
                       { clear = true,
                         x = key_xpos,
                         y = gfx.h-key_area_h,
@@ -2413,7 +2783,7 @@ List of available hashtags:
               or  note%12 == 6 
               or  note%12 == 8 
               or  note%12 == 10 
-              then obj['keys_p'..i].txt_col = 'black' end
+              then obj['keys_p'..note].txt_col = 'black' end
               
               
         end

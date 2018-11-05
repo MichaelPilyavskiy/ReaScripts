@@ -268,6 +268,8 @@
   function Data_Update(conf, obj, data, refresh, mouse)
     local tr
     
+    
+    
     if conf.pintrack == 1 then 
       local ret, trGUID = GetProjExtState( 0, 'MPLRS5KMANAGE', 'PINNEDTR' )
       tr = BR_GetMediaTrackByGUID( 0, trGUID )
@@ -288,6 +290,11 @@
         local desttr = BR_GetMediaTrackSendInfo_Track( tr, 0, sid-1, 1 )
         GetRS5kData(data, desttr)
       end
+    end
+    
+    if data.parent_track then 
+      local retval, buf = reaper.TrackFX_GetFXName( data.parent_track, 0, '' )
+      data.jsfxtrack_exist = buf:match('RS5K_Manager_tracker') ~= nil
     end
     
   end 
@@ -336,19 +343,14 @@
   function MIDI_prepare(data, conf, mode_override)
     local tr = GetSelectedTrack(0,0)
     if not tr then return end
-    if conf.prepareMIDI2 == 0 then return end
-    if conf.prepareMIDI2 == 1 or (mode_override and mode_override == 0 ) then -- VK
-      SetMediaTrackInfo_Value( tr, 'I_RECINPUT', 4096+(62<<5) )
-      SetMediaTrackInfo_Value( tr, 'I_RECMON', 1) -- monitor input
-      SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) -- arm track 
-      SetMediaTrackInfo_Value( tr, 'I_RECMODE',0) -- record MIDI out
+    if mode_override == 0  then -- VK
+      SetMediaTrackInfo_Value( tr, 'I_RECINPUT', 4096+(62<<5) )-- VK
+     else
+      SetMediaTrackInfo_Value( tr, 'I_RECINPUT', 4096+(63<<5) ) -- all 
     end
-    if conf.prepareMIDI2 == 2 or (mode_override and mode_override == 1 ) then -- all midi
-      SetMediaTrackInfo_Value( tr, 'I_RECINPUT', 4096+(63<<5) )
-      SetMediaTrackInfo_Value( tr, 'I_RECMON', 1) -- monitor input
-      SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) -- arm track 
-      SetMediaTrackInfo_Value( tr, 'I_RECMODE',0) -- record MIDI out
-    end    
+    SetMediaTrackInfo_Value( tr, 'I_RECMON', 1) -- monitor input
+    SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) -- arm track 
+    SetMediaTrackInfo_Value( tr, 'I_RECMODE',0) -- record MIDI out
   end
   ------------------------------------------------------------------------
   function ExplodeRS5K_Extract_rs5k_tChunks(tr)
@@ -584,15 +586,3 @@
       SetTrackStateChunk(track, new_chunk, false) 
   end
   
-  
-  
-  
-   
-  
-  
-
-     
-
-  
-  
- 

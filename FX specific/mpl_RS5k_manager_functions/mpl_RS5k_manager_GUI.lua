@@ -454,32 +454,66 @@
         gfx.x,gfx.y = x+w-1,y
         gfx.lineto(x+1,y)
       end    
-      
+  
+    if o.is_step and o.val then
+      if o.colint then 
+        local r, g, b = ColorFromNative( o.colint ) 
+        gfx.set(r/255,g/255,b/255, 0.2)
+        --gfx.rect(x,y,w-1,h,1)
+      end
+      gfx.muladdrect(x,y + h - h*o.val,w-1,h*o.val,1,1,1,1, 0,0,0,0.8)
+    end
+        
     return true
   end
   ---------------------------------------------------
   function GUI_symbols(conf, obj, data, refresh, mouse) 
     
     -- mixer
-      col(obj, 'green', 1) 
+      col(obj, 'white', 1) 
       gfx.a = 1 
       --gfx.rect(0,0,100,100,0)   
-      gfx.rect(10,60,20,30,1) 
+      gfx.rect(10,10,20,80,1) 
       gfx.rect(30,30,20,60,1)
       gfx.rect(50,50,20,40,1)
-      gfx.rect(70,60,20,30,1)
+      gfx.rect(70,40,20,50,1)
       
     -- preview
+      local xo = 100
       col(obj, 'white', 1) 
       gfx.a = 1   
       --gfx.rect(100,0,100,100,0) 
-      gfx.rect(120,25,30,50,1) 
-      gfx.triangle( 150,25,
-                    150,75,
-                    180,99,
-                    180,0
+      gfx.rect(20+xo,25,30,50,1) 
+      gfx.triangle( 50+xo,25,
+                    50+xo,75,
+                    80+xo,99,
+                    80+xo,0
                     )
-            
+                    
+    -- pad
+      xo = 200
+      col(obj, 'white', 1) 
+      gfx.a = 1   
+      for x = 1, 3 do
+        for y = 1, 3 do
+          gfx.rect(12 + xo + 25*(x-1),10+ 25*(y-1),24,24,1)  
+        end
+      end        
+
+    -- pattern
+      xo = 300
+      col(obj, 'white', 1) 
+      gfx.a = 1   
+      for x = 1, 2 do
+        for y = 1, 3 do
+          if x == 2 then 
+            gfx.rect(8 + xo + 25*(x-1),10+ 25*(y-1),48,24,1)  
+           else
+            gfx.rect(12 + xo + 25*(x-1),10+ 25*(y-1),18,24,1) 
+          end
+        end
+      end  
+                  
   end
   ---------------------------------------------------
   function GUI_draw(conf, obj, data, refresh, mouse)
@@ -604,18 +638,19 @@
     end      
     --GUI_symbols(conf, obj, data, refresh, mouse) 
 
-    if obj.allow_track_notes and conf.allow_track_notes == 1 then GUI_TrackInputNotes(obj) end
+    if obj.allow_track_notes and conf.allow_track_notes == 1 and data.jsfxtrack_exist then GUI_TrackInputNotes(obj, conf) end
         
     refresh.GUI = nil
     gfx.update()
   end
   ---------------------------------------------------  
-  function GUI_TrackInputNotes(obj)
+  function GUI_TrackInputNotes(obj, conf)
     local buf = 20
     local time_fall = 0.5
     local cur_ts = reaper.gmem_read(buf+1)
     if not cur_ts then return end
     local circ_r = 10
+    local shift_right = conf.tab==2
     
     local t_out = {}
     for i = 1, buf/2 do
@@ -623,17 +658,20 @@
       t_out[i] = {note = reaper.gmem_read(i),
                   alpha =alpha/time_fall}
     end
-     t_sorted = {}
+    local t_sorted = {}
     -- sort/get last values
     for i = 1, #t_out do if t_out[i].alpha ~= 0 then t_sorted[ t_out[i].note ]= t_out[i].alpha end end
     
+    local x,y
     for note in pairs(t_sorted) do
       if obj['keys_p'..note] and obj['keys_p'..note].w then
         gfx.a = t_sorted[note]
-        
-        gfx.circle(obj['keys_p'..note].x + obj['keys_p'..note].w/2,
-                  obj['keys_p'..note].y + obj['keys_p'..note].h/2,
-                  10,1)
+        x = obj['keys_p'..note].x + obj['keys_p'..note].w/2
+        y = obj['keys_p'..note].y + obj['keys_p'..note].h/2-1
+        if shift_right then 
+          x = obj['keys_p'..note].x + obj['keys_p'..note].w - circ_r -1
+        end
+        gfx.circle(x,y,circ_r,1)
       end
     end
   end
