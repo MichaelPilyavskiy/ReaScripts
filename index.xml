@@ -5266,23 +5266,23 @@ setup min gain, attack =0]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Scripts for {\field{\*\fldinst{HYPERLINK "http://reaper.fm"}}{\fldrslt{\ul
+{\pard \ql \f0 \sa180 \li0 \fi0 Lua and EEL scripts for {\field{\*\fldinst{HYPERLINK "http://reaper.fm"}}{\fldrslt{\ul
 Cockos REAPER
 }}}
  coded by Michael Pilyavskiy. This repository is compatible with the ReaPack {\field{\*\fldinst{HYPERLINK "http://reapack.com/"}}{\fldrslt{\ul
 REAPER extension
 }}}
- for easy batch downloading and updating.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Discussing is {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/showthread.php?t=188335"}}{\fldrslt{\ul
+ for easy downloading and updating.\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Discussion is {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/showthread.php?t=188335"}}{\fldrslt{\ul
 here
 }}}
 .\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 MPL contacts: (I speak Russian, English, a bit Hebrew and Tatar):\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://vk.com/michael_pilyavskiy"}}{\fldrslt{\ul
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://vk.com/mpl57"}}{\fldrslt{\ul
 VK
 }}}
 \par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://soundcloud.com/mp57"}}{\fldrslt{\ul
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://soundcloud.com/mpl57"}}{\fldrslt{\ul
 SoundCloud
 }}}
 \par}
@@ -5293,8 +5293,12 @@ PromoDJ
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=70694"}}{\fldrslt{\ul
 Cockos Forum
 }}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://github.com/MichaelPilyavskiy/ReaScripts/issues"}}{\fldrslt{\ul
+GitHub issues tracker
+}}}
 \sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Please donate if you like my stuff:\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Donate if you like my stuff:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://paypal.me/donate2mpl"}}{\fldrslt{\ul
 PayPal
 }}}
