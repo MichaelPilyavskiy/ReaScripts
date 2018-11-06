@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d02ac2052d267e5d3a465b8e53ea084914ac65c6" name="MPL Scripts">
+<index version="1" commit="3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5100,7 +5100,7 @@ setup min gain, attack =0]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 Script for manipulating REAPER objects time and values\par}
 }
 ]]></description>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
       </metadata>
       <version name="2.0alpha1" author="MPL" time="2018-10-21T21:18:00Z">
         <changelog><![CDATA[+ Complete script rebuild. This is an early developer test alpha. It is more about replacing old buggy code that adding new functions.
@@ -5173,6 +5173,18 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
         <source file="mpl_QuantizeTool_presets/default.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_presets/default.qt</source>
         <source file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
+      </version>
+      <version name="2.0alpha8" author="MPL" time="2018-11-06T20:22:22Z">
+        <changelog><![CDATA[+ Preset/Target/Stretch markers
++ Preset/AnchorPoints/Pattern: show list of grooves in /Groove folder
++ Preset/AnchorPoints/Pattern: load from file]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
+        <source file="mpl_QuantizeTool_presets/default.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_presets/default.qt</source>
+        <source file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
