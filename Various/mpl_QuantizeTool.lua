@@ -1,7 +1,7 @@
 -- @description QuantizeTool
--- @version 2.0alpha7
+-- @version 2.0alpha8
 -- @author MPL
--- @website https://forum.cockos.com/showthread.php?t=188335
+-- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @provides
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua
@@ -11,16 +11,11 @@
 --    mpl_QuantizeTool_presets/default.qt
 --    mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua
 -- @changelog
---    + GUI: reduced view
---    + GUI: various naming changes [p=2052215]
---    + GUI: move detection buttons to control panel
---    + Preset/AnchorPoints/Stretch markers
---    + Preset/Target/Stretch markers (only GUI, disabled for now)
---    + Preset/Action/Apply action on init
---    + Preset/Action/Run QT without GUI
---    # change default width
+--    + Preset/Target/Stretch markers
+--    + Preset/AnchorPoints/Pattern: show list of grooves in /Groove folder
+--    + Preset/AnchorPoints/Pattern: load from file
 
-  local vrs = 'v2.0alpha6'
+  local vrs = 'v2.0alpha8'
   --NOT gfx NOT reaper
   
 
@@ -42,13 +37,54 @@
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
   obj.script_path = script_path
-  
+  ---------------------------------------------------   
   function Main_RefreshExternalLibs()     -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua    
     dofile(script_path .. "mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua")
     dofile(script_path .. "mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua")  
     dofile(script_path .. "mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua")  
     dofile(script_path .. "mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua")  
   end  
+  --------------------------------------------------- 
+  function Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy)
+    --local take =  reaper.GetMediaItemTakeByGUID( 0, t.tkGUID ) 
+    --if not take then return end
+    -- collect various takes
+    local takes_t = {}
+    for i = 1 , #data.src do
+      local t = data.src[i]
+      if not takes_t [t.GUID] then takes_t [t.GUID] = {} end
+        takes_t [t.GUID] [#takes_t [t.GUID] + 1 ]  = CopyTable(t)
+      end 
+      
+    for GUID in pairs(takes_t) do
+      local take =  GetMediaItemTakeByGUID( 0, GUID )
+      if take then
+        -- remove existed
+        local cur_cnt =  GetTakeNumStretchMarkers( take )
+        DeleteTakeStretchMarkers( take, 0, cur_cnt )
+        for i = 1, #takes_t[GUID] do
+          local t = takes_t[GUID][i]
+          local out_pos
+          if t.out_pos then
+            local out_pos_sec = TimeMap2_beatsToTime( 0, t.out_pos )
+            out_pos = lim(out_pos_sec - t.it_pos, 0, t.it_len)* t.tk_rate
+            out_pos = t.sm_pos_sec + (out_pos - t.sm_pos_sec)*strategy.exe_val1
+           else
+            out_pos = t.sm_pos_sec
+          end
+          SetTakeStretchMarker( take, -1, out_pos, t.srcpos_sec )
+        end
+      end
+      
+      local last_t = takes_t[GUID]  [#takes_t[GUID]]
+      if last_t.srcpos_sec* last_t.tk_rate  ~= last_t.it_len then
+        SetTakeStretchMarker( take, -1, last_t.it_len* last_t.tk_rate, last_t.it_len* last_t.tk_rate )
+      end
+      
+      local item =  GetMediaItemTake_Item( take )
+      UpdateItemInProject( item )
+    end
+  end      
   --------------------------------------------------------------------
   function LoadStrategy_Default(strategy)
     strategy.name = 'default' 

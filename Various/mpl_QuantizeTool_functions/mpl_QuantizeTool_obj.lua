@@ -217,7 +217,7 @@
                               show = strategy.src_positions&1==1,
                               level = 1,
                             func =  function()
-                                      do return end
+                                      --do return end
                                       if strategy.src_strmarkers&1~=1 then
                                         strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
                                         strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 0)
@@ -330,6 +330,36 @@
                               show = strategy.ref_pattern&1 == 1,
                               prevent_app = true,
                               level = 1,
+                              func =  function()
+                                        local f_table = Data_GetListedFile(GetResourcePath()..'/Grooves/', strategy.ref_pattern_name..'.rgt')
+                                         t_gr = {}
+                                        for i = 1 , #f_table do 
+                                          if f_table[i]:match('%.rgt') then
+                                            t_gr[#t_gr+1] = {str = f_table[i],
+                                                      func = function() 
+                                                                local f,content = io.open(GetResourcePath()..'/Grooves/'..f_table[i], 'r')
+                                                                if f then 
+                                                                  content = f:read('a')
+                                                                  f:close()
+                                                                end
+                                                                if content then
+                                                                  data.ref_pat = {}
+                                                                  Data_PatternParseRGT(data, strategy, content, true)
+                                                                  strategy.ref_pattern_name = f_table[i]:gsub('%.rgt', '')
+                                                                  SaveStrategy(conf, strategy, 1, true)
+                                                                  refresh.GUI = true
+                                                                end
+                                                              end}
+                                          end
+                                        end
+                                        Menu(mouse, t_gr)
+                                        
+                                        --[[
+local f,content = io.open(GetResourcePath()..'/Grooves/'..prev_fp, 'r')
+                                                            
+                                                            ]]                                        
+                                        refresh.GUI = true
+                                      end                                   
                             },
                             { name = '',
                               show = strategy.ref_pattern&1 == 1,
@@ -401,7 +431,32 @@
                                                           end
                                                        end
                                                 }, 
-                                                
+                                              { clear = true,
+                                                w = obj.strategy_itemh*4,
+                                                col = 'white',
+                                                txt= 'load',
+                                                show = true,
+                                                fontsz = obj.GUI_fontsz2,
+                                                func = function()
+                                                          local retval, fname = reaper.GetUserFileNameForRead('', 'Load groove', 'rgt' )
+                                                          if retval and fname then 
+                                                            local f,content = io.open(fname, 'r')
+                                                            if f then 
+                                                              content = f:read('a')
+                                                              f:close()
+                                                            end
+                                                            if content then
+                                                              data.ref_pat = {}
+                                                              Data_PatternParseRGT(data, strategy, content, true)
+                                                              local fname_short = GetShortSmplName(fname)
+                                                              strategy.ref_pattern_name = fname_short:gsub('%.rgt', '')
+                                                              --SaveStrategy(conf, strategy, 1, true)
+                                                              refresh.GUI = true
+                                                            end
+                                                          end                                                          
+                                                       end
+                                                }, 
+                                                                                                
                                               { clear = true,
                                                 w = obj.strategy_itemh*4,
                                                 col = 'white',
@@ -470,7 +525,7 @@
   -----------------------------------------------
   function Data_GetListedFile(path, fname_check, position)
     -- get files list
-     files = {}
+    local files = {}
     local i = 0
     repeat
     local file = reaper.EnumerateFiles( path, i )
@@ -479,6 +534,8 @@
     end
     i = i+1
     until file == nil
+    
+    if not position then return files end
     
   -- search file list
     for i = 1, #files do
@@ -1060,7 +1117,7 @@
         func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
         
       { str = '#Options'},    
-      { str = 'Apply ref/src preset on parameter change|',
+      { str = 'Apply preset (AnchorPoints/Target) on preset change|',
         func = function() 
                 conf.app_on_strategy_change = math.abs(1-conf.app_on_strategy_change) 
               end,
