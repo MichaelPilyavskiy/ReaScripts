@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a" name="MPL Scripts">
+<index version="1" commit="2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -362,6 +362,10 @@
       <version name="1.17" author="MPL" time="2018-11-02T23:59:29Z">
         <changelog><![CDATA[+ VF_CheckReaperVrs()]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd959ed9b93a0194e05a7f144b82e536de9ae5bf/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.18" author="MPL" time="2018-11-07T19:41:38Z">
+        <changelog><![CDATA[+ VF_GetFormattedGrid]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
@@ -2289,6 +2293,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.03" author="MPL" time="2017-10-19T15:56:17Z">
         <changelog><![CDATA[- disable moving items to zero position]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f7da5f353f68ac2f0d5003c5d83b6f981ac1fd4b/Items%20Editing/mpl_Move%20selected%20items%20to%20tracks%20with%20same%20name%20as%20items.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2018-11-07T19:41:38Z">
+        <changelog><![CDATA[# prevent possible error for items with no extension in name [p=2054766]]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Items%20Editing/mpl_Move%20selected%20items%20to%20tracks%20with%20same%20name%20as%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Quantize item length and stretch (4 beats snap).lua" type="script" desc="Quantize item length and stretch (4 beats snap)">
@@ -4949,6 +4957,20 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2b1f91225f8d4e397d910518fdb639aa00ab79db/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2b1f91225f8d4e397d910518fdb639aa00ab79db/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
       </version>
+      <version name="1.77" author="MPL" time="2018-11-07T19:41:38Z">
+        <changelog><![CDATA[+ Item/#length: typing edits by default absolute, option for make it always relative [p=2054836]
++ Item: collect common settings into 'All' submenu]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_InteractiveToolbar.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">
       <metadata>
@@ -5185,6 +5207,23 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
         <source file="mpl_QuantizeTool_presets/default.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_presets/default.qt</source>
         <source file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
+      </version>
+      <version name="2.0alpha9" author="MPL" time="2018-11-07T19:41:38Z">
+        <changelog><![CDATA[+ Preset/Target/MIDI: allow multiple selected items take pointers
++ Preset/AnchorPoints/Groove: selector beetween getting groove from file or generating it
++ Preset/AnchorPoints/Groove/Generate/Current grid
++ Preset/AnchorPoints/MIDI: allow multiple selected items take pointers
++ Preset/AnchorPoints/MIDI: allow to use/align to specific messages
+# Preset/AnchorPoints: fix show incorrect points count
+# GUI: wrapping preset buttons on low width
+# require VariousFunctions 1.18+]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
+        <source file="mpl_QuantizeTool_presets/default.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool_presets/default.qt</source>
+        <source file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
