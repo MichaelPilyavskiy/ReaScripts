@@ -53,6 +53,7 @@
     data.MM_grid_doubleclick = conf.MM_grid_doubleclick
     data.MM_grid_default_reset_grid = conf.MM_grid_default_reset_grid
     data.persist_clock_showtimesec = conf.persist_clock_showtimesec
+    data.relative_it_len = conf.relative_it_len
     
     -- reset buttons data
       obj.b = {}

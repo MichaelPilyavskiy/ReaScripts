@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.0alpha8
+-- @version 2.0alpha9
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -11,11 +11,16 @@
 --    mpl_QuantizeTool_presets/default.qt
 --    mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua
 -- @changelog
---    + Preset/Target/Stretch markers
---    + Preset/AnchorPoints/Pattern: show list of grooves in /Groove folder
---    + Preset/AnchorPoints/Pattern: load from file
+--    + Preset/Target/MIDI: allow multiple selected items take pointers
+--    + Preset/AnchorPoints/Groove: selector beetween getting groove from file or generating it
+--    + Preset/AnchorPoints/Groove/Generate/Current grid
+--    + Preset/AnchorPoints/MIDI: allow multiple selected items take pointers
+--    + Preset/AnchorPoints/MIDI: allow to use/align to specific messages
+--    # Preset/AnchorPoints: fix show incorrect points count
+--    # GUI: wrapping preset buttons on low width
+--    # require VariousFunctions 1.18+
 
-  local vrs = 'v2.0alpha8'
+  local vrs = 'v2.0alpha9'
   --NOT gfx NOT reaper
   
 
@@ -44,47 +49,6 @@
     dofile(script_path .. "mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua")  
     dofile(script_path .. "mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua")  
   end  
-  --------------------------------------------------- 
-  function Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy)
-    --local take =  reaper.GetMediaItemTakeByGUID( 0, t.tkGUID ) 
-    --if not take then return end
-    -- collect various takes
-    local takes_t = {}
-    for i = 1 , #data.src do
-      local t = data.src[i]
-      if not takes_t [t.GUID] then takes_t [t.GUID] = {} end
-        takes_t [t.GUID] [#takes_t [t.GUID] + 1 ]  = CopyTable(t)
-      end 
-      
-    for GUID in pairs(takes_t) do
-      local take =  GetMediaItemTakeByGUID( 0, GUID )
-      if take then
-        -- remove existed
-        local cur_cnt =  GetTakeNumStretchMarkers( take )
-        DeleteTakeStretchMarkers( take, 0, cur_cnt )
-        for i = 1, #takes_t[GUID] do
-          local t = takes_t[GUID][i]
-          local out_pos
-          if t.out_pos then
-            local out_pos_sec = TimeMap2_beatsToTime( 0, t.out_pos )
-            out_pos = lim(out_pos_sec - t.it_pos, 0, t.it_len)* t.tk_rate
-            out_pos = t.sm_pos_sec + (out_pos - t.sm_pos_sec)*strategy.exe_val1
-           else
-            out_pos = t.sm_pos_sec
-          end
-          SetTakeStretchMarker( take, -1, out_pos, t.srcpos_sec )
-        end
-      end
-      
-      local last_t = takes_t[GUID]  [#takes_t[GUID]]
-      if last_t.srcpos_sec* last_t.tk_rate  ~= last_t.it_len then
-        SetTakeStretchMarker( take, -1, last_t.it_len* last_t.tk_rate, last_t.it_len* last_t.tk_rate )
-      end
-      
-      local item =  GetMediaItemTake_Item( take )
-      UpdateItemInProject( item )
-    end
-  end      
   --------------------------------------------------------------------
   function LoadStrategy_Default(strategy)
     strategy.name = 'default' 
@@ -95,9 +59,11 @@
         strategy.ref_selitems = 0
         strategy.ref_envpoints = 1
         strategy.ref_midi = 0
+        strategy.ref_midi_msgflag = 1
         strategy.ref_strmarkers = 0
       -- pattern
         strategy.ref_pattern = 0
+        strategy.ref_pattern_gensrc = 1
         strategy.ref_pattern_len = 4
         strategy.ref_pattern_name = 'last_touched'
         
@@ -321,6 +287,6 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
         end
   end
 --------------------------------------------------------------------  
-  local ret = CheckFunctions('Action') 
+  local ret = CheckFunctions('VF_GetFormattedGrid') 
   local ret2 = CheckReaperVrs(5.95)    
   if ret and ret2 then main() end

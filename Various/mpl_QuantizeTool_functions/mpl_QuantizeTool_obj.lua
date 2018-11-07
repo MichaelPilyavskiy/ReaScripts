@@ -42,9 +42,10 @@
   function OBJ_Update(conf, obj, data, refresh, mouse, strategy) 
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
     
+    local min_w = 300
     local min_h = 300
     local reduced_view = gfx.h  <= min_h
-    gfx.w  = math.max(450,gfx.w)
+    gfx.w  = math.max(min_w,gfx.w)
     gfx.h  = math.max(min_h,gfx.h)
     
     obj.menu_w = 15
@@ -109,7 +110,12 @@
     if strategy.ref_pattern&1 ==1 then ref_showpos_h = (obj.strategy_h - obj.pat_h-obj.offs) end
       
     local cnt = 0
-    if data.ref and strategy.ref_pattern&1 ~=1  then ref_showpos_txt = 'Show\nanchor\npoints\n('..#data.ref..')'  end                
+    if data.ref then 
+      cnt = #data.ref 
+      if data.ref.src_cnt then cnt = data.ref.src_cnt end
+    end
+    
+    if data.ref and strategy.ref_pattern&1 ~=1  then ref_showpos_txt = 'Show\nanchor\npoints\n('..cnt..')'  end                
     obj.ref_showpos =  { clear = true,
                         x = obj.strategy_w + obj.offs,
                         y = obj.tab_h+obj.offs,
@@ -198,20 +204,29 @@
                                       refresh.GUI = true
                                     end,                               
                             },  
-                            { name = 'MIDI notes (MIDI Editor, 0x90/0x80)',
-                              state = strategy.src_midi,
-                              show = strategy.src_positions&1==1,
-                              level = 1,
-                            func =  function()
-                                      if strategy.src_midi&1~=1 then
-                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
-                                        strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 0)
-                                        strategy.src_midi = BinaryToggle(strategy.src_midi,0, 1)
-                                        strategy.src_strmarkers = BinaryToggle(strategy.src_strmarkers,0, 0)
-                                      end
-                                      refresh.GUI = true
-                                    end,                               
-                            }, 
+                            { name = 'Mode',
+                              show = strategy.src_midi&1==1 ,
+                              level = 2},  
+                              
+                              { name = 'MIDI Editor',
+                                state = strategy.src_midi&2==0,
+                                show = strategy.src_midi&1==1 ,
+                                level = 3,
+                                func =  function()
+                                          strategy.src_midi = BinaryToggle(strategy.src_midi, 1)                                          
+                                          refresh.GUI = true
+                                        end,                               
+                              }, 
+                              { name = 'Selected items',
+                                state = strategy.src_midi&2==2,
+                                show = strategy.src_midi&1==1 ,
+                                level = 3,
+                                func =  function()
+                                          strategy.src_midi = BinaryToggle(strategy.src_midi, 1)
+                                          refresh.GUI = true
+                                        end,                               
+                              },    
+                              
                             { name = 'Stretch markers',
                               state = strategy.src_strmarkers,
                               show = strategy.src_positions&1==1,
@@ -235,6 +250,9 @@
   end
   ----------------------------------------------- 
   function Obj_TabRef_Strategy(conf, obj, data, refresh, mouse, strategy) 
+    local grid_division, grid_str, is_triplet, grid_swingmode, grid_swingamt, grid_swingamt_format = VF_GetFormattedGrid()
+    if is_triplet then grid_str = grid_str..'T' end
+    if grid_swingamt ~= 0 then grid_str = grid_str..' swing '..grid_swingamt_format end
     local ref_strtUI = {  { name = 'Positions and values',
                             state = strategy.ref_positions,
                             show = true,
@@ -279,11 +297,12 @@
                                       refresh.GUI = true
                                     end,                               
                             }, 
-                            { name = 'MIDI notes (MIDI Editor, 0x90)',
+                          
+                            { name = 'MIDI',
                               state = strategy.ref_midi,
                               show = strategy.ref_positions&1==1 ,
-                              level = 1,
-                            func =  function()
+                              level = 1,                             
+                              func =  function()
                                       if strategy.ref_midi&1 ~= 1 then 
                                         strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)
                                         strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0) 
@@ -292,7 +311,53 @@
                                       end
                                       refresh.GUI = true
                                     end,                               
-                            },                                                         
+                            },  
+                            
+                            { name = 'Mode',
+                              show = strategy.ref_positions&1==1 and strategy.ref_midi&1==1 ,
+                              level = 2},  
+                              
+                              { name = 'MIDI Editor',
+                                state = strategy.ref_midi&2==0,
+                                show = strategy.ref_positions&1==1 and strategy.ref_midi&1==1 ,
+                                level = 3,
+                                func =  function()
+                                          strategy.ref_midi = BinaryToggle(strategy.ref_midi, 1)                                          
+                                          refresh.GUI = true
+                                        end,                               
+                              }, 
+                              { name = 'Selected items',
+                                state = strategy.ref_midi&2==2,
+                                show = strategy.ref_positions&1==1 and strategy.ref_midi&1==1 ,
+                                level = 3,
+                                func =  function()
+                                          strategy.ref_midi = BinaryToggle(strategy.ref_midi, 1)
+                                          refresh.GUI = true
+                                        end,                               
+                              },   
+                              
+                            { name = 'Messages',
+                              show = strategy.ref_positions&1==1 and strategy.ref_midi&1==1 ,
+                              level = 2},  
+                                { name = 'NoteOn',
+                                  state = strategy.ref_midi_msgflag&1==1,
+                                  show = strategy.ref_positions&1==1 and strategy.ref_midi&1==1 ,
+                                  level = 3,
+                                  func =  function()
+                                            strategy.ref_midi_msgflag = BinaryToggle(strategy.ref_midi_msgflag, 0)                                          
+                                            refresh.GUI = true
+                                          end,                               
+                                }, 
+                                { name = 'NoteOff',
+                                  state = strategy.ref_midi_msgflag&2==2,
+                                  show = strategy.ref_positions&1==1 and strategy.ref_midi&1==1 ,
+                                  level = 3,
+                                  func =  function()
+                                            strategy.ref_midi_msgflag = BinaryToggle(strategy.ref_midi_msgflag, 1)                                          
+                                            refresh.GUI = true
+                                          end,                               
+                                },                                           
+                                                                                                                                                                         
                             { name = 'Stretch markers',
                               state = strategy.ref_strmarkers,
                               show = strategy.ref_positions&1==1 ,
@@ -307,8 +372,8 @@
                                       refresh.GUI = true
                                     end,                               
                             },    
-                          ------------------------                                                 
-                          { name = 'Pattern',
+                          -------------------------------------------------------                                                 
+                          { name = 'Groove',
                             state = strategy.ref_pattern,
                             show = true,
                             has_blit = true,
@@ -325,14 +390,34 @@
                                     end                             
                           }, 
                           
+                            { name = 'Generate groove',
+                            state = strategy.ref_pattern&2 == 2,
+                            show = strategy.ref_pattern&1 == 1,
+                            level = 1,
+                            func =  function()
+                                      strategy.ref_pattern = BinaryToggle(strategy.ref_pattern, 1 ,1 )
+                                      refresh.GUI = true
+                                    end,                            
+                            },  
   
-                            { name = 'Groove name: '..strategy.ref_pattern_name,
+                              { name = 'Current grid ('..grid_str..')',
+                              state = strategy.ref_pattern_gensrc&1 == 1,
+                              show = strategy.ref_pattern&2 == 2,
+                              level = 2,
+                              func =  function()
+                                        strategy.ref_pattern_gensrc = BinaryToggle(strategy.ref_pattern_gensrc, 0, 1 )
+                                        refresh.GUI = true
+                                      end,                            
+                              }, 
+                                                        
+                            { name = 'Select from list: '..strategy.ref_pattern_name,
                               show = strategy.ref_pattern&1 == 1,
-                              prevent_app = true,
+                              state = strategy.ref_pattern&2 == 0,
                               level = 1,
                               func =  function()
+                                        strategy.ref_pattern = BinaryToggle(strategy.ref_pattern, 1,0)
                                         local f_table = Data_GetListedFile(GetResourcePath()..'/Grooves/', strategy.ref_pattern_name..'.rgt')
-                                         t_gr = {}
+                                        local t_gr = {}
                                         for i = 1 , #f_table do 
                                           if f_table[i]:match('%.rgt') then
                                             t_gr[#t_gr+1] = {str = f_table[i],
@@ -352,12 +437,7 @@
                                                               end}
                                           end
                                         end
-                                        Menu(mouse, t_gr)
-                                        
-                                        --[[
-local f,content = io.open(GetResourcePath()..'/Grooves/'..prev_fp, 'r')
-                                                            
-                                                            ]]                                        
+                                        Menu(mouse, t_gr)       
                                         refresh.GUI = true
                                       end                                   
                             },
@@ -664,8 +744,18 @@ local f,content = io.open(GetResourcePath()..'/Grooves/'..prev_fp, 'r')
             gfx.setfont(1, obj.GUI_font, obj[name..i].fontsz )
             local str_len = gfx.measurestr(obj[name..i].txt)
             obj[name..i..'_folobj_'..i_obj] = CopyTable(ref_strtUI[i].follow_obj[i_obj])
-            obj[name..i..'_folobj_'..i_obj].x = obj.offs + ref_strtUI[i].level *obj.strat_x_ind    + str_len  + last_it_w
-            obj[name..i..'_folobj_'..i_obj].y = obj.tab_h + obj.offs + y_offs +1
+            
+            local obj_x = obj.offs + ref_strtUI[i].level *obj.strat_x_ind    + str_len  + last_it_w
+            local obj_y = obj.tab_h + obj.offs + y_offs +1
+            if obj_x + obj[name..i..'_folobj_'..i_obj].w > obj.strategy_w + obj.offs then
+              last_it_w = obj.strategy_itemh
+              obj_x = obj.offs + ref_strtUI[i].level *obj.strat_x_ind    + str_len  + last_it_w
+              obj_y = obj_y + obj.strategy_itemh
+              y_offs = y_offs + obj.strategy_itemh
+            end
+            
+            obj[name..i..'_folobj_'..i_obj].x = obj_x
+            obj[name..i..'_folobj_'..i_obj].y = obj_y
             obj[name..i..'_folobj_'..i_obj].h = obj.strategy_itemh - 1
             last_it_w = last_it_w + obj[name..i..'_folobj_'..i_obj].w + 1
           end

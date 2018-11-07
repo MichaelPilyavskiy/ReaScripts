@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.76
+-- @version 1.77
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # Track/#chsendmixer, Track/#chrecvmixer: fix error on manual input [p=2048954]
+--    + Item/#length: typing edits by default absolute, option for make it always relative [p=2054836]
+--    + Item: collect common settings into 'All' submenu
 
-    local vrs = '1.76'
+    local vrs = '1.77'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -134,7 +135,8 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             use_aironCS = 0, -- track
             use_aironCS_item = 0, 
             timiselwidgetsformatoverride = -2,
-            master_buf = 100
+            master_buf = 100,
+            relative_it_len = 0,
             
             }
   end

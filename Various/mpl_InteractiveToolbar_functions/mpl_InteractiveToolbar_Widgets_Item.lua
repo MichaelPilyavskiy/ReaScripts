@@ -343,7 +343,7 @@
 
 
   --------------------------------------------------------------   
-  function Widgets_Item_length(data, obj, mouse, x_offs) -- generate snap_offs controls  
+  function Widgets_Item_length(data, obj, mouse, x_offs, widgets, conf) -- generate snap_offs controls  
     if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_len = { x = x_offs,
                         y = obj.offs ,
@@ -402,18 +402,36 @@
      else
       -- nudge values from first item
       local out_val = parse_timestr_len(out_str_toparse,1,data.ruleroverride) 
-      local diff = data.it[1].item_len - out_val
-      for i = 1, #t_out_values do
-        local out_len = math.max(0.001,t_out_values[i] - diff )
-        SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH', out_len)
-        if data.it[i].isMIDI then
-            local start_qn =  TimeMap2_timeToQN( 0, data.it[i].item_pos )
-          local end_qn = TimeMap2_timeToQN(0, data.it[i].item_pos + out_len)
-          MIDI_SetItemExtents(data.it[i].ptr_item, start_qn, end_qn)
-          SetMediaItemInfo_Value( data.it[i].ptr_item, 'B_LOOPSRC',data.it[i].loop)
-          SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_STARTOFFS', data.it[i].start_offs )
+      
+      if data.relative_it_len == 1 then
+        local diff = data.it[1].item_len - out_val
+        for i = 1, #t_out_values do
+          local out_len = math.max(0.001,t_out_values[i] - diff )
+          SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH', out_len)
+          if data.it[i].isMIDI then
+              local start_qn =  TimeMap2_timeToQN( 0, data.it[i].item_pos )
+            local end_qn = TimeMap2_timeToQN(0, data.it[i].item_pos + out_len)
+            MIDI_SetItemExtents(data.it[i].ptr_item, start_qn, end_qn)
+            SetMediaItemInfo_Value( data.it[i].ptr_item, 'B_LOOPSRC',data.it[i].loop)
+            SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_STARTOFFS', data.it[i].start_offs )
+          end        
+          --UpdateItemInProject( data.it[i].ptr_item )                                
+        end
+        
+       else
+       
+        for i = 1, #t_out_values do
+          SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH', out_val)
+          if data.it[i].isMIDI then
+              local start_qn =  TimeMap2_timeToQN( 0, data.it[i].item_pos )
+            local end_qn = TimeMap2_timeToQN(0, data.it[i].item_pos + out_val)
+            MIDI_SetItemExtents(data.it[i].ptr_item, start_qn, end_qn)
+            SetMediaItemInfo_Value( data.it[i].ptr_item, 'B_LOOPSRC',data.it[i].loop)
+            SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_STARTOFFS', data.it[i].start_offs )
+          end        
+          --UpdateItemInProject( data.it[i].ptr_item )                                
         end        
-        --UpdateItemInProject( data.it[i].ptr_item )                                
+        
       end
       redraw = 2   
     end

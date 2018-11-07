@@ -38,7 +38,7 @@
     
     if strategy.ref_positions&1 ==1 and strategy.ref_selitems&1==1 then Data_GetItems(data, 'ref')  end       
     if strategy.ref_positions&1 ==1 and strategy.ref_envpoints&1==1 then Data_GetEP(data, 'ref')  end
-    if strategy.ref_positions&1 ==1 and strategy.ref_midi&1==1 then Data_GetMIDI(data, 'ref', 1)  end
+    if strategy.ref_positions&1 ==1 and strategy.ref_midi&1==1 then Data_GetMIDI(data, strategy, 'ref', strategy.ref_midi)  end
     if strategy.ref_positions&1 ==1 and strategy.ref_strmarkers&1==1 then Data_GetSM(data, 'ref', 1)  end
     if strategy.ref_pattern&1==1 then Data_ApplyStrategy_reference_pattern(conf, obj, data, refresh, mouse, strategy) end  
     
@@ -72,16 +72,32 @@
   end
   --------------------------------------------------- 
   function Data_ApplyStrategy_reference_pattern(conf, obj, data, refresh, mouse, strategy)
-    
-    local name = strategy.ref_pattern_name
-    local fp =  GetResourcePath()..'/Grooves/'..name..'.rgt'
-    local f = io.open(fp, 'r')
-    local content
-    if f then 
-      content = f:read("*all")
-      f:close()
+    if strategy.ref_pattern&2 == 2 then -- generate pattern
+      if strategy.ref_pattern_gensrc&1==1 then -- cur grid
+        local retval, divisionIn, swingmodeIn, swingamtIn = GetSetProjectGrid( 0, false )
+        local id = 0
+        for beat = 1, strategy.ref_pattern_len, divisionIn*4 do
+          local outpos = beat-1
+          if swingamtIn ~= 0 then 
+            if id%2 ==1 then outpos = outpos + swingamtIn * divisionIn*2 end
+          end
+          data.ref_pat[#data.ref_pat + 1] = {pos = outpos, val = 1}
+          id = id + 1
+        end
+      end
     end
-    if not content or content == '' then return else Data_PatternParseRGT(data, strategy, content, false) end
+    
+    if strategy.ref_pattern&2 == 0 then -- from file
+      local name = strategy.ref_pattern_name
+      local fp =  GetResourcePath()..'/Grooves/'..name..'.rgt'
+      local f = io.open(fp, 'r')
+      local content
+      if f then 
+        content = f:read("*all")
+        f:close()
+      end
+      if not content or content == '' then return else Data_PatternParseRGT(data, strategy, content, false) end
+    end
   end
 
   ---------------------------------------------------    
@@ -157,12 +173,10 @@
         end
       end 
     end     
-  end    
+  end   
   --------------------------------------------------- 
-  function Data_GetMIDI(data, table_name, mode) 
-    local ME = MIDIEditor_GetActive()
-    local take = MIDIEditor_GetTake( ME ) 
-    if not take or not ValidatePtr2( 0, take, 'MediaItem_Take*' ) then return end
+  function Data_GetMIDI_perTake(data, strategy, table_name, take)
+    if not take or not ValidatePtr2( 0, take, 'MediaItem_Take*' ) or not TakeIsMIDI(take) then return end
     local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
     if not gotAllOK then return end
     local s_unpack = string.unpack
@@ -170,8 +184,6 @@
     local MIDIlen = MIDIstring:len()
     local offset, flags, msg1
     local ppq_pos, nextPos, prevPos, idx = 0, 1, 1 , 0
-    data[table_name].src_cnt = 0
-    data[table_name].ptr = take
     while nextPos <= MIDIlen do  
       prevPos = nextPos
       offset, flags, msg1, nextPos = s_unpack("i4Bs4", MIDIstring, prevPos)
@@ -186,66 +198,152 @@
       local isCC = msg1:byte(1)>>4 == 0xB
       local chan = 1+(msg1:byte(1)&0xF)
 
-      if mode == 1 and isNoteOn and selected then -- reference NoteOn
+      --[[if mode == 1 and isNoteOn and selected then -- reference NoteOn
         data[table_name][#data[table_name]+1] = {pos = fullbeats,
                                  pos_beats = beats,
                                  val = msg1:byte(2)/127
                                  }
       
-       elseif mode == -1 then
-        local ignore_search
-        if not isNoteOn then  ignore_search = true  else data[table_name].src_cnt = data[table_name].src_cnt + 1 end
-        data[table_name][#data[table_name]+1] = 
+       elseif mode == -1 then]]
+      local ignore_search = true
+      
+      if strategy.ref_midi_msgflag&1==1  and isNoteOn then ignore_search = false end
+      if strategy.ref_midi_msgflag&2==2  and isNoteOff then ignore_search = false end
+      
+      if not ignore_search then data[table_name].src_cnt = data[table_name].src_cnt + 1 end
+      data[table_name][#data[table_name]+1] = 
                           {       pos = fullbeats,
                                   pos_beats = beats,
-                                  pitch = msg1:byte(2),
+                                  pitch = msg1:byte(2)/127,
                                   flags=flags,
                                   msg1=msg1,
                                   ppq_pos=ppq_pos,
                                   ignore_search = ignore_search,
-                                  offset=offset
+                                  offset=offset,
+                                  GUID = BR_GetMediaItemTakeGUID( take )
                                  }
-      end
+      
     end   
+  end  
+  --------------------------------------------------- 
+  function Data_GetMIDI(data, strategy, table_name, mode) 
+  
+    data[table_name].src_cnt = 0
+    
+    if mode&2 == 0 then -- MIDI editor
+      local ME = MIDIEditor_GetActive()
+      local take = MIDIEditor_GetTake( ME ) 
+      Data_GetMIDI_perTake(data, strategy, table_name, take)   
+     elseif   mode&2 == 2 then -- selected takes
+      for i = 1, CountSelectedMediaItems(0) do
+        local item = GetSelectedMediaItem(0,i-1)
+        local take = GetActiveTake(item)
+        Data_GetMIDI_perTake(data,strategy, table_name, take) 
+      end
+    end
+    
   end
   ---------------------------------------------------
   function Data_Execute_Align_MIDI(conf, obj, data, refresh, mouse, strategy) 
     
     if data.src.src_cnt < 1 then return end
-    local take = data.src.ptr
     
-    -- convert out_pos to ppq
-    for i = 1, #data.src do
-      if data.src[i] and not data.src[i].ignore_search and data.src[i].out_pos then
-        local out_pos = data.src[i].pos + (data.src[i].out_pos - data.src[i].pos)*strategy.exe_val1
-        local out_pos_sec = TimeMap2_beatsToTime( 0, out_pos)
-        data.src[i].ppq_posOUT = MIDI_GetPPQPosFromProjTime( take, out_pos_sec )
-        for i2 = i+1, #data.src do
-          if data.src[i2].msg1:byte(1)>>4 == 0x8 and data.src[i2].msg1:byte(2)  == data.src[i].msg1:byte(2) then
-            data.src[i2].ppq_posOUT = data.src[i2].ppq_pos +  (data.src[i].ppq_posOUT-data.src[i].ppq_pos)
-            break
+    -- sort atkes
+    local takes_t = {}
+    for i = 1 , #data.src do
+      local t = data.src[i]
+      if not takes_t [t.GUID] then takes_t [t.GUID] = {} end
+        takes_t [t.GUID] [#takes_t [t.GUID] + 1 ]  = CopyTable(t)
+      end 
+    
+    -- loop takes
+    for GUID in pairs(takes_t) do
+      local take =  GetMediaItemTakeByGUID( 0, GUID )
+      if take then
+    
+        -- convert out_pos to ppq
+        for i = 1, #takes_t[GUID] do
+          local t = takes_t[GUID][i]
+          
+          if not t.ignore_search and t.out_pos then
+            local out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1
+            local out_pos_sec = TimeMap2_beatsToTime( 0, out_pos)
+            t.ppq_posOUT = MIDI_GetPPQPosFromProjTime( take, out_pos_sec )
+            for i2 = i+1, #takes_t[GUID] do
+              local t2 = takes_t[GUID][i2]
+              if t2.msg1:byte(1)>>4 == 0x8 and t2.msg1:byte(2)  == t.msg1:byte(2) then
+                t2.ppq_posOUT = t2.ppq_pos +  (t.ppq_posOUT-t.ppq_pos)
+                break
+              end
+            end
+           else
+            if not t.ppq_posOUT then t.ppq_posOUT = t.ppq_pos end
           end
+          
         end
-       else
-        if not data.src[i].ppq_posOUT then data.src[i].ppq_posOUT = data.src[i].ppq_pos end
+        
+          
+        
+        -- return back all stuff
+        local str_per_msg  = ''
+        for i = 1, #takes_t[GUID] do
+          local offset
+          local t = takes_t[GUID][i]
+          if i ==1 then offset = t.offset  + (t.ppq_posOUT - t.ppq_pos) else
+            offset = t.ppq_posOUT - takes_t[GUID][i-1].ppq_posOUT
+          end
+          str_per_msg = str_per_msg.. string.pack("i4Bs4", math.modf(offset),  t.flags , t.msg1)
+        end
+        
+        MIDI_SetAllEvts( take, str_per_msg )
       end
+      local item =  GetMediaItemTake_Item( take )
+      UpdateItemInProject( item )
     end
-    
-      
-    
-    -- return back all stuff
-    local str_per_msg  = ''
-    for i = 1, #data.src do
-      local offset
-      if i ==1 then offset = data.src[i].offset  + (data.src[i].ppq_posOUT - data.src[i].ppq_pos) else
-        offset = data.src[i].ppq_posOUT - data.src[i-1].ppq_posOUT
-      end
-      str_per_msg = str_per_msg.. string.pack("i4Bs4", math.modf(offset),  data.src[i].flags , data.src[i].msg1)
-    end
-    
-    MIDI_SetAllEvts( take, str_per_msg )
-    
   end
+  
+  --------------------------------------------------- 
+  function Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy)
+    --local take =  reaper.GetMediaItemTakeByGUID( 0, t.tkGUID ) 
+    --if not take then return end
+    -- collect various takes
+    local takes_t = {}
+    for i = 1 , #data.src do
+      local t = data.src[i]
+      if not takes_t [t.GUID] then takes_t [t.GUID] = {} end
+        takes_t [t.GUID] [#takes_t [t.GUID] + 1 ]  = CopyTable(t)
+      end 
+      
+    for GUID in pairs(takes_t) do
+      local take =  GetMediaItemTakeByGUID( 0, GUID )
+      if take then
+        -- remove existed
+        local cur_cnt =  GetTakeNumStretchMarkers( take )
+        DeleteTakeStretchMarkers( take, 0, cur_cnt )
+        for i = 1, #takes_t[GUID] do
+          local t = takes_t[GUID][i]
+          local out_pos
+          if t.out_pos then
+            local out_pos_sec = TimeMap2_beatsToTime( 0, t.out_pos )
+            out_pos = lim(out_pos_sec - t.it_pos, 0, t.it_len)* t.tk_rate
+            out_pos = t.sm_pos_sec + (out_pos - t.sm_pos_sec)*strategy.exe_val1
+           else
+            out_pos = t.sm_pos_sec
+          end
+          SetTakeStretchMarker( take, -1, out_pos, t.srcpos_sec )
+        end
+      end
+      
+      local last_t = takes_t[GUID]  [#takes_t[GUID]]
+      if last_t.srcpos_sec* last_t.tk_rate  ~= last_t.it_len then
+        SetTakeStretchMarker( take, -1, last_t.it_len* last_t.tk_rate, last_t.it_len* last_t.tk_rate )
+      end
+      
+      local item =  GetMediaItemTake_Item( take )
+      UpdateItemInProject( item )
+    end
+  end      
+  
   --------------------------------------------------- 
   function Data_GetEP(data, table_name) 
     local  env = GetSelectedEnvelope( 0 )
@@ -278,7 +376,7 @@
     -- positions
     if strategy.src_positions&1 ==1 and strategy.src_selitems&1==1 then Data_GetItems(data, 'src') end   
     if strategy.src_positions&1 ==1 and strategy.src_envpoint&1==1 then Data_GetEP(data, 'src') end   
-    if strategy.src_positions&1 ==1 and strategy.src_midi&1==1 then Data_GetMIDI(data, 'src', -1) end 
+    if strategy.src_positions&1 ==1 and strategy.src_midi&1==1 then Data_GetMIDI(data, strategy, 'src', strategy.src_midi) end 
     if strategy.src_positions&1 ==1 and strategy.src_strmarkers&1==1 then Data_GetSM(data, 'src') end 
     
   end

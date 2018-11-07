@@ -2,12 +2,35 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.17
+-- @version 1.18
 -- @changelog
---    + VF_CheckReaperVrs()
+--    + VF_GetFormattedGrid
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
+  ---------------------------------------------------
+  function VF_GetFormattedGrid(grid_div)
+    local grid_flags, grid_division, grid_swingmode, grid_swingamt 
+    if not grid_div then 
+      grid_flags, grid_division, grid_swingmode, grid_swingamt  = GetSetProjectGrid( 0, false )
+     else 
+      grid_flags, grid_division, grid_swingmode, grid_swingamt = 0,grid_div,0,0
+    end
+    local is_triplet
+    local denom = 1/grid_division
+    local grid_str
+    if denom >=2 then 
+      is_triplet = (1/grid_division) % 3 == 0 
+      grid_str = '1/'..math.floor(denom)
+      if is_triplet then grid_str = '1/'..math.floor(denom*2/3) end
+     else 
+      grid_str = 1
+      is_triplet = math.abs(grid_division - 0.6666) < 0.001
+    end
+    grid_swingamt_format = math.floor(grid_swingamt * 100)..'%'
+    return grid_division, grid_str, is_triplet, grid_swingmode, grid_swingamt, grid_swingamt_format
+  end     
+  
   ---------------------------------------------------
   function VF_CheckReaperVrs(rvrs, showmsg) 
     local vrs_num =  GetAppVersion()

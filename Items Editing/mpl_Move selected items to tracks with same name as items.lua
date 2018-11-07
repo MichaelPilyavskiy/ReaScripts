@@ -1,9 +1,9 @@
 -- @description Move selected items to tracks on same name as items
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   - disable moving items to zero position
+--   # prevent possible error for items with no extension in name [p=2054766]
   
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   function main()
@@ -23,8 +23,11 @@
       local item = reaper.BR_GetMediaItemByGUID(0,items[i])
       local take = GetActiveTake(item)
       take_name = GetTakeName(take)
-      ext = take_name:reverse():match('(.-)%.'):reverse()
-      if ext then take_name = take_name:gsub('.'..ext, '') end
+      ext = take_name:reverse():match('(.-)%.')
+      if ext then 
+        ext = ext:reverse()
+        take_name = take_name:gsub('.'..ext, '') 
+      end
       for k = 1, #TR_names_t do
         if take_name:match(TR_names_t[k].tr_name) 
           and  GetMediaItem_Track( item ) ~= TR_names_t[k].tr then          
