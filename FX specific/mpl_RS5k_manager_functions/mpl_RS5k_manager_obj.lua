@@ -2120,7 +2120,7 @@ List of available hashtags:
   { str = 'Add RS5K_Manager_tracker.jsfx to first slot of parent track',
     func =  function()    
               if gmem_read then 
-                local out_id = TrackFX_AddByName( data.parent_track, 'JS:MPL Scripts/JSFX/RS5K_Manager_tracker.jsfx', false, 1 )
+                local out_id = TrackFX_AddByName( data.parent_track, 'RS5K_Manager_tracker.jsfx', false, 1 )
                 TrackFX_CopyToTrack(  data.parent_track, out_id,  data.parent_track, 0, true )
               end
             end

@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.86
+-- @version 1.87
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,11 +10,10 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    # increase waveform alpha when enabled and attached to knobs background
---    + Support for mpl_RS5k manager control functions - RS5k manager current.lua (when clicking pads write last note variable for further controlling all instances related to this note)
+--    # fix action to add RS5K_Manager_tracker.jsfx (thanks to X-Raym)
 
 
-  local vrs = 'v1.86'
+  local vrs = 'v1.87'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
