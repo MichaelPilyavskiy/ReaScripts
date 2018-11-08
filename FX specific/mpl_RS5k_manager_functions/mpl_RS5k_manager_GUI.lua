@@ -41,7 +41,7 @@
     end
   end
   ---------------------------------------------------
-  function GUI_DrawWF(obj, data)    
+  function GUI_DrawWF(obj, data, conf)    
     local w = obj.WF_w
     local h = obj.kn_h
     -- WF
@@ -57,6 +57,7 @@
        else
         col(obj, 'green', 0.2)
       end
+      if conf.separate_spl_peak == 1 then gfx.a = 0.6 end
       gfx.x, gfx.y = 0, h
       local step = lim(w/#data.current_spl_peaks, 0.1,0.2)
       local last_x, cnt = nil, #data.current_spl_peaks
@@ -606,7 +607,7 @@
               gfx.a = 0.5
               gfx.setimgdim(6, -1, -1)  
               gfx.setimgdim(6, obj.WF_w,obj.WF_h) 
-              GUI_DrawWF(obj, data)              
+              GUI_DrawWF(obj, data, conf)              
             end
             refresh.GUI_WF = nil
           end          

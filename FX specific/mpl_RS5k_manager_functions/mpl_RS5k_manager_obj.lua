@@ -1572,6 +1572,7 @@
                         aligh_txt = 5,
                         fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,
                         func =  function() 
+                                  SetProjExtState( 0, 'MPLRS5KMANAGEFUNC', 'LASTNOTERS5KMAN', note )
                                   if not data.hasanydata then return end
                                   data.current_spl_peaks = nil
                                   if conf.keypreview == 1 then  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), note,100) end                                  
