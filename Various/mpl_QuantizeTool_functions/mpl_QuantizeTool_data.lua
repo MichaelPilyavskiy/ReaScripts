@@ -31,15 +31,46 @@
         refresh.data = true
       end
   end
+  --------------------------------------------------- 
+  function Data_GetMarkers(data, table_name)
+    local  retval, num_markers, num_regions = CountProjectMarkers( 0 )
+    for i = 1, num_markers do
+      local retval, isrgn, pos, rgnend, name, markrgnindexnumber = EnumProjectMarkers2( 0, i-1 )
+      local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
+      local val = tonumber(name)
+      if not (val and (val >=-1 and val <=2))  then val = 1 end
+      data[table_name][i] = {pos = fullbeats,
+                              val = val,
+                              srctype = 'projmark'  }
+    end
+  end
+  --------------------------------------------------- 
+  function Data_GetTempoMarkers(data, table_name)
+    local  cnt = CountTempoTimeSigMarkers( 0 )
+    for i = 1, cnt do
+      local  retval, pos, measurepos, beatpos, bpm, timesig_num, timesig_denom, lineartempo = GetTempoTimeSigMarker( 0, i-1 )
+      local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
+      data[table_name][i] = {pos = fullbeats,
+                              val = 1,
+                              srctype = 'tempomark'  }
+    end  
+  end
   ---------------------------------------------------    
   function Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy)
     data.ref = {}
     data.ref_pat = {}
     
-    if strategy.ref_positions&1 ==1 and strategy.ref_selitems&1==1 then Data_GetItems(data, 'ref')  end       
+    if strategy.ref_positions&1 ==1 and strategy.ref_selitems&1==1 then Data_GetItems(data, 'ref', strategy.ref_selitems)  end       
     if strategy.ref_positions&1 ==1 and strategy.ref_envpoints&1==1 then Data_GetEP(data, 'ref')  end
     if strategy.ref_positions&1 ==1 and strategy.ref_midi&1==1 then Data_GetMIDI(data, strategy, 'ref', strategy.ref_midi)  end
-    if strategy.ref_positions&1 ==1 and strategy.ref_strmarkers&1==1 then Data_GetSM(data, 'ref', 1)  end
+    if strategy.ref_positions&1 ==1 and strategy.ref_strmarkers&1==1 then Data_GetSM(data, 'ref')  end
+    if strategy.ref_positions&1 ==1 and strategy.ref_marker&1==1 then Data_GetMarkers(data, 'ref')  end
+    if strategy.ref_positions&1 ==1 and strategy.ref_timemarker&1==1 then Data_GetTempoMarkers(data, 'ref')  end
+    
+    if strategy.ref_positions&1 ==1 and strategy.ref_editcur&1==1 then 
+      data.ref[1] = { pos = ({TimeMap2_timeToBeats( 0,  GetCursorPositionEx( 0 ) )})[4],
+                      val = 1}
+    end
     if strategy.ref_pattern&1==1 then Data_ApplyStrategy_reference_pattern(conf, obj, data, refresh, mouse, strategy) end  
     
     --[[if strategy.ref_values&2==2 then table.sort(data.ref, function (a,b) return a.pos and b.pos and a.pos<b.pos end) end
@@ -76,7 +107,7 @@
       if strategy.ref_pattern_gensrc&1==1 then -- cur grid
         local retval, divisionIn, swingmodeIn, swingamtIn = GetSetProjectGrid( 0, false )
         local id = 0
-        for beat = 1, strategy.ref_pattern_len, divisionIn*4 do
+        for beat = 1, strategy.ref_pattern_len + 1, divisionIn*4 do
           local outpos = beat-1
           if swingamtIn ~= 0 then 
             if id%2 ==1 then outpos = outpos + swingamtIn * divisionIn*2 end
@@ -119,15 +150,27 @@
     
   end
   --------------------------------------------------- 
-  function Data_GetItems(data, table_name) 
+  function Data_GetItems(data, table_name, mode) 
       for selitem = 1, CountSelectedMediaItems(0) do
         local item =  GetSelectedMediaItem( 0, selitem-1 )
+        local take = GetActiveTake(item)
         local pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
+        
+        local position_has_snap_offs, snapoffs_sec
+        if mode&2==2 then --snap offset
+          position_has_snap_offs = true
+          snapoffs_sec = GetMediaItemInfo_Value( item, 'D_SNAPOFFSET' )
+          pos = pos + snapoffs_sec
+        end
+        
+        
         local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
         if not data[table_name][selitem] then data[table_name][selitem] = {} end
         local val = GetMediaItemInfo_Value( item, 'D_VOL' )
         data[table_name][selitem].pos = fullbeats
+        data[table_name][selitem].position_has_snap_offs = position_has_snap_offs
         data[table_name][selitem].pos_beats = beats
+        data[table_name][selitem].snapoffs_sec = snapoffs_sec 
         data[table_name][selitem].GUID = BR_GetMediaItemGUID( item )
         data[table_name][selitem].srctype='item'
         data[table_name][selitem].val =val
@@ -220,7 +263,8 @@
                                   ppq_pos=ppq_pos,
                                   ignore_search = ignore_search,
                                   offset=offset,
-                                  GUID = BR_GetMediaItemTakeGUID( take )
+                                  GUID = BR_GetMediaItemTakeGUID( take ),
+                                  srctype = 'MIDIEvnt'
                                  }
       
     end   
@@ -333,7 +377,12 @@
           SetTakeStretchMarker( take, -1, out_pos, t.srcpos_sec )
         end
       end
-      
+
+      local first_t = takes_t[GUID]  [1]
+      if first_t.pos_sec ~= 0 then
+        SetTakeStretchMarker( take, -1, 0 )
+      end
+            
       local last_t = takes_t[GUID]  [#takes_t[GUID]]
       if last_t.srcpos_sec* last_t.tk_rate  ~= last_t.it_len then
         SetTakeStretchMarker( take, -1, last_t.it_len* last_t.tk_rate, last_t.it_len* last_t.tk_rate )
@@ -374,7 +423,7 @@
     data.src = {}
     
     -- positions
-    if strategy.src_positions&1 ==1 and strategy.src_selitems&1==1 then Data_GetItems(data, 'src') end   
+    if strategy.src_positions&1 ==1 and strategy.src_selitems&1==1 then Data_GetItems(data, 'src', strategy.src_selitems) end   
     if strategy.src_positions&1 ==1 and strategy.src_envpoint&1==1 then Data_GetEP(data, 'src') end   
     if strategy.src_positions&1 ==1 and strategy.src_midi&1==1 then Data_GetMIDI(data, strategy, 'src', strategy.src_midi) end 
     if strategy.src_positions&1 ==1 and strategy.src_strmarkers&1==1 then Data_GetSM(data, 'src') end 
@@ -479,12 +528,15 @@
       local t = data.src[i]
         local it =  BR_GetMediaItemByGUID( 0, t.GUID )
         if it then 
-          if strategy.src_positions&1==1 and t.out_pos then 
+          if t.out_pos then 
             local out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1
             out_pos = TimeMap2_beatsToTime( 0, out_pos)
+            if t.position_has_snap_offs then 
+              out_pos = out_pos - t.snapoffs_sec 
+            end
             SetMediaItemInfo_Value( it, 'D_POSITION', out_pos )
           end 
-          if strategy.src_values&1==1 and t.out_val then
+          if t.out_val then
             SetMediaItemInfo_Value( it, 'D_VOL', t.val + (t.out_val - t.val)*strategy.exe_val2 )  
           end
           UpdateItemInProject( it )
@@ -500,8 +552,8 @@
       local t = data.src[i]
       local out_pos = t.pos
       local out_val = t.val
-      if strategy.src_positions&1==1 then out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1 end
-      if strategy.src_values&1==1 then out_val = t.val + (t.out_val - t.val)*strategy.exe_val2 end
+      if t.out_pos then out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1 end
+      if t.out_val then out_val = t.val + (t.out_val - t.val)*strategy.exe_val2 end
       out_pos = TimeMap2_beatsToTime( 0, out_pos)
       SetEnvelopePointEx( env, -1, t.ID, out_pos, out_val, t.shape, t.tension, t.selected, true )
     end  
@@ -537,7 +589,9 @@
       local pos_rgn = TimeMap2_beatsToTime( 0, 0, measures ) 
       local end_rgn = TimeMap2_beatsToTime( 0, strategy.ref_pattern_len, measures ) 
       local r,g,b = table.unpack(obj.GUIcol[col_str])
-      AddProjectMarker2( 0, true, pos_rgn, end_rgn, 'QT_'.. strategy.ref_pattern_len..' beats', -1, ColorToNative( math.floor(r*255),math.floor(g*255),math.floor(b*255))  |0x1000000 )
+      AddProjectMarker2( 0, true, pos_rgn, end_rgn, 'QT_'.. strategy.ref_pattern_len..' beats',
+                           -1, --want id
+                           ColorToNative( math.floor(r*255),math.floor(g*255),math.floor(b*255))  |0x1000000 )
      else
       passed_t = passed_t0
     end
@@ -556,7 +610,7 @@
                           pos_sec, 
                           -1, 
                           'QT_'..val_str, 
-                          -1, 
+                          i, 
                           ColorToNative( math.floor(r*255),math.floor(g*255),math.floor(b*255))  |0x1000000 )
       end
     end
@@ -569,13 +623,13 @@
     local retval, num_markers, num_regions = CountProjectMarkers( 0 )
     for i = num_markers, 1, -1 do
       local  retval, isrgn, pos, rgnend, name, markrgnindexnumber = EnumProjectMarkers( i-1 )
-      if name:lower():match('qt_') then 
+      if name:lower():match('qt_%d') then 
         reaper.DeleteProjectMarker( proj, markrgnindexnumber, isrgn )
       end
     end
     for i = num_regions, 1, -1 do
       local  retval, isrgn, pos, rgnend, name, markrgnindexnumber = EnumProjectMarkers( i-1 )
-      if name:lower():match('qt_') then 
+      if name:lower():match('qt_%d') then 
         reaper.DeleteProjectMarker( proj, markrgnindexnumber, isrgn )
       end
     end

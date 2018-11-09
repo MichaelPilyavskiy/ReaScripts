@@ -105,81 +105,14 @@
     
                         
     Obj_TabRef_Strategy(conf, obj, data, refresh, mouse, strategy)  
-    local ref_showpos_txt =  'Show\npattern'
-    local ref_showpos_h = obj.strategy_h/2
-    if strategy.ref_pattern&1 ==1 then ref_showpos_h = (obj.strategy_h - obj.pat_h-obj.offs) end
-      
-    local cnt = 0
-    if data.ref then 
-      cnt = #data.ref 
-      if data.ref.src_cnt then cnt = data.ref.src_cnt end
-    end
-    
-    if data.ref and strategy.ref_pattern&1 ~=1  then ref_showpos_txt = 'Show\nanchor\npoints\n('..cnt..')'  end                
-    obj.ref_showpos =  { clear = true,
-                        x = obj.strategy_w + obj.offs,
-                        y = obj.tab_h+obj.offs,
-                        w = gfx.w - obj.strategy_w - obj.offs*2,
-                        h = ref_showpos_h,
-                        col = 'green',
-                        txt= ref_showpos_txt,
-                        txt_col = 'green',
-                        txt_a =1,
-                        aligh_txt = 16,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        a_frame =0,
-                        func =  function() 
-                                  if strategy.ref_pattern&1==1 then
-                                    Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.ref_pat, 'green_marker', true) 
-                                   else
-                                    Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.ref, 'green_marker', false) 
-                                  end
-                                end,
-                        onrelease_L = function() 
-                                  Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
-                                end,
-                        } 
-    if strategy.ref_pattern&1 ~=1 then
-      obj.ref_catch =  { clear = true,
-                        x = obj.strategy_w + obj.offs,
-                        y = obj.tab_h+obj.offs +ref_showpos_h,
-                        w = gfx.w - obj.strategy_w - obj.offs*2,
-                        h = ref_showpos_h,
-                        col = 'green',
-                        txt= 'Detect\nanchor\npoints',
-                        txt_col = 'green',
-                        txt_a =1,                        
-                        aligh_txt = 16,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        a_frame =0,
-                        func =  function() 
-                                  Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy)
-                                  refresh.GUI = true
-                                end
-                        } 
-    end                       
-                        
-                        
-                        
   end  
   ----------------------------------------------- 
   function Obj_TabSrc_Strategy(conf, obj, data, refresh, mouse, strategy) 
-    local src_strtUI = {  { name = 'Positions and values',
-                            state = strategy.src_positions,
-                            show = true,
-                            has_blit = true,
-                            level = 0,
-                            --[[func =  function()
-                                      strategy.src_positions = BinaryToggle(strategy.src_positions, 0)
-                                      refresh.GUI = true
-                                    end,    ]]                        
-                          },
-                            { name = 'Selected items',
+    local src_strtUI = {  
+                            { name = 'Items',
                               state = strategy.src_selitems,
                               show = strategy.src_positions&1==1,
-                              level = 1,
+                              level = 0,
                             func =  function()
                                       if strategy.src_selitems&1~=1 then
                                         strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 1)
@@ -190,10 +123,24 @@
                                       refresh.GUI = true
                                     end,                               
                             },  
+                            
+                            { name = 'Position',
+                              show = strategy.src_selitems&1==1,
+                              level = 1},                    
+                                        
+                                { name = 'Obey snap offset',
+                                  state = strategy.src_selitems&2==2,
+                                  show = strategy.src_positions&1==1 and strategy.src_selitems&1==1,
+                                  level = 2,
+                                func =  function()
+                                          strategy.src_selitems = BinaryToggle(strategy.src_selitems, 1)
+                                          refresh.GUI = true
+                                        end,                               
+                                },                              
                             { name = 'Envelope points',
                               state = strategy.src_envpoint,
                               show = strategy.src_positions&1==1,
-                              level = 1,
+                              level = 0,
                             func =  function()
                                       if strategy.src_envpoint&1~=1 then
                                         strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
@@ -204,14 +151,29 @@
                                       refresh.GUI = true
                                     end,                               
                             },  
+                            
+                            { name = 'MIDI notes (preserve length)',
+                              state = strategy.src_midi,
+                              show = strategy.src_positions&1==1 ,
+                              level = 0,                             
+                              func =  function()
+                                      if strategy.src_midi&1~=1 then
+                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
+                                        strategy.src_envpoint = BinaryToggle(strategy.src_envpoint,0, 0)
+                                        strategy.src_midi = BinaryToggle(strategy.src_midi,0, 1)
+                                        strategy.src_strmarkers = BinaryToggle(strategy.src_strmarkers,0, 0)
+                                      end
+                                      refresh.GUI = true
+                                    end,                               
+                            },                             
                             { name = 'Mode',
                               show = strategy.src_midi&1==1 ,
-                              level = 2},  
+                              level = 1},  
                               
                               { name = 'MIDI Editor',
                                 state = strategy.src_midi&2==0,
                                 show = strategy.src_midi&1==1 ,
-                                level = 3,
+                                level = 2,
                                 func =  function()
                                           strategy.src_midi = BinaryToggle(strategy.src_midi, 1)                                          
                                           refresh.GUI = true
@@ -220,7 +182,7 @@
                               { name = 'Selected items',
                                 state = strategy.src_midi&2==2,
                                 show = strategy.src_midi&1==1 ,
-                                level = 3,
+                                level = 2,
                                 func =  function()
                                           strategy.src_midi = BinaryToggle(strategy.src_midi, 1)
                                           refresh.GUI = true
@@ -230,7 +192,7 @@
                             { name = 'Stretch markers',
                               state = strategy.src_strmarkers,
                               show = strategy.src_positions&1==1,
-                              level = 1,
+                              level = 0,
                             func =  function()
                                       --do return end
                                       if strategy.src_strmarkers&1~=1 then
@@ -246,7 +208,7 @@
                        
                                                                                                        
                         }
-    Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, src_strtUI, 'src_strtUI_it', 2)  
+    Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, src_strtUI, 'src_strtUI_it', 2, strategy)  
   end
   ----------------------------------------------- 
   function Obj_TabRef_Strategy(conf, obj, data, refresh, mouse, strategy) 
@@ -278,11 +240,23 @@
                                         strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 1)
                                         strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)     
                                         strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0, 0)   
-                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 0)                                   
+                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 0) 
+                                        strategy.ref_editcur  = BinaryToggle(strategy.ref_editcur, 0, 0)  
+                                        strategy.ref_marker  = BinaryToggle(strategy.ref_marker, 0, 0) 
+                                        strategy.ref_timemarker  = BinaryToggle(strategy.ref_timemarker, 0,0)                                
                                       end
                                       refresh.GUI = true
                                     end,                               
-                            },    
+                            },   
+                                { name = 'Obey snap offset',
+                                  state = strategy.ref_selitems&2==2,
+                                  show = strategy.ref_positions&1==1 and strategy.ref_selitems&1==1,
+                                  level = 2,
+                                func =  function()
+                                          strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 1)
+                                          refresh.GUI = true
+                                        end,                               
+                                },                             
                             { name = 'Envelope points',
                               state = strategy.ref_envpoints,
                               show = strategy.ref_positions&1==1 ,
@@ -292,7 +266,10 @@
                                         strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 1)
                                         strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0)  
                                         strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0, 0)  
-                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 0)                                        
+                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 0)  
+                                        strategy.ref_editcur  = BinaryToggle(strategy.ref_editcur, 0, 0)  
+                                        strategy.ref_marker  = BinaryToggle(strategy.ref_marker, 0, 0)  
+                                        strategy.ref_timemarker  = BinaryToggle(strategy.ref_timemarker, 0,0)                                   
                                       end
                                       refresh.GUI = true
                                     end,                               
@@ -307,7 +284,10 @@
                                         strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)
                                         strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0) 
                                         strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0, 1)  
-                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 0)                                         
+                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 0)   
+                                        strategy.ref_editcur  = BinaryToggle(strategy.ref_editcur, 0, 0) 
+                                        strategy.ref_marker  = BinaryToggle(strategy.ref_marker, 0, 0)
+                                        strategy.ref_timemarker  = BinaryToggle(strategy.ref_timemarker, 0,0)                                      
                                       end
                                       refresh.GUI = true
                                     end,                               
@@ -367,11 +347,68 @@
                                         strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)
                                         strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0) 
                                         strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0,0)  
-                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 1)                                         
+                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 1) 
+                                        strategy.ref_editcur  = BinaryToggle(strategy.ref_editcur, 0, 0)    
+                                        strategy.ref_marker  = BinaryToggle(strategy.ref_marker, 0, 0)    
+                                        strategy.ref_timemarker  = BinaryToggle(strategy.ref_timemarker, 0,0)                                
                                       end
                                       refresh.GUI = true
                                     end,                               
-                            },    
+                            }, 
+                            { name = 'Edit Cursor',
+                              state = strategy.ref_editcur,
+                              show = strategy.ref_positions&1==1 ,
+                              level = 1,                            
+                            func =  function()
+                                      if strategy.ref_editcur&1 ~= 1 then 
+                                        strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)
+                                        strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0) 
+                                        strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0,0)  
+                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 0)                                         
+                                        strategy.ref_editcur  = BinaryToggle(strategy.ref_editcur, 0, 1)
+                                        strategy.ref_marker  = BinaryToggle(strategy.ref_marker, 0, 0)
+                                        strategy.ref_timemarker  = BinaryToggle(strategy.ref_timemarker, 0,0)
+                                      end
+                                      refresh.GUI = true
+                                    end,                               
+                            },     
+                            { name = 'Project markers',
+                              state = strategy.ref_marker,
+                              show = strategy.ref_positions&1==1 ,
+                              level = 1,                            
+                            func =  function()
+                                      if strategy.ref_marker&1 ~= 1 then 
+                                        strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)
+                                        strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0) 
+                                        strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0,0)  
+                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 0)                                         
+                                        strategy.ref_editcur  = BinaryToggle(strategy.ref_editcur, 0,0)
+                                        strategy.ref_marker  = BinaryToggle(strategy.ref_marker, 0,1)
+                                        strategy.ref_timemarker  = BinaryToggle(strategy.ref_timemarker, 0,0)
+                                      end
+                                      refresh.GUI = true
+                                    end,                               
+                            },                                   
+                            { name = 'Tempo markers',
+                              state = strategy.ref_timemarker,
+                              show = strategy.ref_positions&1==1 ,
+                              level = 1,                            
+                            func =  function()
+                                      if strategy.ref_timemarker&1 ~= 1 then 
+                                        strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 0, 0)
+                                        strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 0, 0) 
+                                        strategy.ref_midi = BinaryToggle(strategy.ref_midi, 0,0)  
+                                        strategy.ref_strmarkers  = BinaryToggle(strategy.ref_strmarkers, 0, 0)                                         
+                                        strategy.ref_editcur  = BinaryToggle(strategy.ref_editcur, 0,0)
+                                        strategy.ref_marker  = BinaryToggle(strategy.ref_marker, 0,0)
+                                        strategy.ref_timemarker  = BinaryToggle(strategy.ref_timemarker, 0,1)
+                                        
+                                      end
+                                      refresh.GUI = true
+                                    end,                               
+                            },                                  
+                               
+                               
                           -------------------------------------------------------                                                 
                           { name = 'Groove',
                             state = strategy.ref_pattern,
@@ -402,7 +439,7 @@
   
                               { name = 'Current grid ('..grid_str..')',
                               state = strategy.ref_pattern_gensrc&1 == 1,
-                              show = strategy.ref_pattern&2 == 2,
+                              show = strategy.ref_pattern&1 == 1,
                               level = 2,
                               func =  function()
                                         strategy.ref_pattern_gensrc = BinaryToggle(strategy.ref_pattern_gensrc, 0, 1 )
@@ -415,7 +452,6 @@
                               state = strategy.ref_pattern&2 == 0,
                               level = 1,
                               func =  function()
-                                        strategy.ref_pattern = BinaryToggle(strategy.ref_pattern, 1,0)
                                         local f_table = Data_GetListedFile(GetResourcePath()..'/Grooves/', strategy.ref_pattern_name..'.rgt')
                                         local t_gr = {}
                                         for i = 1 , #f_table do 
@@ -431,6 +467,7 @@
                                                                   data.ref_pat = {}
                                                                   Data_PatternParseRGT(data, strategy, content, true)
                                                                   strategy.ref_pattern_name = f_table[i]:gsub('%.rgt', '')
+                                                                  strategy.ref_pattern = BinaryToggle(strategy.ref_pattern, 1,0)
                                                                   SaveStrategy(conf, strategy, 1, true)
                                                                   refresh.GUI = true
                                                                 end
@@ -593,7 +630,7 @@
                                             },
                             },                                          
                         }
-    local y_offs = Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, 'ref_strtUI_it', 1)
+    local y_offs = Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, 'ref_strtUI_it', 1, strategy)
     if strategy.ref_pattern&1==1 then 
       obj.pat_x = obj.offs
       obj.pat_y = obj.tab_h + y_offs+obj.offs*2
@@ -682,9 +719,8 @@
                       
   end  
   -----------------------------------------------   
-  function Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, name, strategytype, override_w) 
-    local wstr = obj.strategy_w
-    if override_w then  wstr = override_w end
+  function Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, name, strategytype, strategy) 
+    local wstr = gfx.w - obj.offs
     obj[name..'_frame'] = { clear = true,
                       disable_blitback = true,
                         x = 0,obj.offs,
@@ -785,56 +821,10 @@
                                 end
                         }  
     if conf.activetab ~= 2 then return end
-
     Obj_TabSrc_Strategy(conf, obj, data, refresh, mouse, strategy)   
-    local cnt = 0
-    if data.src then 
-      cnt = #data.src 
-      if data.src.src_cnt then cnt = data.src.src_cnt end
-    end
-    obj.src_showpos =  { clear = true,
-                        x = obj.strategy_w + obj.offs,
-                        y = obj.tab_h+obj.offs,
-                        w = gfx.w - obj.strategy_w - obj.offs*2,
-                        h = obj.strategy_h/2 ,
-                        col = 'blue',
-                        txt= 'Show\ntarget\n('..cnt..')',
-                        txt_col = 'blue',
-                        txt_a =1,                        
-                        aligh_txt = 16,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        a_frame =0,
-                        func =  function() 
-                                  Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.src, 'blue_marker') 
-                                end,
-                        onrelease_L = function() 
-                                  Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
-                                end,
-                        } 
-    obj.src_catch =  { clear = true,
-                        x = obj.strategy_w + obj.offs,
-                        y = obj.tab_h+obj.offs +obj.strategy_h/2,
-                        w = gfx.w - obj.strategy_w - obj.offs*2,
-                        h = obj.strategy_h/2,
-                        col = 'blue',
-                        txt= 'Detect\ntarget',
-                        txt_col = 'blue',
-                        txt_a =1,                        
-                        aligh_txt = 16,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        a_frame =0,
-                        func =  function() 
-                                  Data_ApplyStrategy_source(conf, obj, data, refresh, mouse, strategy)
-                                  refresh.GUI = true
-                                end
-                        }                         
-                          
   end    
   -----------------------------------------------
   function Obj_TabAct(conf, obj, data, refresh, mouse, strategy) 
-    local x_offs = obj.strategy_w + obj.offs
             obj.TabAct = { clear = true,
                         x = obj.tab_w*2,
                         y = 0,
@@ -946,7 +936,7 @@
                                     end,             
                           } ,     ]]                                                                                 
                         }
-    Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, act_strtUI, 'act_strtUI_it', 3, gfx.w - 2*obj.offs)  
+    Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, act_strtUI, 'act_strtUI_it', 3, strategy )  
   end  
   -----------------------------------------------
   function Obj_TabExecute_Align(conf, obj, data, refresh, mouse, strategy) 
@@ -955,6 +945,8 @@
     local knob_cnt = 2
     local knob_w = math.floor((com_exe_w * obj.knob_area)/knob_cnt)
     local but_a = 0.7
+    local h_ratio_but = 0.6
+    
     -- show/catch ref
     local cnt = 0
     if data.ref then cnt = #data.ref end
@@ -962,7 +954,7 @@
                         x = obj.menu_w + 1,
                         y = obj.tab_h + obj.exec_line_y,
                         w = obj.exe_but_w,
-                        h = obj.slider_tab_h,
+                        h = math.floor(obj.slider_tab_h*h_ratio_but),
                         txt_a =1,
                         aligh_txt = 16,
                         show = true,
@@ -978,7 +970,45 @@
                                       refresh.GUI_minor = true
                                     end                                 
                         }
+
+    local ref_showpos_txt =  'Show pattern'
+    local cnt = 0
+    if data.ref then 
+      cnt = #data.ref 
+      if data.ref.src_cnt then cnt = data.ref.src_cnt end
+    end
+    if data.ref and strategy.ref_pattern&1 ~=1  then ref_showpos_txt = 'Show anchor points ('..cnt..')'  end                
+    obj.ref_showpos =  { clear = true,
+                        x = obj.menu_w + 1,
+                        y = obj.tab_h + obj.exec_line_y + math.floor(obj.slider_tab_h*h_ratio_but) +1,
+                        w = obj.exe_but_w,
+                        h = math.floor(obj.slider_tab_h*(1-h_ratio_but))-1,
+                        txt_a =1,
+                        aligh_txt = 16,
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        colfill_col = 'green',
+                        colfill_a = but_a,
+                        colfill_frame = true,
+                        func =  function() 
+                                  if strategy.ref_pattern&1==1 then
+                                    Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.ref_pat, 'green_marker', true) 
+                                   else
+                                    Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.ref, 'green_marker', false) 
+                                  end
+                                end,
+                        onrelease_L = function() 
+                                  Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
+                                end,
+                        func_mouseover =  function()
+                                      obj.knob_txt.txt = ref_showpos_txt
+                                      refresh.GUI_minor = true
+                                    end                                 
+                        } 
+
                         
+                        
+                                                
     -- show/catch src                          
     local cnt = 0
     if data.src then 
@@ -989,7 +1019,7 @@
                         x = obj.menu_w + 1 + obj.exe_but_w,
                         y = obj.tab_h + obj.exec_line_y,
                         w = obj.exe_but_w,
-                        h = obj.slider_tab_h,
+                        h = math.floor(obj.slider_tab_h*h_ratio_but),
                         colfill_col = 'blue',
                         colfill_a =but_a,
                         show = true,
@@ -1002,12 +1032,41 @@
                                       obj.knob_txt.txt = 'Detect targets '..'('..cnt..')'
                                       refresh.GUI_minor = true
                                     end                                 
-                        }                                             
+                        }    
+                        
+    local cnt = 0
+    if data.src then 
+      cnt = #data.src 
+      if data.src.src_cnt then cnt = data.src.src_cnt end
+    end
+    obj.src_showpos =  { clear = true,
+                        x = obj.menu_w + 1 + obj.exe_but_w,
+                        y = obj.tab_h + obj.exec_line_y + math.floor(obj.slider_tab_h*h_ratio_but) +1,
+                        w = obj.exe_but_w,                        
+                        h = math.floor(obj.slider_tab_h*(1-h_ratio_but))-1,
+                        colfill_col = 'blue',
+                        colfill_a =but_a,
+                        colfill_frame = true,
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        func =  function() 
+                                  Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.src, 'blue_marker') 
+                                end,
+                        onrelease_L = function() 
+                                  Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
+                                end,
+                        func_mouseover =  function()
+                                      obj.knob_txt.txt = 'Show target positions ('..cnt..')'
+                                      refresh.GUI_minor = true
+                                    end                                 
+                        } 
+
+                                                                                           
     obj.act_calc =  { clear = true,
                         x = obj.menu_w + 1 + obj.exe_but_w*2,
                         y = obj.tab_h + obj.exec_line_y,
                         w = obj.exe_but_w,
-                        h = obj.slider_tab_h,
+                        h = math.floor(obj.slider_tab_h*h_ratio_but),
                         colfill_col = 'red',
                         colfill_a =but_a,
                         show = true,
@@ -1020,7 +1079,26 @@
                                       obj.knob_txt.txt = 'Calculate output'
                                       refresh.GUI_minor = true
                                     end                                 
-                        }                               
+                        }                            
+    obj.act_ex =  { clear = true,
+                        x = obj.menu_w + 1 + obj.exe_but_w*2,
+                        y = obj.tab_h + obj.exec_line_y + math.floor(obj.slider_tab_h*h_ratio_but) +1,
+                        w = obj.exe_but_w,
+                        h = math.floor(obj.slider_tab_h*(1-h_ratio_but))-1,
+                        colfill_col = 'red',
+                        colfill_a =but_a,
+                        colfill_frame = true,
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        func =  function() 
+                                  Data_Execute(conf, obj, data, refresh, mouse, strategy)
+                                  refresh.GUI = true
+                                end,
+                        func_mouseover =  function()
+                                      obj.knob_txt.txt = 'Apply action output '..FormatPercent(strategy.exe_val1)..'/'..FormatPercent(strategy.exe_val2)
+                                      refresh.GUI_minor = true
+                                    end                                 
+                        }                                                          
     obj.exe_val1 = { clear = true,
                         is_knob = true,
                         x =   obj.menu_w + but_cnt * obj.exe_but_w + 1,
@@ -1177,7 +1255,7 @@
     return math_q_dec(val*100, 2)..'%'
   end
   -----------------------------------------------
-  function Obj_MenuMain(conf, obj, data, refresh, mouse)
+  function Obj_MenuMain(conf, obj, data, refresh, mouse, strategy)
             obj.menu = { clear = true,
                         x = 0,
                         y = obj.tab_h + obj.exec_line_y,
@@ -1212,7 +1290,49 @@
                 conf.app_on_strategy_change = math.abs(1-conf.app_on_strategy_change) 
               end,
         state = conf.app_on_strategy_change == 1}, 
-      
+        
+      { str = '#Developer area'},    
+      { str = 'Dump current preset configuration',
+        func = function() 
+                local str = ''
+                for key in spairs(strategy) do
+                  str = str..'\n'..key..' = '..strategy[key]
+                end
+                ClearConsole()
+                msg(str)
+              end,
+      },
+      { str = 'Dump anchor points',
+        func = function() 
+                local str = ''
+                for i= 1, #data.ref do  
+                  str = str..'\n'..i
+                  for key in spairs(data.ref[i]) do
+                    if type(data.ref[i][key]) == 'number' or type(data.ref[i][key]) == 'string' then
+                      str = str..'\n  '..key..' '..data.ref[i][key]
+                    end
+                  end
+                end
+                ClearConsole()
+                msg(str)
+              end,   
+      },   
+      { str = 'Dump targets|',
+        func = function() 
+                local str = ''
+                for i= 1, #data.src do  
+                  str = str..'\n'..i
+                  for key in spairs(data.src[i]) do
+                    if type(data.src[i][key]) == 'number' or type(data.src[i][key]) == 'string' then
+                      str = str..'\n  '..key..' '..data.src[i][key]
+                    end
+                  end
+                end
+                ClearConsole()
+                msg(str)
+              end,
+      },
+                   
       { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
         func = function() 
                   conf.dock2 = math.abs(1-conf.dock2) 

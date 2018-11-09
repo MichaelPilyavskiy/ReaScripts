@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.0alpha9
+-- @version 2.0alpha10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -11,16 +11,17 @@
 --    mpl_QuantizeTool_presets/default.qt
 --    mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua
 -- @changelog
---    + Preset/Target/MIDI: allow multiple selected items take pointers
---    + Preset/AnchorPoints/Groove: selector beetween getting groove from file or generating it
---    + Preset/AnchorPoints/Groove/Generate/Current grid
---    + Preset/AnchorPoints/MIDI: allow multiple selected items take pointers
---    + Preset/AnchorPoints/MIDI: allow to use/align to specific messages
---    # Preset/AnchorPoints: fix show incorrect points count
---    # GUI: wrapping preset buttons on low width
---    # require VariousFunctions 1.18+
-
-  local vrs = 'v2.0alpha9'
+--    + Preset/Align: fix errors related to envelopes
+--    + Preset/Align/AnchorPoints/Edit cursor
+--    + Preset/Align/AnchorPoints/Project Markers
+--    + Preset/Align/AnchorPoints/Items: obey snap offset
+--    + Preset/Align/Target/Items: obey snap offset
+--    + Preset/Align/Target/StretchMarkers: add zero marker if need
+--    # Preset/Align/AnchorPoints/Groove/Generate/Current grid: fix handle last beat
+--    # GUI: move show/apply buttons to the control panel
+--    + Developer actions to dump internal data
+ 
+  local vrs = 'v2.0alpha10'
   --NOT gfx NOT reaper
   
 
@@ -35,9 +36,9 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-   data = {}
+  local data = {}
   local obj = {}
-  strategy = {}
+  local strategy = {}
   
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
@@ -61,6 +62,9 @@
         strategy.ref_midi = 0
         strategy.ref_midi_msgflag = 1
         strategy.ref_strmarkers = 0
+        strategy.ref_editcur = 0     
+        strategy.ref_marker = 0   
+        strategy.ref_timemarker = 0           
       -- pattern
         strategy.ref_pattern = 0
         strategy.ref_pattern_gensrc = 1

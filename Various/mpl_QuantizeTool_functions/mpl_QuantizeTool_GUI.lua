@@ -116,11 +116,7 @@
     if not o then return end
     gfx.dest = 1
     local x,y,w,h, txt = o.x, o.y, o.w, o.h, o.txt
-    --[[
-    gfx.set(1,1,1,1)
-    gfx.setfont()
-    gfx.x, gfx.y = x+20,y
-    gfx.drawstr(x)]]
+    --gfx.set(1,1,1,1)gfx.rect(x,y,w,h,0)   
     
     if not x or not y or not w or not h then return end
     gfx.a = o.alpha_back or 0.15
@@ -146,9 +142,17 @@
       end
 
     -- color fill
-      if o.colfill_col then
+      if not o.colfill_frame and o.colfill_col then
         col(obj, o.colfill_col, o.colfill_a or 1) 
-        gfx.rect(x,y,w,h,1)      
+        gfx.rect(x,y,w,h,1)   
+       elseif    o.colfill_frame and o.colfill_col  then
+        gfx.a = 0.8
+        local blit_h, blit_w = obj.grad_sz,obj.grad_sz
+        gfx.blit( 5, 1, 0, -- grad back
+              0,math.rad(180),  blit_w,blit_h,
+              x,y,w,h, 0,0)   
+        col(obj, o.colfill_col, o.colfill_a*0.7 or 1) 
+        gfx.rect(x,y,w,h,1)                    
       end
              
     ------------------ check
