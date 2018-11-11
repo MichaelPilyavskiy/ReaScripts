@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.0alpha10
+-- @version 2.0pre1
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -11,17 +11,18 @@
 --    mpl_QuantizeTool_presets/default.qt
 --    mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua
 -- @changelog
---    + Preset/Align: fix errors related to envelopes
---    + Preset/Align/AnchorPoints/Edit cursor
---    + Preset/Align/AnchorPoints/Project Markers
---    + Preset/Align/AnchorPoints/Items: obey snap offset
---    + Preset/Align/Target/Items: obey snap offset
---    + Preset/Align/Target/StretchMarkers: add zero marker if need
---    # Preset/Align/AnchorPoints/Groove/Generate/Current grid: fix handle last beat
---    # GUI: move show/apply buttons to the control panel
---    + Developer actions to dump internal data
+--    + Preset/Create
+--    + Preset/Create/Target/EnvelopePoint
+--    + Preset/Align/Target/Items: handle grouped items
+--    + Preset/Align/Action: Search area
+--    + Preset/Align/Action: Link knobs
+--    + Preset/Align/EnvelopePoint: support for all envelopes rather than selected one
+--    + Preset/Align/EnvelopePoint: support for take envelopes
+--    + Preset/Align/AnchorPoints: custom grid (internally is a 4-beat long groove)
+--    # Preset/Align/AnchorPoints: separate grid based groove from Groove tab
+--    # Preset: save knob values
  
-  local vrs = 'v2.0alpha10'
+  local vrs = 'v2.0pre1'
   --NOT gfx NOT reaper
   
 
@@ -57,14 +58,19 @@
     -- reference -----------------------
       -- positions
         strategy.ref_positions = 1
-        strategy.ref_selitems = 0
-        strategy.ref_envpoints = 1
-        strategy.ref_midi = 0
-        strategy.ref_midi_msgflag = 1
-        strategy.ref_strmarkers = 0
+        strategy.ref_selitems = 0 --&2 snap offset -- &4 handle grouping
+        strategy.ref_envpoints = 1 -- &2 all selected
+        strategy.ref_midi = 0 --&2 Selected items
+        strategy.ref_midi_msgflag = 1 --&2 note off
+        strategy.ref_strmarkers = 0 
         strategy.ref_editcur = 0     
         strategy.ref_marker = 0   
-        strategy.ref_timemarker = 0           
+        strategy.ref_timemarker = 0  
+        
+        strategy.ref_grid = 2    -- &2 current &4 triplet &8 swing
+        strategy.ref_grid_val = 1 
+        strategy.ref_grid_sw = 0  
+          
       -- pattern
         strategy.ref_pattern = 0
         strategy.ref_pattern_gensrc = 1
@@ -75,14 +81,14 @@
       -- positions
         strategy.src_positions = 1
         strategy.src_selitems = 1
-        strategy.src_envpoint = 0
+        strategy.src_envpoints = 0
         strategy.src_midi = 0 
         strategy.src_strmarkers = 0
          
     -- action -----------------------
       --  align
         strategy.act_action = 1  
-        
+        strategy.act_alignflag = 0 -- &1= linked knobs
       -- init
         strategy.act_initcatchref = 1    
         strategy.act_initcatchsrc = 0 
@@ -91,8 +97,9 @@
         strategy.act_initgui = 1
         
     -- execute -----------------------
-      strategy.exe_val1 = 0
-      strategy.exe_val2 = 0
+      strategy.exe_val1 = 0 -- align=strength
+      strategy.exe_val2 = 0 -- align=value
+      strategy.exe_val3 = 0 -- align=search area/0-disabled
   end
   ---------------------------------------------------
   function ExtState_Def()  
@@ -140,7 +147,6 @@
       refresh.conf = nil 
     end
 
-    --if refresh.data_proj == true then Data_Update_ExtState_ProjData_Load (conf, obj, data, refresh, mouse) refresh.data_proj = nil end
     if refresh.GUI == true or refresh.GUI_onStart == true then            OBJ_Update              (conf, obj, data, refresh, mouse,strategy) end  
     if refresh.GUI_minor == true then refresh.GUI = true end
     GUI_draw               (conf, obj, data, refresh, mouse, strategy)    
@@ -241,6 +247,7 @@
 -- @description Set QuantizeTool preset to ']]..strategy.name..[['
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
+
 -- generated from MPL QuantizeTool v2
 
 reaper.SetExtState("]].. conf.ES_key..'", "ext_strategy_name", "'..strategy.name..[[",false)

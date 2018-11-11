@@ -61,7 +61,7 @@
     data.ref_pat = {}
     
     if strategy.ref_positions&1 ==1 and strategy.ref_selitems&1==1 then Data_GetItems(data, 'ref', strategy.ref_selitems)  end       
-    if strategy.ref_positions&1 ==1 and strategy.ref_envpoints&1==1 then Data_GetEP(data, 'ref')  end
+    if strategy.ref_positions&1 ==1 and strategy.ref_envpoints&1==1 then Data_GetEP(data, strategy, 'ref', strategy.ref_envpoints)  end
     if strategy.ref_positions&1 ==1 and strategy.ref_midi&1==1 then Data_GetMIDI(data, strategy, 'ref', strategy.ref_midi)  end
     if strategy.ref_positions&1 ==1 and strategy.ref_strmarkers&1==1 then Data_GetSM(data, 'ref')  end
     if strategy.ref_positions&1 ==1 and strategy.ref_marker&1==1 then Data_GetMarkers(data, 'ref')  end
@@ -71,7 +71,7 @@
       data.ref[1] = { pos = ({TimeMap2_timeToBeats( 0,  GetCursorPositionEx( 0 ) )})[4],
                       val = 1}
     end
-    if strategy.ref_pattern&1==1 then Data_ApplyStrategy_reference_pattern(conf, obj, data, refresh, mouse, strategy) end  
+    if strategy.ref_pattern&1==1 or  strategy.ref_grid&1==1 then Data_ApplyStrategy_reference_pattern(conf, obj, data, refresh, mouse, strategy) end  
     
     --[[if strategy.ref_values&2==2 then table.sort(data.ref, function (a,b) return a.pos and b.pos and a.pos<b.pos end) end
     Data_ApplyStrategy_reference_val(conf, obj, data, refresh, mouse, strategy)
@@ -103,22 +103,31 @@
   end
   --------------------------------------------------- 
   function Data_ApplyStrategy_reference_pattern(conf, obj, data, refresh, mouse, strategy)
-    if strategy.ref_pattern&2 == 2 then -- generate pattern
-      if strategy.ref_pattern_gensrc&1==1 then -- cur grid
-        local retval, divisionIn, swingmodeIn, swingamtIn = GetSetProjectGrid( 0, false )
-        local id = 0
-        for beat = 1, strategy.ref_pattern_len + 1, divisionIn*4 do
-          local outpos = beat-1
-          if swingamtIn ~= 0 then 
-            if id%2 ==1 then outpos = outpos + swingamtIn * divisionIn*2 end
-          end
-          data.ref_pat[#data.ref_pat + 1] = {pos = outpos, val = 1}
-          id = id + 1
+    if strategy.ref_grid&1==1 then -- grid
+      local retval, divisionIn, swingmodeIn, swingamtIn
+      
+      if strategy.ref_grid&2==2 then 
+        retval, divisionIn, swingmodeIn, swingamtIn = GetSetProjectGrid( 0, false ) 
+       else
+        divisionIn = strategy.ref_grid_val
+        swingamtIn = 0
+        if strategy.ref_grid&4==4 then divisionIn = divisionIn* 2/3 end
+        if strategy.ref_grid&8==8 then swingamtIn = strategy.ref_grid_sw end        
+      end
+      
+      if not divisionIn then return end
+      local id = 0
+      for beat = 1, strategy.ref_pattern_len + 1, divisionIn*4 do
+        local outpos = beat-1
+        if swingamtIn ~= 0 then 
+          if id%2 ==1 then outpos = outpos + swingamtIn * divisionIn*2 end
         end
+        data.ref_pat[#data.ref_pat + 1] = {pos = outpos, val = 1}
+        id = id + 1
       end
     end
     
-    if strategy.ref_pattern&2 == 0 then -- from file
+    if strategy.ref_pattern&1 == 1 then 
       local name = strategy.ref_pattern_name
       local fp =  GetResourcePath()..'/Grooves/'..name..'.rgt'
       local f = io.open(fp, 'r')
@@ -151,8 +160,8 @@
   end
   --------------------------------------------------- 
   function Data_GetItems(data, table_name, mode) 
-      for selitem = 1, CountSelectedMediaItems(0) do
-        local item =  GetSelectedMediaItem( 0, selitem-1 )
+      for selitem = 1, CountMediaItems(0) do
+        local item =  GetMediaItem( 0, selitem-1 )
         local take = GetActiveTake(item)
         local pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
         
@@ -167,24 +176,29 @@
         local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
         if not data[table_name][selitem] then data[table_name][selitem] = {} end
         local val = GetMediaItemInfo_Value( item, 'D_VOL' )
+        data[table_name][selitem].ignore_search =  GetMediaItemInfo_Value( item, 'B_UISEL' ) == 0
         data[table_name][selitem].pos = fullbeats
+        data[table_name][selitem].pos_sec = pos
         data[table_name][selitem].position_has_snap_offs = position_has_snap_offs
         data[table_name][selitem].pos_beats = beats
         data[table_name][selitem].snapoffs_sec = snapoffs_sec 
         data[table_name][selitem].GUID = BR_GetMediaItemGUID( item )
         data[table_name][selitem].srctype='item'
         data[table_name][selitem].val =val
+        data[table_name][selitem].groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
+        data[table_name][selitem].ptr = item
       end      
   end  
   --------------------------------------------------- 
   function Data_GetSM(data, table_name) 
     data[table_name].src_cnt = 0
     
-    for i = 1, CountSelectedMediaItems(0) do
-      local item =  GetSelectedMediaItem( 0, i-1 )
+    for i = 1, CountMediaItems(0) do
+      local item =  GetMediaItem( 0, i-1 )
       if not item then return end
       local it_pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
       local it_len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
+      local it_UIsel = GetMediaItemInfo_Value( item, 'B_UISEL' )
       local take = GetActiveTake(item)
       local rate  = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
       if not TakeIsMIDI(take) then
@@ -195,7 +209,7 @@
           local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
                 
           local ignore_search = false  
-          if sm_pos < 0.0001 or math.abs(sm_pos - it_len) < 0.001 then ignore_search = true end -- boundary SM
+          if sm_pos < 0.0001 or math.abs(sm_pos - it_len) < 0.001 or it_UIsel == 0 then ignore_search = true end -- boundary SM and selection
           if not ignore_search then data[table_name].src_cnt = data[table_name].src_cnt + 1 end
                        
           data[table_name][#data[table_name]+1] =
@@ -208,9 +222,12 @@
                     val =1,
                     ignore_search = ignore_search,
                     GUID = BR_GetMediaItemTakeGUID( take ),
+                    it_groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' ),
+                    it_ptr = item,
                     it_pos=it_pos,
                     it_len = it_len,
                     tk_rate = rate,
+                    tk_ptr= take,
                     
                 }
         end
@@ -391,40 +408,73 @@
       local item =  GetMediaItemTake_Item( take )
       UpdateItemInProject( item )
     end
-  end      
-  
+  end  
   --------------------------------------------------- 
-  function Data_GetEP(data, table_name) 
-    local  env = GetSelectedEnvelope( 0 )
+  function Data_GetEP(data, strategy, table_name, mode) 
+    if mode&2==2 then 
+      for i = 1, CountTracks(0) do
+        local track = GetTrack(0,i-1)
+        local cnt_env = CountTrackEnvelopes( track )
+        for envidx = 1, cnt_env do
+          local env = GetTrackEnvelope( track, envidx-1 )
+          Data_GetEP_sub(data, table_name, env, nil) 
+        end
+      end
+      
+      -- get take env
+      for itemidx = 1, CountMediaItems( 0 ) do
+        local item = GetMediaItem( 0, itemidx-1 )
+        local item_pos =  GetMediaItemInfo_Value( item, 'D_POSITION' )
+        for  takeidx = 1, CountTakes( item ) do
+          local take  =  GetTake( item, takeidx-1 )
+          local tk_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+          for envidx = 1,  CountTakeEnvelopes( take ) do
+            local env =  GetTakeEnvelope( take, envidx-1 )
+            Data_GetEP_sub(data, table_name, env, item_pos, tk_rate) 
+          end
+        end
+      end 
+      
+     else
+      local  env = GetSelectedEnvelope( 0 )
+      Data_GetEP_sub(data, table_name, env) 
+    end
+    
+  end 
+  ---------------------------------------------------  
+  function Data_GetEP_sub(data, table_name, env, item_pos0, tk_rate) 
     if not env then return end
     local cnt = CountEnvelopePoints( env )
-    local ptidx_cust = 0
     for ptidx = 1, cnt do
       local retval, pos, value, shape, tension, selected = GetEnvelopePoint( env, ptidx-1 )
-      if selected then
-        ptidx_cust = ptidx_cust + 1
+      --if selected then
+        local ptidx_cust = #data[table_name] + 1
+        if item_pos0 then pos = pos/ tk_rate + item_pos0  end
         local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
-        if not data[table_name][ptidx_cust] then data[table_name][ptidx_cust] = {} end
+        data[table_name][ptidx_cust] = {}
+        data[table_name][ptidx_cust].item_pos = item_pos0
         data[table_name][ptidx_cust].pos = fullbeats
         data[table_name][ptidx_cust].pos_beats = beats
         data[table_name][ptidx_cust].ptr = env
+        data[table_name][ptidx_cust].ptr_str = genGuid('' )
         data[table_name][ptidx_cust].srctype='envpoint'
         data[table_name][ptidx_cust].selected = selected
         data[table_name][ptidx_cust].ID = ptidx-1
         data[table_name][ptidx_cust].shape = shape
         data[table_name][ptidx_cust].tension = tension
         data[table_name][ptidx_cust].val = value
-      end
+        data[table_name][ptidx_cust].ignore_search = not selected
+        data[table_name][ptidx_cust].tk_rate = tk_rate
+      --end
     end
-  end  
-
+  end
   --------------------------------------------------- 
   function Data_ApplyStrategy_source(conf, obj, data, refresh, mouse, strategy)
     data.src = {}
     
     -- positions
     if strategy.src_positions&1 ==1 and strategy.src_selitems&1==1 then Data_GetItems(data, 'src', strategy.src_selitems) end   
-    if strategy.src_positions&1 ==1 and strategy.src_envpoint&1==1 then Data_GetEP(data, 'src') end   
+    if strategy.src_positions&1 ==1 and strategy.src_envpoints&1==1 then Data_GetEP(data, strategy, 'src', strategy.src_envpoints) end   
     if strategy.src_positions&1 ==1 and strategy.src_midi&1==1 then Data_GetMIDI(data, strategy, 'src', strategy.src_midi) end 
     if strategy.src_positions&1 ==1 and strategy.src_strmarkers&1==1 then Data_GetSM(data, 'src') end 
     
@@ -476,8 +526,19 @@
           if strategy.ref_pattern&1~=1 then 
             local refID = Data_brutforce_RefID(conf, data, strategy, data.src[i].pos)
             if refID and data.ref[refID] then 
-              data.src[i].out_pos = data.ref[refID].pos
-              data.src[i].out_val = data.ref[refID].val
+            
+              if strategy.exe_val3 > 0 then 
+                if math.abs(data.ref[refID].pos - data.src[i].pos) < strategy.exe_val3 then 
+                  data.src[i].out_pos = data.ref[refID].pos 
+                 else
+                  data.src[i].out_pos = data.src[i].pos
+                end
+                data.src[i].out_val = data.ref[refID].val
+               else
+                data.src[i].out_pos = data.ref[refID].pos
+                data.src[i].out_val = data.ref[refID].val
+              end
+              
             end
            else
             local pat_pos, pat_val = DataSearchPatternVal(conf, data, strategy, data.src[i].pos, data.src[i].pos_beats, data.src[i].val)
@@ -521,6 +582,7 @@
   --------------------------------------------------- 
   function Data_Execute(conf, obj, data, refresh, mouse, strategy)
     if strategy.act_action == 1 then Data_Execute_Align(conf, obj, data, refresh, mouse, strategy) end
+    if strategy.act_action == 2 then Data_Execute_Create(conf, obj, data, refresh, mouse, strategy) end
   end
   --------------------------------------------------- 
   function Data_Execute_Align_Items(conf, obj, data, refresh, mouse, strategy)
@@ -533,41 +595,93 @@
             out_pos = TimeMap2_beatsToTime( 0, out_pos)
             if t.position_has_snap_offs then 
               out_pos = out_pos - t.snapoffs_sec 
-            end
+            end  
+            local pos_shift = out_pos - t.pos_sec
+            if strategy.src_selitems&4==4 and t.groupID ~= 0 then Data_UpdateGroupedItems_PosVal(conf, obj, data, refresh, mouse, strategy, it, t.groupID, pos_shift) end
             SetMediaItemInfo_Value( it, 'D_POSITION', out_pos )
           end 
           if t.out_val then
-            SetMediaItemInfo_Value( it, 'D_VOL', t.val + (t.out_val - t.val)*strategy.exe_val2 )  
+            local val_shift = (t.out_val - t.val)*strategy.exe_val2 
+            SetMediaItemInfo_Value( it, 'D_VOL', t.val + val_shift)  
+            if strategy.src_selitems&4==4 and t.groupID ~= 0 then Data_UpdateGroupedItems_PosVal(conf, obj, data, refresh, mouse, strategy, it, t.groupID, _, val_shift) end
           end
           UpdateItemInProject( it )
         end
       end  
   end
   --------------------------------------------------- 
-  function Data_Execute_Align_EnvPt(conf, obj, data, refresh, mouse, strategy)
-    if not data.src[1] then return end
-    local env = data.src[1].ptr
-    if not env then return end
+  function Data_UpdateGroupedItems_PosVal(conf, obj, data, refresh, mouse, strategy, parent_item, groupID_check, pos_shift, val_shift)
     for i = 1 , #data.src do
       local t = data.src[i]
-      local out_pos = t.pos
-      local out_val = t.val
-      if t.out_pos then out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1 end
-      if t.out_val then out_val = t.val + (t.out_val - t.val)*strategy.exe_val2 end
-      out_pos = TimeMap2_beatsToTime( 0, out_pos)
-      SetEnvelopePointEx( env, -1, t.ID, out_pos, out_val, t.shape, t.tension, t.selected, true )
-    end  
-    Envelope_SortPointsEx( env, -1 )
+      if t.ignore_search and t.groupID == groupID_check and t.ptr ~= parent_item then 
+        if pos_shift then 
+          SetMediaItemInfo_Value( t.ptr, 'D_POSITION' , t.pos_sec + pos_shift)
+        end
+        if val_shift then 
+          SetMediaItemInfo_Value( t.ptr, 'D_VOL' , t.val + val_shift)
+        end
+        UpdateItemInProject( t.ptr )
+      end
+    end
+  end
+  --------------------------------------------------- 
+  function Data_Execute_Align_EnvPt(conf, obj, data, refresh, mouse, strategy)
+    if not data.src[1] then return end
+    
+    -- collect various takes
+     env_t = {}
+    for i = 1 , #data.src do
+      local t = data.src[i]
+      if not env_t [t.ptr_str] then env_t [t.ptr_str] = {} end
+      env_t [t.ptr_str] [#env_t [t.ptr_str] + 1 ]  = CopyTable(t)
+    end
+    
+    local sel_env = GetSelectedEnvelope( 0 )
+    for ptr_str in pairs(env_t ) do
+      local env = env_t[ptr_str][1].ptr
+      if  (strategy.src_envpoints&2==0 and env == sel_env) or  (strategy.src_envpoints&2==2) then
+        for i = 1, #env_t[ptr_str] do
+          local t = env_t[ptr_str][i]
+          local out_pos = t.pos
+          local out_val = t.val
+          if t.out_pos then out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1 end
+          if t.out_val then out_val = t.val + (t.out_val - t.val)*strategy.exe_val2 end
+          out_pos = TimeMap2_beatsToTime( 0, out_pos)
+          if t.item_pos then out_pos  = (out_pos - t.item_pos)*t.tk_rate end
+          SetEnvelopePointEx( env, -1, t.ID, out_pos, out_val, t.shape, t.tension, t.selected, true )
+        end  
+        Envelope_SortPointsEx( env, -1 )
+      end
+    end
     UpdateArrange()
   end
   --------------------------------------------------- 
   function Data_Execute_Align(conf, obj, data, refresh, mouse, strategy)
     if not data.src or not data.ref then return end
     if strategy.src_selitems&1==1 then  Data_Execute_Align_Items(conf, obj, data, refresh, mouse, strategy) end
-    if strategy.src_envpoint&1==1 then  Data_Execute_Align_EnvPt(conf, obj, data, refresh, mouse, strategy) end
+    if strategy.src_envpoints&1==1 then  Data_Execute_Align_EnvPt(conf, obj, data, refresh, mouse, strategy) end
     if strategy.src_midi&1==1 then      Data_Execute_Align_MIDI(conf, obj, data, refresh, mouse, strategy) end
     if strategy.src_strmarkers&1==1 then Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy) end
   end
+  --------------------------------------------------- 
+  function Data_Execute_Create(conf, obj, data, refresh, mouse, strategy)
+    if not data.ref then return end
+    if strategy.src_envpoints&1==1 then  Data_Execute_Create_EnvPt(conf, obj, data, refresh, mouse, strategy) end
+    --[[if strategy.src_selitems&1==1 then  Data_Execute_Create_Items(conf, obj, data, refresh, mouse, strategy) end
+    if strategy.src_midi&1==1 then      Data_Execute_Create_MIDI(conf, obj, data, refresh, mouse, strategy) end
+    if strategy.src_strmarkers&1==1 then Data_Execute_Create_SM(conf, obj, data, refresh, mouse, strategy) end]]
+  end  
+  ---------------------------------------------------   
+  function Data_Execute_Create_EnvPt(conf, obj, data, refresh, mouse, strategy)
+    local env = GetSelectedEnvelope( 0 )
+    for i = 1, #data.ref do
+      local pos_sec =  TimeMap2_beatsToTime( 0, data.ref[i].pos)
+      InsertEnvelopePointEx( env, -1, pos_sec, data.ref[i].val, 0, 0, 0, true )
+    end
+    Envelope_SortPointsEx( env, -1 )
+    UpdateArrange()
+  end
+  
   ---------------------------------------------------   
   function Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, passed_t0, col_str, is_pat)
     if not passed_t0 then return end

@@ -27,21 +27,36 @@
   ---------------------------------------------------
   function GUI_knob(obj, b)
     local x,y,w,h,val =b.x,b.y,b.w,b.h, b.val
-    --gfx.rect(x,y,w,h,0)
     if not val then return end
-    local arc_r = math.floor(math.min(w,h)/2 * 0.8)
+    local arc_r = math.floor(w/2 * 0.7)
+    if b.reduce_knob then arc_r = arc_r*b.reduce_knob end
+    y = y - arc_r/2 + 1
     local ang_gr = 120
     local ang_val = math.rad(-ang_gr+ang_gr*2*val)
     local ang = math.rad(ang_gr)
+    local thickness = 1.5
+    local knob_y_shift = b.knob_y_shift
+    if not knob_y_shift then knob_y_shift = 0 end
+    
+    col(obj, b.col, 0.08)
+    if b.knob_as_point then 
+      local y = y - 5
+      local arc_r = arc_r*0.75
+      for i = 0, thickness, 0.5 do
+        gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_gr, ang_gr)
+      end
+      gfx.a = 0.02
+      gfx.circle(x+w/2,y+h/2,arc_r, 1)
+      return 
+    end
+    
+    
     -- arc back      
-    col(obj, b.col, 0.2)
+    col(obj, b.col, 0.15)
     local halfh = math.floor(h/2)
     local halfw = math.floor(w/2)
-    for i = 0, 3, 0.5 do
-      gfx.arc(x+halfw-1,y+halfh+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
-      gfx.arc(x+halfw-1,y+halfh,arc_r-i,    math.rad(-90),math.rad(0),    1)
-      gfx.arc(x+halfw,y+halfh,arc_r-i,    math.rad(0),math.rad(90),    1)
-      gfx.arc(x+halfw,y+halfh+1,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)
+    for i = 0, thickness, 0.5 do
+      gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_gr, ang_gr)
     end
     
     
@@ -51,66 +66,40 @@
     col(obj, b.col, knob_a)      
     if not b.is_centered_knob then 
       -- val       
-      local ang_val = math.rad(-ang_gr+ang_gr*2*val)
-      for i = 0, 3, 0.5 do
-        if ang_val < math.rad(-90) then 
-          gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),ang_val, 1)
-         else
-          if ang_val < math.rad(0) then 
-            gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
-            gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),ang_val,    1)
-           else
-            if ang_val < math.rad(90) then 
-              gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
-              gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
-              gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    1)
-             else
-              if ang_val < math.rad(ang_gr) then 
-                gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
-                gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
-                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
-                gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),ang_val,    1)
-               else
-                gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
-                gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
-                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
-                gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)                  
-              end
-            end
-          end                
-        end
+      local ang_val = -ang_gr+ang_gr*2*val
+      for i = 0, thickness, 0.5 do
+        gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_val, ang_gr)
       end
       
      else -- if centered
-      local ang_val = math.rad(-ang_gr+ang_gr*2*val)
-      for i = 0, 3, 0.5 do
-        if ang_val < math.rad(-90) then 
-          gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(0),math.rad(-90),    1)
-          gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-90),ang_val,    1)
-         else
-          if ang_val < math.rad(0) then 
-            gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    1)
-           else
-            if ang_val < math.rad(90) then 
-              gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    1)
-             else
-              if ang_val < math.rad(ang_gr) then 
-  
-                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
-                gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),ang_val,    1)
-               else
-  
-                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
-                gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)                  
-              end
-            end
-          end                
+      for i = 0, thickness, 0.5 do
+        if val< 0.5 then
+          gfx_arc(x+w/2,y+h/2 + knob_y_shift,arc_r-i, -ang_gr+ang_gr*2*val, 0, ang_gr)
+         elseif val> 0.5 then
+          gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, 0, -ang_gr+ang_gr*2*val, ang_gr)
         end
       end    
           
     end 
   end
-
+  ---------------------------------------------------
+  function gfx_arc(x,y,r, start_ang0, end_ang0, lim_ang, y_shift0)
+    local start_ang = start_ang0
+    local end_ang = end_ang0
+    local y_shift = y_shift0
+    if not y_shift0 then y_shift = 0 end
+    local x = math.floor(x)
+    local y = math.floor(y)
+    local has_1st_segm = (start_ang <= -90) or (end_ang <= -90)
+    local has_2nd_segm = (start_ang > -90 and start_ang <= 0) or (end_ang > -90 and end_ang <= 0) or (start_ang<=-90 and end_ang >= 0 )
+    local has_3rd_segm = (start_ang >= 0 and start_ang <= 90) or (end_ang > 0 and end_ang <= 90) or (start_ang<=0 and end_ang >= 90 )
+    local has_4th_segm = (start_ang > 90) or (end_ang > 90)
+    
+    if has_1st_segm then  gfx.arc(x,y+1 +y_shift,r, math.rad(math.max(start_ang,-lim_ang)), math.rad(math.min(end_ang, -90)),    1) end
+    if has_2nd_segm then  gfx.arc(x,y+y_shift,r, math.rad(math.max(start_ang,-90)), math.rad(math.min(end_ang, 0)),    1) end
+    if has_3rd_segm then gfx.arc(x+1,y+y_shift,r, math.rad(math.max(start_ang,0)), math.rad(math.min(end_ang, 90)),    1) end
+    if has_4th_segm then  gfx.arc(x+1,y+1+y_shift,r, math.rad(math.max(start_ang,90)), math.rad(math.min(end_ang, lim_ang)),    1)  end
+  end
   ---------------------------------------------------
   function GUI_DrawObj(obj, o, mouse, conf)
     if not o then return end
@@ -431,7 +420,7 @@
               GUI_DrawObj(obj, obj[key], mouse, conf) 
             end  
           end  
-          if conf.activetab==1 and strategy.ref_pattern&1==1 then
+          if conf.activetab==1 and (strategy.ref_pattern&1==1 or strategy.ref_grid&1==1 ) then
             GUI_Pattern(conf, obj, data, refresh, mouse, strategy)
           end
       end
