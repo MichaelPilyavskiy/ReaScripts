@@ -26,8 +26,9 @@
     obj.comm_w = 80 -- commit button
     obj.comm_h = 30
     obj.key_h = 250-- keys y/h  
- 
- 
+    obj.scroll_w = 15
+    obj.scroll_val = 0
+    
     obj.samplename_h = 20   
     obj.keycntrlarea_w = 25
     obj.WF_w=gfx.w- obj.keycntrlarea_w  
@@ -49,10 +50,12 @@
     obj.GUI_fontsz = 20  -- tab
     obj.GUI_fontsz2 = 15 -- WF back spl name
     obj.GUI_fontsz3 = 13-- spl ctrl
+    obj.GUI_fontsz4 = 12-- spl ctrl
     if GetOS():find("OSX") then 
       obj.GUI_fontsz = obj.GUI_fontsz - 6 
       obj.GUI_fontsz2 = obj.GUI_fontsz2 - 5 
       obj.GUI_fontsz3 = obj.GUI_fontsz3 - 4
+      obj.GUI_fontsz4 = obj.GUI_fontsz4 - 2
     end 
     
     -- colors    
@@ -65,17 +68,7 @@
                    yellow =   {1,0.8,0.3 }
                    }    
     
-    -- other
-  end
-  ---------------------------------------------------
-  function HasWindXYWHChanged(obj)
-    local  _, wx,wy,ww,wh = gfx.dock(-1, 0,0,0,0)
-    local retval=0
-    if wx ~= obj.last_gfxx or wy ~= obj.last_gfxy then retval= 2 end --- minor
-    if ww ~= obj.last_gfxw or wh ~= obj.last_gfxh then retval= 1 end --- major
-    if not obj.last_gfxx then retval = -1 end
-    obj.last_gfxx, obj.last_gfxy, obj.last_gfxw, obj.last_gfxh = wx,wy,ww,wh
-    return retval
+          
   end
   ---------------------------------------------------
   function OBJ_GenKeys_GlobalCtrl_sub(conf, obj, data, refresh, mouse, globctrl_t)
@@ -356,6 +349,127 @@
               }                                                                                                                                                                                                   
   end  
   ---------------------------------------------------
+  function OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl)
+    local dragratio = 150
+    local ctrl_ratio = 0.1
+    local wheel_ratio = 12000
+    return {  func =  function() 
+                        mouse.context_latch_val = data[cur_note][cur_spl].pan 
+                      end,
+              func_LD2 = function ()
+                          if not mouse.context_latch_val then return end
+                          local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 0, 1)
+                          if not out_val then return end
+                          data[cur_note][cur_spl].pan  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
+                          if obj['mix_splctrl_pan'..cur_note] and conf.tab == 1 then 
+                            obj['mix_splctrl_pan'..cur_note].val = data[cur_note][cur_spl].pan
+                            local pan_txt  = math.floor((-0.5+data[cur_note][cur_spl].pan)*200)
+                            if pan_txt < 0 then pan_txt = math.abs(pan_txt)..'%L' elseif pan_txt > 0 then pan_txt = math.abs(pan_txt)..'%R' else pan_txt = 'center' end
+                            obj.info_line_mixer.txt =  cur_note..' '..data[cur_note][cur_spl].sample_short..' Pan '..pan_txt
+                            refresh.data = true 
+                            refresh.GUI_minor = true 
+                           else
+                            refresh.data = true 
+                            refresh.GUI = true 
+                          end
+                        end,
+              func_ctrlLD = function ()
+                          if not mouse.context_latch_val then return end
+                          local out_val = lim(mouse.context_latch_val - ctrl_ratio*mouse.dy/dragratio, 0, 1)
+                          if not out_val then return end
+                          data[cur_note][cur_spl].pan  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,                        
+              func_wheel = function()
+                          local out_val = lim(data[cur_note][cur_spl].pan  + mouse.wheel_trig/wheel_ratio, 0, 2)
+                          if not out_val then return end
+                          data[cur_note][cur_spl].pan  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,                          
+              func_ResetVal = function () 
+                          data[cur_note][cur_spl].pan  = 0.5
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,
+              func_mouseover = function()
+                                if obj['mix_splctrl_pan'..cur_note] then 
+                                  local pan_txt  = math.floor((-0.5+data[cur_note][cur_spl].pan)*200)
+                                  if pan_txt < 0 then pan_txt = math.abs(pan_txt)..'%L' elseif pan_txt > 0 then pan_txt = math.abs(pan_txt)..'%R' else pan_txt = 'center' end
+                                  obj.info_line_mixer.txt =  
+                                    cur_note..' '..data[cur_note][cur_spl].sample_short..' Pan '..pan_txt
+                                  refresh.GUI_minor = true 
+                                end
+                              end                        }        
+  end  
+  ---------------------------------------------------
+  function OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl)
+    local dragratio = 80
+    local ctrl_ratio = 0.1
+    local wheel_ratio = 12000
+    return {  func =  function() 
+                        mouse.context_latch_val = data[cur_note][cur_spl].gain 
+                      end,
+              func_LD2 = function ()
+                          if not mouse.context_latch_val then return end
+                          local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 0, 2)
+                          if not out_val then return end
+                          data[cur_note][cur_spl].gain  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                          if obj['mix_splctrl_gain'..cur_note] and conf.tab == 1 then 
+                            obj['mix_splctrl_gain'..cur_note].val = data[cur_note][cur_spl].gain / 2
+                            obj.info_line_mixer.txt =  
+                              cur_note..' '..data[cur_note][cur_spl].sample_short..' Gain '..
+                              ({TrackFX_GetFormattedParamValue( data[cur_note][cur_spl].tr_ptr, data[cur_note][cur_spl].rs5k_pos, 0, '' )})[2]..'dB'
+                            refresh.data = true 
+                            refresh.GUI_minor = true 
+                           else
+                            refresh.data = true 
+                            refresh.GUI = true 
+                          end
+                        end,
+              func_ctrlLD = function ()
+                          if not mouse.context_latch_val then return end
+                          local out_val = lim(mouse.context_latch_val - ctrl_ratio*mouse.dy/dragratio, 0, 2)
+                          if not out_val then return end
+                          data[cur_note][cur_spl].gain  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                          refresh.data = true 
+                          refresh.GUI = true 
+                        end,                        
+                        
+              func_wheel = function()
+                          local out_val = lim(data[cur_note][cur_spl].gain  + mouse.wheel_trig/wheel_ratio, 0, 2)
+                          if not out_val then return end
+                          data[cur_note][cur_spl].gain  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,
+                        
+              func_ResetVal = function ()
+                          data[cur_note][cur_spl].gain  = 0.5
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,
+              func_mouseover = function()
+                                if obj['mix_splctrl_gain'..cur_note] then 
+                                  obj.info_line_mixer.txt =  
+                                    cur_note..' '..data[cur_note][cur_spl].sample_short..' Gain '..
+                                    ({TrackFX_GetFormattedParamValue( data[cur_note][cur_spl].tr_ptr, data[cur_note][cur_spl].rs5k_pos, 0, '' )})[2]..'dB'
+                                  refresh.GUI_minor = true 
+                                end
+                              end
+                          }                      
+  
+  end
+  ---------------------------------------------------
   function OBJ_GenKeys_splCtrl(conf, obj, data, refresh, mouse, pat)
   
     
@@ -516,9 +630,7 @@
         ---------- gain ----------
         local gain_val = data[cur_note][cur_spl].gain / 2
         local gain_txt
-        if (mouse.context_latch and mouse.context_latch == 'splctrl_gain') or (mouse.context == 'splctrl_gain' and mouse.wheel_on_move)
-          --or (mouse.context and mouse.context =='splctrl_gain') 
-          then 
+        if (mouse.context_latch and mouse.context_latch == '_splctrl_gain') or (mouse.context == '_splctrl_gain' and mouse.wheel_on_move) then 
           gain_txt  = data[cur_note][cur_spl].gain_dB..'dB'   
          else   
           gain_txt = 'Gain'    
@@ -538,48 +650,16 @@
               val = gain_val,
               fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
-              func =  function() 
-                        mouse.context_latch_val = data[cur_note][cur_spl].gain 
-                      end,
-              func_LD2 = function ()
-                          if not mouse.context_latch_val then return end
-                          local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 0, 2)
-                          if not out_val then return end
-                          data[cur_note][cur_spl].gain  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
-                          refresh.data = true 
-                          refresh.GUI = true 
-                        end,
-              func_ctrlLD = function ()
-                          if not mouse.context_latch_val then return end
-                          local out_val = lim(mouse.context_latch_val - ctrl_ratio*mouse.dy/dragratio, 0, 2)
-                          if not out_val then return end
-                          data[cur_note][cur_spl].gain  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
-                          refresh.data = true 
-                          refresh.GUI = true 
-                        end,                        
-                        
-              func_wheel = function()
-                          local out_val = lim(data[cur_note][cur_spl].gain  + mouse.wheel_trig/wheel_ratio, 0, 2)
-                          if not out_val then return end
-                          data[cur_note][cur_spl].gain  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,
-                        
-              func_ResetVal = function ()
-                          data[cur_note][cur_spl].gain  = 0.5
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end
+              func =  function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func() end,
+              func_LD2 = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_LD2() end,
+              func_ctrlLD = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ctrlLD() end,
+              func_wheel = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_wheel() end,
+              func_ResetVal = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ResetVal() end,
               }
         ---------- pan ----------                          
         local pan_val = data[cur_note][cur_spl].pan 
         local pan_txt
-        if (mouse.context_latch and mouse.context_latch == 'splctrl_pan') or (mouse.context == 'splctrl_pan' and mouse.wheel_on_move)
+        if (mouse.context_latch and mouse.context_latch == '_splctrl_pan') or (mouse.context == '_splctrl_pan' and mouse.wheel_on_move)
           --or (mouse.context and mouse.context == 'splctrl_pan')
           then 
           pan_txt  = math.floor((-0.5+data[cur_note][cur_spl].pan)*200)
@@ -602,46 +682,16 @@
               val = pan_val,
               fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
-              func =  function() 
-                        mouse.context_latch_val = data[cur_note][cur_spl].pan 
-                      end,
-              func_LD2 = function ()
-                          if not mouse.context_latch_val then return end
-                          local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 0, 1)
-                          if not out_val then return end
-                          data[cur_note][cur_spl].pan  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,
-              func_ctrlLD = function ()
-                          if not mouse.context_latch_val then return end
-                          local out_val = lim(mouse.context_latch_val - ctrl_ratio*mouse.dy/dragratio, 0, 1)
-                          if not out_val then return end
-                          data[cur_note][cur_spl].pan  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,                        
-              func_wheel = function()
-                          local out_val = lim(data[cur_note][cur_spl].pan  + mouse.wheel_trig/wheel_ratio, 0, 2)
-                          if not out_val then return end
-                          data[cur_note][cur_spl].pan  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,                          
-              func_ResetVal = function () 
-                          data[cur_note][cur_spl].pan  = 0.5
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end}        
+              func =  function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func() end,
+              func_LD2 = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_LD2() end,
+              func_ctrlLD = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ctrlLD() end,               
+              func_wheel = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_wheel() end,                   
+              func_ResetVal = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ResetVal() end,}        
         ---------- ptch ----------                          
         local pitch_val = data[cur_note][cur_spl].pitch_offset 
         local pitch_txt
-        if    (mouse.context_latch and (mouse.context_latch == 'splctrl_pitch1' or mouse.context_latch == 'splctrl_pitch2'))
-               or (mouse.context == 'splctrl_pitch1' and mouse.wheel_on_move) 
+        if    (mouse.context_latch and (mouse.context_latch == '_splctrl_pitch1' or mouse.context_latch == '_splctrl_pitch2'))
+               or (mouse.context == '_splctrl_pitch1' and mouse.wheel_on_move) 
           --or  (mouse.context       and (mouse.context       == 'splctrl_pitch1' or mouse.context       == 'splctrl_pitch2')) 
           then 
           pitch_txt  = data[cur_note][cur_spl].pitch_semitones else   pitch_txt = 'Pitch'    
@@ -713,7 +763,7 @@
 
         ---------- attack ----------  
         local att_txt
-        if (mouse.context_latch and mouse.context_latch == 'splctrl_att') or (mouse.context == 'splctrl_att' and mouse.wheel_on_move) then 
+        if (mouse.context_latch and mouse.context_latch == '_splctrl_att') or (mouse.context == '_splctrl_att' and mouse.wheel_on_move) then 
           att_txt  = data[cur_note][cur_spl].attack_ms..'ms'   
          else   
           att_txt = 'A'    
@@ -765,7 +815,7 @@
               }     
         ---------- decay ----------  
         local dec_txt
-        if (mouse.context_latch and mouse.context_latch == 'splctrl_dec') or (mouse.context== 'splctrl_dec' and mouse.wheel_on_move) then 
+        if (mouse.context_latch and mouse.context_latch == '_splctrl_dec') or (mouse.context== '_splctrl_dec' and mouse.wheel_on_move) then 
           dec_txt  = data[cur_note][cur_spl].decay_ms..'ms'   
          else   
           dec_txt = 'D'    
@@ -816,7 +866,7 @@
               }         
         ---------- sust ----------
         local sust_txt
-        if (mouse.context_latch and mouse.context_latch == 'splctrl_sust') or (mouse.context== 'splctrl_sust' and mouse.wheel_on_move) then 
+        if (mouse.context_latch and mouse.context_latch == '_splctrl_sust') or (mouse.context== '_splctrl_sust' and mouse.wheel_on_move) then 
           sust_txt  = data[cur_note][cur_spl].sust_dB..'dB'   
          else   
           sust_txt = 'S'    
@@ -865,7 +915,7 @@
               }              
         ---------- release ----------  
         local rel_txt
-        if (mouse.context_latch and mouse.context_latch == 'splctrl_rel') or (mouse.context == 'splctrl_rel' and mouse.wheel_on_move) then 
+        if (mouse.context_latch and mouse.context_latch == '_splctrl_rel') or (mouse.context == '_splctrl_rel' and mouse.wheel_on_move) then 
           rel_txt  = data[cur_note][cur_spl].rel_ms..'ms'   
          else   
           rel_txt = 'R'    
@@ -920,7 +970,7 @@
         ---------- loop s ----------
         local loops_val = data[cur_note][cur_spl].offset_start
         local loops_val_txt
-        if (mouse.context_latch and mouse.context_latch == 'splctrl_loops') or (mouse.context== 'splctrl_loops' and mouse.wheel_on_move) then 
+        if (mouse.context_latch and mouse.context_latch == '_splctrl_loops') or (mouse.context== '_splctrl_loops' and mouse.wheel_on_move) then 
           loops_val_txt  = math_q_dec(data[cur_note][cur_spl].offset_start, 3)
          else   
           loops_val_txt = 'LoopSt'    
@@ -989,7 +1039,7 @@
         ---------- loop e ----------
         local loope_val = data[cur_note][cur_spl].offset_end
         local loope_val_txt
-        if (mouse.context_latch and mouse.context_latch == 'splctrl_loope' ) or (mouse.context== 'splctrl_loope' and mouse.wheel_on_move)then 
+        if (mouse.context_latch and mouse.context_latch == '_splctrl_loope' ) or (mouse.context== '_splctrl_loope' and mouse.wheel_on_move)then 
           loope_val_txt  = math_q_dec(data[cur_note][cur_spl].offset_end, 3)
          else   
           loope_val_txt = 'LoopEnd'    
@@ -1134,7 +1184,7 @@
                                   }                                                                   
         ---------- del ----------  
         local del_txt, del_val
-        if (mouse.context_latch and mouse.context_latch == 'splctrl_del') or (mouse.context== 'splctrl_del' and mouse.wheel_on_move)  then 
+        if (mouse.context_latch and mouse.context_latch == '_splctrl_del') or (mouse.context== '_splctrl_del' and mouse.wheel_on_move)  then 
           if data[cur_note][cur_spl].del then 
             del_txt  = data[cur_note][cur_spl].del_ms 
            else
@@ -1222,11 +1272,13 @@
     str = str:gsub('#keycsharpRU ', ntname2)
     --------
     if data[note] and data[note][1] and data[note][1].MIDI_name and data[note][1].MIDI_name ~= '' then 
-      str = str:gsub('#notename ', data[note][1].MIDI_name) else str = str:gsub('#notename', '')
+      str = str:gsub('#notename', data[note][1].MIDI_name) 
+     else 
+      str = str:gsub('#notename', '')
     end
     --------
     if data[note] then 
-      str = str:gsub('#samplecount ', '('..#data[note]..')') else str = str:gsub('#samplecount', '')
+      str = str:gsub('#samplecount', '('..#data[note]..')') else str = str:gsub('#samplecount', '')
     end 
     --------
     local spls = ''
@@ -1235,7 +1287,7 @@
         spls = spls..data[note][spl].sample_short..'\n'
       end
     end
-    str = str:gsub('#samplename ', spls)
+    str = str:gsub('#samplename', spls)
     --------
     str = str:gsub('|  |', '|')
     str = str:gsub('|', '\n')
@@ -1510,7 +1562,7 @@
       return  shifts,w_div ,h_div
   end
     ---------------------------------------------------
-    function OBJ_GenKeys(conf, obj, data, refresh, mouse)
+    function OBJ_GenKeys(conf, obj, data, refresh, mouse) 
       local shifts,w_div ,h_div = OBJ_Layouts(conf, obj, data, refresh, mouse)
       local WF_shift = 0
       if conf.show_wf == 1 and conf.separate_spl_peak == 1 then WF_shift = obj.WF_h end
@@ -1541,11 +1593,11 @@
           if note >= 0 and note <= 127 then
             local key_xpos = obj.keycntrlarea_w + shifts[i][1]*key_w  + 2
             local key_ypos = gfx.h-key_area_h+ shifts[i][2]*key_h
-            OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos, key_w, key_h)
+            OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos, key_w, key_h )
             -------------------------
             -- keys
             local draw_drop_line if data.activedroppedpad and data.activedroppedpad == 'keys_p'..note then draw_drop_line = true end
-            local a_frame = 0.05
+            local a_frame = 0.05 
             if obj.current_WFkey and note == obj.current_WFkey then
               a_frame = 0.4
             end
@@ -1629,7 +1681,8 @@
                                   end,
                         func_DC = function()
                                     
-                                  end
+                                  end,
+                                 
                                 } 
             if    note%12 == 1 
               or  note%12 == 3 
@@ -1646,7 +1699,7 @@
       
     end
     -------------------------------------------------------------
-  function OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos, key_w, key_h, alignformixer)
+  function OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos, key_w, key_h, alignformixer) local x_pos,y_pos
     if not data[note] or not data[note][1] then return end
     local i = note
     local cnt = 0
@@ -1662,7 +1715,7 @@
                 if data[note] and data[note][1] and data[note][1].bypass_state == false then alpha_back = 0.4 end
                 local x_pos, y_pos = 0,0
                 if alignformixer then 
-                  x_pos = key_xpos + key_w - obj.fx_rect_side +1
+                  x_pos = key_xpos + (key_w - obj.fx_rect_side)/2 +1
                   y_pos = key_ypos + key_h - obj.fx_rect_side*(3-y_shift_butts)
                  else
                   x_pos = key_xpos + key_w - obj.fx_rect_side
@@ -1699,7 +1752,7 @@
                 if data[note].solo_state then  alpha_back = 0.5 end
                 local x_pos, y_pos = 0,0
                 if alignformixer then 
-                  x_pos = key_xpos + key_w - obj.fx_rect_side+1
+                  x_pos = key_xpos + (key_w - obj.fx_rect_side)/2 +1
                   y_pos = key_ypos + key_h - obj.fx_rect_side*(3-y_shift_butts)
                  else
                   x_pos = key_xpos + key_w - obj.fx_rect_side
@@ -1745,7 +1798,7 @@
                 local  alpha_back = 0.01
                 if data[note] and data[note][1] and data[note][1].src_track ~= data.parent_track then alpha_back = 0.4 end
                 if alignformixer then 
-                  x_pos = key_xpos + key_w - obj.fx_rect_side+1
+                  x_pos = key_xpos + (key_w - obj.fx_rect_side)/2 +1
                   y_pos = key_ypos + key_h - obj.fx_rect_side*(3-y_shift_butts)
                  else
                   x_pos = key_xpos + key_w - obj.fx_rect_side
@@ -2376,148 +2429,303 @@ List of available hashtags:
   function OBJ_Update(conf, obj, data, refresh, mouse, pat) 
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
     
+    local min_w = 400
+    local min_h = 200
+    local reduced_view = gfx.h  <= min_h
+    gfx.w  = math.max(min_w,gfx.w)
+    gfx.h  = math.max(min_h,gfx.h)
+    
     obj.kn_h = math.floor(56 *  lim(conf.GUI_ctrlscale, 0.5,3)) 
     obj.kn_w =  math.floor(42 *  lim(conf.GUI_ctrlscale, 0.5,3))
     obj.splctrl_butw = math.floor(60 *  lim(conf.GUI_ctrlscale, 0.5,3))
     obj.WF_h=obj.kn_h 
-    obj.pat_area_w = gfx.w - obj.keycntrlarea_w   - obj.offs*2
-    obj.pat_area_h = 25
+    obj.pat_area_w = gfx.w - obj.keycntrlarea_w   - obj.offs*2 - obj.scroll_w
+    obj.pat_area_h = 20 -- ALL small KNOBS
+    obj.key_w = math.max(100,math.floor(obj.pat_area_w * 0.2))
+    obj.step_cnt_w = obj.pat_area_h
     
     OBJ_GenMainControl(conf, obj, data, refresh, mouse)
-                           
+               
+                                     
     if conf.tab == 0 then                
       OBJ_GenKeys(conf, obj, data, refresh, mouse)
       OBJ_GenKeys_splCtrl(conf, obj, data, refresh, mouse)
-     elseif conf.tab == 1 then
+     elseif conf.tab == 1 then -- mixer
+     
+     
+     obj.info_line_mixer = { clear = true,
+           x = obj.keycntrlarea_w +1 ,
+           y = gfx.h - obj.samplename_h + obj.offs ,
+           w = gfx.w- obj.keycntrlarea_w -2,
+           h = obj.samplename_h,
+           col = 'white',
+           txt = '',
+           aligh_txt = 1,
+           show = true,
+           fontsz = obj.GUI_fontsz3,
+           alpha_back = 0 ,
+           }
+           
       OBJ_GenKeysMixer(conf, obj, data, refresh, mouse)
-      OBJ_GenKeys_GlobalCtrl(conf, obj, data, refresh, mouse)
+      --OBJ_GenKeys_GlobalCtrl(conf, obj, data, refresh, mouse)
+      
      elseif conf.tab == 2 then
+            
+      OBJ_GenPat_Ctrl(conf, obj, data, refresh, mouse, pat)
       OBJ_GenPat_Keys(conf, obj, data, refresh, mouse, pat)
       local ret = OBJ_GenPatCheck(conf, obj, data, refresh, mouse, pat) 
-      OBJ_GenPat_Ctrl(conf, obj, data, refresh, mouse, pat)
       if ret then OBJ_GenPat_Steps(conf, obj, data, refresh, mouse, pat)  end
+      OBJ_GenPat_Scroll(conf, obj, data, refresh, mouse, pat)
     end
     for key in pairs(obj) do if type(obj[key]) == 'table' then obj[key].context = key end end    
   end
+        
+  --------------------------------------------------- 
+  function OBJ_GenPat_Scroll(conf, obj, data, refresh, mouse, pat)
+    local pat_scroll_h = gfx.h - (obj.samplename_h + obj.kn_h)
+        obj.scroll_pat = 
+                      { clear = true,
+                        x = gfx.w -obj.scroll_w -1,
+                        y = obj.samplename_h + obj.kn_h,
+                        w = obj.scroll_w,
+                        h = pat_scroll_h,
+                        txt = '',
+                        state = 1,
+                        show = true,
+                        is_but = true,
+                        ignore_mouse = true,
+                        alpha_back = 0.05,
+                        fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,  
+                      }
+        obj.scroll_pat_handle = 
+                      { clear = true,
+                        x = gfx.w -obj.scroll_w -1,
+                        y = obj.samplename_h + obj.kn_h + obj.scroll_val * (pat_scroll_h -obj.scroll_w) ,
+                        w = obj.scroll_w,
+                        h = obj.scroll_w,
+                        txt = '',
+                        col = 'green',
+                        show = true,
+                        is_but = true,
+                        alpha_back = 0.4,
+                        fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2, 
+                      func =  function() 
+                        mouse.context_latch_val = obj.scroll_val
+                      end,
+              func_LD2 = function ()
+                
+                          if not mouse.context_latch_val then return end
+                          local dragratio = 1
+                          local out_val = lim(mouse.context_latch_val + (mouse.dy/(pat_scroll_h -obj.scroll_w))*dragratio, 0, 1)
+                          if not out_val then return end
+                          obj.scroll_val = out_val
+                          refresh.GUI = true 
+                        end,             
+                         
+                      }                      
+  end
   ---------------------------------------------------  
   function OBJ_GenPatCheck(conf, obj, data, refresh, mouse, pat) 
-    local ret, poolGUID, take_name = Pattern_GetSrcData()
+    local ret, poolGUID, take_name, take, item = Pattern_GetSrcData(obj)
     pat.name = '(take not selected)'
     for key in pairs(pat) do if tonumber(key) then pat[key] = nil end end
     if ret then 
       pat.poolGUID=poolGUID
       pat.name = take_name
+      local item_pos =  reaper.GetMediaItemInfo_Value( item, 'D_POSITION'  )
+      local item_len =  reaper.GetMediaItemInfo_Value( item, 'D_LENGTH'  )       
+      obj.pat_item_pos_sec = item_pos
+      obj.pat_item_len_sec = item_len
       Pattern_Parse(conf, pat, poolGUID, take_name) 
       return true
     end
   end
   ---------------------------------------------------        
   function OBJ_GenPat_Steps(conf, obj, data, refresh, mouse, pat) 
-    local key_ypos = obj.samplename_h + obj.kn_h
-    local step_cnt_w = obj.pat_area_h
+    local back_w = (obj.pat_area_w-obj.step_cnt_w*2-obj.offs*2-obj.key_w)/4
+    local back_w_line = 2
+    local alpha_back = 0.3
+    for i = 1, 4 do
+        obj['steps_back_beat'..i] = 
+                      { clear = true,
+                        x = obj.keycntrlarea_w + obj.offs*2 + obj.key_w + back_w*(i-1)-1,
+                        y = obj.samplename_h + obj.kn_h,
+                        w = back_w_line,
+                        h = gfx.h - obj.samplename_h + obj.kn_h,
+                        txt = '',
+                        show = true,
+                        is_but = true,
+                        ignore_mouse = true,
+                        alpha_back = alpha_back,
+                      }  
+    end
+                                              
+    local key_ypos = obj.samplename_h + obj.kn_h- obj.scroll_val * obj.pattern_com_h
     local key_w = math.max(100,math.floor(obj.pat_area_w * 0.2))
-    local pat_w = gfx.w - key_w - obj.keycntrlarea_w - obj.offs*4 - step_cnt_w
+    local pat_w = gfx.w - key_w - obj.keycntrlarea_w - obj.offs*4 - obj.step_cnt_w*2 - obj.scroll_w
     for note = 0, 127 do
-      if not data[note]  then goto skip_step_gen end
-      
-      local col = 'green'
-      local colint
-      if data[note][1].src_track_col then colint = data[note][1].src_track_col  end  
-      local step = conf.def_steps
-      if pat[note] and pat[note].cnt_steps then
-        step = pat[note].cnt_steps
-      end
-        obj['keys_p'..note..'patcntstep'] = 
-                      { clear = true,
-                        x = obj.keycntrlarea_w + obj.offs*3 + key_w + pat_w,
-                        y = key_ypos,
-                        w = step_cnt_w,
-                        h = obj.pat_area_h,
-                        txt = step,
-                        col = col,
-                        colint = colint,
-                        state = 1,
-                        show = true,
-                        is_but = true,
-                        alpha_back = 0.2,
-                        fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,
-                        func =  function() 
-                                  mouse.context_latch_val = step
-                                end,
-                        func_LD2 = function ()
-                          if not mouse.context_latch_val then return end
-                          local dragratio = 50
-                          local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 1, 32)
-                          if not out_val then return end
-                          pat[note].cnt_steps  = out_val
-                          local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData()
-                          Pattern_Commit(conf, pat, poolGUID, take_ptr)
-                          Pattern_SaveExtState(conf, pat, poolGUID)
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,                        }      
-      
-      
-      local pat_w_step = pat_w / step
-      for i_step = 1, step do
-        local step_exist = false 
-        local vel = 0       
-        if pat[note] and pat[note].steps and pat[note].steps[i_step] then 
-          vel = pat[note].steps[i_step]
-          step_exist = true
+      if data[note] or pat[note] then
+        local col
+        local colint
+        if data[note] then 
+          col = 'green'
+          if data[note][1].src_track_col then  colint = data[note][1].src_track_col   end  
+         else
+          col = 'grey'
         end
-        obj['keys_p'..note..'pat'..i_step] = 
-                      { clear = true,
-                        x = obj.keycntrlarea_w + obj.offs*2 + key_w + pat_w_step * (i_step-1),
-                        y = key_ypos,
-                        w = pat_w_step-1,
-                        h = obj.pat_area_h,
-                        col = col,
-                        colint = colint,
-                        state = 1,
-                        limtxtw = obj.fx_rect_side,
-                        is_step = true,
-                        val = vel/127,
-                        --vertical_txt = fn,
-                        linked_note = note,
-                        show = true,
-                        is_but = true,
-                        alpha_back = 0.2,
-                        aligh_txt = 5,
-                        fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,
-                        func =  function() 
-                                  local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData()
-                                  if ret then 
-                                    Pattern_Change(conf, pat, poolGUID, note, i_step, 120)
-                                    Pattern_Commit(conf, pat, poolGUID, take_ptr)
-                                    Pattern_SaveExtState(conf, pat, poolGUID)
-                                    refresh.GUI = true  
-                                  end   
-                                end}
-      end           
-      key_ypos = key_ypos + 1 +obj.pat_area_h
-      ::skip_step_gen::
+        
+        local step = conf.def_steps
+        if pat[note] and pat[note].cnt_steps then
+          step = pat[note].cnt_steps
+        end
+        if key_ypos >= obj.samplename_h + obj.kn_h - 1  then
+          obj['keys_p'..note..'patcntstep'] = 
+                        { clear = true,
+                          x = obj.keycntrlarea_w + obj.offs*3 + key_w + pat_w -1 ,
+                          y = key_ypos,
+                          w = obj.step_cnt_w,
+                          h = obj.pat_area_h,
+                          txt = step,
+                          col = col,
+                          colint = colint,
+                          state = 1,
+                          show = true,
+                          is_but = true,
+                          alpha_back = 0.2,
+                          fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,
+                          func =  function() 
+                                    mouse.context_latch_val = step
+                                  end,
+                          func_LD2 = function ()
+                            if not mouse.context_latch_val then return end
+                            local dragratio = 10
+                            local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 1, 32)
+                            if not out_val then return end
+                            if not pat[note] then pat[note] = {} end
+                            pat[note].cnt_steps  = math.floor(out_val)
+                            local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                            Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                            Pattern_SaveExtState(conf, pat, poolGUID)
+                            refresh.data = true
+                            refresh.GUI = true 
+                          end,  } 
+        local swing = conf.def_swing
+        if pat[note] and pat[note].swing then swing = pat[note].swing  end                          
+          obj['keys_p'..note..'patsw'] = 
+                        { clear = true,
+                          x = obj.keycntrlarea_w + obj.offs*3 + key_w + pat_w -1 +obj.step_cnt_w,
+                          y = key_ypos,
+                          w = obj.step_cnt_w,
+                          h = obj.pat_area_h,
+                          --txt = math.floor(swing*100)..'%',
+                          is_knob = true,
+                          is_centered_knob = true,
+                          knob_y_shift = 2,
+                          val = (swing+1)/2,
+                          col = col,
+                          colint = colint,
+                          state = 1,
+                          show = true,
+                          alpha_back = 0.2,
+                          fontsz = obj.GUI_fontsz4,--conf.GUI_padfontsz,
+                          func =  function() 
+                                    mouse.context_latch_val = swing
+                                  end,
+                          func_LD2 = function ()
+                            if not mouse.context_latch_val then return end
+                            local dragratio = 100
+                            local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, -1, 1)
+                            if not out_val then return end
+                            if not pat[note] then pat[note] = {} end
+                            pat[note].swing  = math.floor(out_val*100)/100
+                            local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                            Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                            Pattern_SaveExtState(conf, pat, poolGUID)
+                            refresh.data = true
+                            refresh.GUI = true 
+                          end,  }              
+        
+          local pat_w_step = pat_w / step--math.floor(pat_w / step)
+          for i_step = 1, step do
+            local step_exist = false 
+            local vel = 0       
+            if pat[note] and pat[note].steps and pat[note].steps[i_step] then 
+              vel = pat[note].steps[i_step]
+              step_exist = true
+            end
+            local x_st = obj.keycntrlarea_w + obj.offs*2 + key_w + pat_w_step * (i_step-1)
+            local w_st = pat_w_step
+            if pat[note] and pat[note].swing and  pat[note].swing ~= 0 then
+              local x_shift = math.floor(pat_w_step * pat[note].swing * 0.5 )
+              if i_step%2 ==0 then 
+                x_st = x_st + x_shift
+                w_st = pat_w_step - x_shift
+               else
+                w_st = pat_w_step + x_shift
+              end
+            end
+            if x_st+ w_st > obj.keycntrlarea_w + obj.offs*3 + key_w + pat_w then w_st = obj.keycntrlarea_w + obj.offs*2 + key_w + pat_w- x_st end
+            obj['keys_p'..note..'pat'..i_step] = 
+                          { clear = true,
+                            x = x_st,
+                            y = key_ypos,
+                            w = w_st-1,
+                            h = obj.pat_area_h,
+                            col = col,
+                            colint = colint,
+                            state = 1,
+                            limtxtw = obj.fx_rect_side,
+                            is_step = true,
+                            val = vel/127,
+                            --vertical_txt = fn,
+                            linked_note = note,
+                            show = true,
+                            is_but = true,
+                            alpha_back = 0.4,
+                            aligh_txt = 5,
+                            fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,
+                            func =  function() 
+                                      local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                      if ret then 
+                                        Pattern_Change(conf, pat, poolGUID, note, i_step, 120)
+                                        Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                                        Pattern_SaveExtState(conf, pat, poolGUID)
+                                        refresh.GUI = true  
+                                      end   
+                                    end}
+          end           
+          
+        end
+        key_ypos = key_ypos + 1 +obj.pat_area_h
+      end
     end  
   end
   ---------------------------------------------------
   function OBJ_GenPat_Keys(conf, obj, data, refresh, mouse,pat) 
+    local pattern_h = 0
+    local scroll_y_offs = 0
+    if obj.pattern_com_h then scroll_y_offs =  obj.scroll_val * obj.pattern_com_h end
     local key_ypos = obj.samplename_h + obj.kn_h
-    local key_w = math.max(100,math.floor(obj.pat_area_w * 0.2))
     for note = 0, 127 do
-      if data[note] then
-        local col = 'green'
+      if data[note] or pat[note] then
+      
+        local col
         local colint
-        if data[note][1].src_track_col then 
-          colint = data[note][1].src_track_col  
-        end  
+        if data[note] then 
+          col = 'green'
+          if data[note][1].src_track_col then  colint = data[note][1].src_track_col   end  
+         else
+          col = 'grey'
+        end
       
       
         local txt = BuildKeyName(conf, data, note, conf.key_names_pat)
+        if key_ypos-scroll_y_offs >= obj.samplename_h + obj.kn_h - 1  then
             obj['keys_p'..note] = 
                       { clear = true,
                         x = obj.keycntrlarea_w + obj.offs,
-                        y = key_ypos,
-                        w = key_w,
+                        y = key_ypos-scroll_y_offs,
+                        w = obj.key_w,
                         h = obj.pat_area_h,
                         col = col,
                         colint = colint,
@@ -2585,10 +2793,11 @@ List of available hashtags:
                                     refresh.GUI = true  
                                     refresh.data = true                                  
                                   end,  }
-                                  
+          end                        
         key_ypos = key_ypos + 1 +obj.pat_area_h
       end
     end
+    obj.pattern_com_h =        key_ypos-obj.pat_area_h - obj.samplename_h - obj.kn_h
   end
   ---------------------------------------------------  
   function OBJ_GenPat_Ctrl(conf, obj, data, refresh, mouse,pat)
@@ -2617,9 +2826,138 @@ List of available hashtags:
               show = true,
               is_but = true,
               fontsz = conf.GUI_padfontsz,
-              alpha_back =0}
+              alpha_back =0,
+              func = function()
+                        Pattern_EnumList(conf, obj, data, refresh, mouse, pat)
+                      end}
+              
+              
+              
   end
-  
+  ---------------------------------------------------
+  function OBJ_GenKeysMixer_Ctrl(conf, obj, data, refresh, mouse, cur_note, cur_spl, key_x, key_y, key_w, key_h)
+        if (mouse.context_latch and mouse.context_latch == 'mix_splctrl_gain'..cur_note) or (mouse.context == 'mix_splctrl_gain'..cur_note and mouse.wheel_on_move) then 
+          gain_txt  = data[cur_note][cur_spl].gain_dB..'dB' 
+          is_knob = false  
+         else   
+          gain_txt = ''  
+          is_knob = true
+        end  
+        obj['mix_splctrl_gain'..cur_note] = { clear = true,
+              x = key_x + (key_w  - obj.pat_area_h) /2 ,
+              y = key_y + obj.pat_area_h,
+              w = obj.pat_area_h,
+              h = obj.pat_area_h,
+              col = 'white',
+              txt = '',
+              aligh_txt = 16,
+              show = true,
+              is_knob = true,
+              val = data[cur_note][cur_spl].gain / 2,
+              fontsz = conf.GUI_splfontsz,
+              alpha_back =0,
+              func =  function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func() end,
+              func_LD2 = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_LD2() end,
+              func_ctrlLD = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ctrlLD() end,
+              func_wheel = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_wheel() end,
+              func_ResetVal = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ResetVal() end,
+              func_mouseover = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_mouseover() end,
+              }                      
+        obj['mix_splctrl_pan'..cur_note] = { clear = true,
+              x = key_x + (key_w  - obj.pat_area_h) /2 ,
+              y = key_y + obj.pat_area_h*2,
+              w = obj.pat_area_h,
+              h = obj.pat_area_h,
+              col = 'white',
+              state = 0,
+              txt= '',
+              aligh_txt = 16,
+              show = true,
+              is_but = true,
+              is_knob = true,
+              is_centered_knob = true,
+              val = data[cur_note][cur_spl].pan,
+              fontsz = conf.GUI_splfontsz,
+              alpha_back =0,
+              func =  function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func() end,
+              func_LD2 = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_LD2() end,
+              func_ctrlLD = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ctrlLD() end,             
+              func_wheel = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_wheel() end,               
+              func_ResetVal = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ResetVal() end,}        
+        ---------- ptch ----------                          
+        local pitch_val = data[cur_note][cur_spl].pitch_offset 
+        local pitch_txt
+        if    (mouse.context_latch and (mouse.context_latch == 'splctrl_pitch1' or mouse.context_latch == 'splctrl_pitch2'))
+               or (mouse.context == 'splctrl_pitch1' and mouse.wheel_on_move) 
+          --or  (mouse.context       and (mouse.context       == 'splctrl_pitch1' or mouse.context       == 'splctrl_pitch2')) 
+          then 
+          pitch_txt  = data[cur_note][cur_spl].pitch_semitones else   pitch_txt = 'Pitch'    
+        end                          
+        obj._splctrl_pitch1 = { clear = true,
+              x = obj.keycntrlarea_w   + obj.offs + obj.kn_w*2,
+              y = knob_y,
+              w = obj.kn_w,
+              h = obj.kn_h,
+              col = 'white',
+              state = 0,
+              txt= pitch_txt,
+              aligh_txt = 16,
+              show = true,
+              is_but = true,
+              is_knob = true,
+              is_centered_knob = true,
+              val = pitch_val,
+              fontsz = conf.GUI_splfontsz,
+              alpha_back =knob_back,
+              func =  function() 
+                        mouse.context_latch_val = data[cur_note][cur_spl].pitch_offset 
+                      end,
+              func_LD2 = function ()
+                          if not mouse.context_latch_val then return end
+                          local out_val = lim(mouse.context_latch_val - mouse.dy/pitch_mouseres, 0, 1)*160
+                          local int, fract = math.modf(mouse.context_latch_val*160 )
+                          local out_val = lim(mouse.context_latch_val - mouse.dy/pitch_mouseres, 0, 1)
+                          if not out_val then return end
+                          out_val = (math_q(out_val*160)+fract)/160
+                          data[cur_note][cur_spl].pitch_offset  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,
+              func_ctrlLD = function ()
+                          if not mouse.context_latch_val then return end
+                          --local out_val = lim(mouse.context_latch_val - ctrl_ratio*mouse.dy/pitch_mouseres, 0, 1)*160
+                          --local int, fract = math.modf(mouse.context_latch_val*160 )
+                          local out_val = lim(mouse.context_latch_val - 0.05*ctrl_ratio*mouse.dy/pitch_mouseres, 0, 1)
+                          if not out_val then return end
+                          --out_val = (math_q(out_val*160)+fract)/160
+                          data[cur_note][cur_spl].pitch_offset  = out_val
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,                        
+              func_wheel = function()
+                              local wheel_rat = 24000
+                              local out_val = lim(data[cur_note][cur_spl].pitch_offset  + mouse.wheel_trig/wheel_rat, 0, 1)*160
+                              local int, fract = math.modf(data[cur_note][cur_spl].pitch_offset*160 )
+                              local out_val = lim(data[cur_note][cur_spl].pitch_offset + mouse.wheel_trig/wheel_rat, 0, 1)
+                              if not out_val then return end
+                              out_val = (math_q(out_val*160)+fract)/160
+                                            
+                              --local out_val = lim(data[cur_note][cur_spl].pitch_offset  + mouse.wheel_trig/wheel_ratio, 0, 2)
+                              --if not out_val then return end
+                              data[cur_note][cur_spl].pitch_offset  = out_val
+                              SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
+                              refresh.GUI = true 
+                              refresh.data = true 
+                            end,                           
+              func_ResetVal = function () 
+                          data[cur_note][cur_spl].pitch_offset  = 0.5
+                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end}  
+    end  
     ---------------------------------------------------
     function OBJ_GenKeysMixer(conf, obj, data, refresh, mouse)
       local cnt = 0
@@ -2636,13 +2974,15 @@ List of available hashtags:
        elseif conf.keymode == 4 then -- s1 impact
         cnt = 16 
        elseif conf.keymode == 5 then -- ableton push
-        cnt = 64                      
+        cnt = 64    
+       elseif conf.keymode == 6 then -- 8x8
+        cnt = 64                              
       end
       
 
-      local key_area_h = gfx.h -obj.kn_h-obj.samplename_h
+      local key_area_h = gfx.h  - obj.samplename_h --obj.kn_h-obj.samplename_h
       local key_w = math.ceil((gfx.w-3*obj.offs-obj.keycntrlarea_w)/cnt)
-      local key_h = math.ceil((1/h_div)*(key_area_h)) +1
+      local key_h = math.ceil((1/h_div)*(key_area_h))
       obj.h_div = h_div
       for i = 1, cnt do
         local id = i-1+conf.oct_shift*12
@@ -2651,7 +2991,7 @@ List of available hashtags:
         local colint, colint0
         local alpha_back
         if  data[note] and data[note][1] then 
-          alpha_back = 0.37        
+          alpha_back = 0.6      
           col = 'green'
           if data[note][1].src_track_col then colint = data[note][1].src_track_col  end    
          else
@@ -2664,8 +3004,8 @@ List of available hashtags:
           --
           if note >= 0 and note <= 127 then
             local key_xpos = obj.keycntrlarea_w+(i-1)*key_w +2
-            local key_ypos = gfx.h-key_area_h
-            local fxctrlcnt = OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos, key_w, key_h, true)
+            local key_ypos = gfx.h-key_area_h- obj.samplename_h
+            local fxctrlcnt = OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos-obj.offs, key_w, key_h, true)
             if not fxctrlcnt then fxctrlcnt = 0 end
             -------------------------
             -- keys
@@ -2673,43 +3013,30 @@ List of available hashtags:
             local pan_val = 0.5
             local scaling = 0.2
             if data[note] and data[note][1] then 
-              local val = data[note].com_gain
-              local zerolev = 0.78
-              if val <= 0.5 then 
-                val = val*2 * zerolev
-               else
-                val = zerolev + ((val-0.5)/1.5) * (1-zerolev)
-              end
-              gain_val = val
-              pan_val = data[note].com_pan
+              OBJ_GenKeysMixer_Ctrl(conf, obj, data, refresh, mouse, note, 1, key_xpos, gfx.h-key_area_h-obj.samplename_h, key_w, key_h)
             end
-            local limtxtw_vert = obj.fx_rect_side*fxctrlcnt
-            if key_w < obj.fx_rect_side*2 then txt = note end
-            --local verttxt = ''
-            --if txt and tostring(txt )then verttxt = tostring(txt ):gsub('\n',' ') end
             obj['keys_p'..note] = 
                       { clear = true,
                         x = key_xpos,
-                        y = gfx.h-key_area_h,
+                        y = gfx.h-key_area_h-obj.samplename_h + obj.offs,
                         w = key_w-1,
                         h = key_h,
-                        mixer_slider = true,
+                        --[[mixer_slider = true,
                         mixer_slider_val = gain_val,
-                        mixer_slider_pan = pan_val,
+                        mixer_slider_pan = pan_val,]]
                         col = col,
                         colint = colint,
                         state = 0,
-                        txt= txt,
+                        txt= note,
                        -- limtxtw = key_w - obj.fx_rect_side,
                         limtxtw_vert = limtxtw_vert,
-                        is_step = true,
-                        vertical_txt = verttxt,
+                        --vertical_txt = verttxt,
                         linked_note = note,
                         show = true,
                         is_but = true,
                         alpha_back = alpha_back,
                         a_frame = 0.05,
-                        aligh_txt = 5,
+                        aligh_txt = 4,
                         fontsz = conf.GUI_padfontsz,
                         func =  function() 
                                   if conf.keypreview == 1 then  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), note,100) end                                  
@@ -2754,9 +3081,23 @@ List of available hashtags:
                                     end 
                                     refresh.GUI = true 
                                     refresh.data = true 
-                                  end                                  
+                                  end   ,
+                          func_mouseover = function()
+                                if obj['mix_splctrl_gain'..note] then 
+                                  local sample_short = ''
+                                  if data[note] and data[note][1] then sample_short = data[note][1].sample_short end
+                                  
+                                  local gain_txt = ({TrackFX_GetFormattedParamValue( data[note][1].tr_ptr, data[note][1].rs5k_pos, 0, '' )})[2]..'dB'
+                                  local pan_txt  = math.floor((-0.5+data[note][1].pan)*200)
+                                  if pan_txt < 0 then pan_txt = math.abs(pan_txt)..'%L' elseif pan_txt > 0 then pan_txt = math.abs(pan_txt)..'%R' else pan_txt = 'center' end
+                                  
+                                  obj.info_line_mixer.txt = note..' '..sample_short..' // Gain '..gain_txt..' // Pan '..pan_txt
+                                  refresh.GUI_minor = true 
+                                end
+                              end                                                                  
                                 } 
-            if obj.mixer_curpar_key then 
+                                
+           --[[ if obj.mixer_curpar_key then 
               if data[note] and data[note][1] then 
                 local curpar = data[note][1][obj.mixer_curpar_key]
                 if curpar and type(curpar) == 'number' then 
@@ -2780,7 +3121,7 @@ List of available hashtags:
                               fontsz = conf.GUI_splfontsz}
                 end
               end
-            end                             
+            end    ]]                         
             if    note%12 == 1 
               or  note%12 == 3 
               or  note%12 == 6 

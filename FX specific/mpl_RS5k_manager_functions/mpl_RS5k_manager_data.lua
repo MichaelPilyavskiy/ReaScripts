@@ -20,15 +20,23 @@
       obj.lastSCC = obj.SCC
       
     -- window size
+      local refresh_time = 0.4
       local ret = HasWindXYWHChanged(obj)
       if ret == 1 then 
-        refresh.conf = true 
-        refresh.data = true
-        refresh.GUI_onStart = true 
-        refresh.GUI_WF = true       
+        if not refresh.conf_timestamp or os.clock() - refresh.conf_timestamp > refresh_time then
+          refresh.conf = true 
+          refresh.data = true
+          refresh.GUI_onStart = true 
+          refresh.GUI_WF = true  
+          refresh.conf_timestamp = os.clock()
+        end
+     
        elseif ret == 2 then 
-        refresh.conf = true
-        refresh.data = true
+        if not refresh.conf_timestamp or os.clock() - refresh.conf_timestamp > refresh_time then
+          refresh.conf = true
+          refresh.data = true
+          refresh.conf_timestamp = os.clock()
+        end
       end
   end
   function MoveSourceMedia(DRstr)
@@ -95,6 +103,7 @@
                         gain=                 TrackFX_GetParamNormalized( tr, fxid-1, 0),
                         gain_dB =           ({TrackFX_GetFormattedParamValue( tr, fxid-1, 0, '' )})[2],
                         trackGUID =           GetTrackGUID( tr ),
+                        tr_ptr = tr,
                         pan=                  TrackFX_GetParamNormalized( tr, fxid-1,1),
                         attack =              TrackFX_GetParamNormalized( tr, fxid-1,9),
                         attack_ms =         attack_ms,

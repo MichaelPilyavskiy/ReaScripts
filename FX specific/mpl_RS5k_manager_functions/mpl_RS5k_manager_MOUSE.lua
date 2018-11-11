@@ -118,9 +118,10 @@
        for key in spairs(obj,function(t,a,b) return b < a end) do
          if type(obj[key]) == 'table' and not obj[key].ignore_mouse then
            ------------------------
-           MOUSE_Match(mouse, obj[key])
-           if MOUSE_Match(mouse, obj[key]) and mouse.LMB_state and not mouse.last_LMB_state then mouse.context_latch = key end
-           
+           local ret = MOUSE_Match(mouse, obj[key])
+           if ret and mouse.LMB_state and not mouse.last_LMB_state then mouse.context_latch = key end
+           if ret and (not mouse.context_latch or mouse.context_latch == '' ) and obj[key].func_mouseover then obj[key].func_mouseover() end 
+                
            mouse.onclick_L = mouse.LMB_state 
                                and not mouse.last_LMB_state 
                                --and not mouse.Ctrl_state  
@@ -202,7 +203,8 @@
       if mouse.last_LMB_state and not mouse.LMB_state   then    
         
         MOUSE_droppad(conf, obj, data, refresh, mouse)  
-           
+        local key = mouse.context_latch
+        if obj[key] and   obj[key].func_onrelease then obj[key].func_onrelease() end
         -- clear context
         mouse.context_latch = ''
         mouse.context_latch_val = -1

@@ -163,16 +163,16 @@
     local ang_gr = 120
     local ang_val = math.rad(-ang_gr+ang_gr*2*val)
     local ang = math.rad(ang_gr)
-  
+    local thickness = 1.5
+    local knob_y_shift = b.knob_y_shift
+    if not knob_y_shift then knob_y_shift = 0 end
+    
     col(obj, b.col, 0.08)
     if b.knob_as_point then 
       local y = y - 5
       local arc_r = arc_r*0.75
-      for i = 0, 1, 0.5 do
-        gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-180),math.rad(-90),    1)
-        gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
-        gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
-        gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),math.rad(180),    1)
+      for i = 0, thickness, 0.5 do
+        gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_gr, ang_gr)
       end
       gfx.a = 0.02
       gfx.circle(x+w/2,y+h/2,arc_r, 1)
@@ -181,14 +181,11 @@
     
     
     -- arc back      
-    col(obj, b.col, 0.2)
+    col(obj, b.col, 0.15)
     local halfh = math.floor(h/2)
     local halfw = math.floor(w/2)
-    for i = 0, 3, 0.5 do
-      gfx.arc(x+halfw-1,y+halfh+1,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
-      gfx.arc(x+halfw-1,y+halfh,arc_r-i,    math.rad(-90),math.rad(0),    1)
-      gfx.arc(x+halfw,y+halfh,arc_r-i,    math.rad(0),math.rad(90),    1)
-      gfx.arc(x+halfw,y+halfh+1,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)
+    for i = 0, thickness, 0.5 do
+      gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_gr, ang_gr)
     end
     
     
@@ -198,64 +195,39 @@
     col(obj, b.col, knob_a)      
     if not b.is_centered_knob then 
       -- val       
-      local ang_val = math.rad(-ang_gr+ang_gr*2*val)
-      for i = 0, 3, 0.5 do
-        if ang_val < math.rad(-90) then 
-          gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),ang_val, 1)
-         else
-          if ang_val < math.rad(0) then 
-            gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
-            gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),ang_val,    1)
-           else
-            if ang_val < math.rad(90) then 
-              gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
-              gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
-              gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    1)
-             else
-              if ang_val < math.rad(ang_gr) then 
-                gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90), 1)
-                gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
-                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
-                gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),ang_val,    1)
-               else
-                gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-ang_gr),math.rad(-90),    1)
-                gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(-90),math.rad(0),    1)
-                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
-                gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)                  
-              end
-            end
-          end                
-        end
+      local ang_val = -ang_gr+ang_gr*2*val
+      for i = 0, thickness, 0.5 do
+        gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_val, ang_gr)
       end
       
      else -- if centered
-      local ang_val = math.rad(-ang_gr+ang_gr*2*val)
-      for i = 0, 3, 0.5 do
-        if ang_val < math.rad(-90) then 
-          gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(0),math.rad(-90),    1)
-          gfx.arc(x+w/2-1,y+h/2,arc_r-i,    math.rad(-90),ang_val,    1)
-         else
-          if ang_val < math.rad(0) then 
-            gfx.arc(x+w/2-1,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    1)
-           else
-            if ang_val < math.rad(90) then 
-              gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),ang_val,    1)
-             else
-              if ang_val < math.rad(ang_gr) then 
-  
-                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
-                gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),ang_val,    1)
-               else
-  
-                gfx.arc(x+w/2,y+h/2-1,arc_r-i,    math.rad(0),math.rad(90),    1)
-                gfx.arc(x+w/2,y+h/2,arc_r-i,    math.rad(90),math.rad(ang_gr),    1)                  
-              end
-            end
-          end                
+      for i = 0, thickness, 0.5 do
+        if val< 0.5 then
+          gfx_arc(x+w/2,y+h/2 + knob_y_shift,arc_r-i, -ang_gr+ang_gr*2*val, 0, ang_gr)
+         elseif val> 0.5 then
+          gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, 0, -ang_gr+ang_gr*2*val, ang_gr)
         end
       end    
           
     end 
+  end
+  ---------------------------------------------------
+  function gfx_arc(x,y,r, start_ang0, end_ang0, lim_ang, y_shift0)
+    local start_ang = start_ang0
+    local end_ang = end_ang0
+    local y_shift = y_shift0
+    if not y_shift0 then y_shift = 0 end
+    local x = math.floor(x)
+    local y = math.floor(y)
+    local has_1st_segm = (start_ang <= -90) or (end_ang <= -90)
+    local has_2nd_segm = (start_ang > -90 and start_ang <= 0) or (end_ang > -90 and end_ang <= 0) or (start_ang<=-90 and end_ang >= 0 )
+    local has_3rd_segm = (start_ang >= 0 and start_ang <= 90) or (end_ang > 0 and end_ang <= 90) or (start_ang<=0 and end_ang >= 90 )
+    local has_4th_segm = (start_ang > 90) or (end_ang > 90)
+    
+    if has_1st_segm then  gfx.arc(x,y+1 +y_shift,r, math.rad(math.max(start_ang,-lim_ang)), math.rad(math.min(end_ang, -90)),    1) end
+    if has_2nd_segm then  gfx.arc(x,y+y_shift,r, math.rad(math.max(start_ang,-90)), math.rad(math.min(end_ang, 0)),    1) end
+    if has_3rd_segm then gfx.arc(x+1,y+y_shift,r, math.rad(math.max(start_ang,0)), math.rad(math.min(end_ang, 90)),    1) end
+    if has_4th_segm then  gfx.arc(x+1,y+1+y_shift,r, math.rad(math.max(start_ang,90)), math.rad(math.min(end_ang, lim_ang)),    1)  end
   end
   ---------------------------------------------------
   function GUI_DrawObj(obj, o) 
@@ -364,7 +336,6 @@
     
     ------------------ knob
       if o.is_knob then GUI_knob(obj, o) end
-  
     ------------------ txt
       if o.txt and w > 5 then 
         local w0 = w -2
@@ -390,7 +361,7 @@
           gfx.x = x+ math.ceil((w-gfx.measurestr(line))/2)
           gfx.y = y+ (h-gfx.texth)/2 + y_shift 
           if o.aligh_txt then
-            if o.aligh_txt&1==1 then gfx.x = x  end -- align left
+            if o.aligh_txt&1==1 then gfx.x = x+2  end -- align left
             if o.aligh_txt>>2&1==1 then gfx.y = y + y_shift end -- align top
             if o.aligh_txt>>4&1==1 then gfx.y = h - gfx.texth*cnt_lines + cnt*gfx.texth end -- align bot
           end
@@ -459,10 +430,10 @@
     if o.is_step and o.val then
       if o.colint then 
         local r, g, b = ColorFromNative( o.colint ) 
-        gfx.set(r/255,g/255,b/255, 0.2)
+        gfx.set(r/255,g/255,b/255, 0.4)
         --gfx.rect(x,y,w-1,h,1)
       end
-      gfx.muladdrect(x,y + h - h*o.val,w-1,h*o.val,1,1,1,1, 0,0,0,0.8)
+      gfx.muladdrect(x,y + h - h*o.val,w-1,h*o.val,1,1,1,1, 0,0,0,0.9)
     end
         
     return true
@@ -579,7 +550,7 @@
       end
       
     -- refresh
-      if refresh.GUI then 
+      if refresh.GUI or refresh.GUI_minor then 
         -- refresh backgroung
           gfx.dest = 1
           gfx.setimgdim(1, -1, -1)  
@@ -637,12 +608,18 @@
             gfx.w- obj.keycntrlarea_w  , 
             obj.WF_h-1 , 0,0) 
     end      
-    --GUI_symbols(conf, obj, data, refresh, mouse) 
 
     if obj.allow_track_notes and conf.allow_track_notes == 1 and data.jsfxtrack_exist then GUI_TrackInputNotes(obj, conf) end
-        
+    --if obj.pat_item_pos_sec and obj.pat_item_len_sec and  GetPlayStateEx( 0 )&1==1 then GUI_DrawPlayCursor(obj) end
+    
     refresh.GUI = nil
+    refresh.GUI_minor = nil
     gfx.update()
+  end
+  ---------------------------------------------------  
+  function GUI_DrawPlayCursor(obj)
+    local playpos = GetPlayPosition2Ex( 0 )
+    --if playpos >= obj.pat_item_pos_sec and obj.pat_item_pos_sec + obj.pat_item_len_sec
   end
   ---------------------------------------------------  
   function GUI_TrackInputNotes(obj, conf)

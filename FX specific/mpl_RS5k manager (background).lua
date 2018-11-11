@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.87
+-- @version 1.89
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,12 +10,27 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    # fix action to add RS5K_Manager_tracker.jsfx (thanks to X-Raym)
+--    + Pattern: scroll
+--    + Pattern: beat separators
+--    + Pattern: show ghost notes
+--    + Pattern: independent swing control
+--    - Mixer: show only notes as names
+--    - Mixer: remove global controls
+--    + Mixer: show volume and pan knobs
+--    + Mixer: show volume and pan value on drag
+--    + Mixer: show 1st sample names on mouseover
+--    # Pattern: properly handle start offsets and non1x playrate
+--    # Pads: fix show knob values on touch/move
+--    # slightly reduce writing configuration data on window size/position change
+--    # increase step count mouse drag speed
+--    # fix space in keynames hashtag definition
+--    # thinner knob arcs
 
 
-  local vrs = 'v1.87'
+  local vrs = 'v1.89'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
+  --rs5k manager_
  
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
@@ -27,7 +42,7 @@
                     conf = false}
   local mouse = {}
   local obj = {}
-   data = {}
+  local data = {}
   local pat = {}    
    
     
@@ -103,7 +118,8 @@
             sendnoteoffonrelease = 1,
             
             -- patterns
-            def_steps = 16
+            def_steps = 16,
+            def_swing = 0
             }
     return t
   end  
@@ -133,7 +149,7 @@
     MOUSE(conf, obj, data, refresh, mouse)
     CheckUpdates(obj, conf, refresh)
 
-        
+    
     if refresh.data == true then 
       data = {}
       Data_Update (conf, obj, data, refresh, mouse) 
@@ -141,7 +157,7 @@
     end    
     if refresh.conf == true                       then ExtState_Save(conf)                                            refresh.conf = nil end
     if refresh.GUI == true or refresh.GUI_onStart == true then OBJ_Update              (conf, obj, data, refresh, mouse, pat) end  
-                                                GUI_draw               (conf, obj, data, refresh, mouse)    
+    GUI_draw (conf, obj, data, refresh, mouse)    
                                                
     local char =gfx.getchar()  
     ShortCuts(char)
