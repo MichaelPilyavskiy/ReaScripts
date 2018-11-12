@@ -2,12 +2,23 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.18
+-- @version 1.19
 -- @changelog
---    + VF_GetFormattedGrid
+--    + VF_CheckReaperVrs
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
+  ---------------------------------------------------
+  function VF_CheckReaperVrs(rvrs) 
+    local vrs_num =  GetAppVersion()
+    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
+    if rvrs > vrs_num then 
+      reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0)
+      return
+     else
+      return true
+    end
+  end  
   ---------------------------------------------------
   function VF_GetFormattedGrid(grid_div)
     local grid_flags, grid_division, grid_swingmode, grid_swingamt 
@@ -27,7 +38,7 @@
       grid_str = 1
       is_triplet = math.abs(grid_division - 0.6666) < 0.001
     end
-    grid_swingamt_format = math.floor(grid_swingamt * 100)..'%'
+    local grid_swingamt_format = math.floor(grid_swingamt * 100)..'%'
     return grid_division, grid_str, is_triplet, grid_swingmode, grid_swingamt, grid_swingamt_format
   end     
   
@@ -534,7 +545,7 @@
       local out_chunk = table.concat(t,'\n')
       --msg(out_chunk)
       reaper.SetTrackStateChunk( track, out_chunk, false )
-  end
+  end 
   ----------------------------------------------------------------------
   function HasWindXYWHChanged(obj)  
     local  _, wx,wy,ww,wh = gfx.dock(-1, 0,0,0,0)
