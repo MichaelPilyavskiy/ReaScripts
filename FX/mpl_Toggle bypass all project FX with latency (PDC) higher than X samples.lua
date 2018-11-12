@@ -1,5 +1,5 @@
 -- @description Toggle bypass all project FX with latency (PDC) higher than X samples
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @metapackage
@@ -11,13 +11,14 @@
 --    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 4096 samples.lua
 --    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 8192 samples.lua
 -- @changelog
---    + init
+--    # fix parsing script name
+--    # fix initial empty external state
  
   --NOT gfx NOT reaper
   --------------------------------------------------------------------
   function main(spl_thrshld)
     local state =  GetExtState( 'MPLPDCTOGGLE', 'STATE' )
-    if not state or tonumber(state)==0 then 
+    if not state or state == '' or tonumber(state)==0 then 
       
       -- bypass 
       local str = ''
@@ -64,9 +65,9 @@
       reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
     end  
   end  
---------------------------------------------------------------------  
-  local cnt_spls = ({reaper.get_action_context()})[2]:match('(%d)+')
-  if not cnt_spls then cnt_spls = 256 end
+-------------------------------------------------------------------- 
+  local cnt_spls = ({reaper.get_action_context()})[2]:match('([%d]+) samples')
+  if not (cnt_spls and tonumber(cnt_spls)) then cnt_spls = 256 else cnt_spls = tonumber(cnt_spls) end
   
   local ret = CheckFunctions('VF_GetFormattedGrid') 
   local ret2 = VF_CheckReaperVrs(5.95)    
