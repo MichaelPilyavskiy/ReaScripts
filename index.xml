@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9d53439e8a73e8efa547c6047cd8dc470e7edf65" name="MPL Scripts">
+<index version="1" commit="cd616f518f8f3673a427d6a424b14a0cbb97f1c0" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -366,6 +366,10 @@
       <version name="1.18" author="MPL" time="2018-11-07T19:41:38Z">
         <changelog><![CDATA[+ VF_GetFormattedGrid]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.19" author="MPL" time="2018-11-12T21:35:49Z">
+        <changelog><![CDATA[+ VF_CheckReaperVrs]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd616f518f8f3673a427d6a424b14a0cbb97f1c0/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
@@ -914,6 +918,20 @@
       <version name="1.22" author="MPL" time="2017-05-12T03:20:31Z">
         <changelog><![CDATA[# fix nil on 33 line]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4340e3750172edb9408bbff98fdd83d539903aed/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle bypass all project FX with latency (PDC) higher than X samples.lua" type="script" desc="Toggle bypass all project FX with latency (PDC) higher than X samples">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-11-12T21:35:49Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 256 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd616f518f8f3673a427d6a424b14a0cbb97f1c0/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 512 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd616f518f8f3673a427d6a424b14a0cbb97f1c0/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 1024 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd616f518f8f3673a427d6a424b14a0cbb97f1c0/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 2048 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd616f518f8f3673a427d6a424b14a0cbb97f1c0/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 4096 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd616f518f8f3673a427d6a424b14a0cbb97f1c0/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 8192 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd616f518f8f3673a427d6a424b14a0cbb97f1c0/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle float instrument on track under mouse cursor.lua" type="script" desc="Toggle float instrument on track under mouse cursor">
