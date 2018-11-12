@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.89
+-- @version 1.90
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,24 +10,10 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + Pattern: scroll
---    + Pattern: beat separators
---    + Pattern: show ghost notes
---    + Pattern: independent swing control
---    - Mixer: show only notes as names
---    - Mixer: remove global controls
---    + Mixer: show volume and pan knobs
---    + Mixer: show volume and pan value on drag
---    + Mixer: show 1st sample names on mouseover
---    # Pattern: properly handle start offsets and non1x playrate
---    # Pads: fix show knob values on touch/move
---    # slightly reduce writing configuration data on window size/position change
---    # increase step count mouse drag speed
---    # fix space in keynames hashtag definition
---    # thinner knob arcs
+--    + Pads/Layout: 8x8 verical [p=2056815]
 
 
-  local vrs = 'v1.89'
+  local vrs = 'v1.90'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --rs5k manager_
