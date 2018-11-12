@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.0pre1
+-- @version 2.0pre2
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -11,18 +11,10 @@
 --    mpl_QuantizeTool_presets/default.qt
 --    mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua
 -- @changelog
---    + Preset/Create
---    + Preset/Create/Target/EnvelopePoint
---    + Preset/Align/Target/Items: handle grouped items
---    + Preset/Align/Action: Search area
---    + Preset/Align/Action: Link knobs
---    + Preset/Align/EnvelopePoint: support for all envelopes rather than selected one
---    + Preset/Align/EnvelopePoint: support for take envelopes
---    + Preset/Align/AnchorPoints: custom grid (internally is a 4-beat long groove)
---    # Preset/Align/AnchorPoints: separate grid based groove from Groove tab
---    # Preset: save knob values
+--    # Preset/Align/Target/Items: fix count of items to detect
+--    # Preset/Align/AnchorPoints/Grid: fix calculate points reflects to grid as well as groove
  
-  local vrs = 'v2.0pre1'
+  local vrs = 'v2.0pre2'
   --NOT gfx NOT reaper
   
 
