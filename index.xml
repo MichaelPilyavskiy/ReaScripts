@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cd616f518f8f3673a427d6a424b14a0cbb97f1c0" name="MPL Scripts">
+<index version="1" commit="5cc82c966dd7911b536f8669a76e16339668305b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -932,6 +932,16 @@
         <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 2048 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd616f518f8f3673a427d6a424b14a0cbb97f1c0/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
         <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 4096 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd616f518f8f3673a427d6a424b14a0cbb97f1c0/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
         <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 8192 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd616f518f8f3673a427d6a424b14a0cbb97f1c0/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2018-11-12T21:50:39Z">
+        <changelog><![CDATA[# fix parsing script name
+# fix initial empty external state]]></changelog>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 256 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5cc82c966dd7911b536f8669a76e16339668305b/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 512 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5cc82c966dd7911b536f8669a76e16339668305b/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 1024 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5cc82c966dd7911b536f8669a76e16339668305b/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 2048 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5cc82c966dd7911b536f8669a76e16339668305b/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 4096 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5cc82c966dd7911b536f8669a76e16339668305b/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
+        <source main="main" file="mpl_Toggle bypass all project FX with latency (PDC) higher than 8192 samples.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5cc82c966dd7911b536f8669a76e16339668305b/FX/mpl_Toggle%20bypass%20all%20project%20FX%20with%20latency%20(PDC)%20higher%20than%20X%20samples.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle float instrument on track under mouse cursor.lua" type="script" desc="Toggle float instrument on track under mouse cursor">
