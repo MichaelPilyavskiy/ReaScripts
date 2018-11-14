@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4e5c7be66bd1981d6f481cde279dd876da7adc43" name="MPL Scripts">
+<index version="1" commit="111f0cd65ac0c0134b44ac45e8db2430fe6806df" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5450,6 +5450,35 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-07-25T15:21:26Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e717c0b7c7ef5cffd8d691ecb4cf5f9d7a9a94c6/Various/mpl_Zoom%20horizontally,%20change%20grid%20relatively,%20preserve%20grid%20visibility%20and%20snap%20state%20%20(mousewheel).lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Various/mpl_QuantizeTool_presets">
+    <reapack name="mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor.lua" type="script" desc="mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0pre1" author="MPL" time="2018-11-14T05:37:38Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ac2f75515d302cc25ee4104008b63c68a50b0454/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Align%20selected%20items%20to%20edit%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_QuantizeTool preset - (MPL) Align stretch markers to 1-4 grid.lua" type="script" desc="mpl_QuantizeTool preset - (MPL) Align stretch markers to 1-4 grid">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0pre1" author="MPL" time="2018-11-14T05:37:38Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ac2f75515d302cc25ee4104008b63c68a50b0454/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Align%20stretch%20markers%20to%201-4%20grid.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua" type="script" desc="mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0pre1" author="MPL" time="2018-11-14T05:37:38Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ac2f75515d302cc25ee4104008b63c68a50b0454/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.lua</source>
       </version>
     </reapack>
   </category>
