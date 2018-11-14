@@ -1187,13 +1187,23 @@
                                       refresh.GUI = true
                                     end,             
                           } ,    
-                          { name = 'Initialize ReaScript GUI',
+                          { name = 'Show QuantizeTool GUI on init',
                             state = strategy.act_initgui&1==1,
                             show = true,
                             has_blit = false,
                             level = 1,
                             func =  function()
-                                      strategy.act_initgui = BinaryToggle(strategy.act_initgui, 0)
+                                      if strategy.act_initgui&1 ==1 then
+                                        local ret = MB('Checking this option will cause GUI will not appear when running the tool next. '..
+                                                      '\nUse the "mpl_QuantizeTool preset - default.lua" action to restore defaults.'..
+                                                      '\n\nAre you sure you want to disable opening GUI for this preset?',
+                                                      'Warning', 3)
+                                        if ret == 6 then
+                                          strategy.act_initgui = BinaryToggle(strategy.act_initgui, 0)
+                                        end
+                                       else
+                                        strategy.act_initgui = BinaryToggle(strategy.act_initgui, 0)
+                                      end
                                       refresh.GUI = true
                                     end,             
                           } ,                            
@@ -1650,6 +1660,7 @@
                                             func = function() 
                                                       local ret, str_input = GetUserInputs(conf.mb_title, 1, 'Rename preset,extrawidth=200' , strategy.name)
                                                       if ret then 
+                                                        str_input = str_input:gsub('[%/%\\%:%8%?%"%<%>%|]+','')
                                                         strategy.name = str_input
                                                         refresh.GUI = true
                                                       end
@@ -1663,7 +1674,8 @@
                                           },
                                           { str = 'Load preset from file',
                                             func = function() 
-                                                      local retval, qtstr_file = GetUserFileNameForRead('', 'Load preset from file', 'qt' )
+                                              path = GetResourcePath()..'/Scripts/MPL Scripts/Various/mpl_QuantizeTool_presets/default.qt'
+                                                      local retval, qtstr_file = GetUserFileNameForRead(path, 'Load preset from file', 'qt' )
                                                       LoadStrategy_Parse(strategy, qtstr_file)
                                                       refresh.GUI = true
                                                     end
@@ -1672,7 +1684,7 @@
                                             func = function() SaveStrategy(conf, strategy, 1 ) end
                                           }   ,                                        
                                           { str = 'Save preset to file and action list',
-                                            func = function() SaveStrategy(conf, strategy, 2) end
+                                            func = function() SaveStrategy(conf, strategy, 3) end
                                           }  ,
                                           { str = 'Open preset path|',
                                             func = function() 

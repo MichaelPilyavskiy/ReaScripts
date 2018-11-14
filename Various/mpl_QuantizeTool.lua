@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.0pre2
+-- @version 2.0pre3
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -8,13 +8,21 @@
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua
---    mpl_QuantizeTool_presets/default.qt
 --    mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua
+--    mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor.lua
+--    mpl_QuantizeTool presets/mpl_QuantizeTool preset - (MPL) Align stretch markers to 1-4 grid.lua
+--    mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua
+--    mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt
+--    mpl_QuantizeTool presets/(MPL) Align stretch markers to 1-4 grid.qt
+--    mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt
 -- @changelog
---    # Preset/Align/Target/Items: fix count of items to detect
---    # Preset/Align/AnchorPoints/Grid: fix calculate points reflects to grid as well as groove
+--    + add some presets to ReaPack metapackage
+--    + add warning when disabling GUI initialization for preset
+--    # replace forbidden symbols when rename preset
+--    # improve preset parser
+--    # fix flags when saving preset as both action and file
  
-  local vrs = 'v2.0pre2'
+  local vrs = 'v2.0pre3'
   --NOT gfx NOT reaper
   
 
@@ -31,7 +39,7 @@
   local mouse = {}
   local data = {}
   local obj = {}
-  local strategy = {}
+   strategy = {}
   
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
@@ -185,14 +193,8 @@
     obj.is_strategy_dirty = false
     local cur_strat = GetExtState( conf.ES_key, 'ext_strategy_name' )
     local ext_state = GetExtState( conf.ES_key, 'ext_state' )
-    if ext_state and ext_state=='1' then 
-      SetExtState( conf.ES_key, 'ext_state', 0, false )
-      ext_state = true
-     else
-      SetExtState( conf.ES_key, 'ext_state', 0, false )
-      ext_state = false
-    end
-
+    ext_state = ext_state and ext_state=='1' 
+    SetExtState( conf.ES_key, 'ext_state', 0, false )
 
     if cur_strat == '' then 
       LoadStrategy_Default(strategy)
@@ -262,7 +264,8 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
           if line:match('=') then
             local val = line:match('=(.*)')
             if tonumber(val) then val = tonumber(val) end
-            strategy[line:match('(.*)=')] = val
+            local key = line:match('(.*)='):gsub('%s','')
+            strategy[key] = val
           end
         end
       end

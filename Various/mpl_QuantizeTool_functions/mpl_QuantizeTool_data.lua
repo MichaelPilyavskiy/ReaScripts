@@ -236,8 +236,14 @@
     end     
   end   
   --------------------------------------------------- 
-  function Data_GetMIDI_perTake(data, strategy, table_name, take)
+  function Data_GetMIDI_perTake(data, strategy, table_name, take, item)
     if not take or not ValidatePtr2( 0, take, 'MediaItem_Take*' ) or not TakeIsMIDI(take) then return end
+    local item_pos = 0 
+    if item then
+      item_pos  = GetMediaItemInfo_Value( item, 'D_POSITION' )
+    end
+    local t_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
+    local tk_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
     local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
     if not gotAllOK then return end
     local s_unpack = string.unpack
@@ -282,7 +288,11 @@
                                   ignore_search = ignore_search,
                                   offset=offset,
                                   GUID = BR_GetMediaItemTakeGUID( take ),
-                                  srctype = 'MIDIEvnt'
+                                  srctype = 'MIDIEvnt',
+                                  tk_offs = t_offs,
+                                  it_pos = item_pos, 
+                                  tk_rate = tk_rate,
+                                  ptr = take
                                  }
       
     end   
@@ -295,12 +305,15 @@
     if mode&2 == 0 then -- MIDI editor
       local ME = MIDIEditor_GetActive()
       local take = MIDIEditor_GetTake( ME ) 
-      Data_GetMIDI_perTake(data, strategy, table_name, take)   
+      if take then 
+        local item =  GetMediaItemTake_Item( take )
+        Data_GetMIDI_perTake(data, strategy, table_name, take, item)   
+      end
      elseif   mode&2 == 2 then -- selected takes
       for i = 1, CountSelectedMediaItems(0) do
         local item = GetSelectedMediaItem(0,i-1)
         local take = GetActiveTake(item)
-        Data_GetMIDI_perTake(data,strategy, table_name, take) 
+        Data_GetMIDI_perTake(data,strategy, table_name, take, item) 
       end
     end
     
@@ -315,55 +328,71 @@
     for i = 1 , #data.src do
       local t = data.src[i]
       if not takes_t [t.GUID] then takes_t [t.GUID] = {} end
-        takes_t [t.GUID] [#takes_t [t.GUID] + 1 ]  = CopyTable(t)
-      end 
+      takes_t [t.GUID] [#takes_t [t.GUID] + 1 ]  = CopyTable(t)
+    end 
     
     -- loop takes
     for GUID in pairs(takes_t) do
       local take =  GetMediaItemTakeByGUID( 0, GUID )
-      if take then
-    
-        -- convert out_pos to ppq
-        for i = 1, #takes_t[GUID] do
-          local t = takes_t[GUID][i]
-          
-          if not t.ignore_search and t.out_pos then
-            local out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1
-            local out_pos_sec = TimeMap2_beatsToTime( 0, out_pos)
-            t.ppq_posOUT = MIDI_GetPPQPosFromProjTime( take, out_pos_sec )
-            for i2 = i+1, #takes_t[GUID] do
-              local t2 = takes_t[GUID][i2]
-              if t2.msg1:byte(1)>>4 == 0x8 and t2.msg1:byte(2)  == t.msg1:byte(2) then
-                t2.ppq_posOUT = t2.ppq_pos +  (t.ppq_posOUT-t.ppq_pos)
-                break
-              end
-            end
-           else
-            if not t.ppq_posOUT then t.ppq_posOUT = t.ppq_pos end
-          end
-          
-        end
-        
-          
-        
-        -- return back all stuff
-        local str_per_msg  = ''
-        for i = 1, #takes_t[GUID] do
-          local offset
-          local t = takes_t[GUID][i]
-          if i ==1 then offset = t.offset  + (t.ppq_posOUT - t.ppq_pos) else
-            offset = t.ppq_posOUT - takes_t[GUID][i-1].ppq_posOUT
-          end
-          str_per_msg = str_per_msg.. string.pack("i4Bs4", math.modf(offset),  t.flags , t.msg1)
-        end
-        
-        MIDI_SetAllEvts( take, str_per_msg )
-      end
-      local item =  GetMediaItemTake_Item( take )
-      UpdateItemInProject( item )
+      Data_Execute_Align_MIDI_sub(conf, obj, data, refresh, mouse, strategy, takes_t[GUID], take) 
     end
   end
-  
+  --------------------------------------------------- 
+  function Data_Execute_Align_MIDI_sub(conf, obj, data, refresh, mouse, strategy, take_t, take) 
+    if not take then return end
+    
+    local temp_t= {}
+    local add_id = 1
+    for i = 1, #take_t do
+      if not last_ppq_pos or last_ppq_pos > take_t[i].ppq_pos then
+        add_id  = add_id - 1
+       else
+        add_id = add_id + 1
+      end
+      table.insert(temp_t, lim(add_id, 1, #temp_t), take_t[i])
+      last_ppq_pos = take_t[i].ppq_pos
+    end
+    take_t2 = temp_t
+    
+    for i = 1, #take_t2 do
+      local t = take_t2[i]          
+      if not t.ignore_search and t.out_pos then
+        local out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1
+        local out_pos_sec = TimeMap2_beatsToTime( 0, out_pos)
+        t.ppq_posOUT = MIDI_GetPPQPosFromProjTime( take, out_pos_sec )
+        for i2 = i+1, #take_t do
+          local t2 = take_t[i2]
+          if t2.ppq_pos > t.ppq_posOUT and t2.msg1:byte(1)>>4 == 0x8 and t2.msg1:byte(2)  == t.msg1:byte(2) then
+            t2.ppq_posOUT = t2.ppq_pos +  (t.ppq_posOUT-t.ppq_pos)
+            break
+          end
+        end
+       else
+        if not t.ppq_posOUT then t.ppq_posOUT = t.ppq_pos end
+      end
+    end
+        
+          
+        
+    -- return back all stuff
+    local str_per_msg  = ''
+    for i = 1, #take_t do
+      local offset
+      local t = take_t[i]
+      if i ==1 then 
+        offset = t.offset  + (t.ppq_posOUT - t.ppq_pos) 
+       else
+        offset = t.ppq_posOUT - take_t[i-1].ppq_posOUT
+      end
+      str_per_msg = str_per_msg.. string.pack("i4Bs4", math.modf(offset),  t.flags , t.msg1)
+    end
+    MIDI_SetAllEvts( take, str_per_msg )
+    
+    
+    -- refresh
+    local item =  GetMediaItemTake_Item( take )
+    UpdateItemInProject(item  ) 
+  end 
   --------------------------------------------------- 
   function Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy)
     --local take =  reaper.GetMediaItemTakeByGUID( 0, t.tkGUID ) 
@@ -715,8 +744,9 @@
     end
     
     for i = 1, #passed_t do
-      if not passed_t[i].ignore_search then
-        local pos_beats = passed_t[i].pos
+      local param = 'pos'
+      if not passed_t[i].ignore_search and passed_t[i][param] then
+        local pos_beats = passed_t[i][param]
         local pos_sec =  TimeMap2_beatsToTime( 0, pos_beats )
         local r,g,b = table.unpack(obj.GUIcol[col_str])
         local val_str = i 
