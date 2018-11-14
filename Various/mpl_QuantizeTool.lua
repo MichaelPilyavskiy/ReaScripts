@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.0pre4
+-- @version 2.0pre5
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -8,10 +8,10 @@
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua
---    mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua
---    mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor.lua
---    mpl_QuantizeTool presets/mpl_QuantizeTool preset - (MPL) Align stretch markers to 1-4 grid.lua
---    mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua
+--    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua
+--    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor.lua
+--    [main] mpl_QuantizeTool presets/mpl_QuantizeTool preset - (MPL) Align stretch markers to 1-4 grid.lua
+--    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua
 --    mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt
 --    mpl_QuantizeTool presets/(MPL) Align stretch markers to 1-4 grid.qt
 --    mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt
@@ -22,7 +22,7 @@
 --    # improve preset parser
 --    # fix flags when saving preset as both action and file
  
-  local vrs = 'v2.0pre4'
+  local vrs = 'v2.0pre5'
   --NOT gfx NOT reaper
   
 
