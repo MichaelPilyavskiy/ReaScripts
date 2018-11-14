@@ -1,4 +1,4 @@
--- @description Set QuantizeTool preset to '(MPL) Align selected items to edit cursor'
+-- @description mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @version 1.0pre1

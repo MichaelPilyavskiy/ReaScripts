@@ -1,4 +1,4 @@
--- @description Set QuantizeTool preset to '(MPL) Create selected envelope points from selected items'
+-- @description mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @version 1.0pre1

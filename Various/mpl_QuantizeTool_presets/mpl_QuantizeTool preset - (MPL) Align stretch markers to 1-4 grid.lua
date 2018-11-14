@@ -1,4 +1,4 @@
--- @description Set QuantizeTool preset to '(MPL) Align stretch markers to 1-4 grid'
+-- @description mpl_QuantizeTool preset - (MPL) Align stretch markers to 1-4 grid
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @version 1.0pre1
