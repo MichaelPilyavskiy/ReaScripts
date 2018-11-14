@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.0pre3
+-- @version 2.0pre4
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -22,7 +22,7 @@
 --    # improve preset parser
 --    # fix flags when saving preset as both action and file
  
-  local vrs = 'v2.0pre3'
+  local vrs = 'v2.0pre4'
   --NOT gfx NOT reaper
   
 
@@ -238,7 +238,7 @@
         local out_fp_script = script_path .. "mpl_QuantizeTool_presets/mpl_QuantizeTool preset - "..name..'.lua'
         local out_str = 
 [[
--- @description Set QuantizeTool preset to ']]..strategy.name..[['
+-- @description mpl_QuantizeTool preset - ]]..strategy.name..[[
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 

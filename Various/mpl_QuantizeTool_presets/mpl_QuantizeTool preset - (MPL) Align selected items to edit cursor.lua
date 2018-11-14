@@ -1,7 +1,7 @@
 -- @description mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
--- @version 1.0pre1
+-- @version 1.0pre2
 -- @changelog
 --     + init
 
