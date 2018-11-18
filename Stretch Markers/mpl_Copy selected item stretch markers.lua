@@ -1,9 +1,9 @@
 -- @description Copy selected item stretch markers
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # use native chunk functions, REAPER 5.95pre3+
+--    # don`t use chunks, write all data directly into ExtState buffer
 
   -- NOT gfx NOT reaper
   local scr_title = 'Copy selected item stretch markers'
@@ -12,18 +12,25 @@
 
   -------------------------------------------------------
   function main()
+    local str = ''
     local item = GetSelectedMediaItem(0,0)
+    local item_pos =  reaper.GetMediaItemInfo_Value( item, 'D_POSITION' )
+    
     if item then
-      local tk = GetActiveTake( item )
-      if tk then 
-        
-        local retval, chunk = GetItemStateChunk( item, '', false )
-        local tk_GUID = BR_GetMediaItemTakeGUID( tk )
-        local takeSTR = chunk:match(literalize(tk_GUID)..'.*SM.-\n')
-        if takeSTR  then
-          local reduce_str = takeSTR:match('SM.-\n') 
-          if reduce_str then CF_SetClipboard('MPLSMCLIPBOARD\n'..reduce_str) end
+      local take = GetActiveTake( item )
+      local tk_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+      local tk_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' ) 
+      if take then 
+        local cnt =  GetTakeNumStretchMarkers( take )
+        for idx = 1, cnt do
+          local slope = GetTakeStretchMarkerSlope( take, idx-1 )
+          local retval, pos, srcpos = reaper.GetTakeStretchMarker( take, idx-1 )
+          str = str..'\n'..pos..' '..srcpos..' '..slope
         end
+        SetProjExtState( 0, 'MPLSMCLIPBOARD', 'BUF', str )
+        SetProjExtState( 0, 'MPLSMCLIPBOARD', 'ITPOS', item_pos)
+        SetProjExtState( 0, 'MPLSMCLIPBOARD', 'TKRATE', tk_rate)
+        SetProjExtState( 0, 'MPLSMCLIPBOARD', 'TKOFFS', tk_offs)
         
       end
     end
@@ -47,26 +54,9 @@
       reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
     end  
   end
-  ---------------------------------------------------
-  function CheckReaperVrs(rvrs) 
-    local vrs_num =  GetAppVersion()
-    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
-    if rvrs > vrs_num then 
-      reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0)
-      return
-     else
-      return true
-    end
-  end
-  
+
   --------------------------------------------------------
-  if not reaper.APIExists( 'CF_GetClipboard' ) then
-    MB('Require SWS v2.9.5+', 'Error', 0)
-   else
-      local ret = CheckFunctions('Action') 
-      local ret2 = CheckReaperVrs(5.95)    
-      if ret and ret2 then main() end
-  end
+  if CheckFunctions('Action') and VF_CheckReaperVrs(5.95) then main() end
   
   
     
