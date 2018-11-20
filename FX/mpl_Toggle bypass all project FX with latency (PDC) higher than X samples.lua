@@ -1,9 +1,11 @@
 -- @description Toggle bypass all project FX with latency (PDC) higher than X samples
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @metapackage
 -- @provides
+--    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 64 samples.lua
+--    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 128 samples.lua
 --    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 256 samples.lua
 --    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 512 samples.lua
 --    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 1024 samples.lua
@@ -11,10 +13,8 @@
 --    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 4096 samples.lua
 --    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 8192 samples.lua
 -- @changelog
---    + support master FX
---    + support monitoring FX
---    + support input FX
---    # fix VariousFunctions checking
+--    # fix master check
+--    + Add PDC=64,128
  
   --NOT gfx NOT reaper
   --------------------------------------------------------------------
@@ -26,7 +26,7 @@
       local str = ''
       for tr_id = 0, CountTracks(0) do
         local track
-        if i ==0 then track = GetMasterTrack( 0 ) else track = GetTrack(0,tr_id-1) end
+        if tr_id ==0 then track = GetMasterTrack( 0 ) else track = GetTrack(0,tr_id-1) end
         
         for fx_id = 1,  TrackFX_GetCount( track ) do
           local retval, buf = TrackFX_GetNamedConfigParm( track, fx_id-1, 'pdc' )
@@ -62,9 +62,9 @@
       local t = {}
       for line in str:gmatch('[^\r\n]+') do local GUID, bypass = line:match('({.*}) (%d)') t[GUID] = tonumber(bypass) end      
       
-      for tr_id = 1, CountTracks(0) do
+      for tr_id = 0, CountTracks(0) do
         local track
-        if i ==0 then track = GetMasterTrack( 0 ) else track = GetTrack(0,tr_id-1) end
+        if tr_id ==0 then track = GetMasterTrack( 0 ) else track = GetTrack(0,tr_id-1) end
         
         for fx_id = 1,  TrackFX_GetCount( track ) do
           local GUID = TrackFX_GetFXGUID( track, fx_id-1)
