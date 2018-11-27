@@ -14,7 +14,7 @@
 --    mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt
 --    mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt
 -- @changelog
---    + Complete script rebuild. This is an early developer test alpha. It is more about replacing old buggy code that adding new functions.
+--    + Complete script rebuild.
 --    + GUI: split into 4 sections: target, anchor points, action, and contol area
 --    + Preset: all objects handling follows extrnal or last saved/touched reset
 --    + Preset: load/save from/to file/list
