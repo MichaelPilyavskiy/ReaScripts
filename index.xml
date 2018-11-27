@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ee50fe576b99550779673d96eaadd52f435d7eef" name="MPL Scripts">
+<index version="1" commit="daadf5e48d4a39e4ee21bd77ddba5cb2c708653e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5215,31 +5215,7 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_ProjectPlaylist%20(background).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Quantize Tool (background).lua" type="script" desc="Quantize Tool">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.8.4" author="MPL" time="2018-01-27T04:42:47Z">
-        <changelog><![CDATA[# Improved parsing GrooveTool patterns]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e717c0b7c7ef5cffd8d691ecb4cf5f9d7a9a94c6/Various/mpl_Quantize%20Tool%20(background).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Quantize Tool set grid (MIDI CC and OSC only).lua" type="script" desc="Quantize Tool set grid (MIDI CC and OSC only)">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Various/mpl_Quantize%20Tool%20set%20grid%20(MIDI%20CC%20and%20OSC%20only).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Quantize Tool set strength (MIDI CC and OSC only).lua" type="script" desc="Quantize Tool set strength (MIDI CC and OSC only)">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Various/mpl_Quantize%20Tool%20set%20strength%20(MIDI%20CC%20and%20OSC%20only).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Quantize Tool set swing (MIDI CC and OSC only).lua" type="script" desc="Quantize Tool set swing (MIDI CC and OSC only)">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Various/mpl_Quantize%20Tool%20set%20swing%20(MIDI%20CC%20and%20OSC%20only).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_QuantizeTool.lua" type="script" desc="QuantizeTool">
+    <reapack name="mpl_Quantize Tool (background).lua" type="script" desc="QuantizeTool">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
@@ -5250,191 +5226,40 @@ setup min gain, attack =0]]></changelog>
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
       </metadata>
-      <version name="2.0alpha1" author="MPL" time="2018-10-21T21:18:00Z">
+      <version name="1.8.4" author="MPL" time="2018-01-27T04:42:47Z">
+        <changelog><![CDATA[# Improved parsing GrooveTool patterns]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e717c0b7c7ef5cffd8d691ecb4cf5f9d7a9a94c6/Various/mpl_Quantize%20Tool%20(background).lua</source>
+      </version>
+      <version name="2.0" author="MPL" time="2018-11-27T20:52:22Z">
         <changelog><![CDATA[+ Complete script rebuild. This is an early developer test alpha. It is more about replacing old buggy code that adding new functions.
-+ GUI: split into 4 sections: reference, source, action, and contol area
-+ Strategy: all objects handling follows strategy
-+ Strategy: load/save from/to file 
-+ Strategy: load/save from/to <res_path>/mpl_QuantizeTool_Strategies list
-+ Strategy: load/save from/to action list (non-persist external state reading on initialization)
-+ Strategy/Action/Type/Position-based Align: deductive brutforce engine
-+ Strategy/Action/Type/Position-based Align: independent position/value sliders
-+ Strategy/Action/Initialization/Catch reference on init
-+ Strategy/Action/Initialization/Catch source on init
-+ Strategy/Action/Initialization/Apply action on init
-+ Strategy/Action/Option/Sort positions before taking values (so values aren`t attached to src positions)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
-        <source file="mpl_QuantizeTool_Strategies/default.qtstr">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4202683a134835e07d4904bdfe804b13d2cbcd26/Various/mpl_QuantizeTool_Strategies/default.qtstr</source>
-      </version>
-      <version name="2.0alpha2" author="MPL" time="2018-10-25T22:38:58Z">
-        <changelog><![CDATA[+ Strategy/Reference/Pattern (no actual reference from pattern yet)
-+ Strategy/Reference/Pattern: new FNG Groove Tool parser
-+ Strategy/Reference/Pattern: save as .rgt in /Grooves
-+ Strategy/Reference/Pattern: list /Grooves
-+ Strategy/Reference/Pattern: allow to draw pattern manually, autosave to /Grooves/last_touched.rgt
-+ Strategy/Reference/Pattern: change length (in beats)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
-        <source file="mpl_QuantizeTool_Strategies/default.qtstr">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff41b586d09404184116394c7db69092c7d375b/Various/mpl_QuantizeTool_Strategies/default.qtstr</source>
-      </version>
-      <version name="2.0alpha3" author="MPL" time="2018-10-28T14:01:58Z">
-        <changelog><![CDATA[+ Strategy/Reference/Pattern: reference from pattern (working code, show pattern points relative to edit cursor works also)
-+ Strategy: unify code for collecting ref/src data
-+ Strategy/Source: envelope points]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384354653a16af070a9d3274c3de93f5dcee41ca/Various/mpl_QuantizeTool.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384354653a16af070a9d3274c3de93f5dcee41ca/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384354653a16af070a9d3274c3de93f5dcee41ca/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384354653a16af070a9d3274c3de93f5dcee41ca/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384354653a16af070a9d3274c3de93f5dcee41ca/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
-        <source file="mpl_QuantizeTool_Strategies/default.qtstr">https://github.com/MichaelPilyavskiy/ReaScripts/raw/384354653a16af070a9d3274c3de93f5dcee41ca/Various/mpl_QuantizeTool_Strategies/default.qtstr</source>
-      </version>
-      <version name="2.0alpha5" author="MPL" time="2018-10-29T20:34:26Z">
-        <changelog><![CDATA[- remove Strategy/Action/Options/Sort values
-+ Strategy/Source/MIDI notes (0x9 +folowing0x8)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1097dfbb15d45ebc4ed555728a707adbfafd0c33/Various/mpl_QuantizeTool.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1097dfbb15d45ebc4ed555728a707adbfafd0c33/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1097dfbb15d45ebc4ed555728a707adbfafd0c33/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1097dfbb15d45ebc4ed555728a707adbfafd0c33/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1097dfbb15d45ebc4ed555728a707adbfafd0c33/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
-        <source file="mpl_QuantizeTool_Strategies/default.qtstr">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1097dfbb15d45ebc4ed555728a707adbfafd0c33/Various/mpl_QuantizeTool_Strategies/default.qtstr</source>
-      </version>
-      <version name="2.0alpha7" author="MPL" time="2018-11-03T11:44:47Z">
-        <changelog><![CDATA[+ GUI: reduced view
-+ GUI: various naming changes [p=2052215]
-+ GUI: move detection buttons to control panel
-+ Preset/AnchorPoints/Stretch markers
-+ Preset/Target/Stretch markers (only GUI, disabled for now)
-+ Preset/Action/Apply action on init
-+ Preset/Action/Run QT without GUI
-# change default width]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
-        <source file="mpl_QuantizeTool_presets/default.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_presets/default.qt</source>
-        <source file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eeeed4fc4be9f433096e5e54386557bd8c43e7c9/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
-      </version>
-      <version name="2.0alpha8" author="MPL" time="2018-11-06T20:22:22Z">
-        <changelog><![CDATA[+ Preset/Target/Stretch markers
-+ Preset/AnchorPoints/Pattern: show list of grooves in /Groove folder
-+ Preset/AnchorPoints/Pattern: load from file]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
-        <source file="mpl_QuantizeTool_presets/default.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_presets/default.qt</source>
-        <source file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f7a00701105ab5c0ed0940ab8b3e85130dd3b0a/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
-      </version>
-      <version name="2.0alpha9" author="MPL" time="2018-11-07T19:41:38Z">
-        <changelog><![CDATA[+ Preset/Target/MIDI: allow multiple selected items take pointers
-+ Preset/AnchorPoints/Groove: selector beetween getting groove from file or generating it
-+ Preset/AnchorPoints/Groove/Generate/Current grid
-+ Preset/AnchorPoints/MIDI: allow multiple selected items take pointers
-+ Preset/AnchorPoints/MIDI: allow to use/align to specific messages
-# Preset/AnchorPoints: fix show incorrect points count
-# GUI: wrapping preset buttons on low width
-# require VariousFunctions 1.18+]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
-        <source file="mpl_QuantizeTool_presets/default.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool_presets/default.qt</source>
-        <source file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aca37cebc9d3bec48e1bf01ec6c1c642ae2ab25/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
-      </version>
-      <version name="2.0alpha10" author="MPL" time="2018-11-09T20:25:01Z">
-        <changelog><![CDATA[+ Preset/Align: fix errors related to envelopes
++ GUI: split into 4 sections: target, anchor points, action, and contol area
++ Preset: all objects handling follows extrnal or last saved/touched reset
++ Preset: load/save from/to file/list
++ Preset/Action/Position-based Align: deductive brutforce engine
++ Preset/Action/Position-based Align: independent position/value sliders
++ Preset/Action/Position-based Align: show target points or anchor points
++ Preset/Action/Initialization: various options
++ Preset/Align/AnchorPoints/Groove: new FNG Groove Tool parser
++ Preset/Align/AnchorPoints/Groove: save as .rgt in /Grooves
++ Preset/Align/AnchorPoints/Groove: list/show /Grooves
++ Preset/Align/AnchorPoints/Groove: allow to draw pattern manually, autosave to /Grooves/last_touched.rgt
++ Preset/Align/AnchorPoints/Groove: change length (in beats)
 + Preset/Align/AnchorPoints/Edit cursor
 + Preset/Align/AnchorPoints/Project Markers
-+ Preset/Align/AnchorPoints/Items: obey snap offset
-+ Preset/Align/Target/Items: obey snap offset
-+ Preset/Align/Target/StretchMarkers: add zero marker if need
-# Preset/Align/AnchorPoints/Groove/Generate/Current grid: fix handle last beat
-# GUI: move show/apply buttons to the control panel
-+ Developer actions to dump internal data]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd8dca0dac499cbf15691ed2971567a331d4e615/Various/mpl_QuantizeTool.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd8dca0dac499cbf15691ed2971567a331d4e615/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd8dca0dac499cbf15691ed2971567a331d4e615/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd8dca0dac499cbf15691ed2971567a331d4e615/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd8dca0dac499cbf15691ed2971567a331d4e615/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
-        <source file="mpl_QuantizeTool_presets/default.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd8dca0dac499cbf15691ed2971567a331d4e615/Various/mpl_QuantizeTool_presets/default.qt</source>
-        <source file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd8dca0dac499cbf15691ed2971567a331d4e615/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
-      </version>
-      <version name="2.0pre1" author="MPL" time="2018-11-11T20:01:58Z">
-        <changelog><![CDATA[+ Preset/Create
-+ Preset/Create/Target/EnvelopePoint
-+ Preset/Align/Target/Items: handle grouped items
-+ Preset/Align/Action: Search area
-+ Preset/Align/Action: Link knobs
-+ Preset/Align/EnvelopePoint: support for all envelopes rather than selected one
-+ Preset/Align/EnvelopePoint: support for take envelopes
-+ Preset/Align/AnchorPoints: custom grid (internally is a 4-beat long groove)
-# Preset/Align/AnchorPoints: separate grid based groove from Groove tab
-# Preset: save knob values]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8c3f14dc3cb1bc177c99cbb155e2ee2b439abe03/Various/mpl_QuantizeTool.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8c3f14dc3cb1bc177c99cbb155e2ee2b439abe03/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8c3f14dc3cb1bc177c99cbb155e2ee2b439abe03/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8c3f14dc3cb1bc177c99cbb155e2ee2b439abe03/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8c3f14dc3cb1bc177c99cbb155e2ee2b439abe03/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
-        <source file="mpl_QuantizeTool_presets/default.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8c3f14dc3cb1bc177c99cbb155e2ee2b439abe03/Various/mpl_QuantizeTool_presets/default.qt</source>
-        <source file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8c3f14dc3cb1bc177c99cbb155e2ee2b439abe03/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
-      </version>
-      <version name="2.0pre2" author="MPL" time="2018-11-12T05:28:30Z">
-        <changelog><![CDATA[# Preset/Align/Target/Items: fix count of items to detect
-# Preset/Align/AnchorPoints/Grid: fix calculate points reflects to grid as well as groove]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0e6378acf66ae0d3fa9ee6862aaa043b86d3cbd/Various/mpl_QuantizeTool.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0e6378acf66ae0d3fa9ee6862aaa043b86d3cbd/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0e6378acf66ae0d3fa9ee6862aaa043b86d3cbd/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0e6378acf66ae0d3fa9ee6862aaa043b86d3cbd/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0e6378acf66ae0d3fa9ee6862aaa043b86d3cbd/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
-        <source file="mpl_QuantizeTool_presets/default.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0e6378acf66ae0d3fa9ee6862aaa043b86d3cbd/Various/mpl_QuantizeTool_presets/default.qt</source>
-        <source file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0e6378acf66ae0d3fa9ee6862aaa043b86d3cbd/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
-      </version>
-      <version name="2.0pre5" author="MPL" time="2018-11-14T06:12:44Z">
-        <changelog><![CDATA[+ add some presets to ReaPack metapackage
-+ add warning when disabling GUI initialization for preset
-# replace forbidden symbols when rename preset
-# improve preset parser
-# fix flags when saving preset as both action and file]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c884afaa99596e7e2f362578c3fe66b8e1f46228/Various/mpl_QuantizeTool.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c884afaa99596e7e2f362578c3fe66b8e1f46228/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c884afaa99596e7e2f362578c3fe66b8e1f46228/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c884afaa99596e7e2f362578c3fe66b8e1f46228/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c884afaa99596e7e2f362578c3fe66b8e1f46228/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
-        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c884afaa99596e7e2f362578c3fe66b8e1f46228/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
-        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c884afaa99596e7e2f362578c3fe66b8e1f46228/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Align%20selected%20items%20to%20edit%20cursor.lua</source>
-        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c884afaa99596e7e2f362578c3fe66b8e1f46228/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.lua</source>
-        <source file="mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c884afaa99596e7e2f362578c3fe66b8e1f46228/Various/mpl_QuantizeTool_presets/(MPL)%20Align%20selected%20items%20to%20edit%20cursor.qt</source>
-        <source file="mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c884afaa99596e7e2f362578c3fe66b8e1f46228/Various/mpl_QuantizeTool_presets/(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.qt</source>
-      </version>
-      <version name="2.0rc1" author="MPL" time="2018-11-27T20:21:00Z">
-        <changelog><![CDATA[+ Preset/Align/Execute/Exclude within
-+ Preset/Create/Target/EnvPoints: prevent creating points at existed points position
-+ Preset/Create/Target/EnvPoints: show error message if no envelope found
-+ Preset/Align/Target/MIDI: allow applying velocities
-# Preset/Align: rename 'Search Area' to 'Include within'
-# Preset/Align/MIDI: various tweaks and fixes
-# Preset/Align/StretchMarkers: various tweaks and fixes
-# Test markers: show id properly]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
-        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
-        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
-        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Align%20selected%20items%20to%20edit%20cursor.lua</source>
-        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.lua</source>
-        <source file="mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_presets/(MPL)%20Align%20selected%20items%20to%20edit%20cursor.qt</source>
-        <source file="mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_presets/(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.qt</source>
++ Preset/Align/Items: obey snap offset
++ Menu/Developer actions to dump internal data  
++ Preset/Create: create new objects based on existed
++ Preset/Align/EnvelopePoint: support for take envelopes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/daadf5e48d4a39e4ee21bd77ddba5cb2c708653e/Various/mpl_Quantize%20Tool%20(background).lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/daadf5e48d4a39e4ee21bd77ddba5cb2c708653e/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/daadf5e48d4a39e4ee21bd77ddba5cb2c708653e/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/daadf5e48d4a39e4ee21bd77ddba5cb2c708653e/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/daadf5e48d4a39e4ee21bd77ddba5cb2c708653e/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
+        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/daadf5e48d4a39e4ee21bd77ddba5cb2c708653e/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
+        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/daadf5e48d4a39e4ee21bd77ddba5cb2c708653e/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Align%20selected%20items%20to%20edit%20cursor.lua</source>
+        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/daadf5e48d4a39e4ee21bd77ddba5cb2c708653e/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.lua</source>
+        <source file="mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/daadf5e48d4a39e4ee21bd77ddba5cb2c708653e/Various/mpl_QuantizeTool_presets/(MPL)%20Align%20selected%20items%20to%20edit%20cursor.qt</source>
+        <source file="mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/daadf5e48d4a39e4ee21bd77ddba5cb2c708653e/Various/mpl_QuantizeTool_presets/(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.qt</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
