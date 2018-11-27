@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1ed93bafee39c00221758d0988deab7d4b357dcd" name="MPL Scripts">
+<index version="1" commit="ee50fe576b99550779673d96eaadd52f435d7eef" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5415,6 +5415,26 @@ setup min gain, attack =0]]></changelog>
         <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c884afaa99596e7e2f362578c3fe66b8e1f46228/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.lua</source>
         <source file="mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c884afaa99596e7e2f362578c3fe66b8e1f46228/Various/mpl_QuantizeTool_presets/(MPL)%20Align%20selected%20items%20to%20edit%20cursor.qt</source>
         <source file="mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c884afaa99596e7e2f362578c3fe66b8e1f46228/Various/mpl_QuantizeTool_presets/(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.qt</source>
+      </version>
+      <version name="2.0rc1" author="MPL" time="2018-11-27T20:21:00Z">
+        <changelog><![CDATA[+ Preset/Align/Execute/Exclude within
++ Preset/Create/Target/EnvPoints: prevent creating points at existed points position
++ Preset/Create/Target/EnvPoints: show error message if no envelope found
++ Preset/Align/Target/MIDI: allow applying velocities
+# Preset/Align: rename 'Search Area' to 'Include within'
+# Preset/Align/MIDI: various tweaks and fixes
+# Preset/Align/StretchMarkers: various tweaks and fixes
+# Test markers: show id properly]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
+        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
+        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Align%20selected%20items%20to%20edit%20cursor.lua</source>
+        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.lua</source>
+        <source file="mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_presets/(MPL)%20Align%20selected%20items%20to%20edit%20cursor.qt</source>
+        <source file="mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee50fe576b99550779673d96eaadd52f435d7eef/Various/mpl_QuantizeTool_presets/(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.qt</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
