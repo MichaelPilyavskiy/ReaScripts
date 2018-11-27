@@ -670,6 +670,7 @@
   end
   --------------------------------------------------- 
   function Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy) 
+    if not data.src then return end
       for i = 1, #data.src do        
         if data.src[i].pos and not data.src[i].ignore_search then
           local out_pos,out_val
