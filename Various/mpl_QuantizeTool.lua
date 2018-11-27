@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.0pre5
+-- @version 2.0rc1
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -14,17 +14,19 @@
 --    mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt
 --    mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt
 -- @changelog
---    + add some presets to ReaPack metapackage
---    + add warning when disabling GUI initialization for preset
---    # replace forbidden symbols when rename preset
---    # improve preset parser
---    # fix flags when saving preset as both action and file
+--    + Preset/Align/Execute/Exclude within
+--    + Preset/Create/Target/EnvPoints: prevent creating points at existed points position
+--    + Preset/Create/Target/EnvPoints: show error message if no envelope found
+--    + Preset/Align/Target/MIDI: allow applying velocities
+--    # Preset/Align: rename 'Search Area' to 'Include within'
+--    # Preset/Align/MIDI: various tweaks and fixes
+--    # Preset/Align/StretchMarkers: various tweaks and fixes
+--    # Test markers: show id properly
  
-  local vrs = 'v2.0pre5'
+  local vrs = 'v2.0pre6'
   --NOT gfx NOT reaper
   
 
-    
   
   --  INIT -------------------------------------------------
   local conf = {}  
@@ -37,7 +39,7 @@
   local mouse = {}
   local data = {}
   local obj = {}
-   strategy = {}
+  local strategy = {}
   
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
@@ -81,6 +83,7 @@
         strategy.src_selitems = 1
         strategy.src_envpoints = 0
         strategy.src_midi = 0 
+        strategy.src_midi_msgflag = 1--&2 note off
         strategy.src_strmarkers = 0
          
     -- action -----------------------
@@ -97,7 +100,8 @@
     -- execute -----------------------
       strategy.exe_val1 = 0 -- align=strength
       strategy.exe_val2 = 0 -- align=value
-      strategy.exe_val3 = 0 -- align=search area/0-disabled
+      strategy.exe_val3 = 0 -- align=inclwithin/0-disabled
+      strategy.exe_val4 = 0 -- align=exclwithin/0-disabled
   end
   ---------------------------------------------------
   function ExtState_Def()  
@@ -124,14 +128,6 @@
             }
     return t
   end  
-  --[[local GUI_fontsz2 = 15
-  local GUI_fontsz3 = 13
-  if GetOS():find("OSX") then 
-    GUI_fontsz2 = GUI_fontsz2 - 5 
-    GUI_fontsz3 = GUI_fontsz3 - 4
-  end ]] 
-  
-  
   ---------------------------------------------------    
   function run()
     obj.clock = os.clock()

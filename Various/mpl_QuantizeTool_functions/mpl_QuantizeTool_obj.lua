@@ -175,7 +175,7 @@
                                         end,                               
                                 },                             
                             
-                            { name = 'MIDI notes (preserve length)',
+                            { name = 'MIDI',
                               state = strategy.src_midi,
                               show = strategy.src_positions&1==1 ,
                               level = 0,                             
@@ -211,7 +211,27 @@
                                           refresh.GUI = true
                                         end,                               
                               },    
-                              
+                            { name = 'Messages',
+                              show = strategy.src_positions&1==1 and strategy.src_midi&1==1 ,
+                              level = 1},  
+                                { name = 'NoteOn',
+                                  state = strategy.src_midi_msgflag&1==1,
+                                  show = strategy.src_positions&1==1 and strategy.src_midi&1==1 ,
+                                  level = 2,
+                                  func =  function()
+                                            strategy.src_midi_msgflag = BinaryToggle(strategy.src_midi_msgflag, 0)                                          
+                                            refresh.GUI = true
+                                          end,                               
+                                }, 
+                                --[[{ name = 'NoteOff',
+                                  state = strategy.src_midi_msgflag&2==2,
+                                  show = strategy.src_positions&1==1 and strategy.src_midi&1==1 ,
+                                  level = 2,
+                                  func =  function()
+                                            strategy.src_midi_msgflag = BinaryToggle(strategy.src_midi_msgflag, 1)                                          
+                                            refresh.GUI = true
+                                          end,                               
+                                },                 ]]                                 
                             { name = 'Stretch markers',
                               state = strategy.src_strmarkers,
                               show = strategy.src_positions&1==1,
@@ -482,7 +502,7 @@
                                             refresh.GUI = true
                                           end,                               
                                 }, 
-                                { name = 'NoteOff',
+                                --[[{ name = 'NoteOff',
                                   state = strategy.ref_midi_msgflag&2==2,
                                   show = strategy.ref_positions&1==1 and strategy.ref_midi&1==1 ,
                                   level = 3,
@@ -490,7 +510,7 @@
                                             strategy.ref_midi_msgflag = BinaryToggle(strategy.ref_midi_msgflag, 1)                                          
                                             refresh.GUI = true
                                           end,                               
-                                },                                           
+                                },                 ]]                          
                                                                                                                                                                          
                             { name = 'Stretch markers',
                               state = strategy.ref_strmarkers,
@@ -1362,7 +1382,7 @@
   function Obj_TabExecute_Align(conf, obj, data, refresh, mouse, strategy) 
     local but_cnt = 3 
     local com_exe_w = gfx.w - obj.menu_w - but_cnt * obj.exe_but_w - 1
-    local knob_cnt = 3
+    local knob_cnt = 4
     local but_a = 0.7
     local h_ratio_but = 0.7
     
@@ -1381,6 +1401,7 @@
                         colfill_col = 'green',
                         colfill_a = but_a,
                         func =  function() 
+                                  
                                   Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy)
                                   refresh.GUI = true
                                 end,
@@ -1550,9 +1571,13 @@
                                     end  ,
                         func_mouseover =  function()
                                       obj.knob_txt.txt = 'Align position '..FormatPercent(strategy.exe_val1)
+                                      if strategy.exe_val1 == 0 then obj.knob_txt.txt = 'Align position: disabled' end
                                       refresh.GUI_minor = true
                                     end  ,
-                        onrelease_L  = function()  SaveStrategy(conf, strategy, 1, true) end
+                        onrelease_L  = function()  
+                                          UpdateArrange()
+                                          SaveStrategy(conf, strategy, 1, true) 
+                                        end
                         } 
     obj.exe_val2 = { clear = true,
                         is_knob = true,
@@ -1587,6 +1612,7 @@
                                 end ,
                         func_mouseover =  function()
                                       obj.knob_txt.txt = 'Align value '..FormatPercent(strategy.exe_val2)
+                                      if strategy.exe_val2 == 0 then obj.knob_txt.txt = 'Align value: disabled' end
                                       refresh.GUI_minor = true
                                     end    ,
                         onrelease_L  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                       
@@ -1612,18 +1638,53 @@
                                     if mouse.context_latch_val then 
                                       strategy.exe_val3 = lim(mouse.context_latch_val + mouse.dx*0.001 - mouse.dy*0.01, 0, 2)
                                       obj.exe_val3.val = strategy.exe_val3/2
-                                      obj.knob_txt.txt = 'Search area '..strategy.exe_val3..' beats'
+                                      obj.knob_txt.txt = 'Include within '..strategy.exe_val3..' beats'
                                       refresh.GUI_minor = true
                                       Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy) 
                                       Data_Execute(conf, obj, data, refresh, mouse, strategy)
                                     end
                                 end ,
                         func_mouseover =  function()
-                                      obj.knob_txt.txt = 'Search area '..strategy.exe_val3..' beats'
+                                      obj.knob_txt.txt = 'Include within '..strategy.exe_val3..' beats'
+                                      if strategy.exe_val3 == 0 then obj.knob_txt.txt = 'Include within: disabled' end
                                       refresh.GUI_minor = true
                                     end ,
                         onrelease_L  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                           
-                        }                                                
+                        }  
+    obj.exe_val4 = { clear = true,
+                        is_knob = true,
+                        knob_y_shift = 10,
+                        x =   obj.menu_w + 1+but_cnt * obj.exe_but_w+obj.knob_w*3,
+                        y = obj.tab_h + obj.exec_line_y,
+                        w = obj.knob_w,
+                        h = obj.slider_tab_h,
+                        col = 'white',
+                        txt= '',
+                        val = strategy.exe_val4/2,
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,
+                        func =  function() 
+                                  if conf.app_on_slider_click == 1 then Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy) end
+                                  mouse.context_latch_val = strategy.exe_val3
+                                end,
+                        func_LD2 = function()
+                                    if mouse.context_latch_val then 
+                                      strategy.exe_val4 = lim(mouse.context_latch_val + mouse.dx*0.001 - mouse.dy*0.01, 0, 2)
+                                      obj.exe_val4.val = strategy.exe_val4/2
+                                      obj.knob_txt.txt = 'Exclude within '..strategy.exe_val4..' beats'
+                                      refresh.GUI_minor = true
+                                      Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy) 
+                                      Data_Execute(conf, obj, data, refresh, mouse, strategy)
+                                    end
+                                end ,
+                        func_mouseover =  function()
+                                      obj.knob_txt.txt = 'Exclude within '..strategy.exe_val4..' beats'
+                                      if strategy.exe_val4 == 0 then obj.knob_txt.txt = 'Exclude within: disabled' end
+                                      refresh.GUI_minor = true
+                                    end ,
+                        onrelease_L  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                           
+                        }                                                                                                                      
       obj.knob_txt = { clear = true,
                         x =   obj.menu_w + 1 + but_cnt * obj.exe_but_w + obj.knob_w*knob_cnt,
                         y = obj.tab_h + obj.exec_line_y,

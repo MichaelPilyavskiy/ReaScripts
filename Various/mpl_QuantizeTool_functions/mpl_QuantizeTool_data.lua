@@ -194,25 +194,28 @@
   function Data_GetSM(data, table_name) 
     data[table_name].src_cnt = 0
     
-    for i = 1, CountMediaItems(0) do
-      local item =  GetMediaItem( 0, i-1 )
+    for i = 1, CountSelectedMediaItems(0) do
+      local item =  GetSelectedMediaItem( 0, i-1 )
       if not item then return end
       local it_pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
       local it_len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
       local it_UIsel = GetMediaItemInfo_Value( item, 'B_UISEL' )
       local take = GetActiveTake(item)
       local rate  = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+      local stoffst  = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
       if not TakeIsMIDI(take) then
         for idx = 1, GetTakeNumStretchMarkers( take ) do
           local retval, sm_pos, srcpos_sec = GetTakeStretchMarker( take, idx-1 )
           local slope = GetTakeStretchMarkerSlope( take, idx-1 )
-          local pos = it_pos + sm_pos / rate
-          local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
+          local pos_glob = it_pos + sm_pos / rate
+          local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos_glob )
                 
           local ignore_search = false  
-          if sm_pos < 0.0001 or math.abs(sm_pos - it_len) < 0.001 or it_UIsel == 0 then ignore_search = true end -- boundary SM and selection
+          if it_UIsel == 0 then ignore_search = true end
           if not ignore_search then data[table_name].src_cnt = data[table_name].src_cnt + 1 end
-                       
+          if ((pos_glob <= it_pos+0.0001 or pos_glob >= it_pos + it_len+0.0001) and table_name == 'src') 
+          or ((pos_glob < it_pos or pos_glob > it_pos + it_len) and table_name == 'ref') then ignore_search = true end
+          
           data[table_name][#data[table_name]+1] =
                   { pos = fullbeats,
                     pos_beats = beats,
@@ -229,6 +232,7 @@
                     it_len = it_len,
                     tk_rate = rate,
                     tk_ptr= take,
+                    tk_offs =stoffst,
                     
                 }
         end
@@ -239,11 +243,11 @@
   function Data_GetMIDI_perTake(data, strategy, table_name, take, item)
     if not take or not ValidatePtr2( 0, take, 'MediaItem_Take*' ) or not TakeIsMIDI(take) then return end
     local item_pos = 0 
-    if item then
-      item_pos  = GetMediaItemInfo_Value( item, 'D_POSITION' )
-    end
+    if item then item_pos  = GetMediaItemInfo_Value( item, 'D_POSITION' )  end
     local t_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
     local tk_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+    
+    local t0 = {}
     local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
     if not gotAllOK then return end
     local s_unpack = string.unpack
@@ -264,38 +268,113 @@
       local isNoteOff = msg1:byte(1)>>4 == 0x8
       local isCC = msg1:byte(1)>>4 == 0xB
       local chan = 1+(msg1:byte(1)&0xF)
-
-      --[[if mode == 1 and isNoteOn and selected then -- reference NoteOn
-        data[table_name][#data[table_name]+1] = {pos = fullbeats,
-                                 pos_beats = beats,
-                                 val = msg1:byte(2)/127
-                                 }
+      local pitch = msg1:byte(2)
+      local vel = msg1:byte(3) 
       
-       elseif mode == -1 then]]
-      local ignore_search = true
+      local ignore_search = true      
+      --[[
+      if table_name == 'src' and isNoteOn then ignore_search=false end
+      --if strategy.ref_midi_msgflag&1==1  and isNoteOn then ignore_search = false end
+      --if strategy.ref_midi_msgflag&2==2  and isNoteOff then ignore_search = false end
+     
       
-      if strategy.ref_midi_msgflag&1==1  and isNoteOn then ignore_search = false end
-      if strategy.ref_midi_msgflag&2==2  and isNoteOff then ignore_search = false end
-      
-      if not ignore_search then data[table_name].src_cnt = data[table_name].src_cnt + 1 end
-      data[table_name][#data[table_name]+1] = 
+      if not (table_name == 'ref' and ignore_search == true) then
+        if not ignore_search then data[table_name].src_cnt = data[table_name].src_cnt + 1 end]]
+        t0[#t0+1] = 
                           {       pos = fullbeats,
                                   pos_beats = beats,
-                                  pitch = msg1:byte(2)/127,
-                                  flags=flags,
-                                  msg1=msg1,
-                                  ppq_pos=ppq_pos,
                                   ignore_search = ignore_search,
-                                  offset=offset,
                                   GUID = BR_GetMediaItemTakeGUID( take ),
-                                  srctype = 'MIDIEvnt',
                                   tk_offs = t_offs,
                                   it_pos = item_pos, 
                                   tk_rate = tk_rate,
-                                  ptr = take
+                                  ptr = take,
+                                  
+                                  pitch = msg1:byte(2),
+                                  val = vel/127,
+                                  
+                                  flags=flags,
+                                  msg1=msg1,
+                                  ppq_pos=ppq_pos,
+                                  offset=offset,
+                                  srctype = 'MIDIEvnt',
+                                  isNoteOn =isNoteOn,
+                                  isNoteOff=isNoteOff,
+                                  isCC =isCC,
+                                  chan=chan,
+                                  pitch = pitch
                                  }
+      --end
+    end  
+    
+    
+    
+    local ppq_sorted_t = {}
+    local ppq_t = {}
+    
+    -- sort stuff by ppq
+      for i = 1, #t0 do
+        local t = t0[i]
+        local ppq_pos = t.ppq_pos
+        if not ppq_sorted_t[ppq_pos] then 
+          ppq_sorted_t[ppq_pos] = {} 
+          ppq_t[#ppq_t+1] = ppq_pos 
+        end
+        ppq_sorted_t[ppq_pos] [#ppq_sorted_t[ppq_pos]+1] = t
+      end    
+      table.sort(ppq_t)
       
-    end   
+    -- sort 
+    for i = 1, #ppq_t do
+      local ppq = ppq_t[i]
+      if ppq_sorted_t[ppq] then 
+      
+        for i2 = 1, #ppq_sorted_t[ppq] do
+          if ppq_sorted_t[ppq][i2].isNoteOn then
+          
+            
+            local new_entry_id = #data[table_name]+1
+            data[table_name][new_entry_id] = ppq_sorted_t[ppq][i2]
+            if      (table_name=='src' and strategy.src_midi_msgflag&1==1)
+                or  (table_name=='ref' and strategy.ref_midi_msgflag&1==1)  then 
+              data[table_name][new_entry_id].ignore_search = false 
+            end
+            
+            
+            -- search noteoff/add note to table
+            for searchid = i+1, #ppq_t do
+              local ppq_search = ppq_t[searchid]
+              if ppq_sorted_t[ppq_search] then                
+                
+                for i2_search = 1, #ppq_sorted_t[ppq_search] do                  
+                  if      ppq_sorted_t[ppq_search][i2_search].isNoteOff ==true
+                      and ppq_sorted_t[ppq_search][i2_search].chan == ppq_sorted_t[ppq][i2].chan 
+                      and ppq_sorted_t[ppq_search][i2_search].pitch == ppq_sorted_t[ppq][i2].pitch 
+                    then
+                    
+                    data[table_name][new_entry_id].note_len_PPQ = ppq_search - ppq
+                    data[table_name][new_entry_id].is_note = true
+                    data[table_name][new_entry_id].noteoff_msg1 = ppq_sorted_t[ppq_search][i2_search].msg1                      
+                    table.remove(ppq_sorted_t[ppq_search], i2_search)
+                    if #ppq_sorted_t[ppq_search] == 0 then ppq_sorted_t[ppq_search] = nil end
+                    goto next_evt
+                                        
+                  end
+                end
+              end
+            end
+            
+            ::next_evt::
+            -- add other events to table
+           elseif not (ppq_sorted_t[ppq][i2].isNoteOn or ppq_sorted_t[ppq][i2].isNoteOff) then
+            local new_entry_id = #data[table_name]+1
+            data[table_name][new_entry_id]=ppq_sorted_t[ppq][i2]
+            
+          end
+        end
+      end
+    end
+    
   end  
   --------------------------------------------------- 
   function Data_GetMIDI(data, strategy, table_name, mode) 
@@ -315,6 +394,10 @@
         local take = GetActiveTake(item)
         Data_GetMIDI_perTake(data,strategy, table_name, take, item) 
       end
+    end
+    
+    for i = 1, #data[table_name] do 
+      if not data[table_name][i].ignore_search then data[table_name].src_cnt  =data[table_name].src_cnt  +1 end
     end
     
   end
@@ -340,7 +423,44 @@
   --------------------------------------------------- 
   function Data_Execute_Align_MIDI_sub(conf, obj, data, refresh, mouse, strategy, take_t, take) 
     if not take then return end
-    
+    local str_per_msg  = ''
+    local ppq_cur = 0
+    for i = 1, #take_t do
+      local t = take_t[i]
+      
+      local ppq_posOUT = t.ppq_pos
+      
+      if t.out_pos then
+        local out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1
+        local out_pos_sec = TimeMap2_beatsToTime( 0, out_pos)
+        ppq_posOUT = MIDI_GetPPQPosFromProjTime( take, out_pos_sec )
+      end
+      
+      local out_val = t.val
+      if t.out_val then
+        out_val = t.val + (t.out_val - t.val)*strategy.exe_val2
+      end
+            
+      local out_offs = math.floor(ppq_posOUT-ppq_cur)
+      
+      if t.is_note then
+        local out_vel = math.max(1,math.floor(lim(out_val,0,1)*127))
+        --str_per_msg = str_per_msg.. string.pack("i4Bs4", out_offs,  t.flags , t.msg1)
+        str_per_msg = str_per_msg.. string.pack("i4Bi4BBB", out_offs, t.flags, 3,  0x90| (t.chan-1), t.pitch, out_vel )
+        str_per_msg = str_per_msg.. string.pack("i4Bs4", t.note_len_PPQ,  t.flags , t.noteoff_msg1)
+        ppq_cur = ppq_cur+ out_offs+t.note_len_PPQ
+       else
+        str_per_msg = str_per_msg.. string.pack("i4Bs4", out_offs,  t.flags , t.msg1)
+        ppq_cur = ppq_cur+ out_offs
+      end
+      
+    end
+    MIDI_SetAllEvts( take, str_per_msg )
+    MIDI_Sort(take)
+    local item = GetMediaItemTake_Item( take )
+    UpdateItemInProject(item) 
+  end
+    --[[
     local temp_t= {}
     local add_id = 1
     for i = 1, #take_t do
@@ -386,13 +506,12 @@
       end
       str_per_msg = str_per_msg.. string.pack("i4Bs4", math.modf(offset),  t.flags , t.msg1)
     end
-    MIDI_SetAllEvts( take, str_per_msg )
+    --MIDI_SetAllEvts( take, str_per_msg )
     
     
     -- refresh
-    local item =  GetMediaItemTake_Item( take )
-    UpdateItemInProject(item  ) 
-  end 
+    local item = GetMediaItemTake_Item( take )
+    UpdateItemInProject(item  ) ]]
   --------------------------------------------------- 
   function Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy)
     --local take =  reaper.GetMediaItemTakeByGUID( 0, t.tkGUID ) 
@@ -416,25 +535,25 @@
           local out_pos
           if t.out_pos then
             local out_pos_sec = TimeMap2_beatsToTime( 0, t.out_pos )
-            out_pos = lim(out_pos_sec - t.it_pos, 0, t.it_len)* t.tk_rate
+            out_pos = (out_pos_sec - t.it_pos)*t.tk_rate
             out_pos = t.sm_pos_sec + (out_pos - t.sm_pos_sec)*strategy.exe_val1
            else
             out_pos = t.sm_pos_sec
           end
-          SetTakeStretchMarker( take, -1, out_pos, t.srcpos_sec )
+          SetTakeStretchMarker( take, -1, out_pos, t.srcpos_sec)
         end
       end
 
-      local first_t = takes_t[GUID]  [1]
+      --[[local first_t = takes_t[GUID]  [1]
       if first_t.pos_sec ~= 0 then
         SetTakeStretchMarker( take, -1, 0 )
       end
             
-      local last_t = takes_t[GUID]  [#takes_t[GUID]]
+      local last_t = takes_t[GUID]  [#takes_t[GUID ] ]
       if last_t.srcpos_sec* last_t.tk_rate  ~= last_t.it_len then
         SetTakeStretchMarker( take, -1, last_t.it_len* last_t.tk_rate, last_t.it_len* last_t.tk_rate )
       end
-      
+      ]]
       local item =  GetMediaItemTake_Item( take )
       UpdateItemInProject( item )
     end
@@ -553,30 +672,29 @@
   function Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy) 
       for i = 1, #data.src do        
         if data.src[i].pos and not data.src[i].ignore_search then
+          local out_pos,out_val
+          
+          -- get values
           if (strategy.ref_pattern&1~=1 and  strategy.ref_grid&1~=1 ) then 
             local refID = Data_brutforce_RefID(conf, data, strategy, data.src[i].pos)
             if refID and data.ref[refID] then 
-              if strategy.exe_val3 > 0 then 
-                if math.abs(data.ref[refID].pos - data.src[i].pos) < strategy.exe_val3 then 
-                  data.src[i].out_pos = data.ref[refID].pos 
-                 else
-                  data.src[i].out_pos = data.src[i].pos
-                end
-                data.src[i].out_val = data.ref[refID].val
-               else
-                data.src[i].out_pos = data.ref[refID].pos
-                data.src[i].out_val = data.ref[refID].val
-              end
-            end
-            
+              out_pos = data.ref[refID].pos
+              out_val = data.ref[refID].val              
+            end            
            else
             local pat_pos, pat_val = DataSearchPatternVal(conf, data, strategy, data.src[i].pos, data.src[i].pos_beats, data.src[i].val)
             if pat_pos and pat_val then 
-              data.src[i].out_pos = pat_pos
-              data.src[i].out_val = pat_val
-            end
-            
-          end            
+              out_pos = pat_pos
+              out_val = pat_val
+            end            
+          end   
+          
+          -- app values
+          data.src[i].out_val = out_val
+          data.src[i].out_pos = out_pos
+          if strategy.exe_val3 > 0 and math.abs(out_pos - data.src[i].pos) >= strategy.exe_val3 then data.src[i].out_pos = data.src[i].pos end            
+          if strategy.exe_val4 > 0 and math.abs(out_pos - data.src[i].pos) <= strategy.exe_val4 then data.src[i].out_pos = data.src[i].pos end            
+                   
         end
       end
   end  
@@ -600,11 +718,15 @@
       if results == 2 then
         testpos1 = data.ref[limID1].pos
         testpos2 = data.ref[limID2].pos
-        if math.abs(pos_src - testpos1) < math.abs(pos_src - testpos2) then return limID1 else return limID2 end
+        if math.abs(pos_src - testpos1) <= math.abs(pos_src - testpos2) then return limID1 else return limID2 end
       end
       local centerID = math.ceil(limID1 + (limID2-limID1)/2)
       local centerID_pos = data.ref[centerID].pos
-      if pos_src < centerID_pos then limID2 = centerID else limID1 = centerID end
+      if pos_src < centerID_pos then 
+        limID2 = centerID 
+       else 
+        limID1 = centerID 
+      end
     end
     
     return
@@ -707,9 +829,15 @@
   ---------------------------------------------------   
   function Data_Execute_Create_EnvPt(conf, obj, data, refresh, mouse, strategy)
     local env = GetSelectedEnvelope( 0 )
+    if not env then MB('Envelope not found', 'QuantizeTool 2', 0) return end
+            
     for i = 1, #data.ref do
       local pos_sec =  TimeMap2_beatsToTime( 0, data.ref[i].pos)
-      InsertEnvelopePointEx( env, -1, pos_sec, data.ref[i].val, 0, 0, 0, true )
+      local ptid = GetEnvelopePointByTime( env, pos_sec )
+      local retval, time = reaper.GetEnvelopePoint( env, ptid )
+      if time ~= pos_sec then
+        InsertEnvelopePointEx( env, -1, pos_sec, data.ref[i].val, 0, 0, 0, true )
+      end
     end
     Envelope_SortPointsEx( env, -1 )
     UpdateArrange()
@@ -743,6 +871,7 @@
       passed_t = passed_t0
     end
     
+    local imark = 0
     for i = 1, #passed_t do
       local param = 'pos'
       if not passed_t[i].ignore_search and passed_t[i][param] then
@@ -754,11 +883,12 @@
           val_str = passed_t[i].val
           if passed_t[i].val2 then val_str = val_str ..'_'..passed_t[i].val2 end
         end
+        imark = imark + 1
         AddProjectMarker2( 0, false, 
                           pos_sec, 
                           -1, 
                           'QT_'..val_str, 
-                          i, 
+                          imark, 
                           ColorToNative( math.floor(r*255),math.floor(g*255),math.floor(b*255))  |0x1000000 )
       end
     end
