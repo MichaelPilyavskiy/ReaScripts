@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.0
+-- @version 2.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -14,28 +14,10 @@
 --    mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt
 --    mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt
 -- @changelog
---    + Complete script rebuild.
---    + GUI: split into 4 sections: target, anchor points, action, and contol area
---    + Preset: all objects handling follows extrnal or last saved/touched reset
---    + Preset: load/save from/to file/list
---    + Preset/Action/Position-based Align: deductive brutforce engine
---    + Preset/Action/Position-based Align: independent position/value sliders
---    + Preset/Action/Position-based Align: show target points or anchor points
---    + Preset/Action/Initialization: various options
---    + Preset/Align/AnchorPoints/Groove: new FNG Groove Tool parser
---    + Preset/Align/AnchorPoints/Groove: save as .rgt in /Grooves
---    + Preset/Align/AnchorPoints/Groove: list/show /Grooves
---    + Preset/Align/AnchorPoints/Groove: allow to draw pattern manually, autosave to /Grooves/last_touched.rgt
---    + Preset/Align/AnchorPoints/Groove: change length (in beats)
---    + Preset/Align/AnchorPoints/Edit cursor
---    + Preset/Align/AnchorPoints/Project Markers
---    + Preset/Align/Items: obey snap offset
---    + Menu/Developer actions to dump internal data  
---    + Preset/Create: create new objects based on existed
---    + Preset/Align/EnvelopePoint: support for take envelopes
+--    # on load preset overwrite defaults rather than check / fix parsing preset from prereleases
 
      
-  local vrs = 'v2.0'
+  local vrs = 'v2.01'
   --NOT gfx NOT reaper
   
 
@@ -201,9 +183,9 @@
     local ext_state = GetExtState( conf.ES_key, 'ext_state' )
     ext_state = ext_state and ext_state=='1' 
     SetExtState( conf.ES_key, 'ext_state', 0, false )
-
+    LoadStrategy_Default(strategy)
+    
     if cur_strat == '' then 
-      LoadStrategy_Default(strategy)
       SetExtState( conf.ES_key, 'ext_strategy_name', 'default', false )
      elseif cur_strat ~= '' and not ext_state then 
       LoadStrategy_Parse(strategy, obj.script_path .. 'mpl_QuantizeTool_presets/last saved.qt'   ) 
@@ -211,12 +193,12 @@
       LoadStrategy_Parse(strategy, obj.script_path .. 'mpl_QuantizeTool_presets/'..cur_strat..'.qt'   ) 
     end
     
-    -- inspect keys
+    --[[ inspect keys
       local t = CopyTable(strategy)
       LoadStrategy_Default(t)
       for key in pairs(t) do
         if not strategy[key] then strategy[key] = t[key] end
-      end
+      end]]
   end
   --------------------------------------------------------------------
   function SaveStrategy(conf, strategy, flag, lastsaved)

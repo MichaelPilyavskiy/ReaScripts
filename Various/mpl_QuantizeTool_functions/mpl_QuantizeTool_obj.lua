@@ -1651,6 +1651,9 @@
                                     end ,
                         onrelease_L  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                           
                         }  
+    
+    local val4 = strategy.exe_val4
+    if not val4 then val4 = 0 end
     obj.exe_val4 = { clear = true,
                         is_knob = true,
                         knob_y_shift = 10,
@@ -1660,7 +1663,7 @@
                         h = obj.slider_tab_h,
                         col = 'white',
                         txt= '',
-                        val = strategy.exe_val4/2,
+                        val = val4/2,
                         show = true,
                         fontsz = obj.GUI_fontsz2,
                         a_frame = 0,
