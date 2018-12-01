@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="53f454d8ce99de5a5bd4ed81e622bf19e0935b6e" name="MPL Scripts">
+<index version="1" commit="3be16702d1120b561de93debf5b15c4184f1eb4b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2535,6 +2535,24 @@ setup min gain, attack =0]]></changelog>
       <version name="1.01" author="MPL" time="2018-03-08T14:57:42Z">
         <changelog><![CDATA[# ReaPack header]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d02548590e8d84d292f139994ee8e9574c586e90/Items%20Properties/mpl_Align%20selected%20track%20items%20vertically.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Change pan for item under mouse cursor active take (mousewheel).lua" type="script" desc="Change pan for item under mouse cursor active take (mousewheel)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-12-01T05:41:47Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3be16702d1120b561de93debf5b15c4184f1eb4b/Items%20Properties/mpl_Change%20pan%20for%20item%20under%20mouse%20cursor%20active%20take%20(mousewheel).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Change volume for item under mouse cursor (mousewheel).lua" type="script" desc="Change volume for item under mouse cursor (mousewheel)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-12-01T05:41:47Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3be16702d1120b561de93debf5b15c4184f1eb4b/Items%20Properties/mpl_Change%20volume%20for%20item%20under%20mouse%20cursor%20(mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Comb-filtering check selected items.lua" type="script" desc="Comb-filtering check selected items">
