@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3be16702d1120b561de93debf5b15c4184f1eb4b" name="MPL Scripts">
+<index version="1" commit="1c419258d7a24127e2cdfcabcc7836eddc6a2196" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2718,15 +2718,6 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI/mpl_Paste%20MIDI%20notes%20to%20selected%20item.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Quantize item and note positions to project grid.lua" type="script" desc="Quantize item and note positions to project grid">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-06-03T04:39:21Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/98362cf1edbfdf730994f88f42019e0901450760/MIDI/mpl_Quantize%20item%20and%20note%20positions%20to%20project%20grid.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Remove selected takes MIDI AfterTouch.lua" type="script" desc="Remove selected takes MIDI AfterTouch">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5291,6 +5282,28 @@ setup min gain, attack =0]]></changelog>
         <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/53f454d8ce99de5a5bd4ed81e622bf19e0935b6e/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.lua</source>
         <source file="mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/53f454d8ce99de5a5bd4ed81e622bf19e0935b6e/Various/mpl_QuantizeTool_presets/(MPL)%20Align%20selected%20items%20to%20edit%20cursor.qt</source>
         <source file="mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/53f454d8ce99de5a5bd4ed81e622bf19e0935b6e/Various/mpl_QuantizeTool_presets/(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.qt</source>
+      </version>
+      <version name="2.02" author="MPL" time="2018-12-02T19:19:12Z">
+        <changelog><![CDATA[# improved loading default/external/lastsaved presets
+# fix mouse release for knobs and testmarkers
++ preset: Quantize item positions to project grid (no GUI)
++ preset: Quantize item midi notes to project grid (no GUI)
++ Menu: added manual]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_Quantize%20Tool%20(background).lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_GUI.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua</source>
+        <source file="mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua</source>
+        <source file="mpl_QuantizeTool_presets/mpl_QuantizeTool - Getting started.pdf">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20-%20Getting%20started.pdf</source>
+        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20default.lua</source>
+        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Quantize item positions to project grid (no GUI).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Quantize%20item%20positions%20to%20project%20grid%20(no%20GUI).lua</source>
+        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Align%20selected%20items%20to%20edit%20cursor.lua</source>
+        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.lua</source>
+        <source main="main" file="mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Quantize item midi notes to project grid (no GUI).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_presets/mpl_QuantizeTool%20preset%20-%20(MPL)%20Quantize%20item%20midi%20notes%20to%20project%20grid%20(no%20GUI).lua</source>
+        <source file="mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_presets/(MPL)%20Align%20selected%20items%20to%20edit%20cursor.qt</source>
+        <source file="mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_presets/(MPL)%20Create%20selected%20envelope%20points%20from%20selected%20items.qt</source>
+        <source file="mpl_QuantizeTool_presets/(MPL) Quantize item positions to project grid (no GUI).qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_presets/(MPL)%20Quantize%20item%20positions%20to%20project%20grid%20(no%20GUI).qt</source>
+        <source file="mpl_QuantizeTool_presets/(MPL) Quantize item midi notes to project grid (no GUI).qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3457e998f62ab41f7bc5828158c73da4a4dc4f3/Various/mpl_QuantizeTool_presets/(MPL)%20Quantize%20item%20midi%20notes%20to%20project%20grid%20(no%20GUI).qt</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
