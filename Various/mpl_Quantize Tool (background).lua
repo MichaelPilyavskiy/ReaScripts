@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -8,16 +8,24 @@
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_MOUSE.lua
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua
 --    mpl_QuantizeTool_functions/mpl_QuantizeTool_obj.lua
+--    mpl_QuantizeTool_presets/mpl_QuantizeTool - Getting started.pdf
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - default.lua
+--    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Quantize item positions to project grid (no GUI).lua
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor.lua
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua
+--    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Quantize item midi notes to project grid (no GUI).lua
 --    mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt
 --    mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt
+--    mpl_QuantizeTool_presets/(MPL) Quantize item positions to project grid (no GUI).qt
+--    mpl_QuantizeTool_presets/(MPL) Quantize item midi notes to project grid (no GUI).qt
 -- @changelog
---    # on load preset overwrite defaults rather than check / fix parsing preset from prereleases
-
+--    # improved loading default/external/lastsaved presets
+--    # fix mouse release for knobs and testmarkers
+--    + preset: Quantize item positions to project grid (no GUI)
+--    + preset: Quantize item midi notes to project grid (no GUI)
+--    + Menu: added manual
      
-  local vrs = 'v2.01'
+  local vrs = 'v2.02'
   --NOT gfx NOT reaper
   
 
@@ -33,7 +41,7 @@
   local mouse = {}
   local data = {}
   local obj = {}
-  local strategy = {}
+   strategy = {}
   
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
@@ -46,56 +54,59 @@
     dofile(script_path .. "mpl_QuantizeTool_functions/mpl_QuantizeTool_data.lua")  
   end  
   --------------------------------------------------------------------
-  function LoadStrategy_Default(strategy)
-    strategy.name = 'default' 
+  function LoadStrategy_Default()
+    local t = {name = 'default', 
     
     -- reference -----------------------
       -- positions
-        strategy.ref_positions = 1
-        strategy.ref_selitems = 0 --&2 snap offset -- &4 handle grouping
-        strategy.ref_envpoints = 1 -- &2 all selected
-        strategy.ref_midi = 0 --&2 Selected items
-        strategy.ref_midi_msgflag = 1 --&2 note off
-        strategy.ref_strmarkers = 0 
-        strategy.ref_editcur = 0     
-        strategy.ref_marker = 0   
-        strategy.ref_timemarker = 0  
+        ref_positions = 1,
+        ref_selitems = 0, --&2 snap offset -- &4 handle grouping
+        ref_envpoints = 1, -- &2 all selected
+        ref_midi = 0, --&2 Selected items
+        ref_midi_msgflag = 1, --&2 note off
+        ref_strmarkers = 0, 
+        ref_editcur = 0 ,    
+        ref_marker = 0,   
+        ref_timemarker = 0  ,
         
-        strategy.ref_grid = 2    -- &2 current &4 triplet &8 swing
-        strategy.ref_grid_val = 1 
-        strategy.ref_grid_sw = 0  
+        ref_grid = 2 ,   -- &2 current &4 triplet &8 swing
+        ref_grid_val = 1, 
+        ref_grid_sw = 0,  
           
       -- pattern
-        strategy.ref_pattern = 0
-        strategy.ref_pattern_gensrc = 1
-        strategy.ref_pattern_len = 4
-        strategy.ref_pattern_name = 'last_touched'
+        ref_pattern = 0,
+        ref_pattern_gensrc = 1,
+        ref_pattern_len = 4,
+        ref_pattern_name = 'last_touched',
         
     -- source -----------------------
       -- positions
-        strategy.src_positions = 1
-        strategy.src_selitems = 1
-        strategy.src_envpoints = 0
-        strategy.src_midi = 0 
-        strategy.src_midi_msgflag = 1--&2 note off
-        strategy.src_strmarkers = 0
+        src_positions = 1,
+        src_selitems = 1,
+        src_envpoints = 0,
+        src_midi = 0 ,
+        src_midi_msgflag = 1,--&2 note off
+        src_strmarkers = 0,
          
     -- action -----------------------
       --  align
-        strategy.act_action = 1  
-        strategy.act_alignflag = 0 -- &1= linked knobs
+        act_action = 1 , 
+        act_alignflag = 0, -- &1= linked knobs
       -- init
-        strategy.act_initcatchref = 1    
-        strategy.act_initcatchsrc = 0 
-        strategy.act_initact = 0  
-        strategy.act_initapp = 0
-        strategy.act_initgui = 1
+        act_initcatchref = 1 ,   
+        act_initcatchsrc = 0 ,
+        act_initact = 0  ,
+        act_initapp = 0,
+        act_initgui = 1,
         
     -- execute -----------------------
-      strategy.exe_val1 = 0 -- align=strength
-      strategy.exe_val2 = 0 -- align=value
-      strategy.exe_val3 = 0 -- align=inclwithin/0-disabled
-      strategy.exe_val4 = 0 -- align=exclwithin/0-disabled
+      exe_val1 = 0, -- align=strength
+      exe_val2 = 0, -- align=value
+      exe_val3 = 0, -- align=inclwithin/0-disabled
+      exe_val4 = 0, -- align=exclwithin/0-disabled
+      
+      }
+    return t
   end
   ---------------------------------------------------
   function ExtState_Def()  
@@ -177,28 +188,45 @@
     end
   end
 --------------------------------------------------------------------
-  function LoadStrategy(conf, strategy)
+  function LoadStrategy(conf, strategy, force_default)
     obj.is_strategy_dirty = false
+    
     local cur_strat = GetExtState( conf.ES_key, 'ext_strategy_name' )
     local ext_state = GetExtState( conf.ES_key, 'ext_state' )
-    ext_state = ext_state and ext_state=='1' 
-    SetExtState( conf.ES_key, 'ext_state', 0, false )
-    LoadStrategy_Default(strategy)
+    local ext_state = ext_state and ext_state=='1' 
     
-    if cur_strat == '' then 
-      SetExtState( conf.ES_key, 'ext_strategy_name', 'default', false )
-     elseif cur_strat ~= '' and not ext_state then 
-      LoadStrategy_Parse(strategy, obj.script_path .. 'mpl_QuantizeTool_presets/last saved.qt'   ) 
-     elseif cur_strat ~= '' and ext_state then 
-      LoadStrategy_Parse(strategy, obj.script_path .. 'mpl_QuantizeTool_presets/'..cur_strat..'.qt'   ) 
-    end
+    -- load defaults
+      local def_t = LoadStrategy_Default()
+      for key in pairs(def_t) do strategy[key] = def_t[key] end
+      if force_default or (ext_state and cur_strat == 'default') then 
+        SaveStrategy(conf, strategy, 1, true)
+        return 
+      end
+      
+    -- check ext state
+      SetExtState( conf.ES_key, 'ext_state', 0, false )
+      if ext_state and cur_strat ~= 'default' then
+        local preset_path = obj.script_path .. 'mpl_QuantizeTool_presets/'..cur_strat..'.qt'
+        local f = io.open(preset_path, 'r')
+        if f then 
+          f:close()
+          LoadStrategy_Parse(strategy, preset_path )
+          return
+         else
+          MB('External strategy not found', 'QuantizeTool',0)
+        end
+      end
     
-    --[[ inspect keys
-      local t = CopyTable(strategy)
-      LoadStrategy_Default(t)
-      for key in pairs(t) do
-        if not strategy[key] then strategy[key] = t[key] end
-      end]]
+    -- load last saved
+      local preset_path = obj.script_path .. 'mpl_QuantizeTool_presets/last saved.qt'
+      local f = io.open(preset_path, 'r')
+      if f then 
+        f:close()
+        LoadStrategy_Parse(strategy, preset_path )
+        obj.is_strategy_dirty = true
+      end
+    
+      
   end
   --------------------------------------------------------------------
   function SaveStrategy(conf, strategy, flag, lastsaved)

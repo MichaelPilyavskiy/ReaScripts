@@ -1304,7 +1304,7 @@
                                     Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.ref, 'green_marker', false) 
                                   end
                                 end,
-                        onrelease_L = function() 
+                        onrelease_L2 = function() 
                                   Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
                                 end,
                         func_mouseover =  function()
@@ -1437,7 +1437,7 @@
                                     Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.ref, 'green_marker', false) 
                                   end
                                 end,
-                        onrelease_L = function() 
+                        onrelease_L2 = function() 
                                   Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
                                 end,
                         func_mouseover =  function()
@@ -1492,7 +1492,7 @@
                         func =  function() 
                                   Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.src, 'blue_marker') 
                                 end,
-                        onrelease_L = function() 
+                        onrelease_L2 = function() 
                                   Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
                                 end,
                         func_mouseover =  function()
@@ -1574,7 +1574,7 @@
                                       if strategy.exe_val1 == 0 then obj.knob_txt.txt = 'Align position: disabled' end
                                       refresh.GUI_minor = true
                                     end  ,
-                        onrelease_L  = function()  
+                        onrelease_L2  = function()  
                                           UpdateArrange()
                                           SaveStrategy(conf, strategy, 1, true) 
                                         end
@@ -1615,7 +1615,7 @@
                                       if strategy.exe_val2 == 0 then obj.knob_txt.txt = 'Align value: disabled' end
                                       refresh.GUI_minor = true
                                     end    ,
-                        onrelease_L  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                       
+                        onrelease_L2  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                       
                         }    
     obj.exe_val3 = { clear = true,
                         is_knob = true,
@@ -1649,7 +1649,7 @@
                                       if strategy.exe_val3 == 0 then obj.knob_txt.txt = 'Include within: disabled' end
                                       refresh.GUI_minor = true
                                     end ,
-                        onrelease_L  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                           
+                        onrelease_L2  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                           
                         }  
     
     local val4 = strategy.exe_val4
@@ -1686,7 +1686,7 @@
                                       if strategy.exe_val4 == 0 then obj.knob_txt.txt = 'Exclude within: disabled' end
                                       refresh.GUI_minor = true
                                     end ,
-                        onrelease_L  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                           
+                        onrelease_L2  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                           
                         }                                                                                                                      
       obj.knob_txt = { clear = true,
                         x =   obj.menu_w + 1 + but_cnt * obj.exe_but_w + obj.knob_w*knob_cnt,
@@ -1732,7 +1732,7 @@
                                           },                                  
                                    { str = 'Load default preset',
                                             func = function() 
-                                                      LoadStrategy_Default(strategy)
+                                                      LoadStrategy(conf, strategy, true)
                                                       refresh.GUI = true
                                                     end
                                           },
@@ -1803,15 +1803,18 @@
       { str = conf.mb_title..' '..conf.vrs,
         hidden = true
       },
-      { str = '|>Donate / Links / Info'},
-      { str = 'Donate to MPL',
-        func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
+      { str = '|Manual',
+        func = function()
+                local manfp = '"'..obj.script_path .. 'mpl_QuantizeTool_presets\\mpl_QuantizeTool - Getting started.pdf"'  
+                Open_URL(manfp) 
+              end},
       { str = 'Cockos Forum thread|',
         func = function() Open_URL('http://forum.cockos.com/showthread.php?t=165672') end  } , 
-
-      { str = 'MPL on VK',
+      { str = 'Donate to MPL',
+        func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
+      { str = 'Contact: MPL VK',
         func = function() Open_URL('http://vk.com/mpl57') end  } ,     
-      { str = 'MPL on SoundCloud|<|',
+      { str = 'Contact: MPL SoundCloud|',
         func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
         
       { str = '#Options'},    

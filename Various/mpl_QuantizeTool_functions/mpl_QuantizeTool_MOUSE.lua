@@ -78,10 +78,14 @@
                                and is_mouse_over
           if mouse.onclick_L and obj[key].func then obj[key].func() goto skip_mouse_obj end
            ------------------------
-           mouse.onrelease_L = not mouse.LMB_state 
+           mouse.onrelease_L = not mouse.LMB_state  -- release under object
                                and mouse.last_LMB_state 
                                and is_mouse_over 
-          if mouse.onrelease_L and obj[key].onrelease_L then obj[key].onrelease_L() goto skip_mouse_obj end          
+          if mouse.onrelease_L and obj[key].onrelease_L then obj[key].onrelease_L() goto skip_mouse_obj end   
+           mouse.onrelease_L2 = not mouse.LMB_state -- release of previous latch object
+                               and mouse.last_LMB_state 
+                               and mouse.context_latch == key 
+          if mouse.onrelease_L2 and obj[key].onrelease_L2 then obj[key].onrelease_L2() goto skip_mouse_obj end                  
            ------------------------
            mouse.ondrag_L = -- left drag (persistent even if not moving)
                                mouse.cap == 1
