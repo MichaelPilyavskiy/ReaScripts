@@ -1,6 +1,6 @@
 -- @description QuantizeTool preset - (MPL) Quantize item midi notes to project grid (no GUI)-- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
--- @version 1.0
+-- @noindex
 
 -- generated from MPL QuantizeTool v2
 

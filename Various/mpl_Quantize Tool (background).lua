@@ -19,7 +19,7 @@
 --    mpl_QuantizeTool_presets/(MPL) Quantize item positions to project grid (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Quantize item midi notes to project grid (no GUI).qt
 -- @changelog
---    # add ReaPack @version tag to self-build preset scripts
+--    # add ReaPack @noindex tag to self-build preset scripts
      
   local vrs = 'v2.03'
   --NOT gfx NOT reaper
@@ -253,7 +253,7 @@
 -- @description QuantizeTool preset - ]]..strategy.name..[[
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
--- @version 1.0
+-- @noindex
 
 -- generated from MPL QuantizeTool v2
 
