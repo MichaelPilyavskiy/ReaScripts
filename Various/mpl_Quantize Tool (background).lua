@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.02
+-- @version 2.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -19,13 +19,9 @@
 --    mpl_QuantizeTool_presets/(MPL) Quantize item positions to project grid (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Quantize item midi notes to project grid (no GUI).qt
 -- @changelog
---    # improved loading default/external/lastsaved presets
---    # fix mouse release for knobs and testmarkers
---    + preset: Quantize item positions to project grid (no GUI)
---    + preset: Quantize item midi notes to project grid (no GUI)
---    + Menu: added manual
+--    # add ReaPack @version tag to self-build preset scripts
      
-  local vrs = 'v2.02'
+  local vrs = 'v2.03'
   --NOT gfx NOT reaper
   
 
@@ -257,6 +253,7 @@
 -- @description QuantizeTool preset - ]]..strategy.name..[[
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
+-- @version 1.0
 
 -- generated from MPL QuantizeTool v2
 
