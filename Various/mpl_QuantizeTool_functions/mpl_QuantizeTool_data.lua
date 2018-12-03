@@ -177,6 +177,9 @@
         local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
         if not data[table_name][selitem] then data[table_name][selitem] = {} end
         local val = GetMediaItemInfo_Value( item, 'D_VOL' )
+        local tk_rate if take then 
+          tk_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+        end
         data[table_name][selitem].ignore_search = not is_sel
         data[table_name][selitem].pos = fullbeats
         data[table_name][selitem].pos_sec = pos
@@ -188,10 +191,12 @@
         data[table_name][selitem].val =val
         data[table_name][selitem].groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
         data[table_name][selitem].ptr = item
+        data[table_name][selitem].activetk_rate = tk_rate
+        
       end      
   end  
   --------------------------------------------------- 
-  function Data_GetSM(data, table_name) 
+  function Data_GetSM(data, strategy, table_name, mode) 
     data[table_name].src_cnt = 0
     
     for i = 1, CountSelectedMediaItems(0) do
@@ -544,16 +549,6 @@
         end
       end
 
-      --[[local first_t = takes_t[GUID]  [1]
-      if first_t.pos_sec ~= 0 then
-        SetTakeStretchMarker( take, -1, 0 )
-      end
-            
-      local last_t = takes_t[GUID]  [#takes_t[GUID ] ]
-      if last_t.srcpos_sec* last_t.tk_rate  ~= last_t.it_len then
-        SetTakeStretchMarker( take, -1, last_t.it_len* last_t.tk_rate, last_t.it_len* last_t.tk_rate )
-      end
-      ]]
       local item =  GetMediaItemTake_Item( take )
       UpdateItemInProject( item )
     end
@@ -621,12 +616,15 @@
   function Data_ApplyStrategy_source(conf, obj, data, refresh, mouse, strategy)
     data.src = {}
     
-    -- positions
-    if strategy.src_positions&1 ==1 and strategy.src_selitems&1==1 then Data_GetItems(data, strategy, 'src', strategy.src_selitems) end   
-    if strategy.src_positions&1 ==1 and strategy.src_envpoints&1==1 then Data_GetEP(data, strategy, 'src', strategy.src_envpoints) end   
-    if strategy.src_positions&1 ==1 and strategy.src_midi&1==1 then Data_GetMIDI(data, strategy, 'src', strategy.src_midi) end 
-    if strategy.src_positions&1 ==1 and strategy.src_strmarkers&1==1 then Data_GetSM(data, 'src') end 
-    
+    if strategy.act_action == 1 then -- align
+      if strategy.src_positions&1 ==1 and strategy.src_selitems&1==1 then Data_GetItems(data, strategy, 'src', strategy.src_selitems) end   
+      if strategy.src_positions&1 ==1 and strategy.src_envpoints&1==1 then Data_GetEP(data, strategy, 'src', strategy.src_envpoints) end   
+      if strategy.src_positions&1 ==1 and strategy.src_midi&1==1 then Data_GetMIDI(data, strategy, 'src', strategy.src_midi) end 
+      if strategy.src_positions&1 ==1 and strategy.src_strmarkers&1==1 then Data_GetSM(data, strategy, 'src', strategy.src_strmarkers) end 
+     elseif strategy.act_action == 2 then -- create
+      if strategy.src_envpoints&1==1 then Data_GetEP(data, strategy, 'src', strategy.src_envpoints) end
+      if strategy.src_strmarkers&1==1 then Data_GetItems(data, strategy, 'src', strategy.src_selitems) end
+    end
   end
   --------------------------------------------------- 
   function DataSearchPatternVal(conf, data, strategy, pos_src_full, pos_src_beats, val_src)
@@ -823,9 +821,10 @@
   function Data_Execute_Create(conf, obj, data, refresh, mouse, strategy)
     if not data.ref then return end
     if strategy.src_envpoints&1==1 then  Data_Execute_Create_EnvPt(conf, obj, data, refresh, mouse, strategy) end
+    if strategy.src_strmarkers&1==1 then Data_Execute_Create_SM(conf, obj, data, refresh, mouse, strategy) end
     --[[if strategy.src_selitems&1==1 then  Data_Execute_Create_Items(conf, obj, data, refresh, mouse, strategy) end
     if strategy.src_midi&1==1 then      Data_Execute_Create_MIDI(conf, obj, data, refresh, mouse, strategy) end
-    if strategy.src_strmarkers&1==1 then Data_Execute_Create_SM(conf, obj, data, refresh, mouse, strategy) end]]
+    ]]
   end  
   ---------------------------------------------------   
   function Data_Execute_Create_EnvPt(conf, obj, data, refresh, mouse, strategy)
@@ -843,7 +842,30 @@
     Envelope_SortPointsEx( env, -1 )
     UpdateArrange()
   end
-  
+  ---------------------------------------------------   
+  function Data_Execute_Create_SM(conf, obj, data, refresh, mouse, strategy)
+    for i = 1, #data.src do
+      local it =  BR_GetMediaItemByGUID( 0,data.src[i].GUID )
+      if it and not data.src[i].ignore_search then 
+        local take = GetActiveTake(it)
+        
+        if not TakeIsMIDI(take) then
+            msg(1)
+          -- remove existed
+          local cur_cnt =  GetTakeNumStretchMarkers( take )
+          DeleteTakeStretchMarkers( take, 0, cur_cnt )
+          for i2 = 1, #data.ref do
+            local out_pos_sec = TimeMap2_beatsToTime( 0, data.ref[i2].pos )
+            local out_pos = (out_pos_sec - data.src[i].pos_sec)*data.src[i].activetk_rate
+            SetTakeStretchMarker( take, -1, out_pos)--, t.srcpos_sec)
+          end
+        
+          
+        end
+      end
+    end
+    UpdateArrange()
+  end  
   ---------------------------------------------------   
   function Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, passed_t0, col_str, is_pat)
     if not passed_t0 then return end

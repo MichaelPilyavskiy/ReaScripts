@@ -269,7 +269,7 @@
                                       refresh.GUI = true
                                     end,                               
                             },  ]]                 
-                            { name = 'Envelope points',
+                            { name = 'Add points for selected envelope',
                               state = strategy.src_envpoints,
                               show = strategy.src_positions&1==1,
                               level = 0,
@@ -282,7 +282,24 @@
                                       end
                                       refresh.GUI = true
                                     end,                               
-                            }, --[[ 
+                            }, 
+                            
+                            { name = 'Replace stretch markers for selected items',
+                              state = strategy.src_strmarkers,
+                              show = strategy.src_positions&1==1,
+                              level = 0,
+                            func =  function()
+                                      if strategy.src_strmarkers&1~=1 then
+                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
+                                        strategy.src_envpoints = BinaryToggle(strategy.src_envpoints,0, 0)
+                                        strategy.src_midi = BinaryToggle(strategy.src_midi,0, 0)
+                                        strategy.src_strmarkers = BinaryToggle(strategy.src_strmarkers,0, 1)
+                                      end
+                                      refresh.GUI = true
+                                    end, 
+                              }, 
+                              
+                              --[[ 
                                 { name = 'Selected envelope only',
                                   state = strategy.src_envpoints&2==0,
                                   show = strategy.src_positions&1==1 and strategy.src_envpoints&1==1,
@@ -339,20 +356,7 @@
                                         end,                               
                               },    
                               
-                            { name = 'Stretch markers',
-                              state = strategy.src_strmarkers,
-                              show = strategy.src_positions&1==1,
-                              level = 0,
-                            func =  function()
-                                      if strategy.src_strmarkers&1~=1 then
-                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
-                                        strategy.src_envpoints = BinaryToggle(strategy.src_envpoints,0, 0)
-                                        strategy.src_midi = BinaryToggle(strategy.src_midi,0, 0)
-                                        strategy.src_strmarkers = BinaryToggle(strategy.src_strmarkers,0, 1)
-                                      end
-                                      refresh.GUI = true
-                                    end, 
-                              },        
+       
                                        ]]                                             
                        
                                                                                                        
@@ -1256,7 +1260,10 @@
     
     -- show/catch ref
     local cnt = 0
-    if data.ref then cnt = #data.ref end
+    if data.ref then 
+      cnt = #data.ref 
+      if data.ref.src_cnt then cnt = data.ref.src_cnt end
+    end
     obj.ref_catch =  { clear = true,
                         x = obj.menu_w + 1,
                         y = obj.tab_h + obj.exec_line_y,
@@ -1279,11 +1286,6 @@
                         }
 
     local ref_showpos_txt =  'Show pattern'
-    local cnt = 0
-    if data.ref then 
-      cnt = #data.ref 
-      if data.ref.src_cnt then cnt = data.ref.src_cnt end
-    end
     if data.ref and strategy.ref_pattern&1 ~=1  then ref_showpos_txt = 'Show anchor points ('..cnt..')'  end                
     obj.ref_showpos =  { clear = true,
                         x = obj.menu_w + 1,
@@ -1326,7 +1328,7 @@
                         x = obj.menu_w + 1 + obj.exe_but_w,
                         y = obj.tab_h + obj.exec_line_y,
                         w = obj.exe_but_w,
-                        h = obj.slider_tab_h,
+                        h = math.floor(obj.slider_tab_h*h_ratio_but),
                         colfill_col = 'blue',
                         colfill_a =but_a,
                         show = true,
@@ -1341,12 +1343,28 @@
                                     end                                 
                         }    
                         
-    local cnt = 0
-    if data.src then 
-      cnt = #data.src 
-      if data.src.src_cnt then cnt = data.src.src_cnt end
-    end
 
+    obj.src_showpos =  { clear = true,
+                        x = obj.menu_w + 1 + obj.exe_but_w,
+                        y = obj.tab_h + obj.exec_line_y + math.floor(obj.slider_tab_h*h_ratio_but) +1,
+                        w = obj.exe_but_w,                        
+                        h = math.floor(obj.slider_tab_h*(1-h_ratio_but))-1,
+                        colfill_col = 'blue',
+                        colfill_a =but_a,
+                        colfill_frame = true,
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        func =  function() 
+                                  Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.src, 'blue_marker') 
+                                end,
+                        onrelease_L2 = function() 
+                                  Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
+                                end,
+                        func_mouseover =  function()
+                                      obj.knob_txt.txt = 'Show target positions ('..cnt..')'
+                                      refresh.GUI_minor = true
+                                    end                                 
+                        } 
     obj.act_ex =  { clear = true,
                         x = obj.menu_w + 1 + obj.exe_but_w*2,
                         y = obj.tab_h + obj.exec_line_y  ,
@@ -1388,7 +1406,10 @@
     
     -- show/catch ref
     local cnt = 0
-    if data.ref then cnt = #data.ref end
+    if data.ref then 
+      cnt = #data.ref 
+      if data.ref.src_cnt then cnt = data.ref.src_cnt end
+    end
     obj.ref_catch =  { clear = true,
                         x = obj.menu_w + 1,
                         y = obj.tab_h + obj.exec_line_y,
@@ -1412,11 +1433,6 @@
                         }
 
     local ref_showpos_txt =  'Show pattern'
-    local cnt = 0
-    if data.ref then 
-      cnt = #data.ref 
-      if data.ref.src_cnt then cnt = data.ref.src_cnt end
-    end
     if data.ref and strategy.ref_pattern&1 ~=1  then ref_showpos_txt = 'Show anchor points ('..cnt..')'  end                
     obj.ref_showpos =  { clear = true,
                         x = obj.menu_w + 1,
@@ -1474,11 +1490,7 @@
                                     end                                 
                         }    
                         
-    local cnt = 0
-    if data.src then 
-      cnt = #data.src 
-      if data.src.src_cnt then cnt = data.src.src_cnt end
-    end
+
     obj.src_showpos =  { clear = true,
                         x = obj.menu_w + 1 + obj.exe_but_w,
                         y = obj.tab_h + obj.exec_line_y + math.floor(obj.slider_tab_h*h_ratio_but) +1,

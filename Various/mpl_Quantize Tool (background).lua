@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.03
+-- @version 2.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -14,14 +14,19 @@
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Align selected items to edit cursor.lua
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Quantize item midi notes to project grid (no GUI).lua
+--    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Quantize selected item MIDI notes to MPC_70prc SWS groove (no GUI).lua
 --    mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt
 --    mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt
 --    mpl_QuantizeTool_presets/(MPL) Quantize item positions to project grid (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Quantize item midi notes to project grid (no GUI).qt
+--    mpl_QuantizeTool_presets/(MPL) Quantize selected item MIDI notes to MPC_70prc SWS groove (no GUI).qt
 -- @changelog
---    # add ReaPack @noindex tag to self-build preset scripts
+--    + Preset/Create/Target: stretch markers
+--    + Preset list: add 'Quantize selected item MIDI notes to MPC_70prc SWS groove (no GUI)'
+--    # improve loading default preset modifications
+--    # fix mismatch number of AP/Targets in info line
      
-  local vrs = 'v2.03'
+  local vrs = 'v2.04'
   --NOT gfx NOT reaper
   
 
@@ -35,7 +40,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-  local data = {}
+   data = {}
   local obj = {}
    strategy = {}
   
@@ -86,7 +91,7 @@
          
     -- action -----------------------
       --  align
-        act_action = 1 , 
+        act_action = 1 ,  -- 2 create
         act_alignflag = 0, -- &1= linked knobs
       -- init
         act_initcatchref = 1 ,   
@@ -186,21 +191,22 @@
 --------------------------------------------------------------------
   function LoadStrategy(conf, strategy, force_default)
     obj.is_strategy_dirty = false
-    
+   
     local cur_strat = GetExtState( conf.ES_key, 'ext_strategy_name' )
     local ext_state = GetExtState( conf.ES_key, 'ext_state' )
     local ext_state = ext_state and ext_state=='1' 
-    
+      SetExtState( conf.ES_key, 'ext_state', 0, false )
+      
     -- load defaults
       local def_t = LoadStrategy_Default()
       for key in pairs(def_t) do strategy[key] = def_t[key] end
       if force_default or (ext_state and cur_strat == 'default') then 
-        SaveStrategy(conf, strategy, 1, true)
+        --SaveStrategy(conf, strategy, 1, true)
         return 
       end
       
     -- check ext state
-      SetExtState( conf.ES_key, 'ext_state', 0, false )
+      
       if ext_state and cur_strat ~= 'default' then
         local preset_path = obj.script_path .. 'mpl_QuantizeTool_presets/'..cur_strat..'.qt'
         local f = io.open(preset_path, 'r')
@@ -226,8 +232,8 @@
   end
   --------------------------------------------------------------------
   function SaveStrategy(conf, strategy, flag, lastsaved)
-  
     if (strategy.name == 'default' or strategy.name == '') and not lastsaved then return end
+    if lastsaved and strategy.name == 'default' then strategy.name = 'default_mod' end
     local name = strategy.name
     if lastsaved then name = 'last saved' end
     
