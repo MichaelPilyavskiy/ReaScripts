@@ -106,11 +106,12 @@
     Obj_TabRef_Strategy(conf, obj, data, refresh, mouse, strategy)  
   end  
   ----------------------------------------------- 
-  function Obj_TabAlignSrc_Strategy(conf, obj, data, refresh, mouse, strategy) 
+  function Obj_TabSrc_Strategy(conf, obj, data, refresh, mouse, strategy) 
     local src_strtUI = {  
                             { name = 'Items',
                               state = strategy.src_selitems,
-                              show = strategy.src_positions&1==1,
+                              show = strategy.src_positions&1==1
+                                      and (strategy.act_action == 1 or strategy.act_action == 3),                              
                               level = 0,
                             func =  function()
                                       if strategy.src_selitems&1~=1 then
@@ -124,7 +125,8 @@
                             },  
                                 { name = 'Handle grouping',
                                   state = strategy.src_selitems&4==4,
-                                  show = strategy.src_positions&1==1 and strategy.src_selitems&1==1,
+                                  show = strategy.src_positions&1==1 and strategy.src_selitems&1==1
+                                      and (strategy.act_action == 1 or strategy.act_action == 3),                                   
                                   level = 1,
                                 func =  function()
                                           strategy.src_selitems = BinaryToggle(strategy.src_selitems, 2)
@@ -135,7 +137,8 @@
                                         
                                 { name = 'Obey snap offset',
                                   state = strategy.src_selitems&2==2,
-                                  show = strategy.src_positions&1==1 and strategy.src_selitems&1==1,
+                                  show = strategy.src_positions&1==1 and strategy.src_selitems&1==1
+                                      and (strategy.act_action == 1 or strategy.act_action == 3),                                 
                                   level = 1,
                                 func =  function()
                                           strategy.src_selitems = BinaryToggle(strategy.src_selitems, 1)
@@ -144,7 +147,8 @@
                                 },                              
                             { name = 'Envelope points',
                               state = strategy.src_envpoints,
-                              show = strategy.src_positions&1==1,
+                              show = strategy.src_positions&1==1 
+                                      and (strategy.act_action == 1 or strategy.act_action == 2 or strategy.act_action == 3),
                               level = 0,
                             func =  function()
                                       if strategy.src_envpoints&1~=1 then
@@ -158,26 +162,31 @@
                             },  
                                 { name = 'Selected envelope only',
                                   state = strategy.src_envpoints&2==0,
-                                  show = strategy.src_positions&1==1 and strategy.src_envpoints&1==1,
+                                  show = strategy.src_positions&1==1 
+                                      and strategy.src_envpoints&1==1
+                                      and (strategy.act_action == 1 or strategy.act_action == 2 or strategy.act_action == 3),                                          
                                   level = 1,
                                 func =  function()
                                           strategy.src_envpoints = BinaryToggle(strategy.src_envpoints, 1, 0)
                                           refresh.GUI = true
                                         end,                               
                                 }, 
-                                { name = 'All envelopes',
+                                { name = 'All envelopes with at least 1 selected point',
                                   state = strategy.src_envpoints&2==2,
-                                  show = strategy.src_positions&1==1 and strategy.src_envpoints&1==1,
+                                  show = strategy.src_positions&1==1 
+                                      and strategy.src_envpoints&1==1
+                                      and (strategy.act_action == 1 or strategy.act_action == 2 or strategy.act_action == 3),                                  
                                   level = 1,
                                 func =  function()
                                           strategy.src_envpoints = BinaryToggle(strategy.src_envpoints, 1, 1)
                                           refresh.GUI = true
                                         end,                               
                                 },                             
-                            
+                            --------------------------------
                             { name = 'MIDI',
                               state = strategy.src_midi,
-                              show = strategy.src_positions&1==1 ,
+                              show = strategy.src_positions&1==1 
+                                      and (strategy.act_action == 1 or strategy.act_action == 3),                               
                               level = 0,                             
                               func =  function()
                                       if strategy.src_midi&1~=1 then
@@ -190,12 +199,14 @@
                                     end,                               
                             },                             
                             { name = 'Mode',
-                              show = strategy.src_midi&1==1 ,
+                              show = strategy.src_midi&1==1 
+                                      and (strategy.act_action == 1 or strategy.act_action == 3),                               
                               level = 1},  
                               
                               { name = 'MIDI Editor',
                                 state = strategy.src_midi&2==0,
-                                show = strategy.src_midi&1==1 ,
+                                show = strategy.src_midi&1==1 
+                                      and (strategy.act_action == 1 or strategy.act_action == 3),                               
                                 level = 2,
                                 func =  function()
                                           strategy.src_midi = BinaryToggle(strategy.src_midi, 1)                                          
@@ -204,7 +215,8 @@
                               }, 
                               { name = 'Selected items',
                                 state = strategy.src_midi&2==2,
-                                show = strategy.src_midi&1==1 ,
+                                show = strategy.src_midi&1==1
+                                      and (strategy.act_action == 1 or strategy.act_action == 3),                                 
                                 level = 2,
                                 func =  function()
                                           strategy.src_midi = BinaryToggle(strategy.src_midi, 1)
@@ -212,29 +224,27 @@
                                         end,                               
                               },    
                             { name = 'Messages',
-                              show = strategy.src_positions&1==1 and strategy.src_midi&1==1 ,
+                              show = strategy.src_positions&1==1 
+                                      and strategy.src_midi&1==1 
+                                      and (strategy.act_action == 1  or strategy.act_action == 3),                                     
                               level = 1},  
                                 { name = 'NoteOn',
                                   state = strategy.src_midi_msgflag&1==1,
-                                  show = strategy.src_positions&1==1 and strategy.src_midi&1==1 ,
+                                  show = strategy.src_positions&1==1 
+                                      and strategy.src_midi&1==1 
+                                      and (strategy.act_action == 1  or strategy.act_action == 3),                                     
                                   level = 2,
                                   func =  function()
                                             strategy.src_midi_msgflag = BinaryToggle(strategy.src_midi_msgflag, 0)                                          
                                             refresh.GUI = true
                                           end,                               
-                                }, 
-                                --[[{ name = 'NoteOff',
-                                  state = strategy.src_midi_msgflag&2==2,
-                                  show = strategy.src_positions&1==1 and strategy.src_midi&1==1 ,
-                                  level = 2,
-                                  func =  function()
-                                            strategy.src_midi_msgflag = BinaryToggle(strategy.src_midi_msgflag, 1)                                          
-                                            refresh.GUI = true
-                                          end,                               
-                                },                 ]]                                 
+                                },                
+                                
+                                -------------------------      
                             { name = 'Stretch markers',
                               state = strategy.src_strmarkers,
-                              show = strategy.src_positions&1==1,
+                              show = strategy.src_positions&1==1
+                                      and (strategy.act_action == 1 or strategy.act_action == 2 or strategy.act_action == 3),                               
                               level = 0,
                             func =  function()
                                       if strategy.src_strmarkers&1~=1 then
@@ -252,117 +262,7 @@
                         }
     Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, src_strtUI, 'src_strtUI_it', 2, strategy)  
   end  
-  ----------------------------------------------- 
-  function Obj_TabCreateSrc_Strategy(conf, obj, data, refresh, mouse, strategy) 
-    local src_strtUI = {  
-                            --[[{ name = 'Items',
-                              state = strategy.src_selitems,
-                              show = strategy.src_positions&1==1,
-                              level = 0,
-                            func =  function()
-                                      if strategy.src_selitems&1~=1 then
-                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 1)
-                                        strategy.src_envpoints = BinaryToggle(strategy.src_envpoints,0, 0)
-                                        strategy.src_midi = BinaryToggle(strategy.src_midi,0, 0)
-                                        strategy.src_strmarkers = BinaryToggle(strategy.src_strmarkers,0, 0)
-                                      end
-                                      refresh.GUI = true
-                                    end,                               
-                            },  ]]                 
-                            { name = 'Add points for selected envelope',
-                              state = strategy.src_envpoints,
-                              show = strategy.src_positions&1==1,
-                              level = 0,
-                            func =  function()
-                                      if strategy.src_envpoints&1~=1 then
-                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
-                                        strategy.src_envpoints = BinaryToggle(strategy.src_envpoints,0, 1)
-                                        strategy.src_midi = BinaryToggle(strategy.src_midi,0, 0)
-                                        strategy.src_strmarkers = BinaryToggle(strategy.src_strmarkers,0, 0)
-                                      end
-                                      refresh.GUI = true
-                                    end,                               
-                            }, 
-                            
-                            { name = 'Replace stretch markers for selected items',
-                              state = strategy.src_strmarkers,
-                              show = strategy.src_positions&1==1,
-                              level = 0,
-                            func =  function()
-                                      if strategy.src_strmarkers&1~=1 then
-                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
-                                        strategy.src_envpoints = BinaryToggle(strategy.src_envpoints,0, 0)
-                                        strategy.src_midi = BinaryToggle(strategy.src_midi,0, 0)
-                                        strategy.src_strmarkers = BinaryToggle(strategy.src_strmarkers,0, 1)
-                                      end
-                                      refresh.GUI = true
-                                    end, 
-                              }, 
-                              
-                              --[[ 
-                                { name = 'Selected envelope only',
-                                  state = strategy.src_envpoints&2==0,
-                                  show = strategy.src_positions&1==1 and strategy.src_envpoints&1==1,
-                                  level = 1,
-                                func =  function()
-                                          strategy.src_envpoints = BinaryToggle(strategy.src_envpoints, 1, 0)
-                                          refresh.GUI = true
-                                        end,                               
-                                }, 
-                                { name = 'All envelopes',
-                                  state = strategy.src_envpoints&2==2,
-                                  show = strategy.src_positions&1==1 and strategy.src_envpoints&1==1,
-                                  level = 1,
-                                func =  function()
-                                          strategy.src_envpoints = BinaryToggle(strategy.src_envpoints, 1, 1)
-                                          refresh.GUI = true
-                                        end,                               
-                                },                             
-                            
-                            { name = 'MIDI notes (preserve length)',
-                              state = strategy.src_midi,
-                              show = strategy.src_positions&1==1 ,
-                              level = 0,                             
-                              func =  function()
-                                      if strategy.src_midi&1~=1 then
-                                        strategy.src_selitems = BinaryToggle(strategy.src_selitems,0, 0)
-                                        strategy.src_envpoints = BinaryToggle(strategy.src_envpoints,0, 0)
-                                        strategy.src_midi = BinaryToggle(strategy.src_midi,0, 1)
-                                        strategy.src_strmarkers = BinaryToggle(strategy.src_strmarkers,0, 0)
-                                      end
-                                      refresh.GUI = true
-                                    end,                               
-                            },                             
-                            { name = 'Mode',
-                              show = strategy.src_midi&1==1 ,
-                              level = 1},  
-                              
-                              { name = 'MIDI Editor',
-                                state = strategy.src_midi&2==0,
-                                show = strategy.src_midi&1==1 ,
-                                level = 2,
-                                func =  function()
-                                          strategy.src_midi = BinaryToggle(strategy.src_midi, 1)                                          
-                                          refresh.GUI = true
-                                        end,                               
-                              }, 
-                              { name = 'Selected items',
-                                state = strategy.src_midi&2==2,
-                                show = strategy.src_midi&1==1 ,
-                                level = 2,
-                                func =  function()
-                                          strategy.src_midi = BinaryToggle(strategy.src_midi, 1)
-                                          refresh.GUI = true
-                                        end,                               
-                              },    
-                              
-       
-                                       ]]                                             
-                       
-                                                                                                       
-                        }
-    Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, src_strtUI, 'src_strtUI_it', 2, strategy)  
-  end
+
   ----------------------------------------------- 
   function Obj_TabRef_Strategy(conf, obj, data, refresh, mouse, strategy) 
     local cust_grid
@@ -586,10 +486,10 @@
                                     end,                               
                             },                                  
                                
-                          
+                          ------------------------------------------
                             { name = 'Grid ('..grid_str..')',
                             state = strategy.ref_grid,
-                            show = true,
+                            show = strategy.act_action == 1 ,
                             has_blit = true,
                             level = 0,
                             func =  function()
@@ -604,7 +504,7 @@
   
                               { name = 'Current grid',
                               state = strategy.ref_grid&2 == 2,
-                              show = strategy.ref_grid&1 == 1,
+                              show = strategy.act_action == 1 and strategy.ref_grid&1 == 1 ,
                               level = 1,
                               func =  function()
                                         strategy.ref_grid = BinaryToggle(strategy.ref_grid, 1, 1 )
@@ -613,7 +513,7 @@
                               },    
                               { name = 'Fantom grid',
                               state = strategy.ref_grid&2 == 0,
-                              show = strategy.ref_grid&1 == 1,
+                              show = strategy.act_action == 1 and strategy.ref_grid&1 == 1,
                               level = 1,
                               func =  function()
                                         strategy.ref_grid = BinaryToggle(strategy.ref_grid, 1, 0 )
@@ -653,7 +553,7 @@
                                         
                               { name = 'Triplet',
                               state = strategy.ref_grid&4 == 4,
-                              show = strategy.ref_grid&1 == 1 and strategy.ref_grid&2 == 0,
+                              show = strategy.act_action == 1 and strategy.ref_grid&1 == 1 and strategy.ref_grid&2 == 0,
                               level = 2,
                               func =  function()
                                         strategy.ref_grid = BinaryToggle(strategy.ref_grid, 2 )
@@ -662,7 +562,7 @@
                               },   
                             { name = 'Swing',
                               state = strategy.ref_grid&8 == 8,
-                              show = strategy.ref_grid&1 == 1 and strategy.ref_grid&2 == 0,
+                              show = strategy.act_action == 1 and strategy.ref_grid&1 == 1 and strategy.ref_grid&2 == 0,
                               level = 2,
                               func =  function()
                                         strategy.ref_grid = BinaryToggle(strategy.ref_grid, 3 )
@@ -674,7 +574,7 @@
                                                 w = obj.strategy_itemh*3,
                                                 col = 'white',
                                                 txt= '-5%',
-                                                show = strategy.ref_grid&2 == 0,
+                                                show = strategy.act_action == 1 and strategy.ref_grid&2 == 0,
                                                 fontsz = obj.GUI_fontsz2,
                                                 func = function()
                                                         strategy.ref_grid_sw = lim(math.floor((strategy.ref_grid_sw -0.05)*100)/100, -1,1)
@@ -688,7 +588,7 @@
                                                 w = obj.strategy_itemh*3,
                                                 col = 'white',
                                                 txt= '+5%',
-                                                show = strategy.ref_grid&2 == 0,
+                                                show = strategy.act_action == 1 and strategy.ref_grid&2 == 0,
                                                 fontsz = obj.GUI_fontsz2,
                                                 func = function()
                                                         strategy.ref_grid_sw = lim(math.floor((strategy.ref_grid_sw +0.05)*100)/100, -1,1)
@@ -705,7 +605,7 @@
                           -------------------------------------------------------                                                 
                           { name = 'Groove',
                             state = strategy.ref_pattern,
-                            show = true,
+                            show = strategy.act_action == 1,
                             has_blit = true,
                             level = 0,
                               func =  function()
@@ -719,7 +619,7 @@
                           }, 
                                                         
                             { name = 'Select from list: '..strategy.ref_pattern_name,
-                              show = strategy.ref_pattern&1 == 1,
+                              show = strategy.act_action == 1 and strategy.ref_pattern&1 == 1,
                               --state = strategy.ref_pattern&2 == 0,
                               level = 1,
                               func =  function()
@@ -750,7 +650,7 @@
                                       end                                   
                             },
                             { name = '',
-                              show = strategy.ref_pattern&1 == 1,
+                              show = strategy.act_action == 1 and strategy.ref_pattern&1 == 1,
                               -- prevent_app = true,
                               level = 0,              
                               follow_obj = {
@@ -758,7 +658,7 @@
                                                 w = obj.strategy_itemh*3,
                                                 col = 'white',
                                                 txt= '< prev',
-                                                show = true,
+                                                show = strategy.act_action == 1,
                                                 fontsz = obj.GUI_fontsz2,
                                                 func = function()
                                                           local prev_fp = Data_GetListedFile(GetResourcePath()..'/Grooves/', strategy.ref_pattern_name..'.rgt', -1)
@@ -783,7 +683,7 @@
                                                 w = obj.strategy_itemh*3,
                                                 col = 'white',
                                                 txt= 'next >',
-                                                show = true,
+                                                show = strategy.act_action == 1,
                                                 fontsz = obj.GUI_fontsz2,
                                                 func = function()
                                                           local next_fp = Data_GetListedFile(GetResourcePath()..'/Grooves/', strategy.ref_pattern_name..'.rgt', 1)
@@ -809,7 +709,7 @@
                                                 w = obj.strategy_itemh*4,
                                                 col = 'white',
                                                 txt= 'rename',
-                                                show = true,
+                                                show = strategy.act_action == 1,
                                                 fontsz = obj.GUI_fontsz2,
                                                 func = function()
                                                           local ret, str_input = GetUserInputs(conf.mb_title, 1, 'Rename groove,extrawidth=200' , strategy.ref_pattern_name)
@@ -823,7 +723,7 @@
                                                 w = obj.strategy_itemh*4,
                                                 col = 'white',
                                                 txt= 'load',
-                                                show = true,
+                                                show = strategy.act_action == 1,
                                                 fontsz = obj.GUI_fontsz2,
                                                 func = function()
                                                           local retval, fname = reaper.GetUserFileNameForRead('', 'Load groove', 'rgt' )
@@ -849,7 +749,7 @@
                                                 w = obj.strategy_itemh*4,
                                                 col = 'white',
                                                 txt= 'save',
-                                                show = true,
+                                                show = strategy.act_action == 1,
                                                 fontsz = obj.GUI_fontsz2,
                                                 func = function()
                                                           Data_ExportPattern(conf, obj, data, refresh, mouse, strategy, false)
@@ -871,7 +771,7 @@
                             },                         
                             { name = 'Length (beats): '..strategy.ref_pattern_len,
                               prevent_app = true,
-                              show = strategy.ref_pattern&1 == 1,
+                              show = strategy.act_action == 1 and strategy.ref_pattern&1 == 1,
                               level = 1,
                               follow_obj = {
                                               { clear = true,
@@ -903,7 +803,7 @@
                         }
     local y_offs = Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, 'ref_strtUI_it', 1, strategy)
     
-    if strategy.ref_pattern&1==1 then 
+    if strategy.act_action == 1 and strategy.ref_pattern&1==1 then 
       obj.pat_x = obj.offs
       obj.pat_y = obj.tab_h + y_offs+obj.offs*2
       obj.pat_w = gfx.w-obj.offs*2--obj.strategy_w-
@@ -911,7 +811,7 @@
       Obj_TabRef_Pattern(conf, obj, data, refresh, mouse, strategy) 
     end
     
-    if strategy.ref_grid&1==1 then 
+    if strategy.act_action == 1 and strategy.ref_grid&1==1 then 
       obj.pat_x = obj.offs
       obj.pat_y = obj.tab_h + y_offs+obj.offs*2
       obj.pat_w = gfx.w-obj.offs*2--obj.strategy_w-
@@ -1102,8 +1002,7 @@
                                 end
                         }  
     if conf.activetab ~= 2 then return end
-    if strategy.act_action == 1 then Obj_TabAlignSrc_Strategy(conf, obj, data, refresh, mouse, strategy) end   
-    if strategy.act_action == 2 then Obj_TabCreateSrc_Strategy(conf, obj, data, refresh, mouse, strategy) end 
+    Obj_TabSrc_Strategy(conf, obj, data, refresh, mouse, strategy)   
   end    
   -----------------------------------------------
   function Obj_TabAct(conf, obj, data, refresh, mouse, strategy) 
@@ -1135,7 +1034,7 @@
                             has_blit = true,
                             level = 0             
                         },
-                          { name = 'Position-based alignment',
+                          { name = 'Position-based alignment (search closer objects)',
                             state = strategy.act_action==1,
                             show = true,
                             has_blit = false,
@@ -1155,6 +1054,16 @@
                                         refresh.GUI = true
                                       end,             
                             } , 
+                          { name = 'Ordered alignment (align by point positions order)',
+                            state = strategy.act_action==3,
+                            show = true,
+                            has_blit = false,
+                            level = 1,
+                            func =  function()
+                                      strategy.act_action = 3
+                                      refresh.GUI = true
+                                    end,             
+                          } ,                            
                           { name = 'Create objects',
                             state = strategy.act_action==2,
                             show = true,
@@ -1250,161 +1159,22 @@
                         }
     Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, act_strtUI, 'act_strtUI_it', 3, strategy )  
   end  
+
   -----------------------------------------------
-  function Obj_TabExecute_Create(conf, obj, data, refresh, mouse, strategy) 
-    local but_cnt = 3 
-    local com_exe_w = gfx.w - obj.menu_w - but_cnt * obj.exe_but_w - 1
-    local knob_cnt = 0
-    local but_a = 0.7
-    local h_ratio_but = 0.7
-    
-    -- show/catch ref
-    local cnt = 0
-    if data.ref then 
-      cnt = #data.ref 
-      if data.ref.src_cnt then cnt = data.ref.src_cnt end
-    end
-    obj.ref_catch =  { clear = true,
-                        x = obj.menu_w + 1,
-                        y = obj.tab_h + obj.exec_line_y,
-                        w = obj.exe_but_w,
-                        h = math.floor(obj.slider_tab_h*h_ratio_but),
-                        txt_a =1,
-                        aligh_txt = 16,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        colfill_col = 'green',
-                        colfill_a = but_a,
-                        func =  function() 
-                                  Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy)
-                                  refresh.GUI = true
-                                end,
-                        func_mouseover =  function()
-                                      obj.knob_txt.txt = 'Detect anchor points '..'('..cnt..')'
-                                      refresh.GUI_minor = true
-                                    end                                 
-                        }
-
-    local ref_showpos_txt =  'Show pattern'
-    if data.ref and strategy.ref_pattern&1 ~=1  then ref_showpos_txt = 'Show anchor points ('..cnt..')'  end                
-    obj.ref_showpos =  { clear = true,
-                        x = obj.menu_w + 1,
-                        y = obj.tab_h + obj.exec_line_y + math.floor(obj.slider_tab_h*h_ratio_but) +1,
-                        w = obj.exe_but_w,
-                        h = math.floor(obj.slider_tab_h*(1-h_ratio_but))-1,
-                        txt_a =1,
-                        aligh_txt = 16,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        colfill_col = 'green',
-                        colfill_a = but_a,
-                        colfill_frame = true,
-                        func =  function() 
-                                  if (strategy.ref_pattern&1==1 or strategy.ref_grid&1==1) then
-                                    Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.ref_pat, 'green_marker', true) 
-                                   else
-                                    Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.ref, 'green_marker', false) 
-                                  end
-                                end,
-                        onrelease_L2 = function() 
-                                  Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
-                                end,
-                        func_mouseover =  function()
-                                      obj.knob_txt.txt = ref_showpos_txt
-                                      refresh.GUI_minor = true
-                                    end                                 
-                        } 
-
-                        
-                        
-                                                
-    -- show/catch src                          
-    local cnt = 0
-    if data.src then 
-      cnt = #data.src 
-      if data.src.src_cnt then cnt = data.src.src_cnt end
-    end   
-    obj.src_catch =  { clear = true,
-                        x = obj.menu_w + 1 + obj.exe_but_w,
-                        y = obj.tab_h + obj.exec_line_y,
-                        w = obj.exe_but_w,
-                        h = math.floor(obj.slider_tab_h*h_ratio_but),
-                        colfill_col = 'blue',
-                        colfill_a =but_a,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        func =  function() 
-                                  Data_ApplyStrategy_source(conf, obj, data, refresh, mouse, strategy)
-                                  refresh.GUI = true
-                                end,
-                        func_mouseover =  function()
-                                      obj.knob_txt.txt = 'Detect targets '..'('..cnt..')'
-                                      refresh.GUI_minor = true
-                                    end                                 
-                        }    
-                        
-
-    obj.src_showpos =  { clear = true,
-                        x = obj.menu_w + 1 + obj.exe_but_w,
-                        y = obj.tab_h + obj.exec_line_y + math.floor(obj.slider_tab_h*h_ratio_but) +1,
-                        w = obj.exe_but_w,                        
-                        h = math.floor(obj.slider_tab_h*(1-h_ratio_but))-1,
-                        colfill_col = 'blue',
-                        colfill_a =but_a,
-                        colfill_frame = true,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        func =  function() 
-                                  Data_ShowPointsAsMarkers(conf, obj, data, refresh, mouse, strategy, data.src, 'blue_marker') 
-                                end,
-                        onrelease_L2 = function() 
-                                  Data_ClearMarkerPoints(conf, obj, data, refresh, mouse, strategy) 
-                                end,
-                        func_mouseover =  function()
-                                      obj.knob_txt.txt = 'Show target positions ('..cnt..')'
-                                      refresh.GUI_minor = true
-                                    end                                 
-                        } 
-    obj.act_ex =  { clear = true,
-                        x = obj.menu_w + 1 + obj.exe_but_w*2,
-                        y = obj.tab_h + obj.exec_line_y  ,
-                        w = obj.exe_but_w,
-                        h = obj.slider_tab_h,
-                        colfill_col = 'red',
-                        colfill_a =but_a,
-                        colfill_frame = true,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        func =  function() 
-                                  Data_Execute(conf, obj, data, refresh, mouse, strategy)
-                                  refresh.GUI = true
-                                end,
-                        func_mouseover =  function()
-                                      obj.knob_txt.txt = 'Create objects'
-                                      refresh.GUI_minor = true
-                                    end                                 
-                        }                                                          
-
-      obj.knob_txt = { clear = true,
-                        x =   obj.menu_w + 1 + but_cnt * obj.exe_but_w + obj.knob_w*knob_cnt,
-                        y = obj.tab_h + obj.exec_line_y,
-                        w = com_exe_w - obj.knob_w*knob_cnt,
-                        h = obj.slider_tab_h,
-                        col = 'white',
-                        txt= '',
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        a_frame = 0,}                      
-  end  
-  -----------------------------------------------
-  function Obj_TabExecute_Align(conf, obj, data, refresh, mouse, strategy) 
-    local but_cnt = 3 
-    local com_exe_w = gfx.w - obj.menu_w - but_cnt * obj.exe_but_w - 1
+  function Obj_TabExecute_Controls(conf, obj, data, refresh, mouse, strategy) 
+  
     local knob_cnt = 4
+    if strategy.act_action == 2 then 
+      knob_cnt = 0
+     elseif strategy.act_action == 3 then 
+      knob_cnt = 2
+    end
+    local but_cnt = 3 
+    local com_exe_w = gfx.w - obj.menu_w - but_cnt * obj.exe_but_w - 1    
     local but_a = 0.7
     local h_ratio_but = 0.7
     
-    -- show/catch ref
+    -- show/catch ref-----------------------------      
     local cnt = 0
     if data.ref then 
       cnt = #data.ref 
@@ -1465,7 +1235,7 @@
                         
                         
                                                 
-    -- show/catch src                          
+    -- show/catch src -----------------------------                               
     local cnt = 0
     if data.src then 
       cnt = #data.src 
@@ -1513,8 +1283,8 @@
                                     end                                 
                         } 
 
-                                                                                           
-    obj.act_calc =  { clear = true,
+      -----------------------------                                                                                     
+    if strategy.act_action == 1 or strategy.act_action ==3  then obj.act_calc =  { clear = true,
                         x = obj.menu_w + 1 + obj.exe_but_w*2,
                         y = obj.tab_h + obj.exec_line_y,
                         w = obj.exe_but_w,
@@ -1531,12 +1301,20 @@
                                       obj.knob_txt.txt = 'Calculate output'
                                       refresh.GUI_minor = true
                                     end                                 
-                        }                            
+                        }  
+    end
+    
+    local h_ex = math.floor(obj.slider_tab_h*(1-h_ratio_but))-1 
+    local y_ex= obj.tab_h + obj.exec_line_y + math.floor(obj.slider_tab_h*h_ratio_but) +1   
+    if strategy.act_action == 2 then  
+      h_ex   =obj.slider_tab_h 
+      y_ex = obj.tab_h + obj.exec_line_y
+    end                     
     obj.act_ex =  { clear = true,
                         x = obj.menu_w + 1 + obj.exe_but_w*2,
-                        y = obj.tab_h + obj.exec_line_y + math.floor(obj.slider_tab_h*h_ratio_but) +1,
+                        y = y_ex,
                         w = obj.exe_but_w,
-                        h = math.floor(obj.slider_tab_h*(1-h_ratio_but))-1,
+                        h = h_ex,
                         colfill_col = 'red',
                         colfill_a =but_a,
                         colfill_frame = true,
@@ -1547,11 +1325,17 @@
                                   refresh.GUI = true
                                 end,
                         func_mouseover =  function()
-                                      obj.knob_txt.txt = 'Apply action output '..FormatPercent(strategy.exe_val1)..'/'..FormatPercent(strategy.exe_val2)
+                                      if strategy.act_action == 1 or strategy.act_action == 3 then
+                                        obj.knob_txt.txt = 'Apply action output '..FormatPercent(strategy.exe_val1)..'/'..FormatPercent(strategy.exe_val2)
+                                       elseif strategy.act_action == 2 then
+                                        obj.knob_txt.txt = 'Create objects'
+                                      end
                                       refresh.GUI_minor = true
                                     end                                 
-                        }                                                          
-    obj.exe_val1 = { clear = true,
+                        }      
+     -----------------------------                                               
+    if strategy.act_action == 1 or strategy.act_action ==3  then   
+      obj.exe_val1 = { clear = true,
                         is_knob = true,
                         knob_y_shift = 10,
                         x =   obj.menu_w + but_cnt * obj.exe_but_w + 1,
@@ -1590,8 +1374,10 @@
                                           UpdateArrange()
                                           SaveStrategy(conf, strategy, 1, true) 
                                         end
-                        } 
-    obj.exe_val2 = { clear = true,
+                        }
+    end
+     -----------------------------      
+    if strategy.act_action == 1 or strategy.act_action ==3  then obj.exe_val2 = { clear = true,
                         is_knob = true,
                         knob_y_shift = 10,
                         x =   obj.menu_w + 1+but_cnt * obj.exe_but_w+obj.knob_w,
@@ -1628,8 +1414,10 @@
                                       refresh.GUI_minor = true
                                     end    ,
                         onrelease_L2  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                       
-                        }    
-    obj.exe_val3 = { clear = true,
+                        }  
+    end
+    -----------------------------        
+    if strategy.act_action == 1  then obj.exe_val3 = { clear = true,--or strategy.act_action == 3
                         is_knob = true,
                         knob_y_shift = 10,
                         x =   obj.menu_w + 1+but_cnt * obj.exe_but_w+obj.knob_w*2,
@@ -1647,26 +1435,47 @@
                                   mouse.context_latch_val = strategy.exe_val3
                                 end,
                         func_LD2 = function()
-                                    if mouse.context_latch_val then 
-                                      strategy.exe_val3 = lim(mouse.context_latch_val + mouse.dx*0.001 - mouse.dy*0.01, 0, 2)
-                                      obj.exe_val3.val = strategy.exe_val3/2
-                                      obj.knob_txt.txt = 'Include within '..strategy.exe_val3..' beats'
-                                      refresh.GUI_minor = true
-                                      Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy) 
-                                      Data_Execute(conf, obj, data, refresh, mouse, strategy)
+                                    if strategy.act_action == 1 then 
+                                      if mouse.context_latch_val then 
+                                        strategy.exe_val3 = lim(mouse.context_latch_val + mouse.dx*0.001 - mouse.dy*0.01, 0, 2)
+                                        obj.exe_val3.val = strategy.exe_val3/2
+                                        obj.knob_txt.txt = 'Include within '..strategy.exe_val3..' beats'
+                                        refresh.GUI_minor = true
+                                        Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy) 
+                                        Data_Execute(conf, obj, data, refresh, mouse, strategy)
+                                      end
                                     end
+                                    
+                                    if strategy.act_action == 3 then
+                                      if mouse.context_latch_val then 
+                                        strategy.exe_val3 = lim(mouse.context_latch_val + mouse.dx*0.0005 - mouse.dy*0.005, 0, 0.5)
+                                        obj.exe_val3.val = strategy.exe_val3*2
+                                        obj.knob_txt.txt = 'Treat closer AP: '..strategy.exe_val3..' beats'
+                                        refresh.GUI_minor = true
+                                        Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy) 
+                                        Data_Execute(conf, obj, data, refresh, mouse, strategy)
+                                      end
+                                    end
+                                                                        
                                 end ,
                         func_mouseover =  function()
-                                      obj.knob_txt.txt = 'Include within '..strategy.exe_val3..' beats'
-                                      if strategy.exe_val3 == 0 then obj.knob_txt.txt = 'Include within: disabled' end
+                                      if strategy.act_action == 1 then
+                                        obj.knob_txt.txt = 'Include within '..strategy.exe_val3..' beats'
+                                        if strategy.exe_val3 == 0 then obj.knob_txt.txt = 'Include within: disabled' end
+                                       elseif strategy.act_action == 3 then
+                                        obj.knob_txt.txt = 'Treat closer AP: '..strategy.exe_val3..' beats'
+                                        if strategy.exe_val3 == 0 then obj.knob_txt.txt = 'Treat closer AP: disabled' end                                       
+                                      end
                                       refresh.GUI_minor = true
                                     end ,
                         onrelease_L2  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                           
                         }  
-    
-    local val4 = strategy.exe_val4
-    if not val4 then val4 = 0 end
-    obj.exe_val4 = { clear = true,
+    end
+    -----------------------------      
+    if strategy.act_action == 1 then 
+      local val4 = strategy.exe_val4
+      if not val4 then val4 = 0 end
+      obj.exe_val4 = { clear = true,
                         is_knob = true,
                         knob_y_shift = 10,
                         x =   obj.menu_w + 1+but_cnt * obj.exe_but_w+obj.knob_w*3,
@@ -1699,7 +1508,9 @@
                                       refresh.GUI_minor = true
                                     end ,
                         onrelease_L2  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                           
-                        }                                                                                                                      
+                        }  
+      end
+       -----------------------------                                                                                                                         
       obj.knob_txt = { clear = true,
                         x =   obj.menu_w + 1 + but_cnt * obj.exe_but_w + obj.knob_w*knob_cnt,
                         y = obj.tab_h + obj.exec_line_y,
@@ -1713,9 +1524,9 @@
   end
   -----------------------------------------------
   function Obj_TabExecute(conf, obj, data, refresh, mouse, strategy)
-    if strategy.act_action == 1 then Obj_TabExecute_Align(conf, obj, data, refresh, mouse, strategy) end
-    if strategy.act_action == 2 then Obj_TabExecute_Create(conf, obj, data, refresh, mouse, strategy) end
-                         
+    --if strategy.act_action == 1 then Obj_TabExecute_Align(conf, obj, data, refresh, mouse, strategy) end
+    --if strategy.act_action == 2 then Obj_TabExecute_Create(conf, obj, data, refresh, mouse, strategy) end
+    Obj_TabExecute_Controls(conf, obj, data, refresh, mouse, strategy)
       local name = strategy.name
       if obj.is_strategy_dirty==true then name = name..'*' end
       obj.TabExe_stratname = { clear = true,
@@ -1830,11 +1641,20 @@
         func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
         
       { str = '#Options'},    
-      { str = 'Apply preset (AnchorPoints/Target) on preset change|',
+      { str = 'Apply preset (AnchorPoints/Target) on preset change',
         func = function() 
                 conf.app_on_strategy_change = math.abs(1-conf.app_on_strategy_change) 
               end,
         state = conf.app_on_strategy_change == 1}, 
+      { str = 'Apply preset (Calculate output/Execute) on knob touch|',
+        func = function() 
+                conf.app_on_slider_click = math.abs(1-conf.app_on_slider_click) 
+              end,
+        state = conf.app_on_slider_click == 1},         
+        
+        
+        
+        
         
       { str = '#Developer area'},    
       { str = 'Dump current preset configuration',

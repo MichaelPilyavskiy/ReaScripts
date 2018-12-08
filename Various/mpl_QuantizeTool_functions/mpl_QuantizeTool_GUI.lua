@@ -18,8 +18,7 @@
   function col(obj, col_str, a) 
     local r,g,b= table.unpack(obj.GUIcol[col_str])
     gfx.set(r,g,b ) 
-    if not GetOS():match('Win') then gfx.set(b,g,r ) end
-    
+    --if not GetOS():match('Win') then gfx.set(b,g,r ) end
     if a then gfx.a = a end  
   end
 

@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.04
+-- @version 2.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -21,12 +21,17 @@
 --    mpl_QuantizeTool_presets/(MPL) Quantize item midi notes to project grid (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Quantize selected item MIDI notes to MPC_70prc SWS groove (no GUI).qt
 -- @changelog
---    + Preset/Create/Target: stretch markers
---    + Preset list: add 'Quantize selected item MIDI notes to MPC_70prc SWS groove (no GUI)'
---    # improve loading default preset modifications
---    # fix mismatch number of AP/Targets in info line
+--    + Preset/Ordered alignment
+--    + Preset/Create/Target/Envelopes: support all envelopes
+--    + Option to apply preset on knob touch (ON by default)
+--    # fix stretch markers as anchor points
+--    # Preset/Create: don`t show grid and pattern as anchor points
+--    # Preset/Create: fix use only related events as AP
+--    # GUI: remove gfx.set color inversion for non-Windows OS
+
+
      
-  local vrs = 'v2.04'
+  local vrs = 'v2.06'
   --NOT gfx NOT reaper
   
 
@@ -42,7 +47,7 @@
   local mouse = {}
    data = {}
   local obj = {}
-   strategy = {}
+  local strategy = {}
   
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
@@ -91,7 +96,7 @@
          
     -- action -----------------------
       --  align
-        act_action = 1 ,  -- 2 create
+        act_action = 1 ,  -- 2 create -- 3 ordered alignment
         act_alignflag = 0, -- &1= linked knobs
       -- init
         act_initcatchref = 1 ,   
