@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.06
+-- @version 2.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -15,23 +15,31 @@
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Quantize item midi notes to project grid (no GUI).lua
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Quantize selected item MIDI notes to MPC_70prc SWS groove (no GUI).lua
+--    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Snap envelope points to 127 steps (no GUI).qt
+--    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Snap envelope points to toggle states (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt
 --    mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt
 --    mpl_QuantizeTool_presets/(MPL) Quantize item positions to project grid (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Quantize item midi notes to project grid (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Quantize selected item MIDI notes to MPC_70prc SWS groove (no GUI).qt
+--    mpl_QuantizeTool_presets/(MPL) Snap envelope points to 127 steps (no GUI).qt
+--    mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt
 -- @changelog
---    + Preset/Ordered alignment
---    + Preset/Create/Target/Envelopes: support all envelopes
---    + Option to apply preset on knob touch (ON by default)
---    # fix stretch markers as anchor points
---    # Preset/Create: don`t show grid and pattern as anchor points
---    # Preset/Create: fix use only related events as AP
---    # GUI: remove gfx.set color inversion for non-Windows OS
+--    + Add font calibration relative to Windows measures (require mpl_Various_functions.lua 1.20+)
+--    + Preset/Ordered alignment/Conrols: treat closer points as single point - distance control
+--    + Preset/Ordered alignment/Grid and groove support
+--    + Preset/Action/Raw quantize
+--    + Preset/Raw quantize: vertical quantize envelope points values
+--    # Preset/Action/Position-based Align/Controls/Include&Exclude within: allow to execute action only on mouse release rather than on knob drag
+--    # Save preset as last saved after loading default preset
 
 
+-- offset knob
+-- random
+-- right click to type
+-- altclick to reset
      
-  local vrs = 'v2.06'
+  local vrs = 'v2.07'
   --NOT gfx NOT reaper
   
 
@@ -45,7 +53,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-   data = {}
+  local data = {}
   local obj = {}
   local strategy = {}
   
@@ -90,13 +98,14 @@
         src_positions = 1,
         src_selitems = 1,
         src_envpoints = 0,
+        src_envpointsflag = 1, -- 1 values
         src_midi = 0 ,
-        src_midi_msgflag = 1,--&2 note off
+        src_midi_msgflag = 1,--&1 note on &2 note off
         src_strmarkers = 0,
          
     -- action -----------------------
       --  align
-        act_action = 1 ,  -- 2 create -- 3 ordered alignment
+        act_action = 1 ,  -- 2 create -- 3 ordered alignment -- 4 raw quantize
         act_alignflag = 0, -- &1= linked knobs
       -- init
         act_initcatchref = 1 ,   
@@ -134,6 +143,7 @@
             -- data
             app_on_strategy_change = 0,
             app_on_slider_click = 1,
+            app_on_slider_release = 1, 
             iterationlim = 30000, -- deductive brutforce
             
             }
@@ -197,21 +207,20 @@
   function LoadStrategy(conf, strategy, force_default)
     obj.is_strategy_dirty = false
    
-    local cur_strat = GetExtState( conf.ES_key, 'ext_strategy_name' )
-    local ext_state = GetExtState( conf.ES_key, 'ext_state' )
-    local ext_state = ext_state and ext_state=='1' 
-      SetExtState( conf.ES_key, 'ext_state', 0, false )
+      cur_strat = GetExtState( conf.ES_key, 'ext_strategy_name' )
+      ext_state = GetExtState( conf.ES_key, 'ext_state' )
+     ext_state = ext_state and ext_state=='1' 
+     SetExtState( conf.ES_key, 'ext_state', 0, false )
       
     -- load defaults
       local def_t = LoadStrategy_Default()
       for key in pairs(def_t) do strategy[key] = def_t[key] end
       if force_default or (ext_state and cur_strat == 'default') then 
-        --SaveStrategy(conf, strategy, 1, true)
+        SaveStrategy(conf, strategy, 1, true)
         return 
       end
       
-    -- check ext state
-      
+    -- check ext state      
       if ext_state and cur_strat ~= 'default' then
         local preset_path = obj.script_path .. 'mpl_QuantizeTool_presets/'..cur_strat..'.qt'
         local f = io.open(preset_path, 'r')
@@ -223,14 +232,13 @@
           MB('External strategy not found', 'QuantizeTool',0)
         end
       end
-    
+          
     -- load last saved
       local preset_path = obj.script_path .. 'mpl_QuantizeTool_presets/last saved.qt'
       local f = io.open(preset_path, 'r')
-      if f then 
+      if f then
         f:close()
         LoadStrategy_Parse(strategy, preset_path )
-        obj.is_strategy_dirty = true
       end
     
       
@@ -262,7 +270,8 @@
         local out_str = 
 [[
 -- @description QuantizeTool preset - ]]..strategy.name..[[
--- @author MPL
+
+-- @author PresetGenerator
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @noindex
 
@@ -317,6 +326,6 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
         end
   end
 --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_GetFormattedGrid') 
+  local ret = CheckFunctions('VF_CalibrateFont') 
   local ret2 = CheckReaperVrs(5.95)    
   if ret and ret2 then main() end

@@ -2,12 +2,29 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.19
+-- @version 1.20
 -- @changelog
---    + VF_CheckReaperVrs
+--    + VF_CalibrateFont by geraintluff https://forum.cockos.com/showpost.php?p=2066576&postcount=17
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
-  function msg(s) if not s then return end ShowConsoleMsg(s..'\n') end  
+  function msg(s) 
+    if not s then return end 
+    if type(s) == 'boolean' then
+      if s then s = 'true' else  s = 'false' end
+    end
+    ShowConsoleMsg(s..'\n') 
+  end 
+  ---------------------------------------------------
+  function VF_CalibrateFont(sz) -- https://forum.cockos.com/showpost.php?p=2066576&postcount=17
+   local t = { [13]=80,
+                [15]=90,
+                [19]=110,
+                [21]=150} -- windows measured
+    gfx.setfont(1, 'Calibri', sz)    
+    local str_width, str_height = gfx.measurestr("MMMMMMMMMM")
+    local font_factor = t[sz]/str_width
+    return math.floor(sz*font_factor)
+  end 
   ---------------------------------------------------
   function VF_CheckReaperVrs(rvrs) 
     local vrs_num =  GetAppVersion()

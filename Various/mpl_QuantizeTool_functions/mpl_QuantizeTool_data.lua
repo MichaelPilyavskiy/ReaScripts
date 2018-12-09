@@ -83,17 +83,6 @@
         t[#t+1] = data.ref[key]
       end
       data.ref = t
-      
-      --[[ clear reference
-      if  strategy.exe_val3 > 0 then
-        for i = #data.ref, 1, -1 do
-          pos = data.ref[i].pos
-          if not data.ref[i].ignore_search then
-            if last_pos and last_pos - pos < strategy.exe_val3 then table.remove(data.ref, i) end
-            last_pos = pos
-          end
-        end
-      end]]
     end
     
     -- count active points
@@ -631,7 +620,7 @@
   function Data_ApplyStrategy_source(conf, obj, data, refresh, mouse, strategy)
     data.src = {}
     
-    if strategy.act_action == 1 or strategy.act_action == 3 then -- align/ordered align
+    if strategy.act_action == 1 or strategy.act_action == 3 or strategy.act_action == 4 then -- align/ordered align
       if strategy.src_positions&1 ==1 and strategy.src_selitems&1==1 then Data_GetItems(data, strategy, 'src', strategy.src_selitems) end   
       if strategy.src_positions&1 ==1 and strategy.src_envpoints&1==1 then Data_GetEP(data, strategy, 'src', strategy.src_envpoints) end   
       if strategy.src_positions&1 ==1 and strategy.src_midi&1==1 then Data_GetMIDI(data, strategy, 'src', strategy.src_midi) end 
@@ -697,20 +686,54 @@
     end
     ::skip_to_ret_value::
     if pat_ID and data.ref_pat[pat_ID] then 
-      return pos_src_full - (pos_src_beats - data.ref_pat[pat_ID].pos), data.ref_pat[pat_ID].val
+      return pos_src_full - (pos_src_beats - data.ref_pat[pat_ID].pos), data.ref_pat[pat_ID].val, pat_ID
      else
-      return pos_src_full, val_src
+      return pos_src_full, val_src, -1
     end
   end
   --------------------------------------------------- 
-  function Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy) 
-    
-  
+  function Data_ApplyStrategy_actionCalculateQuantize(conf, obj, data, refresh, mouse, strategy)
     if not data.src then return end
+    for i = 1, #data.src do        
+      if not data.src[i].ignore_search then  
+        if strategy.src_envpoints > 0 and strategy.src_envpointsflag == 1 then
+          local val = data.src[i].val
+          local steps = math.floor(strategy.exe_val2*127)
+          if steps >= 2 then
+            val = val * (steps-1)
+            val = math_q(val) / (steps-1)
+          end
+          data.src[i].out_val = val
+        end
+      end
+    end  
+    
+  end
+  --------------------------------------------------- 
+  function Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy) 
+    if not data.src then return end
+    
+    local temp_ref
+    if strategy.act_action==3 then -- apply closer points reduce for ordered align
+      temp_ref = CopyTable(data.ref)
+      local pos, last_pos
+      if  strategy.exe_val3 > 0 then
+        for i = #temp_ref, 1, -1 do
+          pos = temp_ref[i].pos
+          if not temp_ref[i].ignore_search then
+            if last_pos and last_pos - pos < strategy.exe_val3 then table.remove(temp_ref, i) end
+            last_pos = pos
+          end
+        end
+      end      
+    end
+        
+    local last_pat_ID,last_pos
+    
+    -- loop src
       for i = 1, #data.src do        
         if data.src[i].pos and not data.src[i].ignore_search then
-          local out_pos,out_val
-          
+          local out_pos,out_val          
           if strategy.act_action==1 then
             if (strategy.ref_pattern&1~=1 and  strategy.ref_grid&1~=1 ) then 
               local refID = Data_brutforce_RefID(conf, data, strategy, data.src[i].pos)
@@ -726,17 +749,17 @@
               end            
             end   
           end
-
           if strategy.act_action==3 then
-              if data.ref[i] then
-                out_pos = data.ref[i].pos
-                out_val = data.ref[i].val  
+            if (strategy.ref_pattern&1~=1 and  strategy.ref_grid&1~=1 ) then             
+              if temp_ref[i] then
+                out_pos = temp_ref[i].pos
+                out_val = temp_ref[i].val  
                else
                 out_pos = data.src[i].pos
                 out_val = data.src[i].val                              
-              end            
-          end
-                    
+              end     
+            end
+          end  
           -- app values
           data.src[i].out_val = out_val
           data.src[i].out_pos = out_pos
@@ -747,12 +770,70 @@
                 
         end
       end
+      
+      
+      
+      
+    -- ordered align + pattern/grid
+      local add_patlen = 0
+      if strategy.act_action==3 and (strategy.ref_pattern&1==1 or  strategy.ref_grid&1==1 ) then
+        local pat_pos, pat_val, pat_ID0 = DataSearchPatternVal(conf, data, strategy, data.src[1].pos, data.src[1].pos_beats, data.src[1].val)
+        if pat_pos and pat_val and pat_ID0>0 then
+          local start_pos = pat_pos
+          local pat_ID = pat_ID0
+          local pat_len = strategy.ref_pattern_len
+          if strategy.ref_grid&1==1 then pat_len = 4 end
+          for i = 1, #data.src do 
+            local out_pos = start_pos 
+            if i == 1 then
+              data.src[i].out_pos = pat_pos
+              data.src[i].out_val = pat_val
+             else
+              pat_ID = pat_ID + 1
+              if pat_ID > #data.ref_pat then 
+                pat_ID = 1
+                if strategy.ref_grid&1==1 then pat_ID = 2 end
+                add_patlen = add_patlen + 1
+              end
+              data.src[i].out_pos = pat_pos - data.ref_pat[pat_ID0].pos + data.ref_pat[pat_ID].pos + add_patlen * pat_len
+              data.src[i].out_val = pat_val - data.ref_pat[pat_ID0].val + data.ref_pat[pat_ID].val 
+            end             
+          end
+        end
+        
+        --[[msg(data.src[1].pos)
+        msg(start_pos)
+        msg(pat_pos)
+        msg(pat_ID)
+        msg(data.ref_pat[pat_ID].pos)]]
+      end
+     --[[
+      if i == 1 then -- search start pattern pos
+        local pat_pos, pat_val, pat_ID = DataSearchPatternVal(conf, data, strategy, data.src[i].pos, data.src[i].pos_beats, data.src[i].val)
+        if pat_pos and pat_val and pat_ID > 0 then 
+          out_pos = pat_pos
+          out_val = pat_val
+          last_pat_ID = pat_ID
+          last_pos = out_pos
+        end   
+       elseif last_pat_ID and last_pos then
+        local pat_pos, pat_val, pat_ID = DataSearchPatternVal(conf, data, strategy, data.src[i].pos, data.src[i].pos_beats, data.src[i].val)
+        if pat_pos and pat_val and pat_ID > 0 then 
+          out_pos = pat_pos
+          out_val = pat_val
+          last_pat_ID = pat_ID
+          last_pos = out_pos
+        end                   
+      end ]]
+          
+      
   end  
   --------------------------------------------------- 
   function Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy)    
     if not data.ref or not data.src then return end
     
     if strategy.act_action == 1 or strategy.act_action == 3 then Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy)  end
+    if strategy.act_action == 4 then Data_ApplyStrategy_actionCalculateQuantize(conf, obj, data, refresh, mouse, strategy)  end
   end
   ---------------------------------------------------    
   function Data_brutforce_RefID(conf, data, strategy, pos_src)
@@ -794,9 +875,12 @@
       if not data.src or not (data.ref or data.ref_pat) then return end
       if strategy.src_envpoints&1==1 then  Data_Execute_Create_EnvPt(conf, obj, data, refresh, mouse, strategy) end
       if strategy.src_strmarkers&1==1 then Data_Execute_Create_SM(conf, obj, data, refresh, mouse, strategy) end
-      if strategy.src_midi&1==1 then      Data_Execute_Create_MIDI(conf, obj, data, refresh, mouse, strategy) end
-      --[[if strategy.src_selitems&1==1 then  Data_Execute_Create_Items(conf, obj, data, refresh, mouse, strategy) end  end]]    
+      if strategy.src_midi&1==1 then      Data_Execute_Create_MIDI(conf, obj, data, refresh, mouse, strategy) end 
     end
+    if strategy.act_action == 4 then 
+      if not data.src then return end
+      if strategy.src_envpoints&1==1 then  Data_Execute_Align_EnvPt(conf, obj, data, refresh, mouse, strategy) end
+    end    
   end
   --------------------------------------------------- 
   function Data_Execute_Align_Items(conf, obj, data, refresh, mouse, strategy)
@@ -861,11 +945,22 @@
           local t = env_t[ptr_str][i]
           local out_pos = t.pos
           local out_val = t.val
-          if t.out_pos then out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1 end
-          if t.out_val then out_val = t.val + (t.out_val - t.val)*strategy.exe_val2 end
-          out_pos = TimeMap2_beatsToTime( 0, out_pos)
-          if t.item_pos then out_pos  = (out_pos - t.item_pos)*t.tk_rate end
-          SetEnvelopePointEx( env, -1, t.ID, out_pos, out_val, t.shape, t.tension, t.selected, true )
+          
+          if strategy.act_action==1 or strategy.act_action==3 then
+            if t.out_pos then out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1 end
+            if t.out_val then out_val = t.val + (t.out_val - t.val)*strategy.exe_val2 end
+            out_pos = TimeMap2_beatsToTime( 0, out_pos)
+            if t.item_pos then out_pos  = (out_pos - t.item_pos)*t.tk_rate end
+            SetEnvelopePointEx( env, -1, t.ID, out_pos, out_val, t.shape, t.tension, t.selected, true )
+          end
+          
+          if strategy.act_action==4 then
+            if t.out_val then out_val = t.val + (t.out_val - t.val)*strategy.exe_val1 end
+            local out_pos = TimeMap2_beatsToTime( 0, t.pos)
+            if t.item_pos then out_pos  = (out_pos - t.item_pos)*t.tk_rate end
+            SetEnvelopePointEx( env, -1, t.ID, out_pos, out_val, t.shape, t.tension, t.selected, true )
+          end    
+                
         end  
         Envelope_SortPointsEx( env, -1 )
       end
