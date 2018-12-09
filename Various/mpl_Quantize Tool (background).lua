@@ -15,8 +15,8 @@
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Create selected envelope points from selected items.lua
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Quantize item midi notes to project grid (no GUI).lua
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Quantize selected item MIDI notes to MPC_70prc SWS groove (no GUI).lua
---    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Snap envelope points to 127 steps (no GUI).qt
---    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Snap envelope points to toggle states (no GUI).qt
+--    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Snap envelope points to 127 steps (no GUI).lua
+--    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Snap envelope points to toggle states (no GUI).lua
 --    mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt
 --    mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt
 --    mpl_QuantizeTool_presets/(MPL) Quantize item positions to project grid (no GUI).qt
