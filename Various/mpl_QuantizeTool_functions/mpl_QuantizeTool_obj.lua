@@ -38,7 +38,7 @@
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
     
     local min_w = 300
-    local min_h = 300
+    local min_h = 200
     local reduced_view = gfx.h  <= min_h
     gfx.w  = math.max(min_w,gfx.w)
     gfx.h  = math.max(min_h,gfx.h)
@@ -47,18 +47,20 @@
     obj.tab_h = 20
     obj.tab_w = math.ceil(gfx.w/3)
     obj.slider_tab_h = math.floor(obj.tab_h*2)
+    obj.slider_tabinfo_h = math.floor(obj.tab_h)
     obj.strategy_w = gfx.w * 0.85
-    obj.strategy_h = gfx.h-obj.tab_h-obj.offs-obj.slider_tab_h - obj.tab_h
-    obj.strategy_itemh = 15
+    obj.strategy_h = gfx.h-obj.tab_h*2-obj.offs*2-obj.slider_tab_h
+    obj.strategy_itemh = 14
     obj.strat_x_ind = 10
     obj.strat_y_ind = 20
-    obj.knob_w = 50
+    obj.knob_w = 40
+    obj.knob_h = obj.slider_tab_h-1
     obj.exe_but_w = 20
     obj.grid_area = 10
     
     
     if not reduced_view then 
-      obj.exec_line_y = gfx.h -obj.slider_tab_h - obj.tab_h
+      obj.exec_line_y = gfx.h -obj.slider_tab_h - obj.tab_h-obj.slider_tabinfo_h
       if strategy.act_action ~= 4 then
         Obj_TabRef    (conf, obj, data, refresh, mouse, strategy)
       end
@@ -83,7 +85,7 @@
 
     obj.TabRef = { clear = true,
                         x = 0,
-                        y = 0,
+                        y = obj.tab_h,
                         w = obj.tab_w,
                         h = obj.tab_h,
                         col = 'white',
@@ -141,7 +143,38 @@
                                           strategy.src_selitems = BinaryToggle(strategy.src_selitems, 1)
                                           refresh.GUI = true
                                         end,                               
-                                },                              
+                                },      
+                                { name = 'Positions',
+                                  state = strategy.src_selitemsflag&1==1,
+                                  show = strategy.src_positions&1==1 and strategy.src_selitems&1==1
+                                      and (strategy.act_action == 1),                                 
+                                  level = 1,
+                                func =  function()
+                                          strategy.src_selitemsflag = BinaryToggle(strategy.src_selitemsflag, 0)
+                                          refresh.GUI = true
+                                        end,                               
+                                },                                
+                                { name = 'Ends',
+                                  state = strategy.src_selitemsflag&2==2,
+                                  show = strategy.src_positions&1==1 and strategy.src_selitems&1==1
+                                      and (strategy.act_action == 1),                                 
+                                  level = 1,
+                                func =  function()
+                                          strategy.src_selitemsflag = BinaryToggle(strategy.src_selitemsflag, 1)
+                                          refresh.GUI = true
+                                        end,                               
+                                },  
+                                { name = 'Stretch item',
+                                  state = strategy.src_selitemsflag&4==4,
+                                  show = strategy.src_positions&1==1 and strategy.src_selitems&1==1
+                                      and strategy.act_action == 1 and strategy.src_selitemsflag&2==2,                                 
+                                  level = 2,
+                                func =  function()
+                                          strategy.src_selitemsflag = BinaryToggle(strategy.src_selitemsflag, 2)
+                                          refresh.GUI = true
+                                        end,                               
+                                },                                                                 
+                                                        
                             { name = 'Envelope points',
                               state = strategy.src_envpoints,
                               show = strategy.src_positions&1==1 
@@ -826,9 +859,9 @@
     
     if (strategy.act_action == 1 or strategy.act_action == 3) and strategy.ref_pattern&1==1 then 
       obj.pat_x = obj.offs
-      obj.pat_y = obj.tab_h + y_offs+obj.offs*2
+      obj.pat_y = obj.tab_h*2 + y_offs+obj.offs*2
       obj.pat_w = gfx.w-obj.offs*2--obj.strategy_w-
-      obj.pat_h =  obj.strategy_h - y_offs-obj.offs
+      obj.pat_h =  obj.strategy_h - y_offs-obj.offs-obj.slider_tabinfo_h
       Obj_TabRef_Pattern(conf, obj, data, refresh, mouse, strategy) 
     end
     
@@ -925,7 +958,7 @@
     obj[name..'_frame'] = { clear = true,
                       disable_blitback = true,
                         x = 0,obj.offs,
-                        y = obj.tab_h,--+obj.offs,
+                        y = obj.tab_h*2,--+obj.offs,
                         w = wstr,
                         h = obj.strategy_h,
                         col = 'white',
@@ -938,6 +971,7 @@
     local y_offs = 0
     local x_offs = 0    
     for i = 1, #ref_strtUI do
+      if obj.exec_line_y < obj.tab_h*2 + obj.offs + y_offs then return y_offs end
       if ref_strtUI[i].show then
         local disable_blitback if not ref_strtUI[i].has_blit then disable_blitback = true end
         local col_str 
@@ -947,7 +981,7 @@
         end
         obj[name..i] =  { clear = true,
                         x = obj.offs + ref_strtUI[i].level *obj.strat_x_ind ,
-                        y = obj.tab_h + obj.offs + y_offs,
+                        y = obj.tab_h*2 + obj.offs + y_offs,
                         w = wstr - obj.offs - ref_strtUI[i].level *obj.strat_x_ind ,
                         h = obj.strategy_itemh,
                         col = col_str,
@@ -984,7 +1018,7 @@
             obj[name..i..'_folobj_'..i_obj] = CopyTable(ref_strtUI[i].follow_obj[i_obj])
             
             local obj_x =  ref_strtUI[i].level *obj.strat_x_ind    + str_len  + last_it_w--obj.offs +
-            local obj_y = obj.tab_h + obj.offs + y_offs +1
+            local obj_y = obj.tab_h*2 + obj.offs + y_offs +1
             if obj_x + obj[name..i..'_folobj_'..i_obj].w > obj.strategy_w + obj.offs then
               last_it_w = obj.strategy_itemh
               obj_x = obj.offs + ref_strtUI[i].level *obj.strat_x_ind    + str_len  + last_it_w
@@ -1012,7 +1046,7 @@
     end
     obj.TabSrc = { clear = true,
                         x = x_tab,
-                        y = 0,
+                        y = obj.tab_h,
                         w = w_tab,
                         h = obj.tab_h,
                         col = 'white',
@@ -1034,7 +1068,7 @@
   function Obj_TabAct(conf, obj, data, refresh, mouse, strategy) 
             obj.TabAct = { clear = true,
                         x = obj.tab_w*2,
-                        y = 0,
+                        y = obj.tab_h,
                         w = obj.tab_w,
                         h = obj.tab_h,
                         col = 'white',
@@ -1072,7 +1106,7 @@
                           } ,
                             { name = 'Link position/value knobs',
                               state = strategy.act_alignflag&1==1,
-                              show = strategy.act_action&1==1,
+                              show = strategy.act_action==1,
                               has_blit = false,
                               level = 2,
                               func =  function()
@@ -1080,6 +1114,39 @@
                                         refresh.GUI = true
                                       end,             
                             } , 
+                                { name = 'Direction',
+                                  show = strategy.act_action==1 and strategy.ref_pattern&1~=1 and  strategy.ref_grid&1~=1,                               
+                                  level = 2},           
+                              { name = 'Always previous point',
+                                state = strategy.act_aligndir==0,
+                                show = strategy.act_action==1 and strategy.ref_pattern&1~=1 and  strategy.ref_grid&1~=1,   
+                                has_blit = false,
+                                level = 2,
+                                func =  function()
+                                          strategy.act_aligndir = 0
+                                          refresh.GUI = true
+                                        end,             
+                              } ,                                   
+                              { name = 'Closest point',
+                                state = strategy.act_aligndir==1,
+                                show = strategy.act_action==1 and strategy.ref_pattern&1~=1 and  strategy.ref_grid&1~=1,   
+                                has_blit = false,
+                                level = 2,
+                                func =  function()
+                                          strategy.act_aligndir = 1
+                                          refresh.GUI = true
+                                        end,             
+                              } , 
+                              { name = 'Always next point',
+                                state = strategy.act_aligndir==2,
+                                show = strategy.act_action==1 and strategy.ref_pattern&1~=1 and  strategy.ref_grid&1~=1,   
+                                has_blit = false,
+                                level = 2,
+                                func =  function()
+                                          strategy.act_aligndir = 2
+                                          refresh.GUI = true
+                                        end,             
+                              } ,                                                      
                           { name = 'Ordered alignment (align by point positions order)',
                             state = strategy.act_action==3,
                             show = true,
@@ -1110,12 +1177,12 @@
                                       refresh.GUI = true
                                     end,             
                           } ,                                                                              
-                        { name = 'Initialization',
+                        { name = 'Options',
                             show = true,
                             has_blit = true,
                             level = 0             
                         }, 
-                          { name = 'Detect anchor points on init',
+                          { name = 'Detect anchor points on initialization',
                             state = strategy.act_initcatchref,
                             show = true,
                             has_blit = false,
@@ -1125,7 +1192,7 @@
                                       refresh.GUI = true
                                     end,             
                           } ,   
-                          { name = 'Detect target on init',
+                          { name = 'Detect target on initialization',
                             state = strategy.act_initcatchsrc,
                             show = true,
                             has_blit = false,
@@ -1135,7 +1202,7 @@
                                       refresh.GUI = true
                                     end,             
                           } ,  
-                          { name = 'Calculate action output on init',
+                          { name = 'Calculate action output on initialization',
                             state = strategy.act_initact&1==1,
                             show = true,
                             has_blit = false,
@@ -1145,7 +1212,7 @@
                                       refresh.GUI = true
                                     end,             
                           } ,   
-                          { name = 'Apply action output on init',
+                          { name = 'Apply action output on initialization',
                             state = strategy.act_initapp&1==1,
                             show = true,
                             has_blit = false,
@@ -1156,7 +1223,7 @@
                                       refresh.GUI = true
                                     end,             
                           } ,    
-                          { name = 'Show QuantizeTool GUI on init',
+                          { name = 'Show QuantizeTool GUI on initialization',
                             state = strategy.act_initgui&1==1,
                             show = true,
                             has_blit = false,
@@ -1198,8 +1265,8 @@
 
   -----------------------------------------------
   function Obj_TabExecute_Controls(conf, obj, data, refresh, mouse, strategy) 
-  
-    local knob_cnt = 4
+    local knob_y_shift = 7
+    local knob_cnt = 5
     local but_cnt = 3 
     if strategy.act_action == 2 then 
       knob_cnt = 0
@@ -1211,9 +1278,12 @@
     end
     local com_exe_w = gfx.w - obj.menu_w - but_cnt * obj.exe_but_w - 1    
     local but_a = 0.7
-    local h_ratio_but = 0.7
+    local h_ratio_but = 0.65
+    local h_but1 = math.floor((obj.slider_tab_h+obj.slider_tabinfo_h)*h_ratio_but)
+    local h_but2 = obj.slider_tab_h+obj.slider_tabinfo_h-h_but1
     
     local but_shift = 0
+    local knob_shift = 2
     if strategy.act_action ~= 4 then      
       -- show/catch ref-----------------------------          
       local cnt = 0
@@ -1225,7 +1295,7 @@
                           x = obj.menu_w + 1+but_shift,
                           y = obj.tab_h + obj.exec_line_y,
                           w = obj.exe_but_w,
-                          h = math.floor(obj.slider_tab_h*h_ratio_but),
+                          h = h_but1,
                           txt_a =1,
                           aligh_txt = 16,
                           show = true,
@@ -1247,9 +1317,9 @@
       if data.ref and strategy.ref_pattern&1 ~=1  then ref_showpos_txt = 'Show anchor points ('..cnt..')'  end                
       obj.ref_showpos =  { clear = true,
                           x = obj.menu_w + 1,
-                          y = obj.tab_h + obj.exec_line_y + math.floor(obj.slider_tab_h*h_ratio_but) +1,
+                          y = obj.tab_h + obj.exec_line_y + h_but1 +1,
                           w = obj.exe_but_w,
-                          h = math.floor(obj.slider_tab_h*(1-h_ratio_but))-1,
+                          h = h_but2,
                           txt_a =1,
                           aligh_txt = 16,
                           show = true,
@@ -1287,7 +1357,7 @@
                         x = obj.menu_w + 1 + but_shift,
                         y = obj.tab_h + obj.exec_line_y,
                         w = obj.exe_but_w,
-                        h = math.floor(obj.slider_tab_h*h_ratio_but),
+                        h = h_but1,
                         colfill_col = 'blue',
                         colfill_a =but_a,
                         show = true,
@@ -1305,9 +1375,9 @@
 
     obj.src_showpos =  { clear = true,
                         x = obj.menu_w + 1 + but_shift,
-                        y = obj.tab_h + obj.exec_line_y + math.floor(obj.slider_tab_h*h_ratio_but) +1,
+                        y = obj.tab_h + obj.exec_line_y + h_but1 +1,
                         w = obj.exe_but_w,                        
-                        h = math.floor(obj.slider_tab_h*(1-h_ratio_but))-1,
+                        h = h_but2,
                         colfill_col = 'blue',
                         colfill_a =but_a,
                         colfill_frame = true,
@@ -1332,7 +1402,7 @@
                         x = obj.menu_w + 1 + but_shift,
                         y = obj.tab_h + obj.exec_line_y,
                         w = obj.exe_but_w,
-                        h = math.floor(obj.slider_tab_h*h_ratio_but),
+                        h = h_but1,
                         colfill_col = 'red',
                         colfill_a =but_a,
                         show = true,
@@ -1348,10 +1418,10 @@
                         }  
     end    
     
-    local h_ex = math.floor(obj.slider_tab_h*(1-h_ratio_but))-1 
-    local y_ex= obj.tab_h + obj.exec_line_y + math.floor(obj.slider_tab_h*h_ratio_but) +1   
+    local h_ex = h_but2
+    local y_ex= obj.tab_h + obj.exec_line_y +h_but1 +1   
     if strategy.act_action == 2 then  
-      h_ex   =obj.slider_tab_h 
+      h_ex   =h_but1+h_but2+1
       y_ex = obj.tab_h + obj.exec_line_y
     end                     
     obj.act_ex =  { clear = true,
@@ -1387,11 +1457,11 @@
     if strategy.act_action == 1 or strategy.act_action ==3 or strategy.act_action ==4 then   
       obj.exe_val1 = { clear = true,
                         is_knob = true,
-                        knob_y_shift = 10,
-                        x =   obj.menu_w + but_shift + 1,
+                        knob_y_shift = knob_y_shift,
+                        x =   obj.menu_w + but_shift + 1+knob_shift,
                         y =  obj.tab_h + obj.exec_line_y,
                         w = obj.knob_w,
-                        h = obj.slider_tab_h,
+                        h = obj.knob_h,
                         col = 'white',
                         txt= '',
                         val = strategy.exe_val1,
@@ -1435,17 +1505,34 @@
                         onrelease_L2  = function()  
                                           UpdateArrange()
                                           SaveStrategy(conf, strategy, 1, true) 
-                                        end
+                                        end,
+                        func_L_Alt = function()
+                                        strategy.exe_val1 = 0
+                                        obj.exe_val1.val = 0
+                                        SaveStrategy(conf, strategy, 1, true) 
+                                        refresh.GUI_minor = true
+                                      end   ,
+                        func_R = function()
+                                    local ret, str =  GetUserInputs( conf.mb_title, 1, 'Value 1', strategy.exe_val1 )
+                                    if tonumber(str) then
+                                      str = tonumber(str)
+                                      local out_num = lim(str, 0,1)
+                                      strategy.exe_val1 = out_num
+                                      refresh.GUI = true
+                                    end
+                                  end                                      
                         }
+      knob_shift = knob_shift+obj.knob_w
     end
      -----------------------------      
-    if strategy.act_action == 1 or strategy.act_action ==3 or strategy.act_action ==4 then obj.exe_val2 = { clear = true,
+    if strategy.act_action == 1 or strategy.act_action ==3 or strategy.act_action ==4 then 
+      obj.exe_val2 = { clear = true,
                         is_knob = true,
-                        knob_y_shift = 10,
-                        x =   obj.menu_w + 1+but_shift+obj.knob_w,
+                        knob_y_shift = knob_y_shift,
+                        x =   obj.menu_w + 1+but_shift+knob_shift,
                         y = obj.tab_h + obj.exec_line_y,
                         w = obj.knob_w,
-                        h = obj.slider_tab_h,
+                        h = obj.knob_h,
                         col = 'white',
                         state = fale,
                         txt= '',
@@ -1485,18 +1572,39 @@
                                       end
                                       refresh.GUI_minor = true
                                     end    ,
-                        onrelease_L2  = function()  SaveStrategy(conf, strategy, 1, true) end                                                                       
-                        }  
+                        onrelease_L2  = function()  SaveStrategy(conf, strategy, 1, true) end   ,
+                        func_L_Alt = function()
+                                        strategy.exe_val2 = 0
+                                        obj.exe_val2.val = 0
+                                        SaveStrategy(conf, strategy, 1, true) 
+                                        refresh.GUI_minor = true
+                                      end ,
+                        func_R = function()
+                                    local ret, str =  GetUserInputs( conf.mb_title, 1, 'Value 2', strategy.exe_val2 )
+                                    if tonumber(str) then
+                                      str = tonumber(str)
+                                      local out_num
+                                      if strategy.act_action == 1 or strategy.act_action ==3 then
+                                        out_num = lim(str, 0,1)
+                                       else
+                                        out_num = lim(str, 0,127)
+                                      end
+                                      strategy.exe_val2 = out_num
+                                      refresh.GUI = true
+                                    end
+                                  end                                                                                                                                    
+                        }
+      knob_shift = knob_shift+obj.knob_w  
     end
     -----------------------------        
     if strategy.act_action == 1 or strategy.act_action == 3 then 
       obj.exe_val3 = { clear = true,
                         is_knob = true,
-                        knob_y_shift = 10,
-                        x =   obj.menu_w + 1+but_shift+obj.knob_w*2,
+                        knob_y_shift = knob_y_shift,
+                        x =   obj.menu_w + 1+but_shift+knob_shift,
                         y = obj.tab_h + obj.exec_line_y,
                         w = obj.knob_w,
-                        h = obj.slider_tab_h,
+                        h =obj.knob_h,
                         col = 'white',
                         txt= '',
                         val = strategy.exe_val3/2,
@@ -1543,8 +1651,29 @@
                                             Data_Execute(conf, obj, data, refresh, mouse, strategy)
                                           end
                                           SaveStrategy(conf, strategy, 1, true) 
-                                        end                                                                           
+                                        end    ,
+                        func_L_Alt = function()
+                                        strategy.exe_val3 = 0
+                                        obj.exe_val3.val = 0
+                                        SaveStrategy(conf, strategy, 1, true) 
+                                        refresh.GUI_minor = true
+                                      end     ,
+                        func_R = function()
+                                    local ret, str =  GetUserInputs( conf.mb_title, 1, 'Value 3', strategy.exe_val3 )
+                                    if tonumber(str) then
+                                      str = tonumber(str)
+                                      local out_num
+                                      if strategy.act_action == 1  then
+                                        out_num = lim(str, 0,2)
+                                       elseif strategy.act_action ==3 then
+                                        out_num = lim(str, 0,0.5)
+                                      end
+                                      strategy.exe_val3 = out_num
+                                      refresh.GUI = true
+                                    end
+                                  end                                                                                                                                                 
                         }  
+      knob_shift = knob_shift+obj.knob_w
     end
     -----------------------------      
     if strategy.act_action == 1 then 
@@ -1552,11 +1681,11 @@
       if not val4 then val4 = 0 end
       obj.exe_val4 = { clear = true,
                         is_knob = true,
-                        knob_y_shift = 10,
-                        x =   obj.menu_w + 1+but_shift+obj.knob_w*3,
+                        knob_y_shift = knob_y_shift,
+                        x =   obj.menu_w + 1+but_shift+knob_shift,
                         y = obj.tab_h + obj.exec_line_y,
                         w = obj.knob_w,
-                        h = obj.slider_tab_h,
+                        h = obj.knob_h,
                         col = 'white',
                         txt= '',
                         val = val4/2,
@@ -1565,7 +1694,7 @@
                         a_frame = 0,
                         func =  function() 
                                   if conf.app_on_slider_click == 1 then Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy) end
-                                  mouse.context_latch_val = strategy.exe_val3
+                                  mouse.context_latch_val = strategy.exe_val4
                                 end,
                         func_LD2 = function()
                                     if mouse.context_latch_val then 
@@ -1586,20 +1715,108 @@
                                             Data_Execute(conf, obj, data, refresh, mouse, strategy)
                                           end
                                           SaveStrategy(conf, strategy, 1, true) 
-                                        end                                                                           
+                                        end   ,
+                        func_L_Alt = function()
+                                        strategy.exe_val4 = 0
+                                        obj.exe_val4.val = 0
+                                        SaveStrategy(conf, strategy, 1, true) 
+                                        refresh.GUI_minor = true
+                                      end  ,
+                        func_R = function()
+                                    local ret, str =  GetUserInputs( conf.mb_title, 1, 'Value 4', strategy.exe_val4 )
+                                    if tonumber(str) then
+                                      str = tonumber(str)
+                                      local out_num = lim(str, 0,2)
+                                      strategy.exe_val4 = out_num
+                                      refresh.GUI = true
+                                    end
+                                  end                                        
+                                                                                                           
                         }  
+        knob_shift = knob_shift+obj.knob_w
       end
+    -----------------------------      
+    if strategy.act_action == 1 or strategy.act_action == 3 then 
+      local val5 = strategy.exe_val5
+      if not val5 then val5 = 0 end
+      obj.exe_val5 = { clear = true,
+                        is_knob = true,
+                        knob_y_shift = knob_y_shift,
+                        is_centered_knob = true,
+                        x =   obj.menu_w + 1+but_shift+knob_shift,
+                        y = obj.tab_h + obj.exec_line_y,
+                        w = obj.knob_w,
+                        h = obj.knob_h,
+                        col = 'white',
+                        txt= '',
+                        val = val5,
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,
+                        func =  function() 
+                                  --[[if conf.app_on_slider_click == 1 then 
+                                    Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy) 
+                                  end]]
+                                  mouse.context_latch_val = strategy.exe_val5
+                                end,
+                        func_LD2 = function()
+                                    if mouse.context_latch_val then 
+                                      strategy.exe_val5 = lim(mouse.context_latch_val + mouse.dx*0.001 - mouse.dy*0.01, 0, 1)
+                                      obj.exe_val5.val = strategy.exe_val5
+                                      obj.knob_txt.txt = 'Offset '..(math.floor((strategy.exe_val5*2-1)*1000)/1000)..' beats'
+                                      refresh.GUI_minor = true
+                                    end
+                                end ,
+                        func_mouseover =  function()
+                                      obj.knob_txt.txt = 'Offset '..(math.floor((strategy.exe_val5*2-1)*1000)/1000)..' beats'
+                                      refresh.GUI_minor = true
+                                    end ,
+                        onrelease_L2  = function()  
+                                          if conf.app_on_slider_click == 1 then 
+                                            Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy) 
+                                            Data_Execute(conf, obj, data, refresh, mouse, strategy)
+                                          end
+                                          SaveStrategy(conf, strategy, 1, true) 
+                                        end   ,
+                        func_L_Alt = function()
+                                        strategy.exe_val5 = 0.5
+                                        obj.exe_val5.val = 0.5
+                                        SaveStrategy(conf, strategy, 1, true) 
+                                        refresh.GUI_minor = true
+                                      end  ,
+                        func_R = function()
+                                    local ret, str =  GetUserInputs( conf.mb_title, 1, 'Value 5', (math.floor((strategy.exe_val5*2-1)*1000)/1000) )
+                                    if tonumber(str) then
+                                      str = tonumber(str)
+                                      local out_num = lim(str, -1,1)
+                                      strategy.exe_val5 = (out_num+1)/2
+                                      refresh.GUI = true
+                                    end
+                                  end                                                                                                                                                       
+                        }  
+        knob_shift = knob_shift+obj.knob_w
+      end      
        -----------------------------                                                                                                                         
       obj.knob_txt = { clear = true,
-                        x =   obj.menu_w + 1 + but_shift + obj.knob_w*knob_cnt,
-                        y = obj.tab_h + obj.exec_line_y,
-                        w = com_exe_w - obj.knob_w*knob_cnt,
-                        h = obj.slider_tab_h,
+                        x =   obj.menu_w + 3 + but_shift,-- + obj.knob_w*knob_cnt,
+                        y = obj.tab_h + obj.exec_line_y +obj.slider_tab_h,
+                        w = gfx.w-obj.menu_w- but_shift,--com_exe_w - obj.knob_w*knob_cnt,
+                        h = obj.slider_tabinfo_h,
                         col = 'white',
                         txt= '',
                         show = true,
                         fontsz = obj.GUI_fontsz2,
-                        a_frame = 0,}                      
+                        a_frame = 0,}   
+      obj.knob_fill2 = { clear = true,
+                        x =   obj.menu_w + 1+but_shift+knob_shift,
+                        y = obj.tab_h + obj.exec_line_y,-- +obj.slider_tab_h+1,
+                        w = gfx.w-obj.menu_w- but_shift - knob_shift,
+                        h = obj.knob_h,
+                        col = 'white',
+                        txt= '',
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,}                                            
   end
   -----------------------------------------------
   function Obj_TabExecute(conf, obj, data, refresh, mouse, strategy)
@@ -1609,11 +1826,11 @@
       local name = strategy.name
       if obj.is_strategy_dirty==true then name = name..'*' end
       obj.TabExe_stratname = { clear = true,
-                        disable_blitback = true,
+                        --disable_blitback = true,
                         x =  0,
-                        y = obj.exec_line_y,
+                        y = 0,--obj.exec_line_y,
                         w = gfx.w,
-                        h = obj.tab_h ,
+                        h = obj.tab_h-2,
                         col = 'white',
                         txt= name,
                         show = true,
@@ -1692,7 +1909,7 @@
                         x = 0,
                         y = obj.tab_h + obj.exec_line_y,
                         w = obj.menu_w,
-                        h = obj.slider_tab_h,
+                        h = obj.slider_tab_h+obj.slider_tabinfo_h,
                         col = 'white',
                         state = fale,
                         txt= '>',

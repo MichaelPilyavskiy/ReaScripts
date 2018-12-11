@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.07
+-- @version 2.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -17,6 +17,7 @@
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Quantize selected item MIDI notes to MPC_70prc SWS groove (no GUI).lua
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Snap envelope points to 127 steps (no GUI).lua
 --    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Snap envelope points to toggle states (no GUI).lua
+--    [main] mpl_QuantizeTool_presets/mpl_QuantizeTool preset - (MPL) Stretch fit item to grid (no GUI).lua
 --    mpl_QuantizeTool_presets/(MPL) Align selected items to edit cursor.qt
 --    mpl_QuantizeTool_presets/(MPL) Create selected envelope points from selected items.qt
 --    mpl_QuantizeTool_presets/(MPL) Quantize item positions to project grid (no GUI).qt
@@ -24,22 +25,22 @@
 --    mpl_QuantizeTool_presets/(MPL) Quantize selected item MIDI notes to MPC_70prc SWS groove (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to 127 steps (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt
+--    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 -- @changelog
---    + Add font calibration relative to Windows measures (require mpl_Various_functions.lua 1.20+)
---    + Preset/Ordered alignment/Conrols: treat closer points as single point - distance control
---    + Preset/Ordered alignment/Grid and groove support
---    + Preset/Action/Raw quantize
---    + Preset/Raw quantize: vertical quantize envelope points values
---    # Preset/Action/Position-based Align/Controls/Include&Exclude within: allow to execute action only on mouse release rather than on knob drag
---    # Save preset as last saved after loading default preset
+--    + Preset/Position-based align: allow to force using next or previous points (not available for pattern/grid yet)
+--    + Preset/Position-based align/Target/Items: add option to align item ends
+--    + Preset/Position-based align/Target/Items: add option to align item ends with stretching active take
+--    + Preset/Position-based align/Controls/Offset
+--    + Preset: Stretch fit item to grid (no GUI)
+--    + Preset/Controls: alt+click to reset knob
+--    + Preset/Controls: right click to type value
+--    # Various GUI tweaks
+--    # Preset/Position-based align/Controls/Exclude within: fix grab wrong value
+--    # Save preset: add scripts to MIDI Editor section when target is MIDI/MIDI Editor
 
 
--- offset knob
--- random
--- right click to type
--- altclick to reset
      
-  local vrs = 'v2.07'
+  local vrs = 'v2.10'
   --NOT gfx NOT reaper
   
 
@@ -97,6 +98,7 @@
       -- positions
         src_positions = 1,
         src_selitems = 1,
+        src_selitemsflag = 1, -- &1 positions &2 length
         src_envpoints = 0,
         src_envpointsflag = 1, -- 1 values
         src_midi = 0 ,
@@ -107,6 +109,7 @@
       --  align
         act_action = 1 ,  -- 2 create -- 3 ordered alignment -- 4 raw quantize
         act_alignflag = 0, -- &1= linked knobs
+        act_aligndir = 1, -- 0 - always previous 1 - always previous 2 - always next
       -- init
         act_initcatchref = 1 ,   
         act_initcatchsrc = 0 ,
@@ -115,11 +118,11 @@
         act_initgui = 1,
         
     -- execute -----------------------
-      exe_val1 = 0, -- align=strength
-      exe_val2 = 0, -- align=value
+      exe_val1 = 0, -- align=strength, raw=value
+      exe_val2 = 0, -- align=value, raw/envelope=steps
       exe_val3 = 0, -- align=inclwithin/0-disabled
       exe_val4 = 0, -- align=exclwithin/0-disabled
-      
+      exe_val5 = 0.5, -- align=offset
       }
     return t
   end
@@ -207,8 +210,8 @@
   function LoadStrategy(conf, strategy, force_default)
     obj.is_strategy_dirty = false
    
-      cur_strat = GetExtState( conf.ES_key, 'ext_strategy_name' )
-      ext_state = GetExtState( conf.ES_key, 'ext_state' )
+     local cur_strat = GetExtState( conf.ES_key, 'ext_strategy_name' )
+     local ext_state = GetExtState( conf.ES_key, 'ext_state' )
      ext_state = ext_state and ext_state=='1' 
      SetExtState( conf.ES_key, 'ext_state', 0, false )
       
@@ -283,7 +286,9 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
         local f = io.open(out_fp_script, 'w')
         f:write(out_str)
         f:close()    
-        AddRemoveReaScript( true, 0, out_fp_script, true )      
+        local sect_ID = 0
+        if strategy.src_midi&1==1 and strategy.src_midi&2==0 then sect_ID = 32060 end
+        AddRemoveReaScript( true, sect_ID, out_fp_script, true )      
     end                                    
   end  
   --------------------------------------------------------------------

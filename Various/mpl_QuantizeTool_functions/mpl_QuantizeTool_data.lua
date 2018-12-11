@@ -76,7 +76,7 @@
       Data_ApplyStrategy_reference_pattern(conf, obj, data, refresh, mouse, strategy) 
     end  
     
-    if strategy.act_action == 3 then -- sort ref table by position 
+    if strategy.act_action == 1 or strategy.act_action == 3 then -- sort ref table by position 
       local sortedKeys = getKeysSortedByValue(data.ref, function(a, b) return a < b end, 'pos')
       local t = {}
       for _, key in ipairs(sortedKeys) do
@@ -174,10 +174,13 @@
   end
   --------------------------------------------------- 
   function Data_GetItems(data, strategy, table_name, mode) 
+    local id = 1
       for selitem = 1, CountMediaItems(0) do
         local item =  GetMediaItem( 0, selitem-1 )
         local take = GetActiveTake(item)
         local pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
+        local it_pos = pos
+        local len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
         
         local position_has_snap_offs, snapoffs_sec
         if mode&2==2 then --snap offset
@@ -187,23 +190,47 @@
         end
         local is_sel = GetMediaItemInfo_Value( item, 'B_UISEL' ) == 1
         local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
-        if not data[table_name][selitem] then data[table_name][selitem] = {} end
+        if not data[table_name][id] then data[table_name][id] = {} end
         local val = GetMediaItemInfo_Value( item, 'D_VOL' )
-        local tk_rate if take then 
-          tk_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+        local tk_rate if take then  tk_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )   end
+        
+        data[table_name][id].ignore_search = not is_sel
+        data[table_name][id].pos = fullbeats
+        data[table_name][id].pos_sec = pos
+        data[table_name][id].position_has_snap_offs = position_has_snap_offs
+        data[table_name][id].pos_beats = beats
+        data[table_name][id].snapoffs_sec = snapoffs_sec 
+        data[table_name][id].GUID = BR_GetMediaItemGUID( item )
+        data[table_name][id].srctype='item'
+        data[table_name][id].val =val
+        data[table_name][id].it_len = len
+        data[table_name][id].it_pos=it_pos
+        data[table_name][id].groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
+        data[table_name][id].ptr = item
+        data[table_name][id].activetk_ptr = take
+        data[table_name][id].activetk_rate = tk_rate
+        id = id + 1
+        
+        if table_name == 'src' and strategy.src_selitemsflag&2==2 then
+          if not data[table_name][id] then data[table_name][id] = {} end
+          local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos+len )
+          data[table_name][id].ignore_search = not is_sel
+          data[table_name][id].pos = fullbeats
+          data[table_name][id].pos_sec = pos
+          data[table_name][id].position_has_snap_offs = position_has_snap_offs
+          data[table_name][id].pos_beats = beats
+          data[table_name][id].snapoffs_sec = snapoffs_sec 
+          data[table_name][id].GUID = BR_GetMediaItemGUID( item )
+          data[table_name][id].srctype='item_end'
+          data[table_name][id].val =val
+          data[table_name][id].it_len = len
+          data[table_name][id].it_pos=it_pos
+          data[table_name][id].groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
+          data[table_name][id].ptr = item
+          data[table_name][id].activetk_ptr = take
+          data[table_name][id].activetk_rate = tk_rate        
         end
-        data[table_name][selitem].ignore_search = not is_sel
-        data[table_name][selitem].pos = fullbeats
-        data[table_name][selitem].pos_sec = pos
-        data[table_name][selitem].position_has_snap_offs = position_has_snap_offs
-        data[table_name][selitem].pos_beats = beats
-        data[table_name][selitem].snapoffs_sec = snapoffs_sec 
-        data[table_name][selitem].GUID = BR_GetMediaItemGUID( item )
-        data[table_name][selitem].srctype='item'
-        data[table_name][selitem].val =val
-        data[table_name][selitem].groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
-        data[table_name][selitem].ptr = item
-        data[table_name][selitem].activetk_rate = tk_rate
+        id = id + 1
         
       end      
   end  
@@ -735,18 +762,39 @@
         if data.src[i].pos and not data.src[i].ignore_search then
           local out_pos,out_val          
           if strategy.act_action==1 then
+          
+          -- static
             if (strategy.ref_pattern&1~=1 and  strategy.ref_grid&1~=1 ) then 
               local refID = Data_brutforce_RefID(conf, data, strategy, data.src[i].pos)
               if refID and data.ref[refID] then 
-                out_pos = data.ref[refID].pos
-                out_val = data.ref[refID].val              
-              end            
-             else
-              local pat_pos, pat_val = DataSearchPatternVal(conf, data, strategy, data.src[i].pos, data.src[i].pos_beats, data.src[i].val)
+                if strategy.act_aligndir == 1 then
+                  out_pos = data.ref[refID].pos
+                  out_val = data.ref[refID].val 
+                 elseif strategy.act_aligndir == 0 then
+                  if data.src[i].pos < data.ref[refID].pos and data.ref[refID-1] then
+                    out_pos = data.ref[refID-1].pos
+                    out_val = data.ref[refID-1].val 
+                   else
+                    out_pos = data.ref[refID].pos
+                    out_val = data.ref[refID].val      
+                  end  
+                 elseif strategy.act_aligndir == 2 then
+                  if data.src[i].pos > data.ref[refID].pos and data.ref[refID+1] then
+                    out_pos = data.ref[refID+1].pos
+                    out_val = data.ref[refID+1].val 
+                   else
+                    out_pos = data.ref[refID].pos
+                    out_val = data.ref[refID].val      
+                  end                               
+                end   
+              end 
+                         
+             else -- pattern/grid
+              local pat_pos, pat_val, patID = DataSearchPatternVal(conf, data, strategy, data.src[i].pos, data.src[i].pos_beats, data.src[i].val)
               if pat_pos and pat_val then 
                 out_pos = pat_pos
                 out_val = pat_val
-              end            
+              end
             end   
           end
           if strategy.act_action==3 then
@@ -767,7 +815,12 @@
             if strategy.exe_val3 > 0 and math.abs(out_pos - data.src[i].pos) >= strategy.exe_val3 then data.src[i].out_pos = data.src[i].pos end            
             if strategy.exe_val4 > 0 and math.abs(out_pos - data.src[i].pos) <= strategy.exe_val4 then data.src[i].out_pos = data.src[i].pos end            
           end
-                
+          
+          if strategy.act_action==1 or strategy.act_action==3 then
+            local offs = (math.floor((strategy.exe_val5*2-1)*1000)/1000)
+            data.src[i].out_pos = out_pos + offs
+          end
+          
         end
       end
       
@@ -884,6 +937,7 @@
   end
   --------------------------------------------------- 
   function Data_Execute_Align_Items(conf, obj, data, refresh, mouse, strategy)
+    local last_pos
     for i = 1 , #data.src do
       local t = data.src[i]
       if not t.ignore_search then
@@ -892,13 +946,24 @@
           if t.out_pos then 
             local out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1
             out_pos = TimeMap2_beatsToTime( 0, out_pos)
-            if t.position_has_snap_offs then 
-              out_pos = out_pos - t.snapoffs_sec 
-            end  
-            SetMediaItemInfo_Value( it, 'D_POSITION', out_pos )
-            local pos_shift = out_pos - t.pos_sec
-            if strategy.src_selitems&4==4 and t.groupID ~= 0 then Data_UpdateGroupedItems_PosVal(conf, obj, data, refresh, mouse, strategy, it, t.groupID, pos_shift) end
+            if t.position_has_snap_offs and t.srctype~='item_end' then out_pos = out_pos - t.snapoffs_sec end  
+
+                        
+            if strategy.src_selitemsflag&1==1 and t.srctype~='item_end' then 
+              SetMediaItemInfo_Value( it, 'D_POSITION', out_pos )
+              local pos_shift = out_pos - t.pos_sec
+              if strategy.src_selitems&4==4 and t.groupID ~= 0 then Data_UpdateGroupedItems_PosVal(conf, obj, data, refresh, mouse, strategy, it, t.groupID, pos_shift) end
+            end
             
+            if strategy.src_selitemsflag&2==2 and t.srctype=='item_end' then
+              local out_len = out_pos - t.it_pos
+              SetMediaItemInfo_Value( it, 'D_LENGTH', out_len)
+              if strategy.src_selitemsflag&4==4 then
+                local diff = t.it_len/out_len
+                SetMediaItemTakeInfo_Value( t.activetk_ptr, 'D_PLAYRATE',  t.activetk_rate*diff)
+              end
+            end
+                        
           end 
           if t.out_val then
             local val_shift = (t.out_val - t.val)*strategy.exe_val2 
