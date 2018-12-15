@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e333fe7a214d0d3fc0bd8fa19ea63ee98aa9401f" name="MPL Scripts">
+<index version="1" commit="ca1c4bc3e5fe916708c75d3a9ccacc4f38a837a7" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -365,6 +365,10 @@
       <version name="1.20" author="MPL" time="2018-12-09T08:09:29Z">
         <changelog><![CDATA[+ VF_CalibrateFont by geraintluff https://forum.cockos.com/showpost.php?p=2066576&postcount=17]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c0636fcda1091cdd83236ec44ac2b9875f7e39a1/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.21" author="MPL" time="2018-12-15T07:38:31Z">
+        <changelog><![CDATA[# fix VF_CheckReaperVrs duplicate]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ca1c4bc3e5fe916708c75d3a9ccacc4f38a837a7/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
