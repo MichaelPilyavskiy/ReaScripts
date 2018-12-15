@@ -2,9 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.20
+-- @version 1.21
 -- @changelog
---    + VF_CalibrateFont by geraintluff https://forum.cockos.com/showpost.php?p=2066576&postcount=17
+--    # fix VF_CheckReaperVrs duplicate
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) 
@@ -26,16 +26,16 @@
     return math.floor(sz*font_factor)
   end 
   ---------------------------------------------------
-  function VF_CheckReaperVrs(rvrs) 
+  function VF_CheckReaperVrs(rvrs, showmsg) 
     local vrs_num =  GetAppVersion()
     vrs_num = tonumber(vrs_num:match('[%d%.]+'))
     if rvrs > vrs_num then 
-      reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0)
+      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
       return
      else
       return true
     end
-  end  
+  end
   ---------------------------------------------------
   function VF_GetFormattedGrid(grid_div)
     local grid_flags, grid_division, grid_swingmode, grid_swingamt 
@@ -59,17 +59,6 @@
     return grid_division, grid_str, is_triplet, grid_swingmode, grid_swingamt, grid_swingamt_format
   end     
   
-  ---------------------------------------------------
-  function VF_CheckReaperVrs(rvrs, showmsg) 
-    local vrs_num =  GetAppVersion()
-    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
-    if rvrs > vrs_num then 
-      if showmsg then reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0) end
-      return
-     else
-      return true
-    end
-  end
   ------------------------------------------------------------------------------------------------------
   function getKeysSortedByValue(tbl, sortFunction, param) -- https://stackoverflow.com/questions/2038418/associatively-sorting-a-table-by-value-in-lua
     local keys = {}
