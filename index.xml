@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ca1c4bc3e5fe916708c75d3a9ccacc4f38a837a7" name="MPL Scripts">
+<index version="1" commit="5c4a8be080f6787d35c85fbd70ee1d40c390b7ea" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2893,6 +2893,15 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-08-02T15:23:56Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/acc3103e5f367e8900c8c0e3f7c6421111f7384d/MIDI%20editor/mpl_Add%20note%20beetween%20two%20selected.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Adjust selected notes pitch (mousewheel).lua" type="script" desc="Adjust selected notes pitch (mousewheel)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-12-18T03:57:54Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5c4a8be080f6787d35c85fbd70ee1d40c390b7ea/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Copy selected CC.lua" type="script" desc="Copy selected CC">
