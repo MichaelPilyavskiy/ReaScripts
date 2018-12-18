@@ -2,9 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.21
+-- @version 1.22
 -- @changelog
---    # fix VF_CheckReaperVrs duplicate
+--    + VF_GetFXByGUID(GUID)
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) 
@@ -14,6 +14,15 @@
     end
     ShowConsoleMsg(s..'\n') 
   end 
+  ---------------------------------------------------
+  function VF_GetFXByGUID(GUID)
+    for trid = 1, CountTracks(0) do
+      local tr = GetTrack(0,trid-1)
+      for fx_id =1, TrackFX_GetCount( tr ) do
+        if TrackFX_GetFXGUID( tr, fx_id-1) == GUID then return true, tr, fx_id-1 end
+      end
+    end  
+  end
   ---------------------------------------------------
   function VF_CalibrateFont(sz) -- https://forum.cockos.com/showpost.php?p=2066576&postcount=17
    local t = { [13]=80,
