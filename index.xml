@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5c4a8be080f6787d35c85fbd70ee1d40c390b7ea" name="MPL Scripts">
+<index version="1" commit="2251d8166416c5497f194a4c9c38b4ee99517a1f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -370,6 +370,10 @@
         <changelog><![CDATA[# fix VF_CheckReaperVrs duplicate]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ca1c4bc3e5fe916708c75d3a9ccacc4f38a837a7/Functions/mpl_Various_functions.lua</source>
       </version>
+      <version name="1.22" author="MPL" time="2018-12-18T06:34:32Z">
+        <changelog><![CDATA[+ VF_GetFXByGUID(GUID)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2251d8166416c5497f194a4c9c38b4ee99517a1f/Functions/mpl_Various_functions.lua</source>
+      </version>
     </reapack>
   </category>
   <category name="FX">
@@ -591,6 +595,26 @@
       <version name="1.0" author="MPL" time="2017-01-22T09:39:26Z">
         <changelog><![CDATA[+ init release]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/be2c444d577fea1b597def577887433883fcb9d3/FX/mpl_Insert%20focused%20FX%20to%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_InstrumentRack.lua" type="script" desc="InstrumentRack">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for showing instruments in currently opened REAPER project\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2018-12-18T06:34:32Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2251d8166416c5497f194a4c9c38b4ee99517a1f/FX/mpl_InstrumentRack.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2251d8166416c5497f194a4c9c38b4ee99517a1f/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_GUI.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2251d8166416c5497f194a4c9c38b4ee99517a1f/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2251d8166416c5497f194a4c9c38b4ee99517a1f/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2251d8166416c5497f194a4c9c38b4ee99517a1f/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_LearnManager (background).lua" type="script" desc="LearnManager">
