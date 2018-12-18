@@ -55,7 +55,13 @@
       end
       for fx_id =1, TrackFX_GetCount( tr ) do
         local retval, buf = TrackFX_GetFXName( tr, fx_id-1, '' )
-        if buf:match('VSTi') or buf:match('DXi') or buf:match('AUi') or tr_isfreezed then
+        if buf:match('VSTi') 
+          or buf:match('DXi') 
+          or buf:match('AUi') 
+          or buf:match('VST3i') 
+          or tr_isfreezed 
+          
+          then
           local  retval, presetname = TrackFX_GetPreset( tr, fx_id-1, '' )
           data[#data+1] = {name = buf,
                             bypass =  TrackFX_GetEnabled(tr, fx_id-1 ),
