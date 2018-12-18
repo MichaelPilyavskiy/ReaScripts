@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2251d8166416c5497f194a4c9c38b4ee99517a1f" name="MPL Scripts">
+<index version="1" commit="15ad64680c6f8256d105ee1681b49bf321ed3b4d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -615,6 +615,19 @@
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2251d8166416c5497f194a4c9c38b4ee99517a1f/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua</source>
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2251d8166416c5497f194a4c9c38b4ee99517a1f/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua</source>
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2251d8166416c5497f194a4c9c38b4ee99517a1f/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2018-12-18T20:53:55Z">
+        <changelog><![CDATA[+ Added offline toggle
++ Added solo/mute parent track buttons
++ Add freeze toggle
++ Add auto mode buttons
+# click on name doesn`t bypass FX
+# refresh arrange after show/hide FX]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15ad64680c6f8256d105ee1681b49bf321ed3b4d/FX/mpl_InstrumentRack.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15ad64680c6f8256d105ee1681b49bf321ed3b4d/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_GUI.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15ad64680c6f8256d105ee1681b49bf321ed3b4d/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15ad64680c6f8256d105ee1681b49bf321ed3b4d/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/15ad64680c6f8256d105ee1681b49bf321ed3b4d/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_LearnManager (background).lua" type="script" desc="LearnManager">
