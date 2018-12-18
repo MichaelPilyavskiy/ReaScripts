@@ -70,6 +70,9 @@
            if ((is_mouse_over and not mouse.last_LMB_state and not mouse.LMB_state )
                 or (mouse.context_latch and mouse.context_latch == key))
             and obj[key].func_mouseover then obj[key].func_mouseover() end
+           ------------------------
+           if is_mouse_over and not mouse.last_LMB_state and not mouse.LMB_state and not mouse.is_moving
+            and obj[key].func_mouseover_nomove then obj[key].func_mouseover_nomove() end            
             ------------------------
            if is_mouse_over and mouse.LMB_state and not mouse.last_LMB_state then mouse.context_latch = key end
            ------------------------

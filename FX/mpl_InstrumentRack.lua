@@ -1,5 +1,5 @@
 -- @description InstrumentRack
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for showing instruments in currently opened REAPER project
@@ -9,11 +9,16 @@
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua
 -- @changelog
---    + init
+--    + Added offline toggle
+--    + Added solo/mute parent track buttons
+--    + Add freeze toggle
+--    + Add auto mode buttons
+--    # click on name doesn`t bypass FX
+--    # refresh arrange after show/hide FX
 
 
      
-  local vrs = 'v1.0'
+  local vrs = 'v1.01'
   --NOT gfx NOT reaper
   
 
@@ -26,7 +31,7 @@
                     data = false,
                     data_proj = false, 
                     conf = false}
-  local mouse = {}
+   mouse = {}
    data = {}
   local obj = {}
   
@@ -50,7 +55,7 @@
             wind_x =  50,
             wind_y =  50,
             wind_w =  450,
-            wind_h =  450,
+            wind_h =  200,
             dock =    0,
             dock2 =    0, -- set manually docked state
             
