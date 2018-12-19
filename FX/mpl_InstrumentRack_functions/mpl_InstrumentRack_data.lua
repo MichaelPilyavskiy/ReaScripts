@@ -89,7 +89,9 @@
   function Data_Update2 (conf, obj, data, refresh, mouse) 
     for i = 1, #data do
       local tr = data[i].tr_ptr
-      if data[i].tr_peak1 then data[i].tr_peak1 = (data[i].tr_peak1 + Track_GetPeakInfo( tr, 0 ) ) / 2 else data[i].tr_peak1 = Track_GetPeakInfo( tr, 0 ) end
-      if data[i].tr_peak2 then data[i].tr_peak2 = (data[i].tr_peak2 + Track_GetPeakInfo( tr, 1 ) ) / 2 else data[i].tr_peak2 = Track_GetPeakInfo( tr,1 ) end
+      if  ValidatePtr2( 0, tr, 'MediaTrack*' ) then
+        if data[i].tr_peak1 then data[i].tr_peak1 = (data[i].tr_peak1 + Track_GetPeakInfo( tr, 0 ) ) / 2 else data[i].tr_peak1 = Track_GetPeakInfo( tr, 0 ) end
+        if data[i].tr_peak2 then data[i].tr_peak2 = (data[i].tr_peak2 + Track_GetPeakInfo( tr, 1 ) ) / 2 else data[i].tr_peak2 = Track_GetPeakInfo( tr,1 ) end
+      end
     end
   end

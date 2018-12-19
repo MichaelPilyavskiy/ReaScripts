@@ -382,13 +382,15 @@
   end
   function GUI_Peaks(conf, obj, data, refresh, mouse)
     for i = 1, #data do 
-      if obj['fx_fr'..i] then
+      if obj['fx_fr'..i] and data[i].tr_peak1  then
         local x = obj['fx_fr'..i].x + obj.offs2
         local y = obj['fx_fr'..i].y + obj.offs*2 + obj.but_small_h
         local w = obj.offs2
         local h = obj.but_small_h*2 + obj.offs
-        local peak1_h = math.floor( (data[i].tr_peak1*h)^1.2  )
-        local peak2_h = math.floor( (data[i].tr_peak2*h)^1.2  )
+        local peak1 = (120+lim(WDL_VAL2DB(data[i].tr_peak1) , -120, 12)) / 132
+        local peak2 = (120+lim(WDL_VAL2DB(data[i].tr_peak2) , -120, 12)) / 132
+        local peak1_h = math.floor( peak1*h )
+        local peak2_h = math.floor( peak2*h  )
         gfx.set(1,1,1,0.02)
         gfx.rect(x,y,w,h,1)
         gfx.rect(x+w,y,w,h,1)

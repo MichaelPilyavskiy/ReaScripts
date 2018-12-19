@@ -1,7 +1,7 @@
 -- @description InstrumentRack
--- @version 1.03
+-- @version 1.04
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=165672
+-- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
 -- @provides
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_GUI.lua
@@ -9,15 +9,14 @@
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua
 -- @changelog
---    + Add navigate preset buttons
---    + Option: scroll to track in TCP and MCP on pressing 'Edit'
---    + Show peaks
---    + Search for renamed RS5k instances
-     
-  local vrs = 'v1.03'
-  --NOT gfx NOT reaper
-  
+--    + Mousewheel scroll support
+--    + Option: show FX chain instead floating FX
+--    # peaks: properly convert peaks from linear scale to dB
+--    # peaks: validate track pointer
 
+
+  local vrs = 'v1.04'
+  --NOT gfx NOT reaper
   
   --  INIT -------------------------------------------------
   local conf = {}  
@@ -60,6 +59,7 @@
             
             -- options
             scrolltotrackonedit = 0, 
+            floatchain = 0,
             }
     return t
   end  

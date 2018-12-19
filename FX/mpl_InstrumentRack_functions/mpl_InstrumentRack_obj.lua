@@ -106,9 +106,13 @@
         func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
         
       { str = '#Options'},    
-      { str = 'Select and scroll to track on pressing "Edit"|',
+      { str = 'Edit: Select and scroll to track',
         state = conf.scrolltotrackonedit ==1 ,
-        func = function()  conf.scrolltotrackonedit = math.abs(1-conf.scrolltotrackonedit)  end  } ,         
+        func = function()  conf.scrolltotrackonedit = math.abs(1-conf.scrolltotrackonedit)  end  } ,   
+      { str = 'Edit: Show FX chain instead floating FX|',
+        state = conf.floatchain ==1 ,
+        func = function()  conf.floatchain = math.abs(1-conf.floatchain)  end  } ,                 
+                   
                    
       { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
         func = function() 
@@ -258,7 +262,9 @@
                         func = function() 
                           local ret, tr, id = VF_GetFXByGUID(data[i].GUID)
                           if ret then
-                            if data[i].is_open then TrackFX_Show( tr, id, 2) else TrackFX_Show( tr, id, 3 )  end
+                            if data[i].is_open then TrackFX_Show( tr, id, 2) else 
+                              if conf.floatchain == 1 then TrackFX_Show( tr, id, 1 ) else TrackFX_Show( tr, id, 3 ) end
+                            end
                             if conf.scrolltotrackonedit == 1 then
                               SetMixerScroll( tr )
                               SetOnlyTrackSelected( tr )

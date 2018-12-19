@@ -39,7 +39,7 @@
     mouse.wheel = gfx.mouse_wheel
     --mouse.context = '_window'
     mouse.is_moving = mouse.last_x and mouse.last_y and (mouse.last_x ~= mouse.x or mouse.last_y ~= mouse.y)
-    mouse.wheel_trig = mouse.last_wheel and (mouse.wheel - mouse.last_wheel) 
+    mouse.wheel_trig = mouse.last_wheel and mouse.wheel ~= mouse.last_wheel 
     mouse.wheel_on_move = mouse.wheel_trig and mouse.wheel_trig ~= 0
     if (mouse.LMB_state and not mouse.last_LMB_state) or (mouse.MMB_state and not mouse.last_MMB_state) then  
        mouse.last_x_onclick = mouse.x     
@@ -47,6 +47,12 @@
        mouse.LMB_state_TS = os.clock()
     end  
     
+    if MOUSE_Match(mouse, {x=0,y=0,w=gfx.w,h=gfx.h}) and mouse.wheel_trig  then
+      local dir = -1
+      if mouse.wheel > mouse.last_wheel then dir= 1 end
+      obj.scroll_value = lim(obj.scroll_value - 0.1*dir)
+      refresh.GUI = true
+    end
     
      mouse.DLMB_state = mouse.LMB_state 
                         and not mouse.last_LMB_state
