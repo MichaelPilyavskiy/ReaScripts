@@ -1,5 +1,5 @@
 -- @description InstrumentRack
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for showing instruments in currently opened REAPER project
@@ -9,11 +9,12 @@
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua
 -- @changelog
---    # scan VST3i in FX name
-
-
+--    + Add navigate preset buttons
+--    + Option: scroll to track in TCP and MCP on pressing 'Edit'
+--    + Show peaks
+--    + Search for renamed RS5k instances
      
-  local vrs = 'v1.02'
+  local vrs = 'v1.03'
   --NOT gfx NOT reaper
   
 
@@ -26,8 +27,8 @@
                     data = false,
                     data_proj = false, 
                     conf = false}
-   mouse = {}
-   data = {}
+  local mouse = {}
+  local data = {}
   local obj = {}
   
   local info = debug.getinfo(1,'S');  
@@ -57,6 +58,8 @@
             -- mouse
             mouse_wheel_res = 960,
             
+            -- options
+            scrolltotrackonedit = 0, 
             }
     return t
   end  
@@ -72,6 +75,8 @@
       Data_Update (conf, obj, data, refresh, mouse) 
       refresh.data = nil 
     end  
+    
+    Data_Update2(conf, obj, data, refresh, mouse)
     
     if refresh.conf == true then 
       ExtState_Save(conf)

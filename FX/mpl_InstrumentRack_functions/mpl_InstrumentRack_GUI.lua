@@ -22,7 +22,6 @@
     if a then gfx.a = a end  
   end
 
-  
   ---------------------------------------------------
   function GUI_knob(obj, b)
     local x,y,w,h,val =b.x,b.y,b.w,b.h, b.val
@@ -381,8 +380,26 @@
       end
     end
   end
+  function GUI_Peaks(conf, obj, data, refresh, mouse)
+    for i = 1, #data do 
+      if obj['fx_fr'..i] then
+        local x = obj['fx_fr'..i].x + obj.offs2
+        local y = obj['fx_fr'..i].y + obj.offs*2 + obj.but_small_h
+        local w = obj.offs2
+        local h = obj.but_small_h*2 + obj.offs
+        local peak1_h = math.floor( (data[i].tr_peak1*h)^1.2  )
+        local peak2_h = math.floor( (data[i].tr_peak2*h)^1.2  )
+        gfx.set(1,1,1,0.02)
+        gfx.rect(x,y,w,h,1)
+        gfx.rect(x+w,y,w,h,1)
+        col(obj, 'green') 
+        gfx.rect(x,y+h-peak1_h,w,peak1_h,1)
+        gfx.rect(x+w,y+h-peak2_h,w,peak2_h,1)                   
+      end
+    end
+  end
     ---------------------------------------------------
-  function GUI_draw(conf, obj, data, refresh, mouse, strategy)
+  function GUI_draw(conf, obj, data, refresh, mouse)
     gfx.mode = 0
     
     -- 1 main
@@ -440,6 +457,7 @@
           0,0,gfx.w, gfx.h,
           0,0,gfx.w, gfx.h, 0,0)  
 
+    GUI_Peaks(conf, obj, data, refresh, mouse)
     
     refresh.GUI = nil
     refresh.GUI_minor = nil

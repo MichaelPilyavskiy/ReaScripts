@@ -51,6 +51,7 @@
                             tr_mute = tr_mute,
                             tr_isfreezed =  tr_isfreezed,
                             tr_automode = tr_automode,
+                            tr_issel = IsTrackSelected( tr ),
                             }      
       end
       for fx_id =1, TrackFX_GetCount( tr ) do
@@ -59,6 +60,7 @@
           or buf:match('DXi') 
           or buf:match('AUi') 
           or buf:match('VST3i') 
+          or buf:lower():match('rs5k') 
           or tr_isfreezed 
           
           then
@@ -67,6 +69,7 @@
                             bypass =  TrackFX_GetEnabled(tr, fx_id-1 ),
                             GUID =  TrackFX_GetFXGUID( tr, fx_id-1),
                             trGUID = GetTrackGUID( tr ), 
+                            tr_ptr = tr,
                             tr_name = tr_name,
                             tr_id = trid,
                             presetname = presetname,
@@ -76,8 +79,17 @@
                             tr_mute = tr_mute,
                             tr_isfreezed =  tr_isfreezed,
                             tr_automode = tr_automode,
+                            tr_issel = IsTrackSelected( tr ),
                             }
         end
       end
     end
   end  
+  ---------------------------------------------------   
+  function Data_Update2 (conf, obj, data, refresh, mouse) 
+    for i = 1, #data do
+      local tr = data[i].tr_ptr
+      if data[i].tr_peak1 then data[i].tr_peak1 = (data[i].tr_peak1 + Track_GetPeakInfo( tr, 0 ) ) / 2 else data[i].tr_peak1 = Track_GetPeakInfo( tr, 0 ) end
+      if data[i].tr_peak2 then data[i].tr_peak2 = (data[i].tr_peak2 + Track_GetPeakInfo( tr, 1 ) ) / 2 else data[i].tr_peak2 = Track_GetPeakInfo( tr,1 ) end
+    end
+  end
