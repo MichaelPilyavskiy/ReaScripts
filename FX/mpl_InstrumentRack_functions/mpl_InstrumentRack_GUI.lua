@@ -385,7 +385,7 @@
       if obj['fx_fr'..i] and data[i].tr_peak1  then
         local x = obj['fx_fr'..i].x + obj.offs2
         local y = obj['fx_fr'..i].y + obj.offs*2 + obj.but_small_h
-        local w = obj.offs2
+        local w = obj.peak_w
         local h = obj.but_small_h*2 + obj.offs
         local peak1 = (120+lim(WDL_VAL2DB(data[i].tr_peak1) , -120, 12)) / 132
         local peak2 = (120+lim(WDL_VAL2DB(data[i].tr_peak2) , -120, 12)) / 132

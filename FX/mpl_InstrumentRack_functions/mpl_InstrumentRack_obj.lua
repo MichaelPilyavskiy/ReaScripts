@@ -7,7 +7,7 @@
 
 
   ---------------------------------------------------
-  function OBJ_Update(conf, obj, data, refresh, mouse)
+  function OBJ_Update(conf, obj, data, refresh, mouse, data_ext)
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
     
     local min_w = 100
@@ -15,24 +15,30 @@
     local reduced_view = gfx.h  <= min_h
     gfx.w  = math.max(min_w,gfx.w)
     gfx.h  = math.max(min_h,gfx.h)
-    
+
+    obj.but_small_h = 13
+        
     obj.menu_h = 30
     obj.scroll_w = 15
-    obj.scroll_manual_h = 15
-    obj.but_small_h = 15
+    obj.scroll_manual_h = 15    
     
     obj.list_offs_y = 0
     obj.list_it_h = 20
     obj.list_it_yspace = 2
     
-    obj.but_w = 22
+    obj.but_w = 22  
     obj.txt_inactive = 0.2
     obj.txt_active = 1
-    obj.colfill_a_auto = 0.4
+    obj.colfill_a_auto = 0.4  
+      
+    obj.knob_area_h = 30
+    obj.knob_w = obj.but_w*2
+    obj.knob_h = obj.knob_area_h
+    obj.peak_w = obj.but_w/4
     
-    Obj_MenuMain  (conf, obj, data, refresh, mouse)
+    Obj_MenuMain  (conf, obj, data, refresh, mouse, data_ext)
     Obj_Scroll(conf, obj, data, refresh, mouse)
-    Obj_GenerateRack(conf, obj, data, refresh, mouse)
+    Obj_GenerateRack(conf, obj, data, refresh, mouse, data_ext)
     
     for key in pairs(obj) do if type(obj[key]) == 'table' then       obj[key].context = key     end end    
   end
@@ -78,7 +84,7 @@
                           }                           
   end
   -----------------------------------------------
-  function Obj_MenuMain(conf, obj, data, refresh, mouse)
+  function Obj_MenuMain(conf, obj, data, refresh, mouse, data_ext)
             obj.menu = { clear = true,
                         x = gfx.w - obj.scroll_w,--obj.offs,
                         y = gfx.h - obj.menu_h,
@@ -105,15 +111,43 @@
       { str = 'Contact: MPL SoundCloud|',
         func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
         
-      { str = '#Options'},    
-      { str = 'Edit: Select and scroll to track',
+      { str = '#Options'},
+      { str = '>Edit'},     
+      { str = 'Select and scroll to track on click',
         state = conf.scrolltotrackonedit ==1 ,
         func = function()  conf.scrolltotrackonedit = math.abs(1-conf.scrolltotrackonedit)  end  } ,   
-      { str = 'Edit: Show FX chain instead floating FX|',
+      { str = 'Show FX chain instead floating FX|<',
         state = conf.floatchain ==1 ,
         func = function()  conf.floatchain = math.abs(1-conf.floatchain)  end  } ,                 
-                   
-                   
+      { str = '>Controls'},                     
+      { str = 'Show all controls',
+        func = function()
+                   for i = 1, #data do
+                     if data[i].GUID then
+                       if not data_ext[data[i].GUID] then data_ext[data[i].GUID] = {} end
+                       data_ext[data[i].GUID].open = true
+                      end 
+                    end
+                    refresh.data_ext = true
+                    refresh.data = true
+                    refresh.GUI = true
+                end  } ,
+      { str = 'Hide all controls',
+        func = function()
+                   for i = 1, #data do
+                     if data[i].GUID then
+                       if not data_ext[data[i].GUID] then data_ext[data[i].GUID] = {} end
+                       data_ext[data[i].GUID].open = false
+                      end 
+                    end
+                    refresh.data_ext = true
+                    refresh.data = true
+                    refresh.GUI = true
+                end  } ,                    
+      { str = 'Allow only one FX control stay opened|<|',
+        state = conf.allowonlyonectrl ==1 ,
+        func = function()  conf.allowonlyonectrl = math.abs(1-conf.allowonlyonectrl)  end  } ,  
+                                                             
       { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
         func = function() 
                   conf.dock2 = math.abs(1-conf.dock2) 
@@ -163,11 +197,12 @@
     
   end
   ---------------------------------------------------------
-  function Obj_GenerateRack(conf, obj, data, refresh, mouse)
+  function Obj_GenerateRack(conf, obj, data, refresh, mouse, data_ext)
     local y_pos = obj.list_offs_y
     local com_h,last_h
     for i = 1, #data do
       local h_it = obj.but_small_h*3+obj.offs*5--obj.list_it_h * 2 
+      if data[i].GUID and data_ext[data[i].GUID] and data_ext[data[i].GUID].open == true then h_it = h_it + obj.knob_area_h end        
       local a_frame = 0
       if data[i].tr_issel then a_frame = 0.3 end
       obj['fx_fr'..i] = { clear = true,
@@ -190,13 +225,14 @@
 
     for i = 1, #data do
       obj['fx_fr'..i].y = obj['fx_fr'..i].y - (com_h-last_h)*obj.scroll_value
-      Obj_GenerateRack_Controls(conf, obj, data, refresh, mouse, obj['fx_fr'..i], i)   
-      Obj_GenerateRack_Controls_name(conf, obj, data, refresh, mouse, obj['fx_fr'..i], i)
+      local x_drift = Obj_GenerateRack_Controls(conf, obj, data, refresh, mouse, data_ext, obj['fx_fr'..i], i)
+      Obj_GenerateRack_Controls_name(conf, obj, data, refresh, mouse, data_ext, obj['fx_fr'..i], i) 
+      Obj_GenerateRack_Controls_knobs(conf, obj, data, refresh, mouse, data_ext, obj['fx_fr'..i], i, x_drift)  
     end    
     
   end
   ------------------------------------------------------------------
-  function Obj_GenerateRack_Controls(conf, obj, data, refresh, mouse, src_t, i) 
+  function Obj_GenerateRack_Controls(conf, obj, data, refresh, mouse, data_ext, src_t, i) 
     -- offline state
       local col_fill,colfill_a = 'white'  ,0
       if not data[i].is_offline then col_fill,colfill_a = 'red', 0.8 end
@@ -467,13 +503,129 @@
                           end
                         end
                       }                                                                                                                                                                                  
-  
+    x_drift = x_drift + obj.but_w
+    return x_drift
+                        
  
   end
   ----------------------------------------------------------------
-  function Obj_GenerateRack_Controls_name(conf, obj, data, refresh, mouse, src_t, i)   
+  function Obj_GenerateRack_Controls_knobs(conf, obj, data, refresh, mouse, data_ext, src_t, i, x_drift)   
+    local w_knob = gfx.w- x_drift- obj.offs*3-obj.scroll_w
+    if w_knob < obj.but_w*3 then return end
+    
+    local kn_cnt = 0 
+    for key in pairs(data[i].tcp_params) do kn_cnt = kn_cnt + 1 end
+    local alpha_back = 0.15 if kn_cnt > 0  then alpha_back = 0.6 end
+    -- knobs
+      obj['fx_knob_setopen'..i] = { clear = true,
+                        x = x_drift+ obj.offs,
+                        y = src_t.y + obj.offs,
+                        w = w_knob,
+                        h = obj.but_small_h,
+                        alpha_back = alpha_back,
+                        txt=  'Controls',
+                        show = true,
+                        fontsz = obj.GUI_fontsz3,
+                        a_frame = 0,
+                        func =  function() 
+                                  if data[i].GUID then
+                                    if not data_ext[data[i].GUID] then data_ext[data[i].GUID] = {} end
+                                    local new_state = not data_ext[data[i].GUID].open
+                                    data_ext[data[i].GUID].open = new_state
+                                    if conf.allowonlyonectrl == 1 and new_state == true then
+                                      for GUID in pairs(data_ext) do
+                                        if data[i].GUID~= GUID then
+                                          data_ext[GUID].open  = false
+                                        end
+                                      end
+                                    end
+                                    
+                                    refresh.data_ext = true
+                                    refresh.data = true
+                                    refresh.GUI = true
+                                  end                                 
+                                end
+                      }
+                      
+      if not data[i].ext_t or not data[i].ext_t.open then return end
+      
+      --[[local s_cnt = 0
+      for tcp_params_id in  pairs(data[i].tcp_params) do s_cnt = s_cnt + 1 end
+      local x_sends_shift = s_cnt * obj.knob_w]]
+
+              
+      local tcp_params_id_int = 0
+      for tcp_params_id in  pairs(data[i].tcp_params) do
+        tcp_params_id_int = tcp_params_id_int + 1 
+        local val = TrackFX_GetParamNormalized( data[i].tr_ptr, data[i].fx_idx, tcp_params_id ) 
+                      
+                      
+        obj['fx_'..i..'tcp'..tcp_params_id] = { clear = true,
+                          is_knob = true,
+                          knob_y_shift = 7,
+                        x = src_t.x  + obj.offs2 + obj.knob_w * (tcp_params_id_int-1),
+                        y = src_t.y  +src_t.h  - obj.knob_area_h,
+                        w = obj.knob_w,
+                        h = obj.knob_h,
+                        disable_blitback = true,
+                          col = 'white',
+                          txt= '',
+                          val = lim(val),
+                          show = true,
+                          fontsz = obj.GUI_fontsz2,
+                          a_frame = 0,
+                          func =  function()                   
+                                    local val_intern = TrackFX_GetParamNormalized( data[i].tr_ptr, data[i].fx_idx, tcp_params_id )                                                       
+                                    mouse.context_latch_val = val_intern
+                                  end,
+                          func_LD2 = function()
+                                        if mouse.context_latch_val then                                           
+                                          local out_val = lim(mouse.context_latch_val + mouse.dx*0.0005 - mouse.dy*0.01)
+                                          obj['fx_'..i..'tcp'..tcp_params_id].val = out_val
+                                          TrackFX_SetParamNormalized( data[i].tr_ptr, data[i].fx_idx, tcp_params_id ,out_val) 
+                                          
+                                          local retval, parname = TrackFX_GetParamName( data[i].tr_ptr, data[i].fx_idx, tcp_params_id ,'' )
+                                          local retval, parform = TrackFX_GetFormattedParamValue( data[i].tr_ptr, data[i].fx_idx, tcp_params_id ,'' )
+                                          obj['fx_'..i..'tcp_val'].txt=parname..':'.. parform                              
+                                          
+                                          refresh.GUI_minor = true
+                                        end
+                                      end  ,
+                          func_mouseover =  function()
+                                                local retval, parname = TrackFX_GetParamName( data[i].tr_ptr, data[i].fx_idx, tcp_params_id ,'' )
+                                                local retval, parform = TrackFX_GetFormattedParamValue( data[i].tr_ptr, data[i].fx_idx,tcp_params_id ,'' )
+                                                obj['fx_'..i..'tcp_val'].txt=parname..': '.. parform   
+                                              refresh.GUI_minor = true
+                                            end  ,
+                          onrelease_L2  = function()  
+                                            obj['fx_'..i..'tcp_val'].txt= data[i].presetname
+                                          end,
+                          }  
+    end             
+    
+    local xval = src_t.x  + obj.offs2 + obj.knob_w * tcp_params_id_int
+    local w_val = gfx.w - xval - obj.scroll_w - obj.offs
+    if w_val > 30 then
+    
+      obj['fx_'..i..'tcp_val'] = { clear = true,
+                      x = xval,
+                      y = src_t.y  +src_t.h  - obj.knob_area_h,
+                      w = w_val,
+                      h = obj.knob_h,
+                      txt=  '',
+                      show = true,
+                      fontsz = obj.GUI_fontsz3,
+                      a_frame = 0,
+                      disable_blitback = true,
+                      ignore_mouse = true,
+                    }         
+    end
+           
+  end
+  ----------------------------------------------------------------
+  function Obj_GenerateRack_Controls_name(conf, obj, data, refresh, mouse, data_ext, src_t, i)   
     -- FX name
-      local name_x = src_t.x + obj.offs2*4
+      local name_x = src_t.x + obj.peak_w*2 + obj.offs2
       local txt = data[i].name
       obj['fx_name'..i] = { clear = true,
                         x = name_x,
@@ -493,6 +645,7 @@
                         end
                       }    
     -- preset prev
+      --if data[i].presetname == '' then return end
       obj['fx_presmove_p'..i] = { clear = true,
                         x = name_x,
                         y = src_t.y + obj.but_small_h*2 + obj.offs*3,
@@ -535,7 +688,7 @@
                                   end
                                 end,
                       }                       
-    -- preset
+    -- preset 
       local preset_w = 200
       local txt = data[i].presetname
       obj['fx_presname'..i] = { clear = true,
@@ -552,6 +705,7 @@
                         fontsz = obj.GUI_fontsz2,
                         a_frame = 0,
                         ignore_mouse = true,
-                      }                       
+                      }  
+                             
                             
   end  

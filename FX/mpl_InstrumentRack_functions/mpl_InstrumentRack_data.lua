@@ -32,7 +32,7 @@
       end
   end
   ---------------------------------------------------   
-  function Data_Update (conf, obj, data, refresh, mouse) 
+  function Data_Update (conf, obj, data, refresh, mouse, data_ext) 
     --msg('upd')
     for trid = 1, CountTracks(0) do
       local tr = GetTrack(0,trid-1)
@@ -61,13 +61,26 @@
           or buf:match('AUi') 
           or buf:match('VST3i') 
           or buf:lower():match('rs5k') 
-          or tr_isfreezed 
-          
+          or tr_isfreezed           
           then
+          
           local  retval, presetname = TrackFX_GetPreset( tr, fx_id-1, '' )
+          local fx_GUID = TrackFX_GetFXGUID( tr, fx_id-1)
+          local ext_t if data_ext[fx_GUID] then ext_t = CopyTable(data_ext[fx_GUID]) end
+          
+          local tcp_params = {}
+          for tcp_id = 1, CountTCPFXParms( 0, tr ) do
+            local retval, fxindex, parmidx = GetTCPFXParm( 0, tr, tcp_id-1 )
+            if retval and fxindex == fx_id-1 then
+              local param_f = TrackFX_GetParamNormalized( tr, fx_id-1, parmidx )
+              tcp_params[parmidx] = param_f
+            end
+          end
+          
           data[#data+1] = {name = buf,
+                            fx_idx= fx_id-1,
                             bypass =  TrackFX_GetEnabled(tr, fx_id-1 ),
-                            GUID =  TrackFX_GetFXGUID( tr, fx_id-1),
+                            GUID = fx_GUID ,
                             trGUID = GetTrackGUID( tr ), 
                             tr_ptr = tr,
                             tr_name = tr_name,
@@ -80,6 +93,8 @@
                             tr_isfreezed =  tr_isfreezed,
                             tr_automode = tr_automode,
                             tr_issel = IsTrackSelected( tr ),
+                            ext_t=ext_t,
+                            tcp_params = tcp_params,
                             }
         end
       end

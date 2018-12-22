@@ -1,5 +1,5 @@
 -- @description InstrumentRack
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
@@ -9,13 +9,11 @@
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua
 -- @changelog
---    + Mousewheel scroll support
---    + Option: show FX chain instead floating FX
---    # peaks: properly convert peaks from linear scale to dB
---    # peaks: validate track pointer
+--    + Port TCP controls related to instrument
+--    + Actions to show/hide all controls
+--    + Option: allow only one control stay opened
 
-
-  local vrs = 'v1.04'
+  local vrs = 'v1.05'
   --NOT gfx NOT reaper
   
   --  INIT -------------------------------------------------
@@ -28,6 +26,7 @@
                     conf = false}
   local mouse = {}
   local data = {}
+  local data_ext = {}
   local obj = {}
   
   local info = debug.getinfo(1,'S');  
@@ -49,8 +48,8 @@
             ES_key = 'MPL_InstrumentRack',
             wind_x =  50,
             wind_y =  50,
-            wind_w =  450,
-            wind_h =  200,
+            wind_w =  500,
+            wind_h =  400,
             dock =    0,
             dock2 =    0, -- set manually docked state
             
@@ -60,9 +59,34 @@
             -- options
             scrolltotrackonedit = 0, 
             floatchain = 0,
+            allowonlyonectrl = 1,
             }
     return t
   end  
+  --------------------------------------------------
+  function ExtStateProj_Set(data_ext)
+    local str = ''
+    for GUID in pairs(data_ext) do
+      local open = 0
+      if data_ext[GUID].open == true then open = 1 end
+      str = str..GUID..' '
+            ..open..'\n'
+    end
+    SetProjExtState( 0, conf.ES_key, 'plug_state', str )
+  end
+  --------------------------------------------------
+  function ExtStateProj_Get(data_ext)
+    local retval, str = GetProjExtState( 0, conf.ES_key, 'plug_state' )
+    for line in str:gmatch('[^\r\n]+') do
+      local t = {}
+      for val in line:gmatch('[^%s]+') do t[#t+1] = val end
+      local GUID = t[1]
+      local open = 0 
+      if t[2] then open = tonumber(t[2]) end
+      data_ext[GUID] = {open= open==1}
+      
+    end    
+  end
   ---------------------------------------------------    
   function run()
     obj.clock = os.clock()
@@ -70,9 +94,15 @@
     MOUSE(conf, obj, data, refresh, mouse)
     CheckUpdates(obj, conf, refresh)
     
+    if refresh.data_ext == true then 
+      ExtStateProj_Set(data_ext)
+      refresh.data_ext = nil 
+    end
+    
     if refresh.data == true then 
       data = {}
-      Data_Update (conf, obj, data, refresh, mouse) 
+      ExtStateProj_Get(data_ext)
+      Data_Update (conf, obj, data, refresh, mouse, data_ext)       
       refresh.data = nil 
     end  
     
@@ -83,7 +113,7 @@
       refresh.conf = nil 
     end
 
-    if refresh.GUI == true or refresh.GUI_onStart == true then            OBJ_Update              (conf, obj, data, refresh, mouse,strategy) end  
+    if refresh.GUI == true or refresh.GUI_onStart == true then    OBJ_Update   (conf, obj, data, refresh, mouse,data_ext) end  
     if refresh.GUI_minor == true then refresh.GUI = true end
     GUI_draw               (conf, obj, data, refresh, mouse, strategy)    
                                                
@@ -107,7 +137,7 @@
                     conf.wind_h, 
                     conf.dock2, conf.wind_x, conf.wind_y)
           OBJ_init(obj)
-          OBJ_Update(conf, obj, data, refresh, mouse)
+          OBJ_Update(conf, obj, data, refresh, mouse, data_ext)
           run()  
   end
 --------------------------------------------------------------------  
