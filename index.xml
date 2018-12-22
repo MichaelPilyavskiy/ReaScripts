@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3d37b36ae3599e0e23df30193a3ee5cda9549caa" name="MPL Scripts">
+<index version="1" commit="006c164c4c010c998452539b7702f57a1b02b4c3" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3353,13 +3353,31 @@ setup min gain, attack =0]]></changelog>
   </category>
   <category name="Render">
     <reapack name="mpl_Add to render queue selected tracks with their parents.lua" type="script" desc="Add to render queue selected tracks with their parents">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20parents.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2018-12-22T08:06:31Z">
+        <changelog><![CDATA[# fix check for parent track
+# restore mute/solo/selected states
++ Prepare message  ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/006c164c4c010c998452539b7702f57a1b02b4c3/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20parents.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Add to render queue selected tracks with their sends.lua" type="script" desc="Add to render queue selected tracks with their sends">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20sends.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2018-12-22T08:06:31Z">
+        <changelog><![CDATA[# fix check for children track
+# restore mute/solo/selected states
++ Prepare message]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/006c164c4c010c998452539b7702f57a1b02b4c3/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20sends.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Conditional bounce-in-place.lua" type="script" desc="Conditional bounce-in-place">
