@@ -1,5 +1,5 @@
 -- @description InstrumentRack
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
@@ -9,11 +9,9 @@
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua
 -- @changelog
---    + Port TCP controls related to instrument
---    + Actions to show/hide all controls
---    + Option: allow only one control stay opened
+--    + Option: allow show FX controls as well as instrument controls
 
-  local vrs = 'v1.05'
+  local vrs = 'v1.06'
   --NOT gfx NOT reaper
   
   --  INIT -------------------------------------------------
@@ -60,6 +58,7 @@
             scrolltotrackonedit = 0, 
             floatchain = 0,
             allowonlyonectrl = 1,
+            obeyyallcontrols = 0,
             }
     return t
   end  

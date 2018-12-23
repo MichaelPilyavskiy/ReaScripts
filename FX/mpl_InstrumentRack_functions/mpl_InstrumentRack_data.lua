@@ -68,12 +68,15 @@
           local fx_GUID = TrackFX_GetFXGUID( tr, fx_id-1)
           local ext_t if data_ext[fx_GUID] then ext_t = CopyTable(data_ext[fx_GUID]) end
           
-          local tcp_params = {}
+          local tcp_params = {cnt = 0}
+          local cnt = 0
           for tcp_id = 1, CountTCPFXParms( 0, tr ) do
             local retval, fxindex, parmidx = GetTCPFXParm( 0, tr, tcp_id-1 )
-            if retval and fxindex == fx_id-1 then
-              local param_f = TrackFX_GetParamNormalized( tr, fx_id-1, parmidx )
-              tcp_params[parmidx] = param_f
+            if retval and (conf.obeyyallcontrols == 1 or (conf.obeyyallcontrols == 0 and fxindex == fx_id-1)) then
+              local param_f = TrackFX_GetParamNormalized( tr, fxindex, parmidx )
+              if not tcp_params[fxindex] then tcp_params[fxindex] = {} end
+              cnt = cnt + 1
+              tcp_params[fxindex][parmidx] = param_f
             end
           end
           

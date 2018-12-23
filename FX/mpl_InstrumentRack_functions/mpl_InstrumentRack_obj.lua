@@ -144,6 +144,10 @@
                     refresh.data = true
                     refresh.GUI = true
                 end  } ,                    
+                
+      { str = 'Show only instrument TCP controls',
+        state = conf.obeyyallcontrols ==0 ,
+        func = function()  conf.obeyyallcontrols = math.abs(1-conf.obeyyallcontrols) refresh.GUI = true refresh.data = true  end  } ,                  
       { str = 'Allow only one FX control stay opened|<|',
         state = conf.allowonlyonectrl ==1 ,
         func = function()  conf.allowonlyonectrl = math.abs(1-conf.allowonlyonectrl)  end  } ,  
@@ -513,8 +517,7 @@
     local w_knob = gfx.w- x_drift- obj.offs*3-obj.scroll_w
     if w_knob < obj.but_w*3 then return end
     
-    local kn_cnt = 0 
-    for key in pairs(data[i].tcp_params) do kn_cnt = kn_cnt + 1 end
+    local kn_cnt = data[i].tcp_params.cnt
     local alpha_back = 0.15 if kn_cnt > 0  then alpha_back = 0.6 end
     -- knobs
       obj['fx_knob_setopen'..i] = { clear = true,
@@ -555,52 +558,63 @@
 
               
       local tcp_params_id_int = 0
-      for tcp_params_id in  pairs(data[i].tcp_params) do
-        tcp_params_id_int = tcp_params_id_int + 1 
-        local val = TrackFX_GetParamNormalized( data[i].tr_ptr, data[i].fx_idx, tcp_params_id ) 
-                      
-                      
-        obj['fx_'..i..'tcp'..tcp_params_id] = { clear = true,
-                          is_knob = true,
-                          knob_y_shift = 7,
-                        x = src_t.x  + obj.offs2 + obj.knob_w * (tcp_params_id_int-1),
-                        y = src_t.y  +src_t.h  - obj.knob_area_h,
-                        w = obj.knob_w,
-                        h = obj.knob_h,
-                        disable_blitback = true,
-                          col = 'white',
-                          txt= '',
-                          val = lim(val),
-                          show = true,
-                          fontsz = obj.GUI_fontsz2,
-                          a_frame = 0,
-                          func =  function()                   
-                                    local val_intern = TrackFX_GetParamNormalized( data[i].tr_ptr, data[i].fx_idx, tcp_params_id )                                                       
-                                    mouse.context_latch_val = val_intern
-                                  end,
-                          func_LD2 = function()
-                                        if mouse.context_latch_val then                                           
-                                          local out_val = lim(mouse.context_latch_val + mouse.dx*0.0005 - mouse.dy*0.01)
-                                          obj['fx_'..i..'tcp'..tcp_params_id].val = out_val
-                                          TrackFX_SetParamNormalized( data[i].tr_ptr, data[i].fx_idx, tcp_params_id ,out_val) 
-                                          
-                                          local retval, parname = TrackFX_GetParamName( data[i].tr_ptr, data[i].fx_idx, tcp_params_id ,'' )
-                                          local retval, parform = TrackFX_GetFormattedParamValue( data[i].tr_ptr, data[i].fx_idx, tcp_params_id ,'' )
-                                          obj['fx_'..i..'tcp_val'].txt=parname..':'.. parform                              
-                                          
-                                          refresh.GUI_minor = true
-                                        end
-                                      end  ,
-                          func_mouseover =  function()
-                                                local retval, parname = TrackFX_GetParamName( data[i].tr_ptr, data[i].fx_idx, tcp_params_id ,'' )
-                                                local retval, parform = TrackFX_GetFormattedParamValue( data[i].tr_ptr, data[i].fx_idx,tcp_params_id ,'' )
-                                                obj['fx_'..i..'tcp_val'].txt=parname..': '.. parform   
-                                              refresh.GUI_minor = true
-                                            end  ,
-                          onrelease_L2  = function()  
-                                            obj['fx_'..i..'tcp_val'].txt= data[i].presetname
-                                          end,
-                          }  
+      for fx_id in  pairs(data[i].tcp_params) do
+        if type(data[i].tcp_params[fx_id]) == 'table' then
+        for tcp_params_id in  pairs(data[i].tcp_params[fx_id]) do
+          
+          tcp_params_id_int = tcp_params_id_int + 1 
+          local val = TrackFX_GetParamNormalized( data[i].tr_ptr, fx_id, tcp_params_id ) 
+                        
+                        
+          obj['fx_'..fx_id..'_'..i..'tcp'..tcp_params_id] = { clear = true,
+                            is_knob = true,
+                            knob_y_shift = 7,
+                          x = src_t.x  + obj.offs2 + obj.knob_w * (tcp_params_id_int-1),
+                          y = src_t.y  +src_t.h  - obj.knob_area_h,
+                          w = obj.knob_w,
+                          h = obj.knob_h,
+                          disable_blitback = true,
+                            col = 'white',
+                            txt= '',
+                            val = lim(val),
+                            show = true,
+                            fontsz = obj.GUI_fontsz2,
+                            a_frame = 0,
+                            func =  function()                   
+                                      local val_intern = TrackFX_GetParamNormalized( data[i].tr_ptr, fx_id, tcp_params_id )                                                       
+                                      mouse.context_latch_val = val_intern
+                                    end,
+                            func_LD2 = function()
+                                          if mouse.context_latch_val then                                           
+                                            local out_val = lim(mouse.context_latch_val + mouse.dx*0.0005 - mouse.dy*0.01)
+                                            obj['fx_'..fx_id..'_'..i..'tcp'..tcp_params_id].val = out_val
+                                            TrackFX_SetParamNormalized( data[i].tr_ptr, fx_id, tcp_params_id ,out_val) 
+                                            
+                                            local retval, parname = TrackFX_GetParamName( data[i].tr_ptr, fx_id, tcp_params_id ,'' )
+                                            local retval, parform = TrackFX_GetFormattedParamValue( data[i].tr_ptr,fx_id, tcp_params_id ,'' )
+                                            local retval, fxname = TrackFX_GetFXName(data[i].tr_ptr,fx_id,'')
+                                            fxname = MPL_ReduceFXname(fxname).. ' / '
+                                            if conf.obeyyallcontrols == 0 then fxname = '' end
+                                            obj['fx_'..i..'tcp_val'].txt=fxname..parname..':'.. parform                              
+                                            
+                                            refresh.GUI_minor = true
+                                          end
+                                        end  ,
+                            func_mouseover =  function()
+                                                  local retval, parname = TrackFX_GetParamName( data[i].tr_ptr, fx_id, tcp_params_id ,'' )
+                                                  local retval, parform = TrackFX_GetFormattedParamValue( data[i].tr_ptr, fx_id, tcp_params_id ,'' )
+                                                  local retval, fxname = TrackFX_GetFXName(data[i].tr_ptr,fx_id,'')
+                                                  fxname = MPL_ReduceFXname(fxname).. ' / '
+                                                  if conf.obeyyallcontrols == 0 then fxname = '' end
+                                                  obj['fx_'..i..'tcp_val'].txt=fxname..parname..':'.. parform   
+                                                refresh.GUI_minor = true
+                                              end  ,
+                            onrelease_L2  = function()  
+                                              obj['fx_'..i..'tcp_val'].txt= data[i].presetname
+                                            end,
+                            }  
+        end
+      end
     end             
     
     local xval = src_t.x  + obj.offs2 + obj.knob_w * tcp_params_id_int
