@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.10
+-- @version 2.11
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -27,20 +27,12 @@
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 -- @changelog
---    + Preset/Position-based align: allow to force using next or previous points (not available for pattern/grid yet)
---    + Preset/Position-based align/Target/Items: add option to align item ends
---    + Preset/Position-based align/Target/Items: add option to align item ends with stretching active take
---    + Preset/Position-based align/Controls/Offset
---    + Preset: Stretch fit item to grid (no GUI)
---    + Preset/Controls: alt+click to reset knob
---    + Preset/Controls: right click to type value
---    # Various GUI tweaks
---    # Preset/Position-based align/Controls/Exclude within: fix grab wrong value
---    # Save preset: add scripts to MIDI Editor section when target is MIDI/MIDI Editor
-
+--    + Preset/Position-based align/MIDI: Note-off
+--    # Preset/Ordered Align: fix check for first object
+--    # Preset GUI tweaks
 
      
-  local vrs = 'v2.10'
+  local vrs = 'v2.11'
   --NOT gfx NOT reaper
   
 
@@ -54,7 +46,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-  local data = {}
+   data = {}
   local obj = {}
   local strategy = {}
   
@@ -104,7 +96,8 @@
         src_midi = 0 ,
         src_midi_msgflag = 1,--&1 note on &2 note off
         src_strmarkers = 0,
-         
+        
+        
     -- action -----------------------
       --  align
         act_action = 1 ,  -- 2 create -- 3 ordered alignment -- 4 raw quantize
@@ -178,34 +171,8 @@
   
   
 ---------------------------------------------------------------------
-  function CheckFunctions(str_func)
-    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
-    local f = io.open(SEfunc_path, 'r')
-    if f then
-      f:close()
-      dofile(SEfunc_path)
-      
-      if not _G[str_func] then 
-        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
-       else
-        return true
-      end
-      
-     else
-      reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
-    end  
-  end
-  ---------------------------------------------------
-  function CheckReaperVrs(rvrs) 
-    local vrs_num =  GetAppVersion()
-    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
-    if rvrs > vrs_num then 
-      reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0)
-      return
-     else
-      return true
-    end
-  end
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
+
 --------------------------------------------------------------------
   function LoadStrategy(conf, strategy, force_default)
     obj.is_strategy_dirty = false
@@ -332,5 +299,5 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
   end
 --------------------------------------------------------------------  
   local ret = CheckFunctions('VF_CalibrateFont') 
-  local ret2 = CheckReaperVrs(5.95)    
+  local ret2 = VF_CheckReaperVrs(5.95,true)    
   if ret and ret2 then main() end

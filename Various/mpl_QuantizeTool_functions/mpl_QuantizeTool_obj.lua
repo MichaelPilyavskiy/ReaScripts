@@ -291,7 +291,20 @@
                                             strategy.src_midi_msgflag = BinaryToggle(strategy.src_midi_msgflag, 0)                                          
                                             refresh.GUI = true
                                           end,                               
-                                },                
+                                },   
+                                { name = 'NoteOff',
+                                  state = strategy.src_midi_msgflag&2==2,
+                                  show = strategy.src_positions&1==1 
+                                      and strategy.src_midi&1==1 
+                                      and (strategy.act_action == 1  or strategy.act_action == 3),                                     
+                                  level = 2,
+                                  func =  function()
+                                            strategy.src_midi_msgflag = BinaryToggle(strategy.src_midi_msgflag, 1)                                          
+                                            refresh.GUI = true
+                                          end,                               
+                                },                                 
+                                
+                                             
                                 
                                 -------------------------      
                             { name = 'Stretch markers',
@@ -459,7 +472,7 @@
                                             refresh.GUI = true
                                           end,                               
                                 }, 
-                                --[[{ name = 'NoteOff',
+                                { name = 'NoteOff',
                                   state = strategy.ref_midi_msgflag&2==2,
                                   show = strategy.ref_positions&1==1 and strategy.ref_midi&1==1 ,
                                   level = 3,
@@ -467,7 +480,7 @@
                                             strategy.ref_midi_msgflag = BinaryToggle(strategy.ref_midi_msgflag, 1)                                          
                                             refresh.GUI = true
                                           end,                               
-                                },                 ]]                          
+                                },                                         
                                                                                                                                                                          
                             { name = 'Stretch markers',
                               state = strategy.ref_strmarkers,
@@ -1820,23 +1833,20 @@
   end
   -----------------------------------------------
   function Obj_TabExecute(conf, obj, data, refresh, mouse, strategy)
-    --if strategy.act_action == 1 then Obj_TabExecute_Align(conf, obj, data, refresh, mouse, strategy) end
-    --if strategy.act_action == 2 then Obj_TabExecute_Create(conf, obj, data, refresh, mouse, strategy) end
-    Obj_TabExecute_Controls(conf, obj, data, refresh, mouse, strategy)
-      local name = strategy.name
-      if obj.is_strategy_dirty==true then name = name..'*' end
-      obj.TabExe_stratname = { clear = true,
-                        --disable_blitback = true,
-                        x =  0,
-                        y = 0,--obj.exec_line_y,
-                        w = gfx.w,
-                        h = obj.tab_h-2,
-                        col = 'white',
-                        txt= name,
-                        show = true,
-                        fontsz = obj.GUI_fontsz2,
-                        a_frame = 0,
-                        
+  
+    local preset_w = 50
+    obj.TabExe_prestitle = { clear = true,
+                      --disable_blitback = true,
+                      x =  0,
+                      y = 0,--obj.exec_line_y,
+                      w = preset_w,
+                      h = obj.tab_h-2,
+                      col = 'white',
+                      txt= 'Preset',
+                      show = true,
+                      fontsz = obj.GUI_fontsz2,
+                      
+                      a_frame = 0,
                         func =  function() 
                                   local t = {  
                                    { str = 'Rename preset|',
@@ -1848,8 +1858,68 @@
                                                         refresh.GUI = true
                                                       end
                                                     end
-                                          },                                  
-                                   { str = 'Load default preset',
+                                          },  
+           
+      { str = 'Dump current preset configuration',
+        func = function() 
+                local str = ''
+                for key in spairs(strategy) do
+                  str = str..'\n'..key..' = '..strategy[key]
+                end
+                ClearConsole()
+                msg(str)
+              end,
+      },
+      { str = 'Dump current preset anchor points data',
+        func = function() 
+                local str = ''
+                for i= 1, #data.ref do  
+                  str = str..'\n'..i
+                  for key in spairs(data.ref[i]) do
+                    if type(data.ref[i][key]) == 'number' or type(data.ref[i][key]) == 'string' then
+                      str = str..'\n  '..key..' '..data.ref[i][key]
+                    end
+                  end
+                end
+                ClearConsole()
+                msg(str)
+              end,   
+      },   
+      { str = 'Dump current preset targets data',
+        func = function() 
+                local str = ''
+                for i= 1, #data.src do  
+                  str = str..'\n'..i
+                  for key in spairs(data.src[i]) do
+                    if type(data.src[i][key]) == 'number' or type(data.src[i][key]) == 'string' then
+                      str = str..'\n  '..key..' '..data.src[i][key]
+                    end
+                  end
+                end
+                ClearConsole()
+                msg(str)
+              end,
+      },                                          
+                                  }
+                                  Menu(mouse, t)
+                                end
+                                                                    
+                      }
+
+    obj.TabExe_presload = { clear = true,
+                      --disable_blitback = true,
+                      x =  preset_w,
+                      y = 0,--obj.exec_line_y,
+                      w = preset_w,
+                      h = obj.tab_h-2,
+                      col = 'white',
+                      txt= 'Load',
+                      show = true,
+                      fontsz = obj.GUI_fontsz2,                      
+                      a_frame = 0,
+                        func =  function() 
+                                  local t = {  
+{ str = 'Load default preset',
                                             func = function() 
                                                       LoadStrategy(conf, strategy, true)
                                                       refresh.GUI = true
@@ -1863,13 +1933,7 @@
                                                       refresh.GUI = true
                                                     end
                                           } ,    
-                                          { str = 'Save preset to file',
-                                            func = function() SaveStrategy(conf, strategy, 1 ) end
-                                          }   ,                                        
-                                          { str = 'Save preset to file and action list',
-                                            func = function() SaveStrategy(conf, strategy, 3) end
-                                          }  ,
-                                          { str = 'Open preset path|',
+                                          { str = 'Open presets path|',
                                             func = function() 
                                                     local strat_fp = '"'..obj.script_path .. 'mpl_QuantizeTool_presets\\"'  
                                                     Open_URL(strat_fp) 
@@ -1892,9 +1956,59 @@
                                   end      
                                   
                                   Menu(mouse, t)
---                                  
                                 end
-                        }                           
+                                                                    
+                      }
+                      
+                      
+    obj.TabExe_pressave = { clear = true,
+                      --disable_blitback = true,
+                      x =  preset_w*2,
+                      y = 0,--obj.exec_line_y,
+                      w = preset_w,
+                      h = obj.tab_h-2,
+                      col = 'white',
+                      txt= 'Save',
+                      show = true,
+                      fontsz = obj.GUI_fontsz2,                      
+                      a_frame = 0,
+                        func =  function() 
+                                  local t = {  
+                                                                
+                                          { str = 'Save preset to file',
+                                            func = function() SaveStrategy(conf, strategy, 1 ) end
+                                          }   ,                                        
+                                          { str = 'Save preset to file and action list',
+                                            func = function() SaveStrategy(conf, strategy, 3) end
+                                          }  ,
+                                          { str = 'Open presets path',
+                                            func = function() 
+                                                    local strat_fp = '"'..obj.script_path .. 'mpl_QuantizeTool_presets\\"'  
+                                                    Open_URL(strat_fp) 
+                                                  end
+                                          }  ,                                 
+                                        }
+                                  
+                                  Menu(mouse, t)
+                                end
+                                                                    
+                      } 
+                                                                
+    Obj_TabExecute_Controls(conf, obj, data, refresh, mouse, strategy)
+      local name = strategy.name
+      if obj.is_strategy_dirty==true then name = name..'*' end
+      obj.TabExe_stratname = { clear = true,
+                        --disable_blitback = true,
+                        x =  preset_w*3,
+                        y = 0,--obj.exec_line_y,
+                        w = gfx.w-preset_w*3,
+                        h = obj.tab_h-2,
+                        col = 'white',
+                        txt= name,
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,
+                            }                        
                         
                         
   end 
@@ -1951,48 +2065,6 @@
         
         
         
-        
-      { str = '#Developer area'},    
-      { str = 'Dump current preset configuration',
-        func = function() 
-                local str = ''
-                for key in spairs(strategy) do
-                  str = str..'\n'..key..' = '..strategy[key]
-                end
-                ClearConsole()
-                msg(str)
-              end,
-      },
-      { str = 'Dump anchor points',
-        func = function() 
-                local str = ''
-                for i= 1, #data.ref do  
-                  str = str..'\n'..i
-                  for key in spairs(data.ref[i]) do
-                    if type(data.ref[i][key]) == 'number' or type(data.ref[i][key]) == 'string' then
-                      str = str..'\n  '..key..' '..data.ref[i][key]
-                    end
-                  end
-                end
-                ClearConsole()
-                msg(str)
-              end,   
-      },   
-      { str = 'Dump targets|',
-        func = function() 
-                local str = ''
-                for i= 1, #data.src do  
-                  str = str..'\n'..i
-                  for key in spairs(data.src[i]) do
-                    if type(data.src[i][key]) == 'number' or type(data.src[i][key]) == 'string' then
-                      str = str..'\n  '..key..' '..data.src[i][key]
-                    end
-                  end
-                end
-                ClearConsole()
-                msg(str)
-              end,
-      },
                    
       { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
         func = function() 

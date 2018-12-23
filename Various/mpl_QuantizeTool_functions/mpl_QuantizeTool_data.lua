@@ -381,7 +381,7 @@
                 or  (table_name=='ref' and strategy.ref_midi_msgflag&1==1)  then 
               data[table_name][new_entry_id].ignore_search = false 
             end
-            
+
             
             -- search noteoff/add note to table
             for searchid = i+1, #ppq_t do
@@ -396,7 +396,18 @@
                     
                     data[table_name][new_entry_id].note_len_PPQ = ppq_search - ppq
                     data[table_name][new_entry_id].is_note = true
-                    data[table_name][new_entry_id].noteoff_msg1 = ppq_sorted_t[ppq_search][i2_search].msg1                      
+                    data[table_name][new_entry_id].noteoff_msg1 = ppq_sorted_t[ppq_search][i2_search].msg1  
+                    
+                    data[table_name][new_entry_id+1] = ppq_sorted_t[ppq_search][i2_search] 
+                    --data[table_name][new_entry_id+1].ignore_search = true
+                    data[table_name][new_entry_id+1].src_id = new_entry_id
+                    
+                    if      (table_name=='src' and strategy.src_midi_msgflag&2==2)
+                        or  (table_name=='ref' and strategy.ref_midi_msgflag&2==2)  then 
+                      data[table_name][new_entry_id+1].ignore_search = false 
+                    end
+                         
+                         
                     table.remove(ppq_sorted_t[ppq_search], i2_search)
                     if #ppq_sorted_t[ppq_search] == 0 then ppq_sorted_t[ppq_search] = nil end
                     goto next_evt
@@ -479,12 +490,13 @@
             
       local out_offs = math.floor(ppq_posOUT-ppq_cur)
       
-      if t.is_note then
+      if t.isNoteOn and strategy.src_midi_msgflag&1==1 then 
         local out_vel = math.max(1,math.floor(lim(out_val,0,1)*127))
-        --str_per_msg = str_per_msg.. string.pack("i4Bs4", out_offs,  t.flags , t.msg1)
         str_per_msg = str_per_msg.. string.pack("i4Bi4BBB", out_offs, t.flags, 3,  0x90| (t.chan-1), t.pitch, out_vel )
-        str_per_msg = str_per_msg.. string.pack("i4Bs4", t.note_len_PPQ,  t.flags , t.noteoff_msg1)
-        ppq_cur = ppq_cur+ out_offs+t.note_len_PPQ
+        ppq_cur = ppq_cur+ out_offs
+       elseif t.isNoteOff and strategy.src_midi_msgflag&2==2 then 
+        str_per_msg = str_per_msg.. string.pack("i4Bi4BBB", out_offs, t.flags, 3,  0x80| (t.chan-1), t.pitch, 0 )
+        ppq_cur = ppq_cur+ out_offs    
        else
         str_per_msg = str_per_msg.. string.pack("i4Bs4", out_offs,  t.flags , t.msg1)
         ppq_cur = ppq_cur+ out_offs
@@ -496,58 +508,6 @@
     local item = GetMediaItemTake_Item( take )
     UpdateItemInProject(item) 
   end
-    --[[
-    local temp_t= {}
-    local add_id = 1
-    for i = 1, #take_t do
-      if not last_ppq_pos or last_ppq_pos > take_t[i].ppq_pos then
-        add_id  = add_id - 1
-       else
-        add_id = add_id + 1
-      end
-      table.insert(temp_t, lim(add_id, 1, #temp_t), take_t[i])
-      last_ppq_pos = take_t[i].ppq_pos
-    end
-    take_t2 = temp_t
-    
-    for i = 1, #take_t2 do
-      local t = take_t2[i]          
-      if not t.ignore_search and t.out_pos then
-        local out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1
-        local out_pos_sec = TimeMap2_beatsToTime( 0, out_pos)
-        t.ppq_posOUT = MIDI_GetPPQPosFromProjTime( take, out_pos_sec )
-        for i2 = i+1, #take_t do
-          local t2 = take_t[i2]
-          if t2.ppq_pos > t.ppq_posOUT and t2.msg1:byte(1)>>4 == 0x8 and t2.msg1:byte(2)  == t.msg1:byte(2) then
-            t2.ppq_posOUT = t2.ppq_pos +  (t.ppq_posOUT-t.ppq_pos)
-            break
-          end
-        end
-       else
-        if not t.ppq_posOUT then t.ppq_posOUT = t.ppq_pos end
-      end
-    end
-        
-          
-        
-    -- return back all stuff
-    local str_per_msg  = ''
-    for i = 1, #take_t do
-      local offset
-      local t = take_t[i]
-      if i ==1 then 
-        offset = t.offset  + (t.ppq_posOUT - t.ppq_pos) 
-       else
-        offset = t.ppq_posOUT - take_t[i-1].ppq_posOUT
-      end
-      str_per_msg = str_per_msg.. string.pack("i4Bs4", math.modf(offset),  t.flags , t.msg1)
-    end
-    --MIDI_SetAllEvts( take, str_per_msg )
-    
-    
-    -- refresh
-    local item = GetMediaItemTake_Item( take )
-    UpdateItemInProject(item  ) ]]
   --------------------------------------------------- 
   function Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy)
     --local take =  reaper.GetMediaItemTakeByGUID( 0, t.tkGUID ) 
@@ -760,7 +720,7 @@
     -- loop src
       for i = 1, #data.src do        
         if data.src[i].pos and not data.src[i].ignore_search then
-          local out_pos,out_val          
+          local out_pos,out_val -- = data.src[i].pos, data.src[i].val
           if strategy.act_action==1 then
           
           -- static
@@ -829,8 +789,8 @@
       
     -- ordered align + pattern/grid
       local add_patlen = 0
-      if strategy.act_action==3 and (strategy.ref_pattern&1==1 or  strategy.ref_grid&1==1 ) then
-        local pat_pos, pat_val, pat_ID0 = DataSearchPatternVal(conf, data, strategy, data.src[1].pos, data.src[1].pos_beats, data.src[1].val)
+      if strategy.act_action==3 and (strategy.ref_pattern&1==1 or  strategy.ref_grid&1==1 ) and data.src[1] then
+        local pat_pos, pat_val, pat_ID0 = DataSearchPatternVal(conf, data, strategy, data.src[1].pos, data.src[1].pos_beats, data.src[1].val or 1)
         if pat_pos and pat_val and pat_ID0>0 then
           local start_pos = pat_pos
           local pat_ID = pat_ID0
