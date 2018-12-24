@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="60424baccbea8e3845425c9688fe04e4b32b3494" name="MPL Scripts">
+<index version="1" commit="0f458db1d83a2a2324e5cf57b2d7168d7468f969" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3396,6 +3396,10 @@ setup min gain, attack =0]]></changelog>
 # restore mute/solo/selected states
 + Prepare message]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/006c164c4c010c998452539b7702f57a1b02b4c3/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20sends.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2018-12-24T20:01:59Z">
+        <changelog><![CDATA[# fix check for external package]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f458db1d83a2a2324e5cf57b2d7168d7468f969/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20sends.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Conditional bounce-in-place.lua" type="script" desc="Conditional bounce-in-place">
