@@ -1,11 +1,9 @@
 -- @description Add to render queue selected tracks with their sends
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix check for children track
---    # restore mute/solo/selected states
---    + Prepare message
+--    # fix check for external package
 
   function main()
     local GUID_t = {}
@@ -65,18 +63,20 @@
   function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
 ---------------------------------------------------------------------
   local ret = CheckFunctions('VF_GetFXByGUID') 
-  local ret2 = VF_CheckReaperVrs(5.95,true)    
-  if ret and ret2 then 
-    local ret = MB([[
-1. Set up followed render settings: 
-    - "silently increment filenames" is CHECKED,
-    - Render Master mix,
-    - wildcards - $project (to prevent overwriting)
-2. Save render settings ("Save changes and close").
-3. Run script and check your render queue.    
-
-Run script?
-    ]], "", 4)
-    if ret == 6 then main()  end
+  if ret then
+    local ret2 = VF_CheckReaperVrs(5.95,true)    
+    if ret2 then 
+      local ret = MB([[
+  1. Set up followed render settings: 
+      - "silently increment filenames" is CHECKED,
+      - Render Master mix,
+      - wildcards - $project (to prevent overwriting)
+  2. Save render settings ("Save changes and close").
+  3. Run script and check your render queue.    
+  
+  Run script?
+      ]], "", 4)
+      if ret == 6 then main()  end
+    end
   end
    
