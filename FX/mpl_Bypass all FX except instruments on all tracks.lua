@@ -1,15 +1,12 @@
 -- @description Toggle bypass all FX except instruments on all tracks
--- @version 1.3
+-- @version 1.4
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694 
 -- @changelog
---    # fix inversed state
---    # reverted native first(only) instrument check
+--    # fix initial state
+--    + refresh toolbar
 
-  --NOT gfx NOT reaper  
   local scr_title = "Toggle Bypass all FX except instruments on all tracks"
-  for key in pairs(reaper) do _G[key]=reaper[key]  end 
-  function msg(s) if s then ShowConsoleMsg(s..'\n') end end
   ---------------------------------------------------------
   function SetStrState()
     local str = ''
@@ -42,7 +39,6 @@
     end
     return t
   end
-  --function IsInstrument(track, fx)  return ({reaper.TrackFX_GetFXName( track, fx, '' )})[2]:match('[%u]+i%:')~= nil end
   function IsInstrument(track, fx)  return  TrackFX_GetInstrument( track ) == fx end
   ---------------------------------------------------------  
   function SetFXState(FX_state, t)
@@ -53,7 +49,7 @@
         if not IsInstrument(tr, fx_id-1) then
           -- check t
           if FX_state == true then 
-            if not (t[GUID] and t[GUID][fx_id]) then
+            if not (t and t[GUID] and t[GUID][fx_id]) then
               TrackFX_SetEnabled(tr, fx_id-1, FX_state)
             end
            else 
@@ -64,20 +60,31 @@
     end
   end
   ---------------------------------------------------------  
-  local _,_,section_id,command_id = get_action_context()
-  glob_state = GetToggleCommandStateEx( section_id, command_id )
-  
-  if glob_state == -1 or glob_state == 0 then 
-    SetStrState() 
-    Undo_BeginBlock()
-    SetFXState(false)
-    SetToggleCommandState( section_id, command_id, 1 )
-    Undo_EndBlock(scr_title, 0)
-   elseif glob_state == 1 then
-    local t = GetStrState()
-    SetFXState(true, t)
-    Undo_BeginBlock()
-    SetProjExtState( 0, 'MPL_BYPASSFX', 'state', '' )
-    SetToggleCommandState( section_id, command_id, 0 )
-    Undo_EndBlock(scr_title, 0)
+  function main()
+    local _,_,section_id,command_id = get_action_context()
+    glob_state = GetToggleCommandStateEx( section_id, command_id )
+    
+    if glob_state == -1 or glob_state == 0 then 
+      SetStrState() 
+      Undo_BeginBlock()
+      SetFXState(false)
+      SetToggleCommandState( section_id, command_id, 1 )
+      RefreshToolbar2(section_id, command_id)
+      Undo_EndBlock(scr_title, 0)
+     elseif glob_state == 1 then
+      local t = GetStrState()
+      SetFXState(true, t)
+      Undo_BeginBlock()
+      SetProjExtState( 0, 'MPL_BYPASSFX', 'state', '' )
+      SetToggleCommandState( section_id, command_id, 0 )
+      RefreshToolbar2(section_id, command_id)
+      Undo_EndBlock(scr_title, 0)
+    end
   end
+  ---------------------------------------------------------------------
+    function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
+  
+  --------------------------------------------------------------------  
+    local ret = CheckFunctions('VF_CalibrateFont') 
+    local ret2 = VF_CheckReaperVrs(5.95,true)    
+    if ret and ret2 then main() end
