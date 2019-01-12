@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0f458db1d83a2a2324e5cf57b2d7168d7468f969" name="MPL Scripts">
+<index version="1" commit="303f3efe4cc6e4260073759ba330e52200368cbc" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -399,6 +399,11 @@
 # reverted native first(only) instrument check]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d54c63f3073a89758270e8f3ef570ab5f184baa/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20all%20tracks.lua</source>
       </version>
+      <version name="1.4" author="MPL" time="2019-01-12T15:22:21Z">
+        <changelog><![CDATA[# fix initial state
++ refresh toolbar]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/303f3efe4cc6e4260073759ba330e52200368cbc/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20all%20tracks.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Bypass all FX except instruments on selected tracks.lua" type="script" desc="Toggle bypass all FX except instruments on selected tracks">
       <metadata>
@@ -422,6 +427,11 @@
         <changelog><![CDATA[# fix inversed state
 # reverted native first(only) instrument check]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/74afb3e5c3832f1888b98a1fbcf9fe67eea8306c/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.4" author="MPL" time="2019-01-12T15:22:21Z">
+        <changelog><![CDATA[# fix initial state
++ refresh toolbar]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/303f3efe4cc6e4260073759ba330e52200368cbc/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Copy Focused FX data.lua" type="script" desc="Copy Focused FX data">
