@@ -1,5 +1,5 @@
 -- @description InstrumentRack
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
@@ -9,9 +9,9 @@
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua
 -- @changelog
---    + Option: allow show FX controls as well as instrument controls
+--    # fix error when freezing instrument with existing track controls
 
-  local vrs = 'v1.06'
+  local vrs = 'v1.07'
   --NOT gfx NOT reaper
   
   --  INIT -------------------------------------------------

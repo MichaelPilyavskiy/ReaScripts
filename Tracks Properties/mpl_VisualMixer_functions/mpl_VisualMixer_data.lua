@@ -119,14 +119,17 @@
       if GetMediaTrackInfo_Value( tr, 'I_PANMODE') == 6 then 
         SetMediaTrackInfo_Value( tr, 'D_DUALPANL', pan)
         SetMediaTrackInfo_Value( tr, 'D_DUALPANR', pan)
-      end    
+      end
+      CSurf_OnPanChange(tr, pan, false)
     end
   end
   ---------------------------------------------------   
   function Data_ApplyTrVol(GUID,vol )
     local tr=  BR_GetMediaTrackByGUID( 0, GUID )
     if tr then 
-      SetMediaTrackInfo_Value( tr, 'D_VOL', lim(vol,0,4))
+      local out_vol = lim(vol,0,4)
+      SetMediaTrackInfo_Value( tr, 'D_VOL', out_vol)
+      CSurf_OnVolumeChange(tr, out_vol, false)
     end
   end
   ---------------------------------------------------   
@@ -134,6 +137,7 @@
     local tr=  BR_GetMediaTrackByGUID( 0, GUID )
     if tr then 
       SetMediaTrackInfo_Value( tr, 'D_WIDTH', w)
+      CSurf_OnWidthChange(tr, w, false)
     end
   end  
   ---------------------------------------------------  

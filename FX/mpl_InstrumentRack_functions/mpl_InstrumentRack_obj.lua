@@ -516,6 +516,7 @@
   function Obj_GenerateRack_Controls_knobs(conf, obj, data, refresh, mouse, data_ext, src_t, i, x_drift)   
     local w_knob = gfx.w- x_drift- obj.offs*3-obj.scroll_w
     if w_knob < obj.but_w*3 then return end
+    if not (data[i] and data[i].tcp_params and data[i].tcp_params.cnt) then return end
     
     local kn_cnt = data[i].tcp_params.cnt
     local alpha_back = 0.15 if kn_cnt > 0  then alpha_back = 0.6 end
