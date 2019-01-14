@@ -1,5 +1,5 @@
 -- @description VisualMixer
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Pretty same as what Izotope Neutron Visual mixer do, probably with some things act different. I built ReaScript prototype slightly before Izotope thing was released, but it was also inspired by Izotope stuff.
@@ -9,10 +9,10 @@
 --    mpl_VisualMixer_functions/mpl_VisualMixer_data.lua
 --    mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua
 -- @changelog
---    # update volume/pan/width control surface
+--    # reverted 1.02
 
 
-  local vrs = 'v1.03'
+  local vrs = 'v1.04'
   --NOT gfx NOT reaper
   
   
