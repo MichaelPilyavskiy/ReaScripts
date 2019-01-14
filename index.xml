@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="303f3efe4cc6e4260073759ba330e52200368cbc" name="MPL Scripts">
+<index version="1" commit="b66dfe01f5c9ca278c2bb39f5a60e4a41b39c791" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -686,6 +686,14 @@
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/60424baccbea8e3845425c9688fe04e4b32b3494/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua</source>
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/60424baccbea8e3845425c9688fe04e4b32b3494/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua</source>
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/60424baccbea8e3845425c9688fe04e4b32b3494/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua</source>
+      </version>
+      <version name="1.07" author="MPL" time="2019-01-14T04:24:29Z">
+        <changelog><![CDATA[# fix error when freezing instrument with existing track controls]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b66dfe01f5c9ca278c2bb39f5a60e4a41b39c791/FX/mpl_InstrumentRack.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b66dfe01f5c9ca278c2bb39f5a60e4a41b39c791/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_GUI.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b66dfe01f5c9ca278c2bb39f5a60e4a41b39c791/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b66dfe01f5c9ca278c2bb39f5a60e4a41b39c791/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b66dfe01f5c9ca278c2bb39f5a60e4a41b39c791/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_LearnManager (background).lua" type="script" desc="LearnManager">
@@ -4181,6 +4189,14 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb070e0142d3a1d2d2a9da4d37672612c06f3e3d/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua</source>
         <source file="mpl_VisualMixer_functions/mpl_VisualMixer_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb070e0142d3a1d2d2a9da4d37672612c06f3e3d/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_data.lua</source>
         <source file="mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb070e0142d3a1d2d2a9da4d37672612c06f3e3d/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2019-01-14T04:24:29Z">
+        <changelog><![CDATA[# update volume/pan/width control surface]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b66dfe01f5c9ca278c2bb39f5a60e4a41b39c791/Tracks%20Properties/mpl_VisualMixer%20(background).lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b66dfe01f5c9ca278c2bb39f5a60e4a41b39c791/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_GUI.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b66dfe01f5c9ca278c2bb39f5a60e4a41b39c791/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b66dfe01f5c9ca278c2bb39f5a60e4a41b39c791/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_data.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b66dfe01f5c9ca278c2bb39f5a60e4a41b39c791/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua</source>
       </version>
     </reapack>
   </category>
