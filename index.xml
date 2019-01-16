@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cbf283f59a9291c649a19574715ffea21ee36584" name="MPL Scripts">
+<index version="1" commit="a1fb9bed07a0a3144ae8c01248af75f01e59c347" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4205,6 +4205,15 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cbf283f59a9291c649a19574715ffea21ee36584/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua</source>
         <source file="mpl_VisualMixer_functions/mpl_VisualMixer_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cbf283f59a9291c649a19574715ffea21ee36584/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_data.lua</source>
         <source file="mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cbf283f59a9291c649a19574715ffea21ee36584/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2019-01-16T18:59:22Z">
+        <changelog><![CDATA[# fix CSurf issue (thanks to Justin Frankel)
+# for now pan/width controls works properly only with stereo pan mode]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1fb9bed07a0a3144ae8c01248af75f01e59c347/Tracks%20Properties/mpl_VisualMixer%20(background).lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1fb9bed07a0a3144ae8c01248af75f01e59c347/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_GUI.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1fb9bed07a0a3144ae8c01248af75f01e59c347/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1fb9bed07a0a3144ae8c01248af75f01e59c347/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_data.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1fb9bed07a0a3144ae8c01248af75f01e59c347/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua</source>
       </version>
     </reapack>
   </category>
