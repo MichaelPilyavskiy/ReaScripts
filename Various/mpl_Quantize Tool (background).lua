@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.11
+-- @version 2.12
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -27,12 +27,11 @@
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 -- @changelog
---    + Preset/Position-based align/MIDI: Note-off
---    # Preset/Ordered Align: fix check for first object
---    # Preset GUI tweaks
-
+--    + Option: apply preset on groove change
+--    # fix handle source items if quantizing position only
+--    # fix Groove button glitch
      
-  local vrs = 'v2.11'
+  local vrs = 'v2.12'
   --NOT gfx NOT reaper
   
 
@@ -140,6 +139,7 @@
             app_on_strategy_change = 0,
             app_on_slider_click = 1,
             app_on_slider_release = 1, 
+            app_on_groove_change = 0,
             iterationlim = 30000, -- deductive brutforce
             
             }

@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.90
+-- @version 1.91
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,10 +10,11 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + Pads/Layout: 8x8 verical [p=2056815]
+--    # fix loosing parent track in mixer tab
+--    # avoid handling quick click as doubleclick on switching tabs
 
 
-  local vrs = 'v1.90'
+  local vrs = 'v1.91'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --rs5k manager_

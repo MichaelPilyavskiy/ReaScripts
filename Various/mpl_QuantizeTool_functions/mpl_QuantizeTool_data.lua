@@ -175,8 +175,8 @@
   --------------------------------------------------- 
   function Data_GetItems(data, strategy, table_name, mode) 
     local id = 1
-      for selitem = 1, CountMediaItems(0) do
-        local item =  GetMediaItem( 0, selitem-1 )
+      for itemidx = 1, CountMediaItems(0) do
+        local item =  GetMediaItem( 0,itemidx-1 )
         local take = GetActiveTake(item)
         local pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
         local it_pos = pos
@@ -228,9 +228,9 @@
           data[table_name][id].groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
           data[table_name][id].ptr = item
           data[table_name][id].activetk_ptr = take
-          data[table_name][id].activetk_rate = tk_rate        
+          data[table_name][id].activetk_rate = tk_rate    
+          id = id + 1    
         end
-        id = id + 1
         
       end      
   end  

@@ -2400,6 +2400,16 @@ List of available hashtags:
                               refresh.conf = true 
                               refresh.GUI = true
                               refresh.data = true                           
+                            end,
+                    func_DC = function() 
+                              conf.tab = 0
+                              obj.window = 0
+                              obj.current_WFkey = nil
+                              obj.current_WFspl = nil
+                              refresh.GUI_WF = true  
+                              refresh.conf = true 
+                              refresh.GUI = true
+                              refresh.data = true                           
                             end}         
         
         local cymb_a = 0.2
@@ -2428,8 +2438,17 @@ List of available hashtags:
                               refresh.conf = true 
                               refresh.GUI = true
                               refresh.data = true                           
-                            end}                             
-                            
+                            end,
+                    func_DC = function() 
+                              conf.tab = 1
+                              obj.window = 1
+                              obj.current_WFkey = nil
+                              obj.current_WFspl = nil
+                              refresh.GUI_WF = true  
+                              refresh.conf = true 
+                              refresh.GUI = true
+                              refresh.data = true                           
+                            end}
 
  
                             
@@ -2459,7 +2478,17 @@ List of available hashtags:
                               refresh.conf = true 
                               refresh.GUI = true
                               refresh.data = true                           
-                            end}                                
+                            end,
+                    func_DC = function() 
+                              conf.tab = 2 
+                              obj.window = 2
+                              obj.current_WFkey = nil
+                              obj.current_WFspl = nil
+                              refresh.GUI_WF = true  
+                              refresh.conf = true 
+                              refresh.GUI = true
+                              refresh.data = true                           
+                            end,}                                
           obj.prepareMIDI = { clear = true,
                     x = 0,
                     y = obj.kn_h+obj.samplename_h + keyareabut_h*5,
@@ -3165,7 +3194,7 @@ List of available hashtags:
                           func_mouseover = function()
                                 if obj['mix_splctrl_gain'..note] then 
                                   local sample_short = ''
-                                  if data[note] and data[note][1] then sample_short = data[note][1].sample_short end
+                                  if data[note] and data[note][1] then sample_short = data[note][1].sample_short else return end
                                   
                                   local gain_txt = ({TrackFX_GetFormattedParamValue( data[note][1].tr_ptr, data[note][1].rs5k_pos, 0, '' )})[2]..'dB'
                                   local pan_txt  = math.floor((-0.5+data[note][1].pan)*200)

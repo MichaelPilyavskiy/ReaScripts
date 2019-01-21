@@ -741,6 +741,11 @@
                                                               Data_PatternParseRGT(data, strategy, content, true)
                                                               strategy.ref_pattern_name = prev_fp:gsub('%.rgt', '')
                                                               SaveStrategy(conf, strategy, 1, true)
+                                                              if conf.app_on_groove_change == 1 then  
+                                                                Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy)
+                                                                Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy)  
+                                                                Data_Execute(conf, obj, data, refresh, mouse, strategy)
+                                                              end
                                                               refresh.GUI = true
                                                             end
                                                           end
@@ -766,6 +771,11 @@
                                                               Data_PatternParseRGT(data, strategy, content, true)
                                                               strategy.ref_pattern_name = next_fp:gsub('%.rgt', '')
                                                               SaveStrategy(conf, strategy, 1, true)
+                                                              if conf.app_on_groove_change == 1 then 
+                                                                Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy) 
+                                                                Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy) 
+                                                                Data_Execute(conf, obj, data, refresh, mouse, strategy)
+                                                              end
                                                               refresh.GUI = true
                                                             end
                                                           end
@@ -1047,7 +1057,9 @@
         end
         y_offs = y_offs + obj.strategy_itemh
       end 
+      
     end
+    y_offs = y_offs + obj.strategy_itemh
     return y_offs
   end    
   -----------------------------------------------
@@ -2051,17 +2063,21 @@
         func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
         
       { str = '#Options'},    
-      { str = 'Apply preset (AnchorPoints/Target) on preset change',
+      { str = 'Apply preset (Get AnchorPoints/Target) on preset change',
         func = function() 
                 conf.app_on_strategy_change = math.abs(1-conf.app_on_strategy_change) 
               end,
         state = conf.app_on_strategy_change == 1}, 
-      { str = 'Apply preset (Calculate output/Execute) on knob touch|',
+      { str = 'Apply preset (Calculate output and Execute) on knob touch',
         func = function() 
                 conf.app_on_slider_click = math.abs(1-conf.app_on_slider_click) 
               end,
         state = conf.app_on_slider_click == 1},         
-        
+      { str = 'Apply preset (Calculate output and Execute) on groove change|',
+        func = function() 
+                conf.app_on_groove_change = math.abs(1-conf.app_on_groove_change) 
+              end,
+        state = conf.app_on_groove_change == 1},           
         
         
         
