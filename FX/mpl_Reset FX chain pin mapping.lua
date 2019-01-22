@@ -1,12 +1,10 @@
--- @description Route FX chain followed by focused FX to 3-4 pair
--- @version 1.01
+-- @description Reset FX chain pin mapping
+-- @version 1.0
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about http://forum.cockos.com/showpost.php?p=2009857&postcount=3
 -- @changelog
---    # disable adding loser`s 3-band joiner
---    # disable change name
---    + add information message
+--    + init
 
 
 
@@ -23,7 +21,7 @@
     local str_out = ''
     for i = startid,  TrackFX_GetCount( tr )-1 do
       local retval, fxname = TrackFX_GetFXName( tr, i, '' )
-      if i < focusedfx then -- 1/2 before focused
+      --if i < focusedfx then -- 1/2 before focused
         TrackFX_SetPinMappings( tr, i, 0, 0, 1, 0 )
         TrackFX_SetPinMappings( tr, i, 0, 1, 2, 0 )
         TrackFX_SetPinMappings( tr, i, 0, 2, 0, 0 )
@@ -32,9 +30,9 @@
         TrackFX_SetPinMappings( tr, i, 1, 1, 2, 0 )
         TrackFX_SetPinMappings( tr, i, 1, 2, 0, 0 )
         TrackFX_SetPinMappings( tr, i, 1, 3, 0, 0 )
-        fxname = fxname:gsub('WET ', '')
+     --   fxname = fxname:gsub('WET ', '')
         str_out = str_out..'#'..(i+1)..' '..fxname..': go to 1/2 channels\n'  
-       else -- 3/4 after focused
+      --[[ else -- 3/4 after focused
         TrackFX_SetPinMappings( tr, i, 0, 0, 4, 0 )
         TrackFX_SetPinMappings( tr, i, 0, 1, 8, 0 )
         TrackFX_SetPinMappings( tr, i, 0, 2, 0, 0 )
@@ -53,19 +51,9 @@
         TrackFX_SetPinMappings( tr, i, 1, 0, 5, 0 )
         TrackFX_SetPinMappings( tr, i, 1, 1, 10, 0 ) 
         str_out = str_out..'#'..(i+1)..' '..fxname..': go to 1-4 channels\n'         
-      end
+      end]]
     end
     MB(str_out, '', 0)
-    --[[ add loser: 3-Band Joiner
-      local joinerFXid = TrackFX_AddByName( tr, '3BandJoiner', false, 1 )
-        TrackFX_SetPinMappings( tr, joinerFXid, 0, 0, 1, 0 )
-        TrackFX_SetPinMappings( tr, joinerFXid, 0, 1, 2, 0 )
-        TrackFX_SetPinMappings( tr, joinerFXid, 0, 2, 4, 0 )
-        TrackFX_SetPinMappings( tr, joinerFXid, 0, 3, 8, 0 )
-        TrackFX_SetPinMappings( tr, joinerFXid, 1, 0, 1, 0 )
-        TrackFX_SetPinMappings( tr, joinerFXid, 1, 1, 2, 0 )
-        TrackFX_SetPinMappings( tr, joinerFXid, 1, 2, 0, 0 )
-        TrackFX_SetPinMappings( tr, joinerFXid, 1, 3, 0, 0 )]]
   end
 ---------------------------------------------------------------------
   function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
