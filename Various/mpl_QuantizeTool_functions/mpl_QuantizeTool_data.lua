@@ -778,7 +778,9 @@
           
           if strategy.act_action==1 or strategy.act_action==3 then
             local offs = (math.floor((strategy.exe_val5*2-1)*1000)/1000)
-            data.src[i].out_pos = out_pos + offs
+            if out_pos then
+              data.src[i].out_pos = out_pos + offs
+            end
           end
           
         end

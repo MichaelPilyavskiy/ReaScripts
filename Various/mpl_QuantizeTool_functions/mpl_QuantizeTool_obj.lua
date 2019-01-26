@@ -818,6 +818,11 @@
                                                               --SaveStrategy(conf, strategy, 1, true)
                                                               refresh.GUI = true
                                                             end
+                                                              if conf.app_on_groove_change == 1 then 
+                                                                Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy) 
+                                                                Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy) 
+                                                                Data_Execute(conf, obj, data, refresh, mouse, strategy)
+                                                              end                                                            
                                                           end                                                          
                                                        end
                                                 }, 
@@ -860,6 +865,11 @@
                                                 func = function()
                                                           strategy.ref_pattern_len = lim(strategy.ref_pattern_len -1, 2, 16)
                                                           SaveStrategy(conf, strategy, 1, true)
+                                                              if conf.app_on_groove_change == 1 then 
+                                                                Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy) 
+                                                                Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy) 
+                                                                Data_Execute(conf, obj, data, refresh, mouse, strategy)
+                                                              end                                                          
                                                           refresh.GUI = true
                                                        end
                                                 },
@@ -872,6 +882,11 @@
                                                 func = function()
                                                           strategy.ref_pattern_len = lim(strategy.ref_pattern_len +1, 2, 16)
                                                           SaveStrategy(conf, strategy, 1, true)
+                                                              if conf.app_on_groove_change == 1 then 
+                                                                Data_ApplyStrategy_reference(conf, obj, data, refresh, mouse, strategy) 
+                                                                Data_ApplyStrategy_action(conf, obj, data, refresh, mouse, strategy) 
+                                                                Data_Execute(conf, obj, data, refresh, mouse, strategy)
+                                                              end                                                          
                                                           refresh.GUI = true
                                                        end
                                                 }                                                                                               
