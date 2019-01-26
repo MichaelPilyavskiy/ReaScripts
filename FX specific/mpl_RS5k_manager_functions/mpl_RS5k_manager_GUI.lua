@@ -152,7 +152,24 @@
     end
     return  browser_t
   end
-  
+  ---------------------------------------------------
+  function GUI_selector(obj, b)
+    local wsel = 20
+    local hsel = 28
+        
+    local x,y,w,h,val =b.x,b.y,b.w,b.h, b.val
+    x = x + (w-wsel)/2
+    y = y + obj.offs
+    w = wsel
+    h = hsel
+    if not val then return end
+    gfx.a = 0.5 
+    if b.val and b.val_cnt then
+      gfx.rect(x,y,w,h,0)
+      gfx.rect(x+2,y+2 + b.val * (h-4)/b.val_cnt ,w-4,(h-4)/b.val_cnt,1)
+    end  
+    
+  end  
   ---------------------------------------------------
   function GUI_knob(obj, b)
     local x,y,w,h,val =b.x,b.y,b.w,b.h, b.val
@@ -336,6 +353,8 @@
     
     ------------------ knob
       if o.is_knob then GUI_knob(obj, o) end
+      if o.is_selector then GUI_selector(obj, o) end
+      
     ------------------ txt
       if o.txt and w > 5 then 
         local w0 = w -2
@@ -374,6 +393,7 @@
         end
       end
       
+            
     --[[---------------- key txt
       if o.vertical_txt then
         gfx.dest = 10

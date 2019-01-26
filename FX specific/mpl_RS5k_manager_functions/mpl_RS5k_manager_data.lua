@@ -20,7 +20,7 @@
       obj.lastSCC = obj.SCC
       
     -- window size
-      local refresh_time = 0.4
+      local refresh_time = 0.2
       local ret = HasWindXYWHChanged(obj)
       if ret == 1 then 
         if not refresh.conf_timestamp or os.clock() - refresh.conf_timestamp > refresh_time then

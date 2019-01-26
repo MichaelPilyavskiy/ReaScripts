@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.91
+-- @version 1.92
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,11 +10,19 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    # fix loosing parent track in mixer tab
---    # avoid handling quick click as doubleclick on switching tabs
+--    + Pattern: swing support (was dropped at MIDI code side before)
+--    + Pattern: alt+click on knob reset swing
+--    + Pattern: change take/pattern name
+--    + Pattern: select patterns from list (require update pattern manually from previous versions, patterns are take-POOLGUID-based)
+--    + Pattern: allow to apply pattern tools for selected key or for all keys in pattern
+--    + Pattern: random gates
+--    + Pattern: probability control for random gates
+--    + Pattern: random velocities
+--    + Pattern: limits control for random velocities
+--    # Pattern: fixed potential issua when setting up steps
+--    # Pattern: update take name immediately
 
-
-  local vrs = 'v1.91'
+  local vrs = 'v1.92'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --rs5k manager_
@@ -30,7 +38,7 @@
   local mouse = {}
   local obj = {}
   local data = {}
-  local pat = {}    
+   pat = {}    
    
     
   ---------------------------------------------------  
@@ -106,7 +114,13 @@
             
             -- patterns
             def_steps = 16,
-            def_swing = 0
+            def_swing = 0,
+            patctrl_mode = 0, -- 0 selected 1 all
+            randgateprob = 0.5, -- probability
+            randvel1=0,
+            randvel2 = 1,
+            
+            
             }
     return t
   end  
@@ -186,7 +200,7 @@
       end
       
      else
-      reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
+      reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Use <Action list/Browse packages> to install it from ReaPack', '', 0)
     end  
   end
 --------------------------------------------------------------------

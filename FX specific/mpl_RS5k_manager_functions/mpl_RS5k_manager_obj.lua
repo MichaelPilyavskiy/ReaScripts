@@ -16,6 +16,9 @@
     obj.splbrowse_curfold = 20 -- current pat
     obj.splbrowse_listit = 15 -- also pattern item
     obj.ctrl_ratio = 0.1
+    obj.selector_w = 10
+    obj.selector_h = 28
+    
     
     obj.item_h = 20   -- splbrowsp    
     obj.item_h2 = 20  -- list header
@@ -28,6 +31,7 @@
     obj.key_h = 250-- keys y/h  
     obj.scroll_w = 15
     obj.scroll_val = 0
+    
     
     obj.samplename_h = 20   
     obj.keycntrlarea_w = 25
@@ -2401,7 +2405,7 @@ List of available hashtags:
                               refresh.GUI = true
                               refresh.data = true                           
                             end,
-                    func_DC = function() 
+                    --[[func_DC = function() 
                               conf.tab = 0
                               obj.window = 0
                               obj.current_WFkey = nil
@@ -2410,7 +2414,7 @@ List of available hashtags:
                               refresh.conf = true 
                               refresh.GUI = true
                               refresh.data = true                           
-                            end}         
+                            end]]}         
         
         local cymb_a = 0.2
         if conf.tab == 1 then cymb_a = 0.7 end
@@ -2549,7 +2553,7 @@ List of available hashtags:
     obj.splctrl_butw = math.floor(60 *  lim(conf.GUI_ctrlscale, 0.5,3))
     obj.WF_h=obj.kn_h 
     obj.pat_area_w = gfx.w - obj.keycntrlarea_w   - obj.offs*2 - obj.scroll_w
-    obj.pat_area_h = 20 -- ALL small KNOBS
+    obj.pat_area_h = 25 -- ALL small KNOBS
     obj.key_w = math.max(100,math.floor(obj.pat_area_w * 0.2))
     obj.step_cnt_w = obj.pat_area_h
     
@@ -2645,6 +2649,7 @@ List of available hashtags:
       local item_len =  reaper.GetMediaItemInfo_Value( item, 'D_LENGTH'  )       
       obj.pat_item_pos_sec = item_pos
       obj.pat_item_len_sec = item_len
+      obj._patname.txt = pat.name
       Pattern_Parse(conf, pat, poolGUID, take_name) 
       return true
     end
@@ -2714,7 +2719,7 @@ List of available hashtags:
                             pat[note].cnt_steps  = math.floor(out_val)
                             local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
                             Pattern_Commit(conf, pat, poolGUID, take_ptr)
-                            Pattern_SaveExtState(conf, pat, poolGUID)
+                            Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
                             refresh.data = true
                             refresh.GUI = true 
                           end,  } 
@@ -2729,7 +2734,7 @@ List of available hashtags:
                           --txt = math.floor(swing*100)..'%',
                           is_knob = true,
                           is_centered_knob = true,
-                          knob_y_shift = 2,
+                          knob_y_shift = 4,
                           val = (swing+1)/2,
                           col = col,
                           colint = colint,
@@ -2743,13 +2748,22 @@ List of available hashtags:
                           func_LD2 = function ()
                             if not mouse.context_latch_val then return end
                             local dragratio = 100
-                            local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, -1, 1)
+                            local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, -0.8, 0.8)
                             if not out_val then return end
                             if not pat[note] then pat[note] = {} end
                             pat[note].swing  = math.floor(out_val*100)/100
                             local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
                             Pattern_Commit(conf, pat, poolGUID, take_ptr)
-                            Pattern_SaveExtState(conf, pat, poolGUID)
+                            Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
+                            refresh.data = true
+                            refresh.GUI = true 
+                          end, 
+                          func_trigAlt = function ()
+                            if not pat[note] then pat[note] = {} end
+                            pat[note].swing  = 0
+                            local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                            Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                            Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
                             refresh.data = true
                             refresh.GUI = true 
                           end,  }              
@@ -2796,9 +2810,11 @@ List of available hashtags:
                             func =  function() 
                                       local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
                                       if ret then 
-                                        Pattern_Change(conf, pat, poolGUID, note, i_step, 120)
+                                        local vel =0
+                                        if not pat[note].steps[i_step] or pat[note].steps[i_step] == 0 then vel = 120 end
+                                        Pattern_Change(conf, pat, poolGUID, note, i_step, vel)
                                         Pattern_Commit(conf, pat, poolGUID, take_ptr)
-                                        Pattern_SaveExtState(conf, pat, poolGUID)
+                                        Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
                                         refresh.GUI = true  
                                       end   
                                     end}
@@ -2826,7 +2842,11 @@ List of available hashtags:
          else
           col = 'grey'
         end
-      
+        
+        local a_frame = 0
+        if obj.current_WFkey and note == obj.current_WFkey then
+          a_frame = 0.4
+        end
       
         local txt = BuildKeyName(conf, data, note, conf.key_names_pat)
         if key_ypos-scroll_y_offs >= obj.samplename_h + obj.kn_h - 1  then
@@ -2846,6 +2866,7 @@ List of available hashtags:
                         is_but = true,
                         alpha_back = 0.6,
                         aligh_txt = 5,
+                        a_frame=a_frame,
                         fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,
                         func =  function() 
                                   if not data.hasanydata then return end
@@ -2910,7 +2931,7 @@ List of available hashtags:
   end
   ---------------------------------------------------  
   function OBJ_GenPat_Ctrl(conf, obj, data, refresh, mouse,pat)
-    obj.patframe = { clear = true,
+    --[[obj.patframe = { clear = true,
                     x = obj.keycntrlarea_w   + obj.offs,
                     y = 0,
                     w = obj.pat_area_w,
@@ -2922,7 +2943,7 @@ List of available hashtags:
                     ignore_mouse = true,
                     fontsz = obj.GUI_fontsz,
                     alpha_back = obj.it_alpha5 ,
-                    a_frame = 0.1 }
+                    a_frame = 0.1 }]]
       obj._patname = { clear = true,
               x = obj.keycntrlarea_w  ,
               y = obj.kn_h,--gfx.h - obj.WF_h-obj.key_h,
@@ -2939,8 +2960,204 @@ List of available hashtags:
               func = function()
                         Pattern_EnumList(conf, obj, data, refresh, mouse, pat)
                       end}
-              
-              
+                      
+      local mode = 'Selected'
+      if conf.patctrl_mode == 1 then mode = 'All' end
+      obj.pat_editmode = { clear = true,
+                    x = obj.keycntrlarea_w   + obj.offs,
+                    y = obj.offs,
+                    w = obj.kn_w,
+                    h =obj.kn_h,
+                    col = 'white',
+                    txt= mode,
+                    aligh_txt = 16,
+                    show = true,
+                    is_selector = true,
+                    val = conf.patctrl_mode,
+                    val_cnt = 2,
+                    --mouse_overlay = true,
+                    --ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz4,
+                    alpha_back = obj.it_alpha5 ,
+                    a_frame = 0.1,
+                    func = function()
+                              conf.patctrl_mode = math.abs(1-conf.patctrl_mode)
+                              refresh.conf = true 
+                              refresh.GUI = true
+                              refresh.GUI_onStart = true
+                              refresh.data = true
+                            end }         
+      obj.pat_randgate = { clear = true,
+                    x = obj.keycntrlarea_w   + obj.offs*2+obj.kn_w,
+                    y = obj.offs,
+                    w = obj.kn_w*1.5,
+                    h =obj.kn_h/2-1,
+                    col = 'white',
+                    txt= 'rand. Gate',
+                    aligh_txt = 0,
+                    show = true,
+                    --mouse_overlay = true,
+                    --ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz4,
+                    alpha_back = obj.it_alpha5 ,
+                    a_frame = 0.1,
+                    func = function() 
+                              if (conf.patctrl_mode ==0 and obj.current_WFkey) or conf.patctrl_mode ==1 then
+                                local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                if ret then 
+                                  if conf.patctrl_mode ==0 and obj.current_WFkey then
+                                    if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
+                                    for i = 0, pat[obj.current_WFkey].cnt_steps do
+                                      --msg(math.floor(math.random()*127))
+                                      local gate = math_q(math.random()*(conf.randgateprob+0.5))
+                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, math.floor(gate*127))
+                                      --
+                                    end
+                                  
+                                   else
+                                    for note in pairs(pat) do
+                                      if tonumber(note) then
+                                        for i = 0, pat[note].cnt_steps do
+                                          local gate = math_q(math.random()*(conf.randgateprob+0.5))
+                                          Pattern_Change(conf, pat, poolGUID, note, i, math.floor(gate*127))
+                                        end
+                                      end   
+                                    end                                 
+                                  end
+                                  Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                                  Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
+                                  refresh.GUI = true  
+                                  refresh.data = true
+                                end   
+                              end
+                            end                    }   
+          obj.pat_randgateprob = 
+                        { clear = true,
+                          x = obj.keycntrlarea_w   + obj.offs*2+obj.kn_w*2.5 + 2,
+                          y = obj.offs,
+                          w = obj.kn_w*0.7,
+                          h =obj.kn_h/2-1,
+                          --txt = math.floor(swing*100)..'%',
+                          is_knob = true,
+                          col = 'white',
+                          knob_y_shift = 5,
+                          val = conf.randgateprob,
+                          state = 1,
+                          show = true,
+                          alpha_back = 0.2,
+                          fontsz = obj.GUI_fontsz4,--conf.GUI_padfontsz,
+                          func =  function() 
+                                    mouse.context_latch_val = conf.randgateprob
+                                  end,
+                          func_LD2 = function ()
+                            if not mouse.context_latch_val then return end
+                            local dragratio = 100
+                            local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 0, 1)
+                            conf.randgateprob = out_val
+                            refresh.GUI = true 
+                          end, 
+                          func_trigAlt = function ()
+                            conf.randgateprob = 0.5
+                            refresh.GUI = true 
+                          end,  
+                          func_onrelease = function()
+                                            refresh.conf = true
+                                          end}                                          
+      obj.pat_randvel = { clear = true,
+                    x = obj.keycntrlarea_w   + obj.offs*2+obj.kn_w,
+                    y = obj.offs+obj.kn_h/2,
+                    w = obj.kn_w*1.5,
+                    h =obj.kn_h/2,
+                    col = 'white',
+                    txt= 'rand. Vel',
+                    aligh_txt = 0,
+                    show = true,
+                    --mouse_overlay = true,
+                    --ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz4,
+                    alpha_back = obj.it_alpha5 ,
+                    a_frame = 0.1,
+                    func = function() 
+                              if (conf.patctrl_mode ==0 and obj.current_WFkey) or conf.patctrl_mode ==1 then
+                                local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                if ret then 
+                                  if conf.patctrl_mode ==0 and obj.current_WFkey then
+                                    if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
+                                    for i = 0, pat[obj.current_WFkey].cnt_steps do
+                                      if pat[obj.current_WFkey].steps[i] and pat[obj.current_WFkey].steps[i] > 0 then 
+                                        local val = math.random()*(conf.randvel2-conf.randvel1) + conf.randvel1
+                                        Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, lim(math.floor(val*127), 1, 127))
+                                      end
+                                    end
+                                   else
+                                    for note in pairs(pat) do
+                                      if tonumber(note) then
+                                        for i = 0, pat[note].cnt_steps do
+                                          if pat[note].steps[i] > 0 then 
+                                            local val = math.random()*(conf.randvel2-conf.randvel1) + conf.randvel1
+                                            Pattern_Change(conf, pat, poolGUID, note, i, lim(math.floor(val*127), 1, 127))
+                                          end
+                                        end
+                                      end   
+                                    end                                 
+                                  end
+                                  Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                                  Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
+                                  refresh.GUI = true 
+                                  refresh.data = true 
+                                end   
+                              end
+                            end                    }    
+      local rvctrlx = obj.keycntrlarea_w   + obj.offs*2+obj.kn_w*2.5+2
+      local rvctrly = obj.offs+obj.kn_h/2
+      local rvctrlw = obj.kn_w*0.7
+      local rvctrlh = obj.kn_h/2
+      obj.pat_randvelctrl = { clear = true,
+                    x = rvctrlx,
+                    y = rvctrly,
+                    w = rvctrlw,
+                    h = rvctrlh,
+                    col = 'white',
+                    txt= '',
+                    aligh_txt = 0,
+                    show = true,
+                    --mouse_overlay = true,
+                    --ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz4,
+                    alpha_back = obj.it_alpha5 ,
+                    func = function() 
+                              mouse.context_latch_t = {conf.randvel1, conf.randvel2}
+                            end,
+                          func_LD2 = function ()
+                            if not mouse.context_latch_t then return end
+                            local dragratio = 100
+                            local out_val1 = lim(mouse.context_latch_t[1] + mouse.dx/dragratio)
+                            local out_val2 = lim(mouse.context_latch_t[2] - mouse.dy/dragratio)
+                            conf.randvel1 = math.min(out_val1, out_val2)
+                            conf.randvel2 = math.max(out_val1, out_val2)
+                            refresh.GUI = true 
+                          end, 
+                          func_trigAlt = function ()
+                            conf.randvel1 = 0
+                            conf.randvel2 = 1
+                            refresh.GUI = true 
+                          end,  
+                          func_onrelease = function()
+                                            refresh.conf = true
+                                          end}                              
+      obj.pat_randvelrect = { clear = true,
+                    x = rvctrlx + rvctrlw*conf.randvel1,
+                    y = rvctrly,
+                    w = rvctrlw*(conf.randvel2 - conf.randvel1),
+                    h = rvctrlh,
+                    col = 'white',
+                    txt= '',
+                    aligh_txt = 0,
+                    show = true,
+                    --mouse_overlay = true,
+                    --ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz4,
+                    alpha_back = 0.7 }                                                                                                                         
               
   end
   ---------------------------------------------------
