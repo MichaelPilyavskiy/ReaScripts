@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.92
+-- @version 1.93
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,19 +10,14 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + Pattern: swing support (was dropped at MIDI code side before)
---    + Pattern: alt+click on knob reset swing
---    + Pattern: change take/pattern name
---    + Pattern: select patterns from list (require update pattern manually from previous versions, patterns are take-POOLGUID-based)
---    + Pattern: allow to apply pattern tools for selected key or for all keys in pattern
---    + Pattern: random gates
---    + Pattern: probability control for random gates
---    + Pattern: random velocities
---    + Pattern: limits control for random velocities
---    # Pattern: fixed potential issua when setting up steps
---    # Pattern: update take name immediately
+--    + GUI: add bottom selection triangle
+--    + Mixer: show FX for related track, obey mixer mouse modifiers
+--    + Pattern: shift left/right
+--    + Pattern: clear all/selected note
+--    # add RS5K instance after last existed RS5K instance (ex. if there are other effects on parent track FX chain)
+--    # fix drop pad only in pad window
 
-  local vrs = 'v1.92'
+  local vrs = 'v1.93'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --rs5k manager_
@@ -38,7 +33,7 @@
   local mouse = {}
   local obj = {}
   local data = {}
-   pat = {}    
+  pat = {}    
    
     
   ---------------------------------------------------  

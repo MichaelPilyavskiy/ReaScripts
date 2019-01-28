@@ -445,6 +445,21 @@
         --gfx.lineto(x+w,y)
         gfx.x,gfx.y = x+w-1,y
         gfx.lineto(x+1,y)
+      end
+      
+      if o.selection_tri then 
+        -- bottom triangle selected
+        local sel_tr_w = math.min(20,w)
+        local sel_tr_h = math.min(8,h)
+        if not o.selection_tri_vertpos then 
+          gfx.triangle(x+(w-sel_tr_w)/2,y+h,
+                               x+w/2,y+h-sel_tr_h,
+                               x+(w+sel_tr_w)/2,y+h)
+         else 
+          gfx.triangle(x,y+(h-sel_tr_w)/2,
+                       x+sel_tr_h,y+h/2,
+                       x,y+(h+sel_tr_w)/2)
+        end
       end    
   
     if o.is_step and o.val then

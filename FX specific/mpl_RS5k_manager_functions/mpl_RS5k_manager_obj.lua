@@ -31,12 +31,14 @@
     obj.key_h = 250-- keys y/h  
     obj.scroll_w = 15
     obj.scroll_val = 0
-    
+    obj.mixslot_w = 200
+    obj.mixslot_h = 20
     
     obj.samplename_h = 20   
     obj.keycntrlarea_w = 25
     obj.WF_w=gfx.w- obj.keycntrlarea_w  
     obj.fx_rect_side = 15
+    obj.sel_key_frame = 0.5
     
     -- alpha
     obj.it_alpha = 0.45 -- under tab
@@ -52,7 +54,7 @@
     -- font
     obj.GUI_font = 'Calibri'
     obj.GUI_fontsz = 20  -- tab
-    obj.GUI_fontsz2 = 15 -- WF back spl name
+    obj.GUI_fontsz2 = 15 -- WF back spl name/FXslot
     obj.GUI_fontsz3 = 13-- spl ctrl
     obj.GUI_fontsz4 = 12-- spl ctrl
     if GetOS():find("OSX") then 
@@ -1678,9 +1680,10 @@ elseif conf.keymode == 7 then -- 8x8, vertical columns
             -------------------------
             -- keys
             local draw_drop_line if data.activedroppedpad and data.activedroppedpad == 'keys_p'..note then draw_drop_line = true end
-            local a_frame = 0.05 
+            local a_frame,selection_tri = 0.05 
             if obj.current_WFkey and note == obj.current_WFkey then
-              a_frame = 0.4
+              a_frame =obj.sel_key_frame
+              selection_tri = true
             end
             obj['keys_p'..note] = 
                       { clear = true,
@@ -1701,6 +1704,7 @@ elseif conf.keymode == 7 then -- 8x8, vertical columns
                         show = true,
                         is_but = true,
                         alpha_back = alpha_back,
+                        selection_tri=selection_tri,
                         a_frame = a_frame,
                         aligh_txt = 5,
                         fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,
@@ -2579,7 +2583,8 @@ List of available hashtags:
            alpha_back = 0 ,
            }
            
-      OBJ_GenKeysMixer(conf, obj, data, refresh, mouse)
+      local x_out = OBJ_GenKeysMixer(conf, obj, data, refresh, mouse)
+      OBJ_GenMixer_FX(conf, obj, data, refresh, mouse, x_out)
       --OBJ_GenKeys_GlobalCtrl(conf, obj, data, refresh, mouse)
       
      elseif conf.tab == 2 then
@@ -2593,6 +2598,52 @@ List of available hashtags:
     for key in pairs(obj) do if type(obj[key]) == 'table' then obj[key].context = key end end    
   end
         
+  --------------------------------------------------- 
+  function OBJ_GenMixer_FX(conf, obj, data, refresh, mouse, x_out)
+    if obj.current_WFkey and data[obj.current_WFkey] and data[obj.current_WFkey].FXChaindata then
+      local t = data[obj.current_WFkey].FXChaindata
+      for i = 1, #t do
+        local alpha_txt = 0.3
+        if t[i].bypass == true then alpha_txt = 0.8 end
+        obj['mixerfx_'..i] = 
+                      { clear = true,
+                        x = x_out+2,
+                        y = obj.mixslot_h * (i-1)+obj.offs,
+                        w = obj.mixslot_w,
+                        h = obj.mixslot_h,
+                        --col = col,
+                        --colint = colint,
+                        --state = 0,
+                        txt= MPL_ReduceFXname(t[i].fxname),
+                        alpha_txt=alpha_txt,
+                       -- limtxtw = key_w - obj.fx_rect_side,
+                        --limtxtw_vert = limtxtw_vert,
+                        --vertical_txt = verttxt,
+                        show = true,
+                        is_but = true,
+                        alpha_back = obj.it_alpha1,
+                        aligh_txt = 1,
+                        fontsz = obj.GUI_fontsz2,
+                        func =  function() 
+                                  TrackFX_Show( t[i].tr_ptr, t[i].id, 3 )
+                                end,
+                        func_trigCtrl =  function() 
+                                  TrackFX_Show( t[i].tr_ptr, t[i].id, 1 )
+                                end,
+                        func_shiftL = function() 
+                                        local state_byp = TrackFX_GetEnabled( t[i].tr_ptr, t[i].id )
+                                        reaper.TrackFX_SetEnabled( t[i].tr_ptr, t[i].id, not state_byp )
+                                        refresh.data = true
+                                        refresh.GUI = true
+                                      end,
+                        func_trigAlt = function() 
+                                        TrackFX_Delete( t[i].tr_ptr, t[i].id )
+                                        refresh.data = true
+                                        refresh.GUI = true
+                                      end,}       
+      end
+    end
+  end
   --------------------------------------------------- 
   function OBJ_GenPat_Scroll(conf, obj, data, refresh, mouse, pat)
     local pat_scroll_h = gfx.h - (obj.samplename_h + obj.kn_h)
@@ -2811,7 +2862,7 @@ List of available hashtags:
                                       local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
                                       if ret then 
                                         local vel =0
-                                        if not pat[note].steps[i_step] or pat[note].steps[i_step] == 0 then vel = 120 end
+                                        if not (pat[note] and pat[note].steps and pat[note].steps[i_step]) or pat[note].steps[i_step] == 0 then vel = 120 end
                                         Pattern_Change(conf, pat, poolGUID, note, i_step, vel)
                                         Pattern_Commit(conf, pat, poolGUID, take_ptr)
                                         Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
@@ -2843,9 +2894,10 @@ List of available hashtags:
           col = 'grey'
         end
         
-        local a_frame = 0
+        local a_frame,selection_tri = 0
         if obj.current_WFkey and note == obj.current_WFkey then
-          a_frame = 0.4
+          a_frame = obj.sel_key_frame
+          selection_tri = true
         end
       
         local txt = BuildKeyName(conf, data, note, conf.key_names_pat)
@@ -2867,6 +2919,8 @@ List of available hashtags:
                         alpha_back = 0.6,
                         aligh_txt = 5,
                         a_frame=a_frame,
+                        selection_tri = selection_tri,
+                        selection_tri_vertpos = true,
                         fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,
                         func =  function() 
                                   if not data.hasanydata then return end
@@ -3007,7 +3061,7 @@ List of available hashtags:
                                 if ret then 
                                   if conf.patctrl_mode ==0 and obj.current_WFkey then
                                     if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
-                                    for i = 0, pat[obj.current_WFkey].cnt_steps do
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do
                                       --msg(math.floor(math.random()*127))
                                       local gate = math_q(math.random()*(conf.randgateprob+0.5))
                                       Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, math.floor(gate*127))
@@ -3017,7 +3071,7 @@ List of available hashtags:
                                    else
                                     for note in pairs(pat) do
                                       if tonumber(note) then
-                                        for i = 0, pat[note].cnt_steps do
+                                        for i = 1, pat[note].cnt_steps do
                                           local gate = math_q(math.random()*(conf.randgateprob+0.5))
                                           Pattern_Change(conf, pat, poolGUID, note, i, math.floor(gate*127))
                                         end
@@ -3083,7 +3137,7 @@ List of available hashtags:
                                 if ret then 
                                   if conf.patctrl_mode ==0 and obj.current_WFkey then
                                     if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
-                                    for i = 0, pat[obj.current_WFkey].cnt_steps do
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do
                                       if pat[obj.current_WFkey].steps[i] and pat[obj.current_WFkey].steps[i] > 0 then 
                                         local val = math.random()*(conf.randvel2-conf.randvel1) + conf.randvel1
                                         Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, lim(math.floor(val*127), 1, 127))
@@ -3092,7 +3146,7 @@ List of available hashtags:
                                    else
                                     for note in pairs(pat) do
                                       if tonumber(note) then
-                                        for i = 0, pat[note].cnt_steps do
+                                        for i = 1, pat[note].cnt_steps do
                                           if pat[note].steps[i] > 0 then 
                                             local val = math.random()*(conf.randvel2-conf.randvel1) + conf.randvel1
                                             Pattern_Change(conf, pat, poolGUID, note, i, lim(math.floor(val*127), 1, 127))
@@ -3157,7 +3211,155 @@ List of available hashtags:
                     --mouse_overlay = true,
                     --ignore_mouse = true,
                     fontsz = obj.GUI_fontsz4,
-                    alpha_back = 0.7 }                                                                                                                         
+                    alpha_back = 0.7 }   
+      obj.pat_shiftl = { clear = true,
+                    x = obj.keycntrlarea_w   + obj.offs*3+obj.kn_w*3.2,
+                    y = obj.offs,
+                    w = obj.kn_w,
+                    h =obj.kn_h/2-1,
+                    col = 'white',
+                    txt= '<- Shift',
+                    aligh_txt = 0,
+                    show = true,
+                    --mouse_overlay = true,
+                    --ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz4,
+                    alpha_back = obj.it_alpha5 ,
+                    a_frame = 0.1,
+                    func = function() 
+                              if (conf.patctrl_mode ==0 and obj.current_WFkey) or conf.patctrl_mode ==1 then
+                                local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                if ret then 
+                                  if conf.patctrl_mode ==0 and obj.current_WFkey then
+                                    if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
+                                    local t = {}
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do
+                                      t[i] = pat[obj.current_WFkey].steps[i]
+                                    end
+                                    local val = t[1]
+                                    table.remove(t,1)
+                                    t[pat[obj.current_WFkey].cnt_steps] = val
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do
+                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, t[i])
+                                    end
+                                  
+                                   else
+                                    for note in pairs(pat) do
+                                      if tonumber(note) then
+                                        local t = {}
+                                        for i = 1, pat[note].cnt_steps do
+                                          t[i] = pat[note].steps[i]
+                                        end  
+                                        local val = t[1]
+                                        table.remove(t,1)
+                                        t[ pat[note].cnt_steps ] = val
+                                        for i = 1, pat[note].cnt_steps do
+                                          Pattern_Change(conf, pat, poolGUID, note, i, t[i])
+                                        end                                        
+                                      end   
+                                    end                                 
+                                  end
+                                  Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                                  Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
+                                  refresh.GUI = true  
+                                  refresh.data = true
+                                end   
+                              end
+                            end                    }  
+      obj.pat_shiftr = { clear = true,
+                    x = obj.keycntrlarea_w   + obj.offs*3+obj.kn_w*4.2+1,
+                    y = obj.offs,
+                    w = obj.kn_w,
+                    h =obj.kn_h/2-1,
+                    col = 'white',
+                    txt= 'Shift ->',
+                    aligh_txt = 0,
+                    show = true,
+                    --mouse_overlay = true,
+                    --ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz4,
+                    alpha_back = obj.it_alpha5 ,
+                    a_frame = 0.1,
+                    func = function() 
+                              if (conf.patctrl_mode ==0 and obj.current_WFkey) or conf.patctrl_mode ==1 then
+                                local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                if ret then 
+                                  if conf.patctrl_mode ==0 and obj.current_WFkey then
+                                    if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
+                                    local t = {}
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do
+                                      t[i] = pat[obj.current_WFkey].steps[i]
+                                    end
+                                    local val = t[#t]
+                                    table.insert(t,1,val)
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do
+                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, t[i])
+                                    end
+                                  
+                                   else
+                                    for note in pairs(pat) do
+                                      if tonumber(note) then
+                                        local t = {}
+                                        for i = 1, pat[note].cnt_steps do
+                                          t[i] = pat[note].steps[i]
+                                        end  
+                                        local val = t[#t]
+                                        table.insert(t,1,val)
+                                        for i = 1, pat[note].cnt_steps do
+                                          Pattern_Change(conf, pat, poolGUID, note, i, t[i])
+                                        end                                        
+                                      end   
+                                    end                                 
+                                  end
+                                  Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                                  Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
+                                  refresh.GUI = true  
+                                  refresh.data = true
+                                end   
+                              end
+                            end                    }  
+      obj.pat_clear = { clear = true,
+                    x = obj.keycntrlarea_w   + obj.offs*3+obj.kn_w*3.2,
+                    y = obj.offs + obj.kn_h/2,
+                    w = obj.kn_w*2+1,
+                    h =obj.kn_h/2,
+                    col = 'white',
+                    txt= 'Clear',
+                    aligh_txt = 0,
+                    show = true,
+                    --mouse_overlay = true,
+                    --ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz4,
+                    alpha_back = obj.it_alpha5 ,
+                    a_frame = 0.1,
+                    func = function() 
+                              if (conf.patctrl_mode ==0 and obj.current_WFkey) or conf.patctrl_mode ==1 then
+                                local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                if ret then 
+                                  if conf.patctrl_mode ==0 and obj.current_WFkey then
+                                    if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
+                                    local t = {}
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do
+                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, 0)
+                                    end
+                                  
+                                   else
+                                    for note in pairs(pat) do
+                                      if tonumber(note) then
+                                        local t = {}
+                                        for i = 1, pat[note].cnt_steps do
+                                          Pattern_Change(conf, pat, poolGUID, note, i, 0)
+                                        end                                        
+                                      end   
+                                    end                                 
+                                  end
+                                  Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                                  Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
+                                  refresh.GUI = true  
+                                  refresh.data = true
+                                end   
+                              end
+                            end                    }                                                                                                                                                                                                                        
               
   end
   ---------------------------------------------------
@@ -3170,7 +3372,7 @@ List of available hashtags:
           is_knob = true
         end  
         obj['mix_splctrl_gain'..cur_note] = { clear = true,
-              x = key_x + (key_w  - obj.pat_area_h) /2 ,
+              x = key_x + (key_w  - obj.pat_area_h) /2 -1,
               y = key_y + obj.pat_area_h,
               w = obj.pat_area_h,
               h = obj.pat_area_h,
@@ -3190,7 +3392,7 @@ List of available hashtags:
               func_mouseover = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_mouseover() end,
               }                      
         obj['mix_splctrl_pan'..cur_note] = { clear = true,
-              x = key_x + (key_w  - obj.pat_area_h) /2 ,
+              x = key_x + (key_w  - obj.pat_area_h) /2-1 ,
               y = key_y + obj.pat_area_h*2,
               w = obj.pat_area_h,
               h = obj.pat_area_h,
@@ -3287,6 +3489,7 @@ List of available hashtags:
     ---------------------------------------------------
     function OBJ_GenKeysMixer(conf, obj, data, refresh, mouse)
       local cnt = 0
+      local x_out = 0
       local h_div = 1
       local wheel_ratio = 12000
       if conf.keymode ==0 then 
@@ -3305,9 +3508,9 @@ List of available hashtags:
         cnt = 64                              
       end
       
-
+      
       local key_area_h = gfx.h  - obj.samplename_h --obj.kn_h-obj.samplename_h
-      local key_w = math.ceil((gfx.w-3*obj.offs-obj.keycntrlarea_w)/cnt)
+      local key_w = math.max(math.ceil((gfx.w-3*obj.offs-obj.keycntrlarea_w-obj.mixslot_w)/cnt),  30)
       local key_h = math.ceil((1/h_div)*(key_area_h))
       obj.h_div = h_div
       for i = 1, cnt do
@@ -3329,7 +3532,7 @@ List of available hashtags:
         if  key_w < obj.fx_rect_side then txt = '' end
           --
           if note >= 0 and note <= 127 then
-            local key_xpos = obj.keycntrlarea_w+(i-1)*key_w +2
+            local key_xpos = obj.keycntrlarea_w+(i-1)*key_w 
             local key_ypos = gfx.h-key_area_h- obj.samplename_h
             local fxctrlcnt = OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos-obj.offs, key_w, key_h, true)
             if not fxctrlcnt then fxctrlcnt = 0 end
@@ -3341,6 +3544,13 @@ List of available hashtags:
             if data[note] and data[note][1] then 
               OBJ_GenKeysMixer_Ctrl(conf, obj, data, refresh, mouse, note, 1, key_xpos, gfx.h-key_area_h-obj.samplename_h, key_w, key_h)
             end
+            
+            local a_frame,selection_tri = 0
+            if obj.current_WFkey and note == obj.current_WFkey then
+              a_frame = obj.sel_key_frame
+              selection_tri = true
+            end
+            x_out = key_xpos + key_w
             obj['keys_p'..note] = 
                       { clear = true,
                         x = key_xpos,
@@ -3361,10 +3571,12 @@ List of available hashtags:
                         show = true,
                         is_but = true,
                         alpha_back = alpha_back,
-                        a_frame = 0.05,
+                        a_frame = a_frame,
+                        selection_tri=selection_tri,
                         aligh_txt = 4,
                         fontsz = conf.GUI_padfontsz,
                         func =  function() 
+                                  obj.current_WFkey = note
                                   if conf.keypreview == 1 then  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), note,100) end                                  
                                   if data[note] then 
                                     mouse.context_latch_t = {}
@@ -3459,5 +3671,5 @@ List of available hashtags:
         end
       end
     
-      
+      return x_out
     end

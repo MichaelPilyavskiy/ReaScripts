@@ -60,7 +60,7 @@
       local isRS5k = retval and p3:match('range')~= nil and p4:match('range')~= nil
       if not isRS5k then goto skipFX end
       data.hasanydata = true
-      local MIDIpitch = math.floor(TrackFX_GetParamNormalized( tr, fxid-1, 3)*128)
+      local MIDIpitch = math.floor(TrackFX_GetParamNormalized( tr, fxid-1, 3)*128) 
       local retval, fn = TrackFX_GetNamedConfigParm( tr, fxid-1, 'FILE' )
       --msg(TrackFX_GetParamNormalized( tr, fxid-1, 3)*128)
       if not data[MIDIpitch] then data[MIDIpitch] = {} end
@@ -93,7 +93,7 @@
         sample_short = sample_short:match(pat_reduceext) 
        else
         sample_short = fn
-      end
+      end      
       
       data[MIDIpitch] [#data[MIDIpitch]+1] = {rs5k_pos = fxid-1,
                         pitch    =math.floor(({TrackFX_GetFormattedParamValue( tr, fxid-1, 3, '' )})[2]),
@@ -125,7 +125,7 @@
                         obeynoteoff =     TrackFX_GetParamNormalized( tr, fxid-1,11),
                         del = del,
                         del_ms = del_ms,
-                        delay_pos=delay_pos
+                        delay_pos=delay_pos,
                         }
       ::skipFX::
     end  
@@ -168,7 +168,40 @@
         data[MIDIpitch].com_pan = lim(com_pan/#data[MIDIpitch],0,1)
       end
     end      
-          
+    
+    --collect FX data
+    local FXChaindata = GetRS5kData_FX(tr)
+    for note in pairs(data) do
+      if tonumber(note) then
+        for spl in pairs(data[note]) do
+          if tonumber(spl) then
+            if data[note][spl].tr_ptr == tr then
+              data[note].FXChaindata = FXChaindata -- forced to note levelinstead of data[note][spl]
+            end
+          end
+        end
+      end    
+    end
+  end
+  ---------------------------------------------------
+  function GetRS5kData_FX(tr)
+    local t = {}
+    for fxid = 1,  TrackFX_GetCount( tr ) do
+      -- validate RS5k by param names
+      local retval, p3 = TrackFX_GetParamName( tr, fxid-1, 3, '' )
+      local retval, p4 = TrackFX_GetParamName( tr, fxid-1, 4, '' )
+      local isRS5k = retval and p3:match('range')~= nil and p4:match('range')~= nil
+      if isRS5k then goto skipRS5k end
+      
+      local retval, fxname = TrackFX_GetFXName( tr,fxid-1, '' )
+      t[#t+1] = { tr_ptr = tr,
+                  fxname = fxname,
+                  bypass = TrackFX_GetEnabled(  tr,fxid-1 ),
+                  id = fxid-1}
+      
+      ::skipRS5k::
+    end
+    return t
   end
   ---------------------------------------------------
   function SearchSample(fn, dir_next )
@@ -505,7 +538,18 @@
   end
   ----------------------------------------------------------------------- 
   function ExportItemToRS5K_defaults(data,conf,refresh,note,filepath, start_offs, end_offs, track)
+    local last_inst
+    for fx = 1, TrackFX_GetCount( track ) do
+      local retval, buf = TrackFX_GetFXName( track, fx-1, '' )
+      if buf:match('RS5K') or buf:match('ReaSamplomatic5000') then
+        last_inst = fx-1
+      end
+    end
     local rs5k_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -1 )
+    if last_inst then 
+      TrackFX_CopyToTrack( track, rs5k_pos, track, last_inst+1,true )
+      rs5k_pos = last_inst+1
+    end
     TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'FILE0', filepath)
     TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'DONE', '')      
     TrackFX_SetParamNormalized( track, rs5k_pos, 2, 0) -- gain for min vel

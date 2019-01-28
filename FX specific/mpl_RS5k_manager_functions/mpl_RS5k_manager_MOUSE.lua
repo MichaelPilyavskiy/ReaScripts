@@ -52,7 +52,7 @@
   
   ------------------------------------------------------------------------------------------------------
   function MOUSE_droppad(conf, obj, data, refresh, mouse)   
-        if data.activedroppedpad then
+        if data.activedroppedpad and conf.tab == 0 then
           if mouse.context_latch:match('keys_p%d+') and data.activedroppedpad:match('keys_p%d+') then
             local src_note = mouse.context_latch:match('keys_p(%d+)')
             local dest_note = data.activedroppedpad:match('keys_p(%d+)')
@@ -137,7 +137,7 @@
               if conf.MM_reset_val&(1<<0) == (1<<0) and obj[key].func_ResetVal then obj[key].func_ResetVal() end
               goto skip_mouse_obj 
             end
-           if mouse.onclick_L and not mouse.Alt_state and obj[key].func then 
+           if mouse.onclick_L and not mouse.Shift_state and not mouse.Ctrl_state and not mouse.Alt_state and obj[key].func then 
               obj[key].func() 
               goto skip_mouse_obj 
             end
@@ -160,6 +160,12 @@
                                and mouse.Ctrl_state  
                                and MOUSE_Match(mouse, obj[key]) 
            if mouse.onclick_LCtrl and obj[key].func_trigCtrl then obj[key].func_trigCtrl() end
+                 ------------------------              
+           mouse.onclick_LShift = mouse.LMB_state 
+                               and not mouse.last_LMB_state 
+                               and mouse.Shift_state  
+                               and MOUSE_Match(mouse, obj[key]) 
+           if mouse.onclick_LShift and obj[key].func_shiftL then obj[key].func_shiftL() end           
                  ------------------------              
            mouse.onclick_LAlt = mouse.LMB_state 
                                and not mouse.last_LMB_state 
