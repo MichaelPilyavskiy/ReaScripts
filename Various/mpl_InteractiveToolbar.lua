@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.78
+-- @version 1.79
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,10 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # Track/#chsendmixer: fixed local access to {data} on reset/manual input
---    # Track/#chrecvmixer: fixed local access to {data} on reset/manual input
+--    # Track/#sendto: sort predefined sends alphabetically
 
-    local vrs = '1.78'
+    local vrs = '1.79'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])

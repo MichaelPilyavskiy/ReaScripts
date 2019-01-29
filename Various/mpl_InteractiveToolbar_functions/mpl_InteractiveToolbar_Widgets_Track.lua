@@ -610,11 +610,8 @@
     local t = {
           {str = '#Send '..#data.tr..' selected track(s)'}  
         }  
-        
     local unpack_prefed = ({table.unpack(SendTracksTo_CollectPreDef(data))})
     for i = 1, #unpack_prefed do table.insert(t, unpack_prefed[i]) end
-    --[[local unpack_fold = ({table.unpack(SendTracksTo_CollectTopFold(data))})
-    for i = 1, #unpack_fold do table.insert(t, unpack_fold[i]) end]]
     t[#t+1] ={str = '|Mark as predefined send bus',
              func = function ()
                       for i = 1, #data.tr do
@@ -651,15 +648,22 @@
   end
   ---------------------------------------------------------
   function SendTracksTo_CollectPreDef(data)
-    local out_t1 = {{str = '|#PreDefined sends list'}}
-      for GUID in pairs(data.PreDefinedSend_GUID) do 
+    local out_t1 = {}
+    local out_t = {}
+    for GUID in pairs(data.PreDefinedSend_GUID) do 
       local tr = BR_GetMediaTrackByGUID( 0, GUID )
       if tr then
-        out_t1[#out_t1+1] = { str =  ({GetTrackName( tr, '' )})[2],
-                            func =  function() SendTracksTo_AddSend(data, tr) end}
+        local str =  ({GetTrackName( tr, '' )})[2]
+        out_t1[str] = {str = str,  
+                      func =  function() SendTracksTo_AddSend(data, tr) end}
       end
     end
-    return out_t1   
+    
+    for key in spairs(out_t1) do
+      out_t[#out_t+1] = out_t1[key]
+    end
+    table.insert(out_t, 1, {str = '|#PreDefined sends list'})
+    return out_t  
   end
   ---------------------------------------------------------
   function SendTracksTo_AddSend(data, dest_tr_ptr)
