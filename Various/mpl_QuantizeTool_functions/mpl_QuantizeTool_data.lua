@@ -282,7 +282,7 @@
     end     
   end   
   --------------------------------------------------- 
-  function Data_GetMIDI_perTake(data, strategy, table_name, take, item)
+  function Data_GetMIDI_perTake(data, strategy, table_name, take, item, mode)
     if not take or not ValidatePtr2( 0, take, 'MediaItem_Take*' ) or not TakeIsMIDI(take) then return end
     local item_pos = 0 
     if item then item_pos  = GetMediaItemInfo_Value( item, 'D_POSITION' )  end
@@ -379,7 +379,10 @@
             data[table_name][new_entry_id] = ppq_sorted_t[ppq][i2]
             if      (table_name=='src' and strategy.src_midi_msgflag&1==1)
                 or  (table_name=='ref' and strategy.ref_midi_msgflag&1==1)  then 
-              data[table_name][new_entry_id].ignore_search = false 
+                
+              if mode&2 == 2 or (mode&2 == 0 and data[table_name][new_entry_id].flags&1==1) then
+                data[table_name][new_entry_id].ignore_search = false 
+              end
             end
 
             
@@ -404,7 +407,9 @@
                     
                     if      (table_name=='src' and strategy.src_midi_msgflag&2==2)
                         or  (table_name=='ref' and strategy.ref_midi_msgflag&2==2)  then 
-                      data[table_name][new_entry_id+1].ignore_search = false 
+                      if mode&2 == 2 or (mode&2 == 0 and data[table_name][new_entry_id].flags&1==1) then
+                        data[table_name][new_entry_id+1].ignore_search = false 
+                      end
                     end
                          
                          
@@ -437,13 +442,13 @@
       local take = MIDIEditor_GetTake( ME ) 
       if take then 
         local item =  GetMediaItemTake_Item( take )
-        Data_GetMIDI_perTake(data, strategy, table_name, take, item)   
+        Data_GetMIDI_perTake(data, strategy, table_name, take, item, mode)   
       end
      elseif   mode&2 == 2 then -- selected takes
       for i = 1, CountSelectedMediaItems(0) do
         local item = GetSelectedMediaItem(0,i-1)
         local take = GetActiveTake(item)
-        Data_GetMIDI_perTake(data,strategy, table_name, take, item) 
+        Data_GetMIDI_perTake(data,strategy, table_name, take, item, mode) 
       end
     end
     
@@ -493,10 +498,22 @@
       if t.isNoteOn and strategy.src_midi_msgflag&1==1 then 
         local out_vel = math.max(1,math.floor(lim(out_val,0,1)*127))
         str_per_msg = str_per_msg.. string.pack("i4Bi4BBB", out_offs, t.flags, 3,  0x90| (t.chan-1), t.pitch, out_vel )
+        
+        if strategy.src_midi_msgflag&4==4 and ((strategy.src_midi&2==0 and t.flags&1 == 1) or strategy.src_midi&2==2) then
+          str_per_msg = str_per_msg.. string.pack("i4Bs4",  t.note_len_PPQ,  t.flags , t.noteoff_msg1)
+          ppq_cur = ppq_cur+ t.note_len_PPQ
+        end
         ppq_cur = ppq_cur+ out_offs
-       elseif t.isNoteOff and strategy.src_midi_msgflag&2==2 then 
-        str_per_msg = str_per_msg.. string.pack("i4Bi4BBB", out_offs, t.flags, 3,  0x80| (t.chan-1), t.pitch, 0 )
-        ppq_cur = ppq_cur+ out_offs    
+                
+       elseif t.isNoteOff then
+        if strategy.src_midi_msgflag&2==2 then
+          str_per_msg = str_per_msg.. string.pack("i4Bi4BBB", out_offs, t.flags, 3,  0x80| (t.chan-1), t.pitch, 0 )
+          ppq_cur = ppq_cur+ out_offs 
+         elseif strategy.src_midi_msgflag&4~=4 or (strategy.src_midi_msgflag&4==4 and strategy.src_midi&2==0 and t.flags&1 ~= 1)then
+          str_per_msg = str_per_msg.. string.pack("i4Bs4", out_offs,  t.flags , t.msg1)
+          ppq_cur = ppq_cur+ out_offs
+        end   
+        
        else
         str_per_msg = str_per_msg.. string.pack("i4Bs4", out_offs,  t.flags , t.msg1)
         ppq_cur = ppq_cur+ out_offs

@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.13
+-- @version 2.15
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -27,9 +27,11 @@
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 -- @changelog
---    # Option/apply preset on groove change: handle loaded grooves and changed length
+--    + PBA/Target/MIDI/Mesages/NoteOn/Preserve length, enable by default
+--    # PBA/Target/MIDI/Mode/MIDI Editor: process only selected notes
+
      
-  local vrs = 'v2.13'
+  local vrs = 'v2.15'
   --NOT gfx NOT reaper
   
 
@@ -43,7 +45,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-   data = {}
+  local data = {}
   local obj = {}
   local strategy = {}
   
@@ -91,7 +93,7 @@
         src_envpoints = 0,
         src_envpointsflag = 1, -- 1 values
         src_midi = 0 ,
-        src_midi_msgflag = 1,--&1 note on &2 note off
+        src_midi_msgflag = 5,--&1 note on &2 note off &4 preserve length
         src_strmarkers = 0,
         
         

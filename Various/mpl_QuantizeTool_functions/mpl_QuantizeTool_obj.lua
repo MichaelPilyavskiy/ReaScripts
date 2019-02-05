@@ -292,6 +292,19 @@
                                             refresh.GUI = true
                                           end,                               
                                 },   
+                                { name = 'Preserve length',
+                                  state = strategy.src_midi_msgflag&4==4,
+                                  show = strategy.src_positions&1==1 
+                                      and strategy.src_midi&1==1 
+                                      and (strategy.act_action == 1  or strategy.act_action == 3)
+                                      and strategy.src_midi_msgflag&1==1,                                     
+                                  level = 3,
+                                  func =  function()
+                                            strategy.src_midi_msgflag = BinaryToggle(strategy.src_midi_msgflag, 2) 
+                                            if  strategy.src_midi_msgflag&4==4 then strategy.src_midi_msgflag = BinaryToggle(strategy.src_midi_msgflag, 1, 0) end                                         
+                                            refresh.GUI = true
+                                          end,                               
+                                },                                
                                 { name = 'NoteOff',
                                   state = strategy.src_midi_msgflag&2==2,
                                   show = strategy.src_positions&1==1 
@@ -299,10 +312,12 @@
                                       and (strategy.act_action == 1  or strategy.act_action == 3),                                     
                                   level = 2,
                                   func =  function()
-                                            strategy.src_midi_msgflag = BinaryToggle(strategy.src_midi_msgflag, 1)                                          
+                                            strategy.src_midi_msgflag = BinaryToggle(strategy.src_midi_msgflag, 1) 
+                                            if strategy.src_midi_msgflag&2==2 then strategy.src_midi_msgflag = BinaryToggle(strategy.src_midi_msgflag, 2, 0) end
                                             refresh.GUI = true
                                           end,                               
-                                },                                 
+                                },  
+                                
                                 
                                              
                                 
