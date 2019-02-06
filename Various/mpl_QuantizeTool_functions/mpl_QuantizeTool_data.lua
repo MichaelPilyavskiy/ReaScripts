@@ -85,6 +85,15 @@
       data.ref = t
     end
     
+    -- filter time selection
+      if strategy.act_catchreftimesel&1==1 then
+        local ts_start, ts_end = GetSet_LoopTimeRange2( 0, false, false, 0, 0, false )
+        local ts_startb, ts_endb =  ({TimeMap2_timeToBeats( 0, ts_start )})[4], ({TimeMap2_timeToBeats( 0, ts_end )})[4]
+        for i = 1, #data.src do
+          if not (data.ref[i].pos >= ts_startb-0.0001 and data.ref[i].pos <= ts_endb) and data.ref[i].ignore_search == false then data.ref[i].ignore_search = true end
+        end
+      end
+          
     -- count active points
       data.ref.src_cnt = 0 
       for i = 1, #data.ref do
@@ -647,7 +656,16 @@
       data.src = t
       
     end
-        
+
+    -- filter time selection
+      if strategy.act_catchsrctimesel&1==1 then
+        local ts_start, ts_end = GetSet_LoopTimeRange2( 0, false, false, 0, 0, false )
+        local ts_startb, ts_endb =  ({TimeMap2_timeToBeats( 0, ts_start )})[4], ({TimeMap2_timeToBeats( 0, ts_end )})[4]
+        for i = 1, #data.src do
+          if not (data.src[i].pos >= ts_startb-0.0001 and data.src[i].pos <= ts_endb) and data.src[i].ignore_search == false then data.src[i].ignore_search = true end
+        end
+      end
+              
     -- count active points
       data.src.src_cnt = 0 
       for i = 1, #data.src do

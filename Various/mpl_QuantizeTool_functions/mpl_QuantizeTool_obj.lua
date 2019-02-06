@@ -1237,48 +1237,84 @@
                             has_blit = true,
                             level = 0             
                         }, 
-                          { name = 'Detect anchor points on initialization',
-                            state = strategy.act_initcatchref,
+                        { name = 'Anchor points',
                             show = true,
                             has_blit = false,
-                            level = 1,
-                            func =  function()
-                                      strategy.act_initcatchref = BinaryToggle(strategy.act_initcatchref, 0)
-                                      refresh.GUI = true
-                                    end,             
-                          } ,   
+                            level = 1             
+                        },        
+                            { name = 'Detect on initialization',
+                              state = strategy.act_initcatchref,
+                              show = true,
+                              has_blit = false,
+                              level = 2,
+                              func =  function()
+                                        strategy.act_initcatchref = BinaryToggle(strategy.act_initcatchref, 0)
+                                        refresh.GUI = true
+                                      end,             
+                            } ,   
+                            { name = 'Obey time selection',
+                              state = strategy.act_catchreftimesel,
+                              show = true,
+                              has_blit = false,
+                              level = 2,
+                              func =  function()
+                                        strategy.act_catchreftimesel = BinaryToggle(strategy.act_catchreftimesel, 0)
+                                        refresh.GUI = true
+                                      end,             
+                            } ,                            
+                            
+                        { name = 'Target',
+                            show = true,
+                            has_blit = false,
+                            level = 1             
+                        },                             
                           { name = 'Detect target on initialization',
                             state = strategy.act_initcatchsrc,
                             show = true,
                             has_blit = false,
-                            level = 1,
+                            level = 2,
                             func =  function()
                                       strategy.act_initcatchsrc = BinaryToggle(strategy.act_initcatchsrc, 0)
                                       refresh.GUI = true
                                     end,             
                           } ,  
-                          { name = 'Calculate action output on initialization',
+                            { name = 'Obey time selection',
+                              state = strategy.act_catchsrctimesel,
+                              show = true,
+                              has_blit = false,
+                              level = 2,
+                              func =  function()
+                                        strategy.act_catchsrctimesel = BinaryToggle(strategy.act_catchsrctimesel, 0)
+                                        refresh.GUI = true
+                                      end,             
+                            } ,                          
+                        { name = 'Action output',
+                            show = true,
+                            has_blit = false,
+                            level = 1             
+                        },                             
+                          { name = 'Calculate on initialization',
                             state = strategy.act_initact&1==1,
                             show = true,
                             has_blit = false,
-                            level = 1,
+                            level = 2,
                             func =  function()
                                       strategy.act_initact = BinaryToggle(strategy.act_initact, 0)
                                       refresh.GUI = true
                                     end,             
                           } ,   
-                          { name = 'Apply action output on initialization',
+                          { name = 'Apply on initialization',
                             state = strategy.act_initapp&1==1,
                             show = true,
                             has_blit = false,
-                            level = 1,
+                            level = 2,
                             func =  function()
                                       strategy.act_initapp = BinaryToggle(strategy.act_initapp, 0)
                                       if strategy.act_initapp&1==1 then strategy.act_initact = BinaryToggle(strategy.act_initact, 0, 1) end
                                       refresh.GUI = true
                                     end,             
                           } ,    
-                          { name = 'Show QuantizeTool GUI on initialization',
+                          { name = 'Show QuantizeTool GUI on initialization (use with care!)',
                             state = strategy.act_initgui&1==1,
                             show = true,
                             has_blit = false,

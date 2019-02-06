@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.15
+-- @version 2.16
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -27,11 +27,10 @@
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 -- @changelog
---    + PBA/Target/MIDI/Mesages/NoteOn/Preserve length, enable by default
---    # PBA/Target/MIDI/Mode/MIDI Editor: process only selected notes
+--    + PBA/Action/Options: obey time selection
 
      
-  local vrs = 'v2.15'
+  local vrs = 'v2.16'
   --NOT gfx NOT reaper
   
 
@@ -103,8 +102,10 @@
         act_alignflag = 0, -- &1= linked knobs
         act_aligndir = 1, -- 0 - always previous 1 - always previous 2 - always next
       -- init
-        act_initcatchref = 1 ,   
+        act_initcatchref = 1 ,  
+        act_catchreftimesel = 0 , 
         act_initcatchsrc = 0 ,
+        act_catchsrctimesel = 0 , 
         act_initact = 0  ,
         act_initapp = 0,
         act_initgui = 1,
