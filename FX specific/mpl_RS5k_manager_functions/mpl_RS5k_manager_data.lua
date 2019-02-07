@@ -315,11 +315,18 @@
     if conf.pintrack == 1 then 
       local ret, trGUID = GetProjExtState( 0, 'MPLRS5KMANAGE', 'PINNEDTR' )
       tr = BR_GetMediaTrackByGUID( 0, trGUID )
-      if not tr  then return end
+      if not (tr and ValidatePtr2(0,tr,'MediaTrack*' ))  then 
+        local ret = MB('Pinned parent track not found, please redefine it or switch off via Menu/Project-related options.\nDisable pinned track? ', conf.mb_title, 3)
+        if ret == 6 then
+          conf.pintrack = 0
+          refresh.conf = true
+        end
+        return 
+      end
       data.parent_track = tr
      else
       tr = GetSelectedTrack(0,0)
-      if not tr  then return end
+      if not (tr and ValidatePtr2(0,tr,'MediaTrack*' ))  then return end
       data.parent_track = tr
     end
     

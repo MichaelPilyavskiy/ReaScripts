@@ -70,30 +70,7 @@
         gfx.rect(x,h/2-h*val+1,math.ceil(w/#data.current_spl_peaks),h0, 1)
       end 
   end
-  ---------------------------------------------------
-  function Menu(mouse, t)
-    local str, check ,hidden= '', '',''
-    for i = 1, #t do
-      if t[i].state then check = '!' else check ='' end
-      if t[i].hidden then hidden = '#' else hidden ='' end
-      local add_str = hidden..check..t[i].str 
-      str = str..add_str
-      str = str..'|'
-    end
-    gfx.x = mouse.x
-    gfx.y = mouse.y
-    local ret = gfx.showmenu(str)
-    local incr = 0
-    if ret > 0 then 
-      for i = 1, ret do 
-        if t[i+incr].menu_decr == true then incr = incr - 1 end
-        if t[i+incr].str:match('>') then incr = incr + 1 end
-        if t[i+incr].menu_inc then incr = incr + 1 end
-      end
-      if t[ret+incr] and t[ret+incr].func then t[ret+incr].func() end 
-      --msg(t[ret+incr].str)
-    end
-  end  
+
   ---------------------------------------------------
   function Menu_FormBrowser(conf,refresh)    
     for i = 1, conf.fav_path_cnt  do if not conf['smpl_browser_fav_path'..i] then conf['smpl_browser_fav_path'..i] = '' end end

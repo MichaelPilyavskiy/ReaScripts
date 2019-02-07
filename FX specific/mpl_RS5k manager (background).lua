@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.93
+-- @version 1.94
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,14 +10,11 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + GUI: add bottom selection triangle
---    + Mixer: show FX for related track, obey mixer mouse modifiers
---    + Pattern: shift left/right
---    + Pattern: clear all/selected note
---    # add RS5K instance after last existed RS5K instance (ex. if there are other effects on parent track FX chain)
---    # fix drop pad only in pad window
+--    # GUI: fix major menu shift bug
+--    # Add additional track pointer check
+--    # check for pinned track and ask to disable it if not found
 
-  local vrs = 'v1.93'
+  local vrs = 'v1.94'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --rs5k manager_
@@ -33,7 +30,7 @@
   local mouse = {}
   local obj = {}
   local data = {}
-  pat = {}    
+  local pat = {}    
    
     
   ---------------------------------------------------  

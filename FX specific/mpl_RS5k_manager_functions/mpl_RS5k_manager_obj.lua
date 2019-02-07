@@ -2178,8 +2178,10 @@ List of available hashtags:
     state = conf.draggedfile_fxchain ~= '',
   } ,   
   -- 
-  { str = '>Global'},      
-  { str = '>Prepare selected track MIDI input'},   
+  { str = '>Global',  
+    menu_inc = true},    
+  { str = '>Prepare selected track MIDI input',  
+    menu_inc = true}, 
 
   { str = 'Virtual keyboard',
     func = function() conf.prepareMIDI3 =0  end ,
@@ -2193,8 +2195,10 @@ List of available hashtags:
     state = conf.allow_multiple_spls_per_pad == 1, 
   } ,  
   
-  { str = '>Project-related options'},   
-  { str = 'Toggle pin selected track as a parent track',
+  { str = '>Project-related options',    
+    menu_inc = true},
+       
+  { str = 'Set pin selected track as a parent track',
     func =  function() 
               if conf.pintrack == 0 then 
                 local tr = GetSelectedTrack(0,0)
@@ -2208,15 +2212,20 @@ List of available hashtags:
             end,
     state = conf.pintrack == 1,
   } ,  
-  { str = 'Select pinned track: '..pinnedtr_str..'|<|',
+  { str = 'Select pinned track: '..pinnedtr_str,
     func =  function() 
               if pinnedtr then SetOnlyTrackSelected( pinnedtr ) end
             end
   } , 
-   
+  { str = 'Clear/disable pinned track|<|',
+    func =  function() 
+              SetProjExtState( 0, 'MPLRS5KMANAGE', 'PINNEDTR', '' )
+              conf.pintrack = 0
+            end
+  } ,    
   
-  { str = '#Actions',
-    menu_inc = true},  
+  { str = '#Actions'
+    },  --menu_inc = true
   { str = 'Export selected items to RS5k instances',
     func =  function() 
               reaper.Undo_BeginBlock2( 0 )
