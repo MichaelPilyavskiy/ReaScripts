@@ -77,7 +77,7 @@
     end  
     
     if strategy.act_action == 1 or strategy.act_action == 3 then -- sort ref table by position 
-      local sortedKeys = getKeysSortedByValue(data.ref, function(a, b) return a < b end, 'pos')
+      local sortedKeys = getKeysSortedByValue(data.ref, function(a, b) return a and b and a < b end, 'pos')
       local t = {}
       for _, key in ipairs(sortedKeys) do
         t[#t+1] = data.ref[key]
@@ -199,26 +199,28 @@
         end
         local is_sel = GetMediaItemInfo_Value( item, 'B_UISEL' ) == 1
         local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
-        if not data[table_name][id] then data[table_name][id] = {} end
         local val = GetMediaItemInfo_Value( item, 'D_VOL' )
         local tk_rate if take then  tk_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )   end
         
-        data[table_name][id].ignore_search = not is_sel
-        data[table_name][id].pos = fullbeats
-        data[table_name][id].pos_sec = pos
-        data[table_name][id].position_has_snap_offs = position_has_snap_offs
-        data[table_name][id].pos_beats = beats
-        data[table_name][id].snapoffs_sec = snapoffs_sec 
-        data[table_name][id].GUID = BR_GetMediaItemGUID( item )
-        data[table_name][id].srctype='item'
-        data[table_name][id].val =val
-        data[table_name][id].it_len = len
-        data[table_name][id].it_pos=it_pos
-        data[table_name][id].groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
-        data[table_name][id].ptr = item
-        data[table_name][id].activetk_ptr = take
-        data[table_name][id].activetk_rate = tk_rate
-        id = id + 1
+        if (table_name == 'ref' and is_sel) or table_name == 'src'then
+          if not data[table_name][id] then data[table_name][id] = {} end
+          data[table_name][id].ignore_search = not is_sel
+          data[table_name][id].pos = fullbeats
+          data[table_name][id].pos_sec = pos
+          data[table_name][id].position_has_snap_offs = position_has_snap_offs
+          data[table_name][id].pos_beats = beats
+          data[table_name][id].snapoffs_sec = snapoffs_sec 
+          data[table_name][id].GUID = BR_GetMediaItemGUID( item )
+          data[table_name][id].srctype='item'
+          data[table_name][id].val =val
+          data[table_name][id].it_len = len
+          data[table_name][id].it_pos=it_pos
+          data[table_name][id].groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
+          data[table_name][id].ptr = item
+          data[table_name][id].activetk_ptr = take
+          data[table_name][id].activetk_rate = tk_rate
+          id = id + 1
+        end
         
         if table_name == 'src' and strategy.src_selitemsflag&2==2 then
           if not data[table_name][id] then data[table_name][id] = {} end
@@ -717,7 +719,7 @@
   function Data_ApplyStrategy_actionCalculateQuantize(conf, obj, data, refresh, mouse, strategy)
     if not data.src then return end
     for i = 1, #data.src do        
-      if not data.src[i].ignore_search then  
+      if data.src[i].ignore_search == false then  
         if strategy.src_envpoints > 0 and strategy.src_envpointsflag == 1 then
           local val = data.src[i].val
           local steps = math.floor(strategy.exe_val2*127)
@@ -754,7 +756,7 @@
     
     -- loop src
       for i = 1, #data.src do        
-        if data.src[i].pos and not data.src[i].ignore_search then
+        if data.src[i].pos and data.src[i].ignore_search == false then
           local out_pos,out_val -- = data.src[i].pos, data.src[i].val
           if strategy.act_action==1 then
           
