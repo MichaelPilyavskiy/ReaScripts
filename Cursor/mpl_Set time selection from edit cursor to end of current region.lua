@@ -1,9 +1,9 @@
 -- @description Set time selection from edit cursor to end of current region
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    + init release
+--    # fix "end" keyword, doesn't work in first region (Lokasenna)
 
   
 cur_pos =  reaper.GetCursorPositionEx( 0 )
