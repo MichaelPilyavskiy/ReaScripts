@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5f5477ab91f9dcdf8747dc1fc5a5afb4ca9724e6" name="MPL Scripts">
+<index version="1" commit="b03f5cb80fd246ad0efef18cfc0f59f29259f376" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1887,6 +1887,11 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2019-02-15T19:33:16Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f5477ab91f9dcdf8747dc1fc5a5afb4ca9724e6/FX%20specific/mpl_Prepare%20selected%20track%20for%20RetrospectiveRecord%20tracker.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2019-02-15T20:01:43Z">
+        <changelog><![CDATA[# enable monitoring
++ disable parent send]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b03f5cb80fd246ad0efef18cfc0f59f29259f376/FX%20specific/mpl_Prepare%20selected%20track%20for%20RetrospectiveRecord%20tracker.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k manager (background).lua" type="script" desc="RS5k manager">
