@@ -1,10 +1,11 @@
 -- @description Prepare selected track for RetrospectiveRecord tracker
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Add RetrospectiveRecord tracker, enable record arm, disable record, enable monitoring, set Input to All MIDI all channels.
 -- @changelog
---    + init
+--    # enable monitoring
+--    + disable parent send
 
 
   --NOT gfx NOT reaper
@@ -16,7 +17,10 @@
     if ret < 0 then MB('Missing RetrospectiveRecord_tracker.jsfx\nPlease install it via ReaPack from MPL repository (Action List/Browse packages)', 'Error', 0) return end
     SetMediaTrackInfo_Value( tr, 'I_RECARM', 1 )
     SetMediaTrackInfo_Value( tr, 'I_RECINPUT', 4096+ (63<<5)) 
-    SetMediaTrackInfo_Value( tr, 'I_RECMODE', 2)  
+    SetMediaTrackInfo_Value( tr, 'I_RECMODE', 2)
+    SetMediaTrackInfo_Value( tr, 'I_RECMON', 1) 
+    SetMediaTrackInfo_Value( tr, 'B_MAINSEND', 0)  
+      
   end
   
  
@@ -28,4 +32,3 @@
   if ret and ret2 then 
     main()
   end
-
