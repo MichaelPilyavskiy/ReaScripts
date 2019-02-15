@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b66ef1557f939cdda852330aea13f375904a4d0a" name="MPL Scripts">
+<index version="1" commit="b674fa1ba5d30c5a27778481f58fd87208530b98" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1545,6 +1545,22 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d02548590e8d84d292f139994ee8e9574c586e90/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Dump RetrospectiveRecord tracker log to selected track.lua" type="script" desc="Dump RetrospectiveRecord tracker log to selected track">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Dump MIDI messages log from RetrospectiveRecord_tracker JSFX as new item on selected track placed at edit cursor\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-02-15T19:06:08Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b674fa1ba5d30c5a27778481f58fd87208530b98/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Explode selected track RS5k instances to new tracks.lua" type="script" desc="Explode selected track RS5k instances to new tracks">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -2839,6 +2855,22 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-09-13T10:29:31Z">
         <changelog><![CDATA[init]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/e20700fecd51e57f581046811f99456544e565e2/JSFX/DC%20offset.jsfx</source>
+      </version>
+    </reapack>
+    <reapack name="RetrospectiveRecord_tracker.jsfx" type="effect" desc="RetrospectiveRecord_tracker">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Tracking MIDI data for further passing them into mpl_RetrospectiveRecord\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-02-15T19:06:08Z">
+        <changelog><![CDATA[init]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/b674fa1ba5d30c5a27778481f58fd87208530b98/JSFX/RetrospectiveRecord_tracker.jsfx</source>
       </version>
     </reapack>
     <reapack name="RS5K_Manager_tracker.jsfx" type="effect" desc="RS5K_Manager_tracker">
