@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.94
+-- @version 1.95
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,11 +10,11 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    # GUI: fix major menu shift bug
---    # Add additional track pointer check
---    # check for pinned track and ask to disable it if not found
+--    + Pattern: ctrl+click/drag on step change velocity
+--    # Pattern: prevent error when set random velocity
 
-  local vrs = 'v1.94'
+
+  local vrs = 'v1.95'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --rs5k manager_

@@ -2871,13 +2871,31 @@ List of available hashtags:
                                       local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
                                       if ret then 
                                         local vel =0
-                                        if not (pat[note] and pat[note].steps and pat[note].steps[i_step]) or pat[note].steps[i_step] == 0 then vel = 120 end
+                                        if not (pat[note] and pat[note].steps and pat[note].steps[i_step]) or (pat[note] and pat[note].steps and pat[note].steps[i_step] and pat[note].steps[i_step] == 0) then 
+                                          vel = 120 
+                                        end
                                         Pattern_Change(conf, pat, poolGUID, note, i_step, vel)
                                         Pattern_Commit(conf, pat, poolGUID, take_ptr)
                                         Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
                                         refresh.GUI = true  
                                       end   
-                                    end}
+                                    end,
+                          func_trigCtrl = function() 
+                                            local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                            if ret and (pat[note] and pat[note].steps and pat[note].steps[i_step]) then mouse.context_latch_val = pat[note].steps[i_step] end
+                                          end,
+                          func_ctrlLD = function ()
+                            local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                            if not ret or not mouse.context_latch_val then return end
+                            local dragratio = 1
+                            local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 1, 120)
+                            if not out_val then return end
+                            if not pat[note] then pat[note] = {} end
+                            Pattern_Change(conf, pat, poolGUID, note, i_step, math.floor(out_val))
+                            Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                            Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
+                            refresh.GUI = true   
+                          end,                                     }
           end           
           
         end
@@ -3156,7 +3174,7 @@ List of available hashtags:
                                     for note in pairs(pat) do
                                       if tonumber(note) then
                                         for i = 1, pat[note].cnt_steps do
-                                          if pat[note].steps[i] > 0 then 
+                                          if pat[note].steps and pat[note].steps[i] and pat[note].steps[i] > 0 then 
                                             local val = math.random()*(conf.randvel2-conf.randvel1) + conf.randvel1
                                             Pattern_Change(conf, pat, poolGUID, note, i, lim(math.floor(val*127), 1, 127))
                                           end
