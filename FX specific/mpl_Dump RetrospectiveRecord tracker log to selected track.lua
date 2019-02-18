@@ -1,10 +1,10 @@
 -- @description Dump RetrospectiveRecord tracker log to selected track
--- @version 1.0
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Dump MIDI messages log from RetrospectiveRecord_tracker JSFX as new item on selected track placed at edit cursor
 -- @changelog
---    + init
+--    + Handle support for sync data to timeline if last note was pressed while playing (required RetrospectiveRecord tracker 1.02+), set offset for MIDI take and set position to zero if supposed item postion going to be negative (devnote: gmem slot#8000000=1 support sync, gmem slot#8000001>0 play position on last triggered MIDI event)
 
      
 
@@ -21,7 +21,7 @@
       local msg1 = midimsg & 0xFF
       local msg2 = (midimsg >> 8) & 0xFF
       local msg3 = (midimsg >> 16) & 0xFF
-      local ts_cur = reaper.gmem_read(i+max_buf)
+      local ts_cur = gmem_read(i+max_buf)
       if not ts_cur0 then ts_cur0 = ts_cur end
       t[i] = {midimsg=midimsg,
               msg1 =msg1,
@@ -30,27 +30,34 @@
               ts = ts_cur-ts_cur0}
     end
     
-    return t
+    return t, gmem_read(8000000)==1, gmem_read(8000001)
   end
   ---------------------------------------------------------
-  function AddDataToTrack(data)
+  function AddDataToTrack(data, sync_support, playpos)
     if not data or #data < 1 then return end
     local tr = GetSelectedTrack(0,0)
     if not tr then MB('Select track','Dump RetrospectiveRecord tracker log',0) return end
     local s_pack = string.pack
-    
+    ---------
     local curpos = GetCursorPositionEx( 0 )
     local it_len = data[#data].ts
-    local it = CreateNewMIDIItemInProj( tr, curpos, it_len )
-     SetMediaItemInfo_Value( it, 'D_LENGTH' , it_len )
-    --[[local it = GetSelectedMediaItem(0,0)
-    SetMediaItemInfo_Value( it, 'D_POSITION' , curpos )
-    ]]
+    local it = CreateNewMIDIItemInProj( tr, curpos, it_len ) 
     local take
     if it then take = GetActiveTake(it) end
     if not take then return end
-    
-    
+    ---------
+    if sync_support and playpos > 0 then
+      local new_pos = playpos- it_len
+      if new_pos < 0 then
+        SetMediaItemInfo_Value( it, 'D_POSITION' , 0 )
+        SetMediaItemInfo_Value( it, 'D_LENGTH' , playpos )
+        SetMediaItemTakeInfo_Value( take, 'D_STARTOFFS', -(playpos- it_len) )
+       else
+        SetMediaItemInfo_Value( it, 'D_POSITION' , new_pos )
+      end
+    end    
+    SetMediaItemInfo_Value( it, 'D_LENGTH' , it_len )
+    ---------
     local MIDIstr= ''
     local lastPPQ
     local flags = 0
@@ -62,7 +69,7 @@
       MIDIstr = MIDIstr..s_pack("i4BI4BBB", offs, flags, 3, data[i].msg1, data[i].msg2, data[i].msg3)
     end
     MIDIstr = MIDIstr..s_pack("i4BI4BBB", 0, flags, 3, 0xB, 123, 0)
-    
+    ---------
     MIDI_SetAllEvts(take, MIDIstr)
     return true
   end
@@ -74,8 +81,8 @@
   local ret = CheckFunctions('VF_CalibrateFont') 
   local ret2 = VF_CheckReaperVrs(5.966,true)    
   if ret and ret2 then 
-    local midi_t = CollectData()
-    local ret = AddDataToTrack(midi_t)
+    local midi_t, sync_support, playpos = CollectData()
+    local ret = AddDataToTrack(midi_t,sync_support, playpos)
     if ret then gmem_write(0,0) end-- clear buffer
   end
 

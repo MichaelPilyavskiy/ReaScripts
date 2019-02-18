@@ -1,6 +1,6 @@
 desc:RetrospectiveRecord_tracker
-version: 1.01
-changelog: code cleanup
+version: 1.02
+changelog: obey data sync to project time if last note was recorder while playing
 author: MPL
 website: http://forum.cockos.com/member.php?u=70694
 about:
@@ -12,6 +12,7 @@ options:gmem=mpl_RetrospectiveRecord
 
 @init
   max_cnt = 3500000;
+  gmem[8000000] = 1; // 1.02 support for obey play sync
 @slider
 
 @block
@@ -25,6 +26,7 @@ options:gmem=mpl_RetrospectiveRecord
       cnt_msg = cnt_msg + 1;
       cnt_msg = min(cnt_msg, max_cnt);
       gmem[0] = cnt_msg;
+      play_state&1==1 ? (gmem[8000001] = play_position):(gmem[8000001] = -1);
     );
   
 
