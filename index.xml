@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="06c510b54bc406be7371029323280cf974aaf3e5" name="MPL Scripts">
+<index version="1" commit="809957a6a06ba31ea895899854b07e4cdc74b54a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1560,6 +1560,10 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b674fa1ba5d30c5a27778481f58fd87208530b98/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2019-02-18T11:39:59Z">
+        <changelog><![CDATA[+ Handle support for sync data to timeline if last note was pressed while playing (required RetrospectiveRecord tracker 1.02+), set offset for MIDI take and set position to zero if supposed item postion going to be negative (devnote: gmem slot#8000000=1 support sync, gmem slot#8000001>0 play position on last triggered MIDI event)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/809957a6a06ba31ea895899854b07e4cdc74b54a/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Explode selected track RS5k instances to new tracks.lua" type="script" desc="Explode selected track RS5k instances to new tracks">
       <metadata>
@@ -2906,6 +2910,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.01" author="MPL" time="2019-02-15T19:33:16Z">
         <changelog><![CDATA[code cleanup]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f5477ab91f9dcdf8747dc1fc5a5afb4ca9724e6/JSFX/RetrospectiveRecord_tracker.jsfx</source>
+      </version>
+      <version name="1.02" author="MPL" time="2019-02-18T11:39:59Z">
+        <changelog><![CDATA[obey data sync to project time if last note was recorder while playing]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/809957a6a06ba31ea895899854b07e4cdc74b54a/JSFX/RetrospectiveRecord_tracker.jsfx</source>
       </version>
     </reapack>
     <reapack name="RS5K_Manager_tracker.jsfx" type="effect" desc="RS5K_Manager_tracker">
