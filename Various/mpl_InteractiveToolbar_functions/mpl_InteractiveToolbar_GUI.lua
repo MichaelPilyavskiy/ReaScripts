@@ -942,12 +942,14 @@ msg(
                           end
                         end
                             }  ,                               
-                {str = 'Edit widget order manually|<',
+                {str = 'Edit widget order manually|<|',
                  func = function()  F_open_URL('"" "'..data.conf_path..'"') end}  ,                            
-                {str = '|Dock MPL InteractiveToolbar',
+                {str = 'Dock MPL InteractiveToolbar',
                                  func = function() 
+                                          if conf.dock > 0 then conf.dock = 0 else conf.dock = 1 end
                                           gfx.quit() 
-                                          gfx.init('MPL '..conf.scr_title,conf.wind_w, conf.wind_h,  513 , conf.wind_x, conf.wind_y)end} ,                   
+                                          gfx.init('MPL '..conf.scr_title,conf.wind_w, conf.wind_h, conf.dock , conf.wind_x, conf.wind_y)end,
+                                 state = conf.dock > 0 }, 
                 {str = 'Refresh GUI',
                  func = function() 
                           SCC_trig = true 

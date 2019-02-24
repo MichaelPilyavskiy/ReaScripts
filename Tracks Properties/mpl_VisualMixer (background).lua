@@ -1,5 +1,5 @@
 -- @description VisualMixer
--- @version 1.05
+-- @version 1.07
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Pretty same as what Izotope Neutron Visual mixer do, probably with some things act different. I built ReaScript prototype slightly before Izotope thing was released, but it was also inspired by Izotope stuff.
@@ -9,11 +9,10 @@
 --    mpl_VisualMixer_functions/mpl_VisualMixer_data.lua
 --    mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua
 -- @changelog
---    # fix CSurf issue (thanks to Justin Frankel)
---    # for now pan/width controls works properly only with stereo pan mode
+--    + Store dockstate (require mpl_Various_Functions 1.23+)
 
 
-  local vrs = 'v1.05'
+  local vrs = 'v1.07'
   --NOT gfx NOT reaper
   
   
@@ -52,7 +51,6 @@
             wind_w =  500,
             wind_h =  500,
             dock =    0,
-            dock2 =    0, -- set manually docked state
             
             -- mouse
             mouse_wheel_res = 960,
@@ -138,7 +136,7 @@
         gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
                   conf.wind_w, 
                   conf.wind_h, 
-                  conf.dock2, conf.wind_x, conf.wind_y)
+                  conf.dock, conf.wind_x, conf.wind_y)
         OBJ_init(obj)
         OBJ_Update(conf, obj, data, refresh, mouse, data_ext) 
         run()  

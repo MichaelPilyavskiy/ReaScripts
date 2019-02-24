@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.20
+-- @version 1.21
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,14 +9,10 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    + list /REAPER/FXChains in Add FX dialog
---    + option to hide direct track IO links
---    + option to hide FX to track IO 3+ channel links
---    + option to prevent 3+ track IO linking
---    + Data_BuildRouting_Audio: optionally use free channels (limited to 32)
+--    + Store dockstate (require mpl_Various_Functions 1.23+)
 
 
-  local vrs = 'v1.20'
+  local vrs = 'v1.21'
   --NOT gfx NOT reaper
   
   
@@ -64,7 +60,6 @@
             wind_w =  600,
             wind_h =  200,
             dock =    0,
-            dock2 =    0, -- set manually docked state
             
             -- mouse
             mouse_wheel_res = 960,
@@ -171,7 +166,7 @@
         gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
                   conf.wind_w, 
                   conf.wind_h, 
-                  conf.dock2, conf.wind_x, conf.wind_y)
+                  conf.dock, conf.wind_x, conf.wind_y)
         OBJ_init(obj)
         OBJ_Update(conf, obj, data, refresh, mouse) 
         run()  

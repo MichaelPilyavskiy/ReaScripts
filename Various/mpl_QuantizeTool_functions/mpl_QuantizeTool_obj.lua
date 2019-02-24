@@ -2150,14 +2150,14 @@
                    
       { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
         func = function() 
-                  conf.dock2 = math.abs(1-conf.dock2) 
+                  if conf.dock > 0 then conf.dock = 0 else conf.dock = 1 end
                   gfx.quit() 
                   gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
                             conf.wind_w, 
                             conf.wind_h, 
-                            conf.dock2, conf.wind_x, conf.wind_y)
+                            conf.dock, conf.wind_x, conf.wind_y)
               end ,
-        state = conf.dock2 == 1},                                                                            
+        state = conf.dock > 0},                                                                            
     }
     )
                                   refresh.conf = true 

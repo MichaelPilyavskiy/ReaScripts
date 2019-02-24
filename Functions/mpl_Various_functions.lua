@@ -2,9 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.22
+-- @version 1.23
 -- @changelog
---    + VF_GetFXByGUID(GUID)
+--    # obey dockstate for HasWindXYWHChanged()
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) 
@@ -75,6 +75,7 @@
     table.sort(keys, function(a, b) return sortFunction(tbl[a][param], tbl[b][param])  end)  
     return keys
   end  
+
   ------------------------------------------------------------------------------------------------------
   function eugen27771_GetObjStateChunk(obj)
     
@@ -563,12 +564,19 @@
   end 
   ----------------------------------------------------------------------
   function HasWindXYWHChanged(obj)  
-    local  _, wx,wy,ww,wh = gfx.dock(-1, 0,0,0,0)
+    local  dock, wx,wy,ww,wh = gfx.dock(-1, 0,0,0,0)
     local retval=0
+    if not obj.last_gfxx 
+        or not obj.last_gfxy 
+        or not obj.last_gfxw 
+        or not obj.last_gfxh 
+        or not obj.last_dock then 
+        obj.last_gfxx, obj.last_gfxy, obj.last_gfxw, obj.last_gfxh, obj.last_dock = wx,wy,ww,wh, dock
+        return -1 
+    end
     if wx ~= obj.last_gfxx or wy ~= obj.last_gfxy then retval= 2 end --- minor
-    if ww ~= obj.last_gfxw or wh ~= obj.last_gfxh then retval= 1 end --- major
-    if not obj.last_gfxx then retval = -1 end
-    obj.last_gfxx, obj.last_gfxy, obj.last_gfxw, obj.last_gfxh = wx,wy,ww,wh
+    if ww ~= obj.last_gfxw or wh ~= obj.last_gfxh or dock ~= obj.last_dock then retval= 1 end --- major
+    obj.last_gfxx, obj.last_gfxy, obj.last_gfxw, obj.last_gfxh, obj.last_dock = wx,wy,ww,wh,dock
     return retval
   end
   ---------------------------------------------------
@@ -592,7 +600,7 @@
         if t[i+incr].menu_inc then incr = incr + 1 end
       end
       if t[ret+incr] and t[ret+incr].func then t[ret+incr].func() end 
-      --msg(t[ret+incr].str)
+     --- msg(t[ret+incr].str)
     end
   end  
   ---------------------------------------------------

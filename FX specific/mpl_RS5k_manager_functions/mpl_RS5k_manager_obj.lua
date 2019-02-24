@@ -2283,14 +2283,14 @@ List of available hashtags:
 
   { str = 'Dock MPL RS5k manager',
     func = function() 
-              conf.dock2 = math.abs(1-conf.dock2) 
+              if conf.dock > 0 then conf.dock = 0 else conf.dock = 1 end
               gfx.quit() 
               gfx.init('MPL RS5k manager '..conf.vrs,
                         conf.wind_w, 
                         conf.wind_h, 
-                        conf.dock2, conf.wind_x, conf.wind_y)
+                        conf.dock, conf.wind_x, conf.wind_y)
           end ,
-    state = conf.dock2 == 1}, 
+    state = conf.dock > 0 }, 
                                                                            
 }
 )
@@ -3012,19 +3012,7 @@ List of available hashtags:
   end
   ---------------------------------------------------  
   function OBJ_GenPat_Ctrl(conf, obj, data, refresh, mouse,pat)
-    --[[obj.patframe = { clear = true,
-                    x = obj.keycntrlarea_w   + obj.offs,
-                    y = 0,
-                    w = obj.pat_area_w,
-                    h =obj.kn_h,
-                    col = 'white',
-                    txt= '',
-                    show = true,
-                    mouse_overlay = true,
-                    ignore_mouse = true,
-                    fontsz = obj.GUI_fontsz,
-                    alpha_back = obj.it_alpha5 ,
-                    a_frame = 0.1 }]]
+
       obj._patname = { clear = true,
               x = obj.keycntrlarea_w  ,
               y = obj.kn_h,--gfx.h - obj.WF_h-obj.key_h,
@@ -3044,9 +3032,10 @@ List of available hashtags:
                       
       local mode = 'Selected'
       if conf.patctrl_mode == 1 then mode = 'All' end
+      local ctrl_offsy = 2
       obj.pat_editmode = { clear = true,
                     x = obj.keycntrlarea_w   + obj.offs,
-                    y = obj.offs,
+                    y = ctrl_offsy,
                     w = obj.kn_w,
                     h =obj.kn_h,
                     col = 'white',
@@ -3070,7 +3059,7 @@ List of available hashtags:
                             end }         
       obj.pat_randgate = { clear = true,
                     x = obj.keycntrlarea_w   + obj.offs*2+obj.kn_w,
-                    y = obj.offs,
+                    y = ctrl_offsy,
                     w = obj.kn_w*1.5,
                     h =obj.kn_h/2-1,
                     col = 'white',
@@ -3115,7 +3104,7 @@ List of available hashtags:
           obj.pat_randgateprob = 
                         { clear = true,
                           x = obj.keycntrlarea_w   + obj.offs*2+obj.kn_w*2.5 + 2,
-                          y = obj.offs,
+                          y = ctrl_offsy,
                           w = obj.kn_w*0.7,
                           h =obj.kn_h/2-1,
                           --txt = math.floor(swing*100)..'%',
@@ -3146,7 +3135,7 @@ List of available hashtags:
                                           end}                                          
       obj.pat_randvel = { clear = true,
                     x = obj.keycntrlarea_w   + obj.offs*2+obj.kn_w,
-                    y = obj.offs+obj.kn_h/2,
+                    y = ctrl_offsy+obj.kn_h/2,
                     w = obj.kn_w*1.5,
                     h =obj.kn_h/2,
                     col = 'white',
@@ -3190,7 +3179,7 @@ List of available hashtags:
                               end
                             end                    }    
       local rvctrlx = obj.keycntrlarea_w   + obj.offs*2+obj.kn_w*2.5+2
-      local rvctrly = obj.offs+obj.kn_h/2
+      local rvctrly = ctrl_offsy+obj.kn_h/2
       local rvctrlw = obj.kn_w*0.7
       local rvctrlh = obj.kn_h/2
       obj.pat_randvelctrl = { clear = true,
@@ -3241,7 +3230,7 @@ List of available hashtags:
                     alpha_back = 0.7 }   
       obj.pat_shiftl = { clear = true,
                     x = obj.keycntrlarea_w   + obj.offs*3+obj.kn_w*3.2,
-                    y = obj.offs,
+                    y = ctrl_offsy,
                     w = obj.kn_w,
                     h =obj.kn_h/2-1,
                     col = 'white',
@@ -3295,7 +3284,7 @@ List of available hashtags:
                             end                    }  
       obj.pat_shiftr = { clear = true,
                     x = obj.keycntrlarea_w   + obj.offs*3+obj.kn_w*4.2+1,
-                    y = obj.offs,
+                    y =ctrl_offsy,
                     w = obj.kn_w,
                     h =obj.kn_h/2-1,
                     col = 'white',
@@ -3347,7 +3336,7 @@ List of available hashtags:
                             end                    }  
       obj.pat_clear = { clear = true,
                     x = obj.keycntrlarea_w   + obj.offs*3+obj.kn_w*3.2,
-                    y = obj.offs + obj.kn_h/2,
+                    y = ctrl_offsy + obj.kn_h/2,
                     w = obj.kn_w*2+1,
                     h =obj.kn_h/2,
                     col = 'white',

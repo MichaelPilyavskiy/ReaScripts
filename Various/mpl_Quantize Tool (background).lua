@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.17
+-- @version 2.18
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -27,10 +27,10 @@
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 -- @changelog
---    # PBA/Anchor points/Items: prevent crossing references
+--    + Store dockstate (require mpl_Various_Functions 1.23+)
 
      
-  local vrs = 'v2.17'
+  local vrs = 'v2.18'
   --NOT gfx NOT reaper
   
 
@@ -130,7 +130,6 @@
             wind_w =  450,
             wind_h =  450,
             dock =    0,
-            dock2 =    0, -- set manually docked state
             
             -- mouse
             mouse_wheel_res = 960,
@@ -292,7 +291,7 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
           gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
                     conf.wind_w, 
                     conf.wind_h, 
-                    conf.dock2, conf.wind_x, conf.wind_y)
+                    conf.dock, conf.wind_x, conf.wind_y)
           OBJ_init(obj)
           OBJ_Update(conf, obj, data, refresh, mouse,strategy) 
           run()  

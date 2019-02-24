@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.95
+-- @version 1.96
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,18 +10,17 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + Pattern: ctrl+click/drag on step change velocity
---    # Pattern: prevent error when set random velocity
+--    + Store dockstate (require mpl_Various_Functions 1.23+)
 
 
-  local vrs = 'v1.95'
+  local vrs = 'v1.96'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --rs5k manager_
  
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
-  local conf = {}  
+  conf = {}  
   local refresh = { GUI_onStart = true, 
                     GUI = false, 
                     data = false,
@@ -62,7 +61,6 @@
             wind_w =  600,
             wind_h =  200,
             dock =    0,
-            dock2 =    0, -- set manually docked state
             
             -- GUI
             tab = 0,  -- 0-sample browser
@@ -162,11 +160,11 @@
     
         local ret = SetButtonON()
         Main_RefreshExternalLibs()
-        ExtState_Load(conf)  
+        ExtState_Load(conf) 
         gfx.init('MPL RS5k manager '..vrs,
                   conf.wind_w, 
                   conf.wind_h, 
-                  conf.dock2, conf.wind_x, conf.wind_y)
+                  math.floor(conf.dock), conf.wind_x, conf.wind_y)
         OBJ_init(obj)
         OBJ_Update(conf, obj, data, refresh, mouse, pat) 
         conf.dev_mode = 0

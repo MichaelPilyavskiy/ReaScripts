@@ -1,5 +1,5 @@
 -- @description InstrumentRack
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
@@ -9,9 +9,9 @@
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua
 -- @changelog
---    # fix error when freezing instrument with existing track controls
+--    + Store dockstate (require mpl_Various_Functions 1.23+)
 
-  local vrs = 'v1.07'
+  local vrs = 'v1.08'
   --NOT gfx NOT reaper
   
   --  INIT -------------------------------------------------
@@ -49,7 +49,6 @@
             wind_w =  500,
             wind_h =  400,
             dock =    0,
-            dock2 =    0, -- set manually docked state
             
             -- mouse
             mouse_wheel_res = 960,
@@ -134,7 +133,7 @@
           gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
                     conf.wind_w, 
                     conf.wind_h, 
-                    conf.dock2, conf.wind_x, conf.wind_y)
+                    conf.dock, conf.wind_x, conf.wind_y)
           OBJ_init(obj)
           OBJ_Update(conf, obj, data, refresh, mouse, data_ext)
           run()  
