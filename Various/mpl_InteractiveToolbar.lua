@@ -14,6 +14,7 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
+--    + Store dockstate (require mpl_Various_Functions 1.23+), display dockstate properly
 
     local vrs = '1.80'
 
