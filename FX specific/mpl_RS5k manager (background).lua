@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.96
+-- @version 1.97
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,17 +10,17 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + Store dockstate (require mpl_Various_Functions 1.23+)
+--    + Store last dock ID (dev test)
 
 
-  local vrs = 'v1.96'
+  local vrs = 'v1.97'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --rs5k manager_
  
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
-  conf = {}  
+   conf = {}  
   local refresh = { GUI_onStart = true, 
                     GUI = false, 
                     data = false,
@@ -61,6 +61,7 @@
             wind_w =  600,
             wind_h =  200,
             dock =    0,
+            lastdockID = 0,
             
             -- GUI
             tab = 0,  -- 0-sample browser
@@ -146,8 +147,12 @@
       Data_Update (conf, obj, data, refresh, mouse) 
       refresh.data = nil 
     end    
-    if refresh.conf == true                       then ExtState_Save(conf)                                            refresh.conf = nil end
-    if refresh.GUI == true or refresh.GUI_onStart == true then OBJ_Update              (conf, obj, data, refresh, mouse, pat) end  
+    if refresh.conf == true then 
+      if conf.dock > 0 then conf.lastdockID = conf.dock end
+      ExtState_Save(conf) 
+      refresh.conf = nil 
+    end
+    if refresh.GUI == true or refresh.GUI_onStart == true then OBJ_Update (conf, obj, data, refresh, mouse, pat) end
     GUI_draw (conf, obj, data, refresh, mouse)    
                                                
     local char =gfx.getchar()  
@@ -164,7 +169,7 @@
         gfx.init('MPL RS5k manager '..vrs,
                   conf.wind_w, 
                   conf.wind_h, 
-                  math.floor(conf.dock), conf.wind_x, conf.wind_y)
+                  conf.dock, conf.wind_x, conf.wind_y)
         OBJ_init(obj)
         OBJ_Update(conf, obj, data, refresh, mouse, pat) 
         conf.dev_mode = 0

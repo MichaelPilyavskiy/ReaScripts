@@ -2283,7 +2283,9 @@ List of available hashtags:
 
   { str = 'Dock MPL RS5k manager',
     func = function() 
-              if conf.dock > 0 then conf.dock = 0 else conf.dock = 1 end
+              if conf.dock > 0 then conf.dock = 0 else 
+                if conf.lastdockID and conf.lastdockID > 0 then conf.dock = conf.lastdockID else conf.dock = 1  end
+              end
               gfx.quit() 
               gfx.init('MPL RS5k manager '..conf.vrs,
                         conf.wind_w, 
