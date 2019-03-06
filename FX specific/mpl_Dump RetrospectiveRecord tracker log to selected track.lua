@@ -1,17 +1,19 @@
 -- @description Dump RetrospectiveRecord tracker log to selected track
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Dump MIDI messages log from RetrospectiveRecord_tracker JSFX as new item on selected track placed at edit cursor
 -- @changelog
---    + Handle support for sync data to timeline if last note was pressed while playing (required RetrospectiveRecord tracker 1.02+), set offset for MIDI take and set position to zero if supposed item postion going to be negative (devnote: gmem slot#8000000=1 support sync, gmem slot#8000001>0 play position on last triggered MIDI event)
+--    # disable loop source for newly created MIDI items
+--    # handle non-zero project offset
+
 
      
 
   --NOT gfx NOT reaper
   ---------------------------------------------------------
   function CollectData()
-    gmem_attach('mpl_RetrospectiveRecord')
+    gmem_attach('mpl_RetrospectiveRecord') 
     local max_buf = 3500000
     local cnt_entries = reaper.gmem_read(0)
     local t = {}
@@ -31,10 +33,10 @@
     end
     
     return t, gmem_read(8000000)==1, gmem_read(8000001)
-  end
+  end 
   ---------------------------------------------------------
   function AddDataToTrack(data, sync_support, playpos)
-    if not data or #data < 1 then return end
+    if not data or #data < 1 then return end 
     local tr = GetSelectedTrack(0,0)
     if not tr then MB('Select track','Dump RetrospectiveRecord tracker log',0) return end
     local s_pack = string.pack
@@ -42,21 +44,23 @@
     local curpos = GetCursorPositionEx( 0 )
     local it_len = data[#data].ts
     local it = CreateNewMIDIItemInProj( tr, curpos, it_len ) 
-    local take
+    local take 
     if it then take = GetActiveTake(it) end
     if not take then return end
     ---------
+    local proj_offs =  GetProjectTimeOffset( 0, false )
     if sync_support and playpos > 0 then
-      local new_pos = playpos- it_len
+      local new_pos = playpos- it_len 
       if new_pos < 0 then
-        SetMediaItemInfo_Value( it, 'D_POSITION' , 0 )
+        SetMediaItemInfo_Value( it, 'D_POSITION' , proj_offs )
         SetMediaItemInfo_Value( it, 'D_LENGTH' , playpos )
         SetMediaItemTakeInfo_Value( take, 'D_STARTOFFS', -(playpos- it_len) )
        else
-        SetMediaItemInfo_Value( it, 'D_POSITION' , new_pos )
+        SetMediaItemInfo_Value( it, 'D_POSITION' , new_pos + proj_offs )
       end
     end    
     SetMediaItemInfo_Value( it, 'D_LENGTH' , it_len )
+    SetMediaItemInfo_Value( it, 'B_LOOPSRC', 0 )
     ---------
     local MIDIstr= ''
     local lastPPQ
@@ -85,4 +89,3 @@
     local ret = AddDataToTrack(midi_t,sync_support, playpos)
     if ret then gmem_write(0,0) end-- clear buffer
   end
-
