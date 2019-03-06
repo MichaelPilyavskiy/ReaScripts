@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="50d88e462832925ddb09d73703313ee3df72d745" name="MPL Scripts">
+<index version="1" commit="aac107f8290f9b979fa8a83a7372695843325265" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1592,6 +1592,11 @@ setup min gain, attack =0]]></changelog>
       <version name="1.02" author="MPL" time="2019-02-18T11:39:59Z">
         <changelog><![CDATA[+ Handle support for sync data to timeline if last note was pressed while playing (required RetrospectiveRecord tracker 1.02+), set offset for MIDI take and set position to zero if supposed item postion going to be negative (devnote: gmem slot#8000000=1 support sync, gmem slot#8000001>0 play position on last triggered MIDI event)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/809957a6a06ba31ea895899854b07e4cdc74b54a/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2019-03-06T13:58:09Z">
+        <changelog><![CDATA[# disable loop source for newly created MIDI items
+# handle non-zero project offset]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aac107f8290f9b979fa8a83a7372695843325265/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Explode selected track RS5k instances to new tracks.lua" type="script" desc="Explode selected track RS5k instances to new tracks">
