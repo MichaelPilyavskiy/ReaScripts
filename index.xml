@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3b6ed64b3a48a431c25d471ebc23ae92957129d7" name="MPL Scripts">
+<index version="1" commit="ad7417d4ce189994a7dbc0d0caf8ebe19667f3d8" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4298,6 +4298,15 @@ setup min gain, attack =0]]></changelog>
       <version name="1.4.1" author="MPL" time="2018-05-21T18:58:21Z">
         <changelog><![CDATA[# fix msg vsr]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad32074bac41bbe3d1affb23532b5b8e13c443f3/Tracks%20Properties/mpl_Sort%20selected%20tracks%20by%20color.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_TalkBack Track 1 (MIDI CC and OSC only).lua" type="script" desc="TalkBack Track 1 (MIDI CC and OSC only)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-03-06T20:53:31Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad7417d4ce189994a7dbc0d0caf8ebe19667f3d8/Tracks%20Properties/mpl_TalkBack%20Track%201%20(MIDI%20CC%20and%20OSC%20only).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle auto add last touched parameter to TCP (background).lua" type="script">
