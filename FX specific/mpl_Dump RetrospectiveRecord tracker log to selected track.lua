@@ -1,11 +1,12 @@
 -- @description Dump RetrospectiveRecord tracker log to selected track
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Dump MIDI messages log from RetrospectiveRecord_tracker JSFX as new item on selected track placed at edit cursor
 -- @changelog
---    - remove support for negative project offset
---    # improve offset logic
+--    - drop support for old plugin with no sync option
+--    + create new item around edit cursor, build proper take offset
+--    + use play cursor if dumping while playing
 
 
      
@@ -37,43 +38,38 @@
   ---------------------------------------------------------
   function AddDataToTrack(data, sync_support, playpos)
     if not data or #data < 1 then return end 
+    if not sync_support then MB('Please update mpl_Retrospective Record JSFX', 'Error', 0) return end 
     local tr = GetSelectedTrack(0,0)
     if not tr then MB('Select track','Dump RetrospectiveRecord tracker log',0) return end
-    local s_pack = string.pack
+    
     ---------
     local curpos = GetCursorPositionEx( 0 )
-     it_len0 = data[#data].ts
+    if GetPlayStateEx( 0 )&1==1 then curpos =  GetPlayPosition2Ex( 0 ) end
+    local it_len0 = data[#data].ts
     local it = CreateNewMIDIItemInProj( tr, curpos, it_len0 ) 
+    SetMediaItemInfo_Value( it, 'B_LOOPSRC', 0 )
     local take 
     if it then take = GetActiveTake(it) end
-    if not take then return end
+    if not take then return end 
     ---------
     local proj_offs =  GetProjectTimeOffset( 0, false )
-    if proj_offs < 0 then return end
-    if sync_support and playpos >= 0 then
-      it_len = playpos - curpos - proj_offs
-      if it_len > 0 then
-        SetMediaItemInfo_Value( it, 'D_POSITION' , curpos )
-        SetMediaItemInfo_Value( it, 'D_LENGTH' , it_len )
-        SetMediaItemTakeInfo_Value( take, 'D_STARTOFFS', it_len0 - it_len )
+    if playpos < 0 then
+      SetMediaItemInfo_Value( it, 'D_POSITION' , curpos)
+      SetMediaItemInfo_Value( it, 'D_LENGTH' , it_len0)
+     else
+      playpos = playpos - proj_offs
+      if playpos >= curpos then
+        SetMediaItemInfo_Value( it, 'D_LENGTH' , playpos  - curpos)
+        SetMediaItemTakeInfo_Value( take, 'D_STARTOFFS',  curpos + it_len0 - playpos  )
        else
-        t = (playpos - proj_offs) 
-        pos  = (playpos - proj_offs) - it_len0
-        SetMediaItemInfo_Value( it, 'D_POSITION' ,pos)
-        SetMediaItemInfo_Value( it, 'D_LENGTH' , curpos-pos )
+        SetMediaItemInfo_Value( it, 'D_POSITION' , playpos - it_len0)
+        SetMediaItemInfo_Value( it, 'D_LENGTH' , curpos - playpos + it_len0)
       end
-    end    
-    SetMediaItemInfo_Value( it, 'B_LOOPSRC', 0 )
+    end
     
-    --if new_pos < 0 then
-      --SetMediaItemInfo_Value( it, 'D_POSITION' , 0 )
-      --SetMediaItemInfo_Value( it, 'D_LENGTH' , playpos )
-      --SetMediaItemTakeInfo_Value( take, 'D_STARTOFFS', -(playpos- it_len) )
-     --else
-      --SetMediaItemInfo_Value( it, 'D_POSITION' , new_pos)
-    --end
     
     ---------
+    local s_pack = string.pack
     local MIDIstr= ''
     local lastPPQ
     local flags = 0
