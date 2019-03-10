@@ -1,34 +1,10 @@
--- @version 1.20
+-- @description Randomize Track FX parameters
+-- @version 1.21
 -- @author MPL
+-- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   + Add 'Get all parameters' button
---   + Add 'Get all parameters except protected' button
---   + Add 'render', "upsampl" to protected table
+--    + add option to get second preset for morph
 
---[[
-   * ReaScript Name: Randomize Track FX parameters
-   * Lua script for Cockos REAPER
-   * Author: Michael Pilyavskiy (mpl)
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-  ]]
-  
-  
---[[ changelog
-    - 1.20
-      + Add 'Get all parameters' button
-      + Add 'Get all parameters except protected' button
-      + Add 'render', "upsampl" to protected table
-    - 1.11
-       # ReaPack verioning fix
-       + Store only picked parameters
-       - Ignore protected table
-    - 1.0
-      + init release
-    - 0.1
-      + alpha without GUI
-]]
-  
   --------------------------------------------
   --------------------------------------------
   protected_table = {
@@ -92,7 +68,13 @@
       obj.sections[11] = {x = 300 ,
                           y = obj.sections[3].y,
                           w = gfx.w - 300,
-                          h = obj.sections[3].h}                          
+                          h = obj.sections[3].h}   
+                          
+      obj.sections[4].w = 250
+      obj.sections[12] = {x = 250 ,
+                          y = obj.sections[4].y,
+                          w = 250,
+                          h = obj.sections[4].h}                                           
     return obj
   end
   
@@ -184,13 +166,14 @@
       
       -- generate pattern
         GUI_text(gui, obj.sections[4], '3. Generate random pattern')
+        GUI_text(gui, obj.sections[12], '/3b Get current preset')
         
       -- gfx rand
         if rand_params ~= nil then
           for i = 1, #rand_params do
             gfx.a = 0.4
             f_Get_SSV(gui.color.green)  
-            gfx.rect((i-1)*obj.sections[4].w / #rand_params,
+            gfx.rect((i-1)*2*obj.sections[4].w / #rand_params,
              obj.sections[5].y + obj.sections[4].h * (1 - rand_params[i]) + 1, 
              obj.sections[5].w / #rand_params,
              obj.sections[5].h * rand_params[i] -2 )
@@ -359,11 +342,17 @@
   
   ------------------------------------------------------------
   
-  function ENGINE_GenerateRandPatt()
+  function ENGINE_GenerateRandPatt(is_current)
     if def_params ~= nil then 
       local rand = {}
+      local morph_params
+      if is_current then morph_params = ENGINE_GetParams()  end
       for i = 1, #def_params do
-        rand[i] = math.random()
+        if is_current then
+          rand[i] = morph_params[i].val
+         else
+          rand[i] = math.random()
+        end
       end
       return rand
     end
@@ -432,7 +421,11 @@
         rand_params = ENGINE_GenerateRandPatt() 
         update_gfx = true 
       end
-      
+    -- gen pattern
+      if MOUSE_click(obj.sections[12]) then 
+        rand_params = ENGINE_GenerateRandPatt(true) 
+        update_gfx = true 
+      end      
     
   
       

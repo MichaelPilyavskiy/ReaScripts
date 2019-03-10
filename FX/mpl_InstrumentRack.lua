@@ -1,5 +1,5 @@
 -- @description InstrumentRack
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
@@ -9,9 +9,9 @@
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua
 -- @changelog
---    + Store dockstate (require mpl_Various_Functions 1.23+)
+--    + Add FX button
 
-  local vrs = 'v1.08'
+  local vrs = 'v1.09'
   --NOT gfx NOT reaper
   
   --  INIT -------------------------------------------------
@@ -25,7 +25,7 @@
   local mouse = {}
   local data = {}
   local data_ext = {}
-  local obj = {}
+  obj = {}
   
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
@@ -130,6 +130,7 @@
         conf.vrs = vrs
         Main_RefreshExternalLibs()
         ExtState_Load(conf)
+        obj.plugs_data = Data_EnumeratePlugins(conf, obj, data, refresh, mouse)
           gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
                     conf.wind_w, 
                     conf.wind_h, 

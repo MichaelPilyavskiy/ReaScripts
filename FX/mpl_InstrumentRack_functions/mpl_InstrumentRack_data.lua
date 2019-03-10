@@ -31,6 +31,61 @@
         refresh.data = true
       end
   end
+  --------------------------------------------------- 
+  function Data_EnumeratePlugins(conf, obj, data, refresh, mouse)
+    local plugs_data = {}
+    local res_path = GetResourcePath()
+    Data_EnumeratePlugins_Sub(plugs_data, res_path, '/reaper-vstplugins.ini',  '%=.-%,.-%,(.*)', 0)
+    Data_EnumeratePlugins_Sub(plugs_data, res_path, '/reaper-vstplugins64.ini',  '%=.-%,.-%,(.*)', 0)
+    Data_EnumeratePlugins_Sub(plugs_data, res_path, '/reaper-dxplugins.ini',  'Name=(.*)', 2)  
+    Data_EnumeratePlugins_Sub(plugs_data, res_path, '/reaper-dxplugins64.ini',  'Name=(.*)', 2) 
+    Data_EnumeratePlugins_Sub(plugs_data, '/reaper-auplugins.ini',  'AU%s%"(.-)%"', 3) 
+    Data_EnumeratePlugins_Sub(plugs_data, '/reaper-auplugins64.ini',  'AU%s%"(.-)%"', 3)  
+    Data_EnumeratePlugins_Sub(plugs_data, '/reaper-jsfx.ini',  'NAME (.-)%s', 4) 
+    return plugs_data
+  end
+  --------------------------------------------------------------------
+  function Data_EnumeratePlugins_Sub(plugs_data, res_path, file, pat, plugtype)
+    -- validate file
+      local fp = res_path..file
+      local f = io.open(fp, 'r')
+      local content
+      if f then 
+        content = f:read('a')
+        f:close()
+       else 
+        return 
+      end
+      if not content then return end
+      
+    -- create if not exist
+      if not plugs_data then plugs_data = {} end
+    -- parse
+      for line in content:gmatch('[^\r\n]+') do
+        local str = line:match(pat)
+        if plugtype == 4 and line:match('NAME "') then
+          str = line:match('NAME "(.-)"') 
+          --str = str:gsub('.jsfx','')
+        end
+        if str then 
+          if str:match('!!!VSTi') and plugtype == 0 then plugtype = 1 end
+          str = str:gsub('!!!VSTi','')
+          
+          -- reduced_name
+            local reduced_name = str
+            if plugtype == 3 then  if reduced_name:match('%:.*') then reduced_name = reduced_name:match('%:(.*)') end    end
+            if plugtype == 4 then  
+            
+              --reduced_name = reduced_name:sub(5)
+              local pat_js = '.*[%/](.*)'
+              if reduced_name:match(pat_js) then reduced_name = reduced_name:match(pat_js) end    
+            end
+          plugs_data[#plugs_data+1] = {name = str, 
+                                                reduced_name = reduced_name ,
+                                                plugtype = plugtype}
+        end
+      end
+  end  
   ---------------------------------------------------   
   function Data_Update (conf, obj, data, refresh, mouse, data_ext) 
     --msg('upd')

@@ -2784,7 +2784,30 @@ List of available hashtags:
                             Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
                             refresh.data = true
                             refresh.GUI = true 
-                          end,  } 
+                          end,  
+              func_ResetVal = function ()
+                          if not pat[note] then pat[note] = {} end
+                          pat[note].cnt_steps  = 16
+                          local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                            Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                            Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)                          
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end ,
+              func_R =       function()
+                                local def_cnt
+                                if not pat or not pat[note] or not pat[note].cnt_steps then def_cnt = 16 else def_cnt = pat[note].cnt_steps end
+                                local retval, retvals_csv = GetUserInputs( conf.mb_title, 1, 'Steps count', def_cnt )
+                                if not retval or not tonumber(retvals_csv) then return end
+                                local out_cnt = lim(tonumber(retvals_csv), 1, 32)
+                                if not pat[note] then pat[note] = {} end
+                                pat[note].cnt_steps  = out_cnt
+                                local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                                Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)                          
+                                refresh.GUI = true 
+                                refresh.data = true                                 
+                              end} 
         local swing = conf.def_swing
         if pat[note] and pat[note].swing then swing = pat[note].swing  end                          
           obj['keys_p'..note..'patsw'] = 

@@ -36,6 +36,7 @@
     obj.knob_h = obj.knob_area_h
     obj.peak_w = obj.but_w/4
     
+    Obj_AddFX  (conf, obj, data, refresh, mouse, data_ext)
     Obj_MenuMain  (conf, obj, data, refresh, mouse, data_ext)
     Obj_Scroll(conf, obj, data, refresh, mouse)
     Obj_GenerateRack(conf, obj, data, refresh, mouse, data_ext)
@@ -44,7 +45,7 @@
   end
   -----------------------------------------------   
   function Obj_Scroll(conf, obj, data, refresh, mouse)
-    local sbh = gfx.h - obj.list_offs_y- obj.menu_h - obj.offs
+    local sbh = gfx.h - obj.list_offs_y- obj.menu_h*2 - obj.offs
     local sbx = gfx.w  - obj.scroll_w -- obj.offs
     local sby = 0--obj.menu_h + obj.offs
     obj.scroll_bar = { clear = true,
@@ -83,6 +84,52 @@
                                         end,
                           }                           
   end
+  -----------------------------------------------
+  function Obj_AddFX(conf, obj, data, refresh, mouse, data_ext)
+    obj.addfx = { clear = true,
+                        x = gfx.w - obj.scroll_w,--obj.offs,
+                        y = gfx.h - obj.menu_h*2,
+                        w = obj.scroll_w,
+                        h = obj.menu_h,
+                        col = 'white',
+                        state = false,
+                        txt= '+',
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,
+                        func =  function() 
+                                  local  t = {}
+                                  local abc = 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z'
+                                  for let in abc:gmatch('[^,]') do
+                                    local new_let =1
+                                    local new_let_sep = ''
+                                    for i = 1, #obj.plugs_data do
+                                      local name = obj.plugs_data[i].name
+                                      if name:sub(0,1):lower() == let then
+                                        if new_let == 1 then
+                                          t[#t+1] = { str = '>'..let:upper()}
+                                          if #t >= 3 then t[#t-1].str = t[#t-1].str..'|<' end
+                                        end
+                                        t[#t+1] = 
+                                            { str = new_let_sep..obj.plugs_data[i].reduced_name,
+                                              func = function() 
+                                                        local tr = GetSelectedTrack(0,0)
+                                                        if tr then 
+                                                          local id = TrackFX_AddByName( tr, obj.plugs_data[i].name, false, 1 )
+                                                          if conf.floatchain == 1 then TrackFX_Show( tr, id, 1 ) else TrackFX_Show( tr, id, 3 ) end
+                                                        end
+                                                    
+                                                     end  }
+                                        new_let = new_let + 1
+                                      end
+                                    end
+                                  end
+                                  Menu(mouse, t)  
+                                  refresh.conf = true 
+                                  refresh.data = true            
+                                end
+                      }    
+  end         
   -----------------------------------------------
   function Obj_MenuMain(conf, obj, data, refresh, mouse, data_ext)
             obj.menu = { clear = true,

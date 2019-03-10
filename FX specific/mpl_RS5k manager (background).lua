@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.97
+-- @version 1.98
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,10 +10,10 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + Store last dock ID (dev test)
+--    + Pattern: alt+click to reset step count
+--    + Pattern: right click to input step count
 
-
-  local vrs = 'v1.97'
+  local vrs = 'v1.98'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
   --rs5k manager_

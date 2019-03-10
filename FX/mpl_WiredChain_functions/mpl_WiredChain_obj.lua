@@ -83,8 +83,8 @@
   function Obj_EnumeratePlugins(conf, obj, data, refresh, mouse)
     obj.plugs_data = {}
     local res_path = GetResourcePath()
-    Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-vstplugins.ini',  '%=.*%,(.*)', 0)
-    Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-vstplugins64.ini',  '%=.*%,(.*)', 0)
+    Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-vstplugins.ini', '%=.-%,.-%,(.*)', 0)
+    Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-vstplugins64.ini', '%=.-%,.-%,(.*)', 0)
     Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-dxplugins.ini',  'Name=(.*)', 2)  
     Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-dxplugins64.ini',  'Name=(.*)', 2) 
     Obj_EnumeratePlugins_Sub(conf, obj, data, refresh, mouse, res_path, '/reaper-auplugins.ini',  'AU%s%"(.-)%"', 3) 

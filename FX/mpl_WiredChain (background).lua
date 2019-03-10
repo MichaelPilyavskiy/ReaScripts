@@ -1,5 +1,5 @@
 -- @description WiredChain
--- @version 1.21
+-- @version 1.22
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX chain data on selected track
@@ -9,10 +9,10 @@
 --    mpl_WiredChain_functions/mpl_WiredChain_data.lua
 --    mpl_WiredChain_functions/mpl_WiredChain_obj.lua
 -- @changelog
---    + Store dockstate (require mpl_Various_Functions 1.23+)
+--    # fix FX list matching pattern
 
 
-  local vrs = 'v1.21'
+  local vrs = 'v1.22'
   --NOT gfx NOT reaper
   
   
