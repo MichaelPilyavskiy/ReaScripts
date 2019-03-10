@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ad7417d4ce189994a7dbc0d0caf8ebe19667f3d8" name="MPL Scripts">
+<index version="1" commit="0cf4b9e20565ad704d154bc72a1db1009d75a93d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1613,6 +1613,17 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[# disable loop source for newly created MIDI items
 # handle non-zero project offset]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aac107f8290f9b979fa8a83a7372695843325265/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2019-03-08T08:40:22Z">
+        <changelog><![CDATA[- remove support for negative project offset
+# improve offset logic]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/380e7b4da1e791eab2a53d2635e607045d7cd3bb/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2019-03-10T08:52:14Z">
+        <changelog><![CDATA[- drop support for old plugin with no sync option
++ create new item around edit cursor, build proper take offset
++ use play cursor if dumping while playing]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0cf4b9e20565ad704d154bc72a1db1009d75a93d/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Explode selected track RS5k instances to new tracks.lua" type="script" desc="Explode selected track RS5k instances to new tracks">
