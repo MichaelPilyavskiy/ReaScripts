@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0cf4b9e20565ad704d154bc72a1db1009d75a93d" name="MPL Scripts">
+<index version="1" commit="731a5a7af73563166d131832e75981cf4f03d19d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -711,6 +711,14 @@
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua</source>
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua</source>
       </version>
+      <version name="1.09" author="MPL" time="2019-03-10T20:28:31Z">
+        <changelog><![CDATA[+ Add FX button]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_InstrumentRack.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_GUI.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_LearnManager (background).lua" type="script" desc="LearnManager">
       <metadata>
@@ -872,7 +880,10 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e4b05c4cffae26df6603e477c8df6a95d85ae11/FX/mpl_Paste%20LFO%20settings%20for%20last%20touched%20FX%20parameter.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Randomize Track FX parameters.lua" type="script">
+    <reapack name="mpl_Randomize Track FX parameters.lua" type="script" desc="Randomize Track FX parameters">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="mpl" time="2016-06-20T19:40:13Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9afa9d94d8588573c58fc7bdba397b02f3a33f31/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
@@ -892,6 +903,10 @@
 + Add 'Get all parameters except protected' button
 + Add 'render', "upsampl" to protected table]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
+      </version>
+      <version name="1.21" author="MPL" time="2019-03-10T20:28:31Z">
+        <changelog><![CDATA[+ add option to get second preset for morph]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove parameter modulation from focused FX.lua" type="script" desc="Remove parameter modulation from focused FX">
@@ -1411,6 +1426,14 @@
         <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
         <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
         <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
+      </version>
+      <version name="1.22" author="MPL" time="2019-03-10T20:28:31Z">
+        <changelog><![CDATA[# fix FX list matching pattern]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_WiredChain%20(background).lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
+        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_XYPad (background).lua" type="script" desc="XYPad">
@@ -2491,6 +2514,16 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d5c24c7915a031a673d8a4cccfd5abb4421ce18c/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d5c24c7915a031a673d8a4cccfd5abb4421ce18c/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d5c24c7915a031a673d8a4cccfd5abb4421ce18c/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua</source>
+      </version>
+      <version name="1.98" author="MPL" time="2019-03-10T20:28:31Z">
+        <changelog><![CDATA[+ Pattern: alt+click to reset step count
++ Pattern: right click to input step count]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
