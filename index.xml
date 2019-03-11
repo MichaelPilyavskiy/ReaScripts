@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="60c6ac76deb90ce0f1a21fcbc99f74f8cf12af08" name="MPL Scripts">
+<index version="1" commit="d1dec921722184805219ba1ea575a465fffe732a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3667,6 +3667,18 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18a6a1b52fb22db830dde788c6f0f34455853125/Regions/mpl_Go%20to%20next%20marker%20id.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Region chord editor.lua" type="script" desc="Region chord editor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2019-03-11T19:39:06Z">
+        <changelog><![CDATA[# any region with @ character is ignored
+# change layout to 4 measures per line
++ added various improvements for adding regions logic
++ feedback region color to GUI]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d1dec921722184805219ba1ea575a465fffe732a/Regions/mpl_Region%20chord%20editor.lua</source>
+      </version>
+    </reapack>
   </category>
   <category name="Render">
     <reapack name="mpl_Add to render queue selected tracks with their parents.lua" type="script" desc="Add to render queue selected tracks with their parents">
@@ -6107,15 +6119,6 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_QuantizeTool_presets/(MPL) Snap envelope points to 127 steps (no GUI).qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/Various/mpl_QuantizeTool_presets/(MPL)%20Snap%20envelope%20points%20to%20127%20steps%20(no%20GUI).qt</source>
         <source file="mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/Various/mpl_QuantizeTool_presets/(MPL)%20Snap%20envelope%20points%20to%20toggle%20states%20(no%20GUI).qt</source>
         <source file="mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/Various/mpl_QuantizeTool_presets/(MPL)%20Stretch%20fit%20item%20to%20grid%20(no%20GUI).qt</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Region chord editor.lua" type="script" desc="Region chord editor">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-03-11T06:14:38Z">
-        <changelog><![CDATA[+ init, see https://forum.cockos.com/showthread.php?t=217810]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e78f01a18ff29f8c98ecdfda7703f28f4bcfe20/Various/mpl_Region%20chord%20editor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
