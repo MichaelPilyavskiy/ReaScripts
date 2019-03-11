@@ -1,12 +1,14 @@
 -- @description Region chord editor
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @changelog
---    + init, see https://forum.cockos.com/showthread.php?t=217810
+--    # any region with @ character is ignored
+--    # change layout to 4 measures per line
+--    + added various improvements for adding regions logic
+--    + feedback region color to GUI
 
-     
-  local vrs = 'v1.0'
+  local vrs = 'v1.01'
   --NOT gfx NOT reaper
   
 
@@ -20,9 +22,8 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-   data = {}
+  local data = {}
   local obj = {}
-  local strategy = {}
   
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
@@ -99,11 +100,13 @@
       for b = 0, cml do
         local meas_time0 = TimeMap2_beatsToTime( 0, b, i )
         local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, meas_time0-0.001 )
-        local name = ''
+        local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color
         if regionidx >= 0 then
-          _, _, _, _, name = reaper.EnumProjectMarkers( regionidx )
+          retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = EnumProjectMarkers3( 0, regionidx )
+         else 
+          name = ''
         end
-        chord_t[b] = name
+        chord_t[b] = {name=name,color=color}
       end
       
       data.measures[i] = {cml = cml,
@@ -121,7 +124,7 @@
     data.cur_measure_progress = retval / cml
     data.proj_progress = data.cur_measure / data.pr_len_measures
     if not data.last_cur_measure or data.cur_measure ~= data.last_cur_measure then 
-      obj.scroll_val = data.proj_progress -0.1
+      obj.scroll_val = data.proj_progress
       refresh.GUI = true 
     end
     data.last_cur_measure = data.cur_measure
@@ -255,7 +258,11 @@
        else
         if o.col then col(obj, o.col, o.alpha_back or 0.2) end 
       end
-
+      if o.col_int2 then
+        local r, g, b = ColorFromNative( o.col_int2 )
+        gfx.set(r/255,g/255,b/255, o.alpha_back)
+        gfx.rect(x,y, w,h,1)
+      end
   
     if o.val then 
       gfx.set(1,1,1,0.4)
@@ -359,7 +366,7 @@
                   if check_ex then gfx.x = gfx.x + o.h end
                 end -- align left
                 if o.aligh_txt&2==2 then gfx.y = y + i*gfx.texth end -- align top
-                if o.aligh_txt&4==4 then gfx.y = h - com_texth+ i*gfx.texth-shift end -- align bot
+                if o.aligh_txt&4==4 then gfx.y = y + h - com_texth+ gfx.texth*i end -- align bot
                 if o.aligh_txt&8==8 then gfx.x = x + w - gfx.measurestr(line) - shift end -- align right
                 if o.aligh_txt&16==16 then gfx.y = y + (h - com_texth)/2+ i*gfx.texth - 2 end -- align center
 
@@ -764,8 +771,8 @@
     obj.offs = 5 
     obj.grad_sz = 200 
     
-    obj.chord_h = 30
-    obj.edit_h_area = 0--20
+    obj.chord_h = 38
+    obj.edit_h_area = 0
     obj.scroll_w = 20
     obj.scroll_val = 0
     
@@ -774,6 +781,7 @@
     obj.GUI_fontsz = VF_CalibrateFont(21)
     obj.GUI_fontsz2 = VF_CalibrateFont( 19)
     obj.GUI_fontsz3 = VF_CalibrateFont( 15)
+    obj.GUI_fontsz4 = VF_CalibrateFont( 13)
     obj.GUI_fontsz_tooltip = VF_CalibrateFont( 13)
     
     -- colors    
@@ -808,7 +816,7 @@
         obj.scroll_handle = 
                       { clear = true,
                         x = gfx.w -obj.scroll_w -1,
-                        y = obj.scroll_val * (scroll_h -obj.scroll_w) ,
+                        y = obj.scroll_val * (scroll_h -obj.scroll_w)*0.5 ,
                         w = obj.scroll_w,
                         h = obj.scroll_w,
                         txt = '',
@@ -835,90 +843,255 @@
   ---------------------------------------------------
   function OBJ_BuildChords(conf, obj, data, refresh, mouse) 
     if not data.pr_len_measures then return end
-    local shift_x = 10
+    --local shift_x = 10
     obj.chord_area_h = gfx.h - obj.edit_h_area
-    obj.chord_area_x = obj.offs + shift_x
+    obj.chord_area_x = obj.offs
     obj.chord_area_y = obj.offs
-    obj.chord_area_w = gfx.w - obj.scroll_w - obj.offs*2 - shift_x
+    obj.chord_area_w = gfx.w - obj.scroll_w - obj.offs*2 
     
-    obj.chord_true_h_area = obj.chord_h * ( data.pr_len_measures-1)
+    obj.chord_true_h_area = obj.chord_h * ( data.pr_len_measures-1)/4
     local scroll_y_offs =  obj.scroll_val * obj.chord_true_h_area
-    
-    if data.pr_len_measures > 0 then
+    local last_reg_name, txt
+    if data.pr_len_measures > 0 then 
+      local y = obj.chord_area_y+10
       for i = 0, data.pr_len_measures do
-        local y = obj.chord_area_y + obj.chord_h * ( i-1)-scroll_y_offs
-        if y +  obj.chord_h >obj.chord_area_h then return end
+        if y+obj.chord_h-scroll_y_offs >obj.chord_area_h then return end
         local segm = data.measures[i].cml
+        local x = obj.chord_area_x + (i%4)*obj.chord_area_w/4
         obj['meas'..i..'num'] = { clear = true,
-              x =0,
-              y = y,
-              w = shift_x,
+              x = x,
+              y = y-scroll_y_offs+obj.chord_h,
+              w = obj.chord_area_w/4,
               h = obj.chord_h,
               col = 'white',
               state = 0,
-              aligh_txt = 1,
+              aligh_txt = 3,
               txt= i+1,
               show = true,
               is_but = true,
               val = 0,
-              fontsz = obj.GUI_fontsz3,
+              fontsz = obj.GUI_fontsz4,
               ignore_mouse = true,
               alpha_back = 0,
-              func =  function()   end}         
-        obj['meas'..i] = { clear = true,
-              x = obj.chord_area_x,
-              y = y,
-              w = obj.chord_area_w,
-              h = obj.chord_h,
-              col = 'white',
-              state = 0,
-              aligh_txt = 1,
-              txt= '',
-              show = true,
-              is_but = true,
-              val = 0,
-              fontsz = obj.GUI_fontsz2,
-              ignore_mouse = true,
-              alpha_back = 0,
-              func =  function()   end} 
-          local wsegm = math.floor(obj.chord_area_w/segm)
-          for b = 0, segm do
-            obj['meas'..i..'beat'..b] = { clear = true,
-                  x = obj.chord_area_x + (b-1)*wsegm,
-                  y = y,
-                  w = wsegm,
-                  h = obj.chord_h,
-                  col = 'white',
-                  state = 0,
-                  aligh_txt = 1,
-                  txt= data.measures[i].chord_t[b],
-                  show = true,
-                  is_but = true,
-                  val = 0,
-                  fontsz = obj.GUI_fontsz,
-                  alpha_back = 0,
-                  a_frame = 0.05,
-                  func =  function()   
-                            local pos_start = TimeMap2_beatsToTime( 0,b-1, i )
-                            local pos_end = TimeMap2_beatsToTime( 0, b, i )
-                            local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start )
-                            if regionidx >= 0 then
-                              retval, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers( regionidx )
-                              local retval, retvals_csv = GetUserInputs( conf.mb_title, 1, 'region name', name )
-                              SetProjectMarker( markrgnindexnumber, true, pos, rgnend, retvals_csv ) 
-                             else 
-                              local retval, retvals_csv = GetUserInputs( conf.mb_title, 1, 'region name', 'C' )
-                              if retval then 
-                                AddProjectMarker( 0, true, pos_start, pos_end, retvals_csv, -1 )
-                              end
-                            end
-                            refresh.data=true
-                            refresh.GUI = true
-                          end}           
+              func =  function()   end}        
+            
+          local wsegm = math.floor(0.25*obj.chord_area_w/segm)
+          for b = 0, segm-1 do
+          
+          obj['meas'..i..'beat'..b..'point'] = { clear = true,
+                              x = x + b*wsegm,
+                              y = y-scroll_y_offs + obj.chord_h*2-2,
+                              w = 2,
+                              h = 2,
+                              --col = 'white',
+                              col_int2 = data.measures[i].chord_t[b].color,
+                              state = 0,
+                              aligh_txt = 1,
+                              txt= '',
+                              show = true,
+                              is_but = true,
+                              val = 0,
+                              fontsz = obj.GUI_fontsz,
+                              alpha_back = 0.5,
+                              ignore_mouse = true,
+                              func =  function() end}  
+                              
+            if not data.measures[i].chord_t[b].name:find('@') then 
+              local alpha_back = 0
+              if data.measures[i].chord_t[b].name ~= '' then alpha_back = .3 end
+              local txt0 = data.measures[i].chord_t[b].name
+              
+              if last_reg_name and last_reg_name:lower() == txt0:lower() then txt = '' else txt = txt0 end
+              last_reg_name = txt0
+              obj['meas'..i..'beat'..b] = { clear = true,
+                    x = x + b*wsegm,
+                    y = y-scroll_y_offs+obj.chord_h,
+                    w = wsegm,
+                    h = obj.chord_h,
+                    --col = 'white',
+                    col_int2 = data.measures[i].chord_t[b].color,
+                    state = 0,
+                    aligh_txt = 5,
+                    txt= txt,
+                    show = true,
+                    is_but = true,
+                    val = 0,
+                    fontsz = obj.GUI_fontsz,
+                    alpha_back =alpha_back,
+                    --a_frame = 0.05,
+                    func =  function() 
+                              Data_AddChord(conf, data, b, i)
+                              refresh.data=true
+                              refresh.GUI = true
+                            end}           
+            end
           end
+          obj['meas'..i] = { clear = true,
+                x = x,
+                y = y-scroll_y_offs+obj.chord_h,
+                w = obj.chord_area_w/4,
+                h = obj.chord_h,
+                col = 'white',
+                state = 0,
+                aligh_txt = 1,
+                txt= '',
+                show = true,
+                is_but = true,
+                val = 0,
+                fontsz = obj.GUI_fontsz2,
+                ignore_mouse = true,
+                alpha_back = 0.1,
+                func =  function()   end} 
+          if (i%4)==3 then y = y + obj.chord_h end   
       end
     end 
   end
+  ---------------------------------------------------
+  function Data_AddChord(conf, data, beat, measure)
+    cur_region, next_region = {}, {}
+    local pos_start = TimeMap2_beatsToTime( 0,beat-1, measure )
+    
+    -- get current region data
+      local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start+0.001 )
+      if regionidx >= 0 then
+        cur_region  = ({EnumProjectMarkers( regionidx )})         --retval, isrgn, pos, rgnend, name, markrgnindexnumber
+        --if pos_start == cur_region[3] then goto skip_cur_region end
+      end  
+      if not cur_region or not cur_region[1] then
+        for searchmeas = measure, 0, -1 do
+          for searchbeat = data.measures[measure].cml, 1, -1 do
+            if searchmeas < measure or (searchmeas == measure and searchbeat < beat) then
+              local searchpos = TimeMap2_beatsToTime( 0, searchbeat-1, searchmeas )
+              local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, searchpos+0.001 ) 
+              if regionidx >=0  then
+                cur_region  = ({EnumProjectMarkers( regionidx )})
+                goto skip_cur_region
+              end
+            end
+          end
+        end
+      end
+      ::skip_cur_region::
+      
+      
+    -- get next region data
+      for searchmeas = measure, data.pr_len_measures do
+        for searchbeat = 1, data.measures[measure].cml do
+          if searchmeas > measure or (searchmeas == measure and searchbeat > beat) then
+            local searchpos = TimeMap2_beatsToTime( 0, searchbeat-1, searchmeas )
+            local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, searchpos+0.001 )
+            local retval, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers( regionidx )
+            if regionidx >=0 and ((cur_region and cur_region[5] and cur_region[5]:lower()~= name:lower()) or not (cur_region and cur_region[5])) then
+              next_region  = ({EnumProjectMarkers( regionidx )})
+              goto skip_next_region
+            end
+          end
+        end
+      end 
+      ::skip_next_region::
+      
+      new_color = ColorToNative(math.random(0,255),math.random(0,255),math.random(0,255))|0x1000000
+      
+    -- add reg
+      local cur_name if cur_region and cur_region[5] then cur_name = cur_region[5] else cur_name = 'C' end
+      local retval, retvals_csv = GetUserInputs( conf.mb_title, 1, 'region name', cur_name)
+      if retval then 
+        if (cur_region and cur_region[5] and cur_region[5] ~= retvals_csv:lower()) then
+          SetProjectMarker( cur_region[6], true, cur_region[3], pos_start, cur_region[5] ) -- crop previous region
+          local pos_end 
+          
+          if next_region and next_region[5] then 
+            if next_region[5]:lower() ~= retvals_csv:lower() then 
+              pos_end = next_region[3]
+              AddProjectMarker2( 0, true, pos_start, pos_end, retvals_csv, -1, new_color )
+             else
+              SetProjectMarker( next_region[6], true, pos_start, next_region[4], next_region[5] )
+            end
+           else
+            AddProjectMarker2( 0, true, pos_start, data.pr_len, retvals_csv, -1, new_color )
+          end
+          
+         elseif not (cur_region and cur_region[5]) then 
+          if next_region and next_region[5] then 
+            if next_region[5]:lower() ~= retvals_csv:lower() then 
+              AddProjectMarker2( 0, true, pos_start, next_region[3], retvals_csv, -1, new_color )
+             else
+              SetProjectMarker( next_region[6], true, pos_start, next_region[4], next_region[5] )
+            end
+           else
+            AddProjectMarker2( 0, true, pos_start, data.pr_len, retvals_csv, -1, new_color )
+          end
+          
+        end
+      end
+      
+      
+  end
+    
+    
+    --[[ 
+    
+    local retval, retvals_csv = GetUserInputs( conf.mb_title, 1, 'region name', 'C' )
+    if not retval then return end
+    local pos_end = data.pr_len
+    
+    
+    add region if previous with other name
+      local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start-0.001 )
+      if regionidx >= 0 then
+        local retval, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers( regionidx )
+        if name:lower()~=retvals_csv:lower() then AddProjectMarker( 0, true, pos_start, pos_end, retvals_csv, -1 )  end
+       else
+        AddProjectMarker( 0, true, pos_start, pos_end, retvals_csv, -1 )
+      end
+    
+    -- crop previous region
+    local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start-0.001 )
+    if regionidx >= 0 then
+      local retval, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers( regionidx )
+      if name:lower()~=retvals_csv:lower() then
+        SetProjectMarker( markrgnindexnumber, true, pos, pos_start, name ) 
+      end
+    end
+    
+    
+    do return end
+    for searchmeas = measure, data.pr_len_measures do
+      for searchbeat = 1, data.measures[measure].cml do
+        if searchmeas > measure or (searchmeas == measure and searchbeat > beat) then
+          local searchpos = TimeMap2_beatsToTime( 0, searchbeat, searchmeas )
+          local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, searchpos )
+          local retval, isrgn, pos_end, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers( regionidx )
+          if not name:match('@') and name~= '' then
+            --msg(name)
+            if name:lower() == retvals_csv:lower() then 
+              DeleteProjectMarker( 0, markrgnindexnumber, true )
+             else
+              SetProjectMarker( markrgnindexnumber, true, pos_start, pos_end, retvals_csv ) 
+              break
+            end
+          end
+        end
+      end
+    end
+    
+    do return end
+    
+    --FindCloserregion(pos_end, data.pr_len)
+    
+    local pos_end = TimeMap2_beatsToTime( 0, b, i )
+    
+    local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start )
+    if regionidx >= 0 then
+      retval, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers( regionidx )
+      local retval, retvals_csv = GetUserInputs( conf.mb_title, 1, 'region name', name )
+      SetProjectMarker( markrgnindexnumber, true, pos, rgnend, retvals_csv ) 
+     else 
+      local retval, retvals_csv = GetUserInputs( conf.mb_title, 1, 'region name', 'C' )
+      if retval then 
+        AddProjectMarker( 0, true, pos_start, pos_end, retvals_csv, -1 )
+      end
+    end]]
   ---------------------------------------------------
   function OBJ_Update(conf, obj, data, refresh, mouse) 
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
