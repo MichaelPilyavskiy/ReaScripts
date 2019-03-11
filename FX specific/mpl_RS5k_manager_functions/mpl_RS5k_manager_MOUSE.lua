@@ -138,6 +138,7 @@
               goto skip_mouse_obj 
             end
            if mouse.onclick_L and not mouse.Shift_state and not mouse.Ctrl_state and not mouse.Alt_state and obj[key].func then 
+            
               obj[key].func() 
               goto skip_mouse_obj 
             end

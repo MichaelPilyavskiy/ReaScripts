@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.98
+-- @version 1.99
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,17 +10,21 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + Pattern: alt+click to reset step count
---    + Pattern: right click to input step count
+--    + Pads: add all keys layouts
+--    + Pattern: allow to override keys width
+--    + Pattern: add offset parameter and active states (may cause pattern saving/loading issues, any feedback/bug reports welcome)
+--    + Pattern: store velocities when enabling/disabling steps
+--    + Pattern: limit lower velocity limit to 5
+--    + Pattern: improve gate probability
 
-  local vrs = 'v1.98'
+
+  local vrs = 'v1.99'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
-  --rs5k manager_
  
   --  INIT -------------------------------------------------
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
-   conf = {}  
+  local conf = {}  
   local refresh = { GUI_onStart = true, 
                     GUI = false, 
                     data = false,
@@ -43,7 +47,6 @@
     dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua")  
     dofile(script_path .. "mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua")
   end  
-
   ---------------------------------------------------
   function ExtState_Def()
     local GUI_fontsz2 = 15
@@ -62,21 +65,33 @@
             wind_h =  200,
             dock =    0,
             lastdockID = 0,
-            
+
+            -- various
+            prepareMIDI3 = 0, -->Prepare selected track MIDI input
+            pintrack = 0,
+            dontaskforcreatingrouting = 0,
+            obeynoteoff_default = 1,
+            dragtonewtracks = 0,
+            draggedfile_fxchain = '',
+            --copy_src_media = 0,
+            sendnoteoffonrelease = 1,
+                        
             -- GUI
             tab = 0,  -- 0-sample browser
             GUI_padfontsz = GUI_fontsz2,
             GUI_splfontsz = GUI_fontsz3,
             GUI_ctrlscale = 1,
             show_wf = 1,
+            separate_spl_peak = 0,
+            allow_track_notes = 0, -- tracking note with JSFX
             
             -- GUI control
             mouse_wheel_res = 960,
-            separate_spl_peak = 0,
-            
+            invert_release = 0,
+            MM_reset_val = 1, -- &1 double click to reset &2 alt click to reset
+               
             -- Samples
             allow_multiple_spls_per_pad = 0,
-            
             
             -- Pads
             keymode = 0,  -- 0-keys
@@ -86,22 +101,8 @@
             key_names2 = '#midipitch #keycsharp |#notename #samplecount |#samplename' ,
             key_names_mixer = '#midipitch #keycsharp |#notename ' ,
             key_names_pat = '#midipitch #keycsharp  #notename ',
-            prepareMIDI3 = 0,
-            FX_buttons = 255,
-            allow_track_notes = 0,
+            FX_buttons = 255, -- buttons flags
             
-            invert_release = 0,
-            
-            MM_reset_val = 1,
-            --MM_dc_float = 0,
-            
-            pintrack = 0,
-            dontaskforcreatingrouting = 0,
-            obeynoteoff_default = 1,
-            dragtonewtracks = 0,
-            draggedfile_fxchain = '',
-            --copy_src_media = 0,
-            sendnoteoffonrelease = 1,
             
             -- patterns
             def_steps = 16,
@@ -110,6 +111,7 @@
             randgateprob = 0.5, -- probability
             randvel1=0,
             randvel2 = 1,
+            key_width_override = 0,
             
             
             }

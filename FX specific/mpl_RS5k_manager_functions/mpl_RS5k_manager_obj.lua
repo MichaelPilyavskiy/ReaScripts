@@ -1304,346 +1304,63 @@
 
     
   end
-  -------------------------------------------------------------
-  function OBJ_Layouts(conf, obj, data, refresh, mouse)
-      local shifts,w_div ,h_div
-      if conf.keymode ==0 then 
-        w_div = 7
-        h_div = 2
-        shifts  = {{0,1},
-                  {0.5,0},
-                  {1,1},
-                  {1.5,0},
-                  {2,1},
-                  {3,1},
-                  {3.5,0},
-                  {4,1},
-                  {4.5,0},
-                  {5,1},
-                  {5.5,0},
-                  {6,1},
-                }
-      elseif conf.keymode ==1 then 
-        w_div = 14
-        h_div = 2
-        shifts  = {{0,1},
-                  {0.5,0},
-                  {1,1},
-                  {1.5,0},
-                  {2,1},
-                  {3,1},
-                  {3.5,0},
-                  {4,1},
-                  {4.5,0},
-                  {5,1},
-                  {5.5,0},
-                  {6,1},
-                  {7,1},
-                  {7.5,0},
-                  {8,1},
-                  {8.5,0},
-                  {9,1},
-                  {10,1},
-                  {10.5,0},
-                  {11,1},
-                  {11.5,0},
-                  {12,1},
-                  {12.5,0},
-                  {13,1}                 
-                }                
-       elseif conf.keymode == 2 then -- korg nano
-        w_div = 8
-        h_div = 2     
-        shifts  = {{0,1},
-                  {0,0},
-                  {1,1},
-                  {1,0},
-                  {2,1},
-                  {2,0},
-                  {3,1},
-                  {3,0},
-                  {4,1},
-                  {4,0},
-                  {5,1},
-                  {5,0},
-                  {6,1},
-                  {6,0},      
-                  {7,1},
-                  {7,0},                              
-                }   
-       elseif conf.keymode == 3 then -- live dr rack
-        w_div = 4
-        h_div = 4     
-        shifts  = { {0,3},    
-                    {1,3}, 
-                    {2,3}, 
-                    {3,3},
-                    {0,2},    
-                    {1,2}, 
-                    {2,2}, 
-                    {3,2},
-                    {0,1},    
-                    {1,1}, 
-                    {2,1}, 
-                    {3,1},
-                    {0,0},    
-                    {1,0}, 
-                    {2,0}, 
-                    {3,0}                                                               
-                }      
-       elseif conf.keymode == 4 then -- s1 impact
-        w_div = 4
-        h_div = 4 
-        start_note_shift = -1    
-        shifts  = { {0,3},    
-                    {1,3}, 
-                    {2,3}, 
-                    {3,3},
-                    {0,2},    
-                    {1,2}, 
-                    {2,2}, 
-                    {3,2},
-                    {0,1},    
-                    {1,1}, 
-                    {2,1}, 
-                    {3,1},
-                    {0,0},    
-                    {1,0}, 
-                    {2,0}, 
-                    {3,0}                                                               
-                }  
-       elseif conf.keymode == 5 then -- ableton push
-        w_div = 8
-        h_div = 8  
-        shifts  = { 
-                    {0,7},    
-                    {1,7}, 
-                    {2,7}, 
-                    {3,7},
-                    {4,7},
-                    {5,7},
-                    {6,7},
-                    {7,7},
-                            
-                    {0,6},    
-                    {1,6}, 
-                    {2,6}, 
-                    {3,6},
-                    {4,6},
-                    {5,6},
-                    {6,6},
-                    {7,6},
-                            
-                    {0,5},    
-                    {1,5}, 
-                    {2,5}, 
-                    {3,5},
-                    {4,5},
-                    {5,5},
-                    {6,5},
-                    {7,5},
-                                               
-                    {0,4},    
-                    {1,4}, 
-                    {2,4}, 
-                    {3,4},
-                    {4,4},
-                    {5,4},
-                    {6,4},
-                    {7,4},
-                    
-                    {0,3},    
-                    {1,3}, 
-                    {2,3}, 
-                    {3,3},
-                    {4,3},
-                    {5,3},
-                    {6,3},
-                    {7,3},
-                    
-                    {0,2},    
-                    {1,2}, 
-                    {2,2}, 
-                    {3,2},
-                    {4,2},    
-                    {5,2}, 
-                    {6,2}, 
-                    {7,2},                    
-                    
-                    {0,1},    
-                    {1,1}, 
-                    {2,1}, 
-                    {3,1},
-                    {4,1},    
-                    {5,1}, 
-                    {6,1}, 
-                    {7,1},                    
-                    
-                    {0,0},    
-                    {1,0}, 
-                    {2,0}, 
-                    {3,0},
-                    {4,0},    
-                    {5,0}, 
-                    {6,0}, 
-                    {7,0},                                                                              
-                }        
-       elseif conf.keymode == 6 then -- 8x8 segmented
-        w_div = 8
-        h_div = 8  
-        shifts  = { 
-                    {0,7},    
-                    {1,7}, 
-                    {2,7}, 
-                    {3,7},
-                    {0,6},
-                    {1,6},
-                    {2,6},
-                    {3,6},
-                            
-                    {0,5},    
-                    {1,5}, 
-                    {2,5}, 
-                    {3,5},
-                    {0,4},
-                    {1,4},
-                    {2,4},
-                    {3,4},
-                            
-                    {0,3},    
-                    {1,3}, 
-                    {2,3}, 
-                    {3,3},
-                    {0,2},
-                    {1,2},
-                    {2,2},
-                    {3,2},
-                                               
-                    {0,1},    
-                    {1,1}, 
-                    {2,1}, 
-                    {3,1},
-                    {0,0},
-                    {1,0},
-                    {2,0},
-                    {3,0},
-                    
-                    {4,7},    
-                    {5,7}, 
-                    {6,7}, 
-                    {7,7},
-                    {4,6},
-                    {5,6},
-                    {6,6},
-                    {7,6},
-                    
-                    {4,5},    
-                    {5,5}, 
-                    {6,5}, 
-                    {7,5},
-                    {4,4},
-                    {5,4},
-                    {6,4},
-                    {7,4},                   
-                    
-                    {4,3},    
-                    {5,3}, 
-                    {6,3}, 
-                    {7,3},
-                    {4,2},
-                    {5,2},
-                    {6,2},
-                    {7,2}, 
-                    
-                    {4,1},    
-                    {5,1}, 
-                    {6,1}, 
-                    {7,1},
-                    {4,0},
-                    {5,0},
-                    {6,0},
-                    {7,0},                                                                              
-                }      
-elseif conf.keymode == 7 then -- 8x8, vertical columns
-        w_div = 8
-        h_div = 8  
-        shifts  = { 
-                    {0,7},    
-                    {0,6}, 
-                    {0,5}, 
-                    {0,4},
-                    {0,3},
-                    {0,2},
-                    {0,1},
-                    {0,0},
-                            
-                    {1,7},    
-                    {1,6}, 
-                    {1,5}, 
-                    {1,4},
-                    {1,3},
-                    {1,2},
-                    {1,1},
-                    {1,0},
-          
-        {2,7},    
-                    {2,6}, 
-                    {2,5}, 
-                    {2,4},
-                    {2,3},
-                    {2,2},
-                    {2,1},
-                    {2,0},
-                            
-                    {3,7},    
-                    {3,6}, 
-                    {3,5}, 
-                    {3,4},
-                    {3,3},
-                    {3,2},
-                    {3,1},
-                    {3,0},
-    
-        {4,7},    
-                    {4,6}, 
-                    {4,5}, 
-                    {4,4},
-                    {4,3},
-                    {4,2},
-                    {4,1},
-                    {4,0},
-                            
-                    {5,7},    
-                    {5,6}, 
-                    {5,5}, 
-                    {5,4},
-                    {5,3},
-                    {5,2},
-                    {5,1},
-                    {5,0},
-          
-                    {6,7},    
-                    {6,6}, 
-                    {6,5}, 
-                    {6,4},
-                    {6,3},
-                    {6,2},
-                    {6,1},
-                    {6,0},
-                            
-                    {7,7},    
-                    {7,6}, 
-                    {7,5}, 
-                    {7,4},
-                    {7,3},
-                    {7,2},
-                    {7,1},
-                    {7,0},
-                                                                                        
-                }          
-      end   
-      return  shifts,w_div ,h_div
-  end
+    -------------------------------------------------------------
+    function OBJ_Layouts(conf, obj, data, refresh, mouse)
+        local shifts,w_div ,h_div
+        if conf.keymode ==0 then 
+          w_div = 7
+          h_div = 2
+          shifts  = {{0,1},{0.5,0},{1,1},{1.5,0},{2,1},{3,1},{3.5,0},{4,1},{4.5,0},{5,1},{5.5,0},{6,1},}
+        elseif conf.keymode ==1 then 
+          w_div = 14
+          h_div = 2
+          shifts  = {{0,1},{0.5,0},{1,1},{1.5,0},{2,1},{3,1},{3.5,0},{4,1},{4.5,0},{5,1},{5.5,0},{6,1},{7,1},{7.5,0},{8,1},{8.5,0},{9,1},{10,1},{10.5,0},{11,1},{11.5,0},{12,1},{12.5,0},{13,1}                 
+                  }                
+         elseif conf.keymode == 2 then -- korg nano
+          w_div = 8
+          h_div = 2     
+          shifts  = {{0,1},{0,0},{1,1},{1,0},{2,1},{2,0},{3,1},{3,0},{4,1},{4,0},{5,1},{5,0},{6,1},{6,0},{7,1},{7,0},}   
+         elseif conf.keymode == 3 then -- live dr rack
+          w_div = 4
+          h_div = 4     
+          shifts  = { {0,3},{1,3},{2,3},{3,3},{0,2},{1,2},{2,2},{3,2},{0,1},{1,1},{2,1},{3,1},{0,0},{1,0},{2,0},{3,0}                                                               
+                  }      
+         elseif conf.keymode == 4 then -- s1 impact
+          w_div = 4
+          h_div = 4 
+          start_note_shift = -1    
+          shifts  = { {0,3},{1,3},{2,3},{3,3},{0,2},{1,2},{2,2},{3,2},{0,1},{1,1},{2,1},{3,1},{0,0},{1,0},{2,0},{3,0}                                                               
+                  }  
+         elseif conf.keymode == 5 then -- ableton push
+          w_div = 8
+          h_div = 8  
+          shifts  = { 
+                      {0,7},{1,7},{2,7},{3,7},{4,7},{5,7},{6,7},{7,7},{0,6},{1,6},{2,6},{3,6},{4,6},{5,6},{6,6},{7,6},{0,5},{1,5},{2,5},{3,5},{4,5},{5,5},{6,5},{7,5},{0,4},{1,4},{2,4},{3,4},{4,4},{5,4},{6,4},{7,4},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},}        
+         elseif conf.keymode == 6 then -- 8x8 segmented
+          w_div = 8
+          h_div = 8  
+          shifts  = { 
+                      {0,7},{1,7},{2,7},{3,7},{0,6},{1,6},{2,6},{3,6},{0,5},{1,5},{2,5},{3,5},{0,4},{1,4},{2,4},{3,4},{0,3},{1,3},{2,3},{3,3},{0,2},{1,2},{2,2},{3,2},{0,1},{1,1},{2,1},{3,1},{0,0},{1,0},{2,0},{3,0},{4,7},{5,7},{6,7},{7,7},{4,6},{5,6},{6,6},{7,6},{4,5},{5,5},{6,5},{7,5},{4,4},{5,4},{6,4},{7,4},{4,3},{5,3},{6,3},{7,3},{4,2},{5,2},{6,2},{7,2},{4,1},{5,1},{6,1},{7,1},{4,0},{5,0},{6,0},{7,0},}      
+  elseif conf.keymode == 7 then -- 8x8, vertical columns
+          w_div = 8
+          h_div = 8  
+          shifts  = { 
+                      {0,7},{0,6},{0,5},{0,4},{0,3},{0,2},{0,1},{0,0},{1,7},{1,6},{1,5},{1,4},{1,3},{1,2},{1,1},{1,0},{2,7},{2,6},{2,5},{2,4},{2,3},{2,2},{2,1},{2,0},{3,7},{3,6},{3,5},{3,4},{3,3},{3,2},{3,1},{3,0},{4,7},{4,6},{4,5},{4,4},{4,3},{4,2},{4,1},{4,0},{5,7},{5,6},{5,5},{5,4},{5,3},{5,2},{5,1},{5,0},{6,7},{6,6},{6,5},{6,4},{6,3},{6,2},{6,1},{6,0},{7,7},{7,6},{7,5},{7,4},{7,3},{7,2},{7,1},{7,0},}  
+  elseif conf.keymode == 8 then -- allkeys
+          w_div = 12
+          h_div = 12 
+          shifts  = { 
+                      {0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{0,4},{1,4},{2,4},{3,4},{4,4},{5,4},{6,4},{7,4},{8,4},{9,4},{10,4},{11,4},{0,5},{1,5},{2,5},{3,5},{4,5},{5,5},{6,5},{7,5},{8,5},{9,5},{10,5},{11,5},{0,6},{1,6},{2,6},{3,6},{4,6},{5,6},{6,6},{7,6},{8,6},{9,6},{10,6},{11,6},{0,7},{1,7},{2,7},{3,7},{4,7},{5,7},{6,7},{7,7},{8,7},{9,7},{10,7},{11,7},{0,8},{1,8},{2,8},{3,8},{4,8},{5,8},{6,8},{7,8},{8,8},{9,8},{10,8},{11,8},{0,9},{1,9},{2,9},{3,9},{4,9},{5,9},{6,9},{7,9},{8,9},{9,9},{10,9},{11,9},{0,10},{1,10},{2,10},{3,10},{4,10},{5,10},{6,10},{7,10},{8,10},{9,10},{10,10},{11,10},{0,11},{1,11},{2,11},{3,11},{4,11},{5,11},{6,11},{7,11},{8,11},{9,11},{10,11},{11,11},}
+  elseif conf.keymode == 9 then -- allkeys bot to top
+          w_div = 12
+          h_div = 12 
+          shifts  = {                      
+                       
+  {0,11},{1,11},{2,11},{3,11},{4,11},{5,11},{6,11},{7,11},{8,11},{9,11},{10,11},{11,11},{0,10},{1,10},{2,10},{3,10},{4,10},{5,10},{6,10},{7,10},{8,10},{9,10},{10,10},{11,10},{0,9},{1,9},{2,9},{3,9},{4,9},{5,9},{6,9},{7,9},{8,9},{9,9},{10,9},{11,9},{0,8},{1,8},{2,8},{3,8},{4,8},{5,8},{6,8},{7,8},{8,8},{9,8},{10,8},{11,8},{0,7},{1,7},{2,7},{3,7},{4,7},{5,7},{6,7},{7,7},{8,7},{9,7},{10,7},{11,7},{0,6},{1,6},{2,6},{3,6},{4,6},{5,6},{6,6},{7,6},{8,6},{9,6},{10,6},{11,6},{0,5},{1,5},{2,5},{3,5},{4,5},{5,5},{6,5},{7,5},{8,5},{9,5},{10,5},{11,5},{0,4},{1,4},{2,4},{3,4},{4,4},{5,4},{6,4},{7,4},{8,4},{9,4},{10,4},{11,4},{0,3},{1,3},{2,3},{3,3},{4,3},{5,3},{6,3},{7,3},{8,3},{9,3},{10,3},{11,3},{0,2},{1,2},{2,2},{3,2},{4,2},{5,2},{6,2},{7,2},{8,2},{9,2},{10,2},{11,2},{0,1},{1,1},{2,1},{3,1},{4,1},{5,1},{6,1},{7,1},{8,1},{9,1},{10,1},{11,1},{0,0},{1,0},{2,0},{3,0},{4,0},{5,0},{6,0},{7,0},{8,0},{9,0},{10,0},{11,0}}
+                       
+        end
+        return  shifts,w_div ,h_div
+    end
     ---------------------------------------------------
     function OBJ_GenKeys(conf, obj, data, refresh, mouse) 
       local shifts,w_div ,h_div = OBJ_Layouts(conf, obj, data, refresh, mouse)
@@ -1655,7 +1372,9 @@ elseif conf.keymode == 7 then -- 8x8, vertical columns
       obj.h_div = h_div
       for i = 1, #shifts do
         local id = i-1+conf.oct_shift*12
-        local note = (i-1)+12*conf.oct_shift+conf.start_oct_shift*12
+        local start_oct_shift = conf.start_oct_shift
+        if conf.keymode == 8 or conf.keymode == 9 then start_oct_shift = 0 end
+        local note = (i-1)+12*conf.oct_shift+start_oct_shift*12
         local col = 'white'
         local colint, colint0
         
@@ -1668,7 +1387,6 @@ elseif conf.keymode == 7 then -- 8x8, vertical columns
           alpha_back = 0.15 
         end
 
-        
           local txt = BuildKeyName(conf, data, note, conf.key_names2)
           
           if  key_w < obj.fx_rect_side*2.5 or key_h < obj.fx_rect_side*2.8 then txt = note end
@@ -2062,10 +1780,16 @@ List of available hashtags:
     { str = '8x8 segmented',
       func = function() conf.keymode = 6 end ,
       state = conf.keymode == 6}, 
-    { str = '8x8 vertical|<|',
+    { str = '8x8 vertical',
       func = function() conf.keymode = 7 end ,
-      state = conf.keymode == 7},       
-    
+      state = conf.keymode == 7},   
+    { str = 'All keys from bottom to the top',
+      func = function() conf.keymode = 9 end ,
+      state = conf.keymode == 9},           
+    { str = 'All keys from top to the bottom|<|',
+      func = function() conf.keymode = 8 end ,
+      state = conf.keymode == 8},       
+        
   { str = 'Send MIDI by clicking on keys',
     func = function() conf.keypreview = math.abs(1-conf.keypreview)  end ,
     state = conf.keypreview == 1},  
@@ -2088,7 +1812,7 @@ List of available hashtags:
   
 
   { str = '>Mouse Modifiers'},
-  { str = 'Doubleclick reset value',  
+  { str = 'Doubleclick reset value (Pad and Mixer tabs only)',  
     state = conf.MM_reset_val&(1<<0) == (1<<0),
     func =  function() 
               local ret = BinaryCheck(conf.MM_reset_val, 0)
@@ -2142,7 +1866,7 @@ List of available hashtags:
     func =  function() conf.separate_spl_peak = math.abs(1-conf.separate_spl_peak)  end,
     state = conf.separate_spl_peak == 1,
   } ,   
-  { str = note_active..'Show input notes|<',
+  { str = note_active..'Show input notes',
     func = function() 
               conf.allow_track_notes = math.abs(1-conf.allow_track_notes)  
               if conf.allow_track_notes == 1 then                 
@@ -2151,6 +1875,20 @@ List of available hashtags:
               
             end ,
     state = conf.allow_track_notes == 1},  
+    
+  { str = 'Override pattern key width (0=auto)|<',
+    func = function() 
+              local retval, retvals_csv = reaper.GetUserInputs( conf.mb_title, 1, 'Override pattern key width', conf.key_width_override )
+              if retval then
+                retvals_csv  = tonumber(retvals_csv)
+                if not retvals_csv then return end
+                retvals_csv = math.floor(retvals_csv)
+                if retvals_csv >=0 and retvals_csv <=300 then
+                  conf.key_width_override = retvals_csv
+                end
+              end
+              
+            end   } ,   
   
 
   { str = '>Dragndrop options'},
@@ -2718,13 +2456,19 @@ List of available hashtags:
   end
   ---------------------------------------------------        
   function OBJ_GenPat_Steps(conf, obj, data, refresh, mouse, pat) 
-    local back_w = (obj.pat_area_w-obj.step_cnt_w*2-obj.offs*2-obj.key_w)/4
-    local back_w_line = 2
+  
+    local key_w0 = obj.key_w
+    if conf.key_width_override > 0 then key_w0 = conf.key_width_override end
+    
+    local back_w = (obj.pat_area_w-obj.step_cnt_w*2-obj.offs*2-key_w0)/4
+    local back_w_line = 1
     local alpha_back = 0.3
-    for i = 1, 4 do
+    
+        
+    for i = 1, 5 do
         obj['steps_back_beat'..i] = 
                       { clear = true,
-                        x = obj.keycntrlarea_w + obj.offs*2 + obj.key_w + back_w*(i-1)-1,
+                        x = obj.keycntrlarea_w + obj.offs*2 + key_w0 + back_w*(i-1)-1,
                         y = obj.samplename_h + obj.kn_h,
                         w = back_w_line,
                         h = gfx.h - obj.samplename_h + obj.kn_h,
@@ -2737,7 +2481,7 @@ List of available hashtags:
     end
                                               
     local key_ypos = obj.samplename_h + obj.kn_h- obj.scroll_val * obj.pattern_com_h
-    local key_w = math.max(100,math.floor(obj.pat_area_w * 0.2))
+    local key_w = key_w0--math.max(100,math.floor(obj.pat_area_w * 0.2))
     local pat_w = gfx.w - key_w - obj.keycntrlarea_w - obj.offs*4 - obj.step_cnt_w*2 - obj.scroll_w
     for note = 0, 127 do
       if data[note] or pat[note] then
@@ -2787,7 +2531,7 @@ List of available hashtags:
                           end,  
               func_ResetVal = function ()
                           if not pat[note] then pat[note] = {} end
-                          pat[note].cnt_steps  = 16
+                          pat[note].cnt_steps  = conf.def_steps
                           local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
                             Pattern_Commit(conf, pat, poolGUID, take_ptr)
                             Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)                          
@@ -2843,7 +2587,7 @@ List of available hashtags:
                             refresh.data = true
                             refresh.GUI = true 
                           end, 
-                          func_trigAlt = function ()
+                          func_ResetVal = function ()
                             if not pat[note] then pat[note] = {} end
                             pat[note].swing  = 0
                             local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
@@ -2857,11 +2601,11 @@ List of available hashtags:
           for i_step = 1, step do
             local step_exist = false 
             local vel = 0       
-            if pat[note] and pat[note].steps and pat[note].steps[i_step] then 
-              vel = pat[note].steps[i_step]
+            if pat[note] and pat[note].steps and pat[note].steps[i_step] and pat[note].steps[i_step].active and pat[note].steps[i_step].active ==1  then 
+              vel = pat[note].steps[i_step].vel
               step_exist = true
             end
-            local x_st = obj.keycntrlarea_w + obj.offs*2 + key_w + pat_w_step * (i_step-1)
+            local x_st = obj.keycntrlarea_w + obj.offs*2 + key_w0 + pat_w_step * (i_step-1)
             local w_st = pat_w_step
             if pat[note] and pat[note].swing and  pat[note].swing ~= 0 then
               local x_shift = math.floor(pat_w_step * pat[note].swing * 0.5 )
@@ -2895,11 +2639,15 @@ List of available hashtags:
                             func =  function() 
                                       local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
                                       if ret then 
-                                        local vel =0
-                                        if not (pat[note] and pat[note].steps and pat[note].steps[i_step]) or (pat[note] and pat[note].steps and pat[note].steps[i_step] and pat[note].steps[i_step] == 0) then 
-                                          vel = 120 
+                                        if not (pat[note] and pat[note].steps and pat[note].steps[i_step]) then 
+                                          Pattern_Change(conf, pat, poolGUID, note, i_step, 120, 1)
+                                         else
+                                          local act_state = pat[note].steps[i_step].active
+                                          pat[note].steps[i_step].active = math.abs(1-act_state)
+                                          local vel = nil
+                                          if act_state == 0 and pat[note].steps[i_step].vel == 0 then vel = 120 end 
+                                          Pattern_Change(conf, pat, poolGUID, note, i_step, vel, pat[note].steps[i_step].active)
                                         end
-                                        Pattern_Change(conf, pat, poolGUID, note, i_step, vel)
                                         Pattern_Commit(conf, pat, poolGUID, take_ptr)
                                         Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
                                         refresh.GUI = true  
@@ -2907,13 +2655,14 @@ List of available hashtags:
                                     end,
                           func_trigCtrl = function() 
                                             local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
-                                            if ret and (pat[note] and pat[note].steps and pat[note].steps[i_step]) then mouse.context_latch_val = pat[note].steps[i_step] end
+                                            if ret and (pat[note] and pat[note].steps and pat[note].steps[i_step] and pat[note].steps[i_step].vel) then 
+                                              mouse.context_latch_val = pat[note].steps[i_step].vel end
                                           end,
                           func_ctrlLD = function ()
                             local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
                             if not ret or not mouse.context_latch_val then return end
                             local dragratio = 1
-                            local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 1, 120)
+                            local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 5, 120)
                             if not out_val then return end
                             if not pat[note] then pat[note] = {} end
                             Pattern_Change(conf, pat, poolGUID, note, i_step, math.floor(out_val))
@@ -2934,6 +2683,9 @@ List of available hashtags:
     local scroll_y_offs = 0
     if obj.pattern_com_h then scroll_y_offs =  obj.scroll_val * obj.pattern_com_h end
     local key_ypos = obj.samplename_h + obj.kn_h
+    local key_w0 = obj.key_w
+    if conf.key_width_override > 0 then key_w0 = conf.key_width_override end
+    
     for note = 0, 127 do
       if data[note] or pat[note] then
       
@@ -2958,7 +2710,7 @@ List of available hashtags:
                       { clear = true,
                         x = obj.keycntrlarea_w + obj.offs,
                         y = key_ypos-scroll_y_offs,
-                        w = obj.key_w,
+                        w = key_w0,
                         h = obj.pat_area_h,
                         col = col,
                         colint = colint,
@@ -3105,8 +2857,7 @@ List of available hashtags:
                                     for i = 1, pat[obj.current_WFkey].cnt_steps do
                                       --msg(math.floor(math.random()*127))
                                       local gate = math_q(math.random()*(conf.randgateprob+0.5))
-                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, math.floor(gate*127))
-                                      --
+                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, _, gate)
                                     end
                                   
                                    else
@@ -3114,7 +2865,7 @@ List of available hashtags:
                                       if tonumber(note) then
                                         for i = 1, pat[note].cnt_steps do
                                           local gate = math_q(math.random()*(conf.randgateprob+0.5))
-                                          Pattern_Change(conf, pat, poolGUID, note, i, math.floor(gate*127))
+                                          Pattern_Change(conf, pat, poolGUID, note, i, _, gate)
                                         end
                                       end   
                                     end                                 
@@ -3179,7 +2930,7 @@ List of available hashtags:
                                   if conf.patctrl_mode ==0 and obj.current_WFkey then
                                     if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
                                     for i = 1, pat[obj.current_WFkey].cnt_steps do
-                                      if pat[obj.current_WFkey].steps[i] and pat[obj.current_WFkey].steps[i] > 0 then 
+                                      if pat[obj.current_WFkey].steps[i] and pat[obj.current_WFkey].steps[i].active and pat[obj.current_WFkey].steps[i].active ==1 then 
                                         local val = math.random()*(conf.randvel2-conf.randvel1) + conf.randvel1
                                         Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, lim(math.floor(val*127), 1, 127))
                                       end
@@ -3188,7 +2939,7 @@ List of available hashtags:
                                     for note in pairs(pat) do
                                       if tonumber(note) then
                                         for i = 1, pat[note].cnt_steps do
-                                          if pat[note].steps and pat[note].steps[i] and pat[note].steps[i] > 0 then 
+                                          if pat[note].steps and pat[note].steps[i] and pat[note].steps[i].active and pat[note].steps[i].active == 1  then 
                                             local val = math.random()*(conf.randvel2-conf.randvel1) + conf.randvel1
                                             Pattern_Change(conf, pat, poolGUID, note, i, lim(math.floor(val*127), 1, 127))
                                           end
@@ -3274,29 +3025,16 @@ List of available hashtags:
                                   if conf.patctrl_mode ==0 and obj.current_WFkey then
                                     if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
                                     local t = {}
-                                    for i = 1, pat[obj.current_WFkey].cnt_steps do
-                                      t[i] = pat[obj.current_WFkey].steps[i]
-                                    end
-                                    local val = t[1]
-                                    table.remove(t,1)
-                                    t[pat[obj.current_WFkey].cnt_steps] = val
-                                    for i = 1, pat[obj.current_WFkey].cnt_steps do
-                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, t[i])
-                                    end
-                                  
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do t[i] = CopyTable(pat[obj.current_WFkey].steps[i]) end
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps-1 do Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, t[i+1].vel, t[i+1].active) end
+                                    Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, pat[obj.current_WFkey].cnt_steps, t[1].vel, t[1].active)
                                    else
                                     for note in pairs(pat) do
                                       if tonumber(note) then
                                         local t = {}
-                                        for i = 1, pat[note].cnt_steps do
-                                          t[i] = pat[note].steps[i]
-                                        end  
-                                        local val = t[1]
-                                        table.remove(t,1)
-                                        t[ pat[note].cnt_steps ] = val
-                                        for i = 1, pat[note].cnt_steps do
-                                          Pattern_Change(conf, pat, poolGUID, note, i, t[i])
-                                        end                                        
+                                        for i = 1, pat[note].cnt_steps do t[i] = CopyTable(pat[note].steps[i]) end  
+                                        for i = 1, pat[note].cnt_steps-1 do Pattern_Change(conf, pat, poolGUID, note, i,  t[i+1].vel, t[i+1].active) end                                        
+                                        Pattern_Change(conf, pat, poolGUID, note, pat[note].cnt_steps, t[1].vel, t[1].active)
                                       end   
                                     end                                 
                                   end
@@ -3328,27 +3066,16 @@ List of available hashtags:
                                   if conf.patctrl_mode ==0 and obj.current_WFkey then
                                     if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
                                     local t = {}
-                                    for i = 1, pat[obj.current_WFkey].cnt_steps do
-                                      t[i] = pat[obj.current_WFkey].steps[i]
-                                    end
-                                    local val = t[#t]
-                                    table.insert(t,1,val)
-                                    for i = 1, pat[obj.current_WFkey].cnt_steps do
-                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, t[i])
-                                    end
-                                  
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do t[i] = CopyTable(pat[obj.current_WFkey].steps[i]) end  
+                                    for i = 2, pat[obj.current_WFkey].cnt_steps do Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i,  t[i-1].vel, t[i-1].active) end                                        
+                                    Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 1, t[pat[obj.current_WFkey].cnt_steps].vel, t[pat[obj.current_WFkey].cnt_steps].active)
                                    else
                                     for note in pairs(pat) do
                                       if tonumber(note) then
                                         local t = {}
-                                        for i = 1, pat[note].cnt_steps do
-                                          t[i] = pat[note].steps[i]
-                                        end  
-                                        local val = t[#t]
-                                        table.insert(t,1,val)
-                                        for i = 1, pat[note].cnt_steps do
-                                          Pattern_Change(conf, pat, poolGUID, note, i, t[i])
-                                        end                                        
+                                        for i = 1, pat[note].cnt_steps do t[i] = CopyTable(pat[note].steps[i]) end  
+                                        for i = 2, pat[note].cnt_steps do Pattern_Change(conf, pat, poolGUID, note, i,  t[i-1].vel, t[i-1].active) end                                        
+                                        Pattern_Change(conf, pat, poolGUID, note, 1, t[pat[note].cnt_steps].vel, t[pat[note].cnt_steps].active)                                        
                                       end   
                                     end                                 
                                   end

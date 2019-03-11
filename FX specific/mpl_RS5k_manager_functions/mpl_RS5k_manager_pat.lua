@@ -74,17 +74,15 @@
     return true, poolGUID, take_name, take, item
   end
   ----------------------------------------------------
-  function Pattern_Change(conf, pat, poolGUID, note, step, vel)
+  function Pattern_Change(conf, pat, poolGUID, note, step, vel, active)
     -- add note tbl if not exist
     if not pat[note] then 
       pat[note] = { cnt_steps = conf.def_steps, steps = {}, swing = conf.def_swing} 
     end
     -- add step
-    --if pat[note].steps[step]and pat[note].steps[step] > 0  then 
-      pat[note].steps[step] = vel
-     --else
-      --pat[note].steps[step] = 0
-    --end
+      if not pat[note].steps[step] then pat[note].steps[step] = {vel = 0 , offs = 0, active = 0 }  end
+      if vel then pat[note].steps[step].vel = vel end
+      if active then pat[note].steps[step].active = active end
   end
   ----------------------------------------------------  
   function Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
@@ -97,7 +95,13 @@
         str = str..'\n'..'NOTE='..note..' '..pat[note].cnt_steps..' '..pat[note].swing
         if pat[note].steps then
           for step in spairs(pat[note].steps) do
-            str = str..'\n'..'    STEP '..step..' '..pat[note].steps[step]
+            local offs if not pat[note].steps[step].offs then offs = 0 else offs = pat[note].steps[step].offs end
+            local active if not pat[note].steps[step].active then 
+              if pat[note].steps[step].vel > 0 then active = 1 else active = 0 end 
+             else 
+              active = pat[note].steps[step].active 
+            end
+            str = str..'\n'..'    STEP '..step..' '..pat[note].steps[step].vel..' '..offs..' '..active
           end
         end
       end
@@ -126,9 +130,20 @@
         pat[cur_note].cnt_steps =  tonumber(cnt_steps)
         pat[cur_note].swing = tonumber(swing)
       end
-      if line:match('STEP%s(%d+)%s(%d+)') then
-        local stepID, vel = line:match('STEP%s(%d+)%s(%d+)')
-        pat[cur_note].steps[tonumber(stepID)] = tonumber(vel)
+      
+      if line:match('STEP') then
+        local t = {}
+        for par in line:gmatch('[^%s]+') do t[#t+1]=tonumber(par)  end
+        local stepID = t[1]
+        local vel = t[2]
+        local offset = t[3] or 0
+        local active = t[4]
+        if not active then 
+          if vel > 0 then active = 1 else active = 0 end
+        end
+        pat[cur_note].steps[tonumber(stepID)] = {vel = tonumber(vel),
+                                                 offs = offset,
+                                                 active= active}
       end
     end
    end
@@ -162,16 +177,18 @@
           local start_beats_ppq = MIDI_GetPPQPosFromProjTime( take,  TimeMap2_beatsToTime( 0, start_beats ) )
           local end_beats_ppq = MIDI_GetPPQPosFromProjTime( take,  TimeMap2_beatsToTime( 0, end_beats ) ) -1
           
-          MIDI_InsertNote( 
-           take, 
-           false, -- selected
-           false, -- muted
-           start_beats_ppq,
-           end_beats_ppq,
-           0, -- channel
-           note, -- pitch
-           pat[note].steps[i_step], -- velocity
-           true) -- no sort]]        
+          if pat[note].steps[i_step].active == 1 then
+            MIDI_InsertNote( 
+             take, 
+             false, -- selected
+             false, -- muted
+             start_beats_ppq,
+             end_beats_ppq,
+             0, -- channel
+             note, -- pitch
+             pat[note].steps[i_step].vel, -- velocity
+             true) -- no sort]]        
+            end
         end
       end
     end
