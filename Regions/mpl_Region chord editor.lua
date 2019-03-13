@@ -1,14 +1,13 @@
 -- @description Region chord editor
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @changelog
---    # any region with @ character is ignored
---    # change layout to 4 measures per line
---    + added various improvements for adding regions logic
---    + feedback region color to GUI
+--    # improve region adding logic
+--    # fix displayed region 1 beat back
+--    # various GUI tweaks
 
-  local vrs = 'v1.01'
+  local vrs = 'v1.02'
   --NOT gfx NOT reaper
   
 
@@ -99,7 +98,7 @@
       local chord_t = {}
       for b = 0, cml do
         local meas_time0 = TimeMap2_beatsToTime( 0, b, i )
-        local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, meas_time0-0.001 )
+        local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, meas_time0+0.001 )
         local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color
         if regionidx >= 0 then
           retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = EnumProjectMarkers3( 0, regionidx )
@@ -260,12 +259,12 @@
       end
       if o.col_int2 then
         local r, g, b = ColorFromNative( o.col_int2 )
-        gfx.set(r/255,g/255,b/255, o.alpha_back)
+        gfx.set(r/255,g/255,b/255, o.col_int2_a)
         gfx.rect(x,y, w,h,1)
       end
   
     if o.val then 
-      gfx.set(1,1,1,0.4)
+      gfx.set(1,1,1,0.9)
       gfx.rect(x,y, w * o.val,h,1)
     end
   
@@ -440,7 +439,7 @@
     gfx.dest = 5
     gfx.setimgdim(5, -1, -1)  
     gfx.setimgdim(5, obj.grad_sz,obj.grad_sz)  
-    local r,g,b,a = 1,1,1,0.5
+    local r,g,b,a = 1,1,1,0.6
     gfx.x, gfx.y = 0,0
     local c = 1
     local drdx = c*0.001
@@ -449,8 +448,8 @@
     local dgdy = c*0.001    
     local dbdx = c*0.00003
     local dbdy = c*0.001
-    local dadx = c*0.0004
-    local dady = c*0.0001       
+    local dadx = c*0.00004
+    local dady = c*0.00001       
     gfx.gradrect(0,0, obj.grad_sz,obj.grad_sz, 
                     r,g,b,a, 
                     drdx, dgdx, dbdx, dadx, 
@@ -880,9 +879,9 @@
           
           obj['meas'..i..'beat'..b..'point'] = { clear = true,
                               x = x + b*wsegm,
-                              y = y-scroll_y_offs + obj.chord_h*2-2,
-                              w = 2,
-                              h = 2,
+                              y = y-scroll_y_offs + obj.chord_h*2-6,
+                              w = 4,
+                              h = 4,
                               --col = 'white',
                               col_int2 = data.measures[i].chord_t[b].color,
                               state = 0,
@@ -892,7 +891,7 @@
                               is_but = true,
                               val = 0,
                               fontsz = obj.GUI_fontsz,
-                              alpha_back = 0.5,
+                              alpha_back = 1,
                               ignore_mouse = true,
                               func =  function() end}  
                               
@@ -907,20 +906,24 @@
                     x = x + b*wsegm,
                     y = y-scroll_y_offs+obj.chord_h,
                     w = wsegm,
-                    h = obj.chord_h,
+                    h = obj.chord_h-2,
                     --col = 'white',
                     col_int2 = data.measures[i].chord_t[b].color,
+                    col_int2_a = 0.5,
                     state = 0,
                     aligh_txt = 5,
                     txt= txt,
+                    txt_a= 1,
                     show = true,
                     is_but = true,
                     val = 0,
-                    fontsz = obj.GUI_fontsz,
+                    fontsz = 25,--obj.GUI_fontsz,
                     alpha_back =alpha_back,
                     --a_frame = 0.05,
                     func =  function() 
+                              Undo_BeginBlock2(0)
                               Data_AddChord(conf, data, b, i)
+                              Undo_EndBlock2(0, 'Add region chord', -1)
                               refresh.data=true
                               refresh.GUI = true
                             end}           
@@ -930,7 +933,7 @@
                 x = x,
                 y = y-scroll_y_offs+obj.chord_h,
                 w = obj.chord_area_w/4,
-                h = obj.chord_h,
+                h = 10, 
                 col = 'white',
                 state = 0,
                 aligh_txt = 1,
@@ -940,7 +943,7 @@
                 val = 0,
                 fontsz = obj.GUI_fontsz2,
                 ignore_mouse = true,
-                alpha_back = 0.1,
+                alpha_back = 0.05,
                 func =  function()   end} 
           if (i%4)==3 then y = y + obj.chord_h end   
       end
@@ -949,10 +952,10 @@
   ---------------------------------------------------
   function Data_AddChord(conf, data, beat, measure)
     cur_region, next_region = {}, {}
-    local pos_start = TimeMap2_beatsToTime( 0,beat-1, measure )
+    local pos_start = TimeMap2_beatsToTime( 0,beat, measure )
     
     -- get current region data
-      local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start+0.001 )
+      local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start+0.01 )
       if regionidx >= 0 then
         cur_region  = ({EnumProjectMarkers( regionidx )})         --retval, isrgn, pos, rgnend, name, markrgnindexnumber
         --if pos_start == cur_region[3] then goto skip_cur_region end
