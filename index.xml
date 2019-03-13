@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d1dec921722184805219ba1ea575a465fffe732a" name="MPL Scripts">
+<index version="1" commit="586ab1b29cf3e685ffcf476f0fc74506db3bb3a7" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3677,6 +3677,16 @@ setup min gain, attack =0]]></changelog>
 + added various improvements for adding regions logic
 + feedback region color to GUI]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d1dec921722184805219ba1ea575a465fffe732a/Regions/mpl_Region%20chord%20editor.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2019-03-13T05:04:51Z">
+        <changelog><![CDATA[# improve region adding logic
+# fix displayed region 1 beat back
+# various GUI tweaks]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a739445030c207bbfa3b9f27cdb3a19b52890a/Regions/mpl_Region%20chord%20editor.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2019-03-13T05:38:00Z">
+        <changelog><![CDATA[# fix fill previous region if entering empty string]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/586ab1b29cf3e685ffcf476f0fc74506db3bb3a7/Regions/mpl_Region%20chord%20editor.lua</source>
       </version>
     </reapack>
   </category>
