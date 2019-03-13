@@ -1,13 +1,11 @@
 -- @description Region chord editor
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @changelog
---    # improve region adding logic
---    # fix displayed region 1 beat back
---    # various GUI tweaks
+--    # fix fill previous region if entering empty string
 
-  local vrs = 'v1.02'
+  local vrs = 'v1.03'
   --NOT gfx NOT reaper
   
 
@@ -770,7 +768,7 @@
     obj.offs = 5 
     obj.grad_sz = 200 
     
-    obj.chord_h = 38
+    obj.chord_h = 43
     obj.edit_h_area = 0
     obj.scroll_w = 20
     obj.scroll_val = 0
@@ -951,9 +949,9 @@
   end
   ---------------------------------------------------
   function Data_AddChord(conf, data, beat, measure)
-    cur_region, next_region = {}, {}
+    cur_region, next_region,prev_region = {}, {}, {}
     local pos_start = TimeMap2_beatsToTime( 0,beat, measure )
-    
+----------------------    
     -- get current region data
       local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start+0.01 )
       if regionidx >= 0 then
@@ -975,8 +973,33 @@
         end
       end
       ::skip_cur_region::
-      
-      
+---------------------------
+  -- get prev region data
+      local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start+0.01 )
+      if regionidx >= 0 then
+        prev_region  = ({EnumProjectMarkers( regionidx-1 )})         --retval, isrgn, pos, rgnend, name, markrgnindexnumber
+        if prev_region and prev_region[1] then 
+          goto skip_prev_region
+        end
+      end  
+      if not prev_region or not prev_region[1] then
+        for searchmeas = measure, 0, -1 do
+          for searchbeat = data.measures[measure].cml, 1, -1 do
+            if searchmeas < measure or (searchmeas == measure and searchbeat < beat) then
+              local searchpos = TimeMap2_beatsToTime( 0, searchbeat-1, searchmeas )
+              local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, searchpos+0.001 ) 
+              if regionidx >=0 and (cur_region and cur_region[6]) then
+                prev_region  = ({EnumProjectMarkers( cur_region[6]-1 )})
+                if prev_region and prev_region [1] then
+                  goto skip_prev_region
+                end
+              end
+            end
+          end
+        end
+      end
+      ::skip_prev_region::  
+---------------------------      
     -- get next region data
       for searchmeas = measure, data.pr_len_measures do
         for searchbeat = 1, data.measures[measure].cml do
@@ -992,17 +1015,19 @@
         end
       end 
       ::skip_next_region::
-      
+-------------------------
+            
       new_color = ColorToNative(math.random(0,255),math.random(0,255),math.random(0,255))|0x1000000
-      
-    -- add reg
+    
       local cur_name if cur_region and cur_region[5] then cur_name = cur_region[5] else cur_name = 'C' end
       local retval, retvals_csv = GetUserInputs( conf.mb_title, 1, 'region name', cur_name)
-      if retval then 
+      
+                  
+    -- add reg
+      if retval and retvals_csv ~= '' then 
         if (cur_region and cur_region[5] and cur_region[5] ~= retvals_csv:lower()) then
           SetProjectMarker( cur_region[6], true, cur_region[3], pos_start, cur_region[5] ) -- crop previous region
-          local pos_end 
-          
+          local pos_end  
           if next_region and next_region[5] then 
             if next_region[5]:lower() ~= retvals_csv:lower() then 
               pos_end = next_region[3]
@@ -1012,8 +1037,7 @@
             end
            else
             AddProjectMarker2( 0, true, pos_start, data.pr_len, retvals_csv, -1, new_color )
-          end
-          
+          end 
          elseif not (cur_region and cur_region[5]) then 
           if next_region and next_region[5] then 
             if next_region[5]:lower() ~= retvals_csv:lower() then 
@@ -1023,11 +1047,21 @@
             end
            else
             AddProjectMarker2( 0, true, pos_start, data.pr_len, retvals_csv, -1, new_color )
+          end 
+        end
+      end
+
+    -- remove reg
+      if cur_region and cur_region[5] and retvals_csv == '' then
+        if next_region and next_region[3] and math.abs(cur_region[3] - pos_start) < 0.01 then
+          if prev_region and prev_region [1] then 
+            SetProjectMarker( prev_region[6], true, prev_region[3], cur_region[4], prev_region[5] )
+            DeleteProjectMarker( 0, cur_region[6], true )
           end
-          
         end
       end
       
+            
       
   end
     
