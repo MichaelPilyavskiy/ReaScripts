@@ -1,12 +1,10 @@
 -- @description Dump RetrospectiveRecord tracker log to selected track
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Dump MIDI messages log from RetrospectiveRecord_tracker JSFX as new item on selected track placed at edit cursor
 -- @changelog
---    - drop support for old plugin with no sync option
---    + create new item around edit cursor, build proper take offset
---    + use play cursor if dumping while playing
+--    # set item edges correctly when edit cursor after play position, disable adding CC123 manually
 
 
      
@@ -53,25 +51,29 @@
     if not take then return end 
     ---------
     local proj_offs =  GetProjectTimeOffset( 0, false )
+    local out_pos, out_len, out_offs = curpos, it_len0, 0
     if playpos < 0 then
-      SetMediaItemInfo_Value( it, 'D_POSITION' , curpos)
-      SetMediaItemInfo_Value( it, 'D_LENGTH' , it_len0)
+      out_pos = curpos
+      out_len = it_len0
      else
       playpos = playpos - proj_offs
       if playpos >= curpos then
-        SetMediaItemInfo_Value( it, 'D_LENGTH' , playpos  - curpos)
-        SetMediaItemTakeInfo_Value( take, 'D_STARTOFFS',  curpos + it_len0 - playpos  )
+        out_len = playpos  - curpos
+        out_offs = curpos + it_len0 - playpos  
        else
-        SetMediaItemInfo_Value( it, 'D_POSITION' , playpos - it_len0)
-        SetMediaItemInfo_Value( it, 'D_LENGTH' , curpos - playpos + it_len0)
+        out_pos = playpos - it_len0
+        out_len = curpos - playpos + it_len0
       end
     end
     
+    SetMediaItemInfo_Value( it, 'D_POSITION' , out_pos)
+    SetMediaItemInfo_Value( it, 'D_LENGTH' , out_len)
+    SetMediaItemTakeInfo_Value( take, 'D_STARTOFFS',  out_offs)
     
-    ---------
+    --------- 
     local s_pack = string.pack
     local MIDIstr= ''
-    local lastPPQ
+    --local lastPPQ
     local flags = 0
     for i = 1, #data do 
       local PPQ = MIDI_GetPPQPosFromProjTime( take, curpos + data[i].ts )
@@ -80,9 +82,13 @@
       lastPPQ = PPQ
       MIDIstr = MIDIstr..s_pack("i4BI4BBB", offs, flags, 3, data[i].msg1, data[i].msg2, data[i].msg3)
     end
-    MIDIstr = MIDIstr..s_pack("i4BI4BBB", 0, flags, 3, 0xB, 123, 0)
+    --MIDIstr = MIDIstr..s_pack("i4BI4BBB", playpos_ppq-lastPPQ, flags, 3, 0xB, 123, 0)
     ---------
     MIDI_SetAllEvts(take, MIDIstr)
+    
+    local start_qn =  TimeMap2_timeToQN( 0, out_pos )
+    local end_qn = TimeMap2_timeToQN(0, out_pos + out_len)
+    MIDI_SetItemExtents(it, start_qn, end_qn)
     return true
   end
   
