@@ -100,9 +100,33 @@
                         func =  function() 
                                   local  t = {}
                                   local abc = 'a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z'
+                                  t[#t+1] = { str = '>All'}
                                   for let in abc:gmatch('[^,]') do
                                     local new_let =1
                                     local new_let_sep = ''
+                                    
+                                    for i = 1, #obj.plugs_data do
+                                      local name = obj.plugs_data[i].name
+                                      if name:sub(0,1):lower() == let then
+                                        t[#t+1] = 
+                                            { str = new_let_sep..obj.plugs_data[i].reduced_name,
+                                              func = function() 
+                                                        local tr = GetSelectedTrack(0,0)
+                                                        if tr then 
+                                                          local id = TrackFX_AddByName( tr, obj.plugs_data[i].name, false, 1 )
+                                                          if conf.floatchain == 1 then TrackFX_Show( tr, id, 1 ) else TrackFX_Show( tr, id, 3 ) end
+                                                        end
+                                                    
+                                                     end  }
+                                        new_let = new_let + 1
+                                      end
+                                    end
+                                  end
+                                                                    
+                                  for let in abc:gmatch('[^,]') do
+                                    local new_let =1
+                                    local new_let_sep = ''
+                                    
                                     for i = 1, #obj.plugs_data do
                                       local name = obj.plugs_data[i].name
                                       if name:sub(0,1):lower() == let then

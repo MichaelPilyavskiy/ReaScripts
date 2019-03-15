@@ -41,7 +41,7 @@
     Data_EnumeratePlugins_Sub(plugs_data, res_path, '/reaper-dxplugins64.ini',  'Name=(.*)', 2) 
     Data_EnumeratePlugins_Sub(plugs_data, '/reaper-auplugins.ini',  'AU%s%"(.-)%"', 3) 
     Data_EnumeratePlugins_Sub(plugs_data, '/reaper-auplugins64.ini',  'AU%s%"(.-)%"', 3)  
-    Data_EnumeratePlugins_Sub(plugs_data, '/reaper-jsfx.ini',  'NAME (.-)%s', 4) 
+    --Data_EnumeratePlugins_Sub(plugs_data, '/reaper-jsfx.ini',  'NAME (.-)%s', 4) 
     return plugs_data
   end
   --------------------------------------------------------------------
@@ -63,13 +63,11 @@
     -- parse
       for line in content:gmatch('[^\r\n]+') do
         local str = line:match(pat)
-        if plugtype == 4 and line:match('NAME "') then
-          str = line:match('NAME "(.-)"') 
-          --str = str:gsub('.jsfx','')
-        end
         if str then 
-          if str:match('!!!VSTi') and plugtype == 0 then plugtype = 1 end
+          if not (str:match('!!!VSTi') or str:match('!!!DXi') or str:match('!!!AUi') )then goto skip_loop end
           str = str:gsub('!!!VSTi','')
+          str = str:gsub('!!!AUi','')
+          str = str:gsub('!!!DXi','')
           
           -- reduced_name
             local reduced_name = str
@@ -80,10 +78,13 @@
               local pat_js = '.*[%/](.*)'
               if reduced_name:match(pat_js) then reduced_name = reduced_name:match(pat_js) end    
             end
+            
           plugs_data[#plugs_data+1] = {name = str, 
                                                 reduced_name = reduced_name ,
                                                 plugtype = plugtype}
+          
         end
+        ::skip_loop::
       end
   end  
   ---------------------------------------------------   
