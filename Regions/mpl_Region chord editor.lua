@@ -1,11 +1,15 @@
 -- @description Region chord editor
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @changelog
---    # fix fill previous region if entering empty string
+--    + use existed regions color map, otherwise on cropping current region use previous color
+--    # disable text wrap
+--    # set edit cursor to start of newly added region
+--    # dark/ignore regions contain @ character
 
-  local vrs = 'v1.03'
+
+  local vrs = 'v1.04'
   --NOT gfx NOT reaper
   
 
@@ -90,6 +94,7 @@
     local retval, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, data.pr_len )
     data.pr_len_measures = measures
     data.measures = {}
+    data.chordcolorsmap = {}
     for i = 0, data.pr_len_measures do
       local meas_time = TimeMap2_beatsToTime( 0, 0, i )
       local retval, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, meas_time )
@@ -100,12 +105,14 @@
         local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color
         if regionidx >= 0 then
           retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = EnumProjectMarkers3( 0, regionidx )
+          if name:match('@') then name = '' color = lastcolor end
          else 
-          name = ''
+          name = '' color = lastcolor 
         end
         chord_t[b] = {name=name,color=color}
+        if not data.chordcolorsmap[name:lower()] then data.chordcolorsmap[name:lower()] = color end
+        lastcolor = color
       end
-      
       data.measures[i] = {cml = cml,
                           cdenom =cdenom,
                           chord_t = chord_t}
@@ -351,10 +358,10 @@
             local comy_shift = ((#txt_t-1) * gfx.texth)/2
             for lineid = 1, #txt_t do
               local line = txt_t[lineid]
-              if gfx.measurestr(line:sub(2)) > w -5 and w > 20 then                 
+              --[[if gfx.measurestr(line:sub(2)) > w -5 and w > 20 then                 
                 repeat line = line:sub(reduce1, reduce2) until gfx.measurestr(line..'...') < w -5
                 if o.aligh_txt and o.aligh_txt&8==8 then line = line..'...' else line = '...'..line end                
-              end
+              end]]
               gfx.x = x+ math.ceil((w-gfx.measurestr(line))/2)
               gfx.y = y+ h/2 - com_texth/2 + i*gfx.texth - comy_shift
               if o.aligh_txt then
@@ -366,7 +373,7 @@
                 if o.aligh_txt&4==4 then gfx.y = y + h - com_texth+ gfx.texth*i end -- align bot
                 if o.aligh_txt&8==8 then gfx.x = x + w - gfx.measurestr(line) - shift end -- align right
                 if o.aligh_txt&16==16 then gfx.y = y + (h - com_texth)/2+ i*gfx.texth - 2 end -- align center
-
+                if o.txt_x_shift then gfx.x =  gfx.x  + o.txt_x_shift end
               end
               gfx.drawstr(line)
               --shift = shift + gfx.texth
@@ -768,7 +775,7 @@
     obj.offs = 5 
     obj.grad_sz = 200 
     
-    obj.chord_h = 43
+    obj.chord_h = 50
     obj.edit_h_area = 0
     obj.scroll_w = 20
     obj.scroll_val = 0
@@ -911,6 +918,8 @@
                     state = 0,
                     aligh_txt = 5,
                     txt= txt,
+                    txt_x_shift = 2,
+                    --txt_wrap = true,
                     txt_a= 1,
                     show = true,
                     is_but = true,
@@ -951,11 +960,12 @@
   function Data_AddChord(conf, data, beat, measure)
     cur_region, next_region,prev_region = {}, {}, {}
     local pos_start = TimeMap2_beatsToTime( 0,beat, measure )
+    SetEditCurPos(pos_start, 1, 0)
 ----------------------    
     -- get current region data
       local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start+0.01 )
       if regionidx >= 0 then
-        cur_region  = ({EnumProjectMarkers( regionidx )})         --retval, isrgn, pos, rgnend, name, markrgnindexnumber
+        cur_region  = ({EnumProjectMarkers3( 0,regionidx )})         --retval, isrgn, pos, rgnend, name, markrgnindexnumber
         --if pos_start == cur_region[3] then goto skip_cur_region end
       end  
       if not cur_region or not cur_region[1] then
@@ -965,7 +975,7 @@
               local searchpos = TimeMap2_beatsToTime( 0, searchbeat-1, searchmeas )
               local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, searchpos+0.001 ) 
               if regionidx >=0  then
-                cur_region  = ({EnumProjectMarkers( regionidx )})
+                cur_region  = ({EnumProjectMarkers3( 0,regionidx )})
                 goto skip_cur_region
               end
             end
@@ -977,7 +987,7 @@
   -- get prev region data
       local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start+0.01 )
       if regionidx >= 0 then
-        prev_region  = ({EnumProjectMarkers( regionidx-1 )})         --retval, isrgn, pos, rgnend, name, markrgnindexnumber
+        prev_region  = ({EnumProjectMarkers3(0, regionidx-1 )})         --retval, isrgn, pos, rgnend, name, markrgnindexnumber
         if prev_region and prev_region[1] then 
           goto skip_prev_region
         end
@@ -989,7 +999,7 @@
               local searchpos = TimeMap2_beatsToTime( 0, searchbeat-1, searchmeas )
               local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, searchpos+0.001 ) 
               if regionidx >=0 and (cur_region and cur_region[6]) then
-                prev_region  = ({EnumProjectMarkers( cur_region[6]-1 )})
+                prev_region  = ({EnumProjectMarkers3( 0,cur_region[6]-1 )})
                 if prev_region and prev_region [1] then
                   goto skip_prev_region
                 end
@@ -1006,9 +1016,9 @@
           if searchmeas > measure or (searchmeas == measure and searchbeat > beat) then
             local searchpos = TimeMap2_beatsToTime( 0, searchbeat-1, searchmeas )
             local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, searchpos+0.001 )
-            local retval, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers( regionidx )
+            local retval, isrgn, pos, rgnend, name, markrgnindexnumber =EnumProjectMarkers3( 0,regionidx )
             if regionidx >=0 and ((cur_region and cur_region[5] and cur_region[5]:lower()~= name:lower()) or not (cur_region and cur_region[5])) then
-              next_region  = ({EnumProjectMarkers( regionidx )})
+              next_region  = ({EnumProjectMarkers3(0, regionidx )})
               goto skip_next_region
             end
           end
@@ -1021,31 +1031,35 @@
     
       local cur_name if cur_region and cur_region[5] then cur_name = cur_region[5] else cur_name = 'C' end
       local retval, retvals_csv = GetUserInputs( conf.mb_title, 1, 'region name', cur_name)
-      
+      if not retval then return end
                   
     -- add reg
       if retval and retvals_csv ~= '' then 
         if (cur_region and cur_region[5] and cur_region[5] ~= retvals_csv:lower()) then
-          SetProjectMarker( cur_region[6], true, cur_region[3], pos_start, cur_region[5] ) -- crop previous region
+          SetProjectMarker3( 0,cur_region[6], true, cur_region[3], pos_start, cur_region[5],cur_region[7] ) -- crop previous region
           local pos_end  
           if next_region and next_region[5] then 
             if next_region[5]:lower() ~= retvals_csv:lower() then 
               pos_end = next_region[3]
+              if data.chordcolorsmap[retvals_csv:lower()] then new_color = data.chordcolorsmap[retvals_csv:lower()] end
               AddProjectMarker2( 0, true, pos_start, pos_end, retvals_csv, -1, new_color )
              else
               SetProjectMarker( next_region[6], true, pos_start, next_region[4], next_region[5] )
             end
            else
+            if data.chordcolorsmap[retvals_csv:lower()] then new_color = data.chordcolorsmap[retvals_csv:lower()] end
             AddProjectMarker2( 0, true, pos_start, data.pr_len, retvals_csv, -1, new_color )
           end 
          elseif not (cur_region and cur_region[5]) then 
           if next_region and next_region[5] then 
             if next_region[5]:lower() ~= retvals_csv:lower() then 
+              if data.chordcolorsmap[retvals_csv:lower()] then new_color = data.chordcolorsmap[retvals_csv:lower()] end
               AddProjectMarker2( 0, true, pos_start, next_region[3], retvals_csv, -1, new_color )
              else
               SetProjectMarker( next_region[6], true, pos_start, next_region[4], next_region[5] )
             end
            else
+            if data.chordcolorsmap[retvals_csv:lower()] then new_color = data.chordcolorsmap[retvals_csv:lower()] end
             AddProjectMarker2( 0, true, pos_start, data.pr_len, retvals_csv, -1, new_color )
           end 
         end
@@ -1065,70 +1079,6 @@
       
   end
     
-    
-    --[[ 
-    
-    local retval, retvals_csv = GetUserInputs( conf.mb_title, 1, 'region name', 'C' )
-    if not retval then return end
-    local pos_end = data.pr_len
-    
-    
-    add region if previous with other name
-      local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start-0.001 )
-      if regionidx >= 0 then
-        local retval, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers( regionidx )
-        if name:lower()~=retvals_csv:lower() then AddProjectMarker( 0, true, pos_start, pos_end, retvals_csv, -1 )  end
-       else
-        AddProjectMarker( 0, true, pos_start, pos_end, retvals_csv, -1 )
-      end
-    
-    -- crop previous region
-    local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start-0.001 )
-    if regionidx >= 0 then
-      local retval, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers( regionidx )
-      if name:lower()~=retvals_csv:lower() then
-        SetProjectMarker( markrgnindexnumber, true, pos, pos_start, name ) 
-      end
-    end
-    
-    
-    do return end
-    for searchmeas = measure, data.pr_len_measures do
-      for searchbeat = 1, data.measures[measure].cml do
-        if searchmeas > measure or (searchmeas == measure and searchbeat > beat) then
-          local searchpos = TimeMap2_beatsToTime( 0, searchbeat, searchmeas )
-          local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, searchpos )
-          local retval, isrgn, pos_end, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers( regionidx )
-          if not name:match('@') and name~= '' then
-            --msg(name)
-            if name:lower() == retvals_csv:lower() then 
-              DeleteProjectMarker( 0, markrgnindexnumber, true )
-             else
-              SetProjectMarker( markrgnindexnumber, true, pos_start, pos_end, retvals_csv ) 
-              break
-            end
-          end
-        end
-      end
-    end
-    
-    do return end
-    
-    --FindCloserregion(pos_end, data.pr_len)
-    
-    local pos_end = TimeMap2_beatsToTime( 0, b, i )
-    
-    local markeridx, regionidx = GetLastMarkerAndCurRegion( 0, pos_start )
-    if regionidx >= 0 then
-      retval, isrgn, pos, rgnend, name, markrgnindexnumber = reaper.EnumProjectMarkers( regionidx )
-      local retval, retvals_csv = GetUserInputs( conf.mb_title, 1, 'region name', name )
-      SetProjectMarker( markrgnindexnumber, true, pos, rgnend, retvals_csv ) 
-     else 
-      local retval, retvals_csv = GetUserInputs( conf.mb_title, 1, 'region name', 'C' )
-      if retval then 
-        AddProjectMarker( 0, true, pos_start, pos_end, retvals_csv, -1 )
-      end
-    end]]
   ---------------------------------------------------
   function OBJ_Update(conf, obj, data, refresh, mouse) 
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
