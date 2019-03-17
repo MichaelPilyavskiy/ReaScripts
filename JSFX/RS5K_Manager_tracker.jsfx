@@ -1,24 +1,40 @@
 desc:RS5K_Manager_tracker
-version: 1.0
-changelog: init
+version: 1.01
 author: MPL
 website: http://forum.cockos.com/member.php?u=70694
 about:
   Tracking MIDI NoteOn messages for further passing them into mpl_RS5k manager GUI
-  
+changelog: add MIDI choke support  
   
 options:gmem=RS5KManTrack
 
 
 @init
-
+  gmem[99]=1; // choke support
 @slider
 
 @block
   buf = 10;
   gmem[buf*2+1] =time_precise(0);
   while ( midirecv(offset,msg1,msg2,msg3)  ) (
+  
+    // pass through
     midisend(offset,msg1,msg2,msg3);
+    
+    // store notes table
+    msg1==$x90 ? ( gmem[100+msg2] = msg2; );
+    msg1==$x80 ? ( gmem[100+msg2] = -1; );
+    
+    // choke 
+    msg1==$x90 && gmem[300+msg2] >0 ? ( 
+    i = 0;
+    loop(16,
+      midisend(offset,$x80+i,gmem[300+msg2],0);
+      i += 1 ;
+    );
+    );
+    
+    // store messages log
     msg1==$x90 && msg3!=0 ? (
     gmem[buf] = msg2;
     gmem[buf*2] = time_precise(0);   
@@ -29,6 +45,8 @@ options:gmem=RS5KManTrack
       gmem[i+buf] = gmem[i+buf+1];   
     )
     );
+    
+    
   );
 
 @sample

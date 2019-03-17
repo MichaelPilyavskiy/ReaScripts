@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 1.99
+-- @version 2.100
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,15 +10,10 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + Pads: add all keys layouts
---    + Pattern: allow to override keys width
---    + Pattern: add offset parameter and active states (may cause pattern saving/loading issues, any feedback/bug reports welcome)
---    + Pattern: store velocities when enabling/disabling steps
---    + Pattern: limit lower velocity limit to 5
---    + Pattern: improve gate probability
+--    + Pads: support for MIDI choke
 
 
-  local vrs = 'v1.99'
+  local vrs = 'v2.100'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  

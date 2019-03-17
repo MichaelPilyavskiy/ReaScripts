@@ -1187,7 +1187,44 @@
                                               refresh.data = true
                                             end
                                           end
-                                  }                                                                   
+                                  }  
+                                  
+        
+        local alpha_back = obj.it_alpha5
+        if gmem_read(99)==1 and gmem_read(300+cur_note)>0 then alpha_back = obj.it_alpha6 end
+        local txt = 'Choke'
+        if gmem_read(300+cur_note)>0 then txt = txt..' '..math.floor(gmem_read(300+cur_note)) end
+        obj._splctrl_choke = { clear = true,
+                                  x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*10 + env_x_shift*4,
+                                  y = knob_y,
+                                  w = obj.splctrl_butw,
+                                  h = b_h-1,
+                                  col = 'white',
+                                  txt= txt,
+                                  show = true,
+                                  is_but = true,
+                                  mouse_overlay = true,
+                                  fontsz = conf.GUI_splfontsz,
+                                  alpha_back = alpha_back,
+                                  a_frame = 0,
+                                  func =  function() 
+                                            local t = {}
+                                            for key in pairs(data, function(t,a,b) return t[b] < t[a] end)  do
+                                              if tonumber(key) then 
+                                                local str = key..': '..data[key][1].MIDI_name
+                                                if key == cur_note then str = str..' (self)' end
+                                                t[#t+1] = {str = str,
+                                                          func = function() 
+                                                                    local val = 0
+                                                                    if gmem_read(300+cur_note) ~= key then val = key end
+                                                                    gmem_write(300+cur_note, val) 
+                                                                  end,
+                                                          state = gmem_read(300+cur_note) == key }
+                                              end
+                                            end
+                                            Menu(mouse, t)
+                                          end
+                                  }                                                                                                                                             
         ---------- del ----------  
         local del_txt, del_val
         if (mouse.context_latch and mouse.context_latch == '_splctrl_del') or (mouse.context== '_splctrl_del' and mouse.wheel_on_move)  then 
@@ -1200,7 +1237,7 @@
           del_txt = 'Delay' 
         end
         obj._splctrl_del = { clear = true,
-              x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*10 + env_x_shift*5,
+              x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*11 + env_x_shift*5,
               y = knob_y,
               w = obj.kn_w,
               h = obj.kn_h,
@@ -1260,7 +1297,8 @@
                           refresh.GUI = true 
                           refresh.data = true 
                         end
-              }                                  
+              }      
+              
                                                                                                                                                                                                             
   end
 
