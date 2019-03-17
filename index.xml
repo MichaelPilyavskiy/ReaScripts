@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8a2d9b2262782d1639fe32df7bcb13c739ca147a" name="MPL Scripts">
+<index version="1" commit="aaa7bb32587fc1485a44bbf8f1056d201920df97" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2551,6 +2551,15 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/60c6ac76deb90ce0f1a21fcbc99f74f8cf12af08/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/60c6ac76deb90ce0f1a21fcbc99f74f8cf12af08/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua</source>
       </version>
+      <version name="2.100" author="MPL" time="2019-03-17T10:49:34Z">
+        <changelog><![CDATA[+ Pads: support for MIDI choke]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aaa7bb32587fc1485a44bbf8f1056d201920df97/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aaa7bb32587fc1485a44bbf8f1056d201920df97/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aaa7bb32587fc1485a44bbf8f1056d201920df97/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aaa7bb32587fc1485a44bbf8f1056d201920df97/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aaa7bb32587fc1485a44bbf8f1056d201920df97/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aaa7bb32587fc1485a44bbf8f1056d201920df97/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
       <metadata>
@@ -3068,6 +3077,10 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2018-11-02T23:59:29Z">
         <changelog><![CDATA[init]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd959ed9b93a0194e05a7f144b82e536de9ae5bf/JSFX/RS5K_Manager_tracker.jsfx</source>
+      </version>
+      <version name="1.01" author="MPL" time="2019-03-17T10:49:34Z">
+        <changelog><![CDATA[add MIDI choke support]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/aaa7bb32587fc1485a44bbf8f1056d201920df97/JSFX/RS5K_Manager_tracker.jsfx</source>
       </version>
     </reapack>
   </category>
@@ -3699,6 +3712,13 @@ setup min gain, attack =0]]></changelog>
       <version name="1.03" author="MPL" time="2019-03-13T05:38:00Z">
         <changelog><![CDATA[# fix fill previous region if entering empty string]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/586ab1b29cf3e685ffcf476f0fc74506db3bb3a7/Regions/mpl_Region%20chord%20editor.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2019-03-16T17:00:12Z">
+        <changelog><![CDATA[+ use existed regions color map, otherwise on cropping current region use previous color
+# disable text wrap
+# set edit cursor to start of newly added region
+# dark/ignore regions contain @ character]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4aeaea722e98a962a5f6f251d837f82af4acc30b/Regions/mpl_Region%20chord%20editor.lua</source>
       </version>
     </reapack>
   </category>
