@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.18
+-- @version 2.19
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -27,10 +27,11 @@
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 -- @changelog
---    + Store dockstate (require mpl_Various_Functions 1.23+)
+--    # Ordered align: fix typo when getting anchor points
+--    # Ordered align: fix obey time selection
 
      
-  local vrs = 'v2.18'
+  local vrs = 'v2.19'
   --NOT gfx NOT reaper
   
 
@@ -44,7 +45,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-  local data = {}
+   data = {}
   local obj = {}
   local strategy = {}
   

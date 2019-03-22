@@ -89,8 +89,8 @@
       if strategy.act_catchreftimesel&1==1 then
         local ts_start, ts_end = GetSet_LoopTimeRange2( 0, false, false, 0, 0, false )
         local ts_startb, ts_endb =  ({TimeMap2_timeToBeats( 0, ts_start )})[4], ({TimeMap2_timeToBeats( 0, ts_end )})[4]
-        for i = 1, #data.src do
-          if not (data.ref[i].pos >= ts_startb-0.0001 and data.ref[i].pos <= ts_endb) and data.ref[i].ignore_search == false then data.ref[i].ignore_search = true end
+        for i = 1, #data.ref do
+            if not (data.ref[i].pos >= ts_startb-0.0001 and data.ref[i].pos <= ts_endb) and data.ref[i].ignore_search == false then data.ref[i].ignore_search = true end
         end
       end
           
@@ -738,8 +738,9 @@
     if not data.src then return end
     
     local temp_ref
-    if strategy.act_action==3 then -- apply closer points reduce for ordered align
-      temp_ref = CopyTable(data.ref)
+    if strategy.act_action==3 then -- ordered align
+      -- apply closer points reduce
+      temp_ref = CopyTable(data.ref) 
       local pos, last_pos
       if  strategy.exe_val3 > 0 then
         for i = #temp_ref, 1, -1 do
@@ -749,7 +750,12 @@
             last_pos = pos
           end
         end
-      end      
+      end 
+      -- filter time sel
+      for i = #temp_ref, 1, -1 do
+        if temp_ref[i].ignore_search == true then  table.remove(temp_ref, i) end
+      end
+           
     end
         
     local last_pat_ID,last_pos
@@ -794,6 +800,7 @@
               end
             end   
           end
+          
           if strategy.act_action==3 then
             if (strategy.ref_pattern&1~=1 and  strategy.ref_grid&1~=1 ) then             
               if temp_ref[i] then
@@ -805,6 +812,7 @@
               end     
             end
           end  
+          
           -- app values
           data.src[i].out_val = out_val
           data.src[i].out_pos = out_pos
@@ -852,32 +860,7 @@
             end             
           end
         end
-        
-        --[[msg(data.src[1].pos)
-        msg(start_pos)
-        msg(pat_pos)
-        msg(pat_ID)
-        msg(data.ref_pat[pat_ID].pos)]]
       end
-     --[[
-      if i == 1 then -- search start pattern pos
-        local pat_pos, pat_val, pat_ID = DataSearchPatternVal(conf, data, strategy, data.src[i].pos, data.src[i].pos_beats, data.src[i].val)
-        if pat_pos and pat_val and pat_ID > 0 then 
-          out_pos = pat_pos
-          out_val = pat_val
-          last_pat_ID = pat_ID
-          last_pos = out_pos
-        end   
-       elseif last_pat_ID and last_pos then
-        local pat_pos, pat_val, pat_ID = DataSearchPatternVal(conf, data, strategy, data.src[i].pos, data.src[i].pos_beats, data.src[i].val)
-        if pat_pos and pat_val and pat_ID > 0 then 
-          out_pos = pat_pos
-          out_val = pat_val
-          last_pat_ID = pat_ID
-          last_pos = out_pos
-        end                   
-      end ]]
-          
       
   end  
   --------------------------------------------------- 
