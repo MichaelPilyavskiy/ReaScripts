@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.80
+-- @version 1.81
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Store dockstate (require mpl_Various_Functions 1.23+), display dockstate properly
+--    + Store last dock ID
+--    # Persist/#tap: shift click to enter/apply new value
 
-    local vrs = '1.80'
+    local vrs = '1.81'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -107,7 +108,9 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             wind_y =  50,
             wind_w =  200,
             wind_h =  300,
-            dock =    513, --second
+            dock =    0,
+            lastdockID = 0,
+            
             GUI_font1 = 17,
             GUI_font2 = 15,
             GUI_colortitle =      16768407, -- blue
@@ -157,7 +160,14 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
       if not SCC_trig and HasSelEnvChanged() then SCC_trig = true end  
       if not SCC_trig and HasGridChanged() then SCC_trig = true end      
       local ret =  HasWindXYWHChanged(obj) 
-      if ret == 1 then  redraw = 2  ExtState_Save(conf)  elseif ret == 2 then  ExtState_Save(conf)  end
+      if ret == 1 then  
+        redraw = 2  
+        if conf.dock > 0 then conf.lastdockID = conf.dock end 
+        ExtState_Save(conf)  
+       elseif  ret == 2 then  
+        if conf.dock > 0 then conf.lastdockID = conf.dock end 
+        ExtState_Save(conf)  
+      end
     -- perf mouse
       local SCC_trig2 = MOUSE(obj,mouse, clock) 
       
@@ -189,77 +199,17 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
 
 
 
+  ---------------------------------------------------------------------
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
 
----------------------------------------------------------------------
-  function CheckFunctions(str_func)
-    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
-    local f = io.open(SEfunc_path, 'r')
-    if f then
-      f:close()
-      dofile(SEfunc_path)
-      
-      if not _G[str_func] then 
-        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
-       else
-        ExtState_Load(conf)  
-        gfx.init('MPL InteractiveToolbar',conf.wind_w, conf.wind_h,  conf.dock , conf.wind_x, conf.wind_y)
-        obj = Obj_init(conf)
-        Config_ParseIni(data.conf_path, widgets)
-        Run()  
-      end
-      
-     else
-      MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
-    end  
+  ---------------------------------------------------------------------
+  function main()ExtState_Load(conf)  
+    gfx.init('MPL InteractiveToolbar',conf.wind_w, conf.wind_h,  conf.dock , conf.wind_x, conf.wind_y)
+    obj = Obj_init(conf)
+    Config_ParseIni(data.conf_path, widgets)
+    Run()
   end
---------------------------------------------------------------------
-  CheckFunctions('BinaryCheck') 
-  
-  
-  
-  
-  
-
-  
-  
-  --[[
-  --widgets_def = LIP_load_MPLmod(Config_DefaultStr())
-  function LIP_load_MPLmod(str)
-    -- http://github.com/Dynodzzo/Lua_INI_Parser/blob/master/LIP.lua
-    --- Returns a table containing all the data from the INI file.
-    --@param fileName The name of the INI file to parse. [string]
-    --@return The table containing all data from the INI file. [table]
-    local data = {};
-    local section;
-    for line in str:gmatch('[^\r\n]+') do
-      local tempSection = line:match('^%[([^%[%] ]+)%]$');
-      if(tempSection)then
-        section = tonumber(tempSection) and tonumber(tempSection) or tempSection;
-        data[section] = data[section] or {};
-      end
-      local param, value = line:match('^([%w|_]+)%s-=%s-(.+)$');
-      if(param and value ~= nil)then
-        if(tonumber(value))then
-          value = tonumber(value);
-        elseif(value == 'true')then
-          value = true;
-        elseif(value == 'false')then
-          value = false;
-        end
-        if(tonumber(param))then
-          param = tonumber(param);
-        end
-        data[section][param] = value;
-        if param == 'order' or param == 'buttons' then
-          data[section][param] = {}
-          for tag in value:gmatch('#(%a+)') do
-            data[section][param]  [#data[section][param]+1] = tag
-          end
-        end
-      end
-    end
-    return data;
-  end]]
-  
-  
-    
+  --------------------------------------------------------------------  
+  local ret = CheckFunctions('VF_CalibrateFont') 
+  local ret2 = VF_CheckReaperVrs(5.95,true)    
+  if ret and ret2 then main() end

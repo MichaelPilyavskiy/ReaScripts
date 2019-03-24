@@ -285,6 +285,7 @@
             if mouse.LB_gate and not mouse.Alt and mouse.on_move and mouse.context_latch == key and obj.b[key].func_drag then obj.b[key].func_drag() end
             if mouse.LB_gate and mouse.on_move and mouse.Ctrl and mouse.context_latch == key and obj.b[key].func_drag_Ctrl then obj.b[key].func_drag_Ctrl() end
             if mouse.LDC and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_DC then obj.b[key].func_DC() end
+            if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) and mouse.Shift  and obj.b[key].func_Lshift  then obj.b[key].func_Lshift() end
           end   
         end     
       end

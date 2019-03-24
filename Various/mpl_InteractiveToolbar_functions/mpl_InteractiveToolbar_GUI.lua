@@ -584,7 +584,7 @@ msg(
           #transport show/editing current play state, RightClick - pause, LeftClick - stop/revert to start position, Cltr+Left - record
           #bpm shows/edit tempo and time signature for project (or tempo marker falling at edit cursor if any)
           #clock shows play/edit cursor positions
-          #tap Get a tempo from tap, allow to distribute that info in different ways. RightClick reset taps data and force current tempo to convertion chart.      
+          #tap Get a tempo from tap, allow to distribute that info in different ways. RightClick reset taps data and force current tempo to convertion chart. Shift click for entering new value.     
           #master Shows master track peaks
  ]] )  
                  
@@ -946,7 +946,9 @@ msg(
                  func = function()  F_open_URL('"" "'..data.conf_path..'"') end}  ,                            
                 {str = 'Dock MPL InteractiveToolbar',
                                  func = function() 
-                                          if conf.dock > 0 then conf.dock = 0 else conf.dock = 1 end
+                                          if conf.dock > 0 then conf.dock = 0 else 
+                                            if conf.lastdockID and conf.lastdockID > 0 then conf.dock = conf.lastdockID else conf.dock = 1  end
+                                          end
                                           gfx.quit() 
                                           gfx.init('MPL '..conf.scr_title,conf.wind_w, conf.wind_h, conf.dock , conf.wind_x, conf.wind_y)end,
                                  state = conf.dock > 0 }, 

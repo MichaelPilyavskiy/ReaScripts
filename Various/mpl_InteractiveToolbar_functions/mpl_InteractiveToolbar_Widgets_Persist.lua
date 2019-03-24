@@ -1003,7 +1003,30 @@
                                           data.tap_data.tap_tempo = data.TempoMarker_bpm
                                           redraw = 2
                                         end,                                                                          
-                                        
+                          func_Lshift = function() 
+                                          local ex_t = data.tap_data.tap_tempo
+                                          if not ex_t then ex_t = data.TempoMarker_bpm end
+                                          if not ex_t then ex_t = 140 end
+                                                    local retval, new_tempo = GetUserInputs(conf.scr_title, 1,'New tempo', ex_t)
+                                                    if retval and tonumber(new_tempo) then
+                                                      new_tempo = lim(tonumber(new_tempo), 40, 1000)
+                                                      if data.TempoMarker_ID == -1 then 
+                                                        CSurf_OnTempoChange( new_tempo )
+                                                        UpdateTimeline()
+                                                        redraw = 2  
+                                                       else 
+                                                        SetTempoTimeSigMarker( 0, data.TempoMarker_ID, 
+                                                                                  data.TempoMarker_timepos, 
+                                                                                  -1, 
+                                                                                  -1, 
+                                                                                  new_tempo, 
+                                                                                  data.TempoMarker_timesig_num, 
+                                                                                  data.TempoMarker_timesig_denom, 
+                                                                                  data.TempoMarker_lineartempochange )
+                                                        UpdateTimeline()
+                                                      end
+                                                    end
+                                                  end             
                                         
                                         }
         local is_accesible = '#'
