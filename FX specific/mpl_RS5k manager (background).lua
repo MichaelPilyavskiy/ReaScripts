@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 2.101
+-- @version 2.102
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,10 +10,9 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    # fix show toolbar state correctly when calling RS5K manager only from toolbar
---    # force REAPER 5.961+ requirement
+--    # fix error if tracker not added on click
 
-  local vrs = 'v2.101'
+  local vrs = 'v2.102'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  

@@ -1193,7 +1193,7 @@
         local alpha_back = obj.it_alpha5
         if gmem_read(99)==1 and gmem_read(300+cur_note)>0 then alpha_back = obj.it_alpha6 end
         local txt = 'Choke'
-        if gmem_read(300+cur_note)>0 then txt = txt..' '..math.floor(gmem_read(300+cur_note)) end
+        if gmem_read(300+cur_note) and gmem_read(300+cur_note)>0 then txt = txt..' '..math.floor(gmem_read(300+cur_note)) end
         obj._splctrl_choke = { clear = true,
                                   x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*10 + env_x_shift*4,
                                   y = knob_y,
