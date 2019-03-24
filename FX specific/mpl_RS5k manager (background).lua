@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 2.100
+-- @version 2.101
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,10 +10,10 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + Pads: support for MIDI choke
+--    # fix show toolbar state correctly when calling RS5K manager only from toolbar
+--    # force REAPER 5.961+ requirement
 
-
-  local vrs = 'v2.100'
+  local vrs = 'v2.101'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -156,9 +156,8 @@
     ShortCuts(char)
     if char >= 0 and char ~= 27 then defer(run) else atexit(SetButtonOFF) end
   end
----------------------------------------------------------------------    
+  ---------------------------------------------------------------------    
   function main()
-    if VF_CheckReaperVrs(5.961) and gmem_attach then gmem_attach('RS5KManTrack') end
     
         local ret = SetButtonON()
         Main_RefreshExternalLibs()
@@ -172,28 +171,14 @@
         conf.dev_mode = 0
         conf.scr_title = scr_title
         conf.vrs = vrs
-        obj.allow_track_notes = VF_CheckReaperVrs and VF_CheckReaperVrs(5.961)
+        obj.allow_track_notes = true
         run() 
   end 
   
----------------------------------------------------------------------
-
-  function CheckFunctions(str_func)
-    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
-    local f = io.open(SEfunc_path, 'r')
-    if f then
-      f:close()
-      dofile(SEfunc_path)
-      
-      if not _G[str_func] then 
-        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
-       else
-        return true
-      end
-      
-     else
-      reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Use <Action list/Browse packages> to install it from ReaPack', '', 0)
-    end  
-  end
---------------------------------------------------------------------
-  if CheckFunctions('VF_CheckReaperVrs') then main() end  
+  ---------------------------------------------------------------------
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
+  --------------------------------------------------------------------
+  atexit(SetButtonOFF)  
+  local ret = CheckFunctions('VF_CheckReaperVrs') 
+  local ret2 = VF_CheckReaperVrs(5.961,true)    
+  if ret and ret2 then main() end
