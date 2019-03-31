@@ -1,5 +1,5 @@
 -- @description Adjust normalized last touched parameter
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -11,7 +11,7 @@
 --    [main] . > mpl_Subtract 0.001 from normalized last touched parameter.lua
 --    [main] . > mpl_Subtract 0.0001 from normalized last touched parameter.lua
 -- @changelog
---    + init
+--    # proper parsing script name
  
   --NOT gfx NOT reaper
   function main(val, dir)
@@ -33,7 +33,9 @@
 ---------------------------------------------------------------------
   function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
 -------------------------------------------------------------------- 
-   val = ({reaper.get_action_context()})[2]:match('([%d%p]+)')
+  local val = ({reaper.get_action_context()})[2]:match('Add%s([%d%p]+%s)')
+  if not val then  val = ({reaper.get_action_context()})[2]:match('Subtract%s([%d%p]+%s)') end
+  val = val:match('[%d%p]+')
   if not (val and tonumber(val)) then val = 0.01 else val = tonumber(val) end
    dir = ({reaper.get_action_context()})[2]:match('Add')
   if dir then dir = 1 else dir = -1 end
