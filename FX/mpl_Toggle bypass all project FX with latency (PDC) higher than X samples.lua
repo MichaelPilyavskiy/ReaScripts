@@ -1,7 +1,7 @@
 -- @description Toggle bypass all project FX with latency (PDC) higher than X samples
--- @version 1.03
+-- @version 1.04
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=165672
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
 -- @provides
 --    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 64 samples.lua
@@ -13,8 +13,7 @@
 --    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 4096 samples.lua
 --    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 8192 samples.lua
 -- @changelog
---    # fix master check
---    + Add PDC=64,128
+--    # fix link
  
   --NOT gfx NOT reaper
   --------------------------------------------------------------------

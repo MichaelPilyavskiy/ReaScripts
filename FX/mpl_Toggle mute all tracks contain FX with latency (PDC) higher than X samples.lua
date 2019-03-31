@@ -1,7 +1,7 @@
 -- @description Toggle mute all tracks contain FX with latency (PDC) higher than X samples
--- @version 1.0
+-- @version 1.01
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=165672
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
 -- @provides
 --    [main] . > mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 256 samples.lua
@@ -11,7 +11,7 @@
 --    [main] . > mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 4096 samples.lua
 --    [main] . > mpl_Toggle mute all tracks contain FX with latency (PDC) higher than 8192 samples.lua
 -- @changelog
---    + init
+--    # fix link
 
   --NOT gfx NOT reaper
   --------------------------------------------------------------------
