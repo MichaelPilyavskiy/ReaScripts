@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0d66f801c79feec71e034a6940f3da582f75efa4" name="MPL Scripts">
+<index version="1" commit="f0b7711242b0fc88b3b002ad795c00d45760a9a2" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3829,9 +3829,108 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f75b24befef19252bb54e60a9c64891a7fdfd549/Render/mpl_Conditional%20bounce-in-place.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Disable add rendered files to project after render.lua" type="script" desc="Disable add rendered files to project after render">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Disable%20add%20rendered%20files%20to%20project%20after%20render.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Enable add rendered files to project after render.lua" type="script" desc="Enable add rendered files to project after render">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Enable%20add%20rendered%20files%20to%20project%20after%20render.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Render inversed midi.lua" type="script" desc="Render inversed midi">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Render/mpl_Render%20inversed%20midi.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render bounds to entire project.lua" type="script" desc="Set render bounds to entire project">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20bounds%20to%20entire%20project.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render bounds to time selection.lua" type="script" desc="Set render bounds to time selection">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20bounds%20to%20time%20selection.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render directory to 'Render' in project folder.lua" type="script" desc="Set render directory to 'Render' in project folder">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20directory%20to%20'Render'%20in%20project%20folder.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render directory to 'Render' in REAPER folder.lua" type="script" desc="Set render directory to 'Render' in REAPER folder">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20directory%20to%20'Render'%20in%20REAPER%20folder.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render directory to desktop.lua" type="script" desc="Set render directory to desktop (Windows only)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20directory%20to%20desktop.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render filename.lua" type="script" desc="Set render filename">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20filename.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render source to master.lua" type="script" desc="Set render source to master">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20source%20to%20master.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render source to selected items.lua" type="script" desc="Set render source to selected items">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20source%20to%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render source to stems.lua" type="script" desc="Set render source to stems">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20source%20to%20stems.lua</source>
       </version>
     </reapack>
   </category>
