@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e81527d0f1ee49db884568e0e005e4c37a343cc0" name="MPL Scripts">
+<index version="1" commit="7ad941a23d71d534bb1dded2018576250a9fb0c3" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3913,6 +3913,51 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20filename.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render format to FLAC.lua" type="script" desc="Set render format to FLAC">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-04-10T19:13:11Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ad941a23d71d534bb1dded2018576250a9fb0c3/Render/mpl_Set%20render%20format%20to%20FLAC.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render format to MP3 128kbps CBR (LAME).lua" type="script" desc="Set render format to MP3 128kbps CBR (LAME)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-04-10T19:13:11Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ad941a23d71d534bb1dded2018576250a9fb0c3/Render/mpl_Set%20render%20format%20to%20MP3%20128kbps%20CBR%20(LAME).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render format to MP3 maximum bitrate and quality (LAME).lua" type="script" desc="Set render format to MP3 maximum bitrate and quality (LAME)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-04-10T19:13:11Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ad941a23d71d534bb1dded2018576250a9fb0c3/Render/mpl_Set%20render%20format%20to%20MP3%20maximum%20bitrate%20and%20quality%20(LAME).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render format to WAV 16 bit.lua" type="script" desc="Set render format to WAV 16 bit">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-04-10T19:13:11Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ad941a23d71d534bb1dded2018576250a9fb0c3/Render/mpl_Set%20render%20format%20to%20WAV%2016%20bit.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set render format to WAV 24 bit.lua" type="script" desc="Set render format to WAV 24 bit">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-04-10T19:13:11Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ad941a23d71d534bb1dded2018576250a9fb0c3/Render/mpl_Set%20render%20format%20to%20WAV%2024%20bit.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render source to master.lua" type="script" desc="Set render source to master">
