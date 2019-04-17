@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fec723a4625e7f5a01a3f0a4089f7088f600141d" name="MPL Scripts">
+<index version="1" commit="8ddf5372576e7b1a5e9111354e82522f8149994d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2630,6 +2630,17 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9813e03c9bfeb038c26b2cddc8f42a24c5bc89d5/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9813e03c9bfeb038c26b2cddc8f42a24c5bc89d5/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9813e03c9bfeb038c26b2cddc8f42a24c5bc89d5/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua</source>
+      </version>
+      <version name="2.103" author="MPL" time="2019-04-17T19:33:00Z">
+        <changelog><![CDATA[+ make dragging pads optional, disabled by default
+# fix error on renaming note from pattern view
+# fix errors on shifting steps]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8ddf5372576e7b1a5e9111354e82522f8149994d/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8ddf5372576e7b1a5e9111354e82522f8149994d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8ddf5372576e7b1a5e9111354e82522f8149994d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8ddf5372576e7b1a5e9111354e82522f8149994d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8ddf5372576e7b1a5e9111354e82522f8149994d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8ddf5372576e7b1a5e9111354e82522f8149994d/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
