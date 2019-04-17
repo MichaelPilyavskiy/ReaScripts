@@ -1856,12 +1856,19 @@ List of available hashtags:
               local ret = BinaryCheck(conf.MM_reset_val, 0)
               conf.MM_reset_val = ret
             end ,},   
-  { str = 'Alt+Click reset value|<',  
+  { str = 'Alt+Click reset value',  
     state = conf.MM_reset_val&(1<<1) == (1<<1),
     func =  function() 
               local ret = BinaryCheck(conf.MM_reset_val, 1)
               conf.MM_reset_val = ret
             end }, 
+  { str = 'Allow pads drag to copy/move|<',  
+    state = conf.allow_dragpads&1==1,
+    func =  function() 
+              conf.allow_dragpads = math.abs(1-conf.allow_dragpads)
+            end },             
+            
+            
 --[[  { str = 'Doubleclick on pads float related RS5k instances|',  
     state = conf.MM_dc_float == 1,
     func =  function() conf.MM_dc_float = math.abs(1-conf.MM_dc_float)  end }  ,  ]]        
@@ -2799,6 +2806,7 @@ List of available hashtags:
                                                   { str =   'Rename linked MIDI note',
                                                     func =  function()
                                                               local MIDI_name = GetTrackMIDINoteNameEx( 0, data[note][1].src_track, note, 1)
+                                                              if not MIDI_name then MIDI_name = '' end
                                                               local ret, MIDI_name_ret = reaper.GetUserInputs( conf.scr_title, 1, 'Rename MIDI note,extrawidth=200', MIDI_name )
                                                               if ret then
                                                                 SetTrackMIDINoteNameEx( 0, data[note][1].src_track, note, 0, MIDI_name_ret)
@@ -3063,14 +3071,20 @@ List of available hashtags:
                                   if conf.patctrl_mode ==0 and obj.current_WFkey then
                                     if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
                                     local t = {}
-                                    for i = 1, pat[obj.current_WFkey].cnt_steps do t[i] = CopyTable(pat[obj.current_WFkey].steps[i]) end
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do 
+                                      t[i] = CopyTable(pat[obj.current_WFkey].steps[i]) 
+                                      if not t[i] then t[i] = Pattern_StepDefaults() end
+                                    end
                                     for i = 1, pat[obj.current_WFkey].cnt_steps-1 do Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, t[i+1].vel, t[i+1].active) end
                                     Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, pat[obj.current_WFkey].cnt_steps, t[1].vel, t[1].active)
                                    else
                                     for note in pairs(pat) do
                                       if tonumber(note) then
                                         local t = {}
-                                        for i = 1, pat[note].cnt_steps do t[i] = CopyTable(pat[note].steps[i]) end  
+                                        for i = 1, pat[note].cnt_steps do 
+                                          t[i] = CopyTable(pat[note].steps[i]) 
+                                          if not t[i] then t[i] = Pattern_StepDefaults() end
+                                        end  
                                         for i = 1, pat[note].cnt_steps-1 do Pattern_Change(conf, pat, poolGUID, note, i,  t[i+1].vel, t[i+1].active) end                                        
                                         Pattern_Change(conf, pat, poolGUID, note, pat[note].cnt_steps, t[1].vel, t[1].active)
                                       end   
@@ -3103,15 +3117,21 @@ List of available hashtags:
                                 if ret then 
                                   if conf.patctrl_mode ==0 and obj.current_WFkey then
                                     if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
-                                    local t = {}
-                                    for i = 1, pat[obj.current_WFkey].cnt_steps do t[i] = CopyTable(pat[obj.current_WFkey].steps[i]) end  
-                                    for i = 2, pat[obj.current_WFkey].cnt_steps do Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i,  t[i-1].vel, t[i-1].active) end                                        
+                                     t = {}
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do 
+                                      t[i] = CopyTable(pat[obj.current_WFkey].steps[i]) 
+                                      if not t[i] then t[i] = Pattern_StepDefaults() end
+                                    end  
+                                    for i = 2, pat[obj.current_WFkey].cnt_steps do Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i,  t[i-1].vel, t[i-1].active) end 
                                     Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 1, t[pat[obj.current_WFkey].cnt_steps].vel, t[pat[obj.current_WFkey].cnt_steps].active)
                                    else
                                     for note in pairs(pat) do
                                       if tonumber(note) then
                                         local t = {}
-                                        for i = 1, pat[note].cnt_steps do t[i] = CopyTable(pat[note].steps[i]) end  
+                                        for i = 1, pat[note].cnt_steps do 
+                                          t[i] = CopyTable(pat[note].steps[i]) 
+                                          if not t[i] then t[i] = Pattern_StepDefaults() end
+                                        end  
                                         for i = 2, pat[note].cnt_steps do Pattern_Change(conf, pat, poolGUID, note, i,  t[i-1].vel, t[i-1].active) end                                        
                                         Pattern_Change(conf, pat, poolGUID, note, 1, t[pat[note].cnt_steps].vel, t[pat[note].cnt_steps].active)                                        
                                       end   

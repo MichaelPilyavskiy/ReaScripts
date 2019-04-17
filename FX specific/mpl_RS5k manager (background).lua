@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 2.102
+-- @version 2.103
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,9 +10,12 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    # fix error if tracker not added on click
+--    + make dragging pads optional, disabled by default
+--    # fix error on renaming note from pattern view
+--    # fix errors on shifting steps
 
-  local vrs = 'v2.102'
+
+  local vrs = 'v2.103'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -83,7 +86,8 @@
             mouse_wheel_res = 960,
             invert_release = 0,
             MM_reset_val = 1, -- &1 double click to reset &2 alt click to reset
-               
+            allow_dragpads = 0,
+            
             -- Samples
             allow_multiple_spls_per_pad = 0,
             

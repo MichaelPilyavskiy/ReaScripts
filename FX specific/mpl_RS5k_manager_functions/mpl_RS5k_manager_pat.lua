@@ -74,15 +74,25 @@
     return true, poolGUID, take_name, take, item
   end
   ----------------------------------------------------
-  function Pattern_Change(conf, pat, poolGUID, note, step, vel, active)
+  function Pattern_StepDefaults(pat, note, step)
+    local t = {vel = 0 , offs = 0, active = 0 }
+    if pat then 
+      pat[note].steps[step] = t
+     else
+      return t
+    end
+  end
+  ----------------------------------------------------
+  function Pattern_Change(conf, pat, poolGUID, note, step, vel, active, offs)
     -- add note tbl if not exist
     if not pat[note] then 
       pat[note] = { cnt_steps = conf.def_steps, steps = {}, swing = conf.def_swing} 
     end
     -- add step
-      if not pat[note].steps[step] then pat[note].steps[step] = {vel = 0 , offs = 0, active = 0 }  end
+      if not pat[note].steps[step] then Pattern_StepDefaults(pat, note, step)  end
       if vel then pat[note].steps[step].vel = vel end
       if active then pat[note].steps[step].active = active end
+      if offs then pat[note].steps[step].active = offs end
   end
   ----------------------------------------------------  
   function Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)

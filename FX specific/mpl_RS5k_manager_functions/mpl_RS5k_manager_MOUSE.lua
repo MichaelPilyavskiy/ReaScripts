@@ -209,7 +209,7 @@
      -- mouse release    
       if mouse.last_LMB_state and not mouse.LMB_state   then    
         
-        MOUSE_droppad(conf, obj, data, refresh, mouse)  
+        if conf.allow_dragpads == 1 then MOUSE_droppad(conf, obj, data, refresh, mouse)   end
         local key = mouse.context_latch
         if obj[key] and   obj[key].func_onrelease then obj[key].func_onrelease() end
         -- clear context
@@ -225,7 +225,7 @@
       end
 
        -- drop pads
-        if mouse.context_latch and mouse.context_latch:match('keys_p%d+') and mouse.is_moving then
+        if conf.allow_dragpads == 1 and mouse.context_latch and mouse.context_latch:match('keys_p%d+') and mouse.is_moving then
           local C = mouse.Ctrl_state 
           local A = mouse.Alt_state
           local S = mouse.Shift_state
