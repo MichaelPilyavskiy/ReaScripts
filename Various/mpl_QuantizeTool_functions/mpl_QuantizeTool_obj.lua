@@ -194,7 +194,7 @@
                                     end,                               
                             },  
                                 { name = 'Selected envelope only',
-                                  state = strategy.src_envpoints&2==0,
+                                  state = strategy.src_envpoints==1,
                                   show = strategy.src_positions&1==1 
                                       and strategy.src_envpoints&1==1
                                       and (strategy.act_action == 1 
@@ -217,10 +217,19 @@
                                             or strategy.act_action == 4),                                  
                                   level = 1,
                                 func =  function()
-                                          strategy.src_envpoints = BinaryToggle(strategy.src_envpoints, 1, 1)
+                                          strategy.src_envpoints = 3--BinaryToggle(strategy.src_envpoints, 1, 1)
                                           refresh.GUI = true
                                         end,                               
-                                },         
+                                },   
+                                { name = 'Selected Automation Item (non looped only)',
+                                  state = strategy.src_envpoints&4==4,
+                                  show = strategy.src_positions&1==1 and strategy.src_envpoints&1==1,
+                                  level = 1,
+                                func =  function()
+                                          strategy.src_envpoints = 5--BinaryToggle(strategy.ref_envpoints, 1, 2)
+                                          refresh.GUI = true
+                                        end,                               
+                                },          
                                 { name = 'Mode',
                                   show = strategy.src_envpoints&1==1 
                                           and strategy.act_action == 4,                               
@@ -417,7 +426,7 @@
                                     end,                               
                             }, 
                                 { name = 'Selected envelope only',
-                                  state = strategy.ref_envpoints&2==0,
+                                  state = strategy.ref_envpoints==1,
                                   show = strategy.ref_positions&1==1 and strategy.ref_envpoints&1==1,
                                   level = 2,
                                 func =  function()
@@ -430,10 +439,19 @@
                                   show = strategy.ref_positions&1==1 and strategy.ref_envpoints&1==1,
                                   level = 2,
                                 func =  function()
-                                          strategy.ref_envpoints = BinaryToggle(strategy.ref_envpoints, 1, 1)
+                                          strategy.ref_envpoints = 3--BinaryToggle(strategy.ref_envpoints, 1, 1)
                                           refresh.GUI = true
                                         end,                               
-                                },                                                          
+                                }, 
+                                { name = 'Selected Automation Item (non looped only)',
+                                  state = strategy.ref_envpoints&4==4,
+                                  show = strategy.ref_positions&1==1 and strategy.ref_envpoints&1==1,
+                                  level = 2,
+                                func =  function()
+                                          strategy.ref_envpoints = 5--BinaryToggle(strategy.ref_envpoints, 1, 2)
+                                          refresh.GUI = true
+                                        end,                               
+                                },                                                                                              
                             { name = 'MIDI',
                               state = strategy.ref_midi,
                               show = strategy.ref_positions&1==1 ,

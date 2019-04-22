@@ -582,8 +582,7 @@
           local env = GetTrackEnvelope( track, envidx-1 )
           Data_GetEP_sub(data, table_name, env, nil) 
         end
-      end
-      
+      end 
       -- get take env
       for itemidx = 1, CountMediaItems( 0 ) do
         local item = GetMediaItem( 0, itemidx-1 )
@@ -598,6 +597,18 @@
         end
       end 
       
+     elseif mode&4==4 then -- AI
+      for i = 1, CountTracks(0) do
+        local track = GetTrack(0,i-1)
+        local cnt_env = CountTrackEnvelopes( track )
+        for envidx = 1, cnt_env do
+          local env = GetTrackEnvelope( track, envidx-1 )
+          for AI_idx =1, CountAutomationItems( env ) do
+            Data_GetEP_sub(data, table_name, env, nil, nil, AI_idx) 
+          end
+        end
+      end
+      
      else
       local  env = GetSelectedEnvelope( 0 )
       Data_GetEP_sub(data, table_name, env) 
@@ -605,11 +616,12 @@
     
   end 
   ---------------------------------------------------  
-  function Data_GetEP_sub(data, table_name, env, item_pos0, tk_rate) 
+  function Data_GetEP_sub(data, table_name, env, item_pos0, tk_rate, AI_idx) 
     if not env then return end
-    local cnt = CountEnvelopePoints( env )
+    if not AI_idx then AI_idx = 0 end
+    local cnt =  CountEnvelopePointsEx( env,AI_idx-1 )
     for ptidx = 1, cnt do
-      local retval, pos, value, shape, tension, selected = GetEnvelopePoint( env, ptidx-1 )
+      local retval, pos, value, shape, tension, selected = reaper.GetEnvelopePointEx( env, AI_idx-1, ptidx-1 )
       --if selected then
         local ptidx_cust = #data[table_name] + 1
         if item_pos0 then pos = pos/ tk_rate + item_pos0  end
@@ -628,6 +640,7 @@
         data[table_name][ptidx_cust].val = value
         data[table_name][ptidx_cust].ignore_search = not selected
         data[table_name][ptidx_cust].tk_rate = tk_rate
+        data[table_name][ptidx_cust].AI_idx = AI_idx-1
       --end
     end
   end
@@ -988,6 +1001,7 @@
     for ptr_str in pairs(env_t ) do
       local env = env_t[ptr_str][1].ptr
       if  (strategy.src_envpoints&2==0 and env == sel_env) or  (strategy.src_envpoints&2==2) then
+        local last_AI_idx
         for i = 1, #env_t[ptr_str] do
           local t = env_t[ptr_str][i]
           local out_pos = t.pos
@@ -998,18 +1012,18 @@
             if t.out_val then out_val = t.val + (t.out_val - t.val)*strategy.exe_val2 end
             out_pos = TimeMap2_beatsToTime( 0, out_pos)
             if t.item_pos then out_pos  = (out_pos - t.item_pos)*t.tk_rate end
-            SetEnvelopePointEx( env, -1, t.ID, out_pos, out_val, t.shape, t.tension, t.selected, true )
+            SetEnvelopePointEx( env, t.AI_idx, t.ID, out_pos, out_val, t.shape, t.tension, t.selected, true )
           end
           
           if strategy.act_action==4 then
             if t.out_val then out_val = t.val + (t.out_val - t.val)*strategy.exe_val1 end
             local out_pos = TimeMap2_beatsToTime( 0, t.pos)
             if t.item_pos then out_pos  = (out_pos - t.item_pos)*t.tk_rate end
-            SetEnvelopePointEx( env, -1, t.ID, out_pos, out_val, t.shape, t.tension, t.selected, true )
+            SetEnvelopePointEx( env, t.AI_idx, t.ID, out_pos, out_val, t.shape, t.tension, t.selected, true )
           end    
-                
+          last_AI_idx = t.AI_idx   
         end  
-        Envelope_SortPointsEx( env, -1 )
+        Envelope_SortPointsEx( env, last_AI_idx )
       end
     end
     UpdateArrange()
