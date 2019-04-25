@@ -2681,6 +2681,7 @@ List of available hashtags:
                             alpha_back = 0.4,
                             aligh_txt = 5,
                             fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,
+                            
                             func =  function() 
                                       local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
                                       if ret then 
@@ -2698,6 +2699,54 @@ List of available hashtags:
                                         refresh.GUI = true  
                                       end   
                                     end,
+                                    
+                            func_shiftL =  function() 
+                                      local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                      if ret then 
+                                        if not (pat[note] and pat[note].steps and pat[note].steps[i_step]) then 
+                                          G_act_state = 1
+                                         else
+                                          --G_act_state = math.abs(1-pat[note].steps[i_step].active)
+                                          if pat[note].steps[i_step].active == 0 or pat[note].steps[i_step].vel == 0 then G_act_state = 1 else G_act_state = 0 end
+                                        end
+                                      end   
+                                    end,
+                            func_context_shift = function() 
+                                      if not G_act_state then return end
+                                      local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                      if ret then 
+                                        if not (pat[note] and pat[note].steps and pat[note].steps[i_step]) then 
+                                          Pattern_Change(conf, pat, poolGUID, note, i_step, 120, G_act_state)
+                                         else
+                                          pat[note].steps[i_step].active = G_act_state
+                                          local vel = nil
+                                          if act_state == 0 and pat[note].steps[i_step].vel == 0 then vel = 120 end 
+                                          Pattern_Change(conf, pat, poolGUID, note, i_step, vel, pat[note].steps[i_step].active)
+                                        end
+                                        Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                                        Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
+                                        refresh.GUI = true  
+                                      end   
+                                    end,                                                              
+                            funcLD2 =  function() 
+                                      local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                      if ret then 
+                                        if not (pat[note] and pat[note].steps and pat[note].steps[i_step]) then 
+                                          Pattern_Change(conf, pat, poolGUID, note, i_step, 120, 1)
+                                         else
+                                          local act_state = pat[note].steps[i_step].active
+                                          pat[note].steps[i_step].active = math.abs(1-act_state)
+                                          local vel = nil
+                                          if act_state == 0 and pat[note].steps[i_step].vel == 0 then vel = 120 end 
+                                          Pattern_Change(conf, pat, poolGUID, note, i_step, vel, pat[note].steps[i_step].active)
+                                        end
+                                        Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                                        Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
+                                        refresh.GUI = true  
+                                      end   
+                                    end,
+                                    
+                                                                        
                           func_trigCtrl = function() 
                                             local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
                                             if ret and (pat[note] and pat[note].steps and pat[note].steps[i_step] and pat[note].steps[i_step].vel) then 
@@ -3166,7 +3215,7 @@ List of available hashtags:
                                     if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
                                     local t = {}
                                     for i = 1, pat[obj.current_WFkey].cnt_steps do
-                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, 0)
+                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i, nil, 0)
                                     end
                                   
                                    else
@@ -3174,14 +3223,16 @@ List of available hashtags:
                                       if tonumber(note) then
                                         local t = {}
                                         for i = 1, pat[note].cnt_steps do
-                                          Pattern_Change(conf, pat, poolGUID, note, i, 0)
+                                          Pattern_Change(conf, pat, poolGUID, note, i, nil, 0)
                                         end                                        
                                       end   
                                     end                                 
                                   end
                                   Pattern_Commit(conf, pat, poolGUID, take_ptr)
                                   Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
+                                  
                                   refresh.GUI = true  
+                                  
                                   refresh.data = true
                                 end   
                               end

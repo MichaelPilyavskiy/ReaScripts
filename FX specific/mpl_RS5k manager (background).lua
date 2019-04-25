@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 2.103
+-- @version 2.104
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,12 +10,11 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + make dragging pads optional, disabled by default
---    # fix error on renaming note from pattern view
---    # fix errors on shifting steps
+--    + Pattern: shift+drag draw/erase notes, depending on first click
+--    + Pattern: clear pattern clear active state of steps instead making velocities = 0
 
 
-  local vrs = 'v2.103'
+  local vrs = 'v2.104'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -30,8 +29,8 @@
   local mouse = {}
   local obj = {}
   local data = {}
-  local pat = {}    
-   
+   pat = {}    
+  local G_act_state
     
   ---------------------------------------------------  
   

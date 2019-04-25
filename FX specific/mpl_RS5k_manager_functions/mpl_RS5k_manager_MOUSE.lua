@@ -166,7 +166,14 @@
                                and not mouse.last_LMB_state 
                                and mouse.Shift_state  
                                and MOUSE_Match(mouse, obj[key]) 
-           if mouse.onclick_LShift and obj[key].func_shiftL then obj[key].func_shiftL() end           
+           if mouse.onclick_LShift and obj[key].func_shiftL then obj[key].func_shiftL() end   
+                 ------------------------
+           mouse.context_shift = -- left drag (only when moving after latch)
+                               mouse.LMB_state 
+                               and mouse.Shift_state 
+                               and mouse.is_moving
+                               and mouse.context == key
+           if mouse.context_shift and obj[key].func_context_shift then obj[key].func_context_shift() end                    
                  ------------------------              
            mouse.onclick_LAlt = mouse.LMB_state 
                                and not mouse.last_LMB_state 
