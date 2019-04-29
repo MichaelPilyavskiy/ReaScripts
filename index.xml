@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5287d996fb51c28aeb011de4e05c3f6cd1415b2b" name="MPL Scripts">
+<index version="1" commit="f8025edb78755b3293d09e15a3e15f93cdeea5c0" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3918,13 +3918,17 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20directory%20to%20'Render'%20in%20REAPER%20folder.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Set render directory to desktop.lua" type="script" desc="Set render directory to desktop (Windows only)">
+    <reapack name="mpl_Set render directory to desktop.lua" type="script" desc="Set render directory to desktop">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Set%20render%20directory%20to%20desktop.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2019-04-29T06:19:31Z">
+        <changelog><![CDATA[# change header]]></changelog>
+        <source main="main" platform="windows">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f8025edb78755b3293d09e15a3e15f93cdeea5c0/Render/mpl_Set%20render%20directory%20to%20desktop.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render filename.lua" type="script" desc="Set render filename">
