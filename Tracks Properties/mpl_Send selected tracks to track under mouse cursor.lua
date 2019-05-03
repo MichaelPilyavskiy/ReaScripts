@@ -20,6 +20,7 @@
 --    [main] . > mpl_Send selected tracks to track under mouse cursor (channel 13-14 to 1-2).lua
 --    [main] . > mpl_Send selected tracks to track under mouse cursor (channel 15-16 to 1-2).lua
 -- @changelog
+--    + Modified for using as metapackage
 -- @website http://forum.cockos.com/showthread.php?t=188335    
 
   
