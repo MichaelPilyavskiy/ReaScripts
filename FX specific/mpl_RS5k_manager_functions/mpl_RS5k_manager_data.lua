@@ -53,6 +53,7 @@
   end
   ---------------------------------------------------
   function GetRS5kData(data, tr) 
+    local MIDIpitch_lowest
     for fxid = 1,  TrackFX_GetCount( tr ) do
       -- validate RS5k by param names
       local retval, p3 = TrackFX_GetParamName( tr, fxid-1, 3, '' )
@@ -94,7 +95,7 @@
        else
         sample_short = fn
       end      
-      
+      if not MIDIpitch_lowest then data.MIDIpitch_lowest = MIDIpitch end
       data[MIDIpitch] [#data[MIDIpitch]+1] = {rs5k_pos = fxid-1,
                         pitch    =math.floor(({TrackFX_GetFormattedParamValue( tr, fxid-1, 3, '' )})[2]),
                         MIDIpitch_normal =        TrackFX_GetParamNormalized( tr, fxid-1, 3),
@@ -255,7 +256,6 @@
         end              
         TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'FILE0', data[note][spl_id].sample)
         TrackFX_SetNamedConfigParm(  track, rs5k_pos, 'DONE', '')  
-        
         TrackFX_SetParamNormalized( track, rs5k_pos, 0, lim(data[note][spl_id].gain,0,2)) -- gain
         TrackFX_SetParamNormalized( track, rs5k_pos, 1, data[note][spl_id].pan) -- pan
         

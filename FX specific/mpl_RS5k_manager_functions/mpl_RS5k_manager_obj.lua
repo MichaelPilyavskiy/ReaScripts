@@ -72,346 +72,7 @@
                    green =   {0.3,   0.9,    0.3   },
                    black =   {0,0,0 },
                    yellow =   {1,0.8,0.3 }
-                   }    
-    
-          
-  end
-  ---------------------------------------------------
-  function OBJ_GenKeys_GlobalCtrl_sub(conf, obj, data, refresh, mouse, globctrl_t)
-        obj[globctrl_t.key] = { clear = true,
-              x = globctrl_t.kn_x,
-              y = globctrl_t.kn_y,
-              w = obj.kn_w,
-              h = obj.kn_h,
-              col = 'white',
-              state = 0,
-              txt= globctrl_t.txt  ,
-              aligh_txt = 16,
-              show = true,
-              is_but = true,
-              is_knob = true,
-              val = 1,
-              fontsz = obj.GUI_fontsz3,
-              alpha_back =globctrl_t.knob_back,
-              func =  function() 
-                        mouse.context_latch_val = 1
-                        obj.mixer_curpar_key = globctrl_t.param_key
-                        mouse.context_latch_t = {}
-                          for note in pairs(data) do
-                            if tonumber(note) and type(data[note]) == 'table' then
-                              mouse.context_latch_t[note] = {}
-                              for spl =1, #data[note] do
-                                mouse.context_latch_t[note][spl] = data[note][spl][globctrl_t.param_key]
-                              end
-                            end
-                          end                        
-                      end,
-              func_LD2 = function ()
-                          if not mouse.context_latch_val or not mouse.context_latch_t then return end
-                          local out_val = 1 - mouse.dy/globctrl_t.dragratio
-                          if not out_val then return end
-                          obj.mixer_curpar_key = globctrl_t.param_key
-                          for note in pairs(data) do
-                            if tonumber(note) and type(data[note]) == 'table' then
-                              for spl =1, #data[note] do
-                                data[note][spl][globctrl_t.param_key]  = lim( globctrl_t.funcchange( mouse.context_latch_t[note][spl], out_val), 0, globctrl_t.limmax)
-                                SetRS5kData(data, conf, data[note][spl].src_track, note, spl) 
-                              end
-                            end
-                          end
-                          refresh.data = true 
-                          refresh.GUI = true 
-                        end,      
-              func_ctrlLD = function ()
-                          if not mouse.context_latch_val or not mouse.context_latch_t then return end
-                          local out_val = 1 - 0.5*obj.ctrl_ratio*mouse.dy/globctrl_t.dragratio
-                          if not out_val then return end
-                          for note in pairs(data) do
-                            if tonumber(note) and type(data[note]) == 'table' then
-                              for spl =1, #data[note] do
-                                data[note][spl][globctrl_t.param_key]  = lim( globctrl_t.funcchange( mouse.context_latch_t[note][spl], out_val), 0, globctrl_t.limmax)
-                                SetRS5kData(data, conf, data[note][spl].src_track, note, spl) 
-                              end
-                            end
-                          end
-                          refresh.data = true 
-                          refresh.GUI = true 
-                        end,                         
-                        
-              func_wheel = function()
-                          local out_val = 1+mouse.wheel_trig/globctrl_t.wheel_ratio
-                          if not out_val then return end
-                          for note in pairs(data) do
-                            if tonumber(note) and type(data[note]) == 'table' then
-                              for spl =1, #data[note] do
-                                data[note][spl][globctrl_t.param_key]  = lim( globctrl_t.funcchange( data[note][spl][globctrl_t.param_key], out_val), 0, globctrl_t.limmax)
-                                SetRS5kData(data, conf, data[note][spl].src_track, note, spl) 
-                              end
-                            end
-                          end
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,
-                        
-              func_DC = function ()
-                          for note in pairs(data) do
-                            if tonumber(note) and type(data[note]) == 'table' then
-                              for spl =1, #data[note] do
-                                data[note][spl][globctrl_t.param_key]  = globctrl_t.default_val
-                                SetRS5kData(data, conf, data[note][spl].src_track, note, spl) 
-                              end
-                            end
-                          end 
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end
-              }  
-  end
-  ---------------------------------------------------
-  function OBJ_GenKeys_GlobalCtrl(conf, obj, data, refresh, mouse)
-    local env_x_shift = 30
-    local knob_back = 0
-    local knob_y = 0
-    local wheel_ratio = 12000
-    local loop_mouseres = 100
-    local dragratio = 50
-    local pitch_mouseres = 400
-    local ctrl_ratio = 0.1
-    local wheel_ratio_log = 12000
-        ---------- gain ----------
-    OBJ_GenKeys_GlobalCtrl_sub(conf, obj, data, refresh, mouse, { key = 'GLOBctrl_gain', 
-                                                                  kn_x = obj.keycntrlarea_w   + obj.offs,
-                                                                  kn_y = knob_y,
-                                                                  knob_back = knob_back,
-                                                                  txt = 'Global\nGain',
-                                                                  dragratio=dragratio,
-                                                                  param_key = 'gain',
-                                                                  wheel_ratio=wheel_ratio,
-                                                                  default_val= 0.5,
-                                                                  limmax=2,
-                                                                  funcchange = function(a,b) return a*b end})
-    OBJ_GenKeys_GlobalCtrl_sub(conf, obj, data, refresh, mouse, { key = 'GLOBctrl_pan', 
-                                                                  kn_x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w,
-                                                                  kn_y = knob_y,
-                                                                  knob_back = knob_back,
-                                                                  txt = 'Global\nPan',
-                                                                  dragratio=dragratio,
-                                                                  param_key = 'pan',
-                                                                  wheel_ratio=wheel_ratio,
-                                                                  default_val=0.5,
-                                                                  limmax = 1,
-                                                                  funcchange =  function(a,b) 
-                                                                                  if a <= 0.5 then 
-                                                                                    local p = lim(a,0.1,1)
-                                                                                    return (p*b)
-                                                                                   elseif a > 0.5 then
-                                                                                    local p = a-0.5
-                                                                                    return 0.5+(p*b)
-                                                                                   else
-                                                                                    return a
-                                                                                  end
-                                                                                end}) 
-    OBJ_GenKeys_GlobalCtrl_sub(conf, obj, data, refresh, mouse, { key = 'GLOBctrl_pitch_offset', 
-                                                                  kn_x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*2,
-                                                                  kn_y = knob_y,
-                                                                  knob_back = knob_back,
-                                                                  txt = 'Global\nPitch',
-                                                                  dragratio=dragratio,
-                                                                  param_key = 'pitch_offset',
-                                                                  wheel_ratio=wheel_ratio,
-                                                                  default_val=0.5,
-                                                                  limmax = 1,
-                                                                  funcchange =  function(a,b)return a*b end})     
-    OBJ_GenKeys_GlobalCtrl_sub(conf, obj, data, refresh, mouse, { key = 'GLOBctrl_attack', 
-                                                                  kn_x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*3 + env_x_shift,
-                                                                  kn_y = knob_y,
-                                                                  knob_back = knob_back,
-                                                                  txt = 'Global\nA',
-                                                                  dragratio=dragratio,
-                                                                  param_key = 'attack',
-                                                                  wheel_ratio=wheel_ratio,
-                                                                  default_val=0,
-                                                                  limmax = 1,
-                                                                  funcchange =  function(a,b)return lim(a,0.001,1)*b end})  
-    OBJ_GenKeys_GlobalCtrl_sub(conf, obj, data, refresh, mouse, { key = 'GLOBctrl_decay', 
-                                                                  kn_x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*4 + env_x_shift,
-                                                                  kn_y = knob_y,
-                                                                  knob_back = knob_back,
-                                                                  txt = 'Global\nD',
-                                                                  dragratio=dragratio,
-                                                                  param_key = 'decay',
-                                                                  wheel_ratio=wheel_ratio,
-                                                                  default_val=0.016,
-                                                                  limmax = 1,
-                                                                  funcchange =  function(a,b)return lim(a,0.001,1)*b end})   
-    OBJ_GenKeys_GlobalCtrl_sub(conf, obj, data, refresh, mouse, { key = 'GLOBctrl_sust', 
-                                                                  kn_x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*5 + env_x_shift,
-                                                                  kn_y = knob_y,
-                                                                  knob_back = knob_back,
-                                                                  txt = 'Global\nS',
-                                                                  dragratio=dragratio,
-                                                                  param_key = 'sust',
-                                                                  wheel_ratio=wheel_ratio,
-                                                                  default_val=0.5,
-                                                                  limmax = 1,
-                                                                  funcchange =  function(a,b)return lim(a,0.001,1)*b end})      
-    OBJ_GenKeys_GlobalCtrl_sub(conf, obj, data, refresh, mouse, { key = 'GLOBctrl_rel', 
-                                                                  kn_x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*6 + env_x_shift,
-                                                                  kn_y = knob_y,
-                                                                  knob_back = knob_back,
-                                                                  txt = 'Global\nR',
-                                                                  dragratio=dragratio,
-                                                                  param_key = 'rel',
-                                                                  wheel_ratio=wheel_ratio,
-                                                                  default_val=0.004,
-                                                                  limmax = 1,
-                                                                  funcchange =  function(a,b)return lim(a,0.001,1)*b end})        
-    OBJ_GenKeys_GlobalCtrl_sub(conf, obj, data, refresh, mouse, { key = 'GLOBctrl_offset_start', 
-                                                                  kn_x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*7 + env_x_shift*2,
-                                                                  kn_y = knob_y,
-                                                                  knob_back = knob_back,
-                                                                  txt = 'Global\nLoopSt',
-                                                                  dragratio=dragratio,
-                                                                  param_key = 'offset_start',
-                                                                  wheel_ratio=wheel_ratio,
-                                                                  default_val=0,
-                                                                  limmax = 1,
-                                                                  funcchange =  function(a,b)return lim(a,0.001,1)*b end})    
-    OBJ_GenKeys_GlobalCtrl_sub(conf, obj, data, refresh, mouse, { key = 'GLOBctrl_offset_end', 
-                                                                  kn_x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*8 + env_x_shift*2,
-                                                                  kn_y = knob_y,
-                                                                  knob_back = knob_back,
-                                                                  txt = 'Global\nLoopEnd',
-                                                                  dragratio=dragratio,
-                                                                  param_key = 'offset_end',
-                                                                  wheel_ratio=wheel_ratio,
-                                                                  default_val=1,
-                                                                  limmax = 1,
-                                                                  funcchange =  function(a,b)return lim(a,0.001,1)*b end})                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
-    do return end   
-
-        ---------- loop e ----------
-        local loope_val = data[cur_note][cur_spl].offset_end
-        local loope_val_txt
-        if mouse.context_latch and mouse.context_latch == 'splctrl_loope' then 
-          loope_val_txt  = math_q_dec(data[cur_note][cur_spl].offset_end, 3)
-         else   
-          loope_val_txt = 'LoopEnd'    
-        end              
-        obj.splctrl_loope = { clear = true,
-              x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*8 + env_x_shift*2,
-              y = knob_y,
-              w = obj.kn_w,
-              h = obj.kn_h,
-              col = 'white',
-              state = 0,
-              txt= loope_val_txt,
-              aligh_txt = 16,
-              show = true,
-              is_but = true,
-              is_knob = true,
-              val = data[cur_note][cur_spl].offset_end,
-              fontsz = obj.GUI_fontsz3,
-              alpha_back =knob_back,
-              func =  function() 
-                        mouse.context_latch_val = data[cur_note][cur_spl].offset_end 
-                      end,
-              func_LD2 = function ()
-                          if not mouse.context_latch_val then return end
-                          local out_val = lim(mouse.context_latch_val - mouse.dy/loop_mouseres, 0, 1)
-                          if not out_val then return end
-                          out_val = lim(out_val,data[cur_note][cur_spl].offset_start,1)
-                          data[cur_note][cur_spl].offset_end  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
-                          refresh.GUI = true
-                          refresh.data = true 
-                        end,
-              func_ctrlLD = function ()
-                          if not mouse.context_latch_val then return end
-                          local out_val = lim(mouse.context_latch_val - 0.1*ctrl_ratio*mouse.dy/loop_mouseres, 0, 1)
-                          if not out_val then return end
-                          out_val = lim(out_val,data[cur_note][cur_spl].offset_start,1)
-                          data[cur_note][cur_spl].offset_end  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
-                          refresh.GUI = true
-                          refresh.data = true 
-                        end,                        
-              func_wheel = function()
-                          local out_val = lim(data[cur_note][cur_spl].offset_end  + mouse.wheel_trig/wheel_ratio, 0, 1)
-                          if not out_val then return end
-                          out_val = lim(out_val,data[cur_note][cur_spl].offset_start,1)
-                          data[cur_note][cur_spl].offset_end  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,
-                        
-              func_DC = function ()
-                          data[cur_note][cur_spl].offset_end  = 1
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end
-              }                                                                                                                                                                                                   
-  end  
-  ---------------------------------------------------
-  function OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl)
-    local dragratio = 150
-    local ctrl_ratio = 0.1
-    local wheel_ratio = 12000
-    return {  func =  function() 
-                        mouse.context_latch_val = data[cur_note][cur_spl].pan 
-                      end,
-              func_LD2 = function ()
-                          if not mouse.context_latch_val then return end
-                          local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 0, 1)
-                          if not out_val then return end
-                          data[cur_note][cur_spl].pan  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
-                          if obj['mix_splctrl_pan'..cur_note] and conf.tab == 1 then 
-                            obj['mix_splctrl_pan'..cur_note].val = data[cur_note][cur_spl].pan
-                            local pan_txt  = math.floor((-0.5+data[cur_note][cur_spl].pan)*200)
-                            if pan_txt < 0 then pan_txt = math.abs(pan_txt)..'%L' elseif pan_txt > 0 then pan_txt = math.abs(pan_txt)..'%R' else pan_txt = 'center' end
-                            obj.info_line_mixer.txt =  cur_note..' '..data[cur_note][cur_spl].sample_short..' Pan '..pan_txt
-                            refresh.data = true 
-                            refresh.GUI_minor = true 
-                           else
-                            refresh.data = true 
-                            refresh.GUI = true 
-                          end
-                        end,
-              func_ctrlLD = function ()
-                          if not mouse.context_latch_val then return end
-                          local out_val = lim(mouse.context_latch_val - ctrl_ratio*mouse.dy/dragratio, 0, 1)
-                          if not out_val then return end
-                          data[cur_note][cur_spl].pan  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,                        
-              func_wheel = function()
-                          local out_val = lim(data[cur_note][cur_spl].pan  + mouse.wheel_trig/wheel_ratio, 0, 2)
-                          if not out_val then return end
-                          data[cur_note][cur_spl].pan  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,                          
-              func_ResetVal = function () 
-                          data[cur_note][cur_spl].pan  = 0.5
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,
-              func_mouseover = function()
-                                if obj['mix_splctrl_pan'..cur_note] then 
-                                  local pan_txt  = math.floor((-0.5+data[cur_note][cur_spl].pan)*200)
-                                  if pan_txt < 0 then pan_txt = math.abs(pan_txt)..'%L' elseif pan_txt > 0 then pan_txt = math.abs(pan_txt)..'%R' else pan_txt = 'center' end
-                                  obj.info_line_mixer.txt =  
-                                    cur_note..' '..data[cur_note][cur_spl].sample_short..' Pan '..pan_txt
-                                  refresh.GUI_minor = true 
-                                end
-                              end                        }        
+                   } 
   end  
   ---------------------------------------------------
   function OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl)
@@ -419,52 +80,128 @@
     local ctrl_ratio = 0.1
     local wheel_ratio = 12000
     return {  func =  function() 
-                        mouse.context_latch_val = data[cur_note][cur_spl].gain 
+                        local cur_spl0 = cur_spl
+                        if cur_spl == -1 then cur_spl0 = 1 end
+                        mouse.context_latch_val = data[cur_note][cur_spl0].gain 
                       end,
+              --[[ondrag_LCAS = function ()
+                          if not mouse.context_latch_val then return end
+                          local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 0, 2)
+                          if not out_val then return end
+                          
+                          for cur_note in pairs(data) do
+                            if tonumber(cur_note) then
+                              for spl = 1, #data[cur_note] do
+                                  data[cur_note][spl].gain  = out_val
+                                  SetRS5kData(data, conf, data[cur_note][spl].src_track, cur_note, spl) 
+                                    if obj['mix_splctrl_gain'..cur_note] and conf.tab == 1 then 
+                                      obj['mix_splctrl_gain'..cur_note].val = data[cur_note][1].gain / 2
+                                      obj.info_line_mixer.txt =  
+                                        cur_note..' '..data[cur_note][1].sample_short..' Gain '..
+                                        ({TrackFX_GetFormattedParamValue( data[cur_note][1].tr_ptr, data[cur_note][1].rs5k_pos, 0, '' )})[2]..'dB'
+                                      refresh.data = true 
+                                      refresh.GUI_minor = true 
+                                     else
+                                      --refresh.data = true 
+                                      --refresh.GUI_minor = true 
+                                    end
+                                  end
+                                end                        
+                              end
+                        end,                                 
+                                   ]] 
               func_LD2 = function ()
                           if not mouse.context_latch_val then return end
                           local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 0, 2)
                           if not out_val then return end
-                          data[cur_note][cur_spl].gain  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
-                          if obj['mix_splctrl_gain'..cur_note] and conf.tab == 1 then 
-                            obj['mix_splctrl_gain'..cur_note].val = data[cur_note][cur_spl].gain / 2
-                            obj.info_line_mixer.txt =  
-                              cur_note..' '..data[cur_note][cur_spl].sample_short..' Gain '..
-                              ({TrackFX_GetFormattedParamValue( data[cur_note][cur_spl].tr_ptr, data[cur_note][cur_spl].rs5k_pos, 0, '' )})[2]..'dB'
-                            refresh.data = true 
-                            refresh.GUI_minor = true 
+                          
+                          if cur_spl == -1 then 
+                            for spl = 1, #data[cur_note] do
+                              data[cur_note][spl].gain  = out_val
+                              SetRS5kData(data, conf, data[cur_note][spl].src_track, cur_note, spl) 
+                                if obj['mix_splctrl_gain'..cur_note] and conf.tab == 1 then 
+                                  obj['mix_splctrl_gain'..cur_note].val = data[cur_note][spl].gain / 2
+                                  obj.info_line_mixer.txt =  
+                                    cur_note..' '..data[cur_note][1].sample_short..' Gain '..
+                                    ({TrackFX_GetFormattedParamValue( data[cur_note][1].tr_ptr, data[cur_note][1].rs5k_pos, 0, '' )})[2]..'dB'
+                                  refresh.data = true 
+                                  refresh.GUI_minor = true 
+                                 else
+                                  refresh.data = true 
+                                  refresh.GUI = true 
+                                end
+                              end
                            else
-                            refresh.data = true 
-                            refresh.GUI = true 
+
+                            data[cur_note][cur_spl].gain  = out_val
+                            SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                              if obj['mix_splctrl_gain'..cur_note] and conf.tab == 1 then 
+                                obj['mix_splctrl_gain'..cur_note].val = data[cur_note][cur_spl].gain / 2
+                                obj.info_line_mixer.txt =  
+                                  cur_note..' '..data[cur_note][cur_spl].sample_short..' Gain '..
+                                  ({TrackFX_GetFormattedParamValue( data[cur_note][cur_spl].tr_ptr, data[cur_note][cur_spl].rs5k_pos, 0, '' )})[2]..'dB'
+                                refresh.data = true 
+                                refresh.GUI_minor = true 
+                               else
+                                refresh.data = true 
+                                refresh.GUI = true 
+                              end
+                                                          
                           end
                         end,
               func_ctrlLD = function ()
                           if not mouse.context_latch_val then return end
                           local out_val = lim(mouse.context_latch_val - ctrl_ratio*mouse.dy/dragratio, 0, 2)
                           if not out_val then return end
-                          data[cur_note][cur_spl].gain  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                          
+                          if cur_spl == -1 then 
+                            for spl = 1, #data[cur_note] do
+                              data[cur_note][spl].gain  = out_val
+                              SetRS5kData(data, conf, data[cur_note][spl].src_track, cur_note, spl) 
+                            end
+                           else
+                            data[cur_note][cur_spl].gain  = out_val
+                            SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                          end
                           refresh.data = true 
                           refresh.GUI = true 
                         end,                        
                         
               func_wheel = function()
-                          local out_val = lim(data[cur_note][cur_spl].gain  + mouse.wheel_trig/wheel_ratio, 0, 2)
+                          local cur_spl0 = cur_spl
+                          if cur_spl == -1 then cur_spl0 = 1 end
+                          local out_val = lim(data[cur_note][cur_spl0].gain  + mouse.wheel_trig/wheel_ratio, 0, 2)
                           if not out_val then return end
-                          data[cur_note][cur_spl].gain  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                          
+                          if cur_spl == -1 then 
+                            for spl = 1, #data[cur_note] do
+                              data[cur_note][spl].gain  = out_val
+                              SetRS5kData(data, conf, data[cur_note][spl].src_track, cur_note, spl) 
+                            end
+                           else
+                            data[cur_note][cur_spl].gain  = out_val
+                            SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                          end
+                           
                           refresh.GUI = true 
                           refresh.data = true 
                         end,
                         
               func_ResetVal = function ()
-                          data[cur_note][cur_spl].gain  = 0.5
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                          if cur_spl == -1 then 
+                            for spl = 1, #data[cur_note] do
+                              data[cur_note][spl].gain  = 0.5
+                              SetRS5kData(data, conf, data[cur_note][spl].src_track, cur_note, spl) 
+                            end                          
+                           else 
+                            data[cur_note][cur_spl].gain  = 0.5
+                            SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                          end
                           refresh.GUI = true 
                           refresh.data = true 
                         end,
               func_mouseover = function()
+                                if cur_spl == -1 then cur_spl = 1 end
                                 if obj['mix_splctrl_gain'..cur_note] then 
                                   obj.info_line_mixer.txt =  
                                     cur_note..' '..data[cur_note][cur_spl].sample_short..' Gain '..
@@ -476,6 +213,228 @@
   
   end
   ---------------------------------------------------
+  function OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl)
+    local dragratio = 150
+    local ctrl_ratio = 0.1
+    local wheel_ratio = 12000
+    return {  func =  function() 
+                        local cur_spl0 = cur_spl
+                        if cur_spl == -1 then cur_spl0 = 1 end
+                        mouse.context_latch_val = data[cur_note][cur_spl0].pan 
+                      end,
+              func_LD2 = function ()
+                          if not mouse.context_latch_val then return end
+                          local out_val = lim(mouse.context_latch_val - mouse.dy/dragratio, 0, 1)
+                          if not out_val then return end
+                          
+                          if cur_spl == -1 then 
+                            for spl = 1, #data[cur_note] do
+                              data[cur_note][spl].pan  = out_val
+                              SetRS5kData(data, conf, data[cur_note][spl].src_track, cur_note, spl)  
+                              if obj['mix_splctrl_pan'..cur_note] and conf.tab == 1 then 
+                                obj['mix_splctrl_pan'..cur_note].val = data[cur_note][spl].pan
+                                local pan_txt  = math.floor((-0.5+data[cur_note][spl].pan)*200)
+                                if pan_txt < 0 then pan_txt = math.abs(pan_txt)..'%L' elseif pan_txt > 0 then pan_txt = math.abs(pan_txt)..'%R' else pan_txt = 'center' end
+                                obj.info_line_mixer.txt =  cur_note..' '..data[cur_note][spl].sample_short..' Pan '..pan_txt
+                                refresh.data = true 
+                                refresh.GUI_minor = true 
+                               else
+                                refresh.data = true 
+                                refresh.GUI = true 
+                              end  
+                            end                                                 
+                           else
+                            data[cur_note][cur_spl].pan  = out_val
+                            SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
+                            if obj['mix_splctrl_pan'..cur_note] and conf.tab == 1 then 
+                              obj['mix_splctrl_pan'..cur_note].val = data[cur_note][cur_spl].pan
+                              local pan_txt  = math.floor((-0.5+data[cur_note][cur_spl].pan)*200)
+                              if pan_txt < 0 then pan_txt = math.abs(pan_txt)..'%L' elseif pan_txt > 0 then pan_txt = math.abs(pan_txt)..'%R' else pan_txt = 'center' end
+                              obj.info_line_mixer.txt =  cur_note..' '..data[cur_note][cur_spl].sample_short..' Pan '..pan_txt
+                              refresh.data = true 
+                              refresh.GUI_minor = true 
+                             else
+                              refresh.data = true 
+                              refresh.GUI = true 
+                            end                            
+                          end
+                        end,
+              func_ctrlLD = function ()
+                          if not mouse.context_latch_val then return end
+                          local out_val = lim(mouse.context_latch_val - ctrl_ratio*mouse.dy/dragratio, 0, 1)
+                          if not out_val then return end
+                          
+                          if cur_spl == -1 then 
+                            for spl = 1, #data[cur_note] do          
+                              data[cur_note][spl].pan  = out_val
+                              SetRS5kData(data, conf, data[cur_note][spl].src_track, cur_note, spl)  
+                            end
+                           else                
+                            data[cur_note][cur_spl].pan  = out_val
+                            SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
+                          end
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,                        
+              func_wheel = function()
+                          local cur_spl0 = cur_spl
+                          if cur_spl == -1 then cur_spl0 = 1 end
+                          local out_val = lim(data[cur_note][cur_spl0].pan  + mouse.wheel_trig/wheel_ratio, 0, 2)
+                          if not out_val then return end
+                          
+                          if cur_spl == -1 then 
+                            for spl = 1, #data[cur_note] do          
+                              data[cur_note][spl].pan  = out_val
+                              SetRS5kData(data, conf, data[cur_note][spl].src_track, cur_note, spl)  
+                            end
+                           else                
+                            data[cur_note][cur_spl].pan  = out_val
+                            SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
+                          end
+                          
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,                          
+              func_ResetVal = function () 
+              
+                          if cur_spl == -1 then 
+                            for spl = 1, #data[cur_note] do          
+                              data[cur_note][spl].pan  = 0.5
+                              SetRS5kData(data, conf, data[cur_note][spl].src_track, cur_note, spl)  
+                            end
+                           else                
+                            data[cur_note][cur_spl].pan  = 0.5
+                            SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)  
+                          end              
+                          refresh.GUI = true 
+                          refresh.data = true 
+                        end,
+              func_mouseover = function()
+                                if cur_spl == -1 then cur_spl = 1 end
+                                if obj['mix_splctrl_pan'..cur_note] then 
+                                  local pan_txt  = math.floor((-0.5+data[cur_note][cur_spl].pan)*200)
+                                  if pan_txt < 0 then pan_txt = math.abs(pan_txt)..'%L' elseif pan_txt > 0 then pan_txt = math.abs(pan_txt)..'%R' else pan_txt = 'center' end
+                                  obj.info_line_mixer.txt =  
+                                    cur_note..' '..data[cur_note][cur_spl].sample_short..' Pan '..pan_txt
+                                  refresh.GUI_minor = true 
+                                end
+                              end                        }        
+  end    
+  ---------------------------------------------------
+  function OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl)
+    local dragratio = 80
+    local ctrl_ratio = 0.1
+    local wheel_ratio = 12000  
+    local pitch_mouseres = 400
+    return  {
+          func =  function() 
+                        local cur_spl0 = cur_spl
+                        if cur_spl == -1 then cur_spl0 = 1 end          
+                    mouse.context_latch_val = data[cur_note][cur_spl0].pitch_offset 
+                  end,
+          func_LD2 = function ()
+                      if not mouse.context_latch_val then return end
+                      local out_val = lim(mouse.context_latch_val - mouse.dy/pitch_mouseres, 0, 1)*160
+                      local int, fract = math.modf(mouse.context_latch_val*160 )
+                      local out_val = lim(mouse.context_latch_val - mouse.dy/pitch_mouseres, 0, 1)
+                      if not out_val then return end
+                      out_val = (math_q(out_val*160)+fract)/160
+                      
+                      if cur_spl == -1 then 
+                        for spl = 1, #data[cur_note] do
+                          data[cur_note][spl].pitch_offset  = out_val
+                          SetRS5kData(data, conf, data[cur_note][spl].src_track, cur_note, spl)   
+                        end
+                         obj.info_line_mixer.txt =  cur_note..' '..data[cur_note][1].sample_short..' Pitch '..math_q_dec(math.floor((data[cur_note][1].pitch_offset-0.5)*160000)/1000, 2)
+                         obj['mix_splctrl_pitch'..cur_note].val = out_val
+                         refresh.data = true 
+                         refresh.GUI_minor = true 
+                       else 
+                        data[cur_note][cur_spl].pitch_offset  = out_val
+                        SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                        refresh.GUI = true 
+                        refresh.data = true   
+                      end 
+                      
+                    end,
+          func_ctrlLD = function ()
+                      if not mouse.context_latch_val then return end
+                      --local out_val = lim(mouse.context_latch_val - ctrl_ratio*mouse.dy/pitch_mouseres, 0, 1)*160
+                      --local int, fract = math.modf(mouse.context_latch_val*160 )
+                      local out_val = lim(mouse.context_latch_val - 0.05*ctrl_ratio*mouse.dy/pitch_mouseres, 0, 1)
+                      if not out_val then return end
+                      --out_val = (math_q(out_val*160)+fract)/160
+                      if cur_spl == -1 then 
+                        for spl = 1, #data[cur_note] do
+                          data[cur_note][spl].pitch_offset  = out_val
+                          SetRS5kData(data, conf, data[cur_note][spl].src_track, cur_note, spl)   
+                        end
+                       obj.info_line_mixer.txt =  cur_note..' '..data[cur_note][1].sample_short..' Pitch '..math_q_dec(math.floor((data[cur_note][1].pitch_offset-0.5)*160000)/1000, 2)
+                       obj['mix_splctrl_pitch'..cur_note].val = out_val
+                       refresh.data = true 
+                       refresh.GUI_minor = true 
+                       else 
+                        data[cur_note][cur_spl].pitch_offset  = out_val
+                        SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                        refresh.GUI = true 
+                        refresh.data = true   
+                      end 
+                      
+                    end,                        
+          func_wheel = function()
+                          local wheel_rat = 24000
+                          local cur_spl0 = cur_spl
+                          if cur_spl == -1 then cur_spl0 = 1 end
+                          local out_val = lim(data[cur_note][cur_spl0].pitch_offset  + mouse.wheel_trig/wheel_rat, 0, 1)*160
+                          local int, fract = math.modf(data[cur_note][cur_spl0].pitch_offset*160 )
+                          local out_val = lim(data[cur_note][cur_spl0].pitch_offset + mouse.wheel_trig/wheel_rat, 0, 1)
+                          if not out_val then return end
+                          out_val = (math_q(out_val*160)+fract)/160
+                                        
+                          --local out_val = lim(data[cur_note][cur_spl].pitch_offset  + mouse.wheel_trig/wheel_ratio, 0, 2)
+                          --if not out_val then return end
+                      if cur_spl == -1 then 
+                        for spl = 1, #data[cur_note] do
+                          data[cur_note][spl].pitch_offset  = out_val
+                          SetRS5kData(data, conf, data[cur_note][spl].src_track, cur_note, spl)   
+                        end
+                       obj.info_line_mixer.txt =  cur_note..' '..data[cur_note][cur_spl0].sample_short..' Pitch '..math_q_dec(math.floor((data[cur_note][1].pitch_offset-0.5)*160000)/1000, 2)
+                       obj['mix_splctrl_pitch'..cur_note].val = out_val
+                       refresh.data = true 
+                       refresh.GUI_minor = true 
+                       else 
+                        data[cur_note][cur_spl].pitch_offset  = out_val
+                        SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                        refresh.GUI = true 
+                        refresh.data = true   
+                      end 
+                        end,                           
+          func_ResetVal = function () 
+                      if cur_spl == -1 then 
+                        for spl = 1, #data[cur_note] do
+                          data[cur_note][spl].pitch_offset  = 0.5
+                          SetRS5kData(data, conf, data[cur_note][spl].src_track, cur_note, spl)   
+                        end
+                       obj.info_line_mixer.txt =  cur_note..' '..data[cur_note][1].sample_short..' Pitch '..math_q_dec(math.floor((data[cur_note][1].pitch_offset-0.5)*160000)/1000, 2)
+                       obj['mix_splctrl_pitch'..cur_note].val = 0.5
+                       refresh.data = true 
+                       refresh.GUI_minor = true 
+                       else 
+                        data[cur_note][cur_spl].pitch_offset  = 0.5
+                        SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl) 
+                        refresh.GUI = true 
+                        refresh.data = true   
+                      end 
+                    end,
+              func_mouseover = function()
+                                if cur_spl == -1 then cur_spl = 1  end
+                                obj.info_line_mixer.txt =  cur_note..' '..data[cur_note][cur_spl].sample_short..' Pitch '..math_q_dec(math.floor((data[cur_note][1].pitch_offset-0.5)*160000)/1000, 2)
+                                refresh.GUI_minor = true 
+                              end                    }  
+  end
+  
+  
+  ---------------------------------------------------
   function OBJ_GenKeys_splCtrl(conf, obj, data, refresh, mouse, pat)
   
     
@@ -485,7 +444,6 @@
     local wheel_ratio = 12000
     local loop_mouseres = 100
     local dragratio = 80
-    local pitch_mouseres = 400
     local ctrl_ratio = 0.1
     local wheel_ratio_log = 12000
     local cur_note = obj.current_WFkey
@@ -657,10 +615,13 @@
               fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
               func =  function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func() end,
+              func_trigCtrl =  function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func() end,
               func_LD2 = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_LD2() end,
               func_ctrlLD = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ctrlLD() end,
               func_wheel = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_wheel() end,
               func_ResetVal = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ResetVal() end,
+              --ondrag_LCAS =  function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat,cur_note, cur_spl):ondrag_LCAS() end,
+              --onclick_LCAS =  function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func() end,
               }
         ---------- pan ----------                          
         local pan_val = data[cur_note][cur_spl].pan 
@@ -689,6 +650,7 @@
               fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
               func =  function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func() end,
+              func_trigCtrl =  function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func() end,
               func_LD2 = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_LD2() end,
               func_ctrlLD = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ctrlLD() end,               
               func_wheel = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_wheel() end,                   
@@ -718,54 +680,13 @@
               val = pitch_val,
               fontsz = conf.GUI_splfontsz,
               alpha_back =knob_back,
-              func =  function() 
-                        mouse.context_latch_val = data[cur_note][cur_spl].pitch_offset 
-                      end,
-              func_LD2 = function ()
-                          if not mouse.context_latch_val then return end
-                          local out_val = lim(mouse.context_latch_val - mouse.dy/pitch_mouseres, 0, 1)*160
-                          local int, fract = math.modf(mouse.context_latch_val*160 )
-                          local out_val = lim(mouse.context_latch_val - mouse.dy/pitch_mouseres, 0, 1)
-                          if not out_val then return end
-                          out_val = (math_q(out_val*160)+fract)/160
-                          data[cur_note][cur_spl].pitch_offset  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,
-              func_ctrlLD = function ()
-                          if not mouse.context_latch_val then return end
-                          --local out_val = lim(mouse.context_latch_val - ctrl_ratio*mouse.dy/pitch_mouseres, 0, 1)*160
-                          --local int, fract = math.modf(mouse.context_latch_val*160 )
-                          local out_val = lim(mouse.context_latch_val - 0.05*ctrl_ratio*mouse.dy/pitch_mouseres, 0, 1)
-                          if not out_val then return end
-                          --out_val = (math_q(out_val*160)+fract)/160
-                          data[cur_note][cur_spl].pitch_offset  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,                        
-              func_wheel = function()
-                              local wheel_rat = 24000
-                              local out_val = lim(data[cur_note][cur_spl].pitch_offset  + mouse.wheel_trig/wheel_rat, 0, 1)*160
-                              local int, fract = math.modf(data[cur_note][cur_spl].pitch_offset*160 )
-                              local out_val = lim(data[cur_note][cur_spl].pitch_offset + mouse.wheel_trig/wheel_rat, 0, 1)
-                              if not out_val then return end
-                              out_val = (math_q(out_val*160)+fract)/160
-                                            
-                              --local out_val = lim(data[cur_note][cur_spl].pitch_offset  + mouse.wheel_trig/wheel_ratio, 0, 2)
-                              --if not out_val then return end
-                              data[cur_note][cur_spl].pitch_offset  = out_val
-                              SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
-                              refresh.GUI = true 
-                              refresh.data = true 
-                            end,                           
-              func_ResetVal = function () 
-                          data[cur_note][cur_spl].pitch_offset  = 0.5
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end}  
+              func =  function() OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func() end,
+              func_trigCtrl =  function() OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func() end,
+              func_LD2 = function() OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_LD2() end,
+              func_ctrlLD = function() OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ctrlLD() end,
+              func_wheel = function() OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_wheel() end,
+              func_ResetVal = function() OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ResetVal() end
+              }
 
         ---------- attack ----------  
         local att_txt
@@ -2395,6 +2316,7 @@ List of available hashtags:
   --------------------------------------------------- 
   function OBJ_GenMixer_FX(conf, obj, data, refresh, mouse, x_out)
     if obj.current_WFkey and data[obj.current_WFkey] and data[obj.current_WFkey].FXChaindata then
+      
       local t = data[obj.current_WFkey].FXChaindata
       for i = 1, #t do
         local alpha_txt = 0.3
@@ -3258,15 +3180,16 @@ List of available hashtags:
               aligh_txt = 16,
               show = true,
               is_knob = true,
-              val = data[cur_note][cur_spl].gain / 2,
+              val = data[cur_note][1].gain / 2,
               fontsz = conf.GUI_splfontsz,
               alpha_back =0,
-              func =  function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func() end,
-              func_LD2 = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_LD2() end,
-              func_ctrlLD = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ctrlLD() end,
-              func_wheel = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_wheel() end,
-              func_ResetVal = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ResetVal() end,
-              func_mouseover = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_mouseover() end,
+              func =  function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, -1):func() end,
+              func_trigCtrl =   function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, -1):func() end,
+              func_LD2 = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_LD2() end,
+              func_ctrlLD = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_ctrlLD() end,
+              func_wheel = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_wheel() end,
+              func_ResetVal = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_ResetVal() end,
+              func_mouseover = function() OBJ_KnobF_Gain(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_mouseover() end,
               }                      
         obj['mix_splctrl_pan'..cur_note] = { clear = true,
               x = key_x + (key_w  - obj.pat_area_h) /2-1 ,
@@ -3284,28 +3207,23 @@ List of available hashtags:
               val = data[cur_note][cur_spl].pan,
               fontsz = conf.GUI_splfontsz,
               alpha_back =0,
-              func =  function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func() end,
-              func_LD2 = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_LD2() end,
-              func_ctrlLD = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ctrlLD() end,             
-              func_wheel = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_wheel() end,               
-              func_ResetVal = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, cur_spl):func_ResetVal() end,}        
-        ---------- ptch ----------                          
-        local pitch_val = data[cur_note][cur_spl].pitch_offset 
-        local pitch_txt
-        if    (mouse.context_latch and (mouse.context_latch == 'splctrl_pitch1' or mouse.context_latch == 'splctrl_pitch2'))
-               or (mouse.context == 'splctrl_pitch1' and mouse.wheel_on_move) 
-          --or  (mouse.context       and (mouse.context       == 'splctrl_pitch1' or mouse.context       == 'splctrl_pitch2')) 
-          then 
-          pitch_txt  = data[cur_note][cur_spl].pitch_semitones else   pitch_txt = 'Pitch'    
-        end                          
-        obj._splctrl_pitch1 = { clear = true,
-              x = obj.keycntrlarea_w   + obj.offs + obj.kn_w*2,
-              y = knob_y,
-              w = obj.kn_w,
-              h = obj.kn_h,
+              func =  function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, -1):func() end,
+              func_trigCtrl =   function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, -1):func() end,
+              func_LD2 = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_LD2() end,
+              func_ctrlLD = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_ctrlLD() end,             
+              func_wheel = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_wheel() end,               
+              func_ResetVal = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_ResetVal() end,
+              func_mouseover = function() OBJ_KnobF_Pan(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_mouseover() end} 
+              
+        local pitch_val = data[cur_note][cur_spl].pitch_offset  
+        obj['mix_splctrl_pitch'..cur_note] = { clear = true,
+              x = key_x + (key_w  - obj.pat_area_h) /2-1 ,
+              y = key_y + obj.pat_area_h*3,
+              w = obj.pat_area_h,
+              h = obj.pat_area_h,
               col = 'white',
-              state = 0,
-              txt= pitch_txt,
+              state = 1,
+              txt= '',
               aligh_txt = 16,
               show = true,
               is_but = true,
@@ -3313,55 +3231,14 @@ List of available hashtags:
               is_centered_knob = true,
               val = pitch_val,
               fontsz = conf.GUI_splfontsz,
-              alpha_back =knob_back,
-              func =  function() 
-                        mouse.context_latch_val = data[cur_note][cur_spl].pitch_offset 
-                      end,
-              func_LD2 = function ()
-                          if not mouse.context_latch_val then return end
-                          local out_val = lim(mouse.context_latch_val - mouse.dy/pitch_mouseres, 0, 1)*160
-                          local int, fract = math.modf(mouse.context_latch_val*160 )
-                          local out_val = lim(mouse.context_latch_val - mouse.dy/pitch_mouseres, 0, 1)
-                          if not out_val then return end
-                          out_val = (math_q(out_val*160)+fract)/160
-                          data[cur_note][cur_spl].pitch_offset  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,
-              func_ctrlLD = function ()
-                          if not mouse.context_latch_val then return end
-                          --local out_val = lim(mouse.context_latch_val - ctrl_ratio*mouse.dy/pitch_mouseres, 0, 1)*160
-                          --local int, fract = math.modf(mouse.context_latch_val*160 )
-                          local out_val = lim(mouse.context_latch_val - 0.05*ctrl_ratio*mouse.dy/pitch_mouseres, 0, 1)
-                          if not out_val then return end
-                          --out_val = (math_q(out_val*160)+fract)/160
-                          data[cur_note][cur_spl].pitch_offset  = out_val
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end,                        
-              func_wheel = function()
-                              local wheel_rat = 24000
-                              local out_val = lim(data[cur_note][cur_spl].pitch_offset  + mouse.wheel_trig/wheel_rat, 0, 1)*160
-                              local int, fract = math.modf(data[cur_note][cur_spl].pitch_offset*160 )
-                              local out_val = lim(data[cur_note][cur_spl].pitch_offset + mouse.wheel_trig/wheel_rat, 0, 1)
-                              if not out_val then return end
-                              out_val = (math_q(out_val*160)+fract)/160
-                                            
-                              --local out_val = lim(data[cur_note][cur_spl].pitch_offset  + mouse.wheel_trig/wheel_ratio, 0, 2)
-                              --if not out_val then return end
-                              data[cur_note][cur_spl].pitch_offset  = out_val
-                              SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
-                              refresh.GUI = true 
-                              refresh.data = true 
-                            end,                           
-              func_ResetVal = function () 
-                          data[cur_note][cur_spl].pitch_offset  = 0.5
-                          SetRS5kData(data, conf, data[cur_note][cur_spl].src_track, cur_note, cur_spl)   
-                          refresh.GUI = true 
-                          refresh.data = true 
-                        end}  
+              alpha_back =0,
+              func =  function() OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, -1):func() end,
+              func_trigCtrl =   function() OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, -1):func() end,
+              func_LD2 = function() OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_LD2() end,
+              func_ctrlLD = function() OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_ctrlLD() end,             
+              func_wheel = function() OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_wheel() end,               
+              func_ResetVal = function() OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_ResetVal() end,
+              func_mouseover = function() OBJ_KnobF_Pitch(conf, obj, data, refresh, mouse, pat, cur_note, -1):func_mouseover() end}               
     end  
     ---------------------------------------------------
     function OBJ_GenKeysMixer(conf, obj, data, refresh, mouse)
@@ -3409,7 +3286,7 @@ List of available hashtags:
         if  key_w < obj.fx_rect_side then txt = '' end
           --
           if note >= 0 and note <= 127 then
-            local key_xpos = obj.keycntrlarea_w+(i-1)*key_w 
+            local key_xpos = obj.keycntrlarea_w+(i-1)*key_w +obj.offs
             local key_ypos = gfx.h-key_area_h- obj.samplename_h
             local fxctrlcnt = OBJ_GenKeys_PadButtons(conf, obj, data, refresh, mouse, note, key_xpos, key_ypos-obj.offs, key_w, key_h, true)
             if not fxctrlcnt then fxctrlcnt = 0 end
@@ -3452,91 +3329,7 @@ List of available hashtags:
                         selection_tri=selection_tri,
                         aligh_txt = 4,
                         fontsz = conf.GUI_padfontsz,
-                        func =  function() 
-                                  obj.current_WFkey = note
-                                  if conf.keypreview == 1 then  StuffMIDIMessage( 0, '0x9'..string.format("%x", 0), note,100) end                                  
-                                  if data[note] then 
-                                    mouse.context_latch_t = {}
-                                    for spl =1, #data[note] do
-                                      mouse.context_latch_t[spl] = data[note][spl].gain
-                                    end
-                                  end
-                                end,
-                        func_LD2 = function ()
-                                    if not mouse.context_latch_t then return end
-                                    for cur_spl =1, #mouse.context_latch_t do
-                                      local mouseshift = mouse.dy/300
-                                      local out_val = lim(mouse.context_latch_t[cur_spl] - mouseshift, 0, 2)
-                                      if not out_val then return end
-                                      --out_val = ((out_val /2 ) ^ 0.6)*2
-                                      data[note][cur_spl].gain  = out_val
-                                      SetRS5kData(data, conf, data[note][cur_spl].src_track, note, cur_spl) 
-                                    end 
-                                    
-                                    refresh.data = true 
-                                    refresh.GUI = true 
-                                  end,
-                        func_wheel = function()
-                                    if not data[note] then return end
-                                    for cur_spl =1, #data[note] do
-                                      local out_val = lim(data[note][cur_spl].gain + mouse.wheel_trig/wheel_ratio, 0, 2)
-                                      if not out_val then return end
-                                      data[note][cur_spl].gain  = out_val
-                                      SetRS5kData(data, conf, data[note][cur_spl].src_track, note, cur_spl) 
-                                    end 
-                                    refresh.GUI = true 
-                                    refresh.data = true 
-                                  end,
-                                  
-                        func_ResetVal = function ()
-                                    if not data[note] then return end
-                                    for cur_spl =1, #data[note] do                                      
-                                      data[note][cur_spl].gain  = 0.5
-                                      SetRS5kData(data, conf, data[note][cur_spl].src_track, note, cur_spl) 
-                                    end 
-                                    refresh.GUI = true 
-                                    refresh.data = true 
-                                  end   ,
-                          func_mouseover = function()
-                                if obj['mix_splctrl_gain'..note] then 
-                                  local sample_short = ''
-                                  if data[note] and data[note][1] then sample_short = data[note][1].sample_short else return end
-                                  
-                                  local gain_txt = ({TrackFX_GetFormattedParamValue( data[note][1].tr_ptr, data[note][1].rs5k_pos, 0, '' )})[2]..'dB'
-                                  local pan_txt  = math.floor((-0.5+data[note][1].pan)*200)
-                                  if pan_txt < 0 then pan_txt = math.abs(pan_txt)..'%L' elseif pan_txt > 0 then pan_txt = math.abs(pan_txt)..'%R' else pan_txt = 'center' end
-                                  
-                                  obj.info_line_mixer.txt = note..' '..sample_short..' // Gain '..gain_txt..' // Pan '..pan_txt
-                                  refresh.GUI_minor = true 
-                                end
-                              end                                                                  
-                                } 
-                                
-           --[[ if obj.mixer_curpar_key then 
-              if data[note] and data[note][1] then 
-                local curpar = data[note][1][obj.mixer_curpar_key]
-                if curpar and type(curpar) == 'number' then 
-                  obj['keys_pmixparam'..i] = 
-                            { clear = true,
-                              x = key_xpos,
-                              y = gfx.h-key_area_h-obj.samplename_h,
-                              w = key_w-1,
-                              h = obj.samplename_h,
-                              --col = col,
-                              --colint = colint,
-                              state = 0,
-                              txt= string.format('%.3f', curpar),
-                              is_step = true,
-                              linked_note = note,
-                              show = true,
-                              is_but = true,
-                              alpha_back = 0,
-                              a_frame = 0,
-                              aligh_txt = 5,
-                              fontsz = conf.GUI_splfontsz}
-                end
-              end
-            end    ]]                         
+                        func =  function()  obj.current_WFkey = note end}
             if    note%12 == 1 
               or  note%12 == 3 
               or  note%12 == 6 

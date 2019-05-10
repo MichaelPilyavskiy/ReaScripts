@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 2.104
+-- @version 2.105
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,11 +10,15 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + Pattern: shift+drag draw/erase notes, depending on first click
---    + Pattern: clear pattern clear active state of steps instead making velocities = 0
+--    + Mixer/Pitch: per pad pitch control
+--    # Mixer/Gain: reset all layers to 1st layer gain when turning gain knob
+--    # Mixer/Pan: reset all layers to 1st layer pan when turning pan knob
+--    # Mixer: improve display info line
+--    # Mixer: improve triggering knob with Ctlr+LMB
+--    # force REAPER 5.97+ requirement for gmem related options
 
 
-  local vrs = 'v2.104'
+  local vrs = 'v2.105'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -26,10 +30,10 @@
                     data = false,
                     GUI_WF = false,
                     conf = false}
-  local mouse = {}
+   mouse = {}
   local obj = {}
-  local data = {}
-   pat = {}    
+   data = {}
+  local pat = {}    
   local G_act_state
     
   ---------------------------------------------------  
@@ -182,5 +186,5 @@
   --------------------------------------------------------------------
   atexit(SetButtonOFF)  
   local ret = CheckFunctions('VF_CheckReaperVrs') 
-  local ret2 = VF_CheckReaperVrs(5.961,true)    
+  local ret2 = VF_CheckReaperVrs(5.97,true)    
   if ret and ret2 then main() end

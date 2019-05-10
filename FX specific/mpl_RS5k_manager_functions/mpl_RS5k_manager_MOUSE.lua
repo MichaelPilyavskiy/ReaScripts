@@ -151,10 +151,27 @@
                  ------------------------
            mouse.ondrag_L_onmove = -- left drag (only when moving after latch)
                                mouse.LMB_state 
-                               --and not mouse.Ctrl_state 
+                               and not mouse.Ctrl_state 
                                and mouse.is_moving
                                and mouse.context_latch == key
            if mouse.ondrag_L_onmove and obj[key].func_LD2 then obj[key].func_LD2() end 
+           ---------------------------------
+            mouse.ondrag_LCAS = mouse.LMB_state 
+                               and mouse.last_LMB_state 
+                               and mouse.Ctrl_state  
+                               and mouse.Shift_state
+                               and mouse.Alt_state    
+                               and mouse.is_moving
+                               and mouse.context_latch == key
+           if mouse.ondrag_LCAS and obj[key].ondrag_LCAS then obj[key].ondrag_LCAS() end        
+           ---------------------------------
+            mouse.onclick_LCAS = mouse.LMB_state 
+                               and not mouse.last_LMB_state 
+                               and mouse.Ctrl_state  
+                               and mouse.Shift_state
+                               and mouse.Alt_state    
+                               and MOUSE_Match(mouse, obj[key]) 
+           if mouse.onclick_LCAS and obj[key].onclick_LCAS then obj[key].onclick_LCAS() end                    
                  ------------------------              
            mouse.onclick_LCtrl = mouse.LMB_state 
                                and not mouse.last_LMB_state 
@@ -187,8 +204,10 @@
                  ------------------------            
            mouse.ondrag_LCtrl = -- left drag (persistent even if not moving)
                                mouse.LMB_state 
+                               and mouse.last_LMB_state 
                                and mouse.Ctrl_state 
                                and mouse.context_latch == key
+                               and mouse.is_moving
            if mouse.ondrag_LCtrl and obj[key].func_ctrlLD then obj[key].func_ctrlLD() end 
                  ------------------------
            mouse.onclick_R = mouse.RMB_state 
