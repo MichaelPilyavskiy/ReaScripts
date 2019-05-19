@@ -622,7 +622,7 @@
     end      
     
     if obj.allow_track_notes and conf.allow_track_notes == 1 and data.jsfxtrack_exist == true then GUI_TrackInputNotes(obj, conf) end
-    if conf.tab == 3 and obj.pat_item_pos_sec and obj.pat_item_len_sec then GUI_DrawPlayCursor(obj, conf) end--and GetPlayStateEx( 0 )&1==1 
+    if conf.tab == 2 and obj.pat_item_pos_sec and obj.pat_item_len_sec then GUI_DrawPlayCursor(obj, conf) end--and GetPlayStateEx( 0 )&1==1 
     
     refresh.GUI = nil
     refresh.GUI_minor = nil

@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 2.110
+-- @version 2.111
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,14 +10,10 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    # Fix major bug with saving patterns with project external state
---    + Reimplement choke function
---    + Show and refresh choke configuration (see 'cut' menu in sample controls area)
---    # Restore attached gmem name
---    + Draw play pos relative to pattern start/length (require JSFX tracker)
+--    # Draw play pos relative to pattern start/length
 
 
-  local vrs = 'v2.106'
+  local vrs = 'v2.111'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
