@@ -118,12 +118,15 @@
     end
     
     --msg('SAVE'..str)
-    SetProjExtState( 0, conf.ES_key, 'PAT_'..poolGUID, str )
+    --msg(poolGUID)
+    SetProjExtState( 0, conf.ES_key, 'PAT_'..poolGUID:gsub('[%s%p]+',''), str )
+    --ret, str0 = GetProjExtState( 0, conf.ES_key, 'PAT_'..poolGUID:gsub('[%s%p]+','') )
+    --msg(str0)
   end
    ----------------------------------------------------   
   function Pattern_Parse(conf, pat, poolGUID, take_name)
     
-    local ret, str = GetProjExtState( 0, conf.ES_key, 'PAT_'..poolGUID )
+    ret, str = GetProjExtState( 0, conf.ES_key, 'PAT_'..poolGUID:gsub('[%s%p]+','') )
     --msg('PRS'..str)
     if ret == 0 then return end
     local cur_note, cnt_steps, swing

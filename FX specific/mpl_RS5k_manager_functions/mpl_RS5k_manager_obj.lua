@@ -1112,9 +1112,9 @@
                                   
         
         local alpha_back = obj.it_alpha5
-        if gmem_read(99)==1 and gmem_read(300+cur_note)>0 then alpha_back = obj.it_alpha6 end
-        local txt = 'Choke'
-        if gmem_read(300+cur_note) and gmem_read(300+cur_note)>0 then txt = txt..' '..math.floor(gmem_read(300+cur_note)) end
+        if gmem_read(99)==1 and data.choke_t[cur_note] and data.choke_t[cur_note]>0 then alpha_back = obj.it_alpha6 end
+        local txt = 'Cut'
+        if data.choke_t[cur_note] and data.choke_t[cur_note]>0 then txt = txt..' '..math.floor(data.choke_t[cur_note]) end
         obj._splctrl_choke = { clear = true,
                                   x = obj.keycntrlarea_w   + obj.offs+ obj.kn_w*10 + env_x_shift*4,
                                   y = knob_y,
@@ -1129,7 +1129,46 @@
                                   alpha_back = alpha_back,
                                   a_frame = 0,
                                   func =  function() 
-                                            local t = {}
+                                            local t = {
+                                                        { str = 'Refresh JSFX using current choke configuration',
+                                                          func = function() Choke_Apply(conf, obj, data, refresh, mouse, pat)  end
+                                                        },
+                                                        { str = 'Show choke configuration in console',
+                                                          func = function() 
+                                                                    local str = ''
+                                                                    for i =1, 127 do
+                                                                      if data.choke_t[i]> 0 then 
+                                                                        local cutname = '' if data[i][1].MIDI_name then cutname =  data[i][1].MIDI_name end
+                                                                        local cutbyname  = '' if data[data.choke_t[i]][1].MIDI_name then cutbyname =  data[data.choke_t[i]][1].MIDI_name end
+                                                                        str = str..'\n'..'Note '..i..' '..cutname..' CUT >> '..'Note '..data.choke_t[i]..' '..cutbyname 
+                                                                      end
+                                                                    end
+                                                                    msg(str)
+                                                                  end
+                                                        },  
+                                                      { str = 'Show choke configuration in console (inversed)|',
+                                                          func = function() 
+                                                                    local str = ''
+                                                                    for i_recv =1, 127 do
+                                                                      local cutbyname  = '' if data[i_recv] and data[i_recv][1].MIDI_name then cutbyname =  data[i_recv][1].MIDI_name end
+                                                                      local exist = false
+                                                                      str_send = ''
+                                                                      for i =1, 127 do
+                                                                        if data.choke_t[i] == i_recv then 
+                                                                          exist = true
+                                                                          local cutname = '' if data[i][1].MIDI_name then cutname =  data[i][1].MIDI_name end
+                                                                          str_send = str_send..'    Note '..i..' '..cutname..'\n'
+                                                                        end
+                                                                      end
+                                                                      if exist == true then
+                                                                        str = str..'\n'..'Note '..i_recv..' '..cutbyname..' CUTBY >> \n'..str_send
+                                                                      end
+                                                                    end
+                                                                    msg(str)
+                                                                  end
+                                                        },                                                                                                               
+                                                      }
+                                                        
                                             for key in pairs(data, function(t,a,b) return t[b] < t[a] end)  do
                                               if tonumber(key) then 
                                                 local str = key..': '..data[key][1].MIDI_name
@@ -1137,10 +1176,12 @@
                                                 t[#t+1] = {str = str,
                                                           func = function() 
                                                                     local val = 0
-                                                                    if gmem_read(300+cur_note) ~= key then val = key end
-                                                                    gmem_write(300+cur_note, val) 
+                                                                    if data.choke_t[cur_note] ~= key then val = key end
+                                                                    data.choke_t[cur_note]= val
+                                                                    Choke_Save(conf, data)
+                                                                    Choke_Apply(conf, obj, data, refresh, mouse, pat)
                                                                   end,
-                                                          state = gmem_read(300+cur_note) == key }
+                                                          state = data.choke_t[cur_note] == key }
                                               end
                                             end
                                             Menu(mouse, t)

@@ -620,24 +620,46 @@
             gfx.w- obj.keycntrlarea_w  , 
             obj.WF_h-1 , 0,0) 
     end      
-
-    if obj.allow_track_notes and conf.allow_track_notes == 1 and data.jsfxtrack_exist then GUI_TrackInputNotes(obj, conf) end
-    --if obj.pat_item_pos_sec and obj.pat_item_len_sec and  GetPlayStateEx( 0 )&1==1 then GUI_DrawPlayCursor(obj) end
+    
+    if obj.allow_track_notes and conf.allow_track_notes == 1 and data.jsfxtrack_exist == true then GUI_TrackInputNotes(obj, conf) end
+    if conf.tab == 3 and obj.pat_item_pos_sec and obj.pat_item_len_sec then GUI_DrawPlayCursor(obj, conf) end--and GetPlayStateEx( 0 )&1==1 
     
     refresh.GUI = nil
     refresh.GUI_minor = nil
     gfx.update()
   end
   ---------------------------------------------------  
-  function GUI_DrawPlayCursor(obj)
-    local playpos = GetPlayPosition2Ex( 0 )
-    --if playpos >= obj.pat_item_pos_sec and obj.pat_item_pos_sec + obj.pat_item_len_sec
+  function GUI_DrawPlayCursor(obj, conf)
+    local playpos 
+    if GetPlayStateEx( 0 )&1==1  then playpos = GetPlayPosition2Ex( 0 ) else  playpos = GetCursorPosition() end
+    if playpos >= obj.pat_item_pos_sec and playpos <= obj.pat_item_pos_sec + obj.pat_item_len_sec then
+      local retval, measures, cml, fullbeats, cdenom = reaper.TimeMap2_timeToBeats( 0, obj.pat_item_pos_sec ) 
+      local barlen = TimeMap2_beatsToTime( 0, fullbeats+4 ) -  obj.pat_item_pos_sec
+      local pos = (playpos - obj.pat_item_pos_sec) /  barlen--obj.pat_item_len_sec
+      local key_w0 = obj.key_w
+      if conf.key_width_override > 0 then key_w0 = conf.key_width_override end
+      local back_w = (obj.pat_area_w-obj.step_cnt_w*2-obj.offs*2-key_w0)
+      local line_x = obj.keycntrlarea_w + obj.offs*2 + key_w0 + back_w * pos
+      local line_y = obj.samplename_h + obj.kn_h
+      local line_h = gfx.h - obj.samplename_h + obj.kn_h
+      
+      local line_w = 2
+      
+      gfx.set(0.2, 0.6, 0.3, 0.2)
+      gfx.rect(line_x, line_y, line_w, line_h)
+      --[[local px_w = 10
+      for i = -px_w, px_w do
+        gfx.a = math.abs(1-math.abs(i/px_w))*0.2
+        gfx.line(line_x+i, line_y, line_x + line_w+i, line_y + line_h)
+      end]]
+    end
   end
   ---------------------------------------------------  
   function GUI_TrackInputNotes(obj, conf)
     if not gmem_read then return end
-    local buf = 20
-    local time_fall = 0.5
+    local buf = reaper.gmem_read(98)
+    local time_fall = (0.5/10)*buf
+    buf = buf *2
     local cur_ts = reaper.gmem_read(buf+1)
     if not cur_ts then return end
     local circ_r = 10
@@ -656,7 +678,8 @@
     local x,y
     for note in pairs(t_sorted) do
       if obj['keys_p'..note] and obj['keys_p'..note].w then
-        gfx.a = t_sorted[note]
+        gfx.set(1,1,1)
+        gfx.a = math.min(1,math.max(0,t_sorted[note]))
         x = obj['keys_p'..note].x + obj['keys_p'..note].w/2
         y = obj['keys_p'..note].y + obj['keys_p'..note].h/2-1
         if shift_right then 

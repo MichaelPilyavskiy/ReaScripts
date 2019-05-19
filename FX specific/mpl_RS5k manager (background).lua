@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 2.105
+-- @version 2.110
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,15 +10,14 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + Mixer/Pitch: per pad pitch control
---    # Mixer/Gain: reset all layers to 1st layer gain when turning gain knob
---    # Mixer/Pan: reset all layers to 1st layer pan when turning pan knob
---    # Mixer: improve display info line
---    # Mixer: improve triggering knob with Ctlr+LMB
---    # force REAPER 5.97+ requirement for gmem related options
+--    # Fix major bug with saving patterns with project external state
+--    + Reimplement choke function
+--    + Show and refresh choke configuration (see 'cut' menu in sample controls area)
+--    # Restore attached gmem name
+--    + Draw play pos relative to pattern start/length (require JSFX tracker)
 
 
-  local vrs = 'v2.105'
+  local vrs = 'v2.106'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -30,9 +29,9 @@
                     data = false,
                     GUI_WF = false,
                     conf = false}
-   mouse = {}
+  local mouse = {}
   local obj = {}
-   data = {}
+  local data = {}
   local pat = {}    
   local G_act_state
     
@@ -140,6 +139,7 @@
   
   ---------------------------------------------------    
   function run()
+    --TestGmem()
     obj.clock = os.clock()
     MOUSE(conf, obj, data, refresh, mouse)
     CheckUpdates(obj, conf, refresh)
@@ -158,13 +158,16 @@
     if refresh.GUI == true or refresh.GUI_onStart == true then OBJ_Update (conf, obj, data, refresh, mouse, pat) end
     GUI_draw (conf, obj, data, refresh, mouse)    
                                                
-    local char =gfx.getchar()  
+    local char =gfx.getchar()   
     ShortCuts(char)
     if char >= 0 and char ~= 27 then defer(run) else atexit(SetButtonOFF) end
+  end 
+  function TestGmem()
+    gmemtest = {}
+    for i = 1 , 500 do if gmem_read(i) > 0 then gmemtest[i] = gmem_read(i) end end
   end
   ---------------------------------------------------------------------    
   function main()
-    
         local ret = SetButtonON()
         Main_RefreshExternalLibs()
         ExtState_Load(conf) 
@@ -187,4 +190,7 @@
   atexit(SetButtonOFF)  
   local ret = CheckFunctions('VF_CheckReaperVrs') 
   local ret2 = VF_CheckReaperVrs(5.97,true)    
-  if ret and ret2 then main() end
+  if ret and ret2 then 
+    reaper.gmem_attach('RS5KManTrack' )
+    main()
+  end

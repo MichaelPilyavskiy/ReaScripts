@@ -52,6 +52,47 @@
     return DRstr
   end
   ---------------------------------------------------
+  function Choke_Save(conf, data)
+    local str = ''
+    for i = 1, 127 do
+      if not data.choke_t[i] then val = 0 else val = data.choke_t[i] end
+      str = str..','..val
+    end
+    SetProjExtState( 0, conf.ES_key, 'CHOKE', str )
+  end
+  ---------------------------------------------------
+  function Choke_Load(conf, data)
+    data.choke_t = {}
+    local ret, str = GetProjExtState( 0, conf.ES_key, 'CHOKE','') 
+    if ret < 1 then 
+      for i = 1, 127 do data.choke_t[i] = 0  end
+     else
+      local i = 0
+      for val in str:gmatch('[^,]+') do i = i + 1 data.choke_t[i] = tonumber(val ) end
+    end
+  end
+  ---------------------------------------------------
+  function Choke_Apply(conf, obj, data, refresh, mouse, pat)
+    if not data.jsfxtrack_exist or not data.validate_params then return end
+    local max_cnt = 8
+    
+    -- reset
+    for cnt = 0, max_cnt-1 do
+      TrackFX_SetParamNormalized( data.parent_track, 0, 1+cnt*2, 0  )
+      TrackFX_SetParamNormalized( data.parent_track, 0, 2+cnt*2, 0  )
+    end
+    
+    cnt  = 0
+    for i = 1, 127 do
+      if cnt+1 >max_cnt then break end
+      if data.choke_t[i] > 0 then 
+        TrackFX_SetParamNormalized( data.parent_track, 0, 1+cnt*2, i/128  )
+        TrackFX_SetParamNormalized( data.parent_track, 0, 2+cnt*2, data.choke_t[i] /128  )
+        cnt = cnt + 1
+      end
+    end
+  end
+  ---------------------------------------------------
   function GetRS5kData(data, tr) 
     local MIDIpitch_lowest
     for fxid = 1,  TrackFX_GetCount( tr ) do
@@ -310,8 +351,7 @@
   function Data_Update(conf, obj, data, refresh, mouse)
     local tr
     
-    
-    
+    Choke_Load(conf, data)
     if conf.pintrack == 1 then 
       local ret, trGUID = GetProjExtState( 0, 'MPLRS5KMANAGE', 'PINNEDTR' )
       tr = BR_GetMediaTrackByGUID( 0, trGUID )
@@ -344,6 +384,10 @@
     if data.parent_track then 
       local retval, buf = reaper.TrackFX_GetFXName( data.parent_track, 0, '' )
       data.jsfxtrack_exist = buf:match('RS5K_Manager_tracker') ~= nil
+      data.validate_params = false
+      if data.jsfxtrack_exist == true then
+        data.validate_params =  reaper.TrackFX_GetNumParams(data.parent_track, 0 ) > 0
+      end
     end
     
   end 
