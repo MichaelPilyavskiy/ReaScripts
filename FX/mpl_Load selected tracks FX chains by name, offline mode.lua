@@ -1,9 +1,9 @@
--- @description Load selected tracks FX chains by name
--- @version 1.01
+-- @description Load selected tracks FX chains by name, offline mode
+-- @version 1.0
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?p=2137484
 -- @changelog
---    # fix empty chain
+--    + init
 
   function ReplaceFXChunk(track, content)
     
