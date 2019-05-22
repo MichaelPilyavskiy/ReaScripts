@@ -1,17 +1,17 @@
 -- @description Save selected tracks FX chains
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?p=2137484
 -- @changelog
---    # Require REAPER 5.95+ and JS ReaScript API extension
---    + Ask for output folder
---    + Remove old awful code for matching FX Chains, using now single Lua pattern
+--    # increment file names
+--    # cut Input FX Chain from saved chunk
 
   function ExtractFXChunk(track )
     if TrackFX_GetCount( track ) == 0 then return end 
     local _, chunk = GetTrackStateChunk(track, '')
     local lastfxGUID = literalize(TrackFX_GetFXGUID( track, TrackFX_GetCount( track )-1))
-    return chunk:match('<FXCHAIN(.*FXID '..lastfxGUID..'.*WAK %d).*>') 
+    local out_ch = chunk:match('<FXCHAIN(.*FXID '..lastfxGUID..'[\r\n]+WAK %d).*>')
+    return out_ch
   end
   ---------------------------------------------------------------------
   function main()
@@ -44,7 +44,18 @@
       local ret1 = RecursiveCreateDirectory(saving_folder, 1)
       if ret1 == 0 then MB('Can`t create path', 'Error', 0) return end   
       for i = 1, #t do
-        local f = io.open (saving_folder..'/'..t[i].name..'.RfxChain', 'w')
+        local fname = t[i].name
+        local f = io.open (saving_folder..'/'..fname..'.RfxChain', 'r')
+        if f then
+          if fname:match('%(v[%d]+%)') then
+            local vers = fname:match('.*(%(([%d]+)%))')
+            if tonumber(vers) then fname = fname:gsub('%([%d]+%)', '(v'..(tonumber(vers)+1)..')') else fname = fname..' (1)' end
+           else
+            fname = fname..' (1)'
+          end
+          f:close()
+        end
+        local f = io.open (saving_folder..'/'..fname..'.RfxChain', 'w')
         if f then
           f:write(t[i].chunk)
           f:close()
