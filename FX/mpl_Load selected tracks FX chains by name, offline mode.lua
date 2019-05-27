@@ -1,9 +1,9 @@
 -- @description Load selected tracks FX chains by name, offline mode
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?p=2137484
 -- @changelog
---    + init
+--    # fix uncomment offline
 
   function ReplaceFXChunk(track, content)
     
@@ -61,7 +61,7 @@ rec_chain_chunk..'\n'..'>'  )
           if f then
             local content = f:read('a')
             f:close()
-            --content = MakeChainOffline(content)
+            content = MakeChainOffline(content)
             ReplaceFXChunk(track, content)
           end
         end
