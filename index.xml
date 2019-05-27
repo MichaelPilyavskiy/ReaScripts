@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="04cb58a4a5b2bef8204a9284351fb07c2aba19d7" name="MPL Scripts">
+<index version="1" commit="7e4bd69adb8e7a01876f702830b657b9ccb84744" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -822,6 +822,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/04cb58a4a5b2bef8204a9284351fb07c2aba19d7/FX/mpl_Load%20selected%20tracks%20FX%20chains%20by%20name,%20offline%20mode.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2019-05-27T12:56:51Z">
+        <changelog><![CDATA[# fix uncomment offline]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e4bd69adb8e7a01876f702830b657b9ccb84744/FX/mpl_Load%20selected%20tracks%20FX%20chains%20by%20name,%20offline%20mode.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Load selected tracks FX chains by name.lua" type="script" desc="Load selected tracks FX chains by name">
       <metadata>
@@ -1056,6 +1060,11 @@
         <changelog><![CDATA[# increment file names
 # cut Input FX Chain from saved chunk]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25e02300f247eb86fbdcb72298255abfffd3dfdd/FX/mpl_Save%20selected%20tracks%20FX%20chains.lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2019-05-27T12:56:51Z">
+        <changelog><![CDATA[# add option to overwrite saving path, for now use reaper.ini
+# disable incrementing file names, always overwrite]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e4bd69adb8e7a01876f702830b657b9ccb84744/FX/mpl_Save%20selected%20tracks%20FX%20chains.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set last touched parameter value (via deductive brutforce).lua" type="script" desc="Set last touched parameter value (via deductive brutforce)">
@@ -2737,6 +2746,15 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc4c0fe7d7f6effce3351bce96b53db58a4a065d/FX%20specific/mpl_Search%20ReaControlMIDI%20bank.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Show project linked SysEx data.lua" type="script" desc="Show project linked SysEx data">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-27T12:56:51Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e4bd69adb8e7a01876f702830b657b9ccb84744/FX%20specific/mpl_Show%20project%20linked%20SysEx%20data.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Smooth toggle X pair for ix_Mixer_8xS-1xS (background).lua" type="script" desc="Smooth toggle X pair for ix_Mixer_8xS-1xS">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -2817,6 +2835,15 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2018-05-09T15:30:22Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b00146a0dc62ce50e8989cab5a66d8525d7ad8bc/FX%20specific/mpl_Split%20focused%20ReaEQ%20to%20LR%20routing.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Store incoming SysEx into current project (background).lua" type="script" desc="Store incoming SysEx into current project (background)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-27T12:56:51Z">
+        <changelog><![CDATA[+ init, mpl_SysEx_Tracker.jsfx must be installed]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e4bd69adb8e7a01876f702830b657b9ccb84744/FX%20specific/mpl_Store%20incoming%20SysEx%20into%20current%20project%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle 64x oversampling for all ReaComp instances.lua" type="script" desc="Toggle 64x oversampling for all ReaComp instances">
@@ -3239,6 +3266,22 @@ add control for timefall showing last note]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/2e24e3ff898ba3815f4c604ebe46de4f08ffdd98/JSFX/RS5K_Manager_tracker.jsfx</source>
       </version>
     </reapack>
+    <reapack name="SysEx_Tracker.jsfx" type="effect" desc="SysEx_Tracker">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Tracking MIDI data for further passing to the related scripts for storing SysEx data into project file\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-27T12:56:51Z">
+        <changelog><![CDATA[+ initial state]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e4bd69adb8e7a01876f702830b657b9ccb84744/JSFX/SysEx_Tracker.jsfx</source>
+      </version>
+    </reapack>
   </category>
   <category name="MIDI">
     <reapack name="mpl_Copy MIDI notes from selected item.lua" type="script" desc="Copy MIDI notes from selected item">
@@ -3437,6 +3480,24 @@ add control for timefall showing last note]]></changelog>
       <version name="1.02" author="MPL" time="2017-08-23T17:29:34Z">
         <changelog><![CDATA[# fix perform note selection (sorry)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b88516f70f19e947487db943372d41ba999c4edd/MIDI/mpl_Snap%20takes%20to%20scale.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Store project linked SysEx data to SYX file into project folder.lua" type="script" desc="Store project linked SysEx data to SYX file into project folder">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-27T12:56:51Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e4bd69adb8e7a01876f702830b657b9ccb84744/MIDI/mpl_Store%20project%20linked%20SysEx%20data%20to%20SYX%20file%20into%20project%20folder.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Store project linked SysEx data to the 1st track 1st MIDI item.lua" type="script" desc="Store project linked SysEx data to the 1st track 1st MIDI item">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-27T12:56:51Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e4bd69adb8e7a01876f702830b657b9ccb84744/MIDI/mpl_Store%20project%20linked%20SysEx%20data%20to%20the%201st%20track%201st%20MIDI%20item.lua</source>
       </version>
     </reapack>
   </category>
