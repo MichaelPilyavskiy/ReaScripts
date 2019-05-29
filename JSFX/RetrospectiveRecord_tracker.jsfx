@@ -1,6 +1,6 @@
 desc:RetrospectiveRecord_tracker
-version: 1.02
-changelog: obey data sync to project time if last note was recorder while playing
+version: 1.03
+changelog: take into account block offset
 author: MPL
 website: http://forum.cockos.com/member.php?u=70694
 about:
@@ -22,7 +22,7 @@ options:gmem=mpl_RetrospectiveRecord
       new_entry_id = cnt_msg + 1;
       (new_entry_id > max_cnt) ? (new_entry_id = 1);
       gmem[new_entry_id] = msg1 + (msg2<<8) + (msg3<<16);
-      gmem[new_entry_id+max_cnt] = time_precise(0);
+      gmem[new_entry_id+max_cnt] = time_precise(0)-offset;
       cnt_msg = cnt_msg + 1;
       cnt_msg = min(cnt_msg, max_cnt);
       gmem[0] = cnt_msg;
@@ -33,4 +33,3 @@ options:gmem=mpl_RetrospectiveRecord
 @sample
 spl0=spl0;
 spl1=spl1;
-

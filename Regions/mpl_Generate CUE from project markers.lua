@@ -1,17 +1,10 @@
--- @version 1.02
+-- @description Generate CUE from project markers
+-- @version 1.03
 -- @author MPL
+-- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   + fix split name
-
---[[
-   * ReaScript Name: Generate CUE from project markers
-   * Lua script for Cockos REAPER
-   * Author: Michael Pilyavskiy (mpl)
-   * Author URI: http://forum.cockos.com/member.php?u=70694
-   * Licence: GPL v3
-  ]]
+--    + Add save file dialog (require JS ReaScript API Extension)
   
-  function msg (s) reaper.ShowConsoleMsg(s) end
   
   function main()
     local scr_name = 'MPL Generate CUE from markers'
@@ -68,8 +61,26 @@
                            ind5..'INDEX 01 '..posOut..'\n'
       end
       
-      reaper.ShowConsoleMsg(out_str)
+    -- write to file
+      retval0,  saving_folder = JS_Dialog_BrowseForSaveFile('Generate CUE file', '', '', ".cue")
+      if retval0 == 1 then 
+        if not saving_folder:lower():match('%.cue') then saving_folder = saving_folder..'.cue' end
+        local f = io.open(saving_folder, 'w')
+        if f then 
+          f:write(out_str)
+          f:close()
+         else
+          msg('(error creating file, here is CUE file content instead)\n'..out_str) 
+        end
+        
+      end
         
   end
-  
-  main()
+  ---------------------------------------------------------------------
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end 
+  --------------------------------------------------------------------  
+  local ret = CheckFunctions('VF_CalibrateFont') 
+  local ret2 = VF_CheckReaperVrs(5.95,true)    
+  if ret and ret2 then 
+    if JS_Dialog_BrowseForSaveFile then main() else MB('Missed JS ReaScript API extension', 'Error', 0) end
+  end
