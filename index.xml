@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6272be943cf0119b62345264800efa962f1f4d03" name="MPL Scripts">
+<index version="1" commit="a1eff36196d18edb313b57a229b3d036cb941c56" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3230,6 +3230,10 @@ setup min gain, attack =0]]></changelog>
         <changelog><![CDATA[obey data sync to project time if last note was recorder while playing]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/809957a6a06ba31ea895899854b07e4cdc74b54a/JSFX/RetrospectiveRecord_tracker.jsfx</source>
       </version>
+      <version name="1.03" author="MPL" time="2019-05-29T22:18:09Z">
+        <changelog><![CDATA[take into account block offset]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1eff36196d18edb313b57a229b3d036cb941c56/JSFX/RetrospectiveRecord_tracker.jsfx</source>
+      </version>
     </reapack>
     <reapack name="RS5K_Manager_tracker.jsfx" type="effect" desc="RS5K_Manager_tracker">
       <metadata>
@@ -3895,7 +3899,10 @@ add control for timefall showing last note]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ccb8e205e9b15f5336372e934170504dfcedfa80/Regions/mpl_Convert%20CUE%20file%20into%20markers.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Generate CUE from project markers.lua" type="script">
+    <reapack name="mpl_Generate CUE from project markers.lua" type="script" desc="Generate CUE from project markers">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="mpl" time="2016-06-20T14:20:43Z">
         <changelog><![CDATA[+ init release]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee721a4c0432e3918fb4a9e572d8503a184a0432/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
@@ -3907,6 +3914,10 @@ add control for timefall showing last note]]></changelog>
       <version name="1.02" author="MPL" time="2016-06-21T11:31:25Z">
         <changelog><![CDATA[+ fix split name]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2019-05-29T22:18:09Z">
+        <changelog><![CDATA[+ Add save file dialog (require JS ReaScript API Extension)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1eff36196d18edb313b57a229b3d036cb941c56/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Go to next marker id.lua" type="script" desc="Go to next marker id">
