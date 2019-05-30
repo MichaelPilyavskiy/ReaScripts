@@ -1,5 +1,5 @@
 -- @description VCV Rack tools
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
