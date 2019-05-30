@@ -1,9 +1,10 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Export selected items to single RS5k instance on selected track
+-- @noindex
 -- @changelog
---    + init
+--    #header
 
   local script_title = 'Export selected items to single RS5k instance on selected track'
   -------------------------------------------------------------------------------   

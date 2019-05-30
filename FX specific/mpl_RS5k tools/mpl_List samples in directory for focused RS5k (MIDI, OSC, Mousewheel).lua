@@ -1,10 +1,10 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description List samples in directory for focused RS5k (MIDI, OSC, Mousewheel)
+-- @noindex
 -- @changelog
---    + init
-
+--    #header
 
 -- note : mousewheel works only when arrange focused after RS5k focus
 

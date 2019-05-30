@@ -1,9 +1,10 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Add or replace source of selected item for RS5k instance on its track
+-- @noindex
 -- @changelog
---    + init
+--    #header
 
 
   function GetRS5Kpos(track)

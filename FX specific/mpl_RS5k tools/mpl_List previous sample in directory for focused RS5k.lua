@@ -1,10 +1,10 @@
 -- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
--- @description List random sample in directory for focused RS5k
+-- @description List previous sample in directory for focused RS5k
+-- @noindex
 -- @changelog
---    # prevent possible errors for path parser
---    + try to get last touched RS5k in addition to focused instance
+--    #header
 
 
 function main()
@@ -12,20 +12,11 @@ function main()
     local track = reaper.CSurf_TrackFromID( tracknumberOut, false )
     if not track then return end
     ret, fn = reaper.TrackFX_GetNamedConfigParm(track, fxnumberOut, "FILE0")
-    if not ret then     
-      ret, tracknumberOut, fxnumberOut, paramnumberOut = reaper.GetLastTouchedFX()
-      local track = reaper.CSurf_TrackFromID( tracknumberOut, false )
-      if not track then return end
-      ret, fn = reaper.TrackFX_GetNamedConfigParm(track, fxnumberOut, "FILE0")
-    end
     if not ret then return end
-    
     fn = fn:gsub('\\', '/')
     
-    path = fn:reverse():match('[%/]+.*')
-    if path then path = path:reverse():sub(0,-2) else return end
-    cur_file =     fn:reverse():match('.-[%/]')
-    if cur_file then cur_file = cur_file:reverse():sub(2) else return end
+    path = fn:reverse():match('[%/]+.*'):reverse():sub(0,-2)
+    cur_file =     fn:reverse():match('.-[%/]'):reverse():sub(2)
     -- get files list
       local files = {}
       local i = 0
@@ -40,9 +31,13 @@ function main()
     -- search file list
       local trig_file
       if #files < 2 then return end
-      trig_id = math.floor(math.random(#files-1))+1
-      trig_file = path..'/'..files[trig_id] 
-        
+      for i = #files-1, 1, -1 do
+        if files[i+1] == cur_file then 
+          trig_file = path..'/'..files[i] 
+          break 
+         elseif i ==1 then trig_file = path..'/'..files[#files] 
+        end
+      end
       
       if trig_file then 
         reaper.TrackFX_SetNamedConfigParm(track, fxnumberOut, "FILE0", trig_file)
@@ -53,4 +48,4 @@ function main()
 
   reaper.Undo_BeginBlock()
   main(track)
-  reaper.Undo_EndBlock('List random sample in directory for focused RS5k', 1)
+  reaper.Undo_EndBlock('List previous sample in directory for focused RS5k', 1)

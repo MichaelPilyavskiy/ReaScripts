@@ -1,9 +1,10 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
--- @description Add or replace source of item under mouse cursor for RS5k instance on selected track
+-- @description Add or replace source of selected item for RS5k instance on track under mouse cursor
+-- @noindex
 -- @changelog
---    + init
+--    #header
 
 
   function GetRS5Kpos(track)
@@ -16,10 +17,10 @@
   end
   
   function main()
-    reaper.BR_GetMouseCursorContext()
-    local item =  reaper.BR_GetMouseCursorContext_Item()
+    local item = reaper.GetSelectedMediaItem(0,0)
     if not item then return end
-    local track = reaper.GetSelectedTrack(0,0)
+    reaper.BR_GetMouseCursorContext()
+    local track = reaper.BR_GetMouseCursorContext_Track()
     if not track then return end
     local take = reaper.GetActiveTake(item) 
     if not take or reaper.TakeIsMIDI(take) then return end
@@ -35,4 +36,4 @@
   
   reaper.Undo_BeginBlock()
   main()
-  reaper.Undo_EndBlock('Add or replace source of item under mouse cursor for RS5k instance on selected track', 1)
+  reaper.Undo_EndBlock('Add or replace source of selected item for RS5k instance on track under mouse cursor', 1)

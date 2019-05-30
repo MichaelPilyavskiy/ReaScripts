@@ -1,9 +1,10 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description List previous sample in directory for RS5k on selected track
+-- @noindex
 -- @changelog
---    # fix for x64 vrs check
+--    #header
 
 
   local script_title = 'List previous sample for RS5k on selected track'

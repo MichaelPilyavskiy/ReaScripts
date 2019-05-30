@@ -1,9 +1,10 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Explode selected track RS5k instances to new tracks
+-- @noindex
 -- @changelog
---    + init
+--    #header
 
   local scr_nm = 'Explode selected track RS5k instances to new tracks'
   for key in pairs(reaper) do _G[key]=reaper[key]  end 

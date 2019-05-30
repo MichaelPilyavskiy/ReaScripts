@@ -1,10 +1,10 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Add or replace source of selected item for RS5k instance on selected track
+-- @noindex
 -- @changelog
---    # insert MIDI also
---    setup min gain, attack =0
+--    #header
 
 
   function GetRS5Kpos(track)

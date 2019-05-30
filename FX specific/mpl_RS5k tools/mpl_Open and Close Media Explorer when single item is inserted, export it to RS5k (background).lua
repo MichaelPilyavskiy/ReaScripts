@@ -2,8 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Open and Close Media Explorer when single item is inserted, export it to RS5k
+-- @noindex
 -- @changelog
---    # set record MIDI/Input
+--    #header
 
 
   local script_title = 'Open and Close Media Explorer when single item is inserted, export it to RS5k'

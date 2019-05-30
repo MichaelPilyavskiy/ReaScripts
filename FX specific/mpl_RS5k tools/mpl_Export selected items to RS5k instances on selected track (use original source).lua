@@ -1,9 +1,10 @@
 -- @description Export selected items to RS5k instances on selected track (use original source)
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
+-- @noindex
 -- @changelog
---    + init
+--    #header
 
 
   local vrs = 'v1.0'

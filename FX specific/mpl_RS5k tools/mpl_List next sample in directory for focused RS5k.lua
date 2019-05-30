@@ -1,9 +1,10 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
--- @description List previous sample in directory for focused RS5k
+-- @description List next sample in directory for focused RS5k
+-- @noindex
 -- @changelog
---    + init
+--    #header
 
 
 function main()
@@ -30,12 +31,13 @@ function main()
     -- search file list
       local trig_file
       if #files < 2 then return end
-      for i = #files-1, 1, -1 do
-        if files[i+1] == cur_file then 
+      for i = 2, #files do
+        if files[i-1] == cur_file then 
           trig_file = path..'/'..files[i] 
           break 
-         elseif i ==1 then trig_file = path..'/'..files[#files] 
+         elseif i == #files then trig_file = path..'/'..files[1] 
         end
+        
       end
       
       if trig_file then 
@@ -47,4 +49,4 @@ function main()
 
   reaper.Undo_BeginBlock()
   main(track)
-  reaper.Undo_EndBlock('List previous sample in directory for focused RS5k', 1)
+  reaper.Undo_EndBlock('List next sample in directory for focused RS5k', 1)

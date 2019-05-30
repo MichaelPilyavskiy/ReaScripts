@@ -1,9 +1,10 @@
--- @version 1.16
+-- @version 1.17
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Export selected items to RS5k instances on selected track (drum mode)
+-- @noindex
 -- @changelog
---    # try preventin line60 error
+--    #header
 
 
   local script_title = 'Export selected items to RS5k instances on selected track (drum mode)' 

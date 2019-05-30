@@ -1,9 +1,10 @@
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Export selected item to RS5k instance on same track as chromatic source
+-- @noindex
 -- @changelog
---    # set record MIDI/Input
+--    #header
 
   local script_title = 'Export selected item to RS5k instance on same track as chromatic source'
   

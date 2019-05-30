@@ -1,9 +1,10 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Float RS5k related to input note on last touched track
+-- @noindex
 -- @changelog
---    #fix floating only first matching instance
+--    #header
   
 
   function main()

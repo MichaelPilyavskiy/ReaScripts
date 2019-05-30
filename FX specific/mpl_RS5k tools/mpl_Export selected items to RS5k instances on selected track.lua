@@ -1,9 +1,10 @@
--- @version 1.14
+-- @version 1.15
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Export selected items to RS5k instances on selected track
+-- @noindex
 -- @changelog
---    # set record MIDI/Input
+--    #header
 
   local script_title = 'Export selected items to RS5k instances on selected track'
   
