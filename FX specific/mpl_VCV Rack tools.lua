@@ -1,5 +1,5 @@
 -- @description VCV Rack tools
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -14,6 +14,9 @@
 --    [main] mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by source module row.lua
 --    [main] mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by destination module row.lua
 --    [main] mpl_VCV Rack tools/mpl_Randomize VCVRack module parameters (except Core).lua
+--    [main] mpl_VCV Rack tools/mpl_Randomize VCVRack module parameters by 0.05V (except Core).lua
+--    [main] mpl_VCV Rack tools/mpl_Generate random VCV patch from Fundamental modules.lua
 --    mpl_VCV Rack tools/json2lua.lua
 --  @changelog
---    # fix broken file asking
+--    + add mpl_Randomize VCVRack module parameters by 0.05V (except Core)
+--    + add mpl_Generate random VCV patch from Fundamental modules.lua as an example to patch creation
