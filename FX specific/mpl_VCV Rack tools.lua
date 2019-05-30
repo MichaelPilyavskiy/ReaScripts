@@ -1,9 +1,10 @@
 -- @description VCV Rack tools
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
 -- @provides
+--    mpl_VCV Rack tools.lua
 --    [main] mpl_VCV Rack tools/mpl_Generate clock for last touched VCVRack bridge CC.lua
 --    [main] mpl_VCV Rack tools/mpl_Generate clock reset for last touched VCVRack bridge CC.lua
 --    [main] mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by destination module.lua
@@ -15,6 +16,4 @@
 --    [main] mpl_VCV Rack tools/mpl_Randomize VCVRack module parameters (except Core).lua
 --    mpl_VCV Rack tools/json2lua.lua
 --  @changelog
---    # fix broken json2lua lib path
---    + Add: randomize VCVRack wire colors by module row
---    + Add: randomize VCVRack module parameters
+--    # fix broken file asking

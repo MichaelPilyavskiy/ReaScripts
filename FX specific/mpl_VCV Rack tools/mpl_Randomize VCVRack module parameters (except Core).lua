@@ -1,10 +1,10 @@
 -- @description Randomize VCVRack module parameters (except Core)
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @noindex
 -- @changelog
---    + init
+--    # fix file ask
   
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -29,10 +29,9 @@
   end
   ---------------------------------------------------------------------
   function main()
-    --[[ get file
+    -- get file
       local retval, fp = GetUserFileNameForRead('', 'Randomize VCVRack wire colors', 'vcv' )
-      if not retval then return end ]]
-      fp = [[C:\Users\mpl\Desktop\FINwsh3-scale2_mod5_1_maj4 - Copy.vcv]]
+      if not retval then return end 
       local f,content = io.open(fp, 'r')
       if not f then return else 
         content = f:read('a')

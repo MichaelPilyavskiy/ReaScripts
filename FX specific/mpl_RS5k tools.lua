@@ -1,9 +1,10 @@
 -- @description RS5k tools
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
 -- @provides
+--    mpl_RS5k tools.lua
 --    [main] mpl_RS5k tools/mpl_Add or replace source of item under mouse cursor for RS5k instance on selected track.lua
 --    [main] mpl_RS5k tools/mpl_Add or replace source of selected item for RS5k instance on its track.lua
 --    [main] mpl_RS5k tools/mpl_Add or replace source of selected item for RS5k instance on selected track.lua
@@ -24,4 +25,4 @@
 --    [main] mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export chromatically to RS5k (background).lua
 --    [main] mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k (background).lua
 -- @changelog
---     # change name
+--     # add metapckg
