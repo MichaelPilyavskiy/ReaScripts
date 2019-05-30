@@ -1,3 +1,9 @@
+-- @description json2lua
+-- @author MPL
+-- @noindex
+-- @version 1.0
+
+
 --https://gist.github.com/tylerneylon/59f4bcf316be525b30ab
 
 
