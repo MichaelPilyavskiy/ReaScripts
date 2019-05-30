@@ -1,9 +1,10 @@
 -- @description Randomize VCVRack wire colors by source module
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @noindex
 -- @changelog
---    + init
+--   #header
   
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 

@@ -1,9 +1,10 @@
 -- @description Generate random impulses for last touched VCVRack bridge CC
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
+-- @noindex
 -- @changelog
---    + init
+--   #header
 
 
   local vrs = 'v1.0'
