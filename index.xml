@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a1eff36196d18edb313b57a229b3d036cb941c56" name="MPL Scripts">
+<index version="1" commit="a37a9ae740f7552c5a00050fe2440136380359eb" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1622,30 +1622,6 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1003383f5153dc76aba4020eba8848b023f4c40/FX%20specific/mpl_Add%20time%20adjustment%20JSFX%20to%20selected%20tracks%20(with%20delay%20TCP).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Build harmonic series bands for focused ReaEQ.lua" type="script" desc="Build harmonic series bands for focused ReaEQ">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-05-05T10:05:18Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/787da849745b6ef3418e6b55015c2d1405812371/FX%20specific/mpl_Build%20harmonic%20series%20bands%20for%20focused%20ReaEQ.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2018-05-06T23:49:30Z">
-        <changelog><![CDATA[+ link bandwidth after building
-+ bands gain reduce factor
-+ remember settings]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a8d90fc1720b46e123ab3336b7e62931ca72d9be/FX%20specific/mpl_Build%20harmonic%20series%20bands%20for%20focused%20ReaEQ.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2018-10-04T21:00:37Z">
-        <changelog><![CDATA[# smaller init Q
-+ option to link Gain [p=2042020]]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/20e7cebeea73b7154ad259083d442d0d639383f7/FX%20specific/mpl_Build%20harmonic%20series%20bands%20for%20focused%20ReaEQ.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2018-10-15T18:18:34Z">
-        <changelog><![CDATA[# rename 'reduce Gain' to 'Gain decrement/increment'
-# allow positive init gain]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/343f7fd4199c72aca9808957adb4cba9981867a9/FX%20specific/mpl_Build%20harmonic%20series%20bands%20for%20focused%20ReaEQ.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Bypass all UAD FX on all tracks.lua" type="script" desc="Bypass all UAD FX on all tracks">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -1880,24 +1856,6 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0aea8d0ce03ad042fe8b6875271e9eae4920cfe3/FX%20specific/mpl_Float%20s(M)exoscope%20on%20master%20channel.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Generate clock for last touched VCVRack bridge CC.lua" type="script" desc="Generate clock for last touched VCVRack bridge CC">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-08-19T07:57:59Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/24924e17ad1f851d2f1630542c4cb553f0f6750b/FX%20specific/mpl_Generate%20clock%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Generate clock reset for last touched VCVRack bridge CC.lua" type="script" desc="Generate clock reset for last touched VCVRack bridge CC">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-08-19T07:57:59Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/24924e17ad1f851d2f1630542c4cb553f0f6750b/FX%20specific/mpl_Generate%20clock%20reset%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Generate DC offset envelope from asymmetric waveform.lua" type="script" desc="Generate DC offset envelope from asymmetric waveform">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -1909,24 +1867,6 @@ setup min gain, attack =0]]></changelog>
       <version name="1.01" author="MPL" time="2018-09-20T21:35:00Z">
         <changelog><![CDATA[# hardcoded buffer limit = 2^21 (approximately 48 seconds for 44100 SR)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/FX%20specific/mpl_Generate%20DC%20offset%20envelope%20from%20asymmetric%20waveform.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take.lua" type="script" desc="Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-08-19T07:57:59Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/24924e17ad1f851d2f1630542c4cb553f0f6750b/FX%20specific/mpl_Generate%20pitch%20CV%20for%20last%20touched%20VCVRack%20bridge%20CC%20from%20selected%20MIDI%20take.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Generate random impulses for last touched VCVRack bridge CC.lua" type="script" desc="Generate random impulses for last touched VCVRack bridge CC">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-08-19T08:17:37Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/69a37f629b4d5a5fe17a4b6778852d0530832f76/FX%20specific/mpl_Generate%20random%20impulses%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_List next sample in directory for focused RS5k.lua" type="script" desc="List next sample in directory for focused RS5k">
@@ -2029,31 +1969,6 @@ setup min gain, attack =0]]></changelog>
       <version name="1.03" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[# set record MIDI/Input]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k%20(background).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Port focused ReaEQ bands to spectral edits on selected items.lua" type="script" desc="Port focused ReaEQ bands to spectral edits on selected items">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-05-05T10:45:01Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ccad289d05e92019a489f397d55a852dc827dd28/FX%20specific/mpl_Port%20focused%20ReaEQ%20bands%20to%20spectral%20edits%20on%20selected%20items.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2018-05-05T15:52:17Z">
-        <changelog><![CDATA[# proper obeying time selection
-# commit spectral edits once
-# do not add bands with gain less than 1dB
-# do not add bands with BW bigger than 1oct
-# add band, band(alt), band(alt2) types only]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/09250737602df33b1f026f49aa14556f84a4893b/FX%20specific/mpl_Port%20focused%20ReaEQ%20bands%20to%20spectral%20edits%20on%20selected%20items.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2018-05-09T17:44:04Z">
-        <changelog><![CDATA[+ Write Undo history entry
-# hardcoded spectral area (0-1000:50Hz, 1000-5000:200Hz, 5000-10000:500Hz, 10000+:1000Hz)
-# timeselection obeying improvements
-# increase BW to 2oct
-# respect take start offset
-# respect take playrate]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/67b653dbafd520ad6dc23403b5836f48cf65a2be/FX%20specific/mpl_Port%20focused%20ReaEQ%20bands%20to%20spectral%20edits%20on%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Prepare selected track for RetrospectiveRecord tracker.lua" type="script" desc="Prepare selected track for RetrospectiveRecord tracker">
@@ -2720,22 +2635,6 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6c444a505dd130cc4b87bb84573bc2372d41ce31/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-05-05T07:31:16Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d2dc7da0fd561ee687a2c586a13793148400b81a/FX%20specific/mpl_Scale%20focused%20ReaEQ%20bands%20gain%20down.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Scale focused ReaEQ bands gain up.lua" type="script" desc="Scale focused ReaEQ bands gain up">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-05-05T07:31:16Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d2dc7da0fd561ee687a2c586a13793148400b81a/FX%20specific/mpl_Scale%20focused%20ReaEQ%20bands%20gain%20up.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Search ReaControlMIDI bank.lua" type="script" desc="Search ReaControlMIDI bank">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -2767,93 +2666,6 @@ setup min gain, attack =0]]></changelog>
         <source main="main" file="mpl_Smooth toggle 9-10 pair for ix_Mixer_8xS-1xS.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX%20specific/mpl_Smooth%20toggle%20X%20pair%20for%20ix_Mixer_8xS-1xS%20(background).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Solo last touched ReaEQ band (alter).lua" type="script" desc="Solo last touched ReaEQ band (alter)">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Alter bands when soloing (band<>bandpass, LP<>HP, HP<>LP)\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-05-05T12:34:29Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7788e3b832928cb19e19c3a8f01e481bbdd10fd0/FX%20specific/mpl_Solo%20last%20touched%20ReaEQ%20band%20(alter).lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2018-05-05T18:45:29Z">
-        <changelog><![CDATA[# fix version check]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e8d4f33a394d12cc4e4e251497ca25476793c38a/FX%20specific/mpl_Solo%20last%20touched%20ReaEQ%20band%20(alter).lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2018-09-29T19:16:42Z">
-        <changelog><![CDATA[# fix version check2]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/009b1423048b676da98415ba7461c3c87d9f400a/FX%20specific/mpl_Solo%20last%20touched%20ReaEQ%20band%20(alter).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Solo last touched ReaEQ band.lua" type="script" desc="Solo last touched ReaEQ band">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-05-05T05:50:45Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/802f7ac70368d3f5da1dbfc5eaa6177a3f8547f7/FX%20specific/mpl_Solo%20last%20touched%20ReaEQ%20band.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2018-05-05T18:45:29Z">
-        <changelog><![CDATA[# fix version check]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e8d4f33a394d12cc4e4e251497ca25476793c38a/FX%20specific/mpl_Solo%20last%20touched%20ReaEQ%20band.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2018-09-29T19:16:42Z">
-        <changelog><![CDATA[# fix version check2]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/009b1423048b676da98415ba7461c3c87d9f400a/FX%20specific/mpl_Solo%20last%20touched%20ReaEQ%20band.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2018-10-15T18:18:34Z">
-        <changelog><![CDATA[# fix version from wrong ReaPack branch (in this version it shouldn`t alter type of bands)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/343f7fd4199c72aca9808957adb4cba9981867a9/FX%20specific/mpl_Solo%20last%20touched%20ReaEQ%20band.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Sort focused ReaEQ bands by frequency.lua" type="script" desc="Sort focused ReaEQ bands by frequency">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-05-04T18:31:39Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6fe9f410ba1f28e4d6c17c78d1ec3b8f67e587e3/FX%20specific/mpl_Sort%20focused%20ReaEQ%20bands%20by%20frequency.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2018-05-05T18:45:29Z">
-        <changelog><![CDATA[# fix version check]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e8d4f33a394d12cc4e4e251497ca25476793c38a/FX%20specific/mpl_Sort%20focused%20ReaEQ%20bands%20by%20frequency.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2018-09-02T15:37:54Z">
-        <changelog><![CDATA[# use native chunk function (REAPER 5.95)
-# force use mpl_Various_functions.lua
-# update version check]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5402e21b88544611ce8ad9d779917478e5e1c72b/FX%20specific/mpl_Sort%20focused%20ReaEQ%20bands%20by%20frequency.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Split focused ReaEQ to LR routing.lua" type="script" desc="Split focused ReaEQ to LR routing">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-05-09T15:30:22Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b00146a0dc62ce50e8989cab5a66d8525d7ad8bc/FX%20specific/mpl_Split%20focused%20ReaEQ%20to%20LR%20routing.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Toggle 64x oversampling for all ReaComp instances.lua" type="script" desc="Toggle 64x oversampling for all ReaComp instances">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-06-02T18:11:59Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6f4c2663b9803f4f5fa87ffd5267228caf0c31b9/FX%20specific/mpl_Toggle%2064x%20oversampling%20for%20all%20ReaComp%20instances.lua</source>
-      </version>
-      <version name="1.1" author="MPL" time="2017-06-02T19:47:50Z">
-        <changelog><![CDATA[+ fix 'limit output' check]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/90a5ee8773ba02029a86c4eaf6e5251d3808df8f/FX%20specific/mpl_Toggle%2064x%20oversampling%20for%20all%20ReaComp%20instances.lua</source>
-      </version>
-      <version name="1.2" author="MPL" time="2017-06-05T17:30:36Z">
-        <changelog><![CDATA[+ perform master also]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bdf1ff101657d65304642e93dba084659c50cef/FX%20specific/mpl_Toggle%2064x%20oversampling%20for%20all%20ReaComp%20instances.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Toggle solo focused ReaXcomp band X.lua" type="script" desc="Toggle solo focused ReaXcomp band X">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -2866,6 +2678,158 @@ setup min gain, attack =0]]></changelog>
         <source main="main" file="mpl_Toggle solo focused ReaXcomp band 4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4be1840a710bad1cff78c3300821786e9f2f52e9/FX%20specific/mpl_Toggle%20solo%20focused%20ReaXcomp%20band%20X.lua</source>
         <source main="main" file="mpl_Toggle solo focused ReaXcomp band 5.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4be1840a710bad1cff78c3300821786e9f2f52e9/FX%20specific/mpl_Toggle%20solo%20focused%20ReaXcomp%20band%20X.lua</source>
         <source main="main" file="mpl_Toggle solo focused ReaXcomp band 6.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4be1840a710bad1cff78c3300821786e9f2f52e9/FX%20specific/mpl_Toggle%20solo%20focused%20ReaXcomp%20band%20X.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="FX specific/mpl_ReaEQ tools">
+    <reapack name="mpl_Build harmonic series bands for focused ReaEQ.lua" type="script" desc="Build harmonic series bands for focused ReaEQ">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.03" author="MPL" time="2019-05-30T13:30:24Z">
+        <changelog><![CDATA[# rename 'reduce Gain' to 'Gain decrement/increment'
+# allow positive init gain]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_ReaEQ%20tools/mpl_Build%20harmonic%20series%20bands%20for%20focused%20ReaEQ.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Port focused ReaEQ bands to spectral edits on selected items.lua" type="script" desc="Port focused ReaEQ bands to spectral edits on selected items">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.02" author="MPL" time="2019-05-30T13:30:24Z">
+        <changelog><![CDATA[+ Write Undo history entry
+# hardcoded spectral area (0-1000:50Hz, 1000-5000:200Hz, 5000-10000:500Hz, 10000+:1000Hz)
+# timeselection obeying improvements
+# increase BW to 2oct
+# respect take start offset
+# respect take playrate]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_ReaEQ%20tools/mpl_Port%20focused%20ReaEQ%20bands%20to%20spectral%20edits%20on%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_ReaEQ%20tools/mpl_Scale%20focused%20ReaEQ%20bands%20gain%20down.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Scale focused ReaEQ bands gain up.lua" type="script" desc="Scale focused ReaEQ bands gain up">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_ReaEQ%20tools/mpl_Scale%20focused%20ReaEQ%20bands%20gain%20up.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Solo last touched ReaEQ band (alter).lua" type="script" desc="Solo last touched ReaEQ band (alter)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Alter bands when soloing (band<>bandpass, LP<>HP, HP<>LP)\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.02" author="MPL" time="2019-05-30T13:30:24Z">
+        <changelog><![CDATA[# fix version check2]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_ReaEQ%20tools/mpl_Solo%20last%20touched%20ReaEQ%20band%20(alter).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Solo last touched ReaEQ band.lua" type="script" desc="Solo last touched ReaEQ band">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.03" author="MPL" time="2019-05-30T13:30:24Z">
+        <changelog><![CDATA[# fix version from wrong ReaPack branch (in this version it shouldn`t alter type of bands)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_ReaEQ%20tools/mpl_Solo%20last%20touched%20ReaEQ%20band.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Sort focused ReaEQ bands by frequency.lua" type="script" desc="Sort focused ReaEQ bands by frequency">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.02" author="MPL" time="2019-05-30T13:30:24Z">
+        <changelog><![CDATA[# use native chunk function (REAPER 5.95)
+# force use mpl_Various_functions.lua
+# update version check]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_ReaEQ%20tools/mpl_Sort%20focused%20ReaEQ%20bands%20by%20frequency.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Split focused ReaEQ to LR routing.lua" type="script" desc="Split focused ReaEQ to LR routing">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_ReaEQ%20tools/mpl_Split%20focused%20ReaEQ%20to%20LR%20routing.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle 64x oversampling for all ReaComp instances.lua" type="script" desc="Toggle 64x oversampling for all ReaComp instances">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.2" author="MPL" time="2019-05-30T13:30:24Z">
+        <changelog><![CDATA[+ perform master also]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_ReaEQ%20tools/mpl_Toggle%2064x%20oversampling%20for%20all%20ReaComp%20instances.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="FX specific/mpl_VCV Rack tools">
+    <reapack name="mpl_Generate clock for last touched VCVRack bridge CC.lua" type="script" desc="Generate clock for last touched VCVRack bridge CC">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Generate clock reset for last touched VCVRack bridge CC.lua" type="script" desc="Generate clock reset for last touched VCVRack bridge CC">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20reset%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take.lua" type="script" desc="Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20pitch%20CV%20for%20last%20touched%20VCVRack%20bridge%20CC%20from%20selected%20MIDI%20take.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Generate random impulses for last touched VCVRack bridge CC.lua" type="script" desc="Generate random impulses for last touched VCVRack bridge CC">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20random%20impulses%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Randomize VCVRack wire colors by destination module.lua" type="script" desc="Randomize VCVRack wire colors by destination module">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20destination%20module.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Randomize VCVRack wire colors by source module.lua" type="script" desc="Randomize VCVRack wire colors by source module">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20source%20module.lua</source>
       </version>
     </reapack>
   </category>
