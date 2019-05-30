@@ -1,0 +1,12 @@
+-- @description VCV Rack tools
+-- @version 1.0
+-- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @provides
+--    [main] mpl_VCV Rack tools/mpl_Generate clock for last touched VCVRack bridge CC.lua
+--    [main] mpl_VCV Rack tools/mpl_Generate clock reset for last touched VCVRack bridge CC.lua
+--    [main] mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by destination module.lua
+--    [main] mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by source module.lua
+--    [main] mpl_VCV Rack tools/mpl_Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take.lua
+--    [main] mpl_VCV Rack tools/mpl_Generate random impulses for last touched VCVRack bridge CC
+--    mpl_VCV Rack tools/json2lua.lua
