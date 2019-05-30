@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b4d064a63aaa31d33a417ef7b054d8ef0866937e" name="MPL Scripts">
+<index version="1" commit="d6bdd347a5b570deca4b5271a67ea36948476816" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1554,47 +1554,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d61d3746dcb20d01fd5a70040e11ee9c860e2a70/FX%20specific/mpl_Add%20channel%20strip%20controls%20to%20selected%20tracks%20TCP.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Add or replace source of item under mouse cursor for RS5k instance on selected track.lua" type="script" desc="Add or replace source of item under mouse cursor for RS5k instance on selected track">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-04-08T09:39:22Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/628e26f4f011dbd2314b361bf7452b2490dcd205/FX%20specific/mpl_Add%20or%20replace%20source%20of%20item%20under%20mouse%20cursor%20for%20RS5k%20instance%20on%20selected%20track.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Add or replace source of selected item for RS5k instance on its track.lua" type="script" desc="Add or replace source of selected item for RS5k instance on its track">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-08-15T19:38:24Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d83eabadd503372a203304db78db5d29057d0a/FX%20specific/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20its%20track.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Add or replace source of selected item for RS5k instance on selected track.lua" type="script" desc="Add or replace source of selected item for RS5k instance on selected track">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-04-08T09:39:22Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/628e26f4f011dbd2314b361bf7452b2490dcd205/FX%20specific/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20selected%20track.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-08-15T19:38:24Z">
-        <changelog><![CDATA[# insert MIDI also
-setup min gain, attack =0]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d83eabadd503372a203304db78db5d29057d0a/FX%20specific/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20selected%20track.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Add or replace source of selected item for RS5k instance on track under mouse cursor.lua" type="script" desc="Add or replace source of selected item for RS5k instance on track under mouse cursor">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-04-08T09:39:22Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/628e26f4f011dbd2314b361bf7452b2490dcd205/FX%20specific/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20track%20under%20mouse%20cursor.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Add pre-fx control to selected tracks TCP.lua" type="script" desc="Add pre-fx control to selected tracks TCP">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -1720,111 +1679,6 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/97572abe24fc8a431c07e0fa429d612ee8aaa43e/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Explode selected track RS5k instances to new tracks.lua" type="script" desc="Explode selected track RS5k instances to new tracks">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-08-26T04:42:02Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a939c4353acb3acda7e5ed57e29c61f8c57f50b1/FX%20specific/mpl_Explode%20selected%20track%20RS5k%20instances%20to%20new%20tracks.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Export selected item to RS5k instance on same track as chromatic source.lua" type="script" desc="Export selected item to RS5k instance on same track as chromatic source">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-03-16T18:49:09Z">
-        <changelog><![CDATA[+ inti]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/da849268a36340d13fe51100552b6d8c21fdaa1f/FX%20specific/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-03-25T07:14:22Z">
-        <changelog><![CDATA[# fix for x64 vrs check]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fac49a7cf0a9c16a893a744e90aad60d3cf32cd1/FX%20specific/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-03-25T17:40:26Z">
-        <changelog><![CDATA[+ check for one item is selected
-+ prepare track for MIDI input
-+ glue item before export]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f3a3c5e157126c61983e251c3e3fdd040d11003/FX%20specific/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2017-03-25T21:00:32Z">
-        <changelog><![CDATA[# set record MIDI/Input]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2e542cd93328452d2fa07f8603fe9273b85a500/FX%20specific/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Export selected items to RS5k instances on selected track (drum mode).lua" type="script" desc="Export selected items to RS5k instances on selected track (drum mode)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.13" author="MPL" time="2017-03-25T17:40:26Z">
-        <changelog><![CDATA[+ init branch from Export selected items to RS5k instances on selected track
-+ obey notesoff - disabled
-+ maxvoices=1]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f3a3c5e157126c61983e251c3e3fdd040d11003/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(drum%20mode).lua</source>
-      </version>
-      <version name="1.15" author="MPL" time="2017-03-25T21:00:32Z">
-        <changelog><![CDATA[# set record MIDI/Input]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2e542cd93328452d2fa07f8603fe9273b85a500/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(drum%20mode).lua</source>
-      </version>
-      <version name="1.16" author="MPL" time="2017-07-05T18:58:14Z">
-        <changelog><![CDATA[# try preventin line60 error]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dc11226898e8bc7a6843ae6492bb38205c323551/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(drum%20mode).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Export selected items to RS5k instances on selected track (use original source).lua" type="script" desc="Export selected items to RS5k instances on selected track (use original source)">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-08-19T13:29:17Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/88dbe43d7353973866e042702fcb46f43d977f7b/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Export selected items to RS5k instances on selected track.lua" type="script" desc="Export selected items to RS5k instances on selected track">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-03-14T20:48:53Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d559cd4087e6a2cbf570314d1183fa22760ac8e4/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
-      </version>
-      <version name="1.1" author="MPL" time="2017-03-15T05:09:28Z">
-        <changelog><![CDATA[+ enable RS5k obey notes off
-+ set RS5k attack to 0
-+ perform recoded X-Raym_Glue selected items independently.eel before export]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8d8b6f30b85dd02c3f9ad68f9266df33e0c4fd97/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
-      </version>
-      <version name="1.10" author="MPL" time="2017-03-16T04:13:01Z">
-        <changelog><![CDATA[+ delete items after export
-# fix version check]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e2ce71ef703c3fd6ab66d668ebc5d6a932ca6e2/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
-      </version>
-      <version name="1.11" author="MPL" time="2017-03-16T18:07:13Z">
-        <changelog><![CDATA[+ create MIDI item if selected items placed on same track (MIDI from sliced loop)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25aad25298c66f3fc757ebee387be1100f776e95/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
-      </version>
-      <version name="1.12" author="MPL" time="2017-03-25T07:14:22Z">
-        <changelog><![CDATA[# fix for x64 vrs check]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fac49a7cf0a9c16a893a744e90aad60d3cf32cd1/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
-      </version>
-      <version name="1.13" author="MPL" time="2017-03-25T17:40:26Z">
-        <changelog><![CDATA[+ prepare track for MIDI input]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f3a3c5e157126c61983e251c3e3fdd040d11003/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
-      </version>
-      <version name="1.14" author="MPL" time="2017-03-25T21:00:32Z">
-        <changelog><![CDATA[# set record MIDI/Input]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2e542cd93328452d2fa07f8603fe9273b85a500/FX%20specific/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Export selected items to single RS5k instance on selected track.lua" type="script" desc="Export selected items to single RS5k instance on selected track">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-09-15T09:46:14Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6c55937c9a793b947433e51af4102268944a0580/FX%20specific/mpl_Export%20selected%20items%20to%20single%20RS5k%20instance%20on%20selected%20track.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Float Fre(a)koscope on master channel.lua" type="script" desc="Float Fre(a)koscope on master channel">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -1832,19 +1686,6 @@ setup min gain, attack =0]]></changelog>
       <version name="1.0" author="MPL" time="2017-05-13T21:43:36Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0aea8d0ce03ad042fe8b6875271e9eae4920cfe3/FX%20specific/mpl_Float%20Fre(a)koscope%20on%20master%20channel.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Float RS5k related to input note on last touched track.lua" type="script" desc="Float RS5k related to input note on last touched track">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-09-11T04:12:21Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d62681edc09d061d9c20ed398f76ab5ec63a4be5/FX%20specific/mpl_Float%20RS5k%20related%20to%20input%20note%20on%20last%20touched%20track.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-09-11T12:36:53Z">
-        <changelog><![CDATA[#fix floating only first matching instance]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2839fea7556cd5b4000a7582d0da015ede876e57/FX%20specific/mpl_Float%20RS5k%20related%20to%20input%20note%20on%20last%20touched%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Float s(M)exoscope on master channel.lua" type="script" desc="Float s(M)exoscope on master channel">
@@ -1869,50 +1710,6 @@ setup min gain, attack =0]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/FX%20specific/mpl_Generate%20DC%20offset%20envelope%20from%20asymmetric%20waveform.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_List next sample in directory for focused RS5k.lua" type="script" desc="List next sample in directory for focused RS5k">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-07-09T09:20:00Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/516b4f2f58b161ee2283c1e6a070ee8d0fb4ec44/FX%20specific/mpl_List%20next%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_List next sample in directory for RS5k on selected track.lua" type="script" desc="List next sample in directory for RS5k on selected track">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-03-15T06:01:15Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/506fd78bdf53a7b5666c81e140988b2a0ca07541/FX%20specific/mpl_List%20next%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-03-25T07:14:22Z">
-        <changelog><![CDATA[# fix for x64 vrs check]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fac49a7cf0a9c16a893a744e90aad60d3cf32cd1/FX%20specific/mpl_List%20next%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_List previous sample in directory for focused RS5k.lua" type="script" desc="List previous sample in directory for focused RS5k">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-07-09T09:20:00Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/516b4f2f58b161ee2283c1e6a070ee8d0fb4ec44/FX%20specific/mpl_List%20previous%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_List previous sample in directory for RS5k on selected track.lua" type="script" desc="List previous sample in directory for RS5k on selected track">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-03-15T06:01:15Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/506fd78bdf53a7b5666c81e140988b2a0ca07541/FX%20specific/mpl_List%20previous%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-03-25T07:14:22Z">
-        <changelog><![CDATA[# fix for x64 vrs check]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fac49a7cf0a9c16a893a744e90aad60d3cf32cd1/FX%20specific/mpl_List%20previous%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_List random impulse in directory for focused ReaVerb.lua" type="script" desc="List random impulse in directory for focused ReaVerb">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -1924,51 +1721,6 @@ setup min gain, attack =0]]></changelog>
       <version name="1.01" author="MPL" time="2017-09-11T12:36:53Z">
         <changelog><![CDATA[+ search level up from parent folder]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2839fea7556cd5b4000a7582d0da015ede876e57/FX%20specific/mpl_List%20random%20impulse%20in%20directory%20for%20focused%20ReaVerb.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_List random sample in directory for focused RS5k.lua" type="script" desc="List random sample in directory for focused RS5k">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-09-11T04:12:21Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d62681edc09d061d9c20ed398f76ab5ec63a4be5/FX%20specific/mpl_List%20random%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-09-14T19:01:58Z">
-        <changelog><![CDATA[# prevent possible errors for path parser
-+ try to get last touched RS5k in addition to focused instance]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb2d39b03df599db3f8229da78513eae74a81449/FX%20specific/mpl_List%20random%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_List samples in directory for focused RS5k (MIDI, OSC, Mousewheel).lua" type="script" desc="List samples in directory for focused RS5k (MIDI, OSC, Mousewheel)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-07-09T09:20:00Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/516b4f2f58b161ee2283c1e6a070ee8d0fb4ec44/FX%20specific/mpl_List%20samples%20in%20directory%20for%20focused%20RS5k%20(MIDI,%20OSC,%20Mousewheel).lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-07-09T09:29:33Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3d5f2c7e20a37fb738cccceb4f455627a991db02/FX%20specific/mpl_List%20samples%20in%20directory%20for%20focused%20RS5k%20(MIDI,%20OSC,%20Mousewheel).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Open and Close Media Explorer when single item is inserted, export chromatically to RS5k (background).lua" type="script" desc="Open and Close Media Explorer when single item is inserted, export chromatically to RS5k">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20chromatically%20to%20RS5k%20(background).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k (background).lua" type="script" desc="Open and Close Media Explorer when single item is inserted, export it to RS5k">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.03" author="MPL" time="2018-01-27T04:42:47Z">
-        <changelog><![CDATA[# set record MIDI/Input]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX%20specific/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Prepare selected track for RetrospectiveRecord tracker.lua" type="script" desc="Prepare selected track for RetrospectiveRecord tracker">
@@ -2651,6 +2403,32 @@ setup min gain, attack =0]]></changelog>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6c444a505dd130cc4b87bb84573bc2372d41ce31/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_RS5k tools.lua" type="script" desc="mpl_RS5k tools">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-05-30T14:04:46Z">
+        <source main="main" file="mpl_RS5k tools/mpl_Add or replace source of item under mouse cursor for RS5k instance on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_Add%20or%20replace%20source%20of%20item%20under%20mouse%20cursor%20for%20RS5k%20instance%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Add or replace source of selected item for RS5k instance on its track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20its%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Add or replace source of selected item for RS5k instance on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Add or replace source of selected item for RS5k instance on track under mouse cursor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Explode selected track RS5k instances to new tracks.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_Explode%20selected%20track%20RS5k%20instances%20to%20new%20tracks.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected item to RS5k instance on same track as chromatic source.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to RS5k instances on selected track (drum mode).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(drum%20mode).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to RS5k instances on selected track (use original source).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to RS5k instances on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to single RS5k instance on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20single%20RS5k%20instance%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Float RS5k related to input note on last touched track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_Float%20RS5k%20related%20to%20input%20note%20on%20last%20touched%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List next sample in directory for focused RS5k.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_List%20next%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List next sample in directory for RS5k on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_List%20next%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List previous sample in directory for focused RS5k.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_List%20previous%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List previous sample in directory for RS5k on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_List%20previous%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List random sample in directory for focused RS5k.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_List%20random%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List samples in directory for focused RS5k (MIDI, OSC, Mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_List%20samples%20in%20directory%20for%20focused%20RS5k%20(MIDI,%20OSC,%20Mousewheel).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export chromatically to RS5k (background).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20chromatically%20to%20RS5k%20(background).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k (background).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6bdd347a5b570deca4b5271a67ea36948476816/FX%20specific/mpl_RS5k%20tools/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k%20(background).lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Search ReaControlMIDI bank.lua" type="script" desc="Search ReaControlMIDI bank">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -2694,6 +2472,20 @@ setup min gain, attack =0]]></changelog>
         <source main="main" file="mpl_Toggle solo focused ReaXcomp band 4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4be1840a710bad1cff78c3300821786e9f2f52e9/FX%20specific/mpl_Toggle%20solo%20focused%20ReaXcomp%20band%20X.lua</source>
         <source main="main" file="mpl_Toggle solo focused ReaXcomp band 5.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4be1840a710bad1cff78c3300821786e9f2f52e9/FX%20specific/mpl_Toggle%20solo%20focused%20ReaXcomp%20band%20X.lua</source>
         <source main="main" file="mpl_Toggle solo focused ReaXcomp band 6.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4be1840a710bad1cff78c3300821786e9f2f52e9/FX%20specific/mpl_Toggle%20solo%20focused%20ReaXcomp%20band%20X.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_VCV Rack tools.lua" type="script" desc="VCV Rack tools">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.02" author="MPL" time="2019-05-30T14:04:33Z">
+        <source main="main" file="mpl_VCV Rack tools/mpl_Generate clock for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
+        <source main="main" file="mpl_VCV Rack tools/mpl_Generate clock reset for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20reset%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
+        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by destination module.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20destination%20module.lua</source>
+        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by source module.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20source%20module.lua</source>
+        <source main="main" file="mpl_VCV Rack tools/mpl_Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20pitch%20CV%20for%20last%20touched%20VCVRack%20bridge%20CC%20from%20selected%20MIDI%20take.lua</source>
+        <source main="main" file="mpl_VCV Rack tools/mpl_Generate random impulses for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20random%20impulses%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
+        <source file="mpl_VCV Rack tools/json2lua.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/json2lua.lua</source>
       </version>
     </reapack>
   </category>
