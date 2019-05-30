@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9454e9df598d87edf8b306a899e36f1a929c1038" name="MPL Scripts">
+<index version="1" commit="b4d064a63aaa31d33a417ef7b054d8ef0866937e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2694,62 +2694,6 @@ setup min gain, attack =0]]></changelog>
         <source main="main" file="mpl_Toggle solo focused ReaXcomp band 4.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4be1840a710bad1cff78c3300821786e9f2f52e9/FX%20specific/mpl_Toggle%20solo%20focused%20ReaXcomp%20band%20X.lua</source>
         <source main="main" file="mpl_Toggle solo focused ReaXcomp band 5.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4be1840a710bad1cff78c3300821786e9f2f52e9/FX%20specific/mpl_Toggle%20solo%20focused%20ReaXcomp%20band%20X.lua</source>
         <source main="main" file="mpl_Toggle solo focused ReaXcomp band 6.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4be1840a710bad1cff78c3300821786e9f2f52e9/FX%20specific/mpl_Toggle%20solo%20focused%20ReaXcomp%20band%20X.lua</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="FX specific/mpl_VCV Rack tools">
-    <reapack name="mpl_Generate clock for last touched VCVRack bridge CC.lua" type="script" desc="Generate clock for last touched VCVRack bridge CC">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Generate clock reset for last touched VCVRack bridge CC.lua" type="script" desc="Generate clock reset for last touched VCVRack bridge CC">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20reset%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take.lua" type="script" desc="Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20pitch%20CV%20for%20last%20touched%20VCVRack%20bridge%20CC%20from%20selected%20MIDI%20take.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Generate random impulses for last touched VCVRack bridge CC.lua" type="script" desc="Generate random impulses for last touched VCVRack bridge CC">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20random%20impulses%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Randomize VCVRack wire colors by destination module.lua" type="script" desc="Randomize VCVRack wire colors by destination module">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20destination%20module.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Randomize VCVRack wire colors by source module.lua" type="script" desc="Randomize VCVRack wire colors by source module">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-05-30T13:30:24Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a37a9ae740f7552c5a00050fe2440136380359eb/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20source%20module.lua</source>
       </version>
     </reapack>
   </category>
