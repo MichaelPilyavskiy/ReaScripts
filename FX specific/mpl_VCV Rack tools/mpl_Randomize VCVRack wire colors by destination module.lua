@@ -1,14 +1,14 @@
 -- @description Randomize VCVRack wire colors by destination module
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @noindex
 -- @changelog
---   #header
+--    # change source library path
   
   local info = debug.getinfo(1,'S');  
-  local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
-  dofile(script_path .. "mpl_VCV Rack tools/json2lua.lua")-- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua    
+  local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
+  dofile(script_path .. "json2lua.lua")-- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua    
   ---------------------------------------------------------------------
   function RandomizeColorsByModule(t, is_by_output)
     local cnt_modules = #t.modules

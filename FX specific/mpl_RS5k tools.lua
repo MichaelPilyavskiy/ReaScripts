@@ -1,5 +1,5 @@
--- @description mpl_RS5k tools
--- @version 1.0
+-- @description RS5k tools
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -23,3 +23,5 @@
 --    [main] mpl_RS5k tools/mpl_List samples in directory for focused RS5k (MIDI, OSC, Mousewheel).lua
 --    [main] mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export chromatically to RS5k (background).lua
 --    [main] mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k (background).lua
+-- @changelog
+--     # change name

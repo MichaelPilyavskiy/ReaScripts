@@ -1,22 +1,28 @@
--- @description Randomize VCVRack wire colors by source module
--- @version 1.02
+-- @description Randomize VCVRack wire colors by source module row
+-- @version 1.0
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @noindex
 -- @changelog
---    # change source library path
+--    + init
   
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
   dofile(script_path .. "json2lua.lua")-- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua    
   ---------------------------------------------------------------------
-  function RandomizeColorsByModule(t, is_by_output)
-    local cnt_modules = #t.modules
+  function RandomizeColorsByPos(t)
+     cnt_rows = 0
+    local module_row_map = {}
+    for i = 1, #t.modules do
+      local row = t.modules[i].pos[2]+1
+      cnt_rows = math.max(cnt_rows, row)
+    end
     local colors_t = {}
-    for i = 1, cnt_modules do colors_t[i] = '#'..GenRandHexCol() end 
+    for i = 1, cnt_rows do colors_t[i] = '#'..GenRandHexCol() end 
     for wire_ID =1, #t.wires do
-      if is_by_output then modID = t.wires[wire_ID].inputModuleId else modID = t.wires[wire_ID].outputModuleId end
-      t.wires[wire_ID].color = colors_t[modID+1]
+      modID = t.wires[wire_ID].outputModuleId
+      row = t.modules[modID+1].pos[2]
+      t.wires[wire_ID].color = colors_t[row+1]
     end
   end
   ---------------------------------------------------------------------
@@ -29,9 +35,10 @@
   end
   ---------------------------------------------------------------------
   function main()
-    -- get file
+    --[[ get file
       local retval, fp = GetUserFileNameForRead('', 'Randomize VCVRack wire colors', 'vcv' )
-      if not retval then return end 
+      if not retval then return end ]]
+      fp = [[C:\Users\mpl\Desktop\FINwsh3-scale2_mod5_1_maj4 - Copy.vcv]]
       local f,content = io.open(fp, 'r')
       if not f then return else 
         content = f:read('a')
@@ -39,8 +46,8 @@
       end
     
     -- modify
-      local t = json.parse(content)
-      RandomizeColorsByModule(t, true)
+       t = json.parse(content)
+      RandomizeColorsByPos(t)
       local setstr = json.stringify(t)
     
     -- get filename without extension
