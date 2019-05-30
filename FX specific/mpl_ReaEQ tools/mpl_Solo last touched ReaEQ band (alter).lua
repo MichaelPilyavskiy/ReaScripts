@@ -1,10 +1,11 @@
 -- @description Solo last touched ReaEQ band (alter)
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @noindex
 -- @about Alter bands when soloing (band<>bandpass, LP<>HP, HP<>LP)
 -- @changelog
---    # fix version check2
+--    # header
 
   -- NOT reaper NOT gfx
   for key in pairs(reaper) do _G[key]=reaper[key]  end 

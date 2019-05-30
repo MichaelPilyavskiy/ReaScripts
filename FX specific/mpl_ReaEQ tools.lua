@@ -1,7 +1,8 @@
 -- @description ReaEQ tools
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @metapackage
 -- @provides
 --    [main] mpl_ReaEQ tools/mpl_Build harmonic series bands for focused ReaEQ.lua
 --    [main] mpl_ReaEQ tools/mpl_Port focused ReaEQ bands to spectral edits on selected items.lua

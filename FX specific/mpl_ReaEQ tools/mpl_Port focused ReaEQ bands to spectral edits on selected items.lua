@@ -1,14 +1,10 @@
 -- @description Port focused ReaEQ bands to spectral edits on selected items
--- @version 1.02
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @noindex
 -- @changelog
---    + Write Undo history entry
---    # hardcoded spectral area (0-1000:50Hz, 1000-5000:200Hz, 5000-10000:500Hz, 10000+:1000Hz)
---    # timeselection obeying improvements
---    # increase BW to 2oct
---    # respect take start offset
---    # respect take playrate
+--    # header
 
   -- NOT reaper NOT gfx
   for key in pairs(reaper) do _G[key]=reaper[key]  end 

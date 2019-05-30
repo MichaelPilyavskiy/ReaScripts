@@ -1,10 +1,10 @@
 -- @description Build harmonic series bands for focused ReaEQ
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @noindex
 -- @changelog
---    # rename 'reduce Gain' to 'Gain decrement/increment'
---    # allow positive init gain
+--    # header
   
   
   

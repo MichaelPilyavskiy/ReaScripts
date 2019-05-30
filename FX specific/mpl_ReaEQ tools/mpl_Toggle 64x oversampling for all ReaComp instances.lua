@@ -1,9 +1,10 @@
--- @version 1.2
+-- @version 1.21
 -- @author MPL
--- @changelog
---   + perform master also
 -- @description Toggle 64x oversampling for all ReaComp instances
 -- @website http://forum.cockos.com/member.php?u=70694
+-- @noindex
+-- @changelog
+--   #header
 
 
   function main(state) local tr

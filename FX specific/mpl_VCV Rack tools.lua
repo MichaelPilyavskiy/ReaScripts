@@ -1,7 +1,8 @@
 -- @description VCV Rack tools
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @metapackage
 -- @provides
 --    [main] mpl_VCV Rack tools/mpl_Generate clock for last touched VCVRack bridge CC.lua
 --    [main] mpl_VCV Rack tools/mpl_Generate clock reset for last touched VCVRack bridge CC.lua

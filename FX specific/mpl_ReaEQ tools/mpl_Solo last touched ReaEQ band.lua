@@ -1,9 +1,10 @@
 -- @description Solo last touched ReaEQ band
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @noindex
 -- @changelog
---    # fix version from wrong ReaPack branch (in this version it shouldn`t alter type of bands)
+--    # header
 
   -- NOT reaper NOT gfx
   for key in pairs(reaper) do _G[key]=reaper[key]  end 

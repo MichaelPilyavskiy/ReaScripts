@@ -1,11 +1,10 @@
 -- @description Sort focused ReaEQ bands by frequency
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @noindex
 -- @changelog
---    # use native chunk function (REAPER 5.95)
---    # force use mpl_Various_functions.lua
---    # update version check
+--    # header
 
   -- NOT reaper NOT gfx
   -----------------------------------------------------------------------------
