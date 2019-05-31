@@ -1,10 +1,10 @@
 -- @description Randomize VCVRack wire colors by source module
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @noindex
 -- @changelog
---    # change source library path
+--    # fix srcdest invertion
   
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -40,7 +40,7 @@
     
     -- modify
       local t = json.parse(content)
-      RandomizeColorsByModule(t, true)
+      RandomizeColorsByModule(t, false)
       local setstr = json.stringify(t)
     
     -- get filename without extension
