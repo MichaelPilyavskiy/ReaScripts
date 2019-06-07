@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.20
+-- @version 2.21
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -27,10 +27,10 @@
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 -- @changelog
---    + PBA: support for Automation Items, doesn`t work for looped AI
+--    + Ordered alignment: fix proper indexes for unselected items
 
      
-  local vrs = 'v2.20'
+  local vrs = 'v2.21'
   --NOT gfx NOT reaper
   
 

@@ -750,7 +750,7 @@
   function Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy) 
     if not data.src then return end
     
-    local temp_ref
+    --local temp_ref
     if strategy.act_action==3 then -- ordered align
       -- apply closer points reduce
       temp_ref = CopyTable(data.ref) 
@@ -764,7 +764,7 @@
           end
         end
       end 
-      -- filter time sel
+      -- filter sel
       for i = #temp_ref, 1, -1 do
         if temp_ref[i].ignore_search == true then  table.remove(temp_ref, i) end
       end
@@ -774,7 +774,8 @@
     local last_pat_ID,last_pos
     
     -- loop src
-      for i = 1, #data.src do        
+    local validate_order_id = 1
+      for i = 1, #data.src do  
         if data.src[i].pos and data.src[i].ignore_search == false then
           local out_pos,out_val -- = data.src[i].pos, data.src[i].val
           if strategy.act_action==1 then
@@ -816,9 +817,10 @@
           
           if strategy.act_action==3 then
             if (strategy.ref_pattern&1~=1 and  strategy.ref_grid&1~=1 ) then             
-              if temp_ref[i] then
-                out_pos = temp_ref[i].pos
-                out_val = temp_ref[i].val  
+              if temp_ref[validate_order_id] then
+                out_pos = temp_ref[validate_order_id].pos
+                out_val = temp_ref[validate_order_id].val  
+validate_order_id =                 validate_order_id + 1
                else
                 out_pos = data.src[i].pos
                 out_val = data.src[i].val                              
