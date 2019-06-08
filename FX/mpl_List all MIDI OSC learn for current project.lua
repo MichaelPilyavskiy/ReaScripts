@@ -1,9 +1,10 @@
 -- @description List all MIDI OSC learn for current project
--- @version 1.04
+-- @version 1.05
 -- @author MPL
--- @changelog
---   # fix wrong decoding MIDI integer
 -- @website http://forum.cockos.com/member.php?u=70694
+-- @changelog
+--    # fix detecting VST3 learn
+--    # more readable format
   
 --------------------------------------------------------------
   function GetContent_t()
@@ -43,11 +44,13 @@
               midiCC = ssv[3] >> 8
             end
             if ssv[5] then osc = ssv[4] end
-          LRN_t[#LRN_t+1] = {midich = midiChannel,
+          param_id=tonumber(ssv[2]:match('%d+'))
+          LRN_t[#LRN_t+1] = {ssv=ssv,
+          midich = midiChannel,
                              midiCC = midiCC,
                              osc = osc,
                              GUID = cur_guid,
-                             param_id = tonumber(ssv[2])}
+                             param_id = param_id}
         end          
       end
     return LRN_t
@@ -143,14 +146,15 @@
             local track = reaper.BR_GetMediaTrackByGUID( 0, guid_t[i_guid].track_guid )
             _, param_name =  reaper.TrackFX_GetParamName( track, guid_t[i_guid].FX_id, LRN_t[i_lrn].param_id, '' )
           end
-          ret_str = ret_str
-            ..'#'..i..' '
-            ..midi_str
-            ..osc_str
+          add_str = 
+            '#'..i..'\n'
+            ..ind..guid_t[i_guid].track_id..': '..guid_t[i_guid].track_name..'\n'
             ..ind..guid_t[i_guid].fx_name..' ('..guid_t[i_guid].tp..')\n'
-            ..ind..param_name..'\n'
-            ..ind..guid_t[i_guid].track_id..'   '..guid_t[i_guid].track_name..'\n'
+            ..ind..'Parameter: '..param_name..'\n'
+            ..ind..'MIDI: '..midi_str
+            ..ind..'OSC: '..osc_str..'\n'
             ..'\n'
+          ret_str = ret_str..add_str:gsub('\n\n', '\n')..'\n'
           break
         end
         
@@ -160,14 +164,13 @@
     
     -- remv (FX)
       ret_str = ret_str:gsub('%(FX%)', '')
-    
     return ret_str
   end
   
 --------------------------------------------------------------                
   function main()
     local t_content = GetContent_t()
-    local LRN_t = GetLearn_t(t_content)
+     LRN_t = GetLearn_t(t_content)
     local guid_t = CollectProject_GUIDs()  
     local ret_str = ParseLearnTable(LRN_t, guid_t)
     
