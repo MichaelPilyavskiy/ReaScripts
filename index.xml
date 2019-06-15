@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c64d8e8344b506ca13665b471b430892cc24fac0" name="MPL Scripts">
+<index version="1" commit="7efce5feed4613934a56e2ca65fbc5046dadd8de" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -381,6 +381,10 @@
       <version name="1.23" author="MPL" time="2019-02-24T15:17:49Z">
         <changelog><![CDATA[# obey dockstate for HasWindXYWHChanged()]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.25" author="MPL" time="2019-06-15T14:59:58Z">
+        <changelog><![CDATA[+ VF_GetFXByGUID, extend for match per-track also]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7efce5feed4613934a56e2ca65fbc5046dadd8de/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
