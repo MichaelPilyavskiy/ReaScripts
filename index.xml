@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="76649995211805b435ac6cf9d880fbb8e74e2cc9" name="MPL Scripts">
+<index version="1" commit="c64d8e8344b506ca13665b471b430892cc24fac0" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4128,19 +4128,6 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL" time="2016-09-23T12:00:10Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Stretch%20Markers/mpl_Remove%20all%20non-1x%20stretch%20markers%20from%20selected%20takes.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Reset stretch markers to source positions in selected items.lua" type="script" desc="Reset stretch markers to source positions in selected items">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-12-11T14:33:04Z">
-        <changelog><![CDATA[+ init ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e333fe7a214d0d3fc0bd8fa19ea63ee98aa9401f/Stretch%20Markers/mpl_Reset%20stretch%20markers%20to%20source%20positions%20in%20selected%20items.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2019-06-08T04:48:14Z">
-        <changelog><![CDATA[# obey take start offset]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/76649995211805b435ac6cf9d880fbb8e74e2cc9/Stretch%20Markers/mpl_Reset%20stretch%20markers%20to%20source%20positions%20in%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Snap stretch marker under mouse cursor to grid.lua" type="script" desc="Snap stretch marker under mouse cursor to grid">
