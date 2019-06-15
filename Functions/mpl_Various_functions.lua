@@ -1,10 +1,10 @@
--- @description Various_functions
+﻿-- @description Various_functions
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.23
+-- @version 1.25
 -- @changelog
---    # obey dockstate for HasWindXYWHChanged()
+--    + VF_GetFXByGUID, extend for match per-track also
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) 
@@ -15,13 +15,27 @@
     ShowConsoleMsg(s..'\n') 
   end 
   ---------------------------------------------------
-  function VF_GetFXByGUID(GUID)
-    for trid = 1, CountTracks(0) do
-      local tr = GetTrack(0,trid-1)
+  function VF_GetTrackByGUID(giv_guid)
+    for i = 1, CountTracks(0) do
+      local tr = GetTrack(0,i-1)
+      local GUID = reaper.GetTrackGUID( tr )
+      if GUID == giv_guid then return tr end
+    end
+  end
+  ---------------------------------------------------
+  function VF_GetFXByGUID(GUID, tr)
+    if not tr then
+      for trid = 1, CountTracks(0) do
+        local tr = GetTrack(0,trid-1)
+        for fx_id =1, TrackFX_GetCount( tr ) do
+          if TrackFX_GetFXGUID( tr, fx_id-1) == GUID then return true, tr, fx_id-1 end
+        end
+      end  
+     else
       for fx_id =1, TrackFX_GetCount( tr ) do
         if TrackFX_GetFXGUID( tr, fx_id-1) == GUID then return true, tr, fx_id-1 end
       end
-    end  
+    end    
   end
   ---------------------------------------------------
   function VF_CalibrateFont(sz) -- https://forum.cockos.com/showpost.php?p=2066576&postcount=17
