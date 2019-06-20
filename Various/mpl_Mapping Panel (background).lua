@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 2.0
+-- @version 2.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -9,21 +9,10 @@
 --    mpl_MappingPanel_functions/mpl_MappingPanel_data.lua
 --    mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua
 -- @changelog
---    + Completely rewitten core. The script now is only a tool for organizing links between FX parameters, single Master JSFX and multiple child JSFX instances across tracks. Some of old features removed because of very bad implementation (formulas, links between parameters directly, fixedlearn engine)
---    + As most stuff goes native, the script uses a lot of relatively complex chunking since there aren`t related API at the moment, hopefully this will be improved in the future by REAPER devs.
---    + Completely rewitten GUI.
---    + KnobCtrl: 16 knobs at the top linked to 16 sliders in master JSFX (also available in MPL repo, should be installed, user will be asked if not found in the project)
---    + KnobCtrl: [+] button link last touched parameter to current active knob 
---    + KnobCtrl: indicate if any links existed for current knob
---    + KnobLinks: Unlimited links per knob, could be almost any FX parameters across tracks. When creating link, user asked for adding JSFX slave instance on track with last touched plugin if one not found. 
---    + KnobLinks: Up to 16 links per track. So you can link up to 16 various parameters of different FX sitting on same track.
---    + KnobLinks: remove link
---    + KnobLinks: mute link. This however doesn`t unlink parameter natively, so you can control it only from linked slider (shown at the link info)
---    + KnobLinks: click on name float plugin
---    + KnobLinks: allow to setup parameter limits
---    + KnobLinks: allow to setup parameter scaling
+--    + Don`t allow linking master JSFX
+--    # fix parsing chunk
 
-  local vrs = 'v2.0'
+  local vrs = 'v2.01'
   --NOT gfx NOT reaper
   
   --[[ map:

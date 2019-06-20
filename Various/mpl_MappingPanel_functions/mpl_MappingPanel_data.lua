@@ -65,6 +65,7 @@
     local paramid = data.slots[activeknob][activeknob_slot].Slave_paramid
     local fxchunk = trchunk:match('FXID '..literalize(fxGUID)..'.-WAK %d')
     local existed_paramblock = fxchunk:match('<PROGRAMENV '..paramid..'.->')
+    if not existed_paramblock then MB('Error. [Data_RemoveLink] existed_paramblock not found', '', 0) return end
     local existed_paramblock_mod = existed_paramblock:gsub('PLINK.-[\n\r]','')
     fxchunk_mod = fxchunk:gsub(literalize(existed_paramblock), existed_paramblock_mod)
     local trchunk = trchunk:gsub(literalize(fxchunk), fxchunk_mod)
@@ -76,7 +77,7 @@
     function Data_AddLink(conf, obj, data, refresh, mouse) 
     
       if not data.LTP_hasLTP then return end
-      if data.LTP_fxname == 'JS: MappingPanel_slave.jsfx' or data.LTP_fxname == 'JS: MPL Scripts/JSFX/MacroKnobs_master.jsfx' then return end
+      if data.LTP_fxname:match('MappingPanel') then return end
       --if data.LTP_trGUID == data.masterJSFX_trGUID then return end -- prevent adding to track contain master
       local childtr = VF_GetTrackByGUID(data.LTP_trGUID)
       
@@ -210,7 +211,7 @@
   ------------------------------------------------------------------
   function Data_CollectSlaveRouting(data, conf, tr, fx_id)
     local retval, chunk = reaper.GetTrackStateChunk( tr, '', false )
-    for section in chunk:gmatch('FXID.*WAK') do
+    for section in chunk:gmatch('FXID.-WAK') do
       if section:match('PLINK') then
         local slaveFXGUID = section:match('%{(.-)%}')
         local ret, tr, slaveFX_id = VF_GetFXByGUID('{'..slaveFXGUID..'}', tr)
