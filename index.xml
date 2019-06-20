@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7efce5feed4613934a56e2ca65fbc5046dadd8de" name="MPL Scripts">
+<index version="1" commit="891530dc8243a6fcca3c1a5fc9b110efa1ca3a7c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2956,6 +2956,38 @@
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/e20700fecd51e57f581046811f99456544e565e2/JSFX/DC%20offset.jsfx</source>
       </version>
     </reapack>
+    <reapack name="MappingPanel_master.jsfx" type="effect" desc="MappingPanel_master">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 JSFX for controlling parameters across tracks\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-06-20T06:34:15Z">
+        <changelog><![CDATA[+ initial state]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/891530dc8243a6fcca3c1a5fc9b110efa1ca3a7c/JSFX/MappingPanel_master.jsfx</source>
+      </version>
+    </reapack>
+    <reapack name="MappingPanel_slave.jsfx" type="effect" desc="MappingPanel_slave">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 JSFX for controlling parameters across tracks\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-06-20T06:34:15Z">
+        <changelog><![CDATA[+ initial state]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/891530dc8243a6fcca3c1a5fc9b110efa1ca3a7c/JSFX/MappingPanel_slave.jsfx</source>
+      </version>
+    </reapack>
     <reapack name="RetrospectiveRecord_tracker.jsfx" type="effect" desc="RetrospectiveRecord_tracker">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -5868,9 +5900,16 @@ add control for timefall showing last note]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_Link%20TCP%20MCP%20folder%20collapsed%20state%20(background).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Mapping Panel (background).lua" type="script" desc="Mapping Panel">
+    <reapack name="mpl_Mapping Panel (background).lua" type="script" desc="MappingPanel">
       <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for link parameters across tracks\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.34" author="MPL" time="2018-01-27T04:42:47Z">
         <changelog><![CDATA[# fix wrong decoding MIDI integer]]></changelog>
@@ -5880,15 +5919,25 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[# fix take 2 channels peaks formula (thnx fundorin)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/97efcf4a792b2d860b17982924300fc32be6c313/Various/mpl_Mapping%20Panel%20(background).lua</source>
       </version>
-    </reapack>
-    <reapack name="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua" type="script" desc="mpl_Mapping Panel - change map (MIDI CC and OSC only).lua">
-      <version name="1.0" author="MPL" time="2016-01-06T06:37:48Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Various/mpl_Mapping%20Panel%20-%20change%20map%20(MIDI%20CC%20and%20OSC%20only).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Mapping Panel - remove config data.lua" type="script" desc="Remove mpl Mapping Panel config from current project">
-      <version name="1.0" author="MPL" time="2016-01-08T22:18:23Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Various/mpl_Mapping%20Panel%20-%20remove%20config%20data.lua</source>
+      <version name="2.0" author="MPL" time="2019-06-20T06:34:15Z">
+        <changelog><![CDATA[+ Completely rewitten core. The script now is only a tool for organizing links between FX parameters, single Master JSFX and multiple child JSFX instances across tracks. Some of old features removed because of very bad implementation (formulas, links between parameters directly, fixedlearn engine)
++ As most stuff goes native, the script uses a lot of relatively complex chunking since there aren`t related API at the moment, hopefully this will be improved in the future by REAPER devs.
++ Completely rewitten GUI.
++ KnobCtrl: 16 knobs at the top linked to 16 sliders in master JSFX (also available in MPL repo, should be installed, user will be asked if not found in the project)
++ KnobCtrl: [+] button link last touched parameter to current active knob 
++ KnobCtrl: indicate if any links existed for current knob
++ KnobLinks: Unlimited links per knob, could be almost any FX parameters across tracks. When creating link, user asked for adding JSFX slave instance on track with last touched plugin if one not found. 
++ KnobLinks: Up to 16 links per track. So you can link up to 16 various parameters of different FX sitting on same track.
++ KnobLinks: remove link
++ KnobLinks: mute link. This however doesn`t unlink parameter natively, so you can control it only from linked slider (shown at the link info)
++ KnobLinks: click on name float plugin
++ KnobLinks: allow to setup parameter limits
++ KnobLinks: allow to setup parameter scaling]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/891530dc8243a6fcca3c1a5fc9b110efa1ca3a7c/Various/mpl_Mapping%20Panel%20(background).lua</source>
+        <source file="mpl_MappingPanel_functions/mpl_MappingPanel_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/891530dc8243a6fcca3c1a5fc9b110efa1ca3a7c/Various/mpl_MappingPanel_functions/mpl_MappingPanel_GUI.lua</source>
+        <source file="mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/891530dc8243a6fcca3c1a5fc9b110efa1ca3a7c/Various/mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua</source>
+        <source file="mpl_MappingPanel_functions/mpl_MappingPanel_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/891530dc8243a6fcca3c1a5fc9b110efa1ca3a7c/Various/mpl_MappingPanel_functions/mpl_MappingPanel_data.lua</source>
+        <source file="mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/891530dc8243a6fcca3c1a5fc9b110efa1ca3a7c/Various/mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Monitor selected track with track 1 (background).lua" type="script" desc="Monitor selected track with track 1">
