@@ -1883,7 +1883,7 @@ List of available hashtags:
             end ,
     state = conf.allow_track_notes == 1},  
     
-  { str = 'Override pattern key width (0=auto)|<',
+  { str = 'Override pattern key width (0=auto)',
     func = function() 
               local retval, retvals_csv = reaper.GetUserInputs( conf.mb_title, 1, 'Override pattern key width', conf.key_width_override )
               if retval then
@@ -1896,7 +1896,25 @@ List of available hashtags:
               end
               
             end   } ,   
-  
+  { str = 'Set background RGBA|<',
+    func = function() 
+              local retval, retvals_csv = reaper.GetUserInputs( conf.mb_title, 4, 'Set background RGBA', 
+                math.floor(conf.GUIback_R*255)..','..math.floor(conf.GUIback_G*255)..','..math.floor(conf.GUIback_B*255)..','..conf.GUIback_A )
+              if retval then
+                local t = {}
+                for val in retvals_csv:gmatch('[%d%.]+') do 
+                  if not tonumber(val) then MB('Entered data not valid, RGB support [0...255], alpha [0...1]', conf.mb_title, 0) return end
+                  t[#t+1]=tonumber(val)
+                end
+                if #t ~= 4 then MB('Entered data not valid, RGB support [0...255], alpha [0...1]', conf.mb_title, 0) return end
+                conf.GUIback_R = lim(t[1]/255)
+                conf.GUIback_G = lim(t[2]/255)
+                conf.GUIback_B = lim(t[3]/255)
+                conf.GUIback_A = lim(t[4])
+                
+              end
+              
+            end   } ,    
 
   { str = '>Dragndrop options'},
   { str = 'Always export dragged samples to new tracks',

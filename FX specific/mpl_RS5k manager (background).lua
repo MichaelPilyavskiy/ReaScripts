@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 2.111
+-- @version 2.120
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,10 +10,10 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    # Draw play pos relative to pattern start/length
+--    + Add option to set background RGB and alpha
 
 
-  local vrs = 'v2.111'
+  local vrs = 'v2.120'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -79,6 +79,10 @@
             show_wf = 1,
             separate_spl_peak = 0,
             allow_track_notes = 0, -- tracking note with JSFX
+            GUIback_R = 1,
+            GUIback_G = 1,
+            GUIback_B = 1,
+            GUIback_A = 0.72,
             
             -- GUI control
             mouse_wheel_res = 960,

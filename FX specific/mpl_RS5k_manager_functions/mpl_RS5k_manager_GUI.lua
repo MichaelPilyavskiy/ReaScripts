@@ -518,7 +518,7 @@
         gfx.dest = 2
         gfx.setimgdim(2, -1, -1)  
         gfx.setimgdim(2, obj.grad_sz,obj.grad_sz)  
-        local r,g,b,a = 1,1,1,0.72
+        local r,g,b,a = conf.GUIback_R,conf.GUIback_G,conf.GUIback_B,conf.GUIback_A
         gfx.x, gfx.y = 0,0
         local c = 0.8
         local drdx = c*0.00001
