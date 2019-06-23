@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bcabb496a04ca0c2a77c6363178f9d58a05ee95e" name="MPL Scripts">
+<index version="1" commit="c56ce6dc9d8ccbe41dbecede68cec33c50ddea08" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2986,6 +2986,10 @@
       <version name="1.0" author="MPL" time="2019-06-20T06:34:15Z">
         <changelog><![CDATA[+ initial state]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/891530dc8243a6fcca3c1a5fc9b110efa1ca3a7c/JSFX/MappingPanel_slave.jsfx</source>
+      </version>
+      <version name="1.1" author="MPL" time="2019-06-23T17:35:17Z">
+        <changelog><![CDATA[# because of JSFX limitation parameters map was rebuilt]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/c56ce6dc9d8ccbe41dbecede68cec33c50ddea08/JSFX/MappingPanel_slave.jsfx</source>
       </version>
     </reapack>
     <reapack name="RetrospectiveRecord_tracker.jsfx" type="effect" desc="RetrospectiveRecord_tracker">
