@@ -1,18 +1,20 @@
 desc:MappingPanel_slave
-version: 1.0
+version: 1.1
 author: MPL
 website: http://forum.cockos.com/showthread.php?t=188335
 changelog:
-  + initial state
+  # because of JSFX limitation parameters map was rebuilt
 about:
   JSFX for controlling parameters across tracks
 
 options:gmem=MappingPanel
-
+options:no_meter
 
 /* slider/gmem map:
   1-16 [float] knob values
   17-32 [int] to which master knob linked
+  33-48 [int] &1 mute, then 8 bytes tension, then 16 bytes scale max
+  49-64 [int] 16 bytes lim min, then 16bytes lim max, then 16 bytes scale min
 */
 
 slider1:0<0, 1, 0.001>-Macro 1
@@ -49,42 +51,42 @@ slider30:1<1, 16, 1>-Macro 14 master link
 slider31:1<1, 16, 1>-Macro 15 master link
 slider32:1<1, 16, 1>-Macro 16 master link
 
-slider33:0<0, 65535, 1>-Macro 1 flags
-slider34:0<0, 65535, 1>-Macro 2 flags
-slider35:0<0, 65535, 1>-Macro 3 flags
-slider36:0<0, 65535, 1>-Macro 4 flags
-slider37:0<0, 65535, 1>-Macro 5 flags
-slider38:0<0, 65535, 1>-Macro 6 flags
-slider39:0<0, 65535, 1>-Macro 7 flags
-slider40:0<0, 65535, 1>-Macro 8 flags
-slider41:0<0, 65535, 1>-Macro 9 flags
-slider42:0<0, 65535, 1>-Macro 10 flags
-slider43:0<0, 65535, 1>-Macro 11 flags
-slider44:0<0, 65535, 1>-Macro 12 flags
-slider45:0<0, 65535, 1>-Macro 13 flags
-slider46:0<0, 65535, 1>-Macro 14 flags
-slider47:0<0, 65535, 1>-Macro 15 flags
-slider48:0<0, 65535, 1>-Macro 16 flags
+slider33:0<0, 131072, 1>-Macro 1 flags
+slider34:0<0, 131072, 1>-Macro 2 flags
+slider35:0<0, 131072, 1>-Macro 3 flags
+slider36:0<0, 131072, 1>-Macro 4 flags
+slider37:0<0, 131072, 1>-Macro 5 flags
+slider38:0<0, 131072, 1>-Macro 6 flags
+slider39:0<0, 131072, 1>-Macro 7 flags
+slider40:0<0, 131072, 1>-Macro 8 flags
+slider41:0<0, 131072, 1>-Macro 9 flags
+slider42:0<0, 131072, 1>-Macro 10 flags
+slider43:0<0, 131072, 1>-Macro 11 flags
+slider44:0<0, 131072, 1>-Macro 12 flags
+slider45:0<0, 131072, 1>-Macro 13 flags
+slider46:0<0, 131072, 1>-Macro 14 flags
+slider47:0<0, 131072, 1>-Macro 15 flags
+slider48:0<0, 131072, 1>-Macro 16 flags
 
-slider49:0<0, 281474976710656, 1>-Macro 1 hex, 0xFF per param
-slider50:0<0, 281474976710656, 1>-Macro 2 hex, FF per param
-slider51:0<0, 281474976710656, 1>-Macro 3 hex, FF per param
-slider52:0<0, 281474976710656, 1>-Macro 4 hex, FF per param
-slider53:0<0, 281474976710656, 1>-Macro 5 hex, FF per param
-slider54:0<0, 281474976710656, 1>-Macro 6 hex, FF per param
-slider55:0<0, 281474976710656, 1>-Macro 7 hex, FF per param
-slider56:0<0, 281474976710656, 1>-Macro 8 hex, FF per param
-slider57:0<0, 281474976710656, 1>-Macro 9 hex, FF per param
-slider58:0<0, 281474976710656, 1>-Macro 10 hex, FF per param
-slider59:0<0, 281474976710656, 1>-Macro 11 hex, FF per param
-slider60:0<0, 281474976710656, 1>-Macro 12 hex, FF per param
-slider61:0<0, 281474976710656, 1>-Macro 13 hex, FF per param
-slider62:0<0, 281474976710656, 1>-Macro 14 hex, FF per param
-slider63:0<0, 281474976710656, 1>-Macro 15 hex, FF per param
-slider64:0<0, 281474976710656, 1>-Macro 16 hex, FF per param
+slider49:0<0, 4294967295, 1>-Macro 1 hex, 0xFF per param
+slider50:0<0, 4294967295, 1>-Macro 2 hex, FF per param
+slider51:0<0, 4294967295, 1>-Macro 3 hex, FF per param
+slider52:0<0, 4294967295, 1>-Macro 4 hex, FF per param
+slider53:0<0, 4294967295, 1>-Macro 5 hex, FF per param
+slider54:0<0, 4294967295, 1>-Macro 6 hex, FF per param
+slider55:0<0, 4294967295, 1>-Macro 7 hex, FF per param
+slider56:0<0, 4294967295, 1>-Macro 8 hex, FF per param
+slider57:0<0, 4294967295, 1>-Macro 9 hex, FF per param
+slider58:0<0, 4294967295, 1>-Macro 10 hex, FF per param
+slider59:0<0, 4294967295, 1>-Macro 11 hex, FF per param
+slider60:0<0, 4294967295, 1>-Macro 12 hex, FF per param
+slider61:0<0, 4294967295, 1>-Macro 13 hex, FF per param
+slider62:0<0, 4294967295, 1>-Macro 14 hex, FF per param
+slider63:0<0, 4294967295, 1>-Macro 15 hex, FF per param
+slider64:0<0, 4294967295, 1>-Macro 16 hex, FF per param
 
 @init
-  ext_nodenorm = 1;
+  //ext_nodenorm = 1;
   function lim(x) ( min(1,max(0,x)); );
   tens_mapt[1] = 1;
   tens_mapt[2] = .1;
@@ -106,21 +108,26 @@ slider64:0<0, 281474976710656, 1>-Macro 16 hex, FF per param
 @sample
   i = 0;
   loop(16,
-  i+=1;
-  flags = slider(i+32); 
-  tension = ((flags>>1) & 0xF); 
-  flags&1==0 ? ( // mute flag
-    master_slid = slider(i+16);
-    master_val = gmem[master_slid];
-    hex_values = slider(i+48);
-    lim_min = (hex_values & 0xFF)/255;
-    lim_max = 1-  ((hex_values>>8) & 0xFF)/255;
-    scale_min =   ((hex_values>>16) & 0xFF)/255;
-    scale_max = 1-((hex_values>>24) & 0xFF)/255; 
-    master_val = max(lim_min, master_val);
-    master_val = min(lim_max, master_val); 
-    pow_float = tens_mapt[tension+1];
-    master_val = (master_val-scale_min)/(scale_max-scale_min);
-    master_val = lim(master_val) ^pow_float;
-    slider(i) = master_val )
+    i+=1;
+    flags = slider(i+32); 
+    tension = ((flags>>1) & 0xF); 
+    flags&1==0 ? ( // mute flag
+      // reference
+      master_slid = slider(i+16);
+      master_val = gmem[master_slid];
+      // pass formula values
+      hex_values = floor(slider(i+48));
+      lim_min =   (hex_values&0xFF)/255;
+      lim_max =   1-((hex_values&0xFF00)>>8)/255;
+      scale_min = ((hex_values&0xFF0000)>>16)/255; 
+      scale_max = 1-((flags>>9)&0xFF)/255;
+      //calc
+      pow_float = tens_mapt[tension+1]; 
+      scale_min_real = min(scale_min, scale_max);
+      scale_max_real = max(scale_min, scale_max);
+      out_val = scale_min +  ((  (master_val-lim_min)/(lim_max - lim_min)  )^pow_float)*(scale_max - scale_min);
+      out_val = min(max(out_val ,scale_min_real), scale_max_real);
+            
+      slider(i) =out_val;
+    );
   );
