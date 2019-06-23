@@ -59,10 +59,11 @@
   end
   -----------------------------------------------
   function OBJ_Knob_Childrens_SlideCtrl(conf, obj, data, refresh, mouse, i, areax,areay,areaw,areah)  
-    local limmin_x = areax + areaw * data.slots[conf.activeknob][i].hexarray_lim_min
-    obj['slotchild_sliderarealimmin'..i] = { clear = true,
-                  x = limmin_x,
-                  y = areay+areah/2-obj.glass_h/2,
+    local p1_x = areax + (areaw- obj.rect_side) * data.slots[conf.activeknob][i].hexarray_lim_min
+    local p1_y = areay + areah/2 - obj.glass_h/2 + (obj.glass_h- obj.rect_side)*(1-data.slots[conf.activeknob][i].hexarray_scale_min)
+    obj['slotchild_p1'..i] = { clear = true,
+                  x = p1_x,
+                  y = p1_y,
                   w = obj.rect_side,
                   h = obj.rect_side,
                   col = 'white',
@@ -73,23 +74,29 @@
                   customslider_ctrl = true,
                   customslider_ctrl_rot = 0,
                   func =  function()  
-                            mouse.context_latch_t = {obj['slotchild_sliderarealimmin'..i].x, data.slots[conf.activeknob][i].hexarray_lim_min}
+                            mouse.context_latch_t = {obj['slotchild_p1'..i].x, data.slots[conf.activeknob][i].hexarray_lim_min,
+                                                     obj['slotchild_p1'..i].y, data.slots[conf.activeknob][i].hexarray_scale_min}
                           end,
                   func_LD2 =function()
                               if mouse.context_latch_t then 
-                                local lim1 = 0.97
-                                local out_val = lim(mouse.context_latch_t[2] + mouse.dx/areaw, 0 , lim1)-- - mouse.dy*0.01)
-                                obj['slotchild_sliderarealimmin'..i].x = lim(mouse.context_latch_t[1] + mouse.dx , areax, areax + areaw*lim1)
-                                Data_SetHex(conf, obj, data, refresh, mouse, conf.activeknob, i, 0, out_val)
+                                local out_val1 = lim(mouse.context_latch_t[2] + mouse.dx/areaw)
+                                local out_val2 = lim(mouse.context_latch_t[4] - mouse.dy/areah)
+                                obj['slotchild_p1'..i].x, obj['slotchild_p1'..i].y = 
+                                  areax + (areaw- obj.rect_side) * out_val1,
+                                  areay + areah/2 - obj.glass_h/2 + (obj.glass_h- obj.rect_side)*(1-out_val2)
+                                data.slots[conf.activeknob][i].hexarray_lim_min = out_val1
+                                data.slots[conf.activeknob][i].hexarray_scale_min = out_val2
+                                Data_ApplyHex(conf, obj, data, refresh, mouse, conf.activeknob, i)
                                 refresh.GUI_minor = true
                                 refresh.data_minor = true
                               end
                              end  
                 }
-    local limmax_x = areax + areaw - areaw * data.slots[conf.activeknob][i].hexarray_lim_max-obj.rect_side-1
-    obj['slotchild_sliderarealimmax'..i] = { clear = true,
-                  x = limmax_x,
-                  y = areay+areah/2-obj.glass_h/2,
+    local p2_x = areax + (areaw- obj.rect_side) * (1-data.slots[conf.activeknob][i].hexarray_lim_max)
+    local p2_y = areay + areah/2 - obj.glass_h/2 + (obj.glass_h- obj.rect_side)*data.slots[conf.activeknob][i].hexarray_scale_max
+    obj['slotchild_p2'..i] = { clear = true,
+                  x = p2_x,
+                  y = p2_y,
                   w = obj.rect_side,
                   h = obj.rect_side,
                   col = 'white',
@@ -98,76 +105,26 @@
                   a_frame = 0.05,
                   alpha_back = 0.1,
                   customslider_ctrl = true,
-                  customslider_ctrl_rot = 90,
+                  customslider_ctrl_rot = 0,
                   func =  function()  
-                            mouse.context_latch_t = {obj['slotchild_sliderarealimmax'..i].x, data.slots[conf.activeknob][i].hexarray_lim_max}
+                            mouse.context_latch_t = {obj['slotchild_p2'..i].x, data.slots[conf.activeknob][i].hexarray_lim_max,
+                                                     obj['slotchild_p2'..i].y, data.slots[conf.activeknob][i].hexarray_scale_max}
                           end,
                   func_LD2 =function()
                               if mouse.context_latch_t then 
-                                local lim1 = 0.97
-                                local out_val = lim(mouse.context_latch_t[2] - mouse.dx/areaw, 0 , lim1)-- - mouse.dy*0.01)
-                                obj['slotchild_sliderarealimmax'..i].x = lim(mouse.context_latch_t[1] + mouse.dx , areax + areaw*(1-lim1)-obj.rect_side, areax + areaw-obj.rect_side)
-                                Data_SetHex(conf, obj, data, refresh, mouse, conf.activeknob, i, 8, out_val)
+                                local out_val1 = lim(mouse.context_latch_t[2] - mouse.dx/areaw)
+                                local out_val2 = lim(mouse.context_latch_t[4] + mouse.dy/areah)
+                                obj['slotchild_p2'..i].x, obj['slotchild_p2'..i].y = 
+                                  areax + (areaw- obj.rect_side) * (1-out_val1),
+                                  areay + areah/2 - obj.glass_h/2 + (obj.glass_h- obj.rect_side)*out_val2
+                                data.slots[conf.activeknob][i].hexarray_lim_max = out_val1
+                                data.slots[conf.activeknob][i].hexarray_scale_max = out_val2
+                                Data_ApplyHex(conf, obj, data, refresh, mouse, conf.activeknob, i)
                                 refresh.GUI_minor = true
                                 refresh.data_minor = true
                               end
-                             end  
-                }                   
-                
-    local scalemin_x = areax + areaw * data.slots[conf.activeknob][i].hexarray_scale_min
-    obj['slotchild_sliderarea_sclalemin'..i] = { clear = true,
-                  x = scalemin_x,
-                  y = areay+areah/2+obj.glass_h/2-obj.rect_side-1,
-                  w = obj.rect_side,
-                  h = obj.rect_side,
-                  col = 'white',
-                  txt = '',
-                  show = true,
-                  a_frame = 0.05,
-                  alpha_back = 0.1,
-                  customslider_ctrl = true,
-                  customslider_ctrl_rot = 270,
-                  func =  function()  
-                            mouse.context_latch_t = {obj['slotchild_sliderarea_sclalemin'..i].x, data.slots[conf.activeknob][i].hexarray_scale_min}
-                          end,
-                  func_LD2 =function()
-                              if mouse.context_latch_t then 
-                                local lim1 = 0.97
-                                local out_val = lim(mouse.context_latch_t[2] + mouse.dx/areaw, 0 , lim1)-- - mouse.dy*0.01)
-                                obj['slotchild_sliderarea_sclalemin'..i].x = lim(mouse.context_latch_t[1] + mouse.dx , areax, areax + areaw*lim1)
-                                Data_SetHex(conf, obj, data, refresh, mouse, conf.activeknob, i, 16, out_val)
-                                refresh.GUI_minor = true
-                                refresh.data_minor = true
-                              end
-                             end  
-                } 
-    local scalemax_x = areax + areaw - areaw * data.slots[conf.activeknob][i].hexarray_scale_max-obj.rect_side -1
-    obj['slotchild_sliderarea_sclalemax'..i] = { clear = true,
-                  x = scalemax_x,
-                  y = areay+areah/2+obj.glass_h/2-obj.rect_side-1,
-                  w = obj.rect_side,
-                  h = obj.rect_side,
-                  col = 'white',
-                  txt = '',
-                  show = true,
-                  a_frame = 0.05,
-                  alpha_back = 0.1,
-                  customslider_ctrl = true,
-                  customslider_ctrl_rot = 180,
-                  func =  function()  
-                            mouse.context_latch_t = {obj['slotchild_sliderarea_sclalemax'..i].x, data.slots[conf.activeknob][i].hexarray_scale_max}
-                          end,
-                  func_LD2 =function()
-                              if mouse.context_latch_t then 
-                                local lim1 = 0.97
-                                local out_val = lim(mouse.context_latch_t[2] - mouse.dx/areaw, 0 , lim1)-- - mouse.dy*0.01)
-                                obj['slotchild_sliderarea_sclalemax'..i].x = lim(mouse.context_latch_t[1] + mouse.dx , areax + areaw*(1-lim1)-obj.rect_side, areax + areaw-obj.rect_side)
-                                Data_SetHex(conf, obj, data, refresh, mouse, conf.activeknob, i, 24, out_val)
-                                refresh.GUI_minor = true
-                                refresh.data_minor = true
-                              end
-                             end  
-                }      
+                             end   
+                }                
     local tension_y = areay + (areah-obj.glass_h)/2 + obj.glass_h - obj.rect_side - ((obj.glass_h-obj.rect_side) * data.slots[conf.activeknob][i].flags_tension)
     obj['slotchild_sliderarea_tension'..i] = { clear = true,
                   x = areax-obj.rect_side,
@@ -189,7 +146,8 @@
                                 local out_val = lim(mouse.context_latch_t[2]  - 2*mouse.dy/areaw, 0, 1 )
                                 obj['slotchild_sliderarea_tension'..i].y = 
                                   areay + (areah-obj.glass_h)/2 + obj.glass_h - obj.rect_side - ((obj.glass_h-obj.rect_side) * out_val)
-                                Data_ToggleFlags(conf, obj, data, refresh, mouse, conf.activeknob, i, nil, true, out_val)
+                                data.slots[conf.activeknob][i].flags_tension = out_val
+                                Data_ApplyHex(conf, obj, data, refresh, mouse, conf.activeknob, i)
                                 refresh.GUI_minor = true
                                 refresh.data_minor = true
                               end
@@ -294,7 +252,8 @@
                         colfill_a = colfill_a,
                         alpha_back = 0.4,
                         func =  function()
-                                  Data_ToggleFlags(conf, obj, data, refresh, mouse, conf.activeknob, i, 0)
+                                  data.slots[conf.activeknob][i].flags_mute = not data.slots[conf.activeknob][i].flags_mute
+                                  Data_ApplyHex(conf, obj, data, refresh, mouse, conf.activeknob, i)
                                   refresh.data = true
                                   refresh.GUI = true
                                 end}  

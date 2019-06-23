@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -9,10 +9,9 @@
 --    mpl_MappingPanel_functions/mpl_MappingPanel_data.lua
 --    mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua
 -- @changelog
---    + Don`t allow linking master JSFX
---    # fix parsing chunk
+--    # because of JSFX limitation parameters map was rebuilt
 
-  local vrs = 'v2.01'
+  local vrs = 'v2.02'
   --NOT gfx NOT reaper
   
   --[[ map:
@@ -22,10 +21,10 @@
   [gmem] 100: value changed from script
   
   Slave
-  [slider] 1-16: source knob values
-  [slider] 17-32: which master knob linked to
-  [slider] 33-48: Flags &1 mute
-  [slider] 49-56: HEX [0...255] lim_min lim_max scale_min scale_max tension
+  [slider] 1-16 [float] knob values
+  [slider] 17-32 [int] to which master knob linked
+  [slider] 33-48 [int] &1 mute, then 8 bytes tension, then 16 bytes scale max
+  [slider] 49-64 [int] 16 bytes lim min, then 16bytes lim max, then 16 bytes scale min  
   
   ]]
   

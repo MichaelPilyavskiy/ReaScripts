@@ -482,7 +482,7 @@
     local hexarray_scale_min = o.val_t.hexarray_scale_min
     local hexarray_scale_max = 1-o.val_t.hexarray_scale_max
     local flags_tension = o.val_t.flags_tension
-
+  
     --gfx.a = 0.3
     --gfx.rect(x,y,w,h,1)
     gfx.a = 0.15
@@ -515,14 +515,19 @@
                 8,
                 10}
     if tens_mapt[flags_tension+1] then pow_float = tens_mapt[flags_tension+1]  end
+    local slope 
+    if hexarray_lim_max == hexarray_lim_min then slope = 0 else slope = (hexarray_scale_max - hexarray_scale_min) / (hexarray_lim_max-hexarray_lim_min)end
+    local b = hexarray_scale_min - (slope * hexarray_lim_min)
     for i_x = x, x+w do
       local progr_x = lim((i_x-x) / w)
-      val = lim((progr_x- hexarray_scale_min) / (hexarray_scale_max-hexarray_scale_min)) ^pow_float
-      val = lim(val)
-      if --val < Slave_param and
-         progr_x > hexarray_lim_min 
-        and progr_x < hexarray_lim_max
-        then gfx.a = 0.15 else gfx.a = 0.03 end
+      if progr_x < hexarray_lim_min then 
+        val = hexarray_scale_min 
+       elseif progr_x > hexarray_lim_max then 
+        val = hexarray_scale_max 
+       else
+        val = hexarray_scale_min +  ((  (progr_x-hexarray_lim_min)/(hexarray_lim_max - hexarray_lim_min)  )^pow_float)*(hexarray_scale_max - hexarray_scale_min)
+      end 
+      if progr_x > hexarray_lim_min  and progr_x < hexarray_lim_max then gfx.a = 0.15 else gfx.a = 0.03 end
       gfx.line(i_x, y_glass_low, i_x, math.ceil(y_glass_low - val*obj.glass_h))
     end
     
@@ -540,7 +545,12 @@
     local x,y,w,h, txt = o.x, o.y, o.w, o.h
     if not (x and y and w and h) then return end    
     gfx.a = 0.5
+    
+    
     if o.customslider_ctrl_rot == 0 then
+      col(obj, 'green')
+      gfx.rect(x,y-1,w,h,0)
+    --[[
       col(obj, 'green')
       gfx.triangle(x,y,x+w,y,x,y+h,1)
      elseif o.customslider_ctrl_rot == 90 then
@@ -551,7 +561,7 @@
       gfx.triangle(x,y+h,x+w,y,x+w,y+h,1)      
      elseif o.customslider_ctrl_rot == 270 then
       col(obj, 'blue')
-      gfx.triangle(x,y+h,x+w,y+h,x,y,1)      
+      gfx.triangle(x,y+h,x+w,y+h,x,y,1)   ]]   
      elseif o.customslider_ctrl_rot == -1 then
       col(obj, 'yellow')
       gfx.rect(x,y,w,h,1)

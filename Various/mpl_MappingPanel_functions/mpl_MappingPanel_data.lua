@@ -46,15 +46,20 @@
     end
   end 
   ---------------------------------------------------
-  function Data_SetHex(conf, obj, data, refresh, mouse, activeknob, activeknob_slot, byteshift, value)
+  function Data_ApplyHex(conf, obj, data, refresh, mouse, activeknob, activeknob_slot)
     if not (data.slots[activeknob] and data.slots[activeknob][activeknob_slot]) then return end
     local tr = data.slots[activeknob][activeknob_slot].tr_pointer
     local cur_hex = data.slots[activeknob][activeknob_slot].hexarray
-    local cur_hex0 = (cur_hex>>byteshift)&0xFF
-    cur_hex = cur_hex - (cur_hex0<<byteshift)
-    local out_val0 = math.floor(value*255)
-    local output = cur_hex + (out_val0<<byteshift)
-    TrackFX_SetParam( tr, data.slots[activeknob][activeknob_slot].JSFX_FXid, data.slots[activeknob][activeknob_slot].JSFX_paramid+conf.slot_cnt*3, output)
+    local out_hex = math.floor(data.slots[activeknob][activeknob_slot].hexarray_lim_min*255) + 
+              (math.floor(data.slots[activeknob][activeknob_slot].hexarray_lim_max*255)<<8) + 
+              (math.floor(data.slots[activeknob][activeknob_slot].hexarray_scale_min*255)<<16) + 
+              (math.floor(data.slots[activeknob][activeknob_slot].hexarray_scale_max*255)<<24)
+    local out_flags = 0
+    if data.slots[activeknob][activeknob_slot].flags_mute == true then out_flags = 1 end 
+    out_flags =out_flags + (math.floor(data.slots[activeknob][activeknob_slot].flags_tension * 15) <<1)
+    out_flags =out_flags + (math.floor(data.slots[activeknob][activeknob_slot].hexarray_scale_max*255)<<9) 
+    TrackFX_SetParam( tr, data.slots[activeknob][activeknob_slot].JSFX_FXid, data.slots[activeknob][activeknob_slot].JSFX_paramid+conf.slot_cnt*2, out_flags)
+    TrackFX_SetParam( tr, data.slots[activeknob][activeknob_slot].JSFX_FXid, data.slots[activeknob][activeknob_slot].JSFX_paramid+conf.slot_cnt*3, out_hex)
   end 
   ---------------------------------------------------
   function Data_RemoveLink(conf, obj, data, refresh, mouse, activeknob, activeknob_slot)
