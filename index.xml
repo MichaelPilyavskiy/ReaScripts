@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4b1d2517656962ed090b6e9bc3f9a885e926bb48" name="MPL Scripts">
+<index version="1" commit="a9b08242fcb911324ddf3695b65b8a6e9cb55690" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2767,6 +2767,10 @@
       <version name="1.11" author="MPL" time="2018-03-08T15:28:17Z">
         <changelog><![CDATA[# ReaPack header]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e717c0b7c7ef5cffd8d691ecb4cf5f9d7a9a94c6/Items%20Editing/mpl_Smart%20duplicate%20items%20grid%20relative.lua</source>
+      </version>
+      <version name="1.12" author="MPL" time="2019-06-29T13:01:03Z">
+        <changelog><![CDATA[# fix crash on zero selection]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a9b08242fcb911324ddf3695b65b8a6e9cb55690/Items%20Editing/mpl_Smart%20duplicate%20items%20grid%20relative.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Smart duplicate items N times.eel" type="script" desc="Smart duplicate items N times">
