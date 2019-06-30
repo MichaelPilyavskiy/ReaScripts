@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.81
+-- @version 1.82
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,10 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Store last dock ID
---    # Persist/#tap: shift click to enter/apply new value
+--    # fix validate track pointer when changing take FX
 
-    local vrs = '1.81'
+    local vrs = '1.82'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
