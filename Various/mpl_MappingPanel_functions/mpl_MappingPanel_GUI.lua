@@ -346,7 +346,7 @@
         local drdx = c*0.00001
         local drdy = c*0.00001
         local dgdx = c*0.00008
-        local dgdy = c*0.00001    
+        local dgdy = c*0.05    
         local dbdx = c*0.00008
         local dbdy = c*0.00001
         local dadx = c*0.0005
@@ -474,7 +474,7 @@
   function GUI_DrawMPSlider(conf, obj, data, refresh, mouse, o)
     local x,y,w,h, txt = o.x, o.y, o.w, o.h
     if not (x and y and w and h) then return end
-    
+   -- gfx.set(1,1,1,1)gfx.rect(x,y,w,h,0)  
     local Slave_param = o.val_t.Slave_param
     local JSFX_param = o.val_t.JSFX_param
     local hexarray_lim_min = o.val_t.hexarray_lim_min
@@ -485,16 +485,16 @@
   
     --gfx.a = 0.3
     --gfx.rect(x,y,w,h,1)
-    gfx.a = 0.15
+    gfx.a = 0.1
     local blit_h, blit_w = obj.grad_sz,obj.grad_sz
     gfx.blit( 3, 1, 0, -- grad back
               0,0,  blit_w,blit_h,
-              x,y+h/2-obj.glass_h/2,w,obj.glass_h, 0,0)      
+              x,y,w,h, 0,0)      --+h/2-obj.glass_h/2 
     
     -- draw func
     col(obj, 'white')
     local val
-    local y_glass_low = math.floor(y+h/2+obj.glass_h/2)-1
+    local y_glass_low = y+h--math.floor(y+h/2+obj.glass_h/2)-1
     
     local pow_float = 1
     flags_tension = math.floor(flags_tension*15)
@@ -527,14 +527,18 @@
        else
         val = hexarray_scale_min +  ((  (progr_x-hexarray_lim_min)/(hexarray_lim_max - hexarray_lim_min)  )^pow_float)*(hexarray_scale_max - hexarray_scale_min)
       end 
-      if progr_x > hexarray_lim_min  and progr_x < hexarray_lim_max then gfx.a = 0.15 else gfx.a = 0.03 end
-      gfx.line(i_x, y_glass_low, i_x, math.ceil(y_glass_low - val*obj.glass_h))
+      if progr_x > hexarray_lim_min  and progr_x < hexarray_lim_max then 
+        gfx.set(0.5,0.9,0.5, 0.4 )
+       else 
+        gfx.set(1,1,1, 0.1 )
+      end
+      gfx.line(i_x, y_glass_low, i_x, math.ceil(y_glass_low - val*h))--obj.glass_h
     end
     
     col(obj, 'green', 0.7)
     if o.val_t.flags_mute then col(obj, 'red', 0.7) end
     local circ_x = math.floor(x+w*data.slots[conf.activeknob].val)
-    local circ_y = math.floor(y_glass_low - obj.glass_h*Slave_param-2 )+2
+    local circ_y = math.floor(y_glass_low - h*Slave_param-2 )+2--obj.glass_h
     local r = 2
     gfx.circle(circ_x,circ_y, r, 1)
     gfx.line(circ_x+math.floor(r/2)-1, circ_y-2*r, circ_x+math.floor(r/2)-1, circ_y+2*r)
@@ -549,7 +553,7 @@
     
     if o.customslider_ctrl_rot == 0 then
       col(obj, 'green')
-      gfx.rect(x,y-1,w,h,0)
+      gfx.rect(x,y,w,h,0)
     --[[
       col(obj, 'green')
       gfx.triangle(x,y,x+w,y,x,y+h,1)

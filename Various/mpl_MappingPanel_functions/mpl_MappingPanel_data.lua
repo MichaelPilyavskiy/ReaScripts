@@ -208,10 +208,12 @@
     local tr if tracknumber == 0 then tr =  GetMasterTrack( 0 ) else tr = GetTrack(0,tracknumber-1) end
     data.LTP_hasLTP = true
     data.LTP_trGUID = GetTrackGUID( tr )
+    data.LTP_trname = ({GetTrackName( tr )})[2]
     data.LTP_fxnumber = fxnumber
     data.LTP_paramnumber = paramnumber
     data.LTP_fxname =  ({TrackFX_GetFXName( tr, fxnumber, '' )})[2]
     data.LTP_paramname =  ({TrackFX_GetParamName( tr, fxnumber, paramnumber, '' )})[2]
+    data.LTP_isvalid = data.LTP_fxname:match('MappingPanel') == nil
   end
   ------------------------------------------------------------------
   function Data_CollectSlaveRouting(data, conf, tr, fx_id)
@@ -254,6 +256,7 @@
                     Slave_paramid = slave_parid,
                     Slave_paramname = ({ TrackFX_GetParamName( tr, slaveFX_id, slave_parid, '' )})[2],
                     Slave_param = TrackFX_GetParamNormalized( tr, slaveFX_id, slave_parid ),
+                    Slave_paramformatted = ({TrackFX_GetFormattedParamValue( tr, slaveFX_id, slave_parid,'' )})[2],
                     flags = flags,
                     flags_mute = flags&1==1,
                     flags_tension = ((flags>>1)&0xF)/15,
@@ -280,6 +283,11 @@
             TrackFX_GetParamNormalized( data.slots[src_slot][child_link].tr_pointer, 
                                         data.slots[src_slot][child_link].Slave_FXid, 
                                         data.slots[src_slot][child_link].Slave_paramid )
+          data.slots[src_slot][child_link].Slave_paramformatted = 
+            ({TrackFX_GetFormattedParamValue( data.slots[src_slot][child_link].tr_pointer, 
+                                        data.slots[src_slot][child_link].Slave_FXid, 
+                                        data.slots[src_slot][child_link].Slave_paramid,
+                                        '' )     })[2]                                   
           data.slots[src_slot][child_link].JSFX_param = 
             TrackFX_GetParamNormalized( data.slots[src_slot][child_link].tr_pointer, 
                                         data.slots[src_slot][child_link].JSFX_FXid, 

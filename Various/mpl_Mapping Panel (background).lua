@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 2.02
+-- @version 2.03
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -9,9 +9,14 @@
 --    mpl_MappingPanel_functions/mpl_MappingPanel_data.lua
 --    mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua
 -- @changelog
---    # because of JSFX limitation parameters map was rebuilt
+--    + Show Info line
+--    + Right click on rectangle to type XY
+--    + Show formatted values
+--    + Master knobs support mousewheel
+--    # GUI improvements
+--    # prevent setting x1 >= x2 and x2 <= x1
 
-  local vrs = 'v2.02'
+  local vrs = 'v2.03'
   --NOT gfx NOT reaper
   
   --[[ map:
@@ -39,7 +44,7 @@
                     data_minor = false,
                     conf = false}
   local mouse = {}
-   data = {}
+  local data = {}
   local obj = {}
   
   local info = debug.getinfo(1,'S');  
@@ -92,7 +97,7 @@
       refresh.conf = nil 
     end
     
-    if refresh.GUI == true or refresh.GUI_onStart == true then           OBJ_Update              (conf, obj, data, refresh, mouse) end  
+    if refresh.GUI == true or refresh.GUI_onStart == true then        OBJ_Update              (conf, obj, data, refresh, mouse) end  
     if refresh.GUI_minor == true then refresh.GUI = true end
     GUI_draw               (conf, obj, data, refresh, mouse)    
                                                
@@ -114,10 +119,10 @@
         Main_RefreshExternalLibs()
         ExtState_Load(conf)
         gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
-                    780,--conf.wind_w, --
+                    conf.wind_w, --780,--
                     conf.wind_h, --530,--
                     conf.dock, conf.wind_x, conf.wind_y)
-        OBJ_init(obj)
+        OBJ_init(conf, obj, data, refresh, mouse) 
         OBJ_Update(conf, obj, data, refresh, mouse,strategy) 
         run()  
   end

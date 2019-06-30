@@ -5,7 +5,7 @@
   
   
   ---------------------------------------------------
-  function OBJ_init(obj)  
+  function OBJ_init(conf, obj, data, refresh, mouse) 
     -- globals
     obj.reapervrs = tonumber(GetAppVersion():match('[%d%.]+')) 
     obj.offs = 5 
@@ -32,24 +32,26 @@
                    yellow =   {0.6,   0.7,    0.35   },
                    black =   {0,0,0 }
                    }    
-    
+    obj.menu_h = 40
+    obj.offs = 2
+    obj.menu_w = 15
+    obj.knob_w = lim((gfx.w - obj.menu_w - obj.offs)/(conf.slot_cnt+1), 38, 45)
+    obj.rect_side = 8
+    obj.glass_h = math.floor(obj.menu_h*0.8)-1
+    obj.name_w = 200
+    obj.infoline_h = 25
+    OBJ_InfoLine(conf, obj, data, refresh, mouse) 
   end
   ---------------------------------------------------
-  function OBJ_Update(conf, obj, data, refresh, mouse, strategy) 
+  function OBJ_Update(conf, obj, data, refresh, mouse) 
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
     
-    local min_w = 520
+    local min_w = 350
     local min_h = 250
     local reduced_view = gfx.h  <= min_h
     gfx.w  = math.max(min_w,gfx.w)
     gfx.h  = math.max(min_h,gfx.h)
     
-    obj.offs = 2
-    obj.menu_w = 15
-    obj.menu_h = 40
-    obj.knob_w = math.min((gfx.w - obj.menu_w - obj.offs)/(conf.slot_cnt+1), 45)
-    obj.rect_side = 8
-    obj.glass_h = math.floor(obj.menu_h*0.9)-1
     
     OBJ_MenuMain (conf, obj, data, refresh, mouse)
     OBJ_Knobs(conf, obj, data, refresh, mouse) 
@@ -58,9 +60,37 @@
     for key in pairs(obj) do if type(obj[key]) == 'table' then  obj[key].context = key  end end    
   end
   -----------------------------------------------
-  function OBJ_Knob_Childrens_SlideCtrl(conf, obj, data, refresh, mouse, i, areax,areay,areaw,areah)  
-    local p1_x = areax + (areaw- obj.rect_side) * data.slots[conf.activeknob][i].hexarray_lim_min
-    local p1_y = areay + areah/2 - obj.glass_h/2 + (obj.glass_h- obj.rect_side)*(1-data.slots[conf.activeknob][i].hexarray_scale_min)
+  function OBJ_InfoLine(conf, obj, data, refresh, mouse) 
+      obj.infoline = { clear = false,
+                        x =obj.offs*2,
+                        y = obj.menu_h + obj.offs,
+                        w = gfx.w - obj.offs*4,
+                        h = obj.infoline_h,
+                        col = 'white',
+                        txt= '[info]',
+                        show = true,
+                        fontsz = obj.GUI_fontsz3,
+                        alpha_back = 0.2,
+                        func =  function()  
+                                  
+                                end,
+                        func_mouseover = function() 
+                                          
+                                          refresh.GUI_minor = true
+                                        end                                  
+                               
+                        }  
+  end
+  -----------------------------------------------
+  function OBJ_Knob_Childrens_SlideCtrl(conf, obj, data, refresh, mouse, i, slotchild_sliderarea)  
+    local areax,areay,areaw,areah = 
+      slotchild_sliderarea.x,
+      slotchild_sliderarea.y,
+      slotchild_sliderarea.w,
+      slotchild_sliderarea.h
+    local glass_y = areay--math.floor(areay + areah/2 - obj.glass_h/2)
+    local p1_x = areax-math.floor(obj.rect_side/2) + areaw* data.slots[conf.activeknob][i].hexarray_lim_min
+    local p1_y = glass_y-math.floor(obj.rect_side/2) + areah*(1-data.slots[conf.activeknob][i].hexarray_scale_min)--obj.glass_h 
     obj['slotchild_p1'..i] = { clear = true,
                   x = p1_x,
                   y = p1_y,
@@ -79,21 +109,43 @@
                           end,
                   func_LD2 =function()
                               if mouse.context_latch_t then 
-                                local out_val1 = lim(mouse.context_latch_t[2] + mouse.dx/areaw)
-                                local out_val2 = lim(mouse.context_latch_t[4] - mouse.dy/areah)
-                                obj['slotchild_p1'..i].x, obj['slotchild_p1'..i].y = 
-                                  areax + (areaw- obj.rect_side) * out_val1,
-                                  areay + areah/2 - obj.glass_h/2 + (obj.glass_h- obj.rect_side)*(1-out_val2)
+                                local mult = 1 if mouse.Ctrl_state then mult = 0.01 end
+                                local out_val1 = lim(mouse.context_latch_t[2] + mult*mouse.dx/areaw)
+                                local out_val2 = lim(mouse.context_latch_t[4] - mult*mouse.dy/areah)
+                                if out_val1 >= 1- data.slots[conf.activeknob][i].hexarray_lim_max then out_val1 = 1- data.slots[conf.activeknob][i].hexarray_lim_max-0.01 end
+                                obj['slotchild_p1'..i].x, 
+                                obj['slotchild_p1'..i].y = 
+                                  areax -math.floor(obj.rect_side/2)+ areaw* out_val1,
+                                  glass_y -math.floor(obj.rect_side/2)+ areah *(1-out_val2)--obj.glass_h 
                                 data.slots[conf.activeknob][i].hexarray_lim_min = out_val1
                                 data.slots[conf.activeknob][i].hexarray_scale_min = out_val2
+                                Data_ApplyHex(conf, obj, data, refresh, mouse, conf.activeknob, i)
+                                
+                                obj.infoline.txt = 'x1='..math_q_dec(out_val1, 4)..', y1='..math_q_dec(out_val2, 4)
+                                
+                                refresh.GUI_minor = true
+                                refresh.data_minor = true
+                              end
+                             end ,
+                  func_R = function()
+                              local retval, retvals_csv = GetUserInputs( conf.mb_title, 2, 'X1,Y1,extrawidth=100', 
+                                data.slots[conf.activeknob][i].hexarray_lim_min..','..data.slots[conf.activeknob][i].hexarray_scale_min )
+                              if retval then 
+                                t = {}
+                                for val in retvals_csv:gmatch('[^%,]+') do if tonumber(val) then t[#t+1] = lim(tonumber(val)) end end
+                                if #t ~= 2 then return end
+                                data.slots[conf.activeknob][i].hexarray_lim_min,data.slots[conf.activeknob][i].hexarray_scale_min = t[1],t[2]
                                 Data_ApplyHex(conf, obj, data, refresh, mouse, conf.activeknob, i)
                                 refresh.GUI_minor = true
                                 refresh.data_minor = true
                               end
-                             end  
+                            end,
+                  func_mouseover = function() 
+                                          refresh.GUI_minor = true
+                                        end                               
                 }
-    local p2_x = areax + (areaw- obj.rect_side) * (1-data.slots[conf.activeknob][i].hexarray_lim_max)
-    local p2_y = areay + areah/2 - obj.glass_h/2 + (obj.glass_h- obj.rect_side)*data.slots[conf.activeknob][i].hexarray_scale_max
+    local p2_x = areax-math.floor(obj.rect_side/2) + areaw*  (1-data.slots[conf.activeknob][i].hexarray_lim_max)
+    local p2_y = glass_y-math.floor(obj.rect_side/2) + areah *data.slots[conf.activeknob][i].hexarray_scale_max--obj.glass_h 
     obj['slotchild_p2'..i] = { clear = true,
                   x = p2_x,
                   y = p2_y,
@@ -111,76 +163,59 @@
                                                      obj['slotchild_p2'..i].y, data.slots[conf.activeknob][i].hexarray_scale_max}
                           end,
                   func_LD2 =function()
-                              if mouse.context_latch_t then 
-                                local out_val1 = lim(mouse.context_latch_t[2] - mouse.dx/areaw)
-                                local out_val2 = lim(mouse.context_latch_t[4] + mouse.dy/areah)
+                              if mouse.context_latch_t then
+                                local mult = 1 if mouse.Ctrl_state then mult = 0.01 end 
+                                local out_val1 = lim(mouse.context_latch_t[2] - mult*mouse.dx/areaw)
+                                local out_val2 = lim(mouse.context_latch_t[4] +mult* mouse.dy/areah)
+                                if (1-out_val1)<= data.slots[conf.activeknob][i].hexarray_lim_min then out_val1 = 1- data.slots[conf.activeknob][i].hexarray_lim_min-0.01 end
                                 obj['slotchild_p2'..i].x, obj['slotchild_p2'..i].y = 
-                                  areax + (areaw- obj.rect_side) * (1-out_val1),
-                                  areay + areah/2 - obj.glass_h/2 + (obj.glass_h- obj.rect_side)*out_val2
+                                  areax-math.floor(obj.rect_side/2) + areaw*  (1-out_val1),
+                                  glass_y-math.floor(obj.rect_side/2) + areah *out_val2--obj.glass_h 
                                 data.slots[conf.activeknob][i].hexarray_lim_max = out_val1
                                 data.slots[conf.activeknob][i].hexarray_scale_max = out_val2
                                 Data_ApplyHex(conf, obj, data, refresh, mouse, conf.activeknob, i)
+                                
+                                obj.infoline.txt = 'y1='..math_q_dec(out_val1, 4)..', y2='..math_q_dec(out_val2, 4)
+                                
                                 refresh.GUI_minor = true
                                 refresh.data_minor = true
                               end
-                             end   
-                }                
-    local tension_y = areay + (areah-obj.glass_h)/2 + obj.glass_h - obj.rect_side - ((obj.glass_h-obj.rect_side) * data.slots[conf.activeknob][i].flags_tension)
-    obj['slotchild_sliderarea_tension'..i] = { clear = true,
-                  x = areax-obj.rect_side,
-                  y = tension_y,
-                  w = obj.rect_side,
-                  h = obj.rect_side,
-                  col = 'white',
-                  txt = '',
-                  show = true,
-                  a_frame = 0.05,
-                  alpha_back = 0.1,
-                  customslider_ctrl = true,
-                  customslider_ctrl_rot = -1,
-                  func =  function()  
-                            mouse.context_latch_t = {obj['slotchild_sliderarea_tension'..i].y, data.slots[conf.activeknob][i].flags_tension}
-                          end,
-                  func_LD2 =function()
-                              if mouse.context_latch_t then 
-                                local out_val = lim(mouse.context_latch_t[2]  - 2*mouse.dy/areaw, 0, 1 )
-                                obj['slotchild_sliderarea_tension'..i].y = 
-                                  areay + (areah-obj.glass_h)/2 + obj.glass_h - obj.rect_side - ((obj.glass_h-obj.rect_side) * out_val)
-                                data.slots[conf.activeknob][i].flags_tension = out_val
+                             end ,
+                  func_R = function()
+                              local retval, retvals_csv = GetUserInputs( conf.mb_title, 2, 
+                                'X1,Y1,extrawidth=100', 
+                                (1-data.slots[conf.activeknob][i].hexarray_lim_max)..','..(1-data.slots[conf.activeknob][i].hexarray_scale_max ))
+                              if retval then 
+                                t = {}
+                                for val in retvals_csv:gmatch('[^%,]+') do if tonumber(val) then t[#t+1] = lim(tonumber(val)) end end
+                                if #t ~= 2 then return end
+                                data.slots[conf.activeknob][i].hexarray_lim_max,data.slots[conf.activeknob][i].hexarray_scale_max = (1-t[1]),(1-t[2])
                                 Data_ApplyHex(conf, obj, data, refresh, mouse, conf.activeknob, i)
                                 refresh.GUI_minor = true
                                 refresh.data_minor = true
                               end
-                             end  
-                }   
-    obj['slotchild_sliderarea_tensionback'..i] = { clear = true,
-                  x = areax-obj.rect_side,
-                  y = areay + (areah-obj.glass_h)/2,
-                  w = obj.rect_side,
-                  h = obj.glass_h,
-                  col = 'white',
-                  txt = '',
-                  show = true,
-                  a_frame = 0.05,
-                  alpha_back = 0.1,
-                  ignore_mouse = true
-                }                                                                                                                                                                                                 
+                            end,                             
+                        func_mouseover = function() 
+                                          refresh.GUI_minor = true
+                                        end                                 
+                }                
+                                                                                                                                            
   end                
   -----------------------------------------------
   function OBJ_Knob_Childrens(conf, obj, data, refresh, mouse) 
     if not data.slots or not data.slots[conf.activeknob] then return end
     local slotchilds_cnt = #data.slots[conf.activeknob]
-    local child_h = 45
-    local name_w = 150
+    local child_h = 55
     local but_w = 20
-    local but_cnt = 2
+    local but_cnt = 3
+ 
     for i = 1, slotchilds_cnt do
       if data.slots[conf.activeknob][i] then
-        local areax,areay,areaw,areah = obj.offs*3 ,
-                                        obj.menu_h + obj.offs*2 + (child_h +obj.offs)* (i-1),
-                                        gfx.w - obj.offs*6,
+        local areax,areay,areaw,areah = obj.offs*2 ,
+                                        obj.menu_h + obj.offs*2 + (child_h +obj.offs)* (i-1) + obj.infoline_h,
+                                        gfx.w - obj.offs*4,
                                         child_h
-        local slider_w = areaw - name_w - obj.offs*4 - but_w * but_cnt
+        local slider_w = areaw-areax-obj.name_w -but_w*but_cnt
         obj['slotchildarea'..i] = { clear = true,
                         x = areax,
                         y = areay,
@@ -188,19 +223,19 @@
                         h = areah,
                         col = 'white',
                         txt = '',
-                        show = true,
+                        show = false,
                         fontsz = obj.GUI_fontsz2,
                         a_frame = 0.05,
                         alpha_back = 0,
                         ignore_mouse = true}
         local txt_name =  (data.slots[conf.activeknob][i].JSFX_paramid+1)..' ← '..data.slots[conf.activeknob][i].trname..'\n'..
-                          '   FX#'..(data.slots[conf.activeknob][i].Slave_FXid+1)..' / '..
-                          '   '..MPL_ReduceFXname(data.slots[conf.activeknob][i].Slave_FXname)..'\n'..
-                          '   Param#'..(data.slots[conf.activeknob][i].Slave_paramid+1)..' / '..data.slots[conf.activeknob][i].Slave_paramname
+                          '   ('..(data.slots[conf.activeknob][i].Slave_FXid+1)..') '..MPL_ReduceFXname(data.slots[conf.activeknob][i].Slave_FXname)..
+                          '\n   ('..(data.slots[conf.activeknob][i].Slave_paramid+1)..') '..data.slots[conf.activeknob][i].Slave_paramname..'\n'..
+                          '   '..data.slots[conf.activeknob][i].Slave_paramformatted:gsub('%s+', ' ')
         obj['slotchild_name'..i] = { clear = true,
                         x = areax,
                         y = areay,
-                        w = name_w-obj.rect_side-obj.offs*2,
+                        w = obj.name_w,
                         h = areah,
                         col = 'white',
                         txt = txt_name,
@@ -217,10 +252,10 @@
                           TrackFX_Show( tr, fxid, 3 )
                         end}   
         obj['slotchild_sliderarea'..i] = { clear = true,
-                        x = areax + name_w + obj.offs,
+                        x = areax + obj.name_w + obj.offs + math.floor(obj.rect_side/2),
                         y = areay,
-                        w = slider_w,
-                        h = areah,
+                        w = slider_w-obj.rect_side,
+                        h = areah-1,
                         col = 'white',
                         txt = '',
                         val_t = data.slots[conf.activeknob][i],
@@ -232,12 +267,57 @@
                         alpha_back = 0,
                         ignore_mouse = true,
                         customslider = true}    
-        OBJ_Knob_Childrens_SlideCtrl(conf, obj, data, refresh, mouse, i, areax + name_w + obj.offs,areay,slider_w,areah)                         
-                        
+        OBJ_Knob_Childrens_SlideCtrl(conf, obj, data, refresh, mouse, i, 
+          obj['slotchild_sliderarea'..i])                         
+
+    local tension_y = areay + (areah - obj.rect_side)*(1-data.slots[conf.activeknob][i].flags_tension)
+    obj['slotchild_sliderarea_tension'..i] = { clear = true,
+                  x = areax + obj.name_w + slider_w + obj.offs*2 + but_w*0,
+                  y = tension_y,
+                  w = but_w,
+                  h = obj.rect_side,
+                  col = 'white',
+                  txt = '',
+                  show = true,
+                  a_frame = 0.05,
+                  alpha_back = 0.1,
+                  customslider_ctrl = true,
+                  customslider_ctrl_rot = -1,
+                  func =  function()  
+                            mouse.context_latch_t = {obj['slotchild_sliderarea_tension'..i].y, data.slots[conf.activeknob][i].flags_tension}
+                          end,
+                  func_LD2 =function()
+                              if mouse.context_latch_t then 
+                                local out_val = lim(mouse.context_latch_t[2]  - mouse.dy/areah, 0, 1 )
+                                obj['slotchild_sliderarea_tension'..i].y = areay + (areah - obj.rect_side)*(1-out_val)
+                                data.slots[conf.activeknob][i].flags_tension = out_val
+                                Data_ApplyHex(conf, obj, data, refresh, mouse, conf.activeknob, i)
+                                local txt_type = math.floor(out_val*16)
+                                if out_val ==0 then txt_type = 'linear' end
+                                obj.infoline.txt = 'tension type: '..txt_type
+                                
+                                refresh.GUI_minor = true
+                                refresh.data_minor = true
+                              end
+                             end  
+                }   
+    obj['slotchild_sliderarea_tensionback'..i] = { clear = true,
+                  x = areax + obj.name_w + slider_w + obj.offs*2 + but_w*0,
+                  y = areay,
+                  w = but_w,
+                  h = areah,
+                  col = 'white',
+                  txt = '',
+                  show = true,
+                  a_frame = 0.05,
+                  alpha_back = 0.1,
+                  ignore_mouse = true
+                }                                                     
+                                        
         local colfill_a = 0.2
         if data.slots[conf.activeknob][i].flags_mute == true then colfill_a= 0.6 end
         obj['slotchild_mute'..i] = { clear = true,
-                        x = areax + name_w + slider_w + obj.offs*4 + but_w*0,
+                        x = areax + obj.name_w + slider_w + obj.offs*2 + but_w*1,
                         y = areay,
                         w = but_w,
                         h = areah,
@@ -256,10 +336,15 @@
                                   Data_ApplyHex(conf, obj, data, refresh, mouse, conf.activeknob, i)
                                   refresh.data = true
                                   refresh.GUI = true
-                                end}  
+                                end,
+                        func_mouseover = function() 
+                                          obj.infoline.txt = 'Mute link'
+                                          obj['slotchild_mute'..i].is_selected = true
+                                          refresh.GUI_minor = true
+                                        end }  
 
         obj['slotchild_del'..i] = { clear = true,
-                        x = areax + name_w + slider_w + obj.offs*4 + but_w*1,
+                        x = areax + obj.name_w + slider_w + obj.offs*2 + but_w*2,
                         y = areay,
                         w = but_w,
                         h = areah,
@@ -279,8 +364,14 @@
                             Data_RemoveLink(conf, obj, data, refresh, mouse, conf.activeknob, i)
                             refresh.data = true
                             refresh.GUI = true
-                          end 
-                        end}                                                                                                                                      
+                          end
+                        end,
+                        func_mouseover = function() 
+                                          obj.infoline.txt = 'Remove link'
+                                          obj['slotchild_del'..i].is_selected = true
+                                          refresh.GUI_minor = true
+                                        end                            
+                        }                                                                                                                                      
       end                  
     end
   end
@@ -296,11 +387,13 @@
         knob_a = 0.8
         ignore_selection = true
       end
+      local knob_x = obj.menu_w + obj.offs + obj.knob_w*(knobid-1)
+      if knob_x + obj.knob_w > gfx.w - obj.knob_w then break end
       obj['knob'..knobid] = { clear = true,
                         ignore_selection = ignore_selection,
                         is_knob = true,
                         knob_y_shift = knob_y_shift,
-                        x = obj.menu_w + obj.offs + obj.knob_w*(knobid-1),
+                        x = knob_x,
                         y = 0,
                         w = obj.knob_w,
                         h = obj.menu_h,
@@ -323,7 +416,7 @@
                                       if mouse.context_latch_val then 
                                         local out_val = lim(mouse.context_latch_val + mouse.dx*0.001 - mouse.dy*0.01)
                                         obj['knob'..knobid].val = out_val
-                                        obj['knob'..knobid].txt= math.floor(data.slots[knobid].val*100)..'%',
+                                        obj['knob'..knobid].txt= math.floor(out_val*100)..'%',
                                         gmem_write(knobid, out_val)
                                         data.slots[knobid].val = out_val
                                         gmem_write(100, 1)
@@ -332,7 +425,26 @@
                                         refresh.data_minor = true
                                       end
                                     end  ,
+                        func_wheel = function()
+                                        local add = 0.01
+                                        if mouse.wheel_trig > 0 then 
+                                          --add = 0.001 
+                                         elseif mouse.wheel_trig < 0 then 
+                                          add = -add
+                                         else return 
+                                        end
+                                        local out_val = lim(data.slots[knobid].val + add)
+                                        obj['knob'..knobid].val = out_val
+                                        obj['knob'..knobid].txt= math.floor(out_val*100)..'%',
+                                        gmem_write(knobid, out_val)
+                                        data.slots[knobid].val = out_val
+                                        gmem_write(100, 1)
+                                        conf.activeknob = knobid
+                                        refresh.GUI = true
+                                        refresh.data = true                                        
+                                      end,
                         func_mouseover =  function() 
+                                            obj['knob'..knobid].is_selected = true
                                             refresh.GUI_minor = true
                                           end  ,
                         onrelease_L = function() 
@@ -344,7 +456,7 @@
       end
       obj.addparam = { clear = true,
                         ignore_selection = false,
-                        x = obj.menu_w + obj.offs + obj.knob_w*conf.slot_cnt,
+                        x = gfx.w - obj.knob_w,
                         y = 0,
                         w = obj.knob_w,
                         h = obj.menu_h,
@@ -361,9 +473,12 @@
                                   refresh.GUI = true
                                 end,
                         func_mouseover =  function() 
+                                            if data.LTP_hasLTP and data.LTP_isvalid then
+                                              obj.infoline.txt = 'Add link: '..data.LTP_trname..' / '..data.LTP_fxname..' / '..data.LTP_paramname
+                                            end
+                                            obj.addparam.is_selected = true
                                             refresh.GUI_minor = true
-                                          end  ,
-                               
+                                          end  
                         }
                         
      else -- not found master JSFX

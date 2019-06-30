@@ -73,14 +73,15 @@
                 or (mouse.context_latch and mouse.context_latch == key))
             and obj[key].func_mouseover and mouse.is_moving then 
               obj[key].func_mouseover() 
-              obj[key].is_selected = true
+              --obj[key].is_selected = true
               mouse.has_context = true
           end
+          if is_mouse_over and obj[key].func_mouseover_always then  obj[key].func_mouseover_always()  end
             ------------------------
            if is_mouse_over and mouse.LMB_state and not mouse.last_LMB_state then mouse.context_latch = key end
            ------------------------
            mouse.onclick_L = not mouse.last_LMB_state 
-                               and mouse.cap == 1
+                               and mouse.LMB_state--and mouse.cap == 1
                                and is_mouse_over
           if mouse.onclick_L and obj[key].func then obj[key].func() goto skip_mouse_obj end
            ------------------------
@@ -101,7 +102,7 @@
            if mouse.ondrag_L and obj[key].func_LD then obj[key].func_LD() end 
                  ------------------------
            mouse.ondrag_L_onmove = -- left drag (only when moving after latch)
-                               mouse.cap == 1
+                               mouse.LMB_state--mouse.cap == 1
                                and mouse.is_moving
                                and mouse.context_latch == key
            if mouse.ondrag_L_onmove and obj[key].func_LD2 then obj[key].func_LD2() end 
@@ -176,12 +177,6 @@
                                 y= conf.struct_yshift}
       end
       
-      if mouse.MMB_state and mouse.last_MMB_state and  mouse.is_moving then 
-        conf.struct_xshift = mouse.context_latch_t.x  + mouse.dx
-        conf.struct_yshift = mouse.context_latch_t.y + mouse.dy
-        refresh.GUI = true
-        refresh.conf = true
-      end
 
       if not mouse.MMB_state and mouse.last_MMB_state then
         mouse.context_latch_t = nil
