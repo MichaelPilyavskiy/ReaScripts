@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a9b08242fcb911324ddf3695b65b8a6e9cb55690" name="MPL Scripts">
+<index version="1" commit="1393f75344408a6958a554468c4755246f25a653" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3004,6 +3004,10 @@
         <changelog><![CDATA[# because of JSFX limitation parameters map was rebuilt]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/c56ce6dc9d8ccbe41dbecede68cec33c50ddea08/JSFX/MappingPanel_slave.jsfx</source>
       </version>
+      <version name="1.2" author="MPL" time="2019-06-30T08:11:40Z">
+        <changelog><![CDATA[# fixed handling limits]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/5c24a9dc9284dd4944fb92d9ac97fd3cf2dddd45/JSFX/MappingPanel_slave.jsfx</source>
+      </version>
     </reapack>
     <reapack name="RetrospectiveRecord_tracker.jsfx" type="effect" desc="RetrospectiveRecord_tracker">
       <metadata>
@@ -5854,6 +5858,19 @@ add control for timefall showing last note]]></changelog>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d42ef2fe1f1080c9001124348391bac0379b7347/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d42ef2fe1f1080c9001124348391bac0379b7347/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
       </version>
+      <version name="1.82" author="MPL" time="2019-06-30T08:28:58Z">
+        <changelog><![CDATA[# fix validate track pointer when changing take FX]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1393f75344408a6958a554468c4755246f25a653/Various/mpl_InteractiveToolbar.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1393f75344408a6958a554468c4755246f25a653/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1393f75344408a6958a554468c4755246f25a653/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1393f75344408a6958a554468c4755246f25a653/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1393f75344408a6958a554468c4755246f25a653/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1393f75344408a6958a554468c4755246f25a653/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1393f75344408a6958a554468c4755246f25a653/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1393f75344408a6958a554468c4755246f25a653/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1393f75344408a6958a554468c4755246f25a653/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1393f75344408a6958a554468c4755246f25a653/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">
       <metadata>
@@ -5972,6 +5989,19 @@ add control for timefall showing last note]]></changelog>
         <source file="mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bcabb496a04ca0c2a77c6363178f9d58a05ee95e/Various/mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua</source>
         <source file="mpl_MappingPanel_functions/mpl_MappingPanel_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bcabb496a04ca0c2a77c6363178f9d58a05ee95e/Various/mpl_MappingPanel_functions/mpl_MappingPanel_data.lua</source>
         <source file="mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bcabb496a04ca0c2a77c6363178f9d58a05ee95e/Various/mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua</source>
+      </version>
+      <version name="2.03" author="MPL" time="2019-06-30T08:10:58Z">
+        <changelog><![CDATA[+ Show Info line
++ Right click on rectangle to type XY
++ Show formatted values
++ Master knobs support mousewheel
+# GUI improvements
+# prevent setting x1 >= x2 and x2 <= x1]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/09755080c2ef328241dee7addbcc6fc861fe65a6/Various/mpl_Mapping%20Panel%20(background).lua</source>
+        <source file="mpl_MappingPanel_functions/mpl_MappingPanel_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/09755080c2ef328241dee7addbcc6fc861fe65a6/Various/mpl_MappingPanel_functions/mpl_MappingPanel_GUI.lua</source>
+        <source file="mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/09755080c2ef328241dee7addbcc6fc861fe65a6/Various/mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua</source>
+        <source file="mpl_MappingPanel_functions/mpl_MappingPanel_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/09755080c2ef328241dee7addbcc6fc861fe65a6/Various/mpl_MappingPanel_functions/mpl_MappingPanel_data.lua</source>
+        <source file="mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/09755080c2ef328241dee7addbcc6fc861fe65a6/Various/mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Monitor selected track with track 1 (background).lua" type="script" desc="Monitor selected track with track 1">
