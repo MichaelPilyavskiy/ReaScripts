@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1393f75344408a6958a554468c4755246f25a653" name="MPL Scripts">
+<index version="1" commit="dbe4be6f8861a355e00eeacc9b72139d182dfcc9" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1074,6 +1074,10 @@
         <changelog><![CDATA[# add option to overwrite saving path, for now use reaper.ini
 # disable incrementing file names, always overwrite]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e4bd69adb8e7a01876f702830b657b9ccb84744/FX/mpl_Save%20selected%20tracks%20FX%20chains.lua</source>
+      </version>
+      <version name="1.06" author="MPL" time="2019-07-05T01:11:51Z">
+        <changelog><![CDATA[# fix loading ext config]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dbe4be6f8861a355e00eeacc9b72139d182dfcc9/FX/mpl_Save%20selected%20tracks%20FX%20chains.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set last touched parameter value (via deductive brutforce).lua" type="script" desc="Set last touched parameter value (via deductive brutforce)">
