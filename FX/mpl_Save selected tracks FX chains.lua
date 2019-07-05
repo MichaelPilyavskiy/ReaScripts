@@ -1,10 +1,9 @@
 -- @description Save selected tracks FX chains
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?p=2137484
 -- @changelog
---    # add option to overwrite saving path, for now use reaper.ini
---    # disable incrementing file names, always overwrite
+--    # fix loading ext config
   
   
   
@@ -25,10 +24,7 @@
     return out_ch
   end
   ---------------------------------------------------------------------
-  function main(conf, saving_folder)
-    
-    ExtState_Load(conf)
-    
+  function main(conf)
     -- check are tracks selected
       local cnt_seltr = CountSelectedTracks(0)
       if cnt_seltr == 0 then MB('There aren`t selected tracks', 'Error', 0) return end   
@@ -43,7 +39,8 @@
         fn_template = 'UntitledProject_'..ts
       end
       local retval0
-      if saving_folder and saving_folder:gsub('%s+', '') ~= '' then 
+      if conf.saving_folder and conf.saving_folder:gsub('%s+', '') ~= '' then 
+        saving_folder = conf.saving_folder
         retval0 = 1
        else 
         retval0,  saving_folder = JS_Dialog_BrowseForSaveFile('Save selected tracks FX Chains', proj_path, fn_template, ".RfxChain")
@@ -88,5 +85,10 @@
   local ret = CheckFunctions('VF_CalibrateFont') 
   local ret2 = VF_CheckReaperVrs(5.95,true)    
   if ret and ret2 then 
-    if JS_Dialog_BrowseForSaveFile then main(conf, saving_folder) else MB('Missed JS ReaScript API extension', 'Error', 0) end
+    if JS_Dialog_BrowseForSaveFile then 
+      ExtState_Load(conf)
+      main(conf) 
+     else 
+      MB('Missed JS ReaScript API extension', 'Error', 0) 
+    end
   end
