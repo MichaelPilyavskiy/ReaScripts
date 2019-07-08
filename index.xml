@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dbe4be6f8861a355e00eeacc9b72139d182dfcc9" name="MPL Scripts">
+<index version="1" commit="03c59f28a5cad71e046cbe099323c422ea95a006" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6016,6 +6016,30 @@ add control for timefall showing last note]]></changelog>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted (background).lua" type="script" desc="Open and Close Media Explorer when item is inserted">
       <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_Open%20and%20Close%20Media%20Explorer%20when%20item%20is%20inserted%20(background).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_PitchEditor.lua" type="script" desc="PitchEditor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for editing take pitch envelope\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-07-08T20:25:33Z">
+        <changelog><![CDATA[+ Initial release
++ YIN-based pitch detection
++ Support editing audio takes pitch envelope by dragging blocks
++ Vertical and horizontal scroll/zoom]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/03c59f28a5cad71e046cbe099323c422ea95a006/Various/mpl_PitchEditor.lua</source>
+        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/03c59f28a5cad71e046cbe099323c422ea95a006/Various/mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua</source>
+        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/03c59f28a5cad71e046cbe099323c422ea95a006/Various/mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua</source>
+        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/03c59f28a5cad71e046cbe099323c422ea95a006/Various/mpl_PitchEditor_functions/mpl_PitchEditor_data.lua</source>
+        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/03c59f28a5cad71e046cbe099323c422ea95a006/Various/mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua</source>
+        <source file="mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel">https://github.com/MichaelPilyavskiy/ReaScripts/raw/03c59f28a5cad71e046cbe099323c422ea95a006/Various/mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel</source>
       </version>
     </reapack>
     <reapack name="mpl_ProjectPlaylist (background).lua" type="script" desc="ProjectPlaylist">
