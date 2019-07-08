@@ -1,0 +1,297 @@
+// @description PitchEditor_analyzer
+// @author MPL
+// @website http://forum.cockos.com/member.php?u=70694
+// @noindex
+
+//    -- based on http://recherche.ircam.fr/equipes/pcm/cheveign/pss/2002_JASA_YIN.pdf
+//    -- used some modified code snippets from JSFX Pitch Follower by aparker127 http://stash.reaper.fm/v/30507/pitch-follower
+      
+//---------------------------------------------------
+  function msg(s)( ShowConsoleMsg(s); ShowConsoleMsg("\n"));
+  function msg2(s)( ShowConsoleMsg(sprintf(#,"%f", s ));ShowConsoleMsg("\n") );
+//---------------------------------------------------   
+  function d(tau istart iwinend) //Difference Function (YIN eq. 6)
+  local (sum i_d) (
+    sum = 0;
+    i_d = 0;
+    loop(iwinend+1-istart-tau,
+      sum += sqr(istart[i_d]-istart[i_d+tau]);
+      i_d += 1;
+    );
+    sum;
+  );  
+  //---------------------------------------------------  
+    function avg(imin imax) //max non-inclusive
+    local (num sum) (
+      num = 0;
+      sum = 0;
+      loop(imax-imin,
+        sum += imin[num];
+        num += 1;
+      );
+      sum / (imax-imin);
+    ); 
+//---------------------------------------------------   
+  function parab(iclosest)
+  local (x1 y1 x2 y2 x3 y3 denom a b c) (
+    x1 = iclosest - 1;
+    y1 = x1[0];
+    x2 = iclosest;
+    y2 = iclosest[0];
+    x3 = iclosest + 1;
+    y3 = x3[0];
+    
+    denom = (x1 - x2) * (x1 - x3) * (x2 - x3);
+    a = (x3 * (y2 - y1) + x2 * (y1 - y3) + x1 * (y3 - y2)) / denom;
+    b = (x3*x3 * (y1 - y2) + x2*x2 * (y3 - y1) + x1*x1 * (y2 - y3)) / denom;
+    //c = (x2 * x3 * (x2 - x3) * y1 + x3 * x1 * (x3 - x1) * y2 + x1 * x2 * (x1 - x2) * y3) / denom;
+    -b / (2*a);
+  );
+        
+//--------------------------------------------------- 
+  function findMin(istart iend thresh srate minLook)
+  local (i rmin return_ind return_ind) (
+    i = 1;
+    rmin = thresh; // "running min"
+    return_ind = -srate;
+    loop(iend-istart-10,
+      istart[i] < rmin ? (
+        rmin = istart[i];
+        return_ind = istart + i;
+      );
+      istart[i] > thresh ? (
+        rmin < thresh ? (
+          rmin = -10;
+        );
+      );
+      i += 1;
+    );
+    minLook + parab(return_ind)-istart;
+  );
+  //---------------------------------------------------     
+  function lim(val,min0,max0)(
+    min0 ==0 & max0 ? (min0 =0; max0 = 1); 
+    val = max(min0,  min(val, max0) ) ;
+    val
+  );
+  //---------------------------------------------------  
+  function Data_GetPitch(spos, srate, winSamples, maxlen, window_step, minF, maxF, YINthresh)
+  local (maxLook minLook dpos cmndpos i freq) (
+    maxLook = floor(min(src_SR/minF,winSamples)); //from MinFreq
+    minLook = floor(src_SR/maxF); //from MaxFreq
+    dpos = winSamples + 100; //start of cmnd buffer, "difference position"
+    cmndpos = dpos + maxLook + 100;
+    cmndpos[0] = 1;
+    i = 0;
+    loop(maxLook - minLook + 1,
+      dpos[i] = d(minLook+i, spos, spos+winSamples);
+      i += 1;
+    );
+    i = 1;
+    loop(maxLook - minLook + 1,
+      cmndpos[i] = dpos[i]/(avg(dpos, dpos+i+1));
+      i += 1;
+    );
+    avg(dpos, dpos+maxLook-minLook) > 0.00001 ? (
+      freq = srate/findMin(cmndpos, cmndpos+1+maxLook-minLook, YINthresh, srate, minLook);
+    ) : (
+      freq = 0;
+    );    
+    freq < 0 ? freq = 0;
+    freq
+  );    
+//---------------------------------------------------
+  function Data_CollectItemData(ES_key, max_len, window_step, minF, maxF, lowRMSlimit, overlap, YINthresh, freqdiff_octshift,  TDfreq TDslice_minwind) 
+    local (it parent_trptr it_pos it_len it_tk has_data src accessor buf_sz seek_pos length rms trig_note i_com) 
+    (
+    
+    it = GetSelectedMediaItem(0,0);
+    it != 0 ? (
+      parent_trptr =  GetMediaItem_Track( it);
+      it_pos = GetMediaItemInfo_Value( it, "D_POSITION" );
+      it_len = GetMediaItemInfo_Value( it, "D_LENGTH" );
+      it_tk = GetActiveTake(it);
+      has_data = 0;
+      
+      TakeIsMIDI(it_tk) ==0 ? (
+        s_offs = GetMediaItemTakeInfo_Value( it_tk, "D_STARTOFFS" );
+        extension_api("BR_GetMediaItemTakeGUID", it_tk, #it_tkGUID );
+        src = GetMediaItemTake_Source( it_tk );
+        src_SR =  GetMediaSourceSampleRate( src );
+        has_data = 1;
+        
+        accessor = CreateTakeAudioAccessor( it_tk);
+        buf_sz = floor(src_SR*window_step);
+        length = min(it_len,max_len);
+        
+        // drop params to ext state
+        #out_str = "";
+        str_insert(#out_str,"WINDOW ",strlen(#out_str) );
+        str_insert(#out_str,sprintf(#,"%f", window_step ),strlen(#out_str) );
+        str_insert(#out_str,"\nBUFSZ ",strlen(#out_str) );
+        str_insert(#out_str,sprintf(#,"%f", buf_sz),strlen(#out_str) );
+        
+        str_insert(#out_str,"\nMINF ",strlen(#out_str) );
+        str_insert(#out_str,sprintf(#,"%f", minF),strlen(#out_str) );
+        str_insert(#out_str,"\nMAXF ",strlen(#out_str) );
+        str_insert(#out_str,sprintf(#,"%f", maxF),strlen(#out_str) );
+        str_insert(#out_str,"\nLOWRMSLIM ",strlen(#out_str) );
+        str_insert(#out_str,sprintf(#,"%f", lowRMSlimit),strlen(#out_str) );
+        str_insert(#out_str,"\nOVERLAP ",strlen(#out_str) );
+        str_insert(#out_str,sprintf(#,"%f", overlap),strlen(#out_str) );
+        str_insert(#out_str,"\nYINTHRESH ",strlen(#out_str) );
+        str_insert(#out_str,sprintf(#,"%f", YINthresh),strlen(#out_str) );
+        str_insert(#out_str,"\nFDIFFOCSHIFT ",strlen(#out_str) );
+        str_insert(#out_str,sprintf(#,"%f", freqdiff_octshift),strlen(#out_str) );
+        str_insert(#out_str,"\nTDFREQ ",strlen(#out_str) );
+        str_insert(#out_str,sprintf(#,"%f", TDfreq),strlen(#out_str) );
+        str_insert(#out_str,"\nTDSLICEWIND ",strlen(#out_str) );
+        str_insert(#out_str,sprintf(#,"%f", TDslice_minwind),strlen(#out_str) );
+        str_insert(#out_str,"\n<POINTDATA\n",strlen(#out_str) );
+        
+        seek_pos = 0;
+        spos = 0;
+        memset(0,0,buf_sz); // clear samplebuffer
+        i_com = 1;
+        while (
+          trig_note = 0;
+          GetAudioAccessorSamples( accessor, src_SR, 1, seek_pos, buf_sz, spos );
+          
+          // Get RMS
+          rms = 0; i = 0; loop(buf_sz, rms = rms + abs(spos[i]); i+=1; ); rms = rms / buf_sz;
+          
+          // Scale buffer
+          /*spos0 = 0; i = 0; loop(buf_sz, spos0[i] = spos[i]^0.2;i+=1;);*/ 
+          
+          // Seek transient
+          rmsdB = 20*log10(rms*2);
+          last_rmsdB = 20*log10(last_rms*2); 
+          //(abs(rmsdB - last_rmsdB) > 2) & (i_com - trig_note_last_id > 10)   ? (
+            //trig_note = 1;
+            //trig_note_last_id = i_com;
+          //) ;
+          last_rms = rms;
+          
+          // Perform Pitch detection
+          f_com = 0;
+          rms > lowRMSlimit ? (
+            f = Data_GetPitch(spos, src_SR, buf_sz, maxlen, window_step, minF, maxF, YINthresh);
+            f > 0 ? (
+            
+              // octave drop fix
+              last_f != f? (
+                f1 = max(f, last_f);
+                f2 = min(f, last_f);
+                      
+                abs(f1 - (f2 *2)) < freqdiff_octshift ? (
+                  last_f > f ? (
+                    f = f*2 ;
+                    f_change = 1;
+                   ) : (
+                    f = f /2 ;
+                    f_change = 1
+                  );
+                );             
+              );
+              
+              // add pitch transient
+              ((lastf_com ==0) & (f != 0)) | ((abs(last_f - f) > TDfreq) & (i_com - trig_note_last_id > TDslice_minwind)) ? (
+                trig_note = 1;
+                trig_note_last_id = i_com;
+              );
+              f_com = f;
+              last_f = f;
+              str_insert(#out_str,"\nPT ",strlen(#out_str) );
+              str_insert(#out_str,sprintf(#,"%f", seek_pos+s_offs),strlen(#out_str) );
+              str_insert(#out_str," ",strlen(#out_str) );
+              str_insert(#out_str,sprintf(#,"%f", f),strlen(#out_str) );
+              str_insert(#out_str," ",strlen(#out_str) );
+              str_insert(#out_str,sprintf(#,"%f", rms),strlen(#out_str) );
+              str_insert(#out_str," ",strlen(#out_str) );
+              i_com - trig_note_last_id == 0 ? (
+                str_insert(#out_str,sprintf(#,"%d", 1),strlen(#out_str) );
+               ):(
+                str_insert(#out_str,sprintf(#,"%d", 0),strlen(#out_str) );
+              );
+            );
+          );
+          lastf_com = f_com;
+          i_com = i_com+ 1;
+          seek_pos += window_step/overlap;
+          seek_pos < length - window_step;
+        );
+        DestroyAudioAccessor( accessor );
+      );
+      str_insert(#out_str,"\n>\n",strlen(#out_str) );
+      extension_api("BR_GetMediaItemTakeGUID", it_tk, #takeGUID);
+      SetProjExtState( 0, ES_key, #takeGUID, #out_str);
+      //msg(#out_str);
+    );
+  );
+ 
+//---------------------------------------------------
+  function round(num)
+  local (mult ret) (
+    num >= 0 ? (
+      mult = 1;
+    ) : (
+      mult = -1;
+    );
+    abs(num) - floor(abs(num)) >= 0.5 ? (
+      ret = mult * ceil(abs(num));
+    ) : (
+      ret = mult * floor(abs(num));
+    );
+    ret;
+  );
+//---------------------------------------------------   
+  function cmnd(tau istart iwinend) //Cumulative Mean Normalized Difference
+  // (YIN eq. 8)
+  local (i return)(
+    dbufstart = 127127;
+    i = 0;
+    loop(tau + 1,
+      dbufstart[i] = d(i, istart, iwinend);
+      i += 1;
+    );
+    tau == 0 ? (
+      return = 1;):(
+      return = dbufstart[tau] / avg(dbufstart, dbufstart+tau+1);
+    );
+    return;
+  );
+
+//---------------------------------------------------------------------   
+  function CalculateMain(ES_key)
+  local (buf_lowRMSlimit_dB buf_maxlen buf_window_step buf_overlap buf_minF  buf_YINthresh) (
+      // get parameters
+      GetProjExtState( 0, ES_key, "buf_lowRMSlimit_dB", #buf_lowRMSlimit_dB ); match("%d", #buf_lowRMSlimit_dB  ,buf_lowRMSlimit_dB);
+      lowRMSlimit = exp(buf_lowRMSlimit_dB*0.11512925464970228420089957273422);
+      GetProjExtState( 0, ES_key, "buf_maxlen", #buf_maxlen ); match("%f", #buf_maxlen  , buf_maxlen);
+      GetProjExtState( 0, ES_key, "buf_window_step", #buf_window_step ); match("%f", #buf_window_step , buf_window_step);   
+      GetProjExtState( 0, ES_key, "buf_overlap", #buf_overlap ); match("%f", #buf_overlap  , buf_overlap);  
+      GetProjExtState( 0, ES_key, "buf_minF", #buf_minF ); match("%f", #buf_minF  , buf_minF);  
+      GetProjExtState( 0, ES_key, "buf_maxF", #buf_maxF ); match("%f", #buf_maxF  , buf_maxF);
+      GetProjExtState( 0, ES_key, "buf_YINthresh", #buf_YINthresh ); match("%f", #buf_YINthresh  , buf_YINthresh);
+      GetProjExtState( 0, ES_key, "buf_freqdiff_octshift", #buf_freqdiff_octshift ); match("%f", #buf_freqdiff_octshift  , buf_freqdiff_octshift);      
+      GetProjExtState( 0, ES_key, "buf_TDfreq", #buf_TDfreq ); match("%f", #buf_TDfreq  , buf_TDfreq); 
+      GetProjExtState( 0, ES_key, "buf_TDslice_minwind", #buf_TDslice_minwind ); match("%f", #buf_TDslice_minwind  , buf_TDslice_minwind);      
+      // get/write output
+      Data_CollectItemData(ES_key, 
+                            buf_maxlen, 
+                            buf_window_step, 
+                            buf_minF, 
+                            buf_maxF, 
+                            lowRMSlimit, 
+                            buf_overlap, 
+                            buf_YINthresh, 
+                            buf_freqdiff_octshift,
+                            buf_TDfreq ,
+                            buf_TDslice_minwind);
+      // return OK
+      SetProjExtState( 0, ES_key, "buf_issuccess", "1" );
+  );
+//---------------------------------------------------------------------   
+  #ES_key = "MPL_PitchEditor";
+  SetProjExtState( 0, ES_key, "buf_issuccess", "0" );
+  CalculateMain(#ES_key);
