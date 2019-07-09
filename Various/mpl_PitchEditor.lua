@@ -1,5 +1,5 @@
 -- @description PitchEditor
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for editing take pitch envelope
@@ -8,14 +8,11 @@
 --    mpl_PitchEditor_functions/mpl_PitchEditor_MOUSE.lua
 --    mpl_PitchEditor_functions/mpl_PitchEditor_data.lua
 --    mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua
---    mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel
+--    [main] mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel
 -- @changelog
---    + Initial release
---    + YIN-based pitch detection
---    + Support editing audio takes pitch envelope by dragging blocks
---    + Vertical and horizontal scroll/zoom
+--    # fix ReaPack header (add mpl_PitchEditor_analyzer to action list)
 
-  local vrs = 'v1.0'
+  local vrs = 'v1.01'
   --NOT gfx NOT reaper
   
   
