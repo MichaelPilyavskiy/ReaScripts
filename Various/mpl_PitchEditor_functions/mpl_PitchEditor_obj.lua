@@ -50,7 +50,7 @@
     gfx.h  = math.max(min_h,gfx.h)
     
     OBJ_DefinePeakArea(conf, obj, data, refresh, mouse)
-
+    
       if not data.has_data then                          
             obj.replace_ctrl = { clear = true,
                         x = obj.menu_w + obj.offs,
@@ -68,10 +68,14 @@
                                 }
       else 
         OBJ_Ctrl(conf, obj, data, refresh, mouse)
-        Obj_ScrollZoomX(conf, obj, data, refresh, mouse)
-        Obj_ScrollZoomY(conf, obj, data, refresh, mouse)
-        Obj_Ruler(conf, obj, data, refresh, mouse)
-        Obj_Notes(conf, obj, data, refresh, mouse)
+        if obj.current_page == 0 then 
+          Obj_ScrollZoomX(conf, obj, data, refresh, mouse)
+          Obj_ScrollZoomY(conf, obj, data, refresh, mouse)
+          Obj_Ruler(conf, obj, data, refresh, mouse)
+          Obj_Notes(conf, obj, data, refresh, mouse)
+         else
+          Obj_Options(conf, obj, data, refresh, mouse)
+        end
     end                    
     OBJ_MenuMain(conf, obj, data, refresh, mouse)
     for key in pairs(obj) do if type(obj[key]) == 'table' then  obj[key].context = key  end end    
@@ -336,6 +340,7 @@
                         is_progressbar = true,
                         val = data.extcalc_progress,
                         func =  function() 
+                                  obj.current_page = 0
                                   Data_SetPitchExtStateParams(conf, obj, data, refresh, mouse)
                                   Action(conf.ExternalID) -- trigger EEL
                                   Data_GetPitchExtState(conf, obj, data, refresh, mouse)
@@ -345,7 +350,25 @@
                         func_mouseover =  function() 
                                             --obj.analyze.is_selected = true
                                             --refresh.GUI_minor = true
-                                          end  ,                                } 
+                                          end  , } 
+    obj.options = { clear = true,
+                        x = obj.menu_w+  obj.offs*2+obj.analyze_w,
+                        y = 0,
+                        w = obj.analyze_w,
+                        h = obj.menu_h,
+                        col = 'white',
+                        state = fale,
+                        txt= 'Options',
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,
+                        is_progressbar = true,
+                        val = data.extcalc_progress,
+                        func =  function() 
+                                  obj.current_page = math.abs(obj.current_page-1)
+                                  refresh.data = true
+                                  refresh.GUI = true
+                                end}                                          
                                 
   end
   -----------------------------------------------
@@ -499,4 +522,115 @@
                         onrelease_L2  = function()  
                                         end,
                           }                           
+  end
+  -----------------------------------------------
+  function Obj_Options(conf, obj, data, refresh, mouse)
+    local x_shift = obj.peak_area.x
+    local y_shift = obj.peak_area.y
+    local entry_w_name = 300
+    local entry_h = 15
+    local indent_w = 20
+
+    local params_t = 
+      {
+        { name = 'YIN-based Pitch detection algorithm' ,
+          is_group = 1},
+        { name = 'Maximum take length: '..conf.max_len..'s (default=300)',
+          nameI = 'Maximum take length',
+          indent = 1,
+          lim_min = 1,
+          lim_max = 600,
+          param_key = 'max_len'},
+        { name = 'Window step: '..conf.window_step..'s (default=0.03)',
+          nameI = 'Window step',
+          indent = 1,
+          lim_min = .01,
+          lim_max = .1,
+          param_key = 'window_step'},  
+        { name = 'Window overlap: '..conf.overlap..'x (default=2)',
+          nameI = 'Window overlap',
+          indent = 1,
+          lim_min = 1,
+          lim_max = 8,
+          is_int = true,
+          param_key = 'overlap'},  
+        { name = 'Minimum frequency: '..conf.minF..'Hz (default=100)',
+          nameI = 'Minimum frequency',
+          indent = 1,
+          lim_min = 10,
+          lim_max = 1000,
+          param_key = 'minF'},     
+        { name = 'Maximum frequency: '..conf.maxF..'Hz (default=800)',
+          nameI = 'Maximum frequency',
+          indent = 1,
+          lim_min = 10,
+          lim_max = 1000,
+          param_key = 'maxF'},      
+        { name = 'Absolute threshold (YIN, st.4): '..conf.YINthresh..' (default=0.15)',
+          nameI = 'Absolute threshold',
+          indent = 1,
+          lim_min = 0.01,
+          lim_max = 0.9,
+          param_key = 'YINthresh'}, 
+          
+        { name = 'Results Filtering',
+          is_group = 1},         
+        { name = 'RMS Threshold: '..conf.lowRMSlimit_dB..'dB (default=-60)',
+          nameI = 'RMS threshold',
+          indent = 1,
+          lim_min = -100,
+          lim_max = -5,
+          param_key = 'lowRMSlimit_dB'},           
+        { name = 'Octave shift difference: '..conf.freqdiff_octshift..'Hz (default=15)',
+          nameI = 'Octave shift difference',
+          indent = 1,
+          lim_min = 5,
+          lim_max = 100,
+          param_key = 'freqdiff_octshift'},             
+
+        { name = 'Pitch transient detection',
+          is_group = 1},   
+        { name = 'Windows count between slices: '..conf.TDslice_minwind..' (default=6)',
+          nameI = 'Windows count between slices',
+          indent = 1,
+          lim_min = 2,
+          lim_max = 10,
+          param_key = 'TDslice_minwind'},  
+        { name = 'Slices frequency difference: '..conf.TDfreq..'Hz (default=10)',
+          nameI = 'Slices frequency difference',
+          indent = 1,
+          lim_min = 5,
+          lim_max = 100,
+          param_key = 'TDfreq'},   
+                                  
+      }
+                
+    for i = 1, #params_t do
+      if not params_t[i].indent then params_t[i].indent = 0 end
+      local txt_a = 0.8
+      local alpha_back = 0
+      if params_t[i].is_group == 1 then txt_a = 0.4 alpha_back = 0.15 end
+      obj['params'..i] = { clear = true,
+                          x = x_shift + obj.offs + params_t[i].indent * indent_w,
+                          y = y_shift + entry_h*(i-1),
+                          w = entry_w_name,
+                          h = entry_h,
+                          col = 'white',
+                          txt_a = txt_a,
+                          txt= params_t[i].name,
+                          aligh_txt = 1,
+                          show = true,
+                          fontsz = obj.GUI_fontsz2,
+                          alpha_back = alpha_back,
+                          func =  function() 
+                            local retval, retvals_csv = GetUserInputs( conf.mb_title, 1, params_t[i].nameI, conf[params_t[i].param_key] )
+                            if retval and retvals_csv and tonumber(retvals_csv) then
+                              retvals_csv = tonumber(retvals_csv)
+                              if  params_t[i].is_int then retvals_csv = math.floor(retvals_csv) end
+                              conf[params_t[i].param_key] = lim(retvals_csv, params_t[i].lim_min, params_t[i].lim_max)
+                              refresh.GUI = true
+                              refresh.data = true
+                            end
+                          end}
+    end   
   end

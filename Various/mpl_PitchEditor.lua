@@ -1,5 +1,5 @@
 -- @description PitchEditor
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for editing take pitch envelope
@@ -10,9 +10,11 @@
 --    mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua
 --    [main] mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel
 -- @changelog
---    # fix ReaPack header (add mpl_PitchEditor_analyzer to action list)
+--    + Options: add options page
+--    # EEL analyzer: prevent reading non-1x playrate takes
+--    # EEL analyzer: prevent reading takes with stretch markers
 
-  local vrs = 'v1.01'
+  local vrs = 'v1.02'
   --NOT gfx NOT reaper
   
   
@@ -33,7 +35,7 @@
            GUI_scroll =  0,
            GUI_zoomY = 1,
            GUI_scrollY =  0,}
-  local obj = {}
+  local obj = {current_page = 0}
   
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 

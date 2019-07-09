@@ -111,9 +111,14 @@
       it_pos = GetMediaItemInfo_Value( it, "D_POSITION" );
       it_len = GetMediaItemInfo_Value( it, "D_LENGTH" );
       it_tk = GetActiveTake(it);
+      prate = GetMediaItemTakeInfo_Value( it_tk, "D_PLAYRATE" );
       has_data = 0;
       
-      TakeIsMIDI(it_tk) ==0 ? (
+      SM_count = GetTakeNumStretchMarkers( it_tk );
+      SM_count != 0 ? ( MB("Reading take with stretch markers is not supported", ES_key, 0 ););
+      prate != 1 ? ( MB("Reading take with playrate not equal 1 is not supported", ES_key, 0 ););
+      TakeIsMIDI(it_tk) ==0 && prate == 1 && SM_count == 0 ? (
+        
         s_offs = GetMediaItemTakeInfo_Value( it_tk, "D_STARTOFFS" );
         extension_api("BR_GetMediaItemTakeGUID", it_tk, #it_tkGUID );
         src = GetMediaItemTake_Source( it_tk );
@@ -147,7 +152,7 @@
         str_insert(#out_str,sprintf(#,"%f", TDfreq),strlen(#out_str) );
         str_insert(#out_str,"\nTDSLICEWIND ",strlen(#out_str) );
         str_insert(#out_str,sprintf(#,"%f", TDslice_minwind),strlen(#out_str) );
-        str_insert(#out_str,"\n<POINTDATA\n",strlen(#out_str) );
+        str_insert(#out_str,"\n<POINTDATA",strlen(#out_str) );
         
         seek_pos = 0;
         spos = 0;
@@ -201,7 +206,7 @@
               );
               f_com = f;
               last_f = f;
-              str_insert(#out_str,"\nPT ",strlen(#out_str) );
+              str_insert(#out_str,"\n   PT ",strlen(#out_str) );
               str_insert(#out_str,sprintf(#,"%f", seek_pos+s_offs),strlen(#out_str) );
               str_insert(#out_str," ",strlen(#out_str) );
               str_insert(#out_str,sprintf(#,"%f", f),strlen(#out_str) );
@@ -219,13 +224,13 @@
           i_com = i_com+ 1;
           seek_pos += window_step/overlap;
           seek_pos < length - window_step;
-        );
+        ); // end while
         DestroyAudioAccessor( accessor );
-      );
-      str_insert(#out_str,"\n>\n",strlen(#out_str) );
-      extension_api("BR_GetMediaItemTakeGUID", it_tk, #takeGUID);
-      SetProjExtState( 0, ES_key, #takeGUID, #out_str);
-      //msg(#out_str);
+        str_insert(#out_str,"\n>\n",strlen(#out_str) );
+        extension_api("BR_GetMediaItemTakeGUID", it_tk, #takeGUID);
+        SetProjExtState( 0, ES_key, #takeGUID, #out_str);
+        //msg(#out_str);
+      ); // end if Take is MIDI
     );
   );
  

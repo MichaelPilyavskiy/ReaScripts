@@ -336,7 +336,10 @@
         if pos_x > obj.peak_area.w then break end
       end
     end 
-    
+  end
+  ------------------------------------------------------------------------  
+  function GUI_DrawPeaksPitchPoints(conf, obj, data, refresh, mouse) 
+    if not( data.peaks and #data.peaks>0) or data.has_data==false then return end 
     -- pitch points
     gfx.x,gfx.y = obj.peak_area.x, obj.peak_area.y+obj.peak_area.h/2 
     if data.extpitch then
@@ -379,9 +382,11 @@
         lastpos_x = pos_x
         lastpos_y = pos_y
       end
-    end
-    
-    
+    end 
+  end
+  ------------------------------------------------------------------------  
+  function GUI_DrawPeaksPitchGrid(conf, obj, data, refresh, mouse) 
+    if not( data.peaks and #data.peaks>0) or data.has_data==false then return end    
     -- pitch grid
     gfx.set(1,1,1)
     gfx.setfont(1, obj.GUI_font, obj.GUI_fontsz3 )
@@ -456,6 +461,10 @@
           end  
           
         GUI_DrawPeaks(conf, obj, data, refresh, mouse)
+        if obj.current_page == 0 then
+          GUI_DrawPeaksPitchPoints(conf, obj, data, refresh, mouse)
+          GUI_DrawPeaksPitchGrid(conf, obj, data, refresh, mouse)
+        end
       end
     
  
