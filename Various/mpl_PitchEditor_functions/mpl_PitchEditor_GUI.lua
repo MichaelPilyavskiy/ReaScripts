@@ -315,10 +315,7 @@
   function GUI_DrawPeaks(conf, obj, data, refresh, mouse)
                   
     if not( data.peaks and #data.peaks>0) or data.has_data==false then return end
-    --[[ curpos
-    gfx.set(1,1,1,0.9)
-    gfx.line(peak_area.x+peak_area.w/2, peak_area.y,
-              peak_area.x+peak_area.w/2, peak_area.y +peak_area.h)]]
+
     gfx.set(1,1,1,0.7)
     local t_sz= #data.peaks
     local last_val,lastpos_x = 0
@@ -326,7 +323,7 @@
     for buf_idx = 1, t_sz do
       if data.peaks[buf_idx] then
         local pos_x = math.floor(obj.peak_area.x + buf_idx)
-        local val = math.abs(data.peaks[buf_idx].peak+last_val)/2
+        local val = math.abs(data.peaks[buf_idx].peak+last_val)/4
         last_val = val
         gfx.a = 0.1
         if not lastpos_x or lastpos_x ~= pos_x and val > 0.005 then 
@@ -346,9 +343,8 @@
       local t_sz= #data.extpitch
       local last_val = 0
       local lastpos_x, lastpos_y = gfx.x,gfx.y
-      local lastpos_y2, pos_y2 = gfx.y, gfx.y
       for idx = 1, t_sz do
-        local pos_x = math.floor(obj.peak_area.x + obj.peak_area.w * 1/data.it_tkrate *(data.extpitch[idx].xpos- (data.GUI_scroll *data.it_tkrate))/data.GUI_zoom)
+        local pos_x = math.floor(obj.peak_area.x + obj.peak_area.w * 1/data.it_tkrate *(data.extpitch[idx].xpos- (conf.GUI_scroll *data.it_tkrate))/conf.GUI_zoom)
         if pos_x > obj.peak_area.x + obj.peak_area.w then break end
 
         local parent_note = data.extpitch[idx].idx_noteon
@@ -356,29 +352,52 @@
         
         gfx.set(1,1,1,0.5)                
         local pitch_linval = data.extpitch[idx].pitch/127
-        local pos_y = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval- data.GUI_scrollY)/data.GUI_zoomY) ) 
+        local pos_y = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval- conf.GUI_scrollY)/conf.GUI_zoomY) ) 
         gfx.x = lastpos_x
         gfx.y = lastpos_y 
         if pos_y < obj.peak_area.y + obj.peak_area.h and pos_y > obj.peak_area.y then 
-          if pos_x - gfx.x < 3/data.GUI_zoom then 
+          if pos_x - gfx.x < 3/conf.GUI_zoom then 
             gfx.a=.7
+            if gfx.y < obj.peak_area.y then gfx.y = obj.peak_area.y  end
+            if gfx.y  > obj.peak_area.y + obj.peak_area.h then gfx.y = obj.peak_area.y + obj.peak_area.h end
             gfx.lineto(pos_x,pos_y)
           end
         end
+        lastpos_x = pos_x
+        lastpos_y = pos_y
+      end
+    end 
+  end
+  ------------------------------------------------------------------------  
+  function GUI_DrawPeaksPitchPointsMod(conf, obj, data, refresh, mouse) 
+    if not( data.peaks and #data.peaks>0) or data.has_data==false then return end 
+    -- pitch points
+    gfx.x,gfx.y = obj.peak_area.x, obj.peak_area.y+obj.peak_area.h/2 
+    if data.extpitch then
+      local t_sz= #data.extpitch
+      local last_val = 0
+      local lastpos_x, lastpos_y = gfx.x,gfx.y
+      gfx.set(0.5, 1, 0.5)
+      for idx = 1, t_sz do
+        local pos_x = math.floor(obj.peak_area.x + obj.peak_area.w * 1/data.it_tkrate *(data.extpitch[idx].xpos- (conf.GUI_scroll *data.it_tkrate))/conf.GUI_zoom)
+        if pos_x > obj.peak_area.x + obj.peak_area.w then break end
+  
+        local parent_note = data.extpitch[idx].idx_noteon
+        local parent_note_shift = data.extpitch[parent_note].pitch_shift
         
-        
-        if parent_note_shift ~= 0 then    
-          local pitch_linval = (data.extpitch[idx].pitch+parent_note_shift)/127
-          local pos_y2 = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval- data.GUI_scrollY)/data.GUI_zoomY) ) 
-          if pos_y2 < obj.peak_area.y + obj.peak_area.h and pos_y2 > obj.peak_area.y then 
-            if pos_x - gfx.x < 3/data.GUI_zoom then 
-              gfx.a=.7
-              gfx.x, gfx.y = pos_x,pos_y2
-              gfx.setpixel(0.5, 1, 0.5)
-            end
+
+        --if parent_note_shift ~= 0 then    
+        local pitch_linval = (data.extpitch[idx].pitch+parent_note_shift)/127
+        local pos_y = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval- conf.GUI_scrollY)/conf.GUI_zoomY) ) 
+        gfx.x = lastpos_x
+        gfx.y = lastpos_y 
+        if pos_y < obj.peak_area.y + obj.peak_area.h and pos_y > obj.peak_area.y then 
+          if pos_x - gfx.x < 3/conf.GUI_zoom then 
+            if gfx.y < obj.peak_area.y then gfx.y = obj.peak_area.y  end
+            if gfx.y  > obj.peak_area.y + obj.peak_area.h then gfx.y = obj.peak_area.y + obj.peak_area.h end
+            gfx.lineto(pos_x,pos_y)
           end
-        end  
-        
+        end
         lastpos_x = pos_x
         lastpos_y = pos_y
       end
@@ -390,17 +409,19 @@
     -- pitch grid
     gfx.set(1,1,1)
     gfx.setfont(1, obj.GUI_font, obj.GUI_fontsz3 )
-    local x_shift = 20
+    local x_shift = 0
     local y_lim = 15
+    grid_shift = 0.5* (obj.peak_area.h /127  /conf.GUI_zoomY) -1
     for i = 0, 127, 12 do
-      local y_lev = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- ((i/127)- data.GUI_scrollY)/data.GUI_zoomY) ) 
+      local y_lev = math.floor(obj.peak_area.y + obj.peak_area.h - obj.peak_area.h * ((i/127)- conf.GUI_scrollY)/conf.GUI_zoomY) 
       if y_lev > obj.peak_area.y + y_lim and y_lev < obj.peak_area.y + obj.peak_area.h- y_lim then
         gfx.a = 0.06
-        gfx.line(obj.peak_area.x+x_shift, y_lev,
-                 obj.peak_area.x + obj.peak_area.w-x_shift,y_lev)
+        gfx.line(obj.peak_area.x+x_shift, y_lev+grid_shift, obj.peak_area.x + obj.peak_area.w-x_shift,y_lev+grid_shift)
         gfx.x, gfx.y = 0,y_lev - math.ceil(gfx.texth/2)
         gfx.a = 0.7
         gfx.drawstr(GetNoteStr(conf, i))
+        
+        
       end
     end
   end  
@@ -425,7 +446,80 @@
                         drdx, dgdx, dbdx, dadx, 
                         drdy, dgdy, dbdy, dady)  
   end 
+  ---------------------------------------------------  
+  function GUI_gradPitch(conf, obj, data, refresh, mouse)
+        gfx.dest = 6
+        gfx.setimgdim(6, -1, -1)  
+        gfx.setimgdim(6, obj.grad_sz,obj.grad_sz)  
+        local r,g,b,a = 1,1,1,0.3
+        gfx.x, gfx.y = 0,0
+        local c = 0.8
+        local drdx = c*0.00001
+        local drdy = c*0.00001
+        local dgdx = c*0.00008
+        local dgdy = c*0.00001    
+        local dbdx = c*0.00008
+        local dbdy = c*0.00001
+        local dadx = c*0.004
+        local dady = c*0.000001    
+        gfx.gradrect(0,0, obj.grad_sz,obj.grad_sz, 
+                        r,g,b,a, 
+                        drdx, dgdx, dbdx, dadx, 
+                        drdy, dgdy, dbdy, dady)  
+  end 
+  
+  ---------------------------------------------------
+  function GUI_PitchScaleAroundPointer(conf, obj, data, refresh, mouse)
+    if not( data.peaks and #data.peaks>0) or data.has_data==false then return end  
+    if not (mouse.x> obj.peak_area.x and mouse.x < obj.peak_area.x + obj.peak_area.w and mouse.y> obj.peak_area.y and mouse.y < obj.peak_area.y + obj.peak_area.h) then return end
 
+    -- pitch grid
+    local x_shift = 20
+    local y_lim = 15
+    local hrect = obj.peak_area.h/127 /conf.GUI_zoomY
+    local a_note = 0
+    local dx = 1/100
+    local w=100
+    gfx.setfont(1, obj.GUI_font, obj.GUI_fontsz3 )
+    for i = 0, 127 do
+      a_note = 0.08
+      note = math.fmod(i,  12)
+      if note == 1 
+        or note == 3
+        or note == 5
+        or note == 6
+        or note == 8
+        or note == 10
+        or note == 0 then
+        a_note = 0.5 
+      end
+      local y_lev = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- ((i/127)- conf.GUI_scrollY)/conf.GUI_zoomY) ) 
+      local mult = 1-2*math.abs(mouse.y - y_lev) /obj.peak_area.h
+      --gfx.a = a_note *mult
+      if --mouse.x + w < obj.peak_area.x + obj.peak_area.w and 
+        y_lev > obj.peak_area.y + y_lim and 
+        y_lev < obj.peak_area.y + obj.peak_area.h- y_lim and 
+        conf.GUI_zoomY < 0.6
+         then
+        if mouse.x + w > obj.peak_area.x + obj.peak_area.w then w = obj.peak_area.x + obj.peak_area.w - mouse.x end
+        --gfx.rect(mouse.x, y_lev+hrect/2, 50,  hrect,1)
+        gfx.a = a_note *mult
+        if gfx.a > 0 then
+          --[[gfx.blit(6, 1, math.rad(180), -- grad back
+                  0,0,  obj.grad_sz,obj.grad_sz,
+                  mouse.x+w-1, y_lev+hrect/2, w,  hrect-1, 0,0)  ]]    
+          gfx.blit(6, 1, math.rad(0), -- grad back
+                  0,0,  obj.grad_sz,obj.grad_sz,
+                  mouse.x, y_lev+hrect/2, w,  hrect-1, 0,0)   
+          gfx.x, gfx.y = mouse.x+x_shift,y_lev - math.ceil(gfx.texth/2)
+          if conf.GUI_zoomY < 0.3 and w > 40 then
+            gfx.a = 0.8 *mult
+            gfx.drawstr(GetNoteStr(conf, i))  
+          end                
+        end                 
+      end
+    end  
+  end
     ---------------------------------------------------
   function GUI_draw(conf, obj, data, refresh, mouse)
     gfx.mode = 0
@@ -433,13 +527,16 @@
     -- 1 main
     -- 2 gradient back
     --  3 grad selection
-    -- 5 gradient Draw Obj\
+    -- 4 backgr
+    -- 5 gradient Draw Obj
+    -- 6 grad pitch
     
     --  init
       if refresh.GUI_onStart then
         GUI_gradBack(conf, obj, data, refresh, mouse)
         GUI_gradDrawObj(conf, obj, data, refresh, mouse)
         GUI_gradSelection(conf, obj, data, refresh, mouse)
+        GUI_gradPitch(conf, obj, data, refresh, mouse)
         refresh.GUI_onStart = nil             
         refresh.GUI = true       
       end
@@ -463,6 +560,7 @@
         GUI_DrawPeaks(conf, obj, data, refresh, mouse)
         if obj.current_page == 0 then
           GUI_DrawPeaksPitchPoints(conf, obj, data, refresh, mouse)
+          GUI_DrawPeaksPitchPointsMod(conf, obj, data, refresh, mouse)
           GUI_DrawPeaksPitchGrid(conf, obj, data, refresh, mouse)
         end
       end
@@ -482,7 +580,8 @@
       gfx.blit(1, 1, 0, -- backgr
           0,0,gfx.w, gfx.h,
           0,0,gfx.w, gfx.h, 0,0)  
-
+    
+    GUI_PitchScaleAroundPointer(conf, obj, data, refresh, mouse)
     
     refresh.GUI = nil
     refresh.GUI_minor = nil

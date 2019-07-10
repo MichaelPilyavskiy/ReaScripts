@@ -73,12 +73,27 @@
           end]]
             ------------------------
           local is_mouse_over = MOUSE_Match(mouse, obj[key])
-          if mouse.context == key and mouse.LMB_state and not mouse.last_LMB_state then mouse.context_latch = key end
+          if mouse.context == key and 
+            (
+              (mouse.LMB_state and not mouse.last_LMB_state) or
+              (mouse.MMB_state and not mouse.last_MMB_state)
+            )
+            then mouse.context_latch = key end
           ------------------------
           mouse.onclick_L = not mouse.last_LMB_state 
-                               and mouse.cap == 1
+                               and mouse.LMB_state 
+                               and not (mouse.Ctrl_state or mouse.Alt_state or mouse.Shift_state)
                                and is_mouse_over
           if mouse.onclick_L and obj[key].func then obj[key].func() goto skip_mouse_obj end
+          mouse.onclick_L2 = not mouse.last_LMB_state  -- support for ctrl alt shift
+                               and mouse.LMB_state 
+                               and is_mouse_over
+          if mouse.onclick_L2 and obj[key].func2 then obj[key].func2() goto skip_mouse_obj end          
+          ------------------------
+          mouse.onclick_M = not mouse.last_MMB_state 
+                               and mouse.cap == 64
+                               and is_mouse_over
+          if mouse.onclick_M and obj[key].funcM then obj[key].funcM() goto skip_mouse_obj end          
            ------------------------
            mouse.onrelease_L = not mouse.LMB_state  -- release under object
                                and mouse.last_LMB_state 
@@ -101,6 +116,17 @@
                                and mouse.is_moving
                                and mouse.context_latch == key
            if mouse.ondrag_L_onmove and obj[key].func_LD2 then obj[key].func_LD2() end 
+           mouse.ondrag_L_onmove2 = -- left drag support ctrl alt shift (only when moving after latch)
+                               mouse.LMB_state 
+                               and mouse.is_moving
+                               and mouse.context_latch == key
+           if mouse.ondrag_L_onmove2 and obj[key].func_LD3 then obj[key].func_LD3() end            
+                 ------------------------
+           mouse.ondrag_M_onmove = -- middle drag (only when moving after latch)
+                               mouse.cap == 64
+                               and mouse.is_moving
+                               and mouse.context_latch == key
+           if mouse.ondrag_M_onmove and obj[key].func_MD2 then obj[key].func_MD2() end            
                  ------------------------              
            mouse.onclick_LCtrl = mouse.LMB_state 
                                and not mouse.last_LMB_state 

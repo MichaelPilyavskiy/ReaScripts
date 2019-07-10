@@ -50,6 +50,14 @@
     data.src_SR =  GetMediaSourceSampleRate( data.src )
     data.has_data = true
     
+    if data.lastit_tkGUID and data.lastit_tkGUID ~= data.it_tkGUID then
+      conf.GUI_zoom = 1
+      conf.GUI_scroll = 0
+      conf.GUI_zoomY = 1
+      conf.GUI_scrollY = 0
+      refresh.conf = true
+    end
+    data.lastit_tkGUID = data.it_tkGUID
     return true
   end
   ---------------------------------------------------     
@@ -62,15 +70,16 @@
         local mult = mouse.wheel_trig / math.abs(mouse.wheel_trig)
         
         mouse_pos = (mouse.x-obj.peak_area.x) / obj.peak_area.w
-        cur_pos = mouse_pos*data.GUI_zoom + data.GUI_scroll 
+        cur_pos = mouse_pos*conf.GUI_zoom + conf.GUI_scroll 
         
-        new_zoom = lim(data.GUI_zoom * (1-inc*mult), 0.2, 1)
+        new_zoom = lim(conf.GUI_zoom * (1-inc*mult), 0.2, 1)
         new_scroll =lim(cur_pos - mouse_pos*new_zoom, 0, 1-new_zoom)
         
-        data.GUI_zoom = new_zoom
-        data.GUI_scroll = new_scroll
+        conf.GUI_zoom = new_zoom
+        conf.GUI_scroll = new_scroll
         refresh.data = true
         refresh.GUI = true
+        refresh.conf = true
       end
       
       -- V zoom/scroll
@@ -79,15 +88,16 @@
         local mult = mouse.wheel_trig / math.abs(mouse.wheel_trig)
         
         mouse_pos = (mouse.y-obj.peak_area.y) / obj.peak_area.h
-        cur_pos = mouse_pos*data.GUI_zoomY + data.GUI_scrollY
+        cur_pos = mouse_pos*conf.GUI_zoomY + conf.GUI_scrollY
         
-        new_zoom = lim(data.GUI_zoomY * (1-inc*mult), 0.2, 1)
+        new_zoom = lim(conf.GUI_zoomY * (1-inc*mult), conf.minzoomY, 1)
         new_scroll =lim(cur_pos - mouse_pos*new_zoom, 0, 1-new_zoom)
         
-        data.GUI_zoomY = new_zoom
-        data.GUI_scrollY = new_scroll
+        conf.GUI_zoomY = new_zoom
+        conf.GUI_scrollY = new_scroll
         refresh.data = true
         refresh.GUI = true
+        refresh.conf = true
       end
       
     end
@@ -203,12 +213,13 @@
     
     if not ValidatePtr2( 0, data.it_tk, 'MediaItem_Take*' ) then return end
     local idx = 0
-    local w_step = math.max((data.it_len*data.GUI_zoom) /obj.peak_area.w, .001)
+    local w_step = math.max((data.it_len*conf.GUI_zoom) /obj.peak_area.w, .001)
     
     local accessor =  CreateTrackAudioAccessor(  data.parent_trptr )
+    local max_peak = 0
     
-    for seek_pos = data.it_pos+ data.it_len*data.GUI_scroll, data.it_pos+ data.it_len*data.GUI_scroll
-      +data.it_len*data.GUI_zoom, w_step do
+    for seek_pos = data.it_pos+ data.it_len*conf.GUI_scroll, data.it_pos+ data.it_len*conf.GUI_scroll
+      +data.it_len*conf.GUI_zoom, w_step do
       local buf = new_array(2);
       local rv = GetMediaItemTake_Peaks( data.it_tk,--take, 
                                         200,--peakrate, 
@@ -219,8 +230,9 @@
                                         buf )
       if rv then
         idx = idx +1
+        max_peak = math.max(max_peak, math.abs(buf[1]))
         data.peaks[idx] = {spl_pos= seek_pos,
-                         peak = buf[1]
+                         peak = math.abs(buf[1])
                          }                                       
       
        else 
@@ -229,6 +241,8 @@
     
     end
     DestroyAudioAccessor( accessor )
+    
+    for i = 1,  #data.peaks do data.peaks[i].peak = data.peaks[i].peak / max_peak end
     return true
   end
   ------------------------------------------------------------------
@@ -237,6 +251,7 @@
     local envelope =  GetTakeEnvelopeByName( take, 'Pitch' )
     if not envelope or not ValidatePtr2(0, envelope, 'TrackEnvelope*') then 
       Action(41612) --Take: Toggle take pitch envelope
+      return
     end
     DeleteEnvelopePointRange( envelope, 0,data.it_len)
     for idx = 1, #data.extpitch do

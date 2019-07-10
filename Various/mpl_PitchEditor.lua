@@ -1,5 +1,5 @@
 -- @description PitchEditor
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for editing take pitch envelope
@@ -10,11 +10,16 @@
 --    mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua
 --    [main] mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel
 -- @changelog
---    + Options: add options page
---    # EEL analyzer: prevent reading non-1x playrate takes
---    # EEL analyzer: prevent reading takes with stretch markers
+--    + Mouse: middle drag support
+--    + Mouse: Ctrl+drag snap to scale
+--    + Mouse: Alt+drag for better precision
+--    + GUI: store last scroll/zoom, reset on change take
+--    + GUI: show normalized peaks
+--    + GUI: show help notes on low vertical zoom levels
+--    + GUI: shift grid lines -0.5semitone
+--    # Data: fix error when take pitch envelope doesn`t exist
 
-  local vrs = 'v1.02'
+  local vrs = 'v1.03'
   --NOT gfx NOT reaper
   
   
@@ -29,12 +34,9 @@
                     data_minor = false,
                     conf = false}
   local mouse = {context_latch = ''}
-   data = { 
+  local data = { 
             has_data = false,
-            GUI_zoom = 1,
-           GUI_scroll =  0,
-           GUI_zoomY = 1,
-           GUI_scrollY =  0,}
+                }
   local obj = {current_page = 0}
   
   local info = debug.getinfo(1,'S');  
@@ -73,13 +75,20 @@
             wind_h =  250,
             dock =    0,
             
+            GUI_zoom = 1,
+            GUI_scroll = 0,
+            GUI_zoomY = 1,
+            GUI_scrollY = 0,
+                        
             -- GUI
             key_names = 0,
+            minzoomY = 0.1,
             
             -- mouse
             mouse_wheel_res = 960,
             activeknob = 0, 
             
+                        
             -- pitch detection algorithm
               max_len = 300,
             -- YIN

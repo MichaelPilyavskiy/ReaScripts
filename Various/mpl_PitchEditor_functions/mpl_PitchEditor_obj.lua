@@ -17,6 +17,7 @@
     obj.menu_h = 40
     obj.scroll_side = 15
     obj.ruler_h = 10
+    obj.scrollframe_a = 0.1
     
     -- font
     obj.GUI_font = 'Calibri'
@@ -82,14 +83,14 @@
   end
   ----------------------------------------------- 
   function Obj_Notes(conf, obj, data, refresh, mouse)
-    local h_note0 = math.max(obj.peak_area.h / (127*data.GUI_zoomY), 25)
+    local h_note0 = math.max(obj.peak_area.h / (127*conf.GUI_zoomY), 12)
     local thin_h = 2
     for idx = 1, #data.extpitch do
       if data.extpitch[idx].noteOn == 1 and data.extpitch[idx].xpos2 then 
-          local pos_x1 = math.floor(obj.peak_area.x + obj.peak_area.w * 1/data.it_tkrate * (data.extpitch[idx].xpos- (data.GUI_scroll*data.it_tkrate))/data.GUI_zoom)        
-          local pos_x2 = math.floor(obj.peak_area.x + obj.peak_area.w * 1/data.it_tkrate * (data.extpitch[idx].xpos2- (data.GUI_scroll*data.it_tkrate))/data.GUI_zoom)
+          local pos_x1 = math.floor(obj.peak_area.x + obj.peak_area.w * 1/data.it_tkrate * (data.extpitch[idx].xpos- (conf.GUI_scroll*data.it_tkrate))/conf.GUI_zoom)        
+          local pos_x2 = math.floor(obj.peak_area.x + obj.peak_area.w * 1/data.it_tkrate * (data.extpitch[idx].xpos2- (conf.GUI_scroll*data.it_tkrate))/conf.GUI_zoom)
           local pitch_linval = lim((data.extpitch[idx].RMS_pitch + data.extpitch[idx].pitch_shift)/127)
-          local pos_y = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval- data.GUI_scrollY)/data.GUI_zoomY) )
+          local pos_y = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval- conf.GUI_scrollY)/conf.GUI_zoomY) )-- h_note0/2
          -- if pos_y > obj.peak_area.y + obj.peak_area.h then msg(idx) end
           local h_note = h_note0
           if pos_y-h_note/2 < obj.peak_area.y then 
@@ -106,7 +107,7 @@
             col_note = 'green' 
             
              local pitch_linval0 = lim(data.extpitch[idx].RMS_pitch/127)
-             local pos_y0 = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval0- data.GUI_scrollY)/data.GUI_zoomY) )
+             local pos_y0 = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval0- conf.GUI_scrollY)/conf.GUI_zoomY) ) -- h_note0/2
             -- if pos_y > obj.peak_area.y + obj.peak_area.h then msg(idx) end
              local h_note00 = h_note0
              if pos_y0-h_note00/2 < obj.peak_area.y then 
@@ -118,19 +119,20 @@
               else
                pos_y0 = pos_y0-h_note00/2
              end
-             
+            
             obj['note'..idx..'fantom'] = { clear = true,
                           x = pos_x1,
                           y = pos_y0,
                           w = pos_x2-pos_x1-1,
                           h = h_note00,
                           colfill_col = 'white',
+                          col = 'white',
                           colfill_a = 0.1,
                           txt= '',
                           show = true,
                           ignore_mouse = true,
                           a_frame = 0.05,
-                          alpha_back = 0.3,
+                          --alpha_back = 0.3,
                           is_selected = false
                           }
             
@@ -147,18 +149,23 @@
                           txt= '',
                           show = true,
                           fontsz = obj.GUI_fontsz3,
-                          a_frame = 0.05,
-                          alpha_back = 0.6,
+                          a_frame = 0.3,
+                          col = 'green',
+                          --alpha_back = 0.6,
                           is_selected = false,
                           func =  function()
                                     mouse.context_latch_val = data.extpitch[idx].pitch_shift
                                   end,
-                        func_LD2 = function()
+                        func_LD3 = function()
                                       if mouse.context_latch_val then 
-                                        local out_val = lim(mouse.context_latch_val - 127*(mouse.dy/obj.peak_area.h)*data.GUI_zoomY, -data.extpitch[idx].RMS_pitch, 127-data.extpitch[idx].RMS_pitch)
+                                        local mouse_mult = 1
+                                        if mouse.Alt_state then mouse_mult = 0.125 end
+                                        local out_val = lim(mouse.context_latch_val - 127*(mouse_mult * mouse.dy/obj.peak_area.h)*conf.GUI_zoomY, -data.extpitch[idx].RMS_pitch, 127-data.extpitch[idx].RMS_pitch)
+                                        if mouse.Ctrl_state then out_val = math.modf(out_val) end
                                         data.extpitch[idx].pitch_shift = out_val
+                                        
                                         local pitch_linval = lim((data.extpitch[idx].RMS_pitch + out_val)/127)
-                                        local pos_y = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval- data.GUI_scrollY)/data.GUI_zoomY) )
+                                        local pos_y = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval- conf.GUI_scrollY)/conf.GUI_zoomY) )
                                         local h_note = h_note0
                                         if pos_y < obj.peak_area.y then 
                                           pos_y = obj.peak_area.y 
@@ -196,7 +203,7 @@
     local step_w = 50
     for i = obj.peak_area.x, obj.peak_area.w, step_w do
       local pos = i / obj.peak_area.w 
-      local rul = data.it_pos + data.it_len * (data.GUI_scroll+pos *data.GUI_zoom) +data.it_tksoffs
+      local rul = data.it_pos + data.it_len * (conf.GUI_scroll+pos *conf.GUI_zoom) +data.it_tksoffs
       rul= math_q_dec(rul  , 2)
       obj['ruler'..i] = { clear = true,
                         x = i,
@@ -218,19 +225,32 @@
   end
   ----------------------------------------------- 
   function OBJ_DefinePeakArea(conf, obj, data, refresh, mouse)
+    local pa_w = gfx.w-obj.scroll_side- obj.offs
+    local pa_h = gfx.h-obj.menu_h-obj.scroll_side- obj.offs*2-obj.ruler_h
     obj.peak_area = {
                       clear = true,
                       x = 0,
                       y = obj.menu_h+obj.offs+obj.ruler_h ,
-                      w = gfx.w-obj.scroll_side- obj.offs,
-                      h = gfx.h-obj.menu_h-obj.scroll_side- obj.offs*2-obj.ruler_h ,
+                      w = pa_w,
+                      h = pa_h,
                       --a_frame = 0.15,
                       alpha_back = 0,
                       show = data.has_data,
                       func_wheel = function() Data_SetScrollZoom(conf, obj, data, refresh, mouse)  end,
                       func_mouseover =  function() 
                                           --refresh.GUI_minor = true
-                                        end}  
+                                        end,
+                      funcM = function() 
+                                mouse.context_latch_t = {conf.GUI_scroll, conf.GUI_scrollY, conf.GUI_zoom, conf.GUI_zoomY}
+                              end,
+                      func_MD2 = function() 
+                                conf.GUI_scroll = lim(mouse.context_latch_t[1] - mouse.context_latch_t[3]*mouse.dx/pa_w, 0, 1-conf.GUI_zoom)
+                                conf.GUI_scrollY = lim(mouse.context_latch_t[2] +mouse.context_latch_t[4]*mouse.dy/pa_h, 0, 1-conf.GUI_zoomY)
+                                refresh.GUI = true
+                                refresh.data = true
+                                refresh.conf = true
+                              end
+                      }  
   end 
   -----------------------------------------------   
   function Obj_ScrollZoomX(conf, obj, data, refresh, mouse)
@@ -247,14 +267,14 @@
                         txt= '',
                         show = true,
                         fontsz = obj.GUI_fontsz2,
-                        a_frame = 0.2,
+                        a_frame = obj.scrollframe_a,
                         ignore_mouse = true,
                         func =  function()  end
                           }   
     obj.scrollx_manual = { clear = true,
-                        x = sbx + (sbw-obj.scroll_side) * data.GUI_scroll,
+                        x = sbx + (sbw-obj.scroll_side) * conf.GUI_scroll,
                         y = sby,
-                        w = sbw * data.GUI_zoom,
+                        w = sbw * conf.GUI_zoom,
                         h = obj.scroll_side,
                         col = 'white',
                         txt= '',
@@ -262,13 +282,14 @@
                         fontsz = obj.GUI_fontsz2,
                         alpha_back = 0.5,
                         func =  function() 
-                                  mouse.context_latch_val = data.GUI_scroll
+                                  mouse.context_latch_val = conf.GUI_scroll
                                 end,
                         func_LD2 = function()
                                       if mouse.context_latch_val then 
-                                        data.GUI_scroll = lim(mouse.context_latch_val + mouse.dx/sbw, 0, 1-data.GUI_zoom)
+                                        conf.GUI_scroll = lim(mouse.context_latch_val + mouse.dx/sbw, 0, 1-conf.GUI_zoom)
                                         refresh.GUI = true
                                         refresh.data = true
+                                        refresh.conf= true
                                       end
                                     end  ,
                         onrelease_L2  = function()  
@@ -289,12 +310,12 @@
                         txt= '',
                         show = true,
                         fontsz = obj.GUI_fontsz2,
-                        a_frame = 0.2,
+                        a_frame = obj.scrollframe_a,
                         ignore_mouse = true,
                         func =  function()  end
                           }                           
     obj.zoomx_manual2 = { clear = true,
-                        x = sbx + (sbw-obj.scroll_side) * (1-data.GUI_zoom),
+                        x = sbx + (sbw-obj.scroll_side) * (1-conf.GUI_zoom),
                         y = sby,
                         w = obj.scroll_side,
                         h = obj.scroll_side,
@@ -304,20 +325,21 @@
                         fontsz = obj.GUI_fontsz2,
                         alpha_back = 0.5,
                         func =  function() 
-                                  mouse.context_latch_t = {data.GUI_zoom,data.GUI_scroll, 0.5*data.GUI_zoom + data.GUI_scroll }
+                                  mouse.context_latch_t = {conf.GUI_zoom,conf.GUI_scroll, 0.5*conf.GUI_zoom + conf.GUI_scroll }
                                 end,
                         func_LD2 = function()
                                       if mouse.context_latch_t then 
                                         local zoom = mouse.context_latch_t[1]
                                         local scroll = mouse.context_latch_t[2]
                                         local cur_pos = mouse.context_latch_t[3]
-                                        data.GUI_zoom = lim(zoom - mouse.dx/sbw, 0.2, 1)
+                                        conf.GUI_zoom = lim(zoom - mouse.dx/sbw, 0.2, 1)
                                         if zoom ~= 1 then 
-                                          data.GUI_scroll =lim(cur_pos - 0.5*data.GUI_zoom, 0, 1-data.GUI_zoom)
+                                          data.GUI_scroll =lim(cur_pos - 0.5*conf.GUI_zoom, 0, 1-conf.GUI_zoom)
                                         end
                                         
                                         refresh.GUI = true
                                         refresh.data = true
+                                        refresh.conf = true
                                       end
                                     end  ,
                         onrelease_L2  = function()  
@@ -446,27 +468,27 @@
                         txt= '',
                         show = true,
                         fontsz = obj.GUI_fontsz2,
-                        a_frame = 0.2,
+                        a_frame = obj.scrollframe_a,
                         ignore_mouse = true,
                         func =  function()  end
                           }   
     obj.scrollY_manual = { clear = true,
                         x = sbx,
                         --y = sby + (sbh-obj.scroll_side)* data.GUI_scrollY,
-                        y = sby + (sbh-sbh * data.GUI_zoomY) -(sbh-obj.scroll_side)* (data.GUI_scrollY),
+                        y = sby + (sbh-sbh * conf.GUI_zoomY) -(sbh-obj.scroll_side)* (conf.GUI_scrollY),
                         w = obj.scroll_side,
-                        h = sbh * data.GUI_zoomY,
+                        h = sbh * conf.GUI_zoomY,
                         col = 'white',
                         txt= '',
                         show = true,
                         fontsz = obj.GUI_fontsz2,
                         alpha_back = 0.5,
                         func =  function() 
-                                  mouse.context_latch_val = data.GUI_scrollY
+                                  mouse.context_latch_val = conf.GUI_scrollY
                                 end,
                         func_LD2 = function()
                                       if mouse.context_latch_val then 
-                                        data.GUI_scrollY = lim(mouse.context_latch_val - mouse.dy/sbh, 0, 1-data.GUI_zoomY)
+                                        conf.GUI_scrollY = lim(mouse.context_latch_val - mouse.dy/sbh, 0, 1-conf.GUI_zoomY)
                                         refresh.GUI = true
                                         refresh.data = true
                                       end
@@ -488,13 +510,13 @@
                         txt= '',
                         show = true,
                         fontsz = obj.GUI_fontsz2,
-                        a_frame = 0.2,
+                        a_frame = obj.scrollframe_a,
                         ignore_mouse = true,
                         func =  function()  end
                           }                           
     obj.zoomY_manual2 = { clear = true,
                         x = sbx,
-                        y = sby + (sbh-obj.scroll_side) * (1-data.GUI_zoomY),
+                        y = sby + (sbh-obj.scroll_side) * (1-conf.GUI_zoomY),
                         w = obj.scroll_side,
                         h = obj.scroll_side,
                         col = 'white',
@@ -503,20 +525,21 @@
                         fontsz = obj.GUI_fontsz2,
                         alpha_back = 0.5,
                         func =  function() 
-                                  mouse.context_latch_t = {data.GUI_zoomY,data.GUI_scrollY, 0.5*data.GUI_zoomY + data.GUI_scrollY }
+                                  mouse.context_latch_t = {conf.GUI_zoomY,conf.GUI_scrollY, 0.5*conf.GUI_zoomY + conf.GUI_scrollY }
                                 end,
                         func_LD2 = function()
                                       if mouse.context_latch_t then 
                                         local zoom = mouse.context_latch_t[1]
                                         local scroll = mouse.context_latch_t[2]
                                         local cur_pos = mouse.context_latch_t[3]
-                                        data.GUI_zoomY = lim(zoom - mouse.dy/sbh, 0.2, 1)
+                                        conf.GUI_zoomY = lim(zoom - mouse.dy/sbh, conf.minzoomY, 1)
                                         if zoom ~= 1 then 
-                                          data.GUI_scrollY =lim(cur_pos - 0.5*data.GUI_zoomY, 0, 1-data.GUI_zoomY)
+                                          conf.GUI_scrollY =lim(cur_pos - 0.5*conf.GUI_zoomY, 0, 1-conf.GUI_zoomY)
                                         end
                                         
                                         refresh.GUI = true
                                         refresh.data = true
+                                        refresh.conf = true
                                       end
                                     end  ,
                         onrelease_L2  = function()  
