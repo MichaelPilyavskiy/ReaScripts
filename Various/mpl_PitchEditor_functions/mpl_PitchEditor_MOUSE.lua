@@ -80,6 +80,8 @@
             )
             then mouse.context_latch = key end
           ------------------------
+
+          if mouse.DLMB_state == true and is_mouse_over and obj[key].funcDC then obj[key].funcDC() goto skip_mouse_obj end
           mouse.onclick_L = not mouse.last_LMB_state 
                                and mouse.LMB_state 
                                and not (mouse.Ctrl_state or mouse.Alt_state or mouse.Shift_state)

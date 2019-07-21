@@ -152,12 +152,15 @@
         str_insert(#out_str,sprintf(#,"%f", TDfreq),strlen(#out_str) );
         str_insert(#out_str,"\nTDSLICEWIND ",strlen(#out_str) );
         str_insert(#out_str,sprintf(#,"%f", TDslice_minwind),strlen(#out_str) );
+        str_insert(#out_str,"\nRAWPITCHDATA 1",strlen(#out_str) );
+        
         str_insert(#out_str,"\n<POINTDATA",strlen(#out_str) );
         
         seek_pos = 0;
         spos = 0;
         memset(0,0,buf_sz); // clear samplebuffer
         i_com = 1;
+        idx=1;
         while (
           trig_note = 0;
           GetAudioAccessorSamples( accessor, src_SR, 1, seek_pos, buf_sz, spos );
@@ -171,53 +174,24 @@
           // Seek transient
           rmsdB = 20*log10(rms*2);
           last_rmsdB = 20*log10(last_rms*2); 
-          //(abs(rmsdB - last_rmsdB) > 2) & (i_com - trig_note_last_id > 10)   ? (
-            //trig_note = 1;
-            //trig_note_last_id = i_com;
-          //) ;
+
           last_rms = rms;
           
           // Perform Pitch detection
           f_com = 0;
           rms > lowRMSlimit ? (
             f = Data_GetPitch(spos, src_SR, buf_sz, maxlen, window_step, minF, maxF, YINthresh);
-            f > 0 ? (
-            
-              // octave drop fix
-              last_f != f? (
-                f1 = max(f, last_f);
-                f2 = min(f, last_f);
-                      
-                abs(f1 - (f2 *2)) < freqdiff_octshift ? (
-                  last_f > f ? (
-                    f = f*2 ;
-                    f_change = 1;
-                   ) : (
-                    f = f /2 ;
-                    f_change = 1
-                  );
-                );             
-              );
-              
-              // add pitch transient
-              ((lastf_com ==0) & (f != 0)) | ((abs(last_f - f) > TDfreq) & (i_com - trig_note_last_id > TDslice_minwind)) ? (
-                trig_note = 1;
-                trig_note_last_id = i_com;
-              );
-              f_com = f;
-              last_f = f;
+            f > 0 && strlen(#out_str) < 64000 ? (
+              idx += 1;
               str_insert(#out_str,"\n   PT ",strlen(#out_str) );
+              str_insert(#out_str,sprintf(#,"%f", idx),strlen(#out_str) );
+              str_insert(#out_str," ",strlen(#out_str) );              
               str_insert(#out_str,sprintf(#,"%f", seek_pos+s_offs),strlen(#out_str) );
               str_insert(#out_str," ",strlen(#out_str) );
               str_insert(#out_str,sprintf(#,"%f", f),strlen(#out_str) );
               str_insert(#out_str," ",strlen(#out_str) );
               str_insert(#out_str,sprintf(#,"%f", rms),strlen(#out_str) );
               str_insert(#out_str," ",strlen(#out_str) );
-              i_com - trig_note_last_id == 0 ? (
-                str_insert(#out_str,sprintf(#,"%d", 1),strlen(#out_str) );
-               ):(
-                str_insert(#out_str,sprintf(#,"%d", 0),strlen(#out_str) );
-              );
             );
           );
           lastf_com = f_com;

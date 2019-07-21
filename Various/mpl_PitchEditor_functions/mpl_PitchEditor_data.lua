@@ -62,6 +62,7 @@
   end
   ---------------------------------------------------     
   function Data_SetScrollZoom(conf, obj, data, refresh, mouse) 
+    local new_scroll, new_zoom, mouse_pos, cur_pos
     if mouse.wheel_trig ~= 0 then 
     
       -- H zoom/scroll
@@ -72,12 +73,12 @@
         mouse_pos = (mouse.x-obj.peak_area.x) / obj.peak_area.w
         cur_pos = mouse_pos*conf.GUI_zoom + conf.GUI_scroll 
         
-        new_zoom = lim(conf.GUI_zoom * (1-inc*mult), 0.2, 1)
+        new_zoom = lim(conf.GUI_zoom * (1-inc*mult), 0.1, 1)
         new_scroll =lim(cur_pos - mouse_pos*new_zoom, 0, 1-new_zoom)
         
         conf.GUI_zoom = new_zoom
         conf.GUI_scroll = new_scroll
-        refresh.data = true
+        refresh.data_minor = true
         refresh.GUI = true
         refresh.conf = true
       end
@@ -95,7 +96,7 @@
         
         conf.GUI_zoomY = new_zoom
         conf.GUI_scrollY = new_scroll
-        refresh.data = true
+        refresh.data_minor = true
         refresh.GUI = true
         refresh.conf = true
       end
@@ -113,9 +114,6 @@
     SetProjExtState( 0, conf.ES_key, 'buf_maxF', conf.maxF )
     SetProjExtState( 0, conf.ES_key, 'buf_maxlen', conf.max_len )
     SetProjExtState( 0, conf.ES_key, 'buf_YINthresh', conf.YINthresh )
-    SetProjExtState( 0, conf.ES_key, 'buf_freqdiff_octshift', conf.freqdiff_octshift  ) 
-    SetProjExtState( 0, conf.ES_key, 'buf_TDslice_minwind', conf.TDslice_minwind  )
-    SetProjExtState( 0, conf.ES_key, 'buf_TDfreq', conf.TDfreq  )
   end
   ------------------------------------------------------------------
   function Data_SetPitchExtState (conf, obj, data, refresh, mouse)  
@@ -125,18 +123,145 @@
     str_out = str_out..'\n'
     for i = 1, #data.extpitch do
       str_out = str_out..'PT '
+        ..i..' '
         ..data.extpitch[i].pos..' '
         ..data.extpitch[i].freq..' '
         ..data.extpitch[i].RMS..' '
         ..data.extpitch[i].noteOn..' '
-        ..data.extpitch[i].pitch_shift..'\n'
+        ..data.extpitch[i].pitch_shift..' '
+        ..data.extpitch[i].RMS_pitch..' '
+        ..data.extpitch[i].len_blocks..' '
+        ..'\n'
     end
     str_out = str_out..'>'
+    rpd = str_out:match('RAWPITCHDATA%s+(%d+)')
+    if not rpd then 
+      str_out = str_out:gsub('<POINTDATA', 'RAWPITCHDATA 0\n<POINTDATA')
+     else
+      str_out = str_out:gsub('RAWPITCHDATA%s+(%d+)', 'RAWPITCHDATA 0')
+    end
     SetProjExtState( 0, conf.ES_key, data.it_tkGUID, str_out, true )
-    --msg(str_out:sub(5000,7000))
+    --msg(str_out:sub(-1000))
   end
   ------------------------------------------------------------------
-  function Data_GetPitchExtState (conf, obj, data, refresh, mouse)   
+  function Data_ResetPitchChanges(conf, obj, data, refresh, mouse)
+    for i = 1, #data.extpitch do
+      data.extpitch[i].pitch_shift = 0
+    end  
+  end
+  ------------------------------------------------------------------
+  function Data_PostProcess(conf, obj, data, refresh, mouse)
+    Data_PostProcess_ClearStuff(conf, obj, data, refresh, mouse)
+    Data_PostProcess_GetNotes(conf, obj, data, refresh, mouse)
+    Data_PostProcess_CalcRMSPitch(conf, obj, data, refresh, mouse)
+  end
+  -----------------------------
+  function Data_PostProcess_ClearStuff(conf, obj, data, refresh, mouse)
+    for i = 1, #data.extpitch do
+      if i == 1 then data.extpitch[i].noteOn = 1 else data.extpitch[i].noteOn = 0 end
+      data.extpitch[i].RMS_pitch = -1
+      data.extpitch[i].pitch_shift = 0
+      data.extpitch[i].len_blocks = 0
+    end
+  end
+  ----------------------------- 
+  function Data_PostProcess_GetNotes(conf, obj, data, refresh, mouse)
+    local last_noteon_id, last_RMS, last_pos, last_pitch
+    if #data.extpitch < 2 then return end
+    for i = 1, #data.extpitch do
+      local cur_pitch = data.extpitch[i].pitch
+      local pos = data.extpitch[i].pos
+      local RMS = data.extpitch[i].RMS
+      
+      -- trigger first noteOn
+      if i == 1 then 
+        data.extpitch[i].noteOn = 1
+        last_noteon_id = i
+      end
+      
+      -- middle stuff
+      if i > 1 and i < #data.extpitch then 
+        if math.abs(cur_pitch - last_pitch) > conf.post_note_diff 
+          or (last_RMS and RMS - last_RMS > conf.RMS_diff_linear)
+          or (last_pos and pos - last_pos > data.extpitch_WINDOW)
+          then
+          if last_noteon_id and i-last_noteon_id > conf.min_block_len then
+            data.extpitch[i].noteOn = 1--lim(i-conf.noteoff_offsetblock,1,#data.extpitch)
+            last_noteon_id = i
+          end
+        end 
+      end
+            
+      last_RMS = RMS
+      last_pos = pos
+      last_pitch = cur_pitch
+    end
+  end
+  ------------------------------------------------------------------
+  function Data_PostProcess_CalcRMSPitch(conf, obj, data, refresh, mouse)
+    local RMS_pitch, RMS_pitch_cnt, last_noteon_id
+    for i = 1, #data.extpitch do
+      if data.extpitch[i].noteOn == 1 then 
+      
+        if last_noteon_id then
+          data.extpitch[last_noteon_id].RMS_pitch= RMS_pitch / RMS_pitch_cnt--Data_PostProcess_CalcRMSPitch_sub(conf, obj, data, refresh, mouse, last_noteon_id, RMS_pitch / RMS_pitch_cnt, RMS_pitch_cnt)
+          data.extpitch[last_noteon_id].len_blocks = RMS_pitch_cnt
+        end
+        
+        RMS_pitch = 0
+        RMS_pitch_cnt = 0
+        last_noteon_id = i 
+      end
+    
+      RMS_pitch = RMS_pitch + data.extpitch[i].pitch
+      RMS_pitch_cnt = RMS_pitch_cnt + 1
+      
+      if i == #data.extpitch then
+        if last_noteon_id then
+          data.extpitch[last_noteon_id].RMS_pitch= RMS_pitch / RMS_pitch_cnt--Data_PostProcess_CalcRMSPitch_sub(conf, obj, data, refresh, mouse, last_noteon_id, RMS_pitch / RMS_pitch_cnt, RMS_pitch_cnt)
+          data.extpitch[last_noteon_id].len_blocks = RMS_pitch_cnt
+        end      
+      end
+      
+    end 
+  end
+  ------------------------------------------------------------------
+  function Data_PostProcess_CalcRMSPitch_sub(conf, obj, data, refresh, mouse, last_noteon_id, RMS_pitch, len_blocks)
+    local RMS_pitch_tested= RMS_pitch
+    local RMS_pitch_tested_cnt = 0
+    for i = last_noteon_id, last_noteon_id + len_blocks-1 do
+      if math.abs(data.extpitch[i].pitch-RMS_pitch) <= conf.secondpassRMSpitch then
+        RMS_pitch_tested = RMS_pitch_tested + data.extpitch[i].pitch
+        RMS_pitch_tested_cnt = RMS_pitch_tested_cnt + 1
+      end
+    end
+    if RMS_pitch_tested_cnt > 1 then 
+      return RMS_pitch_tested / RMS_pitch_tested_cnt
+     else
+      return RMS_pitch
+    end
+  end
+  ------------------------------------------------------------------
+  function Data_SplitNote(conf, obj, data, refresh, mouse, idx, pos_sec) 
+    if not data.extpitch[idx] then return end
+    local par_block = Data_GetParentBlockId(data, idx)
+    for i = par_block+1, par_block + data.extpitch[idx].len_blocks do
+      if data.extpitch[i].pos>=pos_sec  and  data.extpitch[i+1].pos<=pos_sec +data.extpitch_WINDOW then
+        data.extpitch[i].noteOn = 1
+        return
+      end
+    end
+  end
+  ------------------------------------------------------------------
+  function Data_JoinNote(conf, obj, data, refresh, mouse, idx, pos_sec) 
+    if not data.extpitch[idx] then return end
+    local par_block = Data_GetParentBlockId(data, idx)
+    data.extpitch[par_block].noteOn = 0
+  end
+  
+  ------------------------------------------------------------------
+  function Data_GetPitchExtState (conf, obj, data, refresh, mouse) 
+    local lastpos  , xpos
     local tol = 0.2
     if not data.extpitch_refresh and (data.extpitch_GUID and data.extpitch_GUID == data.it_tkGUID) then return end
     data.extpitch = {}
@@ -148,46 +273,34 @@
     if ret < 1 then return end
     data.extpitch_WINDOW = tonumber(str:match('WINDOW%s+([%.%d]+)'))
     data.extpitch_BUFSZ = tonumber(str:match('BUFSZ%s+(%d+)'))
+    local raw = str:match('RAWPITCHDATA%s+(%d+)')
+    local is_raw =  not raw or (raw and tonumber(raw) and tonumber(raw) == 1) 
     
-    local RMS_pitch = 0
-    local RMS_pitch_cnt = 0
-    local idx_noteon
+    
     local soffs= data.it_tksoffs
     if soffs >= data.it_len then soffs = soffs - data.srclen end
-    local lastpos =0
     
     for line in str:gmatch('[^\r\n]+') do
       if line:match('PT') then
-        --local pos, freq, RMS, trig_note = line:match('PT ([%.%-%d]+) ([%.%d]+) ([%.%d]+) ([%d]+)')
         local t = {}
         for val in line:gmatch('[%.%-%d]+') do t[#t+1] = tonumber(val) end
-        local pos, 
+        local id, pos, 
               freq, 
               RMS, 
               noteOn, 
-              pitch_shift = t[1], t[2], t[3], t[4], t[5]
-        if not pitch_shift then pitch_shift = 0 end
-        local pitch = lim(69 + 12*math.log(freq/440,2),0,127)
-        local prev_noteOff = 0
-        --if (last_noteOn_pos and pos - last_noteOn_pos > data.extpitch_WINDOW) then noteOn = 1 end        
+              pitch_shift,
+              RMS_pitch,
+              len_blocks= t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8]
         
-        if noteOn ~= 1 then
-          RMS_pitch = RMS_pitch + pitch
-          RMS_pitch_cnt = RMS_pitch_cnt +1
-         else 
-          --if idx_noteon - idx == 1 then data.extpitch[idx_noteon].RMS_pitch = pitch end
-          if idx_noteon then 
-            data.extpitch[idx_noteon].xpos2 = (pos-soffs) / (data.it_len)
-            data.extpitch[idx_noteon].RMS_pitch = RMS_pitch / RMS_pitch_cnt 
-          end
-          idx_noteon = idx
-          RMS_pitch = pitch
-          RMS_pitch_cnt = 1
-        end
-        local xpos = 0
-        if data.it_pos and data.it_len and data.it_tksoffs then
-          xpos =  (pos-soffs) / (data.it_len) 
-        end
+        if not RMS then RMS = 0 end
+        if not noteOn then noteOn = 0 end
+        if not RMS_pitch then RMS_pitch = -1 end
+        if not len_blocks then len_blocks = 0 end
+        if is_raw then noteOn = 0 end
+        if not pitch_shift then pitch_shift = 0 end
+        
+        local pitch = lim(69 + 12*math.log(freq/440,2),0,127)
+        if data.it_pos and data.it_len and data.it_tksoffs then xpos =  (pos-soffs) / (data.it_len)  end
         data.extpitch[idx]  = {pos=pos, 
                               freq=tonumber(freq), 
                               pitch = pitch,
@@ -195,17 +308,13 @@
                               noteOn = noteOn,
                               xpos = xpos,
                               pitch_shift = pitch_shift,
-                              idx_noteon = idx_noteon}
+                              len_blocks = len_blocks,
+                              RMS_pitch = RMS_pitch}
         idx = idx +1
         lastpos= pos
-      end  
-      
-      if data.extpitch[idx_noteon] then 
-        data.extpitch[idx_noteon].xpos2 = (lastpos-soffs) / (data.it_len)
-        data.extpitch[idx_noteon].RMS_pitch = RMS_pitch / RMS_pitch_cnt 
-      end
-         
+      end   
     end
+    return is_raw
   end
   ------------------------------------------------------------------
   function Data_GetTakePeaks(conf, obj, data, refresh, mouse) 
@@ -245,22 +354,92 @@
     for i = 1,  #data.peaks do data.peaks[i].peak = data.peaks[i].peak / max_peak end
     return true
   end
+  function Data_GetParentBlockId(data, idx)
+    for i = idx, 1, -1 do
+      if data.extpitch[i].noteOn == 1 then return i end
+    end
+  end
   ------------------------------------------------------------------
   function Data_ApplyPitchToTake(conf, obj, data, refresh, mouse) 
     local take = data.it_tk
+    local t_edit_prev
     local envelope =  GetTakeEnvelopeByName( take, 'Pitch' )
     if not envelope or not ValidatePtr2(0, envelope, 'TrackEnvelope*') then 
       Action(41612) --Take: Toggle take pitch envelope
       return
     end
     DeleteEnvelopePointRange( envelope, 0,data.it_len)
+    local last_par_note_shift
     for idx = 1, #data.extpitch do
       local t_edit = data.extpitch[idx]
-      local par_note = data.extpitch[idx].idx_noteon
+      if idx > 1 then t_edit_prev = data.extpitch[idx-1] end
+      local par_note = Data_GetParentBlockId(data, idx)
       local par_note_shift = data.extpitch[par_note].pitch_shift
-      InsertEnvelopePoint( envelope, t_edit.pos - data.it_tksoffs, par_note_shift, 0, 0, false, true )
+      if not last_par_note_shift or  (last_par_note_shift and  last_par_note_shift ~= par_note_shift) then
+        if last_par_note_shift then 
+          InsertEnvelopePoint( envelope, t_edit_prev.pos - data.it_tksoffs, last_par_note_shift, 0, 0, false, true ) 
+        end
+        InsertEnvelopePoint( envelope, t_edit.pos - data.it_tksoffs, par_note_shift, 0, 0, false, true )
+      end
+      last_par_note_shift = par_note_shift
     end
     Envelope_SortPointsEx( envelope, -1 )
+  end
+  ------------------------------------------------------------------
+  function Data_DumpToMIDI(conf, obj, data, refresh, mouse)
+    local tr_idx =  CSurf_TrackToID( data.parent_trptr, false )
+    --InsertTrackAtIndex( tr_idx, false )
+    local new_tr = GetTrack(0,tr_idx)
+    local item  =  CreateNewMIDIItemInProj( new_tr, data.it_pos, data.it_pos+data.it_len, false )
+    local take = GetActiveTake(item)
+    --MIDI_SetItemExtents( item,  TimeMap_timeToQN( data.it_pos ),  TimeMap_timeToQN( data.it_pos+data.it_len ) )
+    local MIDI_chan = 1
+    if take then
+      local str = ''
+      local last_ppq = 0
+      local ppq = 0
+      
+      for idx = 1, #data.extpitch do 
+        local par_note = data.extpitch[idx].idx_noteon
+        
+        local par_note_pitch = math.floor(data.extpitch[par_note].RMS_pitch)
+        local par_note_shift = data.extpitch[par_note].pitch_shift  
+        
+        local noteOn = data.extpitch[idx].noteOn
+        if last_noteOn == 0 and noteOn == 1 and noteOn_idx then
+          startppqpos = MIDI_GetPPQPosFromProjTime( take, data.extpitch[noteOn_idx].pos + data.it_pos - data.it_tksoffs )
+          endppqpos = MIDI_GetPPQPosFromProjTime( take, data.extpitch[idx].pos + data.it_pos - data.it_tksoffs )
+          str_per_msg = string.pack("i4Bi4BBB", math.floor(startppqpos - last_ppq), 0, 3, 0x90| MIDI_chan-1, par_note_pitch, 120 ) -- noteOn
+          str = str..str_per_msg
+          str_per_msg = string.pack("i4Bi4BBB", math.floor(endppqpos - startppqpos), 0, 3, 0x80| MIDI_chan-1, par_note_pitch, 0 )
+          str = str..str_per_msg
+          ppq = endppqpos
+          --MIDI_InsertNote( take, false, false, startppqpos, endppqpos, MIDI_chan, pitch, vel, true )
+        end
+        
+        
+        if noteOn == 1 then 
+          noteOn_idx = idx  
+          --[[
+         else
+          local out_val_12f = data.extpitch[idx].pitch + data.extpitch[idx].pitch_shift - par_note_pitch
+          out_val = math.floor(2^13 * (out_val_12f/12) + 2^13)
+          low = out_val & 0x7F
+          high = (out_val >> 7) & 0x7F
+          pw_ppq = math.floor(MIDI_GetPPQPosFromProjTime( take, data.extpitch[idx].pos + data.it_pos - data.it_tksoffs ))
+          str = str..string.pack("i4Bi4BBB", math.floor(pw_ppq - last_ppq), 0, 3, 0xE0| MIDI_chan-1, low, high, 0)
+          ppq = pw_ppq
+        ]]
+        end
+        
+        last_noteOn = noteOn
+        last_ppq = ppq
+      end
+      str = str..string.pack("i4Bi4BBB", math.floor(MIDI_GetPPQPosFromProjTime( take, data.it_pos + data.it_len) - last_ppq), 0, 3, 0xB0, 123, 0)
+      MIDI_SetAllEvts(take, str)
+      --MIDI_Sort(take)
+    end
+    UpdateArrange()
   end
   ------------------------------------------------------------------
   function Data_Update (conf, obj, data, refresh, mouse) 
@@ -268,10 +447,15 @@
     data.cur_pos = GetCursorPosition()
     local ret = Data_GetTake(conf, obj, data, refresh, mouse) 
     if ret then data.has_take = true end
-    if data.has_take == true and (refresh.data or refresh.data_minor) then 
+    if data.has_take == true  then 
       Data_GetTakePeaks(conf, obj, data, refresh, mouse) 
-      Data_GetPitchExtState(conf, obj, data, refresh, mouse) 
-      refresh.data_minor = nil
+      local is_raw = Data_GetPitchExtState(conf, obj, data, refresh, mouse) 
+      if is_raw then 
+        Data_PostProcess(conf, obj, data, refresh, mouse) 
+        if refresh.data_minor == false then 
+          Data_SetPitchExtState (conf, obj, data, refresh, mouse)  
+        end
+      end
     end
   end
   

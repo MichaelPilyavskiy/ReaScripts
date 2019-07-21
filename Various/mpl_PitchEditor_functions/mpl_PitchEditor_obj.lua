@@ -13,7 +13,7 @@
     
     obj.offs = 2
     obj.menu_w = 15
-    obj.analyze_w = 100
+    obj.analyze_w = 80
     obj.menu_h = 40
     obj.scroll_side = 15
     obj.ruler_h = 10
@@ -83,17 +83,24 @@
   end
   ----------------------------------------------- 
   function Obj_Notes(conf, obj, data, refresh, mouse)
+    if  not data.extpitch then return end
     local h_note0 = math.max(obj.peak_area.h / (127*conf.GUI_zoomY), 12)
     local thin_h = 2
+    --msg(1)
     for idx = 1, #data.extpitch do
-      if data.extpitch[idx].noteOn == 1 and data.extpitch[idx].xpos2 then 
-          local pos_x1 = math.floor(obj.peak_area.x + obj.peak_area.w * 1/data.it_tkrate * (data.extpitch[idx].xpos- (conf.GUI_scroll*data.it_tkrate))/conf.GUI_zoom)        
-          local pos_x2 = math.floor(obj.peak_area.x + obj.peak_area.w * 1/data.it_tkrate * (data.extpitch[idx].xpos2- (conf.GUI_scroll*data.it_tkrate))/conf.GUI_zoom)
-          local pitch_linval = lim((data.extpitch[idx].RMS_pitch + data.extpitch[idx].pitch_shift)/127)
-          local pos_y = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval- conf.GUI_scrollY)/conf.GUI_zoomY) )-- h_note0/2
-         -- if pos_y > obj.peak_area.y + obj.peak_area.h then msg(idx) end
-          local h_note = h_note0
-          if pos_y-h_note/2 < obj.peak_area.y then 
+      if data.extpitch[idx].noteOn == 1 and data.extpitch[idx].len_blocks ~= 0 then 
+        local len_blocks = data.extpitch[idx].len_blocks
+        local xpos2 = 1
+        if data.extpitch[idx+len_blocks] then xpos2 = data.extpitch[idx+len_blocks].xpos end
+        local pos_x1 = math.floor(obj.peak_area.x + 
+            obj.peak_area.w * 1/data.it_tkrate * (                           data.extpitch[idx].xpos - (conf.GUI_scroll*data.it_tkrate))/conf.GUI_zoom)        
+        local pos_x2 = math.floor(obj.peak_area.x + 
+            obj.peak_area.w * 1/data.it_tkrate * (xpos2 - (conf.GUI_scroll*data.it_tkrate))/conf.GUI_zoom)
+        local pitch_linval = lim((data.extpitch[idx].RMS_pitch + data.extpitch[idx].pitch_shift)/127)
+        local pos_y = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval- conf.GUI_scrollY)/conf.GUI_zoomY) )-- h_note0/2
+        -- if pos_y > obj.peak_area.y + obj.peak_area.h then msg(idx) end
+        local h_note = h_note0
+        if pos_y-h_note/2 < obj.peak_area.y then 
             h_note = thin_h 
             pos_y = obj.peak_area.y --h_note/2
            elseif pos_y+h_note/2 > obj.peak_area.y + obj.peak_area.h then
@@ -101,29 +108,39 @@
             pos_y = obj.peak_area.y +obj.peak_area.h - thin_h+h_note
            else
             pos_y = pos_y-h_note/2
+        end
+        local col_note = 'white'
+        local w_note = pos_x2-pos_x1-1
+        
+        local pos_x1_src = pos_x1
+        local pos_y0_src = pos_y0
+        local w_note_src = w_note
+        
+        if pos_x1 + w_note > obj.peak_area.x + obj.peak_area.w then w_note = obj.peak_area.x + obj.peak_area.w - pos_x1 end
+        if data.extpitch[idx].pitch_shift ~= 0 and pos_x1+w_note >= obj.peak_area.x and pos_x1 < (obj.peak_area.x + obj.peak_area.w) then 
+          col_note = 'green' 
+              
+          local pitch_linval0 = lim(data.extpitch[idx].RMS_pitch/127)
+          local pos_y0 = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval0- conf.GUI_scrollY)/conf.GUI_zoomY) ) -- h_note0/2
+          -- if pos_y > obj.peak_area.y + obj.peak_area.h then msg(idx) end
+          local h_note00 = h_note0
+          if pos_y0-h_note00/2 < obj.peak_area.y then 
+                 h_note00 = thin_h 
+                 pos_y0 = obj.peak_area.y --h_note/2
+                elseif pos_y0+h_note00/2 > obj.peak_area.y + obj.peak_area.h then
+                 h_note00 = thin_h
+                 pos_y0 = obj.peak_area.y +obj.peak_area.h - thin_h+h_note00
+                else
+                 pos_y0 = pos_y0-h_note00/2
           end
-          local col_note = 'white'
-          if data.extpitch[idx].pitch_shift ~= 0 and pos_x2 < (obj.peak_area.x + obj.peak_area.w) then 
-            col_note = 'green' 
-            
-             local pitch_linval0 = lim(data.extpitch[idx].RMS_pitch/127)
-             local pos_y0 = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval0- conf.GUI_scrollY)/conf.GUI_zoomY) ) -- h_note0/2
-            -- if pos_y > obj.peak_area.y + obj.peak_area.h then msg(idx) end
-             local h_note00 = h_note0
-             if pos_y0-h_note00/2 < obj.peak_area.y then 
-               h_note00 = thin_h 
-               pos_y0 = obj.peak_area.y --h_note/2
-              elseif pos_y0+h_note00/2 > obj.peak_area.y + obj.peak_area.h then
-               h_note00 = thin_h
-               pos_y0 = obj.peak_area.y +obj.peak_area.h - thin_h+h_note00
-              else
-               pos_y0 = pos_y0-h_note00/2
-             end
-            
+          if pos_x1 < obj.peak_area.x then  
+              w_note = pos_x1 + w_note -obj.peak_area.x 
+              pos_x1 = obj.peak_area.x 
+            end 
             obj['note'..idx..'fantom'] = { clear = true,
                           x = pos_x1,
                           y = pos_y0,
-                          w = pos_x2-pos_x1-1,
+                          w = w_note,
                           h = h_note00,
                           colfill_col = 'white',
                           col = 'white',
@@ -138,31 +155,69 @@
             
           end
           
-          if pos_x2 < (obj.peak_area.x + obj.peak_area.w)  then
+          if pos_x1+w_note >= obj.peak_area.x  and pos_x1 < (obj.peak_area.x + obj.peak_area.w)  then
+            if pos_x1 < obj.peak_area.x then  
+              w_note = pos_x1 + w_note -obj.peak_area.x 
+              pos_x1 = obj.peak_area.x 
+            end 
             obj['note'..idx] = { clear = true,
                           x = pos_x1,
                           y = pos_y,
-                          w = pos_x2-pos_x1-1,
+                          w = w_note,
                           h = h_note,
                           colfill_col = col_note,
                           colfill_a = 0.4,
-                          txt= '',
+                          txt= '',--data.extpitch[idx].noteOff_idx,
                           show = true,
                           fontsz = obj.GUI_fontsz3,
                           a_frame = 0.3,
                           col = 'green',
+                          is_selected = obj.selected_note and obj.selected_note == idx,
                           --alpha_back = 0.6,
-                          is_selected = false,
-                          func =  function()
+                          funcDC = function()
+                                        for i1 = idx,  idx + data.extpitch[idx].len_blocks-1 do
+                                          data.extpitch[i1].pitch_shift = 0
+                                        end  
+                                        Data_ApplyPitchToTake(conf, obj, data, refresh, mouse)   
+                                        Data_SetPitchExtState (conf, obj, data, refresh, mouse)     
+                                        refresh.GUI = true
+                                        refresh.data = true                             
+                                    end,
+                          func2 =  function()
                                     mouse.context_latch_val = data.extpitch[idx].pitch_shift
+                                    obj.selected_note = idx
+                                    if obj.edit_mode == 1 then -- split mode
+                                      local pos = (mouse.x - obj.peak_area.x) / obj.peak_area.w 
+                                      local pos_sec = data.it_len * (conf.GUI_scroll+pos *conf.GUI_zoom) +data.it_tksoffs
+                                      Data_SplitNote(conf, obj, data, refresh, mouse, idx, pos_sec) 
+                                      Data_PostProcess_CalcRMSPitch(conf, obj, data, refresh, mouse)
+                                      Data_ApplyPitchToTake(conf, obj, data, refresh, mouse) 
+                                      Data_SetPitchExtState (conf, obj, data, refresh, mouse)     
+                                      refresh.GUI = true
+                                      refresh.data = true  
+                                    end 
+                                    
+                                    if obj.edit_mode == 2 then -- join mode
+                                      local pos = (mouse.x - obj.peak_area.x) / obj.peak_area.w 
+                                      local pos_sec = data.it_len * (conf.GUI_scroll+pos *conf.GUI_zoom) +data.it_tksoffs
+                                      Data_JoinNote(conf, obj, data, refresh, mouse, idx, pos_sec) 
+                                      Data_PostProcess_CalcRMSPitch(conf, obj, data, refresh, mouse)
+                                      Data_ApplyPitchToTake(conf, obj, data, refresh, mouse) 
+                                      Data_SetPitchExtState (conf, obj, data, refresh, mouse)     
+                                      refresh.GUI = true
+                                      refresh.data = true  
+                                    end 
                                   end,
-                        func_LD3 = function()
+                          func_LD3 = function()
                                       if mouse.context_latch_val then 
                                         local mouse_mult = 1
                                         if mouse.Alt_state then mouse_mult = 0.125 end
                                         local out_val = lim(mouse.context_latch_val - 127*(mouse_mult * mouse.dy/obj.peak_area.h)*conf.GUI_zoomY, -data.extpitch[idx].RMS_pitch, 127-data.extpitch[idx].RMS_pitch)
                                         if mouse.Ctrl_state then out_val = math.modf(out_val) end
                                         data.extpitch[idx].pitch_shift = out_val
+                                        for i = idx, idx + data.extpitch[idx].len_blocks-1 do
+                                          data.extpitch[i].pitch_shift = out_val
+                                        end
                                         
                                         local pitch_linval = lim((data.extpitch[idx].RMS_pitch + out_val)/127)
                                         local pos_y = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval- conf.GUI_scrollY)/conf.GUI_zoomY) )
@@ -189,6 +244,7 @@
                         onrelease_L2 = function ()
                                           Data_SetPitchExtState (conf, obj, data, refresh, mouse) 
                                           --msg(data.extpitch[1].pitch_shift)
+                                          reaper.Undo_OnStateChange( 'Pitch Editor: note edit' )
                                           refresh.GUI = true
                                           refresh.data = true
                                         end                                                                      
@@ -332,7 +388,7 @@
                                         local zoom = mouse.context_latch_t[1]
                                         local scroll = mouse.context_latch_t[2]
                                         local cur_pos = mouse.context_latch_t[3]
-                                        conf.GUI_zoom = lim(zoom - mouse.dx/sbw, 0.2, 1)
+                                        conf.GUI_zoom = lim(zoom - mouse.dx/sbw, 0.1, 1)
                                         if zoom ~= 1 then 
                                           data.GUI_scroll =lim(cur_pos - 0.5*conf.GUI_zoom, 0, 1-conf.GUI_zoom)
                                         end
@@ -355,7 +411,10 @@
                         h = obj.menu_h,
                         col = 'white',
                         state = fale,
-                        txt= 'Analyze take',
+                        txt= 'Analyze\ntake',
+                        txt_col = 'red',
+                        txt_a = 1,
+                        aligh_txt = 16,
                         show = true,
                         fontsz = obj.GUI_fontsz2,
                         a_frame = 0,
@@ -373,13 +432,90 @@
                                             --obj.analyze.is_selected = true
                                             --refresh.GUI_minor = true
                                           end  , } 
-    obj.options = { clear = true,
+                                          
+    obj.actions = { clear = true,
                         x = obj.menu_w+  obj.offs*2+obj.analyze_w,
                         y = 0,
                         w = obj.analyze_w,
                         h = obj.menu_h,
                         col = 'white',
-                        state = fale,
+                        txt= 'Actions',
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,
+                        is_progressbar = true,
+                        val = data.extcalc_progress,
+                        func =  function() 
+                                  Menu(mouse,               
+    {
+      --[[{ str = 'Dump analyzed data to new MIDI item',
+        func = function() 
+                  Undo_BeginBlock2( 0 )
+                  Data_DumpToMIDI(conf, obj, data, refresh, mouse)
+                  Undo_EndBlock2( 0, 'Pitch Editor: dump data to new MIDI item', -1 )
+                end 
+      },]]
+      { str = 'Post process analyzed pitch data',
+        func = function() 
+                  --Data_GetPitchExtState(conf, obj, data, refresh, mouse)
+                  Data_PostProcess_ClearStuff(conf, obj, data, refresh, mouse)
+                  Data_PostProcess_GetNotes(conf, obj, data, refresh, mouse)
+                  Data_PostProcess_CalcRMSPitch(conf, obj, data, refresh, mouse)
+                  Data_SetPitchExtState (conf, obj, data, refresh, mouse)
+                  refresh.data = true
+                  refresh.GUI = true
+                end 
+      },      
+      { str = 'Reset pitch changes',
+        func = function() 
+                  --Data_GetPitchExtState(conf, obj, data, refresh, mouse)
+                  Data_ResetPitchChanges(conf, obj, data, refresh, mouse)
+                  Data_SetPitchExtState (conf, obj, data, refresh, mouse)
+                  Data_ApplyPitchToTake(conf, obj, data, refresh, mouse) 
+                  refresh.data = true
+                  refresh.GUI = true
+                end 
+      },  
+      { str = 'Clear note separation|',
+        func = function() 
+                  Data_PostProcess_ClearStuff(conf, obj, data, refresh, mouse)
+                  Data_PostProcess_CalcRMSPitch(conf, obj, data, refresh, mouse)
+                  Data_SetPitchExtState (conf, obj, data, refresh, mouse)
+                  Data_ApplyPitchToTake(conf, obj, data, refresh, mouse) 
+                  refresh.data = true
+                  refresh.GUI = true
+                end 
+      },         
+      { str = '#View'},
+      { str = 'Reset scroll / zoom',
+        func = function() 
+                  conf.GUI_zoom = 1
+                  conf.GUI_scroll = 0
+                  conf.GUI_zoomY = 1
+                  conf.GUI_scrollY = 0
+                  refresh.conf = true
+                  refresh.data = true
+                  refresh.GUI = true
+                end 
+      },       
+ 
+      
+    })
+                                  refresh.conf = true 
+                                  --refresh.GUI = true
+                                  --refresh.GUI_onStart = true
+                                  refresh.data = true
+                          end,
+                        func_mouseover =  function() 
+                                            --obj.menu.is_selected = true
+                                            --refresh.GUI_minor = true
+                                          end  ,                                 } 
+    obj.options = { clear = true,
+                        x = obj.menu_w+  obj.offs*3+obj.analyze_w*2,
+                        y = 0,
+                        w = obj.analyze_w,
+                        h = obj.menu_h,
+                        col = 'white',
                         txt= 'Options',
                         show = true,
                         fontsz = obj.GUI_fontsz2,
@@ -390,7 +526,60 @@
                                   obj.current_page = math.abs(obj.current_page-1)
                                   refresh.data = true
                                   refresh.GUI = true
-                                end}                                          
+                                end}   
+--    if obj.edit_mode == 0 then 
+    local mode_h = obj.menu_h / 3
+    obj.mode1 = { clear = true,
+                        x = obj.menu_w+  obj.offs*4+obj.analyze_w*3,
+                        y = 0,
+                        w = obj.analyze_w,
+                        h = mode_h,
+                        col = 'white',
+                        txt= 'Edit',
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,
+                        is_selected = obj.edit_mode == 0 ,
+                        func =  function() 
+                                  obj.edit_mode = obj.edit_mode + 1
+                                  if obj.edit_mode == 3 then obj.edit_mode = 0 end
+                                  refresh.data = true
+                                  refresh.GUI = true
+                                end}   
+    obj.mode2 = { clear = true,
+                        x = obj.menu_w+  obj.offs*4+obj.analyze_w*3,
+                        y = mode_h,
+                        w = obj.analyze_w,
+                        h = mode_h,
+                        col = 'white',
+                        txt= 'Split',
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,
+                        is_selected = obj.edit_mode == 1 ,
+                        func =  function() 
+                                  obj.edit_mode = obj.edit_mode + 1
+                                  if obj.edit_mode == 3 then obj.edit_mode = 0 end
+                                  refresh.data = true
+                                  refresh.GUI = true
+                                end}  
+    obj.mode3 = { clear = true,
+                        x = obj.menu_w+  obj.offs*4+obj.analyze_w*3,
+                        y = mode_h*2,
+                        w = obj.analyze_w,
+                        h = mode_h,
+                        col = 'white',
+                        txt= 'Join',
+                        show = true,
+                        fontsz = obj.GUI_fontsz2,
+                        a_frame = 0,
+                        is_selected = obj.edit_mode == 2 ,
+                        func =  function() 
+                                  obj.edit_mode = obj.edit_mode + 1
+                                  if obj.edit_mode == 3 then obj.edit_mode = 0 end
+                                  refresh.data = true
+                                  refresh.GUI = true
+                                end}                                                                                                                                     
                                 
   end
   -----------------------------------------------
@@ -551,81 +740,95 @@
     local x_shift = obj.peak_area.x
     local y_shift = obj.peak_area.y
     local entry_w_name = 300
-    local entry_h = 15
+    local entry_h = 20
     local indent_w = 20
-
+    local t = ExtState_Def()
     local params_t = 
       {
-        { name = 'YIN-based Pitch detection algorithm' ,
+        { name = 'YIN-based pitch detection algorithm' ,
           is_group = 1},
-        { name = 'Maximum take length: '..conf.max_len..'s (default=300)',
+        { name = 'Maximum take length: '..conf.max_len..'s (default='..t.max_len..'s)',
           nameI = 'Maximum take length',
           indent = 1,
           lim_min = 1,
           lim_max = 600,
           param_key = 'max_len'},
-        { name = 'Window step: '..conf.window_step..'s (default=0.03)',
+        { name = 'Window step: '..conf.window_step..'s (default='..t.window_step..'s)',
           nameI = 'Window step',
           indent = 1,
           lim_min = .01,
           lim_max = .1,
           param_key = 'window_step'},  
-        { name = 'Window overlap: '..conf.overlap..'x (default=2)',
+        { name = 'Window overlap: '..conf.overlap..'x (default='..t.overlap..'x)',
           nameI = 'Window overlap',
           indent = 1,
           lim_min = 1,
           lim_max = 8,
           is_int = true,
           param_key = 'overlap'},  
-        { name = 'Minimum frequency: '..conf.minF..'Hz (default=100)',
+        { name = 'Minimum frequency: '..conf.minF..'Hz (default='..t.minF..'Hz)',
           nameI = 'Minimum frequency',
           indent = 1,
           lim_min = 10,
           lim_max = 1000,
           param_key = 'minF'},     
-        { name = 'Maximum frequency: '..conf.maxF..'Hz (default=800)',
+        { name = 'Maximum frequency: '..conf.maxF..'Hz (default='..t.maxF..'Hz)',
           nameI = 'Maximum frequency',
           indent = 1,
           lim_min = 10,
           lim_max = 1000,
           param_key = 'maxF'},      
-        { name = 'Absolute threshold (YIN, st.4): '..conf.YINthresh..' (default=0.15)',
+        { name = 'Absolute threshold (YIN, st.4): '..conf.YINthresh..' (default='..t.YINthresh..')',
           nameI = 'Absolute threshold',
           indent = 1,
           lim_min = 0.01,
           lim_max = 0.9,
           param_key = 'YINthresh'}, 
-          
-        { name = 'Results Filtering',
-          is_group = 1},         
-        { name = 'RMS Threshold: '..conf.lowRMSlimit_dB..'dB (default=-60)',
+        { name = 'RMS Threshold: '..conf.lowRMSlimit_dB..'dB (default='..t.lowRMSlimit_dB..'dB)',
           nameI = 'RMS threshold',
           indent = 1,
           lim_min = -100,
           lim_max = -5,
-          param_key = 'lowRMSlimit_dB'},           
-        { name = 'Octave shift difference: '..conf.freqdiff_octshift..'Hz (default=15)',
-          nameI = 'Octave shift difference',
-          indent = 1,
-          lim_min = 5,
-          lim_max = 100,
-          param_key = 'freqdiff_octshift'},             
+          param_key = 'lowRMSlimit_dB'},     
 
-        { name = 'Pitch transient detection',
-          is_group = 1},   
-        { name = 'Windows count between slices: '..conf.TDslice_minwind..' (default=6)',
+        { name = 'Post processing algorithm' ,
+          is_group = 1},
+        { name = 'MIDI Pitch difference: '..conf.post_note_diff..' (default='..t.post_note_diff..')',
+          nameI = 'MIDI Pitch difference',
+          indent = 1,
+          lim_min = 0.2,
+          lim_max = 3,
+          param_key = 'post_note_diff'},   
+        { name = 'Linear RMS difference: '..conf.RMS_diff_linear..' (default='..t.RMS_diff_linear..')',
           nameI = 'Windows count between slices',
           indent = 1,
-          lim_min = 2,
-          lim_max = 10,
-          param_key = 'TDslice_minwind'},  
-        { name = 'Slices frequency difference: '..conf.TDfreq..'Hz (default=10)',
-          nameI = 'Slices frequency difference',
+          lim_min = 0.01,
+          lim_max = 0.5,
+          param_key = 'RMS_diff_linear'},   
+--[[        { name = 'NoteOff negative offset: '..conf.noteoff_offsetblock..' (default='..t.noteoff_offsetblock..')',
+          nameI = '',
           indent = 1,
-          lim_min = 5,
-          lim_max = 100,
-          param_key = 'TDfreq'},   
-                                  
+          lim_min = 0,
+          lim_max = 10,
+          is_int = true,
+          param_key = 'noteoff_offsetblock'}, ]] 
+        { name = 'Minimal block length: '..conf.min_block_len..' (default='..t.min_block_len..')',
+          nameI = 'blocks',
+          indent = 1,
+          lim_min = 2,
+          lim_max = 20,
+          is_int = true,
+          param_key = 'min_block_len'},            
+          
+                     
+        --[[{ name = '2nd pass RMS pitch: '..conf.secondpassRMSpitch..' (default='..t.secondpassRMSpitch..')',
+          nameI = ' slices',
+          indent = 1,
+          lim_min = 0,
+          lim_max = 10,
+          is_int = true,
+          param_key = 'secondpassRMSpitch'},  ]]            
+          
       }
                 
     for i = 1, #params_t do

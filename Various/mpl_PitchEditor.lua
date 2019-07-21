@@ -1,7 +1,7 @@
 -- @description PitchEditor
--- @version 1.03
+-- @version 1.10
 -- @author MPL
--- @website https://forum.cockos.com/showthread.php?t=188335
+-- @website https://forum.cockos.com/showthread.php?t=222825
 -- @about Script for editing take pitch envelope
 -- @provides
 --    mpl_PitchEditor_functions/mpl_PitchEditor_GUI.lua
@@ -10,16 +10,19 @@
 --    mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua
 --    [main] mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel
 -- @changelog
---    + Mouse: middle drag support
---    + Mouse: Ctrl+drag snap to scale
---    + Mouse: Alt+drag for better precision
---    + GUI: store last scroll/zoom, reset on change take
---    + GUI: show normalized peaks
---    + GUI: show help notes on low vertical zoom levels
---    + GUI: shift grid lines -0.5semitone
---    # Data: fix error when take pitch envelope doesn`t exist
+--    # Defaults: changed various default parameters of YIN detection
+--    # GUI: don`t show scale helper in options window
+--    # GUI: don`t hide note completely if part of note is out of script window
+--    + GUI: add split notes editing mode
+--    + GUI: add join notes editing mode
+--    + Data: rebuild note blocks detection algorithm
+--    # Data: pass only raw pitch data from analyzer, postprocessing moved to main script, not backward compatible
+--    # Data: reduce points on applying changes
+--    + Actions: reset pitch changes
+--    + Actions: reset view
+--    + Mouse: doubleclick to reset note pitch changes
 
-  local vrs = 'v1.03'
+  local vrs = 'v1.10'
   --NOT gfx NOT reaper
   
   
@@ -37,7 +40,8 @@
   local data = { 
             has_data = false,
                 }
-  local obj = {current_page = 0}
+  local obj = {current_page = 0,
+               edit_mode = 0}
   
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
@@ -89,25 +93,25 @@
             activeknob = 0, 
             
                         
-            -- pitch detection algorithm
+            -- YIN pitch detection algorithm
               max_len = 300,
-            -- YIN
-              window_step = 0.03;
-              minF = 100;
+              window_step = 0.04;
+              minF = 80;
               maxF = 800;
-              YINthresh = 0.15, --D. Step 4: Absolute threshold
-            -- loop
+              YINthresh = 0.2, --D. Step 4: Absolute threshold
               overlap = 2,
               lowRMSlimit_dB = -60; 
+              
             -- post
-              freqdiff_octshift  = 15, -- Hz - prevent octave shifts
-            -- transient detection
-              TDslice_minwind= 6, -- minimum windows count between
-              TDfreq = 10 -- minimum freq difference
+              post_note_diff  = 2, -- MIDI Pitch diff
+              RMS_diff_linear = .05, -- RMS linear difference
+              noteoff_offsetblock = 0,
+              min_block_len = 3, -- in windows
               
             }
     return t
   end  
+  
   ---------------------------------------------------    
   function run()
     obj.clock = os.clock()
@@ -121,6 +125,7 @@
       data.extpitch_refresh  = true
       Data_Update (conf, obj, data, refresh, mouse) 
       refresh.data = nil 
+      refresh.data_minor = nil
     end    
     if refresh.conf == true then 
       if conf.dock > 0 then conf.lastdockID = conf.dock end
@@ -166,6 +171,9 @@
         OBJ_Update(conf, obj, data, refresh, mouse,strategy) 
         run()  
   end
+  
+  
+  
   --------------------------------------------------------------------  
   local ret = CheckFunctions('VF_GetTrackByGUID') 
   local ret2 = VF_CheckReaperVrs(5.97,true)    
