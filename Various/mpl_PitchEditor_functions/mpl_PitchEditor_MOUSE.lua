@@ -142,12 +142,10 @@
            if mouse.onclick_LShift and obj[key].func_trigShift then obj[key].func_trigShift() end           
                  ------------------------              
            mouse.onclick_LAlt = not mouse.last_LMB_state 
-                               and mouse.cap == 17   -- alt + lclick
+                               and mouse.LMB_state 
+                               and mouse.Alt_state
                                and is_mouse_over
-          if mouse.onclick_LAlt  then 
-              if obj[key].func_L_Alt then obj[key].func_L_Alt() end
-              goto skip_mouse_obj  
-          end           
+          if mouse.onclick_LAlt  and obj[key].func_L_Alt then obj[key].func_L_Alt() goto skip_mouse_obj end           
                  ------------------------            
            mouse.ondrag_LCtrl = -- left drag (persistent even if not moving)
                                mouse.LMB_state 

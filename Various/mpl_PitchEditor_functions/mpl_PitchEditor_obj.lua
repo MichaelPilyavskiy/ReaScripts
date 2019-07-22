@@ -14,7 +14,7 @@
     obj.offs = 2
     obj.menu_w = 15
     obj.analyze_w = 80
-    obj.menu_h = 40
+    obj.menu_h = 45
     obj.scroll_side = 15
     obj.ruler_h = 10
     obj.scrollframe_a = 0.1
@@ -25,6 +25,8 @@
     obj.GUI_fontsz2 = VF_CalibrateFont( 19)
     obj.GUI_fontsz3 = VF_CalibrateFont( 15)
     obj.GUI_fontsz_tooltip = VF_CalibrateFont( 13)
+    
+    obj.knob_w = 48
     
     -- colors    
     obj.GUIcol = { grey =    {0.5, 0.5,  0.5 },
@@ -46,9 +48,9 @@
     
     local min_w = 400
     local min_h = 200
-    local reduced_view = gfx.h  <= min_h
-    gfx.w  = math.max(min_w,gfx.w)
-    gfx.h  = math.max(min_h,gfx.h)
+    --local reduced_view = gfx.h  <= min_h
+    --gfx.w  = math.max(min_w,gfx.w)
+    --gfx.h  = math.max(min_h,gfx.h)
     
     OBJ_DefinePeakArea(conf, obj, data, refresh, mouse)
     
@@ -183,7 +185,27 @@
                                         refresh.GUI = true
                                         refresh.data = true                             
                                     end,
-                          func2 =  function()
+                          func_trigCtrl = function()
+                                      local pos = (mouse.x - obj.peak_area.x) / obj.peak_area.w 
+                                      local pos_sec = data.it_len * (conf.GUI_scroll+pos *conf.GUI_zoom) +data.it_tksoffs
+                                      Data_SplitNote(conf, obj, data, refresh, mouse, idx, pos_sec) 
+                                      Data_PostProcess_CalcRMSPitch(conf, obj, data, refresh, mouse)
+                                      Data_ApplyPitchToTake(conf, obj, data, refresh, mouse) 
+                                      Data_SetPitchExtState (conf, obj, data, refresh, mouse)     
+                                      refresh.GUI = true
+                                      refresh.data = true                           
+                                          end,
+                          func_L_Alt = function()
+                                    local pos = (mouse.x - obj.peak_area.x) / obj.peak_area.w 
+                                      local pos_sec = data.it_len * (conf.GUI_scroll+pos *conf.GUI_zoom) +data.it_tksoffs
+                                      Data_JoinNote(conf, obj, data, refresh, mouse, idx, pos_sec) 
+                                      Data_PostProcess_CalcRMSPitch(conf, obj, data, refresh, mouse)
+                                      Data_ApplyPitchToTake(conf, obj, data, refresh, mouse) 
+                                      Data_SetPitchExtState (conf, obj, data, refresh, mouse)     
+                                      refresh.GUI = true
+                                      refresh.data = true        
+                                          end,
+                          func =  function()
                                     mouse.context_latch_val = data.extpitch[idx].pitch_shift
                                     obj.selected_note = idx
                                     if obj.edit_mode == 1 then -- split mode
@@ -476,6 +498,15 @@
                   refresh.GUI = true
                 end 
       },  
+      { str = 'Clear note modulations',
+        func = function() 
+                  Data_PostProcess_ClearMod(conf, obj, data, refresh, mouse)
+                  Data_SetPitchExtState (conf, obj, data, refresh, mouse)
+                  Data_ApplyPitchToTake(conf, obj, data, refresh, mouse) 
+                  refresh.data = true
+                  refresh.GUI = true
+                end 
+      },      
       { str = 'Clear note separation|',
         func = function() 
                   Data_PostProcess_ClearStuff(conf, obj, data, refresh, mouse)
@@ -486,6 +517,8 @@
                   refresh.GUI = true
                 end 
       },         
+      
+      
       { str = '#View'},
       { str = 'Reset scroll / zoom',
         func = function() 
@@ -527,7 +560,7 @@
                                   refresh.data = true
                                   refresh.GUI = true
                                 end}   
---    if obj.edit_mode == 0 then 
+--[[    if obj.edit_mode == 0 then 
     local mode_h = obj.menu_h / 3
     obj.mode1 = { clear = true,
                         x = obj.menu_w+  obj.offs*4+obj.analyze_w*3,
@@ -579,7 +612,42 @@
                                   if obj.edit_mode == 3 then obj.edit_mode = 0 end
                                   refresh.data = true
                                   refresh.GUI = true
-                                end}                                                                                                                                     
+                                end}  ]]                                                                                                                                   
+      if obj.selected_note and data.extpitch[obj.selected_note] then 
+        obj.mod_knob = { clear = true,
+                        is_knob = true,
+                        is_centered_knob = true,
+                        knob_y_shift = 3,
+                        x = obj.menu_w+  obj.offs*4+obj.analyze_w*3,
+                        y =  0,
+                        w = obj.knob_w,
+                        h = obj.menu_h,
+                        col = 'white',
+                        txt= 'Mod',
+                        txt_yshift = 14,
+                        val = data.extpitch[obj.selected_note].mod_pitch,
+                        show = true,
+                        fontsz = obj.GUI_fontsz3,
+                        a_frame = 0,
+                        func =  function() 
+                                  mouse.context_latch_val = data.extpitch[obj.selected_note].mod_pitch
+                                end,
+                        func_LD2 = function()
+                                      if mouse.context_latch_val then  
+                                        local out_val = lim(mouse.context_latch_val - mouse.dy/100)
+                                        data.extpitch[obj.selected_note].mod_pitch = out_val
+                                        Data_ApplyPitchToTake(conf, obj, data, refresh, mouse) 
+                                        refresh.GUI = true
+                                      end
+                                    end   ,
+                        onrelease_L2 = function ()
+                                          Data_SetPitchExtState (conf, obj, data, refresh, mouse) 
+                                          --msg(data.extpitch[1].pitch_shift)
+                                          refresh.GUI = true
+                                          refresh.data = true
+                                        end                                              
+                        }
+    end
                                 
   end
   -----------------------------------------------

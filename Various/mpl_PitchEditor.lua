@@ -10,19 +10,12 @@
 --    mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua
 --    [main] mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel
 -- @changelog
---    # Defaults: changed various default parameters of YIN detection
---    # GUI: don`t show scale helper in options window
---    # GUI: don`t hide note completely if part of note is out of script window
---    + GUI: add split notes editing mode
---    + GUI: add join notes editing mode
---    + Data: rebuild note blocks detection algorithm
---    # Data: pass only raw pitch data from analyzer, postprocessing moved to main script, not backward compatible
---    # Data: reduce points on applying changes
---    + Actions: reset pitch changes
---    + Actions: reset view
---    + Mouse: doubleclick to reset note pitch changes
+--    + Data: allow to edit modulation
+--    + Mouse: Ctrl+click split note
+--    + Mouse: Alt+click join note
+--    - GUI: remove mode selector
 
-  local vrs = 'v1.10'
+  local vrs = 'v1.11'
   --NOT gfx NOT reaper
   
   
@@ -37,7 +30,7 @@
                     data_minor = false,
                     conf = false}
   local mouse = {context_latch = ''}
-  local data = { 
+  data = { 
             has_data = false,
                 }
   local obj = {current_page = 0,

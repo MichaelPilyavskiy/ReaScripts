@@ -67,7 +67,7 @@
     local knob_a = 0.6
     if b.knob_a then knob_a = b.knob_a end
     col(obj, b.col, knob_a)      
-    if not b.is_centered_knob then 
+    if b.is_centered_knob ==false then 
       -- val       
       local ang_val = -ang_gr+ang_gr*2*val
       for i = 0, thickness, 0.5 do
@@ -380,8 +380,11 @@
         local pos_x = math.floor(obj.peak_area.x + obj.peak_area.w * 1/data.it_tkrate *(data.extpitch[idx].xpos- (conf.GUI_scroll *data.it_tkrate))/conf.GUI_zoom)
         if pos_x > obj.peak_area.x + obj.peak_area.w then break end
 
-
-        local pitch_linval = (data.extpitch[idx].pitch+data.extpitch[idx].pitch_shift)/127
+        local parent = Data_GetParentBlockId(data, idx)
+        local parRMSpitch = data.extpitch[parent].RMS_pitch
+        local curpitch = data.extpitch[idx].pitch
+        local pitch_linval = (curpitch+data.extpitch[idx].pitch_shift - 2*(data.extpitch[parent].mod_pitch-0.5)*(parRMSpitch-curpitch))
+          /127
         local pos_y = math.floor(obj.peak_area.y + obj.peak_area.h * ( 1- (pitch_linval- conf.GUI_scrollY)/conf.GUI_zoomY) ) 
         gfx.x = lastpos_x
         gfx.y = lastpos_y 
@@ -483,7 +486,7 @@
     gfx.setfont(1, obj.GUI_font, obj.GUI_fontsz3 )
     for i = 0, 127 do
       a_note = 0.08
-      note = math.fmod(i,  12)
+      local note = math.fmod(i,  12)
       if note == 1 
         or note == 3
         or note == 5
@@ -583,6 +586,13 @@
     
     if obj.current_page == 0 then GUI_PitchScaleAroundPointer(conf, obj, data, refresh, mouse) end
     
+    --[[if data.has_take  then
+      local cur_pos = GetCursorPosition()
+      local pos_x1 = math.floor(obj.peak_area.x + obj.peak_area.w * 1/data.it_tkrate * ( data.extpitch[idx].xpos - (conf.GUI_scroll*data.it_tkrate))/conf.GUI_zoom) 
+      local x = obj.peak_area.w  * ((((cur_pos-data.it_tksoffs-data.it_pos) / data.it_len ) - conf.GUI_scroll)/conf.GUI_zoom)
+      gfx.set(1,1,1,1)
+      gfx.line(x,obj.peak_area.y,x,obj.peak_area.y+obj.peak_area.h)
+    end]]
     
     refresh.GUI = nil
     refresh.GUI_minor = nil

@@ -119,7 +119,7 @@
   function Data_SetPitchExtState (conf, obj, data, refresh, mouse)  
   --pos, freq, RMS, trig_note = line:match('PT ([%.%-%d]+) ([%.%d]+) ([%.%d]+) ([%d]+)')
     local ret, str = GetProjExtState( 0, conf.ES_key, data.it_tkGUID )
-    str_out = str:match('(.-<POINTDATA)')
+    local str_out = str:match('(.-<POINTDATA)')
     str_out = str_out..'\n'
     for i = 1, #data.extpitch do
       str_out = str_out..'PT '
@@ -131,10 +131,11 @@
         ..data.extpitch[i].pitch_shift..' '
         ..data.extpitch[i].RMS_pitch..' '
         ..data.extpitch[i].len_blocks..' '
+        ..data.extpitch[i].mod_pitch..' '
         ..'\n'
     end
     str_out = str_out..'>'
-    rpd = str_out:match('RAWPITCHDATA%s+(%d+)')
+    local rpd = str_out:match('RAWPITCHDATA%s+(%d+)')
     if not rpd then 
       str_out = str_out:gsub('<POINTDATA', 'RAWPITCHDATA 0\n<POINTDATA')
      else
@@ -152,8 +153,15 @@
   ------------------------------------------------------------------
   function Data_PostProcess(conf, obj, data, refresh, mouse)
     Data_PostProcess_ClearStuff(conf, obj, data, refresh, mouse)
+    Data_PostProcess_ClearMod(conf, obj, data, refresh, mouse)
     Data_PostProcess_GetNotes(conf, obj, data, refresh, mouse)
     Data_PostProcess_CalcRMSPitch(conf, obj, data, refresh, mouse)
+  end
+  -----------------------------
+  function Data_PostProcess_ClearMod(conf, obj, data, refresh, mouse)
+    for i = 1, #data.extpitch do
+      data.extpitch[i].mod_pitch = 0.5
+    end
   end
   -----------------------------
   function Data_PostProcess_ClearStuff(conf, obj, data, refresh, mouse)
@@ -290,7 +298,8 @@
               noteOn, 
               pitch_shift,
               RMS_pitch,
-              len_blocks= t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8]
+              len_blocks,
+              mod_pitch= t[1], t[2], t[3], t[4], t[5], t[6], t[7], t[8], t[9]
         
         if not RMS then RMS = 0 end
         if not noteOn then noteOn = 0 end
@@ -298,7 +307,7 @@
         if not len_blocks then len_blocks = 0 end
         if is_raw then noteOn = 0 end
         if not pitch_shift then pitch_shift = 0 end
-        
+        if not mod_pitch then mod_pitch = 0.5 end
         local pitch = lim(69 + 12*math.log(freq/440,2),0,127)
         if data.it_pos and data.it_len and data.it_tksoffs then xpos =  (pos-soffs) / (data.it_len)  end
         data.extpitch[idx]  = {pos=pos, 
@@ -309,7 +318,8 @@
                               xpos = xpos,
                               pitch_shift = pitch_shift,
                               len_blocks = len_blocks,
-                              RMS_pitch = RMS_pitch}
+                              RMS_pitch = RMS_pitch,
+                              mod_pitch = mod_pitch}
         idx = idx +1
         lastpos= pos
       end   
@@ -369,19 +379,22 @@
       return
     end
     DeleteEnvelopePointRange( envelope, 0,data.it_len)
-    local last_par_note_shift
+    local last_pitch
     for idx = 1, #data.extpitch do
       local t_edit = data.extpitch[idx]
       if idx > 1 then t_edit_prev = data.extpitch[idx-1] end
-      local par_note = Data_GetParentBlockId(data, idx)
-      local par_note_shift = data.extpitch[par_note].pitch_shift
-      if not last_par_note_shift or  (last_par_note_shift and  last_par_note_shift ~= par_note_shift) then
-        if last_par_note_shift then 
-          InsertEnvelopePoint( envelope, t_edit_prev.pos - data.it_tksoffs, last_par_note_shift, 0, 0, false, true ) 
+      local parent = Data_GetParentBlockId(data, idx) 
+      local parRMSpitch = data.extpitch[parent].RMS_pitch
+      local curpitch = data.extpitch[idx].pitch
+      local pitch = data.extpitch[idx].pitch_shift - 2*(data.extpitch[parent].mod_pitch-0.5)*(parRMSpitch-curpitch)
+        
+      if not last_pitch or  (last_pitch and  last_pitch ~= pitch) then
+        if last_pitch then 
+          InsertEnvelopePoint( envelope, t_edit_prev.pos - data.it_tksoffs, last_pitch, 0, 0, false, true ) 
         end
-        InsertEnvelopePoint( envelope, t_edit.pos - data.it_tksoffs, par_note_shift, 0, 0, false, true )
+        InsertEnvelopePoint( envelope, t_edit.pos - data.it_tksoffs, pitch, 0, 0, false, true )
       end
-      last_par_note_shift = par_note_shift
+      last_pitch = pitch
     end
     Envelope_SortPointsEx( envelope, -1 )
   end
@@ -444,7 +457,6 @@
   ------------------------------------------------------------------
   function Data_Update (conf, obj, data, refresh, mouse) 
     data.zoomlev = GetHZoomLevel()
-    data.cur_pos = GetCursorPosition()
     local ret = Data_GetTake(conf, obj, data, refresh, mouse) 
     if ret then data.has_take = true end
     if data.has_take == true  then 
