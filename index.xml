@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="855b8bf0fef362c97ed1257a203ae707ca63f07f" name="MPL Scripts">
+<index version="1" commit="673ef1541a223c10e6cdbb8b9d0313b69a73985c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -599,6 +599,10 @@
         <changelog><![CDATA[# fix checking Various_functions]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71c0f6cd996b382f80fc85059201fb5fb06d6fbe/FX/mpl_Float%20instrument%20on%20selected%20track.lua</source>
       </version>
+      <version name="1.04" author="MPL" time="2019-07-23T17:39:57Z">
+        <changelog><![CDATA[# fix checking Various_functions (2)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/673ef1541a223c10e6cdbb8b9d0313b69a73985c/FX/mpl_Float%20instrument%20on%20selected%20track.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Float instrument on track under mouse cursor.lua" type="script" desc="Float instrument on track under mouse cursor">
       <metadata>
@@ -613,6 +617,10 @@
       <version name="1.03" author="MPL" time="2018-06-23T20:13:58Z">
         <changelog><![CDATA[# fix check Various_functions]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71c0f6cd996b382f80fc85059201fb5fb06d6fbe/FX/mpl_Float%20instrument%20on%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2019-07-23T17:39:57Z">
+        <changelog><![CDATA[# fix checking Various_functions (2)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/673ef1541a223c10e6cdbb8b9d0313b69a73985c/FX/mpl_Float%20instrument%20on%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Generate reabank from focused FX.lua" type="script" desc="Generate reabank from focused FX">
