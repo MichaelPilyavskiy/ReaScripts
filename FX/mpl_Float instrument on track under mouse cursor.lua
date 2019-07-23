@@ -1,9 +1,9 @@
 -- @description Float instrument on track under mouse cursor
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix check Various_functions
+--    # fix checking Various_functions (2)
 
   -- NOT gfx NOT reaper
   local scr_title = 'Float instrument on track under mouse cursor'
@@ -33,7 +33,7 @@
       end
       
      else
-      MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
+      reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
     end  
   end
 --------------------------------------------------------------------
