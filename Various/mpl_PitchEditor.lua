@@ -1,5 +1,5 @@
 -- @description PitchEditor
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=222825
 -- @about Script for editing take pitch envelope
