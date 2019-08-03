@@ -1,15 +1,14 @@
 -- @description Float instrument on track under mouse cursor
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix checking Various_functions (2)
+--    # use VF_GetTrackUnderMouseCursor instead SWS Breeder context
 
   -- NOT gfx NOT reaper
   local scr_title = 'Float instrument on track under mouse cursor'
   function main()
-    BR_GetMouseCursorContext()
-    local tr = BR_GetMouseCursorContext_Track()
+    local tr = VF_GetTrackUnderMouseCursor()
     if tr then 
       FloatInstrument(tr)
       ApplyFunctionToTrackInTree(tr, FloatInstrument)

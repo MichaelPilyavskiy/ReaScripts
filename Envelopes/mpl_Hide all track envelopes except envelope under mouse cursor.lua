@@ -1,16 +1,14 @@
 -- @description Hide all track envelopes except envelope under mouse cursor
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
 --    + init release
 
 
-function msg(s) reaper.ShowConsoleMsg(s..'\n') end
 
 function main()
-  reaper.BR_GetMouseCursorContext()
-  env_MC = reaper.BR_GetMouseCursorContext_Envelope()
+  env_MC = VF_GetEnvelopeUnderMouseCursor()
   if not env_MC then return end
   for tr = 1, reaper.CountTracks(0) do
     local track = reaper.GetTrack(0,tr-1)
@@ -33,5 +31,15 @@ function main()
     end
   end  
 end
+---------------------------------------------------------------------
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
 
-main()
+--------------------------------------------------------------------  
+  local ret = CheckFunctions('VF_GetItemTakeUnderMouseCursor') 
+  local ret2 = VF_CheckReaperVrs(5.95,true)    
+  if ret and ret2 then 
+    script_title = "Hide all track envelopes except envelope under mouse cursor"
+    reaper.Undo_BeginBlock() 
+    main()
+    reaper.Undo_EndBlock(script_title, 0)
+  end   

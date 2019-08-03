@@ -1,5 +1,5 @@
 -- @description RS5k tools
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -25,4 +25,4 @@
 --    [main] mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export chromatically to RS5k (background).lua
 --    [main] mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k (background).lua
 -- @changelog
---     # add metapckg
+--     # update for use with REAPER 5.981+

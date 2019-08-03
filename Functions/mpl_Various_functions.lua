@@ -1,10 +1,13 @@
-﻿-- @description Various_functions
+-- @description Various_functions
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.25
+-- @version 1.26
 -- @changelog
---    + VF_GetFXByGUID, extend for match per-track also
+--    + VF_GetTrackUnderMouseCursor
+--    + VF_GetItemTakeUnderMouseCursor
+--    + VF_GetPositionUnderMouseCursor -- SWS заглушка
+--    + VF_GetEnvelopeUnderMouseCursor -- SWS заглушка
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) 
@@ -631,3 +634,25 @@
   end
   ---------------------------------------------------
   function Action(s) Main_OnCommand(NamedCommandLookup(s), 0) end
+  ---------------------------------------------------
+  function VF_GetTrackUnderMouseCursor()
+    local screen_x, screen_y = GetMousePosition()
+    local retval, info = reaper.GetTrackFromPoint( screen_x, screen_y )
+    return retval
+  end
+  ---------------------------------------------------
+  function VF_GetItemTakeUnderMouseCursor()
+    local screen_x, screen_y = GetMousePosition()
+    local item , take = reaper.GetItemFromPoint( screen_x, screen_y, true )
+    return item , take
+  end
+  --------------------------------------------------
+  function VF_GetPositionUnderMouseCursor()
+    BR_GetMouseCursorContext()
+    return  BR_GetMouseCursorContext_Position()
+  end
+  --------------------------------------------------
+  function VF_GetEnvelopeUnderMouseCursor()
+    reaper.BR_GetMouseCursorContext()
+    return  BR_GetMouseCursorContext_Envelope()
+  end  
