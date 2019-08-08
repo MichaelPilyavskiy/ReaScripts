@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="83922b35cca1517310306d1b91a2e2f6e08a77d2" name="MPL Scripts">
+<index version="1" commit="56dbe1743627f0225292ca96bb42776714895a6c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -145,6 +145,10 @@
       <version name="1.01" author="MPL" time="2019-08-03T08:46:00Z">
         <changelog><![CDATA[+ init release]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/Envelopes/mpl_Hide%20all%20track%20envelopes%20except%20envelope%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2019-08-08T19:12:26Z">
+        <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Envelopes/mpl_Hide%20all%20track%20envelopes%20except%20envelope%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Hide all track envelopes except last touched parameter envelope.lua" type="script" desc="Hide all track envelopes except last touched parameter envelope">
@@ -636,6 +640,10 @@
       <version name="1.05" author="MPL" time="2019-08-03T08:46:00Z">
         <changelog><![CDATA[# use VF_GetTrackUnderMouseCursor instead SWS Breeder context]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/FX/mpl_Float%20instrument%20on%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.06" author="MPL" time="2019-08-08T19:12:26Z">
+        <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX/mpl_Float%20instrument%20on%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Generate reabank from focused FX.lua" type="script" desc="Generate reabank from focused FX">
@@ -2558,6 +2566,29 @@
         <source main="main" file="mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export chromatically to RS5k (background).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/FX%20specific/mpl_RS5k%20tools/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20chromatically%20to%20RS5k%20(background).lua</source>
         <source main="main" file="mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k (background).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/FX%20specific/mpl_RS5k%20tools/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k%20(background).lua</source>
       </version>
+      <version name="1.04" author="MPL" time="2019-08-08T19:12:26Z">
+        <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Add or replace source of item under mouse cursor for RS5k instance on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_Add%20or%20replace%20source%20of%20item%20under%20mouse%20cursor%20for%20RS5k%20instance%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Add or replace source of selected item for RS5k instance on its track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20its%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Add or replace source of selected item for RS5k instance on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Add or replace source of selected item for RS5k instance on track under mouse cursor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Explode selected track RS5k instances to new tracks.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_Explode%20selected%20track%20RS5k%20instances%20to%20new%20tracks.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected item to RS5k instance on same track as chromatic source.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to RS5k instances on selected track (drum mode).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(drum%20mode).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to RS5k instances on selected track (use original source).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to RS5k instances on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to single RS5k instance on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20single%20RS5k%20instance%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Float RS5k related to input note on last touched track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_Float%20RS5k%20related%20to%20input%20note%20on%20last%20touched%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List next sample in directory for focused RS5k.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_List%20next%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List next sample in directory for RS5k on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_List%20next%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List previous sample in directory for focused RS5k.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_List%20previous%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List previous sample in directory for RS5k on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_List%20previous%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List random sample in directory for focused RS5k.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_List%20random%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List samples in directory for focused RS5k (MIDI, OSC, Mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_List%20samples%20in%20directory%20for%20focused%20RS5k%20(MIDI,%20OSC,%20Mousewheel).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export chromatically to RS5k (background).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20chromatically%20to%20RS5k%20(background).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k (background).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/FX%20specific/mpl_RS5k%20tools/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k%20(background).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Search ReaControlMIDI bank.lua" type="script" desc="Search ReaControlMIDI bank">
       <metadata>
@@ -4295,8 +4326,15 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Copy selection area of take under mouse cursor to new track.lua" type="script" desc="Copy selection area of take under mouse cursor to new track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Takes%20Editing/mpl_Copy%20selection%20area%20of%20take%20under%20mouse%20cursor%20to%20new%20track.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2019-08-08T19:12:26Z">
+        <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Takes%20Editing/mpl_Copy%20selection%20area%20of%20take%20under%20mouse%20cursor%20to%20new%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Delete take number x from selected items.lua" type="script" desc="Delete take number x from selected items">
@@ -4595,6 +4633,25 @@ add control for timefall showing last note]]></changelog>
         <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 11-12 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
         <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 13-14 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
         <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 15-16 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.11" author="MPL" time="2019-08-08T19:12:26Z">
+        <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (multichannel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 3-4).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 5-6).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 7-8).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 9-10).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 11-12).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 13-14).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 15-16).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 3-4 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 5-6 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 7-8 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 9-10 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 11-12 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 13-14 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 15-16 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Send track under mouse cursor to selected tracks.lua" type="script" desc="Send track under mouse cursor to selected tracks">
