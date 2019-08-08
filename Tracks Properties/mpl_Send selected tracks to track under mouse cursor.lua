@@ -1,4 +1,4 @@
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @description Send selected tracks to track under mouse cursor
 -- @metapackage
@@ -20,18 +20,15 @@
 --    [main] . > mpl_Send selected tracks to track under mouse cursor (channel 13-14 to 1-2).lua
 --    [main] . > mpl_Send selected tracks to track under mouse cursor (channel 15-16 to 1-2).lua
 -- @changelog
---    + Modified for using as metapackage
+--    # update for use with REAPER 5.981+
 -- @website http://forum.cockos.com/showthread.php?t=188335    
 
   
   ---------------------------------------------------------------------
   function GetDestTrGUID()
     local t = {}
-    local _, segment = BR_GetMouseCursorContext()
-    if segment == "track" then
-      local src_track = BR_GetMouseCursorContext_Track()
-      t[1] = GetTrackGUID( src_track )      
-    end  
+    local src_track = VF_GetTrackUnderMouseCursor()
+    if src_track then t[1] = GetTrackGUID( src_track ) end  
     return t   
   end
   ---------------------------------------------------------------------
@@ -130,7 +127,7 @@
     return MCH_mode, src_ch, dest_ch, script_title
   end
   -------------------------------------------------
-  local ret = CheckFunctions('VF_CheckReaperVrs') 
+  local ret = CheckFunctions('VF_GetItemTakeUnderMouseCursor') 
   local ret2 = VF_CheckReaperVrs(5.95)    
   if ret and ret2 then 
     local defsendvol = ({BR_Win32_GetPrivateProfileString( 'REAPER', 'defsendvol', '0',  get_ini_file() )})[2]

@@ -1,9 +1,9 @@
 -- @description Hide all track envelopes except envelope under mouse cursor
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    + init release
+--    # update for use with REAPER 5.981+
 
 
 

@@ -1,5 +1,5 @@
 -- @description RS5k tools
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
