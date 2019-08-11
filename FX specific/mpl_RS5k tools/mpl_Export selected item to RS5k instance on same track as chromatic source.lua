@@ -1,10 +1,11 @@
--- @version 1.04
+-- @version 1.05
 -- @author MPL
--- @website http://forum.cockos.com/member.php?u=70694
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Export selected item to RS5k instance on same track as chromatic source
 -- @noindex
 -- @changelog
---    #header
+--    # use VF version check
+--    # prevent error on empty item
 
   local script_title = 'Export selected item to RS5k instance on same track as chromatic source'
   
@@ -83,6 +84,7 @@
       if reaper.CountSelectedMediaItems(0) > 1 then return end
     -- item check
       local item = reaper.GetSelectedMediaItem(0,0)
+      if not item then return end
       if reaper.TakeIsMIDI(reaper.GetActiveTake(item)) then return end
       if not item then return end        
       local track =  reaper.GetMediaItemTrack( item )
@@ -108,17 +110,13 @@
     reaper.SetMediaTrackInfo_Value( tr, 'I_RECARM', 1) -- arm track
     reaper.SetMediaTrackInfo_Value( tr, 'I_RECMODE',0) -- record MIDI in
   end
-    -------------------------------------------------------------------------------      
-  function vrs_check()
-    local appvrs = reaper.GetAppVersion()
-    appvrs = appvrs:match('[%d%p]+'):gsub('/','')
-    if not appvrs or not tonumber(appvrs) or tonumber(appvrs) < 5.40 then return else return true end 
-  end
-    -------------------------------------------------------------------------------    
-  if vrs_check() then 
+  ---------------------------------------------------------------------
+    function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
+--------------------------------------------------------------------  
+  local ret = CheckFunctions('VF_CalibrateFont') 
+  local ret2 = VF_CheckReaperVrs(5.4,true)    
+  if ret and ret2 then 
     reaper.Undo_BeginBlock()
     main()
     reaper.Undo_EndBlock(script_title, 1)
-   else
-    reaper.MB('Script works with REAPER 5.40+', 'Error', 0)
   end

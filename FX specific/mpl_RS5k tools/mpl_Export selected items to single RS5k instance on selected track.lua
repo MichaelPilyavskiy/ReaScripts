@@ -1,10 +1,10 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Export selected items to single RS5k instance on selected track
 -- @noindex
 -- @changelog
---    #header
+--    # use VF version check
 
   local script_title = 'Export selected items to single RS5k instance on selected track'
   -------------------------------------------------------------------------------   
@@ -104,7 +104,13 @@
       reaper.SetMediaTrackInfo_Value( tr, 'I_RECMODE',0) -- record MIDI out
     end
   
-    -------------------------------------------------------------------------------    
-  reaper.Undo_BeginBlock()
-  main()  
-  reaper.Undo_EndBlock(script_title, 1)
+    ---------------------------------------------------------------------
+      function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
+  --------------------------------------------------------------------  
+    local ret = CheckFunctions('VF_CalibrateFont') 
+    local ret2 = VF_CheckReaperVrs(5.4,true)    
+    if ret and ret2 then 
+      reaper.Undo_BeginBlock()
+      main()
+      reaper.Undo_EndBlock(script_title, 1)
+    end

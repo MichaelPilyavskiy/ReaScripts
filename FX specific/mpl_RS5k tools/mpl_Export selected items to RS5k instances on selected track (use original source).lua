@@ -1,14 +1,14 @@
 -- @description Export selected items to RS5k instances on selected track (use original source)
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @noindex
 -- @changelog
---    #header
+--    # use VF version check
 
 
-  local vrs = 'v1.0'
-  local scr_title = 'Export selected items to RS5k'
+  local vrs = 'v1.02'
+  local scr_title = 'Export selected items to RS5k instances on selected track (use original source)'
   --NOT gfx NOT reaper
  --------------------------------------------------------------------
   function main()
@@ -71,36 +71,13 @@
     end  
   end
    
----------------------------------------------------------------------
-  function CheckFunctions(str_func)
-    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
-    local f = io.open(SEfunc_path, 'r')
-    if f then
-      f:close()
-      dofile(SEfunc_path)
-      
-      if not _G[str_func] then 
-        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
-       else
-        return true
-      end
-      
-     else
-      reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
-    end  
-  end
-  ---------------------------------------------------
-  function CheckReaperVrs(rvrs) 
-    local vrs_num =  GetAppVersion()
-    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
-    if rvrs > vrs_num then 
-      reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0)
-      return
-     else
-      return true
+    ---------------------------------------------------------------------
+      function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
+  --------------------------------------------------------------------  
+    local ret = CheckFunctions('VF_CalibrateFont') 
+    local ret2 = VF_CheckReaperVrs(5.95,true)    
+    if ret and ret2 then 
+      reaper.Undo_BeginBlock()
+      main()
+      reaper.Undo_EndBlock(scr_title, 1)
     end
-  end
---------------------------------------------------------------------  
-  local ret = CheckFunctions('Action') 
-  local ret2 = CheckReaperVrs(5.95)    
-  if ret and ret2 then main() end
