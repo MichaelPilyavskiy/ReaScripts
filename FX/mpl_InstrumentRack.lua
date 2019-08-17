@@ -1,5 +1,5 @@
 -- @description InstrumentRack
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
@@ -9,9 +9,9 @@
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua
 -- @changelog
---    # Add FX button: fix show only VST/DX/AU instrumens, also show all plugins separately
+--    # prevent breaking add FX menu with gfx.showmenu magic symbols
 
-  local vrs = 'v1.10'
+  local vrs = 'v1.11'
   --NOT gfx NOT reaper
   
   --  INIT -------------------------------------------------

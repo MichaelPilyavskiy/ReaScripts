@@ -80,7 +80,7 @@
             end
             
           plugs_data[#plugs_data+1] = {name = str, 
-                                                reduced_name = reduced_name ,
+                                                reduced_name = reduced_name:gsub('[<>|#]', '_') ,
                                                 plugtype = plugtype}
           
         end

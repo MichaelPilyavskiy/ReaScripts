@@ -132,7 +132,9 @@
                                       if name:sub(0,1):lower() == let then
                                         if new_let == 1 then
                                           t[#t+1] = { str = '>'..let:upper()}
-                                          if #t >= 3 then t[#t-1].str = t[#t-1].str..'|<' end
+                                          if #t >= 3 then 
+                                            t[#t-1].str = t[#t-1].str..'|<' 
+                                          end
                                         end
                                         t[#t+1] = 
                                             { str = new_let_sep..obj.plugs_data[i].reduced_name,
