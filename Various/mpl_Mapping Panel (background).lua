@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 2.03
+-- @version 2.04
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -9,14 +9,9 @@
 --    mpl_MappingPanel_functions/mpl_MappingPanel_data.lua
 --    mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua
 -- @changelog
---    + Show Info line
---    + Right click on rectangle to type XY
---    + Show formatted values
---    + Master knobs support mousewheel
---    # GUI improvements
---    # prevent setting x1 >= x2 and x2 <= x1
+--    # fix undefined selected knob area error
 
-  local vrs = 'v2.03'
+  local vrs = 'v2.04'
   --NOT gfx NOT reaper
   
   --[[ map:

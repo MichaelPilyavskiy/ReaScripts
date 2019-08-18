@@ -389,9 +389,9 @@
   end
   ---------------------------------------------------
   function GUI_SelectedKnobArea(conf, obj, data, refresh, mouse)
-    if conf.activeknob >0 and obj.knob1 then
-      gfx.set(1,1,1,0.4)
-      local knobid = conf.activeknob
+    local knobid = conf.activeknob
+    if conf.activeknob >0 and obj['knob'..knobid] then
+      gfx.set(1,1,1,0.4) 
       local kn_x, kn_y,kn_w = obj['knob'..knobid].x,obj['knob'..knobid].y, obj.knob_w
       local kn_h = obj.menu_h
       if not (kn_x and kn_y and kn_w and kn_h) then return end
