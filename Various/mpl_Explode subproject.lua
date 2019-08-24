@@ -1,8 +1,7 @@
 -- @description Explode subproject
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @noindex
 -- @about Explode subproject track chunks into main project
 -- @changelog
 --    + init
