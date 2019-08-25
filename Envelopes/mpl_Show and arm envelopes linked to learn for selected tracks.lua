@@ -1,9 +1,9 @@
--- @description Show and arm envelopes linked to learn for seelcted tracks
--- @version 1.0
+-- @description Show and arm envelopes linked to learn for selected tracks
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    # fix name
 
   function literalize(str) return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", function(c) return "%" .. c end) end
   function ArmEnvLearn(tr)    
