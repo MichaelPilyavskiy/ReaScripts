@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="395f97872cf1f307f6be47ab969cae211119a4e4" name="MPL Scripts">
+<index version="1" commit="5e348369c8ac26a1625557b32270f69b5e9db3f5" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -223,13 +223,13 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/Envelopes/mpl_Show%20all%20armed%20track%20envelopes,%20hide%20unarmed.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Show and arm envelopes linked to learn for seelcted tracks.lua" type="script" desc="Show and arm envelopes linked to learn for seelcted tracks">
+    <reapack name="mpl_Show and arm envelopes linked to learn for selected tracks.lua" type="script" desc="Show and arm envelopes linked to learn for selected tracks">
       <metadata>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2018-09-13T18:01:26Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6cd65d9d492f9a661103629961f82f295c2a8b39/Envelopes/mpl_Show%20and%20arm%20envelopes%20linked%20to%20learn%20for%20seelcted%20tracks.lua</source>
+      <version name="1.01" author="MPL" time="2019-08-25T05:25:41Z">
+        <changelog><![CDATA[# fix name]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5e348369c8ac26a1625557b32270f69b5e9db3f5/Envelopes/mpl_Show%20and%20arm%20envelopes%20linked%20to%20learn%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Show existing envelopes for last touched FX.lua" type="script" desc="Show existing envelopes for last touched FX">
