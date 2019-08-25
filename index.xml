@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="097700d3f48d99c8fe670640003bc26d11b16090" name="MPL Scripts">
+<index version="1" commit="395f97872cf1f307f6be47ab969cae211119a4e4" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -518,6 +518,10 @@
         <changelog><![CDATA[# respect send parameters
 # forum link]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2734b65a041b97fcf9fe6b6918d548361764078a/FX/mpl_Create%20send%20from%20focused%20FX%20insert.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2019-08-25T03:33:46Z">
+        <changelog><![CDATA[# Native remove FX implementation]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/395f97872cf1f307f6be47ab969cae211119a4e4/FX/mpl_Create%20send%20from%20focused%20FX%20insert.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Cubase AB floating FX make equal.lua" type="script" desc="AB floating FX parameters, make snapshots equal">
@@ -1693,6 +1697,14 @@
       <version name="1.01" author="MPL" time="2018-03-08T14:57:42Z">
         <changelog><![CDATA[# ReaPack header, name]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d02548590e8d84d292f139994ee8e9574c586e90/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2019-08-25T03:33:46Z">
+        <changelog><![CDATA[# support for new track under mouse catching
+# collect GUIDs instead indexes
+# properly increase dest track channel count, if need
+# avoid chunking
+# avoid doubled sends]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/395f97872cf1f307f6be47ab969cae211119a4e4/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Dump RetrospectiveRecord tracker log to selected track.lua" type="script" desc="Dump RetrospectiveRecord tracker log to selected track">
