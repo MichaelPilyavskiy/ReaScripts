@@ -181,11 +181,58 @@
     end
     
   end
+  function AnalyzeItemLoudness(item) -- https://forum.cockos.com/showpost.php?p=2050961&postcount=6
+    if not item then return end
+    
+    -- get channel count
+    local take = GetActiveTake(item)
+    local source = GetMediaItemTake_Source(take)
+    local channelsInSource =  GetMediaSourceNumChannels(source)
+    
+    local windowSize = 0
+    local reaperarray_peaks         = reaper.new_array(channelsInSource)
+    local reaperarray_peakpositions = reaper.new_array(channelsInSource)
+    local reaperarray_RMSs          = reaper.new_array(channelsInSource)
+    local reaperarray_RMSpositions  = reaper.new_array(channelsInSource)
+    
+    -- REAPER sets initial (used) size to maximum size when creating reaper.array
+    -- so we resize (set used size to 0) to make space for writing the values
+    reaperarray_peaks.resize(0)
+    reaperarray_peakpositions.resize(0)
+    reaperarray_RMSs.resize(0)
+    reaperarray_RMSpositions.resize(0)
+    
+    -- analyze
+    local success = reaper.NF_AnalyzeMediaItemPeakAndRMS(item, windowSize, reaperarray_peaks, reaperarray_peakpositions, reaperarray_RMSs, reaperarray_RMSpositions)
+    
+    if success == true then
+      -- convert reaper.arrays to Lua tables
+      local peaksTable = reaperarray_peaks.table()
+      local RMSsTable = reaperarray_RMSs.table()
+      
+      local peaks_com = 0
+      local RMS_com = 0
+      -- print results
+      for i = 1, channelsInSource do
+        peaks_com = peaks_com + peaksTable[i]
+        RMS_com = RMS_com + RMSsTable[i]
+      end
+      
+      peaks_com = peaks_com / channelsInSource
+      RMS_com = RMS_com / channelsInSource
+      
+      return WDL_DB2VAL(peaks_com), WDL_DB2VAL(RMS_com)
+      
+    end
+  end
   --------------------------------------------------- 
   function Data_GetItems(data, strategy, table_name, mode) 
     local id = 1
+    local item =  GetSelectedMediaItem( 0,0 )
+    par_tr = reaper.GetMediaItem_Track( item )
       for itemidx = 1, CountMediaItems(0) do
         local item =  GetMediaItem( 0,itemidx-1 )
+        item_tr =  GetMediaItem_Track( item )
         local take = GetActiveTake(item)
         local pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
         local it_pos = pos
@@ -200,8 +247,13 @@
         local is_sel = GetMediaItemInfo_Value( item, 'B_UISEL' ) == 1
         local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
         local val = GetMediaItemInfo_Value( item, 'D_VOL' )
+        if table_name == 'ref' and strategy.ref_selitems_value > 0 then
+          local peak, RMS = AnalyzeItemLoudness(item)
+          if strategy.ref_selitems_value == 1 then val = peak elseif strategy.ref_selitems_value == 2 then val = RMS end
+        end
         local tk_rate if take then  tk_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )   end
         
+        if item_tr == par_tr and is_sel then
         if (table_name == 'ref' and is_sel) or table_name == 'src'then
           if not data[table_name][id] then data[table_name][id] = {} end
           data[table_name][id].ignore_search = not is_sel
@@ -242,7 +294,7 @@
           data[table_name][id].activetk_rate = tk_rate    
           id = id + 1    
         end
-        
+        end
       end      
   end  
   --------------------------------------------------- 

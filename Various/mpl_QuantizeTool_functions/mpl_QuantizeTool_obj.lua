@@ -407,7 +407,39 @@
                                           strategy.ref_selitems = BinaryToggle(strategy.ref_selitems, 1)
                                           refresh.GUI = true
                                         end,                               
-                                },                             
+                                },   
+                                { name = 'Value',
+                                  show = strategy.ref_positions&1==1 and strategy.ref_selitems&1==1,
+                                  level = 2,                     
+                                },            
+                                { name = 'Item volume',
+                                  state = strategy.ref_selitems_value==0,
+                                  show = strategy.ref_positions&1==1 and strategy.ref_selitems&1==1,
+                                  level = 3,
+                                func =  function()
+                                          strategy.ref_selitems_value = 0
+                                          refresh.GUI = true
+                                        end,                               
+                                },                                 
+                                { name = 'Peak',
+                                  state = strategy.ref_selitems_value==1,
+                                  show = strategy.ref_positions&1==1 and strategy.ref_selitems&1==1,
+                                  level = 3,
+                                func =  function()
+                                          strategy.ref_selitems_value = 1
+                                          refresh.GUI = true
+                                        end,                               
+                                },
+                                { name = 'RMS',
+                                  state = strategy.ref_selitems_value==2,
+                                  show = strategy.ref_positions&1==1 and strategy.ref_selitems&1==1,
+                                  level = 3,
+                                func =  function()
+                                          strategy.ref_selitems_value = 2
+                                          refresh.GUI = true
+                                        end,                               
+                                },                                
+                                                                               
                             { name = 'Envelope points',
                               state = strategy.ref_envpoints,
                               show = strategy.ref_positions&1==1 ,

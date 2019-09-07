@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.21
+-- @version 2.22
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -27,10 +27,10 @@
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 -- @changelog
---    + Ordered alignment: fix proper indexes for unselected items
+--    + Anchor points / Items: support for taking peak and RMS in addition to item gain
 
      
-  local vrs = 'v2.21'
+  local vrs = 'v2.22'
   --NOT gfx NOT reaper
   
 
@@ -66,6 +66,7 @@
       -- positions
         ref_positions = 1,
         ref_selitems = 0, --&2 snap offset -- &4 handle grouping
+        ref_selitems_value = 0, -- 0 gain 1 peak 2 RMS
         ref_envpoints = 1, -- &2 all selected --&4 selected AI
         ref_midi = 0, --&2 Selected items
         ref_midi_msgflag = 1, --&2 note off
