@@ -1138,12 +1138,14 @@
     local frame_a = 0
     local txt_a_swact =obj.txt_a
     if data.grid_swingactive_int == 0 then txt_a_swact = obj.txt_a * 0.3 end
+    local back = obj.frame_a_entry
+    if data.grid_swingactive_int == 0 then back = 0 end
     obj.b.obj_pers_swgrid_name = { persist_buf = true,
                         x = x_margin - grid_widg_swingval_w,
                         y = obj.offs ,
                         w = grid_widg_swingval_w,
                         h = 10,
-                        frame_a = 0,--obj.frame_a_entry,
+                        frame_a =0,--obj.frame_a_entry,
                         frame_rect_a = 0,
                         txt_a = txt_a_swact,
                         --txt_col = 'white',
@@ -1180,7 +1182,7 @@
                         y = 0 ,
                         w = grid_widg_swingval_w,
                         h = obj.entry_h*2,
-                        frame_a = frame_a,
+                        frame_a = back,--frame_a,
                         --frame_rect_a = 1,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,

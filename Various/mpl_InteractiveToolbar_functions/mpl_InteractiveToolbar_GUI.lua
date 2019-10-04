@@ -61,7 +61,7 @@
                   offs2 = 2,
                   frame_a_head = 1.3, -- alpha header frames
                   frame_a_entry = 0.95,   -- alpha entries frames
-                  frame_a_state = 0.8 -- active state
+                  frame_a_state = 0.9 -- active state
           }
     if GetOS():match('OSX') then 
       obj.fontsz = obj.fontsz - 5
@@ -193,7 +193,7 @@
     -- state
       if o.state then
         if o.state_col then GUI_col(o.state_col, obj) end
-        if o.state_a then gfx.a = o.state_a else gfx.a = 0.35 end
+        if o.state_a then gfx.a = o.state_a else gfx.a = 0.75 end
         gfx.rect(x,y,w,h,1)        
       end
       
