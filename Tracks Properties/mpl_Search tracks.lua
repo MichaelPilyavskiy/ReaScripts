@@ -1,7 +1,6 @@
--- @version 1.0
+-- @version 1.0.1
 -- @author MPL
--- @changelog
---   + init release
+-- @changelog + fix crash when pressing Ctrl+Right before typing anything
 -- @description Search tracks
 -- @website http://forum.cockos.com/member.php?u=70694
 
@@ -182,6 +181,9 @@
   
   mouse = {}
   textbox_t = {}  
+
+  matched = SearchTracks('')
+  matched_id = 1
   
   Lokasenna_WindowAtCenter (obj_mainW,obj_mainH)
   Run()
