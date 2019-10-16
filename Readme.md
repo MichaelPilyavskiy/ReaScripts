@@ -4,7 +4,7 @@ This repository is compatible with the ReaPack [REAPER extension](http://reapack
 Discussion is [here](https://forum.cockos.com/showthread.php?t=188335).
 
 MPL contacts: (I speak Russian, English, a bit Hebrew and Tatar):
-- [VK](https://vk.com/mpl57)
+- [VK](https://vk.com/michael_pilyavskiy)
 - [SoundCloud](https://soundcloud.com/mpl57)
 - [PromoDJ](http://promodj.com/michaelpilyavskiy)
 - [Cockos Forum](http://forum.cockos.com/member.php?u=70694)
