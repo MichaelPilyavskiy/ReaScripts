@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="54e0f7514ae9488e13cce6d5b4c855ec43ffa47b" name="MPL Scripts">
+<index version="1" commit="29a1888dda2f7c07fe25f0cdce49316c1c2cc5d7" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1690,6 +1690,10 @@
       <version name="1.0" author="MPL" time="2017-08-27T04:59:37Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/85b73fdf571d2f886eab05ce9a3f4cb12bc6a1b9/FX%20specific/mpl_Convert%20RS5k%20MIDI%20item%20into%20source%20based%20audio%20items%20(drum%20mode).lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2019-10-16T17:42:07Z">
+        <changelog><![CDATA[# obey multiple rs5k instances]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/29a1888dda2f7c07fe25f0cdce49316c1c2cc5d7/FX%20specific/mpl_Convert%20RS5k%20MIDI%20item%20into%20source%20based%20audio%20items%20(drum%20mode).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing.lua" type="script" desc="Create ReaComp sidechain routing from selected track to track under mouse cursor">
