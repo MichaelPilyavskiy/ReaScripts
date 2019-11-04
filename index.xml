@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7dbfed8e6fc3bfaedf882a66a59544645d7b5925" name="MPL Scripts">
+<index version="1" commit="112b63231e2bd1b3bb97250ab2360e81eebf990a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1694,6 +1694,12 @@
       <version name="1.01" author="MPL" time="2019-10-16T17:42:07Z">
         <changelog><![CDATA[# obey multiple rs5k instances]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/29a1888dda2f7c07fe25f0cdce49316c1c2cc5d7/FX%20specific/mpl_Convert%20RS5k%20MIDI%20item%20into%20source%20based%20audio%20items%20(drum%20mode).lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2019-11-04T14:54:51Z">
+        <changelog><![CDATA[# obey pitches / length
+# obey sample offset
+# obey sample pan]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/112b63231e2bd1b3bb97250ab2360e81eebf990a/FX%20specific/mpl_Convert%20RS5k%20MIDI%20item%20into%20source%20based%20audio%20items%20(drum%20mode).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing.lua" type="script" desc="Create ReaComp sidechain routing from selected track to track under mouse cursor">
@@ -5194,22 +5200,6 @@ add control for timefall showing last note]]></changelog>
       <version name="1.02" author="MPL" time="2018-09-08T09:38:50Z">
         <changelog><![CDATA[# rename title]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25e84f72089c3534945b42a691a8a00d60b8dd58/Various/mpl_Delete%20non-existing%20scripts%20from%20ActionList.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Explode subproject.lua" type="script" desc="Explode subproject">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Explode subproject track chunks into main project\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.01" author="MPL" time="2019-08-24T16:34:35Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/097700d3f48d99c8fe670640003bc26d11b16090/Various/mpl_Explode%20subproject.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Implode mono track session to stereo items relative to LR at the trackname end.lua" type="script" desc="Implode mono track session to stereo items relative to LR at the trackname end">
