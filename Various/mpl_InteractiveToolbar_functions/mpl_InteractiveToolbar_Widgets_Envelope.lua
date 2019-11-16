@@ -10,13 +10,13 @@
   function Obj_UpdateEnvelope(data, obj, mouse, widgets, conf)
     obj.b.obj_name = { x = obj.menu_b_rect_side + obj.offs,
                         y = obj.offs *2 +obj.entry_h,
-                        w = conf.GUI_contextname_w,
+                        w = conf.GUI_contextname_w*conf.scaling,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt_a = obj.txt_a,
                         txt = data.name,
                         fontsz = obj.fontsz_entry} 
-    local x_offs = obj.menu_b_rect_side + obj.offs + conf.GUI_contextname_w
+    local x_offs = obj.menu_b_rect_side + obj.offs + conf.GUI_contextname_w*conf.scaling
     
     
     

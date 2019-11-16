@@ -275,7 +275,7 @@
     -- loop buttons --------------
       if obj.b then
         for key in pairs(obj.b) do
-          if not obj.b[key].ignore_mouse then
+          if obj.b[key] and not obj.b[key].ignore_mouse then
             if MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_wheel and mouse.wheel_trig ~= 0 then obj.b[key].func_wheel() end
             if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) then mouse.context_latch = key end
             

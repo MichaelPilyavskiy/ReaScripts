@@ -20,7 +20,7 @@
     
     table.insert(data.masterdata.peakL, 1 , pkL)
     table.insert(data.masterdata.peakR, 1 , pkR)
-    if #data.masterdata.peakL > conf.master_buf then 
+    if #data.masterdata.peakL > conf.master_buf*conf.scaling then 
       table.remove(data.masterdata.peakL, #data.masterdata.peakL)
       table.remove(data.masterdata.peakR, #data.masterdata.peakL)
     end
@@ -60,7 +60,8 @@
       
     -- persisten widgets
       if conf.ignore_context&(1<<9) ~= (1<<9) then
-        obj.persist_margin = Obj_UpdatePersist(data, obj, mouse, widgets, conf) -- MUST be before DataUpdate_Context for passing persist_margin
+        obj.persist_margin = Obj_UpdatePersist(data, obj, mouse, widgets, conf) 
+        -- MUST be before DataUpdate_Context for passing persist_margin
        else
         obj.persist_margin = gfx.w
       end

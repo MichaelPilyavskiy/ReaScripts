@@ -10,7 +10,7 @@
   function Obj_UpdateTrack(data, obj, mouse, widgets, conf)
     obj.b.obj_name = { x = obj.menu_b_rect_side + obj.offs,
                         y = obj.offs *2 +obj.entry_h,
-                        w = conf.GUI_contextname_w,
+                        w = conf.GUI_contextname_w*conf.scaling,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt_a = obj.txt_a,
@@ -27,7 +27,7 @@
                               end
                             end
                           end} 
-    local x_offs = obj.menu_b_rect_side + obj.offs + conf.GUI_contextname_w 
+    local x_offs = obj.menu_b_rect_side + obj.offs + conf.GUI_contextname_w *conf.scaling
     
     
     
@@ -55,7 +55,7 @@
   --------------------------------------------------------------  
   function Widgets_Track_buttons(data, obj, mouse, x_offs0, widgets)
     local frame_a, x_offs, y_offs
-    --if x_offs0 + obj.entry_w2*2 > obj.persist_margin then return x_offs0 end  -- reduce buttons when more than regular wx2
+    if x_offs0 + obj.entry_w2*2 > obj.persist_margin then return x_offs0 end  -- reduce buttons when more than regular wx2
     local last_x1,last_x2 = x_offs0, x_offs0
     local tp_ID = data.obj_type_int
     local widg_key = widgets.types_t[tp_ID+1] -- get key of current mapped table
@@ -140,8 +140,8 @@
   
   
   -------------------------------------------------------------- 
-  function Widgets_Track_pan(data, obj, mouse, x_offs)
-    local pan_w = 60
+  function Widgets_Track_pan(data, obj, mouse, x_offs, widgets, conf)
+    local pan_w = 60*conf.scaling
     if x_offs + pan_w > obj.persist_margin then return x_offs end 
     obj.b.obj_tr_pan = { x = x_offs,
                         y = obj.offs ,
@@ -211,8 +211,8 @@
 
 
   --------------------------------------------------------------   
-  function Widgets_Track_vol(data, obj, mouse, x_offs) -- generate snap_offs controls 
-    local vol_w = 60 
+  function Widgets_Track_vol(data, obj, mouse, x_offs, widgets, conf) -- generate snap_offs controls 
+    local vol_w = 60 *conf.scaling
     if x_offs + vol_w > obj.persist_margin then return x_offs end 
     obj.b.obj_trvol = { x = x_offs,
                         y = obj.offs ,
@@ -288,8 +288,8 @@
 
 
 
-  function Widgets_Track_delay(data, obj, mouse, x_offs)    -- generate position controls 
-    local del_w = 60
+  function Widgets_Track_delay(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+    local del_w = 60*conf.scaling
     if x_offs + del_w > obj.persist_margin then return x_offs end 
     obj.b.obj_trdelay = { x = x_offs,
                         y = obj.offs ,
@@ -361,10 +361,10 @@
   
   
   --------------------------------------------------------------   
-  function Widgets_Track_fxlist(data, obj, mouse, x_offs)
+  function Widgets_Track_fxlist(data, obj, mouse, x_offs, widgets, conf)
     if not data.tr[1].fx_names or #data.tr[1].fx_names < 1 then return end
-    local fxlist_w = 120 
-    local fxlist_state = 30
+    local fxlist_w = 120 *conf.scaling
+    local fxlist_state = 30*conf.scaling
     if x_offs + fxlist_w > obj.persist_margin then return x_offs end 
     local fxid = lim(math.modf(data.curent_trFXID),1, #data.tr[1].fx_names)
     obj.b.obj_fxlist_back1 = { x = x_offs,
@@ -465,9 +465,9 @@
   
   
 -----------------------------------------------------------   
-  function Widgets_Track_sendto(data, obj, mouse, x_offs)
-    local send_but = 20
-    local vol_w = 60 
+  function Widgets_Track_sendto(data, obj, mouse, x_offs, widgets, conf)
+    local send_but = 20*conf.scaling
+    local vol_w = 60 *conf.scaling
     local send_w = send_but + vol_w 
     if x_offs + send_w > obj.persist_margin then return x_offs end 
     obj.b.obj_sendto_back1 = { x = x_offs,
@@ -693,10 +693,10 @@
 
 
 -----------------------------------------------------------   
-  function Widgets_Track_chsendmixer(data, obj, mouse, x_offs)
+  function Widgets_Track_chsendmixer(data, obj, mouse, x_offs, widgets, conf)
     if data.tr_cnt_sends + data.tr_cnt_sendsHW == 0 then return end
-    local send_name_w = 120
-    local ch_w = 12  
+    local send_name_w = 120*conf.scaling
+    local ch_w = 12  *conf.scaling
     local send_w = send_name_w + (data.tr_cnt_sends + data.tr_cnt_sendsHW) * ch_w
   
     
@@ -719,7 +719,7 @@
                         txt_col = obj.txt_col_header,
                         ignore_mouse = true} 
                        
-    local ch_w = 12
+    local ch_w = 12*conf.scaling
     local ch_h = math.floor(obj.entry_h*1.8)
     local ch_y = obj.offs + (obj.entry_h*2-math.floor(obj.entry_h*1.8))/2
     for i = 1, data.tr_cnt_sends + data.tr_cnt_sendsHW do
@@ -880,10 +880,10 @@
 
 
 ----------------------------------------------------------- 
-  function Widgets_Track_chrecvmixer(data, obj, mouse, x_offs)
+  function Widgets_Track_chrecvmixer(data, obj, mouse, x_offs, widgets, conf)
     if data.tr_cnt_receives == 0 then return end
-    local recv_name_w = 120
-    local ch_w = 12  
+    local recv_name_w = 120*conf.scaling
+    local ch_w = 12  *conf.scaling
     local recv_w = recv_name_w + data.tr_cnt_receives * ch_w
     
     if x_offs + recv_w > obj.persist_margin then return x_offs end 
@@ -905,7 +905,7 @@
                         txt_col = obj.txt_col_header,
                         ignore_mouse = true} 
                        
-    local ch_w = 12
+    local ch_w = 12*conf.scaling
     local ch_h = math.floor(obj.entry_h*1.8)
     local ch_y = obj.offs + (obj.entry_h*2-math.floor(obj.entry_h*1.8))/2
     local mix_fields = recv_w-data.tr_cnt_receives * ch_w - 6
@@ -1068,9 +1068,9 @@
   
 ----------------------------------------------------------- 
   function Widgets_Track_fxcontrols(data, obj, mouse, x_offs, widgets, conf)
-    local ch_w = 12
-    local fxctrl_menu_w = 20
-    local fxctrl_name_w = 100
+    local ch_w = 12*conf.scaling
+    local fxctrl_menu_w = 20*conf.scaling
+    local fxctrl_name_w = 100*conf.scaling
     local fxctrl_w
     local mix_fields = 0
     if data.tr_FXCtrl[data.tr[1].GUID] then 
@@ -1356,8 +1356,8 @@
 
 
   --------------------------------------------------------------
-  function Widgets_Track_freeze(data, obj, mouse, x_offs) 
-    local w = 80
+  function Widgets_Track_freeze(data, obj, mouse, x_offs, widgets, conf) 
+    local w = 80*conf.scaling
     if not data.tr or not data.tr.freezecnt_format then return end
     if x_offs + w > obj.persist_margin then return x_offs end 
     obj.b.obj_tr_freeze = { x = x_offs,
@@ -1390,7 +1390,7 @@
   
   
   function Widgets_Track_color(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
-    local col_w = 20
+    local col_w = 20*conf.scaling
     if x_offs + col_w > obj.persist_margin then return end 
     if not data.tr[1].col then return end
     local a = 0.5

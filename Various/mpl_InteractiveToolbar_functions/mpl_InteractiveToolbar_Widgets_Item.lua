@@ -10,7 +10,7 @@
   function Obj_UpdateItem(data, obj, mouse, widgets, conf)
     obj.b.obj_name = { x = obj.menu_b_rect_side + obj.offs,
                         y = obj.offs *2 +obj.entry_h,
-                        w = conf.GUI_contextname_w,
+                        w = conf.GUI_contextname_w*conf.scaling,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt_a = obj.txt_a,
@@ -39,7 +39,7 @@
                               end
                             end
                           end} 
-    local x_offs = obj.menu_b_rect_side + obj.offs + conf.GUI_contextname_w 
+    local x_offs = obj.menu_b_rect_side + obj.offs + conf.GUI_contextname_w *conf.scaling
     
     
     
@@ -716,8 +716,8 @@
 
 
   --------------------------------------------------------------   
-  function Widgets_Item_vol(data, obj, mouse, x_offs) -- generate snap_offs controls 
-    local vol_w = 60 
+  function Widgets_Item_vol(data, obj, mouse, x_offs, widgets, conf) -- generate snap_offs controls 
+    local vol_w = 60 *conf.scaling
     if x_offs + vol_w > obj.persist_margin then return x_offs end 
     obj.b.obj_vol = { x = x_offs,
                         y = obj.offs ,
@@ -873,7 +873,7 @@
   
   
   --------------------------------------------------------------  
-  function Widgets_Item_buttons(data, obj, mouse, x_offs0, widgets)
+  function Widgets_Item_buttons(data, obj, mouse, x_offs0, widgets, conf)
     local frame_a, x_offs, y_offs
     if x_offs0 + obj.entry_w2*2 > obj.persist_margin then return x_offs0 end  -- reduce buttons when more than regular wx2
     local last_x1,last_x2 = x_offs0, x_offs0
@@ -892,7 +892,7 @@
             frame_a = obj.frame_a_entry
             y_offs = obj.entry_h
           end
-          local next_w = _G['Widgets_Item_buttons_'..key](data, obj, mouse, x_offs, y_offs, frame_a)
+          local next_w = _G['Widgets_Item_buttons_'..key](data, obj, mouse, x_offs, y_offs, frame_a, conf)
           if i%2 == 1 then last_x1 = last_x1+next_w elseif i%2 == 0 then last_x2 = last_x2+next_w end
          --[[elseif key:match('s(%d+)') then 
           local sp = tonumber(key:match('s(%d+)'))
@@ -1103,7 +1103,7 @@
 
 
   function Widgets_Item_color(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
-    local col_w = 20
+    local col_w = 20*conf.scaling
     if x_offs + col_w > obj.persist_margin then return end 
     if not data.it[1].col then return end
     local a = 0.5

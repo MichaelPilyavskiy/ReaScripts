@@ -53,9 +53,9 @@
                   mouse_scal_FXCtrl2 = 1000, -- FX drag
                   
                   entry_w = 200,      -- name w
-                  entry_w2 = 90,     -- controls w / position
-                  entry_ratio = 1,    -- toolbar
-                  entry_h = 18,
+                  entry_w2 = 90*conf.scaling,     -- controls w / position
+                  entry_ratio = 1*conf.scaling,    -- toolbar
+                  entry_h = 18*conf.scaling,
                   menu_b_rect_side = 20,
                   offs = 0,
                   offs2 = 2,
@@ -139,7 +139,7 @@
     if data.obj_type_int and data.obj_type_int >=0 then main_type_frame_a = obj.frame_a_head else main_type_frame_a = 0 end
     obj.b.type_name = { x = obj.menu_b_rect_side + obj.offs,
                         y = obj.offs,
-                        w = conf.GUI_contextname_w,
+                        w = conf.GUI_contextname_w*conf.scaling,
                         h = obj.entry_h,
                         frame_a = main_type_frame_a,
                         txt_a = obj.txt_a,
@@ -642,6 +642,19 @@ msg(
                 
                   
                 { str = '>Theme'},
+                
+                { str = 'Scaling (script restart required)',
+                  func = function()                           
+                            local ret, scaling = GetUserInputs( conf.scr_title, 1, 'Scaling',conf.scaling )
+                            if  ret and tonumber(scaling) then
+                                conf.scaling = lim(tonumber(scaling), 0.7, 4)
+                                ExtState_Save(conf)
+                                redraw = 2 
+                                DataUpdate(data, mouse, widgets, obj, conf)                           
+                            end
+                          end}  ,                
+                
+                
                 { str = 'Font size',
                   func = function() 
                             local ret, ftsz = GetUserInputs( conf.scr_title, 2, 'Font 1,Font 2', conf.GUI_font1..','..conf.GUI_font2 )

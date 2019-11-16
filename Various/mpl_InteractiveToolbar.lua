@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.83
+-- @version 1.84
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # GUI: more contrast for buttons
+--    + GUI: allow scaling for HiDPI (see Menu/Theme)
 
-    local vrs = '1.83'
+    local vrs = '1.84'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -122,6 +122,8 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             always_use_x_axis = 0,
             use_context_specific_conditions = 0,
             persist_clock_showtimesec = 0,
+            scaling = 1,
+            
             
             MM_doubleclick = 0,
             MM_rightclick = 0,
@@ -140,6 +142,7 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             relative_it_len = 0,
             
             }
+            
   end
   ---------------------------------------------------
   function Run() 

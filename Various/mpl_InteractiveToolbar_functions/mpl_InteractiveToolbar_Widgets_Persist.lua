@@ -29,13 +29,13 @@
 
 ------------------------------------------------------------
   function Widgets_Persist_grid(data, obj, mouse, x_margin, widgets, conf)    -- generate position controls 
-    local grid_widg_val_w = 50
-    local grid_widg_w_trpl = 20
+    local grid_widg_val_w = 50*conf.scaling
+    local grid_widg_w_trpl = 20*conf.scaling
     local grid_widg_w = grid_widg_val_w + grid_widg_w_trpl
     
     local frame_a = 0
-    local rel_snap_w = 25
-    local rel_snap_h = 10
+    local rel_snap_w = 25*conf.scaling
+    local rel_snap_h = 10*conf.scaling
     local gridwidg_xpos = gfx.w-grid_widg_w-obj.menu_b_rect_side - x_margin
     if (data.grid_isactive and data.obj_type_int ~= 8) or (data.MIDIgrid_isactive and data.obj_type_int == 8) then  
       frame_a = obj.frame_a_state 
@@ -450,9 +450,9 @@
   
 
 ------------------------------------------------------------
-  function Widgets_Persist_transport(data, obj, mouse, x_margin, widgets)    -- generate position controls 
-    local transport_state_w = 60
-    local repeat_w = 25
+  function Widgets_Persist_transport(data, obj, mouse, x_margin, widgets, conf)    -- generate position controls 
+    local transport_state_w = 60*conf.scaling
+    local repeat_w = 25*conf.scaling
     local frame_a = 0
     local txt = 'Stop'
     local gridwidg_xpos = gfx.w-transport_state_w-obj.menu_b_rect_side - x_margin
@@ -558,8 +558,8 @@
   
   
   
-  function Widgets_Persist_bpm(data, obj, mouse, x_margin, widgets)  
-    local bpm_w = 60
+  function Widgets_Persist_bpm(data, obj, mouse, x_margin, widgets, conf)  
+    local bpm_w = 60*conf.scaling
     local frame_a = 0
     local gridwidg_xpos = gfx.w-bpm_w-obj.menu_b_rect_side - x_margin
     obj.b.obj_pers_bpm = { persist_buf = true,
@@ -694,8 +694,8 @@
   
   
   ----------------------------------------------------------------------------
-  function Widgets_Persist_lasttouchfx(data, obj, mouse, x_margin, widgets)
-    local lasttouchfx_w = 120 
+  function Widgets_Persist_lasttouchfx(data, obj, mouse, x_margin, widgets, conf)
+    local lasttouchfx_w = 120*conf.scaling 
     if not data.LTFX.exist or data.LTFX_parname == 'Bypass' or data.LTFX_fxname == 'JS: time_adjustment' then return end
     obj.b.obj_lasttouchfx_back1 = { persist_buf = true,
                         x = x_margin-lasttouchfx_w,
@@ -844,9 +844,9 @@
   
   
   ------------------------------------------------------------------------  
-  function Widgets_Persist_clock(data, obj, mouse, x_margin, widgets)  
-    local clock_w = 130
-    if data.persist_clock_showtimesec > 0 then clock_w = 260 end
+  function Widgets_Persist_clock(data, obj, mouse, x_margin, widgets, conf)  
+    local clock_w = 130*conf.scaling
+    if data.persist_clock_showtimesec > 0 then clock_w = 260*conf.scaling end
     local frame_a = 0
     obj.b.obj_pers_clock_back1 = {persist_buf = true,
                         x = x_margin - clock_w,
@@ -926,8 +926,8 @@
   
   ------------------------------------------------------------
     function Widgets_Persist_tap(data, obj, mouse, x_margin, widgets, conf)    -- generate position controls 
-      local tap_w = 80
-      local tap_menu_w = 20
+      local tap_w = 80*conf.scaling
+      local tap_menu_w = 20*conf.scaling
       local frame_a = 0
       local gridwidg_xpos = gfx.w-tap_w-obj.menu_b_rect_side - x_margin
       obj.b.obj_pers_tap_bck1 = {persist_buf = true,
@@ -1132,8 +1132,8 @@
 
 
   ------------------------------------------------------------
-  function Widgets_Persist_swing(data, obj, mouse, x_margin, widgets)
-    local grid_widg_swingval_w = 50
+  function Widgets_Persist_swing(data, obj, mouse, x_margin, widgets, conf)
+    local grid_widg_swingval_w = 50*conf.scaling
     if data.obj_type_int == 8 then return end
     local frame_a = 0
     local txt_a_swact =obj.txt_a
@@ -1248,7 +1248,7 @@
   
   ------------------------------------------------------------------------  
   function Widgets_Persist_master(data, obj, mouse, x_margin, widgets, conf)  
-    local master_w = conf.master_buf + 14
+    local master_w = (conf.master_buf + 14)*conf.scaling
     local frame_a = 0
     obj.b.obj_pers_master_back1 = {persist_buf = true,
                         x = x_margin - master_w,
@@ -1271,7 +1271,7 @@
                         txt_col = obj.txt_col_entry,
                         fontsz = obj.fontsz_clock}  
     obj.b.obj_pers_master = { outside_buf = true,
-                        x = x_margin - master_w,
+                        x = x_margin - master_w/conf.scaling,
                         y = obj.offs ,
                         w = master_w,
                         h = obj.entry_h*2,
