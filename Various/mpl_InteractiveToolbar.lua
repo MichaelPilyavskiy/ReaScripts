@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.85
+-- @version 1.86
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
