@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 2.120
+-- @version 2.125
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,10 +10,11 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    + Add option to set background RGB and alpha
+--    + Pattern: fill every 2nd step
+--    + Pattern: fill every 4th step
 
 
-  local vrs = 'v2.120'
+  local vrs = 'v2.125'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  

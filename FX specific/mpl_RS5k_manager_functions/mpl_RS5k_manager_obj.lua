@@ -2848,8 +2848,9 @@ List of available hashtags:
                                                               for spl = #data[note], 1, -1 do
                                                                 SNM_MoveOrRemoveTrackFX( data[note][spl].src_track, data[note][spl].rs5k_pos, 0 )
                                                               end
-                                                            end},                                                            
-                                                
+                                                            end},        
+                                                                                                                
+                     
                                                 })
                                     obj.current_WFkey = nil
                                     obj.current_WFspl = nil
@@ -2887,7 +2888,7 @@ List of available hashtags:
       if conf.patctrl_mode == 1 then mode = 'All' end
       local ctrl_offsy = 2
       obj.pat_editmode = { clear = true,
-                    x = obj.keycntrlarea_w   + obj.offs,
+                    x = obj.keycntrlarea_w   + obj.offs*2,
                     y = ctrl_offsy,
                     w = obj.kn_w,
                     h =obj.kn_h,
@@ -2911,7 +2912,7 @@ List of available hashtags:
                               refresh.data = true
                             end }         
       obj.pat_randgate = { clear = true,
-                    x = obj.keycntrlarea_w   + obj.offs*2+obj.kn_w,
+                    x = obj.keycntrlarea_w   + obj.offs*4+obj.kn_w,
                     y = ctrl_offsy,
                     w = obj.kn_w*1.5,
                     h =obj.kn_h/2-1,
@@ -2955,7 +2956,7 @@ List of available hashtags:
                             end                    }   
           obj.pat_randgateprob = 
                         { clear = true,
-                          x = obj.keycntrlarea_w   + obj.offs*2+obj.kn_w*2.5 + 2,
+                          x = obj.keycntrlarea_w   + obj.offs*4+obj.kn_w*2.5,
                           y = ctrl_offsy,
                           w = obj.kn_w*0.7,
                           h =obj.kn_h/2-1,
@@ -2986,7 +2987,7 @@ List of available hashtags:
                                             refresh.conf = true
                                           end}                                          
       obj.pat_randvel = { clear = true,
-                    x = obj.keycntrlarea_w   + obj.offs*2+obj.kn_w,
+                    x =obj.keycntrlarea_w   + obj.offs*4+obj.kn_w,
                     y = ctrl_offsy+obj.kn_h/2,
                     w = obj.kn_w*1.5,
                     h =obj.kn_h/2,
@@ -3030,7 +3031,7 @@ List of available hashtags:
                                 end   
                               end
                             end                    }    
-      local rvctrlx = obj.keycntrlarea_w   + obj.offs*2+obj.kn_w*2.5+2
+      local rvctrlx = obj.keycntrlarea_w   + obj.offs*4+obj.kn_w*2.5
       local rvctrly = ctrl_offsy+obj.kn_h/2
       local rvctrlw = obj.kn_w*0.7
       local rvctrlh = obj.kn_h/2
@@ -3081,7 +3082,7 @@ List of available hashtags:
                     fontsz = obj.GUI_fontsz4,
                     alpha_back = 0.7 }   
       obj.pat_shiftl = { clear = true,
-                    x = obj.keycntrlarea_w   + obj.offs*3+obj.kn_w*3.2,
+                    x = obj.keycntrlarea_w   + obj.offs*8+obj.kn_w*3,
                     y = ctrl_offsy,
                     w = obj.kn_w,
                     h =obj.kn_h/2-1,
@@ -3128,7 +3129,7 @@ List of available hashtags:
                               end
                             end                    }  
       obj.pat_shiftr = { clear = true,
-                    x = obj.keycntrlarea_w   + obj.offs*3+obj.kn_w*4.2+1,
+                    x = obj.keycntrlarea_w   + obj.offs*8+obj.kn_w*4+1,
                     y =ctrl_offsy,
                     w = obj.kn_w,
                     h =obj.kn_h/2-1,
@@ -3175,7 +3176,7 @@ List of available hashtags:
                               end
                             end                    }  
       obj.pat_clear = { clear = true,
-                    x = obj.keycntrlarea_w   + obj.offs*3+obj.kn_w*3.2,
+                    x = obj.keycntrlarea_w   + obj.offs*8+obj.kn_w*3,
                     y = ctrl_offsy + obj.kn_h/2,
                     w = obj.kn_w*2+1,
                     h =obj.kn_h/2,
@@ -3217,7 +3218,113 @@ List of available hashtags:
                                   refresh.data = true
                                 end   
                               end
-                            end                    }                                                                                                                                                                                                                        
+                            end                    }  
+      obj.pat_fill2 = { clear = true,
+                    x = obj.keycntrlarea_w   + obj.offs*11+obj.kn_w*5,
+                    y =ctrl_offsy,
+                    w = obj.kn_w*2,
+                    h =obj.kn_h/2-1,
+                    col = 'white',
+                    txt= 'Fill every 2nd',
+                    aligh_txt = 0,
+                    show = true,
+                    --mouse_overlay = true,
+                    --ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz4,
+                    alpha_back = obj.it_alpha5 ,
+                    a_frame = 0.1,
+                    func = function() 
+                              if (conf.patctrl_mode ==0 and obj.current_WFkey) or conf.patctrl_mode ==1 then
+                                local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                if ret then 
+                                  if conf.patctrl_mode ==0 and obj.current_WFkey then
+                                    if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
+                                     t = {}
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do 
+                                      t[i] = CopyTable(pat[obj.current_WFkey].steps[i]) 
+                                      if not t[i] then t[i] = Pattern_StepDefaults() end
+                                    end  
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do 
+                                      local active = 0
+                                      if i%2 == 1 then active = 1 end
+                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i,  t[i].vel, active)
+                                    end 
+                                   else
+                                    for note in pairs(pat) do
+                                      if tonumber(note) then
+                                        local t = {}
+                                        for i = 1, pat[note].cnt_steps do 
+                                          t[i] = CopyTable(pat[note].steps[i]) 
+                                          if not t[i] then t[i] = Pattern_StepDefaults() end
+                                        end  
+                                        for i = 1, pat[note].cnt_steps do 
+                                          local active = 0
+                                          if i%2 == 1 then active = 1 end
+                                          Pattern_Change(conf, pat, poolGUID, note, i,  t[i].vel, active)
+                                        end                                        
+                                      end   
+                                    end                                 
+                                  end
+                                  Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                                  Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
+                                  refresh.GUI = true  
+                                  refresh.data = true
+                                end   
+                              end
+                            end                    }      
+      obj.pat_fill4 = { clear = true,
+                    x = obj.keycntrlarea_w   + obj.offs*11+obj.kn_w*5,
+                    y =ctrl_offsy+obj.kn_h/2,
+                    w = obj.kn_w*2,
+                    h =obj.kn_h/2-1,
+                    col = 'white',
+                    txt= 'Fill every 4th',
+                    aligh_txt = 0,
+                    show = true,
+                    --mouse_overlay = true,
+                    --ignore_mouse = true,
+                    fontsz = obj.GUI_fontsz4,
+                    alpha_back = obj.it_alpha5 ,
+                    a_frame = 0.1,
+                    func = function() 
+                              if (conf.patctrl_mode ==0 and obj.current_WFkey) or conf.patctrl_mode ==1 then
+                                local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                if ret then 
+                                  if conf.patctrl_mode ==0 and obj.current_WFkey then
+                                    if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
+                                     t = {}
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do 
+                                      t[i] = CopyTable(pat[obj.current_WFkey].steps[i]) 
+                                      if not t[i] then t[i] = Pattern_StepDefaults() end
+                                    end  
+                                    for i = 1, pat[obj.current_WFkey].cnt_steps do 
+                                      local active = 0
+                                      if i%4 == 1 then active = 1 end
+                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i,  t[i].vel, active)
+                                    end 
+                                   else
+                                    for note in pairs(pat) do
+                                      if tonumber(note) then
+                                        local t = {}
+                                        for i = 1, pat[note].cnt_steps do 
+                                          t[i] = CopyTable(pat[note].steps[i]) 
+                                          if not t[i] then t[i] = Pattern_StepDefaults() end
+                                        end  
+                                        for i = 1, pat[note].cnt_steps do 
+                                          local active = 0
+                                          if i%4 == 1 then active = 1 end
+                                          Pattern_Change(conf, pat, poolGUID, note, i,  t[i].vel, active)
+                                        end                                        
+                                      end   
+                                    end                                 
+                                  end
+                                  Pattern_Commit(conf, pat, poolGUID, take_ptr)
+                                  Pattern_SaveExtState(conf, pat, poolGUID, take_ptr)
+                                  refresh.GUI = true  
+                                  refresh.data = true
+                                end   
+                              end
+                            end                    }                                                                                                                                                                                                                                                                                      
               
   end
   ---------------------------------------------------
