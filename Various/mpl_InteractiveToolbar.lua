@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.86
+-- @version 1.87
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -13,7 +13,6 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
---    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_RefreshGUI.lua
 -- @changelog
 --    + Support for external GUI update (REAPER 5.97+)
 
