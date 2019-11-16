@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.84
+-- @version 1.85
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -13,10 +13,11 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
+--    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_RefreshGUI.lua
 -- @changelog
---    + GUI: allow scaling for HiDPI (see Menu/Theme)
+--    + Support for external GUI update (REAPER 5.97+)
 
-    local vrs = '1.84'
+    local vrs = '1.85'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -162,6 +163,8 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
       if not SCC_trig and HasSelEnvChanged() then SCC_trig = true end  
       if not SCC_trig and HasGridChanged() then SCC_trig = true end      
       local ret =  HasWindXYWHChanged(obj) 
+      
+      
       if ret == 1 then  
         redraw = 2  
         if conf.dock > 0 then conf.lastdockID = conf.dock end 
@@ -172,6 +175,11 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
       end
     -- perf mouse
       local SCC_trig2 = MOUSE(obj,mouse, clock) 
+      
+      if gmem_read(1) == 1 then
+        gmem_write(1, 0)
+        SCC_trig = true
+      end
       
     -- produce update if yes
       if redraw == 2 or SCC_trig2 then DataUpdate(data, mouse, widgets, obj, conf) redraw = 1 end
@@ -213,5 +221,8 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
   end
   --------------------------------------------------------------------  
   local ret = CheckFunctions('VF_CalibrateFont') 
-  local ret2 = VF_CheckReaperVrs(5.95,true)    
-  if ret and ret2 then main() end
+  local ret2 = VF_CheckReaperVrs(5.97,true)    
+  if ret and ret2 then 
+    reaper.gmem_attach('MPLInterToolbar')
+    main() 
+  end
