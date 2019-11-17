@@ -85,7 +85,7 @@
   ----------------------------------------------------
   function Pattern_Change(conf, pat, poolGUID, note, step, vel, active, offs)
     -- add note tbl if not exist
-    if not pat[note] then 
+    if note and not pat[note] then 
       pat[note] = { cnt_steps = conf.def_steps, steps = {}, swing = conf.def_swing} 
     end
     -- add step

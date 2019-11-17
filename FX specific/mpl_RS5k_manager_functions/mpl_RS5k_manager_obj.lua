@@ -3236,31 +3236,25 @@ List of available hashtags:
                     func = function() 
                               if (conf.patctrl_mode ==0 and obj.current_WFkey) or conf.patctrl_mode ==1 then
                                 local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                local vel = conf.def_velocity
                                 if ret then 
                                   if conf.patctrl_mode ==0 and obj.current_WFkey then
                                     if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
-                                     t = {}
-                                    for i = 1, pat[obj.current_WFkey].cnt_steps do 
-                                      t[i] = CopyTable(pat[obj.current_WFkey].steps[i]) 
-                                      if not t[i] then t[i] = Pattern_StepDefaults() end
-                                    end  
+                                    
                                     for i = 1, pat[obj.current_WFkey].cnt_steps do 
                                       local active = 0
-                                      if i%2 == 1 then active = 1 end
-                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i,  t[i].vel, active)
+                                      if i%2 == 1 then active = 1  end
+                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i,  vel, active)
                                     end 
                                    else
-                                    for note in pairs(pat) do
-                                      if tonumber(note) then
-                                        local t = {}
-                                        for i = 1, pat[note].cnt_steps do 
-                                          t[i] = CopyTable(pat[note].steps[i]) 
-                                          if not t[i] then t[i] = Pattern_StepDefaults() end
-                                        end  
+                                    
+                                    for note in pairs(data) do
+                                      if tonumber(note) then 
+                                        if not pat[note] then Pattern_Change(conf, pat, poolGUID, note, 0, 0) end 
                                         for i = 1, pat[note].cnt_steps do 
                                           local active = 0
                                           if i%2 == 1 then active = 1 end
-                                          Pattern_Change(conf, pat, poolGUID, note, i,  t[i].vel, active)
+                                          Pattern_Change(conf, pat, poolGUID, note, i,  vel, active)
                                         end                                        
                                       end   
                                     end                                 
@@ -3288,32 +3282,24 @@ List of available hashtags:
                     a_frame = 0.1,
                     func = function() 
                               if (conf.patctrl_mode ==0 and obj.current_WFkey) or conf.patctrl_mode ==1 then
+                                local vel = conf.def_velocity
                                 local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
                                 if ret then 
                                   if conf.patctrl_mode ==0 and obj.current_WFkey then
-                                    if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end
-                                     t = {}
-                                    for i = 1, pat[obj.current_WFkey].cnt_steps do 
-                                      t[i] = CopyTable(pat[obj.current_WFkey].steps[i]) 
-                                      if not t[i] then t[i] = Pattern_StepDefaults() end
-                                    end  
+                                    if not pat[obj.current_WFkey] then Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, 0, 0) end 
                                     for i = 1, pat[obj.current_WFkey].cnt_steps do 
                                       local active = 0
                                       if i%4 == 1 then active = 1 end
-                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i,  t[i].vel, active)
+                                      Pattern_Change(conf, pat, poolGUID, obj.current_WFkey, i,  vel, active)
                                     end 
                                    else
-                                    for note in pairs(pat) do
-                                      if tonumber(note) then
-                                        local t = {}
-                                        for i = 1, pat[note].cnt_steps do 
-                                          t[i] = CopyTable(pat[note].steps[i]) 
-                                          if not t[i] then t[i] = Pattern_StepDefaults() end
-                                        end  
+                                    for note in pairs(data) do
+                                      if tonumber(note) then 
+                                        if not pat[note] then Pattern_Change(conf, pat, poolGUID, note, 0, 0) end 
                                         for i = 1, pat[note].cnt_steps do 
                                           local active = 0
                                           if i%4 == 1 then active = 1 end
-                                          Pattern_Change(conf, pat, poolGUID, note, i,  t[i].vel, active)
+                                          Pattern_Change(conf, pat, poolGUID, note, i,  vel, active)
                                         end                                        
                                       end   
                                     end                                 
