@@ -19,8 +19,8 @@
                   font = 'Calibri',
                   fontsz = conf.GUI_font1,
                   fontsz_entry = conf.GUI_font2,
-                  fontsz_clock = 32,--conf.GUI_font2,
-                  fontsz_grid_rel = 14,--conf.GUI_font2,
+                  fontsz_clock = conf.GUI_font3,
+                  fontsz_grid_rel = conf.GUI_font4,
                   fontszFXctrl = 13,
                   col = { grey =    {0.5, 0.5,  0.5 },
                           white =   {1,   1,    1   },
@@ -193,7 +193,7 @@
     -- state
       if o.state then
         if o.state_col then GUI_col(o.state_col, obj) end
-        if o.state_a then gfx.a = o.state_a else gfx.a = 0.75 end
+        if o.state_a then gfx.a = o.state_a else gfx.a = conf.state_contrast end
         gfx.rect(x,y,w,h,1)        
       end
       
@@ -657,7 +657,12 @@ msg(
                 
                 { str = 'Font size',
                   func = function() 
-                            local ret, ftsz = GetUserInputs( conf.scr_title, 2, 'Font 1,Font 2', conf.GUI_font1..','..conf.GUI_font2 )
+                            
+                            local ret, ftsz = GetUserInputs( conf.scr_title, 4, 'Font 1,Font 2,Clock,Grid_widget', 
+                              conf.GUI_font1..','
+                              ..conf.GUI_font2..','
+                              ..conf.GUI_font3..','
+                              ..conf.GUI_font4 )
                             if not ret then return end
                             
                             local f_sz = {}
@@ -667,8 +672,7 @@ msg(
                               if f_sz[1] then 
                                 conf.GUI_font1 = f_sz[1]
                                 ExtState_Save(conf)
-                                local temp_t = Obj_init(conf)
-                                obj.fontsz = temp_t.fontsz
+                                obj = Obj_init(conf)
                                 redraw = 2
                               end
 
@@ -676,11 +680,27 @@ msg(
                               if f_sz[2] then 
                                 conf.GUI_font2 = f_sz[2]
                                 ExtState_Save(conf)
-                                local temp_t = Obj_init(conf)
-                                obj.fontsz_entry = temp_t.fontsz_entry
+                                obj = Obj_init(conf)
                                 redraw = 2
                               end
-                                                            
+
+                            -- set font2
+                              if f_sz[3] then 
+                                conf.GUI_font3 = f_sz[3]
+                                ExtState_Save(conf)
+                                obj = Obj_init(conf)
+                                redraw = 2
+                              end
+                              
+                              -- set font2
+                                if f_sz[4] then 
+                                  conf.GUI_font4 = f_sz[4]
+                                  ExtState_Save(conf)
+                                  obj = Obj_init(conf)
+                                  redraw = 2
+                                end    
+                            
+                            MB('Please restart script for applying changes', conf.scr_title , 0 )                                                        
                           end },
                 { str = 'Text color (titles)',
                   func = function()                           
@@ -720,6 +740,19 @@ msg(
                                 redraw = 2                            
                             end
                           end}  ,
+                { str = 'Toggle buttons contrast',
+                  func = function()                           
+                            local ret, stctrst = GetUserInputs( conf.scr_title, 1, 'Toggle buttons contrast',conf.state_contrast )
+                            if  ret and tonumber(stctrst) then
+                                conf.state_contrast = lim(tonumber(stctrst), 0, 1)
+                                ExtState_Save(conf)
+                                local temp_t = Obj_init(conf)
+                                obj.state_contrast = temp_t.state_contrast
+                                redraw = 2                            
+                            end
+                          end}  ,                          
+                          
+                          
                 { str = 'Context name width|<',
                   func = function()                           
                             local ret, str = GetUserInputs( conf.scr_title, 1, 'Context name width (def. = 200)',conf.GUI_contextname_w )

@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.87
+-- @version 1.89
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Support for external GUI update (REAPER 5.97+)
+--    + Theme / Font size: allow to change font of #clock and #grid widgets
+--    + Theme / Toggle buttons contrast
 
-    local vrs = '1.85'
+    local vrs = '1.89'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -112,6 +113,8 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             
             GUI_font1 = 17,
             GUI_font2 = 15,
+            GUI_font3 = 32, -- clock
+            GUI_font4 = 14, -- grid rel / line
             GUI_colortitle =      16768407, -- blue
             GUI_background_col =  16777215, -- white
             GUI_background_alpha = 0.18,
@@ -123,6 +126,7 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             use_context_specific_conditions = 0,
             persist_clock_showtimesec = 0,
             scaling = 1,
+            state_contrast = 0.75,
             
             
             MM_doubleclick = 0,
