@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fb7dca9899a68e7bcb7c5a7f8bd415323b473580" name="MPL Scripts">
+<index version="1" commit="c8cad6e48c14dbe70f474acc37b70114352e3365" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -522,6 +522,11 @@
       <version name="1.02" author="MPL" time="2019-08-25T03:33:46Z">
         <changelog><![CDATA[# Native remove FX implementation]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/395f97872cf1f307f6be47ab969cae211119a4e4/FX/mpl_Create%20send%20from%20focused%20FX%20insert.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2019-12-14T19:29:19Z">
+        <changelog><![CDATA[# Native move FX implementation
+# remove chunking]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fdbbc1b54acfbe22ab73428b4a6989b1cedd9bcc/FX/mpl_Create%20send%20from%20focused%20FX%20insert.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Cubase AB floating FX make equal.lua" type="script" desc="AB floating FX parameters, make snapshots equal">
@@ -3289,6 +3294,10 @@
         <changelog><![CDATA[take into account block offset]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1eff36196d18edb313b57a229b3d036cb941c56/JSFX/RetrospectiveRecord_tracker.jsfx</source>
       </version>
+      <version name="1.04" author="MPL" time="2019-12-14T19:47:11Z">
+        <changelog><![CDATA[remove taking offset]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/c8cad6e48c14dbe70f474acc37b70114352e3365/JSFX/RetrospectiveRecord_tracker.jsfx</source>
+      </version>
     </reapack>
     <reapack name="RS5K_Manager_tracker.jsfx" type="effect" desc="RS5K_Manager_tracker">
       <metadata>
@@ -4938,6 +4947,15 @@ add control for timefall showing last note]]></changelog>
     <reapack name="mpl_Toggle reverse volume flag and invert color of track under mouse cursor.lua" type="script" desc="Toggle reverse volume flag and invert color of track under mouse cursor">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Toggle%20reverse%20volume%20flag%20and%20invert%20color%20of%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle set midi routing mode for all selected tracks sends.lua" type="script" desc="Toggle set midi routing mode for all selected tracks sends">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2019-12-14T19:29:19Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fdbbc1b54acfbe22ab73428b4a6989b1cedd9bcc/Tracks%20Properties/mpl_Toggle%20set%20midi%20routing%20mode%20for%20all%20selected%20tracks%20sends.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle show only selected tracks in mixer.lua" type="script" desc="Toggle show only selected tracks in mixer">
