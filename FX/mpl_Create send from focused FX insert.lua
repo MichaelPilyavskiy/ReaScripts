@@ -1,9 +1,10 @@
 -- @description Create send from focused FX insert
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   # Native remove FX implementation
+--   # Native move FX implementation
+--   # remove chunking
 
   
     
@@ -16,28 +17,18 @@
     if not ret or tracknumberOut < 1 or fxnumberOut < 0 then return end
     
     -- get src info
-      local track = CSurf_TrackFromID( tracknumberOut, false )
-      local _, chunk = GetTrackStateChunk(track, '')
-      local fx_GUID = TrackFX_GetFXGUID( track, fxnumberOut )
-      local matchGUID = fx_GUID:sub(0,9)
-      local insert_chunk = 'BYPASS'..chunk:match('BYPASS(.-)'..matchGUID)..fx_GUID..'\nWAK 0'
-      local _, fxname = TrackFX_GetFXName( track, fxnumberOut, '' )
+      local src_track = CSurf_TrackFromID( tracknumberOut, false )
     
     -- add new track
     InsertTrackAtIndex( tracknumberOut+1, true )
-    local new_tr = GetTrack(0, tracknumberOut)
-    local new_chunk = ({GetTrackStateChunk(new_tr , '')})[2]:sub(0,-3)..[[<FXCHAIN
-SHOW 0
-LASTSEL 0
-DOCKED 0]]..'\n'..insert_chunk..'\n>\n>'
-    local ret = SetTrackStateChunk(new_tr , new_chunk, false)
-    GetSetMediaTrackInfo_String( new_tr, 'P_NAME', 'AUX '..fxname:match('[%:](.*)'):sub(2), 1 )
+    local dest_track = GetTrack(0, tracknumberOut+1)
     
     -- remove old inssert fx
-    if ret then  reaper.TrackFX_Delete(track, fxnumberOut ) end
-    new_id = CreateTrackSend( track, new_tr )
-    SetTrackSendInfo_Value( track, 0, new_id, 'D_VOL', defsendvol)
-    SetTrackSendInfo_Value( track, 0, new_id, 'I_SENDMODE', defsendflag)
+    new_id = CreateTrackSend( src_track, dest_track )
+    SetTrackSendInfo_Value( src_track, 0, new_id, 'D_VOL', defsendvol)
+    SetTrackSendInfo_Value( src_track, 0, new_id, 'I_SENDMODE', defsendflag)
+    
+    TrackFX_CopyToTrack( src_track, fxnumberOut, dest_track, 0, true )
   end
 
   ---------------------------------------------------------------------
