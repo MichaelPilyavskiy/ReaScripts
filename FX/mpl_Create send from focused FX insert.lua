@@ -1,10 +1,9 @@
 -- @description Create send from focused FX insert
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   # Native move FX implementation
---   # remove chunking
+--   # fix adding send to the last track in playlist
 
   
     
@@ -20,8 +19,8 @@
       local src_track = CSurf_TrackFromID( tracknumberOut, false )
     
     -- add new track
-    InsertTrackAtIndex( tracknumberOut+1, true )
-    local dest_track = GetTrack(0, tracknumberOut+1)
+    InsertTrackAtIndex( tracknumberOut, true )
+    local dest_track = GetTrack(0, tracknumberOut)
     
     -- remove old inssert fx
     new_id = CreateTrackSend( src_track, dest_track )
