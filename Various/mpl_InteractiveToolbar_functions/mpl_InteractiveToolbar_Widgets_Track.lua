@@ -566,7 +566,7 @@
       local new_str_t = MPL_GetTableOfCtrlValues2(new_str)
       if new_str_t then 
         for i = 1, #new_str_t do
-          obj.b[butkey..i].txt = ''--new_str_t[i]
+          if obj.b[butkey..i] then obj.b[butkey..i].txt = '' end--new_str_t[i]
         end
         obj.b.obj_sendto_vol.txt = dBFromReaperVal(t_out_values)..'dB'
       end
@@ -610,8 +610,9 @@
     local t = {
           {str = '#Send '..#data.tr..' selected track(s)'}  
         }  
-    local unpack_prefed = ({table.unpack(SendTracksTo_CollectPreDef(data))})
+    local unpack_prefed = ({table.unpack(SendTracksTo_CollectPreDef(data, GUID))})
     for i = 1, #unpack_prefed do table.insert(t, unpack_prefed[i]) end
+    test = CopyTable(unpack_prefed)
     t[#t+1] ={str = '|Mark as predefined send bus',
              func = function ()
                       for i = 1, #data.tr do
@@ -626,6 +627,29 @@
                       end
                     end,
              state = is_predefSend}
+             
+             
+    t[#t+1] ={str = 'Select predefined send tracks',
+             func = function ()
+                      Action(40297)-- Track: Unselect all tracks
+                      for i = 1, #unpack_prefed do
+                        if unpack_prefed[i].GUID then 
+                          local tr = BR_GetMediaTrackByGUID( 0, unpack_prefed[i].GUID )
+                          if ValidatePtr2(0, tr, 'MediaTrack*') then SetTrackSelected( tr, true ) end
+                        end
+                      end
+                    end}
+                    
+    t[#t+1] ={str = 'Reset predefined send volume/pan',
+             func = function ()
+                      data.defsendvol = 1
+                      data.defsendpan = 0
+                      redraw = 2 
+                    end}                    
+                   
+             
+                     
+                          
     Menu( mouse, t )
   end
   ---------------------------------------------------------
@@ -647,14 +671,15 @@
     return out_t     
   end
   ---------------------------------------------------------
-  function SendTracksTo_CollectPreDef(data)
+  function SendTracksTo_CollectPreDef(data, GUID0)
     local out_t1 = {}
     local out_t = {}
     for GUID in pairs(data.PreDefinedSend_GUID) do 
       local tr = BR_GetMediaTrackByGUID( 0, GUID )
-      if tr then
+      if tr and GUID0 ~= GUID then
         local str =  ({GetTrackName( tr, '' )})[2]
         out_t1[str] = {str = str,  
+                      GUID = GUID,
                       func =  function() SendTracksTo_AddSend(data, tr) end}
       end
     end
