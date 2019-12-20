@@ -1,5 +1,5 @@
 -- @description Create ReaComp sidechain routing from selected track to track under mouse cursor
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
@@ -31,11 +31,11 @@
       SetMediaTrackInfo_Value( dest_tr, 'I_NCHAN', math.max(4, ch_cnt) )
       
     -- insert reacomp
-      local reacompid = TrackFX_AddByName( dest_tr, 'ReaGate (Cockos)', false, 1 )
+      local reacompid = TrackFX_AddByName( dest_tr, 'ReaComp (Cockos)', false, 1 )
       TrackFX_SetOpen(dest_tr, reacompid, true)
       TrackFX_SetParam(dest_tr, reacompid, 0, threshold)
-      --TrackFX_SetParam(dest_tr, reacompid, 1, ratio)    
-      TrackFX_SetParam(dest_tr, reacompid, 7, (1/1084)*2)  
+      TrackFX_SetParam(dest_tr, reacompid, 1, ratio)    
+      TrackFX_SetParam(dest_tr, reacompid, 8, (1/1084)*2)  
     
     -- add sends                  
       for i = 1, #src_tr do
