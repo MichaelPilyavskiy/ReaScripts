@@ -1,13 +1,9 @@
 -- @description Create ReaComp sidechain routing from selected track to track under mouse cursor
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # support for new track under mouse catching
---    # collect GUIDs instead indexes
---    # properly increase dest track channel count, if need
---    # avoid chunking
---    # avoid doubled sends
+--    # change send mode to Pre-Fader (Post-FX)
   
   
   threshold = 0.25
@@ -35,11 +31,11 @@
       SetMediaTrackInfo_Value( dest_tr, 'I_NCHAN', math.max(4, ch_cnt) )
       
     -- insert reacomp
-      local reacompid = TrackFX_AddByName( dest_tr, 'ReaComp (Cockos)', false, 1 )
+      local reacompid = TrackFX_AddByName( dest_tr, 'ReaGate (Cockos)', false, 1 )
       TrackFX_SetOpen(dest_tr, reacompid, true)
       TrackFX_SetParam(dest_tr, reacompid, 0, threshold)
-      TrackFX_SetParam(dest_tr, reacompid, 1, ratio)    
-      TrackFX_SetParam(dest_tr, reacompid, 8, (1/1084)*2)  
+      --TrackFX_SetParam(dest_tr, reacompid, 1, ratio)    
+      TrackFX_SetParam(dest_tr, reacompid, 7, (1/1084)*2)  
     
     -- add sends                  
       for i = 1, #src_tr do
@@ -56,6 +52,7 @@
           
           if not new_id then new_id = CreateTrackSend( src_tr, dest_tr ) end
           SetTrackSendInfo_Value( src_tr, 0, new_id, 'D_VOL', defsendvol)
+          SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SENDMODE', 3)
           SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', 2) -- 3/4
         end
       end
