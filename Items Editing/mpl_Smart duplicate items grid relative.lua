@@ -1,5 +1,5 @@
 -- @description Smart duplicate items grid relative
--- @version 1.12
+-- @version 1.13
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
@@ -8,6 +8,7 @@
   
   function main()
     count_sel_items = reaper.CountSelectedMediaItems(0)
+    local floating_point_threshold = 0.000001
           
     if  count_sel_items ~= 0 then
     
@@ -23,11 +24,21 @@
         end  
       end
       com_len = max_pos-min_pos   
-      
+
       closest_division = reaper.BR_GetClosestGridDivision(min_pos)
-      if closest_division == min_pos then prev_division = min_pos else prev_division = reaper.BR_GetPrevGridDivision(min_pos) end
-      closest_division2 = reaper.BR_GetClosestGridDivision(max_pos)
-      if closest_division2 == max_pos then next_division = max_pos else next_division = reaper.BR_GetNextGridDivision(max_pos) end  
+      
+      if math.abs(closest_division - min_pos) < floating_point_threshold then 
+        prev_division = closest_division
+      else 
+        prev_division = reaper.BR_GetPrevGridDivision(min_pos)
+      end
+      
+      closest_division2 = reaper.BR_GetClosestGridDivision(max_pos)     
+      if math.abs(closest_division2 - max_pos) < floating_point_threshold then
+        next_division = closest_division2
+      else 
+        next_division = reaper.BR_GetNextGridDivision(max_pos) 
+      end  
       
       nudge_diff = com_len + (min_pos-prev_division)+(next_division-max_pos)
       reaper.ApplyNudge(0, 0, 5, 1, nudge_diff , 0, 1)   
