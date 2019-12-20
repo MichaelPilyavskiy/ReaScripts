@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.90
+-- @version 1.91
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,12 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Track/#sendto: prevent error in some cases
---    + Track/#sendto: add action to select all predefined tracks
---    + Track/#sendto: add action to Reset predefined send volume/pan
---    # Track/#sendto: prevent showing send track in list, i.e. sending to itself
+--    + Track/#troffs: Changing track offset (REAPER 6.0+)
 
-    local vrs = '1.90'
+    local vrs = '1.91'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -94,7 +91,7 @@ buttons=#lock #preservepitch #chanmode #loop #srcreverse #mute
 [Envelope]
 order=#floatfx #position #value
 [Track]
-order=#color #fxcontrols #buttons #vol #pan #fxlist #sendto #delay #chsendmixer #chrecvmixer #freeze
+order=#color #fxcontrols #buttons #vol #pan #fxlist #sendto #delay #troffs #chsendmixer #chrecvmixer #freeze
 buttons=#polarity #parentsend 
 [MIDIEditor]
 order=#position #notelen #CCval #notepitch #notevel #midichan

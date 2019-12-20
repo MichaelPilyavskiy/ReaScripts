@@ -559,6 +559,7 @@ msg(
           #fxlist Show FX in chain, LeftClick float FX, Shift+Click bypass FX
           #sendto Small tool for quick creating sends from selected track, to have potential sends in the list add them via selecting and 'Mark as predefined send'
           #delay get/set value in seconds for 'JS: time adjustment'
+          #troffs change track offset (REAPER 6.0+)
           #chsendmixer shows all send faders if sends existed for the first selected track. Ctrl+drag move on any slider acts as a VCA.
           #chrecvmixer shows all receive faders if receives existed for the first selected track. Ctrl+drag move on any slider acts as a VCA.
           #fxcontrols allow to store some FX macro controls stores per track (although params can be stored from another track FX). Rightclick slider for options.

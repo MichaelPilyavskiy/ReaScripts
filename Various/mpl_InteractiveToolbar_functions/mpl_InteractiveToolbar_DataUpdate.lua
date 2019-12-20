@@ -729,6 +729,18 @@
         data.tr[i].parsend = GetMediaTrackInfo_Value( tr, 'B_MAINSEND' )         
         data.tr[i].col = GetTrackColor( tr )
         
+        
+        local toffs_flag = GetMediaTrackInfo_Value( tr, 'I_PLAY_OFFSET_FLAG' )
+        local toffs = GetMediaTrackInfo_Value( tr, 'D_PLAY_OFFSET' )
+        if toffs_flag&1==1 then
+          toffs = 0
+         else
+          if toffs_flag&2== 2 then toffs = toffs / data.SR end
+        end
+        data.tr[i].toffs = math_q_dec(toffs,4 )
+        data.tr[i].toffs_flag=toffs_flag
+        
+        
       -- delay time_adjustment
         data.tr[i].delay = 0
         local delayFX_pos = TrackFX_AddByName( tr, 'time_adjustment', false, 0 )

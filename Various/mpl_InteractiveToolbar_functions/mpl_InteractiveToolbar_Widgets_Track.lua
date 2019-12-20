@@ -1453,3 +1453,72 @@
       end
     end
   end
+
+------------------------------------------------------------------
+function Widgets_Track_troffs(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+  if not VF_CheckReaperVrs(6.0,false) then return end 
+    local del_w = 60*conf.scaling
+    if x_offs + del_w > obj.persist_margin then return x_offs end 
+    obj.b.obj_trdelay2 = { x = x_offs,
+                        y = obj.offs ,
+                        w = del_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = 'Offset'} 
+    obj.b.obj_trdelay2_back = { x =  x_offs,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = del_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt = (data.tr[1].toffs*1000)..'ms',
+                        fontsz = obj.fontsz_entry,
+                        ignore_mouse = true}  
+                        
+                        
+      local troffs_str = data.tr[1].toffs
+      
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = {troffs_str},
+                        table_key='troffs_ctrl',
+                        x_offs= x_offs,  
+                        w_com=del_w,
+                        src_val=data.tr,
+                        src_val_key= 'toffs',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Track_offset,                         
+                        mouse_scale= obj.mouse_scal_time,
+                        default_val=0,
+                        modify_wholestr = true,
+                        dont_draw_val = true,
+                        onRelease_ActName = data.scr_title..': Change track properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1})                            
+    return del_w                       
+  end  
+function Apply_Track_offset(data, obj, t_out_values, butkey, out_str_toparse, mouse)
+    if not out_str_toparse then   
+      test = t_out_values
+      for i = 1, #t_out_values do
+        local value = lim(t_out_values[i], -0.5, 0.5)
+        if mouse.Ctrl then value = lim(t_out_values[1], -0.5, 0.5) end 
+        if data.tr[i].toffs_flag&2==2 then value = math.floor(data.SR*value) end
+        if data.tr[i].toffs_flag&1==1 then SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_PLAY_OFFSET_FLAG', data.tr[i].toffs_flag-1 )  end
+        SetMediaTrackInfo_Value( data.tr[i].ptr, 'D_PLAY_OFFSET', value ) 
+      end
+      --local new_str = format_timestr_len( t_out_values[1], '', 0, 3 )
+      obj.b.obj_trdelay2_back.txt = (math.floor(t_out_values[1]*10000)/10)..'ms'
+     else
+      -- nudge values from first item
+      local out_val = parse_timestr_len(out_str_toparse,0,3) 
+      local diff = data.tr[1].toffs - out_val
+      for i = 1, #t_out_values do
+        local out = t_out_values[i] - diff
+        local value = lim(out, -0.5, 0.5)
+        if data.tr[i].toffs_flag&2==2 then value = math.ceil(data.SR*value) end
+        SetMediaTrackInfo_Value( data.tr[i].ptr, 'D_PLAY_OFFSET', value )
+      end
+      redraw = 2   
+    end
+  end    
+  -------------------------------------------------------------- 
