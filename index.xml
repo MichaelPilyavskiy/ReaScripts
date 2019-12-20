@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="156efd2f85f20bb41b069192e9d7064d16641ac1" name="MPL Scripts">
+<index version="1" commit="4b4bfa25fad9b13d691c8c9cb49b90dd92bf8d70" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1738,6 +1738,14 @@
 # avoid chunking
 # avoid doubled sends]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/395f97872cf1f307f6be47ab969cae211119a4e4/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2019-12-20T20:51:57Z">
+        <changelog><![CDATA[# change send mode to Pre-Fader (Post-FX)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f5a3c6605c7d1022b4a51efaef8d9ffcbf72eb4a/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2019-12-20T20:54:59Z">
+        <changelog><![CDATA[# change send mode to Pre-Fader (Post-FX)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4b4bfa25fad9b13d691c8c9cb49b90dd92bf8d70/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaGate sidechain routing.lua" type="script" desc="Create ReaGate sidechain routing from selected track to track under mouse cursor">
