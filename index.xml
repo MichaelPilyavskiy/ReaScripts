@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c4ac147137a4ed4592265917ace04ff4da47497b" name="MPL Scripts">
+<index version="1" commit="9bfd8883929dd4f9dd8239e0fa8a7a39912be5a1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3050,6 +3050,10 @@
 # properly handle time signatures
 # properly handle tempo drift]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c4ac147137a4ed4592265917ace04ff4da47497b/Items%20Editing/mpl_Smart%20duplicate%20items.lua</source>
+      </version>
+      <version name="1.31" author="MPL" time="2019-12-22T17:00:37Z">
+        <changelog><![CDATA[# fix zero measure shift]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9bfd8883929dd4f9dd8239e0fa8a7a39912be5a1/Items%20Editing/mpl_Smart%20duplicate%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Snap selected items to each other.lua" type="script" desc="Snap selected items to each other">
