@@ -1,13 +1,9 @@
--- @version 1.3
+-- @version 1.31
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Smart duplicate items
 -- @changelog
---    + Complete rebuild
---    # don`t use native ApplyNudge, use chunking + some of native API instead
---    # measure-step overlap check
---    # properly handle time signatures
---    # properly handle tempo drift
+--    # fix zero measure shift
   
   local data = {}
   
@@ -54,7 +50,8 @@
       meas_max = math.max(meas_max, data[i].end_conv.end_conv_measure)
       end_fullbeatsmax = math.max(end_fullbeatsmax, data[i].end_conv.end_conv_fullbeats)
     end
-    return meas_max - meas_min, end_fullbeatsmax
+    local measure_shift = math.max(1,meas_max - meas_min)
+    return measure_shift, end_fullbeatsmax
   end
 ---------------------------------------------------------------------   
   function OverlapCheck(data, measure_shift, end_fullbeatsmax)
@@ -70,8 +67,8 @@
     for i = 1, #data do
       local new_it = AddMediaItemToTrack( data[i].src_tr )
       SetItemStateChunk( new_it, data[i].chunk, false )
-      new_pos = TimeMap2_beatsToTime( 0, data[i].pos_conv.pos_conv_beats, data[i].pos_conv.pos_conv_measure + measure_shift )
-      new_end = TimeMap2_beatsToTime( 0, data[i].pos_conv.pos_conv_beats, data[i].end_conv.end_conv_measure + measure_shift )
+      local new_pos = TimeMap2_beatsToTime( 0, data[i].pos_conv.pos_conv_beats, data[i].pos_conv.pos_conv_measure + measure_shift )
+      local new_end = TimeMap2_beatsToTime( 0, data[i].pos_conv.pos_conv_beats, data[i].end_conv.end_conv_measure + measure_shift )
       SetMediaItemInfo_Value( new_it, 'D_POSITION', new_pos)
       SetMediaItemInfo_Value( new_it, 'D_LENGTH', new_end - new_pos)
       --SetMediaItemInfo_Value( new_it, 'I_CUSTOMCOLOR', data[i].col )
