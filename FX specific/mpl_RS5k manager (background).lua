@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 2.126
+-- @version 2.127
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,10 +10,10 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    # Pattern: fix fill 2nd and 4th note
+--    + Pattern: add action to duplicate pattern (erase old take, create new take, create pattern copy and commit it to just created item)
 
 
-  local vrs = 'v2.126'
+  local vrs = 'v2.127'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -28,7 +28,7 @@
   local mouse = {}
   local obj = {}
   local data = {}
-  local pat = {}    
+   pat = {}    
   local G_act_state
     
   ---------------------------------------------------  

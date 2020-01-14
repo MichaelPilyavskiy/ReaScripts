@@ -12,8 +12,8 @@
     local ret, src_name = GetSetMediaItemTakeInfo_String( take, 'P_NAME' , '', false )
                                         
     -- search for existed pattern
-     local t = {{str='Rename take/pattern|',
-            func = function()
+     local t = {  {   str='Rename take/pattern',
+                      func = function()
                       ret, str = GetUserInputs( conf.scr_title, 1, 'new name', src_name )
                       if ret then
                                     local item = GetSelectedMediaItem(0,0)
@@ -23,7 +23,39 @@
                                     GetSetMediaItemTakeInfo_String( take_out, 'P_NAME' , str, true )  
                                     refresh.GUI = true
                       end                  
-                  end}}
+                  end},
+                  
+                  
+                  {str='Duplicate pattern',
+                            func = function()
+                                     local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
+                                     
+                                     local par_item = GetMediaItemTake_Item( take_ptr )
+                                     local par_item_pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
+                                     local par_item_len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
+                                      
+                                     local par_tr = GetMediaItem_Track( par_item )
+                                     local new_item = CreateNewMIDIItemInProj( par_tr, par_item_pos, par_item_pos + par_item_len, false )
+                                     local new_item_tk = GetActiveTake( new_item )
+                                     local retval, new_item_tk_GUID = BR_GetMidiTakePoolGUID( new_item_tk )
+                                     
+                                     if ret then 
+                                       Pattern_Commit(conf, pat, new_item_tk_GUID, new_item_tk)
+                                       Pattern_SaveExtState(conf, pat, new_item_tk_GUID, new_item_tk)
+                                       refresh.GUI = true  
+                                       refresh.data = true  
+                                       
+                                       local new_take_name = take_name..'_copy' 
+                                       GetSetMediaItemTakeInfo_String( new_item_tk, 'P_NAME', new_take_name, true )
+                                       DeleteTrackMediaItem( par_tr, par_item )
+                                       reaper.SetMediaItemSelected( new_item, true )
+                                     end 
+                                   end}
+                  
+                  
+                  
+                  
+                  }
       for i =0, 300 do
         local retval, key, val = EnumProjExtState( 0, conf.ES_key, i )
         if key:match('%{.-%}') then 
