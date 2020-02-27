@@ -1,12 +1,15 @@
 -- @description Align Takes
--- @version 1.134
+-- @version 1.135
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # limit array #531
+--    + G key to get takes
+--    + Left/Right arrow to set strength of alignment
 
 --[[
   * Changelog: 
+    * v1.135  (2020-02-27)
+      # limit array #531    
     * v1.134  (2017-11-30)
       # limit array #531
     * v1.133  (2017-09-25)
@@ -75,7 +78,7 @@
 ----------------------------------------------------------------------- 
 ----------------------------------------------------------------------- 
 -----------------------------------------------------------------------   
-  local vrs = '1.13'
+  local vrs = '1.135'
 ----------------------------------------------------------------------- 
   function msg(str)
     if type(str) == 'boolean' then if str then str = 'true' else str = 'false' end end
@@ -1722,8 +1725,11 @@
         if trig_process == nil then trig_process = 1 end
       end
     -- Slider
-      if takes_t and MOUSE_slider(objects.b_slider, 'w1_slider') and str_markers_t then
-        w1_slider = F_limit((mouse.mx -objects.b_slider[1]) / objects.b_slider[3],0,1 )
+      if takes_t  and str_markers_t and (MOUSE_slider(objects.b_slider, 'w1_slider') or ext_trig==1) then
+        if ext_trig == 0 then 
+          w1_slider = F_limit((mouse.mx -objects.b_slider[1]) / objects.b_slider[3],0,1 )
+        end
+        ext_trig = 0 
         for i = 1, #takes_t do 
           if i == 1 then 
             app = ENGINE_set_stretch_markers2(i, str_markers_t[i], 0) 
@@ -1945,7 +1951,12 @@ Blue knobs are parameters for building envelope
     
     A5_MOUSE_get(obj)
     local char = gfx.getchar()
+    --if char > 0 then msg(char) end
     if char == 27 then MAIN_exit() end                               -- escape
+    if char == 71 or char == 103 then trig_process = 1 end                          -- G to get takes
+    if char == 1919379572 then w1_slider = math.min(w1_slider + 0.1,1) ext_trig = 1 end -- right w1_slider
+    if char == 1818584692 then w1_slider = math.max(w1_slider - 0.1,0) ext_trig = 1 end -- left w1_slider
+    
     if char == 32 then reaper.Main_OnCommandEx(40044, 0,0) end       -- space -> transport play   
     if char ~= -1 then reaper.defer(A0_MAIN_defer) else MAIN_exit() end -- stop on close 
   end 
@@ -2246,6 +2257,7 @@ Blue knobs are parameters for building envelope
   end      
 -----------------------------------------------------------------------  
   debug_mode =0
+  ext_trig = 0
   if debug_mode == 1 then msg("") end  
   
   local t = debug.getinfo(1)
