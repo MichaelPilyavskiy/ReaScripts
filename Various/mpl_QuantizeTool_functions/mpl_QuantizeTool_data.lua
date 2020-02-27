@@ -375,6 +375,7 @@
       local chan = 1+(msg1:byte(1)&0xF)
       local pitch = msg1:byte(2)
       local vel = msg1:byte(3) 
+      if not vel then vel = 120 end
       
       local ignore_search = true      
       --[[
