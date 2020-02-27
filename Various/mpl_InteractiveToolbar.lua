@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.91
+-- @version 1.92
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Track/#troffs: Changing track offset (REAPER 6.0+)
+--    + Add option to attach specific action on context change
+--    # Reduce unnecessary additional refresh GUI on context change
 
-    local vrs = '1.91'
+    local vrs = '1.92'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -144,6 +145,10 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             master_buf = 100,
             relative_it_len = 0,
             
+            actiononchangecontext_item = '',
+            actiononchangecontext_track = '',
+            actiononchangecontext_env = '',
+            actiononchangecontext_ME = '',
             }
             
   end
@@ -158,8 +163,10 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
       SCC =  GetProjectStateChangeCount( 0 )       
       SCC_trig = (lastSCC and lastSCC ~= SCC) or cycle_cnt == 1
       lastSCC = SCC       
-      if not SCC_trig and HasCurPosChanged() then SCC_trig = true end
-      if not SCC_trig and HasTimeSelChanged() then SCC_trig = true end
+      
+      
+      --if not SCC_trig and HasCurPosChanged() then msg(11)  SCC_trig = true end
+      if not SCC_trig and HasTimeSelChanged() and (lastSCC_trig and lastSCC_trig == false) then  SCC_trig = true end
       if not SCC_trig and HasRulerFormChanged() then SCC_trig = true end    
       if not SCC_trig and HasPlayStateChanged() then SCC_trig = true end 
       if not SCC_trig and HasSelEnvChanged() then SCC_trig = true end  
@@ -184,8 +191,9 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
       end
       
     -- produce update if yes
-      if redraw == 2 or SCC_trig2 then DataUpdate(data, mouse, widgets, obj, conf) redraw = 1 end
-      if SCC_trig then 
+      if redraw == 2 or SCC_trig2 then 
+        DataUpdate(data, mouse, widgets, obj, conf) redraw = 1 
+       elseif SCC_trig then 
         DataUpdate(data, mouse, widgets, obj, conf)
         redraw = 1      
       end 
@@ -199,6 +207,8 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
        else
         data.playcur_pos_format = playcur_pos_format
       end
+      
+      lastSCC_trig = SCC_trig
       
     -- perf GUI 
       GUI_Main(obj, cycle_cnt, redraw, data, clock, conf)

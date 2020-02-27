@@ -778,7 +778,16 @@ msg(
                 { str = '# #lenght'},                  
                 { str = 'Edit length relatively on typing edits|',    
                   state = conf.relative_it_len==1,              
-                  func = function() conf.relative_it_len = math.abs(1-conf.relative_it_len) ExtState_Save(conf) redraw = 2 end} ,                 
+                  func = function() conf.relative_it_len = math.abs(1-conf.relative_it_len) ExtState_Save(conf) redraw = 2 end} ,  
+                { str = 'Run external action on founding item context',
+                  state = conf.actiononchangecontext_item~='',        
+                  func =  function() 
+                            local ret, ret_val = GetUserInputs( conf.scr_title, 1, 'Action ID (empty to disable)', conf.actiononchangecontext_item )
+                            if ret then
+                              conf.actiononchangecontext_item = ret_val
+                              ExtState_Save(conf)
+                            end
+                          end} ,                                  
                 { str = 'Ignore all item contexts|<',    
                   state = conf.ignore_context&(1<<0) == (1<<0),              
                   func = function() Menu_IgnoreContext(conf, 0) end} ,                                   
@@ -801,17 +810,37 @@ msg(
                   func = function() Menu_ChangeOrder(widgets, data, conf, 3 ) end} ,
                 { str = 'Buttons order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 3, true ) end} , 
+                  
                 { str = '>Envelope'},
+                { str = 'Run external action on founding envelope context',
+                  state = conf.actiononchangecontext_env~='',        
+                  func =  function() 
+                            local ret, ret_val = GetUserInputs( conf.scr_title, 1, 'Action ID (empty to disable)', conf.actiononchangecontext_env )
+                            if ret then
+                              conf.actiononchangecontext_env = ret_val
+                              ExtState_Save(conf)
+                            end
+                          end} ,                  
                 { str = 'Ignore',    
                   state = conf.ignore_context&(1<<6) == (1<<6),              
                   func = function() Menu_IgnoreContext(conf, 6) end} , 
                 { str = 'Widgets order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} , 
+                  
                 { str = '>Track'},
                 { str = '# #color'},
                 { str = 'Use ReaPack/Airon_Colour Swatch.lua|',
                   state = conf.use_aironCS==1,
-                  func = function() conf.use_aironCS = math.abs(1-conf.use_aironCS) ExtState_Save(conf) redraw = 2 end }  ,                 
+                  func = function() conf.use_aironCS = math.abs(1-conf.use_aironCS) ExtState_Save(conf) redraw = 2 end }  ,  
+                { str = 'Run external action on founding track context',
+                  state = conf.actiononchangecontext_track~='',        
+                  func =  function() 
+                            local ret, ret_val = GetUserInputs( conf.scr_title, 1, 'Action ID (empty to disable)', conf.actiononchangecontext_track )
+                            if ret then
+                              conf.actiononchangecontext_track = ret_val
+                              ExtState_Save(conf)
+                            end
+                          end} ,                                   
                 { str = 'Ignore',    
                   state = conf.ignore_context&(1<<7) == (1<<7),              
                   func = function() Menu_IgnoreContext(conf, 7) end} , 
@@ -819,6 +848,7 @@ msg(
                   func = function() Menu_ChangeOrder(widgets, data, conf, 7 ) end} ,
                 { str = 'Buttons order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 7, true ) end} ,
+                  
                 { str = '>MIDI editor'},
                 { str = '# #notepitch'},   
                   
@@ -850,7 +880,15 @@ msg(
                               redraw = 2 
                             end
                           end} , 
-                                                      
+                { str = 'Run external action on founding ME context',
+                  state = conf.actiononchangecontext_ME~='',        
+                  func =  function() 
+                            local ret, ret_val = GetUserInputs( conf.scr_title, 1, 'Action ID (empty to disable)', conf.actiononchangecontext_ME )
+                            if ret then
+                              conf.actiononchangecontext_ME = ret_val
+                              ExtState_Save(conf)
+                            end
+                          end} ,                                                      
                 { str = 'Ignore',    
                   state = conf.ignore_context&(1<<8) == (1<<8),              
                   func = function() Menu_IgnoreContext(conf, 8) end , 

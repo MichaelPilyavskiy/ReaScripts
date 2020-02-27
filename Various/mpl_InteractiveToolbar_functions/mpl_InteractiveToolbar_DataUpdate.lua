@@ -29,7 +29,6 @@
   end
   ---------------------------------------------------
   function DataUpdate(data, mouse, widgets, obj, conf)
-  
     DataUpdate_RulerGrid(data, conf) 
     
     if conf.ignore_context&(1<<9) ~= (1<<9) then
@@ -65,7 +64,6 @@
        else
         obj.persist_margin = gfx.w
       end
-      
     -- context widgets  
       DataUpdate_Context(data, mouse, widgets, obj, conf) 
     -- update com butts
@@ -159,19 +157,34 @@
       goto skip_context_selector
     end
     
-
     if ME and MEtake and is_takeOK then
       DataUpdate_MIDIEditor(data, ME )
       Obj_UpdateMIDIEditor(data, obj, mouse, widgets, conf)
+      if conf.actiononchangecontext_ME ~= '' then 
+        local comID = NamedCommandLookup( conf.actiononchangecontext_ME )
+        if comID ~= 0 then Main_OnCommand( comID , 0 ) end
+      end
      elseif env then    
       DataUpdate_Envelope(data, env)
       Obj_UpdateEnvelope(data, obj, mouse, widgets, conf)
+      if conf.actiononchangecontext_env ~= '' then 
+        local comID = NamedCommandLookup( conf.actiononchangecontext_env )
+        if comID ~= 0 then Main_OnCommand( comID , 0 ) end
+      end      
      elseif item then 
       DataUpdate_Item(data) 
       Obj_UpdateItem(data, obj, mouse, widgets, conf)
+      if conf.actiononchangecontext_item ~= '' then 
+        local comID = NamedCommandLookup( conf.actiononchangecontext_item )
+        if comID ~= 0 then Main_OnCommand( comID , 0 ) end
+      end      
      elseif tr then
       DataUpdate_Track(data, tr)
-      Obj_UpdateTrack(data, obj, mouse, widgets, conf)        
+      Obj_UpdateTrack(data, obj, mouse, widgets, conf) 
+      if conf.actiononchangecontext_track ~= '' then 
+        local comID = NamedCommandLookup( conf.actiononchangecontext_track )
+        if comID ~= 0 then Main_OnCommand( comID , 0 ) end
+      end            
     end
     
     ::skip_context_selector::
