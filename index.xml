@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8c8afffb497838788920f2d0a04bb1129b52d2c4" name="MPL Scripts">
+<index version="1" commit="aa5803522702111eadd076d4734a2f97cfbf6ad2" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5241,6 +5241,11 @@ add control for timefall showing last note]]></changelog>
       <version name="1.134" author="MPL" time="2017-11-30T18:04:22Z">
         <changelog><![CDATA[# limit array #531]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d144c59aeb7d5c4c2e1bcc17283e2da5b34e6604/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="1.135" author="MPL" time="2020-02-27T20:06:45Z">
+        <changelog><![CDATA[+ G key to get takes
++ Left/Right arrow to set strength of alignment]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aa5803522702111eadd076d4734a2f97cfbf6ad2/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create layer track from selected instruments tracks.lua" type="script" desc="Create layer track from selected instruments tracks">
