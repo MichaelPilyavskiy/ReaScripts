@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.23
+-- @version 2.24
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -27,10 +27,10 @@
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 -- @changelog
---    + Anchor points / ME: fix error for missing velocity
+--    # Item: fix error on zero item selection
 
      
-  local vrs = 'v2.23'
+  local vrs = 'v2.24'
   --NOT gfx NOT reaper
   
 

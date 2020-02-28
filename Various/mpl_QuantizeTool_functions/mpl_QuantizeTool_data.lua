@@ -229,6 +229,7 @@
   function Data_GetItems(data, strategy, table_name, mode) 
     local id = 1
     local item =  GetSelectedMediaItem( 0,0 )
+    if not item then return end
     par_tr = reaper.GetMediaItem_Track( item )
       for itemidx = 1, CountMediaItems(0) do
         local item =  GetMediaItem( 0,itemidx-1 )
