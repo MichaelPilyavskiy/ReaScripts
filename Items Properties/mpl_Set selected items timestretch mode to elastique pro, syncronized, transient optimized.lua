@@ -2,7 +2,6 @@
 -- @version 1.0
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
--- @noindex
 -- @changelog
 --    + init
 
