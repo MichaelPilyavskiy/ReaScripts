@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c97d4ad9d306c77a44038862f8476a86ed866ba8" name="MPL Scripts">
+<index version="1" commit="6278fc65a4c116c091241984bc8640ed7bf904cd" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3006,6 +3006,10 @@
       <version name="1.0" author="MPL" time="2017-05-08T12:38:12Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c8a2d9404582823b17298e9656155f3532effe8d/Items%20Editing/mpl_Remove%20selected%20overlapped%20items.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2020-03-04T22:01:48Z">
+        <changelog><![CDATA[# correct algorithm]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6278fc65a4c116c091241984bc8640ed7bf904cd/Items%20Editing/mpl_Remove%20selected%20overlapped%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Select items named as selected item.lua" type="script" desc="Select items named as selected item">
