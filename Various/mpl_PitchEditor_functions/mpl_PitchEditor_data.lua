@@ -207,7 +207,7 @@
   end
   ------------------------------------------------------------------
   function Data_PostProcess_CalcRMSPitch(conf, obj, data, refresh, mouse)
-    local RMS_pitch, RMS_pitch_cnt, last_noteon_id
+    local RMS_pitch, RMS_pitch_cnt, last_noteon_id = 0, 0
     for i = 1, #data.extpitch do
       if data.extpitch[i].noteOn == 1 then 
       

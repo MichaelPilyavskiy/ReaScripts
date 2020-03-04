@@ -1,5 +1,5 @@
 -- @description PitchEditor
--- @version 1.11
+-- @version 1.12
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=222825
 -- @about Script for editing take pitch envelope
@@ -10,12 +10,9 @@
 --    mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua
 --    [main] mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel
 -- @changelog
---    + Data: allow to edit modulation
---    + Mouse: Ctrl+click split note
---    + Mouse: Alt+click join note
---    - GUI: remove mode selector
+--    # Data: fix data/line224 error
 
-  local vrs = 'v1.11'
+  local vrs = 'v1.12'
   --NOT gfx NOT reaper
   
   
