@@ -1,22 +1,22 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Collect and replace selected tracks RS5k instances samples into project folder
 -- @noindex
 -- @changelog
---    + init
+--    # change copy function
 
   local script_title = 'Collect and replace selected tracks RS5k instances samples into project folder'
   --------------------------------------------------------------------- 
   function LuaCopyFile(src, dest)
-    local infile,instr = io.open(src, "r")
+    local infile,instr = io.open(src, "rb")
     if infile then 
       instr = infile:read("*a")
       infile:close()
      else
       return 
     end 
-    local outfile = io.open(dest, "w")
+    local outfile = io.open(dest, "wb")
     if outfile then 
       outfile:write(instr)
       outfile:close()
@@ -47,6 +47,8 @@
           file_src = file_src:gsub('\\','/')
           file_dest = file_dest:gsub('\\','/')
           LuaCopyFile(file_src, file_dest)
+          msg(file_src)
+          msg(file_dest)
           TrackFX_SetNamedConfigParm( tr, fx-1, 'FILE0', file_dest)
         end
       end

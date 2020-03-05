@@ -1,5 +1,5 @@
 -- @description RS5k tools
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -27,4 +27,4 @@
 --    [main] mpl_RS5k tools/mpl_Reverse focused RS5k instance sample.lua
 --    [main] mpl_RS5k tools/mpl_Collect and replace selected tracks RS5k instances samples into project folder.lua
 -- @changelog
---     + Collect and replace selected tracks RS5k instances samples into project folder
+--     # Collect and replace selected tracks RS5k instances samples into project folder: fix copy function
