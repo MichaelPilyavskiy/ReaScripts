@@ -157,35 +157,67 @@
       goto skip_context_selector
     end
     
+    cur_context = 0
     if ME and MEtake and is_takeOK then
       DataUpdate_MIDIEditor(data, ME )
       Obj_UpdateMIDIEditor(data, obj, mouse, widgets, conf)
-      if conf.actiononchangecontext_ME ~= '' then 
-        local comID = NamedCommandLookup( conf.actiononchangecontext_ME )
-        if comID ~= 0 then Main_OnCommand( comID , 0 ) end
-      end
+      cur_context = 1
      elseif env then    
       DataUpdate_Envelope(data, env)
       Obj_UpdateEnvelope(data, obj, mouse, widgets, conf)
-      if conf.actiononchangecontext_env ~= '' then 
-        local comID = NamedCommandLookup( conf.actiononchangecontext_env )
-        if comID ~= 0 then Main_OnCommand( comID , 0 ) end
-      end      
+      cur_context = 2 
      elseif item then 
-      DataUpdate_Item(data) 
+      local obj_type = DataUpdate_Item(data) 
       Obj_UpdateItem(data, obj, mouse, widgets, conf)
-      if conf.actiononchangecontext_item ~= '' then 
-        local comID = NamedCommandLookup( conf.actiononchangecontext_item )
-        if comID ~= 0 then Main_OnCommand( comID , 0 ) end
-      end      
+      cur_context = 3
+      if obj_type == 1 then cur_context = 5 end -- midi
+      if obj_type == 2 then cur_context = 6 end -- midi
      elseif tr then
       DataUpdate_Track(data, tr)
       Obj_UpdateTrack(data, obj, mouse, widgets, conf) 
-      if conf.actiononchangecontext_track ~= '' then 
-        local comID = NamedCommandLookup( conf.actiononchangecontext_track )
-        if comID ~= 0 then Main_OnCommand( comID , 0 ) end
+      cur_context = 4 
+    end
+    
+    if cur_context and last_cur_context and last_cur_context ~= cur_context then
+       if cur_context == 0 then 
+        if conf.actiononchangecontext_no ~= '' then 
+          local comID = NamedCommandLookup( conf.actiononchangecontext_no )
+          if comID ~= 0 then Main_OnCommand( comID , 0 ) end
+        end    
+       elseif cur_context == 1 then 
+        if conf.actiononchangecontext_ME ~= '' then 
+          local comID = NamedCommandLookup( conf.actiononchangecontext_ME )
+          if comID ~= 0 then Main_OnCommand( comID , 0 ) end
+        end
+       elseif cur_context == 2 then 
+         if conf.actiononchangecontext_env ~= '' then 
+           local comID = NamedCommandLookup( conf.actiononchangecontext_env )
+           if comID ~= 0 then Main_OnCommand( comID , 0 ) end
+         end 
+       elseif cur_context == 3 then 
+        if conf.actiononchangecontext_item ~= '' then 
+          local comID = NamedCommandLookup( conf.actiononchangecontext_item )
+          if comID ~= 0 then Main_OnCommand( comID , 0 ) end
+        end  
+       elseif cur_context == 5 then 
+        if conf.actiononchangecontext_itemM ~= '' then 
+          local comID = NamedCommandLookup( conf.actiononchangecontext_itemM )
+          if comID ~= 0 then Main_OnCommand( comID , 0 ) end
+        end 
+       elseif cur_context == 6 then 
+        if conf.actiononchangecontext_itemA ~= '' then 
+          local comID = NamedCommandLookup( conf.actiononchangecontext_itemA )
+          if comID ~= 0 then Main_OnCommand( comID , 0 ) end
+        end                 
+       elseif cur_context == 4 then 
+        if conf.actiononchangecontext_track ~= '' then 
+          local comID = NamedCommandLookup( conf.actiononchangecontext_track )
+          if comID ~= 0 then Main_OnCommand( comID , 0 ) end
+        end   
       end            
     end
+    
+    last_cur_context = cur_context
     
     ::skip_context_selector::
     data.last_fsel_tr = data.fsel_tr
@@ -391,7 +423,8 @@
        elseif obj_type == 3 then 
           data.obj_type = 'Items ('..#data.it..')'
           data.obj_type_int = 3
-      end    
+      end   
+    return  obj_type
   end  
 ------------------------------------------------------------------------
   function DataUpdate_Envelope(data, env)
@@ -432,8 +465,10 @@
       data.ep[i].pos = time
       data.ep[i].pos_format = format_timestr_pos( time, '', data.ruleroverride ) 
       data.ep[i].value = value
-      data.ep[i].value_format =  string.format("%.2f", value)
-      if data.env_isvolume then  data.ep[i].value_format = string.format("%.2f", WDL_VAL2DB(value))    end
+       data.ep[i].value_format =  string.format("%.2f", value)
+      if data.env_isvolume then  
+        data.ep[i].value_format = string.format("%.2f", SLIDER2DB(value))--string.format("%.2f", WDL_VAL2DB(value))    
+      end
       
       data.ep[i].shape = shape
       data.ep[i].tension = tension

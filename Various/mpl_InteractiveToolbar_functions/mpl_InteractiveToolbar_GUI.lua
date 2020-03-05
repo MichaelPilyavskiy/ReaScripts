@@ -769,7 +769,16 @@ msg(
  
                                                                                                                                                                         
                 { str = '|#Contexts/Widgets'}  ,
-                
+                { str = '>No context'}, 
+                { str = 'Run external action when no active context|<',
+                  state = conf.actiononchangecontext_no~='',        
+                  func =  function() 
+                            local ret, ret_val = GetUserInputs( conf.scr_title, 1, 'Action ID (empty to disable)', conf.actiononchangecontext_no )
+                            if ret then
+                              conf.actiononchangecontext_no = ret_val
+                              ExtState_Save(conf)
+                            end
+                          end} ,                   
                 { str = '>Item: All '}, 
                 { str = '# #color'},
                 { str = 'Use ReaPack/Airon_Colour Swatch.lua|',
@@ -796,11 +805,29 @@ msg(
                 { str = 'Widgets order|<',                  
                   func = function() Menu_ChangeOrder(widgets, data, conf, 0 ) end} , 
                 { str = '>Item: MIDI'}, 
+                { str = 'Run external action on founding item context',
+                  state = conf.actiononchangecontext_itemM~='',        
+                  func =  function() 
+                            local ret, ret_val = GetUserInputs( conf.scr_title, 1, 'Action ID (empty to disable)', conf.actiononchangecontext_itemM )
+                            if ret then
+                              conf.actiononchangecontext_itemM = ret_val
+                              ExtState_Save(conf)
+                            end
+                          end} ,                 
                  { str = 'Widgets order',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 1 ) end} ,
                 { str = 'Buttons order|<',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 1, true ) end} , 
                 { str = '>Item: Audio'},
+                { str = 'Run external action on founding item context',
+                  state = conf.actiononchangecontext_itemA~='',        
+                  func =  function() 
+                            local ret, ret_val = GetUserInputs( conf.scr_title, 1, 'Action ID (empty to disable)', conf.actiononchangecontext_itemA )
+                            if ret then
+                              conf.actiononchangecontext_itemA = ret_val
+                              ExtState_Save(conf)
+                            end
+                          end} ,                 
                 { str = 'Widgets order',
                   func = function() Menu_ChangeOrder(widgets, data, conf, 2 ) end} ,
                 { str = 'Buttons order|<',

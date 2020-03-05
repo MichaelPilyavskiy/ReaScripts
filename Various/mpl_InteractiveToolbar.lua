@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.92
+-- @version 1.93
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,10 +14,11 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Add option to attach specific action on context change
---    # Reduce unnecessary additional refresh GUI on context change
+--    + Run external script: separate MIDI and Audio items
+--    # Run external script: reduce updates if context is not changing
+--    # Envelope/#value: fixed for track volume envelope
 
-    local vrs = '1.92'
+    local vrs = '1.93'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -42,7 +43,7 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-  local  data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
+  local data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title,
           masterdata = {ptr =  GetMasterTrack(0)}}
@@ -146,9 +147,12 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             relative_it_len = 0,
             
             actiononchangecontext_item = '',
+            actiononchangecontext_itemM = '',
+            actiononchangecontext_itemA = '',
             actiononchangecontext_track = '',
             actiononchangecontext_env = '',
             actiononchangecontext_ME = '',
+            actiononchangecontext_no = ''
             }
             
   end
