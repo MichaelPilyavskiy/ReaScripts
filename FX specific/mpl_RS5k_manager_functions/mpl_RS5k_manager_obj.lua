@@ -3434,7 +3434,6 @@ List of available hashtags:
         end
         
         local txt = BuildKeyName(conf, data, note, conf.key_names_mixer)
-        
         if  key_w < obj.fx_rect_side then txt = '' end
           --
           if note >= 0 and note <= 127 then
@@ -3448,7 +3447,7 @@ List of available hashtags:
             local pan_val = 0.5
             local scaling = 0.2
             if data[note] and data[note][1] then 
-              OBJ_GenKeysMixer_Ctrl(conf, obj, data, refresh, mouse, note, 1, key_xpos, gfx.h-key_area_h-obj.samplename_h, key_w, key_h)
+              OBJ_GenKeysMixer_Ctrl(conf, obj, data, refresh, mouse, note, 1, key_xpos, gfx.h-key_area_h-obj.samplename_h+20, key_w, key_h)
             end
             
             local a_frame,selection_tri = 0
@@ -3469,7 +3468,7 @@ List of available hashtags:
                         col = col,
                         colint = colint,
                         state = 0,
-                        txt= note,
+                        txt= txt,--note,
                        -- limtxtw = key_w - obj.fx_rect_side,
                         limtxtw_vert = limtxtw_vert,
                         --vertical_txt = verttxt,

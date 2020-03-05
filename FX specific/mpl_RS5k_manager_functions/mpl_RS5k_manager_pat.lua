@@ -26,7 +26,7 @@
                   end},
                   
                   
-                  {str='Duplicate pattern',
+                  {str='Separate pooled pattern to new variation / unpool take',
                             func = function()
                                      local ret, poolGUID, take_name, take_ptr = Pattern_GetSrcData(obj)
                                      
@@ -36,6 +36,7 @@
                                       
                                      local par_tr = GetMediaItem_Track( par_item )
                                      local new_item = CreateNewMIDIItemInProj( par_tr, par_item_pos, par_item_pos + par_item_len, false )
+                                     if not new_item then return end
                                      local new_item_tk = GetActiveTake( new_item )
                                      local retval, new_item_tk_GUID = BR_GetMidiTakePoolGUID( new_item_tk )
                                      
