@@ -1,9 +1,10 @@
 -- @description Trigger record after input note on selected track
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    # trigger first note from VKB after start record
+--    # Always move tracker to the top of FX chain
 
 
   function Run()
@@ -12,7 +13,8 @@
       gmem_write(1, 0) 
       Perform_Clear()
       Action(1013) -- record
-     elseif test_val == 0 then 
+      StuffMIDIMessage( 2, 0x90, gmem_read(2), gmem_read(3) )
+     elseif test_val == 0 then  
       defer(Run)
     end
   end
@@ -29,7 +31,7 @@
     if not tr then return end
     local ret = TrackFX_AddByName( tr, 'WaitInput_tracker.jsfx', false, 1 )
     if ret < 0 then MB('Missing WaitInput_tracker.jsfx\nPlease install it via ReaPack from MPL repository (Action List/Browse packages)', 'Error', 0) return end
-    test_val0 = gmem_read(1)
+    TrackFX_CopyToTrack( tr, ret, tr, 0, true )
     Run()
   end     
 ---------------------------------------------------------------------

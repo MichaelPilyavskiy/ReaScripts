@@ -1,6 +1,6 @@
 desc:WaitInput_tracker
-version: 1.0
-changelog: init
+version: 1.01
+changelog: write first note data
 author: MPL
 website: http://forum.cockos.com/member.php?u=70694
 about:
@@ -15,7 +15,11 @@ options:gmem=mpl_WaitInput
 @block
   while ( midirecv(offset,msg1,msg2,msg3)  ) (
       midisend(offset,msg1,msg2,msg3);
+      gmem[2] = msg2;
+      gmem[3] = msg3;
+        
       gmem[1] = msg1;
+      
     );
   
 
