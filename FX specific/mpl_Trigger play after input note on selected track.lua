@@ -1,6 +1,7 @@
 -- @description Trigger play after input note on selected track
 -- @version 1.0
 -- @author MPL
+-- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
 --    + init
 
