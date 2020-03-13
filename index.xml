@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4c200f2991ce0427cb99760b5653d3d7a1d44041" name="MPL Scripts">
+<index version="1" commit="c5424275f2fe3ccd463715e0fd99d73cbecc3ff6" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2841,15 +2841,6 @@
         <source main="main" file="mpl_Toggle solo focused ReaXcomp band 6.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4be1840a710bad1cff78c3300821786e9f2f52e9/FX%20specific/mpl_Toggle%20solo%20focused%20ReaXcomp%20band%20X.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Trigger play after input note on selected track.lua" type="script" desc="Trigger play after input note on selected track">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2020-03-12T19:27:03Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e925c1eed31926b5b661380d5e38817d2f9c0d2b/FX%20specific/mpl_Trigger%20play%20after%20input%20note%20on%20selected%20track.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Trigger record after input note on selected track.lua" type="script" desc="Trigger record after input note on selected track">
       <metadata>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
@@ -2857,6 +2848,11 @@
       <version name="1.0" author="MPL" time="2020-03-12T19:27:03Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e925c1eed31926b5b661380d5e38817d2f9c0d2b/FX%20specific/mpl_Trigger%20record%20after%20input%20note%20on%20selected%20track.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2020-03-12T19:43:17Z">
+        <changelog><![CDATA[# trigger first note from VKB after start record
+# Always move tracker to the top of FX chain]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c5424275f2fe3ccd463715e0fd99d73cbecc3ff6/FX%20specific/mpl_Trigger%20record%20after%20input%20note%20on%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_VCV Rack tools.lua" type="script" desc="VCV Rack tools">
@@ -3459,6 +3455,10 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL" time="2020-03-12T19:27:03Z">
         <changelog><![CDATA[init]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/e925c1eed31926b5b661380d5e38817d2f9c0d2b/JSFX/WaitInput_tracker.jsfx</source>
+      </version>
+      <version name="1.01" author="MPL" time="2020-03-12T19:43:17Z">
+        <changelog><![CDATA[write first note data]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/c5424275f2fe3ccd463715e0fd99d73cbecc3ff6/JSFX/WaitInput_tracker.jsfx</source>
       </version>
     </reapack>
   </category>
