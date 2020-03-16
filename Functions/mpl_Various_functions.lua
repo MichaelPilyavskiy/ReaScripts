@@ -1,13 +1,10 @@
--- @description Various_functions
+﻿-- @description Various_functions
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.26
+-- @version 1.27
 -- @changelog
---    + VF_GetTrackUnderMouseCursor
---    + VF_GetItemTakeUnderMouseCursor
---    + VF_GetPositionUnderMouseCursor -- SWS заглушка
---    + VF_GetEnvelopeUnderMouseCursor -- SWS заглушка
+--    + Update GetSetSpectralData for support free draw spectral edits
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   function msg(s) 
@@ -185,7 +182,7 @@
         SE[tk_cnt].FFT_sz = sz
       end
             
-      if line:match('SPECTRAL_EDIT') then  
+      if line:match('SPECTRAL_EDIT%s') then  
         if not SE[tk_cnt].edits then SE[tk_cnt].edits = {} end
         local tnum = {} 
         for num in line:gmatch('[^%s]+') do if tonumber(num) then tnum[#tnum+1] = tonumber(num) end end
@@ -215,7 +212,23 @@
                        fadeinout_vert2 = tnum[17],
                        chunk_str = line} -- knobupper - knoblower
       end
-                       
+  
+  
+      local pat = '[%d%.]+ [%d%.]+'
+      if line:match('SPECTRAL_EDIT_B') then  
+        if not SE[tk_cnt].edits [#SE[tk_cnt].edits].points_bot then SE[tk_cnt].edits [#SE[tk_cnt].edits].points_bot = {} end
+        for pair in line:gmatch('[^%+]+') do 
+          SE[tk_cnt].edits [#SE[tk_cnt].edits].points_bot [#SE[tk_cnt].edits [#SE[tk_cnt].edits].points_bot + 1] = pair:match(pat)
+        end
+      end
+
+      if line:match('SPECTRAL_EDIT_T') then  
+        if not SE[tk_cnt].edits [#SE[tk_cnt].edits].points_top then SE[tk_cnt].edits [#SE[tk_cnt].edits].points_top = {} end
+        for pair in line:gmatch('[^%+]+') do 
+          SE[tk_cnt].edits [#SE[tk_cnt].edits].points_top [#SE[tk_cnt].edits [#SE[tk_cnt].edits].points_top + 1] = pair:match(pat)
+        end
+      end
+                                   
     end
     return true, SE
   end
@@ -274,9 +287,26 @@
                 ..data[tk_cnt].edits[edit_id].fadeinout_horiz2..' '
                 ..data[tk_cnt].edits[edit_id].fadeinout_vert2..' '
                 ..'\n'
+              
+              if data[tk_cnt].edits[edit_id].points_bot then
+                for pt = 1, #data[tk_cnt].edits[edit_id].points_bot, 10 do
+                  add_str = add_str..'SPECTRAL_EDIT_B '..table.concat(data[tk_cnt].edits[edit_id].points_bot, ' + ', pt, math.min(#data[tk_cnt].edits[edit_id].points_bot, pt + 10))
+                end
+                add_str = add_str..'\n'
+              end
+
+              if data[tk_cnt].edits[edit_id].points_top then
+                for pt = 1, #data[tk_cnt].edits[edit_id].points_top, 10 do
+                  add_str = add_str..'SPECTRAL_EDIT_T '..table.concat(data[tk_cnt].edits[edit_id].points_top, ' + ', pt,  math.min(#data[tk_cnt].edits[edit_id].points_top, pt + 10))
+                end
+                add_str = add_str..'\n'
+              end
+                            
               add_str = add_str..'SPECTRAL_CONFIG '..data[tk_cnt].FFT_sz ..'\n'
+              --msg(add_str)
              else
               add_str = apply_chunk..'\nSPECTRAL_CONFIG '..data[tk_cnt].FFT_sz ..'\n'
+              
             end
           end        
         end
