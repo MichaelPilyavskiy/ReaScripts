@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c5424275f2fe3ccd463715e0fd99d73cbecc3ff6" name="MPL Scripts">
+<index version="1" commit="ddb6dcf33aaa50384bb37bf5f0028651f88d261f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -400,6 +400,10 @@
 + VF_GetPositionUnderMouseCursor -- SWS заглушка
 + VF_GetEnvelopeUnderMouseCursor -- SWS заглушка]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.27" author="MPL" time="2020-03-16T19:53:56Z">
+        <changelog><![CDATA[+ Update GetSetSpectralData for support free draw spectral edits]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ddb6dcf33aaa50384bb37bf5f0028651f88d261f/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
