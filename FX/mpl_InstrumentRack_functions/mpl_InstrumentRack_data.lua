@@ -112,6 +112,8 @@
       end
       for fx_id =1, TrackFX_GetCount( tr ) do
         local retval, buf = TrackFX_GetFXName( tr, fx_id-1, '' )
+        
+        if conf.hiders5k == 1 and (buf:lower():match('rs5k') or buf:lower():match('reasamplomatic5000') ) then goto skip_check end
         if buf:match('VSTi') 
           or buf:match('DXi') 
           or buf:match('AUi') 
@@ -156,6 +158,7 @@
                             tcp_params = tcp_params,
                             }
         end
+        ::skip_check::
       end
     end
   end  

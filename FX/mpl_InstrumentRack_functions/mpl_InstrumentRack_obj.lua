@@ -221,10 +221,13 @@
       { str = 'Show only instrument TCP controls',
         state = conf.obeyyallcontrols ==0 ,
         func = function()  conf.obeyyallcontrols = math.abs(1-conf.obeyyallcontrols) refresh.GUI = true refresh.data = true  end  } ,                  
-      { str = 'Allow only one FX control stay opened|<|',
+      { str = 'Allow only one FX control stay opened|<',
         state = conf.allowonlyonectrl ==1 ,
         func = function()  conf.allowonlyonectrl = math.abs(1-conf.allowonlyonectrl)  end  } ,  
-                                                             
+      { str = 'Hide RS5k instances|',
+        state = conf.hiders5k ==1 ,
+        func = function()  conf.hiders5k = math.abs(1-conf.hiders5k) refresh.data=true refresh.GUI=true end  } ,    
+                                                                  
       { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
         func = function() 
                   if conf.dock > 0 then conf.dock = 0 else conf.dock = 1 end

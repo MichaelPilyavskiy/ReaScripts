@@ -1,5 +1,5 @@
 -- @description InstrumentRack
--- @version 1.11
+-- @version 1.12
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672 
 -- @about Script for showing instruments in currently opened REAPER project
@@ -9,9 +9,9 @@
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua
 --    mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua
 -- @changelog
---    # prevent breaking add FX menu with gfx.showmenu magic symbols
+--    + allow to hide RS5k instances
 
-  local vrs = 'v1.11'
+  local vrs = 'v1.12'
   --NOT gfx NOT reaper
   
   --  INIT -------------------------------------------------
@@ -58,6 +58,8 @@
             floatchain = 0,
             allowonlyonectrl = 1,
             obeyyallcontrols = 0,
+            hiders5k = 0,
+            
             }
     return t
   end  
