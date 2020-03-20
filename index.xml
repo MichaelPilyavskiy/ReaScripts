@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2a246e0cda73e1a37a1e324e2ca54505f11b9f13" name="MPL Scripts">
+<index version="1" commit="cb4a7541302c47201e41df20a8f646437890a722" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -814,6 +814,14 @@
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/defd8828bb83234a3cbde9e3516545b546a6b021/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua</source>
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/defd8828bb83234a3cbde9e3516545b546a6b021/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua</source>
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/defd8828bb83234a3cbde9e3516545b546a6b021/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua</source>
+      </version>
+      <version name="1.12" author="MPL" time="2020-03-20T06:11:01Z">
+        <changelog><![CDATA[+ allow to hide RS5k instances]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb4a7541302c47201e41df20a8f646437890a722/FX/mpl_InstrumentRack.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb4a7541302c47201e41df20a8f646437890a722/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_GUI.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb4a7541302c47201e41df20a8f646437890a722/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_MOUSE.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb4a7541302c47201e41df20a8f646437890a722/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_data.lua</source>
+        <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb4a7541302c47201e41df20a8f646437890a722/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_LearnManager (background).lua" type="script" desc="LearnManager">
