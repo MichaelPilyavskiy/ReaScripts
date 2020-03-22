@@ -70,6 +70,12 @@
       obj.fontsz_grid_rel = obj.fontsz_grid_rel - 5
       obj.fontszFXctrl = obj.fontszFXctrl-4
     end
+    
+    if conf.dock_orientation == 1 then 
+      obj.entry_w = gfx.w
+      obj.entry_w2 = gfx.w
+    end
+    
     return obj             
   end
 -----------------------------------------------------------------------          
@@ -77,7 +83,14 @@
     local val = o.val
     if val == nil then val = 0 end 
     local x,y,w,h = o.x, o.y, o.w, o.h
+    if o.knob_w then 
+      x = x + w/2-o.knob_w/2
+      w = o.knob_w
+    end
     
+    if o.knob_yshift then 
+      y = y + o.knob_yshift
+    end
     local arc_w = 2
     local arc_r = math.floor(w/2)
     local ang_gr = 110
@@ -135,6 +148,7 @@
   
   ---------------------------------------------------
   function Obj_UpdateCom(data, mouse, obj, widgets, conf)
+    
     local main_type_frame_a
     if data.obj_type_int and data.obj_type_int >=0 then main_type_frame_a = obj.frame_a_head else main_type_frame_a = 0 end
     obj.b.type_name = { x = obj.menu_b_rect_side + obj.offs,
@@ -145,6 +159,7 @@
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
                         txt =data.obj_type}
+    if conf.dock_orientation == 1 then obj.b.type_name.w = gfx.w - obj.menu_b_rect_side end
     obj.b.menu_back1 = { x = obj.offs,
                         y = obj.offs,
                         w = obj.menu_b_rect_side,
@@ -175,7 +190,7 @@
     if not o then return end
     local x,y,w,h = o.x, o.y, o.w, o.h
     if not x or not y or not w or not h then return end
-    if o.persist_buf then x = x - obj.persist_margin end
+    if conf.dock_orientation ==0 and o.persist_buf then x = x - obj.persist_margin end
     
     -- glass back
       gfx.a = o.frame_a
@@ -207,11 +222,13 @@
           if not o.is_vertical_slider then
             gfx.rect(x,y,w*val,h,1)
            else 
-            gfx.rect(x+1,
+            local h0 = math.floor(h * val)
+            gfx.rect(x+1,y+h-h0,w-2,h0,1)
+            --[[gfx.rect(x+1,
                       y+math.floor(h*(1-val)),
                       w-2,
                       lim(  math.floor(h*val), 0, h-y-math.floor(h*(1-val)) ),
-                          1)
+                          1)]]
           end
          else
           val = lim(val,-1,1)
@@ -441,7 +458,11 @@ b=0;]]
         -- refresh all buttons
           if obj.b then 
             for key in spairs(obj.b) do 
-              if not obj.b[key].persist_buf and not obj.b[key].outside_buf then GUI_DrawObj(obj.b[key], obj, conf) end
+              if conf.dock_orientation ==0  then
+                if not obj.b[key].persist_buf and not obj.b[key].outside_buf then GUI_DrawObj(obj.b[key], obj, conf) end
+               elseif conf.dock_orientation ==1  then
+                if not obj.b[key].outside_buf then GUI_DrawObj(obj.b[key], obj, conf) end
+              end
             end 
           end
       end
@@ -457,7 +478,7 @@ b=0;]]
         -- refresh all buttons
           if obj.b then 
             for key in spairs(obj.b) do 
-              if obj.b[key].persist_buf then GUI_DrawObj(obj.b[key], obj, conf) end
+              if conf.dock_orientation ==0 and obj.b[key].persist_buf then GUI_DrawObj(obj.b[key], obj, conf) end
             end 
           end
       end
@@ -858,7 +879,12 @@ msg(
                 { str = '# #color'},
                 { str = 'Use ReaPack/Airon_Colour Swatch.lua|',
                   state = conf.use_aironCS==1,
-                  func = function() conf.use_aironCS = math.abs(1-conf.use_aironCS) ExtState_Save(conf) redraw = 2 end }  ,  
+                  func = function() conf.use_aironCS = math.abs(1-conf.use_aironCS) ExtState_Save(conf) redraw = 2 end }  , 
+                { str = '# #vol'},                  
+                { str = 'Use big knob in vertical mode|',
+                  state = conf.trackvol_slider==1,
+                  func = function() conf.trackvol_slider = math.abs(1-conf.trackvol_slider) ExtState_Save(conf) redraw = 2 end }  ,                  
+                   
                 { str = 'Run external action on founding track context',
                   state = conf.actiononchangecontext_track~='',        
                   func =  function() 
@@ -1064,6 +1090,15 @@ msg(
                                           gfx.quit() 
                                           gfx.init('MPL '..conf.scr_title,conf.wind_w, conf.wind_h, conf.dock , conf.wind_x, conf.wind_y)end,
                                  state = conf.dock > 0 }, 
+                {str = 'Use vertical widgets orientation',
+                                 func = function() 
+                                          conf.dock_orientation = math.abs(1-conf.dock_orientation)
+                                          gfx.quit() 
+                                          gfx.init('MPL '..conf.scr_title,100, gfx.h, conf.dock , conf.wind_x, conf.wind_y)
+                                          redraw = 1
+                                        end,
+                                 state = conf.dock_orientation == 1 },                                  
+                                 
                 {str = 'Refresh GUI',
                  func = function() 
                           SCC_trig = true 

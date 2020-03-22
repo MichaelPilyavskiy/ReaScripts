@@ -60,6 +60,7 @@
     -- persisten widgets
       if conf.ignore_context&(1<<9) ~= (1<<9) then
         obj.persist_margin = Obj_UpdatePersist(data, obj, mouse, widgets, conf) 
+        if conf.dock_orientation == 1 then obj.persist_margin = gfx.w end
         -- MUST be before DataUpdate_Context for passing persist_margin
        else
         obj.persist_margin = gfx.w
@@ -287,7 +288,7 @@
         _, data.LTFX_parname = TrackFX_GetParamName( tr, fx, param, '' )
         data.LTFX_val =  TrackFX_GetParamNormalized( tr, fx, param )
         local _, LTFX_val_format = TrackFX_GetFormattedParamValue( tr, fx, param, '' )
-        data.LTFX_val_format = LTFX_val_format:match('%d+')
+        data.LTFX_val_format = LTFX_val_format--:match('%d+')
       end
     end
   end

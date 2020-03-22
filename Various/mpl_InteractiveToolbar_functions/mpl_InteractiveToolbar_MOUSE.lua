@@ -96,6 +96,7 @@
                             use_mouse_drag_xAxis,          -- for example for pan
                             ignore_fields,                  -- use same val/changing for both fields
                             y_offs,
+                            y,
                             dont_draw_val,
                             pow_tolerance,
                             parse_pan_tags,
@@ -120,6 +121,7 @@
                             tbl.use_mouse_drag_xAxis,          -- for example for pan
                             tbl.ignore_fields,                  -- use same val/changing for both fields
                             tbl.y_offs,                          -- y pos
+                            tbl.y,
                             tbl.dont_draw_val,
                             tbl.pow_tolerance,
                             tbl.parse_pan_tags,
@@ -132,6 +134,8 @@
                             tbl.rul_format
                             
                             if not obj  then return end
+                            
+    if y then y_offs = y end
     local measured_x_offs = 0
     if not y_offs then y_offs = obj.offs *2 +obj.entry_h end
     --if not t or not type(t)=='table' then t = {t} end

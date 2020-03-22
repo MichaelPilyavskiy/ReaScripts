@@ -16,7 +16,14 @@
                         txt_a = obj.txt_a,
                         txt = data.name,
                         fontsz = obj.fontsz_entry} 
-    local x_offs = obj.menu_b_rect_side + obj.offs + conf.GUI_contextname_w*conf.scaling
+    local y_offs = obj.entry_h*2 + obj.offs
+    local x_offs = obj.menu_b_rect_side + obj.offs + conf.GUI_contextname_w *conf.scaling
+    if conf.dock_orientation == 1 then 
+      x_offs = 0 
+      obj.b.obj_name.w = gfx.w - obj.menu_b_rect_side
+     else 
+      y_offs = 0  
+    end
     
     
     
@@ -27,8 +34,15 @@
       for i = 1, #widgets[widg_key] do
         local key = widgets[widg_key][i]
         if _G['Widgets_Envelope_'..key] then
-            local ret = _G['Widgets_Envelope_'..key](data, obj, mouse, x_offs, widgets) 
-            if ret then x_offs = x_offs + obj.offs + ret end
+            local retX, retY = _G['Widgets_Envelope_'..key](data, obj, mouse, x_offs, widgets, conf, y_offs) 
+            if conf.dock_orientation == 1 and not retY then retY = obj.entry_h elseif conf.dock_orientation == 0 and not retY then retY = 0 end
+            if retX and retY then 
+              if conf.dock_orientation == 0 then 
+                x_offs = x_offs + obj.offs + retX 
+               elseif conf.dock_orientation == 1  then
+                y_offs = y_offs + obj.offs + retY 
+              end
+            end
         end
       end  
     end
@@ -42,11 +56,11 @@
 
 
   --------------------------------------------------------------
-  function Widgets_Envelope_position(data, obj, mouse, x_offs)    -- generate position controls 
+  function Widgets_Envelope_position(data, obj, mouse, x_offs, widgets, conf, y_offs)    -- generate position controls 
     if not data.ep or not data.ep.sel_point_ID or not data.ep[data.ep.sel_point_ID] then return  x_offs end
     if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_envpos = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -54,20 +68,27 @@
                         txt_col = obj.txt_col_header,
                         txt = 'Position'} 
     obj.b.obj_envpos_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = obj.entry_h+y_offs ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         ignore_mouse = true}  
-                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_envpos.w = obj.entry_w2/2
+        obj.b.obj_envpos_back.x= obj.entry_w2/2
+        obj.b.obj_envpos_back.y = y_offs
+        obj.b.obj_envpos_back.w = obj.entry_w2/2
+        obj.b.obj_envpos_back.frame_a = obj.frame_a_head
+      end                         
       
       local pos_str = data.ep[data.ep.sel_point_ID].pos_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = MPL_GetTableOfCtrlValues(pos_str),
                         table_key='position_ctrl',
-                        x_offs= x_offs,  
-                        w_com=obj.entry_w2,--obj.entry_w2,
+                        x_offs= obj.b.obj_envpos_back.x,  
+                        y_offs= obj.b.obj_envpos_back.y,  
+                        w_com=obj.b.obj_envpos_back.w,
                         src_val=data.ep,
                         src_val_key= 'pos',
                         modify_func= MPL_ModifyTimeVal,
@@ -131,11 +152,11 @@
   
 
   --------------------------------------------------------------   
-  function Widgets_Envelope_value(data, obj, mouse, x_offs) -- generate snap_offs controls
+  function Widgets_Envelope_value(data, obj, mouse, x_offs, widgets, conf, y_offs) -- generate snap_offs controls
     if not data.ep or not data.ep.sel_point_ID or not data.ep[data.ep.sel_point_ID] then return  x_offs end
     if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end  
     obj.b.obj_envval = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -143,21 +164,30 @@
                         txt_col = obj.txt_col_header,
                         txt = 'Value'} 
     obj.b.obj_envval_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = obj.entry_h+y_offs ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         fontsz= obj.fontsz_entry,
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         ignore_mouse = true}  
+                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_envval.w = obj.entry_w2/2
+        obj.b.obj_envval_back.x= obj.entry_w2/2
+        obj.b.obj_envval_back.y = y_offs
+        obj.b.obj_envval_back.w = obj.entry_w2/2
+        obj.b.obj_envval_back.frame_a = obj.frame_a_head
+      end                         
       local val_str = data.ep[data.ep.sel_point_ID].value_format
      -- local modify_wholestr = data.env_isvolume
      if not data.env_isvolume then
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = {val_str},
                         table_key='val_ctrl',
-                        x_offs= x_offs,  
-                        w_com=obj.entry_w2,--obj.entry_w2,
+                        x_offs= obj.b.obj_envval_back.x,  
+                        y_offs= obj.b.obj_envval_back.y,  
+                        w_com=obj.b.obj_envval_back.w,
                         src_val=data.ep,
                         src_val_key= 'value',
                         modify_func= MPL_ModifyFloatVal,
@@ -174,8 +204,9 @@
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = {val_str},
                         table_key='val_ctrl',
-                        x_offs= x_offs,  
-                        w_com=obj.entry_w2,--obj.entry_w2,
+                        x_offs= obj.b.obj_envval_back.x,  
+                        y_offs= obj.b.obj_envval_back.y,  
+                        w_com=obj.b.obj_envval_back.w,
                         src_val=data.ep,
                         src_val_key= 'value',
                         modify_func= MPL_ModifyFloatVal,
@@ -245,13 +276,13 @@
 
 
   --------------------------------------------------------------   
-  function Widgets_Envelope_floatfx(data, obj, mouse, x_offs) -- generate snap_offs controls
+  function Widgets_Envelope_floatfx(data, obj, mouse, x_offs, widgets, conf, y_offs) -- generate snap_offs controls
     if data.env_parentFX == -1 then return  end
     local fxname_w = 100
     if x_offs + fxname_w > obj.persist_margin then return  end  
     local fx_name = MPL_ReduceFXname(data.env_parentFXname)
     obj.b.obj_envfloatfx = { x = x_offs,
-                        y = obj.offs ,
+                        y =y_offs ,
                         w = fxname_w,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -260,14 +291,14 @@
                         ignore_mouse = true,
                         txt = ''} 
     obj.b.obj_envfloatfx_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = y_offs+obj.entry_h ,
                         w = fxname_w,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         ignore_mouse = true} 
     obj.b.obj_envfloatfx_but = { x =  x_offs,
-                        y = obj.offs,
+                        y = y_offs,
                         w = fxname_w,
                         h = obj.entry_h*2,
                         frame_a = 0,
@@ -275,6 +306,18 @@
                         fontsz = obj.fontsz_head,
                         func = function()
                                   TrackFX_Show( data.env_parenttr, data.env_parentFX, 3 )
-                                end}                         
+                                end}   
+      if conf.dock_orientation == 1 then
+        obj.b.obj_envfloatfx_back.show = false
+        obj.b.obj_envfloatfx.x= 0
+        obj.b.obj_envfloatfx.y = y_offs
+        obj.b.obj_envfloatfx.w = obj.entry_w2
+        obj.b.obj_envfloatfx.frame_a = obj.frame_a_head
+        obj.b.obj_envfloatfx_but.frame_a = 0
+        obj.b.obj_envfloatfx_but.x = 0 
+        obj.b.obj_envfloatfx_but.y = y_offs
+        obj.b.obj_envfloatfx_but.w = obj.entry_w2
+        obj.b.obj_envfloatfx_but.h = obj.entry_h
+      end                                                         
     return fxname_w                    
   end

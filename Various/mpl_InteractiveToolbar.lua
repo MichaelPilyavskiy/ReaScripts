@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 1.93
+-- @version 2.0
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,11 +14,17 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Run external script: separate MIDI and Audio items
---    # Run external script: reduce updates if context is not changing
---    # Envelope/#value: fixed for track volume envelope
+--    + Persist: allow to run in vertical mode
+--    # Persist: Update time selection widgets properly
+--    # Persist/#lasttouchfx: run as knob in vertical mode
+--    + Item: allow to run in vertical mode
+--    + Envelope: allow to run in vertical mode
+--    + MIDI Editor: allow to run in vertical mode
+--    + Track: allow to run in vertical mode
+--    # Track/#fxlist: toggle floating FX
 
-    local vrs = '1.93'
+
+    local vrs = '2.0'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -43,7 +49,7 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-  local data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
+   data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title,
           masterdata = {ptr =  GetMasterTrack(0)}}
@@ -112,6 +118,8 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             dock =    0,
             lastdockID = 0,
             
+            dock_orientation = 0,
+            
             GUI_font1 = 17,
             GUI_font2 = 15,
             GUI_font3 = 32, -- clock
@@ -137,6 +145,7 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             MM_grid_ignoreleftdrag = 0,
             MM_grid_default_reset_grid = 0.25,
             MM_grid_default_reset_MIDIgrid = 0.25,
+            
             tap_quantize = 0,
             trackfxctrl_use_brutforce = 0, 
             ignore_context = 0,
@@ -145,6 +154,7 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             timiselwidgetsformatoverride = -2,
             master_buf = 100,
             relative_it_len = 0,
+            trackvol_slider = 1,
             
             actiononchangecontext_item = '',
             actiononchangecontext_itemM = '',
@@ -170,7 +180,7 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
       
       
       --if not SCC_trig and HasCurPosChanged() then msg(11)  SCC_trig = true end
-      if not SCC_trig and HasTimeSelChanged() and (lastSCC_trig and lastSCC_trig == false) then  SCC_trig = true end
+      if not SCC_trig and HasTimeSelChanged() then SCC_trig = true end -- and (lastSCC_trig and lastSCC_trig == false) 
       if not SCC_trig and HasRulerFormChanged() then SCC_trig = true end    
       if not SCC_trig and HasPlayStateChanged() then SCC_trig = true end 
       if not SCC_trig and HasSelEnvChanged() then SCC_trig = true end  

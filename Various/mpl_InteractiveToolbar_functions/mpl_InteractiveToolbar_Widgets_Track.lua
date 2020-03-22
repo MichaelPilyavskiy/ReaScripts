@@ -5,7 +5,7 @@
 
 
   -- track wigets for mpl_InteractiveToolbar
-  
+  -- #color #fxcontrols #buttons #vol #pan #fxlist #sendto #delay #troffs #chsendmixer #chrecvmixer #freeze 
   ---------------------------------------------------
   function Obj_UpdateTrack(data, obj, mouse, widgets, conf)
     obj.b.obj_name = { x = obj.menu_b_rect_side + obj.offs,
@@ -27,9 +27,14 @@
                               end
                             end
                           end} 
+    local y_offs = obj.entry_h*2 + obj.offs
     local x_offs = obj.menu_b_rect_side + obj.offs + conf.GUI_contextname_w *conf.scaling
-    
-    
+    if conf.dock_orientation == 1 then 
+      x_offs = 0 
+      obj.b.obj_name.w = gfx.w - obj.menu_b_rect_side
+     else 
+      y_offs = 0  
+    end    
     
   --------------------------------------------------------------  
     local tp_ID = data.obj_type_int
@@ -38,8 +43,15 @@
       for i = 1, #widgets[widg_key] do
         local key = widgets[widg_key][i]
         if _G['Widgets_Track_'..key] then
-            local ret = _G['Widgets_Track_'..key](data, obj, mouse, x_offs, widgets, conf) 
-            if ret then x_offs = x_offs + obj.offs + ret end
+            local retX, retY = _G['Widgets_Track_'..key](data, obj, mouse, x_offs, widgets, conf, y_offs) 
+            if conf.dock_orientation == 1 and not retY then retY = obj.entry_h elseif conf.dock_orientation == 0 and not retY then retY = 0 end
+            if retX and retY then 
+              if conf.dock_orientation == 0 then 
+                x_offs = x_offs + obj.offs + retX 
+               elseif conf.dock_orientation == 1  then
+                y_offs = y_offs + obj.offs + retY 
+              end
+            end
         end
       end  
     end
@@ -53,33 +65,48 @@
 
 
   --------------------------------------------------------------  
-  function Widgets_Track_buttons(data, obj, mouse, x_offs0, widgets)
-    local frame_a, x_offs, y_offs
-    if x_offs0 + obj.entry_w2*2 > obj.persist_margin then return x_offs0 end  -- reduce buttons when more than regular wx2
-    local last_x1,last_x2 = x_offs0, x_offs0
-    local tp_ID = data.obj_type_int
-    local widg_key = widgets.types_t[tp_ID+1] -- get key of current mapped table
-    if widgets[widg_key] and widgets[widg_key].buttons  then  
-      for i = 1, #widgets[widg_key].buttons do 
-        local key = widgets[widg_key].buttons[i]
-        if _G['Widgets_Track_buttons_'..key] then  
-          if i%2 == 1 then 
-            x_offs = last_x1
-            frame_a = obj.frame_a_head
-            y_offs = 0
-           elseif i%2 == 0 then   
-            x_offs = last_x2 
-            frame_a = obj.frame_a_entry
-            y_offs = obj.entry_h
-          end
-          local next_w = _G['Widgets_Track_buttons_'..key](data, obj, mouse, x_offs, y_offs, frame_a)
-          if i%2 == 1 then last_x1 = last_x1+next_w elseif i%2 == 0 then last_x2 = last_x2+next_w end
-        end
-        
-      end
-    end
-    return math.max(last_x1,last_x2) - x_offs0
-  end 
+  function Widgets_Track_buttons(data, obj, mouse, x_offs0, widgets, conf, y_offs0)
+   local frame_a, x_offs
+   local y_offs = 0
+   if conf.dock_orientation == 0 and x_offs0 + obj.entry_w2*2 > obj.persist_margin then return x_offs0 end  -- reduce buttons when more than regular wx2
+   local last_x1,last_x2 = x_offs0, x_offs0
+   local tp_ID = data.obj_type_int
+   local widg_key = widgets.types_t[tp_ID+1] -- get key of current mapped table
+   if widgets[widg_key] and widgets[widg_key].buttons  then  
+     for i = 1, #widgets[widg_key].buttons do 
+       local key = widgets[widg_key].buttons[i]
+       if _G['Widgets_Track_buttons_'..key] then  
+         if conf.dock_orientation == 0 then  
+           if i%2 == 1 then 
+             x_offs = last_x1
+             frame_a = obj.frame_a_head
+             y_offs = 0
+            elseif i%2 == 0 then   
+             x_offs = last_x2 
+             frame_a = obj.frame_a_entry
+             y_offs = obj.entry_h
+           end
+          
+          else
+           frame_a = obj.frame_a_head
+           x_offs = last_x1
+         end
+         local next_w = _G['Widgets_Track_buttons_'..key](data, obj, mouse, x_offs, y_offs+y_offs0, frame_a, conf)
+         if conf.dock_orientation == 0 then  
+           if i%2 == 1 then last_x1 = last_x1+next_w elseif i%2 == 0 then last_x2 = last_x2+next_w end 
+          else
+           last_x1 = last_x1+next_w
+           if last_x1 +80> gfx.w then 
+             y_offs = y_offs + obj.entry_h
+             last_x1 = 0
+           end
+         end
+       end
+       
+     end
+   end
+   return math.max(last_x1,last_x2) - x_offs0, y_offs + obj.entry_h
+ end 
   --------------------------------------------------------------   
   
   
@@ -140,11 +167,11 @@
   
   
   -------------------------------------------------------------- 
-  function Widgets_Track_pan(data, obj, mouse, x_offs, widgets, conf)
+  function Widgets_Track_pan(data, obj, mouse, x_offs, widgets, conf, y_offs)
     local pan_w = 60*conf.scaling
     if x_offs + pan_w > obj.persist_margin then return x_offs end 
     obj.b.obj_tr_pan = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = pan_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -152,18 +179,25 @@
                         txt_col = obj.txt_col_header,
                         txt = 'Pan'} 
     obj.b.obj_tr_pan_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = y_offs +obj.entry_h ,
                         w = pan_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         ignore_mouse = true}  
-
+      if conf.dock_orientation == 1 then
+        obj.b.obj_tr_pan.w = obj.entry_w2/2
+        obj.b.obj_tr_pan_back.x= obj.entry_w2/2
+        obj.b.obj_tr_pan_back.y = y_offs
+        obj.b.obj_tr_pan_back.w = obj.entry_w2/2
+        obj.b.obj_tr_pan_back.frame_a = obj.frame_a_head
+      end 
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = {data.tr[1].pan_format},
                         table_key='tr_pan_ctrl',
-                        x_offs= x_offs,  
-                        w_com=pan_w,--obj.entry_w2,
+                        x_offs= obj.b.obj_tr_pan_back.x,
+                        y_offs= obj.b.obj_tr_pan_back.y,  
+                        w_com=obj.b.obj_tr_pan_back.w,
                         src_val=data.tr,
                         src_val_key= 'pan',
                         modify_func= MPL_ModifyFloatVal,
@@ -211,11 +245,11 @@
 
 
   --------------------------------------------------------------   
-  function Widgets_Track_vol(data, obj, mouse, x_offs, widgets, conf) -- generate snap_offs controls 
+  function Widgets_Track_vol(data, obj, mouse, x_offs, widgets, conf, y_offs) -- generate snap_offs controls 
     local vol_w = 60 *conf.scaling
     if x_offs + vol_w > obj.persist_margin then return x_offs end 
     obj.b.obj_trvol = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs,
                         w = vol_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -223,20 +257,27 @@
                         txt_col = obj.txt_col_header,
                         txt = 'Volume'} 
     obj.b.obj_trvol_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = y_offs +obj.entry_h ,
                         w = vol_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt ='',
                         fontsz = obj.fontsz_entry,
                         ignore_mouse = true}  
-                
+      if conf.dock_orientation == 1 then
+        obj.b.obj_trvol.w = obj.entry_w2/2
+        obj.b.obj_trvol_back.x= obj.entry_w2/2
+        obj.b.obj_trvol_back.y = y_offs
+        obj.b.obj_trvol_back.w = obj.entry_w2/2
+        obj.b.obj_trvol_back.frame_a = obj.frame_a_head
+      end                 
       local vol_str = data.tr[1].vol_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = {data.tr[1].vol_format},
                         table_key='trvol_ctrl',
-                        x_offs= x_offs,  
-                        w_com=vol_w,--obj.entry_w2,
+                        x_offs= obj.b.obj_trvol_back.x,
+                        y_offs= obj.b.obj_trvol_back.y,  
+                        w_com=obj.b.obj_trvol_back.w,--obj.entry_w2,
                         src_val=data.tr,
                         src_val_key= 'vol',
                         modify_func= MPL_ModifyFloatVal,
@@ -244,12 +285,73 @@
                         mouse_scale= obj.mouse_scal_vol,               -- mouse scaling
                         use_mouse_drag_xAxis = data.always_use_x_axis==1,
                         --ignore_fields= true, -- same tolerance change
-                        y_offs= nil,
+                        --y_offs= nil,
                         dont_draw_val = nil,
                         default_val = 1,
                         modify_wholestr = true,
                         onRelease_ActName = data.scr_title..': Change track properties'})
-    return vol_w--obj.entry_w2                         
+    if conf.trackvol_slider == 1  and conf.dock_orientation ==1  then
+      obj.b.trackvol_slider_back = { x = 0,
+                                y = y_offs+obj.entry_h,
+                                w = gfx.w,
+                                h = gfx.w/2,
+                        frame_a = obj.frame_a_head,
+                        txt ='',
+                        fontsz = obj.fontsz_entry,
+                        ignore_mouse = true}  
+      obj.b.trackvol_slider = { x = 0,
+                                y = y_offs+obj.entry_h,
+                                w = gfx.w,
+                                h = gfx.w,
+                                frame_a = 0,
+                                txt = '',
+                                txt_a = obj.txt_a,
+                                fontsz = obj.fontsz_entry,
+                                is_knob = true,
+                                knob_yshift = 3,
+                                knob_w = gfx.w/2,
+                                knob_col = obj.txt_col_header,
+                                val = data.tr[1].vol/2,
+                                func =        function()
+                                                mouse.temp_val = data.tr[1].vol
+                                                redraw = 1                              
+                                              end,
+                                func_ctrlL =        function()
+                                                mouse.temp_val = data.tr[1].vol
+                                                redraw = 1                              
+                                              end,                                              
+                                func_wheel =  function()
+                                                local out_value = MPL_ModifyFloatVal(data.tr[1].vol, 1, 1, mouse.wheel_trig, data, nil, -2)
+                                                out_value = lim(out_value,0,4)
+                                                SetMediaTrackInfo_Value( data.tr[1].ptr, 'D_VOL', out_value)
+                                                redraw = 2          
+                                              end,                                              
+                                func_drag =   function(is_ctrl) 
+                                                if not mouse.temp_val then return end
+                                                local pow_tol = -2
+                                                local out_value, mouse_shift 
+                                                out_value = MPL_ModifyFloatVal(mouse.temp_val, 1, 1, math.modf((-mouse.dx/4)/obj.mouse_scal_float), data, nil, pow_tol)
+                                                out_value = lim(out_value,0,4)
+                                                SetMediaTrackInfo_Value( data.tr[1].ptr, 'D_VOL', out_value)
+                                                redraw =2
+                                              end,
+                                func_drag_Ctrl =   function(is_ctrl) 
+                                                if not mouse.temp_val then return end
+                                                local pow_tol = -4 
+                                                local out_value = MPL_ModifyFloatVal(mouse.temp_val, 1, 1, math.modf(mouse.dy/obj.mouse_scal_float), data, nil, pow_tol)
+                                                out_value = lim(out_value,0,4)
+                                                SetMediaTrackInfo_Value( data.tr[1].ptr, 'D_VOL', out_value)
+                                                redraw = 2
+                                              end,                                              
+                                func_DC =     function() 
+                                                local retval0,ret_str = GetUserInputs( 'Edit value', 1, ',extrawidth=100', WDL_VAL2DB(data.tr[1].vol, true))
+                                                if not retval0 or not tonumber(ret_str) then return end
+                                                SetMediaTrackInfo_Value( data.tr[1].ptr, 'D_VOL', ParseDbVol(ret_str))                                                               
+                                              end}   
+ 
+    end                    
+    if conf.trackvol_slider == 1 and conf.dock_orientation ==1 then return  vol_w, gfx.w/2 +obj.entry_h
+     else return vol_w, obj.entry_h end              
   end
   
   function Apply_Track_vol(data, obj, t_out_values, butkey, out_str_toparse)
@@ -288,11 +390,11 @@
 
 
 
-  function Widgets_Track_delay(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+  function Widgets_Track_delay(data, obj, mouse, x_offs, widgets, conf, y_offs)    -- generate position controls 
     local del_w = 60*conf.scaling
     if x_offs + del_w > obj.persist_margin then return x_offs end 
     obj.b.obj_trdelay = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = del_w,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -300,21 +402,28 @@
                         txt_col = obj.txt_col_header,
                         txt = 'Delay'} 
     obj.b.obj_trdelay_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = y_offs +obj.entry_h ,
                         w = del_w,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = data.tr[1].delay_format..'s',
                         fontsz = obj.fontsz_entry,
                         ignore_mouse = true}  
-                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_trdelay.w = obj.entry_w2/2
+        obj.b.obj_trdelay_back.x= obj.entry_w2/2
+        obj.b.obj_trdelay_back.y = y_offs
+        obj.b.obj_trdelay_back.w = obj.entry_w2/2
+        obj.b.obj_trdelay_back.frame_a = obj.frame_a_head
+      end                         
                         
       local delay_str = data.tr[1].delay_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = {delay_str},
                         table_key='delay_ctrl',
-                        x_offs= x_offs,  
-                        w_com=del_w,
+                        x_offs= obj.b.obj_trdelay_back.x,
+                        y_offs= obj.b.obj_trdelay_back.y,  
+                        w_com=obj.b.obj_trdelay_back.w,
                         src_val=data.tr,
                         src_val_key= 'delay',
                         modify_func= MPL_ModifyTimeVal,
@@ -361,14 +470,19 @@
   
   
   --------------------------------------------------------------   
-  function Widgets_Track_fxlist(data, obj, mouse, x_offs, widgets, conf)
+  function Widgets_Track_fxlist(data, obj, mouse, x_offs, widgets, conf, y_offs)
     if not data.tr[1].fx_names or #data.tr[1].fx_names < 1 then return end
     local fxlist_w = 120 *conf.scaling
     local fxlist_state = 30*conf.scaling
+    if conf.dock_orientation == 1 then
+      fxlist_w = gfx.w
+      fxlist_state = gfx.w*0.2
+    end    
+    
     if x_offs + fxlist_w > obj.persist_margin then return x_offs end 
     local fxid = lim(math.modf(data.curent_trFXID),1, #data.tr[1].fx_names)
     obj.b.obj_fxlist_back1 = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = fxlist_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -378,7 +492,7 @@
                         func_wheel =  function() Apply_TrackFXListChange(data, mouse.wheel_trig) end}
                             --    func = function () Apply_TrackFXListChange_floatFX(data, mouse, data.tr[1].fx_names[fxid].is_enabled) end     
     obj.b.obj_fxlist_back2 = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = y_offs +obj.entry_h ,
                         w = fxlist_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
@@ -388,6 +502,7 @@
                           --      func = function () Apply_TrackFXListChange_floatFX(data, mouse, data.tr[1].fx_names[fxid].is_enabled) end  }                           
     
     local h_entr= obj.fontsz_entry
+    if conf.dock_orientation == 1 then h_entr= obj.fontsz_entry*0.6 end
     for i = 1, #data.tr[1].fx_names do
       local txt_a = 0.2
       if data.curent_trFXID and i == lim(math.modf(data.curent_trFXID),1, #data.tr[1].fx_names) then txt_a = obj.txt_a end
@@ -395,8 +510,9 @@
       local txt_col = obj.txt_col_header
       if not data.tr[1].fx_names[i].is_enabled then txt_col = 'red'end
       if not data.tr[1].fx_names[i].is_online then txt_col = 'grey'end
-      obj.b['obj_fxlist_val'..i] = { x =  x_offs+fxlist_state,
-                                y = obj.offs *2 + obj.entry_h/2 + h_entr*(i-i_shift-1) ,
+      if y_offs + obj.entry_h/2 + h_entr*(i-i_shift-1) > y_offs and y_offs + obj.entry_h/2 + h_entr*(i-i_shift-1)+h_entr < y_offs + obj.entry_h*2 then
+        obj.b['obj_fxlist_val'..i] = { x =  x_offs+fxlist_state,
+                                y = y_offs + obj.entry_h/2 + h_entr*(i-i_shift-1) ,
                                 w = fxlist_w-fxlist_state,--obj.entry_w2,
                                 h = h_entr,
                                 frame_a = 0,
@@ -406,7 +522,8 @@
                                 txt =data.tr[1].fx_names[i].name,
                                 fontsz = obj.fontsz_entry,
                                 func_wheel =  function() Apply_TrackFXListChange(data, mouse.wheel_trig) end, 
-                                func = function () Apply_TrackFXListChange_floatFX(data, mouse, data.tr[1].fx_names[i].is_enabled) end              }   
+                                func = function () Apply_TrackFXListChange_floatFX(data, mouse, data.tr[1].fx_names[i].is_enabled) end              }  
+      end 
       local txt,txt_col
 --[[      if not data.tr[1].fx_names[i].is_enabled or not data.tr[1].fx_names[i].is_online then 
         txt = ''
@@ -419,8 +536,9 @@
       end     ]]
       txt =i 
       txt_col = obj.txt_col_header
+      if y_offs + obj.entry_h/2 + h_entr*(i-i_shift-1) > y_offs and y_offs + obj.entry_h/2 + h_entr*(i-i_shift-1)+h_entr < y_offs + obj.entry_h*2 then
         obj.b['obj_fxlist_val'..i..'state'] = { x =  x_offs,
-                                y = obj.offs *2 + obj.entry_h/2 + h_entr*(i-i_shift-1) ,
+                                y = y_offs + obj.entry_h/2 + h_entr*(i-i_shift-1) ,
                                 w = fxlist_state,--obj.entry_w2,
                                 h = h_entr,
                                 frame_a = 0,
@@ -429,9 +547,10 @@
                                 txt =txt,
                                 fontsz = obj.fontsz_entry,
                                 func_wheel =  function() Apply_TrackFXListChange(data, mouse.wheel_trig) end, 
-                                func = function () Apply_TrackFXListChange_floatFX(data, mouse, data.tr[1].fx_names[i].is_enabled) end              }           
+                                func = function () Apply_TrackFXListChange_floatFX(data, mouse, data.tr[1].fx_names[i].is_enabled) end              }   
+      end        
     end
-    return fxlist_w               
+    return fxlist_w, obj.entry_h*2               
   end
 
   function Apply_TrackFXListChange(data, wheel_trig)
@@ -454,7 +573,8 @@
      elseif mouse.Alt and support_FX_change then
       TrackFX_Delete( data.tr[1].ptr, fx_id-1 )
      elseif not mouse.Ctrl and not mouse.Shift and not mouse.Alt then
-      TrackFX_Show( data.tr[1].ptr, fx_id-1, 3 )
+      local is_open = reaper.TrackFX_GetOpen(data.tr[1].ptr, fx_id-1 )
+      if not is_open then TrackFX_Show( data.tr[1].ptr, fx_id-1, 3 ) else TrackFX_Show( data.tr[1].ptr, fx_id-1, 2 ) end
     end
     
   end
@@ -465,38 +585,46 @@
   
   
 -----------------------------------------------------------   
-  function Widgets_Track_sendto(data, obj, mouse, x_offs, widgets, conf)
+  function Widgets_Track_sendto(data, obj, mouse, x_offs, widgets, conf, y_offs)
     local send_but = 20*conf.scaling
     local vol_w = 60 *conf.scaling
     local send_w = send_but + vol_w 
     if x_offs + send_w > obj.persist_margin then return x_offs end 
     obj.b.obj_sendto_back1 = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs,
                         w = send_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
+                        --txt ='test',
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
                         ignore_mouse = true} 
     obj.b.obj_sendto_back2 = { x = x_offs,
-                        y = obj.offs+obj.entry_h ,
+                        y = y_offs+obj.entry_h ,
                         w = send_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
-                        ignore_mouse = true}  
+                        ignore_mouse = true} 
+      if conf.dock_orientation == 1 then
+        obj.b.obj_sendto_back1.w = obj.entry_w2
+        obj.b.obj_sendto_back2.w = obj.entry_w2
+      end                           
     obj.b.obj_sendto_but = { x = x_offs+send_w-send_but,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = send_but,--obj.entry_w2,
                         h = obj.entry_h*2,
                         frame_a = 0,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
                         txt = '->',
-                        func = function() SendTracksTo(data, mouse) end }     
+                        func = function() SendTracksTo(data, mouse) end }  
+      if conf.dock_orientation == 1 then
+        obj.b.obj_sendto_but.x = obj.entry_w2 - send_but
+      end                             
     obj.b.obj_sendto_vol = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = vol_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = 0,
@@ -510,23 +638,27 @@
                         is_slider = true,
                         sider_col = obj.txt_col_entry,
                         slider_a = 0.4}  
+      if conf.dock_orientation == 1 then
+        obj.b.obj_sendto_vol.w = obj.entry_w2 - send_but
+      end                         
       local svol_str = data.defsendvol_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = MPL_GetTableOfCtrlValues2(svol_str),
                         table_key='svol_ctrl',
-                        x_offs= x_offs,  
-                        w_com=vol_w,--obj.entry_w2,
+                        x_offs= obj.b.obj_sendto_vol.x,  
+                        y_offs= obj.b.obj_sendto_vol.y,  
+                        w_com=obj.b.obj_sendto_vol.w,
                         src_val=data.defsendvol,
                         modify_func= MPL_ModifyFloatVal,
                         app_func= Apply_STrack_vol,                         
                         mouse_scale= obj.mouse_scal_vol,               -- mouse scaling
                         use_mouse_drag_xAxis= true, -- x
                         ignore_fields= true, -- same tolerance change
-                        y_offs= obj.offs,
+                        --y_offs= obj.offs,
                         dont_draw_val = true,
                         default_val = tonumber(({BR_Win32_GetPrivateProfileString( 'REAPER', 'defsendvol', '0',  get_ini_file() )})[2])})
     obj.b.obj_sendto_pan = { x = x_offs,
-                        y = obj.offs +obj.entry_h,
+                        y = y_offs +obj.entry_h,
                         w = vol_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = 0,
@@ -540,13 +672,17 @@
                         is_slider = true,
                         sider_col = obj.txt_col_entry,
                         slider_a = 0.4,
-                        centered_slider = true}                         
+                        centered_slider = true}  
+      if conf.dock_orientation == 1 then
+        obj.b.obj_sendto_pan.w = obj.entry_w2 - send_but
+      end                                                 
       local span_str = data.defsendpan_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = MPL_GetTableOfCtrlValues2(span_str),
                         table_key='span_ctrl',
-                        x_offs= x_offs,  
-                        w_com=vol_w,--obj.entry_w2,
+                        x_offs= obj.b.obj_sendto_pan.x,  
+                        y_offs= obj.b.obj_sendto_pan.y,  
+                        w_com=obj.b.obj_sendto_pan.w,
                         src_val=data.defsendpan,
                         --src_val_key= '',
                         modify_func= MPL_ModifyFloatVal,
@@ -554,11 +690,12 @@
                         mouse_scale= obj.mouse_scal_pan,               -- mouse scaling
                         use_mouse_drag_xAxis= true, -- x
                         ignore_fields= true, -- same tolerance change
-                        y_offs= obj.offs+obj.entry_h,
+                        --y_offs= obj.offs+obj.entry_h,
                         dont_draw_val = true,
                         default_val = 0})
-    return send_w 
+    return send_w , obj.entry_h*2
   end
+  
   function Apply_STrack_vol(data, obj, t_out_values, butkey, out_str_toparse)
     if not out_str_toparse then 
       data.defsendvol = lim(t_out_values,-1,1)
@@ -582,7 +719,7 @@
       local out_val = tonumber(out_str_toparse) 
       out_val = ParseDbVol(out_str_toparse)
       out_val = math.max(0,out_val) 
-      data.defsendvol =out_val  
+      data.defsendvol =out_val 
       redraw = 2   
     end
   end  
@@ -718,16 +855,19 @@
 
 
 -----------------------------------------------------------   
-  function Widgets_Track_chsendmixer(data, obj, mouse, x_offs, widgets, conf)
+  function Widgets_Track_chsendmixer(data, obj, mouse, x_offs, widgets, conf, y_offs)
     if data.tr_cnt_sends + data.tr_cnt_sendsHW == 0 then return end
     local send_name_w = 120*conf.scaling
     local ch_w = 12  *conf.scaling
     local send_w = send_name_w + (data.tr_cnt_sends + data.tr_cnt_sendsHW) * ch_w
-  
+    if conf.dock_orientation == 1 then
+      send_w = gfx.w
+      send_name_w = send_w - (data.tr_cnt_sends + data.tr_cnt_sendsHW) * ch_w
+    end
     
     if x_offs + send_w > obj.persist_margin then return x_offs end 
     obj.b.obj_sendmix_back1 = { x = x_offs,
-                        y = obj.offs ,
+                        y =y_offs,
                         w = send_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -736,7 +876,7 @@
                         txt_col = obj.txt_col_header,
                         ignore_mouse = true}  
     obj.b.obj_sendmix_back2 = { x = x_offs,
-                        y = obj.offs+obj.entry_h ,
+                        y = y_offs+obj.entry_h ,
                         w = send_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
@@ -746,9 +886,10 @@
                        
     local ch_w = 12*conf.scaling
     local ch_h = math.floor(obj.entry_h*1.8)
-    local ch_y = obj.offs + (obj.entry_h*2-math.floor(obj.entry_h*1.8))/2
+    local ch_y = y_offs + (obj.entry_h*2-math.floor(obj.entry_h*1.8))/2
     for i = 1, data.tr_cnt_sends + data.tr_cnt_sendsHW do
       local slider_a if data.active_context_id and data.active_context_id == i then slider_a = 0.5 else slider_a = 0.2 end
+      local val = lim(data.tr_send[i].s_vol_slider)
       obj.b['obj_sendmix_ch'..i] = { x = x_offs + 3 + math.floor(ch_w * (i-1)),
                         y = ch_y,
                         w = ch_w,--obj.entry_w2,
@@ -759,7 +900,7 @@
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_entry,
                         --ignore_mouse=true,
-                        val = lim(data.tr_send[i].s_vol_slider),
+                        val = val,
                         is_slider = true,
                         is_vertical_slider = true,
                         sider_col = obj.txt_col_entry,
@@ -826,7 +967,7 @@
     local txt = ''
     if data.active_context_sendmixer then txt = '-> '..data.active_context_sendmixer end
     obj.b.obj_sendmix_tr_name = { x = x_offs+mix_fields,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = send_name_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = 0,
@@ -843,7 +984,7 @@
     if data.active_context_sendmixer_val then
 
       obj.b.obj_sendmix_tr_s_vol = { x = x_offs+mix_fields,
-                          y = obj.offs+obj.entry_h ,
+                          y = y_offs+obj.entry_h ,
                           w = send_name_w,
                           h = obj.entry_h,
                           frame_a = 0,
@@ -868,7 +1009,7 @@
                                               end
                       } 
     end                                                                       
-    return send_w
+    return send_w, obj.entry_h*2
   end
   -------------------
   function Apply_SendMix_vol_input(srcval, data)
@@ -905,15 +1046,18 @@
 
 
 ----------------------------------------------------------- 
-  function Widgets_Track_chrecvmixer(data, obj, mouse, x_offs, widgets, conf)
+  function Widgets_Track_chrecvmixer(data, obj, mouse, x_offs, widgets, conf, y_offs)
     if data.tr_cnt_receives == 0 then return end
     local recv_name_w = 120*conf.scaling
     local ch_w = 12  *conf.scaling
     local recv_w = recv_name_w + data.tr_cnt_receives * ch_w
-    
+    if conf.dock_orientation == 1 then
+      recv_w = gfx.w
+      recv_name_w = recv_w - (data.tr_cnt_sends + data.tr_cnt_sendsHW) * ch_w
+    end    
     if x_offs + recv_w > obj.persist_margin then return x_offs end 
     obj.b.obj_recvmix_back1 = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = recv_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -922,20 +1066,24 @@
                         txt_col = obj.txt_col_header,
                         ignore_mouse = true}  
     obj.b.obj_recvmix_back2 = { x = x_offs,
-                        y = obj.offs+obj.entry_h ,
+                        y = y_offs+obj.entry_h ,
                         w = recv_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
                         ignore_mouse = true} 
-                       
+      if conf.dock_orientation == 1 then
+        obj.b.obj_recvmix_back1.w = obj.entry_w2
+        obj.b.obj_recvmix_back2.w = obj.entry_w2
+      end                        
     local ch_w = 12*conf.scaling
     local ch_h = math.floor(obj.entry_h*1.8)
-    local ch_y = obj.offs + (obj.entry_h*2-math.floor(obj.entry_h*1.8))/2
+    local ch_y = y_offs + (obj.entry_h*2-math.floor(obj.entry_h*1.8))/2
     local mix_fields = recv_w-data.tr_cnt_receives * ch_w - 6
     for i = 1, data.tr_cnt_receives do
-      local slider_a if data.active_context_id2 and data.active_context_id2 == i then slider_a = 0.5 else slider_a = 0.2 end
+      local slider_a 
+      if data.active_context_id2 and data.active_context_id2 == i then slider_a = 0.5 else slider_a = 0.2 end
       obj.b['obj_recvmix_ch'..i] = { x = mix_fields+x_offs + 3 + math.floor(ch_w * (i-1)),
                         y = ch_y,
                         w = ch_w,--obj.entry_w2,
@@ -1013,7 +1161,7 @@
     local txt = ''
     if data.active_context_sendmixer2 then txt = data.active_context_sendmixer2..' ->' end
     obj.b.obj_recvmix_tr_name = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = recv_name_w,
                         h = obj.entry_h,
                         frame_a = 0,
@@ -1030,7 +1178,7 @@
     if data.active_context_sendmixer_val2 then
 
       obj.b.obj_recvmix_tr_s_vol = { x = x_offs,
-                          y = obj.offs+obj.entry_h ,
+                          y = y_offs+obj.entry_h ,
                           w = recv_name_w,
                           h = obj.entry_h,
                           frame_a = 0,
@@ -1055,7 +1203,7 @@
                                               end
                       } 
     end                                                                       
-    return recv_w
+    return recv_w,  obj.entry_h*2
   end
   -------------------
   function Apply_RecvMix_vol_input(data, srcval)
@@ -1092,10 +1240,12 @@
   
   
 ----------------------------------------------------------- 
-  function Widgets_Track_fxcontrols(data, obj, mouse, x_offs, widgets, conf)
+  function Widgets_Track_fxcontrols(data, obj, mouse, x_offs, widgets, conf, y_offs)
+    if not data.tr_FXCtrl or not data.tr[1].GUID or not data.tr_FXCtrl[data.tr[1].GUID] then return 0,0 end
     local ch_w = 12*conf.scaling
     local fxctrl_menu_w = 20*conf.scaling
     local fxctrl_name_w = 100*conf.scaling
+    
     local fxctrl_w
     local mix_fields = 0
     if data.tr_FXCtrl[data.tr[1].GUID] then 
@@ -1105,26 +1255,49 @@
       fxctrl_w = fxctrl_menu_w
     end
     
-    if x_offs + fxctrl_w > obj.persist_margin then return x_offs end 
+    if conf.dock_orientation == 1 then
+      fxctrl_w = gfx.w
+      mix_fields = #data.tr_FXCtrl[data.tr[1].GUID] * ch_w
+      fxctrl_menu_w = (fxctrl_w - mix_fields) * 0.2
+      fxctrl_name_w = (fxctrl_w - mix_fields) * 0.8
+    end
+    
+    if x_offs + fxctrl_w > obj.persist_margin then return x_offs, obj.entry_h*2 end 
+    
     obj.b.obj_fxctrl_back1 = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = fxctrl_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
                         --txt = 'test',
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
-                        ignore_mouse = true}  
+                        ignore_mouse = true} 
+    if conf.dock_orientation == 1 then
+      obj.b.obj_fxctrl_back1.x= 0
+      obj.b.obj_fxctrl_back1.y = y_offs
+      obj.b.obj_fxctrl_back1.w = gfx.w-fxctrl_menu_w
+      obj.b.obj_fxctrl_back1.h = obj.entry_h*2
+    end                         
     obj.b.obj_fxctrl_back2 = { x = x_offs,
-                        y = obj.offs+obj.entry_h ,
+                        y = y_offs+obj.entry_h ,
                         w = fxctrl_w,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
-                        ignore_mouse = true} 
+                        ignore_mouse = true}
+    if conf.dock_orientation == 1 then
+      obj.b.obj_fxctrl_back2.x= gfx.w-fxctrl_menu_w
+      obj.b.obj_fxctrl_back2.y = y_offs
+      obj.b.obj_fxctrl_back2.w = fxctrl_menu_w
+      obj.b.obj_fxctrl_back2.h = obj.entry_h*2
+      obj.b.obj_fxctrl_back2.frame_a = obj.frame_a_head
+    end                        
+ 
+                            
     obj.b.obj_fxctrl_app = {x = x_offs + fxctrl_w- fxctrl_menu_w,
-                          y =  obj.entry_h,
+                          y =  y_offs,
                           w = fxctrl_menu_w,
                           h = obj.entry_h,
                           frame_a = 0,--,
@@ -1164,9 +1337,14 @@
                                               })
                                         end
                       }  
-    if not data.tr_FXCtrl[data.tr[1].GUID] then return fxctrl_w end                      
+    --[[if conf.dock_orientation == 1 then
+      obj.b.obj_fxctrl_app.x= obj.entry_w2-fxctrl_menu_w
+      obj.b.obj_fxctrl_app.y = y_offs
+      obj.b.obj_fxctrl_app.w = fxctrl_menu_w
+    end  ]]                     
+    if not data.tr_FXCtrl[data.tr[1].GUID] then return fxctrl_w, obj.entry_h*2 end                      
     local ch_h = math.floor(obj.entry_h*1.8)
-    local ch_y = obj.offs + (obj.entry_h*2-math.floor(obj.entry_h*1.8))/2
+    local ch_y = y_offs + (obj.entry_h*2-math.floor(obj.entry_h*1.8))/2
     local mix_fields = #data.tr_FXCtrl[data.tr[1].GUID] * ch_w
     for i = 1, #data.tr_FXCtrl[data.tr[1].GUID] do
       local slider_a if data.active_context_id3 and data.active_context_id3 == i then slider_a = 0.5 else slider_a = 0.2 end
@@ -1243,10 +1421,10 @@
       fxctrl_val_txt =  data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3].paramformat
       fxctrl_name_txt = data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3].paramname      
      else
-      return fxctrl_w
+      return fxctrl_w, obj.entry_h*2
     end
     obj.b.fxctrl_fxname = { x = x_offs + mix_fields+4,
-                        y = -2,
+                        y = y_offs,
                         w = fxctrl_w - mix_fields -4,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = 0,
@@ -1255,11 +1433,10 @@
                         aligh_txt = 1,
                         txt_col = obj.txt_col_entry,
                         fontsz = obj.fontszFXctrl,
-                        func = function () 
-                                  Apply_FXCtrl_FloatFX(data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3])
-                                end} 
+                        func = function ()  Apply_FXCtrl_FloatFX(data.tr_FXCtrl[data.tr[1].GUID][data.active_context_id3]) end} 
+                      
     obj.b.fxctrl_name = { x = x_offs + mix_fields+4,
-                        y = -2+obj.fontszFXctrl-1 ,
+                        y = y_offs+obj.fontszFXctrl-2 ,
                         w = fxctrl_w - mix_fields -4,--obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = 0,
@@ -1283,7 +1460,7 @@
                                               end
                                             end} 
     obj.b.fxctrl_val = { x = x_offs + mix_fields+4,
-                          y =-2+ obj.fontszFXctrl*2-2 ,
+                          y =y_offs+ obj.fontszFXctrl*2-3 ,
                           w = fxctrl_w - mix_fields -4 - fxctrl_menu_w,--obj.entry_w2,
                           h = obj.entry_h,
                           frame_a = 0,
@@ -1307,7 +1484,7 @@
                                                 end
                                               end
                       }                                                                      
-    return fxctrl_w
+    return fxctrl_w, obj.entry_h*2
   end  
   ---------------------------------------------------------------
   function UpdateFXCtrls(data, linktrGUID, trackGUID, FX_GUID, paramnum, lim1, lim2)
@@ -1381,12 +1558,12 @@
 
 
   --------------------------------------------------------------
-  function Widgets_Track_freeze(data, obj, mouse, x_offs, widgets, conf) 
+  function Widgets_Track_freeze(data, obj, mouse, x_offs, widgets, conf, y_offs)
     local w = 80*conf.scaling
     if not data.tr or not data.tr.freezecnt_format then return end
     if x_offs + w > obj.persist_margin then return x_offs end 
     obj.b.obj_tr_freeze = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = w,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -1398,7 +1575,7 @@
                         txt = 'Frz '..data.tr.freezecnt_format,
                         func = function () Action(41223) end} 
     obj.b.obj_tr_unfreeze = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y =y_offs+obj.entry_h ,
                         w = w,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
@@ -1409,19 +1586,27 @@
                         txt_col = 'white',
                         txt = 'Unfreeze',
                         func = function() Action(41644) end} 
+      if conf.dock_orientation == 1 then
+        obj.b.obj_tr_freeze.x= 0
+        obj.b.obj_tr_freeze.w = obj.entry_w2/2
+        obj.b.obj_tr_freeze.x= obj.entry_w2/2
+        obj.b.obj_tr_unfreeze.y = y_offs
+        obj.b.obj_tr_unfreeze.w = obj.entry_w2/2
+        obj.b.obj_tr_unfreeze.frame_a = obj.frame_a_head
+      end                         
     return w
   end
   
   
   
-  function Widgets_Track_color(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+  function Widgets_Track_color(data, obj, mouse, x_offs, widgets, conf, y_offs)    -- generate position controls 
     local col_w = 20*conf.scaling
     if x_offs + col_w > obj.persist_margin then return end 
     if not data.tr[1].col then return end
     local a = 0.5
     if data.tr[1].col == 0 then a = 0.35 end
     obj.b.obj_trcolor = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs,
                         w = col_w,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -1430,7 +1615,7 @@
                         state_a = a,
                         func = function() Apply_TrackCol(data, conf) end} 
     obj.b.obj_trcolor_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = y_offs +obj.entry_h ,
                         w = col_w,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
@@ -1438,9 +1623,17 @@
                         state_col = data.tr[1].col,
                         state_a = a,
                         func = function() Apply_TrackCol(data, conf) end
-                        }      
+                        }
+      if conf.dock_orientation == 1 then
+        obj.b.obj_trcolor.x= 0
+        obj.b.obj_trcolor.y = y_offs
+        obj.b.obj_trcolor.w = obj.entry_w2
+        obj.b.obj_trcolor.frame_a = obj.frame_a_head
+        obj.b.obj_trcolor_back = nil
+      end                               
     return col_w                       
   end  
+  
   function Apply_TrackCol(data, conf)
     if conf.use_aironCS == 1 then 
       Action('_RSf336b8010869358bff1b619168ff2216ea2fb64b')
@@ -1455,12 +1648,12 @@
   end
 
 ------------------------------------------------------------------
-function Widgets_Track_troffs(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+function Widgets_Track_troffs(data, obj, mouse, x_offs, widgets, conf, y_offs)    -- generate position controls 
   if not VF_CheckReaperVrs(6.0,false) then return end 
     local del_w = 60*conf.scaling
     if x_offs + del_w > obj.persist_margin then return x_offs end 
     obj.b.obj_trdelay2 = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = del_w,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -1468,22 +1661,29 @@ function Widgets_Track_troffs(data, obj, mouse, x_offs, widgets, conf)    -- gen
                         txt_col = obj.txt_col_header,
                         txt = 'Offset'} 
     obj.b.obj_trdelay2_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = y_offs+obj.entry_h ,
                         w = del_w,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = (data.tr[1].toffs*1000)..'ms',
                         fontsz = obj.fontsz_entry,
                         ignore_mouse = true}  
-                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_trdelay2.w = obj.entry_w2/2
+        obj.b.obj_trdelay2_back.x= obj.entry_w2/2
+        obj.b.obj_trdelay2_back.y = y_offs
+        obj.b.obj_trdelay2_back.w = obj.entry_w2/2
+        obj.b.obj_trdelay2_back.frame_a = obj.frame_a_head
+      end                         
                         
       local troffs_str = data.tr[1].toffs
       
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = {troffs_str},
                         table_key='troffs_ctrl',
-                        x_offs= x_offs,  
-                        w_com=del_w,
+                        x_offs= obj.b.obj_trdelay2_back.x,  
+                        y_offs= obj.b.obj_trdelay2_back.y,  
+                        w_com=obj.b.obj_trdelay2_back.w,
                         src_val=data.tr,
                         src_val_key= 'toffs',
                         modify_func= MPL_ModifyTimeVal,

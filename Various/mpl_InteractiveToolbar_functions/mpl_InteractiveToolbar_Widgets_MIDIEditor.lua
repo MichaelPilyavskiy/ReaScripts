@@ -16,7 +16,14 @@
                         txt_a = obj.txt_a,
                         txt = data.take_name,
                         fontsz = obj.fontsz_entry} 
-    local x_offs = obj.menu_b_rect_side + obj.offs + conf.GUI_contextname_w*conf.scaling
+    local y_offs = obj.entry_h*2 + obj.offs
+    local x_offs = obj.menu_b_rect_side + obj.offs + conf.GUI_contextname_w *conf.scaling
+    if conf.dock_orientation == 1 then 
+      x_offs = 0 
+      obj.b.obj_name.w = gfx.w - obj.menu_b_rect_side
+     else 
+      y_offs = 0  
+    end
     
     
     
@@ -27,8 +34,15 @@
       for i = 1, #widgets[widg_key] do
         local key = widgets[widg_key][i]
         if _G['Widgets_MIDIEditor_'..key] then
-            local ret = _G['Widgets_MIDIEditor_'..key](data, obj, mouse, x_offs, widgets, conf) 
-            if ret then x_offs = x_offs + obj.offs + ret end
+            local retX, retY = _G['Widgets_MIDIEditor_'..key](data, obj, mouse, x_offs, widgets, conf, y_offs) 
+            if conf.dock_orientation == 1 and not retY then retY = obj.entry_h elseif conf.dock_orientation == 0 and not retY then retY = 0 end
+            if retX and retY then 
+              if conf.dock_orientation == 0 then 
+                x_offs = x_offs + obj.offs + retX 
+               elseif conf.dock_orientation == 1  then
+                y_offs = y_offs + obj.offs + retY 
+              end
+            end
         end
       end  
     end
@@ -42,11 +56,11 @@
 
 
   --------------------------------------------------------------
-  function Widgets_MIDIEditor_position(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+  function Widgets_MIDIEditor_position(data, obj, mouse, x_offs, widgets, conf, y_offs)    -- generate position controls 
     if not data.evts or not data.evts.first_selected or not data.evts[  data.evts.first_selected  ] then return  x_offs end
     if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_MEevtpos = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -54,20 +68,27 @@
                         txt_col = obj.txt_col_header,
                         txt = 'Position'} 
     obj.b.obj_MEevtpos_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = obj.entry_h+y_offs ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         ignore_mouse = true}  
-                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_MEevtpos.w = obj.entry_w2/2
+        obj.b.obj_MEevtpos_back.x= obj.entry_w2/2
+        obj.b.obj_MEevtpos_back.y = y_offs
+        obj.b.obj_MEevtpos_back.w = obj.entry_w2/2
+        obj.b.obj_MEevtpos_back.frame_a = obj.frame_a_head
+      end                         
       
       local pos_str = data.evts[  data.evts.first_selected  ].pos_sec_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = MPL_GetTableOfCtrlValues(pos_str),
                         table_key='MEentposition_ctrl',
-                        x_offs= x_offs,  
-                        w_com=obj.entry_w2,--obj.entry_w2,
+                        x_offs= obj.b.obj_MEevtpos_back.x, 
+                        y_offs= obj.b.obj_MEevtpos_back.y,  
+                        w_com=obj.b.obj_MEevtpos_back.w,
                         src_val=data.evts,
                         src_val_key= 'pos_sec',
                         modify_func= MPL_ModifyTimeVal,
@@ -142,11 +163,11 @@
   
   
   --------------------------------------------------------------
-  function Widgets_MIDIEditor_CCval(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+  function Widgets_MIDIEditor_CCval(data, obj, mouse, x_offs, widgets, conf, y_offs)    -- generate position controls 
     if not data.evts or data.evts.cnt_sel_CC == 0 then return end
     if x_offs + obj.entry_w2 > obj.persist_margin then return end 
     obj.b.obj_MEevtCC = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -154,20 +175,27 @@
                         txt_col = obj.txt_col_header,
                         txt = 'CC value'} 
     obj.b.obj_MEevtCC_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = y_offs +obj.entry_h ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         ignore_mouse = true}  
-                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_MEevtCC.w = obj.entry_w2/2
+        obj.b.obj_MEevtCC_back.x= obj.entry_w2/2
+        obj.b.obj_MEevtCC_back.y = y_offs
+        obj.b.obj_MEevtCC_back.w = obj.entry_w2/2
+        obj.b.obj_MEevtCC_back.frame_a = obj.frame_a_head
+      end                         
       
       local CCval_str = data.evts[  data.evts.first_selectedCC  ].CCval
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = {CCval_str},
                         table_key='MEevtCCval_ctrl',
-                        x_offs= x_offs,  
-                        w_com=obj.entry_w2,--obj.entry_w2,
+                        x_offs= obj.b.obj_MEevtCC_back.x,  
+                        y_offs= obj.b.obj_MEevtCC_back.y,  
+                        w_com=obj.b.obj_MEevtCC_back.w,
                         src_val=data.evts,
                         src_val_key= 'CCval',
                         modify_func= MPL_ModifyIntVal,
@@ -223,11 +251,11 @@
   
   
   --------------------------------------------------------------
-  function Widgets_MIDIEditor_notepitch(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+  function Widgets_MIDIEditor_notepitch(data, obj, mouse, x_offs, widgets, conf, y_offs)    -- generate position controls 
     if not data.evts or data.evts.cnt_sel_notes == 0 then return   end
     if x_offs + obj.entry_w2 > obj.persist_margin then return  end 
     obj.b.obj_MEevtnotepitch = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -235,21 +263,28 @@
                         txt_col = obj.txt_col_header,
                         txt = 'NotePitch'} 
     obj.b.obj_MEevtnotepitch_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y =y_offs +obj.entry_h ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         fontsz = obj.fontsz_entry,
                         ignore_mouse = true}  
-                        
+ if conf.dock_orientation == 1 then
+   obj.b.obj_MEevtnotepitch.w = obj.entry_w2/2
+   obj.b.obj_MEevtnotepitch_back.x= obj.entry_w2/2
+   obj.b.obj_MEevtnotepitch_back.y = y_offs
+   obj.b.obj_MEevtnotepitch_back.w = obj.entry_w2/2
+   obj.b.obj_MEevtnotepitch_back.frame_a = obj.frame_a_head
+ end                        
       
       local pitch_str = data.evts[  data.evts.first_selectednote  ].pitch_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = {pitch_str},
                         table_key='MEevtnotepitch_ctrl',
-                        x_offs= x_offs,  
-                        w_com=obj.entry_w2,--obj.entry_w2,
+                        x_offs=  obj.b.obj_MEevtnotepitch_back.x,
+                        y_offs=  obj.b.obj_MEevtnotepitch_back.y,  
+                        w_com= obj.b.obj_MEevtnotepitch_back.w,
                         src_val=data.evts,
                         src_val_key= 'pitch',
                         modify_func= MPL_ModifyIntVal,
@@ -312,11 +347,11 @@
   
   
   --------------------------------------------------------------
-  function Widgets_MIDIEditor_notevel(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+  function Widgets_MIDIEditor_notevel(data, obj, mouse, x_offs, widgets, conf, y_offs)    -- generate position controls 
     if not data.evts or data.evts.cnt_sel_notes == 0 then return   end
     if x_offs + obj.entry_w2 > obj.persist_margin then return  end 
     obj.b.obj_MEevtnotevel = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -324,20 +359,27 @@
                         txt_col = obj.txt_col_header,
                         txt = 'NoteVelocity'} 
     obj.b.obj_MEevtnotevel_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = y_offs +obj.entry_h ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         ignore_mouse = true}  
-                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_MEevtnotevel.w = obj.entry_w2/2
+        obj.b.obj_MEevtnotevel_back.x= obj.entry_w2/2
+        obj.b.obj_MEevtnotevel_back.y = y_offs
+        obj.b.obj_MEevtnotevel_back.w = obj.entry_w2/2
+        obj.b.obj_MEevtnotevel_back.frame_a = obj.frame_a_head
+      end                         
       
       local vel_str = data.evts[  data.evts.first_selectednote  ].vel
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = {vel_str},
                         table_key='MEevtnotevel_ctrl',
-                        x_offs= x_offs,  
-                        w_com=obj.entry_w2,--obj.entry_w2,
+                        x_offs= obj.b.obj_MEevtnotevel_back.x,
+                        y_offs= obj.b.obj_MEevtnotevel_back.y,  
+                        w_com=obj.b.obj_MEevtnotevel_back.w,
                         src_val=data.evts,
                         src_val_key= 'vel',
                         modify_func= MPL_ModifyIntVal,
@@ -394,11 +436,11 @@
 
 
   --------------------------------------------------------------
-  function Widgets_MIDIEditor_midichan(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+  function Widgets_MIDIEditor_midichan(data, obj, mouse, x_offs, widgets, conf, y_offs)    -- generate position controls 
     if not data.evts or not data.evts.first_selected or not data.evts[data.evts.first_selected]  then return  x_offs end
     if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_MEevtchan = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -406,20 +448,27 @@
                         txt_col = obj.txt_col_header,
                         txt = 'Channel'} 
     obj.b.obj_MEevtchan_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = y_offs +obj.entry_h ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         ignore_mouse = true}  
-                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_MEevtchan.w = obj.entry_w2/2
+        obj.b.obj_MEevtchan_back.x= obj.entry_w2/2
+        obj.b.obj_MEevtchan_back.y = y_offs
+        obj.b.obj_MEevtchan_back.w = obj.entry_w2/2
+        obj.b.obj_MEevtchan_back.frame_a = obj.frame_a_head
+      end                         
       
       local chan_str = data.evts[  data.evts.first_selected  ].chan
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = {chan_str},
                         table_key='MEevtchan_ctrl',
-                        x_offs= x_offs,  
-                        w_com=obj.entry_w2,--obj.entry_w2,
+                        x_offs= obj.b.obj_MEevtchan_back.x,
+                        y_offs= obj.b.obj_MEevtchan_back.y,  
+                        w_com=obj.b.obj_MEevtchan_back.w,
                         src_val=data.evts,
                         src_val_key= 'chan',
                         modify_func= MPL_ModifyIntVal,
@@ -478,11 +527,11 @@
 
 
   --------------------------------------------------------------
-  function Widgets_MIDIEditor_notelen(data, obj, mouse, x_offs, widgets, conf)    -- generate position controls 
+  function Widgets_MIDIEditor_notelen(data, obj, mouse, x_offs, widgets, conf, y_offs)    -- generate position controls 
     if not data.evts or data.evts.cnt_sel_notes == 0 then return   end
     if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_MEevtnotelen = { x = x_offs,
-                        y = obj.offs ,
+                        y = y_offs,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_head,
@@ -490,20 +539,27 @@
                         txt_col = obj.txt_col_header,
                         txt = 'NoteLength'} 
     obj.b.obj_MEevtnotelen_back = { x =  x_offs,
-                        y = obj.offs *2 +obj.entry_h ,
+                        y = y_offs +obj.entry_h ,
                         w = obj.entry_w2,
                         h = obj.entry_h,
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         ignore_mouse = true}  
-                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_MEevtnotelen.w = obj.entry_w2/2
+        obj.b.obj_MEevtnotelen_back.x= obj.entry_w2/2
+        obj.b.obj_MEevtnotelen_back.y = y_offs
+        obj.b.obj_MEevtnotelen_back.w = obj.entry_w2/2
+        obj.b.obj_MEevtnotelen_back.frame_a = obj.frame_a_head
+      end                        
       
       local notelen_str = data.evts[  data.evts.first_selectednote  ].notelen_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = MPL_GetTableOfCtrlValues(notelen_str),
                         table_key='MEnotelen_ctrl',
-                        x_offs= x_offs,  
-                        w_com=obj.entry_w2,--obj.entry_w2,
+                        x_offs= obj.b.obj_MEevtnotelen_back.x,
+                        y_offs= obj.b.obj_MEevtnotelen_back.y,   
+                        w_com= obj.b.obj_MEevtnotelen_back.w,
                         src_val=data.evts,
                         src_val_key= 'notelen_sec',
                         modify_func= MPL_ModifyTimeVal,
@@ -511,7 +567,7 @@
                         mouse_scale= obj.mouse_scal_time2,
                         onRelease_ActName = data.scr_title..': Change MIDI event properties',
                         use_mouse_drag_xAxis = data.always_use_x_axis==1,
-                        rul_format = conf.ruleroverride })                        
+                        rul_format = conf.ruleroverride })
     return obj.entry_w2
   end  
   

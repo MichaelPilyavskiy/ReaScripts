@@ -516,37 +516,9 @@
       if es_str == '' then conf[key] = def[key] else conf[key] = tonumber(es_str) or es_str end
     end
   end  
-  ---------------------------------------------------
-  function ExtState_Save(conf)
-    conf.dock2 , conf.wind_x, conf.wind_y, conf.wind_w, conf.wind_h= gfx.dock(-1, 0,0,0,0)
-    for key in pairs(conf) do SetExtState(conf.ES_key, key, conf[key], true)  end
-  end
-   
+
     function F_open_URL(url) if GetOS():match("OSX") then os.execute('open '.. url) else os.execute('start '..url) end  end
-  ---------------------------------------------------
-  function Menu(mouse, t)
-    local str, check ,hidden= '', '',''
-    for i = 1, #t do
-      if t[i].state then check = '!' else check ='' end
-      if t[i].hidden then hidden = '#' else hidden ='' end
-      local add_str = hidden..check..t[i].str 
-      str = str..add_str
-      str = str..'|'
-    end
-    gfx.x = mouse.x
-    gfx.y = mouse.y
-    local ret = gfx.showmenu(str)
-    local incr = 0
-    if ret > 0 then 
-      for i = 1, ret do 
-        if t[i+incr].menu_decr == true then incr = incr - 1 end
-        if t[i+incr].str:match('>')  then incr = incr + 1 end
-      end
-      if t[ret+incr] and t[ret+incr].func then t[ret+incr].func() end 
-    end
-  end  
-  ---------------------------------------------------   
-  function math_q(num)  if math.abs(num - math.floor(num)) < math.abs(num - math.ceil(num)) then return math.floor(num) else return math.ceil(num) end end
+
   ---------------------------------------------------  
   function HasCurPosChanged()
     local cur_pos = GetCursorPositionEx( 0 )

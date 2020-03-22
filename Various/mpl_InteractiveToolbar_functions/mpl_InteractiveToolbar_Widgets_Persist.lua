@@ -5,20 +5,35 @@
 
 
   -- Persistent wigets for mpl_InteractiveToolbar
-  
+  --#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap #master 
   ---------------------------------------------------
   function Obj_UpdatePersist(data, obj, mouse, widgets, conf)
     local x_margin = gfx.w-obj.offs
+    local y_margin = 0
+    if conf.dock_orientation == 1 then 
+      x_margin = 0 
+      y_margin = gfx.h
+    end
     if widgets.Persist then
       for i = 1, #widgets.Persist do
         local key = widgets.Persist[i]
         if _G['Widgets_Persist_'..key] then
-          local ret = _G['Widgets_Persist_'..key](data, obj, mouse, x_margin, widgets, conf) 
-          if ret then x_margin = x_margin - ret end
+          if conf.dock_orientation == 0 then 
+            if x_margin-50 < obj.menu_b_rect_side then break end
+            local ret = _G['Widgets_Persist_'..key](data, obj, mouse, x_margin, widgets, conf, y_margin)
+            if ret then x_margin = x_margin - ret end
+          end
+          
+          if conf.dock_orientation == 1 then 
+            local retX, retY = _G['Widgets_Persist_'..key](data, obj, mouse, x_margin, widgets, conf, y_margin)
+            if not retY then retY = obj.entry_h end
+            y_margin = y_margin - obj.offs - retY 
+          end
+          
         end
       end  
     end
-    return x_margin
+    return x_margin, y_margin
   end
   -------------------------------------------------------------- 
 
@@ -28,11 +43,11 @@
 
 
 ------------------------------------------------------------
-  function Widgets_Persist_grid(data, obj, mouse, x_margin, widgets, conf)    -- generate position controls 
+  function Widgets_Persist_grid(data, obj, mouse, x_margin, widgets, conf, y_offs)    -- generate position controls 
     local grid_widg_val_w = 50*conf.scaling
     local grid_widg_w_trpl = 20*conf.scaling
     local grid_widg_w = grid_widg_val_w + grid_widg_w_trpl
-    
+    local vert_sep = math.floor(gfx.w/4)
     local frame_a = 0
     local rel_snap_w = 25*conf.scaling
     local rel_snap_h = 10*conf.scaling
@@ -43,6 +58,9 @@
     local txt_a,txt_a_relsnap,txt_a_visgrid =obj.txt_a
     if (data.grid_rel_snap == 0 and data.obj_type_int ~= 8) or (data.MIDIgrid_rel_snap == 0 and data.obj_type_int == 8) then txt_a_relsnap = txt_a * 0.3 end
     if (data.grid_vis == 0 and data.obj_type_int ~= 8) or (data.MIDIgrid_vis == 0 and data.obj_type_int == 8) then      txt_a_visgrid = txt_a * 0.3 end
+    
+    
+    
     obj.b.obj_pers_grid_back = { persist_buf = true,
                         x = x_margin - grid_widg_w,
                         y = obj.offs ,
@@ -54,6 +72,13 @@
                         txt_col = obj.txt_col_header,
                         txt = '',
                         ignore_mouse = true} 
+    if conf.dock_orientation == 1 then 
+      obj.b.obj_pers_grid_back.persist_buf = nil   
+      obj.b.obj_pers_grid_back.x = 0
+      obj.b.obj_pers_grid_back.y = y_offs-obj.entry_h
+      obj.b.obj_pers_grid_back.w = gfx.w
+      obj.b.obj_pers_grid_back.h = obj.entry_h
+    end
     obj.b.obj_pers_grid_back2 = { persist_buf = true,
                         x = x_margin - grid_widg_w,
                         y = obj.offs + obj.entry_h,
@@ -64,7 +89,8 @@
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
                         txt = '',
-                        ignore_mouse = true}   
+                        ignore_mouse = true}  
+                          
     obj.b.obj_pers_grid_relsnap = { persist_buf = true,
                         x = x_margin - grid_widg_w,
                         y = obj.offs ,
@@ -85,6 +111,13 @@
                                     if ME then MIDIEditor_OnCommand(ME, 40829) end
                                   end
                                 end}   
+    if conf.dock_orientation == 1 then 
+      obj.b.obj_pers_grid_relsnap.persist_buf = nil   
+      obj.b.obj_pers_grid_relsnap.x = 0
+      obj.b.obj_pers_grid_relsnap.y = y_offs-obj.entry_h
+      obj.b.obj_pers_grid_relsnap.w = vert_sep
+      obj.b.obj_pers_grid_relsnap.h = obj.entry_h
+    end                               
     obj.b.obj_pers_grid_visible = { persist_buf = true,
                         x = x_margin - grid_widg_w + rel_snap_w,
                         y = obj.offs ,
@@ -110,7 +143,14 @@
       grid_txt = data.grid_val_format
      else
       grid_txt = data.MIDIgrid_val_format
-    end                                           
+    end 
+    if conf.dock_orientation == 1 then 
+      obj.b.obj_pers_grid_visible.persist_buf = nil   
+      obj.b.obj_pers_grid_visible.x = vert_sep
+      obj.b.obj_pers_grid_visible.y = y_offs-obj.entry_h
+      obj.b.obj_pers_grid_visible.w = vert_sep
+      obj.b.obj_pers_grid_visible.h = obj.entry_h
+    end                                            
     obj.b.obj_pers_grid_B_val = { persist_buf = true,
                         x = x_margin - grid_widg_w,
                         y = 0 ,
@@ -223,6 +263,13 @@
                                       
                                       
                                       }
+    if conf.dock_orientation == 1 then 
+      obj.b.obj_pers_grid_B_val.persist_buf = nil   
+      obj.b.obj_pers_grid_B_val.x = vert_sep*2
+      obj.b.obj_pers_grid_B_val.y = y_offs-obj.entry_h
+      obj.b.obj_pers_grid_B_val.w = vert_sep
+      obj.b.obj_pers_grid_B_val.h = obj.entry_h
+    end                                        
     local tripl_a = 0
     if (data.grid_istriplet and data.obj_type_int ~= 8) or (data.MIDIgrid_istriplet and data.obj_type_int == 8) then  tripl_a = obj.frame_a_state end
     obj.b.obj_pers_grid_tripl = { persist_buf = true,
@@ -257,7 +304,20 @@
                                         end                                          
                                         redraw = 2
                                   end
-                                end}  
+                                end} 
+    if conf.dock_orientation == 1 then 
+      --obj.b.obj_pers_grid_tripl.persist_buf = nil   
+      obj.b.obj_pers_grid_tripl.x = vert_sep*3
+      obj.b.obj_pers_grid_tripl.y = y_offs-obj.entry_h
+      obj.b.obj_pers_grid_tripl.w = vert_sep
+      obj.b.obj_pers_grid_tripl.h = obj.entry_h
+      obj.b.obj_pers_grid_tripl.frame_a = 0
+      if (data.grid_istriplet and data.obj_type_int ~= 8) or (data.MIDIgrid_istriplet and data.obj_type_int == 8) then  
+        obj.b.obj_pers_grid_tripl.txt_a = obj.txt_a
+       else
+        obj.b.obj_pers_grid_tripl.txt_a = 0.2
+      end
+    end                                  
                                             
     return grid_widg_w
   end  
@@ -266,7 +326,7 @@
 
 
   --------------------------------------------------------------
-  function Widgets_Persist_timeselstart(data, obj, mouse, x_margin, widgets)    -- generate position controls 
+  function Widgets_Persist_timeselstart(data, obj, mouse, x_margin, widgets, conf, y_offs)    -- generate position controls 
     obj.b.obj_tsstart = { persist_buf = true,
                         x = x_margin-obj.entry_w2,
                         y = obj.offs ,
@@ -284,15 +344,24 @@
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         ignore_mouse = true}  
-                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_tsstart.x= 0
+        obj.b.obj_tsstart.y = y_offs-obj.entry_h
+        obj.b.obj_tsstart.w = obj.entry_w2/2
+        obj.b.obj_tsstart_back.x= obj.entry_w2/2
+        obj.b.obj_tsstart_back.y = y_offs-obj.entry_h
+        obj.b.obj_tsstart_back.w = obj.entry_w2/2
+        obj.b.obj_tsstart_back.frame_a = obj.frame_a_head
+      end                          
                         
       local TSpos_str =  data.timeselectionstart_format
 
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = MPL_GetTableOfCtrlValues(TSpos_str), 
                         table_key='timesel_position_ctrl',
-                        x_offs=  x_margin-obj.entry_w2,  
-                        w_com=obj.entry_w2,
+                        x_offs= obj.b.obj_tsstart_back.x,  
+                        y_offs= obj.b.obj_tsstart_back.y,  
+                        w_com=obj.b.obj_tsstart_back.w,
                         src_val=data.timeselectionstart,
                         src_val_key= '',
                         modify_func= MPL_ModifyTimeVal,
@@ -332,7 +401,7 @@
 
 
   --------------------------------------------------------------
-  function Widgets_Persist_timeselend(data, obj, mouse, x_margin, widgets)    -- generate position controls 
+  function Widgets_Persist_timeselend(data, obj, mouse, x_margin, widgets, conf, y_offs)    -- generate position controls 
     obj.b.obj_tsend = { persist_buf = true,
                         x = x_margin-obj.entry_w2,
                         y = obj.offs ,
@@ -350,14 +419,23 @@
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         ignore_mouse = true}  
-                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_tsend.x= 0
+        obj.b.obj_tsend.y = y_offs-obj.entry_h
+        obj.b.obj_tsend.w = obj.entry_w2/2
+        obj.b.obj_tsend_back.x= obj.entry_w2/2
+        obj.b.obj_tsend_back.y = y_offs-obj.entry_h
+        obj.b.obj_tsend_back.w = obj.entry_w2/2
+        obj.b.obj_tsend_back.frame_a = obj.frame_a_head
+      end                     
                         
       local TSposend_str =  data.timeselectionend_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = MPL_GetTableOfCtrlValues(TSposend_str), 
                         table_key='timeselend_position_ctrl',
-                        x_offs= x_margin-obj.entry_w2,  
-                        w_com=obj.entry_w2,--obj.entry_w2,
+                        x_offs= obj.b.obj_tsend_back.x, 
+                        y_offs = obj.b.obj_tsend_back.y ,
+                        w_com=obj.b.obj_tsend_back.w,--obj.entry_w2,
                         src_val=data.timeselectionend,
                         src_val_key= '',
                         modify_func= MPL_ModifyTimeVal,
@@ -391,7 +469,7 @@
 
 
   --------------------------------------------------------------
-  function Widgets_Persist_timesellen(data, obj, mouse, x_margin, widgets)    -- generate position controls 
+  function Widgets_Persist_timesellen(data, obj, mouse, x_margin, widgets, conf, y_offs)    -- generate position controls 
     obj.b.obj_tslen = { persist_buf = true,
                         x = x_margin-obj.entry_w2,
                         y = obj.offs ,
@@ -409,14 +487,23 @@
                         frame_a = obj.frame_a_entry,
                         txt = '',
                         ignore_mouse = true}  
-                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_tslen.x= 0
+        obj.b.obj_tslen.y = y_offs-obj.entry_h
+        obj.b.obj_tslen.w = obj.entry_w2/2
+        obj.b.obj_tslen_back.x= obj.entry_w2/2
+        obj.b.obj_tslen_back.y = y_offs-obj.entry_h
+        obj.b.obj_tslen_back.w = obj.entry_w2/2
+        obj.b.obj_tslen_back.frame_a = obj.frame_a_head
+      end                          
                         
       local TSlen_str =  data.timeselectionlen_format
       Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = MPL_GetTableOfCtrlValues(TSlen_str), 
                         table_key='timesellen_position_ctrl',
-                        x_offs= x_margin-obj.entry_w2,  
-                        w_com=obj.entry_w2,--obj.entry_w2,
+                        x_offs= obj.b.obj_tslen_back.x,  
+                        y_offs= obj.b.obj_tslen_back.y,  
+                        w_com=obj.b.obj_tslen_back.w,--obj.entry_w2,
                         src_val=data.timeselectionlen,
                         src_val_key= '',
                         modify_func= MPL_ModifyTimeVal,
@@ -448,9 +535,108 @@
   
   
   
-
+  function V_Widgets_Persist_transport(data, obj, mouse, x_margin, widgets, conf, y_offs)
+    local rep_w = 40
+    obj.b.obj_pers_transport_state_bck1 = {--persist_buf = true,
+                        x = 0,
+                        y = y_offs-obj.entry_h*2,
+                        w = gfx.w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}   
+    obj.b.obj_pers_transport_state_bck2 = {--persist_buf = true,
+                        x = 0,
+                        y = y_offs-obj.entry_h,
+                        w = gfx.w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}  
+    local state_col, state
+    local txt = 'Stop'
+    local txt_a,txt_a_repstate =obj.txt_a
+    if data.repeat_state == 0 then txt_a_repstate = txt_a * 0.3 end
+    if  data.record  then
+      state = true
+      txt = 'Record'
+      state_col = 'red'
+     elseif data.play  then
+      state = true
+      txt = 'Play'
+      state_col = 'green'
+     elseif data.pause  then
+      txt = 'Pause'
+      state = true
+      state_col = 'greendark'
+     else
+    end  
+    obj.b.obj_pers_transport_A_repeat = { persist_buf = true,
+                        x = gfx.w-rep_w,
+                        y = y_offs-obj.entry_h*2,
+                        w = rep_w,
+                        h = obj.entry_h*2,
+                        frame_a = 0,--obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = txt_a_repstate,
+                        --txt_col = 'white',
+                        txt = 'REP',
+                        --aligh_txt = 1,
+                        fontsz = obj.fontsz_grid_rel,
+                        func =  function ()
+                                  Action(1068)--Transport: Toggle repeat
+                                  redraw = 2
+                                end}     
+    obj.b.obj_pers_transport_B_state = {--persist_buf = true,
+                        x = 0,
+                        y = y_offs-obj.entry_h*2,
+                        w = gfx.w-rep_w,
+                        h = obj.entry_h*2,
+                        frame_a = 0,--,
+                        state_col = state_col,
+                        state = state,
+                        --frame_rect_a = 1,
+                        txt_a = obj.txt_a,
+                        txt_col = 'white',
+                        txt = txt,
+                        func =        function()
+                                        if MOUSE_Match(mouse, obj.b.obj_pers_transport_A_repeat) then return end
+                                        if not mouse.Ctrl then
+                                          if data.pause then
+                                            Main_OnCommand(1016, 0) --Transport: Stop
+                                            if data.play_editcurzeropos then SetEditCurPos( data.play_editcurzeropos, true , true ) end
+                                           else
+                                            Main_OnCommand(40044, 0) -- Transport: Play/stop
+                                            data.play_editcurzeropos = GetCursorPositionEx( 0 )
+                                          end
+                                          redraw = 1    
+                                          
+                                         else
+                                          if not data.play then
+                                             data.play_editcurzeropos = GetCursorPositionEx( 0 )
+                                           end
+                                           Main_OnCommand(1013, 0) -- Transport: Record                                       
+                                           redraw = 1 
+                                          end                       
+                                      end,   
+                        func_R =     function()
+                                        Main_OnCommand(40073, 0) -- Transport: Play/pause                                        
+                                        redraw = 1
+                                      end,                                      
+                                      
+                                      
+                                      }                                                 
+  end
 ------------------------------------------------------------
-  function Widgets_Persist_transport(data, obj, mouse, x_margin, widgets, conf)    -- generate position controls 
+  function Widgets_Persist_transport(data, obj, mouse, x_margin, widgets, conf, y_offs)    -- generate position controls 
+    if conf.dock_orientation == 1 then 
+      V_Widgets_Persist_transport(data, obj, mouse, x_margin, widgets, conf, y_offs)
+      return 0, obj.entry_h*2
+    end
     local transport_state_w = 60*conf.scaling
     local repeat_w = 25*conf.scaling
     local frame_a = 0
@@ -558,7 +744,7 @@
   
   
   
-  function Widgets_Persist_bpm(data, obj, mouse, x_margin, widgets, conf)  
+  function Widgets_Persist_bpm(data, obj, mouse, x_margin, widgets, conf, y_offs) 
     local bpm_w = 60*conf.scaling
     local frame_a = 0
     local gridwidg_xpos = gfx.w-bpm_w-obj.menu_b_rect_side - x_margin
@@ -613,7 +799,14 @@
                                       UpdateTimeline()
                                     end
                                   end
-                                end}                                
+                                end}
+    if conf.dock_orientation == 1 then 
+      obj.b.obj_pers_bpm.persist_buf = nil   
+      obj.b.obj_pers_bpm.x = 0
+      obj.b.obj_pers_bpm.y = y_offs-obj.entry_h
+      obj.b.obj_pers_bpm.w = gfx.w/2
+      obj.b.obj_pers_bpm.h = obj.entry_h
+    end                                                                
     obj.b.obj_pers_timesign = { persist_buf = true,
                         x = x_margin - bpm_w,
                         y = obj.offs +obj.entry_h,
@@ -678,7 +871,15 @@
                                                                 data.TempoMarker_lineartempochange )
                                       UpdateTimeline()                                     
                                   end
-                                end}                    
+                                end}   
+    if conf.dock_orientation == 1 then 
+      obj.b.obj_pers_timesign.persist_buf = nil   
+      obj.b.obj_pers_timesign.x =  gfx.w/2
+      obj.b.obj_pers_timesign.y = y_offs-obj.entry_h
+      obj.b.obj_pers_timesign.w = gfx.w/2
+      obj.b.obj_pers_timesign.h = obj.entry_h
+      obj.b.obj_pers_timesign.frame_a = obj.frame_a_head
+    end                                                  
     return bpm_w
   end    
   
@@ -694,7 +895,7 @@
   
   
   ----------------------------------------------------------------------------
-  function Widgets_Persist_lasttouchfx(data, obj, mouse, x_margin, widgets, conf)
+  function Widgets_Persist_lasttouchfx(data, obj, mouse, x_margin, widgets, conf, y_offs)
     local lasttouchfx_w = 120*conf.scaling 
     if not data.LTFX.exist or data.LTFX_parname == 'Bypass' or data.LTFX_fxname == 'JS: time_adjustment' then return end
     obj.b.obj_lasttouchfx_back1 = { persist_buf = true,
@@ -717,7 +918,17 @@
                         txt = '',
                         fontsz = obj.fontsz_entry,
                         ignore_mouse = true}
-                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_lasttouchfx_back1.persist_buf = nil
+        obj.b.obj_lasttouchfx_back1.x= 0
+        obj.b.obj_lasttouchfx_back1.y = y_offs-obj.entry_h*2
+        obj.b.obj_lasttouchfx_back1.w = obj.entry_w2
+        obj.b.obj_lasttouchfx_back1.h = obj.entry_h
+        obj.b.obj_lasttouchfx_param_back.x= 0
+        obj.b.obj_lasttouchfx_param_back.y = y_offs-obj.entry_h
+        obj.b.obj_lasttouchfx_param_back.w = obj.entry_w2
+        obj.b.obj_lasttouchfx_param_back.frame_a = obj.frame_a_entry     
+      end                      
                         
                                  
     obj.b.obj_lasttouchfx_knob = { persist_buf = true,
@@ -773,7 +984,16 @@
                                                 ApplyFXVal(tonumber(ret_str), data.LTFX_trptr, data.LTFX_fxID, data.LTFX_parID)                                                                 
                                               end} 
                                               
-                                                   
+      if conf.dock_orientation == 1 then
+        obj.b.obj_lasttouchfx_knob.x= obj.entry_w2/2
+        obj.b.obj_lasttouchfx_knob.y = y_offs-obj.entry_h*2-1
+        obj.b.obj_lasttouchfx_knob.w = obj.entry_w2/2
+        obj.b.obj_lasttouchfx_knob.h = obj.entry_h*2
+        obj.b.obj_lasttouchfx_knob.is_knob = true
+        obj.b.obj_lasttouchfx_knob.knob_yshift = 3
+        obj.b.obj_lasttouchfx_knob.knob_w = 40
+        obj.b.obj_lasttouchfx_knob.is_triangle_slider = false
+      end                                                    
     obj.b.obj_lasttouchfx = { persist_buf = true,
                         x = x_margin-lasttouchfx_w,
                         y = obj.offs ,
@@ -788,6 +1008,12 @@
                         func = function() 
                           --TrackFX_Show( data.LTFX_trptr, data.LTFX_fxID, 3 ) 
                         end}
+      if conf.dock_orientation == 1 then
+        obj.b.obj_lasttouchfx.x= 0
+        obj.b.obj_lasttouchfx.y = y_offs-obj.entry_h*2
+        obj.b.obj_lasttouchfx.w = obj.entry_w2/2
+        obj.b.obj_lasttouchfx.h = obj.entry_h
+      end                         
     local LTFX_parname, LTFX_val_format    = '',''         
     if data.LTFX_parname then LTFX_parname = data.LTFX_parname   end
     if data.LTFX_val_format   then LTFX_val_format = data.LTFX_val_format  end                
@@ -804,6 +1030,12 @@
                                   --Main_OnCommand(41984,0)--FX: Arm track envelope for last touched FX parameter
                                   --TrackFX_Show( data.LTFX_trptr, data.LTFX_fxID, 3 )
                                 end} 
+      if conf.dock_orientation == 1 then
+        obj.b.obj_lasttouchfx_param.x= 0
+        obj.b.obj_lasttouchfx_param.y = y_offs-obj.entry_h
+        obj.b.obj_lasttouchfx_param.w = obj.entry_w2/2
+        obj.b.obj_lasttouchfx_param.h = obj.entry_h
+      end                                
   --[[
                  
     local txt_val = string.format('%.3f',data.LTFX_val)
@@ -827,7 +1059,7 @@
                                     txt_a = obj.txt_a,
                                     fontsz = obj.fontsz_entry,
                                     ignore_mouse = true}  ]]                                               
-    return lasttouchfx_w                        
+    return lasttouchfx_w,obj.entry_h*2              
   end  
   ------------------------------------------------------------------------  
   function ApplyFXVal(val, track, fx, param) 
@@ -844,7 +1076,7 @@
   
   
   ------------------------------------------------------------------------  
-  function Widgets_Persist_clock(data, obj, mouse, x_margin, widgets, conf)  
+  function Widgets_Persist_clock(data, obj, mouse, x_margin, widgets, conf, y_offs)
     local clock_w = 130*conf.scaling
     if data.persist_clock_showtimesec > 0 then clock_w = 260*conf.scaling end
     local frame_a = 0
@@ -880,8 +1112,24 @@
                         fontsz = obj.fontsz_clock,
                         txt = data.editcur_pos_format  -- SEE GUI_Main
                         }
-                                
-    return clock_w   
+      if conf.dock_orientation == 1 then
+        obj.b.obj_pers_clock_back1.persist_buf = nil
+        obj.b.obj_pers_clock_back1.x= 0
+        obj.b.obj_pers_clock_back1.y = y_offs-obj.entry_h*2
+        obj.b.obj_pers_clock_back1.w = obj.entry_w2
+        obj.b.obj_pers_clock_back1.h = obj.entry_h
+        obj.b.obj_pers_clock_back2.x= 0
+        obj.b.obj_pers_clock_back2.y = y_offs-obj.entry_h
+        obj.b.obj_pers_clock_back2.w = obj.entry_w2
+        obj.b.obj_pers_clock_back2.frame_a = obj.frame_a_entry   
+        
+        obj.b.obj_pers_clock.x= 0
+        obj.b.obj_pers_clock.y = y_offs-obj.entry_h*2
+        obj.b.obj_pers_clock.w = obj.entry_w2
+        obj.b.obj_pers_clock.h = obj.entry_h*2        
+          
+      end                                 
+    return clock_w   , obj.entry_h*2
   end
   
 
@@ -925,9 +1173,10 @@
   
   
   ------------------------------------------------------------
-    function Widgets_Persist_tap(data, obj, mouse, x_margin, widgets, conf)    -- generate position controls 
+    function Widgets_Persist_tap(data, obj, mouse, x_margin, widgets, conf, y_offs)    -- generate position controls 
       local tap_w = 80*conf.scaling
       local tap_menu_w = 20*conf.scaling
+      local tap_menu_w_vert = 20
       local frame_a = 0
       local gridwidg_xpos = gfx.w-tap_w-obj.menu_b_rect_side - x_margin
       obj.b.obj_pers_tap_bck1 = {persist_buf = true,
@@ -949,7 +1198,8 @@
                           frame_rect_a = 0,
                           txt_a = obj.txt_a,
                           txt_col = obj.txt_col_entry,
-                          fontsz = obj.fontsz_clock}   
+                          fontsz = obj.fontsz_clock}  
+                          
       local txt = 'TAP'
       if data.tap_data and data.tap_data.tap_tempo then txt = data.tap_data.tap_tempo end
       obj.b.obj_pers_tap_app = {persist_buf = true,
@@ -1028,7 +1278,7 @@
                                                     end
                                                   end             
                                         
-                                        }
+                                          }
         local is_accesible = '#'
         if data.tap_data.tap_tempo then is_accesible = '' end
         obj.b.obj_pers_tapmenu = { persist_buf = true,
@@ -1123,7 +1373,29 @@
                                           
                                           
                                         })
-                                  end}                                                  
+                                  end}      
+      if conf.dock_orientation == 1 then
+        obj.b.obj_pers_tap_bck1.persist_buf = nil
+        obj.b.obj_pers_tap_bck1.x= 0
+        obj.b.obj_pers_tap_bck1.y = y_offs-obj.entry_h
+        obj.b.obj_pers_tap_bck1.w = obj.entry_w2
+        obj.b.obj_pers_tap_bck1.h = obj.entry_h
+        --[[obj.b.obj_pers_tap_bck2.x= 0
+        obj.b.obj_pers_tap_bck2.y = y_offs-obj.entry_h
+        obj.b.obj_pers_tap_bck2.w = obj.entry_w2
+        obj.b.obj_pers_tap_bck2.frame_a = obj.frame_a_entry   
+        ]]
+        obj.b.obj_pers_tap_app.x= 0
+        obj.b.obj_pers_tap_app.y = y_offs-obj.entry_h
+        obj.b.obj_pers_tap_app.w = obj.entry_w2-tap_menu_w_vert
+        obj.b.obj_pers_tap_app.h = obj.entry_h        
+          
+        obj.b.obj_pers_tapmenu.x= gfx.w -tap_menu_w_vert
+        obj.b.obj_pers_tapmenu.y = y_offs-obj.entry_h
+        obj.b.obj_pers_tapmenu.w = tap_menu_w_vert
+        obj.b.obj_pers_tapmenu.h = obj.entry_h        
+
+      end                                                                              
       return tap_w
     end  
 
@@ -1132,7 +1404,7 @@
 
 
   ------------------------------------------------------------
-  function Widgets_Persist_swing(data, obj, mouse, x_margin, widgets, conf)
+  function Widgets_Persist_swing(data, obj, mouse, x_margin, widgets, conf, y_offs)
     local grid_widg_swingval_w = 50*conf.scaling
     if data.obj_type_int == 8 then return end
     local frame_a = 0
@@ -1140,7 +1412,7 @@
     if data.grid_swingactive_int == 0 then txt_a_swact = obj.txt_a * 0.3 end
     local back = obj.frame_a_entry
     if data.grid_swingactive_int == 0 then back = 0 end
-    obj.b.obj_pers_swgrid_name = { persist_buf = true,
+obj.b.obj_pers_swgrid_name = { persist_buf = true,
                         x = x_margin - grid_widg_swingval_w,
                         y = obj.offs ,
                         w = grid_widg_swingval_w,
@@ -1154,7 +1426,15 @@
                         fontsz = obj.fontsz_grid_rel,
                         func =  function ()
                                   Action(42304)
-                                end}    
+                                end}   
+    if conf.dock_orientation == 1 then 
+      --obj.b.obj_pers_swgrid_name.persist_buf = nil 
+      obj.b.obj_pers_swgrid_name.frame_a = 0
+      obj.b.obj_pers_swgrid_name.x = 0
+      obj.b.obj_pers_swgrid_name.y = y_offs - obj.entry_h
+      obj.b.obj_pers_swgrid_name.w = gfx.w/2
+      obj.b.obj_pers_swgrid_name.h = obj.entry_h
+    end                             
     obj.b.obj_pers_swgrid_back = { persist_buf = true,
                         x = x_margin - grid_widg_swingval_w,
                         y = obj.offs ,
@@ -1166,6 +1446,13 @@
                         txt_col = obj.txt_col_header,
                         txt = '',
                         ignore_mouse = true} 
+    if conf.dock_orientation == 1 then 
+      --obj.b.obj_pers_swgrid_back.persist_buf = nil 
+      obj.b.obj_pers_swgrid_back.x = 0
+      obj.b.obj_pers_swgrid_back.y = y_offs - obj.entry_h
+      obj.b.obj_pers_swgrid_back.w = gfx.w
+      obj.b.obj_pers_swgrid_back.h = obj.entry_h
+    end                         
     obj.b.obj_pers_swgrid_back2 = { persist_buf = true,
                         x = x_margin - grid_widg_swingval_w,
                         y = obj.offs + obj.entry_h,
@@ -1176,13 +1463,14 @@
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
                         txt = '',
-                        ignore_mouse = true}                               
+                        ignore_mouse = true}    
+                                                        
     obj.b.obj_pers_swgrid_B_val = { persist_buf = true,
                         x = x_margin - grid_widg_swingval_w,
                         y = 0 ,
                         w = grid_widg_swingval_w,
                         h = obj.entry_h*2,
-                        frame_a = back,--frame_a,
+                        frame_a = 0,--back,--frame_a,
                         --frame_rect_a = 1,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
@@ -1239,6 +1527,14 @@
                                         end
                                         redraw = 2
                                       end}
+    if conf.dock_orientation == 1 then 
+      obj.b.obj_pers_swgrid_B_val.persist_buf = nil 
+      obj.b.obj_pers_swgrid_B_val.x = gfx.w/2
+      obj.b.obj_pers_swgrid_B_val.y = y_offs - obj.entry_h
+      obj.b.obj_pers_swgrid_B_val.w = gfx.w/2
+      obj.b.obj_pers_swgrid_B_val.h = obj.entry_h
+      obj.b.obj_pers_swgrid_B_val.frame_a = 0
+    end                                      
     return grid_widg_swingval_w
   end    
   
@@ -1247,7 +1543,7 @@
   
   
   ------------------------------------------------------------------------  
-  function Widgets_Persist_master(data, obj, mouse, x_margin, widgets, conf)  
+  function Widgets_Persist_master(data, obj, mouse, x_margin, widgets, conf, y_offs)  
     local master_w = (conf.master_buf + 14)*conf.scaling
     local frame_a = 0
     obj.b.obj_pers_master_back1 = {persist_buf = true,
@@ -1283,6 +1579,15 @@
                         txt = '',
                         peaks_src = data.masterdata
                         }
-                                
+      if conf.dock_orientation == 1 then
+        obj.b.obj_pers_master_back1.x= 0
+        obj.b.obj_pers_master_back1.y = y_offs-obj.entry_h*2
+        obj.b.obj_pers_master_back1.w = obj.entry_w2
+        obj.b.obj_pers_master_back1.h = obj.entry_h*2
+       obj.b.obj_pers_master.x= 0
+        obj.b.obj_pers_master.y = y_offs-obj.entry_h*2
+        obj.b.obj_pers_master.w = obj.entry_w2
+        obj.b.obj_pers_master.h = obj.entry_h*2        
+      end                                 
     return master_w   
   end
