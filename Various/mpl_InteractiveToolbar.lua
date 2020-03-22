@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.0
+-- @version 2.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,17 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Persist: allow to run in vertical mode
---    # Persist: Update time selection widgets properly
---    # Persist/#lasttouchfx: run as knob in vertical mode
---    + Item: allow to run in vertical mode
---    + Envelope: allow to run in vertical mode
---    + MIDI Editor: allow to run in vertical mode
---    + Track: allow to run in vertical mode
---    # Track/#fxlist: toggle floating FX
+--    # Envelope/#val: mousewheel for track volume
 
 
-    local vrs = '2.0'
+    local vrs = '2.01'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -49,7 +42,7 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-   data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
+  local data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title,
           masterdata = {ptr =  GetMasterTrack(0)}}

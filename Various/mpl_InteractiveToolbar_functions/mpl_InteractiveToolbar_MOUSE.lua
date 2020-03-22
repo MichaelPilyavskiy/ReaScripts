@@ -106,7 +106,8 @@
                             onRelease_ActName ,
                             persist_buf,
                             pow_tolerance2,
-                            rul_format
+                            rul_format,
+                            wheel_ratio
                             
                             
                             = tbl.data, tbl.obj, tbl.mouse,
@@ -131,10 +132,10 @@
                             tbl.onRelease_ActName,
                             tbl.persist_buf,
                             tbl.pow_tolerance2,
-                            tbl.rul_format
-                            
+                            tbl.rul_format,
+                            tbl.wheel_ratio 
                             if not obj  then return end
-                            
+    if not wheel_ratio then wheel_ratio = 1 end                       
     if y then y_offs = y end
     local measured_x_offs = 0
     if not y_offs then y_offs = obj.offs *2 +obj.entry_h end
@@ -175,20 +176,20 @@
                                               end,
                                 func_wheel =  function()
                                                 if type(src_val) == 'table' then
-                                                  local t_out_values
+                                                  --local t_out_values
                                                   if not src_val[src_val_key] then 
                                                     t_out_values = {}
                                                     for src_valID = 1, #src_val do
-                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, mouse.wheel_trig, data, positive_only, nil, ignore_fields, pow_tolerance2, rul_format)
+                                                      t_out_values[src_valID] = modify_func(src_val[src_valID][src_val_key], i, #t, mouse.wheel_trig/wheel_ratio, data, positive_only, nil, ignore_fields, pow_tolerance2, rul_format)
                                                     end 
                                                    else 
-                                                    t_out_values = modify_func(src_val[src_val_key], i, #t, mouse.wheel_trig, data, positive_only, pow_tolerance, ignore_fields, pow_tolerance2, rul_format)
+                                                    t_out_values = modify_func(src_val[src_val_key], i, #t, mouse.wheel_trig/wheel_ratio, data, positive_only, pow_tolerance, ignore_fields, pow_tolerance2, rul_format)
                                                   end
                                                   app_func(data, obj, t_out_values, table_key,nil,mouse)
                                                   redraw = 2 
                                                  else 
                                                   local out_value
-                                                  out_value = modify_func(src_val, i, #t, mouse.wheel_trig, data, positive_only, pow_tolerance, ignore_fields, pow_tolerance2, rul_format)
+                                                  out_value = modify_func(src_val, i, #t, mouse.wheel_trig/wheel_ratio, data, positive_only, pow_tolerance, ignore_fields, pow_tolerance2, rul_format)
                                                   app_func(data, obj, out_value, table_key, nil, mouse)
                                                   redraw = 2
                                                 end                         

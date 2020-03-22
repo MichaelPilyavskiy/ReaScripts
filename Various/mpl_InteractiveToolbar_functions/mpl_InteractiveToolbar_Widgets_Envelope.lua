@@ -211,8 +211,9 @@
                         src_val_key= 'value',
                         modify_func= MPL_ModifyFloatVal,
                         modify_wholestr=true,
-                        app_func= Apply_Envpoint_Val,                         
-                        mouse_scale= 0.01,               -- mouse scaling
+                        app_func= Apply_Envpoint_Val,            
+                        mouse_scale= 0.001,               -- mouse scaling
+                        wheel_ratio = 0.001,
                         use_mouse_drag_xAxis = data.always_use_x_axis==1, -- x
                         --ignore_fields= true
                         default_val = data.env_defValue,
