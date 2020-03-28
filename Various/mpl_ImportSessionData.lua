@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Port of PT Import Session Data feature
@@ -10,12 +10,27 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    + init
+--    # forum thread link changed to dedicated thread
+--    + Action: find destination tracks by most words matched names
+--    + Action: add matched dest tracks to new tracks
+--    + Action: reset destination tracks
+--    + Init/RPP browse: Include Data_CollectProjectTracks
+--    + Init/RPP browse: Include Data_MatchDest
+--    # Strategy: replace FX chain by default
+--    + Strategy: Optionally copy FX chain to the end of dest track FX Chain
+--    + GUI: handle source RPP folder structure visually
 
      
-  local vrs = '1.0'
+  local vrs = '1.01'
   --NOT gfx NOT reaper
   
+--[[ folder structure of the source tracks was copied for new tracks. Connected to this: new tracks that are child tracks would be placed in the session in the same position rather than at the end.
+Edit: Also the script could include the master track fx as an option to import
+If two destination tracks have the same name, ask the user which one to use
+incorrect import of sends when track numbers of source/destination projects do not match.
+]]
+
+
 
   
   --  INIT -------------------------------------------------
@@ -27,7 +42,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-  local data = {}
+  data = {}
   local obj = {}
   local strategy = {}
   
@@ -88,6 +103,8 @@
 --------------------------------------------------------------------
   function Run_Init(conf, obj, data, refresh, mouse)
     Data_ParseRPP(conf, obj, data, refresh, mouse)
+    Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
+    Data_MatchDest(conf, obj, data, refresh, mouse, strategy) 
   end
 --------------------------------------------------------------------
   function main()
@@ -210,11 +227,17 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
     local t = {name = 'default', 
     
         comchunk = 1,
-        fxchain = 0,
-        trparams = 0,
+        fxchain = 0, -- &2 add to chain instead replace
+        trparams = 0, 
+          --[[  &2 vol
+                &4 pan stuff
+                &8 phase
+                &16 input settings 
+                &32 monitor settings 
+                ]]
       }
     return t
-  end   
+  end 
   --------------------------------------------------------------------  
   local ret = CheckFunctions('VF_CalibrateFont') 
   if ret then

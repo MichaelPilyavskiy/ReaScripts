@@ -51,11 +51,13 @@
     obj.scroll_w = 20
     obj.trlistw = math.floor((gfx.w - obj.menu_w - obj.get_w)*0.6)
     obj.tr_listh = gfx.h-obj.menu_h-obj.bottom_line_h
+    obj.tr_listxindend = 12
     
     Obj_MenuMain  (conf, obj, data, refresh, mouse)
     Obj_TopLine(conf, obj, data, refresh, mouse)
-    if data.tr_chunks then 
+    if data.tr_chunks and conf.lastrppsession ~=  '' then 
       Obj_Tracklist(conf, obj, data, refresh, mouse, strategy) 
+      Obj_TracklistCtrl(conf, obj, data, refresh, mouse, strategy) 
       Obj_Scroll(conf, obj, data, refresh, mouse)
       Obj_Strategy(conf, obj, data, refresh, mouse, strategy)
     end
@@ -80,13 +82,20 @@
         hidden = true
       },
       { str = 'Cockos Forum thread|',
-        func = function() Open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } ,
+        func = function() Open_URL('https://forum.cockos.com/showthread.php?t=233358') end  } ,
       { str = 'Donate to MPL',
         func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
       { str = 'Contact: MPL VK',
         func = function() Open_URL('http://vk.com/mpl57') end  } ,     
-      { str = 'Contact: MPL SoundCloud',
+      { str = 'Contact: MPL SoundCloud|',
         func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
+      { str = 'Reset filename',
+        func = function() 
+          conf.lastrppsession = '' 
+          Run_Init(conf, obj, data, refresh, mouse) 
+          refresh.GUI = true 
+          refresh.data = true end  } ,        
+      
       
         
                                                     
@@ -222,7 +231,7 @@
               a_frame = 0.1,
               alpha_back = 0,
               func =  function() end}    
-              
+    local tr_x_ind= 0
     for i = 1, #data.tr_chunks do
       local tr_y = tr_listy - y_shift+ obj.offs + tr_h*(i-1)
       local r = 90
@@ -232,24 +241,25 @@
         if data.tr_chunks[i].tr_col then col0 = data.tr_chunks[i].tr_col end
         if data.tr_chunks[i].tr_name and data.tr_chunks[i].tr_name ~= '' then tr_name = data.tr_chunks[i].tr_name end
       end
-      if tr_y > tr_listy and  tr_y + tr_h < tr_listy + obj.tr_listh then
-        obj['trsrc'..i] = { clear = true,
-              x =tr_listx,
+      local show_cond= tr_y > tr_listy and  tr_y + tr_h < tr_listy + obj.tr_listh
+      local tr_w = math.floor(tr_listw/2)
+      obj['trsrc'..i] = { clear = true,
+              x =tr_listx+tr_x_ind,
               y = tr_y,
-              w = tr_listw/2-1,
+              w = tr_w-tr_x_ind-1,
               h = tr_h-1,
               fillback = true,
               fillback_colint = col0,
               fillback_a = 0.9,
               txt= i..': '..tr_name,
-              show = true,
+              show = show_cond,
               fontsz = obj.GUI_fontsz2, 
               ignore_mouse = true,
               func =  function() 
                                       
                       
-                      end}     
-      end     
+                      end}  
+      tr_x_ind = tr_x_ind + (data.tr_chunks[i].I_FOLDERDEPTH * obj.tr_listxindend)  
     end 
     
     for i = 1, #data.tr_chunks do
@@ -267,10 +277,13 @@
            elseif data.tr_chunks[i].dest == -1 then 
             txt, tr_col = 'New track at tracklist end', 0
           end
+          local tr_x_ind= 0
+          local tr_w = math.floor(tr_listw/2)
+          
           obj['trdest'..i] = { clear = true,
-                x =tr_listx + tr_listw/2,
+                x = tr_listx + tr_w + tr_x_ind,
                 y = tr_y,
-                w = tr_listw/2,
+                w = tr_w - tr_x_ind,
                 h = tr_h-1,
                 fillback = true,
                 fillback_colint = tr_col,
@@ -323,8 +336,61 @@
               show = true,
               fontsz = obj.GUI_fontsz2,
               func =  function() 
+                        PreventUIRefresh( 1 )
                         Data_Import(conf, obj, data, refresh, mouse, strategy)  
+                        PreventUIRefresh( -1 )
                       end} 
+  end
+  ----------------------------------------------- 
+  function Obj_TracklistCtrl(conf, obj, data, refresh, mouse, strategy) 
+    obj.match = { clear = true,
+              x = obj.menu_w + obj.trlistw  -(obj.get_w+1),
+              y = obj.menu_h + obj.tr_listh,
+              w = obj.get_w,
+              h = gfx.h - (obj.menu_h + obj.tr_listh),
+              --[[fillback = true,
+              fillback_colstr = 'red',
+              fillback_a = 0.2,]]
+              txt= 'Match',
+              aligh_txt = 16,
+              show = true,
+              fontsz = obj.GUI_fontsz2,
+              func =  function() 
+                        Data_MatchDest(conf, obj, data, refresh, mouse, strategy)  
+                        refresh.GUI = true
+                      end}   
+    obj.matchnew = { clear = true,
+              x = obj.menu_w + obj.trlistw - (obj.get_w+1)*3,
+              y = obj.menu_h + obj.tr_listh,
+              w = obj.get_w*2,
+              h = gfx.h - (obj.menu_h + obj.tr_listh),
+              --[[fillback = true,
+              fillback_colstr = 'red',
+              fillback_a = 0.2,]]
+              txt= 'Match > New',
+              aligh_txt = 16,
+              show = true,
+              fontsz = obj.GUI_fontsz2,
+              func =  function() 
+                        Data_MatchDest(conf, obj, data, refresh, mouse, strategy, true)  
+                        refresh.GUI = true
+                      end}    
+    obj.reset = { clear = true,
+              x = obj.menu_w + obj.trlistw -  (obj.get_w+1)*4,
+              y = obj.menu_h + obj.tr_listh,
+              w = obj.get_w,
+              h = gfx.h - (obj.menu_h + obj.tr_listh),
+              --[[fillback = true,
+              fillback_colstr = 'red',
+              fillback_a = 0.2,]]
+              txt= 'Reset',
+              aligh_txt = 16,
+              show = true,
+              fontsz = obj.GUI_fontsz2,
+              func =  function() 
+                        Data_ClearDest(conf, obj, data, refresh, mouse, strategy)  
+                        refresh.GUI = true
+                      end}                         
   end
   -----------------------------------------------   
   function Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, strategy) 
@@ -352,9 +418,9 @@
         local disable_blitback if not ref_strtUI[i].has_blit then disable_blitback = true end
         local col_str 
         if ref_strtUI[i].col_str then col_str = ref_strtUI[i].col_str end
-        local txt_a,ignore_mouse
+        local txt_a,ignore_mouse=0.9
         if ref_strtUI[i].hidden then
-          txt_a = 0.4
+          txt_a = 0.35
           --ignore_mouse = true
         end
         obj[name..i] =  { clear = true,
@@ -405,7 +471,7 @@
                                       strategy.comchunk = math.abs(1-strategy.comchunk)
                                     end,             
                           } ,  
-                          { name = 'Copy FX chain',
+                          { name = 'FX chain',
                             state = strategy.fxchain&1==1,
                             show = true,
                             hidden = strategy.comchunk==1,
@@ -415,8 +481,19 @@
                                       strategy.comchunk = 0
                                       strategy.fxchain = BinaryToggle(strategy.fxchain, 0)
                                     end,             
-                          } ,                            
-                          { name = 'Track Properties',
+                          } , 
+                          { name = 'Copy to the end of chain instead replace',
+                            state = strategy.fxchain&2==2,
+                            show = true,
+                            hidden = strategy.comchunk==1,
+                            has_blit = false,
+                            level = 1,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.fxchain = BinaryToggle(strategy.fxchain, 1)
+                                    end,             
+                          } ,                                                      
+                          { name = 'Track Properties (LMB to all, RMB to none)',
                             state = strategy.trparams&1==1,
                             show = true,
                             hidden = strategy.comchunk==1,
@@ -425,12 +502,16 @@
                             func =  function()
                                       strategy.comchunk = 0
                                       strategy.trparams = BinaryToggle(strategy.trparams, 0)
-                                    end,             
-                          } , 
+                                    end, 
+                            func_R =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trparams = 0
+                                    end,                                                 
+                          } ,     
                           { name = 'Volume',
                             state = strategy.trparams&2==2,
-                            show =  strategy.comchunk==0 and strategy.trparams&1==0 ,
-                            hidden = strategy.comchunk==1,
+                            show =  true,
+                            hidden = strategy.trparams&1==1,
                             has_blit = false,
                             level = 1,
                             func =  function()
@@ -441,8 +522,8 @@
                           } , 
                           { name = 'Pan/Width/Panlaw/DualPan/Panmode',
                             state = strategy.trparams&4==4,
-                            show = strategy.comchunk==0 and strategy.trparams&1==0,
-                            hidden = strategy.comchunk==1,
+                            show =  true,
+                            hidden = strategy.trparams&1==1,
                             has_blit = false,
                             level = 1,
                             func =  function()
@@ -450,7 +531,44 @@
                                       strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
                                       strategy.trparams = BinaryToggle(strategy.trparams, 2)
                                     end,             
-                          } ,                                                                               
+                          } ,  
+                          { name = 'Phase',
+                            state = strategy.trparams&8==8,
+                            show =  true,
+                            hidden = strategy.trparams&1==1,
+                            has_blit = false,
+                            level = 1,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 3)
+                                    end,             
+                          } , 
+                          { name = 'Record input/mode',
+                            state = strategy.trparams&16==16,
+                            show =  true,
+                            hidden = strategy.trparams&1==1,
+                            has_blit = false,
+                            level = 1,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 4)
+                                    end,             
+                          } , 
+                          { name = 'Record monitoring/monitor items',
+                            state = strategy.trparams&32==32,
+                            show =  true,
+                            hidden = strategy.trparams&1==1,
+                            has_blit = false,
+                            level = 1,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 5)
+                                    end,             
+                          } ,                           
+                                                                                                                                  
                                                                             
                         }
     Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, act_strtUI, strategy )  
