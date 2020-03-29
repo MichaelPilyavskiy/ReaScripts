@@ -105,7 +105,6 @@
     gfx.dest = 1
     local x,y,w,h, txt = o.x, o.y, o.w, o.h, o.txt
     --gfx.set(1,1,1,1)gfx.rect(x,y,w,h,0)   
-    
     if not x or not y or not w or not h then return end
     if o.alpha_back then gfx.a = o.alpha_back end
     

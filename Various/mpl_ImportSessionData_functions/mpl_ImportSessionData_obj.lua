@@ -40,7 +40,7 @@
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
     
     local min_w = 300
-    local min_h = 200
+    local min_h = 100
     local reduced_view = gfx.h  <= min_h
     gfx.w  = math.max(min_w,gfx.w)
     gfx.h  = math.max(min_h,gfx.h)
@@ -52,6 +52,7 @@
     obj.trlistw = math.floor((gfx.w - obj.menu_w - obj.get_w)*0.6)
     obj.tr_listh = gfx.h-obj.menu_h-obj.bottom_line_h
     obj.tr_listxindend = 12
+    obj.botline_h = gfx.h - (obj.menu_h + obj.tr_listh)
     
     Obj_MenuMain  (conf, obj, data, refresh, mouse)
     Obj_TopLine(conf, obj, data, refresh, mouse)
@@ -60,6 +61,7 @@
       Obj_TracklistCtrl(conf, obj, data, refresh, mouse, strategy) 
       Obj_Scroll(conf, obj, data, refresh, mouse)
       Obj_Strategy(conf, obj, data, refresh, mouse, strategy)
+      Obj_Actions(conf, obj, data, refresh, mouse, strategy) 
     end
     for key in pairs(obj) do if type(obj[key]) == 'table' then  obj[key].context = key  end end    
   end
@@ -183,9 +185,9 @@
                       }
         obj.scroll_pat_handle = 
                       { clear = true,
-                        x = 0,
+                        x = 1,
                         y = obj.menu_h + obj.scroll_val * (pat_scroll_h -scroll_handle_h)+2 ,
-                        w = obj.scroll_w-1,
+                        w = obj.scroll_w-3,
                         h = scroll_handle_h-1,
                         txt = '',
                         col = 'white',
@@ -213,8 +215,20 @@
     local tr_listx, tr_listy, tr_listw = obj.scroll_w  + 1, obj.menu_h+1, obj.trlistw-1
     -- h - obj.menu_h from  top and bottom
     local tr_h = 20
-    local com_list_h = tr_h * (#data.tr_chunks-1)
-    local y_shift = obj.scroll_val * com_list_h
+    
+    local r_count = 0
+    for i = 1, #data.tr_chunks do
+      local tr_name = data.tr_chunks[i].tr_name
+      local cond = (strategy.tr_filter == '' or (strategy.tr_filter ~= '' and tr_name:match(strategy.tr_filter)))
+      data.tr_chunks[i].tr_show = cond
+      if cond==true then r_count = r_count +1 end
+    end
+    local y_shift = tr_listy
+    local com_list_h = tr_h * (r_count-1)
+    if com_list_h > obj.tr_listh then 
+      y_shift = obj.scroll_val * com_list_h
+    end
+    
     obj.trlist = { clear = true,
               x =tr_listx-1,--math.floor(gfx.w/2),
               y = tr_listy,
@@ -227,21 +241,29 @@
               aligh_txt = 16,
               show = true,
               fontsz = obj.GUI_fontsz2,
-              ignore_mouse = true,
-              a_frame = 0.1,
+              --ignore_mouse = true,
+              a_frame =0,
               alpha_back = 0,
-              func =  function() end}    
+              func_wheel =  function() 
+                local mult
+                if mouse.wheel_trig > 0 then mult = -1 else mult = 1 end
+                obj.scroll_val = lim(obj.scroll_val + (50/com_list_h)*mult) refresh.GUI = true 
+              end}    
+              
     local tr_x_ind= 0
+    local i_real = 1
+    
+    
     for i = 1, #data.tr_chunks do
-      local tr_y = tr_listy - y_shift+ obj.offs + tr_h*(i-1)
+      local tr_y = tr_listy - y_shift+ obj.offs + tr_h*(i_real-1)
       local r = 90
       local col0, tr_name = ColorToNative( r, r, r ), ' (untitled)'
-      
       if data.tr_chunks[i] then
         if data.tr_chunks[i].tr_col then col0 = data.tr_chunks[i].tr_col end
         if data.tr_chunks[i].tr_name and data.tr_chunks[i].tr_name ~= '' then tr_name = data.tr_chunks[i].tr_name end
       end
-      local show_cond= tr_y > tr_listy and  tr_y + tr_h < tr_listy + obj.tr_listh
+      local show_cond= tr_y > tr_listy and  tr_y + tr_h < tr_listy + obj.tr_listh and data.tr_chunks[i].tr_show
+      if data.tr_chunks[i].tr_show then i_real = i_real + 1 end
       local tr_w = math.floor(tr_listw/2)
       obj['trsrc'..i] = { clear = true,
               x =tr_listx+tr_x_ind,
@@ -258,13 +280,11 @@
               func =  function() 
                                       
                       
-                      end}  
-      tr_x_ind = tr_x_ind + (data.tr_chunks[i].I_FOLDERDEPTH * obj.tr_listxindend)  
-    end 
+                      end,
+              }  
+      if data.tr_chunks[i].I_FOLDERDEPTH then tr_x_ind = tr_x_ind + (data.tr_chunks[i].I_FOLDERDEPTH * obj.tr_listxindend)  end 
     
-    for i = 1, #data.tr_chunks do
-      if data.tr_chunks[i] then
-        local tr_y = tr_listy - y_shift+ obj.offs + tr_h*(i-1)
+      
         if tr_y > tr_listy and  tr_y + tr_h < tr_listy + obj.tr_listh then
           local txt = '(none)'
           local tr_col, fillback
@@ -277,93 +297,143 @@
            elseif data.tr_chunks[i].dest == -1 then 
             txt, tr_col = 'New track at tracklist end', 0
           end
-          local tr_x_ind= 0
           local tr_w = math.floor(tr_listw/2)
-          
           obj['trdest'..i] = { clear = true,
-                x = tr_listx + tr_w + tr_x_ind,
+                x = tr_listx + tr_w,
                 y = tr_y,
-                w = tr_w - tr_x_ind,
+                w = tr_w,
                 h = tr_h-1,
                 fillback = true,
                 fillback_colint = tr_col,
                 fillback_a = 0.9,
                 alpha_back = 0.05,
                 txt= txt,
-                show = true,
+                show = data.tr_chunks[i].tr_show,
                 fontsz = obj.GUI_fontsz2,
                 func =  function() 
-                          Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
+                          --Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
                           local t = {
                             { str = 'none',
                               func =  function() 
                                         data.tr_chunks[i].dest = ''
                                       end
                             },
-                            { str = 'New track at the end of tracklist|',
+                            { str = 'New track at the end of tracklist',
                               func =  function() 
                                         data.tr_chunks[i].dest = -1
                                       end
-                            },                          
+                            },      
+                            { str = 'Match|',
+                              func =  function() 
+                                        Data_MatchDest(conf, obj, data, refresh, mouse, strategy, nil, i) 
+                                      end
+                            },                            
+                                               
                           }
                           if data.cur_tracks then 
+                            local sep = 20
                             for i2 = 1, #data.cur_tracks do
+                              local sub = ''
+                              
+                              if i2>= sep and i2%sep == 0 then
+                                if i2> sep then t[#t].str = t[#t].str..'|<' end
+                                t[#t+1] =  { str ='>Tracks '..i2..'-'..i2+sep}                      
+                              end
                               t[#t+1] = 
                               { str =data.cur_tracks[i2].tr_name,
                                  func =  function() 
-                                           data.tr_chunks[i].dest = data.cur_tracks[i2].GUID
-                                          
+                                            if data.cur_tracks[i2].used and data.cur_tracks[i2].used ~= i then 
+                                              local name = data.tr_chunks[data.cur_tracks[i2].used].tr_name
+                                              ret = MB('Track already used by ('..data.cur_tracks[i2].used..') '..name..', ignore old source?', '', 3)
+                                              if ret == 6 then 
+                                                data.tr_chunks[data.cur_tracks[i2].used].dest = ''
+                                                data.tr_chunks[i].dest = data.cur_tracks[i2].GUID
+                                              end
+                                             else
+                                              data.tr_chunks[i].dest = data.cur_tracks[i2].GUID 
+                                              data.cur_tracks[i2].used = i
+                                            end
                                          end
                                }
                             end
                           end
                           Menu(mouse, t) 
                           refresh.GUI = true             
-                        end}     
-        end
+                        end}  
       end     
     end 
+  end
+  ----------------------------------------------- 
+  function Obj_Actions(conf, obj, data, refresh, mouse, strategy) 
     obj.import_action = { clear = true,
-              x = obj.menu_w + obj.trlistw,
-              y = obj.menu_h+1,
-              w = obj.get_w,
-              h = gfx.h - obj.menu_h,
-              fillback = true,
-              fillback_colstr = 'red',
-              fillback_a = 0.2,
-              txt= 'Import\n>>',
-              aligh_txt = 16,
-              show = true,
-              fontsz = obj.GUI_fontsz2,
-              func =  function() 
-                        PreventUIRefresh( 1 )
-                        Data_Import(conf, obj, data, refresh, mouse, strategy)  
-                        PreventUIRefresh( -1 )
-                      end} 
+            x = obj.menu_w + obj.trlistw,
+            y = obj.menu_h+1,
+            w = obj.get_w,
+            h = gfx.h - obj.menu_h-1,
+            fillback = true,
+            fillback_colstr = 'red',
+            fillback_a = 0.2,
+            txt= 'Import\n>>',
+            aligh_txt = 16,
+            show = true,
+            fontsz = obj.GUI_fontsz2,
+            func =  function() 
+                      PreventUIRefresh( 1 )
+                      Data_Import(conf, obj, data, refresh, mouse, strategy)  
+                      PreventUIRefresh( -1 )
+                    end}            
   end
   ----------------------------------------------- 
   function Obj_TracklistCtrl(conf, obj, data, refresh, mouse, strategy) 
-    obj.match = { clear = true,
-              x = obj.menu_w + obj.trlistw  -(obj.get_w+1),
-              y = obj.menu_h + obj.tr_listh,
-              w = obj.get_w,
-              h = gfx.h - (obj.menu_h + obj.tr_listh),
-              --[[fillback = true,
-              fillback_colstr = 'red',
-              fillback_a = 0.2,]]
-              txt= 'Match',
-              aligh_txt = 16,
-              show = true,
-              fontsz = obj.GUI_fontsz2,
-              func =  function() 
-                        Data_MatchDest(conf, obj, data, refresh, mouse, strategy)  
-                        refresh.GUI = true
-                      end}   
+    local bw = math.ceil((obj.menu_w + obj.trlistw)/4)
+    local bw_red= 2
+    local by = obj.menu_h + obj.tr_listh+2
+    local alpha_back = 0.4
+    local filt = strategy.tr_filter
+    if filt == '' then filt = '(empty)' end
+   obj.trfilt = { clear = true,
+             x = 0,
+             y = by,
+             w = bw-bw_red,
+             h = obj.botline_h,
+             --[[fillback = true,
+             fillback_colstr = 'red',
+             fillback_a = 0.2,]]
+             txt= 'Filter: '..filt,
+             aligh_txt = 16,
+             show = true,
+             fontsz = obj.GUI_fontsz2,
+             alpha_back = alpha_back,
+             func =  function() 
+                        retval, retvals_csv = GetUserInputs('Set filter for tracklist', 1, '', strategy.tr_filter  )
+                        if retval then 
+                          strategy.tr_filter = retvals_csv
+                          SaveStrategy(conf, strategy, 1, true)
+                          refresh.GUI = true
+                        end
+                     end}     
+   obj.reset = { clear = true,
+             x = bw,
+             y = by,
+             w = bw-bw_red,
+             h = obj.botline_h,
+             --[[fillback = true,
+             fillback_colstr = 'red',
+             fillback_a = 0.2,]]
+             txt= 'Reset',
+             aligh_txt = 16,
+             show = true,
+             fontsz = obj.GUI_fontsz2,
+             alpha_back = alpha_back,
+             func =  function() 
+                       Data_ClearDest(conf, obj, data, refresh, mouse, strategy)  
+                       refresh.GUI = true
+                     end} 
     obj.matchnew = { clear = true,
-              x = obj.menu_w + obj.trlistw - (obj.get_w+1)*3,
-              y = obj.menu_h + obj.tr_listh,
-              w = obj.get_w*2,
-              h = gfx.h - (obj.menu_h + obj.tr_listh),
+              x = bw*2,
+              y = by,
+              w = bw-bw_red,
+              h = obj.botline_h,
               --[[fillback = true,
               fillback_colstr = 'red',
               fillback_a = 0.2,]]
@@ -371,26 +441,29 @@
               aligh_txt = 16,
               show = true,
               fontsz = obj.GUI_fontsz2,
+              alpha_back = alpha_back,
               func =  function() 
                         Data_MatchDest(conf, obj, data, refresh, mouse, strategy, true)  
                         refresh.GUI = true
                       end}    
-    obj.reset = { clear = true,
-              x = obj.menu_w + obj.trlistw -  (obj.get_w+1)*4,
-              y = obj.menu_h + obj.tr_listh,
-              w = obj.get_w,
-              h = gfx.h - (obj.menu_h + obj.tr_listh),
+    obj.match = { clear = true,
+              x = bw*3,
+              y = by,
+              w = bw-bw_red,
+              h = obj.botline_h,
               --[[fillback = true,
               fillback_colstr = 'red',
               fillback_a = 0.2,]]
-              txt= 'Reset',
+              txt= 'Match',
               aligh_txt = 16,
               show = true,
               fontsz = obj.GUI_fontsz2,
+              alpha_back = alpha_back,
               func =  function() 
-                        Data_ClearDest(conf, obj, data, refresh, mouse, strategy)  
+                        Data_MatchDest(conf, obj, data, refresh, mouse, strategy)  
                         refresh.GUI = true
-                      end}                         
+                      end}                      
+                        
   end
   -----------------------------------------------   
   function Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, strategy) 
@@ -408,7 +481,7 @@
                         txt= '',
                         show = true,
                         fontsz = obj.GUI_fontsz2,
-                        a_frame = 0.1,
+                        a_frame = 0,
                         ignoremouse = true
                         }   
     local y_offs = 10
@@ -461,7 +534,7 @@
   function Obj_Strategy(conf, obj, data, refresh, mouse, strategy)
     local act_strtUI = {  
                       
-                          { name = 'RAW track data (chunk)',
+                          { name = 'Tracks RAW data (chunk)',
                             state = strategy.comchunk==1,
                             hidden = strategy.comchunk==0,
                             show = true,
@@ -471,7 +544,7 @@
                                       strategy.comchunk = math.abs(1-strategy.comchunk)
                                     end,             
                           } ,  
-                          { name = 'FX chain',
+                          { name = 'Tracks FX chain',
                             state = strategy.fxchain&1==1,
                             show = true,
                             hidden = strategy.comchunk==1,
@@ -511,7 +584,7 @@
                           { name = 'Volume',
                             state = strategy.trparams&2==2,
                             show =  true,
-                            hidden = strategy.trparams&1==1,
+                            hidden = strategy.trparams&1==1 or strategy.comchunk==1,
                             has_blit = false,
                             level = 1,
                             func =  function()
@@ -523,7 +596,7 @@
                           { name = 'Pan/Width/Panlaw/DualPan/Panmode',
                             state = strategy.trparams&4==4,
                             show =  true,
-                            hidden = strategy.trparams&1==1,
+                            hidden = strategy.trparams&1==1 or strategy.comchunk==1,
                             has_blit = false,
                             level = 1,
                             func =  function()
@@ -535,7 +608,7 @@
                           { name = 'Phase',
                             state = strategy.trparams&8==8,
                             show =  true,
-                            hidden = strategy.trparams&1==1,
+                            hidden = strategy.trparams&1==1 or strategy.comchunk==1,
                             has_blit = false,
                             level = 1,
                             func =  function()
@@ -547,7 +620,7 @@
                           { name = 'Record input/mode',
                             state = strategy.trparams&16==16,
                             show =  true,
-                            hidden = strategy.trparams&1==1,
+                            hidden = strategy.trparams&1==1 or strategy.comchunk==1,
                             has_blit = false,
                             level = 1,
                             func =  function()
@@ -559,7 +632,7 @@
                           { name = 'Record monitoring/monitor items',
                             state = strategy.trparams&32==32,
                             show =  true,
-                            hidden = strategy.trparams&1==1,
+                            hidden = strategy.trparams&1==1 or strategy.comchunk==1,
                             has_blit = false,
                             level = 1,
                             func =  function()
@@ -567,7 +640,69 @@
                                       strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
                                       strategy.trparams = BinaryToggle(strategy.trparams, 5)
                                     end,             
+                          } ,  
+                          { name = 'Track Items',
+                            state = strategy.tritems&1==1,
+                            show = true,
+                            hidden = strategy.comchunk==1,
+                            has_blit = false,
+                            level = 0,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.tritems = BinaryToggle(strategy.tritems, 0)
+                                    end, 
+                            func_R =  function()
+                                      strategy.comchunk = 0
+                                      strategy.tritems = 0
+                                    end,                                                 
+                          } ,
+                          { name = 'Replace',
+                            state = strategy.tritems&2==2,
+                            show =  true,
+                            hidden = strategy.tritems&1==0 or strategy.comchunk==1,
+                            has_blit = false,
+                            level = 1,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.tritems = BinaryToggle(strategy.tritems, 1)
+                                    end,             
                           } ,                           
+                                                         
+                          { name = 'Global stuff (LMB to all, RMB to none)',
+                            state = strategy.master_stuff&1==1,
+                            show = true,
+                            --hidden = strategy.comchunk==1,
+                            has_blit = false,
+                            level = 0,
+                            func =  function()
+                                      strategy.master_stuff = BinaryToggle(strategy.master_stuff, 0)
+                                    end, 
+                            func_R =  function()
+                                      strategy.master_stuff = 0
+                                    end,                                                 
+                          } ,     
+                          { name = 'Master FX Chain',
+                            state = strategy.master_stuff&2==2,
+                            show =  true,
+                            hidden = strategy.master_stuff&1==1,
+                            has_blit = false,
+                            level = 1,
+                            func =  function()
+                                      strategy.master_stuff = BinaryToggle(strategy.master_stuff, 0, 0)
+                                      strategy.master_stuff = BinaryToggle(strategy.master_stuff, 1)
+                                    end,             
+                          } , 
+                          { name = 'Markers/Regions',
+                            state = strategy.master_stuff&4==4,
+                            show =  true,
+                            hidden = strategy.master_stuff&1==1,
+                            has_blit = false,
+                            level = 1,
+                            func =  function()
+                                      strategy.master_stuff = BinaryToggle(strategy.master_stuff, 0, 0)
+                                      strategy.master_stuff = BinaryToggle(strategy.master_stuff, 2)
+                                    end,             
+                          } ,                                                                             
                                                                                                                                   
                                                                             
                         }

@@ -1,7 +1,7 @@
 -- @description ImportSessionData
--- @version 1.01
+-- @version 1.03
 -- @author MPL
--- @website http://forum.cockos.com/showthread.php?t=165672
+-- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT Import Session Data feature
 -- @provides
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_GUI.lua
@@ -10,24 +10,31 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    # forum thread link changed to dedicated thread
---    + Action: find destination tracks by most words matched names
---    + Action: add matched dest tracks to new tracks
---    + Action: reset destination tracks
---    + Init/RPP browse: Include Data_CollectProjectTracks
---    + Init/RPP browse: Include Data_MatchDest
---    # Strategy: replace FX chain by default
---    + Strategy: Optionally copy FX chain to the end of dest track FX Chain
---    + GUI: handle source RPP folder structure visually
-
+--    # Improved parsing algorythm
+--    # Improved match names algorythm
+--    + GUI: mousewhell scroll on tracklist
+--    + GUI: separate track dropdown menu by 20 tracks
+--    # Take last RPP path when browse for import RPP
+--    + Strategy: Import master FX chain
+--    + Strategy: Import project markers/regions
+--    + Strategy: Import track item, optionally replace
+--    + Action: Allow match individual tracks
+--    + Action: Allow filter tracks by name
+--    # Prevent using destination track more then one time in a list
+--    # Don`t refresh current track list on menu click
+--    # Ask for replacing destination track if already used
      
-  local vrs = '1.01'
+  local vrs = '1.03'
   --NOT gfx NOT reaper
   
---[[ folder structure of the source tracks was copied for new tracks. Connected to this: new tracks that are child tracks would be placed in the session in the same position rather than at the end.
-Edit: Also the script could include the master track fx as an option to import
-If two destination tracks have the same name, ask the user which one to use
+--[[ 
+For imports the most common use case generally is when projects are similar. If projects are really different structures it's unlikely that importing a mix will be useful in real life I think. So the script should be biased towards similarities and ignore large differences. I'd say no to automatically importing all child tracks but any imported should default to appearing in the same place relative to parents that have the same name.
+
 incorrect import of sends when track numbers of source/destination projects do not match.
+
+import start TC of the session 
+
+
 ]]
 
 
@@ -226,6 +233,8 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
   function LoadStrategy_Default()
     local t = {name = 'default', 
     
+        tr_filter = '',
+        
         comchunk = 1,
         fxchain = 0, -- &2 add to chain instead replace
         trparams = 0, 
@@ -235,9 +244,41 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
                 &16 input settings 
                 &32 monitor settings 
                 ]]
+        tritems = 0, 
+          --[[  &2 replace
+                ]]                
+        master_stuff = 0,
+          --[[  &2 FX chauin
+                &4 markers
+                ]]
       }
     return t
   end 
+  --------------------------------------------------------------------  
+  function Data_ImportMasterStuff(conf, obj, data, refresh, mouse, strategy) 
+    if strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.master_stuff&2 == 2) then
+      Data_ImportMasterFX(conf, obj, data, refresh, mouse, strategy) 
+    end
+    
+    if strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.master_stuff&4 == 4) and data.MARKER then
+      for i = 1, #data.MARKER do
+        if data.MARKER[i][6] == 1 then -- is region
+          for j = 1, #data.MARKER do
+            if j ~= i and data.MARKER[j][3] == data.MARKER[i][3] then
+              local pos = math.min(data.MARKER[i][4],data.MARKER[j][4])
+              local rgnend =  math.max(data.MARKER[i][4],data.MARKER[j][4])
+              local name_id = math.min(i,j)
+              AddProjectMarker2( 0, data.MARKER[i][6], pos, rgnend, data.MARKER[name_id][5], data.MARKER[i][3], data.MARKER[i][7] ) -- add region
+              goto next_marker
+            end
+          end
+         else
+          AddProjectMarker2( 0, data.MARKER[i][6], data.MARKER[i][4], -1, data.MARKER[i][5], data.MARKER[i][3], data.MARKER[i][7] ) -- marker
+        end
+        ::next_marker::
+      end
+    end
+  end
   --------------------------------------------------------------------  
   local ret = CheckFunctions('VF_CalibrateFont') 
   if ret then

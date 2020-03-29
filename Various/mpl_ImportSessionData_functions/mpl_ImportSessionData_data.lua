@@ -39,27 +39,20 @@
   end
   --------------------------------------------------- 
   function Data_DefineFile(conf, obj, data, refresh, mouse)
-    local retval, filenameNeed4096 = reaper.GetUserFileNameForRead('', 'Import RPP session data', '.RPP' )
+    local retval, filenameNeed4096 = reaper.GetUserFileNameForRead(conf.lastrppsession, 'Import RPP session data', '.RPP' )
     if retval then conf.lastrppsession = filenameNeed4096 end
     refresh.conf = true
     refresh.GUI = true
   end
-
   --------------------------------------------------- 
-  function Data_ParseRPP(conf, obj, data, refresh, mouse)  
-    data.hasRPPdata = false
-    local f = io.open(conf.lastrppsession, 'rb')
-    if not f then return end
-    local content = f:read('a')
-    f:close()
-    local t = {} for line in content:gmatch('[^\r\n]+') do t[#t+1] = line end
-    
-    local tr_chunks = {}
+  function Data_ParseRPP_ExtractChunks2(tr_chunks, t)
     local tr_id = 0
     local bracketslevel = 0
     for i = 1, #t do 
       local line = t[i]
-      if line:match('<TRACK') then 
+      if    line:match('<TRACK') 
+        or  line:match('<MASTERFXLIST') 
+        then 
         if tr_chunks[tr_id-1] then 
           local s = table.concat(tr_chunks[tr_id-1], '\n') 
           tr_chunks[tr_id-1] = s
@@ -70,8 +63,6 @@
       
       if bracketslevel >0 then
         if line:match('>') and not line:match('%b<>') then bracketslevel = bracketslevel - 1 end
-      end
-      if bracketslevel >0 then
         if line:match('<') and not line:match('%b<>') then bracketslevel = bracketslevel + 1 end
       end        
       
@@ -85,7 +76,99 @@
     tr_chunks[tr_id-1] = s
     local s = table.concat(tr_chunks[tr_id], '\n') 
     tr_chunks[tr_id] = s
+  end 
+  --------------------------------------------------- 
+  function Data_ParseRPP_ExtractChunks(tr_chunks, t)
+    local tr_id = 0
+    local bracketslevel = 0
+    local init_parse, t_trackstart
+    local params = {}
+    for i = 1, #t do 
+      local line = t[i]
+      
+      if line:match('<TRACK') 
+        or line:match('<MASTERFXLIST') 
+        then 
+        if line:match('<TRACK') and not t_trackstart then t_trackstart = i end
+        tr_id = tr_id + 1
+        init_parse = true
+      end
+      
+      if init_parse == true
+        and not line:match('<REAPER_PROJECT') 
+        and not line:match('<POOLEDENV') 
+        and line:match('<[A-Z%d]+') 
+        and line:match('<[A-Z%d]+') == line:match('<[A-Z%d]+'):upper() 
+        then
+        bracketslevel = bracketslevel + 1
+      end
+      if bracketslevel > 0 and tr_id > 0 then
+        if not tr_chunks[tr_id] then tr_chunks[tr_id] = {} end
+        tr_chunks[tr_id] [#tr_chunks[tr_id]+1] = line
+      end 
+      
+      if bracketslevel > 0 and init_parse == true and (line:find('>') == 1 or line:match('[%s]+>')) then bracketslevel = bracketslevel - 1 end 
+      if bracketslevel == 0 and init_parse == true then init_parse = false end
+    end
+    
+    -- convert tables into chunks
+    for i = 1, #tr_chunks do
+      local s = table.concat(tr_chunks[i], '\n') 
+      tr_chunks[i] = s
+    end
+    return t_trackstart
+  end 
+  --------------------------------------------------- 
+  function Data_ParseRPP_GetGlobalParam(t, t_trackstart, key, valid)  
+    
+    local mult_t = {}
+    for i = 1, t_trackstart do
+      local line = t[i]
+      --msg(line)
+      if line:match(key) then 
+        local ts = {}
+        local tid = 1
+        local openpar = false
+        for char in line:gmatch('.') do 
+          if char:match('%s+') and openpar == false then tid = #ts + 1 char = ''
+            elseif char:match('%"+') and openpar == false then openpar = true char = ''
+            elseif char:match('%"+') and openpar == true then openpar = false char = ''
+          end
+           
+          if not ts[tid] then ts[tid] = '' end
+          ts[tid] = ts[tid]..char
+        end
         
+        for i = 1, #ts do 
+          local val = ts[i]:gsub('"','')
+          if tonumber(val) then val = tonumber(val) end 
+          ts[i] = val 
+        end
+        mult_t[#mult_t+1] = ts
+        
+      end
+    end
+    return mult_t 
+  end
+  --------------------------------------------------- 
+  function Data_ParseRPP(conf, obj, data, refresh, mouse)  
+    data.hasRPPdata = false
+    local f = io.open(conf.lastrppsession, 'rb')
+    if not f then return end
+    local content = f:read('a')
+    f:close()
+    local t = {} for line in content:gmatch('[^\r\n]+') do t[#t+1] = line end
+    
+    --
+    
+    local tr_chunks = {}
+    local t_trackstart = Data_ParseRPP_ExtractChunks(tr_chunks, t) 
+    if t_trackstart then 
+      --msg(project_header_chunk)
+      --data.PROJOFFS = Data_ParseRPP_GetGlobalParamDec(project_header_chunk, 'PROJOFFS', 1)
+      data.MARKER = Data_ParseRPP_GetGlobalParam(t, t_trackstart, 'MARKER', 1)
+    end
+    
     data.tr_chunks = {}    
     -- parse chunks
     local parse_str_limit = 500
@@ -96,11 +179,18 @@
         local tr_col = Data_ParseRPP_GetParam(ch_str, 'PEAKCOL', parse_str_limit)
         local _, ISBUS_t = Data_ParseRPP_GetParam(ch_str, 'ISBUS', parse_str_limit, 2)
         if tr_col == 16576 then tr_col = nil end
-        data.tr_chunks[i] = {chunk = ch_str,
+        local obj_type = ''
+        if ch_str:match('<TRACK') then 
+          data.tr_chunks[#data.tr_chunks+1] = {chunk = ch_str,
                               tr_name = tr_name,
                               tr_col=tr_col,
                               dest = '',
-                              I_FOLDERDEPTH=ISBUS_t[2]} 
+                              I_FOLDERDEPTH=ISBUS_t[2],
+                              obj_type=obj_type}
+         end                     
+        if ch_str:match('<MASTERFXLIST') then 
+          data.masterfxchunk = {chunk = ch_str}        
+        end                               
       end
     end
     
@@ -128,7 +218,37 @@
     end
   end]]
   --------------------------------------------------------------------  
+  function Data_ImportMasterFX(conf, obj, data, refresh, mouse, strategy)
+    local mastertr = GetMasterTrack( 0 )
+    local chunk_replace = data.masterfxchunk.chunk:gsub('MASTERFXLIST', 'FXCHAIN')
+    local retval, cur_chunk = reaper.GetTrackStateChunk( mastertr, '', false )
+    
+    local i_start, i_end
+    if not cur_chunk:match('<FXCHAIN') then 
+      local out_ch = cur_chunk:reverse():gsub('>','', 1):reverse()..chunk_replace..'\n>'
+      SetTrackStateChunk( mastertr, out_ch, false )
+      return
+    end
+    
+    -- parse current
+    local t = {} for line in cur_chunk:gmatch('[^\r\n]+') do t[#t+1] = line end 
+    local tr_chunks = {}
+    local tr_id = 0
+    local bracketslevel = 0
+    for i = 1, #t do 
+      local line = t[i]
+      if line:match('<FXCHAIN') then i_start = i end
+      if i_start and line:match('<[A-Z%d]+') and line:match('<[A-Z%d]+') == line:match('<[A-Z%d]+'):upper() then bracketslevel = bracketslevel + 1 end
+      if i_start and line:find('>') == 1 or line:match('[%s]+>') then bracketslevel = bracketslevel - 1 end 
+      if bracketslevel == 0 and i_start then i_end = i break end 
+    end
+    out_ch = table.concat(t,'\n',1,i_start-1)..'\n\n'..chunk_replace..'\n>\n'.. table.concat(t,'\n',i_end+1)
+    --msg(out_ch)
+    SetTrackStateChunk( mastertr, out_ch, false )
+  end
+  --------------------------------------------------------------------  
   function Data_Import(conf, obj, data, refresh, mouse, strategy) 
+    Data_ImportMasterStuff(conf, obj, data, refresh, mouse, strategy)  
     for i = 1, #data.tr_chunks do
       if data.tr_chunks[i].dest == -1 then  -- end of track list
         InsertTrackAtIndex( CountTracks( 0 ), false )
@@ -193,37 +313,44 @@
   -------------------------------------------------------------------- 
   function Data_ClearDest(conf, obj, data, refresh, mouse, strategy) 
     for i = 1, #data.tr_chunks do data.tr_chunks[i].dest = '' end 
+    for i = 1, #data.cur_tracks do data.cur_tracks[i].used =  nil end 
   end  
   -------------------------------------------------------------------- 
-  function Data_MatchDest(conf, obj, data, refresh, mouse, strategy, is_new) 
+  function Data_MatchDest(conf, obj, data, refresh, mouse, strategy, is_new, specificid) 
     if not data.tr_chunks then return end
-    for i = 1, #data.tr_chunks do
-      local tr_name = data.tr_chunks[i].tr_name
-      if tr_name then tr_name = tostring(tr_name) end
-      if tr_name and tr_name ~= '' and not tr_name:match('Track %d+') then
-        data.tr_chunks[i].dest = Data_MatchDestSub(conf, obj, data, refresh, mouse, strategy, tr_name, is_new) 
-      end
-    end 
+    if not specificid then 
+      for i = 1, #data.tr_chunks do data.tr_chunks[i].dest = Data_MatchDestSub(conf, obj, data, refresh, mouse, strategy, data.tr_chunks[i].tr_name, is_new, i) end 
+     else 
+      data.tr_chunks[specificid].dest = Data_MatchDestSub(conf, obj, data, refresh, mouse, strategy, data.tr_chunks[specificid].tr_name, is_new, specificid)
+    end
   end
   -------------------------------------------------------------------- 
-  function Data_MatchDestSub(conf, obj, data, refresh, mouse, strategy, tr_name, is_new) 
+  function Data_MatchDestSub(conf, obj, data, refresh, mouse, strategy, tr_name, is_new, id_src) 
+    if not tr_name then return '' end
+    if tr_name == '' then return '' end
+    if tr_name:match('Track %d+') then return '' end
+    tr_name = tostring(tr_name)
     local is_new_val = -1
     local t = {}
-    local cnt_match0, cnt_match, last_biggestmatch = -1 , -1
-    for word in tr_name:gmatch('[^%s]+') do t[#t+1] = word end
-    for trid = 1, #data.cur_tracks do
-      local tr_name2 = data.cur_tracks[trid].tr_name
-      cnt_match0 = 0
-      if tr_name2 ~= '' and not tr_name2:match('Track %d+') then
-        for i = #t, 1, -1 do if tr_name2:match(t[i]) then cnt_match0 = cnt_match0 + 1 end end
-        if cnt_match0 == #t then 
-          if not is_new then return data.cur_tracks[trid].GUID  else return is_new_val end
+    local cnt_match0, cnt_match, last_biggestmatch = 0, 0
+    for word in tr_name:gmatch('[^%s]+') do t[#t+1] = literalize(word:lower():gsub('%s+','')) end
+    for trid = 1, #data.cur_tracks do 
+      if not data.cur_tracks[trid].used then
+        local tr_name_CUR = data.cur_tracks[trid].tr_name:lower()
+        if tr_name_CUR ~= '' and not tr_name_CUR:match('track %d+') then
+          cnt_match0 = 0
+          for i = 1, #t do if tr_name_CUR:match(t[i]) then cnt_match0 = cnt_match0 + 1 end end
+          if cnt_match0 == #t then
+            data.cur_tracks[trid].used = id_src 
+            if not is_new then return data.cur_tracks[trid].GUID  else return is_new_val end
+          end
+          if cnt_match0 > cnt_match then last_biggestmatch = trid end 
+          cnt_match = cnt_match0
         end
-        if cnt_match0 > cnt_match then last_biggestmatch = trid end 
       end
-      cnt_match = cnt_match0
     end
     if last_biggestmatch then 
+      data.cur_tracks[last_biggestmatch].used = id_src
       if not is_new then return data.cur_tracks[last_biggestmatch].GUID   else return is_new_val end
     end
     return ''
@@ -232,6 +359,28 @@
   function Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, key)
       local val = GetMediaTrackInfo_Value( src_tr,key )
       SetMediaTrackInfo_Value( dest_tr, key, val )  
+  end
+  -------------------------------------------------------------------- 
+  function Data_ImportAppStrategy_ImportItems(src_tr, dest_tr, strategy)
+    local chunks = {}
+    for itemidx = 1,  CountTrackMediaItems( src_tr ) do
+      local item = GetTrackMediaItem( src_tr, itemidx-1 )
+      local retval, chunk = reaper.GetItemStateChunk( item, '', false )
+      chunks[#chunks+1] = chunk
+    end
+    
+    if strategy.tritems&2==2 then -- remove dest tr items
+      for itemidx = CountTrackMediaItems( dest_tr ), 1, -1 do 
+        local item = GetTrackMediaItem( dest_tr, itemidx-1 )
+        DeleteTrackMediaItem(  dest_tr, item) 
+      end
+    end
+    
+    for itemidx = 1,  #chunks do
+      local it = AddMediaItemToTrack( dest_tr )
+      SetItemStateChunk( it, chunks[itemidx], false )
+    end    
+    
   end
   -------------------------------------------------------------------- 
   function Data_ImportAppStrategy(conf, obj, data, refresh, mouse, strategy, src_tr, dest_tr)
@@ -244,13 +393,14 @@
       return
     end
     
+    -- track chain
     if strategy.fxchain&1 == 1 then
       local dest_cnt = TrackFX_GetCount( dest_tr )
       if strategy.fxchain&2 == 0 then  for dest_fx = dest_cnt, 1, -1 do  TrackFX_Delete( dest_tr, dest_fx-1 ) end end
       for src_fx = 1, TrackFX_GetCount( src_tr ) do TrackFX_CopyToTrack( src_tr, src_fx-1, dest_tr, dest_cnt + src_fx, false ) end
     end
 
-    
+    -- track properties
     if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&2 == 2) then
       Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'D_VOL')
     end    
@@ -261,20 +411,24 @@
       Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'D_DUALPANR')
       Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'I_PANMODE')
       Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'D_PANLAW')
-    end     
-    
+    end  
     if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&8 == 8) then 
       Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'B_PHASE')   
     end  
-
     if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&16 == 16) then  
       Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'I_RECINPUT')
       Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'I_RECMODE') 
-    end    
-    
+    end 
     if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&32 == 32) then    
       Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'I_RECMON')
       Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'I_RECMONITEMS')
-    end    
+    end 
+  
+    -- tr items
+    if strategy.tritems&1 == 1 then    
+      Data_ImportAppStrategy_ImportItems(src_tr, dest_tr, strategy)
+    end     
+    
+       
   end
   
