@@ -181,6 +181,7 @@
         if tr_col == 16576 then tr_col = nil end
         local obj_type = ''
         if ch_str:match('<TRACK') then 
+          obj_type = 'track'
           data.tr_chunks[#data.tr_chunks+1] = {chunk = ch_str,
                               tr_name = tr_name,
                               tr_col=tr_col,
@@ -328,8 +329,8 @@
   function Data_MatchDestSub(conf, obj, data, refresh, mouse, strategy, tr_name, is_new, id_src) 
     if not tr_name then return '' end
     if tr_name == '' then return '' end
-    if tr_name:match('Track %d+') then return '' end
     tr_name = tostring(tr_name)
+    if tr_name:match('Track %d+') then return '' end
     local is_new_val = -1
     local t = {}
     local cnt_match0, cnt_match, last_biggestmatch = 0, 0

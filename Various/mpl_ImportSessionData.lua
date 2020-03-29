@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT Import Session Data feature
@@ -10,21 +10,11 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    # Improved parsing algorythm
---    # Improved match names algorythm
---    + GUI: mousewhell scroll on tracklist
---    + GUI: separate track dropdown menu by 20 tracks
---    # Take last RPP path when browse for import RPP
---    + Strategy: Import master FX chain
---    + Strategy: Import project markers/regions
---    + Strategy: Import track item, optionally replace
---    + Action: Allow match individual tracks
---    + Action: Allow filter tracks by name
---    # Prevent using destination track more then one time in a list
---    # Don`t refresh current track list on menu click
---    # Ask for replacing destination track if already used
+--    # fix scroll tracklist
+--    # fix error with trackname with numbers only
+--    # limit GUI to 600x200
      
-  local vrs = '1.03'
+  local vrs = '1.04'
   --NOT gfx NOT reaper
   
 --[[ 

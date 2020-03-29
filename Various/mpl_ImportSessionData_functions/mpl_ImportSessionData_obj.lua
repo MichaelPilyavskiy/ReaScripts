@@ -39,8 +39,8 @@
   function OBJ_Update(conf, obj, data, refresh, mouse, strategy) 
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
     
-    local min_w = 300
-    local min_h = 100
+    local min_w = 600
+    local min_h = 200
     local reduced_view = gfx.h  <= min_h
     gfx.w  = math.max(min_w,gfx.w)
     gfx.h  = math.max(min_h,gfx.h)
@@ -219,12 +219,12 @@
     local r_count = 0
     for i = 1, #data.tr_chunks do
       local tr_name = data.tr_chunks[i].tr_name
-      local cond = (strategy.tr_filter == '' or (strategy.tr_filter ~= '' and tr_name:match(strategy.tr_filter)))
+      local cond = (strategy.tr_filter == '' or (strategy.tr_filter ~= '' and tostring(tr_name):match(strategy.tr_filter)))
       data.tr_chunks[i].tr_show = cond
       if cond==true then r_count = r_count +1 end
     end
-    local y_shift = tr_listy
-    local com_list_h = tr_h * (r_count-1)
+    local y_shift = 0
+    local com_list_h = tr_h *(r_count-1)
     if com_list_h > obj.tr_listh then 
       y_shift = obj.scroll_val * com_list_h
     end
@@ -262,7 +262,7 @@
         if data.tr_chunks[i].tr_col then col0 = data.tr_chunks[i].tr_col end
         if data.tr_chunks[i].tr_name and data.tr_chunks[i].tr_name ~= '' then tr_name = data.tr_chunks[i].tr_name end
       end
-      local show_cond= tr_y > tr_listy and  tr_y + tr_h < tr_listy + obj.tr_listh and data.tr_chunks[i].tr_show
+      local show_cond= (tr_y > tr_listy and  tr_y + tr_h < tr_listy + obj.tr_listh) and data.tr_chunks[i].tr_show
       if data.tr_chunks[i].tr_show then i_real = i_real + 1 end
       local tr_w = math.floor(tr_listw/2)
       obj['trsrc'..i] = { clear = true,
