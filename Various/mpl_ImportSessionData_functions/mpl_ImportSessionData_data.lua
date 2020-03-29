@@ -164,8 +164,6 @@
     local tr_chunks = {}
     local t_trackstart = Data_ParseRPP_ExtractChunks(tr_chunks, t) 
     if t_trackstart then 
-      --msg(project_header_chunk)
-      --data.PROJOFFS = Data_ParseRPP_GetGlobalParamDec(project_header_chunk, 'PROJOFFS', 1)
       data.MARKER = Data_ParseRPP_GetGlobalParam(t, t_trackstart, 'MARKER', 1)
     end
     
@@ -197,7 +195,14 @@
       end
     end
     
-    --for 
+    --[[for i = 1, #data.tr_chunks do 
+      if data.tr_chunks.AUXRECV then
+        for j = 1, #data.tr_chunks.AUXRECV do
+          tr_id = data.tr_chunks.AUXRECV[j]:match('AUXRECV (%d+)')
+          data.tr_chunks[i].AUXRECV[j] = data.tr_chunks[i].AUXRECV[j]..'\n'..data.tr_chunks[j].AUXRECV[j].GUID
+        end
+      end
+    end]]
     data.hasRPPdata = true
     refresh.GUI = true
   end
@@ -253,30 +258,41 @@
   --------------------------------------------------------------------  
   function Data_Import(conf, obj, data, refresh, mouse, strategy) 
     Data_ImportMasterStuff(conf, obj, data, refresh, mouse, strategy)  
+    
     for i = 1, #data.tr_chunks do
       if data.tr_chunks[i].dest == -1 then  -- end of track list
         InsertTrackAtIndex( CountTracks( 0 ), false )
         local new_tr = GetTrack(0, CountTracks( 0 )-1)
         local new_chunk = data.tr_chunks[i].chunk
-        local gGUID = genGuid('' )
-        new_chunk = new_chunk:gsub('GUID .-\n', 'GUID '..gGUID)
-        SetTrackStateChunk( new_tr, data.tr_chunks[i].chunk, false )
+        local gGUID = genGuid('' ) 
+        new_chunk = new_chunk:gsub('TRACK[%s]+.-\n', 'TRACK '..gGUID..'\n')
+        new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
+        SetTrackStateChunk( new_tr,new_chunk, false )
       end 
       
       if type(data.tr_chunks[i].dest) == 'string' and data.tr_chunks[i].dest ~= '' then  -- to specific track
         local dest_tr = VF_GetTrackByGUID(data.tr_chunks[i].dest)
         if dest_tr then 
           local tr_id = CSurf_TrackToID( dest_tr, false )
-          -- add new track
-          --local tr_id = CountTracks( 0 )
-          InsertTrackAtIndex( tr_id, false )
-          local new_tr = GetTrack(0, tr_id)
           -- set chunk
-          SetTrackStateChunk( new_tr, data.tr_chunks[i].chunk, false ) 
-          Data_ImportAppStrategy(conf, obj, data, refresh, mouse, strategy, new_tr, dest_tr) 
-          -- remove track
-          DeleteTrack( new_tr )
-          --reaper.SetTrackColor( new_tr, 0 )
+          if strategy.comchunk == 1 then
+            
+            local new_chunk = data.tr_chunks[i].chunk
+            local gGUID = genGuid('' ) 
+            new_chunk = new_chunk:gsub('TRACK .-\n', 'TRACK '..gGUID..'\n')
+            new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
+            SetTrackStateChunk( dest_tr, new_chunk, false )
+           else 
+           
+            -- add new track
+            --local tr_id = CountTracks( 0 )
+            InsertTrackAtIndex( tr_id, false )
+            local new_tr = GetTrack(0, tr_id) 
+            Data_ImportAppStrategy(conf, obj, data, refresh, mouse, strategy, new_tr, dest_tr) 
+            -- remove track
+            DeleteTrack( new_tr )
+            --reaper.SetTrackColor( new_tr, 0 )
+          end
         end
       end       
     end
@@ -304,11 +320,12 @@
   end
   --------------------------------------------------------------------  
   function Data_ParseRPP_GetParam2(ch_str, key)
-    ch_str = ch_str:match(key..' (.-)\n')
+    local val_t = {}
+    for line in ch_str:gmatch(key..' (.-)\n') do val_t[#val_t+1] = line end
     --[[if not ch_str then return end
     local val_t = {}
     for val in ch_str:gmatch('[^%s]+') do val_t[#val_t+1]=val end]]
-    return ch_str--val_t
+    return val_t--val_t
   end  
   --------------------------------------------------------------------  
   function Data_DefineUsedTracks(conf, obj, data, refresh, mouse)

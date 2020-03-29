@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT Import Session Data feature
@@ -10,9 +10,10 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    # another fix for used tracks
+--    # Generate new GUIDs when importing RAW chunks
+--    # Do not pass AUXRECV when importing RAW chunks
      
-  local vrs = '1.06'
+  local vrs = '1.07'
   --NOT gfx NOT reaper
   
 --[[ 

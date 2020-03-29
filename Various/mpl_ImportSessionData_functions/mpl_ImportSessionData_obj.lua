@@ -675,7 +675,10 @@
                                       strategy.tritems = BinaryToggle(strategy.tritems, 1)
                                     end,             
                           } ,                           
-                                                         
+                          { name = '----------------------------------',
+                            show = true,   
+                            level = 0,           
+                          }     ,                                      
                           { name = 'Global stuff (LMB to all, RMB to none)',
                             state = strategy.master_stuff&1==1,
                             show = true,
