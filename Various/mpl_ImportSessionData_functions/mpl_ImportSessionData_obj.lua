@@ -353,13 +353,13 @@
                                              else
                                               data.tr_chunks[i].dest = data.cur_tracks[i2].GUID 
                                             end
-                                            Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
-                                            Data_DefineUsedTracks(conf, obj, data, refresh, mouse)
                                          end
                                }
                             end
                           end
                           Menu(mouse, t) 
+                          Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
+                          Data_DefineUsedTracks(conf, obj, data, refresh, mouse)
                           refresh.GUI = true             
                         end}  
       end     
@@ -445,7 +445,10 @@
               fontsz = obj.GUI_fontsz2,
               alpha_back = alpha_back,
               func =  function() 
-                        Data_MatchDest(conf, obj, data, refresh, mouse, strategy, true)  
+                        Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
+                        Data_ClearDest(conf, obj, data, refresh, mouse, strategy) 
+                        
+                        Data_MatchDest(conf, obj, data, refresh, mouse, strategy, true) 
                         refresh.GUI = true
                       end}    
     obj.match = { clear = true,
@@ -462,7 +465,10 @@
               fontsz = obj.GUI_fontsz2,
               alpha_back = alpha_back,
               func =  function() 
-                        Data_MatchDest(conf, obj, data, refresh, mouse, strategy)  
+                        Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
+                        Data_ClearDest(conf, obj, data, refresh, mouse, strategy) 
+                        
+                        Data_MatchDest(conf, obj, data, refresh, mouse, strategy) 
                         refresh.GUI = true
                       end}                      
                         

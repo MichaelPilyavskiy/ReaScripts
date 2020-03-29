@@ -257,6 +257,9 @@
       if data.tr_chunks[i].dest == -1 then  -- end of track list
         InsertTrackAtIndex( CountTracks( 0 ), false )
         local new_tr = GetTrack(0, CountTracks( 0 )-1)
+        local new_chunk = data.tr_chunks[i].chunk
+        local gGUID = genGuid('' )
+        new_chunk = new_chunk:gsub('GUID .-\n', 'GUID '..gGUID)
         SetTrackStateChunk( new_tr, data.tr_chunks[i].chunk, false )
       end 
       
