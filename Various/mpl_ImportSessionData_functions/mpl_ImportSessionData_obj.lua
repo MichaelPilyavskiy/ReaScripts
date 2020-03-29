@@ -311,7 +311,8 @@
                 show = data.tr_chunks[i].tr_show,
                 fontsz = obj.GUI_fontsz2,
                 func =  function() 
-                          --Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
+                          Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
+                          Data_DefineUsedTracks(conf, obj, data, refresh, mouse)
                           local t = {
                             { str = 'none',
                               func =  function() 
@@ -351,8 +352,9 @@
                                               end
                                              else
                                               data.tr_chunks[i].dest = data.cur_tracks[i2].GUID 
-                                              data.cur_tracks[i2].used = i
                                             end
+                                            Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
+                                            Data_DefineUsedTracks(conf, obj, data, refresh, mouse)
                                          end
                                }
                             end

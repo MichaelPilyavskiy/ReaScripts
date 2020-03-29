@@ -178,6 +178,7 @@
         local tr_name = Data_ParseRPP_GetParam(ch_str, 'NAME', parse_str_limit)
         local tr_col = Data_ParseRPP_GetParam(ch_str, 'PEAKCOL', parse_str_limit)
         local _, ISBUS_t = Data_ParseRPP_GetParam(ch_str, 'ISBUS', parse_str_limit, 2)
+        local AUXRECV = Data_ParseRPP_GetParam2(ch_str, 'AUXRECV')
         if tr_col == 16576 then tr_col = nil end
         local obj_type = ''
         if ch_str:match('<TRACK') then 
@@ -187,7 +188,8 @@
                               tr_col=tr_col,
                               dest = '',
                               I_FOLDERDEPTH=ISBUS_t[2],
-                              obj_type=obj_type}
+                              obj_type=obj_type,
+                              AUXRECV=AUXRECV}
          end                     
         if ch_str:match('<MASTERFXLIST') then 
           data.masterfxchunk = {chunk = ch_str}        
@@ -195,6 +197,7 @@
       end
     end
     
+    --for 
     data.hasRPPdata = true
     refresh.GUI = true
   end
@@ -295,6 +298,25 @@
     if not val then val = '' end
     if tonumber(val) then val = tonumber(val) end
     return val, val_t
+  end
+  --------------------------------------------------------------------  
+  function Data_ParseRPP_GetParam2(ch_str, key)
+    ch_str = ch_str:match(key..' (.-)\n')
+    --[[if not ch_str then return end
+    local val_t = {}
+    for val in ch_str:gmatch('[^%s]+') do val_t[#val_t+1]=val end]]
+    return ch_str--val_t
+  end  
+  --------------------------------------------------------------------  
+  function Data_DefineUsedTracks(conf, obj, data, refresh, mouse)
+    for i2 = 1, #data.cur_tracks do
+      data.cur_tracks[i2].used = nil
+      for i = 1, #data.tr_chunks do
+        if data.tr_chunks[i].dest == data.cur_tracks[i2].GUID then  
+          data.cur_tracks[i2].used = i
+        end
+      end
+    end
   end
   --------------------------------------------------------------------  
   function Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
