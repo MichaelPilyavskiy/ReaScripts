@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1641fde36a8357cf2d8e1629495021a799ee754b" name="MPL Scripts">
+<index version="1" commit="ad01ebf4bdf0ba04e0050b68d6d3b1bdbb113737" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5426,7 +5426,7 @@ add control for timefall showing last note]]></changelog>
 {\pard \ql \f0 \sa180 \li0 \fi0 Port of PT Import Session Data feature\par}
 }
 ]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=233358</link>
       </metadata>
       <version name="1.0" author="MPL" time="2020-03-27T06:08:17Z">
         <changelog><![CDATA[+ init]]></changelog>
@@ -5453,6 +5453,27 @@ add control for timefall showing last note]]></changelog>
         <source file="mpl_ImportSessionData_functions/mpl_ImportSessionData_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1641fde36a8357cf2d8e1629495021a799ee754b/Various/mpl_ImportSessionData_functions/mpl_ImportSessionData_data.lua</source>
         <source file="mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1641fde36a8357cf2d8e1629495021a799ee754b/Various/mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua</source>
         <source main="main" file="mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1641fde36a8357cf2d8e1629495021a799ee754b/Various/mpl_ImportSessionData_presets/mpl_ImportSessionData%20preset%20-%20default.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2020-03-29T13:54:23Z">
+        <changelog><![CDATA[# Improved parsing algorythm
+# Improved match names algorythm
++ GUI: mousewhell scroll on tracklist
++ GUI: separate track dropdown menu by 20 tracks
+# Take last RPP path when browse for import RPP
++ Strategy: Import master FX chain
++ Strategy: Import project markers/regions
++ Strategy: Import track item, optionally replace
++ Action: Allow match individual tracks
++ Action: Allow filter tracks by name
+# Prevent using destination track more then one time in a list
+# Don`t refresh current track list on menu click
+# Ask for replacing destination track if already used]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad01ebf4bdf0ba04e0050b68d6d3b1bdbb113737/Various/mpl_ImportSessionData.lua</source>
+        <source file="mpl_ImportSessionData_functions/mpl_ImportSessionData_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad01ebf4bdf0ba04e0050b68d6d3b1bdbb113737/Various/mpl_ImportSessionData_functions/mpl_ImportSessionData_GUI.lua</source>
+        <source file="mpl_ImportSessionData_functions/mpl_ImportSessionData_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad01ebf4bdf0ba04e0050b68d6d3b1bdbb113737/Various/mpl_ImportSessionData_functions/mpl_ImportSessionData_MOUSE.lua</source>
+        <source file="mpl_ImportSessionData_functions/mpl_ImportSessionData_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad01ebf4bdf0ba04e0050b68d6d3b1bdbb113737/Various/mpl_ImportSessionData_functions/mpl_ImportSessionData_data.lua</source>
+        <source file="mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad01ebf4bdf0ba04e0050b68d6d3b1bdbb113737/Various/mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua</source>
+        <source main="main" file="mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad01ebf4bdf0ba04e0050b68d6d3b1bdbb113737/Various/mpl_ImportSessionData_presets/mpl_ImportSessionData%20preset%20-%20default.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
