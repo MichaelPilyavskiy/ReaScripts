@@ -22,7 +22,7 @@
     
     obj.strat_x_ind = 7
     obj.strategy_itemh = 13
-    
+    obj.but_aback = 0.4
     -- colors    
     obj.GUIcol = { grey =    {0.5, 0.5,  0.5 },
                    white =   {1,   1,    1   },
@@ -46,10 +46,10 @@
     gfx.h  = math.max(min_h,gfx.h)
     
     obj.menu_w = 20
-    obj.menu_h = 40
-    obj.bottom_line_h = 20
+    obj.menu_h = 30
+    obj.bottom_line_h = 30
     obj.scroll_w = 20
-    obj.trlistw = math.floor((gfx.w - obj.menu_w - obj.get_w)*0.6)
+    obj.trlistw = math.floor((gfx.w - obj.menu_w - obj.get_w)*0.7)
     obj.tr_listh = gfx.h-obj.menu_h-obj.bottom_line_h
     obj.tr_listxindend = 12
     obj.botline_h = gfx.h - (obj.menu_h + obj.tr_listh)
@@ -58,7 +58,6 @@
     Obj_TopLine(conf, obj, data, refresh, mouse)
     if data.tr_chunks and conf.lastrppsession ~=  '' then 
       Obj_Tracklist(conf, obj, data, refresh, mouse, strategy) 
-      Obj_TracklistCtrl(conf, obj, data, refresh, mouse, strategy) 
       Obj_Scroll(conf, obj, data, refresh, mouse)
       Obj_Strategy(conf, obj, data, refresh, mouse, strategy)
       Obj_Actions(conf, obj, data, refresh, mouse, strategy) 
@@ -77,6 +76,7 @@
                         show = true,
                         fontsz = obj.GUI_fontsz2,
                         a_frame = 0,
+                        alpha_back = obj.but_aback,
                         func =  function() 
                                   Menu(mouse,               
     {
@@ -121,7 +121,7 @@
               y = 0,
               w = but_w-1,
               h = obj.menu_h,
-              alpha_back = 0.2,
+              alpha_back = obj.but_aback,
               txt= txt,
               show = true,
               fontsz = obj.GUI_fontsz2,
@@ -140,6 +140,7 @@
               fillback_colstr = col0,
               fillback_a = 0.5,
               txt= 'Read\nRPP',
+              alpha_back = obj.but_aback,
               aligh_txt = 16,
               show = true,
               fontsz = obj.GUI_fontsz2,
@@ -185,15 +186,15 @@
                       }
         obj.scroll_pat_handle = 
                       { clear = true,
-                        x = 1,
+                        x = 0,
                         y = obj.menu_h + obj.scroll_val * (pat_scroll_h -scroll_handle_h)+2 ,
-                        w = obj.scroll_w-3,
+                        w = obj.scroll_w-1,
                         h = scroll_handle_h-1,
                         txt = '',
                         col = 'white',
                         show = true,
                         is_but = true,
-                        alpha_back = 0.6,
+                        alpha_back = obj.but_aback,
                         a_frame = 0,
                         fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2, 
                       func =  function() 
@@ -287,7 +288,7 @@
       
         if tr_y > tr_listy and  tr_y + tr_h < tr_listy + obj.tr_listh then
           local txt = '(none)'
-          local tr_col, fillback
+          local tr_col, fillback,ret, txt0, tr_col0
           if type(data.tr_chunks[i].dest) == 'string' and data.tr_chunks[i].dest ~= '' then
             ret, txt0, tr_col0 = Data_GetParamsFromGUID(data, data.tr_chunks[i].dest)
             if ret then
@@ -306,7 +307,7 @@
                 fillback = true,
                 fillback_colint = tr_col,
                 fillback_a = 0.9,
-                alpha_back = 0.05,
+                alpha_back = 0.1,
                 txt= txt,
                 show = data.tr_chunks[i].tr_show,
                 fontsz = obj.GUI_fontsz2,
@@ -365,38 +366,49 @@
       end     
     end 
   end
+
   ----------------------------------------------- 
   function Obj_Actions(conf, obj, data, refresh, mouse, strategy) 
-    obj.import_action = { clear = true,
-            x = obj.menu_w + obj.trlistw,
-            y = obj.menu_h+1,
-            w = obj.get_w,
-            h = gfx.h - obj.menu_h-1,
-            fillback = true,
-            fillback_colstr = 'red',
-            fillback_a = 0.2,
-            txt= 'Import\n>>',
-            aligh_txt = 16,
-            show = true,
-            fontsz = obj.GUI_fontsz2,
-            func =  function() 
-                      Undo_BeginBlock2( 0 )
-                      PreventUIRefresh( 1 )
-                      Data_Import(conf, obj, data, refresh, mouse, strategy)  
-                      PreventUIRefresh( -1 )
-                      Undo_EndBlock2( 0, 'mpl_Import Session Data', -1 )
-                    end}            
-  end
-  ----------------------------------------------- 
-  function Obj_TracklistCtrl(conf, obj, data, refresh, mouse, strategy) 
-    local bw = math.ceil((obj.menu_w + obj.trlistw)/4)
+    local bw = math.ceil(gfx.w/5) --math.ceil((obj.menu_w + obj.get_w+obj.trlistw)/4)
     local bw_red= 2
     local by = obj.menu_h + obj.tr_listh+2
-    local alpha_back = 0.4
+    
+    obj.menu_trlistctrl = { clear = true,
+              x = 0,
+              y = by,
+              w = bw-bw_red,
+              h = obj.botline_h,
+              --[[fillback = true,
+              fillback_colstr = 'red',
+              fillback_a = 0.2,]]
+              txt= 'TrList control >',
+              aligh_txt = 16,
+              show = true,
+              fontsz = obj.GUI_fontsz2,
+              alpha_back = obj.but_aback,
+              func =  function() 
+                        Menu(mouse,               
+                          {
+                            { str = 'Match to new tracks',
+                              func = function() 
+                                      Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
+                                      Data_ClearDest(conf, obj, data, refresh, mouse, strategy)  
+                                      Data_MatchDest(conf, obj, data, refresh, mouse, strategy, true) 
+                                    end ,
+                            },
+                            { str = 'Pass all track to new tracks',
+                              func = function() 
+                                      Data_ClearDest(conf, obj, data, refresh, mouse, strategy, true)  
+                                    end ,
+                            }                             
+                          })
+                        refresh.GUI = true
+                      end}  
+                          
     local filt = strategy.tr_filter
     if filt == '' then filt = '(empty)' end
    obj.trfilt = { clear = true,
-             x = 0,
+             x = bw,
              y = by,
              w = bw-bw_red,
              h = obj.botline_h,
@@ -407,7 +419,7 @@
              aligh_txt = 16,
              show = true,
              fontsz = obj.GUI_fontsz2,
-             alpha_back = alpha_back,
+             alpha_back = obj.but_aback,
              func =  function() 
                         retval, retvals_csv = GetUserInputs('Set filter for tracklist', 1, '', strategy.tr_filter  )
                         if retval then 
@@ -417,7 +429,7 @@
                         end
                      end}     
    obj.reset = { clear = true,
-             x = bw,
+             x = bw*2,
              y = by,
              w = bw-bw_red,
              h = obj.botline_h,
@@ -428,31 +440,12 @@
              aligh_txt = 16,
              show = true,
              fontsz = obj.GUI_fontsz2,
-             alpha_back = alpha_back,
+             alpha_back = obj.but_aback,
              func =  function() 
                        Data_ClearDest(conf, obj, data, refresh, mouse, strategy)  
                        refresh.GUI = true
                      end} 
-    obj.matchnew = { clear = true,
-              x = bw*2,
-              y = by,
-              w = bw-bw_red,
-              h = obj.botline_h,
-              --[[fillback = true,
-              fillback_colstr = 'red',
-              fillback_a = 0.2,]]
-              txt= 'Match > New',
-              aligh_txt = 16,
-              show = true,
-              fontsz = obj.GUI_fontsz2,
-              alpha_back = alpha_back,
-              func =  function() 
-                        Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
-                        Data_ClearDest(conf, obj, data, refresh, mouse, strategy) 
-                        
-                        Data_MatchDest(conf, obj, data, refresh, mouse, strategy, true) 
-                        refresh.GUI = true
-                      end}    
+  
     obj.match = { clear = true,
               x = bw*3,
               y = by,
@@ -465,7 +458,7 @@
               aligh_txt = 16,
               show = true,
               fontsz = obj.GUI_fontsz2,
-              alpha_back = alpha_back,
+              alpha_back = obj.but_aback,
               func =  function() 
                         Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
                         Data_ClearDest(conf, obj, data, refresh, mouse, strategy) 
@@ -473,12 +466,31 @@
                         Data_MatchDest(conf, obj, data, refresh, mouse, strategy) 
                         refresh.GUI = true
                       end}                      
-                        
+    obj.import_action = { clear = true,
+            x = bw*4,
+            y = by,
+            w = bw,
+            h = obj.botline_h,
+            fillback = true,
+            fillback_colstr = 'red',
+            fillback_a = 0.6,
+            alpha_back = obj.but_aback,
+            txt= 'Import',
+            aligh_txt = 16,
+            show = true,
+            fontsz = obj.GUI_fontsz1,
+            func =  function() 
+                      Undo_BeginBlock2( 0 )
+                      PreventUIRefresh( 1 )
+                      Data_Import(conf, obj, data, refresh, mouse, strategy)  
+                      PreventUIRefresh( -1 )
+                      Undo_EndBlock2( 0, 'mpl_Import Session Data', -1 )
+                    end}                          
   end
   -----------------------------------------------   
   function Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, strategy) 
-    local wstr = gfx.w - (obj.menu_w + obj.trlistw + obj.get_w) -2
-    local x_str = obj.menu_w + obj.trlistw + obj.get_w + 1
+    local wstr = gfx.w - (obj.menu_w + obj.trlistw ) -2
+    local x_str = obj.menu_w + obj.trlistw  + 1
     local y_str = obj.menu_h+1
     local name = 'str_tree'
     obj.strframe = { clear = true,
@@ -506,6 +518,8 @@
           txt_a = 0.35
           --ignore_mouse = true
         end
+        
+        if y_str + y_offs+obj.strategy_itemh > gfx.h- obj.bottom_line_h then return end
         obj[name..i] =  { clear = true,
                         x = x_offs+x_str + ref_strtUI[i].level *obj.strat_x_ind ,
                         y =y_str + y_offs,
@@ -544,7 +558,7 @@
   function Obj_Strategy(conf, obj, data, refresh, mouse, strategy)
     local act_strtUI = {  
                       
-                          { name = 'Tracks RAW data (chunk)',
+                          { name = 'Track RAW data (chunk)',
                             state = strategy.comchunk==1,
                             hidden = strategy.comchunk==0,
                             show = true,
@@ -554,7 +568,7 @@
                                       strategy.comchunk = math.abs(1-strategy.comchunk)
                                     end,             
                           } ,  
-                          { name = 'Tracks FX chain',
+                          { name = 'Track FX chain',
                             state = strategy.fxchain&1==1,
                             show = true,
                             hidden = strategy.comchunk==1,
@@ -708,7 +722,7 @@
                           { name = 'Markers/Regions',
                             state = strategy.master_stuff&4==4,
                             show =  true,
-                            hidden = strategy.master_stuff&1==1,
+                            hidden = strategy.master_stuff&1==1 or (strategy.markers_flags&2==2 or strategy.markers_flags&4==4),
                             has_blit = false,
                             level = 1,
                             func =  function()
@@ -725,7 +739,38 @@
                             func =  function()
                                       strategy.markers_flags = BinaryToggle(strategy.markers_flags, 0)
                                     end,             
-                          } ,                                                                                                                  
+                          } , 
+                          { name = 'Markers only',
+                            state = strategy.markers_flags&2==2,
+                            show =  true,
+                            hidden = strategy.master_stuff&1== 0 and strategy.master_stuff&4~=4,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.markers_flags = BinaryToggle(strategy.markers_flags, 1)
+                                      if strategy.markers_flags&2==2 and strategy.markers_flags&4==4 then
+                                        strategy.master_stuff = BinaryToggle(strategy.master_stuff, 2, 1)
+                                        strategy.markers_flags = BinaryToggle(strategy.markers_flags, 1, 0)
+                                        strategy.markers_flags = BinaryToggle(strategy.markers_flags, 2, 0)
+                                      end                                      
+                                    end,             
+                          } ,   
+                          { name = 'Regions only',
+                            state = strategy.markers_flags&4==4,
+                            show =  true,
+                            hidden = strategy.master_stuff&1== 0 and strategy.master_stuff&4~=4,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.markers_flags = BinaryToggle(strategy.markers_flags, 2)
+                                      if strategy.markers_flags&2==2 and strategy.markers_flags&4==4 then
+                                        strategy.master_stuff = BinaryToggle(strategy.master_stuff, 2, 1)
+                                        strategy.markers_flags = BinaryToggle(strategy.markers_flags, 1, 0)
+                                        strategy.markers_flags = BinaryToggle(strategy.markers_flags, 2, 0)
+                                      end
+                                      
+                                    end,             
+                          } ,                                                                                                                                                                     
                                                                                                                                   
                                                                             
                         }

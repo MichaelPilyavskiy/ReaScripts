@@ -201,7 +201,8 @@
     local tr_chunks = {}
     local t_trackstart = Data_ParseRPP_ExtractChunks(tr_chunks, t) 
     if t_trackstart then 
-      data.MARKER = Data_ParseRPP_GetGlobalParam(t, t_trackstart, 'MARKER', 1)
+      local marker_key = 'marker'
+      data[marker_key] = Data_ParseRPP_GetGlobalParam(t, t_trackstart, 'MARKER', 1)
     end
     
     data.tr_chunks = {}    
@@ -309,7 +310,7 @@
       end 
       
       if type(data.tr_chunks[i].dest) == 'string' and data.tr_chunks[i].dest ~= '' then  -- to specific track
-        local dest_tr = VF_GetTrackByGUID(data.tr_chunks[i].dest)
+        dest_tr = VF_GetTrackByGUID(data.tr_chunks[i].dest)
         if dest_tr then 
           local tr_id = CSurf_TrackToID( dest_tr, false )
           -- set chunk
@@ -321,11 +322,15 @@
             new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
             SetTrackStateChunk( dest_tr, new_chunk, false )
            else 
-           
             -- add new track
             --local tr_id = CountTracks( 0 )
             InsertTrackAtIndex( tr_id, false )
             local new_tr = GetTrack(0, tr_id) 
+            local new_chunk = data.tr_chunks[i].chunk
+            local gGUID = genGuid('' ) 
+            new_chunk = new_chunk:gsub('TRACK .-\n', 'TRACK '..gGUID..'\n')
+            new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
+            SetTrackStateChunk( new_tr, new_chunk, false )             
             Data_ImportAppStrategy(conf, obj, data, refresh, mouse, strategy, new_tr, dest_tr) 
             -- remove track
             DeleteTrack( new_tr )
@@ -341,34 +346,43 @@
       Data_ImportMasterFX(conf, obj, data, refresh, mouse, strategy) 
     end
     
-    if strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.master_stuff&4 == 4) and data.MARKER then
+    local marker_key = 'marker'
+    if strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.master_stuff&4 == 4) and data[marker_key] then
       if strategy.markers_flags&1 ==1 then
         local retval, num_markers, num_regions = CountProjectMarkers( 0 )
         for i = num_markers+num_regions, 1,-1 do DeleteProjectMarkerByIndex( 0, i-1 ) end
       end
       
-      for i = 1, #data.MARKER do
-        local flags = data.MARKER[i][4]
+      for i = 1, #data[marker_key] do
+        local flags = data[marker_key][i][4]
         local isrgn = flags &1==1
-        local pos = data.MARKER[i][2]
-        local rgnend = -1 if isrgn==true then rgnend =data.MARKER[i+1][2] end
-        local name = data.MARKER[i][3]
-        local color = data.MARKER[i][5]
+        local pos = data[marker_key][i][2]
+        local rgnend = -1 if isrgn==true then rgnend =data[marker_key][i+1][2] end
+        local name = data[marker_key][i][3]
+        local color = data[marker_key][i][5]
         --[[if strategy.markers_flags&2==2 then
           if color~= 0 then
             local r, g, b = ColorFromNative( color )
             color = ColorToNative( b, g, r )|0x1000000
           end
         end]]
-        local IDnumber = data.MARKER[i][1] 
-        local markrgnidx = AddProjectMarker2( 0, 
-                                  true, 
-                                  0, 
-                                  1, 
-                                  '', 
-                                  0, 
-                                  0 )
-        SetProjectMarkerByIndex2( 0, markrgnidx, isrgn, pos, rgnend, IDnumber, name, color, 0 )
+        local IDnumber = data[marker_key][i][1] 
+        if (strategy.markers_flags&2 == 2 and isrgn==false) or 
+          (strategy.markers_flags&4 == 4 and isrgn==true) or
+          (strategy.markers_flags&2 == 0 and strategy.markers_flags&4 == 0) and 
+          IDnumber
+          then -- mark only
+          if (pos < rgnend and rgnend ~= -1) or rgnend == -1  then
+            local markrgnidx = AddProjectMarker2( 0, 
+                                      true, 
+                                      1, 
+                                      2, 
+                                      '', 
+                                      0, 
+                                      0 )
+            SetProjectMarkerByIndex2( 0, markrgnidx, isrgn, pos, rgnend, IDnumber, name, color, 0 )
+          end
+        end
         if is_reg == true then i = i+1 end
       end
     end
@@ -430,8 +444,9 @@
     end
   end
   -------------------------------------------------------------------- 
-  function Data_ClearDest(conf, obj, data, refresh, mouse, strategy) 
-    for i = 1, #data.tr_chunks do data.tr_chunks[i].dest = '' end 
+  function Data_ClearDest(conf, obj, data, refresh, mouse, strategy, to_new_track) 
+    local dest  = '' if to_new_track then dest = -1  end
+    for i = 1, #data.tr_chunks do data.tr_chunks[i].dest = dest end 
     for i = 1, #data.cur_tracks do data.cur_tracks[i].used =  nil end 
   end  
   -------------------------------------------------------------------- 
@@ -524,6 +539,7 @@
       Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'D_VOL')
     end    
     if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&4 == 4) then
+      --if ValidatePtr2( 0, src_tr, 'MediaTrack*' ) and ValidatePtr2( 0, dest_tr, 'MediaTrack*' ) then msg(1) end
       Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'D_PAN')
       Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'D_WIDTH')
       Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'D_DUALPANL')

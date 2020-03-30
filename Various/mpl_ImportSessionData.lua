@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.08
+-- @version 1.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT Import Session Data feature
@@ -10,11 +10,9 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    # fix import markers/regions
---    + Strategy: allow to replace markers/regions
---    + Actions: make undo point on Import actions
+--    # major fix for import tracks
      
-  local vrs = '1.08'
+  local vrs = '1.10'
   --NOT gfx NOT reaper
   
 --[[ 
@@ -243,7 +241,8 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
                 ]]
         markers_flags = 1,   
           --[[  &1 replace
-                &2 invert colors
+                &2 markers
+                &4 regions
                 ]]                     
       }
     return t
