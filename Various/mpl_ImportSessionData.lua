@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT Import Session Data feature
@@ -10,10 +10,11 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    # Generate new GUIDs when importing RAW chunks
---    # Do not pass AUXRECV when importing RAW chunks
+--    # fix import markers/regions
+--    + Strategy: allow to replace markers/regions
+--    + Actions: make undo point on Import actions
      
-  local vrs = '1.07'
+  local vrs = '1.08'
   --NOT gfx NOT reaper
   
 --[[ 
@@ -217,7 +218,7 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
         local sect_ID = 0
         AddRemoveReaScript( true, sect_ID, out_fp_script, true )      
     end                                    
-  end   
+  end  
   --------------------------------------------------------------------
   function LoadStrategy_Default()
     local t = {name = 'default', 
@@ -240,34 +241,13 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
           --[[  &2 FX chauin
                 &4 markers
                 ]]
+        markers_flags = 1,   
+          --[[  &1 replace
+                &2 invert colors
+                ]]                     
       }
     return t
   end 
-  --------------------------------------------------------------------  
-  function Data_ImportMasterStuff(conf, obj, data, refresh, mouse, strategy) 
-    if strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.master_stuff&2 == 2) then
-      Data_ImportMasterFX(conf, obj, data, refresh, mouse, strategy) 
-    end
-    
-    if strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.master_stuff&4 == 4) and data.MARKER then
-      for i = 1, #data.MARKER do
-        if data.MARKER[i][6] == 1 then -- is region
-          for j = 1, #data.MARKER do
-            if j ~= i and data.MARKER[j][3] == data.MARKER[i][3] then
-              local pos = math.min(data.MARKER[i][4],data.MARKER[j][4])
-              local rgnend =  math.max(data.MARKER[i][4],data.MARKER[j][4])
-              local name_id = math.min(i,j)
-              AddProjectMarker2( 0, data.MARKER[i][6], pos, rgnend, data.MARKER[name_id][5], data.MARKER[i][3], data.MARKER[i][7] ) -- add region
-              goto next_marker
-            end
-          end
-         else
-          AddProjectMarker2( 0, data.MARKER[i][6], data.MARKER[i][4], -1, data.MARKER[i][5], data.MARKER[i][3], data.MARKER[i][7] ) -- marker
-        end
-        ::next_marker::
-      end
-    end
-  end
   --------------------------------------------------------------------  
   local ret = CheckFunctions('VF_CalibrateFont') 
   if ret then

@@ -380,9 +380,11 @@
             show = true,
             fontsz = obj.GUI_fontsz2,
             func =  function() 
+                      Undo_BeginBlock2( 0 )
                       PreventUIRefresh( 1 )
                       Data_Import(conf, obj, data, refresh, mouse, strategy)  
                       PreventUIRefresh( -1 )
+                      Undo_EndBlock2( 0, 'mpl_Import Session Data', -1 )
                     end}            
   end
   ----------------------------------------------- 
@@ -713,7 +715,17 @@
                                       strategy.master_stuff = BinaryToggle(strategy.master_stuff, 0, 0)
                                       strategy.master_stuff = BinaryToggle(strategy.master_stuff, 2)
                                     end,             
-                          } ,                                                                             
+                          } , 
+                          { name = 'Replace',
+                            state = strategy.markers_flags&1==1,
+                            show =  true,
+                            hidden = strategy.master_stuff&1== 0 and strategy.master_stuff&4~=4,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.markers_flags = BinaryToggle(strategy.markers_flags, 0)
+                                    end,             
+                          } ,                                                                                                                  
                                                                                                                                   
                                                                             
                         }

@@ -124,15 +124,30 @@
     local mult_t = {}
     for i = 1, t_trackstart do
       local line = t[i]
-      --msg(line)
-      if line:match(key) then 
-        local ts = {}
+      if line:match(key) then
+        mult_t[#mult_t+1] = Data_ParseQM_String(line:match(key..'%s(.*)'))
+        if key:match('MARKER') then
+          local id = #mult_t
+          for j = 4, #mult_t[id] do
+            if type(mult_t[id][j]) == 'string' then 
+              mult_t[id][3] = mult_t[id][3]..mult_t[id][j] 
+             else
+              for j2 =j-1, 4, -1 do
+                test = mult_t[id]
+                table.remove(mult_t[id], j2)
+              end
+              goto skip_regstr_valid
+            end
+          end
+        end
+        ::skip_regstr_valid::
+        --[[local ts = {}
         local tid = 1
         local openpar = false
         for char in line:gmatch('.') do 
           if char:match('%s+') and openpar == false then tid = #ts + 1 char = ''
-            elseif char:match('%"+') and openpar == false then openpar = true char = ''
-            elseif char:match('%"+') and openpar == true then openpar = false char = ''
+            elseif char:match('%s%"+') and openpar == false then openpar = true char = ''
+            elseif char:match('%"%s') and openpar == true then openpar = false char = ''
           end
            
           if not ts[tid] then ts[tid] = '' end
@@ -144,11 +159,33 @@
           if tonumber(val) then val = tonumber(val) end 
           ts[i] = val 
         end
-        mult_t[#mult_t+1] = ts
+        mult_t[#mult_t+1] = ts]]
         
       end
     end
     return mult_t 
+  end
+  function Data_ParseQM_String(text) --https://stackoverflow.com/questions/28664139/lua-split-string-into-words-unless-quoted
+    local t = {}
+    local spat, epat, buf, quoted = [=[^(['"])]=], [=[(['"])$]=]
+    for str in text:gmatch("%S+") do
+      local squoted = str:match(spat)
+      local equoted = str:match(epat)
+      local escaped = str:match([=[(\*)['"]$]=])
+      if squoted and not quoted and not equoted then
+        buf, quoted = str, squoted
+      elseif buf and equoted == quoted and #escaped % 2 == 0 then
+        str, buf, quoted = buf .. ' ' .. str, nil, nil
+      elseif buf then
+        buf = buf .. ' ' .. str
+      end
+      if not buf then 
+        local val = str:gsub(spat,""):gsub(epat,"") 
+        if tonumber(val) then val = tonumber(val) end
+        t[#t+1] = val
+      end
+    end
+    return t
   end
   --------------------------------------------------- 
   function Data_ParseRPP(conf, obj, data, refresh, mouse)  
@@ -203,6 +240,7 @@
         end
       end
     end]]
+    
     data.hasRPPdata = true
     refresh.GUI = true
   end
@@ -297,6 +335,44 @@
       end       
     end
   end
+  --------------------------------------------------------------------  
+  function Data_ImportMasterStuff(conf, obj, data, refresh, mouse, strategy) 
+    if strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.master_stuff&2 == 2) then
+      Data_ImportMasterFX(conf, obj, data, refresh, mouse, strategy) 
+    end
+    
+    if strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.master_stuff&4 == 4) and data.MARKER then
+      if strategy.markers_flags&1 ==1 then
+        local retval, num_markers, num_regions = CountProjectMarkers( 0 )
+        for i = num_markers+num_regions, 1,-1 do DeleteProjectMarkerByIndex( 0, i-1 ) end
+      end
+      
+      for i = 1, #data.MARKER do
+        local flags = data.MARKER[i][4]
+        local isrgn = flags &1==1
+        local pos = data.MARKER[i][2]
+        local rgnend = -1 if isrgn==true then rgnend =data.MARKER[i+1][2] end
+        local name = data.MARKER[i][3]
+        local color = data.MARKER[i][5]
+        --[[if strategy.markers_flags&2==2 then
+          if color~= 0 then
+            local r, g, b = ColorFromNative( color )
+            color = ColorToNative( b, g, r )|0x1000000
+          end
+        end]]
+        local IDnumber = data.MARKER[i][1] 
+        local markrgnidx = AddProjectMarker2( 0, 
+                                  true, 
+                                  0, 
+                                  1, 
+                                  '', 
+                                  0, 
+                                  0 )
+        SetProjectMarkerByIndex2( 0, markrgnidx, isrgn, pos, rgnend, IDnumber, name, color, 0 )
+        if is_reg == true then i = i+1 end
+      end
+    end
+  end 
   --------------------------------------------------------------------  
   function Data_ParseRPP_GetParam(ch_str, key, find_until, val_cnt)
     if not find_until then find_until = ch_str:len() end
