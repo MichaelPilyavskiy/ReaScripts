@@ -115,6 +115,7 @@
               x,y,w,h, 0,0) 
     end   
     
+    
     ------------------ fill back
       local x_sl = x      
       local w_sl = w 
@@ -126,7 +127,11 @@
         if o.fillback_colstr then col(obj, o.fillback_colstr, o.fillback_a) end 
         gfx.rect(x,y,w,h,1) 
       end
-
+      
+      if o.selected then
+        gfx.set(1,1,1,1)
+        gfx.rect(x,y,w,h, 0)
+      end
     --[[ color fill
       if not o.colfill_frame and o.colfill_col then
         col(obj, o.colfill_col, o.colfill_a or 1) 
@@ -273,7 +278,6 @@
                 0,0,  obj.grad_sz,obj.grad_sz,
                 x,y+h0,w,h0, 0,0)                  
     end
-    
       
     
     return true

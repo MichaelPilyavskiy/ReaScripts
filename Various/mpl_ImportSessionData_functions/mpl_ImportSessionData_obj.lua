@@ -266,7 +266,9 @@
       local show_cond= (tr_y > tr_listy and  tr_y + tr_h < tr_listy + obj.tr_listh) and data.tr_chunks[i].tr_show
       if data.tr_chunks[i].tr_show then i_real = i_real + 1 end
       local tr_w = math.floor(tr_listw/2)
-      obj['trsrc'..i] = { clear = true,
+      if show_cond then
+        local sel = data.tr_chunks[i].selected
+        obj['trsrc'..i] = { clear = true,
               x =tr_listx+tr_x_ind,
               y = tr_y,
               w = tr_w-tr_x_ind-1,
@@ -277,12 +279,14 @@
               txt= i..': '..tr_name,
               show = show_cond,
               fontsz = obj.GUI_fontsz2, 
-              ignore_mouse = true,
+              --ignore_mouse = true,
+              selected = sel,
               func =  function() 
-                                      
-                      
+                        data.tr_chunks[i].selected = true
+                        refresh.GUI = true
                       end,
               }  
+      end
       if data.tr_chunks[i].I_FOLDERDEPTH then tr_x_ind = tr_x_ind + (data.tr_chunks[i].I_FOLDERDEPTH * obj.tr_listxindend)  end 
     
       
@@ -396,11 +400,17 @@
                                       Data_MatchDest(conf, obj, data, refresh, mouse, strategy, true) 
                                     end ,
                             },
-                            { str = 'Pass all track to new tracks',
+                            { str = 'Mark all tracks for import to new tracks',
                               func = function() 
                                       Data_ClearDest(conf, obj, data, refresh, mouse, strategy, true)  
                                     end ,
-                            }                             
+                            } ,
+                            { str = 'Mark selected tracks for import to new tracks',
+                              func = function() 
+                                      for i = 1, #data.tr_chunks do if data.tr_chunks[i].selected then data.tr_chunks[i].dest = -1  end end   
+                                    end ,
+                            }                            
+                            
                           })
                         refresh.GUI = true
                       end}  
@@ -443,9 +453,11 @@
              alpha_back = obj.but_aback,
              func =  function() 
                        Data_ClearDest(conf, obj, data, refresh, mouse, strategy)  
+                       for i = 1, #data.tr_chunks do data.tr_chunks[i].selected = nil end
                        refresh.GUI = true
                      end} 
-  
+    
+    local has_selected = '' for i = 1, #data.tr_chunks do if data.tr_chunks[i].selected then has_selected = ' selected' break end end
     obj.match = { clear = true,
               x = bw*3,
               y = by,
@@ -454,16 +466,19 @@
               --[[fillback = true,
               fillback_colstr = 'red',
               fillback_a = 0.2,]]
-              txt= 'Match',
+              txt= 'Match'..has_selected,
               aligh_txt = 16,
               show = true,
               fontsz = obj.GUI_fontsz2,
               alpha_back = obj.but_aback,
               func =  function() 
-                        Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
-                        Data_ClearDest(conf, obj, data, refresh, mouse, strategy) 
-                        
-                        Data_MatchDest(conf, obj, data, refresh, mouse, strategy) 
+                        if has_selected == '' then
+                          Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
+                          Data_ClearDest(conf, obj, data, refresh, mouse, strategy)  
+                          Data_MatchDest(conf, obj, data, refresh, mouse, strategy) 
+                         else
+                          for i = 1, #data.tr_chunks do if data.tr_chunks[i].selected then Data_MatchDest(conf, obj, data, refresh, mouse, strategy, nil, i)  end end
+                        end
                         refresh.GUI = true
                       end}                      
     obj.import_action = { clear = true,

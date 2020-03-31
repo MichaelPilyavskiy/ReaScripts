@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT Import Session Data feature
@@ -10,9 +10,10 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    # major fix for import tracks
+--    + Allow selected source tracks for match/import
+--    # fix focuse on tracklist when triggering actions
      
-  local vrs = '1.10'
+  local vrs = '1.11'
   --NOT gfx NOT reaper
   
 --[[ 
@@ -37,7 +38,7 @@ import start TC of the session
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-  data = {}
+  local data = {}
   local obj = {}
   local strategy = {}
   
