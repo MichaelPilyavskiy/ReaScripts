@@ -283,9 +283,10 @@
               selected = sel,
               func =  function() 
                         data.tr_chunks[i].selected = true
+                        obj.cur_trlistitem = i
                         refresh.GUI = true
                       end,
-              func_LD2 = function()
+              --[[func_LD2 = function()
                             if not mouse.context then return end
                             local tr_id = mouse.context:match('%d+')
                             if tr_id then tr_id = tonumber(tr_id) end
@@ -295,7 +296,19 @@
                               refresh.GUI = true
                             end
                           end,
-              onrelease_L2 = function() refresh.GUI = true end
+              onrelease_L2 = function() refresh.GUI = true end]]
+              func_trigShift = function()
+                                  if obj.cur_trlistitem then 
+                                    st_sel = obj.cur_trlistitem
+                                    end_sel = i
+                                    if end_sel > st_sel then
+                                      for i = st_sel, end_sel do data.tr_chunks[i].selected = true end
+                                     else
+                                      for i = end_sel, st_sel  do data.tr_chunks[i].selected = true end
+                                    end
+                                  end
+                                  refresh.GUI = true
+                                end
               }  
       end
       if data.tr_chunks[i].I_FOLDERDEPTH then tr_x_ind = tr_x_ind + (data.tr_chunks[i].I_FOLDERDEPTH * obj.tr_listxindend)  end 
@@ -396,7 +409,7 @@
               --[[fillback = true,
               fillback_colstr = 'red',
               fillback_a = 0.2,]]
-              txt= 'TrList control >',
+              txt= 'Tracklist\nactions >',
               aligh_txt = 16,
               show = true,
               fontsz = obj.GUI_fontsz2,
@@ -404,19 +417,19 @@
               func =  function() 
                         Menu(mouse,               
                           {
-                            { str = 'Match to new tracks',
+                            { str = 'Match source tracks, import them to new tracks',
                               func = function() 
                                       Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
                                       Data_ClearDest(conf, obj, data, refresh, mouse, strategy)  
                                       Data_MatchDest(conf, obj, data, refresh, mouse, strategy, true) 
                                     end ,
                             },
-                            { str = 'Mark all tracks for import to new tracks',
+                            { str = 'Mark all source tracks for import to new tracks',
                               func = function() 
                                       Data_ClearDest(conf, obj, data, refresh, mouse, strategy, true)  
                                     end ,
                             } ,
-                            { str = 'Mark selected tracks for import to new tracks',
+                            { str = 'Mark selected source tracks for import to new tracks',
                               func = function() 
                                       for i = 1, #data.tr_chunks do if data.tr_chunks[i].selected then data.tr_chunks[i].dest = -1  end end   
                                     end ,
@@ -488,6 +501,8 @@
                           Data_ClearDest(conf, obj, data, refresh, mouse, strategy)  
                           Data_MatchDest(conf, obj, data, refresh, mouse, strategy) 
                          else
+                          Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
+                          Data_ClearDest(conf, obj, data, refresh, mouse, strategy) 
                           for i = 1, #data.tr_chunks do if data.tr_chunks[i].selected then Data_MatchDest(conf, obj, data, refresh, mouse, strategy, nil, i)  end end
                         end
                         refresh.GUI = true

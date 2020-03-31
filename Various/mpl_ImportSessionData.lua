@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.12
+-- @version 1.13
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT Import Session Data feature
@@ -10,9 +10,12 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    + Allow drag to select source tracks for match/import
+--    # Action: fix 'Match Selected' not properly reset used tracks
+--    # GUI: rename track list actions button and actions inside
+--    - TrackList: remove drag to select
+--    + Tracklist: LMB+Shift for group selection
      
-  local vrs = '1.12'
+  local vrs = '1.13'
   --NOT gfx NOT reaper
   
 --[[ 
