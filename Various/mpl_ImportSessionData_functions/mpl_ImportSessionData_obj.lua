@@ -285,6 +285,17 @@
                         data.tr_chunks[i].selected = true
                         refresh.GUI = true
                       end,
+              func_LD2 = function()
+                            if not mouse.context then return end
+                            local tr_id = mouse.context:match('%d+')
+                            if tr_id then tr_id = tonumber(tr_id) end
+                            if tr_id and data.tr_chunks[tr_id] then 
+                              data.tr_chunks[tr_id].selected = true
+                              --refresh.data = true
+                              refresh.GUI = true
+                            end
+                          end,
+              onrelease_L2 = function() refresh.GUI = true end
               }  
       end
       if data.tr_chunks[i].I_FOLDERDEPTH then tr_x_ind = tr_x_ind + (data.tr_chunks[i].I_FOLDERDEPTH * obj.tr_listxindend)  end 
