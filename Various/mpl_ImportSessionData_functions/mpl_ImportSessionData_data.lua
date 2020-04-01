@@ -34,7 +34,7 @@
   function Data_GetParamsFromGUID(data, guid_check)
     if not data.cur_tracks then return false, '' end
     for i = 1,  #data.cur_tracks do
-      if data.cur_tracks[i].GUID == guid_check then return true, data.cur_tracks[i].tr_name,  data.cur_tracks[i].tr_col end
+      if data.cur_tracks[i].GUID == guid_check then return true, i..': '..data.cur_tracks[i].tr_name,  data.cur_tracks[i].tr_col end
     end
   end
   --------------------------------------------------- 
@@ -434,13 +434,19 @@
     local projfn = GetShortSmplName(projfn)
     data.cur_project = projfn 
     data.cur_tracks = {}
+    folderlev = 0
     for i = 1, CountTracks(0) do
       local tr = GetTrack(0,i-1)
       local GUID = GetTrackGUID( tr )
       local tr_col =  GetTrackColor( tr )
+      local folderd = GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' )
       data.cur_tracks[i] = {tr_name =  ({GetTrackName( tr )})[2],
                             GUID = GUID,
-                            tr_col=tr_col}
+                            tr_col=tr_col,
+                            folderd=folderd,
+                            folderlev=folderlev
+                            }
+      folderlev = folderlev + folderd                            
     end
   end
   -------------------------------------------------------------------- 
@@ -453,7 +459,9 @@
   function Data_MatchDest(conf, obj, data, refresh, mouse, strategy, is_new, specificid) 
     if not data.tr_chunks then return end
     if not specificid then 
-      for i = 1, #data.tr_chunks do data.tr_chunks[i].dest = Data_MatchDestSub(conf, obj, data, refresh, mouse, strategy, data.tr_chunks[i].tr_name, is_new, i) end 
+      for i = 1, #data.tr_chunks do 
+        data.tr_chunks[i].dest = Data_MatchDestSub(conf, obj, data, refresh, mouse, strategy, data.tr_chunks[i].tr_name, is_new, i) 
+      end 
      else 
       data.tr_chunks[specificid].dest = Data_MatchDestSub(conf, obj, data, refresh, mouse, strategy, data.tr_chunks[specificid].tr_name, is_new, specificid)
     end
@@ -464,6 +472,8 @@
     if tr_name == '' then return '' end
     tr_name = tostring(tr_name)
     if tr_name:match('Track %d+') then return '' end
+    
+    --if data.cur_tracks[id_src].folderd 
     local is_new_val = -1
     local t = {}
     local cnt_match0, cnt_match, last_biggestmatch = 0, 0

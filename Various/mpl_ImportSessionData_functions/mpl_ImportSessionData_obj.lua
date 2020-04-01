@@ -45,63 +45,82 @@
     gfx.w  = math.max(min_w,gfx.w)
     gfx.h  = math.max(min_h,gfx.h)
     
-    obj.menu_w = 20
+    obj.menu_w = 120
     obj.menu_h = 30
     obj.bottom_line_h = 30
     obj.scroll_w = 20
-    obj.trlistw = math.floor((gfx.w - obj.menu_w - obj.get_w)*0.7)
+    obj.trlistw = math.floor((gfx.w - obj.scroll_w - obj.get_w)*0.7)
     obj.tr_listh = gfx.h-obj.menu_h-obj.bottom_line_h
     obj.tr_listxindend = 12
     obj.botline_h = gfx.h - (obj.menu_h + obj.tr_listh)
     
-    Obj_MenuMain  (conf, obj, data, refresh, mouse)
+    Obj_MenuMain  (conf, obj, data, refresh, mouse, strategy)
     Obj_TopLine(conf, obj, data, refresh, mouse)
     if data.tr_chunks and conf.lastrppsession ~=  '' then 
       Obj_Tracklist(conf, obj, data, refresh, mouse, strategy) 
       Obj_Scroll(conf, obj, data, refresh, mouse)
       Obj_Strategy(conf, obj, data, refresh, mouse, strategy)
-      Obj_Actions(conf, obj, data, refresh, mouse, strategy) 
+      Obj_trlistActions(conf, obj, data, refresh, mouse, strategy) 
     end
     for key in pairs(obj) do if type(obj[key]) == 'table' then  obj[key].context = key  end end    
   end
   -----------------------------------------------
-  function Obj_MenuMain(conf, obj, data, refresh, mouse)
+  function Obj_MenuMain(conf, obj, data, refresh, mouse, strategy)
             obj.menu = { clear = true,
                         x = 0,
                         y = 0,
                         w = obj.menu_w-1,
                         h = obj.menu_h,
                         col = 'white',
-                        txt= '>',
+                        txt= 'Menu / actions >',
                         show = true,
                         fontsz = obj.GUI_fontsz2,
                         a_frame = 0,
                         alpha_back = obj.but_aback,
                         func =  function() 
                                   Menu(mouse,               
-    {
-      { str = conf.mb_title..' '..conf.vrs,
-        hidden = true
-      },
-      { str = 'Cockos Forum thread|',
-        func = function() Open_URL('https://forum.cockos.com/showthread.php?t=233358') end  } ,
-      { str = 'Donate to MPL',
-        func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
-      { str = 'Contact: MPL VK',
-        func = function() Open_URL('http://vk.com/mpl57') end  } ,     
-      { str = 'Contact: MPL SoundCloud|',
-        func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
-      { str = 'Reset filename',
-        func = function() 
-          conf.lastrppsession = '' 
-          Run_Init(conf, obj, data, refresh, mouse) 
-          refresh.GUI = true 
-          refresh.data = true end  } ,        
-      
-      
-        
-                                                    
-    }
+                          {
+                            { str = conf.mb_title..' '..conf.vrs..'|',
+                              hidden = true
+                            },
+                            { str = 'Donate to MPL',
+                              func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
+                            { str = 'Contact: Cockos Forum thread',
+                              func = function() Open_URL('https://forum.cockos.com/showthread.php?t=233358') end  } ,                              
+                            { str = 'Contact: MPL VK',
+                              func = function() Open_URL('http://vk.com/mpl57') end  } ,     
+                            { str = 'Contact: MPL SoundCloud|',
+                              func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
+                            { str = 'Reset import strategy to default',
+                              func = function() 
+                                LoadStrategy(conf, strategy, true)
+                                refresh.GUI = true 
+                                refresh.data = true end  } ,                               
+                            { str = 'Reset filename|',
+                              func = function() 
+                                conf.lastrppsession = '' 
+                                Run_Init(conf, obj, data, refresh, mouse) 
+                                refresh.GUI = true 
+                                refresh.data = true end  } ,  
+                            { str = '#Track list actions'},                             
+                            { str = 'Match source tracks, import them to new tracks',
+                              func = function() 
+                                      Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
+                                      Data_ClearDest(conf, obj, data, refresh, mouse, strategy)  
+                                      Data_MatchDest(conf, obj, data, refresh, mouse, strategy, true) 
+                                    end ,
+                            },
+                            { str = 'Mark all source tracks for import to new tracks',
+                              func = function() 
+                                      Data_ClearDest(conf, obj, data, refresh, mouse, strategy, true)  
+                                    end ,
+                            } ,
+                            { str = 'Mark selected source tracks for import to new tracks',
+                              func = function() 
+                                      for i = 1, #data.tr_chunks do if data.tr_chunks[i].selected then data.tr_chunks[i].dest = -1  end end   
+                                    end ,
+                            }                            
+                            }
     )
                                   refresh.conf = true 
                                   --refresh.GUI = true
@@ -396,20 +415,17 @@
   end
 
   ----------------------------------------------- 
-  function Obj_Actions(conf, obj, data, refresh, mouse, strategy) 
-    local bw = math.ceil(gfx.w/5) --math.ceil((obj.menu_w + obj.get_w+obj.trlistw)/4)
+  function Obj_trlistActions(conf, obj, data, refresh, mouse, strategy) 
+    local bw = math.ceil(gfx.w/4) --math.ceil((obj.menu_w + obj.get_w+obj.trlistw)/4)
     local bw_red= 2
     local by = obj.menu_h + obj.tr_listh+2
     
-    obj.menu_trlistctrl = { clear = true,
+    --[[obj.menu_trlistctrl = { clear = true,
               x = 0,
               y = by,
               w = bw-bw_red,
               h = obj.botline_h,
-              --[[fillback = true,
-              fillback_colstr = 'red',
-              fillback_a = 0.2,]]
-              txt= 'Tracklist\nactions >',
+              txt= 'Menu / actions >',
               aligh_txt = 16,
               show = true,
               fontsz = obj.GUI_fontsz2,
@@ -417,6 +433,24 @@
               func =  function() 
                         Menu(mouse,               
                           {
+                            { str = conf.mb_title..' '..conf.vrs,
+                              hidden = true
+                            },
+                            { str = 'Donate to MPL',
+                              func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
+                            { str = 'Contact: Cockos Forum thread|',
+                              func = function() Open_URL('https://forum.cockos.com/showthread.php?t=233358') end  } ,                              
+                            { str = 'Contact: MPL VK',
+                              func = function() Open_URL('http://vk.com/mpl57') end  } ,     
+                            { str = 'Contact: MPL SoundCloud|',
+                              func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
+                            { str = 'Reset filename|',
+                              func = function() 
+                                conf.lastrppsession = '' 
+                                Run_Init(conf, obj, data, refresh, mouse) 
+                                refresh.GUI = true 
+                                refresh.data = true end  } ,  
+                            { str = '#Track list actions'},                             
                             { str = 'Match source tracks, import them to new tracks',
                               func = function() 
                                       Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
@@ -434,15 +468,16 @@
                                       for i = 1, #data.tr_chunks do if data.tr_chunks[i].selected then data.tr_chunks[i].dest = -1  end end   
                                     end ,
                             }                            
-                            
-                          })
+                            }
+                          )
                         refresh.GUI = true
-                      end}  
+                        refresh.conf = true 
+                      end}  ]]
                           
     local filt = strategy.tr_filter
     if filt == '' then filt = '(empty)' end
    obj.trfilt = { clear = true,
-             x = bw,
+             x = 0,
              y = by,
              w = bw-bw_red,
              h = obj.botline_h,
@@ -463,7 +498,7 @@
                         end
                      end}     
    obj.reset = { clear = true,
-             x = bw*2,
+             x = bw,
              y = by,
              w = bw-bw_red,
              h = obj.botline_h,
@@ -483,7 +518,7 @@
     
     local has_selected = '' for i = 1, #data.tr_chunks do if data.tr_chunks[i].selected then has_selected = ' selected' break end end
     obj.match = { clear = true,
-              x = bw*3,
+              x = bw*2,
               y = by,
               w = bw-bw_red,
               h = obj.botline_h,
@@ -508,7 +543,7 @@
                         refresh.GUI = true
                       end}                      
     obj.import_action = { clear = true,
-            x = bw*4,
+            x = bw*3,
             y = by,
             w = bw,
             h = obj.botline_h,
@@ -530,8 +565,8 @@
   end
   -----------------------------------------------   
   function Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, strategy) 
-    local wstr = gfx.w - (obj.menu_w + obj.trlistw ) -2
-    local x_str = obj.menu_w + obj.trlistw  + 1
+    local wstr = gfx.w - (obj.trlistw+obj.scroll_w ) -2
+    local x_str = obj.trlistw +obj.scroll_w + 1
     local y_str = obj.menu_h+1
     local name = 'str_tree'
     obj.strframe = { clear = true,
@@ -761,7 +796,7 @@
                                     end,             
                           } , 
                           { name = 'Markers/Regions',
-                            state = strategy.master_stuff&4==4,
+                            state = strategy.markers_flags&4==4,
                             show =  true,
                             hidden = strategy.master_stuff&1==1 or (strategy.markers_flags&2==2 or strategy.markers_flags&4==4),
                             has_blit = false,

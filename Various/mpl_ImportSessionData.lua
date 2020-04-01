@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.13
+-- @version 1.14
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT Import Session Data feature
@@ -10,12 +10,11 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    # Action: fix 'Match Selected' not properly reset used tracks
---    # GUI: rename track list actions button and actions inside
---    - TrackList: remove drag to select
---    + Tracklist: LMB+Shift for group selection
+--    # show indexes for destination tracks
+--    # GUI: menu rebuild
+--    + Actions: reset import strategy to default
      
-  local vrs = '1.13'
+  local vrs = '1.14'
   --NOT gfx NOT reaper
   
 --[[ 
@@ -40,7 +39,7 @@ import start TC of the session
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-  local data = {}
+  data = {}
   local obj = {}
   local strategy = {}
   
@@ -68,6 +67,7 @@ import start TC of the session
             dock =    0, 
             
             lastrppsession = '',
+            
             }
     return t
   end  
@@ -242,7 +242,7 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
           --[[  &2 FX chauin
                 &4 markers
                 ]]
-        markers_flags = 1,   
+        markers_flags = 0,   
           --[[  &1 replace
                 &2 markers
                 &4 regions
