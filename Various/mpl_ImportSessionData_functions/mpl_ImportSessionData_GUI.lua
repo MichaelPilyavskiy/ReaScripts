@@ -109,6 +109,7 @@
     if o.alpha_back then gfx.a = o.alpha_back end
     
     if not o.disable_blitback then
+      gfx.a = 0.3
       local blit_h, blit_w = obj.grad_sz,obj.grad_sz
       gfx.blit( 5, 1, 0, -- grad back
               0,0,  blit_w,blit_h,

@@ -215,6 +215,7 @@
         local tr_col = Data_ParseRPP_GetParam(ch_str, 'PEAKCOL', parse_str_limit)
         local _, ISBUS_t = Data_ParseRPP_GetParam(ch_str, 'ISBUS', parse_str_limit, 2)
         local AUXRECV = Data_ParseRPP_GetParam2(ch_str, 'AUXRECV')
+        AUXRECV = Data_ParseRPP_ParseAUXRECV(AUXRECV)
         if tr_col == 16576 then tr_col = nil end
         local obj_type = ''
         if ch_str:match('<TRACK') then 
@@ -233,40 +234,13 @@
       end
     end
     
-    --[[for i = 1, #data.tr_chunks do 
-      if data.tr_chunks.AUXRECV then
-        for j = 1, #data.tr_chunks.AUXRECV do
-          tr_id = data.tr_chunks.AUXRECV[j]:match('AUXRECV (%d+)')
-          data.tr_chunks[i].AUXRECV[j] = data.tr_chunks[i].AUXRECV[j]..'\n'..data.tr_chunks[j].AUXRECV[j].GUID
-        end
-      end
-    end]]
     
     data.hasRPPdata = true
     refresh.GUI = true
   end
-  
-  
-  --[[tr_chunks = {}
-  tr_id = 0
-  local bracketslevel = 0
-  for i = 1, #t do 
-    if t[i]:match('<TRACK') then 
-      if tr_chunks[tr_id-1] and type(tr_chunks[tr_id-1]) == 'table' then tr_chunks[tr_id-1] = table.concat(tr_chunks[tr_id-1], '\n') end 
-      track_open = true
-      tr_id = tr_id + 1 
-      tr_chunks[tr_id] = {}
-      tr_chunks[tr_id] [#tr_chunks[tr_id] + 1] = t[i]
-     elseif tr_id >= 1 and t[i]:match('>') and not t[i]:match('<') and track_open == true then
-      tr_chunks[tr_id] [#tr_chunks[tr_id] + 1] = t[i]
-      tr_chunks[tr_id] = table.concat(tr_chunks[tr_id], '\n') 
-      track_open = false
-     elseif track_open == true then
-      tr_chunks[tr_id] [#tr_chunks[tr_id] + 1] = t[i]
-    end
-  end]]
   --------------------------------------------------------------------  
-  function Data_ImportMasterFX(conf, obj, data, refresh, mouse, strategy)
+  function Data_ImportMasterStuff_FX(conf, obj, data, refresh, mouse, strategy)
+    if not (strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.master_stuff&2 == 2)) then return end
     local mastertr = GetMasterTrack( 0 )
     local chunk_replace = data.masterfxchunk.chunk:gsub('MASTERFXLIST', 'FXCHAIN')
     local retval, cur_chunk = reaper.GetTrackStateChunk( mastertr, '', false )
@@ -294,23 +268,27 @@
     --msg(out_ch)
     SetTrackStateChunk( mastertr, out_ch, false )
   end
+  -------------------------------------------------------------------- 
+  function Data_ImportTracks_NewTrack(data, i, insert_id)
+    InsertTrackAtIndex( insert_id, false )
+    local new_tr = GetTrack(0, insert_id)
+    local new_chunk = data.tr_chunks[i].chunk
+    local gGUID = genGuid('' ) 
+    new_chunk = new_chunk:gsub('TRACK[%s]+.-\n', 'TRACK '..gGUID..'\n')
+    new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
+    SetTrackStateChunk( new_tr, new_chunk, false )
+    gGUID = GetTrackGUID( new_tr )
+    data.tr_chunks[i].destGUID = gGUID
+    return new_tr
+  end
   --------------------------------------------------------------------  
-  function Data_Import(conf, obj, data, refresh, mouse, strategy) 
-    Data_ImportMasterStuff(conf, obj, data, refresh, mouse, strategy)  
-    
+  function Data_ImportTracks(conf, obj, data, refresh, mouse, strategy) 
     for i = 1, #data.tr_chunks do
+    
       if data.tr_chunks[i].dest == -1 then  -- end of track list
-        InsertTrackAtIndex( CountTracks( 0 ), false )
-        local new_tr = GetTrack(0, CountTracks( 0 )-1)
-        local new_chunk = data.tr_chunks[i].chunk
-        local gGUID = genGuid('' ) 
-        new_chunk = new_chunk:gsub('TRACK[%s]+.-\n', 'TRACK '..gGUID..'\n')
-        new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
-        SetTrackStateChunk( new_tr,new_chunk, false )
-      end 
-      
-      if type(data.tr_chunks[i].dest) == 'string' and data.tr_chunks[i].dest ~= '' then  -- to specific track
-        dest_tr = VF_GetTrackByGUID(data.tr_chunks[i].dest)
+        Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ))
+      elseif type(data.tr_chunks[i].dest) == 'string' and data.tr_chunks[i].dest ~= '' then  -- to specific track
+        local dest_tr = VF_GetTrackByGUID(data.tr_chunks[i].dest)
         if dest_tr then 
           local tr_id = CSurf_TrackToID( dest_tr, false )
           -- set chunk
@@ -321,38 +299,146 @@
             new_chunk = new_chunk:gsub('TRACK .-\n', 'TRACK '..gGUID..'\n')
             new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
             SetTrackStateChunk( dest_tr, new_chunk, false )
+            gGUID = reaper.GetTrackGUID( dest_tr )
+            data.tr_chunks[i].destGUID = gGUID
            else 
-            -- add new track
-            --local tr_id = CountTracks( 0 )
-            InsertTrackAtIndex( tr_id, false )
-            local new_tr = GetTrack(0, tr_id) 
-            local new_chunk = data.tr_chunks[i].chunk
-            local gGUID = genGuid('' ) 
-            new_chunk = new_chunk:gsub('TRACK .-\n', 'TRACK '..gGUID..'\n')
-            new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
-            SetTrackStateChunk( new_tr, new_chunk, false )             
-            Data_ImportAppStrategy(conf, obj, data, refresh, mouse, strategy, new_tr, dest_tr) 
-            -- remove track
+            local new_tr = Data_ImportTracks_NewTrack(data, i, tr_id)
+            Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, new_tr, dest_tr) 
+            data.tr_chunks[i].destGUID =  GetTrackGUID( dest_tr )
             DeleteTrack( new_tr )
-            --reaper.SetTrackColor( new_tr, 0 )
           end
         end
       end       
+    end   
+    Data_ImportTracks_Send(conf, obj, data, refresh, mouse, strategy) 
+  end
+
+  --------------------------------------------------- 
+  function Data_ParseRPP_ParseAUXRECV(AUXRECV)
+    local t = {}
+    for i =1 , #AUXRECV do
+      local line = AUXRECV[i]
+      local valt = {}
+      for val in line:gmatch('[^%s]+') do valt[#valt+1] = val end
+      local ret_t = {}
+      ret_t.src_id = tonumber(valt[1])
+      ret_t.mode = tonumber(valt[2])
+      ret_t.vol = tonumber(valt[3])
+      ret_t.pan = tonumber(valt[4])
+      ret_t.mute = tonumber(valt[5])
+      ret_t.monosum = tonumber(valt[6])
+      ret_t.phaseinv = tonumber(valt[7])
+      ret_t.srcchan = tonumber(valt[8])
+      ret_t.destchan = tonumber(valt[9])
+      ret_t.panlaw = tonumber(valt[10]:match('[%d%.]+'))
+      ret_t.midichan = tonumber(valt[11])
+      ret_t.automode = tonumber(valt[12])
+      t[#t+1] = ret_t
+    end
+    return t
+  end
+  -------------------------------------------------------------------- 
+  function Data_ImportTracks_Send_SetData(conf, obj, data, refresh, mouse, strategy, new_tr, sendidx, auxt)
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'D_VOL', auxt.vol )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'B_MUTE', auxt.mute )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'B_PHASE', auxt.phaseinv )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'B_MONO', auxt.monosum )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'D_PAN', auxt.pan )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'D_PANLAW', auxt.panlaw )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_SENDMODE', auxt.mode )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_SRCCHAN', auxt.srcchan )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_DSTCHAN', auxt.destchan )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_AUTOMODE', auxt.automode )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_MIDIFLAGS', auxt.midichan )
+  end
+  --------------------------------------------------------------------  
+  function Data_ImportTracks_Send(conf, obj, data, refresh, mouse, strategy) 
+    --if strategy.trsend&1 == 0 then return end
+    for i = 1, #data.tr_chunks do
+      if data.tr_chunks[i].dest~= '' and #data.tr_chunks[i].AUXRECV > 0 then
+        for auxid = 1,#data.tr_chunks[i].AUXRECV do
+          local tr_chunks_id = data.tr_chunks[i].AUXRECV[auxid].src_id+1
+          if tr_chunks_id and data.tr_chunks[tr_chunks_id] then
+            
+            if data.tr_chunks[tr_chunks_id].dest == '' and strategy.trsend&2 ==2 then -- src track not added
+            
+                data.tr_chunks[tr_chunks_id].dest = -1
+                local paste_send_at_ID = CountTracks( 0 )
+                local new_tr = Data_ImportTracks_NewTrack(data, tr_chunks_id, paste_send_at_ID)
+                local imported_dst_tr = VF_GetTrackByGUID(data.tr_chunks[i].destGUID) 
+                local has_send = false
+                for sendidx =1,  GetTrackNumSends( imported_dst_tr, 0 ) do
+                  local srctr0 = GetTrackSendInfo_Value( imported_dst_tr, 0, sendidx-1, 'P_SRCTRACK' )
+                  if GetTrackGUID(srctr0) == GetTrackGUID(new_tr) then has_send = true end
+                end
+                if not has_send then
+                  local sendidx = CreateTrackSend( new_tr, imported_dst_tr )
+                  Data_ImportTracks_Send_SetData(conf, obj, data, refresh, mouse, strategy, new_tr, sendidx, data.tr_chunks[i].AUXRECV[auxid])
+                end
+              
+             elseif strategy.trsend&4 ==4 and type(data.tr_chunks[tr_chunks_id].dest) == 'string'   then -- if source track is imported to matched track--and type(data.tr_chunks[tr_chunks_id].dest) =='string'
+             
+               local imported_src_tr = VF_GetTrackByGUID(data.tr_chunks[tr_chunks_id].destGUID)
+               local imported_dst_tr = VF_GetTrackByGUID(data.tr_chunks[i].destGUID) 
+               local has_send = false
+               for sendidx =1,  GetTrackNumSends( imported_dst_tr, -1 ) do
+                 local srctr0 = GetTrackSendInfo_Value( imported_dst_tr, -1, sendidx-1, 'P_SRCTRACK' )
+                 if GetTrackGUID(srctr0 ) == GetTrackGUID(imported_src_tr ) then has_send = true end
+               end
+               if not has_send then
+                local sendidx = CreateTrackSend( imported_src_tr, imported_dst_tr )
+                Data_ImportTracks_Send_SetData(conf, obj, data, refresh, mouse, strategy, imported_src_tr, sendidx, data.tr_chunks[i].AUXRECV[auxid])
+               end
+             
+             elseif strategy.trsend&8 ==8 and  data.tr_chunks[tr_chunks_id].dest == -1 then -- if source track is imported as a new track
+             
+               local imported_src_tr = VF_GetTrackByGUID(data.tr_chunks[tr_chunks_id].destGUID)
+               --reaper.SetTrackColor( imported_src_tr, 0 )
+               local imported_dst_tr = VF_GetTrackByGUID(data.tr_chunks[i].destGUID)
+               local has_send = false
+               for sendidx =1,  GetTrackNumSends( imported_dst_tr, -1 ) do
+                 local srctr0 = GetTrackSendInfo_Value( imported_dst_tr, -1, sendidx-1, 'P_SRCTRACK' )
+                 if GetTrackGUID(srctr0 ) == GetTrackGUID(imported_src_tr ) then has_send = true end
+               end
+               if not has_send then
+                local sendidx = CreateTrackSend( imported_src_tr, imported_dst_tr )
+                Data_ImportTracks_Send_SetData(conf, obj, data, refresh, mouse, strategy, imported_src_tr, sendidx, data.tr_chunks[i].AUXRECV[auxid])
+               end              
+              
+            end             
+          end
+        end
+      end
     end
   end
   --------------------------------------------------------------------  
-  function Data_ImportMasterStuff(conf, obj, data, refresh, mouse, strategy) 
-    if strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.master_stuff&2 == 2) then
-      Data_ImportMasterFX(conf, obj, data, refresh, mouse, strategy) 
-    end
-    
+  function Data_ImportMasterStuff_Markers(conf, obj, data, refresh, mouse, strategy)   
     local marker_key = 'marker'
-    if strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.master_stuff&4 == 4) and data[marker_key] then
-      if strategy.markers_flags&1 ==1 then
-        local retval, num_markers, num_regions = CountProjectMarkers( 0 )
-        for i = num_markers+num_regions, 1,-1 do DeleteProjectMarkerByIndex( 0, i-1 ) end
-      end
+    
+    --[[           &1 markers
+                &2 markersreplace
+                &4 regions
+                &8 regionsreplace
+                       
+                ]]
+    if not 
+      (strategy.master_stuff&1 == 1 or 
+        (strategy.master_stuff&1 == 0 and 
+          (strategy.markers_flags&1 == 1 or strategy.markers_flags&4 == 4) 
+          and data[marker_key]
+        )
+      ) then return end
       
+    -- handle replace / aka remove old regions markers
+    if (strategy.markers_flags&2 ==2 or strategy.markers_flags&8 ==8) then
+      local retval, num_markers, num_regions = CountProjectMarkers( 0 )
+      for i = num_markers+num_regions, 1,-1 do 
+        local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, i-1 )
+        if (strategy.markers_flags&2 ==2 and isrgn ==false) or (strategy.markers_flags&8 ==8 and isrgn ==true) then DeleteProjectMarkerByIndex( 0, i-1 ) end
+      end
+    end
+     
+     
       for i = 1, #data[marker_key] do
         local flags = data[marker_key][i][4]
         local isrgn = flags &1==1
@@ -367,17 +453,18 @@
           end
         end]]
         local IDnumber = data[marker_key][i][1] 
-        if (strategy.markers_flags&2 == 2 and isrgn==false) or 
+        if (strategy.markers_flags&1 == 1 and isrgn==false) or 
           (strategy.markers_flags&4 == 4 and isrgn==true) or
-          (strategy.markers_flags&2 == 0 and strategy.markers_flags&4 == 0) and 
+          (strategy.master_stuff&1 ==1) and 
           IDnumber
-          then -- mark only
-          if (pos < rgnend and rgnend ~= -1) or rgnend == -1  then
+          then 
+          if (isrgn == true and pos < rgnend and rgnend ~= -1) or (isrgn == false and rgnend == -1)  then
+
             local markrgnidx = AddProjectMarker2( 0, 
                                       true, 
                                       1, 
                                       2, 
-                                      '', 
+                                      '__reserved', 
                                       0, 
                                       0 )
             SetProjectMarkerByIndex2( 0, markrgnidx, isrgn, pos, rgnend, IDnumber, name, color, 0 )
@@ -385,7 +472,18 @@
         end
         if is_reg == true then i = i+1 end
       end
+      
+    -- workaround to remove invisible temp marker
+    local retval, num_markers, num_regions = CountProjectMarkers( 0 )
+    for i = num_markers+num_regions, 1,-1 do 
+      local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, i-1 )
+      if name == '__reserved' then DeleteProjectMarkerByIndex( 0, i-1 ) end
     end
+  end
+  --------------------------------------------------------------------  
+  function Data_ImportMasterStuff(conf, obj, data, refresh, mouse, strategy) 
+    Data_ImportMasterStuff_FX(conf, obj, data, refresh, mouse, strategy) 
+    Data_ImportMasterStuff_Markers(conf, obj, data, refresh, mouse, strategy)  
   end 
   --------------------------------------------------------------------  
   function Data_ParseRPP_GetParam(ch_str, key, find_until, val_cnt)
@@ -477,6 +575,11 @@
     local is_new_val = -1
     local t = {}
     local cnt_match0, cnt_match, last_biggestmatch = 0, 0
+    
+    --[[for trid = 1, #data.tr_chunks do -- check if there is nt exact match for other tracks
+      if data.tr_chunks[trid].tr_name:lower() == tr_name:lower() and trid == id_src then return '' end
+    end ]] 
+    
     for word in tr_name:gmatch('[^%s]+') do t[#t+1] = literalize(word:lower():gsub('%s+','')) end
     for trid = 1, #data.cur_tracks do 
       if not data.cur_tracks[trid].used then
@@ -500,12 +603,12 @@
     return ''
   end
   -------------------------------------------------------------------- 
-  function Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, key)
+  function Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, key)
       local val = GetMediaTrackInfo_Value( src_tr,key )
       SetMediaTrackInfo_Value( dest_tr, key, val )  
   end
   -------------------------------------------------------------------- 
-  function Data_ImportAppStrategy_ImportItems(src_tr, dest_tr, strategy)
+  function Data_ImportTracks_AppStr_Items(src_tr, dest_tr, strategy)
     local chunks = {}
     for itemidx = 1,  CountTrackMediaItems( src_tr ) do
       local item = GetTrackMediaItem( src_tr, itemidx-1 )
@@ -527,7 +630,7 @@
     
   end
   -------------------------------------------------------------------- 
-  function Data_ImportAppStrategy(conf, obj, data, refresh, mouse, strategy, src_tr, dest_tr)
+  function Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, src_tr, dest_tr)
     -- complete
     if strategy.comchunk == 1 then
       -- get stuff from track
@@ -546,34 +649,45 @@
 
     -- track properties
     if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&2 == 2) then
-      Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'D_VOL')
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_VOL')
     end    
     if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&4 == 4) then
       --if ValidatePtr2( 0, src_tr, 'MediaTrack*' ) and ValidatePtr2( 0, dest_tr, 'MediaTrack*' ) then msg(1) end
-      Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'D_PAN')
-      Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'D_WIDTH')
-      Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'D_DUALPANL')
-      Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'D_DUALPANR')
-      Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'I_PANMODE')
-      Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'D_PANLAW')
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_PAN')
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_WIDTH')
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_DUALPANL')
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_DUALPANR')
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_PANMODE')
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_PANLAW')
     end  
     if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&8 == 8) then 
-      Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'B_PHASE')   
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'B_PHASE')   
     end  
     if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&16 == 16) then  
-      Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'I_RECINPUT')
-      Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'I_RECMODE') 
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_RECINPUT')
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_RECMODE') 
     end 
     if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&32 == 32) then    
-      Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'I_RECMON')
-      Data_ImportAppStrategy_SetTrackVal(src_tr, dest_tr, 'I_RECMONITEMS')
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_RECMON')
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_RECMONITEMS')
     end 
-  
+    if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&64 == 64) then    
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'B_MAINSEND')
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'C_MAINSEND_OFFS')
+    end     
+    if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&128 == 128) then  
+      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_CUSTOMCOLOR')
+    end     
+     
     -- tr items
     if strategy.tritems&1 == 1 then    
-      Data_ImportAppStrategy_ImportItems(src_tr, dest_tr, strategy)
-    end     
-    
+      Data_ImportTracks_AppStr_Items(src_tr, dest_tr, strategy)
+    end    
        
   end
   
+  --------------------------------------------------------------------  
+  function Data_Import(conf, obj, data, refresh, mouse, strategy)  
+    Data_ImportMasterStuff(conf, obj, data, refresh, mouse, strategy)  
+    Data_ImportTracks(conf, obj, data, refresh, mouse, strategy) 
+  end

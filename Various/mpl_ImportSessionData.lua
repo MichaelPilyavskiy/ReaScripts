@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.14
+-- @version 1.15
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT Import Session Data feature
@@ -10,24 +10,18 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    # show indexes for destination tracks
---    # GUI: menu rebuild
---    + Actions: reset import strategy to default
+--    + Strategy: add support for importing sends/receives
+--    + Strategy: TrackProperties / Master/parent send
+--    + Strategy: TrackProperties / Color
+--    # Strategy: separate markers/regions
+--    # Strategy: workaround invisible 0 region creating
+--    # Strategy: reduce non-used items visually
+--    # fix refresh GUI after menu actions
+
      
-  local vrs = '1.14'
+  local vrs = '1.15'
   --NOT gfx NOT reaper
   
---[[ 
-For imports the most common use case generally is when projects are similar. If projects are really different structures it's unlikely that importing a mix will be useful in real life I think. So the script should be biased towards similarities and ignore large differences. I'd say no to automatically importing all child tracks but any imported should default to appearing in the same place relative to parents that have the same name.
-
-incorrect import of sends when track numbers of source/destination projects do not match.
-
-import start TC of the session 
-
-
-]]
-
-
 
   
   --  INIT -------------------------------------------------
@@ -234,7 +228,14 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
                 &8 phase
                 &16 input settings 
                 &32 monitor settings 
+                &64 master/parent send
+                &128 color
                 ]]
+        trsend = 0, 
+          --[[  &2 insert new if not present
+                &4 imported
+                &8 imported as new track
+                ]]                 
         tritems = 0, 
           --[[  &2 replace
                 ]]                
@@ -243,9 +244,10 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
                 &4 markers
                 ]]
         markers_flags = 0,   
-          --[[  &1 replace
-                &2 markers
+          --[[  &1 markers
+                &2 markersreplace
                 &4 regions
+                &8 regionsreplace
                 ]]                     
       }
     return t

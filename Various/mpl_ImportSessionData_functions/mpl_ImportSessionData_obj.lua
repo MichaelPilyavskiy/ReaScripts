@@ -113,6 +113,8 @@
                             { str = 'Mark all source tracks for import to new tracks',
                               func = function() 
                                       Data_ClearDest(conf, obj, data, refresh, mouse, strategy, true)  
+                                      refresh.GUI = true 
+                                                                      refresh.data = true
                                     end ,
                             } ,
                             { str = 'Mark selected source tracks for import to new tracks',
@@ -123,7 +125,7 @@
                             }
     )
                                   refresh.conf = true 
-                                  --refresh.GUI = true
+                                  refresh.GUI = true
                                   --refresh.GUI_onStart = true
                                   refresh.data = true
                                 end}  
@@ -200,7 +202,7 @@
                         show = true,
                         is_but = true,
                         ignore_mouse = true,
-                        alpha_back = 0.05,
+                        disable_blitback = true,
                         fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2,  
                       }
         obj.scroll_pat_handle = 
@@ -210,10 +212,11 @@
                         w = obj.scroll_w-1,
                         h = scroll_handle_h-1,
                         txt = '',
-                        col = 'white',
+                        fillback = true,
+                        fillback_colstr = 'white',
                         show = true,
-                        is_but = true,
-                        alpha_back = obj.but_aback,
+                        --is_but = true,
+                        fillback_a = obj.but_aback,
                         a_frame = 0,
                         fontsz = conf.GUI_padfontsz,--obj.GUI_fontsz2, 
                       func =  function() 
@@ -354,10 +357,11 @@
                 fillback = true,
                 fillback_colint = tr_col,
                 fillback_a = 0.9,
-                alpha_back = 0.1,
+                alpha_back = 0.01,
                 txt= txt,
                 show = data.tr_chunks[i].tr_show,
                 fontsz = obj.GUI_fontsz2,
+                disable_blitback = true,
                 func =  function() 
                           Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
                           Data_DefineUsedTracks(conf, obj, data, refresh, mouse)
@@ -633,12 +637,18 @@
   -----------------------------------------------
   function Obj_Strategy(conf, obj, data, refresh, mouse, strategy)
     local act_strtUI = {  
-                      
-                          { name = 'Track RAW data (chunk)',
+                          --[[{ name = 'Tracks section',
+                            --state = strategy.comchunk==1,
+                            --hidden = strategy.comchunk==0,
+                            show = true,
+                            has_blit = true,
+                            level = 0,       
+                          } ,]]                        
+                          { name = 'Track RAW data / replace GUID / remove AUXRECV',
                             state = strategy.comchunk==1,
                             hidden = strategy.comchunk==0,
                             show = true,
-                            has_blit = false,
+                            has_blit = true,
                             level = 0,
                             func =  function()
                                       strategy.comchunk = math.abs(1-strategy.comchunk)
@@ -646,10 +656,9 @@
                           } ,  
                           { name = 'Track FX chain',
                             state = strategy.fxchain&1==1,
-                            show = true,
-                            hidden = strategy.comchunk==1,
+                            show = strategy.comchunk==0,
                             has_blit = false,
-                            level = 0,
+                            level = 1,
                             func =  function()
                                       strategy.comchunk = 0
                                       strategy.fxchain = BinaryToggle(strategy.fxchain, 0)
@@ -657,10 +666,9 @@
                           } , 
                           { name = 'Copy to the end of chain instead replace',
                             state = strategy.fxchain&2==2,
-                            show = true,
-                            hidden = strategy.comchunk==1,
+                            show = strategy.comchunk&1==0 and strategy.fxchain&1==1,
                             has_blit = false,
-                            level = 1,
+                            level = 2,
                             func =  function()
                                       strategy.comchunk = 0
                                       strategy.fxchain = BinaryToggle(strategy.fxchain, 1)
@@ -668,10 +676,9 @@
                           } ,                                                      
                           { name = 'Track Properties (LMB to all, RMB to none)',
                             state = strategy.trparams&1==1,
-                            show = true,
-                            hidden = strategy.comchunk==1,
+                            show = strategy.comchunk&1==0,
                             has_blit = false,
-                            level = 0,
+                            level = 1,
                             func =  function()
                                       strategy.comchunk = 0
                                       strategy.trparams = BinaryToggle(strategy.trparams, 0)
@@ -683,10 +690,9 @@
                           } ,     
                           { name = 'Volume',
                             state = strategy.trparams&2==2,
-                            show =  true,
-                            hidden = strategy.trparams&1==1 or strategy.comchunk==1,
+                            show = strategy.trparams&1==0 and strategy.comchunk&1==0,
                             has_blit = false,
-                            level = 1,
+                            level = 2,
                             func =  function()
                                       strategy.comchunk = 0
                                       strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
@@ -695,10 +701,9 @@
                           } , 
                           { name = 'Pan/Width/Panlaw/DualPan/Panmode',
                             state = strategy.trparams&4==4,
-                            show =  true,
-                            hidden = strategy.trparams&1==1 or strategy.comchunk==1,
+                            show = strategy.trparams&1==0 and strategy.comchunk&1==0,
                             has_blit = false,
-                            level = 1,
+                            level = 2,
                             func =  function()
                                       strategy.comchunk = 0
                                       strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
@@ -707,10 +712,9 @@
                           } ,  
                           { name = 'Phase',
                             state = strategy.trparams&8==8,
-                            show =  true,
-                            hidden = strategy.trparams&1==1 or strategy.comchunk==1,
+                            show = strategy.trparams&1==0 and strategy.comchunk&1==0,
                             has_blit = false,
-                            level = 1,
+                            level = 2,
                             func =  function()
                                       strategy.comchunk = 0
                                       strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
@@ -719,10 +723,9 @@
                           } , 
                           { name = 'Record input/mode',
                             state = strategy.trparams&16==16,
-                            show =  true,
-                            hidden = strategy.trparams&1==1 or strategy.comchunk==1,
+                            show = strategy.trparams&1==0 and strategy.comchunk&1==0,
                             has_blit = false,
-                            level = 1,
+                            level = 2,
                             func =  function()
                                       strategy.comchunk = 0
                                       strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
@@ -731,22 +734,42 @@
                           } , 
                           { name = 'Record monitoring/monitor items',
                             state = strategy.trparams&32==32,
-                            show =  true,
-                            hidden = strategy.trparams&1==1 or strategy.comchunk==1,
+                            show = strategy.trparams&1==0 and strategy.comchunk&1==0,
                             has_blit = false,
-                            level = 1,
+                            level = 2,
                             func =  function()
                                       strategy.comchunk = 0
                                       strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
                                       strategy.trparams = BinaryToggle(strategy.trparams, 5)
                                     end,             
                           } ,  
+                          { name = 'Master/parent send + parent channels',
+                            state = strategy.trparams&64==64,
+                            show = strategy.trparams&1==0 and strategy.comchunk&1==0,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 6)
+                                    end,             
+                          } ,  
+                          { name = 'Color',
+                            state = strategy.trparams&128==128,
+                            show = strategy.trparams&1==0 and strategy.comchunk&1==0,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 7)
+                                    end,             
+                          } ,                                                    
                           { name = 'Track Items',
                             state = strategy.tritems&1==1,
-                            show = true,
-                            hidden = strategy.comchunk==1,
+                            show = strategy.comchunk&1==0,
                             has_blit = false,
-                            level = 0,
+                            level = 1,
                             func =  function()
                                       strategy.comchunk = 0
                                       strategy.tritems = BinaryToggle(strategy.tritems, 0)
@@ -758,24 +781,64 @@
                           } ,
                           { name = 'Replace',
                             state = strategy.tritems&2==2,
-                            show =  true,
-                            hidden = strategy.tritems&1==0 or strategy.comchunk==1,
+                            show =  strategy.tritems&1==1 and strategy.comchunk&1==0,
                             has_blit = false,
-                            level = 1,
+                            level = 2,
                             func =  function()
                                       strategy.comchunk = 0
                                       strategy.tritems = BinaryToggle(strategy.tritems, 1)
                                     end,             
-                          } ,                           
-                          { name = '----------------------------------',
+                          } ,   
+                          { name = 'Track receives import logic',
+                            --state = strategy.trsend&1==1,
+                            show = strategy.comchunk&1==0,
+                            has_blit = false,
+                            level = 1,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trsend = BinaryToggle(strategy.trsend, 0)
+                                    end,                                                 
+                          } ,    
+                          { name = 'Insert/link non-existed sources',
+                            state = strategy.trsend&2==2,
+                            show = strategy.comchunk&1==0,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trsend = BinaryToggle(strategy.trsend, 1)
+                                    end,             
+                          } ,  
+                          { name = 'Link sources imported by match',
+                            state = strategy.trsend&4==4,
+                            show = strategy.comchunk&1==0,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trsend = BinaryToggle(strategy.trsend, 2)
+                                    end,             
+                          } ,  
+                          { name = 'Link sources imported as new tracks',
+                            state = strategy.trsend&8==8,
+                            show = strategy.comchunk&1==0,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trsend = BinaryToggle(strategy.trsend, 3)
+                                    end,             
+                          } ,                                                                                   
+                                           
+                          --[[{ name = '----------------------------------',
                             show = true,   
                             level = 0,           
-                          }     ,                                      
-                          { name = 'Global stuff (LMB to all, RMB to none)',
+                          }     ,   ]]                                   
+                          { name = 'Project head stuff (LMB to all, RMB to none)',
                             state = strategy.master_stuff&1==1,
                             show = true,
                             --hidden = strategy.comchunk==1,
-                            has_blit = false,
+                            has_blit = true,
                             level = 0,
                             func =  function()
                                       strategy.master_stuff = BinaryToggle(strategy.master_stuff, 0)
@@ -795,58 +858,44 @@
                                       strategy.master_stuff = BinaryToggle(strategy.master_stuff, 1)
                                     end,             
                           } , 
-                          { name = 'Markers/Regions',
-                            state = strategy.markers_flags&4==4,
-                            show =  true,
-                            hidden = strategy.master_stuff&1==1 or (strategy.markers_flags&2==2 or strategy.markers_flags&4==4),
-                            has_blit = false,
-                            level = 1,
-                            func =  function()
-                                      strategy.master_stuff = BinaryToggle(strategy.master_stuff, 0, 0)
-                                      strategy.master_stuff = BinaryToggle(strategy.master_stuff, 2)
-                                    end,             
-                          } , 
-                          { name = 'Replace',
+                          { name = 'Markers',
                             state = strategy.markers_flags&1==1,
                             show =  true,
-                            hidden = strategy.master_stuff&1== 0 and strategy.master_stuff&4~=4,
+                            hidden = strategy.master_stuff&1==1,
                             has_blit = false,
-                            level = 2,
+                            level = 1,
                             func =  function()
                                       strategy.markers_flags = BinaryToggle(strategy.markers_flags, 0)
                                     end,             
                           } , 
-                          { name = 'Markers only',
+                          { name = 'Marker replace',
                             state = strategy.markers_flags&2==2,
-                            show =  true,
-                            hidden = strategy.master_stuff&1== 0 and strategy.master_stuff&4~=4,
+                            show =  strategy.markers_flags&1==1,
                             has_blit = false,
                             level = 2,
                             func =  function()
                                       strategy.markers_flags = BinaryToggle(strategy.markers_flags, 1)
-                                      if strategy.markers_flags&2==2 and strategy.markers_flags&4==4 then
-                                        strategy.master_stuff = BinaryToggle(strategy.master_stuff, 2, 1)
-                                        strategy.markers_flags = BinaryToggle(strategy.markers_flags, 1, 0)
-                                        strategy.markers_flags = BinaryToggle(strategy.markers_flags, 2, 0)
-                                      end                                      
                                     end,             
                           } ,   
-                          { name = 'Regions only',
+                          { name = 'Regions',
                             state = strategy.markers_flags&4==4,
                             show =  true,
-                            hidden = strategy.master_stuff&1== 0 and strategy.master_stuff&4~=4,
+                            hidden = strategy.master_stuff&1==1,
+                            has_blit = false,
+                            level = 1,
+                            func =  function()
+                                      strategy.markers_flags = BinaryToggle(strategy.markers_flags, 2)
+                                    end,             
+                          } , 
+                          { name = 'Regions replace',
+                            state = strategy.markers_flags&8==8,
+                            show =  strategy.markers_flags&4==4,
                             has_blit = false,
                             level = 2,
                             func =  function()
-                                      strategy.markers_flags = BinaryToggle(strategy.markers_flags, 2)
-                                      if strategy.markers_flags&2==2 and strategy.markers_flags&4==4 then
-                                        strategy.master_stuff = BinaryToggle(strategy.master_stuff, 2, 1)
-                                        strategy.markers_flags = BinaryToggle(strategy.markers_flags, 1, 0)
-                                        strategy.markers_flags = BinaryToggle(strategy.markers_flags, 2, 0)
-                                      end
-                                      
+                                      strategy.markers_flags = BinaryToggle(strategy.markers_flags, 3)
                                     end,             
-                          } ,                                                                                                                                                                     
+                          } ,                                                                                                                                                          
                                                                                                                                   
                                                                             
                         }
