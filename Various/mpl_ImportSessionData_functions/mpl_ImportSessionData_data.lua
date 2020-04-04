@@ -380,16 +380,17 @@
              
                local imported_src_tr = VF_GetTrackByGUID(data.tr_chunks[tr_chunks_id].destGUID)
                local imported_dst_tr = VF_GetTrackByGUID(data.tr_chunks[i].destGUID) 
-               local has_send = false
-               for sendidx =1,  GetTrackNumSends( imported_dst_tr, -1 ) do
-                 local srctr0 = GetTrackSendInfo_Value( imported_dst_tr, -1, sendidx-1, 'P_SRCTRACK' )
-                 if GetTrackGUID(srctr0 ) == GetTrackGUID(imported_src_tr ) then has_send = true end
-               end
-               if not has_send then
-                local sendidx = CreateTrackSend( imported_src_tr, imported_dst_tr )
-                Data_ImportTracks_Send_SetData(conf, obj, data, refresh, mouse, strategy, imported_src_tr, sendidx, data.tr_chunks[i].AUXRECV[auxid])
-               end
-             
+               if imported_src_tr and imported_dst_tr then
+                 local has_send = false
+                 for sendidx =1,  GetTrackNumSends( imported_dst_tr, -1 ) do
+                   local srctr0 = GetTrackSendInfo_Value( imported_dst_tr, -1, sendidx-1, 'P_SRCTRACK' )
+                   if GetTrackGUID(srctr0 ) == GetTrackGUID(imported_src_tr ) then has_send = true end
+                 end
+                 if not has_send then
+                  local sendidx = CreateTrackSend( imported_src_tr, imported_dst_tr )
+                  Data_ImportTracks_Send_SetData(conf, obj, data, refresh, mouse, strategy, imported_src_tr, sendidx, data.tr_chunks[i].AUXRECV[auxid])
+                 end
+                end
              elseif strategy.trsend&8 ==8 and  data.tr_chunks[tr_chunks_id].dest == -1 then -- if source track is imported as a new track
              
                local imported_src_tr = VF_GetTrackByGUID(data.tr_chunks[tr_chunks_id].destGUID)

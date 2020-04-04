@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.15
+-- @version 1.16
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT Import Session Data feature
@@ -10,16 +10,10 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    + Strategy: add support for importing sends/receives
---    + Strategy: TrackProperties / Master/parent send
---    + Strategy: TrackProperties / Color
---    # Strategy: separate markers/regions
---    # Strategy: workaround invisible 0 region creating
---    # Strategy: reduce non-used items visually
---    # fix refresh GUI after menu actions
+--    # Strategy: fix add send when track already matched
 
      
-  local vrs = '1.15'
+  local vrs = '1.16'
   --NOT gfx NOT reaper
   
 
