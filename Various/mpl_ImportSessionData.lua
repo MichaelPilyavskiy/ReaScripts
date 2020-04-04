@@ -1,8 +1,8 @@
 -- @description ImportSessionData
--- @version 1.16
+-- @version 1.18
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
--- @about Port of PT Import Session Data feature
+-- @about Port of PT/S1 Import Session Data feature
 -- @provides
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_GUI.lua
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_MOUSE.lua
@@ -10,10 +10,15 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    # Strategy: fix add send when track already matched
+--    + Strategy/Track: Allow to mark destination tracks only for building sends
+--    + Strategy/Items: Link sources from imported RPP folder
+--    + Strategy/Items: optionally build missed peaks
+--    + GUI: show source/destination
+--    + GUI: init/refresh src/dest with green top button
+--    + GUI: show destination track number in dropdown menu
 
      
-  local vrs = '1.16'
+  local vrs = '1.18'
   --NOT gfx NOT reaper
   
 
@@ -55,7 +60,7 @@
             dock =    0, 
             
             lastrppsession = '',
-            
+            sourceimportpath = 'ISD_mport'
             }
     return t
   end  
@@ -232,10 +237,12 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
                 ]]                 
         tritems = 0, 
           --[[  &2 replace
+                &4 link sources from imported RPP folder
+                &16 copy source to ISD_imported
+                &8 build any missing peaks at the end of import
                 ]]                
         master_stuff = 0,
-          --[[  &2 FX chauin
-                &4 markers
+          --[[  &2 FX chain
                 ]]
         markers_flags = 0,   
           --[[  &1 markers

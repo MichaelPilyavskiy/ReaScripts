@@ -194,6 +194,8 @@
     if not f then return end
     local content = f:read('a')
     f:close()
+    
+    data.rppsession_path = GetParentFolder(conf.lastrppsession)
     local t = {} for line in content:gmatch('[^\r\n]+') do t[#t+1] = line end
     
     --
@@ -308,9 +310,13 @@
             DeleteTrack( new_tr )
           end
         end
-      end       
+       elseif data.tr_chunks[i].dest == -2 then
+        
+      end   
+          
     end   
     Data_ImportTracks_Send(conf, obj, data, refresh, mouse, strategy) 
+    if strategy.tritems&8==8 then Action(40047) end -- Peaks: Build any missing peaks
   end
 
   --------------------------------------------------- 
@@ -405,7 +411,20 @@
                 local sendidx = CreateTrackSend( imported_src_tr, imported_dst_tr )
                 Data_ImportTracks_Send_SetData(conf, obj, data, refresh, mouse, strategy, imported_src_tr, sendidx, data.tr_chunks[i].AUXRECV[auxid])
                end              
-              
+               
+             elseif data.tr_chunks[tr_chunks_id].dest == -2 and data.tr_chunks[tr_chunks_id].destGUID then -- if source track is only mark as source for send
+                
+               local imported_src_tr = VF_GetTrackByGUID(data.tr_chunks[tr_chunks_id].destGUID)
+               local imported_dst_tr = VF_GetTrackByGUID(data.tr_chunks[i].destGUID)
+               local has_send = false
+               for sendidx =1,  GetTrackNumSends( imported_dst_tr, -1 ) do
+                 local srctr0 = GetTrackSendInfo_Value( imported_dst_tr, -1, sendidx-1, 'P_SRCTRACK' )
+                 if GetTrackGUID(srctr0 ) == GetTrackGUID(imported_src_tr ) then has_send = true end
+               end
+               if not has_send then
+                local sendidx = CreateTrackSend( imported_src_tr, imported_dst_tr )
+                Data_ImportTracks_Send_SetData(conf, obj, data, refresh, mouse, strategy, imported_src_tr, sendidx, data.tr_chunks[i].AUXRECV[auxid])
+               end                
             end             
           end
         end
@@ -530,10 +549,11 @@
   --------------------------------------------------------------------  
   function Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
     local  retval, projfn = EnumProjects( -1 )
-    local projfn = GetShortSmplName(projfn)
+    --local projfn = GetShortSmplName(projfn)
+    
     data.cur_project = projfn 
     data.cur_tracks = {}
-    folderlev = 0
+    local folderlev = 0
     for i = 1, CountTracks(0) do
       local tr = GetTrack(0,i-1)
       local GUID = GetTrackGUID( tr )
@@ -609,12 +629,48 @@
       SetMediaTrackInfo_Value( dest_tr, key, val )  
   end
   -------------------------------------------------------------------- 
-  function Data_ImportTracks_AppStr_Items(src_tr, dest_tr, strategy)
-    local chunks = {}
+  function Data_ImportTracks_AppStr_ItSub(data, it, item_data, strategy)
+    SetItemStateChunk( it, item_data.chunk, false )
+    
+    for takeidx = 1,  #item_data.tk_data do
+      local take =  GetTake( it, takeidx-1 )
+      if not TakeIsMIDI( take ) then
+        local fn = item_data.tk_data[takeidx].filename
+        
+        if not fn:match('[%/%\\]') and strategy.tritems&4==4 then -- relink files to full paths
+          fn = data.rppsession_path..'/'..fn 
+          local  pcmsrc = PCM_Source_CreateFromFile( fn )
+          if pcmsrc then SetMediaItemTake_Source( take, pcmsrc ) end
+          --PCM_Source_Destroy( pcmsrc )
+        end
+        
+        --[[if strategy.tritems&16==16 then -- copy sources to path
+          local path_pr = GetParentFolder(data.cur_project) 
+          local dest_path = path_pr..'/'..conf.sourceimportpath
+          
+        end]]
+        
+      end      
+    end
+    
+  end
+  -------------------------------------------------------------------- 
+  function Data_ImportTracks_AppStr_It(data, src_tr, dest_tr, strategy)
+    local item_data = {}
     for itemidx = 1,  CountTrackMediaItems( src_tr ) do
       local item = GetTrackMediaItem( src_tr, itemidx-1 )
       local retval, chunk = reaper.GetItemStateChunk( item, '', false )
-      chunks[#chunks+1] = chunk
+      
+      local tk_data = {}
+      for takeidx = 1,  CountTakes( item ) do
+        local take =  GetTake( item, takeidx-1 )
+        --if not TakeIsMIDI( take ) then
+        local source=  GetMediaItemTake_Source( take )
+        local filename = reaper.GetMediaSourceFileName( source, '' )
+        tk_data[takeidx] = {filename = filename}
+        --end
+      end
+      item_data[#item_data+1] = {chunk=chunk, tk_data = tk_data}
     end
     
     if strategy.tritems&2==2 then -- remove dest tr items
@@ -624,10 +680,10 @@
       end
     end
     
-    for itemidx = 1,  #chunks do
+    for itemidx = 1,  #item_data do
       local it = AddMediaItemToTrack( dest_tr )
-      SetItemStateChunk( it, chunks[itemidx], false )
-    end    
+      Data_ImportTracks_AppStr_ItSub(data, it, item_data[itemidx], strategy)
+    end   
     
   end
   -------------------------------------------------------------------- 
@@ -682,13 +738,20 @@
      
     -- tr items
     if strategy.tritems&1 == 1 then    
-      Data_ImportTracks_AppStr_Items(src_tr, dest_tr, strategy)
+      Data_ImportTracks_AppStr_It(data, src_tr, dest_tr, strategy)
     end    
        
   end
   
   --------------------------------------------------------------------  
-  function Data_Import(conf, obj, data, refresh, mouse, strategy)  
-    Data_ImportMasterStuff(conf, obj, data, refresh, mouse, strategy)  
-    Data_ImportTracks(conf, obj, data, refresh, mouse, strategy) 
+  function Data_Import(conf, obj, data, refresh, mouse, strategy)   
+    if  strategy.comchunk&1==0 
+        and strategy.tritems&1==1 
+        and strategy.tritems&16==16 
+        and data.cur_project == '' 
+        then MB( 'Importing source data to project with no folder is not allowed', conf.mb_title, 0) return 
+      else
+        Data_ImportMasterStuff(conf, obj, data, refresh, mouse, strategy)
+        Data_ImportTracks(conf, obj, data, refresh, mouse, strategy)
+    end
   end

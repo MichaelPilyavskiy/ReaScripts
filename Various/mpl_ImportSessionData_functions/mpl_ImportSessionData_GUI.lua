@@ -152,15 +152,19 @@
                         or ((type(o.check)=='boolean' and o.check==false) or (o.check and o.check&1==0))
     --if o.check then
       gfx.a = 0.7
-      if (type(o.check)=='boolean' and o.check==true) or (o.check and o.check&1==1) then
+      if (type(o.check)=='boolean' and o.check==true) or (o.check and o.check&1==1 and o.check~=-1) then
         local xr = x+2
         local yr = y+2
         local wr = h-6
         local hr = h-5
         gfx.rect(xr,yr,wr,hr,1)
         rect(x,y,h-3,h-2,0)
-       elseif (type(o.check)=='boolean' and o.check==false) or (o.check and o.check&1==0) then
+       elseif (type(o.check)=='boolean' and o.check==false) or (o.check and o.check&1==0 and o.check~=-1) then
         rect(x,y,h-3,h-2,0)
+       elseif o.check and o.check==-1 then
+
+        gfx.line(x+h-3,y,x,y)        
+        gfx.line(x,y+1,x,y+h-4) 
       end
     --end
       

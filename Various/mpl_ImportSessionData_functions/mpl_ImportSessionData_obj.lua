@@ -46,7 +46,7 @@
     gfx.h  = math.max(min_h,gfx.h)
     
     obj.menu_w = 120
-    obj.menu_h = 30
+    obj.menu_h = 35
     obj.bottom_line_h = 30
     obj.scroll_w = 20
     obj.trlistw = math.floor((gfx.w - obj.scroll_w - obj.get_w)*0.7)
@@ -133,10 +133,10 @@
   
   -----------------------------------------------
   function Obj_TopLine(conf, obj, data, refresh, mouse)
-    
+    if not data.cur_project then return end
     local but_w = math.floor(gfx.w - obj.menu_w - obj.get_w)
-    local txt = 'Browse for RPP session...'
-    if conf.lastrppsession ~= '' then txt = conf.lastrppsession end
+    local txt = 'Destination: '..data.cur_project..'\nSource: '
+    if conf.lastrppsession ~= '' then txt = txt..conf.lastrppsession else txt = txt..'Browse for RPP session...' end
     obj.deffiel = { clear = true,
               x = obj.menu_w,
               y = 0,
@@ -144,6 +144,7 @@
               h = obj.menu_h,
               alpha_back = obj.but_aback,
               txt= txt,
+              aligh_txt = 16,
               show = true,
               fontsz = obj.GUI_fontsz2,
               a_frame = 0,
@@ -160,13 +161,13 @@
               fillback = true,
               fillback_colstr = col0,
               fillback_a = 0.5,
-              txt= 'Read\nRPP',
+              txt= 'Update\nsrc/dest',
               alpha_back = obj.but_aback,
               aligh_txt = 16,
               show = true,
               fontsz = obj.GUI_fontsz2,
               func =  function() 
-                        Data_ParseRPP(conf, obj, data, refresh, mouse) 
+                        Run_Init(conf, obj, data, refresh, mouse)
                       end}                       
     --[[local prname = ''
     if data.cur_project then prname = data.cur_project end
@@ -347,6 +348,11 @@
             end
            elseif data.tr_chunks[i].dest == -1 then 
             txt, tr_col = 'New track at tracklist end', 0
+           elseif data.tr_chunks[i].dest == -2 then 
+            local imported_src_tr = VF_GetTrackByGUID(data.tr_chunks[i].destGUID)   
+            local retval, tr_name = reaper.GetTrackName( imported_src_tr )
+            txt, tr_col = '<Remap only> '..i..': '..tr_name, 0            
+            
           end
           local tr_w = math.floor(tr_listw/2)
           obj['trdest'..i] = { clear = true,
@@ -376,6 +382,13 @@
                                         data.tr_chunks[i].dest = -1
                                       end
                             },      
+                            { str = 'Only remap sends from this track',
+                              state = data.tr_chunks[i].dest==-2,
+                              func =  function() 
+                                        data.tr_chunks[i].destGUID = data.tr_chunks[i].dest
+                                        data.tr_chunks[i].dest = -2
+                                      end
+                            },                             
                             { str = 'Match|',
                               func =  function() 
                                         Data_MatchDest(conf, obj, data, refresh, mouse, strategy, nil, i) 
@@ -393,7 +406,7 @@
                                 t[#t+1] =  { str ='>Tracks '..i2..'-'..i2+sep}                      
                               end
                               t[#t+1] = 
-                              { str =data.cur_tracks[i2].tr_name,
+                              { str =i2..': '..data.cur_tracks[i2].tr_name,
                                  func =  function() 
                                             if data.cur_tracks[i2].used and data.cur_tracks[i2].used ~= i then 
                                               local name = data.tr_chunks[data.cur_tracks[i2].used].tr_name
@@ -765,7 +778,7 @@
                                       strategy.trparams = BinaryToggle(strategy.trparams, 7)
                                     end,             
                           } ,                                                    
-                          { name = 'Track Items',
+                          { name = 'Track Items RAW data',
                             state = strategy.tritems&1==1,
                             show = strategy.comchunk&1==0,
                             has_blit = false,
@@ -779,7 +792,7 @@
                                       strategy.tritems = 0
                                     end,                                                 
                           } ,
-                          { name = 'Replace',
+                          { name = 'Clear old items',
                             state = strategy.tritems&2==2,
                             show =  strategy.tritems&1==1 and strategy.comchunk&1==0,
                             has_blit = false,
@@ -788,9 +801,42 @@
                                       strategy.comchunk = 0
                                       strategy.tritems = BinaryToggle(strategy.tritems, 1)
                                     end,             
+                          } ,  
+                          { name = 'Correct source paths to source RPP path',
+                            state = strategy.tritems&4==4,
+                            show =  strategy.tritems&1==1 and strategy.comchunk&1==0,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.tritems = BinaryToggle(strategy.tritems, 2)
+                                      if strategy.tritems&4==4 then strategy.tritems = BinaryToggle(strategy.tritems, 4, 0) end
+                                    end,             
                           } ,   
+                          --[[{ name = 'Copy and remap sources to dest. RPP path',
+                            state = strategy.tritems&16==16,
+                            show =  strategy.tritems&1==1 and strategy.comchunk&1==0,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.tritems = BinaryToggle(strategy.tritems, 4)
+                                      if strategy.tritems&16==16 then strategy.tritems = BinaryToggle(strategy.tritems, 2, 0) end
+                                    end,             
+                          } ,         ]]                     
+                          { name = 'Build any missing peaks',
+                            state = strategy.tritems&8==8,
+                            show =  strategy.tritems&1==1 and strategy.comchunk&1==0,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.tritems = BinaryToggle(strategy.tritems, 3)
+                                    end,             
+                          } ,                          
+                                               
                           { name = 'Track receives import logic',
-                            --state = strategy.trsend&1==1,
+                            state = -1,
                             show = strategy.comchunk&1==0,
                             has_blit = false,
                             level = 1,
