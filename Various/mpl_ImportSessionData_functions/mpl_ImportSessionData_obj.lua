@@ -874,7 +874,17 @@
                                       strategy.comchunk = 0
                                       strategy.trsend = BinaryToggle(strategy.trsend, 3)
                                     end,             
-                          } ,                                                                                   
+                          } ,  
+                          { name = 'Allow multiple src/dest receives',
+                            state = strategy.trsend&16==16,
+                            show = strategy.comchunk&1==0,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trsend = BinaryToggle(strategy.trsend, 4)
+                                    end,             
+                          } ,                                                                                                            
                                            
                           --[[{ name = '----------------------------------',
                             show = true,   

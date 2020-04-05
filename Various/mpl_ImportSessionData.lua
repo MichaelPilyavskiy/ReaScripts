@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.18
+-- @version 1.19
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT/S1 Import Session Data feature
@@ -10,15 +10,10 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    + Strategy/Track: Allow to mark destination tracks only for building sends
---    + Strategy/Items: Link sources from imported RPP folder
---    + Strategy/Items: optionally build missed peaks
---    + GUI: show source/destination
---    + GUI: init/refresh src/dest with green top button
---    + GUI: show destination track number in dropdown menu
+--    + Strategy/Track: Allow multiple src/dest receives
 
      
-  local vrs = '1.18'
+  local vrs = '1.19'
   --NOT gfx NOT reaper
   
 
@@ -234,6 +229,7 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
           --[[  &2 insert new if not present
                 &4 imported
                 &8 imported as new track
+                &16 disable checking multiple sends from same track
                 ]]                 
         tritems = 0, 
           --[[  &2 replace
