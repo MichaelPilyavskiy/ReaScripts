@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0e157a855767987fbbf12e91279251a4262da8ee" name="MPL Scripts">
+<index version="1" commit="7f8f8f56e43d5797c0b6d96524304a227828bbbd" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -575,30 +575,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d02548590e8d84d292f139994ee8e9574c586e90/FX/mpl_Cubase%20AB%20floating%20FX.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Delete all MIDI OSC learn from focused FX.lua" type="script" desc="Delete all MIDI OSC learn from focused FX">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/FX/mpl_Delete%20all%20MIDI%20OSC%20learn%20from%20focused%20FX.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2018-03-08T14:57:42Z">
-        <changelog><![CDATA[# ReaPack header]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d02548590e8d84d292f139994ee8e9574c586e90/FX/mpl_Delete%20all%20MIDI%20OSC%20learn%20from%20focused%20FX.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Delete all MIDI OSC learn from selected track.lua" type="script" desc="Delete all MIDI OSC learn from selected track">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/FX/mpl_Delete%20all%20MIDI%20OSC%20learn%20from%20selected%20track.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2018-03-08T14:57:42Z">
-        <changelog><![CDATA[# ReaPack header]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d02548590e8d84d292f139994ee8e9574c586e90/FX/mpl_Delete%20all%20MIDI%20OSC%20learn%20from%20selected%20track.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Delete bypassed fx from selected tracks.lua" type="script" desc="Delete bypassed fx from selected tracks">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -824,6 +800,35 @@
         <source file="mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb4a7541302c47201e41df20a8f646437890a722/FX/mpl_InstrumentRack_functions/mpl_InstrumentRack_obj.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_LearnEditor.lua" type="script" desc="LearnEditor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for handling FX parameter bindings data\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-06T11:01:31Z">
+        <changelog><![CDATA[+ initial release
++ Show MIDI/OSC learn as a table
++ Lights up last touched track/fx/param
++ Initialize with last touched param uncollapsed
++ Actions: Allow to remove specific learn
++ Actions: Click on learn open dedicated window
++ Actions: Expand/collapse tracks
++ Options: collapsed by default
++ Options: refresh GUI on change project state
++ Options: allow to expand only one track]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7f8f8f56e43d5797c0b6d96524304a227828bbbd/FX/mpl_LearnEditor.lua</source>
+        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7f8f8f56e43d5797c0b6d96524304a227828bbbd/FX/mpl_LearnEditor_functions/mpl_LearnEditor_GUI.lua</source>
+        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7f8f8f56e43d5797c0b6d96524304a227828bbbd/FX/mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua</source>
+        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7f8f8f56e43d5797c0b6d96524304a227828bbbd/FX/mpl_LearnEditor_functions/mpl_LearnEditor_data.lua</source>
+        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7f8f8f56e43d5797c0b6d96524304a227828bbbd/FX/mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_LearnManager (background).lua" type="script" desc="LearnManager">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -845,51 +850,6 @@
 # fix update tracklist after showing envelopes
 # fix replacing multiple empty lines in learn chunks]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/FX/mpl_LearnManager%20(background).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_List all MIDI OSC learn for current project.lua" type="script" desc="List all MIDI OSC learn for current project">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2017-01-14T08:29:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e521e77642292513c2f1087cca36080a410a1960/FX/mpl_List%20all%20MIDI%20OSC%20learn%20for%20current%20project.lua</source>
-      </version>
-      <version name="1.01" author="mpl" time="2017-01-14T09:02:18Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1ec7292bcdb74c3383cc7f514b01fb9de3e7d264/FX/mpl_List%20all%20MIDI%20OSC%20learn%20for%20current%20project.lua</source>
-      </version>
-      <version name="1.02" author="mpl" time="2017-01-21T02:36:45Z">
-        <changelog><![CDATA[# fix potentioal bug at ItemFX learn search]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/efafe3a2f7f71daf16fdc0634ada70c2d9d46997/FX/mpl_List%20all%20MIDI%20OSC%20learn%20for%20current%20project.lua</source>
-      </version>
-      <version name="1.03" author="mpl" time="2017-01-21T12:58:11Z">
-        <changelog><![CDATA[# fix wrong decoding MIDI integer]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4e83193612e64c8f288a61877c17964a9d8c7157/FX/mpl_List%20all%20MIDI%20OSC%20learn%20for%20current%20project.lua</source>
-      </version>
-      <version name="1.04" author="MPL" time="2017-10-28T06:11:37Z">
-        <changelog><![CDATA[# fix wrong decoding MIDI integer]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e2c50c49e4cc8b63b82a2d96fee199fe0369bc8b/FX/mpl_List%20all%20MIDI%20OSC%20learn%20for%20current%20project.lua</source>
-      </version>
-      <version name="1.05" author="MPL" time="2019-06-08T04:30:30Z">
-        <changelog><![CDATA[# fix detecting VST3 learn
-# more readable format]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/afabc03e2c0e23083154511a6d1b3eccc3fe37f6/FX/mpl_List%20all%20MIDI%20OSC%20learn%20for%20current%20project.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_List all MIDI OSC learn from focused fx.lua" type="script" desc="List all MIDI OSC learn for focused FX">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-07T07:10:56Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/602859da73409c42347ed21b136e96f1690f464f/FX/mpl_List%20all%20MIDI%20OSC%20learn%20from%20focused%20fx.lua</source>
-      </version>
-      <version name="1.01" author="mpl" time="2017-01-21T12:59:36Z">
-        <changelog><![CDATA[# fix wrong decoding MIDI integer]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/313d01dc73bf932107f7938c6034c9bf0928a1a9/FX/mpl_List%20all%20MIDI%20OSC%20learn%20from%20focused%20fx.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-10-28T06:11:37Z">
-        <changelog><![CDATA[# fix wrong decoding MIDI integer]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e2c50c49e4cc8b63b82a2d96fee199fe0369bc8b/FX/mpl_List%20all%20MIDI%20OSC%20learn%20from%20focused%20fx.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Load selected tracks FX chains by name, offline mode.lua" type="script" desc="Load selected tracks FX chains by name, offline mode">
