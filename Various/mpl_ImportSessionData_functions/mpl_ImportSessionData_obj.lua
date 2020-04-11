@@ -117,11 +117,25 @@
                                                                       refresh.data = true
                                     end ,
                             } ,
-                            { str = 'Mark selected source tracks for import to new tracks',
+                            { str = '#Match actions'},                            
+                            { str = 'Mark selected source tracks for import to new tracks|',
                               func = function() 
                                       for i = 1, #data.tr_chunks do if data.tr_chunks[i].selected then data.tr_chunks[i].dest = -1  end end   
                                     end ,
-                            }                            
+                            }, 
+                            { str = 'Match only by full name',
+                              state = conf.match_flags&1==1,
+                              func = function() 
+                                      conf.match_flags = BinaryToggle(conf.match_flags, 0)
+                                    end ,
+                            } ,
+                            { str = 'Case sensitive',
+                              state = conf.match_flags&2==2,
+                              hidden = conf.match_flags&1==0,
+                              func = function() 
+                                      conf.match_flags = BinaryToggle(conf.match_flags, 1)
+                                    end ,
+                            }                                                                                   
                             }
     )
                                   refresh.conf = true 
@@ -349,10 +363,11 @@
            elseif data.tr_chunks[i].dest == -1 then 
             txt, tr_col = 'New track at tracklist end', 0
            elseif data.tr_chunks[i].dest == -2 then 
-            local imported_src_tr = VF_GetTrackByGUID(data.tr_chunks[i].destGUID)   
-            local retval, tr_name = reaper.GetTrackName( imported_src_tr )
-            txt, tr_col = '<Remap only> '..i..': '..tr_name, 0            
-            
+            local imported_src_tr = VF_GetTrackByGUID(data.tr_chunks[i].destGUID)  
+            if imported_src_tr then 
+              local retval, tr_name = reaper.GetTrackName( imported_src_tr )
+              txt, tr_col = '<Remap only> '..i..': '..tr_name, 0            
+            end
           end
           local tr_w = math.floor(tr_listw/2)
           obj['trdest'..i] = { clear = true,
@@ -382,13 +397,7 @@
                                         data.tr_chunks[i].dest = -1
                                       end
                             },      
-                            { str = 'Only remap sends from this track',
-                              state = data.tr_chunks[i].dest==-2,
-                              func =  function() 
-                                        data.tr_chunks[i].destGUID = data.tr_chunks[i].dest
-                                        data.tr_chunks[i].dest = -2
-                                      end
-                            },                             
+                             
                             { str = 'Match|',
                               func =  function() 
                                         Data_MatchDest(conf, obj, data, refresh, mouse, strategy, nil, i) 
@@ -421,6 +430,17 @@
                                          end
                                }
                             end
+                          end
+                          
+                          if #data.cur_tracks > 0 then
+                          t[#t].str = t[#t].str..'|'
+                          t[#t+1] = { str = 'Only remap sends from this track',
+                            state = data.tr_chunks[i].dest==-2,
+                            func =  function() 
+                                      data.tr_chunks[i].destGUID = data.tr_chunks[i].dest
+                                      data.tr_chunks[i].dest = -2
+                                    end
+                          }
                           end
                           Menu(mouse, t) 
                           Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
@@ -845,7 +865,7 @@
                                       strategy.trsend = BinaryToggle(strategy.trsend, 0)
                                     end,                                                 
                           } ,    
-                          { name = 'Insert/link non-existed sources',
+                          { name = 'Insert/link non-existing sources',
                             state = strategy.trsend&2==2,
                             show = strategy.comchunk&1==0,
                             has_blit = false,

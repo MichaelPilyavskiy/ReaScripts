@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.19
+-- @version 1.20
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT/S1 Import Session Data feature
@@ -10,10 +10,11 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    + Strategy/Track: Allow multiple src/dest receives
+--    # fix setting remap only produce script crash when no track selected
+--    + Options: allow match by full track name only
 
      
-  local vrs = '1.19'
+  local vrs = '1.20'
   --NOT gfx NOT reaper
   
 
@@ -55,7 +56,12 @@
             dock =    0, 
             
             lastrppsession = '',
-            sourceimportpath = 'ISD_mport'
+            sourceimportpath = 'ISD_mport',
+            match_flags = 0, 
+                    --[[
+                      &1 full match
+                      &2 case sensitive
+                    ]]
             }
     return t
   end  

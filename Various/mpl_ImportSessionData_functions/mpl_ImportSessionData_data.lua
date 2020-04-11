@@ -586,16 +586,23 @@
   -------------------------------------------------------------------- 
   function Data_MatchDest(conf, obj, data, refresh, mouse, strategy, is_new, specificid) 
     if not data.tr_chunks then return end
-    if not specificid then 
-      for i = 1, #data.tr_chunks do 
-        data.tr_chunks[i].dest = Data_MatchDestSub(conf, obj, data, refresh, mouse, strategy, data.tr_chunks[i].tr_name, is_new, i) 
-      end 
-     else 
-      data.tr_chunks[specificid].dest = Data_MatchDestSub(conf, obj, data, refresh, mouse, strategy, data.tr_chunks[specificid].tr_name, is_new, specificid)
+    local i0 = 1
+    local cnt = #data.tr_chunks
+    if specificid then 
+      cnt = specificid
+      i0 = specificid
     end
+    
+    for i = i0, cnt do 
+      if conf.match_flags&1 == 0 then 
+        data.tr_chunks[i].dest = Data_MatchDestSub1(conf, obj, data, refresh, mouse, strategy, data.tr_chunks[i].tr_name, is_new, i) 
+       else
+        data.tr_chunks[i].dest = Data_MatchDestSub2(conf, obj, data, refresh, mouse, strategy, data.tr_chunks[i].tr_name, is_new, i) 
+      end
+    end 
   end
   -------------------------------------------------------------------- 
-  function Data_MatchDestSub(conf, obj, data, refresh, mouse, strategy, tr_name, is_new, id_src) 
+  function Data_MatchDestSub1(conf, obj, data, refresh, mouse, strategy, tr_name, is_new, id_src) 
     if not tr_name then return '' end
     if tr_name == '' then return '' end
     tr_name = tostring(tr_name)
@@ -605,10 +612,6 @@
     local is_new_val = -1
     local t = {}
     local cnt_match0, cnt_match, last_biggestmatch = 0, 0
-    
-    --[[for trid = 1, #data.tr_chunks do -- check if there is nt exact match for other tracks
-      if data.tr_chunks[trid].tr_name:lower() == tr_name:lower() and trid == id_src then return '' end
-    end ]] 
     
     for word in tr_name:gmatch('[^%s]+') do t[#t+1] = literalize(word:lower():gsub('%s+','')) end
     for trid = 1, #data.cur_tracks do 
@@ -630,6 +633,34 @@
       data.cur_tracks[last_biggestmatch].used = id_src
       if not is_new then return data.cur_tracks[last_biggestmatch].GUID   else return is_new_val end
     end
+    
+    return ''
+  end
+  -------------------------------------------------------------------- 
+  function Data_MatchDestSub2(conf, obj, data, refresh, mouse, strategy, tr_name, is_new, id_src) 
+    if not tr_name then return '' end
+    if tr_name == '' then return '' end
+    tr_name = tostring(tr_name)
+    if tr_name:match('Track %d+') then return '' end
+    
+    --if data.cur_tracks[id_src].folderd
+    local is_new_val = -1
+    local t = {}
+    local cnt_match0, cnt_match, last_biggestmatch = 0, 0
+    for trid = 1, #data.cur_tracks do
+      --if not data.cur_tracks[trid].used then
+        local tr_name_CUR = data.cur_tracks[trid].tr_name
+        if conf.match_flags&2==0 then tr_name_CUR = tr_name_CUR:lower() end
+        if tr_name_CUR ~= '' and not tr_name_CUR:match('rack %d+') then
+          if conf.match_flags&2==0 then tr_name = tr_name:lower() end
+          if tr_name_CUR:match(tr_name) then
+            data.cur_tracks[trid].used = id_src
+            if not is_new then return data.cur_tracks[trid].GUID  else return is_new_val end
+          end
+        end
+      --end
+    end
+    
     return ''
   end
   -------------------------------------------------------------------- 
