@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9e1d795ffd8badba27ee80338fede5684c1415d3" name="MPL Scripts">
+<index version="1" commit="14779eec07d96d9975a1b80160c343393584e8b6" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -880,11 +880,15 @@
     </reapack>
     <reapack name="mpl_Move focused Track FX to screen center.lua" type="script" desc="Move focused Track FX to screen center">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2016-07-23T04:51:54Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Move%20focused%20Track%20FX%20to%20screen%20center.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2020-04-11T07:50:12Z">
+        <changelog><![CDATA[# improve fix chunk modification]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14779eec07d96d9975a1b80160c343393584e8b6/FX/mpl_Move%20focused%20Track%20FX%20to%20screen%20center.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Offline bypassed fx on selected tracks.lua" type="script" desc="Offline bypassed fx on selected tracks">
