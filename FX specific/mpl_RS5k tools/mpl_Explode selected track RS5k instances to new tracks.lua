@@ -1,64 +1,43 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Explode selected track RS5k instances to new tracks
 -- @noindex
 -- @changelog
---    #header
+--    # remove chunking code, use native TrackFX_CopyToTrack, which increase performance
+--    # move FX instead copying
+--    # use improved FX name reducer
+--    # Create MIDI send from parent track
 
-  local scr_nm = 'Explode selected track RS5k instances to new tracks'
-  for key in pairs(reaper) do _G[key]=reaper[key]  end 
-  function msg(s) ShowConsoleMsg(s) end
-  ------------------------------------------------------------------------
-  function Extract_rs5k_tChunks(tr)
-    local _, chunk = GetTrackStateChunk(tr, '', false)
-    local t = {}
-    for fx_chunk in chunk:gmatch('BYPASS(.-)WAK') do 
-      if fx_chunk:match('<(.*)') and fx_chunk:match('<(.*)'):match('reasamplomatic.dll') then 
-        t[#t+1] = 'BYPASS 0 0 0\n<'..fx_chunk:match('<(.*)') ..'WAK 0'
-      end
-    end
-    return t
-  end
-  ------------------------------------------------------------------------  
-  function AddChunkToTrack(tr, chunk)
-    local _, chunk_ch = GetTrackStateChunk(tr, '', false)
-    -- add fxchain if not exists
-    if not chunk_ch:match('FXCHAIN') then 
-      chunk_ch = chunk_ch:sub(0,-3)..[=[
-<FXCHAIN
-SHOW 0
-LASTSEL 0
-DOCKED 0
->
->]=]
-    end
-    chunk_ch = chunk_ch:gsub('DOCKED %d', chunk)
-    SetTrackStateChunk(tr, chunk_ch, false)
-  end
-  ------------------------------------------------------------------------  
+ ------------------------------------------------------------------------  
   function RenameTrAsFirstInstance(track)
-    local fx_count =  reaper.TrackFX_GetCount(track)
+    local fx_count =  TrackFX_GetCount(track)
     if fx_count >= 1 then
-      local retval, fx_name =  reaper.TrackFX_GetFXName(track, 0, '')      
-      local fx_name_cut = fx_name:match(': (.*)')
-      if fx_name_cut then fx_name = fx_name_cut end
-      reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', fx_name, true)
+      local retval, fx_name =  TrackFX_GetFXName(track, 0, '')
+      reaper.GetSetMediaTrackInfo_String(track, 'P_NAME', MPL_ReduceFXname(fx_name), true)
     end
   end
   ------------------------------------------------------------------------
-  tr = GetSelectedTrack(0,0)
-  if tr then 
-    tr_id = CSurf_TrackToID( tr,false )
-    Undo_BeginBlock2( 0 )
-    ch = Extract_rs5k_tChunks(tr)
-    if ch and #ch > 0 then 
-      for i = #ch, 1, -1 do 
-        InsertTrackAtIndex( tr_id, false )
-        local child_tr = GetTrack(0,tr_id)
-        AddChunkToTrack(child_tr, ch[i])
-        RenameTrAsFirstInstance(child_tr)
-      end
+  function main()
+    local src_track = GetSelectedTrack(0,0)
+    if not src_track then  return end
+    local tr_id = CSurf_TrackToID( src_track,false )
+    for src_fx = TrackFX_GetCount( src_track ), 1, -1 do 
+      InsertTrackAtIndex( tr_id, false )
+      local dest_track = GetTrack(0,tr_id)
+      TrackFX_CopyToTrack( src_track, src_fx-1, dest_track, 0, true )
+      s_id = CreateTrackSend( src_track, dest_track ) 
+      SetTrackSendInfo_Value( src_track, 0, s_id, 'I_SRCCHAN', -1 )
+      SetTrackSendInfo_Value( src_track, 0, s_id, 'I_MIDIFLAGS', 0 )
+      RenameTrAsFirstInstance(dest_track)
     end
-    reaper.Undo_EndBlock2( 0, scr_nm, 0 )
+  end
+  
+  ---------------------------------------------------------------------
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
+  --------------------------------------------------------------------  
+  local ret = CheckFunctions('VF_CalibrateFont') 
+  if ret then
+    local ret2 = VF_CheckReaperVrs(5.95,true)    
+    if ret and ret2 then Undo_BeginBlock2( 0 ) main() reaper.Undo_EndBlock2( 0, 'Explode selected track RS5k instances to new tracks', 0 ) end
   end
