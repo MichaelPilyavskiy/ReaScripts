@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="05bdee4885f9e2f5135dc95b07861ecddbb916d1" name="MPL Scripts">
+<index version="1" commit="c7fe537643af12d82d2024af046d47c79fe5c24f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4637,6 +4637,15 @@ add control for timefall showing last note]]></changelog>
     <reapack name="mpl_Import Cubase tempo map.lua" type="script" desc="Import Cubase tempo map">
       <version name="1.0" author="MPL" time="2016-06-11T07:29:01Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tempo/mpl_Import%20Cubase%20tempo%20map.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle gradually transition for tempo marker before edit cursor.lua" type="script" desc="Toggle gradually transition for tempo marker before edit cursor">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-20T21:47:35Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c7fe537643af12d82d2024af046d47c79fe5c24f/Tempo/mpl_Toggle%20gradually%20transition%20for%20tempo%20marker%20before%20edit%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle tempo envelope.lua" type="script" desc="Toggle tempo envelope">
