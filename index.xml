@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3c97d14d7e09cecb79377e11143142b0cadb1222" name="MPL Scripts">
+<index version="1" commit="4fd36e64af962370bc1837fd5da38bfc0c5f3707" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4659,19 +4659,22 @@ add control for timefall showing last note]]></changelog>
     </reapack>
   </category>
   <category name="Tracks Properties">
-    <reapack name="mpl_Add send to selected tracks.lua" type="script" desc="Add send to selected tracks">
+    <reapack name="mpl_Add receive track from selected tracks.lua" type="script" desc="Add receive track from selected tracks">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2017-02-03T13:32:21Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/893460f10b545aedbad61400f4e1827f1fb2dfc6/Tracks%20Properties/mpl_Add%20send%20to%20selected%20tracks.lua</source>
+      <version name="1.0" author="MPL" time="2020-04-25T11:48:55Z">
+        <changelog><![CDATA[# change name]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fd36e64af962370bc1837fd5da38bfc0c5f3707/Tracks%20Properties/mpl_Add%20receive%20track%20from%20selected%20tracks.lua</source>
       </version>
-      <version name="1.01" author="MPL" time="2017-09-13T05:16:34Z">
-        <changelog><![CDATA[# respect default send parameters
-# forum link
-- don`t set same color]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8a61c0af8b1cab38ec99ced0aad78e6603d6e16b/Tracks%20Properties/mpl_Add%20send%20to%20selected%20tracks.lua</source>
+    </reapack>
+    <reapack name="mpl_Add receive tracks to selected tracks respectively.lua" type="script" desc="Add receive tracks to selected tracks respectively">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.02" author="MPL" time="2020-04-25T11:48:55Z">
+        <changelog><![CDATA[# change name]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fd36e64af962370bc1837fd5da38bfc0c5f3707/Tracks%20Properties/mpl_Add%20receive%20tracks%20to%20selected%20tracks%20respectively.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Apply selected track pan to its pre-fader sends pan.lua" type="script" desc="Apply selected track pan to its pre-fader sends pan">
