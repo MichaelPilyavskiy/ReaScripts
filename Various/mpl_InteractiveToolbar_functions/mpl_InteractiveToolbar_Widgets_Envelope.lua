@@ -181,8 +181,7 @@
       end                         
       local val_str = data.ep[data.ep.sel_point_ID].value_format
      -- local modify_wholestr = data.env_isvolume
-     if not data.env_isvolume then
-      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+     Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
                         t = {val_str},
                         table_key='val_ctrl',
                         x_offs= obj.b.obj_envval_back.x,  
@@ -199,73 +198,49 @@
                         default_val = data.env_defValue,
                         onRelease_ActName = data.scr_title..': Change point properties'
                         })  
-    end 
-     if data.env_isvolume then
-      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
-                        t = {val_str},
-                        table_key='val_ctrl',
-                        x_offs= obj.b.obj_envval_back.x,  
-                        y_offs= obj.b.obj_envval_back.y,  
-                        w_com=obj.b.obj_envval_back.w,
-                        src_val=data.ep,
-                        src_val_key= 'value',
-                        modify_func= MPL_ModifyFloatVal,
-                        modify_wholestr=true,
-                        app_func= Apply_Envpoint_Val,            
-                        mouse_scale= 0.001,               -- mouse scaling
-                        wheel_ratio = 0.001,
-                        use_mouse_drag_xAxis = data.always_use_x_axis==1, -- x
-                        --ignore_fields= true
-                        default_val = data.env_defValue,
-                        onRelease_ActName = data.scr_title..': Change point properties'
-                        })  
-    end                     
     return obj.entry_w2                         
   end
   
   function Apply_Envpoint_Val(data, obj, t_out_values, butkey, out_str_toparse, mouse)
     local minValue= 0
     local maxValue = 1
-    if data.env_isvolume then maxValue = 1000 end
-    if not out_str_toparse then   
-      test =  t_out_values
+    --if data.env_isvolume then maxValue = 1000 end
+    local scaling_mode = GetEnvelopeScalingMode( data.env_ptr )
+    if not out_str_toparse then
       for i = 1, #t_out_values do
         local outval
         if mouse.Ctrl then outval = lim(t_out_values[1],minValue,maxValue) else outval = lim(t_out_values[i],minValue,maxValue) end
         if data.ep[i].selected then 
-          --msg(outval)
-          SetEnvelopePointEx( data.env_ptr, -1, i-1, data.ep[i].pos, outval, data.ep[i].shape, data.ep[i].tension, true, true )
+          --msg(ScaleToEnvelopeMode( scaling_mode, outval))
+          SetEnvelopePointEx( data.env_ptr, -1, i-1, data.ep[i].pos, ScaleToEnvelopeMode( scaling_mode, outval), data.ep[i].shape, data.ep[i].tension, true, true )
         end
       end
       Envelope_SortPoints( data.env_ptr )
-      UpdateArrange()
-      UpdateTimeline()
-      -- reaper.DB2SLIDER( x )
       local new_str
-      if not data.env_isvolume then 
+      if not data.is_tr_env then  
         new_str = string.format("%.2f", t_out_values[ data.ep.sel_point_ID  ]) 
        else
-        new_str =  string.format("%.2f", SLIDER2DB( t_out_values[ data.ep.sel_point_ID  ]) )
+        new_str =  string.format("%.2f", SLIDER2DB( ScaleToEnvelopeMode( scaling_mode,t_out_values[ data.ep.sel_point_ID  ])) )
       end
       obj.b[butkey..1].txt = new_str
-      
-      
      else --input str
       local out_val
       out_val = tonumber(out_str_toparse) 
       if not out_val then return end
-      if data.env_isvolume then out_val = DB2SLIDER( out_val ) end
-      
+      if data.is_tr_env then 
+        out_val = DB2SLIDER( out_val ) 
+       else 
+        out_val = ScaleToEnvelopeMode( scaling_mode, out_val)
+      end
       for i = 1, #t_out_values do
         if data.ep[i].selected then 
-          SetEnvelopePointEx( data.env_ptr, -1, i-1, data.ep[i].pos, 
-                              lim(out_val,minValue,maxValue), 
+          SetEnvelopePointEx( data.env_ptr, -1, i-1, data.ep[i].pos, out_val,
                               data.ep[i].shape, data.ep[i].tension, true, true )
         end
       end  
       Envelope_SortPoints( data.env_ptr )
       UpdateArrange()
-      UpdateTimeline()
+      --UpdateTimeline()
       redraw = 2 
     end
   end  
@@ -322,3 +297,5 @@
       end                                                         
     return fxname_w                    
   end
+  
+

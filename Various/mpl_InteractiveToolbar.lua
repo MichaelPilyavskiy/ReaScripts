@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,10 +14,11 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # Envelope/#val: mousewheel for track volume
+--    # Envelope/#val: fix track envelopes value (handle scaling mode for volume envelopes)
+--    # Envelope/#val: don`t refresh arrange
+--    + Track/#midiin and Track/#audioin: toggle MIDI/Audio input, arm and monitoring
 
-
-    local vrs = '2.01'
+    local vrs = '2.02'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -93,7 +94,7 @@ buttons=#lock #preservepitch #chanmode #loop #srcreverse #mute
 order=#floatfx #position #value
 [Track]
 order=#color #fxcontrols #buttons #vol #pan #fxlist #sendto #delay #troffs #chsendmixer #chrecvmixer #freeze
-buttons=#polarity #parentsend 
+buttons=#polarity #parentsend #midiin #audioin 
 [MIDIEditor]
 order=#position #notelen #CCval #notepitch #notevel #midichan
 [Persist]

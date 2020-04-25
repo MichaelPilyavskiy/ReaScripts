@@ -53,6 +53,7 @@
     data.MM_grid_default_reset_grid = conf.MM_grid_default_reset_grid
     data.persist_clock_showtimesec = conf.persist_clock_showtimesec
     data.relative_it_len = conf.relative_it_len
+    data.env_mult_factor = 1
     
     -- reset buttons data
       obj.b = {}
@@ -435,8 +436,6 @@
     
     data.env_ptr = env
     local tr, env_FXid, env_paramid = Envelope_GetParentTrack( env )
-   
-    
     -- get val limits
       local BR_env = BR_EnvAlloc( env, false )
       local _, _, _, _, _, _, minValue, maxValue, centr = BR_EnvGetProperties( BR_env )
@@ -448,8 +447,9 @@
       data.obj_type_int = 6
       local _, tr_name = GetTrackName( tr, '' )
       local _, env_name =  GetEnvelopeName( env, '' )
+      data.is_tr_env = env_FXid ==-1 and env_name:match('Volume')
       data.name = tr_name..' | '..env_name
-      data.env_isvolume = env_name:match('Volume') ~= nil
+      --data.env_isvolume = env_name:match('Volume') ~= nil
       data.env_name=env_name
       data.env_parenttr = tr
       data.env_parentFX = env_FXid
@@ -460,15 +460,21 @@
         
     local obj_type, first_selected, env_hasselpoint
     local cnt_selected_pts = 0
+    
+    --reaper.ScaleFromEnvelopeMode( scaling_mode, val )
+    --reaper.ScaleToEnvelopeMode( scaling_mode, val )
+    local scaling_mode = GetEnvelopeScalingMode( env )
+    
     for i = 1, CountEnvelopePoints( env ) do      
-      local retval, time, value, shape, tension, selected = GetEnvelopePointEx( env, -1, i-1 )
+      local retval, time, value0, shape, tension, selected = GetEnvelopePointEx( env, -1, i-1 )
+      value = ScaleFromEnvelopeMode( scaling_mode,value0)
       data.ep[i] = {}
       data.ep[i].pos = time
       data.ep[i].pos_format = format_timestr_pos( time, '', data.ruleroverride ) 
       data.ep[i].value = value
        data.ep[i].value_format =  string.format("%.2f", value)
-      if data.env_isvolume then  
-        data.ep[i].value_format = string.format("%.2f", SLIDER2DB(value))--string.format("%.2f", WDL_VAL2DB(value))    
+      if data.is_tr_env then  
+        data.ep[i].value_format = string.format("%.2f", SLIDER2DB(value0))--string.format("%.2f", WDL_VAL2DB(value))    
       end
       
       data.ep[i].shape = shape

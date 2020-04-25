@@ -161,8 +161,67 @@
     return w
   end  
   --------------------------------------------------------------  
-  
-  
+  function Widgets_Track_buttons_midiin(data, obj, mouse, x_offs, y_offs, frame_a)
+    local w = 50*obj.entry_ratio
+    local state = GetMediaTrackInfo_Value( data.tr[1].ptr, 'I_RECINPUT')&4096==4096 and GetMediaTrackInfo_Value( data.tr[1].ptr, 'I_RECMON') == 1
+    obj.b.obj_trmidiin = {  x = x_offs,
+                        y = obj.offs+y_offs ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = frame_a,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_toolbar,
+                        txt = 'MIDI In',
+                        fontsz = obj.fontsz_entry,
+                        state = state,
+                        state_col = 'white',
+                        func =  function()
+                                  for i = 1, #data.tr do
+                                    if not state then 
+                                      SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_RECINPUT', 4096+(63<<5))
+                                      SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_RECMON', 1)
+                                      SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_RECARM', 1) 
+                                     else
+                                      SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_RECINPUT', -1)
+                                      SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_RECMON', 0)  
+                                      SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_RECARM', 0)                                      
+                                    end        
+                                  end
+                                  redraw = 1                              
+                                end}
+    return w
+  end    
+  --------------------------------------------------------------  
+  function Widgets_Track_buttons_audioin(data, obj, mouse, x_offs, y_offs, frame_a)
+    local w = 50*obj.entry_ratio
+    local state = GetMediaTrackInfo_Value( data.tr[1].ptr, 'I_RECINPUT')&4096==0 and GetMediaTrackInfo_Value( data.tr[1].ptr, 'I_RECMON') == 1
+    obj.b.obj_traudioin = {  x = x_offs,
+                        y = obj.offs+y_offs ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = frame_a,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_toolbar,
+                        txt = 'Audio In',
+                        fontsz = obj.fontsz_entry,
+                        state = state,
+                        state_col = 'white',
+                        func =  function()
+                                  for i = 1, #data.tr do
+                                    if not state then 
+                                      SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_RECINPUT', 1024)
+                                      SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_RECMON', 1)
+                                      SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_RECARM', 1)
+                                     else
+                                      SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_RECINPUT', -1)
+                                      SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_RECMON', 0) 
+                                      SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_RECARM', 0)                                     
+                                    end
+                                  end
+                                  redraw = 1                              
+                                end}
+    return w
+  end   
   
   
   
