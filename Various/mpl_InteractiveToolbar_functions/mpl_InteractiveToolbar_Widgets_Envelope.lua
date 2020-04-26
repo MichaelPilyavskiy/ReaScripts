@@ -202,8 +202,8 @@
   end
   
   function Apply_Envpoint_Val(data, obj, t_out_values, butkey, out_str_toparse, mouse)
-    local minValue= 0
-    local maxValue = 1
+    local minValue= data.minValue--0
+    local maxValue = data.maxValue--1
     --if data.env_isvolume then maxValue = 1000 end
     local scaling_mode = GetEnvelopeScalingMode( data.env_ptr )
     if not out_str_toparse then
@@ -220,7 +220,10 @@
       if not data.is_tr_env then  
         new_str = string.format("%.2f", t_out_values[ data.ep.sel_point_ID  ]) 
        else
-        new_str =  string.format("%.2f", SLIDER2DB( ScaleToEnvelopeMode( scaling_mode,t_out_values[ data.ep.sel_point_ID  ])) )
+        v = t_out_values[ data.ep.sel_point_ID  ]
+        --v = ScaleToEnvelopeMode( scaling_mode, v )
+        v = WDL_VAL2DB(v)
+        new_str =  string.format("%.2f", v )
       end
       obj.b[butkey..1].txt = new_str
      else --input str
@@ -228,7 +231,8 @@
       out_val = tonumber(out_str_toparse) 
       if not out_val then return end
       if data.is_tr_env then 
-        out_val = DB2SLIDER( out_val ) 
+        out_val = WDL_DB2VAL( out_val ) 
+        out_val = ScaleToEnvelopeMode( scaling_mode,out_val)
        else 
         out_val = ScaleToEnvelopeMode( scaling_mode, out_val)
       end

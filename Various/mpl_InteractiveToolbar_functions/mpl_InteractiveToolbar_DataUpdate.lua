@@ -449,7 +449,7 @@
       local _, env_name =  GetEnvelopeName( env, '' )
       data.is_tr_env = env_FXid ==-1 and env_name:match('Volume')
       data.name = tr_name..' | '..env_name
-      --data.env_isvolume = env_name:match('Volume') ~= nil
+      data.env_isvolume = env_name:match('Volume') ~= nil
       data.env_name=env_name
       data.env_parenttr = tr
       data.env_parentFX = env_FXid
@@ -466,15 +466,15 @@
     local scaling_mode = GetEnvelopeScalingMode( env )
     
     for i = 1, CountEnvelopePoints( env ) do      
-      local retval, time, value0, shape, tension, selected = GetEnvelopePointEx( env, -1, i-1 )
-      value = ScaleFromEnvelopeMode( scaling_mode,value0)
+      local retval, time, value, shape, tension, selected = GetEnvelopePointEx( env, -1, i-1 )
+      value = ScaleFromEnvelopeMode( scaling_mode,value)
       data.ep[i] = {}
       data.ep[i].pos = time
       data.ep[i].pos_format = format_timestr_pos( time, '', data.ruleroverride ) 
       data.ep[i].value = value
-       data.ep[i].value_format =  string.format("%.2f", value)
+      data.ep[i].value_format =  string.format("%.2f", value)
       if data.is_tr_env then  
-        data.ep[i].value_format = string.format("%.2f", SLIDER2DB(value0))--string.format("%.2f", WDL_VAL2DB(value))    
+        data.ep[i].value_format = string.format("%.2f", WDL_VAL2DB(value))--string.format("%.2f", WDL_VAL2DB(value))    
       end
       
       data.ep[i].shape = shape
