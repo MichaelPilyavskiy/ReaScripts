@@ -220,7 +220,7 @@
       if not data.is_tr_env then  
         new_str = string.format("%.2f", t_out_values[ data.ep.sel_point_ID  ]) 
        else
-        v = t_out_values[ data.ep.sel_point_ID  ]
+        local v = t_out_values[ data.ep.sel_point_ID  ]
         --v = ScaleToEnvelopeMode( scaling_mode, v )
         v = WDL_VAL2DB(v)
         new_str =  string.format("%.2f", v )
