@@ -2,11 +2,12 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.27
+-- @version 1.28
 -- @changelog
---    + Update GetSetSpectralData for support free draw spectral edits
+--    + VF_SetTimeShiftPitchChange
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  ---------------------------------------------------
   function msg(s) 
     if not s then return end 
     if type(s) == 'boolean' then
@@ -686,3 +687,25 @@
     reaper.BR_GetMouseCursorContext()
     return  BR_GetMouseCursorContext_Envelope()
   end  
+  --------------------------------------------------
+function VF_SetTimeShiftPitchChange(item, get_only, pshift_mode0, timestr_mode0, stretchfadesz)
+  if not item then return end
+  local retval, str = reaper.GetItemStateChunk( item, '', false ) 
+  
+  local playratechunk = str:match('(PLAYRATE .-\n)') 
+  local t = {} for val in playratechunk:gmatch('[^%s]+') do if  tonumber(val ) then  t[#t+1] = tonumber(val )end end
+  if get_only==true then return t end
+  
+  if pshift_mode0 and not timestr_mode0 and not stretchfadesz then 
+    SetMediaItemTakeInfo_Value(  reaper.GetActiveTake( item ), 'I_PITCHMODE',pshift_mode0  )
+    return
+  end
+  if pshift_mode0 then t[4]=pshift_mode0 end      
+  if timestr_mode0 then t[5]=timestr_mode0 end
+  if stretchfadesz then t[6]=stretchfadesz end
+  local playratechunk_out = 'PLAYRATE '..table.concat(t, ' ')..'\n'
+  str =str:gsub(playratechunk:gsub("[%.%+%-]", function(c) return "%" .. c end), playratechunk_out)
+  --msg(str)
+  reaper.SetItemStateChunk( item, str, false )
+end
+  --------------------------------------------------
