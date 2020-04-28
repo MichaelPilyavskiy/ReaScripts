@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f060c7ebb80c5ae1fc36f853349de27149d8d822" name="MPL Scripts">
+<index version="1" commit="26994397873c3979998ea3142fb3325fac8bf147" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -404,6 +404,10 @@
       <version name="1.27" author="MPL" time="2020-03-16T19:53:56Z">
         <changelog><![CDATA[+ Update GetSetSpectralData for support free draw spectral edits]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ddb6dcf33aaa50384bb37bf5f0028651f88d261f/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.28" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ VF_SetTimeShiftPitchChange]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
@@ -3278,15 +3282,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/Items%20Properties/mpl_Set%20fadeout%20of%20item%20under%20cursor%20to%20mouse%20position.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Set selected items timestretch mode to elastique pro, syncronized, transient optimized.lua" type="script" desc="Set selected items timestretch mode to elastique pro, syncronized, transient optimized">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2020-03-03T20:36:03Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/faa950a02a5219f9aa290f1f4c4bc868294e0e84/Items%20Properties/mpl_Set%20selected%20items%20timestretch%20mode%20to%20elastique%20pro,%20syncronized,%20transient%20optimized.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Toggle solo selected track items.lua" type="script" desc="Toggle solo selected track items">
       <metadata>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
@@ -4630,6 +4625,168 @@ add control for timefall showing last note]]></changelog>
     <reapack name="mpl_Color pooled MIDI takes as selected reference.lua" type="script" desc="Color pooled MIDI takes as selected reference">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Takes%20Properties/mpl_Color%20pooled%20MIDI%20takes%20as%20selected%20reference.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items pitch shift mode to Dirac LE.lua" type="script" desc="Set selected items pitch shift mode to Dirac LE">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20pitch%20shift%20mode%20to%20Dirac%20LE.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items pitch shift mode to elastique 2.2.8 efficient.lua" type="script" desc="Set selected items pitch shift mode to elastique 2.2.8 efficient">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20pitch%20shift%20mode%20to%20elastique%202.2.8%20efficient.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items pitch shift mode to elastique 2.2.8 pro.lua" type="script" desc="Set selected items pitch shift mode to elastique 2.2.8 pro">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20pitch%20shift%20mode%20to%20elastique%202.2.8%20pro.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items pitch shift mode to elastique 2.2.8 soloist.lua" type="script" desc="Set selected items pitch shift mode to elastique 2.2.8 soloist">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20pitch%20shift%20mode%20to%20elastique%202.2.8%20soloist.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items pitch shift mode to elastique 3.3.0 efficient.lua" type="script" desc="Set selected items pitch shift mode to elastique 3.3.0 efficient">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20pitch%20shift%20mode%20to%20elastique%203.3.0%20efficient.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items pitch shift mode to elastique 3.3.0 pro.lua" type="script" desc="Set selected items pitch shift mode to elastique 3.3.0 pro">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20pitch%20shift%20mode%20to%20elastique%203.3.0%20pro.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items pitch shift mode to elastique 3.3.0 soloist.lua" type="script" desc="Set selected items pitch shift mode to elastique 3.3.0 soloist">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20pitch%20shift%20mode%20to%20elastique%203.3.0%20soloist.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items pitch shift mode to project default.lua" type="script" desc="Set selected items pitch shift mode to project default">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20pitch%20shift%20mode%20to%20project%20default.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items pitch shift mode to Rubber Band.lua" type="script" desc="Set selected items pitch shift mode to Rubber Band">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20pitch%20shift%20mode%20to%20Rubber%20Band.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items pitch shift mode to Simple windowed (fast).lua" type="script" desc="Set selected items pitch shift mode to Simple windowed (fast)">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20pitch%20shift%20mode%20to%20Simple%20windowed%20(fast).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items stretch marker fade size to 10ms.lua" type="script" desc="Set selected items stretch marker fade size to 10ms">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20stretch%20marker%20fade%20size%20to%2010ms.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items stretch marker fade size to 2.5ms.lua" type="script" desc="Set selected items stretch marker fade size to 2.5ms">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20stretch%20marker%20fade%20size%20to%202.5ms.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items stretch marker fade size to 5ms.lua" type="script" desc="Set selected items stretch marker fade size to 5ms">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20stretch%20marker%20fade%20size%20to%205ms.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items time stretch mode to Balanced.lua" type="script" desc="Set selected items time stretch mode to Balanced">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20time%20stretch%20mode%20to%20Balanced.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items time stretch mode to No pre-echo reduction.lua" type="script" desc="Set selected items time stretch mode to No pre-echo reduction">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20time%20stretch%20mode%20to%20No%20pre-echo%20reduction.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items time stretch mode to Project default.lua" type="script" desc="Set selected items time stretch mode to Project default">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20time%20stretch%20mode%20to%20Project%20default.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items time stretch mode to Tonal-optimized.lua" type="script" desc="Set selected items time stretch mode to Tonal-optimized">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20time%20stretch%20mode%20to%20Tonal-optimized.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items time stretch mode to Transient-optimized.lua" type="script" desc="Set selected items time stretch mode to Transient-optimized">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20time%20stretch%20mode%20to%20Transient-optimized.lua</source>
       </version>
     </reapack>
   </category>
