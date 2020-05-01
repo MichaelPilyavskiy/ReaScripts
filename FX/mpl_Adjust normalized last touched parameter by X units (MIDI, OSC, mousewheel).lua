@@ -1,14 +1,14 @@
--- @description Adjust normalized last touched parameter by X units (MIDI/OSC/mousewheel)
--- @version 1.0
+-- @description Adjust normalized last touched parameter by X units (MIDI, OSC, mousewheel)
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
 -- @provides
---    [main] . > mpl_Adjust normalized last touched parameter by 0.01 units (MIDI/OSC/mousewheel).lua
---    [main] . > mpl_Adjust normalized last touched parameter by 0.001 units (MIDI/OSC/mousewheel).lua
---    [main] . > mpl_Adjust normalized last touched parameter by 0.0001 units (MIDI/OSC/mousewheel).lua
+--    [main] . > mpl_Adjust normalized last touched parameter by 0.01 units (MIDI, OSC, mousewheel).lua
+--    [main] . > mpl_Adjust normalized last touched parameter by 0.001 units (MIDI, OSC, mousewheel).lua
+--    [main] . > mpl_Adjust normalized last touched parameter by 0.0001 units (MIDI, OSC, mousewheel).lua
 -- @changelog
---    + init
+--    # change name
 
   local is_new_value,filename,sectionID,cmdID,mode,resolution,val = reaper.get_action_context()
   
