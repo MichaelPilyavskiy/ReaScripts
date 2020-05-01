@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9089facd91ba8c5371f81e4781c12f3cf454d572" name="MPL Scripts">
+<index version="1" commit="9b06fa342b6d409a4b4e2f0156823e5d2d92ab86" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4200,6 +4200,15 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL" time="2019-03-31T06:18:14Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0b7711242b0fc88b3b002ad795c00d45760a9a2/Render/mpl_Enable%20add%20rendered%20files%20to%20project%20after%20render.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Glue and Render selected items as seamless loops.lua" type="script" desc="Glue and Render selected items as seamless loops">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-05-01T13:10:07Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9b06fa342b6d409a4b4e2f0156823e5d2d92ab86/Render/mpl_Glue%20and%20Render%20selected%20items%20as%20seamless%20loops.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Render inversed midi.lua" type="script" desc="Render inversed midi">
