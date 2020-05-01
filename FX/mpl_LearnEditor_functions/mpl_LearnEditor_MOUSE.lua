@@ -67,7 +67,11 @@
     
         -- loop with break
         for key in spairs(obj,function(t,a,b) return b < a end) do
-         if type(obj[key]) == 'table' and not obj[key].ignore_mouse and obj[key].h and obj[key].h > 0 then
+         if type(obj[key]) == 'table' 
+          and not obj[key].ignore_mouse --and not obj[key].func_wheel)
+          and obj[key].h 
+          and obj[key].h > 0 
+          then
            ------------------------
            local is_mouse_over = MOUSE_Match(mouse, obj[key])
            if is_mouse_over and obj[key].func_mouseover then obj[key].func_mouseover() end
@@ -77,7 +81,7 @@
            mouse.onclick_L = not mouse.last_LMB_state 
                                and mouse.cap == 1
                                and is_mouse_over
-          if mouse.onclick_L and obj[key].func then obj[key].func() goto skip_mouse_obj end
+          if mouse.onclick_L and obj[key].func then obj[key].func()  goto skip_mouse_obj end
            ------------------------
            mouse.onrelease_L = not mouse.LMB_state 
                                and mouse.last_LMB_state 

@@ -1,5 +1,5 @@
 -- @description LearnEditor
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX parameter bindings data
@@ -9,24 +9,19 @@
 --    mpl_LearnEditor_functions/mpl_LearnEditor_data.lua
 --    mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua
 -- @changelog
---    + initial release
---    + Show MIDI/OSC learn as a table
---    + Lights up last touched track/fx/param
---    + Initialize with last touched param uncollapsed
---    + Actions: Allow to remove specific learn
---    + Actions: Click on learn open dedicated window
---    + Actions: Expand/collapse tracks
---    + Options: collapsed by default
---    + Options: refresh GUI on change project state
---    + Options: allow to expand only one track
+--    # rebuild GUI draw, improve GUI performance
+--    + allow to filter list of Learn or/and param modulation
+--    + highlight last touched track
 
-
-  local vrs = 'v1.0'
+  local vrs = 'v1.01'
   --NOT gfx NOT reaper
+  --Delete all MIDI OSC learn from focused FX
+  --Delete all MIDI OSC learn from selected track
+  --List all MIDI OSC learn for current project
+  --List all MIDI OSC learn for focused FX
   
-  
-  
-  --  INIT -------------------------------------------------
+
+ --  INIT -------------------------------------------------
   local conf = {}  
   local refresh = { GUI_onStart = true, 
                     GUI = false, 
@@ -62,21 +57,9 @@
             
             -- mouse
             mouse_wheel_res = 960,
-            init_collapsed = 0, 
-            refresh_on_psc = 0, 
-            expand_onetrackonly = 0, 
-            
             showflag = 1,
                       --[[&1 learn
                         &2 param mod
-                      ]]
-            tableentries = 31,
-                      --[[
-                          &1 MIDI
-                          &2 OSC
-                          &4 flag - enable when selected
-                          &8 flag - soft takeover
-                          &16 CC mode
                       ]]
             }
     return t
@@ -95,15 +78,13 @@
       --if conf.refresh_on_psc ==1 then 
       DataReadProject(conf, obj, data, refresh, mouse) 
       --end
-      Data_ParamListBuild(conf, obj, data, refresh, mouse)
-      
+      --msg(1)
     end  
     if refresh.conf == true then 
       ExtState_Save(conf)
       refresh.conf = nil end
     if refresh.GUI == true or refresh.GUI_onStart == true then   
       Data_HandleTouchedObjects(conf, obj, data, refresh, mouse) 
-      Data_ParamListBuild(conf, obj, data, refresh, mouse)       
       OBJ_Update (conf, obj, data, refresh, mouse) 
     end  
     if refresh.GUI_minor == true then refresh.GUI = true end
@@ -117,8 +98,6 @@
   ---------------------------------------------------------------------
   function RunInit(conf, obj, data, refresh, mouse) 
     DataReadProject(conf, obj, data, refresh, mouse) 
-    local run_collapsed if conf.init_collapsed == 1 then run_collapsed = true end
-    Data_ParamListBuild(conf, obj, data, refresh, mouse, run_collapsed)
     Data_HandleTouchedObjects(conf, obj, data, refresh, mouse, true) 
   end
 ---------------------------------------------------------------------

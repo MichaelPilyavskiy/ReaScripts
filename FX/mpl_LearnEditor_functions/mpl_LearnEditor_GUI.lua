@@ -237,7 +237,7 @@
           local com_texth = gfx.texth*cnt
           local i = 0
           local reduce1, reduce2 = 2, nil
-          if o.aligh_txt and o.aligh_txt&8==8 then reduce1, reduce2 = 0,-2 end
+          if o.align_txt and o.align_txt&8==8 then reduce1, reduce2 = 0,-2 end
             local txt_t = {}
             
             if not o.txt_wrap then 
@@ -266,19 +266,19 @@
               local line = txt_t[lineid]
               if gfx.measurestr(line:sub(2)) > w -5 and w > 20 then                 
                 repeat line = line:sub(reduce1, reduce2) until gfx.measurestr(line..'...') < w -5
-                if o.aligh_txt and o.aligh_txt&8==8 then line = line..'...' else line = '...'..line end                
+                if o.align_txt and o.align_txt&8==8 then line = line..'...' else line = '...'..line end                
               end
               gfx.x = x+ math.ceil((w-gfx.measurestr(line))/2)
               gfx.y = y+ h/2 - com_texth/2 + i*gfx.texth - comy_shift
-              if o.aligh_txt then
-                if o.aligh_txt&1==1 then 
+              if o.align_txt then
+                if o.align_txt&1==1 then 
                   gfx.x = x + shift 
                   if check_ex then gfx.x = gfx.x + o.h end
                 end -- align left
-                if o.aligh_txt&2==2 then gfx.y = y + i*gfx.texth end -- align top
-                if o.aligh_txt&4==4 then gfx.y = h - com_texth+ i*gfx.texth-shift end -- align bot
-                if o.aligh_txt&8==8 then gfx.x = x + w - gfx.measurestr(line) - shift end -- align right
-                if o.aligh_txt&16==16 then gfx.y = y + (h - com_texth)/2+ i*gfx.texth - 2 end -- align center
+                if o.align_txt&2==2 then gfx.y = y + i*gfx.texth end -- align top
+                if o.align_txt&4==4 then gfx.y = h - com_texth+ i*gfx.texth-shift end -- align bot
+                if o.align_txt&8==8 then gfx.x = x + w - gfx.measurestr(line) - shift end -- align right
+                if o.align_txt&16==16 then gfx.y = y + (h - com_texth)/2+ i*gfx.texth - 2 end -- align center
               end
               gfx.drawstr(line)
               --shift = shift + gfx.texth
