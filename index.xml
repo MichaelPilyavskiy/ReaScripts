@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9b06fa342b6d409a4b4e2f0156823e5d2d92ab86" name="MPL Scripts">
+<index version="1" commit="fdfdd43b1dd26c368c621ba929ac49dc201b3670" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3714,6 +3714,16 @@ add control for timefall showing last note]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/acc3103e5f367e8900c8c0e3f7c6421111f7384d/MIDI%20editor/mpl_Add%20note%20beetween%20two%20selected.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Adjust MIDI Editor grid (mousewheel).lua" type="script" desc="Adjust MIDI Editor grid (mousewheel)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2020-05-04T20:23:24Z">
+        <changelog><![CDATA[# change name
+# invert adjusting [p=2282406]]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fdfdd43b1dd26c368c621ba929ac49dc201b3670/MIDI%20editor/mpl_Adjust%20MIDI%20Editor%20grid%20(mousewheel).lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Adjust selected notes pitch (mousewheel).lua" type="script" desc="Adjust selected notes pitch (mousewheel)">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -3963,15 +3973,6 @@ add control for timefall showing last note]]></changelog>
     <reapack name="mpl_Select high pitch MIDI notes.lua" type="script" desc="Select high pitch MIDI notes">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI%20editor/mpl_Select%20high%20pitch%20MIDI%20notes.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Set MIDI Editor grid (mousewheel).lua" type="script" desc="Set MIDI Editor grid (mousewheel)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-08-19T08:00:11Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2aedf13b5d00d7cb479db681253f340a7d25d7b5/MIDI%20editor/mpl_Set%20MIDI%20Editor%20grid%20(mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set selected CC.eel" type="script" desc="Set selected CC">
@@ -5391,13 +5392,13 @@ add control for timefall showing last note]]></changelog>
     </reapack>
   </category>
   <category name="Various">
-    <reapack name="mpl_Adjust grid (mousewheel).lua" type="script" desc="Adjust grid (mousewheel)">
+    <reapack name="mpl_Adjust arrange grid (mousewheel).lua" type="script" desc="Adjust arrange grid (mousewheel)">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2019-08-03T08:46:00Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/Various/mpl_Adjust%20grid%20(mousewheel).lua</source>
+      <version name="1.01" author="MPL" time="2020-05-04T20:23:24Z">
+        <changelog><![CDATA[# change name]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fdfdd43b1dd26c368c621ba929ac49dc201b3670/Various/mpl_Adjust%20arrange%20grid%20(mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Align takes (without GUI).lua" type="script" desc="Align Takes (without GUI)">
