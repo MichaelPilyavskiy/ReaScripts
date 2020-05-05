@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fdfdd43b1dd26c368c621ba929ac49dc201b3670" name="MPL Scripts">
+<index version="1" commit="6bc561efc9366dfab3603929e04abbfab555c16a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4604,6 +4604,24 @@ add control for timefall showing last note]]></changelog>
       <version name="1.1" author="MPL" time="2016-09-23T12:11:15Z">
         <changelog><![CDATA[+ Acion: Remove all non-1x stretch markers from selected takes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55f741082f03e1303606581f06792b22a81eec33/Stretch%20Markers/mpl_Stretch%20marker%20guard.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Tape start selected items.lua" type="script" desc="Tape start selected items">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-05-05T06:16:19Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6bc561efc9366dfab3603929e04abbfab555c16a/Stretch%20Markers/mpl_Tape%20start%20selected%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Tape stop selected items.lua" type="script" desc="Tape stop selected items">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-05-05T06:16:19Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6bc561efc9366dfab3603929e04abbfab555c16a/Stretch%20Markers/mpl_Tape%20stop%20selected%20items.lua</source>
       </version>
     </reapack>
   </category>
