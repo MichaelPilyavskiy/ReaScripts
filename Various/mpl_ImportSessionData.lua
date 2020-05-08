@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.20
+-- @version 1.21
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT/S1 Import Session Data feature
@@ -10,11 +10,10 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    # fix setting remap only produce script crash when no track selected
---    + Options: allow match by full track name only
+--    + Strategy: Project head/Tempo envelope
 
      
-  local vrs = '1.20'
+  local vrs = '1.21'
   --NOT gfx NOT reaper
   
 
@@ -28,7 +27,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-  data = {}
+  local data = {}
   local obj = {}
   local strategy = {}
   
@@ -42,7 +41,6 @@
     dofile(script_path .. "mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua")  
     dofile(script_path .. "mpl_ImportSessionData_functions/mpl_ImportSessionData_data.lua")  
   end  
-
   ---------------------------------------------------
   function ExtState_Def()  
     local t= {
@@ -51,7 +49,7 @@
             ES_key = 'MPL_ImportSessionData',
             wind_x =  50,
             wind_y =  50,
-            wind_w =  800,
+            wind_w =  1200,
             wind_h =  300,
             dock =    0, 
             
@@ -245,6 +243,7 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
                 ]]                
         master_stuff = 0,
           --[[  &2 FX chain
+                &4 tempo/timesignature
                 ]]
         markers_flags = 0,   
           --[[  &1 markers

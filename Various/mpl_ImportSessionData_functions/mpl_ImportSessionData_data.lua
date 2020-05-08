@@ -45,13 +45,14 @@
     refresh.GUI = true
   end
   --------------------------------------------------- 
-  function Data_ParseRPP_ExtractChunks2(tr_chunks, t)
+  --[[f_unction Data_ParseRPP_ExtractChunks2(tr_chunks, t)
     local tr_id = 0
     local bracketslevel = 0
     for i = 1, #t do 
       local line = t[i]
       if    line:match('<TRACK') 
         or  line:match('<MASTERFXLIST') 
+        or  line:match('<TEMPOENVEX')
         then 
         if tr_chunks[tr_id-1] then 
           local s = table.concat(tr_chunks[tr_id-1], '\n') 
@@ -76,7 +77,7 @@
     tr_chunks[tr_id-1] = s
     local s = table.concat(tr_chunks[tr_id], '\n') 
     tr_chunks[tr_id] = s
-  end 
+  end ]]
   --------------------------------------------------- 
   function Data_ParseRPP_ExtractChunks(tr_chunks, t)
     local tr_id = 0
@@ -88,6 +89,7 @@
       
       if line:match('<TRACK') 
         or line:match('<MASTERFXLIST') 
+        or line:match('<TEMPOENVEX') 
         then 
         if line:match('<TRACK') and not t_trackstart then t_trackstart = i end
         tr_id = tr_id + 1
@@ -232,7 +234,10 @@
          end                     
         if ch_str:match('<MASTERFXLIST') then 
           data.masterfxchunk = {chunk = ch_str}        
-        end                               
+        end 
+        if ch_str:match('<TEMPOENVEX') then 
+          data.tempodata = Data_ParseRPP_GetTempo(ch_str)       --data. 
+        end                                 
       end
     end
     
@@ -509,10 +514,52 @@
       if name == '__reserved' then DeleteProjectMarkerByIndex( 0, i-1 ) end
     end
   end
+  --------------------------------------------------------------------
+  function Data_ImportMasterStuff_Tempo(conf, obj, data, refresh, mouse, strategy)  
+    if not (strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.master_stuff&4 == 4)) then return end
+    if not data.tempodata then return end 
+    for markerindex = CountTempoTimeSigMarkers( proj ), 1, -1 do DeleteTempoTimeSigMarker( 0, markerindex-1 ) end 
+    for i = 1, #data.tempodata do
+      local timesig_num = 0
+      local timesig_denom = 0
+      local lineartempo = false
+      if data.tempodata[i].timesig_num and data.tempodata[i].timesig_denom then 
+        timesig_num = data.tempodata[i].timesig_num
+        timesig_denom = data.tempodata[i].timesig_denom
+      end
+      if data.tempodata[i].lineartempochange and data.tempodata[i].lineartempochange==true then lineartempo = data.tempodata[i].lineartempochange end
+      reaper.SetTempoTimeSigMarker( 0, -1, data.tempodata[i].timepos, -1, -1, data.tempodata[i].bpm, timesig_num, timesig_denom, lineartempo )
+    end
+  end
+  --------------------------------------------------------------------
+  function Data_ParseRPP_GetTempo(ch_str) 
+    local t = {chunk = ch_str}
+    for line in ch_str:gmatch('[^\r\n]+') do
+      if line:match('PT %d+') then
+        local valt = {} for val in line:gmatch('[^%s]+') do valt[#valt+1] = val end
+        local timepos = tonumber(valt[2])
+        local bpm = tonumber(valt[3])
+        local lineartempochange = tonumber(valt[4])&1==0
+        local timesig_num, timesig_denom
+        if valt[5] then
+          local timesig = valt[5]
+          timesig_num = timesig&0xFFFF
+          timesig_denom = (timesig>>16)&0xFFFF
+        end
+        t[#t+1] = {timepos=timepos,
+                  bpm=bpm,
+                  lineartempochange=lineartempochange,
+                  timesig_num=timesig_num,
+                  timesig_denom=timesig_denom}
+      end
+    end
+    return t
+  end
   --------------------------------------------------------------------  
   function Data_ImportMasterStuff(conf, obj, data, refresh, mouse, strategy) 
     Data_ImportMasterStuff_FX(conf, obj, data, refresh, mouse, strategy) 
     Data_ImportMasterStuff_Markers(conf, obj, data, refresh, mouse, strategy)  
+    Data_ImportMasterStuff_Tempo(conf, obj, data, refresh, mouse, strategy)  
   end 
   --------------------------------------------------------------------  
   function Data_ParseRPP_GetParam(ch_str, key, find_until, val_cnt)

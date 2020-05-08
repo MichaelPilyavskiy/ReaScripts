@@ -116,13 +116,13 @@
                                       refresh.GUI = true 
                                                                       refresh.data = true
                                     end ,
-                            } ,
-                            { str = '#Match actions'},                            
+                            } ,                        
                             { str = 'Mark selected source tracks for import to new tracks|',
                               func = function() 
                                       for i = 1, #data.tr_chunks do if data.tr_chunks[i].selected then data.tr_chunks[i].dest = -1  end end   
                                     end ,
                             }, 
+                            { str = '#Match algorithm'},    
                             { str = 'Match only by full name',
                               state = conf.match_flags&1==1,
                               func = function() 
@@ -677,7 +677,7 @@
                             has_blit = true,
                             level = 0,       
                           } ,]]                        
-                          { name = 'Track RAW data / replace GUID / remove AUXRECV',
+                          { name = 'Track raw data (remove routing, GUIDs)',
                             state = strategy.comchunk==1,
                             hidden = strategy.comchunk==0,
                             show = true,
@@ -934,6 +934,17 @@
                                       strategy.master_stuff = BinaryToggle(strategy.master_stuff, 1)
                                     end,             
                           } , 
+                          { name = 'Tempo/Time signature envelope',
+                            state = strategy.master_stuff&4==4,
+                            show =  true,
+                            hidden = strategy.master_stuff&1==1,
+                            has_blit = false,
+                            level = 1,
+                            func =  function()
+                                      strategy.master_stuff = BinaryToggle(strategy.master_stuff, 0, 0)
+                                      strategy.master_stuff = BinaryToggle(strategy.master_stuff, 2)
+                                    end,             
+                          } ,                           
                           { name = 'Markers',
                             state = strategy.markers_flags&1==1,
                             show =  true,
