@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.21
+-- @version 1.22
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT/S1 Import Session Data feature
@@ -10,10 +10,10 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    + Strategy: Project head/Tempo envelope
+--    # fix dest tr GUI error
 
      
-  local vrs = '1.21'
+  local vrs = '1.22'
   --NOT gfx NOT reaper
   
 

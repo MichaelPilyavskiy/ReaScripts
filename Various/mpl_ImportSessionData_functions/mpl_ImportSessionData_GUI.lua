@@ -124,7 +124,7 @@
       local h_sl = h 
       if o.fillback == true then
         local r, g, b
-        if o.fillback_colint then r, g, b = ColorFromNative( o.fillback_colint ) gfx.set(r/255,g/255,b/255, o.fillback_a) end 
+        if o.fillback_colint and tonumber(o.fillback_colint) then r, g, b = ColorFromNative( tonumber(o.fillback_colint) ) gfx.set(r/255,g/255,b/255, o.fillback_a) end 
         if o.fillback_colstr then col(obj, o.fillback_colstr, o.fillback_a) end 
         gfx.rect(x,y,w,h,1) 
       end
