@@ -1,10 +1,10 @@
-﻿-- @description Various_functions
+-- @description Various_functions
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.28
+-- @version 1.29
 -- @changelog
---    + VF_SetTimeShiftPitchChange
+--    + VF_GetProjIDByPath
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -15,6 +15,14 @@
     end
     ShowConsoleMsg(s..'\n') 
   end 
+  ---------------------------------------------------
+  function VF_GetProjIDByPath(projfn)
+    for idx  = 0, 1000 do
+      retval, projfn0 = reaper.EnumProjects( idx )
+      if not retval then return end
+      if projfn == projfn0 then return idx end
+    end
+  end
   ---------------------------------------------------
   function VF_GetTrackByGUID(giv_guid)
     for i = 1, CountTracks(0) do
