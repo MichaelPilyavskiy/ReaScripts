@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2941fc5e23f871557fd6e2d175bdd2abc5182397" name="MPL Scripts">
+<index version="1" commit="c0f58f762d535cb59317a6ef4f9987af59a00ae1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3272,6 +3272,15 @@
         <changelog><![CDATA[# fix error when nothing to cut
 # improve extension match pattern]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/21b5bcf46d6f2a36b9d98ca4b2c63916faa86a6f/Items%20Properties/mpl_Cut%20extension%20from%20selected%20item%20names.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Select items by pattern.lua" type="script" desc="Select items by pattern">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-05-10T11:52:02Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c0f58f762d535cb59317a6ef4f9987af59a00ae1/Items%20Properties/mpl_Select%20items%20by%20pattern.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Send midi source as channel x.lua" type="script" desc="Send midi source as channel x">
