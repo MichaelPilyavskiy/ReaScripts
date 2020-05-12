@@ -1037,7 +1037,8 @@
                         fontsz = obj.fontsz_entry,
                         func = function() 
                                  local send_id = data.active_context_id                                 
-                                 local str_ptr = BR_GetMediaTrackSendInfo_Track( data.tr[1].ptr, 0, send_id-1, 1 )
+                                 --local str_ptr = BR_GetMediaTrackSendInfo_Track( data.tr[1].ptr, 0, send_id-1, 1 )
+                                 local str_ptr = GetTrackSendInfo_Value( data.tr[1].ptr, 0, send_id-1,'P_DESTTRACK' ) 
                                  TrackFX_SetOpen( str_ptr, 0, true )
                                 end} 
     if data.active_context_sendmixer_val then

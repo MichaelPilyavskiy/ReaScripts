@@ -102,7 +102,7 @@
     
   end]]
   ---------------------------------------------------
-  function DataUpdate_Context(data, mouse, widgets, obj, conf)    
+  function DataUpdate_Context(data, mouse, widgets, obj, conf) 
     --[[ 
       contexts for data.obj_type_int
         0 empty item
@@ -154,7 +154,7 @@
                 )
         and tr
       then 
-      DataUpdate_Track(data, tr)
+      DataUpdate_Track(data, tr, conf) 
       Obj_UpdateTrack(data, obj, mouse, widgets, conf)   
       goto skip_context_selector
     end
@@ -175,7 +175,7 @@
       if obj_type == 1 then cur_context = 5 end -- midi
       if obj_type == 2 then cur_context = 6 end -- midi
      elseif tr then
-      DataUpdate_Track(data, tr)
+      DataUpdate_Track(data, tr, conf)
       Obj_UpdateTrack(data, obj, mouse, widgets, conf) 
       cur_context = 4 
     end
@@ -680,7 +680,7 @@
   end
   
   ----------------------------------------------------------------------
-  function DataUpdate_Track(data, tr)
+  function DataUpdate_Track(data, tr, conf)
     data.name = ''  
     data.tr = {}
     local cnt = CountSelectedTracks(0)
@@ -698,18 +698,21 @@
       data.tr[i] = {GUID = GetTrackGUID( tr )}
       
       -- freeze
+      if conf.runnatAPI==0 then
         local freezecnt = BR_GetMediaTrackFreezeCount( tr )
         data.tr[i].freezecnt=freezecnt
         fr_cnt_max = math.min(fr_cnt_max, freezecnt)
         fr_cnt_min = math.max(fr_cnt_min, freezecnt)
-        
+      end 
+      
       -- sends 
         if i == 1 then
           data.tr_send = {}
           data.tr_cnt_sends = GetTrackNumSends(tr, 0 )
           data.tr_cnt_sendsHW = GetTrackNumSends(tr, 1 )
           for send_i = 1, data.tr_cnt_sends+data.tr_cnt_sendsHW do
-            local desttr_ptr = BR_GetMediaTrackSendInfo_Track(tr, 0, send_i-1-data.tr_cnt_sendsHW, 1 )
+            --local desttr_ptr = BR_GetMediaTrackSendInfo_Track(tr, 0, send_i-1-data.tr_cnt_sendsHW, 1 )
+            local desttr_ptr = GetTrackSendInfo_Value( tr, 0, send_i-1-data.tr_cnt_sendsHW, 'P_DESTTRACK' )
             local s_vol = GetTrackSendInfo_Value( tr, 0, send_i-1-data.tr_cnt_sendsHW, 'D_VOL' )
             local s_vol_dB = WDL_VAL2DB(s_vol)  
             local retval, s_name = GetTrackSendName( tr, send_i-1-data.tr_cnt_sendsHW, '' )
@@ -734,7 +737,8 @@
           data.tr_cnt_receives = GetTrackNumSends(tr, -1 )
           for receives_i = 1, data.tr_cnt_receives do
             local _, r_name = GetTrackReceiveName(tr, receives_i-1, '' ) 
-            local srctr_ptr = BR_GetMediaTrackSendInfo_Track(tr, -1, receives_i-1, 0 )
+            --local srctr_ptr = BR_GetMediaTrackSendInfo_Track(tr, -1, receives_i-1, 0 )
+            local srctr_ptr = GetTrackSendInfo_Value(tr, -1, receives_i-1, 'P_SRCTRACK' )
             local r_vol = GetTrackSendInfo_Value( tr, -1, receives_i-1, 'D_VOL' )
             local r_vol_dB = WDL_VAL2DB(r_vol)  
             local r_vol_slider = DB2SLIDER(r_vol_dB )/1000
@@ -807,12 +811,14 @@
         data.tr[i].delay_format = format_timestr_len( data.tr[i].delay, '', 0,3 ) 
     end    
     
-    data.tr.freezecnt_format = '('..data.tr[1].freezecnt..')'
-    if cnt>1 then 
-      if fr_cnt_min==0 and fr_cnt_max == 0 then 
-        data.tr.freezecnt_format = '(0)'
-       else
-        data.tr.freezecnt_format = '('..fr_cnt_max..'-'..fr_cnt_min..')'
+    if conf.runnatAPI==0 then
+      data.tr.freezecnt_format = '('..data.tr[1].freezecnt..')'
+      if cnt>1 then 
+        if fr_cnt_min==0 and fr_cnt_max == 0 then 
+          data.tr.freezecnt_format = '(0)'
+         else
+          data.tr.freezecnt_format = '('..fr_cnt_max..'-'..fr_cnt_min..')'
+        end
       end
     end
     

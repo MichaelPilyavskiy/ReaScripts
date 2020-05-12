@@ -656,11 +656,13 @@ msg(
                 { str = 'Rightclick on value to reset value',
                   state = conf.MM_rightclick==0,
                   func = function() conf.MM_rightclick = 0 ExtState_Save(conf) redraw = 2 end }  ,                   
-                { str = 'Rightclick on value to type value|<|<',
+                { str = 'Rightclick on value to type value|<',
                   state = conf.MM_rightclick==1,
                   func = function() conf.MM_rightclick = 1 ExtState_Save(conf) redraw = 2 end }  ,                   
                 
-               
+                { str = 'Run in native-API-only mode for Track Context|<',
+                  state = conf.runnatAPI==1,
+                  func = function() conf.runnatAPI = math.abs(1-conf.runnatAPI) ExtState_Save(conf) redraw = 2 end }  ,                 
                 
                   
                 { str = '>Theme'},

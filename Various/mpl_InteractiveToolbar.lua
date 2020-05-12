@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.04
+-- @version 2.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # Envelope/#val: upload fixed data branch
+--    + Add option to Run IT in native-API-only mode (for now only Track Context)
+--     # Track: use GetTrackSendInfo_Value() instead BR_GetMediaTrackSendInfo_Track()
 
-    local vrs = '2.04'
+    local vrs = '2.05'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -110,6 +111,7 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             dock =    0,
             lastdockID = 0,
             
+            runnatAPI = 0,
             dock_orientation = 0,
             
             GUI_font1 = 17,
