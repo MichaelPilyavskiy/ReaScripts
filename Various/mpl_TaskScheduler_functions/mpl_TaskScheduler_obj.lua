@@ -68,8 +68,8 @@
     obj.tr_listy = obj.menu_h 
     obj.tr_h = 20
     
-    obj.actID_w = (obj.trlistw-(obj.del_w+obj.num_w+obj.timeshed_w)) * 0.6
-    obj.comment_w= (obj.trlistw-(obj.del_w+obj.num_w+obj.timeshed_w)) * 0.4
+    obj.actID_w = (obj.trlistw-(obj.del_w*2+obj.num_w+obj.timeshed_w)) * 0.6
+    obj.comment_w= (obj.trlistw-(obj.del_w*2+obj.num_w+obj.timeshed_w)) * 0.4
     
     Obj_Menu(conf, obj, data, refresh, mouse) 
     Obj_Scroll(conf, obj, data, refresh, mouse)
@@ -152,11 +152,11 @@
                                                                                 os.date("%H",data.time_shed_default)..sep..
                                                                                 os.date("%M",data.time_shed_default)..sep..
                                                                                 os.date("%S",data.time_shed_default)..sep..
-                                                                                ' ')
+                                                                                '')
                               if retval then
                                 local parse_str = {}
                                 for val in retvals_csv:gmatch('[^|]+') do parse_str [#parse_str+1]=val end
-                                if #parse_str~= 8 then return end
+                                if not (#parse_str== 7 or #parse_str== 8) then return end
                                 local t_shift = 1
                                 local datetime = { year = parse_str[3+t_shift],
                                                    month = parse_str[2+t_shift],
@@ -167,14 +167,18 @@
                                                   }
                                 timeshed=os.time(datetime)
                                 evtID = parse_str[1]
-                                comment = parse_str[8]
+                                if parse_str[8] then comment = parse_str[8] else comment='' end
                               end
                             
                             data.list[#data.list+1] = { evtID = 0, 
                                                         timeshed = timeshed, 
                                                         flags=0,
                                                         stringargs = '',
-                                                        comment =comment}
+                                                        comment =comment,
+                                                        
+                                                        timeshed_repeat = false,
+                                                        timeshed_repeatuntil_check = true,
+                                                        timeshed_repeatuntil_time = timeshed}
                             DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
                             refresh.data = true
                             --refresh.GUI = true
@@ -196,7 +200,7 @@
                           --blit = true,
                           x = obj.tr_listx+obj.num_w+obj.removeb_w+obj.actID_w,
                           y = 0,
-                          w = obj.timeshed_w-1,
+                          w = obj.timeshed_w-1+obj.removeb_w,
                           h = obj.menu_h,
                           col = 'white',
                           txt= data.date,
@@ -206,7 +210,7 @@
                         }   
         obj.comment_top = { clear = true,
                           --blit = true,
-                          x = obj.tr_listx+obj.num_w+obj.removeb_w+obj.actID_w+obj.timeshed_w,
+                          x = obj.tr_listx+obj.num_w+obj.removeb_w+obj.actID_w+obj.timeshed_w+obj.removeb_w,
                           y = 0,
                           w = obj.comment_w-1,
                           h = obj.menu_h,
@@ -308,15 +312,209 @@
               alpha_back = 0.7,
               show = tr_y>=obj.tr_listy and tr_y <=obj.tr_listy+obj.tr_listh,
               } ]]
-      Obj_ParamList_Sub(conf, obj, data, refresh, mouse, listid, tr_y)
+      local fillback_a = 0.3
+      if data.list[listid].timeshed > data.time 
+        or (data.list[listid].timeshed < data.time 
+            and data.list[listid].timeshed_repeat == true
+            and (data.list[listid].timeshed_repeatuntil_check ==true or 
+                  (data.list[listid].timeshed_repeatuntil_check==false and data.list[listid].timeshed_repeatuntil_time > data.time)
+                ) 
+             )
+      
+      
+      
+      
+        then fillback_a = 0.7 
+      end
+      Obj_ParamList_Sub(conf, obj, data, refresh, mouse, listid, tr_y,fillback_a)
+      if data.list[listid].timeshed_repeat == true then
+        tr_y = tr_y + obj.tr_h
+        Obj_ParamList_Sub2Repeat(conf, obj, data, refresh, mouse, listid, tr_y,fillback_a)
+      end
       tr_y = tr_y + obj.tr_h
     end 
     return   tr_y -   tr_y0  
   end 
   -----------------------------------------------
-  function Obj_ParamList_Sub(conf, obj, data, refresh, mouse, listid, tr_y)
-    local fillback_a = 0.7
-    if data.list[listid].timeshed < data.time then fillback_a = 0.3 end
+  function Obj_ParamList_Sub2Repeat(conf, obj, data, refresh, mouse, listid, tr_y,fillback_a)
+    local xshift = obj.num_w+obj.removeb_w+obj.actID_w
+    local it_w = (obj.trlistw-xshift ) / 2
+    local repuntil = 'Repeat always'
+    if data.list[listid].timeshed_repeatuntil_check==false then  repuntil = 'Until '..os.date('%c', data.list[listid].timeshed_repeatuntil_time) end
+    obj['list_repuntil'..listid] = { clear = true,
+              x =obj.tr_listx+xshift,
+              y = tr_y,
+              w = it_w-1,
+              h = obj.tr_h-1,
+              fillback = true,
+              fillback_colstr = 'white',
+              fillback_a = fillback_a*0.5,
+              alpha_back = 0.1,
+              txt= repuntil,
+              txt_a = 1,
+              --align_txt = 16,
+              fontsz = obj.GUI_fontsz2,
+              alpha_back = 0.7,
+              show = tr_y>=obj.tr_listy and tr_y <=obj.tr_listy+obj.tr_listh,
+              func =  function()
+                        Menu(mouse, {
+                                      { str = 'Repeat always',
+                                        state = data.list[listid].timeshed_repeatuntil_check,
+                                        func = function() 
+                                                data.list[listid].timeshed_repeatuntil_check=not data.list[listid].timeshed_repeatuntil_check
+                                                DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
+                                                refresh.data = true
+                                              end
+                                      },
+                                      { str = 'Set repeating date limit',
+                                        hidden = data.list[listid].timeshed_repeatuntil_check,
+                                        func = function()
+                                                local timeshed_lim = data.list[listid].timeshed_repeatuntil_time
+                                                if timeshed_lim==0 then timeshed_lim = data.list[listid].timeshed end
+                                                local retval, retvals_csv = reaper.GetUserInputs( 'Scheduled repeating limit', 6, 'Day,Month,Year,Hour,Minute,Second', 
+                                                                                                  os.date("%d",timeshed_lim )..','..
+                                                                                                  os.date("%m",timeshed_lim )..','..
+                                                                                                  os.date("%Y",timeshed_lim )..','..
+                                                                                                  os.date("%H",timeshed_lim )..','..
+                                                                                                  os.date("%M",timeshed_lim)..','..
+                                                                                                  os.date("%S",timeshed_lim ))
+                                                if retval then
+                                                  local parse_str = {}
+                                                  for val in retvals_csv:gmatch('[^,]+') do parse_str [#parse_str+1]=val end
+                                                  if #parse_str~= 6 then return end
+                                                  local datetime = { year = parse_str[3],
+                                                                     month = parse_str[2],
+                                                                     day = parse_str[1],
+                                                                     hour = parse_str[4],
+                                                                     min = parse_str[5],
+                                                                     sec = parse_str[6]
+                                                                    }
+                                                  data.list[listid].timeshed_repeatuntil_time=os.time(datetime)
+                                                  DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
+                                                  refresh.data = true
+                                                end
+                                              end
+                                      }
+                                    })
+                      end              
+              }  
+    local repevery = 'Every day'
+    local everyd_mask = data.list[listid].timeshed_repeat_everyday
+    if everyd_mask ~= 127 then 
+      if everyd_mask == 96 then repevery = 'Every weekend' 
+       elseif everyd_mask ~= 0 then
+        repevery = 'Every '
+        if everyd_mask&1==1 then repevery = repevery..'Mon ' end
+        if everyd_mask&2==2 then repevery = repevery..'Tue ' end
+        if everyd_mask&4==4 then repevery = repevery..'Wed ' end
+        if everyd_mask&8==8 then repevery = repevery..'Thu ' end
+        if everyd_mask&16==16 then repevery = repevery..'Fri ' end
+        if everyd_mask&32==32 then repevery = repevery..'Sat ' end
+        if everyd_mask&64==64 then repevery = repevery..'Sun' end
+       elseif everyd_mask == 0 then
+        repevery = '<days not set>'
+      end
+    end
+    obj['list_repevery'..listid] = { clear = true,
+              x =obj.tr_listx+xshift+it_w,
+              y = tr_y,
+              w = it_w-1,
+              h = obj.tr_h-1,
+              fillback = true,
+              fillback_colstr = 'white',
+              fillback_a = fillback_a*0.5,
+              alpha_back = 0.1,
+              txt= repevery,
+              txt_a = 1,
+              --align_txt = 16,
+              fontsz = obj.GUI_fontsz2,
+              alpha_back = 0.7,
+              show = tr_y>=obj.tr_listy and tr_y <=obj.tr_listy+obj.tr_listh,
+              func =  function()
+                        Menu(mouse, {
+                                      { str = 'Monday',
+                                        state = data.list[listid].timeshed_repeat_everyday&1==1,
+                                        func = function() 
+                                                data.list[listid].timeshed_repeat_everyday=BinaryToggle(data.list[listid].timeshed_repeat_everyday, 0)
+                                                DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
+                                                refresh.data = true
+                                              end
+                                      },
+                                      { str = 'Tuesday',
+                                        state = data.list[listid].timeshed_repeat_everyday&2==2,
+                                        func = function() 
+                                                data.list[listid].timeshed_repeat_everyday=BinaryToggle(data.list[listid].timeshed_repeat_everyday, 1)
+                                                DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
+                                                refresh.data = true
+                                              end
+                                      },
+                                      { str = 'Wednesday',
+                                        state = data.list[listid].timeshed_repeat_everyday&4==4,
+                                        func = function() 
+                                                data.list[listid].timeshed_repeat_everyday=BinaryToggle(data.list[listid].timeshed_repeat_everyday, 2)
+                                                DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
+                                                refresh.data = true
+                                              end
+                                      },
+                                      { str = 'Thursday',
+                                        state = data.list[listid].timeshed_repeat_everyday&8==8,
+                                        func = function() 
+                                                data.list[listid].timeshed_repeat_everyday=BinaryToggle(data.list[listid].timeshed_repeat_everyday, 3)
+                                                DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
+                                                refresh.data = true
+                                              end
+                                      },
+                                      { str = 'Friday',
+                                        state = data.list[listid].timeshed_repeat_everyday&16==16,
+                                        func = function() 
+                                                data.list[listid].timeshed_repeat_everyday=BinaryToggle(data.list[listid].timeshed_repeat_everyday, 4)
+                                                DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
+                                                refresh.data = true
+                                              end
+                                      },
+                                      { str = 'Saturday',
+                                        state = data.list[listid].timeshed_repeat_everyday&32==32,
+                                        func = function() 
+                                                data.list[listid].timeshed_repeat_everyday=BinaryToggle(data.list[listid].timeshed_repeat_everyday, 5)
+                                                DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
+                                                refresh.data = true
+                                              end
+                                      },
+                                      { str = 'Sunday|',
+                                        state = data.list[listid].timeshed_repeat_everyday&64==64,
+                                        func = function() 
+                                                data.list[listid].timeshed_repeat_everyday=BinaryToggle(data.list[listid].timeshed_repeat_everyday, 6)
+                                                DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
+                                                refresh.data = true
+                                              end
+                                      },  
+                                      { str = 'All',
+                                        func = function() 
+                                                data.list[listid].timeshed_repeat_everyday=127
+                                                DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
+                                                refresh.data = true
+                                              end
+                                      },                                       
+                                      { str = 'None',
+                                        func = function() 
+                                                data.list[listid].timeshed_repeat_everyday=0
+                                                DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
+                                                refresh.data = true
+                                              end
+                                      },
+                                      { str = 'Weekend',
+                                        func = function() 
+                                                data.list[listid].timeshed_repeat_everyday=96
+                                                DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
+                                                refresh.data = true
+                                              end
+                                      },                                                                                                                                                                                                                                                                                                              
+                                    })
+                      end              
+              }                   
+  end
+  -----------------------------------------------
+  function Obj_ParamList_Sub(conf, obj, data, refresh, mouse, listid, tr_y, fillback_a)
     obj['list_del'..listid] = { clear = true,
               x =obj.tr_listx,
               y = tr_y,
@@ -328,7 +526,7 @@
               alpha_back = 0.3,
               txt= '-',
               txt_a = 1,
-              align_txt = 16,
+              --align_txt = 16,
               fontsz = obj.GUI_fontsz2,
               alpha_back = 0.7,
               show = tr_y>=obj.tr_listy and tr_y <=obj.tr_listy+obj.tr_listh,
@@ -349,7 +547,7 @@
               alpha_back = 0.3,
               txt= listid,
               txt_a = 1,
-              align_txt = 16,
+              --align_txt = 16,
               fontsz = obj.GUI_fontsz2,
               alpha_back = 0.7,
               show = tr_y>=obj.tr_listy and tr_y <=obj.tr_listy+obj.tr_listh,
@@ -366,7 +564,7 @@
               alpha_back = 0.3,
               txt= evtname,
               txt_a = 1,
-              align_txt = 16,
+              --align_txt = 16,
               fontsz = obj.GUI_fontsz3,
               alpha_back = 0.7,
               show = tr_y>=obj.tr_listy and tr_y <=obj.tr_listy+obj.tr_listh,
@@ -406,18 +604,21 @@
               alpha_back = 0.3,
               txt= os.date('%c', data.list[listid].timeshed),
               txt_a = 1,
-              align_txt = 16,
+              --align_txt = 16,
               fontsz = obj.GUI_fontsz3,
               alpha_back = 0.7,
               show = tr_y>=obj.tr_listy and tr_y <=obj.tr_listy+obj.tr_listh,
               func =  function()
-                        local retval, retvals_csv = reaper.GetUserInputs( 'Scheduled time', 6, 'Day,Month,Year,Hour,Minute,Second', 
+                        local str_rep = 'N'
+                        --if data.list[listid].timeshed_repeat==true then str_rep = 'Y' end
+                        local retval, retvals_csv = reaper.GetUserInputs( 'Scheduled time', 6, 'Day,Month,Year,Hour,Minute,Second,Repeat (Y=Yes, N=No)', 
                                                                           os.date("%d",data.list[listid].timeshed )..','..
                                                                           os.date("%m",data.list[listid].timeshed )..','..
                                                                           os.date("%Y",data.list[listid].timeshed )..','..
                                                                           os.date("%H",data.list[listid].timeshed )..','..
                                                                           os.date("%M",data.list[listid].timeshed )..','..
                                                                           os.date("%S",data.list[listid].timeshed ))
+                                                                          --..','.. str_rep)
                         if retval then
                           local parse_str = {}
                           for val in retvals_csv:gmatch('[^,]+') do parse_str [#parse_str+1]=val end
@@ -430,13 +631,36 @@
                                              sec = parse_str[6]
                                             }
                           data.list[listid].timeshed=os.time(datetime)
+                          --data.list[listid].timeshed_repeat = not(parse_str[7]=='' or parse_str[7]:lower()=='n')
                           DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
                           refresh.data = true
                         end
                       end
               } 
-    obj['list_comment'..listid] = { clear = true,
+    local mult = 0.5 if data.list[listid].timeshed_repeat then mult = 1 end
+    obj['list_shedrep'..listid] = { clear = true,
               x =obj.tr_listx+obj.num_w+obj.removeb_w+obj.actID_w+obj.timeshed_w,
+              y = tr_y,
+              w =obj.del_w-1,
+              h = obj.tr_h,
+              fillback = true,
+              fillback_colstr = 'green',
+              fillback_a = fillback_a*mult,
+              alpha_back = 0.3,
+              txt= 'R',
+              txt_a = 1,
+              --align_txt = 16,
+              fontsz = obj.GUI_fontsz3,
+              alpha_back = 0.7,
+              show = tr_y>=obj.tr_listy and tr_y <=obj.tr_listy+obj.tr_listh,
+              func =  function()
+                        data.list[listid].timeshed_repeat=not data.list[listid].timeshed_repeat
+                        DataUpdate2_StoreCurrentList(conf, obj, data, refresh, mouse) 
+                        refresh.data = true
+                      end
+              }               
+    obj['list_comment'..listid] = { clear = true,
+              x =obj.tr_listx+obj.num_w+obj.removeb_w+obj.actID_w+obj.timeshed_w+obj.del_w,
               y = tr_y,
               w = obj.comment_w-1,
               h = obj.tr_h,
@@ -446,7 +670,7 @@
               alpha_back = 0.3,
               txt= data.list[listid].comment,
               txt_a = 1,
-              align_txt = 16,
+              --align_txt = 16,
               fontsz = obj.GUI_fontsz3,
               alpha_back = 0.7,
               show = tr_y>=obj.tr_listy and tr_y <=obj.tr_listy+obj.tr_listh,
@@ -458,5 +682,6 @@
                           refresh.data = true
                         end
                       end
-              }                                              
+              } 
+                                                 
   end

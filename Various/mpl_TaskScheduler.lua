@@ -1,5 +1,5 @@
 -- @description TaskScheduler
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -8,14 +8,15 @@
 --    mpl_TaskScheduler_functions/mpl_TaskScheduler_data.lua
 --    mpl_TaskScheduler_functions/mpl_TaskScheduler_obj.lua
 -- @changelog
---    + init
+--    + Add options for repeating events
 
-  local vrs = 'v1.0'
+  local vrs = 'v1.01'
   --NOT gfx NOT reaper
   
 
  --  INIT -------------------------------------------------
-  local conf = {}  
+  local conf = {} 
+  local run_GUI = true 
   local refresh = { GUI_onStart = true, 
                     GUI = false, 
                     GUI_minor = false,
@@ -23,7 +24,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-  data = {list = {},
+  local data = {list = {},
           action_table={},
           triggers = {}}
   local obj = {}
@@ -32,9 +33,11 @@
   function Main_RefreshExternalLibs()     -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
-    dofile(script_path .. "mpl_TaskScheduler_functions/mpl_TaskScheduler_GUI.lua")
-    dofile(script_path .. "mpl_TaskScheduler_functions/mpl_TaskScheduler_MOUSE.lua")  
-    dofile(script_path .. "mpl_TaskScheduler_functions/mpl_TaskScheduler_obj.lua")  
+    if run_GUI then 
+      dofile(script_path .. "mpl_TaskScheduler_functions/mpl_TaskScheduler_GUI.lua")
+      dofile(script_path .. "mpl_TaskScheduler_functions/mpl_TaskScheduler_MOUSE.lua")  
+      dofile(script_path .. "mpl_TaskScheduler_functions/mpl_TaskScheduler_obj.lua") 
+    end
     dofile(script_path .. "mpl_TaskScheduler_functions/mpl_TaskScheduler_data.lua")  
   end  
 
@@ -58,7 +61,7 @@
   ---------------------------------------------------  
   function GetActionTable(action_table)
     for i = 0, 200000 do
-      id, actname = reaper.CF_EnumerateActions( 0, i, '' )
+      local id, actname = reaper.CF_EnumerateActions( 0, i, '' )
       if not id or id < -1 then break end
       action_table[id] = actname
     end
@@ -69,18 +72,23 @@
     refresh.GUI = true
     
     DataUpdate(conf, obj, data, refresh, mouse)   
-    MOUSE(conf, obj, data, refresh, mouse)
-    CheckUpdates(obj, conf, refresh)
+    if run_GUI then 
+      MOUSE(conf, obj, data, refresh, mouse)
+      CheckUpdates(obj, conf, refresh)
+    end
     if refresh.data == true then DataUpdate2(conf, obj, data, refresh, mouse)  refresh.data = nil end  
-    if refresh.conf == true then ExtState_Save(conf) refresh.conf = nil end
-    if refresh.GUI == true or refresh.GUI_onStart == true then OBJ_Update (conf, obj, data, refresh, mouse) end
+    if refresh.conf == true and run_GUI then ExtState_Save(conf) refresh.conf = nil end
+    if run_GUI and (refresh.GUI == true or refresh.GUI_onStart == true) then OBJ_Update (conf, obj, data, refresh, mouse) end
     if refresh.GUI_minor == true then refresh.GUI = true end
-    GUI_draw (conf, obj, data, refresh, mouse)    
+    if run_GUI then GUI_draw (conf, obj, data, refresh, mouse) end
                                                
  
-    ShortCuts(conf, obj, data, refresh, mouse)
-    if mouse.char >= 0 and mouse.char ~= 27 
-      then defer(run) else atexit(gfx.quit) end
+    if run_GUI then 
+      ShortCuts(conf, obj, data, refresh, mouse)
+      if mouse.char >= 0 and mouse.char ~= 27 then defer(run) else atexit(gfx.quit) end
+     else
+      defer(run)
+    end
   end
   ---------------------------------------------------------------------
   function RunInit(conf, obj, data, refresh, mouse)  
@@ -98,12 +106,14 @@
         GetActionTable(data.action_table)
         Main_RefreshExternalLibs()
         ExtState_Load(conf)
-        gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
+        if run_GUI then 
+          gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
                     conf.wind_w, 
                     conf.wind_h, 
                     conf.dock, conf.wind_x, conf.wind_y)
-        OBJ_init(conf, obj, data, refresh, mouse)
-        OBJ_Update(conf, obj, data, refresh, mouse) 
+          OBJ_init(conf, obj, data, refresh, mouse)
+          OBJ_Update(conf, obj, data, refresh, mouse) 
+        end
         RunInit(conf, obj, data, refresh, mouse) 
         run()  
   end
