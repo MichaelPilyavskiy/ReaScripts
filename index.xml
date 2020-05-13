@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e3fcdbbf5ae60961cae465fefaeaccf3a9df5d52" name="MPL Scripts">
+<index version="1" commit="78dcd1e9cd4e1f59a220bc50c910ffafeff13750" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -7950,6 +7950,14 @@ add control for timefall showing last note]]></changelog>
         <source file="mpl_TaskScheduler_functions/mpl_TaskScheduler_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2941fc5e23f871557fd6e2d175bdd2abc5182397/Various/mpl_TaskScheduler_functions/mpl_TaskScheduler_MOUSE.lua</source>
         <source file="mpl_TaskScheduler_functions/mpl_TaskScheduler_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2941fc5e23f871557fd6e2d175bdd2abc5182397/Various/mpl_TaskScheduler_functions/mpl_TaskScheduler_data.lua</source>
         <source file="mpl_TaskScheduler_functions/mpl_TaskScheduler_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2941fc5e23f871557fd6e2d175bdd2abc5182397/Various/mpl_TaskScheduler_functions/mpl_TaskScheduler_obj.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2020-05-13T06:42:04Z">
+        <changelog><![CDATA[+ Add options for repeating events]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78dcd1e9cd4e1f59a220bc50c910ffafeff13750/Various/mpl_TaskScheduler.lua</source>
+        <source file="mpl_TaskScheduler_functions/mpl_TaskScheduler_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78dcd1e9cd4e1f59a220bc50c910ffafeff13750/Various/mpl_TaskScheduler_functions/mpl_TaskScheduler_GUI.lua</source>
+        <source file="mpl_TaskScheduler_functions/mpl_TaskScheduler_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78dcd1e9cd4e1f59a220bc50c910ffafeff13750/Various/mpl_TaskScheduler_functions/mpl_TaskScheduler_MOUSE.lua</source>
+        <source file="mpl_TaskScheduler_functions/mpl_TaskScheduler_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78dcd1e9cd4e1f59a220bc50c910ffafeff13750/Various/mpl_TaskScheduler_functions/mpl_TaskScheduler_data.lua</source>
+        <source file="mpl_TaskScheduler_functions/mpl_TaskScheduler_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78dcd1e9cd4e1f59a220bc50c910ffafeff13750/Various/mpl_TaskScheduler_functions/mpl_TaskScheduler_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
