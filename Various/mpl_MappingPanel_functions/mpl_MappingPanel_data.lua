@@ -277,6 +277,7 @@
   end
   ------------------------------------------------------------------
   function Data_GetSlaveValues(conf, obj, data, refresh, mouse)
+    if not data.slots then return end
       for src_slot = 1, #data.slots do
         for child_link = 1, #data.slots[src_slot] do
           data.slots[src_slot][child_link].Slave_param = 

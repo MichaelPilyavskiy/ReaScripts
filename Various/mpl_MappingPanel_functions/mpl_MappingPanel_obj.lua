@@ -412,6 +412,48 @@
                                   conf.activeknob = knobid
                                   refresh.GUI = true
                                 end,
+                        func_R = function()
+                                      Menu(mouse, {
+                                                    { str='Show/hide track envelope for this knob',
+                                                      func = function()
+                                                                local track = VF_GetTrackByGUID(data.masterJSFX_trGUID)
+                                                                SetMixerScroll( track )
+                                                                TrackFX_EndParamEdit( track, data.masterJSFX_FXid, knobid-1 )
+                                                                Action(41142)--FX: Show/hide track envelope for last touched FX parameter
+                                                              end
+                                                    },
+                                                    { str='Arm track envelope for this knob',
+                                                      func = function()
+                                                                local track = VF_GetTrackByGUID(data.masterJSFX_trGUID)
+                                                                TrackFX_EndParamEdit( track, data.masterJSFX_FXid, knobid-1 )
+                                                                Action(41984) --FX: Arm track envelope for last touched FX parameter
+                                                              end
+                                                    },      
+                                                    { str='Activate/bypass track envelope for this knob',
+                                                      func = function()
+                                                                local track = VF_GetTrackByGUID(data.masterJSFX_trGUID)
+                                                                TrackFX_EndParamEdit( track, data.masterJSFX_FXid, knobid-1 )
+                                                                Action(41983) --FX: Activate/bypass track envelope for last touched FX parameter
+                                                              end
+                                                    },          
+                                                    { str='Set MIDI learn for this knob',
+                                                      func = function()
+                                                                local track = VF_GetTrackByGUID(data.masterJSFX_trGUID)
+                                                                TrackFX_EndParamEdit( track, data.masterJSFX_FXid, knobid-1 )
+                                                                Action(41144) --FX: Set MIDI learn for last touched FX parameter
+                                                              end
+                                                    },   
+                                                    { str='Show parameter modulation/link for this knob',
+                                                      func = function()
+                                                                local track = VF_GetTrackByGUID(data.masterJSFX_trGUID)
+                                                                TrackFX_EndParamEdit( track, data.masterJSFX_FXid, knobid-1 )
+                                                                Action(41143) --FX: Show parameter modulation/link for last touched FX parameter
+                                                              end
+                                                    },                                                    
+                                                    
+                                                    
+                                                  })
+                                    end  ,                                   
                         func_LD2 = function()
                                       if mouse.context_latch_val then 
                                         local out_val = lim(mouse.context_latch_val + mouse.dx*0.001 - mouse.dy*0.01)
