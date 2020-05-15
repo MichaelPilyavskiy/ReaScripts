@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1629be893d7a25a3daad77eabe5d75472823d88d" name="MPL Scripts">
+<index version="1" commit="8fb08717e6f47f2e4cebfc20256f18076a41c404" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -7218,6 +7218,14 @@ add control for timefall showing last note]]></changelog>
         <source file="mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/329cc6352986e1c2395481528905100c3b159cf6/Various/mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua</source>
         <source file="mpl_MappingPanel_functions/mpl_MappingPanel_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/329cc6352986e1c2395481528905100c3b159cf6/Various/mpl_MappingPanel_functions/mpl_MappingPanel_data.lua</source>
         <source file="mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/329cc6352986e1c2395481528905100c3b159cf6/Various/mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua</source>
+      </version>
+      <version name="2.06" author="MPL" time="2020-05-15T20:10:04Z">
+        <changelog><![CDATA[+ Ald+drag on points area change tension]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fb08717e6f47f2e4cebfc20256f18076a41c404/Various/mpl_Mapping%20Panel%20(background).lua</source>
+        <source file="mpl_MappingPanel_functions/mpl_MappingPanel_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fb08717e6f47f2e4cebfc20256f18076a41c404/Various/mpl_MappingPanel_functions/mpl_MappingPanel_GUI.lua</source>
+        <source file="mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fb08717e6f47f2e4cebfc20256f18076a41c404/Various/mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua</source>
+        <source file="mpl_MappingPanel_functions/mpl_MappingPanel_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fb08717e6f47f2e4cebfc20256f18076a41c404/Various/mpl_MappingPanel_functions/mpl_MappingPanel_data.lua</source>
+        <source file="mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fb08717e6f47f2e4cebfc20256f18076a41c404/Various/mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Monitor selected track with track 1 (background).lua" type="script" desc="Monitor selected track with track 1">
