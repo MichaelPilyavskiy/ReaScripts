@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="329cc6352986e1c2395481528905100c3b159cf6" name="MPL Scripts">
+<index version="1" commit="d3f225fa55aa4ca7e7338098e9a73ad294a8fd87" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3272,6 +3272,15 @@
         <changelog><![CDATA[# fix error when nothing to cut
 # improve extension match pattern]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/21b5bcf46d6f2a36b9d98ca4b2c63916faa86a6f/Items%20Properties/mpl_Cut%20extension%20from%20selected%20item%20names.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Mute item under mouse cursor.lua" type="script" desc="Mute item under mouse cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-05-15T03:41:21Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d3f225fa55aa4ca7e7338098e9a73ad294a8fd87/Items%20Properties/mpl_Mute%20item%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Select items by pattern.lua" type="script" desc="Select items by pattern">
