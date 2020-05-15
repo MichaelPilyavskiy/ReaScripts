@@ -132,6 +132,12 @@
                                and mouse.context_latch == key
                                
            if mouse.ondrag_LCtrl and obj[key].func_ctrlLD then obj[key].func_ctrlLD() end 
+           mouse.ondrag_LAlt = -- left drag (persistent even if not moving)
+                               mouse.LMB_state 
+                               and mouse.Alt_state 
+                               and mouse.context_latch == key
+                               
+           if mouse.ondrag_LAlt and obj[key].func_altLD then obj[key].func_altLD() end            
                  ------------------------
            mouse.onclick_R = mouse.cap == 2
                                and not mouse.last_RMB_state 

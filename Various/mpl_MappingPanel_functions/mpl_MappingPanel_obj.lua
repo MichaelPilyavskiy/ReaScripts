@@ -227,7 +227,26 @@
                         fontsz = obj.GUI_fontsz2,
                         a_frame = 0.05,
                         alpha_back = 0,
-                        ignore_mouse = true}
+                        ignore_mouse = false,
+                  func_L_Alt =  function()  
+                            mouse.context_latch_t = {obj['slotchild_sliderarea_tension'..i].y, data.slots[conf.activeknob][i].flags_tension}
+                          end,
+                  func_altLD =function()
+                              if mouse.context_latch_t then 
+                                local out_val = lim(mouse.context_latch_t[2]  - 0.1*mouse.dy/areah, 0, 1 )
+                                obj['slotchild_sliderarea_tension'..i].y = areay + (areah - obj.rect_side)*(1-out_val)
+                                data.slots[conf.activeknob][i].flags_tension = out_val
+                                Data_ApplyHex(conf, obj, data, refresh, mouse, conf.activeknob, i)
+                                local txt_type = math.floor(out_val*16)
+                                if out_val ==0 then txt_type = 'linear' end
+                                obj.infoline.txt = 'tension type: '..txt_type
+                                
+                                refresh.GUI_minor = true
+                                refresh.data_minor = true
+                              end
+                             end                                    
+                                    
+                                    }
         local txt_name =  (data.slots[conf.activeknob][i].JSFX_paramid+1)..' ← '..data.slots[conf.activeknob][i].trname..'\n'..
                           '   ('..(data.slots[conf.activeknob][i].Slave_FXid+1)..') '..MPL_ReduceFXname(data.slots[conf.activeknob][i].Slave_FXname)..
                           '\n   ('..(data.slots[conf.activeknob][i].Slave_paramid+1)..') '..data.slots[conf.activeknob][i].Slave_paramname..'\n'..

@@ -1,5 +1,5 @@
 -- @description MappingPanel
--- @version 2.05
+-- @version 2.06
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for link parameters across tracks
@@ -9,14 +9,10 @@
 --    mpl_MappingPanel_functions/mpl_MappingPanel_data.lua
 --    mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua
 -- @changelog
---    + Show/hide track envelope for current knob
---    + Arm track envelope for current knob
---    + Activate/bypass track envelope for current knob
---    + Set MIDI learn for current knob
---    + Show parameter modulation/link for current knob
+--    + Ald+drag on points area change tension
 
 
-  local vrs = 'v2.05'
+  local vrs = 'v2.06'
   --NOT gfx NOT reaper
   
   --[[ map:
