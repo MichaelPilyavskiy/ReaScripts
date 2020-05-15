@@ -52,9 +52,8 @@
     end
   end
   -----------------------------------------------
-  function Data_ModifyLearn(conf, data, trid,fx,param, remove )
-    if remove ==true then
-      tr= GetTrack(0,trid-1)
+  function Data_ModifyLearn(conf, data, trid,fx, param, remove ) 
+      local tr= GetTrack(0,trid-1)
       if not tr then return end
       local retval, minval, maxval = reaper.TrackFX_GetParam( tr, fx-1, param-1 )
       if retval == -1 then MB('Something wrong with incoming data. Please report to the forum with attached RPP.', conf.mb_title, 0) return end
@@ -63,16 +62,34 @@
       local fxGUID_check = TrackFX_GetFXGUID( tr, fx-1 )
       for fxchunk in tr_chunk:gmatch('(BYPASS.-WAK %d)') do
         local fxGUID = fxchunk:match('FXID (.-)\n')
-        if not fxGUID then fxGUID = fxchunk:match('FXID_NEXT (.-)\n') end
-
+        if not fxGUID then fxGUID = fxchunk:match('FXID_NEXT (.-)\n') end 
         if fxGUID:match(literalize(fxGUID_check):gsub('%s', '')) then
-          local fxchunk_mod = fxchunk:gsub('(PARMLEARN '..(param-1)..'.-)\n', '')
+          local fxchunk_mod
+          if remove ==true then 
+            fxchunk_mod = fxchunk:gsub('(PARMLEARN '..(param-1)..'.-)\n', '') 
+           else
+            local learnMIDI = 
+                      (data.paramdata[trid][fx][param].flagsMIDI<<14)+
+                      data.paramdata[trid][fx][param].MIDI_Ch-1+
+                      (data.paramdata[trid][fx][param].MIDI_msgtype<<4)+
+                      (data.paramdata[trid][fx][param].MIDI_CC<<8)
+            if data.paramdata[trid][fx][param].MIDI_Ch < 0 then learnMIDI = 0 end
+            local modstr= 'PARMLEARN '..(param-1)..' '..
+                  learnMIDI..' '..
+                  data.paramdata[trid][fx][param].flags..' '..
+                    data.paramdata[trid][fx][param].OSC_str..'\n'
+                    --msg(modstr)
+            fxchunk_mod = fxchunk:gsub('(PARMLEARN '..(param-1)..'.-)\n', modstr)
+          end
+          
           tr_chunk = tr_chunk:gsub(literalize(fxchunk), fxchunk_mod)
+          
           SetTrackStateChunk( tr, tr_chunk, false )
           return
         end
       end
-    end
+    
+    
   end
   -----------------------------------------------
   function Data_ModifyMod(conf, data, trid,fx,param, remove )
@@ -91,7 +108,7 @@
         if fxGUID:match(literalize(fxGUID_check):gsub('%s', '')) then
           local fxchunk_mod = fxchunk:gsub('(<PROGRAMENV '..(param-1)..'.->)\n', '')
           tr_chunk = tr_chunk:gsub(literalize(fxchunk), fxchunk_mod)
-          SetTrackStateChunk( tr, tr_chunk, false )
+          --SetTrackStateChunk( tr, tr_chunk, false )
           return
         end
       end
@@ -106,7 +123,7 @@
     data.focus = {trid = trid}
   end
   ---------------------------------------------------
-  function DataReadProject(conf, obj, data, refresh, mouse) 
+  function DataReadProject(conf, obj, data, refresh, mouse)
     DataGetFocus(conf, obj, data, refresh, mouse) 
     data.paramdata = {}
     data.cnt_tracks = CountTracks( 0 )
@@ -124,7 +141,6 @@
             local retval, trname = reaper.GetTrackName( tr )
             local retval, fxname = reaper.TrackFX_GetFXName( tr, fxid, '' )
             fxid = fxid + 1 
-            
             -- midi osc learn
             for line in fxchunk:gmatch('PARMLEARN(.-)\n') do
               local t0 = {} 
@@ -141,10 +157,14 @@
               local flagsMIDI = (t0[2] >>14)&0x1F
               local OSC_str, MIDI_Ch, MIDI_CC
               if isMIDI==false then 
+                MIDI_Ch = -1
+                MIDI_msgtype = -1
+                MIDI_CC = -1
                 OSC_str = t0[4]
                else
-                MIDI_Ch = 1 + (t0[2] & 0x0F)
-                MIDI_CC = (t0[2]>>8)& 0x0F
+                MIDI_Ch = (t0[2] & 0x0F)+1
+                MIDI_msgtype = (t0[2]>>4)& 0x0F
+                MIDI_CC = (t0[2]>>8)& 0xFF
                 OSC_str = '' 
               end
               
@@ -162,6 +182,7 @@
                                                     OSC_str=OSC_str, 
                                                     MIDI_Ch=MIDI_Ch,
                                                     MIDI_CC=MIDI_CC,
+                                                    MIDI_msgtype = MIDI_msgtype,
                                                     isMIDI=isMIDI,
                                                     flags = flags,
                                                     flagsMIDI = flagsMIDI,
@@ -170,7 +191,6 @@
               data.paramdata[trackidx][fxid][par_idx] = CopyTable(t)
               data.paramdata[trackidx].hasMIDI = true
             end
-            
             
             
             -- parameter modulation
@@ -186,31 +206,10 @@
               data.paramdata[trackidx].has_mod = true
               data.paramdata[trackidx][fxid].has_mod = true
               data.paramdata[trackidx][fxid][par_idx].has_mod = true
-              data.paramdata[trackidx][fxid][par_idx].modulation = {typelink =2, chunk = line}
-s=[[
- 18 0
-PARAMBASE 0.111
-LFO 1
-LFOWT 1 1
-AUDIOCTL 1
-AUDIOCTLWT 1 1
-PLINK 1 -100 26 0
-MIDIPLINK 0 0 160 34
-LFOSHAPE 0
-LFOSYNC 0 0 0
-LFOSPEED 0.049536 0
-CHAN 1
-STEREO 0
-RMS 300 300
-DBLO -24
-DBHI 0
-X2 0.144737
-Y2 0.703196
-]]
+              data.paramdata[trackidx][fxid][par_idx].modulation = DataReadProject_GetMod(line) 
             end    
           end
         end 
       end
     end
   end  
-

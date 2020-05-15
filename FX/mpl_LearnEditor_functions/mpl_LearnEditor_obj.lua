@@ -83,161 +83,6 @@
     end
     for key in pairs(obj) do if type(obj[key]) == 'table' then  obj[key].context = key  end end    
   end
-  -----------------------------------------------
-  --[[function Obj_ParamList1(conf, obj, data, refresh, mouse, build_t)
-    local alpha_back_entries = 0.3
-    -- h - obj.menu_h from  top and bottom
-    
-    local r_count = 0
-    for i = 1, #build_t do
-      if build_t[i].show > 0 then r_count = r_count + build_t[i].show end
-    end
-    local y_shift = 0
-    local com_list_h = obj.tr_h *(r_count-1)
-    if com_list_h > obj.tr_listh then 
-      obj.y_shift = obj.scroll_val * com_list_h
-    end
-    
-    obj.paramlist = { clear = true,
-              x =obj.tr_listx-1,--math.floor(gfx.w/2),
-              y = obj.tr_listy,
-              w = obj.tr_listw,
-              h = obj.tr_listh,
-              col = 'white',
-              --colfill_col = col0,
-              --colfill_a = 0.5,
-              txt= '',
-              aligh_txt = 16,
-              show = true,
-              fontsz = obj.GUI_fontsz2,
-              --ignore_mouse = true,
-              disable_blitback = true,
-              func_wheel =  function() 
-                local mult
-                if mouse.wheel_trig > 0 then mult = -1 else mult = 1 end
-                obj.scroll_val = lim(obj.scroll_val + (50/com_list_h)*mult) refresh.GUI = true 
-              end}    
-              do return end
-    local i_real = 1
-    local ind_w = 10
-    
-    for i = 1, #build_t do
-      local tr_y = obj.tr_listy - y_shift+ obj.offs + obj.tr_h*(i_real-1)
-      local r = 90 
-      local show_cond= (tr_y > obj.tr_listy and  tr_y + obj.tr_h < obj.tr_listy + obj.tr_listh) and build_t[i].show > 0
-      if build_t[i].show then i_real = i_real + build_t[i].show end
-      local tr_x_ind = build_t[i].level * ind_w
-      local tr_w = math.floor(obj.tr_listw)-tr_x_ind
-      if build_t[i].tpobj==3 and build_t[i].collapsed == false then tr_w = math.floor(obj.tr_listw) - tr_x_ind - obj.trw_area1_com end
-      if show_cond then
-        local disable_blitback,colint = true
-        if build_t[i].colint then
-          disable_blitback = false
-          colint = build_t[i].colint
-        end
-        local tr_w0 = tr_w if build_t[i].level == 2 then tr_w = tr_w-obj.but_remove_w end
-        obj['paramdata'..i] = { clear = true,
-              x =obj.tr_listx+tr_x_ind,
-              y = tr_y,
-              w = tr_w0-1,
-              h = math.ceil(obj.tr_h*build_t[i].show),
-              fillback = true,
-              fillback_colint = colint,--'col0,
-              fillback_a = 0.7,
-              alpha_back = build_t[i].alpha_back,
-              txt= build_t[i].txt,
-              txt_a = build_t[i].txt_a,
-              txt_col = build_t[i].txt_col,
-              txt_colint =build_t[i].txt_colint,
-              show = show_cond,
-              fontsz = build_t[i].font, 
-              aligh_txt = build_t[i].align_txt,
-              func =  build_t[i].func,
-              is_selected = build_t[i].is_selected ,
-              --disable_blitback = disable_blitback,
-              }
-        if build_t[i].level == 2 then         
-          obj['paramdata_remove'..i] = { clear = true,
-              x =obj.tr_listx+tr_x_ind+tr_w,
-              y = tr_y,
-              w = obj.but_remove_w,
-              h = math.ceil(obj.tr_h*build_t[i].show),
-              fillback = true,
-              fillback_colstr = 'red',--'col0,
-              fillback_a = 0.3,
-              alpha_back = build_t[i].alpha_back,
-              txt= 'X',
-              txt_a = build_t[i].txt_a,
-              show = show_cond,
-              fontsz = build_t[i].font, 
-              
-              is_selected = build_t[i].is_selected ,
-              func =  function() 
-                        Undo_BeginBlock2( 0 )
-                        Data_ModifyLearn(conf, data, build_t[i].data_trid,build_t[i].data_fxid,build_t[i].data_paramid, true )
-                        Data_ModifyMod(conf, data, build_t[i].data_trid,build_t[i].data_fxid,build_t[i].data_paramid, true )
-                        if conf.refresh_on_psc ==0 then DataReadProject(conf, obj, data, refresh, mouse) end
-                        Undo_EndBlock2( 0,conf.mb_title..': Remove Learn', -1 )
-                        refresh.data = true
-                        refresh.GUI = false
-                      end
-              }
-        end              
-        if build_t[i].tpobj ~= 3 or build_t[i].collapsed == true then goto skip_to_nextparam   end
-        if not build_t[i].has_learn then goto skip_to_parammod   end
-        
-        -- table entries
-        local entr_id = 0
-        entr_id = Obj_ParamList_SubEntry(conf, obj, data, refresh, mouse, build_t, 1, entr_id, i, show_cond, tr_y,
-                                        build_t[i].txt_MIDI,
-                                        build_t[i].func_MIDI,
-                                        'MIDI')
-        entr_id = Obj_ParamList_SubEntry(conf, obj, data, refresh, mouse, build_t, 2, entr_id, i, show_cond, tr_y,
-                                        build_t[i].txt_OSC,
-                                        build_t[i].func_OSC,
-                                        'OSC') 
-        local flags_txt = '-'
-        if build_t[i].flags_learn&1==1 then 
-          flags_txt = 'selected track'
-         elseif build_t[i].flags_learn&4==4 then 
-          flags_txt = 'focused FX'
-         elseif build_t[i].flags_learn&20==20 then 
-          flags_txt = 'visible FX' 
-        end
-        entr_id = Obj_ParamList_SubEntry(conf, obj, data, refresh, mouse, build_t, 4, entr_id, i, show_cond, tr_y,
-                                        flags_txt,
-                                        build_t[i].func_flags1,
-                                        'flagvisible')  
-        local flags_txt = '-'
-        if build_t[i].flags_learn&2==2 then 
-          flags_txt = 'Soft takeover'
-         else  flags_txt = '-'
-        end                                                                                 
-        entr_id = Obj_ParamList_SubEntry(conf, obj, data, refresh, mouse, build_t, 8, entr_id, i, show_cond, tr_y,
-                                        flags_txt,
-                                        build_t[i].func_flags2,
-                                        'flagST')  
-        local flagsMIDI_txt = '-'
-        if build_t[i].flagsMIDI==0  then 
-          flagsMIDI_txt = 'Absolute'
-         elseif build_t[i].flagsMIDI==4 then 
-          flagsMIDI_txt = 'Relative 1'
-         elseif build_t[i].flagsMIDI==8 then 
-          flagsMIDI_txt = 'Relative 2'    
-         elseif build_t[i].flagsMIDI==12 then 
-          flagsMIDI_txt = 'Relative 3'    
-         elseif build_t[i].flagsMIDI==16 then 
-          flagsMIDI_txt = 'Toggle'                            
-        end                                                                                 
-        entr_id = Obj_ParamList_SubEntry(conf, obj, data, refresh, mouse, build_t, 16, entr_id, i, show_cond, tr_y,
-                                        flagsMIDI_txt,
-                                        build_t[i].func_flagsMIDI,
-                                        'func_flagsMIDI') 
-        ::skip_to_parammod::                                        
-        ::skip_to_nextparam::              
-      end
-    end
-  end    ]]
     -----------------------------------------------
     function Obj_Menu(conf, obj, data, refresh, mouse)
       --showflag
@@ -756,7 +601,7 @@
     local MIDIfl_w = math.floor(params_w*0.2)
     local str = ''
     if data.paramdata[trackid][fxid][param].isMIDI then 
-      str = 'MIDI Ch '..data.paramdata[trackid][fxid][param].MIDI_Ch..' CC '..data.paramdata[trackid][fxid][param].MIDI_CC
+      str = 'MIDI Ch '..(data.paramdata[trackid][fxid][param].MIDI_Ch)..' CC '..data.paramdata[trackid][fxid][param].MIDI_CC
      else
       str = 'OSC '..data.paramdata[trackid][fxid][param].OSC_str
     end
@@ -773,6 +618,33 @@
           txt_a =1,
           show = true,
           fontsz = obj.GUI_fontsz3,
+          func = function()
+                    local ret, str = GetUserInputs('Modify MIDI/OSC', 4, 'MIDI Ch (1-16),MIDI CC / byte2 (0-127),MIDI_type (CC=11,PC=12 etc),OSC (remove MIDI learn)',(data.paramdata[trackid][fxid][param].MIDI_Ch)..','..
+                                                                                     data.paramdata[trackid][fxid][param].MIDI_CC..','..
+                                                                                     data.paramdata[trackid][fxid][param].MIDI_msgtype..','..
+                                                                                     data.paramdata[trackid][fxid][param].OSC_str)
+                    if ret then
+                      local t = {}
+                      local shift = 1
+                      for val in str:gmatch('[^,]+') do if tonumber(val) then val=tonumber(val) end t[#t+1] = val end
+                      if #t< 2+shift then return end
+                      if not t[3+shift] then t[3+shift] = '' end
+                      local OSC_str = t[3+shift]
+                      if OSC_str == '' then  
+                        data.paramdata[trackid][fxid][param].MIDI_Ch = t[1]
+                        data.paramdata[trackid][fxid][param].MIDI_CC = t[2]
+                        data.paramdata[trackid][fxid][param].MIDI_msgtype = t[3]
+                       else
+                        data.paramdata[trackid][fxid][param].MIDI_Ch = -1
+                        data.paramdata[trackid][fxid][param].MIDI_CC = -1
+                        data.paramdata[trackid][fxid][param].MIDI_msgtype = -1
+                      end
+                      data.paramdata[trackid][fxid][param].OSC_str = OSC_str
+                      Data_ModifyLearn(conf, data, trackid, fxid, param)
+                      refresh.data = true
+                      refresh.GUI = true
+                    end
+                  end
           }
     local flags_txt = '-'
     if flags&1==1 then 
@@ -838,124 +710,4 @@
           show = true,
           fontsz = obj.GUI_fontsz3,
           }               
-  end                  
-            --  do return end
-    --[[local i_real = 1
-    local ind_w = 10
-    
-    for i = 1, #build_t do
-      local tr_y = obj.tr_listy - y_shift+ obj.offs + obj.tr_h*(i_real-1)
-      local r = 90 
-      local show_cond= (tr_y > obj.tr_listy and  tr_y + obj.tr_h < obj.tr_listy + obj.tr_listh) and build_t[i].show > 0
-      if build_t[i].show then i_real = i_real + build_t[i].show end
-      local tr_x_ind = build_t[i].level * ind_w
-      local tr_w = math.floor(obj.tr_listw)-tr_x_ind
-      if build_t[i].tpobj==3 and build_t[i].collapsed == false then tr_w = math.floor(obj.tr_listw) - tr_x_ind - obj.trw_area1_com end
-      if show_cond then
-        local disable_blitback,colint = true
-        if build_t[i].colint then
-          disable_blitback = false
-          colint = build_t[i].colint
-        end
-        local tr_w0 = tr_w if build_t[i].level == 2 then tr_w = tr_w-obj.but_remove_w end
-        obj['paramdata'..i] = { clear = true,
-              x =obj.tr_listx+tr_x_ind,
-              y = tr_y,
-              w = tr_w0-1,
-              h = math.ceil(obj.tr_h*build_t[i].show),
-              fillback = true,
-              fillback_colint = colint,--'col0,
-              fillback_a = 0.7,
-              alpha_back = build_t[i].alpha_back,
-              txt= build_t[i].txt,
-              txt_a = build_t[i].txt_a,
-              txt_col = build_t[i].txt_col,
-              txt_colint =build_t[i].txt_colint,
-              show = show_cond,
-              fontsz = build_t[i].font, 
-              aligh_txt = build_t[i].align_txt,
-              func =  build_t[i].func,
-              is_selected = build_t[i].is_selected ,
-              --disable_blitback = disable_blitback,
-              }
-        if build_t[i].level == 2 then         
-          obj['paramdata_remove'..i] = { clear = true,
-              x =obj.tr_listx+tr_x_ind+tr_w,
-              y = tr_y,
-              w = obj.but_remove_w,
-              h = math.ceil(obj.tr_h*build_t[i].show),
-              fillback = true,
-              fillback_colstr = 'red',--'col0,
-              fillback_a = 0.3,
-              alpha_back = build_t[i].alpha_back,
-              txt= 'X',
-              txt_a = build_t[i].txt_a,
-              show = show_cond,
-              fontsz = build_t[i].font, 
-              
-              is_selected = build_t[i].is_selected ,
-              func =  function() 
-                        Undo_BeginBlock2( 0 )
-                        Data_ModifyLearn(conf, data, build_t[i].data_trid,build_t[i].data_fxid,build_t[i].data_paramid, true )
-                        Data_ModifyMod(conf, data, build_t[i].data_trid,build_t[i].data_fxid,build_t[i].data_paramid, true )
-                        if conf.refresh_on_psc ==0 then DataReadProject(conf, obj, data, refresh, mouse) end
-                        Undo_EndBlock2( 0,conf.mb_title..': Remove Learn', -1 )
-                        refresh.data = true
-                        refresh.GUI = false
-                      end
-              }
-        end              
-        if build_t[i].tpobj ~= 3 or build_t[i].collapsed == true then goto skip_to_nextparam   end
-        if not build_t[i].has_learn then goto skip_to_parammod   end
-        
-        -- table entries
-        local entr_id = 0
-        entr_id = Obj_ParamList_SubEntry(conf, obj, data, refresh, mouse, build_t, 1, entr_id, i, show_cond, tr_y,
-                                        build_t[i].txt_MIDI,
-                                        build_t[i].func_MIDI,
-                                        'MIDI')
-        entr_id = Obj_ParamList_SubEntry(conf, obj, data, refresh, mouse, build_t, 2, entr_id, i, show_cond, tr_y,
-                                        build_t[i].txt_OSC,
-                                        build_t[i].func_OSC,
-                                        'OSC') 
-        local flags_txt = '-'
-        if build_t[i].flags_learn&1==1 then 
-          flags_txt = 'selected track'
-         elseif build_t[i].flags_learn&4==4 then 
-          flags_txt = 'focused FX'
-         elseif build_t[i].flags_learn&20==20 then 
-          flags_txt = 'visible FX' 
-        end
-        entr_id = Obj_ParamList_SubEntry(conf, obj, data, refresh, mouse, build_t, 4, entr_id, i, show_cond, tr_y,
-                                        flags_txt,
-                                        build_t[i].func_flags1,
-                                        'flagvisible')  
-        local flags_txt = '-'
-        if build_t[i].flags_learn&2==2 then 
-          flags_txt = 'Soft takeover'
-         else  flags_txt = '-'
-        end                                                                                 
-        entr_id = Obj_ParamList_SubEntry(conf, obj, data, refresh, mouse, build_t, 8, entr_id, i, show_cond, tr_y,
-                                        flags_txt,
-                                        build_t[i].func_flags2,
-                                        'flagST')  
-        local flagsMIDI_txt = '-'
-        if build_t[i].flagsMIDI==0  then 
-          flagsMIDI_txt = 'Absolute'
-         elseif build_t[i].flagsMIDI==4 then 
-          flagsMIDI_txt = 'Relative 1'
-         elseif build_t[i].flagsMIDI==8 then 
-          flagsMIDI_txt = 'Relative 2'    
-         elseif build_t[i].flagsMIDI==12 then 
-          flagsMIDI_txt = 'Relative 3'    
-         elseif build_t[i].flagsMIDI==16 then 
-          flagsMIDI_txt = 'Toggle'                            
-        end                                                                                 
-        entr_id = Obj_ParamList_SubEntry(conf, obj, data, refresh, mouse, build_t, 16, entr_id, i, show_cond, tr_y,
-                                        flagsMIDI_txt,
-                                        build_t[i].func_flagsMIDI,
-                                        'func_flagsMIDI') 
-        ::skip_to_parammod::                                        
-        ::skip_to_nextparam::              
-      end
-    end]]
+  end
