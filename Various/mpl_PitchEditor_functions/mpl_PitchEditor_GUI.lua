@@ -381,6 +381,7 @@
         if pos_x > obj.peak_area.x + obj.peak_area.w then break end
 
         local parent = Data_GetParentBlockId(data, idx)
+        if not data.extpitch[parent].RMS_pitch then return end
         local parRMSpitch = data.extpitch[parent].RMS_pitch
         local curpitch = data.extpitch[idx].pitch
         local pitch_linval = (curpitch+data.extpitch[idx].pitch_shift - 2*(data.extpitch[parent].mod_pitch-0.5)*(parRMSpitch-curpitch))

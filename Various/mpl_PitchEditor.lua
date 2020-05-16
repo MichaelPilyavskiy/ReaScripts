@@ -1,5 +1,5 @@
 -- @description PitchEditor
--- @version 1.12
+-- @version 1.13
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=222825
 -- @about Script for editing take pitch envelope
@@ -10,9 +10,9 @@
 --    mpl_PitchEditor_functions/mpl_PitchEditor_obj.lua
 --    [main] mpl_PitchEditor_functions/mpl_PitchEditor_analyzer.eel
 -- @changelog
---    # Data: fix data/line224 error
+--    # GUI: fix line#384 error
 
-  local vrs = 'v1.12'
+  local vrs = 'v1.13'
   --NOT gfx NOT reaper
   
   
@@ -27,7 +27,7 @@
                     data_minor = false,
                     conf = false}
   local mouse = {context_latch = ''}
-  data = { 
+  local data = { 
             has_data = false,
                 }
   local obj = {current_page = 0,
