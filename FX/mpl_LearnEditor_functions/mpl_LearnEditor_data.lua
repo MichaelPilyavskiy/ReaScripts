@@ -110,11 +110,10 @@
             fxchunk_mod = fxchunk:gsub('(<PROGRAMENV '..(param-1)..'.->)\n', '')
            else
             local modstr= Data_ModifyMod_GetModStr(data.paramdata[trid][fx][param].modulation, param)
-            --msg(modstr)
             fxchunk_mod = fxchunk:gsub('(<PROGRAMENV '..(param-1)..'.->)\n', modstr)
           end
           tr_chunk = tr_chunk:gsub(literalize(fxchunk), fxchunk_mod)
-          SetTrackStateChunk( tr, tr_chunk, false )
+          local ret = SetTrackStateChunk( tr, tr_chunk, false )
           return
         end
       end
@@ -299,7 +298,7 @@
         for param in pairs(data.paramdata[trackid][fxid]) do      
           if type(param) ~= 'number' then goto skipnexparam end
           -- do stuff
-          func(tr,fxid,param)
+          func(trackid,fxid,param)
           ::skipnexparam::
         end 
         ::skipnexfx::
@@ -309,11 +308,12 @@
     UpdateArrange()
   end
   ----------------------------------------------------------------
-  function Data_Actions_SHOWARMENV(conf, obj, data, refresh, mouse, title)
+  function Data_Actions_SHOWARMENV(conf, obj, data, refresh, mouse, title, selectedonly)
     Undo_BeginBlock2( 0 )
     Data_Actions_Loop(conf, obj, data, refresh, mouse,
-    function(track,fxid,param)
-      if not IsTrackSelected( track ) then return end
+    function(trackid,fxid,param)
+      local track = data.paramdata[trackid].tr_ptr
+      if selectedonly==true then if not IsTrackSelected( track ) then return end end
       local fxenv = GetFXEnvelope( track, fxid-1, param-1, true )
       local BR_env = reaper.BR_EnvAlloc( fxenv, false )
       local _, _, _, inLane, laneHeight, defaultShape, _, _, _, _, faderScaling = reaper.BR_EnvGetProperties( BR_env )
@@ -322,3 +322,33 @@
     end)
     Undo_EndBlock2( 0,conf.mb_title..': '..title, -1 )
   end
+  ----------------------------------------------------------------
+  function Data_Actions_REMOVELEARN(conf, obj, data, refresh, mouse, title, remove_OSC)
+    Undo_BeginBlock2( 0 )
+    Data_Actions_Loop(conf, obj, data, refresh, mouse,
+    function(trackid,fxid,param)
+      local track = data.paramdata[trackid].tr_ptr
+      if not IsTrackSelected( track ) then return end
+      if data.paramdata[trackid][fxid][param].has_learn and (remove_OSC==true and data.paramdata[trackid][fxid][param].OSC_str ~= '') 
+        or (remove_OSC==false and data.paramdata[trackid][fxid][param].MIDI_CC and  data.paramdata[trackid][fxid][param].MIDI_CC >=0) then 
+        Data_ModifyLearn(conf, data, trackid,fxid,param, true )
+      end
+    end)
+    Undo_EndBlock2( 0,conf.mb_title..': '..title, -1 )
+    refresh.data = true
+    refresh.GUI = true
+  end  
+  ----------------------------------------------------------------
+  function Data_Actions_REMOVEMOD(conf, obj, data, refresh, mouse, title)
+    Undo_BeginBlock2( 0 )
+    Data_Actions_Loop(conf, obj, data, refresh, mouse,
+    function(trackid,fxid,param)
+      local track = data.paramdata[trackid].tr_ptr
+      if not IsTrackSelected( track ) then return end
+      if data.paramdata[trackid][fxid][param].modulation then Data_ModifyMod(conf, data, trackid,fxid,param, true ) end
+    end)
+    Undo_EndBlock2( 0,conf.mb_title..': '..title, -1 )
+    refresh.data = true
+    refresh.GUI = true
+  end  
+    

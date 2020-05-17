@@ -149,8 +149,15 @@
         { str = '#Actions'},   
         { str   = 'Show and arm envelopes linked to learn/pmod for selected tracks',
           func  = function() Data_Actions_SHOWARMENV(conf, obj, data, refresh, mouse, 'Show and arm envelopes with learn/pmod', true) end },
-        { str   = 'Show and arm envelopes linked to learn/pmod for all tracks|',
-          func  = function() Data_Actions_SHOWARMENV(conf, obj, data, refresh, mouse, 'Show and arm envelopes with learn/pmod', false) end },          
+        { str   = 'Show and arm envelopes linked to learn/pmod for all tracks',
+          func  = function() Data_Actions_SHOWARMENV(conf, obj, data, refresh, mouse, 'Show and arm envelopes with learn/pmod', false) end },     
+        { str   = 'Remove selected track MIDI mappings',
+          func  = function() Data_Actions_REMOVELEARN(conf, obj, data, refresh, mouse, 'Remove selected track MIDI mappings', false) end },          
+        { str   = 'Remove selected track OSC mappings',
+          func  = function() Data_Actions_REMOVELEARN(conf, obj, data, refresh, mouse, 'Remove selected track OSC mappings', true) end },
+        { str   = 'Remove selected track parameter modulation|',
+          func  = function() Data_Actions_REMOVEMOD(conf, obj, data, refresh, mouse, 'Remove selected track parameter modulation', true) end },          
+          
           
         { str = '#Options'},                
         { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,

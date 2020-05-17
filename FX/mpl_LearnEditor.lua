@@ -1,5 +1,5 @@
 -- @description LearnEditor
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX parameter bindings data
@@ -9,17 +9,13 @@
 --    mpl_LearnEditor_functions/mpl_LearnEditor_data.lua
 --    mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua
 -- @changelog
---    + Allow to change selectedtrack/focusedFX/visibleFX checks
---    + Allow to change MIDI flags
---    + Allow to change Soft Takeover
---    + GUI: bright remove buttons only if its valid for current track/FX
---    + Allow to change Parameter modulation enable checks
---    + Action: Show and arm envelopes linked to learn/pmod for selected tracks
---    + Action: Show and arm envelopes linked to learn/pmod for all tracks
---    # update forum link
+--    # fix update data functions
+--    + Action: Remove selected tracks MIDI mappings 
+--    + Action: Remove selected tracks OSC mappings 
+--    + Action: Remove selected track parameter modulation
 
 
-  local vrs = 'v1.04'
+  local vrs = 'v1.05'
   
   --NOT gfx NOT reaper
   
