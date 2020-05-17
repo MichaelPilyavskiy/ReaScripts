@@ -25,6 +25,11 @@
     obj.y_shift = 0]]
     obj.x_indent = 10
     obj.comlist_h = 0
+    obj.fillback_a_rem = 0.2
+    obj.fillback_a_remoff = 0.8
+    obj.tr_h = 18 
+    obj.param_w_ratio = 0.4
+    obj.remove_b_wide_w=60
     
     -- font
     obj.GUI_font = 'Calibri'
@@ -69,10 +74,6 @@
     obj.tr_listx = obj.scroll_w  + 1
     obj.tr_listy = 0--obj.menu_h 
     obj.tr_listw = obj.trlistw-1
-    obj.tr_h = 20
-    
-    obj.param_w_ratio = 0.4
-    obj.remove_b_wide_w=50
     
     Obj_Menu(conf, obj, data, refresh, mouse) 
     Obj_Scroll(conf, obj, data, refresh, mouse)
@@ -136,15 +137,20 @@
         { str = conf.mb_title..' '..conf.vrs,
           hidden = true
         },
-        { str = '|Info'},
         { str = 'Donate to MPL',
           func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
         { str = 'Cockos Forum thread',
-          func = function() Open_URL('http://forum.cockos.com/showthread.php?t=188335') end  } , 
+          func = function() Open_URL('http://forum.cockos.com/showthread.php?t=235521') end  } , 
         { str = 'MPL on VK',
           func = function() Open_URL('http://vk.com/mpl57') end  } ,     
         { str = 'MPL on SoundCloud|',
-          func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
+          func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,  
+          
+        { str = '#Actions'},   
+        { str   = 'Show and arm envelopes linked to learn/pmod for selected tracks',
+          func  = function() Data_Actions_SHOWARMENV(conf, obj, data, refresh, mouse, 'Show and arm envelopes with learn/pmod', true) end },
+        { str   = 'Show and arm envelopes linked to learn/pmod for all tracks|',
+          func  = function() Data_Actions_SHOWARMENV(conf, obj, data, refresh, mouse, 'Show and arm envelopes with learn/pmod', false) end },          
           
         { str = '#Options'},                
         { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
@@ -259,16 +265,16 @@
               h = obj.tr_h,
               fillback = true,
               fillback_colint = data.paramdata[trackid].trcol,--'col0,
-              fillback_a = 0.7,
-              alpha_back = 0.3,
+              fillback_a = 0.9,
+              alpha_back = 1,
               txt= trackid..': '..data.paramdata[trackid].trname,
               txt_a = 1,
               align_txt = 1,
               fontsz = obj.GUI_fontsz2,
-              alpha_back = 0.7,
               show = true,
               } 
-              
+            
+            local fillback_a_rem = obj.fillback_a_rem if data.paramdata[trackid].has_learn then fillback_a_rem = obj.fillback_a_remoff end
             obj['paramdatalearn'..trackid..'_removefx'] = { clear = true,
                     x =obj.tr_listx+obj.tr_listw-obj.remove_b_wide_w,
                     y = tr_y,
@@ -276,7 +282,7 @@
                     h = obj.tr_h,
                     fillback = true,
                     fillback_colstr = 'red',
-                    fillback_a = 0.6,
+                    fillback_a = fillback_a_rem,
                     txt= 'X Learn',
                     txt_a = 1,
                     --align_txt = 16,
@@ -303,6 +309,7 @@
                           refresh.GUI = false
                         end
                 } 
+            local fillback_a_rem =obj.fillback_a_rem if data.paramdata[trackid].has_mod then fillback_a_rem = obj.fillback_a_remoff end
             obj['paramdatamod'..trackid..'_removefx'] = { clear = true,
                     x =obj.tr_listx+obj.tr_listw-obj.remove_b_wide_w*2,
                     y = tr_y,
@@ -310,7 +317,7 @@
                     h = obj.tr_h,
                     fillback = true,
                     fillback_colstr = 'red',
-                    fillback_a = 0.6,
+                    fillback_a = fillback_a_rem,
                     txt= 'X Mod',
                     txt_a = 1,
                     --align_txt = 16,
@@ -379,15 +386,15 @@
                   end
                 end
                 }        
-                
+            local fillback_a_rem =obj.fillback_a_rem if data.paramdata[trackid][fxid].has_learn then fillback_a_rem = obj.fillback_a_remoff end    
             obj['paramdatalearn'..trackid..'_'..fxid..'_removefx'] = { clear = true,
                     x =obj.tr_listx+obj.tr_listw-obj.remove_b_wide_w,
                     y = tr_y,
                     w = obj.remove_b_wide_w,
                     h = obj.tr_h,
                     fillback = true,
-                    fillback_colstr = 'red1',
-                    fillback_a = 0.6,
+                    fillback_colstr = 'red',
+                    fillback_a = fillback_a_rem,
                     txt= 'X Learn',
                     txt_a = 1,
                     --align_txt = 16,
@@ -413,15 +420,16 @@
                           refresh.data = true
                           refresh.GUI = false
                         end
-                }                 
+                }  
+            local fillback_a_rem =obj.fillback_a_rem if data.paramdata[trackid][fxid].has_mod then fillback_a_rem = obj.fillback_a_remoff end  
             obj['paramdatamod'..trackid..'_'..fxid..'_removefx'] = { clear = true,
                     x =obj.tr_listx+obj.tr_listw-obj.remove_b_wide_w*2,
                     y = tr_y,
                     w = obj.remove_b_wide_w,
                     h = obj.tr_h,
                     fillback = true,
-                    fillback_colstr = 'red1',
-                    fillback_a = 0.6,
+                    fillback_colstr = 'red',
+                    fillback_a = fillback_a_rem,
                     txt= 'X Mod',
                     txt_a = 1,
                     --align_txt = 16,
@@ -493,6 +501,39 @@
               tr_y = tr_y +  obj['paramdata'..trackid..'_'..fxid..'_'..param].h   
             end
             if data.paramdata[trackid][fxid][param].has_mod==true and conf.showflag&2==2 then 
+              if data.paramdata[trackid][fxid][param].has_learn == true and  conf.showflag&1==1 then 
+                obj['paramdatamod2'..trackid..'_'..fxid..'_'..param] = { clear = true,
+                    x =obj.tr_listx+tr_x_ind,
+                    y = tr_y,
+                    w = tr_w,
+                    h = obj.tr_h,
+                    --fillback = true,
+                    fillback_colint = data.paramdata[trackid].trcol,--'col0,
+                    fillback_a = 0.2,
+                    alpha_back = 0.3,
+                    txt= param..': '..data.paramdata[trackid][fxid][param].paramname..' (ParamMod)',
+                    txt_a = 1,
+                    align_txt = 1,
+                    fontsz = obj.GUI_fontsz2,
+                    alpha_back = 0.4,
+                    show = true,
+                    func = function()
+                                       local valpar = TrackFX_GetParam(  data.paramdata[trackid].tr_ptr, fxid-1, param-1 ) 
+                                       TrackFX_EndParamEdit( data.paramdata[trackid].tr_ptr, fxid-1, param-1, valpar)
+                                       Action(41143)
+                                       refresh.data = true
+                                     end,                  
+                    }
+                  obj['paramdata'..trackid..'_'..fxid..'_'..param].txt= param..': '..data.paramdata[trackid][fxid][param].paramname..' (Learn)'
+               else
+                obj['paramdata'..trackid..'_'..fxid..'_'..param].func =
+                                  function()
+                                     local valpar = TrackFX_GetParam(  data.paramdata[trackid].tr_ptr, fxid-1, param-1 ) 
+                                     TrackFX_EndParamEdit( data.paramdata[trackid].tr_ptr, fxid-1, param-1, valpar)
+                                     Action(41143)
+                                     refresh.data = true
+                                   end                
+              end
               Obj_ParamList_ModSubEntry(conf, obj, data, refresh, mouse, params_x,tr_y,params_w, trackid, fxid, param)
               tr_y = tr_y +  obj['paramdata'..trackid..'_'..fxid..'_'..param].h  
             end            
@@ -529,14 +570,14 @@
   end 
   -----------------------------------------------
   function Obj_ParamList_ModSubEntry(conf, obj, data, refresh, mouse, params_x,params_y,params_w, trackid, fxid, param)
-            obj['paramdatamod'..trackid..'_'..fxid..'_'..param..'remove'] = { clear = true,
+    obj['paramdata_mod'..trackid..'_'..fxid..'_'..param..'remove'] = { clear = true,
                     x =params_x-obj.but_remove_w,
                     y = params_y,
                     w = obj.but_remove_w,
                     h = obj.tr_h,
                     fillback = true,
-                    fillback_colstr = 'red2',
-                    fillback_a = 0.6,
+                    fillback_colstr = 'red',
+                    fillback_a = obj.fillback_a_remoff,
                     txt= 'X',
                     txt_a = 1,
                     --align_txt = 16,
@@ -551,22 +592,100 @@
                           refresh.data = true
                           refresh.GUI = false
                         end
-                }           
-    obj['prm_learn'..trackid..'_'..fxid..'_'..param] = { clear = true,
+                }  
+    local but_cnt = 4
+    local w_row= math.floor(params_w / but_cnt)
+    local modt = data.paramdata[trackid][fxid][param].modulation
+    
+    
+    local state_txt = '□'
+    if modt.PROGRAMENV2==0 then state_txt = '■' end
+    obj['prm_mod_enable'..trackid..'_'..fxid..'_'..param] = { clear = true,
           x = params_x,
           y = params_y,
-          w = params_w,
+          w = w_row-1,
           h = obj.tr_h,
           --fillback = true,
           --fillback_colint = colint,--'col0,
           --fillback_a = 0.4,
           alpha_back = obj.entr_alpha1,
-          txt= '<param mod>',
+          txt= 'Enable '..state_txt,
           txt_a =1,
           show = true,
           fontsz = obj.GUI_fontsz3,
-          func = function() Action (41143) end
-          }              
+          func = function() 
+                      data.paramdata[trackid][fxid][param].modulation.PROGRAMENV2 = math.abs(1-data.paramdata[trackid][fxid][param].modulation.PROGRAMENV2)
+                      Data_ModifyMod(conf, data, trackid, fxid, param)
+                      refresh.data = true
+                      refresh.GUI = true          
+          
+                end}   
+                
+    local state_txt = '□'
+    if modt.AUDIOCTL1==1 then state_txt = '■' end
+    obj['prm_mod_au'..trackid..'_'..fxid..'_'..param] = { clear = true,
+          x = params_x+w_row,
+          y = params_y,
+          w = w_row-1,
+          h = obj.tr_h,
+          --fillback = true,
+          --fillback_colint = colint,--'col0,
+          --fillback_a = 0.4,
+          alpha_back = obj.entr_alpha1,
+          txt= 'AUDIOCTRL '..state_txt,
+          txt_a =1,
+          show = true,
+          fontsz = obj.GUI_fontsz3,
+          func = function() 
+                      data.paramdata[trackid][fxid][param].modulation.AUDIOCTL1 = math.abs(1-data.paramdata[trackid][fxid][param].modulation.AUDIOCTL1)
+                      Data_ModifyMod(conf, data, trackid, fxid, param)
+                      refresh.data = true
+                      refresh.GUI = true 
+                end}    
+                
+    local state_txt = '□'
+    if modt.LFO1==1 then state_txt = '■' end
+    obj['prm_mod_lfo'..trackid..'_'..fxid..'_'..param] = { clear = true,
+          x = params_x+w_row*2,
+          y = params_y,
+          w = w_row-1,
+          h = obj.tr_h,
+          --fillback = true,
+          --fillback_colint = colint,--'col0,
+          --fillback_a = 0.4,
+          alpha_back = obj.entr_alpha1,
+          txt= 'LFO '..state_txt,
+          txt_a =1,
+          show = true,
+          fontsz = obj.GUI_fontsz3,
+          func = function() 
+                      data.paramdata[trackid][fxid][param].modulation.LFO1 = math.abs(1-data.paramdata[trackid][fxid][param].modulation.LFO1)
+                      Data_ModifyMod(conf, data, trackid, fxid, param)
+                      refresh.data = true
+                      refresh.GUI = true 
+                end}   
+                
+    local state_txt = '□'
+    if modt.PLINK1==1 then state_txt = '■' end
+    obj['prm_mod_plink'..trackid..'_'..fxid..'_'..param] = { clear = true,
+          x = params_x+w_row*3,
+          y = params_y,
+          w = w_row-1,
+          h = obj.tr_h,
+          --fillback = true,
+          --fillback_colint = colint,--'col0,
+          --fillback_a = 0.4,
+          alpha_back = obj.entr_alpha1,
+          txt= 'PLINK '..state_txt,
+          txt_a =1,
+          show = true,
+          fontsz = obj.GUI_fontsz3,
+          func = function() 
+                      data.paramdata[trackid][fxid][param].modulation.PLINK1 = math.abs(1-data.paramdata[trackid][fxid][param].modulation.PLINK1)
+                      Data_ModifyMod(conf, data, trackid, fxid, param)
+                      refresh.data = true
+                      refresh.GUI = true 
+                end}                 
   end                       
   -----------------------------------------------
   function Obj_ParamList_LearnSubEntry(conf, obj, data, refresh, mouse, params_x,params_y,params_w, trackid, fxid, param)
@@ -576,8 +695,8 @@
                     w = obj.but_remove_w,
                     h = obj.tr_h,
                     fillback = true,
-                    fillback_colstr = 'red2',
-                    fillback_a = 0.6,
+                    fillback_colstr = 'red',
+                    fillback_a =obj.fillback_a_remoff,
                     txt= 'X',
                     txt_a = 1,
                     --align_txt = 16,
@@ -667,6 +786,41 @@
           txt_a =1,
           show = true,
           fontsz = obj.GUI_fontsz3,
+          func = function()
+                    Menu(mouse, {
+                                  { str = 'Enable if track or item is selected',
+                                    state = data.paramdata[trackid][fxid][param].flags&1==1,
+                                    func = function()
+                                              local flags = data.paramdata[trackid][fxid][param].flags
+                                              data.paramdata[trackid][fxid][param].flags = BinaryToggle(flags, 0, 1)
+                                              Data_ModifyLearn(conf, data, trackid, fxid, param)
+                                              refresh.data = true
+                                              refresh.GUI = true
+                                            end
+                                  },
+                                  { str = 'Enable if FX is focused',
+                                    state = data.paramdata[trackid][fxid][param].flags==4,--&4==4,
+                                    func = function()
+                                              local flags = data.paramdata[trackid][fxid][param].flags
+                                              data.paramdata[trackid][fxid][param].flags = 4--BinaryToggle(flags, 3, 1)
+                                              Data_ModifyLearn(conf, data, trackid, fxid, param)
+                                              refresh.data = true
+                                              refresh.GUI = true
+                                            end
+                                  },
+                                  { str = 'Enable if FX is visible',
+                                    state = data.paramdata[trackid][fxid][param].flags==20,--&20==20,
+                                    func = function()
+                                              local flags = data.paramdata[trackid][fxid][param].flags
+                                              data.paramdata[trackid][fxid][param].flags = 20--BinaryToggle(flags, 2, 1) = BinaryToggle(flags, 4, 1)
+                                              Data_ModifyLearn(conf, data, trackid, fxid, param)
+                                              refresh.data = true
+                                              refresh.GUI = true
+                                            end
+                                  },
+                                })
+                  
+                  end
           }  
     local sto_txt = '□'
     if flags&2==2 then sto_txt = '■' end
@@ -679,11 +833,17 @@
           --fillback_colint = colint,--'col0,
           --fillback_a = 0.4,
           alpha_back = obj.entr_alpha1,
-          txt= sto_txt,
+          txt= 'ST: '..sto_txt,
           txt_a =1,
           show = true,
           fontsz = obj.GUI_fontsz3,
-          } 
+          func = function()
+                  local flags = data.paramdata[trackid][fxid][param].flags
+                  data.paramdata[trackid][fxid][param].flags = BinaryToggle(flags, 1)
+                  Data_ModifyLearn(conf, data, trackid, fxid, param)
+                  refresh.data = true
+                  refresh.GUI = true
+                end} 
     local flagsMIDI_txt = '-'
         if flagsMIDI==0  then 
           flagsMIDI_txt = 'Absolute'
@@ -709,5 +869,55 @@
           txt_a =1,
           show = true,
           fontsz = obj.GUI_fontsz3,
+          func = function()
+                    Menu(mouse, {
+                                  { str = 'Absolute',
+                                    state = data.paramdata[trackid][fxid][param].flagsMIDI==0,
+                                    func = function()
+                                              data.paramdata[trackid][fxid][param].flagsMIDI = 0
+                                              Data_ModifyLearn(conf, data, trackid, fxid, param)
+                                              refresh.data = true
+                                              refresh.GUI = true
+                                            end
+                                  },   
+                                  { str = 'Relative 1 (127=-1, 1 = +1)',
+                                    state = data.paramdata[trackid][fxid][param].flagsMIDI==4,
+                                    func = function()
+                                              data.paramdata[trackid][fxid][param].flagsMIDI = 4
+                                              Data_ModifyLearn(conf, data, trackid, fxid, param)
+                                              refresh.data = true
+                                              refresh.GUI = true
+                                            end
+                                  },   
+                                  { str = 'Relative 2 (63=-1, 65 = +1)',
+                                    state = data.paramdata[trackid][fxid][param].flagsMIDI==8,
+                                    func = function()
+                                              data.paramdata[trackid][fxid][param].flagsMIDI = 8
+                                              Data_ModifyLearn(conf, data, trackid, fxid, param)
+                                              refresh.data = true
+                                              refresh.GUI = true
+                                            end
+                                  }, 
+                                  { str = 'Relative 3 (65=-1, 1 = +1)',
+                                    state = data.paramdata[trackid][fxid][param].flagsMIDI==12,
+                                    func = function()
+                                              data.paramdata[trackid][fxid][param].flagsMIDI = 12
+                                              Data_ModifyLearn(conf, data, trackid, fxid, param)
+                                              refresh.data = true
+                                              refresh.GUI = true
+                                            end
+                                  },  
+                                  { str = 'Toggle (>0==toggle)',
+                                    state = data.paramdata[trackid][fxid][param].flagsMIDI==16,
+                                    func = function()
+                                              data.paramdata[trackid][fxid][param].flagsMIDI = 16
+                                              Data_ModifyLearn(conf, data, trackid, fxid, param)
+                                              refresh.data = true
+                                              refresh.GUI = true
+                                            end
+                                  },                                  
+                                })
+                  
+                  end          
           }               
   end
