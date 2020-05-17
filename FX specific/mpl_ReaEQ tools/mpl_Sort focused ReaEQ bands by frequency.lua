@@ -1,10 +1,10 @@
 -- @description Sort focused ReaEQ bands by frequency
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @noindex
 -- @changelog
---    # header
+--    + Show popup about log-scale automated frequencies limitation
 
   -- NOT reaper NOT gfx
   -----------------------------------------------------------------------------
@@ -14,14 +14,28 @@
     if not test_exist then return end
     
     -- get whole table of bands + order
-    local bands = {}
+     bands = {}
     local num_params = TrackFX_GetNumParams( track, fx )
+    local log_scale_testcom
     for paramidx = 3, num_params, 3 do
       local retval, bandtype_norm =  TrackFX_GetNamedConfigParm( track, fx, 'BANDTYPE'..(paramidx/3-1) )
       if retval then 
+        local retval0, freq_real = reaper.TrackFX_GetFormattedParamValue( track, fx, paramidx-3, '')
+        freq_real = tonumber(freq_real:match('[%d%.]+') )
+        
+        -- test log scale
+          local freq = TrackFX_GetParamNormalized( track, fx, paramidx-3)
+          TrackFX_SetParamNormalized( track, fx, paramidx-3,0.5)
+          local retval0, freq_real_test = TrackFX_GetFormattedParamValue( track, fx, paramidx-3, '')
+          local log_scale = tonumber(freq_real_test:match('[%d%.]+') )==1160.5
+          if log_scale_testcom and log_scale_testcom~= log_scale then MB('Various band states between "Log-scale automated frequencies" aren`t supported', '', 0) return end
+          log_scale_testcom = log_scale
+          TrackFX_SetParamNormalized( track, fx, paramidx-3,freq)
         bands[#bands+1] = {bandtype = tonumber(bandtype_norm),
                             enabled = tonumber(( {TrackFX_GetNamedConfigParm( track, fx, 'BANDENABLED'..(paramidx/3-1) )})[2]),
-                            freq = TrackFX_GetParamNormalized( track, fx, paramidx-3),
+                            freq = freq,
+                            freq_real=freq_real,
+                            log_scale = log_scale,
                             gain = TrackFX_GetParamNormalized( track, fx, paramidx-2),
                             Q = TrackFX_GetParamNormalized( track, fx, paramidx-1),
                             prev_freq = paramidx-3,
@@ -32,12 +46,11 @@
     
     -- sort by Freq
     local t_sorted = {}
-    for _, key in ipairs(getKeysSortedByValue(bands, function(a, b) return a < b end, 'freq')) do t_sorted[#t_sorted+1] = bands[key] end
-    
+    for _, key in ipairs(getKeysSortedByValue(bands, function(a, b) return a < b end, 'freq_real')) do t_sorted[#t_sorted+1] = bands[key] end
     
     -- push new order to ReaEQ
     -- generate map table
-      local map_t = {}
+       map_t = {}
       for band_idx = 0, #t_sorted-1 do
         map_t[t_sorted[band_idx+1].prev_freq] = band_idx*3
         map_t[t_sorted[band_idx+1].prev_gain] = band_idx*3+1
@@ -48,7 +61,6 @@
         TrackFX_SetNamedConfigParm( track, fx, 'BANDTYPE'..band_idx, t_sorted[band_idx+1].bandtype )
         TrackFX_SetNamedConfigParm( track, fx, 'BANDENABLED'..band_idx, t_sorted[band_idx+1].enabled )
       end
-      
     return map_t 
     
   end
@@ -196,6 +208,7 @@
     if retval == 1 and itemnumber == -1 and fxnumber >= 0 then
       local tr = CSurf_TrackFromID( tracknumber, false )
       local map_t = MPL_SortReaEQByFreq(tr, fxnumber)
+      if not map_t then return end
       local fxGUID = TrackFX_GetFXGUID( tr, fxnumber )
       local retval, chunk = GetTrackStateChunk( tr, '', false )
       local pat = 'FXID '..literalize(fxGUID)..'.-WAK'
@@ -208,35 +221,11 @@
       if out_chunk0 then SetTrackStateChunk( tr, out_chunk0, true )  end      
     end
   end
-  ---------------------------------------------------------------------
-    function CheckFunctions(str_func)
-      local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
-      local f = io.open(SEfunc_path, 'r')
-      if f then
-        f:close()
-        dofile(SEfunc_path)      
-        if not _G[str_func] then 
-          reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
-         else
-          return true
-        end
-        
-       else
-        reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
-      end  
-    end
-    ---------------------------------------------------
-    function CheckReaperVrs(rvrs) 
-      local vrs_num =  GetAppVersion()
-      vrs_num = tonumber(vrs_num:match('[%d%.]+'))
-      if rvrs > vrs_num then 
-        reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0)
-        return
-       else
-        return true
-      end
-    end
-  -----------------------------------------------------------------------------  
-  local ret = CheckFunctions('Action') 
-  local ret2 = CheckReaperVrs(5.95)    
-  if ret and ret2 then main() end
+---------------------------------------------------------------------
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
+  --------------------------------------------------------------------  
+  local ret = CheckFunctions('VF_GetProjIDByPath') 
+  if ret then
+    local ret2 = VF_CheckReaperVrs(5.95,true)    
+    if ret and ret2 then main() end
+  end
