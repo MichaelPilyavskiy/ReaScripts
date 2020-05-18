@@ -168,7 +168,7 @@
                else
                 MIDI_Ch = (t0[2] & 0x0F)+1
                 MIDI_msgtype = (t0[2]>>4)& 0x0F
-                MIDI_CC = (t0[2]>>8)& 0xFF
+                MIDI_CC = (t0[2]>>8)& 0x7F
                 OSC_str = '' 
               end
               

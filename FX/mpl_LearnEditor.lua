@@ -1,5 +1,5 @@
 -- @description LearnEditor
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Script for handling FX parameter bindings data
@@ -9,13 +9,10 @@
 --    mpl_LearnEditor_functions/mpl_LearnEditor_data.lua
 --    mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua
 -- @changelog
---    # fix update data functions
---    + Action: Remove selected tracks MIDI mappings 
---    + Action: Remove selected tracks OSC mappings 
---    + Action: Remove selected track parameter modulation
+--    # fix reading 7 byte CC number instead 8 byte
 
 
-  local vrs = 'v1.05'
+  local vrs = 'v1.06'
   
   --NOT gfx NOT reaper
   
