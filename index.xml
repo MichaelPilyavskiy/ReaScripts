@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="36482eff361729602a6d4a369fc0d423fc55cd05" name="MPL Scripts">
+<index version="1" commit="e16b577a274c81b980ceb270d3fb7cf64c03de35" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -447,19 +447,6 @@
         <source main="main" file="mpl_Subtract 0.0001 from normalized last touched parameter.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d66f801c79feec71e034a6940f3da582f75efa4/FX/mpl_Adjust%20normalized%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Assign audio input parameter modulation with last touched parameter.lua" type="script" desc="Assign audio input parameter modulation with last touched parameter">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2017-01-11T13:26:11Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f78e5d8d0926d804e4ce3b64ff5e067d7f7c4a99/FX/mpl_Assign%20audio%20input%20parameter%20modulation%20with%20last%20touched%20parameter.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-05-09T11:47:11Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3afc423d440339c2fe6294617f05cdd52c8c1180/FX/mpl_Assign%20audio%20input%20parameter%20modulation%20with%20last%20touched%20parameter.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Bypass all FX except instruments on all tracks.lua" type="script" desc="Toggle bypass all FX except instruments on all tracks">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -822,7 +809,7 @@
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Script for handling FX parameter bindings data\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for handling FX parameter MIDI/OSC bindings and parameter modulation data\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
@@ -897,6 +884,14 @@
         <source file="mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/36482eff361729602a6d4a369fc0d423fc55cd05/FX/mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua</source>
         <source file="mpl_LearnEditor_functions/mpl_LearnEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/36482eff361729602a6d4a369fc0d423fc55cd05/FX/mpl_LearnEditor_functions/mpl_LearnEditor_data.lua</source>
         <source file="mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/36482eff361729602a6d4a369fc0d423fc55cd05/FX/mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua</source>
+      </version>
+      <version name="1.07" author="MPL" time="2020-05-19T07:21:11Z">
+        <changelog><![CDATA[+ Action: Link last two touched FX parameters]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e16b577a274c81b980ceb270d3fb7cf64c03de35/FX/mpl_LearnEditor.lua</source>
+        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e16b577a274c81b980ceb270d3fb7cf64c03de35/FX/mpl_LearnEditor_functions/mpl_LearnEditor_GUI.lua</source>
+        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e16b577a274c81b980ceb270d3fb7cf64c03de35/FX/mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua</source>
+        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e16b577a274c81b980ceb270d3fb7cf64c03de35/FX/mpl_LearnEditor_functions/mpl_LearnEditor_data.lua</source>
+        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e16b577a274c81b980ceb270d3fb7cf64c03de35/FX/mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_LearnManager (background).lua" type="script" desc="LearnManager">
@@ -1016,15 +1011,6 @@
       <version name="1.0" author="MPL" time="2017-01-19T19:01:20Z">
         <changelog><![CDATA[+ init  ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b934e136c8319a80d71417a72aa4ace8336961f6/FX/mpl_Pan%20focused%20FX%20track%20at%20center.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Parameter Modulation Viewer.lua" type="script" desc="MPL Parameter Modulation Viewer">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-07-30T01:24:07Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aba62ceee636e97d2437a00ba90074f8e64df1c0/FX/mpl_Parameter%20Modulation%20Viewer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Paste Focused FX data.lua" type="script" desc="Paste Focused FX data">
