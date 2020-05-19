@@ -1,27 +1,20 @@
 -- @description LearnEditor
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
--- @about Script for handling FX parameter bindings data
+-- @about Script for handling FX parameter MIDI/OSC bindings and parameter modulation data
 -- @provides
 --    mpl_LearnEditor_functions/mpl_LearnEditor_GUI.lua
 --    mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua
 --    mpl_LearnEditor_functions/mpl_LearnEditor_data.lua
 --    mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua
 -- @changelog
---    # fix reading 7 byte CC number instead 8 byte
+--    + Action: Link last two touched FX parameters
 
 
-  local vrs = 'v1.06'
+  local vrs = 'v1.07'
   
   --NOT gfx NOT reaper
-  
-  --Scripts to remove and port to LearnEditor:
-  --mpl_Delete all MIDI OSC learn from focused FX
-  --mpl_Delete all MIDI OSC learn from selected track
-  --mpl_List all MIDI OSC learn for current project
-  --mpl_List all MIDI OSC learn for focused FX
-  --mpl_Show and arm envelopes linked to learn for selected tracks.lua
 
  --  INIT -------------------------------------------------
   local conf = {}  
@@ -33,7 +26,7 @@
                     conf = false}
   local mouse = {}
   data = {}
-  local obj = {}
+  local obj = {touched_log={}}
   ---------------------------------------------------  
   
   function Main_RefreshExternalLibs()     -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua
@@ -95,7 +88,7 @@
   ---------------------------------------------------------------------
   function RunInit(conf, obj, data, refresh, mouse) 
     --DataReadProject(conf, obj, data, refresh, mouse) 
-    Data_HandleTouchedObjects(conf, obj, data, refresh, mouse, true) 
+    Data_HandleTouchedObjects(conf, obj, data, refresh, mouse) 
   end
 ---------------------------------------------------------------------
   function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end

@@ -155,9 +155,10 @@
           func  = function() Data_Actions_REMOVELEARN(conf, obj, data, refresh, mouse, 'Remove selected track MIDI mappings', false) end },          
         { str   = 'Remove selected track OSC mappings',
           func  = function() Data_Actions_REMOVELEARN(conf, obj, data, refresh, mouse, 'Remove selected track OSC mappings', true) end },
-        { str   = 'Remove selected track parameter modulation|',
+        { str   = 'Remove selected track parameter modulation',
           func  = function() Data_Actions_REMOVEMOD(conf, obj, data, refresh, mouse, 'Remove selected track parameter modulation', true) end },          
-          
+        { str   = 'Link last two touched FX parameters|',
+          func  = function() Data_Actions_LINKLTPRAMS(conf, obj, data, refresh, mouse, 'Link last two touched FX parameters', true) end },           
           
         { str = '#Options'},                
         { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
@@ -600,8 +601,10 @@
                           refresh.GUI = false
                         end
                 }  
-    local but_cnt = 4
-    local w_row= math.floor(params_w / but_cnt)
+    local enable_w = math.floor(params_w*0.1)
+    local aud_w = math.floor(params_w*0.3)
+    local lfo_w = math.floor(params_w*0.3)
+    local link_w = math.floor(params_w*0.3) 
     local modt = data.paramdata[trackid][fxid][param].modulation
     
     
@@ -610,13 +613,13 @@
     obj['prm_mod_enable'..trackid..'_'..fxid..'_'..param] = { clear = true,
           x = params_x,
           y = params_y,
-          w = w_row-1,
+          w = enable_w,
           h = obj.tr_h,
           --fillback = true,
           --fillback_colint = colint,--'col0,
           --fillback_a = 0.4,
           alpha_back = obj.entr_alpha1,
-          txt= 'Enable '..state_txt,
+          txt= 'On '..state_txt,
           txt_a =1,
           show = true,
           fontsz = obj.GUI_fontsz3,
@@ -631,9 +634,9 @@
     local state_txt = '□'
     if modt.AUDIOCTL1==1 then state_txt = '■' end
     obj['prm_mod_au'..trackid..'_'..fxid..'_'..param] = { clear = true,
-          x = params_x+w_row,
+          x = params_x+enable_w,
           y = params_y,
-          w = w_row-1,
+          w = aud_w,
           h = obj.tr_h,
           --fillback = true,
           --fillback_colint = colint,--'col0,
@@ -653,9 +656,9 @@
     local state_txt = '□'
     if modt.LFO1==1 then state_txt = '■' end
     obj['prm_mod_lfo'..trackid..'_'..fxid..'_'..param] = { clear = true,
-          x = params_x+w_row*2,
+          x = params_x+enable_w+aud_w,
           y = params_y,
-          w = w_row-1,
+          w = lfo_w,
           h = obj.tr_h,
           --fillback = true,
           --fillback_colint = colint,--'col0,
@@ -675,9 +678,9 @@
     local state_txt = '□'
     if modt.PLINK1==1 then state_txt = '■' end
     obj['prm_mod_plink'..trackid..'_'..fxid..'_'..param] = { clear = true,
-          x = params_x+w_row*3,
+          x = params_x+enable_w+aud_w+lfo_w,
           y = params_y,
-          w = w_row-1,
+          w = link_w,
           h = obj.tr_h,
           --fillback = true,
           --fillback_colint = colint,--'col0,

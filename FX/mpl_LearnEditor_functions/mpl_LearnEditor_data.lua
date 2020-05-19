@@ -30,27 +30,6 @@
         --refresh.data = true
       end
   end
-  ---------------------------------------------------------------------
-  function Data_HandleTouchedObjects(conf, obj, data, refresh, mouse, oninitonly)
-    if oninitonly then
-    
-      local retval, trid, fxid, paramid = reaper.GetLastTouchedFX()
-      if retval == true then
-        obj.touched = {trid = trid,
-                       fxid=fxid+1,
-                       paramid=paramid+1 }
-      end
-      
-     else
-     
-      local retval, trid, fxid, paramid = reaper.GetLastTouchedFX()
-      if retval == true then
-        obj.touched = {trid = trid,
-                       fxid=fxid+1,
-                       paramid=paramid+1 }
-      end
-    end
-  end
   -----------------------------------------------
   function Data_ModifyLearn(conf, data, trid,fx, param, remove ) 
       local tr= GetTrack(0,trid-1)
@@ -92,7 +71,7 @@
     
   end
   -----------------------------------------------
-  function Data_ModifyMod(conf, data, trid,fx,param, remove )
+  function Data_ModifyMod(conf, data, trid,fx,param, remove, add )
       local tr= GetTrack(0,trid-1)
       if not tr then return end
       local retval, minval, maxval = reaper.TrackFX_GetParam( tr, fx-1, param-1 )
@@ -103,14 +82,16 @@
       for fxchunk in tr_chunk:gmatch('(BYPASS.-WAK %d)') do
         local fxGUID = fxchunk:match('FXID (.-)\n')
         if not fxGUID then fxGUID = fxchunk:match('FXID_NEXT (.-)\n') end
-  
         if fxGUID:match(literalize(fxGUID_check):gsub('%s', '')) then
           local fxchunk_mod
           if remove ==true then
             fxchunk_mod = fxchunk:gsub('(<PROGRAMENV '..(param-1)..'.->)\n', '')
+           elseif add == true then 
+            local modstr= Data_ModifyMod_GetModStr(data.paramdata[trid][fx][param].modulation, param)
+            fxchunk_mod = fxchunk:gsub('WAK', modstr..'\n'..'WAK')
            else
             local modstr= Data_ModifyMod_GetModStr(data.paramdata[trid][fx][param].modulation, param)
-            fxchunk_mod = fxchunk:gsub('(<PROGRAMENV '..(param-1)..'.->)\n', modstr)
+            fxchunk_mod = fxchunk:gsub('(<PROGRAMENV '..(param-1)..'.->)\n', modstr)            
           end
           tr_chunk = tr_chunk:gsub(literalize(fxchunk), fxchunk_mod)
           local ret = SetTrackStateChunk( tr, tr_chunk, false )
@@ -351,4 +332,86 @@
     refresh.data = true
     refresh.GUI = true
   end  
+  ---------------------------------------------------------------------
+  function Data_HandleTouchedObjects(conf, obj, data, refresh, mouse)
+      local retval, trid, fxid, paramid = reaper.GetLastTouchedFX()
+      if retval == true then
+        obj.touched = {trid = trid,
+                       fxid=fxid+1,
+                       paramid=paramid+1 }
+        if obj.touched_log[#obj.touched_log] then
+          if not (obj.touched_log[#obj.touched_log].trid == trid
+                  and obj.touched_log[#obj.touched_log].fxid == fxid+1
+                  and obj.touched_log[#obj.touched_log].paramid == paramid+1) then
+                  obj.touched_log[#obj.touched_log+1] = CopyTable(obj.touched) 
+          end
+         else
+          obj.touched_log[#obj.touched_log+1] = CopyTable(obj.touched)
+        end
+      end
+      if #obj.touched_log == 3 then table.remove(obj.touched_log, 1) end
+  end
+  ----------------------------------------------------------------
+  function Data_Actions_LINKLTPRAMS(conf, obj, data, refresh, mouse, title)
+    if #obj.touched_log <2 then return end
+    local t_src = obj.touched_log[1]
+    local t_dest = obj.touched_log[2]
+    local src_tr = t_src.trid
+    local src_fxid = t_src.fxid
+    local src_paramid = t_src.paramid
+    local dest_tr = t_dest.trid
+    local dest_fxid = t_dest.fxid
+    local dest_paramid = t_dest.paramid  
+    if src_tr ~= dest_tr then return end
+    if data.paramdata[dest_tr] and data.paramdata[dest_tr][dest_fxid] and data.paramdata[dest_tr][dest_fxid][dest_paramid] and data.paramdata[dest_tr][dest_fxid][dest_paramid].has_mod then
+      MB('Parameter modulation is already set for last touched param.\nChange it using LearnEditor interface.', conf.mb_title, 0)
+      return 
+    end
     
+    Undo_BeginBlock2(0)
+    if not data.paramdata[dest_tr] then data.paramdata[dest_tr] = {} end
+    if not data.paramdata[dest_tr][dest_fxid] then data.paramdata[dest_tr][dest_fxid] = {} end
+    if not data.paramdata[dest_tr][dest_fxid][dest_paramid] then data.paramdata[dest_tr][dest_fxid][dest_paramid] = {} end
+    data.paramdata[dest_tr][dest_fxid][dest_paramid].modulation = Data_InitMod(dest_paramid-1)
+    data.paramdata[dest_tr][dest_fxid][dest_paramid].modulation.PROGRAMENV2 = 0
+    data.paramdata[dest_tr][dest_fxid][dest_paramid].modulation.PLINK1 = 1 -- scale
+    data.paramdata[dest_tr][dest_fxid][dest_paramid].modulation.PLINK2 = (src_fxid-1)..':'..((src_fxid-1)-(dest_fxid-1)) -- relation FX
+    data.paramdata[dest_tr][dest_fxid][dest_paramid].modulation.PLINK3 = src_paramid-1 -- source param
+    data.paramdata[dest_tr][dest_fxid][dest_paramid].modulation.PARAMBASE1 = 0 -- base value
+    Data_ModifyMod(conf, data, dest_tr,dest_fxid,dest_paramid, false, true )
+    Undo_EndBlock2( 0,conf.mb_title..': '..title, -1 )
+    refresh.data = true
+    refresh.GUI = true
+  end      
+  -------------------------------------------------------------------- 
+  function Data_InitMod(param)
+    local init_t = {PROGRAMENV1=param,
+              PROGRAMENV2=1,
+              PARAMBASE1=1,
+              LFO1=0,
+              LFOWT1=1,
+              LFOWT2=1,
+              AUDIOCTL1=0,
+              AUDIOCTLWT1=1,
+              AUDIOCTLWT2=1,
+              LFOSHAPE1=0,
+              LFOSYNC1=0,
+              LFOSYNC2=0,
+              LFOSYNC3=0,
+              LFOSPEED1=0.124573,
+              LFOSPEED2=0,
+              CHAN1=-1,
+              STEREO1=0,
+              RMS1=300,
+              RMS2=300,
+              DBLO1=-24,
+              DBHI1=0,
+              X21=0.5,
+              Y21=0.5,
+              PLINK1=0,
+              PLINK2=-1,
+              PLINK3=-1,
+              PLINK4=0
+            }
+    return init_t
+  end
