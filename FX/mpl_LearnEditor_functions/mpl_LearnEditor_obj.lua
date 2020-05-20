@@ -147,9 +147,9 @@
           func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,  
           
         { str = '#Actions'},   
-        { str   = 'Show and arm envelopes linked to learn/pmod for selected tracks',
+        { str   = 'Show and arm envelopes with learn and parameter modulation for selected tracks',
           func  = function() Data_Actions_SHOWARMENV(conf, obj, data, refresh, mouse, 'Show and arm envelopes with learn/pmod', true) end },
-        { str   = 'Show and arm envelopes linked to learn/pmod for all tracks',
+        { str   = 'Show and arm envelopes with learn and parameter modulation for all tracks',
           func  = function() Data_Actions_SHOWARMENV(conf, obj, data, refresh, mouse, 'Show and arm envelopes with learn/pmod', false) end },     
         { str   = 'Remove selected track MIDI mappings',
           func  = function() Data_Actions_REMOVELEARN(conf, obj, data, refresh, mouse, 'Remove selected track MIDI mappings', false) end },          
@@ -157,9 +157,21 @@
           func  = function() Data_Actions_REMOVELEARN(conf, obj, data, refresh, mouse, 'Remove selected track OSC mappings', true) end },
         { str   = 'Remove selected track parameter modulation',
           func  = function() Data_Actions_REMOVEMOD(conf, obj, data, refresh, mouse, 'Remove selected track parameter modulation', true) end },          
-        { str   = 'Link last two touched FX parameters|',
+        { str   = 'Link last two touched FX parameters',
           func  = function() Data_Actions_LINKLTPRAMS(conf, obj, data, refresh, mouse, 'Link last two touched FX parameters', true) end },           
-          
+       --[[ { str   = 'Apply default mapping to focused FX|',
+          func  = function() Data_Actions_DEFMAPAPP(conf, obj, data, refresh, mouse, 'Apply default mapping to focused FX', true) end },     ]]      
+                                --[[str = 'Save mapping to default / slotX (current right table)',
+                                    {str = 'Apply to all FX instances on selected tracks',
+                                    {str = '|Show TCP controls for mapped parameters', 
+                                    {str = 'Hide envelopes for mapped parameters', 
+                                    {str = 'Change MIDI mappings to specific channel',
+                                    {str = 'Build mapping by incrementing OSC address',
+                                    {str = 'Build mapping by incrementing MIDI CC',
+                                    remove duplicas
+
+                                  ]]
+                                  
         { str = '#Options'},                
         { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
           func = function() 

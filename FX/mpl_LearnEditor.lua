@@ -1,18 +1,20 @@
 -- @description LearnEditor
--- @version 1.07
+-- @version 1.08
 -- @author MPL
--- @website https://forum.cockos.com/showthread.php?t=188335
+-- @website http://forum.cockos.com/showthread.php?t=235521
 -- @about Script for handling FX parameter MIDI/OSC bindings and parameter modulation data
 -- @provides
 --    mpl_LearnEditor_functions/mpl_LearnEditor_GUI.lua
 --    mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua
 --    mpl_LearnEditor_functions/mpl_LearnEditor_data.lua
 --    mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua
+--    mpl_LearnEditor_functions/mpl_Show and arm envelopes with learn and parameter modulation for selected tracks.lua
 -- @changelog
---    + Action: Link last two touched FX parameters
+--    # allow to port some actions as separate scripts out of LearnEditor, based on internal data structure
+--    # refresh arrange/tracklist after Show and arm envelopes with learn and parameter modulation for selected tracks
 
 
-  local vrs = 'v1.07'
+  local vrs = 'v1.08'
   
   --NOT gfx NOT reaper
 
@@ -85,11 +87,6 @@
     if mouse.char >= 0 and mouse.char ~= 27 
       then defer(run) else atexit(gfx.quit) end
   end
-  ---------------------------------------------------------------------
-  function RunInit(conf, obj, data, refresh, mouse) 
-    --DataReadProject(conf, obj, data, refresh, mouse) 
-    Data_HandleTouchedObjects(conf, obj, data, refresh, mouse) 
-  end
 ---------------------------------------------------------------------
   function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
 --------------------------------------------------------------------
@@ -98,8 +95,8 @@
         conf.vrs = vrs
         Main_RefreshExternalLibs()
         ExtState_Load(conf)
-        --conf.tableentries = 15
-        RunInit(conf, obj, data, refresh, mouse) 
+        Data_HandleTouchedObjects(conf, obj, data, refresh, mouse) 
+        Data_ParseDefMap(conf, obj, data, refresh, mouse) 
         gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
                     conf.wind_w, 
                     conf.wind_h, 

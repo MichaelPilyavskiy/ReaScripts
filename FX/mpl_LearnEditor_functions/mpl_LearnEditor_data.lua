@@ -31,7 +31,7 @@
       end
   end
   -----------------------------------------------
-  function Data_ModifyLearn(conf, data, trid,fx, param, remove ) 
+  function Data_ModifyLearn(conf, data, trid,fx, param, remove, add_t ) 
       local tr= GetTrack(0,trid-1)
       if not tr then return end
       local retval, minval, maxval = reaper.TrackFX_GetParam( tr, fx-1, param-1 )
@@ -46,6 +46,18 @@
           local fxchunk_mod
           if remove ==true then 
             fxchunk_mod = fxchunk:gsub('(PARMLEARN '..(param-1)..'.-)\n', '') 
+           elseif add_t then 
+            local learnMIDI = 
+                      (add_t.flagsMIDI<<14)+
+                      add_t.MIDI_Ch-1+
+                      (add_t.MIDI_msgtype<<4)+
+                      (add_t.MIDI_CC<<8)
+            if add_t.MIDI_Ch < 0 then learnMIDI = 0 end
+            local modstr= 'PARMLEARN '..(param-1)..' '..
+                  learnMIDI..' '..
+                  add_t.flags..' '..
+                  add_t.OSC_str..'\n'            
+            fxchunk_mod = fxchunk:gsub('(PARMLEARN '..(param-1)..'.-)\n', modstr)
            else
             local learnMIDI = 
                       (data.paramdata[trid][fx][param].flagsMIDI<<14)+
@@ -57,7 +69,6 @@
                   learnMIDI..' '..
                   data.paramdata[trid][fx][param].flags..' '..
                     data.paramdata[trid][fx][param].OSC_str..'\n'
-                    --msg(modstr)
             fxchunk_mod = fxchunk:gsub('(PARMLEARN '..(param-1)..'.-)\n', modstr)
           end
           
@@ -130,7 +141,6 @@
             for line in fxchunk:gmatch('PARMLEARN(.-)\n') do
               local t0 = {} 
               for ssv in line:gmatch('[^%s]+') do 
-                --ssv = ssv:match('[%d%.%/]+')
                 if ssv and tonumber(ssv) then ssv = tonumber(ssv) end
                 t0[#t0+1] = ssv 
               end
@@ -302,6 +312,8 @@
       reaper.BR_EnvFree( BR_env, true )
     end)
     Undo_EndBlock2( 0,conf.mb_title..': '..title, -1 )
+    UpdateArrange()
+    TrackList_AdjustWindows( false )
   end
   ----------------------------------------------------------------
   function Data_Actions_REMOVELEARN(conf, obj, data, refresh, mouse, title, remove_OSC)
@@ -415,3 +427,82 @@
             }
     return init_t
   end
+  --------------------------------------------------------------------  
+  function Data_ParseDefMap(conf, obj, data, refresh, mouse) 
+    data.def_map = {}
+    local ini_path = GetResourcePath()..'/reaper-fxlearn.ini'
+    local f = io.open(ini_path, 'r')
+    if not f then return end
+    local context = f:read('a')
+    f:close()
+    
+    local plug_name
+    for line in context:gmatch('[^\r\n]+') do
+      if line:match('%[(.*)%]') then 
+        plug_name = line:match('%[(.*)%]')
+        data.def_map[plug_name]={}
+       elseif plug_name then
+        if line:match('p%d+=(.*)') then
+          local line_ssv = line:match('p%d+=(.*)'):gsub(',',' ')
+          local t0 = {} 
+          for ssv in line_ssv:gmatch('[^%s]+') do 
+            if ssv and tonumber(ssv) then ssv = tonumber(ssv) end
+            t0[#t0+1] = ssv 
+          end
+          if not tonumber(t0[1]) then t0[1] = tonumber(t0[1]:match('%d+')) end
+          local par_idx = t0[1]+1
+          local isMIDI = t0[2] > 0
+          local flags = t0[3]
+          local flagsMIDI = (t0[2] >>14)&0x1F
+          local OSC_str, MIDI_Ch, MIDI_CC
+          if isMIDI==false then 
+            MIDI_Ch = -1
+            MIDI_msgtype = -1
+            MIDI_CC = -1
+            OSC_str = t0[4]
+           else
+            MIDI_Ch = (t0[2] & 0x0F)+1
+            MIDI_msgtype = (t0[2]>>4)& 0x0F
+            MIDI_CC = (t0[2]>>8)& 0x7F
+            OSC_str = '' 
+          end
+          data.def_map[plug_name][par_idx] =        {OSC_str=OSC_str, 
+                                                    MIDI_Ch=MIDI_Ch,
+                                                    MIDI_CC=MIDI_CC,
+                                                    MIDI_msgtype = MIDI_msgtype,
+                                                    isMIDI=isMIDI,
+                                                    flags = flags,
+                                                    flagsMIDI = flagsMIDI,
+                                                    chunk = line,
+                                                    paramname = paramname}
+        end
+      end
+    end
+  end
+  --[[--------------------------------------------------------------
+  function Data_Actions_DEFMAPAPP(conf, obj, data, refresh, mouse, title, trackid0, fxid0)
+    Undo_BeginBlock2( 0 )
+    Data_Actions_Loop(conf, obj, data, refresh, mouse,
+    function(trackid,fxid,param)
+      if trackid ~= 
+      local track = data.paramdata[trackid].tr_ptr
+      if data.paramdata[trackid][fxid][param].has_learn and (remove_OSC==true and data.paramdata[trackid][fxid][param].OSC_str ~= '') 
+        or (remove_OSC==false and data.paramdata[trackid][fxid][param].MIDI_CC and  data.paramdata[trackid][fxid][param].MIDI_CC >=0) then 
+        Data_ModifyLearn(conf, data, trackid,fxid,param, true )
+        
+        --[[                      (add_t.flagsMIDI<<14)+
+                      add_t.MIDI_Ch-1+
+                      (add_t.MIDI_msgtype<<4)+
+                      (add_t.MIDI_CC<<8)
+            if add_t.MIDI_Ch < 0 then learnMIDI = 0 end
+            local modstr= 'PARMLEARN '..(param-1)..' '..
+                  learnMIDI..' '..
+                  add_t.flags..' '..
+                  add_t.OSC_str..'\n'   
+                  ] ]
+      end
+    end)
+    Undo_EndBlock2( 0,conf.mb_title..': '..title, -1 )
+    refresh.data = true
+    refresh.GUI = true
+  end ]]
