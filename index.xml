@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e16b577a274c81b980ceb270d3fb7cf64c03de35" name="MPL Scripts">
+<index version="1" commit="f3c6e79e4dd32a025e94edba64eca50d677bdfed" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -812,7 +812,7 @@
 {\pard \ql \f0 \sa180 \li0 \fi0 Script for handling FX parameter MIDI/OSC bindings and parameter modulation data\par}
 }
 ]]></description>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=235521</link>
       </metadata>
       <version name="1.0" author="MPL" time="2020-04-06T11:01:31Z">
         <changelog><![CDATA[+ initial release
@@ -892,6 +892,16 @@
         <source file="mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e16b577a274c81b980ceb270d3fb7cf64c03de35/FX/mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua</source>
         <source file="mpl_LearnEditor_functions/mpl_LearnEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e16b577a274c81b980ceb270d3fb7cf64c03de35/FX/mpl_LearnEditor_functions/mpl_LearnEditor_data.lua</source>
         <source file="mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e16b577a274c81b980ceb270d3fb7cf64c03de35/FX/mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua</source>
+      </version>
+      <version name="1.08" author="MPL" time="2020-05-20T19:39:20Z">
+        <changelog><![CDATA[# allow to port some actions as separate scripts out of LearnEditor, based on internal data structure
+# refresh arrange/tracklist after Show and arm envelopes with learn and parameter modulation for selected tracks]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3c6e79e4dd32a025e94edba64eca50d677bdfed/FX/mpl_LearnEditor.lua</source>
+        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3c6e79e4dd32a025e94edba64eca50d677bdfed/FX/mpl_LearnEditor_functions/mpl_LearnEditor_GUI.lua</source>
+        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3c6e79e4dd32a025e94edba64eca50d677bdfed/FX/mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua</source>
+        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3c6e79e4dd32a025e94edba64eca50d677bdfed/FX/mpl_LearnEditor_functions/mpl_LearnEditor_data.lua</source>
+        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3c6e79e4dd32a025e94edba64eca50d677bdfed/FX/mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua</source>
+        <source file="mpl_LearnEditor_functions/mpl_Show and arm envelopes with learn and parameter modulation for selected tracks.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3c6e79e4dd32a025e94edba64eca50d677bdfed/FX/mpl_LearnEditor_functions/mpl_Show%20and%20arm%20envelopes%20with%20learn%20and%20parameter%20modulation%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_LearnManager (background).lua" type="script" desc="LearnManager">
