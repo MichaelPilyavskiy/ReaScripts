@@ -1,6 +1,7 @@
 -- @description Show and arm envelopes with learn and parameter modulation for selected tracks (LearnEditor)
 -- @version 1.0
 -- @author MPL
+-- @noindex
 -- @website http://forum.cockos.com/showthread.php?t=235521
 -- @changelog
 --    + init

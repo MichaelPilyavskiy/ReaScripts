@@ -1,5 +1,5 @@
 -- @description LearnEditor
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=235521
 -- @about Script for handling FX parameter MIDI/OSC bindings and parameter modulation data
@@ -8,13 +8,12 @@
 --    mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua
 --    mpl_LearnEditor_functions/mpl_LearnEditor_data.lua
 --    mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua
---    mpl_LearnEditor_functions/mpl_Show and arm envelopes with learn and parameter modulation for selected tracks.lua
+--    [main] mpl_LearnEditor_functions/mpl_Show and arm envelopes with learn and parameter modulation for selected tracks.lua
 -- @changelog
---    # allow to port some actions as separate scripts out of LearnEditor, based on internal data structure
---    # refresh arrange/tracklist after Show and arm envelopes with learn and parameter modulation for selected tracks
+--    + port Show and arm envelopes with learn and parameter modulation for selected tracks
 
 
-  local vrs = 'v1.08'
+  local vrs = 'v1.09'
   
   --NOT gfx NOT reaper
 
