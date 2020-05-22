@@ -1,7 +1,6 @@
 -- @description Set selected track FX outputs to incremental stereo pairs
 -- @version 1.0
 -- @author MPL
--- @noindex
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
 --    + init
