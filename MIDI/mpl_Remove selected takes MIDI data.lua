@@ -1,57 +1,57 @@
 -- @description Remove selected takes MIDI data
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Port to metapackage
---    + Obey time selection (doesn`t work for looped items though)
+--    # fix ppq convertion
+--    # fix script names for proper reapack indexing
 -- @metapackage
 -- @provides
---    [main] . > Remove selected takes all MIDI data except notes.lua
---    [main] . > Remove selected takes ProgramChange.lua
---    [main] . > Remove selected takes AfterTouch.lua
---    [main] . > Remove selected takes PitchWheel.lua
---    [main] . > Remove selected takes MIDI CC data.lua
---    [main] . > Remove selected takes MIDI CC0 Bank Select (MSB).lua
---    [main] . > Remove selected takes MIDI CC1 Modulation Wheel.lua
---    [main] . > Remove selected takes MIDI CC2 Breath controller.lua
---    [main] . > Remove selected takes MIDI CC4 Foot Pedal (MSB).lua
---    [main] . > Remove selected takes MIDI CC5 Portamento Time (MSB).lua
---    [main] . > Remove selected takes MIDI CC6 Data Entry (MSB).lua
---    [main] . > Remove selected takes MIDI CC7 Volume (MSB).lua
---    [main] . > Remove selected takes MIDI CC8 Balance (MSB).lua
---    [main] . > Remove selected takes MIDI CC10 Pan position (MSB).lua
---    [main] . > Remove selected takes MIDI CC11 Expression (MSB).lua
---    [main] . > Remove selected takes MIDI CC64 Hold Pedal (on/off).lua
---    [main] . > Remove selected takes MIDI CC65 Portamento (on/off).lua
---    [main] . > Remove selected takes MIDI CC66 Sostenuto Pedal (on/off).lua
---    [main] . > Remove selected takes MIDI CC67 Soft Pedal (on/off).lua
---    [main] . > Remove selected takes MIDI CC68 Legato Pedal (on/off).lua
---    [main] . > Remove selected takes MIDI CC69 Hold 2 Pedal (on/off).lua
---    [main] . > Remove selected takes MIDI CC70 Sound Variation.lua
---    [main] . > Remove selected takes MIDI CC71 Resonance (Timbre).lua
---    [main] . > Remove selected takes MIDI CC72 Sound Release Time.lua
---    [main] . > Remove selected takes MIDI CC73 Sound Attack Time.lua
---    [main] . > Remove selected takes MIDI CC74 Frequency Cutoff (Brightness).lua
---    [main] . > Remove selected takes MIDI CC80 Decay.lua
---    [main] . > Remove selected takes MIDI CC81 Hi Pass Filter Frequency.lua
---    [main] . > Remove selected takes MIDI CC84 Portamento Amount.lua
---    [main] . > Remove selected takes MIDI CC91 Reverb Level.lua
---    [main] . > Remove selected takes MIDI CC92 Tremolo Level.lua
---    [main] . > Remove selected takes MIDI CC93 Chorus Level.lua
---    [main] . > Remove selected takes MIDI CC94 Detune Level.lua
---    [main] . > Remove selected takes MIDI CC95 Phaser Level.lua
---    [main] . > Remove selected takes MIDI CC120 All Sound Off.lua
---    [main] . > Remove selected takes MIDI CC121 All Controllers Off.lua
---    [main] . > Remove selected takes MIDI CC122 Local Keyboard (on/off).lua
---    [main] . > Remove selected takes MIDI CC123 All Notes Off.lua
---    [main] . > Remove selected takes MIDI CC124 Omni Mode Off.lua
---    [main] . > Remove selected takes MIDI CC125 Omni Mode On.lua
---    [main] . > Remove selected takes MIDI CC126 Mono Operation.lua
---    [main] . > Remove selected takes MIDI CC127 Poly Mode.lua
+--    [main] . > mpl_Remove selected takes all MIDI data except notes.lua
+--    [main] . > mpl_Remove selected takes ProgramChange.lua
+--    [main] . > mpl_Remove selected takes AfterTouch.lua
+--    [main] . > mpl_Remove selected takes PitchWheel.lua
+--    [main] . > mpl_Remove selected takes MIDI CC data.lua
+--    [main] . > mpl_Remove selected takes MIDI CC0 Bank Select (MSB).lua
+--    [main] . > mpl_Remove selected takes MIDI CC1 Modulation Wheel.lua
+--    [main] . > mpl_Remove selected takes MIDI CC2 Breath controller.lua
+--    [main] . > mpl_Remove selected takes MIDI CC4 Foot Pedal (MSB).lua
+--    [main] . > mpl_Remove selected takes MIDI CC5 Portamento Time (MSB).lua
+--    [main] . > mpl_Remove selected takes MIDI CC6 Data Entry (MSB).lua
+--    [main] . > mpl_Remove selected takes MIDI CC7 Volume (MSB).lua
+--    [main] . > mpl_Remove selected takes MIDI CC8 Balance (MSB).lua
+--    [main] . > mpl_Remove selected takes MIDI CC10 Pan position (MSB).lua
+--    [main] . > mpl_Remove selected takes MIDI CC11 Expression (MSB).lua
+--    [main] . > mpl_Remove selected takes MIDI CC64 Hold Pedal.lua
+--    [main] . > mpl_Remove selected takes MIDI CC65 Portamento.lua
+--    [main] . > mpl_Remove selected takes MIDI CC66 Sostenuto Pedal.lua
+--    [main] . > mpl_Remove selected takes MIDI CC67 Soft Pedal.lua
+--    [main] . > mpl_Remove selected takes MIDI CC68 Legato Pedal.lua
+--    [main] . > mpl_Remove selected takes MIDI CC69 Hold 2 Pedal.lua
+--    [main] . > mpl_Remove selected takes MIDI CC70 Sound Variation.lua
+--    [main] . > mpl_Remove selected takes MIDI CC71 Resonance (Timbre).lua
+--    [main] . > mpl_Remove selected takes MIDI CC72 Sound Release Time.lua
+--    [main] . > mpl_Remove selected takes MIDI CC73 Sound Attack Time.lua
+--    [main] . > mpl_Remove selected takes MIDI CC74 Frequency Cutoff (Brightness).lua
+--    [main] . > mpl_Remove selected takes MIDI CC80 Decay.lua
+--    [main] . > mpl_Remove selected takes MIDI CC81 Hi Pass Filter Frequency.lua
+--    [main] . > mpl_Remove selected takes MIDI CC84 Portamento Amount.lua
+--    [main] . > mpl_Remove selected takes MIDI CC91 Reverb Level.lua
+--    [main] . > mpl_Remove selected takes MIDI CC92 Tremolo Level.lua
+--    [main] . > mpl_Remove selected takes MIDI CC93 Chorus Level.lua
+--    [main] . > mpl_Remove selected takes MIDI CC94 Detune Level.lua
+--    [main] . > mpl_Remove selected takes MIDI CC95 Phaser Level.lua
+--    [main] . > mpl_Remove selected takes MIDI CC120 All Sound Off.lua
+--    [main] . > mpl_Remove selected takes MIDI CC121 All Controllers Off.lua
+--    [main] . > mpl_Remove selected takes MIDI CC122 Local Keyboard.lua
+--    [main] . > mpl_Remove selected takes MIDI CC123 All Notes Off.lua
+--    [main] . > mpl_Remove selected takes MIDI CC124 Omni Mode Off.lua
+--    [main] . > mpl_Remove selected takes MIDI CC125 Omni Mode On.lua
+--    [main] . > mpl_Remove selected takes MIDI CC126 Mono Operation.lua
+--    [main] . > mpl_Remove selected takes MIDI CC127 Poly Mode.lua
 
 
-  local vrs = 'v1.0'
+  local vrs = 'v1.01'
   
   --NOT gfx NOT reaper
   
@@ -80,7 +80,7 @@
   end
   --------------------------------------------------------------------
   function RemoveMIDIdata(exclude_msg_byte1, exclude_msg_byte2) 
-    local timesel_cond0 = true
+    local timesel_cond = true
     local ts_start, ts_end = reaper.GetSet_LoopTimeRange2( 0, false, 0, -1, -1, false )
     if math.abs(ts_end - ts_start) < 0.001 then timesel_cond = false end
     for i = 1 , CountSelectedMediaItems(0) do
@@ -107,7 +107,7 @@
                 ) then
             
             local msg_pos = MIDI_GetProjTimeFromPPQPos( take, ppqpos )
-            if timesel_cond == false or (timesel_cond == true and ppqpos > ppq_st and ppqpos < ppq_end) then msg1 = '' end
+            if timesel_cond == false or (timesel_cond == true and msg_pos > ts_start and msg_pos < ts_end) then msg1 = '' end
           end
           idx = idx + 1
           tableEvents[idx] = s_pack("i4Bs4", offset, flags, msg1)
@@ -124,7 +124,7 @@
   if ret then
     local ret2 = VF_CheckReaperVrs(5.95,true)    
     if ret and ret2 then 
-      local exclude_msg_byte1, exclude_msg_byte2, leave_notes_only, scr_title = ParseScriptname()
+       exclude_msg_byte1, exclude_msg_byte2, leave_notes_only, scr_title = ParseScriptname()
       Undo_BeginBlock() 
       RemoveMIDIdata(exclude_msg_byte1, exclude_msg_byte2, leave_notes_only) 
       Undo_EndBlock(scr_title, 4) 
