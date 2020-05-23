@@ -158,17 +158,24 @@
         { str   = 'Remove selected track parameter modulation',
           func  = function() Data_Actions_REMOVEMOD(conf, obj, data, refresh, mouse, 'Remove selected track parameter modulation', true) end },          
         { str   = 'Link last two touched FX parameters',
-          func  = function() Data_Actions_LINKLTPRAMS(conf, obj, data, refresh, mouse, 'Link last two touched FX parameters', true) end },           
-       --[[ { str   = 'Apply default mapping to focused FX|',
-          func  = function() Data_Actions_DEFMAPAPP(conf, obj, data, refresh, mouse, 'Apply default mapping to focused FX', true) end },     ]]      
+          func  = function() Data_Actions_LINKLTPRAMS(conf, obj, data, refresh, mouse, 'Link last two touched FX parameters', true) end },  
+        { str   = 'Show TCP controls for mapped parameters|',
+          func  = function() Data_Actions_SHOWTCP(conf, obj, data, refresh, mouse, 'Show TCP controls for mapped parameters', true) end },            
+          
+        --[[{ str   = 'Apply default mapping to focused FX|',
+          func  = function() 
+                    local retval, tracknumber, itemnumber, fxnumber = reaper.GetFocusedFX()
+                    if retval ==1 then
+                      Data_Actions_DEFMAPAPP(conf, obj, data, refresh, mouse, 'Apply default mapping to focused FX', tracknumber, fxnumber)  
+                    end
+                  end }, ]]         
                                 --[[str = 'Save mapping to default / slotX (current right table)',
                                     {str = 'Apply to all FX instances on selected tracks',
-                                    {str = '|Show TCP controls for mapped parameters', 
-                                    {str = 'Hide envelopes for mapped parameters', 
                                     {str = 'Change MIDI mappings to specific channel',
                                     {str = 'Build mapping by incrementing OSC address',
                                     {str = 'Build mapping by incrementing MIDI CC',
                                     remove duplicas
+                                    copy paste lfo
 
                                   ]]
                                   

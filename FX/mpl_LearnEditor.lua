@@ -1,5 +1,5 @@
 -- @description LearnEditor
--- @version 1.09
+-- @version 1.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=235521
 -- @about Script for handling FX parameter MIDI/OSC bindings and parameter modulation data
@@ -10,10 +10,10 @@
 --    mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua
 --    [main] mpl_LearnEditor_functions/mpl_Show and arm envelopes with learn and parameter modulation for selected tracks.lua
 -- @changelog
---    + port Show and arm envelopes with learn and parameter modulation for selected tracks
+--    + Show TCP controls for mapped parameters
 
 
-  local vrs = 'v1.09'
+  local vrs = 'v1.10'
   
   --NOT gfx NOT reaper
 

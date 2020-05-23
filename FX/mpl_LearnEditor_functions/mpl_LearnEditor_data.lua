@@ -31,57 +31,6 @@
       end
   end
   -----------------------------------------------
-  function Data_ModifyLearn(conf, data, trid,fx, param, remove, add_t ) 
-      local tr= GetTrack(0,trid-1)
-      if not tr then return end
-      local retval, minval, maxval = reaper.TrackFX_GetParam( tr, fx-1, param-1 )
-      if retval == -1 then MB('Something wrong with incoming data. Please report to the forum with attached RPP.', conf.mb_title, 0) return end
-      
-      local retval, tr_chunk = GetTrackStateChunk( tr, '', false )
-      local fxGUID_check = TrackFX_GetFXGUID( tr, fx-1 )
-      for fxchunk in tr_chunk:gmatch('(BYPASS.-WAK %d)') do
-        local fxGUID = fxchunk:match('FXID (.-)\n')
-        if not fxGUID then fxGUID = fxchunk:match('FXID_NEXT (.-)\n') end 
-        if fxGUID:match(literalize(fxGUID_check):gsub('%s', '')) then
-          local fxchunk_mod
-          if remove ==true then 
-            fxchunk_mod = fxchunk:gsub('(PARMLEARN '..(param-1)..'.-)\n', '') 
-           elseif add_t then 
-            local learnMIDI = 
-                      (add_t.flagsMIDI<<14)+
-                      add_t.MIDI_Ch-1+
-                      (add_t.MIDI_msgtype<<4)+
-                      (add_t.MIDI_CC<<8)
-            if add_t.MIDI_Ch < 0 then learnMIDI = 0 end
-            local modstr= 'PARMLEARN '..(param-1)..' '..
-                  learnMIDI..' '..
-                  add_t.flags..' '..
-                  add_t.OSC_str..'\n'            
-            fxchunk_mod = fxchunk:gsub('(PARMLEARN '..(param-1)..'.-)\n', modstr)
-           else
-            local learnMIDI = 
-                      (data.paramdata[trid][fx][param].flagsMIDI<<14)+
-                      data.paramdata[trid][fx][param].MIDI_Ch-1+
-                      (data.paramdata[trid][fx][param].MIDI_msgtype<<4)+
-                      (data.paramdata[trid][fx][param].MIDI_CC<<8)
-            if data.paramdata[trid][fx][param].MIDI_Ch < 0 then learnMIDI = 0 end
-            local modstr= 'PARMLEARN '..(param-1)..' '..
-                  learnMIDI..' '..
-                  data.paramdata[trid][fx][param].flags..' '..
-                    data.paramdata[trid][fx][param].OSC_str..'\n'
-            fxchunk_mod = fxchunk:gsub('(PARMLEARN '..(param-1)..'.-)\n', modstr)
-          end
-          
-          tr_chunk = tr_chunk:gsub(literalize(fxchunk), fxchunk_mod)
-          
-          SetTrackStateChunk( tr, tr_chunk, false )
-          return
-        end
-      end
-    
-    
-  end
-  -----------------------------------------------
   function Data_ModifyMod(conf, data, trid,fx,param, remove, add )
       local tr= GetTrack(0,trid-1)
       if not tr then return end
@@ -316,6 +265,20 @@
     TrackList_AdjustWindows( false )
   end
   ----------------------------------------------------------------
+  function Data_Actions_SHOWTCP(conf, obj, data, refresh, mouse, title, selectedonly)
+    Undo_BeginBlock2( 0 )
+    Data_Actions_Loop(conf, obj, data, refresh, mouse,
+    function(trackid,fxid,param)
+      local track = data.paramdata[trackid].tr_ptr
+      if selectedonly==true then if not IsTrackSelected( track ) then return end end
+      SNM_AddTCPFXParm( track, fxid, param )
+    end)
+    Undo_EndBlock2( 0,conf.mb_title..': '..title, -1 )
+    UpdateArrange()
+    TrackList_AdjustWindows( false )
+  end  
+  
+  ----------------------------------------------------------------
   function Data_Actions_REMOVELEARN(conf, obj, data, refresh, mouse, title, remove_OSC)
     Undo_BeginBlock2( 0 )
     Data_Actions_Loop(conf, obj, data, refresh, mouse,
@@ -479,18 +442,26 @@
       end
     end
   end
-  --[[--------------------------------------------------------------
-  function Data_Actions_DEFMAPAPP(conf, obj, data, refresh, mouse, title, trackid0, fxid0)
-    Undo_BeginBlock2( 0 )
-    Data_Actions_Loop(conf, obj, data, refresh, mouse,
-    function(trackid,fxid,param)
-      if trackid ~= 
-      local track = data.paramdata[trackid].tr_ptr
-      if data.paramdata[trackid][fxid][param].has_learn and (remove_OSC==true and data.paramdata[trackid][fxid][param].OSC_str ~= '') 
-        or (remove_OSC==false and data.paramdata[trackid][fxid][param].MIDI_CC and  data.paramdata[trackid][fxid][param].MIDI_CC >=0) then 
-        Data_ModifyLearn(conf, data, trackid,fxid,param, true )
-        
-        --[[                      (add_t.flagsMIDI<<14)+
+  -----------------------------------------------
+  function Data_ModifyLearn(conf, data, trid,fx, param, remove, add_t, no_commit, input_chunk ) 
+      local tr= GetTrack(0,trid-1)
+      if not tr then return end
+      local retval, minval, maxval = reaper.TrackFX_GetParam( tr, fx-1, param-1 )
+      if retval == -1 then MB('Something wrong with incoming data. Please report to the forum with attached RPP.', conf.mb_title, 0) return end
+      
+      local retval, tr_chunk = GetTrackStateChunk( tr, '', false )
+      if no_commit then tr_chunk = input_chunk end
+      local fxGUID_check = TrackFX_GetFXGUID( tr, fx-1 )
+      for fxchunk in tr_chunk:gmatch('(BYPASS.-WAK %d)') do
+        local fxGUID = fxchunk:match('FXID (.-)\n')
+        if not fxGUID then fxGUID = fxchunk:match('FXID_NEXT (.-)\n') end 
+        if fxGUID:match(literalize(fxGUID_check):gsub('%s', '')) then
+          local fxchunk_mod
+          if remove ==true then 
+            fxchunk_mod = fxchunk:gsub('(PARMLEARN '..(param-1)..'.-)\n', '') 
+           elseif add_t then 
+            local learnMIDI = 
+                      (add_t.flagsMIDI<<14)+
                       add_t.MIDI_Ch-1+
                       (add_t.MIDI_msgtype<<4)+
                       (add_t.MIDI_CC<<8)
@@ -498,11 +469,43 @@
             local modstr= 'PARMLEARN '..(param-1)..' '..
                   learnMIDI..' '..
                   add_t.flags..' '..
-                  add_t.OSC_str..'\n'   
-                  ] ]
+                  add_t.OSC_str..'\n'            
+            if fxchunk:match('(PARMLEARN '..(param-1)..'.-)\n') then
+              fxchunk_mod = fxchunk:gsub('(PARMLEARN '..(param-1)..'.-)\n', modstr)
+             else
+              fxchunk_mod = fxchunk:gsub('(WAK) %d+', modstr..'\nWAK')
+            end
+           else
+            local learnMIDI = 
+                      (data.paramdata[trid][fx][param].flagsMIDI<<14)+
+                      data.paramdata[trid][fx][param].MIDI_Ch-1+
+                      (data.paramdata[trid][fx][param].MIDI_msgtype<<4)+
+                      (data.paramdata[trid][fx][param].MIDI_CC<<8)
+            if data.paramdata[trid][fx][param].MIDI_Ch < 0 then learnMIDI = 0 end
+            local modstr= 'PARMLEARN '..(param-1)..' '..
+                  learnMIDI..' '..
+                  data.paramdata[trid][fx][param].flags..' '..
+                    data.paramdata[trid][fx][param].OSC_str..'\n'
+            fxchunk_mod = fxchunk:gsub('(PARMLEARN '..(param-1)..'.-)\n', modstr)
+          end
+          
+          tr_chunk = tr_chunk:gsub(literalize(fxchunk), fxchunk_mod)
+          if not no_commit then
+            SetTrackStateChunk( tr, tr_chunk, false )
+           else
+            return tr_chunk
+          end
+          return
+        end
       end
-    end)
+    
+    
+  end
+  ---------------------------------------------------------------
+  function Data_Actions_DEFMAPAPP(conf, obj, data, refresh, mouse, title, trackid0, fxid0)
+    Undo_BeginBlock2( 0 )
+    --Data_ModifyLearn(conf, data, trackid0, fxid0, param, true )
     Undo_EndBlock2( 0,conf.mb_title..': '..title, -1 )
     refresh.data = true
     refresh.GUI = true
-  end ]]
+  end
