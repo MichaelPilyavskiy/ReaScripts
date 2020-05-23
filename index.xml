@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9be8725a84684636e6947ed871c1d853b1e44a39" name="MPL Scripts">
+<index version="1" commit="d7463a0a5e6b5a56f489b5651e1bc147e4b64d65" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -403,6 +403,10 @@
       <version name="1.29" author="MPL" time="2020-05-10T07:58:47Z">
         <changelog><![CDATA[+ VF_GetProjIDByPath]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2941fc5e23f871557fd6e2d175bdd2abc5182397/Functions/mpl_Various_functions.lua</source>
+      </version>
+      <version name="1.30" author="MPL" time="2020-05-23T05:34:05Z">
+        <changelog><![CDATA[# FloatInstrument toggle check]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7463a0a5e6b5a56f489b5651e1bc147e4b64d65/Functions/mpl_Various_functions.lua</source>
       </version>
     </reapack>
   </category>
@@ -1331,6 +1335,10 @@
       <version name="1.01" author="MPL" time="2018-03-08T15:19:08Z">
         <changelog><![CDATA[# ReaPack header]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3a2158fb623c3c6be3aa95aaa02cfdd9ff4ad854/FX/mpl_Toggle%20float%20instrument%20on%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2020-05-23T05:34:05Z">
+        <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7463a0a5e6b5a56f489b5651e1bc147e4b64d65/FX/mpl_Toggle%20float%20instrument%20on%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle mute all tracks contain FX with latency (PDC) higher than X samples.lua" type="script" desc="Toggle mute all tracks contain FX with latency (PDC) higher than X samples">
