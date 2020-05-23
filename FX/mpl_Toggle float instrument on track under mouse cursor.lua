@@ -1,31 +1,29 @@
 -- @description Toggle float instrument on track under mouse cursor
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # ReaPack header
+--    # update for use with REAPER 5.981+
 
+  -- NOT gfx NOT reaper
+  local scr_title = 'Toggle float instrument on track under mouse cursor'
+  function main()
+    local tr = VF_GetTrackUnderMouseCursor()
+    if tr then 
+      FloatInstrument(tr,true)
+      ApplyFunctionToTrackInTree(tr, FloatInstrument)
+    end
+  end  
 
-  script_title = "Toggle float instrument on track under mouse cursor"
-reaper.Undo_BeginBlock()
+---------------------------------------------------------------------
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
 
-window, segment, details = reaper.BR_GetMouseCursorContext()
-if segment == "track" then
-  track = reaper.BR_GetMouseCursorContext_Track()
-  if track ~= nil then
-    vsti_id = reaper.TrackFX_GetInstrument(track)
-    if vsti_id ~= -1 then    
-      is_float = reaper.TrackFX_GetOpen(track, vsti_id)
-      if is_float == false then
-         reaper.TrackFX_Show(track, vsti_id, 3)
-       else
-         reaper.TrackFX_Show(track, vsti_id, 2)
-      end
-     else
-      reaper.Main_OnCommandEx(40271, 0, 0) -- show fx browser
-    end   
-  end
-end
-
-reaper.UpdateArrange()
-reaper.Undo_EndBlock(script_title, 0)
+--------------------------------------------------------------------  
+  local ret = CheckFunctions('VF_GetItemTakeUnderMouseCursor') 
+  local ret2 = VF_CheckReaperVrs(5.95,true)    
+  if ret and ret2 then 
+    script_title = "Toggle float instrument on track under mouse cursor"
+    reaper.Undo_BeginBlock() 
+    main()
+    reaper.Undo_EndBlock(script_title, -1)
+  end 

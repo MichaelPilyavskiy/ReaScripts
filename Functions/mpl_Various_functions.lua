@@ -2,9 +2,9 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.29
+-- @version 1.30
 -- @changelog
---    + VF_GetProjIDByPath
+--    # FloatInstrument toggle check
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
   ---------------------------------------------------
@@ -502,10 +502,16 @@
       reaper.UpdateArrange()    
   end
   -------------------------------------------------------------------------------     
-  function FloatInstrument(track)
+  function FloatInstrument(track, toggle)
     local vsti_id = TrackFX_GetInstrument(track)
     if vsti_id and vsti_id >= 0 then 
-      TrackFX_Show(track, vsti_id, 3) -- float
+      if not toggle then 
+        TrackFX_Show(track, vsti_id, 3) -- float
+       else
+        local is_float = TrackFX_GetOpen(track, vsti_id)
+        if is_float == false then TrackFX_Show(track, vsti_id, 3) else TrackFX_Show(track, vsti_id, 2) end
+      end
+      
       return true
     end
   end
