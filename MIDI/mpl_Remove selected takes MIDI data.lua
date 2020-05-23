@@ -1,10 +1,9 @@
 -- @description Remove selected takes MIDI data
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix ppq convertion
---    # fix script names for proper reapack indexing
+--    # fix leave_notes_only
 -- @metapackage
 -- @provides
 --    [main] . > mpl_Remove selected takes all MIDI data except notes.lua
@@ -79,7 +78,7 @@
     return exclude_msg_byte1, exclude_msg_byte2, leave_notes_only, scr_title
   end
   --------------------------------------------------------------------
-  function RemoveMIDIdata(exclude_msg_byte1, exclude_msg_byte2) 
+  function RemoveMIDIdata(exclude_msg_byte1, exclude_msg_byte2,leave_notes_only) 
     local timesel_cond = true
     local ts_start, ts_end = reaper.GetSet_LoopTimeRange2( 0, false, 0, -1, -1, false )
     if math.abs(ts_end - ts_start) < 0.001 then timesel_cond = false end
