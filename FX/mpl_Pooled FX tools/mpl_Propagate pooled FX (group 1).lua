@@ -1,11 +1,11 @@
--- @description Propagate pooled FX to project (group 1)
--- @version 1.0
+-- @description Propagate pooled FX (group 1)
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Add FX if not exist, move/remove if out of designed order, mark them as 'POOL FX <FX_name>', remove if track hasn`t slave JSFX, share TCP ctrls) 
 -- @noindex
 -- @changelog
---    + init
+--    + Remove pooled FX if not exist in master chain but still marked as pool for defined group
 
   --NOT gfx NOT reaper
   local group = 1
@@ -35,6 +35,41 @@
     -- move pool fx after header
       local cnt_fx = TrackFX_GetCount( dest_track )
       for src_fx = 1, #fx_names do TrackFX_CopyToTrack( dest_track,cnt_fx-1, dest_track, jsfx_id+1, true ) end
+      
+  end
+  ------------------------------------------------------------------------ 
+  function RemoveUnlistedPools(track, group, fx_names)
+    local jsfx_id = GetSlaveJSFXid(track, group)
+    
+    if not jsfx_id then
+      local cnt_fx = TrackFX_GetCount( track )
+      for fx = cnt_fx, 1, -1 do 
+        local retval, fxname = TrackFX_GetFXName( src_track, fx-1, '' )
+        if fxname:match('POOL FX'..group..' ') then
+          TrackFX_Delete( track, fx-1 )
+        end
+      end
+    end
+    
+    if jsfx_id then
+      local cnt_fx = TrackFX_GetCount( track )
+      for fx = cnt_fx, 1, -1 do 
+        local retval, fxname = TrackFX_GetFXName( track, fx-1, '' )
+        if fxname:match('POOL FX'..group..' ') then
+          local original_name = fxname:match('POOL FX'..group..' (.*)')
+          if original_name then
+            local has_in_master = false
+            for i =1, #fx_names do
+              if original_name == fx_names[i] then 
+                has_in_master = true 
+                break
+              end
+            end
+            if not has_in_master then  TrackFX_Delete( track, fx-1 ) end
+          end
+        end
+      end
+    end
   end
   ------------------------------------------------------------------------ 
   function main(group)
@@ -59,9 +94,9 @@
       for i = 1, CountTracks(0) do 
         local track = GetTrack(0,i-1)
         if track ~= src_track then
-          --local jsfx_id= TrackFX_AddByName( track, 'POOL FX slave.jsfx', false, 0 ) 
-          local jsfx_id = GetSlaveJSFXid(track, group)
-          if jsfx_id and jsfx_id >= 0 then PropagatePoolFX(track, src_track, jsfx_id, fx_names) end
+          local jsfx_id = GetSlaveJSFXid(track, group) --local jsfx_id= TrackFX_AddByName( track, 'POOL FX slave.jsfx', false, 0 ) 
+          if jsfx_id and jsfx_id >= 0 then PropagatePoolFX(track, src_track, jsfx_id, fx_names) end 
+          RemoveUnlistedPools(track, group, fx_names)
         end
       end
   end
@@ -81,7 +116,7 @@
     if ret and ret2 then 
       Undo_BeginBlock() 
       main(group)
-      Undo_EndBlock('Propagate pooled FX to project (group 1)', -1) 
+      Undo_EndBlock('Propagate pooled FX (group 1)', -1) 
     end
   end
   
