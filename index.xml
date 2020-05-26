@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8742b9ec6d169250bbc494a02be89afde0c9e3fd" name="MPL Scripts">
+<index version="1" commit="2d4ee8a0281ed2c0a70dbad353443d14d4fd4b5b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1066,6 +1066,19 @@
         <source main="main" file="mpl_Pooled FX tools/mpl_Add pooled fx slave JSFX to selected tracks at chain start.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/178a72554ede94b5bdd7e255ffdd0897f56d868e/FX/mpl_Pooled%20FX%20tools/mpl_Add%20pooled%20fx%20slave%20JSFX%20to%20selected%20tracks%20at%20chain%20start.lua</source>
         <source main="main" file="mpl_Pooled FX tools/mpl_Propagate pooled FX (group 1).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/178a72554ede94b5bdd7e255ffdd0897f56d868e/FX/mpl_Pooled%20FX%20tools/mpl_Propagate%20pooled%20FX%20(group%201).lua</source>
         <source main="main" file="mpl_Pooled FX tools/mpl_Propagate last touched parameter to all pooled FX parameters.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/178a72554ede94b5bdd7e255ffdd0897f56d868e/FX/mpl_Pooled%20FX%20tools/mpl_Propagate%20last%20touched%20parameter%20to%20all%20pooled%20FX%20parameters.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2020-05-26T06:22:21Z">
+        <changelog><![CDATA[# Set selected track as pooled fx master (group 1) / fix error on no track selection
++ Action: Propagate pooled FX master parameters to all slaves (group 1).lua
++ Action: Propagate pooled FX master bypass states to all slaves (group 1).lua]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d4ee8a0281ed2c0a70dbad353443d14d4fd4b5b/FX/mpl_Pooled%20FX%20tools.lua</source>
+        <source main="main" file="mpl_Pooled FX tools/mpl_Set selected track as pooled fx master (group 1).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d4ee8a0281ed2c0a70dbad353443d14d4fd4b5b/FX/mpl_Pooled%20FX%20tools/mpl_Set%20selected%20track%20as%20pooled%20fx%20master%20(group%201).lua</source>
+        <source main="main" file="mpl_Pooled FX tools/mpl_Add pooled fx slave JSFX to selected tracks at chain end.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d4ee8a0281ed2c0a70dbad353443d14d4fd4b5b/FX/mpl_Pooled%20FX%20tools/mpl_Add%20pooled%20fx%20slave%20JSFX%20to%20selected%20tracks%20at%20chain%20end.lua</source>
+        <source main="main" file="mpl_Pooled FX tools/mpl_Add pooled fx slave JSFX to selected tracks at chain start.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d4ee8a0281ed2c0a70dbad353443d14d4fd4b5b/FX/mpl_Pooled%20FX%20tools/mpl_Add%20pooled%20fx%20slave%20JSFX%20to%20selected%20tracks%20at%20chain%20start.lua</source>
+        <source main="main" file="mpl_Pooled FX tools/mpl_Propagate pooled FX (group 1).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d4ee8a0281ed2c0a70dbad353443d14d4fd4b5b/FX/mpl_Pooled%20FX%20tools/mpl_Propagate%20pooled%20FX%20(group%201).lua</source>
+        <source main="main" file="mpl_Pooled FX tools/mpl_Propagate last touched parameter to all pooled FX parameters.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d4ee8a0281ed2c0a70dbad353443d14d4fd4b5b/FX/mpl_Pooled%20FX%20tools/mpl_Propagate%20last%20touched%20parameter%20to%20all%20pooled%20FX%20parameters.lua</source>
+        <source main="main" file="mpl_Pooled FX tools/mpl_Propagate pooled FX master parameters to all slaves (group 1).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d4ee8a0281ed2c0a70dbad353443d14d4fd4b5b/FX/mpl_Pooled%20FX%20tools/mpl_Propagate%20pooled%20FX%20master%20parameters%20to%20all%20slaves%20(group%201).lua</source>
+        <source main="main" file="mpl_Pooled FX tools/mpl_Propagate pooled FX master bypass states to all slaves (group 1).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d4ee8a0281ed2c0a70dbad353443d14d4fd4b5b/FX/mpl_Pooled%20FX%20tools/mpl_Propagate%20pooled%20FX%20master%20bypass%20states%20to%20all%20slaves%20(group%201).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Randomize Track FX parameters.lua" type="script" desc="Randomize Track FX parameters">
