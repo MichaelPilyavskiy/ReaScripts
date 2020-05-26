@@ -1,11 +1,11 @@
 -- @description Set selected track as pooled fx master (group 1)
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Set track name as 'POOL FX1 master', load FX chain from \REAPER\FXChains\POOL FX1 master.RfxChain if any
 -- @noindex
 -- @changelog
---    + init
+--    # fix error if no track selelcted
 
   --NOT gfx NOT reaper
   group = 1
@@ -28,6 +28,7 @@
   ------------------------------------------------------------------------ 
   function main()
     local tr = GetSelectedTrack(0,0)
+    if not tr then return end
     GetSetMediaTrackInfo_String( tr, 'P_NAME', 'POOL FX'..group..' master', 1 )
     local chain_path = GetResourcePath()..'/FXChains/POOL FX'..group..' master.RfxChain'
     if  file_exists( chain_path ) then
