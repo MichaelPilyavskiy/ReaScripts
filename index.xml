@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7e581e035c33483f99f412c82b19135aceb86208" name="MPL Scripts">
+<index version="1" commit="f096b39d0b85fa32432548d064bef383d58e434c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4245,9 +4245,9 @@ add control for timefall showing last note]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc0f426d0ead2164d376810459294f3fe8f8eb95/MIDI%20editor/mpl_Reorder%20selected%20notes.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Reset pitchbend at mouse cursor.lua" type="script" desc="Reset pitchbend at mouse cursor">
+    <reapack name="mpl_Reset pitchbend at mouse cursor.lua" type="script" desc="Reset pitchbend under mouse cursor">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2017-02-23T12:11:35Z">
         <changelog><![CDATA[+ init release]]></changelog>
@@ -4256,6 +4256,12 @@ add control for timefall showing last note]]></changelog>
       <version name="1.01" author="MPL" time="2017-11-18T15:12:39Z">
         <changelog><![CDATA[# reset only if pitchbend CC lane under mouse cursor]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/234cc8caf1b0ff42af1e69844e9874dec99910a2/MIDI%20editor/mpl_Reset%20pitchbend%20at%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2020-05-27T06:01:25Z">
+        <changelog><![CDATA[# support REAPER 6.0+
+# use raw MIDI evt addition
+# change name]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f096b39d0b85fa32432548d064bef383d58e434c/MIDI%20editor/mpl_Reset%20pitchbend%20at%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Select high pitch MIDI notes.lua" type="script" desc="Select high pitch MIDI notes">
