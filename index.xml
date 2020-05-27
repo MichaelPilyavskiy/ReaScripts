@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2d4ee8a0281ed2c0a70dbad353443d14d4fd4b5b" name="MPL Scripts">
+<index version="1" commit="7e581e035c33483f99f412c82b19135aceb86208" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5698,6 +5698,42 @@ add control for timefall showing last note]]></changelog>
     </reapack>
   </category>
   <category name="Various">
+    <reapack name="mpl_Add time signature.lua" type="script" desc="Add time signature">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-05-27T05:28:34Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main" file="mpl_Add 1 to 4 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 2 to 4 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 3 to 4 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 4 to 4 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 5 to 4 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 6 to 4 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 7 to 4 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 3 to 8 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 5 to 8 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 6 to 8 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 7 to 8 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 9 to 8 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 10 to 8 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 11 to 8 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 12 to 8 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 13 to 8 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 14 to 8 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 15 to 8 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 3 to 16 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 5 to 16 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 7 to 16 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 9 to 16 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 10 to 16 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 11 to 16 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 12 to 16 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 13 to 16 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 14 to 16 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+        <source main="main" file="mpl_Add 15 to 16 time signature.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e581e035c33483f99f412c82b19135aceb86208/Various/mpl_Add%20time%20signature.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Adjust arrange grid (mousewheel).lua" type="script" desc="Adjust arrange grid (mousewheel)">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
