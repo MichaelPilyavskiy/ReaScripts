@@ -1,5 +1,5 @@
 -- @description Pooled FX tools
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -11,11 +11,6 @@
 --    [main] mpl_Pooled FX tools/mpl_Propagate last touched parameter to all pooled FX parameters.lua
 --    [main] mpl_Pooled FX tools/mpl_Propagate pooled FX master parameters to all slaves (group 1).lua
 --    [main] mpl_Pooled FX tools/mpl_Propagate pooled FX master bypass states to all slaves (group 1).lua
+--    [main] mpl_Pooled FX tools/mpl_Propagate last touched pooled FX parameters to all pooled FX in group (group 1).lua
 -- @changelog
---    # Set selected track as pooled fx master (group 1) / fix error on no track selection
---    + Action: Propagate pooled FX master parameters to all slaves (group 1).lua
---    + Action: Propagate pooled FX master bypass states to all slaves (group 1).lua
-
-
-
-  --[[ "print" strip to selected track, i.e. remove "POOL" from "POOL <FX_name>", remove slave JSFX]]
+--    + Action: Propagate last touched pooled FX parameters to all pooled FX in group (group 1)
