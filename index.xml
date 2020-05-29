@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f096b39d0b85fa32432548d064bef383d58e434c" name="MPL Scripts">
+<index version="1" commit="fc13756626d3100e53de404479d1a39c0a66979f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -411,6 +411,15 @@
     </reapack>
   </category>
   <category name="FX">
+    <reapack name="mpl_Add FXChain to selected track.lua" type="script" desc="Add FXChain to selected track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-05-29T06:41:05Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fc13756626d3100e53de404479d1a39c0a66979f/FX/mpl_Add%20FXChain%20to%20selected%20track.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Adjust normalized last touched parameter by X units (MIDI, OSC, mousewheel).lua" type="script" desc="Adjust normalized last touched parameter by X units (MIDI, OSC, mousewheel)">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
