@@ -1,9 +1,9 @@
 -- @description Add FXChain to selected track
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    # fix path
  
   --NOT gfx NOT reaper
   function AddChunkToTrack(tr, chunk) -- add empty fx chain chunk if not exists
@@ -16,8 +16,8 @@
   function main()
     local tr = reaper.GetSelectedTrack(0,0)
     if not tr then return end
-    retval, filenameNeed4096 = reaper.GetUserFileNameForRead(reaper.GetResourcePath()..'/REAPER', '', '' )
-    if retval then
+    retval, filenameNeed4096 = reaper.GetUserFileNameForRead(reaper.GetResourcePath()..'\\FXChains\\', '', '' )
+    if retval and filenameNeed4096 then
       local f = io.open(filenameNeed4096,'r')
       if f then
         content = f:read('a')
