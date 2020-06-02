@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="67235bae15794298476a45f52e0b49900abed241" name="MPL Scripts">
+<index version="1" commit="945c32b7539067417a072d94c0482d921f8634c6" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4452,6 +4452,19 @@ add control for timefall showing last note]]></changelog>
 # set edit cursor to start of newly added region
 # dark/ignore regions contain @ character]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4aeaea722e98a962a5f6f251d837f82af4acc30b/Regions/mpl_Region%20chord%20editor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_RegionManager.lua" type="script" desc="RegionManager">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2020-06-02T04:41:23Z">
+        <changelog><![CDATA[+ Port some features from Samplitude by user request]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/945c32b7539067417a072d94c0482d921f8634c6/Regions/mpl_RegionManager.lua</source>
+        <source file="mpl_RegionManager_functions/mpl_RegionManager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/945c32b7539067417a072d94c0482d921f8634c6/Regions/mpl_RegionManager_functions/mpl_RegionManager_GUI.lua</source>
+        <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/945c32b7539067417a072d94c0482d921f8634c6/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
+        <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/945c32b7539067417a072d94c0482d921f8634c6/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
+        <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/945c32b7539067417a072d94c0482d921f8634c6/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
       </version>
     </reapack>
   </category>
