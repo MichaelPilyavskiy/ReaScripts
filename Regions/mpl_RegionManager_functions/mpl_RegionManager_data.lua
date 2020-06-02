@@ -49,6 +49,7 @@
         data.regions[idx] = {isrgn=isrgn,
                               rgnpos = pos,
                               rgnend=rgnend,
+                              rgnlen=rgnlen,
                               name=name,
                               markrgnindexnumber=markrgnindexnumber,
                               color=color,

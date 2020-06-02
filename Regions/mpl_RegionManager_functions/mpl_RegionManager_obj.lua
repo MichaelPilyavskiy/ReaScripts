@@ -61,7 +61,7 @@
     obj.tr_listy = obj.menu_h *2
     obj.tr_listw = obj.trlistw
     
-    obj.rgnroww_idx = 20
+    obj.rgnroww_idx = 25
     obj.rgnroww_idxreal = 20
     if conf.show_proj_ids == 0 then obj.rgnroww_idxreal = 0 end
     local row_w =55
@@ -75,6 +75,7 @@
     Obj_Scroll(conf, obj, data, refresh, mouse)
     Obj_TopLine(conf, obj, data, refresh, mouse)
     Obj_RegList_Head(conf, obj, data, refresh, mouse)
+    Obj_SortMapping(conf, obj, data, refresh, mouse) 
     local comlist_h, realcnt = Obj_RegList(conf, obj, data, refresh, mouse, true)
     obj.realcnt = realcnt
     if comlist_h then 
@@ -82,6 +83,24 @@
       Obj_RegList(conf, obj, data, refresh, mouse)
     end
     for key in pairs(obj) do if type(obj[key]) == 'table' then  obj[key].context = key  end end    
+  end
+    -----------------------------------------------  
+  function Obj_SortMapping(conf, obj, data, refresh, mouse)
+    obj.mapping = {}  
+    if conf.sort_row == 0 then
+      for i = 1, #data.regions do obj.mapping[#obj.mapping+1] = {nil,i} end
+     elseif conf.sort_row >0 then
+      local key = 'name' 
+      if conf.sort_row == 2 then key = 'rgnpos'
+        elseif conf.sort_row == 3 then key = 'rgnend'
+        elseif conf.sort_row == 4 then key = 'rgnlen'
+      end
+      local tnames = {}
+      for i = 1, #data.regions do table.insert(tnames, {data.regions[i][key],i} )  end
+      local f = function(t,a,b) return t[b][1] > t[a][1] end
+      if conf.sort_rowflag == 1 then f = function(t,a,b) return t[b][1] < t[a][1] end end
+      for k,v in spairs(tnames, f) do obj.mapping[#obj.mapping+1] = tnames[k] end      
+    end
   end
     -----------------------------------------------
     function Obj_Menu(conf, obj, data, refresh, mouse)
@@ -165,7 +184,12 @@ ShortCuts:
                     refresh.GUI = true
                 end ,
           state = conf.show_proj_ids == 1},            
-        
+        { str = 'Enable dynamic GUI refresh (takes more CPU)',
+          func = function() 
+                    conf.dyn_refresh = math.abs(1-conf.dyn_refresh) 
+                    refresh.GUI = true
+                end ,
+          state = conf.dyn_refresh == 1},            
         
         { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
           func = function() 
@@ -231,17 +255,29 @@ ShortCuts:
                         end,             
                          
                       }                      
-  end  
+  end 
+  -----------------------------------------------
+  function Obj_GetMappedIdx(obj,cur_idx)
+    for i = 1, #obj.mapping do if obj.mapping[i][2] == cur_idx then return i end end
+  end
   -----------------------------------------------
   function Obj_Selection_NextPrev(conf, obj, data, refresh, mouse, inc) 
-    local cur_idx = Obj_Selection_GetFirst(conf, obj, data, refresh, mouse)
-    if not cur_idx then obj.selection[1] = true cur_idx = 1 end 
+    local src_idx = Obj_Selection_GetFirst(conf, obj, data, refresh, mouse)
+    cur_idx = Obj_GetMappedIdx(obj,src_idx)
+    --[[msg(src_idx)
+    msg(cur_idx)
+    msg('=')]]
+    if not cur_idx then 
+      if obj.mapping[1] and obj.mapping[1][2] then  obj.selection[obj.mapping[1][2]] = true cur_idx = 1  end
+      return 
+    end 
     
     --local new_idx = lim(cur_idx + 1*inc, 1, #data.regions)
     local fin = 1 if inc > 0 then fin =  #data.regions end
     for i = cur_idx+inc, fin, inc do
-      if (conf.showflag&1==1 and data.regions[i].isrgn == true) or (conf.showflag&2==2 and data.regions[i].isrgn == false) then
-        new_idx = i
+      local realid = obj.mapping[i][2]
+      if (conf.showflag&1==1 and data.regions[realid].isrgn == true) or (conf.showflag&2==2 and data.regions[realid].isrgn == false) then
+        new_idx = obj.mapping[i][2]
         break
       end
     end
@@ -290,7 +326,8 @@ ShortCuts:
     local tr_y0 = obj.tr_listy - obj.comlist_h * obj.scroll_val 
     local tr_y = tr_y0   
     local realcnt_idx = 0
-    for idx=1,#data.regions do
+    for idx0=1,#data.regions do
+      local idx = obj.mapping[idx0][2] -- mapped
       local fillback, col0 = true, data.regions[idx].color
       if col0==0 then 
         local r = 255 col0 = ColorToNative( r, r, r ) fillback_a = 0.44 
@@ -506,11 +543,15 @@ ShortCuts:
   end
   -----------------------------------------------
   function Obj_RegList_Head(conf, obj, data, refresh, mouse)
-    local fillback_a = 0.9
-    local alpha_back = 0.4
+    local fillback_a = 1
+    local alpha_back_src = 0.4
     local show  = true
     local tr_y = obj.menu_h
     local tr_h = obj.menu_h-1
+    local addtxt = ''
+    
+    local alpha_back = alpha_back_src
+    if conf.sort_row == 0 then addtxt = '↓' alpha_back = 0.8 end
       obj['region_idx_head'] = { clear = true,
               x =obj.tr_listx,
               y = tr_y,
@@ -520,11 +561,17 @@ ShortCuts:
               fillback_colint = col0,--'col0,
               fillback_a = fillback_a,
               alpha_back =alpha_back,
-              txt= 'ID',
+              txt= '#'..addtxt,
               txt_a = 1,
               align_txt = 16,
               fontsz = obj.GUI_fontsz2,
               show = show,
+              func = function()
+                        conf.sort_row = 0
+                        conf.sort_rowflag = 0
+                        refresh.GUI = true
+                        refresh.conf = true
+                      end              
               } 
       if conf.show_proj_ids == 1 then 
         obj['region_intidx_head'] = { clear = true,
@@ -543,6 +590,13 @@ ShortCuts:
               show = show,
               } 
       end
+      
+      local addtxt = ''
+      local alpha_back = alpha_back_src
+      if conf.sort_row == 1 then 
+        alpha_back = 0.8
+        if conf.sort_rowflag == 0 then addtxt = '↓' else addtxt = '↑'  end
+      end
       obj['regionname_head'] = { clear = true,
               x =obj.tr_listx+obj.rgnroww_idx+obj.rgnroww_idxreal,
               y = tr_y,
@@ -552,12 +606,28 @@ ShortCuts:
               fillback_colint = col0,--'col0,
               fillback_a = fillback_a,
               alpha_back = alpha_back,
-              txt= 'Name',
+              txt= 'Name'..addtxt,
               txt_a = 1,
               --align_txt = 17,
               fontsz = obj.GUI_fontsz2,
               show = show,
+              func = function()
+                        if conf.sort_row == 1 then
+                          conf.sort_rowflag = math.abs(1-conf.sort_rowflag)
+                         else
+                          conf.sort_row = 1
+                        end
+                        refresh.GUI = true
+                        refresh.conf = true
+                      end
+              
               } 
+      local addtxt = ''
+      local alpha_back = alpha_back_src
+      if conf.sort_row == 2 then 
+        alpha_back = 0.8
+        if conf.sort_rowflag == 0 then addtxt = '↓' else addtxt = '↑'  end
+      end              
       obj['regionstart_head'] = { clear = true,
               x =obj.tr_listx+obj.rgnroww_idx + obj.rgnroww_idxreal+obj.rgnroww_name,
               y = tr_y,
@@ -567,12 +637,27 @@ ShortCuts:
               fillback_colint = col0,--'col0,
               fillback_a = fillback_a,
               alpha_back = alpha_back,
-              txt= 'Start',
+              txt= 'Start'..addtxt,
               txt_a = 1,
               --align_txt = 16,
               fontsz = obj.GUI_fontsz2,
               show = show,
-              } 
+              func = function()
+                        if conf.sort_row == 2 then
+                          conf.sort_rowflag = math.abs(1-conf.sort_rowflag)
+                         else
+                          conf.sort_row = 2
+                        end
+                        refresh.GUI = true
+                        refresh.conf = true
+                      end
+              }
+      local addtxt = ''
+      local alpha_back = alpha_back_src
+      if conf.sort_row == 3 then 
+        alpha_back = 0.8
+        if conf.sort_rowflag == 0 then addtxt = '↓' else addtxt = '↑'  end
+      end              
       obj['regionend_head'] = { clear = true,
               x =obj.tr_listx+obj.rgnroww_idx + obj.rgnroww_idxreal+obj.rgnroww_name+obj.rgnroww_start,
               y = tr_y,
@@ -582,12 +667,27 @@ ShortCuts:
               fillback_colint = col0,--'col0,
               fillback_a = fillback_a,
               alpha_back = alpha_back,
-              txt= 'End',
+              txt= 'End'..addtxt,
               txt_a = 1,
               --align_txt = 16,
               fontsz = obj.GUI_fontsz2,
               show = show,
+              func = function()
+                        if conf.sort_row == 3 then
+                          conf.sort_rowflag = math.abs(1-conf.sort_rowflag)
+                         else
+                          conf.sort_row = 3
+                        end
+                        refresh.GUI = true
+                        refresh.conf = true
+                      end
               } 
+      local addtxt = ''
+      local alpha_back = alpha_back_src
+      if conf.sort_row == 4 then  
+        alpha_back = 0.8
+        if conf.sort_rowflag == 0 then addtxt = '↓' else addtxt = '↑'  end
+      end              
         obj['regionlen_head'] = { clear = true,
               x =obj.tr_listx+obj.rgnroww_idx + obj.rgnroww_idxreal+obj.rgnroww_name+obj.rgnroww_start+obj.rgnroww_end,
               y = tr_y,
@@ -597,10 +697,19 @@ ShortCuts:
               fillback_colint = col0,--'col0,
               fillback_a = fillback_a,
               alpha_back = alpha_back,
-              txt= 'Length',
+              txt= 'Length'..addtxt,
               txt_a = 1,
               --align_txt = 16,
               fontsz = obj.GUI_fontsz2,
               show = show,
+              func = function()
+                        if conf.sort_row == 4 then
+                          conf.sort_rowflag = math.abs(1-conf.sort_rowflag)
+                         else
+                          conf.sort_row = 4
+                        end
+                        refresh.GUI = true
+                        refresh.conf = true
+                      end
               }  
   end 

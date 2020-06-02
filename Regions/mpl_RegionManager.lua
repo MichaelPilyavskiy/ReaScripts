@@ -1,5 +1,5 @@
 -- @description RegionManager
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -8,10 +8,12 @@
 --    mpl_RegionManager_functions/mpl_RegionManager_data.lua
 --    mpl_RegionManager_functions/mpl_RegionManager_obj.lua
 -- @changelog
---    + Port some features from Samplitude by user request
+--    + Sort by ID
+--    + Sort by name
+--    + Allow to disable dynamic GUI refresh
 
 
-  local vrs = 'v1.0'
+  local vrs = 'v1.01'
   
   --NOT gfx NOT reaper
   
@@ -20,16 +22,17 @@
  --  INIT -------------------------------------------------
   local conf = {}  
   local refresh = { GUI_onStart = true, 
-                    GUI = false, 
+                    GUI = false,  
                     GUI_minor = true,
                     data = true,
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-  data = {}
-  local obj = { selection = {[1]=true},
+  local data = {regions={}}
+  local obj = { selection = {},
                 realcnt = 0,
-                search_field_txt = ''}
+                search_field_txt = '',
+                mapping = {}}
   ---------------------------------------------------  
   
   function Main_RefreshExternalLibs()     -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua
@@ -55,6 +58,10 @@
             
             showflag = 1, -- &1 reg &2 mark
             show_proj_ids = 0,
+            sort_row = 0,
+            sort_rowflag = 0,
+            dyn_refresh = 1,
+            
             -- mouse
             mouse_wheel_res = 960,
             }

@@ -455,18 +455,21 @@
         GUI_gradDrawObj(conf, obj, data, refresh, mouse)
         GUI_gradSelection(conf, obj, data, refresh, mouse)
         refresh.GUI_onStart = nil             
-        refresh.GUI = true       
+        refresh.GUI = true    
       end
       
     -- refresh
-      if refresh.GUI or refresh.GUI_minor then 
+      if (conf.dyn_refresh == 1 and (refresh.GUI or refresh.GUI_minor)) 
+        or (conf.dyn_refresh == 0 and refresh.GUI) 
+        then 
         -- refresh backgroung
           gfx.dest = 1
           gfx.setimgdim(1, -1, -1)  
           gfx.setimgdim(1, gfx.w, gfx.h) 
           gfx.blit( 2, 1, 0, -- grad back
                     0,0,  obj.grad_sz,obj.grad_sz/2,
-                    0,0,  gfx.w,gfx.h, 0,0)   
+                    0,0,  gfx.w,gfx.h, 0,0)
+      
         -- refresh all buttons
           for key in spairs(obj) do 
             if type(obj[key]) == 'table' and obj[key].show and not obj[key].blit then 
@@ -474,7 +477,6 @@
             end  
           end  
       end
-    
  
       
     --  render    
