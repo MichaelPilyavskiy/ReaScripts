@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="637247cbba95d1cc8a4e2a64178f748d5150d0a4" name="MPL Scripts">
+<index version="1" commit="99ba931039f3b5c6e32285545f0127601ac35a57" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -418,6 +418,10 @@
       <version name="1.0" author="MPL" time="2020-05-29T06:41:05Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fc13756626d3100e53de404479d1a39c0a66979f/FX/mpl_Add%20FXChain%20to%20selected%20track.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2020-06-02T07:16:24Z">
+        <changelog><![CDATA[# fix path]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/99ba931039f3b5c6e32285545f0127601ac35a57/FX/mpl_Add%20FXChain%20to%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Adjust normalized last touched parameter by X units (MIDI, OSC, mousewheel).lua" type="script" desc="Adjust normalized last touched parameter by X units (MIDI, OSC, mousewheel)">
