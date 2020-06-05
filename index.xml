@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="99ba931039f3b5c6e32285545f0127601ac35a57" name="MPL Scripts">
+<index version="1" commit="57a3a566ae4ff9b2cff81b416260725b8da22082" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5248,6 +5248,47 @@ add control for timefall showing last note]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4838e6246210c95b076f3c7017c2f7236dffb2ae/Tracks%20Properties/mpl_Color%20project%20tracks%20by%20user%20defined%20filter%20and%20color.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Create send between selected tracks and track under mouse cursor.lua" type="script" desc="Create send between selected tracks and track under mouse cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.12" author="MPL" time="2020-06-05T20:05:23Z">
+        <changelog><![CDATA[# update name
++ allow to use as Send track under mouse cursor to selected tracks]]></changelog>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (multichannel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 3-4).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 5-6).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 7-8).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 9-10).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 11-12).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 13-14).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 15-16).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 3-4 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 5-6 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 7-8 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 9-10 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 11-12 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 13-14 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 15-16 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (multichannel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 3-4).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 5-6).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 7-8).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 9-10).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 11-12).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 13-14).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 1-2 to 15-16).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 3-4 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks  (channel 5-6 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 7-8 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 9-10 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 11-12 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 13-14 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_Send track under mouse cursor to selected tracks (channel 15-16 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a3a566ae4ff9b2cff81b416260725b8da22082/Tracks%20Properties/mpl_Create%20send%20between%20selected%20tracks%20and%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Delete x characters from selected track names.eel" type="script" desc="Delete x characters from selected track names">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Delete%20x%20characters%20from%20selected%20track%20names.eel</source>
@@ -5413,101 +5454,6 @@ add control for timefall showing last note]]></changelog>
       <version name="1.1" author="MPL" time="2017-07-10T13:54:32Z">
         <changelog><![CDATA[#proper match GUID]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e717c0b7c7ef5cffd8d691ecb4cf5f9d7a9a94c6/Tracks%20Properties/mpl_Select%20tracks%20with%20SWS%20Notes.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Send selected tracks to track under mouse cursor.lua" type="script" desc="Send selected tracks to track under mouse cursor">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-15T07:07:25Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-09-13T05:16:34Z">
-        <changelog><![CDATA[# respect reaper default send volume
-# respect reaper default send flag
-# use native APIs relative to Send parameters
-# code improvements
-# change forum link]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8a61c0af8b1cab38ec99ced0aad78e6603d6e16b/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-09-14T19:01:58Z">
-        <changelog><![CDATA[# create multichannel send if source track is multichannel]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9efc67aadbffb4ee99ea7c7e02579b5ebdc2f859/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2017-10-27T19:05:24Z">
-        <changelog><![CDATA[# fix create multichannel send if source track is multichannel]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5d43b1749f122b5d1f59715f873f52ba0b0b2ab0/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-      </version>
-      <version name="1.05" author="MPL" time="2018-06-01T20:44:48Z">
-        <changelog><![CDATA[# use miltichannel send if source track channel count > 2
-# force destination channel track count if it is lower than source track channel count
-# prevent adding already existed send 
-# fix send mode when MIDI send desabled]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d697d7e0e01c73279d63773e7dd2c83cfd0c7111/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-      </version>
-      <version name="1.10" author="MPL" time="2019-05-03T20:34:44Z">
-        <changelog><![CDATA[+ Modified for using as metapackage]]></changelog>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (multichannel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 3-4).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 5-6).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 7-8).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 9-10).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 11-12).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 13-14).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 15-16).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 3-4 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 5-6 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 7-8 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 9-10 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 11-12 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 13-14 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 15-16 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3fc0a4ddbccd95d5bd2fd71cd10d8a1782f3e15/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-      </version>
-      <version name="1.11" author="MPL" time="2019-08-08T19:12:26Z">
-        <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (multichannel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 3-4).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 5-6).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 7-8).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 9-10).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 11-12).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 13-14).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 1-2 to 15-16).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 3-4 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 5-6 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 7-8 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 9-10 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 11-12 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 13-14 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-        <source main="main" file="mpl_Send selected tracks to track under mouse cursor (channel 15-16 to 1-2).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Tracks%20Properties/mpl_Send%20selected%20tracks%20to%20track%20under%20mouse%20cursor.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Send track under mouse cursor to selected tracks.lua" type="script" desc="Send track under mouse cursor to selected tracks">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-17T05:22:21Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/946e6c239799568452908c3c6a9074d54841fbf8/Tracks%20Properties/mpl_Send%20track%20under%20mouse%20cursor%20to%20selected%20tracks.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-09-13T05:16:34Z">
-        <changelog><![CDATA[# respect reaper default send volume
-# respect reaper default send flag
-# code improvements
-# change forum link]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8a61c0af8b1cab38ec99ced0aad78e6603d6e16b/Tracks%20Properties/mpl_Send%20track%20under%20mouse%20cursor%20to%20selected%20tracks.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-09-14T19:01:58Z">
-        <changelog><![CDATA[# create multichannel send if source track is multichannel]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9efc67aadbffb4ee99ea7c7e02579b5ebdc2f859/Tracks%20Properties/mpl_Send%20track%20under%20mouse%20cursor%20to%20selected%20tracks.lua</source>
-      </version>
-      <version name="1.05" author="MPL" time="2018-06-01T20:44:48Z">
-        <changelog><![CDATA[# use miltichannel send if source track channel count > 2
-# force destination channel track count if it is lower than source track channel count
-# prevent adding already existed send 
-# fix send mode when MIDI send desabled]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d697d7e0e01c73279d63773e7dd2c83cfd0c7111/Tracks%20Properties/mpl_Send%20track%20under%20mouse%20cursor%20to%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Send tracks (background).lua" type="script" desc="Send tracks">
