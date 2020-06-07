@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="57a3a566ae4ff9b2cff81b416260725b8da22082" name="MPL Scripts">
+<index version="1" commit="1b43759a7d346495f8658c332c2e9140aa05be27" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -478,6 +478,10 @@
 + refresh toolbar]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/303f3efe4cc6e4260073759ba330e52200368cbc/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20all%20tracks.lua</source>
       </version>
+      <version name="1.5" author="MPL" time="2020-06-07T09:18:07Z">
+        <changelog><![CDATA[# don`t bypass plugins standing before instrument (ex. MIDI tools)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b43759a7d346495f8658c332c2e9140aa05be27/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20all%20tracks.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Bypass all FX except instruments on selected tracks.lua" type="script" desc="Toggle bypass all FX except instruments on selected tracks">
       <metadata>
@@ -506,6 +510,10 @@
         <changelog><![CDATA[# fix initial state
 + refresh toolbar]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/303f3efe4cc6e4260073759ba330e52200368cbc/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.5" author="MPL" time="2020-06-07T09:18:07Z">
+        <changelog><![CDATA[# don`t bypass plugins standing before instrument (ex. MIDI tools)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b43759a7d346495f8658c332c2e9140aa05be27/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Copy Focused FX data.lua" type="script" desc="Copy Focused FX data">
