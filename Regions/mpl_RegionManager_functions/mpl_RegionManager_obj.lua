@@ -18,12 +18,13 @@
     obj.but_aback = 0.2
     obj.comlist_h = 0
     obj.tr_h = 22 
+    obj.fillback_a_list = 0.6
     
     -- font
     obj.GUI_font = 'Calibri'
-    obj.GUI_fontsz = 19  -- 
-    obj.GUI_fontsz2 = 15 -- 
-    obj.GUI_fontsz3 = 13-- 
+    obj.GUI_fontsz = 19 
+    obj.GUI_fontsz2 = 15 
+    obj.GUI_fontsz3 = 13
     obj.GUI_fontsz_tooltip = 13
     if GetOS():find("OSX") then 
       obj.GUI_fontsz = obj.GUI_fontsz - 6 
@@ -42,10 +43,17 @@
                    black =   {0,0,0 }
                    }    
     
-    -- other
+    
   end
 ---------------------------------------------------
   function OBJ_Update(conf, obj, data, refresh, mouse) 
+    -- other
+    obj.parsed_t = {}
+    local str_parse = conf.sort_rows
+    for val in str_parse:gmatch('[^%s]+') do 
+      obj.parsed_t[#obj.parsed_t+1] = {name = val:match('#([A-Z,a-z]+)') , width = val:match('%d+')}
+    end
+    
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
    
     local min_w = 200
@@ -62,13 +70,11 @@
     obj.tr_listw = obj.trlistw
     
     obj.rgnroww_idx = 25
-    obj.rgnroww_idxreal = 20
-    if conf.show_proj_ids == 0 then obj.rgnroww_idxreal = 0 end
     local row_w =55
     obj.rgnroww_start = row_w
     obj.rgnroww_end = row_w
     obj.rgnroww_len = row_w
-    obj.rgnroww_name = obj.tr_listw - obj.rgnroww_idx-obj.rgnroww_idxreal-obj.rgnroww_start-obj.rgnroww_end-obj.rgnroww_len
+    obj.rgnroww_name = obj.tr_listw - obj.rgnroww_idx*2-obj.rgnroww_start-obj.rgnroww_end-obj.rgnroww_len
     
     
     Obj_Menu(conf, obj, data, refresh, mouse) 
@@ -87,14 +93,10 @@
     -----------------------------------------------  
   function Obj_SortMapping(conf, obj, data, refresh, mouse)
     obj.mapping = {}  
-    if conf.sort_row == 0 then
+    if conf.sort_row_key == '' then
       for i = 1, #data.regions do obj.mapping[#obj.mapping+1] = {nil,i} end
-     elseif conf.sort_row >0 then
-      local key = 'name' 
-      if conf.sort_row == 2 then key = 'rgnpos'
-        elseif conf.sort_row == 3 then key = 'rgnend'
-        elseif conf.sort_row == 4 then key = 'rgnlen'
-      end
+     else
+      local key = conf.sort_row_key
       local tnames = {}
       for i = 1, #data.regions do table.insert(tnames, {data.regions[i][key],i} )  end
       local f = function(t,a,b) return t[b][1] > t[a][1] end
@@ -173,17 +175,24 @@ ShortCuts:
   - Name LMB: select
   - Name Alt+LMB: remove
   - Name Ctrl+LMB: add to selection
-  - Name RMB: change name
-  
+  - Name RMB: change name 
                     ]])
                   end  } ,           
         { str = '#Options'},
-        { str = 'Show markers/regions project ID',
+        { str = 'Define Rows',
           func = function() 
-                    conf.show_proj_ids = math.abs(1-conf.show_proj_ids) 
+                    local retval, retstr = GetUserInputs( 'Define Rows', 1, ',extrawidth=200', conf.sort_rows )
+                    if retval then 
+                      conf.sort_rows = retstr
+                      refresh.GUI = true
+                    end
+                end },    
+        { str = 'Reset Rows',
+          func = function() 
+                    conf.sort_rows = '#id #realid #name230 #start80 #end60 #len60'
                     refresh.GUI = true
-                end ,
-          state = conf.show_proj_ids == 1},            
+                    refresh.conf = true
+                end },                 
         { str = 'Enable dynamic GUI refresh (takes more CPU)',
           func = function() 
                     conf.dyn_refresh = math.abs(1-conf.dyn_refresh) 
@@ -296,9 +305,172 @@ ShortCuts:
     end
   end
   -----------------------------------------------
+  function Obj_RegListRow_id(conf, obj, data, refresh, mouse, xpos, tr_y, idx, fillback, fillback_a, col0, alpha_back, realcnt_idx, show)
+    obj['region_idx'..idx] = { clear = true,
+          x =xpos,
+          y = tr_y,
+          w = obj.rgnroww_idx-1,
+          h = obj.tr_h,
+          fillback = fillback,
+          fillback_colint = col0,--'col0,
+          fillback_a = fillback_a,
+          alpha_back =alpha_back,
+          txt= realcnt_idx,
+          txt_a = 1,
+          align_txt = 16,
+          fontsz = obj.GUI_fontsz2,
+          show = show,
+          is_selected = obj.selection[idx] and obj.selection[idx] == true,
+          is_selected_xshift = true
+          }
+    return obj.rgnroww_idx
+  end    
+ 
+  -----------------------------------------------
+  function Obj_RegListRow_realid(conf, obj, data, refresh, mouse, xpos, tr_y, idx, fillback, fillback_a, col0, alpha_back, realcnt_idx, show)  
+    if not data.regions[idx] then return 0 end
+    local tp = 'R' 
+    if data.regions[idx].isrgn == false then tp = 'M' end
+    obj['region_intidx'..idx] = { clear = true,
+        x =obj.tr_listx+obj.rgnroww_idx,
+        y = tr_y,
+        w = obj.rgnroww_idx-1,
+        h = obj.tr_h,
+        fillback = false,
+        fillback_colint = col0,--'col0,
+        fillback_a = fillback_a,
+        alpha_back =obj.but_aback,
+        txt= tp..data.regions[idx].markrgnindexnumber,
+        txt_a = 1,
+        align_txt = 16,
+        fontsz = obj.GUI_fontsz2,
+        show = show,
+        is_selected = obj.selection[idx] and obj.selection[idx] == true,
+        is_selected_xshift = true
+        } 
+    return obj.rgnroww_idx
+  end  
+  -----------------------------------------------
+  function Obj_RegListRow_name(conf, obj, data, refresh, mouse, xpos, tr_y, idx, fillback, fillback_a, col0, alpha_back, realcnt_idx, show, custwidth)
+    if not data.regions[idx] then return 0 end
+    obj['regionname'..idx] = { clear = true,
+              x =xpos,
+              y = tr_y,
+              w = custwidth-1,
+              h = obj.tr_h,
+              fillback = false,
+              fillback_colint = col0,--'col0,
+              fillback_a = fillback_a,
+              alpha_back = obj.but_aback,
+              txt= data.regions[idx].name,
+              txt_a = 1,
+              align_txt = 17,
+              fontsz = obj.GUI_fontsz2,
+              show = show,
+              is_selected = obj.selection[idx] and obj.selection[idx] == true,
+              is_selected_xshift = true,
+              func = function() 
+                        obj.selection = {}
+                        obj.selection[idx] = true
+                        refresh.GUI = true
+                      end,
+              func_trigCtrl = function() 
+                        obj.selection[idx] = not obj.selection[idx]
+                        refresh.GUI = true
+                      end,
+              func_R = function() 
+                          local retval, new_name = GetUserInputs( 'Region name', 1, ',extrawidth=200', data.regions[idx].name )
+                          if retval then
+                            Undo_BeginBlock2( 0 )
+                            SetProjectMarkerByIndex2( 0, idx-1, data.regions[idx].isrgn, data.regions[idx].rgnpos, data.regions[idx].rgnend, data.regions[idx].markrgnindexnumber, new_name, data.regions[idx].color, 0 )
+                            Undo_EndBlock2( 0, conf.mb_title..': Change name', -1 )
+                            data.regions[idx].name = new_name
+                            Obj_MatchSearch(conf, obj, data, refresh, mouse)
+                            refresh.GUI = true
+                            refresh.data = true
+                          end
+                        end,
+              func_trigAlt = function()
+                                Undo_BeginBlock2( 0 )
+                                DeleteProjectMarkerByIndex( 0, idx-1 )
+                                Undo_EndBlock2( 0, conf.mb_title..': Remove', -1 )
+                                refresh.GUI = true
+                                refresh.data = true
+                              end,
+              } 
+    return custwidth
+  end
+  -----------------------------------------------
+  function Obj_RegListRow_start(conf, obj, data, refresh, mouse, xpos, tr_y, idx, fillback, fillback_a, col0, alpha_back, realcnt_idx, show, custwidth)  
+    if not data.regions[idx] then return 0 end
+    obj['regionstart'..idx] = { clear = true,
+          x =xpos,
+          y = tr_y,
+          w = custwidth-1,
+          h = obj.tr_h,
+          fillback = fillback,
+          fillback_colint = col0,--'col0,
+          fillback_a = fillback_a,
+          alpha_back = alpha_back,
+          txt= data.regions[idx].pos_format,
+          txt_a = 1,
+          align_txt = 16,
+          fontsz = obj.GUI_fontsz2,
+          show = show,
+          is_selected = obj.selection[idx] and obj.selection[idx] == true,
+          is_selected_xshift = true,
+          } 
+    return custwidth
+  end  
+  -----------------------------------------------
+  function Obj_RegListRow_end(conf, obj, data, refresh, mouse, xpos, tr_y, idx, fillback, fillback_a, col0, alpha_back, realcnt_idx, show, custwidth)   
+    if not data.regions[idx] then return 0 end
+    if data.regions[idx].isrgn == false then return 0 end
+    obj['regionend'..idx] = { clear = true,
+        x =xpos,
+        y = tr_y,
+        w = custwidth-1,
+        h = obj.tr_h,
+        fillback = fillback,
+        fillback_colint = col0,--'col0,
+        fillback_a = fillback_a,
+        alpha_back = alpha_back,
+        txt= data.regions[idx].rgnend_format,
+        txt_a = 1,
+        align_txt = 16,
+        fontsz = obj.GUI_fontsz2,
+        show = show,
+        is_selected = obj.selection[idx] and obj.selection[idx] == true,
+        is_selected_xshift = true,
+        } 
+    return custwidth
+  end   
+  -----------------------------------------------
+  function Obj_RegListRow_len(conf, obj, data, refresh, mouse, xpos, tr_y, idx, fillback, fillback_a, col0, alpha_back, realcnt_idx, show, custwidth)   
+    if not data.regions[idx] then return 0 end
+    if data.regions[idx].isrgn == false then return 0 end
+    obj['regionlen'..idx] = { clear = true,
+        x =xpos,
+        y = tr_y,
+        w = custwidth-1,
+        h = obj.tr_h,
+        fillback = fillback,
+        fillback_colint = col0,--'col0,
+        fillback_a = fillback_a,
+        alpha_back = alpha_back,
+        txt= data.regions[idx].rgnlen_format,
+        txt_a = 1,
+        align_txt = 16,
+        fontsz = obj.GUI_fontsz2,
+        show = show,
+        is_selected = obj.selection[idx] and obj.selection[idx] == true,
+        is_selected_xshift = true,
+        }  
+    return custwidth
+  end   
+  -----------------------------------------------
   function Obj_RegList(conf, obj, data, refresh, mouse, gethonly)
-    local fillback_a = 0.9
-    local alpha_back = 0.4
+    local alpha_back = 0.1
     obj.paramlist = { clear = true,
               x =obj.tr_listx-1,--math.floor(gfx.w/2),
               y = obj.tr_listy,
@@ -326,11 +498,25 @@ ShortCuts:
     local tr_y0 = obj.tr_listy - obj.comlist_h * obj.scroll_val 
     local tr_y = tr_y0   
     local realcnt_idx = 0
+    local fillback_a = 1
+    -- test com_w
+    local idx = 1 -- mapped
+    local xpos0 = 0
+    for i=1, #obj.parsed_t do
+      local key = obj.parsed_t[i].name
+      local custwidth = obj.parsed_t[i].width
+      if _G['Obj_RegListRow_'..key] then
+        local retw = _G['Obj_RegListRow_'..key](conf, obj, data, refresh, mouse, xpos0, tr_y, idx, fillback, fillback_a, col0, alpha_back, realcnt_idx, show, custwidth)
+        xpos0 = xpos0 + retw
+      end
+    end
+    obj.ratio_exp = obj.tr_listw / xpos0
+    
     for idx0=1,#data.regions do
       local idx = obj.mapping[idx0][2] -- mapped
       local fillback, col0 = true, data.regions[idx].color
       if col0==0 then 
-        local r = 255 col0 = ColorToNative( r, r, r ) fillback_a = 0.44 
+        local r = 255 col0 = ColorToNative( r, r, r ) fillback_a = 0.44 fillback = false
        --[[else
         local r, g, b = reaper.ColorFromNative( col0 )
         local pow = 1.2
@@ -340,143 +526,19 @@ ShortCuts:
       if (tr_y < obj.tr_listy or tr_y > obj.tr_listy + obj.tr_listh) then show=false end--goto skipnextrgn end 
       if not ((conf.showflag&1==1 and data.regions[idx].isrgn == true) or (conf.showflag&2==2 and data.regions[idx].isrgn == false)) then goto skipnextrgn2 end 
       realcnt_idx = realcnt_idx + 1
-      obj['region_idx'..idx] = { clear = true,
-              x =obj.tr_listx,
-              y = tr_y,
-              w = obj.rgnroww_idx-1,
-              h = obj.tr_h,
-              fillback = fillback,
-              fillback_colint = col0,--'col0,
-              fillback_a = fillback_a,
-              alpha_back =alpha_back,
-              txt= realcnt_idx,
-              txt_a = 1,
-              align_txt = 16,
-              fontsz = obj.GUI_fontsz2,
-              show = show,
-              is_selected = obj.selection[idx] and obj.selection[idx] == true,
-              is_selected_xshift = true
-              } 
-      if conf.show_proj_ids == 1 then 
-        obj['region_intidx'..idx] = { clear = true,
-              x =obj.tr_listx+obj.rgnroww_idx,
-              y = tr_y,
-              w = obj.rgnroww_idxreal-1,
-              h = obj.tr_h,
-              fillback = fillback,
-              fillback_colint = col0,--'col0,
-              fillback_a = fillback_a,
-              alpha_back =alpha_back,
-              txt= data.regions[idx].markrgnindexnumber,
-              txt_a = 1,
-              align_txt = 16,
-              fontsz = obj.GUI_fontsz2,
-              show = show,
-              is_selected = obj.selection[idx] and obj.selection[idx] == true,
-              is_selected_xshift = true
-              } 
-      end
-      obj['regionname'..idx] = { clear = true,
-              x =obj.tr_listx+obj.rgnroww_idx+obj.rgnroww_idxreal,
-              y = tr_y,
-              w = obj.rgnroww_name-1,
-              h = obj.tr_h,
-              fillback = fillback,
-              fillback_colint = col0,--'col0,
-              fillback_a = fillback_a,
-              alpha_back = alpha_back,
-              txt= data.regions[idx].name,
-              txt_a = 1,
-              align_txt = 17,
-              fontsz = obj.GUI_fontsz2,
-              show = show,
-              is_selected = obj.selection[idx] and obj.selection[idx] == true,
-              is_selected_xshift = true,
-              func = function() 
-                        obj.selection = {}
-                        obj.selection[idx] = true
-                        refresh.GUI = true
-                      end,
-              func_trigCtrl = function() 
-                        obj.selection[idx] = not obj.selection[idx]
-                        refresh.GUI = true
-                      end,
-              func_R = function() 
-                          local retval, new_name = GetUserInputs( 'Region name', 1, '', data.regions[idx].name )
-                          if retval then
-                            Undo_BeginBlock2( 0 )
-                            SetProjectMarkerByIndex2( 0, idx-1, data.regions[idx].isrgn, data.regions[idx].rgnpos, data.regions[idx].rgnend, data.regions[idx].markrgnindexnumber, new_name, data.regions[idx].color, 0 )
-                            Undo_EndBlock2( 0, conf.mb_title..': Change name', -1 )
-                            data.regions[idx].name = new_name
-                            Obj_MatchSearch(conf, obj, data, refresh, mouse)
-                            refresh.GUI = true
-                            refresh.data = true
-                          end
-                        end,
-              func_trigAlt = function()
-                                Undo_BeginBlock2( 0 )
-                                DeleteProjectMarkerByIndex( 0, idx-1 )
-                                Undo_EndBlock2( 0, conf.mb_title..': Remove', -1 )
-                                refresh.GUI = true
-                                refresh.data = true
-                              end,
-              } 
-      obj['regionstart'..idx] = { clear = true,
-              x =obj.tr_listx+obj.rgnroww_idx + obj.rgnroww_idxreal+obj.rgnroww_name,
-              y = tr_y,
-              w = obj.rgnroww_start-1,
-              h = obj.tr_h,
-              fillback = fillback,
-              fillback_colint = col0,--'col0,
-              fillback_a = fillback_a,
-              alpha_back = alpha_back,
-              txt= data.regions[idx].pos_format,
-              txt_a = 1,
-              align_txt = 16,
-              fontsz = obj.GUI_fontsz2,
-              show = show,
-              is_selected = obj.selection[idx] and obj.selection[idx] == true,
-              is_selected_xshift = true,
-              } 
+      local xpos = obj.tr_listx
       
-      if data.regions[idx].isrgn == true then
-        obj['regionend'..idx] = { clear = true,
-              x =obj.tr_listx+obj.rgnroww_idx + obj.rgnroww_idxreal+obj.rgnroww_name+obj.rgnroww_start,
-              y = tr_y,
-              w = obj.rgnroww_end-1,
-              h = obj.tr_h,
-              fillback = fillback,
-              fillback_colint = col0,--'col0,
-              fillback_a = fillback_a,
-              alpha_back = alpha_back,
-              txt= data.regions[idx].rgnend_format,
-              txt_a = 1,
-              align_txt = 16,
-              fontsz = obj.GUI_fontsz2,
-              show = show,
-              is_selected = obj.selection[idx] and obj.selection[idx] == true,
-              is_selected_xshift = true,
-              } 
-        obj['regionlen'..idx] = { clear = true,
-              x =obj.tr_listx+obj.rgnroww_idx + obj.rgnroww_idxreal+obj.rgnroww_name+obj.rgnroww_start+obj.rgnroww_end,
-              y = tr_y,
-              w = obj.rgnroww_len-1,
-              h = obj.tr_h,
-              fillback = fillback,
-              fillback_colint = col0,--'col0,
-              fillback_a = fillback_a,
-              alpha_back = alpha_back,
-              txt= data.regions[idx].rgnlen_format,
-              txt_a = 1,
-              align_txt = 16,
-              fontsz = obj.GUI_fontsz2,
-              show = show,
-              is_selected = obj.selection[idx] and obj.selection[idx] == true,
-              is_selected_xshift = true,
-              }               
+      for i=1, #obj.parsed_t do
+        local key = obj.parsed_t[i].name
+        local custwidth = obj.parsed_t[i].width
+        if custwidth then custwidth = math.floor(custwidth*obj.ratio_exp) end
+        if _G['Obj_RegListRow_'..key] then
+          local retw = _G['Obj_RegListRow_'..key](conf, obj, data, refresh, mouse, xpos, tr_y, idx, fillback, obj.fillback_a_list, col0, alpha_back, realcnt_idx, show, custwidth)
+          --if custwidth then xpos = xpos + retw*obj.ratio_exp else xpos = xpos + retw end
+          xpos = xpos + retw
+        end
       end
-              
-              
+      
       ::skipnextrgn::            
       tr_y = tr_y + obj.tr_h--obj['regions'..idx].h
       ::skipnextrgn2:: 
@@ -493,7 +555,7 @@ ShortCuts:
   end
   ------------------------------------------------------
   function Obj_Search(conf, obj, data, refresh, mouse)
-    local retval, retvals_csv = GetUserInputs( 'Search regions', 1, '', obj.search_field_txt )
+    local retval, retvals_csv = GetUserInputs( 'Search regions', 1, ',extrawidth=200', obj.search_field_txt )
     if retval then 
       obj.search_field_txt = retvals_csv
       Obj_MatchSearch(conf, obj, data, refresh, mouse)
@@ -542,42 +604,42 @@ ShortCuts:
               }                
   end
   -----------------------------------------------
-  function Obj_RegList_Head(conf, obj, data, refresh, mouse)
-    local fillback_a = 1
-    local alpha_back_src = 0.4
-    local show  = true
-    local tr_y = obj.menu_h
-    local tr_h = obj.menu_h-1
-    local addtxt = ''
-    
-    local alpha_back = alpha_back_src
-    if conf.sort_row == 0 then addtxt = '↓' alpha_back = 0.8 end
-      obj['region_idx_head'] = { clear = true,
-              x =obj.tr_listx,
+  function Obj_RegListHeadRow_id(conf, obj, data, refresh, mouse, xpos, tr_y, tr_h, fillback, fillback_a, col0, alpha_back, custwidth)
+     obj['region_idx_head'] = { clear = true,
+              x = xpos,
               y = tr_y,
               w = obj.rgnroww_idx-1,
               h = tr_h,
               fillback = fillback,
               fillback_colint = col0,--'col0,
-              fillback_a = fillback_a,
-              alpha_back =alpha_back,
-              txt= '#'..addtxt,
+              fillback_a = 0.9,
+              --alpha_back =alpha_back,
+              txt= '#',
               txt_a = 1,
               align_txt = 16,
               fontsz = obj.GUI_fontsz2,
-              show = show,
+              show = true,
               func = function()
-                        conf.sort_row = 0
+                        conf.sort_row_key = ''
                         conf.sort_rowflag = 0
                         refresh.GUI = true
                         refresh.conf = true
                       end              
               } 
-      if conf.show_proj_ids == 1 then 
-        obj['region_intidx_head'] = { clear = true,
-              x =obj.tr_listx+obj.rgnroww_idx,
+    return obj.rgnroww_idx
+  end    
+  -----------------------------------------------
+  function Obj_RegListHeadRow_realid(conf, obj, data, refresh, mouse, xpos, tr_y, tr_h, fillback, fillback_a, col0, alpha_back, custwidth)
+    local addtxt = ''
+    local alpha_back = obj.but_aback
+    if conf.sort_row_key == 'markrgnindexnumber' then 
+      alpha_back = 0.8
+      if conf.sort_rowflag == 0 then addtxt = '↓' else addtxt = '↑'  end
+    end
+    obj['region_idxreal_head'] = { clear = true,
+              x = xpos,
               y = tr_y,
-              w = obj.rgnroww_idxreal-1,
+              w = obj.rgnroww_idx-1,
               h = tr_h,
               fillback = fillback,
               fillback_colint = col0,--'col0,
@@ -587,101 +649,190 @@ ShortCuts:
               txt_a = 1,
               align_txt = 16,
               fontsz = obj.GUI_fontsz2,
-              show = show,
+              show = true,
+              func = function()
+                        conf.sort_row_key = 'markrgnindexnumber'
+                        conf.sort_rowflag = 0
+                        refresh.GUI = true
+                        refresh.conf = true
+                      end              
               } 
-      end
-      
-      local addtxt = ''
-      local alpha_back = alpha_back_src
-      if conf.sort_row == 1 then 
-        alpha_back = 0.8
-        if conf.sort_rowflag == 0 then addtxt = '↓' else addtxt = '↑'  end
-      end
-      obj['regionname_head'] = { clear = true,
-              x =obj.tr_listx+obj.rgnroww_idx+obj.rgnroww_idxreal,
+    return obj.rgnroww_idx
+  end   
+  -----------------------------------------------
+  function Obj_RegListHeadRow_name(conf, obj, data, refresh, mouse, xpos, tr_y, tr_h, fillback, fillback_a, col0, alpha_back, custwidth)
+    local addtxt = ''
+    local alpha_back = obj.but_aback
+    if conf.sort_row_key == 'name' then 
+      alpha_back = 0.8
+      if conf.sort_rowflag == 0 then addtxt = '↓' else addtxt = '↑'  end
+    end
+    obj['region_idxname_head'] = { clear = true,
+              x = xpos,
               y = tr_y,
-              w = obj.rgnroww_name-1,
+              w = custwidth-1,
               h = tr_h,
               fillback = fillback,
               fillback_colint = col0,--'col0,
               fillback_a = fillback_a,
-              alpha_back = alpha_back,
+              alpha_back =alpha_back,
               txt= 'Name'..addtxt,
               txt_a = 1,
-              --align_txt = 17,
+              --align_txt = 16,
               fontsz = obj.GUI_fontsz2,
-              show = show,
-              func = function()
-                        if conf.sort_row == 1 then
-                          conf.sort_rowflag = math.abs(1-conf.sort_rowflag)
-                         else
-                          conf.sort_row = 1
-                        end
-                        refresh.GUI = true
-                        refresh.conf = true
-                      end
-              
+              show = true,
+   
+          func = function()
+                    if conf.sort_row_key == 'name' then
+                      conf.sort_rowflag = math.abs(1-conf.sort_rowflag)
+                     else
+                      conf.sort_row_key = 'name'
+                    end
+                    refresh.GUI = true
+                    refresh.conf = true
+                  end                      
               } 
-      local addtxt = ''
-      local alpha_back = alpha_back_src
-      if conf.sort_row == 2 then 
-        alpha_back = 0.8
-        if conf.sort_rowflag == 0 then addtxt = '↓' else addtxt = '↑'  end
-      end              
-      obj['regionstart_head'] = { clear = true,
-              x =obj.tr_listx+obj.rgnroww_idx + obj.rgnroww_idxreal+obj.rgnroww_name,
+    return custwidth
+  end   
+  -----------------------------------------------
+  function Obj_RegListHeadRow_start(conf, obj, data, refresh, mouse, xpos, tr_y, tr_h, fillback, fillback_a, col0, alpha_back, custwidth)
+    local addtxt = ''
+    local alpha_back = obj.but_aback
+    if conf.sort_row_key == 'rgnpos' then 
+      alpha_back = 0.8
+      if conf.sort_rowflag == 0 then addtxt = '↓' else addtxt = '↑'  end
+    end
+    obj['region_idxstart_head'] = { clear = true,
+              x = xpos,
               y = tr_y,
-              w = obj.rgnroww_start-1,
-              h =tr_h,
+              w = custwidth-1,
+              h = tr_h,
               fillback = fillback,
               fillback_colint = col0,--'col0,
               fillback_a = fillback_a,
-              alpha_back = alpha_back,
+              alpha_back =alpha_back,
               txt= 'Start'..addtxt,
               txt_a = 1,
               --align_txt = 16,
               fontsz = obj.GUI_fontsz2,
-              show = show,
-              func = function()
-                        if conf.sort_row == 2 then
-                          conf.sort_rowflag = math.abs(1-conf.sort_rowflag)
-                         else
-                          conf.sort_row = 2
-                        end
-                        refresh.GUI = true
-                        refresh.conf = true
-                      end
-              }
-      local addtxt = ''
-      local alpha_back = alpha_back_src
-      if conf.sort_row == 3 then 
-        alpha_back = 0.8
-        if conf.sort_rowflag == 0 then addtxt = '↓' else addtxt = '↑'  end
-      end              
-      obj['regionend_head'] = { clear = true,
-              x =obj.tr_listx+obj.rgnroww_idx + obj.rgnroww_idxreal+obj.rgnroww_name+obj.rgnroww_start,
+              show = true,
+   
+          func = function()
+                    if conf.sort_row_key == 'rgnpos' then
+                      conf.sort_rowflag = math.abs(1-conf.sort_rowflag)
+                     else
+                      conf.sort_row_key = 'rgnpos'
+                    end
+                    refresh.GUI = true
+                    refresh.conf = true
+                  end                      
+              } 
+    return custwidth
+  end 
+  -----------------------------------------------
+  function Obj_RegListHeadRow_end(conf, obj, data, refresh, mouse, xpos, tr_y, tr_h, fillback, fillback_a, col0, alpha_back, custwidth)
+    local addtxt = ''
+    local alpha_back = obj.but_aback
+    if conf.sort_row_key == 'rgnend' then 
+      alpha_back = 0.8
+      if conf.sort_rowflag == 0 then addtxt = '↓' else addtxt = '↑'  end
+    end
+    obj['region_idxend_head'] = { clear = true,
+              x = xpos,
               y = tr_y,
-              w = obj.rgnroww_end-1,
+              w = custwidth-1,
               h = tr_h,
               fillback = fillback,
               fillback_colint = col0,--'col0,
               fillback_a = fillback_a,
-              alpha_back = alpha_back,
+              alpha_back =alpha_back,
               txt= 'End'..addtxt,
               txt_a = 1,
               --align_txt = 16,
               fontsz = obj.GUI_fontsz2,
-              show = show,
-              func = function()
-                        if conf.sort_row == 3 then
-                          conf.sort_rowflag = math.abs(1-conf.sort_rowflag)
-                         else
-                          conf.sort_row = 3
-                        end
-                        refresh.GUI = true
-                        refresh.conf = true
-                      end
+              show = true,
+   
+          func = function()
+                    if conf.sort_row_key == 'rgnend' then
+                      conf.sort_rowflag = math.abs(1-conf.sort_rowflag)
+                     else
+                      conf.sort_row_key = 'rgnend'
+                    end
+                    refresh.GUI = true
+                    refresh.conf = true
+                  end                      
               } 
+    return custwidth
+  end   
+  -----------------------------------------------
+  function Obj_RegListHeadRow_len(conf, obj, data, refresh, mouse, xpos, tr_y, tr_h, fillback, fillback_a, col0, alpha_back, custwidth)
+    local addtxt = ''
+    local alpha_back = obj.but_aback
+    if conf.sort_row_key == 'rgnlen' then 
+      alpha_back = 0.8
+      if conf.sort_rowflag == 0 then addtxt = '↓' else addtxt = '↑'  end
+    end
+    obj['region_idxlen_head'] = { clear = true,
+              x = xpos,
+              y = tr_y,
+              w = custwidth-1,
+              h = tr_h,
+              fillback = fillback,
+              fillback_colint = col0,--'col0,
+              fillback_a = fillback_a,
+              alpha_back =alpha_back,
+              txt= 'Length'..addtxt,
+              txt_a = 1,
+              --align_txt = 16,
+              fontsz = obj.GUI_fontsz2,
+              show = true,
+   
+          func = function()
+                    if conf.sort_row_key == 'rgnlen' then
+                      conf.sort_rowflag = math.abs(1-conf.sort_rowflag)
+                     else
+                      conf.sort_row_key = 'rgnlen'
+                    end
+                    refresh.GUI = true
+                    refresh.conf = true
+                  end                      
+              } 
+    return custwidth
+  end     
+  -----------------------------------------------
+  function Obj_RegList_Head(conf, obj, data, refresh, mouse)
+    local fillback_a = 1
+    local alpha_back_src = 0.4
+    local tr_y = obj.menu_h
+    local tr_h = obj.menu_h-1
+    
+    -- test com_w
+    local idx = 1 -- mapped
+    local xpos0 = 0
+    for i=1, #obj.parsed_t do
+      local key = obj.parsed_t[i].name
+      local custwidth = obj.parsed_t[i].width
+      if _G['Obj_RegListHeadRow_'..key] then
+        local retw = _G['Obj_RegListHeadRow_'..key](conf, obj, data, refresh, mouse, xpos, tr_y, tr_h, fillback, fillback_a, col0, alpha_back, custwidth)
+        xpos0 = xpos0 + retw
+      end
+    end
+    obj.ratio_exp = obj.tr_listw / xpos0
+    
+    local xpos = obj.tr_listx
+    for i=1, #obj.parsed_t do
+      local key = obj.parsed_t[i].name
+      local custwidth = obj.parsed_t[i].width
+      if custwidth then custwidth = math.floor(custwidth*obj.ratio_exp) end
+      if _G['Obj_RegListHeadRow_'..key] then
+        local retw = _G['Obj_RegListHeadRow_'..key](conf, obj, data, refresh, mouse, xpos, tr_y, tr_h, fillback, fillback_a, col0, alpha_back, custwidth)
+        xpos = xpos + retw
+      end
+    end
+      
+      do return end
+      
+
       local addtxt = ''
       local alpha_back = alpha_back_src
       if conf.sort_row == 4 then  

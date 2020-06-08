@@ -158,9 +158,19 @@
         local r, g, b
         if o.fillback_colint then r, g, b = ColorFromNative( o.fillback_colint ) gfx.set(r/255,g/255,b/255, o.fillback_a) end 
         if o.fillback_colstr then col(obj, o.fillback_colstr, o.fillback_a) end 
-        if not o.fill_val then gfx.rect(x,y,w,h,1) else gfx.rect(x,y,w*lim(o.fill_val),h,1) end
+        gfx.rect(x,y,w,h,1)-- else gfx.rect(x,y,w*lim(o.fill_val),h,1) end
       end
       
+      local h_sl = 4
+      if o.fill_val and o.fill_val > 0 and o.fill_val <1 then
+        local r, g, b
+        if o.fillback_colint then r, g, b = ColorFromNative( o.fillback_colint ) gfx.set(r/255,g/255,b/255, o.fillback_a) end 
+        if o.fillback_colstr then col(obj, o.fillback_colstr, o.fillback_a) end 
+        gfx.a = obj.fillback_a_list
+        gfx.rect(x,y+h-h_sl-1,w*lim(o.fill_val),h_sl,1)     
+        gfx.set(1,1,1,0.4)
+        --gfx.rect(x,y+h-h_sl-1,w*lim(o.fill_val),h_sl,1) 
+      end
 
     --[[ color fill
       if not o.colfill_frame and o.colfill_col then

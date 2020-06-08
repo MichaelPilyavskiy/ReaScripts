@@ -1,5 +1,5 @@
 -- @description RegionManager
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -8,12 +8,12 @@
 --    mpl_RegionManager_functions/mpl_RegionManager_data.lua
 --    mpl_RegionManager_functions/mpl_RegionManager_obj.lua
 -- @changelog
---    + Sort by ID
---    + Sort by name
---    + Allow to disable dynamic GUI refresh
+--    # extend search input width 
+--    # extend marker name input width
+--    # reduce playing position
+--    + Allow to set rows order/width using wildcards
 
-
-  local vrs = 'v1.01'
+  local vrs = 'v1.02'
   
   --NOT gfx NOT reaper
   
@@ -32,7 +32,8 @@
   local obj = { selection = {},
                 realcnt = 0,
                 search_field_txt = '',
-                mapping = {}}
+                mapping = {}
+                }
   ---------------------------------------------------  
   
   function Main_RefreshExternalLibs()     -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua
@@ -57,10 +58,11 @@
             dock =    0,
             
             showflag = 1, -- &1 reg &2 mark
-            show_proj_ids = 0,
-            sort_row = 0,
+            --sort_row = 0,
+            sort_row_key = '',
             sort_rowflag = 0,
             dyn_refresh = 1,
+            sort_rows = '#id #realid #name230 #start80 #end60 #len60',
             
             -- mouse
             mouse_wheel_res = 960,
