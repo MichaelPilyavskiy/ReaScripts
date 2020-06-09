@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="caa6dcb1b99a25234c1d0501f146328d8ed167d1" name="MPL Scripts">
+<index version="1" commit="9d232a3eff3afc40f16555872af1d8d8831b7026" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4518,6 +4518,16 @@ add control for timefall showing last note]]></changelog>
         <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/caa6dcb1b99a25234c1d0501f146328d8ed167d1/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
         <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/caa6dcb1b99a25234c1d0501f146328d8ed167d1/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
         <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/caa6dcb1b99a25234c1d0501f146328d8ed167d1/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2020-06-09T06:43:02Z">
+        <changelog><![CDATA[+ Add button for insert region from time selection and edit
+# Search: not case sensitive
+# move scroll and menu to the right side]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d232a3eff3afc40f16555872af1d8d8831b7026/Regions/mpl_RegionManager.lua</source>
+        <source file="mpl_RegionManager_functions/mpl_RegionManager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d232a3eff3afc40f16555872af1d8d8831b7026/Regions/mpl_RegionManager_functions/mpl_RegionManager_GUI.lua</source>
+        <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d232a3eff3afc40f16555872af1d8d8831b7026/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
+        <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d232a3eff3afc40f16555872af1d8d8831b7026/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
+        <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d232a3eff3afc40f16555872af1d8d8831b7026/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
       </version>
     </reapack>
   </category>
