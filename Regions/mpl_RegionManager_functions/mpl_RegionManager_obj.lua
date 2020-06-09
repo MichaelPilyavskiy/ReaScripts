@@ -234,6 +234,14 @@ ShortCuts:
                           end
                 end
         },
+        { str = 'Use search as filter',
+          func = function() 
+                    conf.search_filt = math.abs(1-conf.search_filt) 
+                    refresh.conf = true
+                end ,
+          state = conf.search_filt == 1},          
+        
+        
         
         { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
           func = function() 
@@ -578,6 +586,7 @@ ShortCuts:
     
     for idx0=1,#data.regions do
       local idx = obj.mapping[idx0][2] -- mapped
+      if not data.regions[idx].show then goto skipnextrgn2 end
       local fillback, col0 = true, data.regions[idx].color
       if col0==0 then 
         local r = 255 col0 = ColorToNative( r, r, r ) fillback_a = 0.44 fillback = false
@@ -610,11 +619,13 @@ ShortCuts:
     return   tr_y -   tr_y0, realcnt_idx  
   end 
   ------------------------------------------------------
-  function Obj_MatchSearch(conf, obj, data, refresh, mouse)
-    if obj.search_field_txt == '' then obj.selection = {} return end
+  function Obj_MatchSearch(conf, obj, data, refresh, mouse) 
     obj.selection = {}
-    for i = 1, #data.regions do
-      if data.regions[i].name:match(obj.search_field_txt) then obj.selection[i] = true end
+    if conf.search_filt == 0 then 
+      if obj.search_field_txt == '' then return end
+      for i = 1, #data.regions do data.regions[i].show = true if data.regions[i].name:match(obj.search_field_txt) then obj.selection[i] = true end end
+     else
+      for i = 1, #data.regions do data.regions[i].show = obj.search_field_txt == '' or (obj.search_field_txt ~= '' and data.regions[i].name:match(obj.search_field_txt)) end
     end
   end
   ------------------------------------------------------

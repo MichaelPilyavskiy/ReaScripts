@@ -1,5 +1,5 @@
 -- @description RegionManager
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -8,13 +8,9 @@
 --    mpl_RegionManager_functions/mpl_RegionManager_data.lua
 --    mpl_RegionManager_functions/mpl_RegionManager_obj.lua
 -- @changelog
---    + #sel wildcard to show is region under edit/playcursor or selection (only works in dynamic refresh mode)
---    + Shortcut: move to options
---    + Shortcut: allow to select region by Enter
---    + Link mouse LMB/LMB+Ctrl triggers on #sel row to Enter/Enter+Ctrl shortcuts
---    + Allow to change fontsize
+--    + Add option for use search as filter
 
-  local vrs = 'v1.03'
+  local vrs = 'v1.04'
   
   --NOT gfx NOT reaper
   
@@ -67,7 +63,7 @@
             shortcut_enter = 1, -- &1 set cur pos &2 set time selection
             shortcut_ctrlenter = 1, -- &1 smooth seek
             GUI_fontsz2 = 15,
-            
+            search_filt = 0,
             
             -- mouse
             mouse_wheel_res = 960,

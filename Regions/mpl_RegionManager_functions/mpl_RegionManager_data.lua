@@ -59,7 +59,8 @@
                               pos_format =pos_format,
                               rgnend_format=rgnend_format,
                               rgnlen_format=rgnlen_format,
-                              rgn_idx=rgn_idx}
+                              rgn_idx=rgn_idx,
+                              show = true}
       end
     end 
   ---------------------------------------------------   
