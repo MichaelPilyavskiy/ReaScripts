@@ -1,5 +1,5 @@
 -- @description RegionManager
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -8,9 +8,11 @@
 --    mpl_RegionManager_functions/mpl_RegionManager_data.lua
 --    mpl_RegionManager_functions/mpl_RegionManager_obj.lua
 -- @changelog
---    + Add option for use search as filter
+--    + Add button for insert region from time selection and edit
+--    # Search: not case sensitive
+--    # move scroll and menu to the right side
 
-  local vrs = 'v1.04'
+  local vrs = 'v1.05'
   
   --NOT gfx NOT reaper
   
@@ -25,7 +27,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-   data = {regions={}}
+  local data = {regions={}}
   local obj = { selection = {},
                 realcnt = 0,
                 search_field_txt = '',

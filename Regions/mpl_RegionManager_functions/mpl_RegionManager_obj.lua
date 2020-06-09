@@ -46,11 +46,13 @@
     obj.GUI_font = 'Calibri'
     obj.GUI_fontsz = 19 
     obj.GUI_fontsz2 = conf.GUI_fontsz2 
+    obj.GUI_fontsz5 = 17
     obj.GUI_fontsz3 = 13
     obj.GUI_fontsz_tooltip = 13
     if GetOS():find("OSX") then 
       obj.GUI_fontsz = obj.GUI_fontsz - 6 
       obj.GUI_fontsz2 = obj.GUI_fontsz2 - 5 
+      obj.GUI_fontsz5 = obj.GUI_fontsz5 - 5 
       obj.GUI_fontsz3 = obj.GUI_fontsz3 - 4
       obj.GUI_fontsz_tooltip = obj.GUI_fontsz_tooltip - 4
     end 
@@ -68,7 +70,7 @@
     obj.trlistw = math.floor(gfx.w - obj.scroll_w-obj.offs)-- - obj.get_w)*0.7)
     obj.tr_listh = gfx.h-obj.menu_h-obj.offs
 
-    obj.tr_listx = obj.scroll_w
+    obj.tr_listx = 0--obj.scroll_w
     obj.tr_listy = obj.menu_h *2
     obj.tr_listw = obj.trlistw
     
@@ -110,14 +112,14 @@
     -----------------------------------------------
     function Obj_Menu(conf, obj, data, refresh, mouse)
         obj.showflagreg = { clear = true,
-                          x = 0,
+                          x = gfx.w-obj.scroll_w,
                           y = obj.menu_h,
                           w = obj.scroll_w-1,
                           h = obj.menu_h,
                           col = 'white',
                           txt= 'R',
                           show = true,
-                          fontsz = obj.GUI_fontsz2,
+                          fontsz = obj.GUI_fontsz5,
                           a_frame = 0,
                           is_selected=conf.showflag&1==1,
                           func =  function() 
@@ -127,14 +129,14 @@
                                     --refresh.data = true
                                   end  }  
         obj.showflagmark = { clear = true,
-                          x = 0,
+                          x = gfx.w-obj.scroll_w,
                           y = obj.menu_h*2,
                           w = obj.scroll_w-1,
                           h = obj.menu_h,
                           col = 'white',
                           txt= 'M',
                           show = true,
-                          fontsz = obj.GUI_fontsz2,
+                          fontsz = obj.GUI_fontsz5,
                           a_frame = 0,
                           is_selected=conf.showflag&2==2,
                           func =  function() 
@@ -144,14 +146,14 @@
                                     --refresh.data = true
                                   end  }                             
         obj.menu = { clear = true,
-                          x = 0,
+                          x = gfx.w-obj.scroll_w,
                           y = 0,
                           w = obj.scroll_w-1,
                           h = obj.menu_h-1,
                           col = 'white',
                           txt= '>',
                           show = true,
-                          fontsz = obj.GUI_fontsz2,
+                          fontsz = obj.GUI_fontsz5,
                           a_frame = 0,
                           func =  function() 
                                     Menu(mouse,               
@@ -268,7 +270,7 @@ ShortCuts:
     local scroll_handle_h = 50
         obj.scroll_pat = 
                       { clear = true,
-                        x = 0,
+                        x = gfx.w-obj.scroll_w,
                         y = obj.menu_h*3,
                         w = obj.scroll_w-1,
                         h = pat_scroll_h,
@@ -282,7 +284,7 @@ ShortCuts:
                       }
         obj.scroll_pat_handle = 
                       { clear = true,
-                        x = 0,--obj.offs,
+                        x = gfx.w-obj.scroll_w,--obj.offs,
                         y = obj.menu_h*3 + obj.scroll_val * (pat_scroll_h -scroll_handle_h) ,
                         w = obj.scroll_w-1,--obj.offs,
                         h = scroll_handle_h-1,
@@ -623,16 +625,16 @@ ShortCuts:
     obj.selection = {}
     if conf.search_filt == 0 then 
       if obj.search_field_txt == '' then return end
-      for i = 1, #data.regions do data.regions[i].show = true if data.regions[i].name:match(obj.search_field_txt) then obj.selection[i] = true end end
+      for i = 1, #data.regions do data.regions[i].show = true if data.regions[i].name:lower():match(obj.search_field_txt) then obj.selection[i] = true end end
      else
-      for i = 1, #data.regions do data.regions[i].show = obj.search_field_txt == '' or (obj.search_field_txt ~= '' and data.regions[i].name:match(obj.search_field_txt)) end
+      for i = 1, #data.regions do data.regions[i].show = obj.search_field_txt == '' or (obj.search_field_txt ~= '' and data.regions[i].name:lower():match(obj.search_field_txt)) end
     end
   end
   ------------------------------------------------------
   function Obj_Search(conf, obj, data, refresh, mouse)
     local retval, retvals_csv = GetUserInputs( 'Search regions', 1, ',extrawidth=200', obj.search_field_txt )
     if retval then 
-      obj.search_field_txt = retvals_csv
+      obj.search_field_txt = retvals_csv:lower()
       Obj_MatchSearch(conf, obj, data, refresh, mouse)
       refresh.GUI = true
     end
@@ -640,9 +642,10 @@ ShortCuts:
   ------------------------------------------------------
   function Obj_TopLine(conf, obj, data, refresh, mouse) 
     local clear_w = 100
-    local search_w = gfx.w-clear_w-obj.scroll_w
+    local add_w = 100
+    local search_w = gfx.w-clear_w-obj.scroll_w-add_w
         obj.search_field = { clear = true,
-              x =obj.scroll_w,
+              x =0,
               y = 0,
               w = search_w-1,
               h = obj.menu_h-1,
@@ -653,14 +656,14 @@ ShortCuts:
               txt= 'Search: '..obj.search_field_txt,
               txt_a = 1,
               align_txt = 1,
-              fontsz = obj.GUI_fontsz2,
+              fontsz = obj.GUI_fontsz5,
               show = true,
               func = function ()Obj_Search(conf, obj, data, refresh, mouse) end
               }
         obj.search_clear = { clear = true,
-              x =search_w+obj.scroll_w,--obj.scroll_w+search_w,
+              x =search_w,--obj.scroll_w+search_w,
               y = 0,
-              w = clear_w-3,
+              w = clear_w-1,
               h = obj.menu_h-1,
               fillback = false,
               fillback_colint = col0,--'col0,
@@ -669,14 +672,32 @@ ShortCuts:
               txt= 'Clear',
               txt_a = 1,
               --align_txt = 16,
-              fontsz = obj.GUI_fontsz2,
+              fontsz = obj.GUI_fontsz5,
               show = true,
               func = function ()
                       obj.search_field_txt = ''
                       Obj_MatchSearch(conf, obj, data, refresh, mouse)
                       refresh.GUI = true
                     end
-              }                
+              } 
+        obj.add_fromts = { clear = true,
+              x =search_w+clear_w,--obj.scroll_w+search_w,
+              y = 0,
+              w = add_w-1,
+              h = obj.menu_h-1,
+              fillback = false,
+              fillback_colint = col0,--'col0,
+              fillback_a = fillback_a,
+              alpha_back = 0.5,
+              txt= 'Add region',
+              txt_a = 1,
+              --align_txt = 16,
+              fontsz = obj.GUI_fontsz5,
+              show = true,
+              func = function ()
+                      Action(40306)--Markers: Insert region from time selection and edit...
+                    end
+              }               
   end
   -----------------------------------------------
   function Obj_RegListHeadRow_sel(conf, obj, data, refresh, mouse, xpos, tr_y, tr_h, fillback, fillback_a, col0, alpha_back, custwidth)
