@@ -1,5 +1,5 @@
 -- @description RegionManager
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -8,12 +8,13 @@
 --    mpl_RegionManager_functions/mpl_RegionManager_data.lua
 --    mpl_RegionManager_functions/mpl_RegionManager_obj.lua
 -- @changelog
---    # extend search input width 
---    # extend marker name input width
---    # reduce playing position
---    + Allow to set rows order/width using wildcards
+--    + #sel wildcard to show is region under edit/playcursor or selection (only works in dynamic refresh mode)
+--    + Shortcut: move to options
+--    + Shortcut: allow to select region by Enter
+--    + Link mouse LMB/LMB+Ctrl triggers on #sel row to Enter/Enter+Ctrl shortcuts
+--    + Allow to change fontsize
 
-  local vrs = 'v1.02'
+  local vrs = 'v1.03'
   
   --NOT gfx NOT reaper
   
@@ -28,7 +29,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-  local data = {regions={}}
+   data = {regions={}}
   local obj = { selection = {},
                 realcnt = 0,
                 search_field_txt = '',
@@ -62,7 +63,11 @@
             sort_row_key = '',
             sort_rowflag = 0,
             dyn_refresh = 1,
-            sort_rows = '#id #realid #name230 #start80 #end60 #len60',
+            sort_rows = '#sel #id #realid #name230 #start80 #end60 #len60',
+            shortcut_enter = 1, -- &1 set cur pos &2 set time selection
+            shortcut_ctrlenter = 1, -- &1 smooth seek
+            GUI_fontsz2 = 15,
+            
             
             -- mouse
             mouse_wheel_res = 960,

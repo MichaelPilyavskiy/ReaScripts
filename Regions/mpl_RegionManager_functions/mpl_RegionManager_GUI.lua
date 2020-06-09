@@ -191,17 +191,18 @@
                         or ((type(o.check)=='boolean' and o.check==false) or (o.check and o.check&1==0))
     --if o.check then
       gfx.a = 0.7
-      if (type(o.check)=='boolean' and o.check==true) or (o.check and o.check&1==1 and o.check~=-1) then
+      if o.check==true then --(type(o.check)=='boolean' and o.check==true) or (o.check and o.check&1==1 and o.check~=-1) then
         local xr = x+2
         local yr = y+2
         local wr = h-6
         local hr = h-5
+        gfx.a = 1
         gfx.rect(xr,yr,wr,hr,1)
+        gfx.a = 0.7
         rect(x,y,h-3,h-2,0)
-       elseif (type(o.check)=='boolean' and o.check==false) or (o.check and o.check&1==0 and o.check~=-1) then
+       elseif o.check==1 then--(type(o.check)=='boolean' and o.check==false) or (o.check and o.check&1==0 and o.check~=-1) then
         rect(x,y,h-3,h-2,0)
        elseif o.check and o.check==-1 then
-
         gfx.line(x+h-3,y,x,y)        
         gfx.line(x,y+1,x,y+h-4) 
       end
@@ -469,8 +470,8 @@
       end
       
     -- refresh
-      if (conf.dyn_refresh == 1 and (refresh.GUI or refresh.GUI_minor)) 
-        or (conf.dyn_refresh == 0 and refresh.GUI) 
+      if (conf.dyn_refresh == 1 and (refresh.GUI==true or refresh.GUI_minor==true)) 
+        or (conf.dyn_refresh == 0 and refresh.GUI==true)--(refresh.GUI==true or refresh.data==true))
         then 
         -- refresh backgroung
           gfx.dest = 1

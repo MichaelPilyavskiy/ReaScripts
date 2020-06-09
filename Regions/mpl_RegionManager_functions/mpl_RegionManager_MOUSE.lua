@@ -17,10 +17,14 @@
       if mouse.char == 13 then   
         local cur_idx = Obj_Selection_GetFirst(conf, obj, data, refresh, mouse)
         if cur_idx and data.regions[cur_idx] then
+        
           if mouse.cap == 4 then  -- ctrl+enter 
-            GoToRegion( 0, data.regions[cur_idx].rgn_idx, true )
+            if conf.shortcut_ctrlenter&1==1 then GoToRegion( 0, data.regions[cur_idx].rgn_idx, true ) end
            elseif mouse.cap == 0 then
-            SetEditCurPos( data.regions[cur_idx].rgnpos, true, true )
+            if conf.shortcut_enter&1==1 then SetEditCurPos( data.regions[cur_idx].rgnpos, true, true ) end
+            if conf.shortcut_enter&2==2 then 
+              GetSet_LoopTimeRange2( 0, true, true, data.regions[cur_idx].rgnpos, data.regions[cur_idx].rgnend, true )
+            end
           end
           
         end

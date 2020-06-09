@@ -20,18 +20,6 @@
     obj.tr_h = 22 
     obj.fillback_a_list = 0.6
     
-    -- font
-    obj.GUI_font = 'Calibri'
-    obj.GUI_fontsz = 19 
-    obj.GUI_fontsz2 = 15 
-    obj.GUI_fontsz3 = 13
-    obj.GUI_fontsz_tooltip = 13
-    if GetOS():find("OSX") then 
-      obj.GUI_fontsz = obj.GUI_fontsz - 6 
-      obj.GUI_fontsz2 = obj.GUI_fontsz2 - 5 
-      obj.GUI_fontsz3 = obj.GUI_fontsz3 - 4
-      obj.GUI_fontsz_tooltip = obj.GUI_fontsz_tooltip - 4
-    end 
     
     -- colors    
     obj.GUIcol = { grey =    {0.5, 0.5,  0.5 },
@@ -54,6 +42,21 @@
       obj.parsed_t[#obj.parsed_t+1] = {name = val:match('#([A-Z,a-z]+)') , width = val:match('%d+')}
     end
     
+    -- font
+    obj.GUI_font = 'Calibri'
+    obj.GUI_fontsz = 19 
+    obj.GUI_fontsz2 = conf.GUI_fontsz2 
+    obj.GUI_fontsz3 = 13
+    obj.GUI_fontsz_tooltip = 13
+    if GetOS():find("OSX") then 
+      obj.GUI_fontsz = obj.GUI_fontsz - 6 
+      obj.GUI_fontsz2 = obj.GUI_fontsz2 - 5 
+      obj.GUI_fontsz3 = obj.GUI_fontsz3 - 4
+      obj.GUI_fontsz_tooltip = obj.GUI_fontsz_tooltip - 4
+    end 
+    
+    
+    -- define
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
    
     local min_w = 200
@@ -169,8 +172,8 @@
                     msg([[
 ShortCuts:
   - Top/Down: change selection
-  - Enter: play selected region
-  - Shift+Enter: smooth seek selected region
+  - Enter: <see shortcuts>
+  - Ctrl+Enter: <see shortcuts>
   - Shift S: search tracks
   - Name LMB: select
   - Name Alt+LMB: remove
@@ -179,6 +182,28 @@ ShortCuts:
                     ]])
                   end  } ,           
         { str = '#Options'},
+        { str = '>Shortcuts'},          
+        
+        { str = 'Enter: set edit cursor at region start',
+          func = function() 
+                    conf.shortcut_enter = BinaryToggle(conf.shortcut_enter, 0)
+                    refresh.conf = true
+                end,
+          state = conf.shortcut_enter&1 == 1 },    
+        { str = 'Enter: set time selection at region edges|',
+          func = function() 
+                    conf.shortcut_enter = BinaryToggle(conf.shortcut_enter, 1)
+                    refresh.conf = true
+                end,
+          state = conf.shortcut_enter&2 == 2 }, 
+        { str = 'Ctrl+Enter: smooth seek to regon position|<',
+          func = function() 
+                    conf.shortcut_ctrlenter = BinaryToggle(conf.shortcut_ctrlenter, 0)
+                    refresh.conf = true
+                end,
+          state = conf.shortcut_ctrlenter&1 == 1 },           
+          
+          
         { str = 'Define Rows',
           func = function() 
                     local retval, retstr = GetUserInputs( 'Define Rows', 1, ',extrawidth=200', conf.sort_rows )
@@ -189,7 +214,7 @@ ShortCuts:
                 end },    
         { str = 'Reset Rows',
           func = function() 
-                    conf.sort_rows = '#id #realid #name230 #start80 #end60 #len60'
+                    conf.sort_rows = '#sel #id #realid #name230 #start80 #end60 #len60'
                     refresh.GUI = true
                     refresh.conf = true
                 end },                 
@@ -199,6 +224,16 @@ ShortCuts:
                     refresh.GUI = true
                 end ,
           state = conf.dyn_refresh == 1},            
+        { str = 'Change fontsize',
+          func = function()       
+                          local retval, fsz = GetUserInputs( 'Fontsize', 1, '', conf.GUI_fontsz2 )
+                          if retval then        
+                            conf.GUI_fontsz2 = fsz
+                            refresh.conf = true
+                            refresh.GUI = true
+                          end
+                end
+        },
         
         { str = 'Dock '..'MPL '..conf.mb_title..' '..conf.vrs,
           func = function() 
@@ -305,6 +340,35 @@ ShortCuts:
     end
   end
   -----------------------------------------------
+  function Obj_RegListRow_sel(conf, obj, data, refresh, mouse, xpos, tr_y, idx, fillback, fillback_a, col0, alpha_back, realcnt_idx, show)
+    obj['region_sel'..idx] = { clear = true,
+          x =xpos,
+          y = tr_y,
+          w = obj.tr_h-1,
+          h = obj.tr_h,
+          fillback = fillback,
+          fillback_colint = col0,--'col0,
+          fillback_a = fillback_a,
+          alpha_back =alpha_back,
+          txt= '',
+          txt_a = 1,
+          align_txt = 16,
+          fontsz = obj.GUI_fontsz2,
+          show = show,
+          is_selected = obj.selection[idx] and obj.selection[idx] == true,
+          is_selected_xshift = true,
+          check = data.regions[idx] and data.regions[idx].isundereditpos,
+          func = function() 
+                    if conf.shortcut_enter&1==1 then SetEditCurPos( data.regions[idx].rgnpos, true, true ) end
+                    if conf.shortcut_enter&2==2 then GetSet_LoopTimeRange2( 0, true, true, data.regions[idx].rgnpos, data.regions[idx].rgnend, true )end
+                  end,
+          func_trigCtrl = function()
+                    if conf.shortcut_ctrlenter&1==1 then GoToRegion( 0, data.regions[idx].rgn_idx, true ) end
+                  end,
+          }
+    return obj.tr_h
+  end 
+  -----------------------------------------------
   function Obj_RegListRow_id(conf, obj, data, refresh, mouse, xpos, tr_y, idx, fillback, fillback_a, col0, alpha_back, realcnt_idx, show)
     obj['region_idx'..idx] = { clear = true,
           x =xpos,
@@ -332,14 +396,14 @@ ShortCuts:
     local tp = 'R' 
     if data.regions[idx].isrgn == false then tp = 'M' end
     obj['region_intidx'..idx] = { clear = true,
-        x =obj.tr_listx+obj.rgnroww_idx,
+        x =xpos,
         y = tr_y,
         w = obj.rgnroww_idx-1,
         h = obj.tr_h,
-        fillback = false,
+        fillback = fillback,
         fillback_colint = col0,--'col0,
         fillback_a = fillback_a,
-        alpha_back =obj.but_aback,
+        alpha_back =alpha_back,
         txt= tp..data.regions[idx].markrgnindexnumber,
         txt_a = 1,
         align_txt = 16,
@@ -505,7 +569,7 @@ ShortCuts:
     for i=1, #obj.parsed_t do
       local key = obj.parsed_t[i].name
       local custwidth = obj.parsed_t[i].width
-      if _G['Obj_RegListRow_'..key] then
+      if _G['Obj_RegListRow_'..key] and not (key == 'sel' and conf.dyn_refresh==0 ) then
         local retw = _G['Obj_RegListRow_'..key](conf, obj, data, refresh, mouse, xpos0, tr_y, idx, fillback, fillback_a, col0, alpha_back, realcnt_idx, show, custwidth)
         xpos0 = xpos0 + retw
       end
@@ -532,7 +596,7 @@ ShortCuts:
         local key = obj.parsed_t[i].name
         local custwidth = obj.parsed_t[i].width
         if custwidth then custwidth = math.floor(custwidth*obj.ratio_exp) end
-        if _G['Obj_RegListRow_'..key] then
+        if _G['Obj_RegListRow_'..key] and not (key == 'sel' and conf.dyn_refresh==0 ) then
           local retw = _G['Obj_RegListRow_'..key](conf, obj, data, refresh, mouse, xpos, tr_y, idx, fillback, obj.fillback_a_list, col0, alpha_back, realcnt_idx, show, custwidth)
           --if custwidth then xpos = xpos + retw*obj.ratio_exp else xpos = xpos + retw end
           xpos = xpos + retw
@@ -603,6 +667,31 @@ ShortCuts:
                     end
               }                
   end
+  -----------------------------------------------
+  function Obj_RegListHeadRow_sel(conf, obj, data, refresh, mouse, xpos, tr_y, tr_h, fillback, fillback_a, col0, alpha_back, custwidth)
+     obj['region_sel_head'] = { clear = true,
+              x = xpos,
+              y = tr_y,
+              w = tr_h-1,
+              h = tr_h,
+              fillback = false,
+              fillback_colint = col0,--'col0,
+              fillback_a = 0.9,
+              alpha_back =0,
+              txt= '',
+              txt_a = 1,
+              align_txt = 16,
+              fontsz = obj.GUI_fontsz2,
+              show = true,
+              --[[func = function()
+                        conf.sort_row_key = ''
+                        conf.sort_rowflag = 0
+                        refresh.GUI = true
+                        refresh.conf = true
+                      end ]]             
+              } 
+    return tr_h+3
+  end 
   -----------------------------------------------
   function Obj_RegListHeadRow_id(conf, obj, data, refresh, mouse, xpos, tr_y, tr_h, fillback, fillback_a, col0, alpha_back, custwidth)
      obj['region_idx_head'] = { clear = true,
@@ -812,7 +901,7 @@ ShortCuts:
     for i=1, #obj.parsed_t do
       local key = obj.parsed_t[i].name
       local custwidth = obj.parsed_t[i].width
-      if _G['Obj_RegListHeadRow_'..key] then
+      if _G['Obj_RegListHeadRow_'..key] and not (key == 'sel' and conf.dyn_refresh==0 ) then
         local retw = _G['Obj_RegListHeadRow_'..key](conf, obj, data, refresh, mouse, xpos, tr_y, tr_h, fillback, fillback_a, col0, alpha_back, custwidth)
         xpos0 = xpos0 + retw
       end
@@ -824,7 +913,7 @@ ShortCuts:
       local key = obj.parsed_t[i].name
       local custwidth = obj.parsed_t[i].width
       if custwidth then custwidth = math.floor(custwidth*obj.ratio_exp) end
-      if _G['Obj_RegListHeadRow_'..key] then
+      if _G['Obj_RegListHeadRow_'..key] and not (key == 'sel' and conf.dyn_refresh==0 ) then
         local retw = _G['Obj_RegListHeadRow_'..key](conf, obj, data, refresh, mouse, xpos, tr_y, tr_h, fillback, fillback_a, col0, alpha_back, custwidth)
         xpos = xpos + retw
       end

@@ -36,6 +36,8 @@
   end
   ---------------------------------------------------    
     function Data_CollectRegions(conf, obj, data, refresh, mouse)
+      local curpos = GetCursorPositionEx( 0 )
+      
       data.regions = {}
       local retval, num_markers, num_regions = reaper.CountProjectMarkers( 0 )
       local rgn_idx = 0
@@ -46,6 +48,7 @@
         local rgnend_format = format_timestr_pos( rgnend, '', -1 )
         local rgnlen = rgnend - pos
         local rgnlen_format = format_timestr_len( rgnlen, '', pos, -1 )
+        
         data.regions[idx] = {isrgn=isrgn,
                               rgnpos = pos,
                               rgnend=rgnend,
@@ -76,6 +79,24 @@
         end
         obj['regionname'..idx].fill_val = val
       end
+      
+      local isundereditpos
+      if obj['region_sel'..idx] then 
+        if data.regions[idx].isrgn == false then 
+          local check = math.abs(playpos-data.regions[idx].rgnpos) < 10^-14
+          if check then check = 1 end
+          obj['region_sel'..idx].check = check
+         else
+          local check = playpos>=data.regions[idx].rgnpos and playpos < data.regions[idx].rgnend
+          if check then check = 1 end
+          local start_ts, end_ts = GetSet_LoopTimeRange2( 0, false, false, 0, 0, false )
+          if math.abs(start_ts-data.regions[idx].rgnpos) < 10^-14 and math.abs(end_ts-data.regions[idx].rgnend ) < 10^-14 then check = true end
+          obj['region_sel'..idx].check = check 
+        end
+      end
+      
+      
+      
     end
   end
   --[[    -- reaper.EnumRegionRenderMatrix( proj, regionindex, rendertrack )Enumerate which tracks will be rendered within this region when using the region render matrix. When called with rendertrack==0, the function returns the first track that will be rendered (which may be the master track); rendertrack==1 will return the next track rendered, and so on. The function returns NULL when there are no more tracks that will be rendered within this region.]]
