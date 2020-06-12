@@ -597,6 +597,7 @@
       end
     end
     local rs5k_pos = TrackFX_AddByName( track, 'ReaSamplomatic5000', false, -1 )
+    if conf.closefloat == 1 then reaper.TrackFX_Show( track, rs5k_pos, -2 ) end
     if last_inst then 
       TrackFX_CopyToTrack( track, rs5k_pos, track, last_inst+1,true )
       rs5k_pos = last_inst+1
@@ -642,7 +643,7 @@
           SetRS5kData(data, conf, new_tr, note, spl, true)
           GetSetMediaTrackInfo_String( new_tr, 'P_NAME', data[note][spl].sample_short, 1 )
           TrackList_AdjustWindows( false )
-          TrackFX_Show( new_tr, 0, 1 )          
+          TrackFX_Show( new_tr, 0, 1 )
         Undo_EndBlock( 'Build RS5k MIDI routing for note '..note..' sample '..spl, 0 )
         return new_tr
         

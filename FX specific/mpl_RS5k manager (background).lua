@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 2.128
+-- @version 2.129
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on selected track
@@ -10,13 +10,11 @@
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua
 --    mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua
 -- @changelog
---    # Pattern: fixed error on duplicate pattern
---    # Pattern: rename "Duplicate pattern" to "Separate pooled pattern to new variation / unpool take"
---    # Mixer: fix handle hashtags
+--    + Options/Drandrop/Autp close FX window
 
 
 
-  local vrs = 'v2.128'
+  local vrs = 'v2.129'
   local scr_title = 'RS5K manager'
   --NOT gfx NOT reaper
  
@@ -73,7 +71,8 @@
             draggedfile_fxchain = '',
             --copy_src_media = 0,
             sendnoteoffonrelease = 1,
-                        
+            closefloat = 0,
+            
             -- GUI
             tab = 0,  -- 0-sample browser
             GUI_padfontsz = GUI_fontsz2,

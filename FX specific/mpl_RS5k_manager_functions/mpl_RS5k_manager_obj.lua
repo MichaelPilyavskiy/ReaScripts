@@ -1930,6 +1930,11 @@ List of available hashtags:
     state = conf.copy_src_media == 1,
   } ,             
   ]]
+  { str = 'Auto close floating window',
+    func =  function() conf.closefloat = math.abs(1-conf.closefloat)  end,
+    state = conf.closefloat == 1,
+  } ,    
+  
   { str = 'Use custom FX chain for newly dragged samples '..conf.draggedfile_fxchain..'|<',
     func =  function() 
               if conf.draggedfile_fxchain ~= '' then conf.draggedfile_fxchain = '' return end
