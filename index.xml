@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9d232a3eff3afc40f16555872af1d8d8831b7026" name="MPL Scripts">
+<index version="1" commit="d565216893924540628addbeb31617cb84dc225b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2690,6 +2690,15 @@
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/53f65286b8cce3c7663076e4c30e39cf6d071256/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/53f65286b8cce3c7663076e4c30e39cf6d071256/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/53f65286b8cce3c7663076e4c30e39cf6d071256/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua</source>
+      </version>
+      <version name="2.129" author="MPL" time="2020-06-12T07:01:40Z">
+        <changelog><![CDATA[+ Options/Drandrop/Autp close FX window]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d565216893924540628addbeb31617cb84dc225b/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d565216893924540628addbeb31617cb84dc225b/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_GUI.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d565216893924540628addbeb31617cb84dc225b/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_MOUSE.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d565216893924540628addbeb31617cb84dc225b/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d565216893924540628addbeb31617cb84dc225b/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
+        <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d565216893924540628addbeb31617cb84dc225b/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k tools.lua" type="script" desc="RS5k tools">
