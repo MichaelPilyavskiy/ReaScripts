@@ -1,10 +1,10 @@
 -- @description Propagate last touched pooled FX parameters to all pooled FX in group (group 1)
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=236979
 -- @noindex
 -- @changelog
---    + init
+--    # fix error
 
   groupID = 1
   
@@ -54,7 +54,7 @@
      else
       for i = 1, #fx_data do
         for paramnumber = 1, TrackFX_GetNumParams(  dest_track, i-1)-1 do 
-          TrackFX_SetParam( dest_track, i-1, paramnumber-1,fx_data[i].params[paramnumber]) 
+          if fx_data[i].params[paramnumber] then  TrackFX_SetParam( dest_track, i-1, paramnumber-1,fx_data[i].params[paramnumber])  end
         end
       end      
     end
