@@ -624,19 +624,20 @@ ShortCuts:
   function Obj_MatchSearch(conf, obj, data, refresh, mouse) 
     obj.selection = {}
     if conf.search_filt == 0 then 
-      if obj.search_field_txt == '' then return end
-      for i = 1, #data.regions do data.regions[i].show = true if data.regions[i].name:lower():match(obj.search_field_txt) then obj.selection[i] = true end end
+      if conf.search_text == '' then return end
+      for i = 1, #data.regions do data.regions[i].show = true if data.regions[i].name:lower():match(conf.search_text) then obj.selection[i] = true end end
      else
-      for i = 1, #data.regions do data.regions[i].show = obj.search_field_txt == '' or (obj.search_field_txt ~= '' and data.regions[i].name:lower():match(obj.search_field_txt)) end
+      for i = 1, #data.regions do data.regions[i].show = conf.search_text == '' or (conf.search_text ~= '' and data.regions[i].name:lower():match(conf.search_text)) end
     end
   end
   ------------------------------------------------------
   function Obj_Search(conf, obj, data, refresh, mouse)
-    local retval, retvals_csv = GetUserInputs( 'Search regions', 1, ',extrawidth=200', obj.search_field_txt )
+    local retval, retvals_csv = GetUserInputs( 'Search regions', 1, ',extrawidth=200', conf.search_text)-- obj.search_field_txt )
     if retval then 
-      obj.search_field_txt = retvals_csv:lower()
+      conf.search_text = retvals_csv:lower()
       Obj_MatchSearch(conf, obj, data, refresh, mouse)
       refresh.GUI = true
+      refresh.conf = true
     end
   end
   ------------------------------------------------------
@@ -653,7 +654,7 @@ ShortCuts:
               fillback_colint = col0,--'col0,
               fillback_a = fillback_a,
               alpha_back = 0.5,
-              txt= 'Search: '..obj.search_field_txt,
+              txt= 'Search: '..conf.search_text,
               txt_a = 1,
               align_txt = 1,
               fontsz = obj.GUI_fontsz5,

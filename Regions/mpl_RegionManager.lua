@@ -1,5 +1,5 @@
 -- @description RegionManager
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -8,11 +8,9 @@
 --    mpl_RegionManager_functions/mpl_RegionManager_data.lua
 --    mpl_RegionManager_functions/mpl_RegionManager_obj.lua
 -- @changelog
---    + Add button for insert region from time selection and edit
---    # Search: not case sensitive
---    # move scroll and menu to the right side
+--    # Search: remember last entered text
 
-  local vrs = 'v1.05'
+  local vrs = 'v1.06'
   
   --NOT gfx NOT reaper
   
@@ -66,6 +64,7 @@
             shortcut_ctrlenter = 1, -- &1 smooth seek
             GUI_fontsz2 = 15,
             search_filt = 0,
+            search_text = '',
             
             -- mouse
             mouse_wheel_res = 960,
