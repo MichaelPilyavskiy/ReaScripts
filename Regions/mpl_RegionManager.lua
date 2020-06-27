@@ -1,5 +1,5 @@
 -- @description RegionManager
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -8,9 +8,9 @@
 --    mpl_RegionManager_functions/mpl_RegionManager_data.lua
 --    mpl_RegionManager_functions/mpl_RegionManager_obj.lua
 -- @changelog
---    + Shortcuts: allow to redirect Num0 as Transport: play/stop in addition to space and separately disable
+--    # Shortcuts: handle Num0 as insert too
 
-  local vrs = 'v1.08'
+  local vrs = 'v1.09'
   
   --NOT gfx NOT reaper
   

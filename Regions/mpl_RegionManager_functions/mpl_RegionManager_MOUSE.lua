@@ -8,7 +8,7 @@
     --if mouse.char > 0 then msg(mouse.char) msg(mouse.cap)end
     
     -- space: play/pause
-      if (conf.shortcut_play2&1==1 and mouse.char == 32) or (conf.shortcut_play2&2==2 and mouse.char == 48) then Main_OnCommandEx(40044, 0,0) end 
+      if (conf.shortcut_play2&1==1 and mouse.char == 32) or (conf.shortcut_play2&2==2 and (mouse.char == 48 or mouse.char == 6909555)) then Main_OnCommandEx(40044, 0,0) end 
     
     -- top down chnage selection
       if mouse.char == 1685026670 then Obj_Selection_NextPrev(conf, obj, data, refresh, mouse, 1) elseif mouse.char == 30064 then Obj_Selection_NextPrev(conf, obj, data, refresh, mouse, -1) end
