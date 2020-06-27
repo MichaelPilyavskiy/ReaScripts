@@ -206,16 +206,16 @@ ShortCuts:
           state = conf.shortcut_ctrlenter&1 == 1 },           
         { str = 'Space: play/stop',
           func = function() 
-                    conf.shortcut_play = BinaryToggle(conf.shortcut_play, 0)
+                    conf.shortcut_play2 = BinaryToggle(conf.shortcut_play2, 0)
                     refresh.conf = true
                 end,
-          state = conf.shortcut_play&1 ~= 1 },           
+          state = conf.shortcut_play2&1 == 1 },           
         { str = 'Num0: play/stop|<',
           func = function() 
-                    conf.shortcut_play = BinaryToggle(conf.shortcut_play, 0)
+                    conf.shortcut_play2 = BinaryToggle(conf.shortcut_play2, 1)
                     refresh.conf = true
                 end,
-          state = conf.shortcut_play&1 == 1 },           
+          state = conf.shortcut_play2&2 == 2 },           
         { str = 'Define Rows',
           func = function() 
                     local retval, retstr = GetUserInputs( 'Define Rows', 1, ',extrawidth=200', conf.sort_rows )
