@@ -33,6 +33,7 @@
   ---------------------------------------------------  
   function Data_Update(conf, obj, data, refresh, mouse)
     Data_CollectRegions(conf, obj, data, refresh, mouse)
+    Obj_MatchSearch(conf, obj, data, refresh, mouse) 
   end
   ---------------------------------------------------    
     function Data_CollectRegions(conf, obj, data, refresh, mouse)

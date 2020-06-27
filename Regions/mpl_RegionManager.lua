@@ -1,5 +1,5 @@
 -- @description RegionManager
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -8,9 +8,10 @@
 --    mpl_RegionManager_functions/mpl_RegionManager_data.lua
 --    mpl_RegionManager_functions/mpl_RegionManager_obj.lua
 -- @changelog
---    # Search: remember last entered text
+--    # Search: do not reset search results after data refresh
+--    + Shortcuts: allow to redirect Num0 as Transport: play/stop
 
-  local vrs = 'v1.06'
+  local vrs = 'v1.07'
   
   --NOT gfx NOT reaper
   
@@ -62,6 +63,7 @@
             sort_rows = '#sel #id #realid #name230 #start80 #end60 #len60',
             shortcut_enter = 1, -- &1 set cur pos &2 set time selection
             shortcut_ctrlenter = 1, -- &1 smooth seek
+            shortcut_play = 0, -- 0 space 1 Num0
             GUI_fontsz2 = 15,
             search_filt = 0,
             search_text = '',

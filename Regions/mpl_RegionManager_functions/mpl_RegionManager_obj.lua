@@ -198,14 +198,24 @@ ShortCuts:
                     refresh.conf = true
                 end,
           state = conf.shortcut_enter&2 == 2 }, 
-        { str = 'Ctrl+Enter: smooth seek to regon position|<',
+        { str = 'Ctrl+Enter: smooth seek to regon position|',
           func = function() 
                     conf.shortcut_ctrlenter = BinaryToggle(conf.shortcut_ctrlenter, 0)
                     refresh.conf = true
                 end,
           state = conf.shortcut_ctrlenter&1 == 1 },           
-          
-          
+        { str = 'Space: play/stop',
+          func = function() 
+                    conf.shortcut_play = BinaryToggle(conf.shortcut_play, 0)
+                    refresh.conf = true
+                end,
+          state = conf.shortcut_play&1 ~= 1 },           
+        { str = 'Num0: play/stop|<',
+          func = function() 
+                    conf.shortcut_play = BinaryToggle(conf.shortcut_play, 0)
+                    refresh.conf = true
+                end,
+          state = conf.shortcut_play&1 == 1 },           
         { str = 'Define Rows',
           func = function() 
                     local retval, retstr = GetUserInputs( 'Define Rows', 1, ',extrawidth=200', conf.sort_rows )
