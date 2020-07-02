@@ -686,9 +686,10 @@ ShortCuts:
               fontsz = obj.GUI_fontsz5,
               show = true,
               func = function ()
-                      obj.search_field_txt = ''
+                      conf.search_text = ''
                       Obj_MatchSearch(conf, obj, data, refresh, mouse)
                       refresh.GUI = true
+                      refresh.conf = true
                     end
               } 
         obj.add_fromts = { clear = true,

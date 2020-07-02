@@ -1,5 +1,5 @@
 -- @description RegionManager
--- @version 1.09
+-- @version 1.10
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @provides
@@ -8,9 +8,9 @@
 --    mpl_RegionManager_functions/mpl_RegionManager_data.lua
 --    mpl_RegionManager_functions/mpl_RegionManager_obj.lua
 -- @changelog
---    # Shortcuts: handle Num0 as insert too
+--    # fix Clear button
 
-  local vrs = 'v1.09'
+  local vrs = 'v1.10'
   
   --NOT gfx NOT reaper
   
