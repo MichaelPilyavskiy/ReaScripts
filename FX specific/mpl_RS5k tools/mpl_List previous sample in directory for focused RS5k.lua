@@ -22,7 +22,7 @@ function main()
       local i = 0
       repeat
       local file = reaper.EnumerateFiles( path, i )
-      if file then
+      if file and reaper.IsMediaExtension(file:gsub('.+%.', ''), false) then
         files[#files+1] = file
       end
       i = i+1
