@@ -1,10 +1,10 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description List next sample in directory for focused RS5k
 -- @noindex
 -- @changelog
---    #header
+--    # avoid non-media extension
 
 
 function main()
