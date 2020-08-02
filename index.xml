@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="06c531f92dea865092f00c6e72dc7a7accde68ad" name="MPL Scripts">
+<index version="1" commit="9d0f96937c23a9889e57a93f528963393ed037b4" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1829,6 +1829,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/112b63231e2bd1b3bb97250ab2360e81eebf990a/FX%20specific/mpl_Convert%20RS5k%20MIDI%20item%20into%20source%20based%20audio%20items%20(drum%20mode).lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Create ReaComp sidechain routing (inversed source destination).lua" type="script" desc="Create ReaComp sidechain routing from track under mouse cursor to selected track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.04" author="MPL" time="2020-08-02T07:27:30Z">
+        <changelog><![CDATA[# inversed port]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e85522832f7ce3e6ff4becb53526aed6042dc026/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(inversed%20source%20destination).lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing.lua" type="script" desc="Create ReaComp sidechain routing from selected track to track under mouse cursor">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -1855,6 +1864,15 @@
       <version name="1.04" author="MPL" time="2019-12-20T20:54:59Z">
         <changelog><![CDATA[# change send mode to Pre-Fader (Post-FX)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4b4bfa25fad9b13d691c8c9cb49b90dd92bf8d70/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Create ReaGate sidechain routing (inversed source destination).lua" type="script" desc="Create ReaGate sidechain routing from track under mouse cursor to selected track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.04" author="MPL" time="2020-08-02T07:30:43Z">
+        <changelog><![CDATA[# inversed port]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d0f96937c23a9889e57a93f528963393ed037b4/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing%20(inversed%20source%20destination).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaGate sidechain routing.lua" type="script" desc="Create ReaGate sidechain routing from selected track to track under mouse cursor">
