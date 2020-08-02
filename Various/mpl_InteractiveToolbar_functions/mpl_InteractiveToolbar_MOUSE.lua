@@ -305,7 +305,7 @@
       mouse.last_y = mouse.y
       
     -- act onrelease
-      if mouse.LB_release then 
+      if mouse.LB_release or mouse.RB_release then 
         -- loop buttons --------------
           if obj.b then
             for key in pairs(obj.b) do

@@ -353,6 +353,9 @@
       data.it[i].fadeout_len_format = format_timestr_len( data.it[i].fadeout_len, '', 0, data.ruleroverride )
       data.it[i].col = GetMediaItemInfo_Value( item, 'I_CUSTOMCOLOR' )
       
+      data.it[i].tbmode = GetMediaItemInfo_Value( item, 'C_BEATATTACHMODE' )
+      data.it[i].tbmode_auto = GetMediaItemInfo_Value( item, 'C_AUTOSTRETCH' )
+      
       
       data.it[i].vol = GetMediaItemInfo_Value( item, 'D_VOL')
       data.it[i].vol_format = WDL_VAL2DB(data.it[i].vol, true)..'dB'    

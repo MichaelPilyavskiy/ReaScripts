@@ -78,16 +78,37 @@
     
     return obj             
   end
+  ---------------------------------------------------
+  function gfx_arc(x,y,r, start_ang0, end_ang0, lim_ang, y_shift0)
+    local start_ang = start_ang0
+    local end_ang = end_ang0
+    local y_shift = y_shift0
+    if not y_shift0 then y_shift = 0 end
+    local x = math.floor(x)
+    local y = math.floor(y)
+    local has_1st_segm = (start_ang <= -90) or (end_ang <= -90)
+    local has_2nd_segm = (start_ang > -90 and start_ang <= 0) or (end_ang > -90 and end_ang <= 0) or (start_ang<=-90 and end_ang >= 0 )
+    local has_3rd_segm = (start_ang >= 0 and start_ang <= 90) or (end_ang > 0 and end_ang <= 90) or (start_ang<=0 and end_ang >= 90 )
+    local has_4th_segm = (start_ang > 90) or (end_ang > 90)
+    
+    if has_1st_segm then  gfx.arc(x,y+1 +y_shift,r, math.rad(math.max(start_ang,-lim_ang)), math.rad(math.min(end_ang, -90)),    1) end
+    if has_2nd_segm then  gfx.arc(x,y+y_shift,r, math.rad(math.max(start_ang,-90)), math.rad(math.min(end_ang, 0)),    1) end
+    if has_3rd_segm then gfx.arc(x+1,y+y_shift,r, math.rad(math.max(start_ang,0)), math.rad(math.min(end_ang, 90)),    1) end
+    if has_4th_segm then  gfx.arc(x+1,y+1+y_shift,r, math.rad(math.max(start_ang,90)), math.rad(math.min(end_ang, lim_ang)),    1)  end
+  end
+
 -----------------------------------------------------------------------          
   function GUI_knob(o, obj)
+    gfx.set(1,1,1,1)
+    gfx.rect(x,y,w,h,0)
     local val = o.val
     if val == nil then val = 0 end 
     local x,y,w,h = o.x, o.y, o.w, o.h
+    do return end
     if o.knob_w then 
       x = x + w/2-o.knob_w/2
       w = o.knob_w
     end
-    
     if o.knob_yshift then 
       y = y + o.knob_yshift
     end
@@ -191,7 +212,10 @@
     local x,y,w,h = o.x, o.y, o.w, o.h
     if not x or not y or not w or not h then return end
     if conf.dock_orientation ==0 and o.persist_buf then x = x - obj.persist_margin end
-    
+    -- knob
+      if o.is_knob==true  then  GUI_knob(o, obj) end
+      
+      
     -- glass back
       gfx.a = o.frame_a
       if o.outside_buf then gfx.a = o.frame_a*0.2 end
@@ -211,7 +235,6 @@
         if o.state_a then gfx.a = o.state_a else gfx.a = conf.state_contrast end
         gfx.rect(x,y,w,h,1)        
       end
-      
     -- slider
       if o.is_slider and o.val then 
         local val = o.val
@@ -242,8 +265,7 @@
         end
       end
       
-    -- knob
-      if o.is_knob then GUI_knob(o, obj) end
+      
     -- tri
       if o.is_triangle_slider then
         gfx.set(1,1,1,0.2)
@@ -570,6 +592,7 @@ msg(
             #preservepitch (Audio and Multiple only) toggle take preserve pitch
             #chanmode (Audio and Multiple only) editing take channel mode
             #bwfsrc (Audio and Multiple only) Action Item: Move to source preferred position (used by BWF)
+            #timebase allow to loop through item timebase modes, rightclick reset to project default
         Envelope
           #floatfx float FX related with current envelope
           #position editing point position

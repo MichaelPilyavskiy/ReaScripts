@@ -1107,7 +1107,7 @@
                                 end}
     return w
   end   
-  
+    
   
   --------------------------------------------------------------
   function Widgets_Item_buttons_preservepitch(data, obj, mouse, x_offs, y_offs, frame_a)
@@ -1332,4 +1332,58 @@
     end
   end    
   -------------------------------------------------------------- 
+  --------------------------------------------------------------
+  function Widgets_Item_buttons_timebase(data, obj, mouse, x_offs, y_offs, frame_a)
+    local w = 100*obj.entry_ratio
+    local txt = '-'
+    --tbmode
+    --tbmode_auto
+    if data.it[1].tbmode == -1 then 
+      txt = 'TB:default'
+     elseif data.it[1].tbmode == 1 and data.it[1].tbmode_auto == 1 then 
+      txt = 'TB:beats (auto)'     
+     elseif data.it[1].tbmode == 1 then 
+      txt = 'TB: beats'
+     elseif data.it[1].tbmode == 2 then 
+      txt = 'TB: beats(pos. only)'   
+     elseif data.it[1].tbmode == 0 then 
+      txt = 'TB: time'                     
+    end
+    obj.b.obj_timebase = {  x = x_offs,
+                        y = obj.offs+y_offs ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = frame_a,
+                        txt_a = obj.txt_a,
+                        fontsz = obj.fontsz_entry,
+                        txt_col = obj.txt_col_toolbar,
+                        txt = txt,
+                        func =  function() 
+                                  if data.it[1].tbmode == 0 then 
+                                    Apply_Item_timebase(data, 2, 0) -- time >> beats pos only
+                                    elseif data.it[1].tbmode == 2 and data.it[1].tbmode_auto == 0 then 
+                                      Apply_Item_timebase(data, 1, 0) -- beats pos only >> beats all
+                                    elseif data.it[1].tbmode == 1 and data.it[1].tbmode_auto == 0 then 
+                                      Apply_Item_timebase(data, 1, 1) -- beats all >> beats all auto
+                                    elseif data.it[1].tbmode == 1 and data.it[1].tbmode_auto == 1 then 
+                                      Apply_Item_timebase(data,0, 0) -- beats all auto >> time
+                                    elseif data.it[1].tbmode == -1 then 
+                                      Apply_Item_timebase(data, 2, 0) -- default >> beats pos only
+                                  end
+                                end,
+                        func_R =  function()
+                                    Apply_Item_timebase(data, -1) -- default 
+                                  end                                
+                          }
+    return w
+  end
+  -------------------------------------------------------------- 
+  function Apply_Item_timebase(data, tb, tb_auto)
+    for i = 1, #data.it do
+      SetMediaItemInfo_Value( data.it[i].ptr_item, 'C_BEATATTACHMODE', tb)
+      if tb_auto then SetMediaItemInfo_Value( data.it[i].ptr_item, 'C_AUTOSTRETCH', tb_auto) end
+      UpdateItemInProject( data.it[i].ptr_item )                                
+    end
+    redraw = 1 
+  end
   

@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.05
+-- @version 2.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,10 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Add option to Run IT in native-API-only mode (for now only Track Context)
---     # Track: use GetTrackSendInfo_Value() instead BR_GetMediaTrackSendInfo_Track()
+--    + Track/#buttons/#timebase: allow to loop through item timebase modes, rightclick reset to project default
 
-    local vrs = '2.05'
+    local vrs = '2.06'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -85,7 +84,7 @@ order=#color #buttons#snap #position #endedge #length #offset #vol #transpose #p
 buttons=#lock #loop #mute 
 [AudioItem]
 order=#color #buttons#snap #position #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen #rate
-buttons=#lock #preservepitch #loop #mute #chanmode #srcreverse #bwfsrc 
+buttons=#lock #preservepitch #loop #mute #chanmode #srcreverse #bwfsrc #timebase 
 [MultipleItem]
 order=#color #buttons#position #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen #rate
 buttons=#lock #preservepitch #chanmode #loop #srcreverse #mute   
