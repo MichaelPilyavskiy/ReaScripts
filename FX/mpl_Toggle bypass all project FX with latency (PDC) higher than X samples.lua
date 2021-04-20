@@ -1,5 +1,5 @@
 -- @description Toggle bypass all project FX with latency (PDC) higher than X samples
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -13,7 +13,7 @@
 --    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 4096 samples.lua
 --    [main] . > mpl_Toggle bypass all project FX with latency (PDC) higher than 8192 samples.lua
 -- @changelog
---    # fix link
+--    + Show state in toolbar
  
   --NOT gfx NOT reaper
   --------------------------------------------------------------------
@@ -51,7 +51,7 @@
       end
       
       
-      
+      SetButtonON()
       SetExtState( 'MPLPDCTOGGLE', 'STATE', 1, true )
       SetProjExtState( 0, 'MPLPDCTOGGLE', 'FXGUIDS', str )
       
@@ -75,7 +75,8 @@
           if t[GUID] then TrackFX_SetEnabled( track, 0x1000000+fx_id-1, t[GUID]==1) end
         end
         
-      end     
+      end  
+      SetButtonOFF()
       SetExtState( 'MPLPDCTOGGLE', 'STATE', 0, true )
     end
   end
@@ -91,6 +92,20 @@
       reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
     end  
   end  
+  ---------------------------------------------------------------------  
+  function SetButtonON()
+    is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
+    state = reaper.GetToggleCommandStateEx( sec, cmd )
+    reaper.SetToggleCommandState( sec, cmd, 1 ) -- Set ON
+    reaper.RefreshToolbar2( sec, cmd )
+  end
+  ---------------------------------------------------------------------  
+  function SetButtonOFF()
+    is_new_value, filename, sec, cmd, mode, resolution, val = reaper.get_action_context()
+    state = reaper.GetToggleCommandStateEx( sec, cmd )
+    reaper.SetToggleCommandState( sec, cmd, 0 ) -- Set OFF
+    reaper.RefreshToolbar2( sec, cmd )
+  end
 -------------------------------------------------------------------- 
   local cnt_spls = ({reaper.get_action_context()})[2]:match('([%d]+) samples')
   if not (cnt_spls and tonumber(cnt_spls)) then cnt_spls = 256 else cnt_spls = tonumber(cnt_spls) end
