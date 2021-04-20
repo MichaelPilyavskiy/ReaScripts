@@ -98,8 +98,8 @@
       data.ref.src_cnt = 0 
       for i = 1, #data.ref do
         if not data.ref[i].ignore_search then data.ref.src_cnt = data.ref.src_cnt + 1 end
-      end
-  
+      end 
+      
   end
   --------------------------------------------------- 
   function Data_PatternParseRGT(data, strategy, content, take_len)
@@ -472,6 +472,7 @@
                     
                     if      (table_name=='src' and strategy.src_midi_msgflag&2==2)
                         or  (table_name=='ref' and strategy.ref_midi_msgflag&2==2)  then 
+                        
                       if mode&2 == 2 or (mode&2 == 0 and data[table_name][new_entry_id].flags&1==1) then
                         data[table_name][new_entry_id+1].ignore_search = false 
                       end
@@ -804,10 +805,17 @@
   function Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy) 
     if not data.src then return end
     
+    -- filter ignore search stuff
+    local temp_ref = CopyTable(data.ref)    
+      for i = #temp_ref, 1, -1 do
+        if temp_ref[i].ignore_search == true then  table.remove(temp_ref, i) end
+      end    
+    data.ref = temp_ref
+    
     --local temp_ref
     if strategy.act_action==3 then -- ordered align
       -- apply closer points reduce
-      temp_ref = CopyTable(data.ref) 
+      local temp_ref = CopyTable(data.ref) 
       local pos, last_pos
       if  strategy.exe_val3 > 0 then
         for i = #temp_ref, 1, -1 do
