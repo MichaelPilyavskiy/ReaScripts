@@ -947,6 +947,9 @@
                                                 mouse.temp_val = data.LTFX_val
                                                 redraw = 1                              
                                               end,
+                                func_R =        function()
+                                                Action(41142)                  
+                                              end,                                              
                                 func_ctrlL =        function()
                                                 mouse.temp_val = data.LTFX_val
                                                 redraw = 1                              
