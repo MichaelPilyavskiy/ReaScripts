@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.25
+-- @version 2.26
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -30,7 +30,7 @@
 --    # Anchor points: filter unnesesary points
 
      
-  local vrs = 'v2.25'
+  local vrs = 'v2.26'
   --NOT gfx NOT reaper
   
 
