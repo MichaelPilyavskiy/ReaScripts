@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.07
+-- @version 2.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Persist/#lasttouchfx: right click add envelope
+--    + Persist/#master: show peaks for active tab
 
-    local vrs = '2.07'
+    local vrs = '2.08'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -38,13 +38,14 @@
   
   -- NOT reaper NOT gfx
   --  INIT -------------------------------------------------
-  for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
   local data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title,
-          masterdata = {ptr =  GetMasterTrack(0)}}
+          masterdata = {ptr =  GetMasterTrack(reaper.EnumProjects(-1))}}
+   
   local mouse = {}
   local obj = {}
   local  widgets = {    -- map types to data.obj_type_int order
@@ -96,7 +97,7 @@ buttons=#polarity #parentsend #midiin #audioin
 [MIDIEditor]
 order=#position #notelen #CCval #notepitch #notevel #midichan
 [Persist]
-order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap #master
+order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap #master 
 ]]
   end  
   ---------------------------------------------------

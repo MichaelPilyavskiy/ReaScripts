@@ -250,6 +250,7 @@
   ---------------------------------------------------
     
   function DataUpdate_PlayState(data, conf)
+    data.masterdata.ptr =  GetMasterTrack(reaper.EnumProjects(-1))   
     local int_playstate = GetPlayStateEx( 0 )
     data.play = int_playstate&1==1
     data.pause = int_playstate&2==2
