@@ -276,7 +276,7 @@
     SetTrackStateChunk( mastertr, out_ch, false )
   end
   -------------------------------------------------------------------- 
-  function Data_ImportTracks_NewTrack(data, i, insert_id)
+  function Data_ImportTracks_NewTrack(data, i, insert_id, strategy)
     InsertTrackAtIndex( insert_id, false )
     local new_tr = GetTrack(0, insert_id)
     local new_chunk = data.tr_chunks[i].chunk
@@ -286,6 +286,14 @@
     SetTrackStateChunk( new_tr, new_chunk, false )
     gGUID = GetTrackGUID( new_tr )
     data.tr_chunks[i].destGUID = gGUID
+    
+    if strategy.tritems&1==0 then -- remove dest tr items
+      for itemidx = CountTrackMediaItems( new_tr ), 1, -1 do 
+        local item = GetTrackMediaItem( new_tr, itemidx-1 )
+        DeleteTrackMediaItem(  new_tr, item) 
+      end
+    end
+    
     return new_tr
   end
   --------------------------------------------------------------------  
@@ -293,7 +301,7 @@
     for i = 1, #data.tr_chunks do
     
       if data.tr_chunks[i].dest == -1 then  -- end of track list
-        Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ))
+        Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy)
       elseif type(data.tr_chunks[i].dest) == 'string' and data.tr_chunks[i].dest ~= '' then  -- to specific track
         local dest_tr = VF_GetTrackByGUID(data.tr_chunks[i].dest)
         if dest_tr then 
@@ -308,8 +316,10 @@
             SetTrackStateChunk( dest_tr, new_chunk, false )
             gGUID = reaper.GetTrackGUID( dest_tr )
             data.tr_chunks[i].destGUID = gGUID
-           else 
-            local new_tr = Data_ImportTracks_NewTrack(data, i, tr_id)
+            
+           else   
+            
+            local new_tr = Data_ImportTracks_NewTrack(data, i, tr_id,strategy)
             Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, new_tr, dest_tr) 
             data.tr_chunks[i].destGUID =  GetTrackGUID( dest_tr )
             DeleteTrack( new_tr )
@@ -375,7 +385,7 @@
             
                 data.tr_chunks[tr_chunks_id].dest = -1
                 local paste_send_at_ID = CountTracks( 0 )
-                local new_tr = Data_ImportTracks_NewTrack(data, tr_chunks_id, paste_send_at_ID)
+                local new_tr = Data_ImportTracks_NewTrack(data, tr_chunks_id, paste_send_at_ID,strategy)
                 local imported_dst_tr = VF_GetTrackByGUID(data.tr_chunks[i].destGUID) 
                 local has_send = false 
                 if strategy.trsend&16 ~=16 then
@@ -743,6 +753,7 @@
   end
   -------------------------------------------------------------------- 
   function Data_ImportTracks_AppStr_It(data, src_tr, dest_tr, strategy)
+  
     local item_data = {}
     for itemidx = 1,  CountTrackMediaItems( src_tr ) do
       local item = GetTrackMediaItem( src_tr, itemidx-1 )
@@ -767,11 +778,10 @@
       end
     end
     
-    for itemidx = 1,  #item_data do
-      local it = AddMediaItemToTrack( dest_tr )
-      Data_ImportTracks_AppStr_ItSub(data, it, item_data[itemidx], strategy)
-    end   
-    
+      for itemidx = 1,  #item_data do
+        local it = AddMediaItemToTrack( dest_tr )
+        Data_ImportTracks_AppStr_ItSub(data, it, item_data[itemidx], strategy)
+      end   
   end
   -------------------------------------------------------------------- 
   function Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, src_tr, dest_tr)
