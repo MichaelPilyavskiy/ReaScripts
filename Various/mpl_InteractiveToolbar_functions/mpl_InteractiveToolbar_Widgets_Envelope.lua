@@ -104,9 +104,9 @@
       local temp_t = {}
       for i = 1, #t_out_values do
         if data.ep[i].selected then
-          temp_t[i] = {t_out_values[i], data.ep[i].value, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
+          temp_t[i] = {t_out_values[i], data.ep[i].value0, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
          else 
-          temp_t[i] = {data.ep[i].pos, data.ep[i].value, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
+          temp_t[i] = {data.ep[i].pos, data.ep[i].value0, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
         end
       end
       DeleteEnvelopePointRangeEx( data.env_ptr, -1, 0, math.huge )
@@ -130,9 +130,9 @@
       local temp_t = {}
       for i = 1, #t_out_values do
         if data.ep[i].selected then
-          temp_t[i] = {math.max(0,data.ep[i].pos - diff), data.ep[i].value, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
+          temp_t[i] = {math.max(0,data.ep[i].pos - diff), data.ep[i].value0, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
          else 
-          temp_t[i] = {data.ep[i].pos, data.ep[i].value, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
+          temp_t[i] = {data.ep[i].pos, data.ep[i].value0, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
         end
       end
       DeleteEnvelopePointRangeEx( data.env_ptr, -1, 0, math.huge )

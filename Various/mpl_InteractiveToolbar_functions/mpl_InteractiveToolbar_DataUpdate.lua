@@ -470,12 +470,13 @@
     local scaling_mode = GetEnvelopeScalingMode( env )
     
     for i = 1, CountEnvelopePoints( env ) do      
-      local retval, time, value, shape, tension, selected = GetEnvelopePointEx( env, -1, i-1 )
-      value = ScaleFromEnvelopeMode( scaling_mode,value)
+      local retval, time, value0, shape, tension, selected = GetEnvelopePointEx( env, -1, i-1 )
+      value = ScaleFromEnvelopeMode( scaling_mode,value0)
       data.ep[i] = {}
       data.ep[i].pos = time
       data.ep[i].pos_format = format_timestr_pos( time, '', data.ruleroverride ) 
       data.ep[i].value = value
+      data.ep[i].value0 = value0
       data.ep[i].value_format =  string.format("%.2f", value)
       if data.is_tr_env then  
         data.ep[i].value_format = string.format("%.2f", WDL_VAL2DB(value))--string.format("%.2f", WDL_VAL2DB(value))    
