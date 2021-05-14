@@ -2,11 +2,16 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with some MPL scripts. It is strongly recommended to have it installed for future updates.
--- @version 1.30
+-- @version 1.31
+-- @provides
+--    mpl_Various_functions_GUI.lua
+--    mpl_Various_functions_MOUSE.lua
 -- @changelog
---    # FloatInstrument toggle check
+--    + add GUI and MOUSE lib
+--    + VF_hex2rgb
 
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
+  
   ---------------------------------------------------
   function msg(s) 
     if not s then return end 
@@ -723,3 +728,18 @@ function VF_SetTimeShiftPitchChange(item, get_only, pshift_mode0, timestr_mode0,
   reaper.SetItemStateChunk( item, str, false )
 end
   --------------------------------------------------
+  function VF_LoadLibraries()
+    local info = debug.getinfo(1,'S');  
+    local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
+    dofile(script_path .. "mpl_Various_functions_GUI.lua")
+    dofile(script_path .. "mpl_Various_functions_MOUSE.lua")
+  end
+  ---------------------------------------------------
+  function VF_hex2rgb(s16,set)
+    s16 = s16:gsub('#',''):gsub('0X',''):gsub('0x','')
+    local b,g,r = ColorFromNative(tonumber(s16, 16))
+    if set then
+      if GetOS():match('Win') then gfx.set(r/255,g/255,b/255) else gfx.set(b/255,g/255,r/255) end
+    end
+    return r/255, g/255, b/255
+  end
