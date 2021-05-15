@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3d99560ad7f70954b6f3b24102f367501cec86f8" name="MPL Scripts">
+<index version="1" commit="0d1f9e45fbd01a08ac1d96288288ccc2b54692d3" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6381,6 +6381,16 @@ add control for timefall showing last note]]></changelog>
         <source file="mpl_ImportSessionData_functions/mpl_ImportSessionData_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18f6f2f2ba83ac5d5472e1150ed32eb279594361/Various/mpl_ImportSessionData_functions/mpl_ImportSessionData_data.lua</source>
         <source file="mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18f6f2f2ba83ac5d5472e1150ed32eb279594361/Various/mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua</source>
         <source main="main" file="mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18f6f2f2ba83ac5d5472e1150ed32eb279594361/Various/mpl_ImportSessionData_presets/mpl_ImportSessionData%20preset%20-%20default.lua</source>
+      </version>
+      <version name="1.24" author="MPL" time="2021-05-15T20:49:28Z">
+        <changelog><![CDATA[+ Require VariousFunctions v2.0
++ Track items: allow to add offset (taken from edit cursor)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d1f9e45fbd01a08ac1d96288288ccc2b54692d3/Various/mpl_ImportSessionData.lua</source>
+        <source file="mpl_ImportSessionData_functions/mpl_ImportSessionData_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d1f9e45fbd01a08ac1d96288288ccc2b54692d3/Various/mpl_ImportSessionData_functions/mpl_ImportSessionData_GUI.lua</source>
+        <source file="mpl_ImportSessionData_functions/mpl_ImportSessionData_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d1f9e45fbd01a08ac1d96288288ccc2b54692d3/Various/mpl_ImportSessionData_functions/mpl_ImportSessionData_MOUSE.lua</source>
+        <source file="mpl_ImportSessionData_functions/mpl_ImportSessionData_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d1f9e45fbd01a08ac1d96288288ccc2b54692d3/Various/mpl_ImportSessionData_functions/mpl_ImportSessionData_data.lua</source>
+        <source file="mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d1f9e45fbd01a08ac1d96288288ccc2b54692d3/Various/mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua</source>
+        <source main="main" file="mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0d1f9e45fbd01a08ac1d96288288ccc2b54692d3/Various/mpl_ImportSessionData_presets/mpl_ImportSessionData%20preset%20-%20default.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
