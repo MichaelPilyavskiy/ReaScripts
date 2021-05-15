@@ -299,7 +299,7 @@
       local y = y - 5
       local arc_r = arc_r*0.75
       for i = 0, thickness, 0.5 do
-        gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_gr, ang_gr)
+        GUI_gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_gr, ang_gr)
       end
       gfx.a = 0.02
       gfx.circle(x+w/2,y+h/2,arc_r, 1)
@@ -312,7 +312,7 @@
     local halfh = math.floor(h/2)
     local halfw = math.floor(w/2)
     for i = 0, thickness, 0.5 do
-      gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_gr, ang_gr)
+      GUI_gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_gr, ang_gr)
     end
     
     
@@ -324,22 +324,22 @@
       -- val       
       local ang_val = -ang_gr+ang_gr*2*val
       for i = 0, thickness, 0.5 do
-        gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_val, ang_gr)
+        GUI_gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_val, ang_gr)
       end
       
      else -- if centered
       for i = 0, thickness, 0.5 do
         if val< 0.5 then
-          gfx_arc(x+w/2,y+h/2 + knob_y_shift,arc_r-i, -ang_gr+ang_gr*2*val, 0, ang_gr)
+          GUI_gfx_arc(x+w/2,y+h/2 + knob_y_shift,arc_r-i, -ang_gr+ang_gr*2*val, 0, ang_gr)
          elseif val> 0.5 then
-          gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, 0, -ang_gr+ang_gr*2*val, ang_gr)
+          GUI_gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, 0, -ang_gr+ang_gr*2*val, ang_gr)
         end
       end    
           
     end 
   end
   ---------------------------------------------------
-  function gfx_arc(values)--{ang1,ang2,y_sh,x,y}
+  function GUI_gfx_arc(values)--{ang1,ang2,y_sh,x,y}
     local start_ang = ang1
     local end_ang = ang2
     local y_shift = y_sh
@@ -398,7 +398,7 @@
         local y = y - 5
         local arc_r = arc_r*0.75
         for i = 0, thickness, 0.5 do
-          gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_gr, ang_gr)
+          GUI_gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_gr, ang_gr)
         end
         gfx.a = 0.02
         gfx.circle(x+w/2,y+h/2,arc_r, 1)
@@ -411,7 +411,7 @@
       local halfh = math.floor(h/2)
       local halfw = math.floor(w/2)
       for i = 0, thickness, 0.5 do
-        gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_gr, ang_gr)
+        GUI_gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_gr, ang_gr)
       end
       
       
@@ -423,22 +423,22 @@
         -- val       
         local ang_val = -ang_gr+ang_gr*2*val
         for i = 0, thickness, 0.5 do
-          gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_val, ang_gr)
+          GUI_gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, -ang_gr, ang_val, ang_gr)
         end
         
        else -- if centered
         for i = 0, thickness, 0.5 do
           if val< 0.5 then
-            gfx_arc(x+w/2,y+h/2 + knob_y_shift,arc_r-i, -ang_gr+ang_gr*2*val, 0, ang_gr)
+            GUI_gfx_arc(x+w/2,y+h/2 + knob_y_shift,arc_r-i, -ang_gr+ang_gr*2*val, 0, ang_gr)
            elseif val> 0.5 then
-            gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, 0, -ang_gr+ang_gr*2*val, ang_gr)
+            GUI_gfx_arc(x+w/2,y+h/2+ knob_y_shift,arc_r-i, 0, -ang_gr+ang_gr*2*val, ang_gr)
           end
         end    
             
       end 
     end
     ---------------------------------------------------
-    fu nction gfx_arc(x,y,r, start_ang0, end_ang0, lim_ang, y_shift0)
+    fu nction GUI_gfx_arc(x,y,r, start_ang0, end_ang0, lim_ang, y_shift0)
       local start_ang = start_ang0
       local end_ang = end_ang0
       local y_shift = y_shift0

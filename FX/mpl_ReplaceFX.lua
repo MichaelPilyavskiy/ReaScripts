@@ -1,12 +1,13 @@
 -- @description ReplaceFX
 -- @version 1.0
 -- @author MPL
+-- @about Script for replacing FX by name
 -- @changelog
 --  init
   
 
 
-  local vrs = 'v1.0'
+  local vrs = 'v1.01'
   -- NOT gfx NOT reaper NOT GUI NOT MOUSE
   
   --  INIT -------------------------------------------------
@@ -37,7 +38,9 @@
             
             filter = '',
             plugintoreplace = '',
-            replaceto=''
+            replaceto='',
+            
+            modifyFXIDonly = 0,
             }
     return t
   end
@@ -109,8 +112,6 @@
       if MOUSE.char >= 0 and MOUSE.char ~= 27 then defer(run) else atexit(gfx.quit) end
   end
   
----------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
 --------------------------------------------------------------------
   function main()
     DATA.conf.dev_mode = 0
@@ -152,11 +153,35 @@
       -- shift under existed
         local ret, _, fxpos = VF_GetFXByGUID(DATA.FX[plugintoreplace][i].GUID, tr)
         TrackFX_CopyToTrack( tr, new_pos, tr, fxpos+1, true )
+      -- modify FXID only
+        if DATA.conf.modifyFXIDonly == 1 then
+          Action_ReplaceFX_ModifyFXIDOnly(OBJ, DATA, GUI, tr, fxpos, fxpos+1) 
+        end
+        
       -- remove old plugin
         TrackFX_Delete( tr, fxpos )
       ::skipnextfx::
+      
     end
     Undo_EndBlock2( 0, 'MPL Replace FX', 0 )
+  end
+
+  ---------------------------------------------------
+  function Action_ReplaceFX_ModifyFXIDOnly(OBJ, DATA, GUI, tr, old_fx, new_fx) 
+    local old_chunk = VF2_GetSetFXChunk(tr, old_fx)
+    local new_chunk = VF2_GetSetFXChunk(tr, new_fx)
+    
+    -- take id line from new fx
+      local new_chunk_t = {}
+      for line in new_chunk:gmatch('[^\r\n]+') do new_chunk_t[#new_chunk_t+1] = line if #new_chunk_t > 2 then break end end
+     
+    -- modify old chunk with new fx id
+      local old_chunk_t = {}
+      for line in old_chunk:gmatch('[^\r\n]+') do old_chunk_t[#old_chunk_t+1] = line end 
+      old_chunk_t[2] = new_chunk_t[2]
+      
+    -- apply modded chink to new fx
+      VF2_GetSetFXChunk(tr, new_fx, table.concat(old_chunk_t,'\n'))
   end
   ---------------------------------------------------
   function DATA_CheckUPD(OBJ, DATA, GUI)
@@ -271,14 +296,15 @@
     ---------------------------------------------------   
      function OBJ_main(OBJ, DATA, GUI)
        local wbut = gfx.w
+       local wbut2 = math.floor(wbut/2)
        local hbut = math.floor(gfx.h/4)
        local filt = '<empty>'
        if DATA.conf.filter ~= '' then filt = DATA.conf.filter end
        OBJ.filter = {  otype = 'main',
                    grad_back = true,
-                   x = 0,
+                   x = wbut2,
                    y = 0,
-                   w = wbut,
+                   w = wbut2-1,
                    h = hbut,
                    txt= 'Filter:\n'..filt,
                    txt_flags = 1|4,
@@ -293,6 +319,36 @@
                                    end 
                                  end
                      }
+       OBJ.options = {  otype = 'main',
+                   grad_back = true,
+                   x = 0,
+                   y = 0,
+                   w = wbut2-1,
+                   h = hbut,
+                   txt= 'Menu\nOptions',
+                   txt_flags = 1|4,
+                   fontsz = GUI.fontsz2,
+                   func_Ltrig =  function() 
+  local t = {      { str = 'Cockos Forum thread|',
+        func = function() Open_URL('https://forum.cockos.com/showthread.php?t=188335') end  } , 
+      { str = 'Donate to MPL',
+        func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
+      { str = 'Contact: MPL VK',
+        func = function() Open_URL('http://vk.com/mpl57') end  } ,     
+      { str = 'Contact: MPL SoundCloud|',
+        func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
+        
+      { str = '#Options'},    
+      { str = 'Replace only FX ID info, preserve configuration',
+        state=DATA.conf.modifyFXIDonly==1,
+        func = function() 
+                DATA.conf.modifyFXIDonly = math.abs(1-DATA.conf.modifyFXIDonly) 
+              end,
+              }}
+                                   Menu(MOUSE,t)
+                                   OBJ.refresh.conf = true 
+                                 end
+                     }                     
        OBJ.fxinproject = {  otype = 'main',
                    grad_back = true,
                    x = 0,
@@ -367,9 +423,13 @@
                                  end
                      }                  
      end
+  ---------------------------------------------------------------------
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Install it via Reapack (Action: browse packages)', '', 0) end   end
   --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_LoadLibraries') 
+  local ret = CheckFunctions('VF2_LoadVFv2') 
   if ret then 
     local ret2 = VF_CheckReaperVrs(5.975,true)    
     if ret2 then VF_LoadLibraries() main() end
   end
+  
+
