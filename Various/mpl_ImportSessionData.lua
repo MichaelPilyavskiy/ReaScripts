@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.23
+-- @version 1.24
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT/S1 Import Session Data feature
@@ -10,10 +10,11 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    # when importing track at the end of tracklist, handle items import check
+--    + Require VariousFunctions v2.0
+--    + Track items: allow to add offset (taken from edit cursor)
 
      
-  local vrs = '1.23'
+  local vrs = '1.24'
   --NOT gfx NOT reaper
   
 
@@ -87,9 +88,7 @@
   end
     
   
-  
----------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
+
 --------------------------------------------------------------------
   function Run_Init(conf, obj, data, refresh, mouse)
     Data_ParseRPP(conf, obj, data, refresh, mouse)
@@ -240,7 +239,8 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
                 &4 link sources from imported RPP folder
                 &16 copy source to ISD_imported
                 &8 build any missing peaks at the end of import
-                ]]                
+                ]]    
+        tritems_offset = 0,
         master_stuff = 0,
           --[[  &2 FX chain
                 &4 tempo/timesignature
@@ -254,9 +254,11 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
       }
     return t
   end 
+  ---------------------------------------------------------------------
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Install it via Reapack (Action: browse packages)', '', 0) end   end
   --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_CalibrateFont') 
-  if ret then
+  local ret = CheckFunctions('VF2_LoadVFv2') 
+  if ret then 
     local ret2 = VF_CheckReaperVrs(5.95,true)    
-    if ret and ret2 then main() end
+    if ret2 then main() end
   end

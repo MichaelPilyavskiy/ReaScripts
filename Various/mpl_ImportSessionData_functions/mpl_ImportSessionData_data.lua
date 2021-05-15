@@ -293,6 +293,10 @@
         DeleteTrackMediaItem(  new_tr, item) 
       end
     end
+    local it_t = {}
+    for itemidx = CountTrackMediaItems( new_tr ), 1, -1 do it_t[#it_t+1] = GetTrackMediaItem( new_tr, itemidx-1 )  end
+    for i = 1, #it_t do Data_ImportTracks_AppStr_ItOffs(strategy,it_t[i]) end
+    
     
     return new_tr
   end
@@ -318,7 +322,6 @@
             data.tr_chunks[i].destGUID = gGUID
             
            else   
-            
             local new_tr = Data_ImportTracks_NewTrack(data, i, tr_id,strategy)
             Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, new_tr, dest_tr) 
             data.tr_chunks[i].destGUID =  GetTrackGUID( dest_tr )
@@ -725,6 +728,15 @@
       local val = GetMediaTrackInfo_Value( src_tr,key )
       SetMediaTrackInfo_Value( dest_tr, key, val )  
   end
+  
+  -------------------------------------------------------------------- 
+  function Data_ImportTracks_AppStr_ItOffs(strategy,it)
+    if strategy.tritems_offset ~= 0 then 
+      local it_pos = GetMediaItemInfo_Value( it, 'D_POSITION' )
+      SetMediaItemInfo_Value( it, 'D_POSITION', it_pos+strategy.tritems_offset) 
+    end
+  end
+  
   -------------------------------------------------------------------- 
   function Data_ImportTracks_AppStr_ItSub(data, it, item_data, strategy)
     SetItemStateChunk( it, item_data.chunk, false )
@@ -739,21 +751,18 @@
           local  pcmsrc = PCM_Source_CreateFromFile( fn )
           if pcmsrc then SetMediaItemTake_Source( take, pcmsrc ) end
           --PCM_Source_Destroy( pcmsrc )
-        end
-        
+        end 
         --[[if strategy.tritems&16==16 then -- copy sources to path
           local path_pr = GetParentFolder(data.cur_project) 
           local dest_path = path_pr..'/'..conf.sourceimportpath
           
-        end]]
-        
+        end]] 
       end      
     end
     
   end
   -------------------------------------------------------------------- 
   function Data_ImportTracks_AppStr_It(data, src_tr, dest_tr, strategy)
-  
     local item_data = {}
     for itemidx = 1,  CountTrackMediaItems( src_tr ) do
       local item = GetTrackMediaItem( src_tr, itemidx-1 )
@@ -778,10 +787,11 @@
       end
     end
     
-      for itemidx = 1,  #item_data do
-        local it = AddMediaItemToTrack( dest_tr )
-        Data_ImportTracks_AppStr_ItSub(data, it, item_data[itemidx], strategy)
-      end   
+    for itemidx = 1,  #item_data do
+      local it = AddMediaItemToTrack( dest_tr )
+      Data_ImportTracks_AppStr_ItSub(data, it, item_data[itemidx], strategy)
+      --Data_ImportTracks_AppStr_ItOffs(strategy,it)
+    end   
   end
   -------------------------------------------------------------------- 
   function Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, src_tr, dest_tr)
@@ -832,7 +842,6 @@
     if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&128 == 128) then  
       Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_CUSTOMCOLOR')
     end     
-     
     -- tr items
     if strategy.tritems&1 == 1 then    
       Data_ImportTracks_AppStr_It(data, src_tr, dest_tr, strategy)

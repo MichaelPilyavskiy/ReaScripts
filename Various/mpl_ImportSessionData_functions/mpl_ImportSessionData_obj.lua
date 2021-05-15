@@ -854,7 +854,19 @@
                                       strategy.tritems = BinaryToggle(strategy.tritems, 3)
                                     end,             
                           } ,                          
-                                               
+                          { name = 'Offset items by '..strategy.tritems_offset..' seconds',
+                            state = strategy.tritems_offset~=0,
+                            show = strategy.tritems&1==1,
+                            has_blit = false,
+                            level = 2,
+                            func =  function() 
+                                      if strategy.tritems_offset == 0 then 
+                                        strategy.tritems_offset =  reaper.GetCursorPosition()
+                                       else
+                                        strategy.tritems_offset = 0 
+                                      end
+                                    end,                                   
+                          } ,                     
                           { name = 'Track receives import logic',
                             state = -1,
                             show = strategy.comchunk&1==0,
