@@ -2,15 +2,16 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with scripts written by MPL.
--- @version 2.0
+-- @version 2.01
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
 --    mpl_Various_functions_GUI.lua
 --    mpl_Various_functions_MOUSE.lua
 -- @changelog
---    + separate old functions from the protected
---    + implement basic hardware protection via SystemID - responce
+--    # fix parsing response for strings contain comma
+--    # show checksum mismatch
+--    # show successfully pass message
   
     --------------------------------------------------
     function VF_LoadLibraries()
@@ -79,6 +80,7 @@
     --------------------------------------------------
     function VF2_GetSystemID()
       local fh = assert(io.popen'wmic csproduct get uuid')
+      if not fh then fh = assert(io.popen'wmic csproduct get UUID') end
       if not fh then return '' end
       local result = fh:read'*a'
       fh:close()
@@ -100,13 +102,17 @@
         if ret == 6 then
           local sysID = VF2_GetSystemID()
           local retval, retvals_csv = reaper.GetUserInputs( 'Purchasing VariousFunctions v2', 4, '1. Copy System ID,2.Send it to:,3.Pay $30 via Paypal,4:Enter response(1-3days):,extrawidth=200', sysID..',m.pilyavskiy@gmail.com,https://www.paypal.com/paypalme/donate2mpl,' )
-          local t = {} for val in retvals_csv:gmatch('[^,]+') do t[#t+1] = val end
-          local resp = t[4]:gsub('%s','')
+          --local t = {} for val in retvals_csv:gmatch('[^,]+') do t[#t+1] = val end
+          --local resp = t[4]:gsub('%s','')
+          local resp = retvals_csv:match('.-%,.-%,.-%,(.*)')
           if not resp then MB('No response entered','',0) return end
-          local check_offset = VF2_CheckResponseOffset(t[1]:gsub('%s',''),t[4])
+          local check_offset = VF2_CheckResponseOffset(sysID,resp)
           if check_offset then 
             reaper.SetExtState('MPL_Scripts', 'sysID',sysID, true)
             reaper.SetExtState('MPL_Scripts', 'response',resp, true)
+            MB('SystemID - Responce pair was successfully passed','MPL Various functions',0)
+           else
+            MB('Checksum mismatch. Contact m.pilyavskiy@gmail.com','MPL Various functions',0)
           end
         end
        else
