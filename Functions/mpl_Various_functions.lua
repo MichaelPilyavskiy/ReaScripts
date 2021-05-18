@@ -2,16 +2,14 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with scripts written by MPL.
--- @version 2.01
+-- @version 2.02
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
 --    mpl_Various_functions_GUI.lua
 --    mpl_Various_functions_MOUSE.lua
 -- @changelog
---    # fix parsing response for strings contain comma
---    # show checksum mismatch
---    # show successfully pass message
+--    # change method for getting unique ID
   
     --------------------------------------------------
     function VF_LoadLibraries()
@@ -79,36 +77,36 @@
     end
     --------------------------------------------------
     function VF2_GetSystemID()
-      local fh = assert(io.popen'wmic csproduct get uuid')
+      --[[local fh = assert(io.popen'wmic csproduct get uuid')
       if not fh then fh = assert(io.popen'wmic csproduct get UUID') end
       if not fh then return '' end
       local result = fh:read'*a'
       fh:close()
       result = string.gsub(result,'UUID',"")
-      return result:match"^%s*(.*)":match"(.-)%s*$"
+      return result:match"^%s*(.*)":match"(.-)%s*$"]]
+      return reaper.genGuid(''):gsub('%p','')
     end
     --------------------------------------------------------------------
     function VF2_CheckResponseOffset(input, response)
-      local input_chsum1 = 0 for char in input:gmatch('.') do input_chsum1=input_chsum1+string.byte(char) end
-      local input_chsum2 = 0 for char in response:gmatch('.') do input_chsum2=input_chsum2+string.byte(char) end
+       input_chsum1 = 0 for char in input:gmatch('.') do input_chsum1=input_chsum1+string.byte(char) end
+       input_chsum2 = 0 for char in response:gmatch('.') do input_chsum2=input_chsum2+string.byte(char) end
       return input_chsum1==input_chsum2
     end
     --------------------------------------------------
     function VF2_LoadVFv2()
       local sysID = reaper.GetExtState('MPL_Scripts', 'sysID')
+      if not sysID or sysID == '' then sysID = VF2_GetSystemID() reaper.SetExtState('MPL_Scripts', 'sysID',sysID, true) end
       local response = reaper.GetExtState('MPL_Scripts', 'response')
       if response == '' then 
         local ret = MB('You updated "VariousFunction" package to version 2. Since version 2.0 this package is paid. You can reinstall and prevent from updates last available free version (v1.31) via ReaPack or purchase v2 for $30. If you purchased my scripts or donated in the past, please contact me via email m.pilyavskiy@gmail.com\n\nDo you want to purchase package?', '' ,4)
-        if ret == 6 then
-          local sysID = VF2_GetSystemID()
+        if ret == 6 then 
           local retval, retvals_csv = reaper.GetUserInputs( 'Purchasing VariousFunctions v2', 4, '1. Copy System ID,2.Send it to:,3.Pay $30 via Paypal,4:Enter response(1-3days):,extrawidth=200', sysID..',m.pilyavskiy@gmail.com,https://www.paypal.com/paypalme/donate2mpl,' )
           --local t = {} for val in retvals_csv:gmatch('[^,]+') do t[#t+1] = val end
           --local resp = t[4]:gsub('%s','')
           local resp = retvals_csv:match('.-%,.-%,.-%,(.*)')
           if not resp then MB('No response entered','',0) return end
           local check_offset = VF2_CheckResponseOffset(sysID,resp)
-          if check_offset then 
-            reaper.SetExtState('MPL_Scripts', 'sysID',sysID, true)
+          if check_offset then  
             reaper.SetExtState('MPL_Scripts', 'response',resp, true)
             MB('SystemID - Responce pair was successfully passed','MPL Various functions',0)
            else
