@@ -2,14 +2,15 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with scripts written by MPL.
--- @version 2.02
+-- @version 2.03
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
 --    mpl_Various_functions_GUI.lua
 --    mpl_Various_functions_MOUSE.lua
 -- @changelog
---    # change method for getting unique ID
+--    # fix test checksum
+--    + add VF2_GetMEZoom
   
     --------------------------------------------------
     function VF_LoadLibraries()
@@ -88,9 +89,9 @@
     end
     --------------------------------------------------------------------
     function VF2_CheckResponseOffset(input, response)
-       input_chsum1 = 0 for char in input:gmatch('.') do input_chsum1=input_chsum1+string.byte(char) end
-       input_chsum2 = 0 for char in response:gmatch('.') do input_chsum2=input_chsum2+string.byte(char) end
-      return input_chsum1==input_chsum2
+      local input_chsum1 = 0 for char in input:gmatch('.') do input_chsum1=input_chsum1+string.byte(char) end
+      local input_chsum2 = 0 for char in response:gmatch('.') do input_chsum2=input_chsum2+string.byte(char) end
+      return input_chsum1==input_chsum2 and input~=response
     end
     --------------------------------------------------
     function VF2_LoadVFv2()
