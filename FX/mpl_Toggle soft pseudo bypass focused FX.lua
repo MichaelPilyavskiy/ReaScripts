@@ -1,11 +1,13 @@
 -- @description Toggle soft pseudo bypass focused FX
--- @version 1.0
+-- @version 1.0.1
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   + init
+--   + Time based counter incrementation variable
 
-  com_incr = 0.08
+time = 0.5 -- time in seconds
+
+  com_incr = 1 / (time * 32) -- assuming 32hZ is about the standard defer rate, even
 ------------------------------------------------------------------ ---
 ---------------------------------------------------------------------
   function Ex_Set1(track, fx, wet_id, val)
