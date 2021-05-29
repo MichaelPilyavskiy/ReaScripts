@@ -34,7 +34,7 @@
     for i = 1, CountTracks(0) do
       local tr = GetTrack(0,i-1)
       local GUID = reaper.GetTrackGUID( tr )
-      if GUID == giv_guid then return tr end
+      if GUID:gsub('%p+','') == giv_guid:gsub('%p+','') then return tr end
     end
   end
   ---------------------------------------------------
@@ -43,12 +43,12 @@
       for trid = 1, CountTracks(0) do
         local tr = GetTrack(0,trid-1)
         for fx_id =1, TrackFX_GetCount( tr ) do
-          if TrackFX_GetFXGUID( tr, fx_id-1) == GUID then return true, tr, fx_id-1 end
+          if TrackFX_GetFXGUID( tr, fx_id-1):gsub('%p+','') == GUID:gsub('%p+','') then return true, tr, fx_id-1 end
         end
       end  
      else
       for fx_id =1, TrackFX_GetCount( tr ) do
-        if TrackFX_GetFXGUID( tr, fx_id-1) == GUID then return true, tr, fx_id-1 end
+        if TrackFX_GetFXGUID( tr, fx_id-1):gsub('%p+','') == GUID:gsub('%p+','') then return true, tr, fx_id-1 end
       end
     end    
   end

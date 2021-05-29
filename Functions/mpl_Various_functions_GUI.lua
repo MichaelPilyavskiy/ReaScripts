@@ -112,7 +112,7 @@
   function GUI_DrawObj_sub(o, OBJ, DATA, GUI)
     if type(o)~='table' then return end 
     local x,y,w,h,txt,txt_flags,font,fontsz,font_flags, but_mark,txt_a,otype,grad_back,frame_a,fill_back,fill_back_a,fill_back_col,
-      xdrawlim,ydrawlim,wdrawlim,hdrawlim,grad_back_a,txt_col,drawlim_cut,frame_col,fill_back_val= 
+      xdrawlim,ydrawlim,wdrawlim,hdrawlim,grad_back_a,txt_col,drawlim_cut,frame_col,fill_back_val,is_circle, circle_a, circle_r= 
                         o.x or 0, 
                         o.y or 0, 
                         o.w or 100, 
@@ -138,7 +138,11 @@
                         o.txt_col,
                         o.drawlim_cut,
                         o.frame_col,
-                        o.fill_back_val
+                        o.fill_back_val,
+                        o.is_circle,
+                        o.circle_a,
+                        o.circle_r
+                        
                         
     -- prevent draw out of screen
       if not drawlim_cut
@@ -204,7 +208,16 @@
         gfx.line(x,y,x,y+h,1 )
       end
       
+    -- is_circle
+      if is_circle then
+        gfx.set(1,1,1,1)
+        VF_hex2rgb(fill_back_col or '#FFFFFF', true)
+        gfx.a = circle_a or 1
+        gfx.circle(x,y,circle_r,0,1 )
+      end  
+      
     --txt
+      if txt then txt = tostring(txt) end
       gfx.set(1,1,1)
       gfx.a = txt_a
       gfx.x,gfx.y = x,y

@@ -2,15 +2,19 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with scripts written by MPL.
--- @version 2.03
+-- @version 2.05
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
 --    mpl_Various_functions_GUI.lua
 --    mpl_Various_functions_MOUSE.lua
 -- @changelog
---    # fix test checksum
---    + add VF2_GetMEZoom
+--    # MOUSE func_Ldrag2 - ignore altkeys
+--    # GUI obj - format txt as string
+--    # GUI obj - is_circle
+--    # VF_GetFXByGUID - fix GUID match strings 
+--    # VF_GetTrackByGUID - fix GUID match strings 
+--    + VF2_NormalizeT support pairs
   
     --------------------------------------------------
     function VF_LoadLibraries()

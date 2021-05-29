@@ -1,563 +1,804 @@
 -- @description XYPad
--- @version 1.0
+-- @version 2.0
 -- @author MPL 
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
 --  + init
 
   
-  local scr_title = 'XYPad'
-  debug = 0
-  -- NOT reaper NOT gfx
+
+
+  local vrs = 'v2.0'
+  -- NOT gfx NOT reaper NOT GUI NOT MOUSE NOT function
+  
   --  INIT -------------------------------------------------
-  for key in pairs(reaper) do _G[key]=reaper[key]  end  
-  local mouse = {}
-  local gui -- see GUI_define()
-  local obj = {}
-  local conf = {}
-  local cycle = 0
-  local redraw = -1
-  data = {}
-  local SCC, lastSCC, SCC_trig,ProjState
-  --local V1, V2, V3, V4 = 0,0,0,0
+   local OBJ = {refresh = { GUIcom = true,
+                            GUIback = false, 
+                            GUIcontrols = false,
+                            conf = false,
+                            data = true,
+                            test=true,
+                          }
+                }
+  local GUI = {}
+   DATA = {       conf = {},
+                  project={}}
+              
+ 
   ---------------------------------------------------
-  local function lim(val, min,max) --local min,max 
-    if not min or not max then min, max = 0,1 end 
-    return math.max(min,  math.min(val, max) ) 
-  end
-  ---------------------------------------------------
-  local function ExtState_Save()
-    _, conf.wind_x, conf.wind_y, conf.wind_w, conf.wind_h = gfx.dock(-1, 0,0,0,0)
-    for key in pairs(conf) do SetExtState(conf.ES_key, key, conf[key], true)  end
-  end
-  ---------------------------------------------------
-  local function msg(s)  ShowConsoleMsg(s..'\n') end
-  ---------------------------------------------------
-  local function col(col_s, a) gfx.set( table.unpack(gui.col[col_s])) if a then gfx.a = a end  end
-  ---------------------------------------------------
-  local function GUI_DrawBut(o) 
-    if not o then return end
-    local x,y,w,h, txt = o.x, o.y, o.w, o.h, o.txt
-    if not x or not y or not w or not h then return end
-    gfx.a = o.alpha_back or 0.3
-    gfx.blit( 2, 1, 0, -- grad back
-              0,0,  obj.grad_sz,obj.grad_sz,
-              x,y,w,h, 0,0)
-    if o.val then
-      col('green', 0.49)
-      gfx.rect(x,y,lim(w*o.val,0,w),h,1)
-    end              
-    col(o.col, o.alpha_back or 0.2)
-    gfx.rect(x,y,w,h,1)
-    ------------------ txt
-      if o.txt and w > 0 then 
-        local txt = tostring(o.txt)
-        if o.txt_col then 
-          col(o.txt_col, o.alpha_txt or 0.8)
-         else
-          col('white', o.alpha_txt or 0.8)
-        end
-        local f_sz = gui.fontsz
-        gfx.setfont(1, gui.font,o.fontsz or gui.fontsz )
-        local y_shift = -1
-        for line in txt:gmatch('[^\r\n]+') do
-          if gfx.measurestr(line:sub(2)) > w -2 and w > 20 then 
-            repeat line = line:sub(2) until gfx.measurestr(line..'...')< w -2
-            line = '...'..line
-          end
-          if o.txt2 then line = o.txt2..' '..line end
-          gfx.x = x+ math.ceil((w-gfx.measurestr(line))/2)
-          gfx.y = y+ (h-gfx.texth)/2 + y_shift 
-          if o.aligh_txt then
-            if o.aligh_txt&1==1 then gfx.x = x  end -- align left
-            if o.aligh_txt>>2&1==1 then gfx.y = y + y_shift end -- align top
-            if o.aligh_txt>>4&1==1 then gfx.y = h - gfx.texth end -- align bot
-          end
-          if o.bot_al_txt then 
-            gfx.y = y+ h-gfx.texth-3 +y_shift
-          end
-          gfx.drawstr(line)
-          y_shift = y_shift + gfx.texth
-        end
-      end    if o.rect_a then 
-      col(o.col, o.rect_a)
-      gfx.rect(x,y,w,h,0)
-    end
-  end
- ---------------------------------------------------  
-  function Data_Update()
-    if data.values then 
-      for key in pairs(data.values) do
-        local tr =  BR_GetMediaTrackByGUID( 0, data.values[key].trGUID )
-        if tr then 
-          local fx = GetFXIDbyGUID(tr, data.values[key].fxGUID)
-          local retval, fx_name = TrackFX_GetFXName( tr, fx, '' )
-          if fx_name then data.values[key].fx_name = fx_name end
-          local retval, parname = TrackFX_GetParamName( tr, fx, data.values[key].param, '' )
-          if parname then data.values[key].param_name = parname end
-          data.values[key].val_readout = TrackFX_GetParam(tr, fx, data.values[key].param )
-         else 
-          data.values[key] = nil
-        end
-      end
-    end
-  end
-  ---------------------------------------------------
-  local function GUI_draw()
-    gfx.mode = 0
-    -- redraw: -1 init, 1 maj changes, 2 minor changes
-    -- 1 back
-    -- 2 gradient
-      
-    --  init
-      if redraw == -1 then
-        Data_Update()
-        OBJ_Update()
-        gfx.dest = 2
-        gfx.setimgdim(2, -1, -1)  
-        gfx.setimgdim(2, obj.grad_sz,obj.grad_sz)  
-        local r,g,b,a = 0.9,0.9,1,0.65
-        gfx.x, gfx.y = 0,0
-        local c = 1
-        local drdx = c*0.00001
-        local drdy = c*0.00001
-        local dgdx = c*0.001
-        local dgdy = c*0.0005    
-        local dbdx = c*0.00008
-        local dbdy = c*0.00001
-        local dadx = c*0.0001
-        local dady = c*0.001       
-        gfx.gradrect(0,0, obj.grad_sz,obj.grad_sz, 
-                        r,g,b,a, 
-                        drdx, dgdx, dbdx, dadx, 
-                        drdy, dgdy, dbdy, dady) 
-        redraw = 1 -- force com redraw after init 
-      end
-      
-    -- refresh
-      if redraw == 1 then 
-        Data_Update()
-        OBJ_Update()
-        -- refresh backgroung
-          gfx.dest = 1
-          gfx.setimgdim(1, -1, -1)  
-          gfx.setimgdim(1, gfx.w, gfx.h) 
-          gfx.blit( 2, 1, 0, -- grad back
-                    0,0,  obj.grad_sz,obj.grad_sz/3,
-                    0,0,  gfx.w,gfx.h, 0,0)
-          gfx.a = 0.1
-          --gfx.line(gfx.w-obj.menu_w, 0,gfx.w-obj.menu_w, gfx.h )
-        -- refresh all buttons
-          for key in pairs(obj) do
-            if not key:match('knob') and type(obj[key]) == 'table' and obj[key].is_but then
-              GUI_DrawBut(obj[key])
-            end
-          end        
-      end
-      
-      
-    --  render    
-      gfx.dest = -1   
-      gfx.a = 1
-      gfx.x,gfx.y = 0,0
-    --  back
-      gfx.blit(1, 1, 0, -- backgr
-          0,0,gfx.w, gfx.h,
-          0,0,gfx.w, gfx.h, 0,0)  
+  function ExtState_Def()  
+    local t= {
     
-    if mouse.LMB_state  then GUI_point(X,Y) end
-    
-    
-    redraw = 0
-    gfx.update()
-  end
-  function GUI_point(x,y)
-    if not x or not y then return end
-    col('green', 0.4)
-    gfx.circle(x*obj.XYpad.w,obj.XYpad.y+obj.XYpad.h - y*obj.XYpad.h,5, 1)
-  end
-  ---------------------------------------------------
-  function HasWindXYWHChanged()
-    local  _, wx,wy,ww,wh = gfx.dock(-1, 0,0,0,0)
-    local retval=0
-    if wx ~= obj.last_gfxx or wy ~= obj.last_gfxy then retval= 2 end --- minor
-    if ww ~= obj.last_gfxw or wh ~= obj.last_gfxh then retval= 1 end --- major
-    if not obj.last_gfxx then retval = -1 end
-    obj.last_gfxx, obj.last_gfxy, obj.last_gfxw, obj.last_gfxh = wx,wy,ww,wh
-    return retval
-  end
-  ---------------------------------------------------
-  local function ExtState_Def()
-    return {ES_key = 'MPL_'..scr_title,
+            -- globals
+            mb_title = 'XYPad',
+            ES_key = 'MPL_XYPad',
             wind_x =  50,
             wind_y =  50,
-            wind_w =  300,
-            wind_h =  300,
+            wind_w =  500,
+            wind_h =  500,
             dock =    0,
-            scale_root = 0}
-  end
-  ---------------------------------------------------
-  local function ExtState_Load()
-    local def = ExtState_Def()
-    for key in pairs(def) do 
-      local es_str = GetExtState(def.ES_key, key)
-      if es_str == '' then conf[key] = def[key] else conf[key] = tonumber(es_str) or es_str end
-    end
-  end
-  ---------------------------------------------------
-  function GetLearn(slot)
-    if not slot then return end
-    local retval, tracknum, fxnum, paramnum  = GetLastTouchedFX()
-    if retval then
-      if not data.values then data.values = {} end
-      local tr = CSurf_TrackFromID( tracknum, false )
-      data.values[slot] = { trGUID = GetTrackGUID( tr ),
-                            fxGUID = TrackFX_GetFXGUID( tr, fxnum ),
-                            param = paramnum
-                          }
-    end
-  end
-  ---------------------------------------------------
-  function SetValue(val, data_id)
-    if not data.values or not val then return end
-    if not data.values[data_id] then return end
-    
-    local tr = BR_GetMediaTrackByGUID( 0, data.values[data_id].trGUID )
-    if not tr or not  reaper.ValidatePtr2( 0, tr, 'MediaTrack*' ) then return end
-    fx_id = GetFXIDbyGUID(tr, data.values[data_id].fxGUID) 
-    if fx_id < 0 then return end
-    TrackFX_SetParam( tr, fx_id, data.values[data_id].param, val )
-  end
-  ---------------------------------------------------
-  local function OBJ_define()  
-    obj.offs = 2
-    obj.grad_sz = 200
-    obj.y_offs_setup = 100
-    obj.lrn_w = 70
-    obj.id_w =  25
-    obj.XYpad = { x = 0,
-                y = obj.y_offs_setup,
-                txt = '',
-                col = 'white',
-                state = 0,
-                is_but = true,
-                alpha_back = 0.05,
-                func_LD2 =  function() 
-                            local x_st,y_st,w_st,h_st = obj.XYpad.x, obj.XYpad.y, obj.XYpad.w, obj.XYpad.h
-                            X = lim((mouse.mx-x_st) / w_st,0,1)
-                            Y = 1-lim((mouse.my-y_st) / h_st,0,1)
-                            V1 = (1-X)*Y
-                            V2 = X*Y
-                            V3 = (1-Y)*(1-X)
-                            V4 = X*(1-Y)
-                            SetValue(V1, 1)
-                            SetValue(V2, 2)
-                            SetValue(V3, 3)
-                            SetValue(V4, 4)
-                            redraw = 1
-                          end                        
-                }
-    obj.par_id_pad_1 = { x = 0,
-                    y = obj.y_offs_setup,
-                    w = obj.id_w,
-                    h = obj.id_w,
-                    txt = 1,
-                    col = 'white',
-                    state = 0,
-                    is_but = true,
-                    rect_a = 0.1,
-                    alpha_back = 0.01                 
-                    }  
-    obj.par_id_pad_2 = { x = gfx.w-obj.id_w,
-                    y = obj.y_offs_setup,
-                    w = obj.id_w,
-                    h = obj.id_w,
-                    txt =2,
-                    col = 'white',
-                    state = 0,
-                    is_but = true,
-                    rect_a = 0.1,
-                    alpha_back = 0.01                 
-                    } 
-    obj.par_id_pad_3 = { x = gfx.w-obj.id_w,
-                    y = gfx.h-obj.id_w,
-                    w = obj.id_w,
-                    h = obj.id_w,
-                    txt =4,
-                    col = 'white',
-                    state = 0,
-                    is_but = true,
-                    rect_a = 0.1,
-                    alpha_back = 0.01                 
-                    }     
-    obj.par_id_pad_4 = { x = 0,
-                    y = gfx.h-obj.id_w,
-                    w = obj.id_w,
-                    h = obj.id_w,
-                    txt =3,
-                    col = 'white',
-                    state = 0,
-                    is_but = true,
-                    rect_a = 0.1,
-                    alpha_back = 0.01                 
-                    }                                                          
-    local h = obj.y_offs_setup/4
-
-    for i = 1, 4 do
-      obj['par_id'..i] = { x = 0,
-                  y = h*(i-1),
-                  w = obj.id_w,
-                  h = h,
-                  txt = i,
-                  col = 'white',
-                  state = 0,
-                  is_but = true,
-                  alpha_back = 0.15                    
-                  }       
-                 
-      obj['par'..i] = { x = obj.id_w,
-                  y = h*(i-1),
-                  w = 200,
-                  h = h,
-                  txt = '',
-                  col = 'white',
-                  state = 0,
-                  is_but = true,
-                  alpha_back = 0.15                    
-                  }    
-      obj['learn'..i] = { 
-                  y = h*(i-1),
-                  w = obj.lrn_w,
-                  h = h,
-                  txt = 'Get',
-                  col = 'white',
-                  state = 0,
-                  is_but = true,
-                  alpha_back = 0.1,
-                  func = function() GetLearn(i) ExtStateProj_Save() redraw = 1 end }                 
-    end
-                      
-  end
-  ---------------------------------------------------
-  function OBJ_Update()
-    obj.XYpad.w = gfx.w
-    obj.XYpad.h = gfx.h-obj.y_offs_setup
-    for i = 1, 4 do
-      obj['par'..i].x = obj.id_w+1
-      obj['par'..i].w = gfx.w - obj.lrn_w -2 -obj.id_w
-      obj['learn'..i].x = gfx.w - obj.lrn_w
-    end
-    if data.values then 
-      for i = 1, 4 do
-        if data.values[i] then 
-          obj['par'..i].txt = data.values[i].fx_name..' / '..data.values[i].param_name
-          obj['par'..i].val = data.values[i].val_readout
-        end
-      end
-    end
-    obj.par_id_pad_2.x = gfx.w-obj.id_w
-    obj.par_id_pad_4.y = gfx.h-obj.id_w
-    obj.par_id_pad_3.x = gfx.w-obj.id_w
-    obj.par_id_pad_3.y = gfx.h-obj.id_w
-    for key in pairs(obj) do if type(obj[key]) == 'table' then obj[key].context = key end end  
-  end
-  ---------------------------------------------------
-  function Menu(t)
-    gfx.x = mouse.mx
-    gfx.y = mouse.my
-    local ret = gfx.showmenu('')
-  end
- ---------------------------------------------------
-  function MOUSE_Match(b) if b.x and b.y and b.w and b.h then return mouse.mx > b.x and mouse.mx < b.x+b.w and mouse.my > b.y and mouse.my < b.y+b.h end  end
- ------------- -------------------------------------- 
-  local function MOUSE_Click(b) return MOUSE_Match(b) and mouse.LMB_state and not mouse.last_LMB_state end
-  local function MOUSE_ClickR(b) return MOUSE_Match(b) and mouse.RMB_state and not mouse.last_RMB_state end
-  ---------------------------------------------------
-  function spairs(t, order) --http://stackoverflow.com/questions/15706270/sort-a-table-in-lua
-    local keys = {}
-    for k in pairs(t) do keys[#keys+1] = k end
-    if order then table.sort(keys, function(a,b) return order(t, a, b) end)  else  table.sort(keys) end
-    local i = 0
-    return function()
-              i = i + 1
-              if keys[i] then return keys[i], t[keys[i]] end
-           end
-  end
-  ---------------------------------------------------
-  local function MOUSE()
-    local d_click = 0.2
-    mouse.mx = gfx.mouse_x
-    mouse.my = gfx.mouse_y
-    mouse.LMB_state = gfx.mouse_cap&1 == 1 
-    mouse.RMB_state = gfx.mouse_cap&2 == 2 
-    mouse.MMB_state = gfx.mouse_cap&64 == 64
-    mouse.LMB_state_doubleclick = false
-    mouse.Ctrl_LMB_state = gfx.mouse_cap&5 == 5 
-    mouse.Ctrl_state = gfx.mouse_cap&4 == 4 
-    mouse.Alt_state = gfx.mouse_cap&17 == 17 -- alt + LB
-    mouse.wheel = gfx.mouse_wheel
-    
-    if mouse.last_mx and mouse.last_my and (mouse.last_mx ~= mouse.mx or mouse.last_my ~= mouse.my) then mouse.is_moving = true else mouse.is_moving = false end
-    if mouse.last_wheel then mouse.wheel_trig = (mouse.wheel - mouse.last_wheel) end 
-    if not mouse.LMB_state_TS then mouse.LMB_state_TS = clock end
-    if mouse.LMB_state and mouse.LMB_state_TS and clock -mouse.LMB_state_TS < d_click and clock -mouse.LMB_state_TS  > 0 then  mouse.DLMB_state = true  end 
-    if mouse.LMB_state and not mouse.last_LMB_state then  
-      mouse.last_mx_onclick = mouse.mx     
-      mouse.last_my_onclick = mouse.my 
-      mouse.LMB_state_TS = clock
-    end    
-    if mouse.last_mx_onclick and mouse.last_my_onclick then mouse.dx = mouse.mx - mouse.last_mx_onclick  mouse.dy = mouse.my - mouse.last_my_onclick else mouse.dx, mouse.dy = 0,0 end
-    
-
-    -- buttons
-      for key in spairs(obj) do
-        if type(obj[key]) == 'table' and not obj[key].ignore_mouse then
-          --[[----------------------
-          if MOUSE_Match(obj[key]) and obj[key].mouse_overlay then 
-            if mouse.LMB_state and not mouse.last_LMB_state and MOUSE_Match(obj[key]) then if obj[key].func then  obj[key].func() end end
-          end]]
-          ------------------------
-          if MOUSE_Match(obj[key]) then mouse.context = key end
-          if MOUSE_Match(obj[key]) and mouse.LMB_state and not mouse.last_LMB_state then mouse.context_latch = key end
-          
-          if mouse.LMB_state 
-            and not mouse.last_LMB_state 
-            and not mouse.Ctrl_state  
-            and MOUSE_Match(obj[key]) then 
-            if obj[key].func then  obj[key].func() 
-          end end
-          
-          if mouse.LMB_state 
-            and not mouse.last_LMB_state 
-            and not mouse.Ctrl_state  
-            and mouse.DLMB_state 
-            and MOUSE_Match(obj[key]) then 
-            if obj[key].func_DC then obj[key].func_DC() 
-          end end
-          
-          if mouse.LMB_state 
-            and not mouse.Ctrl_state 
-            and (mouse.context == key or mouse.context_latch == key) then 
-            if obj[key].func_LD then obj[key].func_LD() end 
-          end
-          
-          if mouse.LMB_state 
-            and not mouse.Ctrl_state 
-            and mouse.is_moving
-            and mouse.context_latch == key then 
-            if obj[key].func_LD2 then obj[key].func_LD2() end 
-          end
-          
-          if mouse.Ctrl_LMB_state 
-            and (mouse.context == key or mouse.context_latch == key) then 
-            if obj[key].func_ctrlLD then obj[key].func_ctrlLD() 
-          end end
-          
-          if mouse.RMB_state 
-            and  (mouse.context == key or mouse.context_latch == key) then 
-            if obj[key].func_RD then obj[key].func_RD() 
-          end end
-          
-          if mouse.RMB_state 
-            and  mouse.context == key 
-              and not mouse.last_RMB_state then 
-              if obj[key].func_R then obj[key].func_R() 
-          end end
             
-          if mouse.wheel_trig 
-            and mouse.wheel_trig ~= 0 
-            and mouse.Ctrl_state then 
-            if obj[key].func_wheel then obj[key].func_wheel(mouse.wheel_trig) 
-          end end
-        end
-      end
-          
-    
-    -- mouse release    
-      if mouse.last_LMB_state and not mouse.LMB_state   then  mouse.context_latch = '' end
-      mouse.last_mx = mouse.mx
-      mouse.last_my = mouse.my
-      mouse.last_LMB_state = mouse.LMB_state  
-      mouse.last_RMB_state = mouse.RMB_state
-      mouse.last_MMB_state = mouse.MMB_state 
-      mouse.last_Ctrl_LMB_state = mouse.Ctrl_LMB_state
-      mouse.last_Ctrl_state = mouse.Ctrl_state
-      mouse.last_Alt_state = mouse.Alt_state
-      mouse.last_wheel = mouse.wheel   
-      mouse.last_context_latch = mouse.context_latch
-      mouse.DLMB_state = nil    
+            mode=0, -- 0 parameters 1 all params per plugin
+            pointscnt = 4,
+            
+            xpos=0.5,
+            ypos=0.5,
+            
+            v_anglediff_piratio = 2,
+            }
+    return t
   end
   ---------------------------------------------------
   function run()
-    SCC =  GetProjectStateChangeCount( 0 ) 
-    if not lastSCC or lastSCC ~= SCC then SCC_trig = true else SCC_trig = false end lastSCC = SCC
-    local clock = os.clock()
-    cycle = cycle+1
-    local st_wind = HasWindXYWHChanged()
-    if st_wind >= -1 then ExtState_Save() if math.abs(st_wind) == 1 then redraw = st_wind  end end
-    if SCC_trig then redraw = -1 end
-    MOUSE()
-    GUI_draw()
-    if gfx.getchar() >= 0 then defer(run) else atexit(gfx.quit) end
-  end
-  ---------------------------------------------------
-  local function GUI_define()
-    gui = {
-                aa = 1,
-                mode = 3,
-                font = 'Calibri',
-                fontsz = 16,
-                col = { grey =    {0.5, 0.5,  0.5 },
-                        white =   {1,   1,    1   },
-                        red =     {1,   0,    0   },
-                        green =   {0.3,   0.9,    0.3   }
-                      }
-                
-                }
+    VF_MOUSE(MOUSE, OBJ)
+    local project_change = DATA_CheckUPD(OBJ, DATA, GUI) 
+    local refresh_GUI_int = GUI_HasWindXYWHChanged(OBJ, DATA, GUI)
     
-      if OS == "OSX32" or OS == "OSX64" then gui.fontsize = gui.fontsize - 7 end
-  end
-  ---------------------------------------------------
-  function GetFXIDbyGUID(tr, guid)
-    for fx =1,  TrackFX_GetCount( tr ) do
-      local fx_guid = TrackFX_GetFXGUID( tr, fx-1 )--:gsub('-',''):match('{.-}')
-      if fx_guid == guid then return fx-1 end
+    -- refresh triggers
+      if GUI.refresh_GUI_int == 4 then -- triggers at window xy change
+        OBJ.refresh.conf=true 
+      end 
+      if GUI.refresh_GUI_int == 3 then -- triggers at window wh change
+        ExtState_Save(DATA.conf)  
+        OBJ.refresh.conf=true  
+        OBJ.refresh.GUIcom = true
+      end 
+      if project_change then -- on project change
+        OBJ.refresh.data = true 
+        OBJ.refresh.GUIcontrols=2 
+        OBJ.refresh.GUIevents=2 
+      end 
+      if OBJ.refresh.GUIcom == true then -- on maj GUI update
+        OBJ.refresh.GUIback=true
+        OBJ.refresh.GUIcontrols=2 
+        OBJ.refresh.GUIevents=2 
+      end
+      
+    
+    -- perform refresh ----
+    
+      if OBJ.refresh.conf == true then 
+        ExtState_Save(DATA.conf) 
+        OBJ.refresh.conf = false 
+      end
+      
+      
+      if OBJ.refresh.data then 
+        if OBJ.refresh.data == 2 then DATA_WriteProj(OBJ, DATA, GUI) OBJ.refresh.data = 1 end
+        if OBJ.refresh.data == 1 then DATA_ReadProj(OBJ, DATA, GUI) end
+        OBJ.refresh.data = false
+      end
+
+      if OBJ.refresh.GUIcom == true then
+        OBJ_init(OBJ, DATA, GUI)
+        OBJ.refresh.GUIcom = false
+      end 
+      
+      if OBJ.refresh.GUIback == true then
+        GUI_DrawBackground(OBJ, DATA, GUI)
+        GUI_DrawBackgroundButton(OBJ, DATA, GUI)
+        OBJ.refresh.GUIback = false
+      end  
+      
+      if OBJ.refresh.GUIcontrols then
+        OBJ_main(OBJ, DATA, GUI)
+        DATA_CalcPointsValues(OBJ, DATA, GUI) 
+        OBJ_main(OBJ, DATA, GUI, true)--2nd pass
+        GUI_DrawMain(OBJ, DATA, GUI) 
+        OBJ.refresh.GUIcontrols = false
+      end
+      
+    if OBJ.refresh.test ==true then  
+      OBJ.refresh.test = nil
     end
-    return -1
+    -- draw stuff
+      GUI_draw(OBJ, DATA, GUI)
+      
+    -- exit
+      if MOUSE.char >= 0 and MOUSE.char ~= 27 then defer(run) else atexit(gfx.quit) end
+  end
+  
+--------------------------------------------------------------------
+  function main()
+    DATA.conf.dev_mode = 0
+    DATA.conf.vrs = vrs
+    ExtState_Load(DATA.conf)
+     
+    gfx.init(DATA.conf.mb_title..' '..DATA.conf.vrs,
+                    DATA.conf.wind_w,
+                    DATA.conf.wind_h,
+                    DATA.conf.dock, 
+                    DATA.conf.wind_x, 
+                    DATA.conf.wind_y)
+    
+    -- init OBJ
+    OBJ_SetColors(OBJ, DATA, GUI)
+    DATA_ReadProj(OBJ, DATA, GUI)
+    run()  
   end
   ---------------------------------------------------
-  function ExtStateProj_Save()
-    if not data.values then return end
+  function DATA_CheckUPD(OBJ, DATA, GUI)
+    DATA.SCC =  GetProjectStateChangeCount( 0 )
+    DATA.editcurpos =  GetCursorPosition()
+    local ret = (DATA.lastSCC and DATA.lastSCC~=DATA.SCC )
+     or (DATA.last_editcurpos and DATA.last_editcurpos~=DATA.editcurpos )
+                 
+    DATA.lastSCC = DATA.SCC
+    DATA.last_editcurpos=DATA.editcurpos
+    return ret
+  end
+  ---------------------------------------------------
+  function DATA_WriteProj(OBJ, DATA, GUI)
     local str = ''
-    for key in pairs(data.values) do
-      str = str..key..'_'..data.values[key].trGUID..'_'..data.values[key].fxGUID..'_'..data.values[key].param..'\n'
-    end
-    --msg(str)
-    SetProjExtState( 0, conf.ES_key, 'FX_data', str )
+    str = str..'\nPTCNT '..DATA.project.pointscnt
+    
+    -- mode 0
+      for i = 1, 100 do
+        if DATA.project['pt'..i] then 
+          str = str..'\nPT'..i
+            ..' '..DATA.project['pt'..i].enabled
+            ..' {'..DATA.project['pt'..i].fxGUID:gsub('[%{%}]','')..'}'
+            ..' {'..DATA.project['pt'..i].trGUID:gsub('[%{%}]','')..'}'
+            ..' '..DATA.project['pt'..i].paramnumber
+            ..' '..DATA.project['pt'..i].i_inv
+            ..' '..DATA.project['pt'..i].i_offs
+            ..' '..DATA.project['pt'..i].i_scale
+        end
+      end
+      SetProjExtState( 0, 'MPL_XYPad', 'FXDATA2', str )
+      
+    -- mode 1
+    local str = ''
+    str = str..'\nPSTCNT '..DATA.project.plst_cnt
+          
+      for i = 1, 100 do
+        if DATA.project['plst'..i] then 
+          str = str..'\nPST'..i
+            ..' '..DATA.project['plst'..i].enabled
+            ..' {'..DATA.project['plst'..i].fxGUID:gsub('[%{%}]','')..'}'
+            ..' {'..DATA.project['plst'..i].trGUID:gsub('[%{%}]','')..'}'
+            ..' {'..DATA.project['plst'..i].param_str:gsub('[%{%}]','')..'}'
+        end
+      end
+      SetProjExtState( 0, 'MPL_XYPad', 'FXDATA2_plst', str )
   end
   ---------------------------------------------------
-  function ExtStateProj_Load()
-    local ret, str = GetProjExtState( 0, conf.ES_key, 'FX_data' )
-    if ret ~= 1 then return end
-    for line in str:gmatch('[^\r\n]+') do 
-      local t = {} 
-      for w in line:gmatch('[^_]+') do if tonumber(w) then w =  tonumber(w) end t[#t+1] = w end
-      if #t == 4 then
-        if not data.values then data.values = {} end
-        data.values[  t[1] ] = {trGUID = t[2],
-                                fxGUID = t[3],
-                                param = t[4],
-                                }
+  function DATA_ReadProj_IsValidData(fxGUID,trGUID,paramnumber)
+    local tr = VF_GetTrackByGUID(trGUID)
+    if tr then
+      local ret, tr, fxnumber = VF_GetFXByGUID(fxGUID, tr) 
+      if not tr then return end
+      local ret, paramname 
+      if paramnumber then ret, paramname = TrackFX_GetParamName( tr, fxnumber, paramnumber, '') end
+      local ret, fxname = TrackFX_GetFXName( tr, fxnumber, '' )
+      local retval, trname = reaper.GetTrackName( tr )
+      if ret then return true,tr, fxnumber, trname,fxname,paramname  end
+    end
+  end
+  ---------------------------------------------------
+  function DATA_ReadProj(OBJ, DATA, GUI)
+    DATA.project = {} 
+    DATA.project.pointscnt = DATA.conf.pointscnt
+    DATA.project.plst_cnt = DATA.conf.pointscnt
+    DATA_ReadProj_mode0(OBJ, DATA, GUI)
+    DATA_ReadProj_mode1(OBJ, DATA, GUI)
+  end
+  ---------------------------------------------------
+  function DATA_ReadProj_mode0(OBJ, DATA, GUI)
+    local retval, val = reaper.GetProjExtState(0, 'MPL_XYPad', 'FXDATA2' )
+    if retval~=0 then
+      for chunk in val:gmatch('[^\r\n]+') do  
+        -- points chunks
+          if chunk:match('PT%d+') then 
+            local i,enabled,fxGUID,trGUID,paramnumber, i_inv, i_offs, i_scale = 
+              chunk:match('PT(%d+) (%d+) %{(.-)%} %{(.-)%} (%d+) (%d+) (%d+) (%d+)')
+            if i then 
+              local isvalid, tr0, fx,trname,fxname,paramname = DATA_ReadProj_IsValidData(fxGUID,trGUID,paramnumber)
+              DATA.project['pt'..i] = {
+                                        enabled=tonumber(enabled),
+                                        fxGUID=fxGUID,
+                                        trGUID=trGUID,
+                                        paramnumber=tonumber(paramnumber),
+                                        
+                                        p_isvalid = isvalid,
+                                        p_trptr = tr0,
+                                        p_fxid = fx,
+                                        p_trname=trname,
+                                        p_fxname=fxname,
+                                        p_paramname=paramname,
+                                        
+                                        i_inv = tonumber(i_inv),
+                                        i_offs = tonumber(i_offs),
+                                        i_scale = tonumber(i_scale),
+                                      } 
+              
+            end
+          end
+          
+        -- various params
+          if chunk:match('PTCNT (%d+)') then DATA.project.pointscnt = tonumber(chunk:match('PTCNT (%d+)')) end
+        
       end
     end
   end
   ---------------------------------------------------
-  ExtState_Load()  
-  gfx.init('MPL '..scr_title,300,400, 0, conf.wind_x, conf.wind_y)
-  OBJ_define()
-  OBJ_Update()
-  GUI_define()
-  ExtStateProj_Load()
-  run()
+  function DATA_ReadProj_mode1(OBJ, DATA, GUI)
+    local retval, val = reaper.GetProjExtState(0, 'MPL_XYPad', 'FXDATA2_plst')
+    if retval~=0 then
+      for chunk in val:gmatch('[^\r\n]+') do  
+        -- points chunks
+          if chunk:match('PST%d+') then 
+            local i,enabled,fxGUID,trGUID, param_str = chunk:match('PST(%d+) (%d+) %{(.-)%} %{(.-)%} %{(.-)%}')
+            if i then 
+              local isvalid, tr0, fx,trname,fxname = DATA_ReadProj_IsValidData(fxGUID,trGUID)
+              local stateparams = {}
+              for val in param_str:gmatch('[^%s]+') do stateparams[#stateparams+1] = tonumber(val) end
+              DATA.project['plst'..i] = {
+                                        enabled=tonumber(enabled),
+                                        fxGUID=fxGUID,
+                                        trGUID=trGUID,
+                                        param_str=param_str,
+                                        
+                                        p_isvalid = isvalid,
+                                        p_trptr = tr0,
+                                        p_fxid = fx,
+                                        p_trname=trname,
+                                        p_fxname=fxname,
+                                        p_stateparams = stateparams
+                                        
+                                      } 
+              
+            end
+          end
+          
+        -- various params
+          if chunk:match('PSTCNT (%d+)') then DATA.project.plst_cnt = tonumber(chunk:match('PSTCNT (%d+)')) end
+        
+      end
+    end
+    
+  end
+  ---------------------------------------------------------------------
+     function OBJ_SetColors(OBJ, DATA, GUI)
+       OBJ.colors = {--backgr = '#3f484d', hardcoded
+                        mode1_green = '17B025',
+                        mode2_blue = '1792B0',
+                        
+                        pt_active = '24C800',
+                        plst_active = '005EC8',
+
+                     
+                     
+                     }
+     end
+    ---------------------------------------------------
+     function OBJ_init(OBJ, DATA, GUI)
+       
+         -- globals
+       GUI.offs = 5 
+       GUI.but_w = 100
+       GUI.grad_sz = 200
+       
+         -- font
+       GUI.fontsz = VF_CalibrateFont(21)
+       GUI.fontsz2 = VF_CalibrateFont( 19)
+       GUI.fontsz3 = VF_CalibrateFont( 15)
+       GUI.fontsz4 = VF_CalibrateFont( 13)
+       
+       -- but
+       OBJ.frame_a_normal = 0.2
+       OBJ.frame_a_selected = 0.7
+       
+       OBJ.menuw = 30
+       OBJ.buth = 30
+       OBJ.point_sz = 30
+       --[[OBJ.info_w = 150
+       OBJ.info_h = 40]]
+       OBJ.man_sz = 20
+       
+       
+     end
+---------------------------------------------------      
+  function DATA_GetValue(OBJ, DATA, GUI,i) 
+    local r =math.floor((math.min(OBJ.field.w,OBJ.field.h)-GUI.offs*2)/2) 
+    local x = OBJ.manual.x - OBJ.field.w/2 - OBJ.field.x
+    local y = OBJ.manual.y - OBJ.field.h/2 - OBJ.field.y
+    local cur_r = math.sqrt(x^2+y^2) 
+    local pt_angle = math.atan(OBJ['Apoint'..i].y- OBJ.field.h/2 - OBJ.field.y, OBJ['Apoint'..i].x- OBJ.field.w/2 - OBJ.field.x)
+    local man_angle = math.atan(OBJ.manual.y - OBJ.field.y - OBJ.field.h/2, OBJ.manual.x - OBJ.field.x - OBJ.field.w/2 )
+    local ang_diff = math.abs(man_angle-pt_angle)
+    if ang_diff > math.pi then ang_diff = math.abs(ang_diff - math.pi*2) end
+    local ang_diff_scaled = lim(ang_diff / math.pi*DATA.conf.v_anglediff_piratio)
+    local radius_scale = lim(cur_r / r) 
+    return radius_scale * (1- ang_diff_scaled)
+  end
+---------------------------------------------------        
+  function DATA_Perform_Adjustment(OBJ, DATA, GUI) 
   
+    if DATA.conf.mode == 0 then
+      for i = 1, DATA.project.pointscnt do 
+        if DATA.project['pt'..i] and DATA.project['pt'..i].p_isvalid and DATA.point_values and DATA.point_values[i] then
+          local value = DATA.point_values[i]
+          if DATA.project['pt'..i].i_inv == 1 then value = 1-value end
+          TrackFX_SetParamNormalized( DATA.project['pt'..i].p_trptr, DATA.project['pt'..i].p_fxid, DATA.project['pt'..i].paramnumber, DATA.point_values[i])
+        end
+      end
+    end
+    
+    if DATA.conf.mode == 1 then 
+      local params_cnt for state = 1, DATA.project.plst_cnt do if DATA.project['plst'..state] then params_cnt = #DATA.project['plst'..state].p_stateparams break end end
+      if not params_cnt then return end 
+      local firstactivestate for state = 1, DATA.project.plst_cnt do if DATA.project['plst'..state] then firstactivestate = state break end end
+      if not firstactivestate then return end
+      
+      for i = 1, params_cnt-1 do 
+        local rmsval = 0
+        local cnt = 0
+        for state = 1, DATA.project.plst_cnt do 
+          if DATA.project['plst'..state] then 
+            cnt = cnt + 1
+            rmsval = rmsval + DATA.project['plst'..state].p_stateparams[i]
+          end
+        end
+        rmsval = rmsval / cnt 
+        
+        local val = rmsval
+        for state = 1, DATA.project.plst_cnt do 
+          if DATA.project['plst'..state] then 
+            val = val + (DATA.project['plst'..state].p_stateparams[i] - rmsval) * DATA.point_values[state]
+          end
+        end
+        
+        -- 
+        TrackFX_SetParamNormalized( DATA.project['plst'..firstactivestate].p_trptr, 
+        DATA.project['plst'..firstactivestate].p_fxid, 
+        i-1, 
+        val) 
+      end
+      
+    end
+  end
+---------------------------------------------------    
+  function DATA_CalcPointsValues(OBJ, DATA, GUI)
+    DATA.point_values = {}
+    
+    local x = DATA.conf.xpos
+    local y = DATA.conf.ypos
+    
+    if DATA.conf.mode == 0 then 
+      local cnt_active = 0
+      for i = 1, DATA.project.pointscnt do if DATA.project['pt'..i] and DATA.project['pt'..i].p_isvalid then cnt_active = cnt_active + 1 end end
+      if cnt_active <2 then return end
+      for i = 1, DATA.project.pointscnt do 
+        if DATA.project['pt'..i] and DATA.project['pt'..i].p_isvalid and OBJ['Apoint'..i]then
+          DATA.point_values[i] = DATA_GetValue(OBJ, DATA, GUI,i) 
+        end
+      end
+    end
+    
+    if DATA.conf.mode == 1 then 
+      local cnt_active = 0
+      for i = 1, DATA.project.plst_cnt do if DATA.project['plst'..i] and DATA.project['plst'..i].p_isvalid then cnt_active = cnt_active + 1 end end
+      if cnt_active <2 then return end
+      for i = 1, DATA.project.plst_cnt do 
+        if DATA.project['plst'..i] and DATA.project['plst'..i].p_isvalid and OBJ['Apoint'..i]then DATA.point_values[i] = DATA_GetValue(OBJ, DATA, GUI,i)  end
+      end 
+      --if DATA.point_values then VF2_NormalizeT(DATA.point_values)  end
+    end
+    
+  end
+---------------------------------------------------   
+  function OBJ_mainField(OBJ, DATA, GUI)
+      OBJ.field = {  otype = 'main',
+                      x = 0,
+                      y = OBJ.buth,
+                      w = gfx.w,
+                      h = gfx.h-OBJ.buth,
+                      fontsz = GUI.fontsz2,
+                      frame_a = 0.3,
+                      txt = '',
+                      func_Ldrag2 = function() 
+                                      DATA.conf.xpos = lim((MOUSE.x - OBJ.field.x) / OBJ.field.w)
+                                      DATA.conf.ypos = lim((MOUSE.y - OBJ.field.y) / OBJ.field.h)
+                                      
+                                      DATA_CalcPointsValues(OBJ, DATA, GUI)  
+                                      OBJ.refresh.GUIcontrols = true
+                                      OBJ.refresh.data = true 
+                                      DATA_Perform_Adjustment(OBJ, DATA, GUI)  
+                                   end,
+                     func_onrelease = function() OBJ.refresh.conf = true  end
+                     } 
+      OBJ.field.func_Ltrig = OBJ.field.func_Ldrag2  
+      
+      if DATA.conf.mode == 0 then
+        if DATA.cur_point_id and DATA.project['pt'..DATA.cur_point_id] and DATA.project['pt'..DATA.cur_point_id].p_isvalid then 
+          local infotxt = 'Point #'..DATA.cur_point_id
+            ..'\n'..DATA.project['pt'..DATA.cur_point_id].p_trname
+            ..'\n'..DATA.project['pt'..DATA.cur_point_id].p_fxname
+            ..'\n'..DATA.project['pt'..DATA.cur_point_id].p_paramname
+            ..'\n'..'Inverted: '..DATA.project['pt'..DATA.cur_point_id].i_inv
+          OBJ.field.txt = infotxt
+        end
+      end
+      
+      OBJ.field_circle = {  otype = 'main',
+                      x = OBJ.field.x+OBJ.field.w/2,
+                      y = OBJ.field.y+OBJ.field.h/2,
+                      w = gfx.w,
+                      h = gfx.h-OBJ.buth,
+                      ignore_mouse = true,
+                      is_circle = true,
+                      circle_r = math.floor((math.min(OBJ.field.w,OBJ.field.h)-GUI.offs*2)/2) ,
+                      circle_a = 0.5
+                     } 
+                     
+  end
+  ---------------------------------------------------   
+    function OBJ_mainMode(OBJ, DATA, GUI)
+      local mode = 'Morph parameters states'
+      local txt_col = OBJ.colors.mode1_green
+      if DATA.conf.mode == 1 then mode = 'Morph plugin states' txt_col = OBJ.colors.mode2_blue end
+      OBJ.mode = {  otype = 'main',
+                 grad_back = true,
+                 x = OBJ.menuw,
+                 y = 0,
+                 w = gfx.w-OBJ.menuw,
+                 h = OBJ.buth-1,
+                 txt= 'Mode: '..mode,
+                 txt_flags = 1|4,
+                 txt_col = txt_col,
+                 fontsz = GUI.fontsz2,
+                 func_Ltrig =  function() 
+                                 DATA.conf.mode = math.abs(1-DATA.conf.mode)
+                                OBJ.refresh.GUIcontrols = true
+                                OBJ.refresh.data = true
+                                OBJ.refresh.conf = true 
+                                end 
+                   }
+  end
+  ---------------------------------------------------   
+    function OBJ_mainOptions(OBJ, DATA, GUI)
+      OBJ.options = {  otype = 'main',
+              grad_back = true,
+              x = 0,
+              y = 0,
+              w = OBJ.menuw,
+              h = OBJ.buth-1,
+              txt= '>',
+              txt_flags = 1|4,
+              fontsz = GUI.fontsz2,
+              func_Ltrig =  function() 
+                             local t = 
+                             {      
+                                 { str = 'Cockos Forum thread|',
+                                   func = function() Open_URL('https://forum.cockos.com/showthread.php?t=188335') end  } , 
+                                 { str = 'Donate to MPL',
+                                   func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
+                                 { str = 'Contact: MPL VK',
+                                   func = function() Open_URL('http://vk.com/mpl57') end  } ,     
+                                 { str = 'Contact: MPL SoundCloud|',
+                                   func = function() Open_URL('http://soundcloud.com/mpl57') end  } , 
+                                     
+                                 { str = '#Options'},    
+                                 { str = 'Angle check pi ratio difference == 1',
+                                   state = DATA.conf.v_anglediff_piratio == 1,
+                                   func = function() DATA.conf.v_anglediff_piratio = 1 end},
+                                 { str = 'Angle check pi ratio difference == 2',
+                                   state = DATA.conf.v_anglediff_piratio == 2,
+                                   func = function() DATA.conf.v_anglediff_piratio = 2 end } , 
+                                 { str = 'Angle check pi ratio difference == 4',
+                                   state = DATA.conf.v_anglediff_piratio == 4,
+                                   func = function() DATA.conf.v_anglediff_piratio = 4 end } ,  
+                                 { str = 'Points number: 4 ',
+                                   state = DATA.project.pointscnt == 4,
+                                   func = function() DATA.project.pointscnt = 4 DATA.project.plst_cnt = 4 end},                                        
+                                 { str = 'Points number: 8 ',
+                                   state = DATA.project.pointscnt == 8,
+                                   func = function() DATA.project.pointscnt = 8 DATA.project.plst_cnt = 8 end},                                            
+                                   
+                             }
+                             Menu(MOUSE,t)
+                             OBJ.refresh.conf = true 
+                             OBJ.refresh.GUIcontrols = 2 
+                             OBJ.refresh.data = 2 
+                           end
+   }
+   
+   end
+   --------------------------------------------------------------------- 
+    function OBJ_mainManual(OBJ, DATA, GUI) 
+     local man_x = OBJ.field.x+(OBJ.field.w-OBJ.man_sz)* DATA.conf.xpos
+     local man_y = OBJ.field.y+(OBJ.field.h-OBJ.man_sz) * DATA.conf.ypos 
+     OBJ.manual = {  otype =      'main',
+                     grad_back =  true,
+                     x =          man_x,
+                     y =          man_y,
+                     w =          OBJ.man_sz,
+                     h =          OBJ.man_sz,
+                     frame_a = 0.52,
+                     fill_back = true,
+                     fill_back_a = 0.5,
+                     fill_back_col = 'E83C1A',
+                     fontsz = GUI.fontsz2,
+                     ignore_mouse = true,
+                    }   
+                    
+  end
+ --------------------------------------------------------------------- 
+  function OBJ_main(OBJ, DATA, GUI, isminor)
+    for i=1, 100 do OBJ['Apoint'..i] = nil end
+    
+    if not isminor then 
+      OBJ_mainField(OBJ, DATA, GUI)
+      OBJ_mainMode(OBJ, DATA, GUI)
+      OBJ_mainOptions(OBJ, DATA, GUI)
+      OBJ_mainManual(OBJ, DATA, GUI)
+    end
+    
+    if DATA.conf.mode ==0 then OBJ_mainPoints_mode0(OBJ, DATA, GUI)  end
+    if DATA.conf.mode ==1 then OBJ_mainPoints_mode1(OBJ, DATA, GUI)  end
+  end
+ --------------------------------------------------------------------- 
+  function OBJ_mainPoints_mode0(OBJ, DATA, GUI)    
+    local angle_step =360/ DATA.project.pointscnt
+    local startangle = -135
+    local r =math.floor((math.min(OBJ.field.w,OBJ.field.h)-GUI.offs*2)/2) 
+                     
+    for i = 1, DATA.project.pointscnt do
+      local ang = math.floor(startangle-angle_step*(i-1))
+      local ptx = lim(OBJ.field.x + OBJ.field.w/2 + r*math.sin(math.rad(ang))-OBJ.point_sz/2,OBJ.field.x,OBJ.field.x+OBJ.field.w-OBJ.point_sz)
+      local pty = lim(OBJ.field.y + OBJ.field.h/2 + r*math.cos(math.rad(ang))-OBJ.point_sz/2,OBJ.field.y,OBJ.field.y+OBJ.field.h-OBJ.point_sz)
+      local frame_col
+      if DATA.project['pt'..i] and DATA.project['pt'..i].p_isvalid then frame_col = OBJ.colors.pt_active end
+      local aval = 0 
+      if DATA.point_values and DATA.point_values[i] then aval = DATA.point_values[i] end
+      OBJ['Apoint'..i] = {  otype = 'main',
+                        grad_back = true,
+                        angle=ang,
+                        x = ptx,
+                        y = pty,
+                        w = OBJ.point_sz,
+                        h = OBJ.point_sz,
+                        txt= i,
+                        txt_flags = 1|4,
+                        frame_a = 0.7,
+                        frame_col = frame_col,
+                        fontsz = GUI.fontsz2,
+                        fill_back =  true,
+                        fill_back_a = aval,
+                        func_onptrcatch = function()  
+                                        DATA.cur_point_id = i
+                                        OBJ.refresh.GUIcontrols = true
+                                      end,
+                        func_Rtrig = function()  
+                                       local t = OBJ_main_PointMenu(OBJ, DATA, GUI,i)
+                                       Menu(MOUSE,t)
+                                     end,
+                       }
+        local aval = 1-OBJ['Apoint'..i].fill_back_a
+        if aval <0.4 then aval = 0 else aval = 1  end
+        local r = math.floor(aval * 0xFF)
+        OBJ['Apoint'..i].txt_col = string.format('%02X', r +(r <<8)+(r <<16))
+      end 
+    end
+    
+ --------------------------------------------------------------------- 
+  function OBJ_mainPoints_mode1(OBJ, DATA, GUI)    
+    local angle_step =360/ DATA.project.pointscnt
+    local startangle = -135
+    local r =math.floor((math.min(OBJ.field.w,OBJ.field.h)-GUI.offs*2)/2) 
+                     
+    for i = 1, DATA.project.plst_cnt do
+      local ang = math.floor(startangle-angle_step*(i-1))
+      local ptx = lim(OBJ.field.x + OBJ.field.w/2 + r*math.sin(math.rad(ang))-OBJ.point_sz/2,OBJ.field.x,OBJ.field.x+OBJ.field.w-OBJ.point_sz)
+      local pty = lim(OBJ.field.y + OBJ.field.h/2 + r*math.cos(math.rad(ang))-OBJ.point_sz/2,OBJ.field.y,OBJ.field.y+OBJ.field.h-OBJ.point_sz)
+      local frame_col
+      if DATA.project['plst'..i] and DATA.project['plst'..i].p_isvalid then frame_col = OBJ.colors.plst_active end
+               
+      local aval = 0 
+      if DATA.point_values and DATA.point_values[i] then aval = DATA.point_values[i] end
+      OBJ['Apoint'..i] = {  otype = 'main',
+                        grad_back = true,
+                        angle=ang,
+                        x = ptx,
+                        y = pty,
+                        w = OBJ.point_sz,
+                        h = OBJ.point_sz,
+                        txt= i,
+                        txt_flags = 1|4,
+                        frame_a = 0.7,
+                        frame_col = frame_col,
+                        fontsz = GUI.fontsz2,
+                        fill_back =  true,
+                        fill_back_a = aval,
+                        func_onptrcatch = function()  
+                                        DATA.cur_point_id = i
+                                        OBJ.refresh.GUIcontrols = true
+                                      end,
+                        func_Rtrig = function()  
+                                       local t = OBJ_main_PointMenu(OBJ, DATA, GUI,i)
+                                       Menu(MOUSE,t)
+                                     end,
+                       }
+        local aval = 1-OBJ['Apoint'..i].fill_back_a
+        if aval <0.4 then aval = 0 else aval = 1  end
+        local r = math.floor(aval * 0xFF)
+        OBJ['Apoint'..i].txt_col = string.format('%02X', r +(r <<8)+(r <<16))
+      end 
+    end    
+  --[[
+  --------------------------------------------------------------------- 
+   function OBJ_mainPoints_mode0(OBJ, DATA, GUI)    
+       local angle_step =360/ DATA.project.pointscnt
+       local startangle = -135
+       local r =math.floor((math.min(OBJ.field.w,OBJ.field.h)-GUI.offs*2)/2) 
+                      
+       for i = 1, DATA.project.pointscnt do
+         local ang = math.floor(startangle-angle_step*(i-1))
+         local ptx = lim(OBJ.field.x + OBJ.field.w/2 + r*math.sin(math.rad(ang))-OBJ.point_sz/2,OBJ.field.x,OBJ.field.x+OBJ.field.w-OBJ.point_sz)
+         local pty = lim(OBJ.field.y + OBJ.field.h/2 + r*math.cos(math.rad(ang))-OBJ.point_sz/2,OBJ.field.y,OBJ.field.y+OBJ.field.h-OBJ.point_sz)
+         local frame_col
+         if DATA.conf.mode ==0 and DATA.project['pt'..i] and DATA.project['pt'..i].p_isvalid then frame_col = OBJ.colors.pt_active end
+         if DATA.conf.mode ==1 and DATA.project['plst'..i] and DATA.project['plst'..i].p_isvalid then frame_col = OBJ.colors.plst_active end
+         
+         OBJ['Apoint'..i] = {  otype = 'main',
+                         grad_back = true,
+                         angle=ang,
+                         x = ptx,
+                         y = pty,
+                         w = OBJ.point_sz,
+                         h = OBJ.point_sz,
+                         txt= i,
+                         txt_flags = 1|4,
+                         frame_a = 0.7,
+                         frame_col = frame_col,
+                         fontsz = GUI.fontsz2,
+                         fill_back =  true,
+                         fill_back_a = 0,
+                         func_onptrcatch = function()  
+                                         DATA.cur_point_id = i
+                                         OBJ.refresh.GUIcontrols = true
+                                       end,
+                         func_Rtrig = function()  
+                                        local t = OBJ_main_PointMenu(OBJ, DATA, GUI,i)
+                                        Menu(MOUSE,t)
+                                      end,
+                        }
+       end 
+       
+       local max = 1
+       if DATA.conf.mode ==1 then
+         max = 0
+         for i = 1, DATA.project.pointscnt do 
+           if DATA.project['plst'..i] and DATA.project['plst'..i].p_isvalid then
+             max = math.max(max, DATA_GetValue(OBJ, DATA, GUI,i) ) 
+           end
+         end
+       end
+       
+       for i = 1, DATA.project.pointscnt do
+         if DATA.conf.mode ==1 and DATA.project['plst'..i] and max > 0 then OBJ['Apoint'..i].fill_back_a = lim(DATA_GetValue(OBJ, DATA, GUI,i)  * 1/max) end
+         if DATA.conf.mode ==0 and  DATA.project['pt'..i] and DATA.project['pt'..i].i_inv == 1 then OBJ['Apoint'..i].fill_back_a = 1-OBJ['Apoint'..i].fill_back_a end
+         local aval = 1-OBJ['Apoint'..i].fill_back_a
+         if aval <0.4 then aval = 0 else aval = 1  end
+         local r = math.floor(aval * 0xFF)
+         OBJ['Apoint'..i].txt_col = string.format('%02X', r +(r <<8)+(r <<16))
+       end 
+   end
+   ]]
+  ---------------------------------------------------------------------
+  function OBJ_main_PointMenu(OBJ, DATA, GUI,ptid)
+    local retval, tracknumber, fxnumber, paramnumber = reaper.GetLastTouchedFX() 
+    local param_txt = '[nothing touched]'
+    local tr, trGUID, fxGUID, param, paramname, ret, fxname
+    if retval then 
+      tr = CSurf_TrackFromID( tracknumber, false )
+      trGUID = GetTrackGUID( tr )
+      fxGUID = TrackFX_GetFXGUID( tr, fxnumber )
+      local retval, buf = reaper.GetTrackName( tr )
+      ret, paramname = TrackFX_GetParamName( tr, fxnumber, paramnumber, '')
+      ret, fxname = TrackFX_GetFXName( tr, fxnumber, '' )
+      if DATA.conf.mode == 0 then param_txt = fxname..' / '..paramname end
+      if DATA.conf.mode == 1 then param_txt = buf..' / '..fxname end
+    end
+    
+    if DATA.conf.mode == 0 then
+      return {
+                { str='Get last touched parameter: '..param_txt:gsub('[<>!#|]',''),
+                  func = function() 
+                            if not retval then return end
+                            DATA.project['pt'..ptid] = {  enabled = 1,
+                                                          fxGUID = fxGUID, 
+                                                          trGUID=trGUID,
+                                                          paramnumber=paramnumber,
+                                                          i_inv = 0,
+                                                          i_offs = 0,
+                                                          i_scale = 1,
+                                                        }
+                            OBJ.refresh.data = 2
+                            OBJ.refresh.GUIcontrols = true
+                          end
+                },
+                { str='Invert parameter',
+                  state = retval and DATA.project['pt'..ptid] and DATA.project['pt'..ptid].i_inv == 1,
+                  hidden = not(retval and DATA.project['pt'..ptid]),
+                  func = function() 
+                            if not retval then return end
+                            DATA.project['pt'..ptid].i_inv = math.abs(1-DATA.project['pt'..ptid].i_inv)
+                            OBJ.refresh.data = 2
+                            OBJ.refresh.GUIcontrols = true
+                          end
+                },                  
+                { str='Clean parameter',
+                  func = function() 
+                            if not retval then return end
+                            DATA.project['pt'..ptid] = nil
+                            OBJ.refresh.data = 2
+                            OBJ.refresh.GUIcontrols = true
+                          end
+                },                
+            }
+     else
+      return {
+                {str='Get last touched plugin state: '..param_txt:gsub('[<>!#|]',''),
+                  func = function() 
+                     if not retval then return end
+                     local paramscnt = TrackFX_GetNumParams( tr, fxnumber )
+                     local param_str = ''
+                      for paramid = 1, paramscnt do 
+                        param_str = param_str..' '..TrackFX_GetParamNormalized( tr, fxnumber, paramid-1) 
+                      end
+                     param_str = '{'..param_str:sub(2)..'}'
+                     DATA.project['plst'..ptid] = {enabled = 1,
+                                                   fxGUID = fxGUID, 
+                                                   trGUID=trGUID,
+                                                   param_str=param_str
+                                                   
+                                                 }
+                                                 
+                     OBJ.refresh.data = 2
+                     OBJ.refresh.GUIcontrols = true
+                  
+                  end
+                },
+                { str='Clean parameter',
+                  func = function() 
+                            if not retval then return end
+                            DATA.project['plst'..ptid] = nil
+                            OBJ.refresh.data = 2
+                            OBJ.refresh.GUIcontrols = true
+                          end
+                },
+              }
+    end
+  end
+  ---------------------------------------------------------------------
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Install it via Reapack (Action: browse packages)', '', 0) end   end
+  --------------------------------------------------------------------  
+  local ret = CheckFunctions('VF2_LoadVFv2') 
+  if ret then 
+    local ret2 = VF_CheckReaperVrs(5.975,true)    
+    if ret2 then VF_LoadLibraries() main() end
+  end
   
+

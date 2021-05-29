@@ -143,6 +143,7 @@
     ::skip_obj_loop::
      
     if MOUSE.latch_key and MOUSE.hasAltkeys and MOUSE.latch_key_edges==0 and MOUSE.LMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_Ldrag then OBJ[MOUSE.latch_key].func_Ldrag() end
+    if MOUSE.latch_key and MOUSE.LMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_Ldrag2 then OBJ[MOUSE.latch_key].func_Ldrag2() end
     if MOUSE.latch_key and MOUSE.hasAltkeys and MOUSE.latch_key_edges&1==1 and MOUSE.LMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_LTEdrag then OBJ[MOUSE.latch_key].func_LTEdrag() end
     if MOUSE.latch_key and MOUSE.hasAltkeys and MOUSE.latch_key_edges&2==2 and MOUSE.LMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_LBEdrag then OBJ[MOUSE.latch_key].func_LBEdrag() end
     if MOUSE.latch_key and MOUSE.hasAltkeys and MOUSE.latch_key_edges&4==4 and MOUSE.LMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_LLEdrag then OBJ[MOUSE.latch_key].func_LLEdrag() end
