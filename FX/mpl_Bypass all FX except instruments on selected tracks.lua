@@ -1,10 +1,10 @@
 -- @description Toggle bypass all FX except instruments on selected tracks
--- @version 1.5
+-- @version 1.51
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694 
 -- @changelog
 -- @changelog
---    # don`t bypass plugins standing before instrument (ex. MIDI tools)
+--    # add exception for reaticulate
 
   local scr_title = "Toggle Bypass all FX except instruments on selected tracks"
   ---------------------------------------------------------
@@ -50,7 +50,8 @@
       local tr = GetSelectedTrack(0,i-1)
       local GUID = GetTrackGUID(tr)
       for fx_id = 1, TrackFX_GetCount(tr) do
-        if not IsInstrument(tr, fx_id-1) then
+        local retval, buf = reaper.TrackFX_GetFXName( tr, fx_id-1, '' )
+        if not IsInstrument(tr, fx_id-1) and not buf:match('Reaticulate') then
           -- check t
           if FX_state == true then 
             if not (t and t[GUID] and t[GUID][fx_id]) then
@@ -86,11 +87,10 @@
     end
   end
   ---------------------------------------------------------------------
-    function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
-  
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Install it via Reapack (Action: browse packages)', '', 0) end   end
   --------------------------------------------------------------------  
-    local ret = CheckFunctions('VF_CalibrateFont')  
-    if ret then
-      local ret2 = VF_CheckReaperVrs(5.95,true)  
-      if ret2 then main() end
-    end
+  local ret = CheckFunctions('VF2_LoadVFv2') 
+  if ret then 
+    local ret2 = VF_CheckReaperVrs(5.95,true)    
+    if ret2 then main() end
+  end
