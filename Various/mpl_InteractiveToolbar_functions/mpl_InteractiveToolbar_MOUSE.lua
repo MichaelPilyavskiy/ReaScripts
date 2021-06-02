@@ -243,6 +243,7 @@
     mouse.LB_gate = gfx.mouse_cap&1 == 1
     mouse.RB_gate = gfx.mouse_cap&2 == 2
     mouse.wheel = gfx.mouse_wheel
+    mouse.hwheel = gfx.mouse_hwheel 
     mouse.LB_trig = not mouse.LB_gate_last and mouse.LB_gate
     mouse.RB_trig = not mouse.RB_gate_last and mouse.RB_gate
     mouse.LB_release = mouse.LB_gate_last and not mouse.LB_gate
@@ -275,13 +276,21 @@
           mouse.wheel_trig = 0
         end
       end
-    
+
+    -- wheel
+      if mouse.hwheel_last then 
+        if mouse.hwheel_last ~= mouse.hwheel then 
+          if mouse.hwheel_last - mouse.hwheel < 0 then mouse.hwheel_trig = 1 else mouse.hwheel_trig = -1 end
+         else
+          mouse.hwheel_trig = 0
+        end
+      end
     
     -- loop buttons --------------
       if obj.b then
         for key in pairs(obj.b) do
           if obj.b[key] and not obj.b[key].ignore_mouse then
-            if MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_wheel and mouse.wheel_trig ~= 0 then obj.b[key].func_wheel() end
+            if MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func_wheel and (mouse.wheel_trig ~= 0 or mouse.hwheel_trig ~= 0) then obj.b[key].func_wheel() end
             if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) then mouse.context_latch = key end
             
             if mouse.LB_trig and MOUSE_Match(mouse, obj.b[key]) and obj.b[key].func then obj.b[key].func() end
@@ -299,6 +308,7 @@
     -- out states
       local SCC_trig2
       mouse.wheel_last = mouse.wheel
+      mouse.hwheel_last = mouse.hwheel
       mouse.LB_gate_last = mouse.LB_gate
       mouse.RB_gate_last = mouse.RB_gate
       mouse.last_x = mouse.x

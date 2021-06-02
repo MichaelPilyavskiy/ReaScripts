@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.09
+-- @version 2.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Envelope/#value: fix -inf at changing position
+--    + Support horizontal wheel
 
-    local vrs = '2.09'
+    local vrs = '2.10'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -228,10 +228,6 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
   end
 
 
-
-  ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
-
   ---------------------------------------------------------------------
   function main()ExtState_Load(conf)  
     gfx.init('MPL InteractiveToolbar',conf.wind_w, conf.wind_h,  conf.dock , conf.wind_x, conf.wind_y)
@@ -239,10 +235,12 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
     Config_ParseIni(data.conf_path, widgets)
     Run()
   end
+  ---------------------------------------------------------------------
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Install it via Reapack (Action: browse packages)', '', 0) end   end
   --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_CalibrateFont') 
-  local ret2 = VF_CheckReaperVrs(5.97,true)    
-  if ret and ret2 then 
-    reaper.gmem_attach('MPLInterToolbar')
-    main() 
+  local ret = CheckFunctions('VF2_LoadVFv2') 
+  if ret then 
+    local ret2 = VF_CheckReaperVrs(5.97,true)    
+    if ret2 then reaper.gmem_attach('MPLInterToolbar') main() end
   end
+  
