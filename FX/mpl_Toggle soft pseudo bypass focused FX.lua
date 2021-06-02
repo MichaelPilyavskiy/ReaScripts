@@ -1,9 +1,9 @@
 -- @description Toggle soft pseudo bypass focused FX
--- @version 1.0.1
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---   + Time based counter incrementation variable
+--   + (X-Raym) Time based counter incrementation variable
 
 time = 0.5 -- time in seconds
 
