@@ -244,6 +244,7 @@
     mouse.RB_gate = gfx.mouse_cap&2 == 2
     mouse.wheel = gfx.mouse_wheel
     mouse.hwheel = gfx.mouse_hwheel 
+    if mouse.hwheel ~= 0 then mouse.wheel = mouse.hwheel end
     mouse.LB_trig = not mouse.LB_gate_last and mouse.LB_gate
     mouse.RB_trig = not mouse.RB_gate_last and mouse.RB_gate
     mouse.LB_release = mouse.LB_gate_last and not mouse.LB_gate
@@ -267,24 +268,11 @@
         mouse.dx = mouse.x_latch - mouse.x 
         mouse.dy = mouse.y_latch - mouse.y 
       end
-    
-    -- wheel
-      if mouse.wheel_last then 
-        if mouse.wheel_last ~= mouse.wheel then 
-          if mouse.wheel_last - mouse.wheel < 0 then mouse.wheel_trig = 1 else mouse.wheel_trig = -1 end
-         else
-          mouse.wheel_trig = 0
-        end
-      end
+
 
     -- wheel
-      if mouse.hwheel_last then 
-        if mouse.hwheel_last ~= mouse.hwheel then 
-          if mouse.hwheel_last - mouse.hwheel < 0 then mouse.hwheel_trig = 1 else mouse.hwheel_trig = -1 end
-         else
-          mouse.hwheel_trig = 0
-        end
-      end
+      mouse.wheel_trig = 0
+      if mouse.wheel ~=0 then  if mouse.wheel > 0 then mouse.wheel_trig = 1 else mouse.wheel_trig = -1 end end
     
     -- loop buttons --------------
       if obj.b then
@@ -307,8 +295,8 @@
     
     -- out states
       local SCC_trig2
-      mouse.wheel_last = mouse.wheel
-      mouse.hwheel_last = mouse.hwheel
+      gfx.mouse_wheel = 0
+      gfx.mouse_hwheel = 0
       mouse.LB_gate_last = mouse.LB_gate
       mouse.RB_gate_last = mouse.RB_gate
       mouse.last_x = mouse.x
