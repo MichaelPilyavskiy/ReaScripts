@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="46e6a4fdb8d78773c75cb25ca653028d2d85708a" name="MPL Scripts">
+<index version="1" commit="eea4e2d63be17fbcbe062144f694fd050ccb8cce" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1550,6 +1550,14 @@
       <version name="1.0" author="MPL" time="2019-11-17T12:25:23Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/49f45a6cedcd7d16722c79f596c3dd6405edda17/FX/mpl_Toggle%20soft%20pseudo%20bypass%20focused%20FX.lua</source>
+      </version>
+      <version name="1.0.1" author="MPL" time="2021-05-26T23:20:54Z">
+        <changelog><![CDATA[+ Time based counter incrementation variable]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d071c8543998ec3dfdc024104a0de1133804e541/FX/mpl_Toggle%20soft%20pseudo%20bypass%20focused%20FX.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2021-06-02T18:11:02Z">
+        <changelog><![CDATA[+ (X-Raym) Time based counter incrementation variable]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5cdadfde5daf3e09404a60658ea0981c78560749/FX/mpl_Toggle%20soft%20pseudo%20bypass%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle solo focused FX track.lua" type="script" desc="Toggle solo focused FX track">
