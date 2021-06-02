@@ -244,7 +244,7 @@
     mouse.RB_gate = gfx.mouse_cap&2 == 2
     mouse.wheel = gfx.mouse_wheel
     mouse.hwheel = gfx.mouse_hwheel 
-    if mouse.hwheel ~= 0 then mouse.wheel = mouse.hwheel end
+    if mouse.hwheel ~= 0 then mouse.wheel = -mouse.hwheel end
     mouse.LB_trig = not mouse.LB_gate_last and mouse.LB_gate
     mouse.RB_trig = not mouse.RB_gate_last and mouse.RB_gate
     mouse.LB_release = mouse.LB_gate_last and not mouse.LB_gate
