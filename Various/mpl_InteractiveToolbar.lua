@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.12
+-- @version 2.13
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,10 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # invert horizontal wheel
+--    # optimize mouse hover over wheel related widgets
+--    # Persist/#grid fix respond to wheel
 
-    local vrs = '2.11'
+    local vrs = '2.13'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -41,12 +42,12 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-  local data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
+   data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title,
           masterdata = {ptr =  GetMasterTrack(reaper.EnumProjects(-1))}}
    
-  local mouse = {}
+   mouse = {}
   local obj = {}
   local  widgets = {    -- map types to data.obj_type_int order
               types_t ={'EmptyItem',

@@ -183,6 +183,7 @@
                         func_wheel =  function()local div
                                         if mouse.wheel_trig > 0 then div = 2 
                                           elseif mouse.wheel_trig < 0 then div = 0.5 
+                                          else return
                                         end 
                                         local lim_max = 1
                                       
