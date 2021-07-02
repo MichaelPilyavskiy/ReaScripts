@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.13
+-- @version 2.14
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,10 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # optimize mouse hover over wheel related widgets
---    # Persist/#grid fix respond to wheel
+--    + Item/#leftedge simulate drag of left edge (shift start offset + change position + change length)
 
-    local vrs = '2.13'
+    local vrs = '2.14'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -82,13 +81,13 @@
 [EmptyItem]
 order=#color #position #length
 [MIDIItem]
-order=#color #buttons#snap #position #endedge #length #offset #vol #transpose #pan #srclen #rate
+order=#color #buttons#snap #position #leftedge #endedge #length #offset #vol #transpose #pan #srclen #rate
 buttons=#lock #loop #mute 
 [AudioItem]
-order=#color #buttons#snap #position #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen #rate
+order=#color #buttons #snap #position #leftedge #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen #rate
 buttons=#lock #preservepitch #loop #mute #chanmode #srcreverse #bwfsrc #timebase 
 [MultipleItem]
-order=#color #buttons#position #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen #rate
+order=#color #buttons #position #leftedge #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen #rate
 buttons=#lock #preservepitch #chanmode #loop #srcreverse #mute   
 [Envelope]
 order=#floatfx #position #value

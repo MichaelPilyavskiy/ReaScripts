@@ -584,6 +584,7 @@ msg(
           #pan editing take pan
           #srclen editing source length (for loop source), update require rebuilding peaks
           #color set item color from system dialog or use Airon`s Color Swatch tool
+          #leftedge editing both offset and positions (simulate leftedge drag)
           #buttons
             #lock toggle lock
             #loop toggle loop source

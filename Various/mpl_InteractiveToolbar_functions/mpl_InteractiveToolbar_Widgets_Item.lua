@@ -641,8 +641,82 @@
   end    
   -------------------------------------------------------------- 
 
-
-
+  --------------------------------------------------------------
+  function Widgets_Item_leftedge(data, obj, mouse, x_offs, widgets, conf, y_offs)    -- generate position controls 
+    if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
+    obj.b.obj_leftedge = { x = x_offs,
+                        y = y_offs ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = 'LeftEdge'} 
+    obj.b.obj_leftedge_back = { x =  x_offs,
+                        y = obj.entry_h+y_offs ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt = '',
+                        ignore_mouse = true}  
+                        
+      if conf.dock_orientation == 1 then
+        obj.b.obj_leftedge.w = obj.entry_w2/2
+        obj.b.obj_leftedge_back.x= obj.entry_w2/2
+        obj.b.obj_leftedge_back.y = y_offs
+        obj.b.obj_leftedge_back.w = obj.entry_w2/2
+        obj.b.obj_leftedge_back.frame_a = obj.frame_a_head
+      end                          
+      local start_offs_str = data.it[1].start_offs_format
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(start_offs_str),
+                        table_key='leftedge_ctrl',
+                        x_offs= obj.b.obj_leftedge_back.x,  
+                        y_offs = obj.b.obj_leftedge_back.y,
+                        w_com=obj.b.obj_leftedge_back.w,--obj.entry_w2,
+                        src_val=data.it,
+                        src_val_key= 'start_offs',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_Item_Offset2,                         
+                        mouse_scale= obj.mouse_scal_time,
+                        default_val=0,
+                        onRelease_ActName = data.scr_title..': Change item properties',
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,})                              
+    return obj.entry_w2,obj.entry_h                        
+  end  
+  function Apply_Item_Offset2(data, obj, t_out_values, butkey, out_str_toparse)
+    if not out_str_toparse then    
+      for i = 1, #t_out_values do
+        local cur_offs = GetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_STARTOFFS') 
+        local pos = GetMediaItemInfo_Value( data.it[i].ptr_item, 'D_POSITION')
+        local len = GetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH')
+        SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_STARTOFFS', t_out_values[i] )
+        SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_POSITION',pos - (cur_offs - t_out_values[i]))
+        SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH',len + (cur_offs - t_out_values[i]))
+        UpdateItemInProject( data.it[i].ptr_item )                                
+      end
+      local new_str = format_timestr_len( t_out_values[1], '',1, data.ruleroverride ) 
+      local new_str_t = MPL_GetTableOfCtrlValues(new_str)
+      for i = 1, #new_str_t do
+        obj.b[butkey..i].txt = new_str_t[i]
+      end
+     else
+      -- nudge values from first item
+      local out_val = parse_timestr_len(out_str_toparse,1,data.ruleroverride) 
+      local diff = data.it[1].start_offs - out_val
+      for i = 1, #t_out_values do
+        local cur_offs = GetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_STARTOFFS') 
+        local pos = GetMediaItemInfo_Value( data.it[i].ptr_item, 'D_POSITION')
+        local len = GetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH')
+        SetMediaItemTakeInfo_Value( data.it[i].ptr_take, 'D_STARTOFFS', t_out_values[i] - diff )
+        SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_POSITION',pos - (cur_offs - (t_out_values[i]- diff)))
+        SetMediaItemInfo_Value( data.it[i].ptr_item, 'D_LENGTH',len + (cur_offs - (t_out_values[i]- diff)))
+        UpdateItemInProject( data.it[i].ptr_item )                                
+      end
+      redraw = 2   
+    end
+  end    
+  -------------------------------------------------------------- 
 
 
 
