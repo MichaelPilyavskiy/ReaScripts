@@ -798,8 +798,7 @@
           data.src[i].out_val = val
         end
       end
-    end  
-    
+    end   
   end
   --------------------------------------------------- 
   function Data_ApplyStrategy_actionCalculateAlign(conf, obj, data, refresh, mouse, strategy) 
@@ -807,9 +806,7 @@
     
     -- filter ignore search stuff
     local temp_ref = CopyTable(data.ref)    
-      for i = #temp_ref, 1, -1 do
-        if temp_ref[i].ignore_search == true then  table.remove(temp_ref, i) end
-      end    
+    for i = #temp_ref, 1, -1 do if temp_ref[i].ignore_search == true then  table.remove(temp_ref, i) end end    
     data.ref = temp_ref
     
     --local temp_ref
@@ -842,7 +839,7 @@
           local out_pos,out_val -- = data.src[i].pos, data.src[i].val
           if strategy.act_action==1 then
           
-          -- static
+            -- static
             if (strategy.ref_pattern&1~=1 and  strategy.ref_grid&1~=1 ) then 
               local refID = Data_brutforce_RefID(conf, data, strategy, data.src[i].pos)
               if refID and data.ref[refID] then 
@@ -882,7 +879,7 @@
               if temp_ref[validate_order_id] then
                 out_pos = temp_ref[validate_order_id].pos
                 out_val = temp_ref[validate_order_id].val  
-validate_order_id =                 validate_order_id + 1
+                validate_order_id = validate_order_id + 1
                else
                 out_pos = data.src[i].pos
                 out_val = data.src[i].val                              
@@ -890,25 +887,10 @@ validate_order_id =                 validate_order_id + 1
             end
           end  
           
-          -- app values
-          data.src[i].out_val = out_val
-          data.src[i].out_pos = out_pos
-          if strategy.act_action==1 then
-            if strategy.exe_val3 > 0 and math.abs(out_pos - data.src[i].pos) >= strategy.exe_val3 then data.src[i].out_pos = data.src[i].pos end            
-            if strategy.exe_val4 > 0 and math.abs(out_pos - data.src[i].pos) <= strategy.exe_val4 then data.src[i].out_pos = data.src[i].pos end            
-          end
-          
-          if strategy.act_action==1 or strategy.act_action==3 then
-            local offs = (math.floor((strategy.exe_val5*2-1)*1000)/1000)
-            if out_pos then
-              data.src[i].out_pos = out_pos + offs
-            end
-          end
-          
+          VF2_MPLQT_Data_ApplyValues(conf, obj, data, refresh, mouse, strategy, i, out_val, out_pos) 
         end
       end
-      
-      
+         
       
       
     -- ordered align + pattern/grid

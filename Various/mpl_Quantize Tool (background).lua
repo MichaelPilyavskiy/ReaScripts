@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.26
+-- @version 2.27
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -27,10 +27,11 @@
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 -- @changelog
---    # Anchor points: filter unnesesary points
+--    # Requires VariousFunctions v2
+--    + improve logic around various combinations of include/exclude/offset knobs
 
      
-  local vrs = 'v2.26'
+  local vrs = 'v2.27'
   --NOT gfx NOT reaper
   
 
@@ -44,7 +45,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-   data = {}
+  local data = {}
   local obj = {}
   local strategy = {}
   
@@ -298,7 +299,11 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
           run()  
         end
   end
---------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_CalibrateFont') 
-  local ret2 = VF_CheckReaperVrs(5.95,true)    
-  if ret and ret2 then main() end
+  ---------------------------------------------------------------------
+  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Install it via Reapack (Action: browse packages)', '', 0) end   end
+  --------------------------------------------------------------------  
+  local ret = CheckFunctions('VF2_LoadVFv2') 
+  if ret then 
+    local ret2 = VF_CheckReaperVrs(5.95,true)    
+    if ret2 then main() end
+  end
