@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="72664a110f93f27d413f779d8f812c970f0a7e4a" name="MPL Scripts">
+<index version="1" commit="08c1b34a5bc7b024946090bc369e1bee4ff4397c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -463,6 +463,14 @@
         <source file="mpl_Various_functions_v2.bin">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7453fc257544c830ecc8ce539e3c928e9d37204f/Functions/mpl_Various_functions_v2.bin</source>
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7453fc257544c830ecc8ce539e3c928e9d37204f/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7453fc257544c830ecc8ce539e3c928e9d37204f/Functions/mpl_Various_functions_MOUSE.lua</source>
+      </version>
+      <version name="2.06" author="MPL" time="2021-07-09T05:25:47Z">
+        <changelog><![CDATA[+ VF2_ShiftRegions]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c1b34a5bc7b024946090bc369e1bee4ff4397c/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c1b34a5bc7b024946090bc369e1bee4ff4397c/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v2.bin">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c1b34a5bc7b024946090bc369e1bee4ff4397c/Functions/mpl_Various_functions_v2.bin</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c1b34a5bc7b024946090bc369e1bee4ff4397c/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c1b34a5bc7b024946090bc369e1bee4ff4397c/Functions/mpl_Various_functions_MOUSE.lua</source>
       </version>
     </reapack>
   </category>
@@ -4760,6 +4768,21 @@ add control for timefall showing last note]]></changelog>
         <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55207ea96e42f09459322b43bf166e1c6992e4ad/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
         <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55207ea96e42f09459322b43bf166e1c6992e4ad/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
         <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55207ea96e42f09459322b43bf166e1c6992e4ad/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Shift regions and markers to edit cursor.lua" type="script" desc="Shift regions and markers to edit cursor">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Shift all project regions and markers. Edit cursor is going to be a start of the first region. All others shifted respectively.\par}
+}
+]]></description>
+      </metadata>
+      <version name="1.0" author="MPL" time="2021-07-09T05:25:47Z">
+        <changelog><![CDATA[init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c1b34a5bc7b024946090bc369e1bee4ff4397c/Regions/mpl_Shift%20regions%20and%20markers%20to%20edit%20cursor.lua</source>
       </version>
     </reapack>
   </category>
