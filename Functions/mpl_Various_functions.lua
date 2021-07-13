@@ -2,14 +2,14 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with scripts written by MPL.
--- @version 2.06
+-- @version 2.07
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
 --    mpl_Various_functions_GUI.lua
 --    mpl_Various_functions_MOUSE.lua
 -- @changelog
---    + VF2_ShiftRegions
+--    # VF_SetTimeShiftPitchChange: modify all item takes
   
     --------------------------------------------------
     function VF_LoadLibraries()

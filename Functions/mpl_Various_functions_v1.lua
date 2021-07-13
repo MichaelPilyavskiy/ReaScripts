@@ -708,23 +708,35 @@
     return  BR_GetMouseCursorContext_Envelope()
   end  
   --------------------------------------------------
-function VF_SetTimeShiftPitchChange(item, get_only, pshift_mode0, timestr_mode0, stretchfadesz)
-  if not item then return end
-  local retval, str = reaper.GetItemStateChunk( item, '', false ) 
-  
-  local playratechunk = str:match('(PLAYRATE .-\n)') 
-  local t = {} for val in playratechunk:gmatch('[^%s]+') do if  tonumber(val ) then  t[#t+1] = tonumber(val )end end
-  if get_only==true then return t end
-  
-  if pshift_mode0 and not timestr_mode0 and not stretchfadesz then 
-    SetMediaItemTakeInfo_Value(  reaper.GetActiveTake( item ), 'I_PITCHMODE',pshift_mode0  )
-    return
+  function VF_SetTimeShiftPitchChange(item, get_only, pshift_mode0, timestr_mode0, stretchfadesz)
+    -- 13.07.2021 - mod all takes
+    if not item then return end
+    local retval, str = reaper.GetItemStateChunk( item, '', false ) 
+    
+    -- get first take table of values
+    local playratechunk = str:match('(PLAYRATE .-\n)') 
+    local t = {} for val in playratechunk:gmatch('[^%s]+') do if  tonumber(val ) then  t[#t+1] = tonumber(val )end end
+    if get_only==true then return t end 
+     
+    if pshift_mode0 and not timestr_mode0 and not stretchfadesz then 
+      for takeidx = 1,  CountTakes( item ) do
+        local take =  GetTake( item, takeidx-1 )
+        SetMediaItemTakeInfo_Value( take, 'I_PITCHMODE',pshift_mode0  )
+      end
+      return
+    end
+    
+    -- mod all takes
+    local str_mod = str
+    for playratechunk in str:gmatch('(PLAYRATE .-\n)') do
+      local t = {} for val in playratechunk:gmatch('[^%s]+') do if  tonumber(val ) then  t[#t+1] = tonumber(val )end end
+      if pshift_mode0 then t[4]=pshift_mode0 end      
+      if timestr_mode0 then t[5]=timestr_mode0 end
+      if stretchfadesz then t[6]=stretchfadesz end
+      local playratechunk_out = 'PLAYRATE '..table.concat(t, ' ')..'\n'
+      str_mod =str_mod:gsub(playratechunk:gsub("[%.%+%-]", function(c) return "%" .. c end), playratechunk_out)
+      str_mod = str_mod:gsub('PLAYRATE .-\n', playratechunk_out)
+    end
+    --msg(str_mod)
+    reaper.SetItemStateChunk( item, str_mod, false )
   end
-  if pshift_mode0 then t[4]=pshift_mode0 end      
-  if timestr_mode0 then t[5]=timestr_mode0 end
-  if stretchfadesz then t[6]=stretchfadesz end
-  local playratechunk_out = 'PLAYRATE '..table.concat(t, ' ')..'\n'
-  str =str:gsub(playratechunk:gsub("[%.%+%-]", function(c) return "%" .. c end), playratechunk_out)
-  --msg(str)
-  reaper.SetItemStateChunk( item, str, false )
-end
