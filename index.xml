@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="becae82b16926015fb0a579294f70ac787e2b4e2" name="MPL Scripts">
+<index version="1" commit="057352f496ce53a4e5974004c98fee95b1426dc5" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -471,6 +471,14 @@
         <source file="mpl_Various_functions_v2.bin">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c1b34a5bc7b024946090bc369e1bee4ff4397c/Functions/mpl_Various_functions_v2.bin</source>
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c1b34a5bc7b024946090bc369e1bee4ff4397c/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c1b34a5bc7b024946090bc369e1bee4ff4397c/Functions/mpl_Various_functions_MOUSE.lua</source>
+      </version>
+      <version name="2.07" author="MPL" time="2021-07-13T03:41:24Z">
+        <changelog><![CDATA[# VF_SetTimeShiftPitchChange: modify all item takes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/057352f496ce53a4e5974004c98fee95b1426dc5/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/057352f496ce53a4e5974004c98fee95b1426dc5/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v2.bin">https://github.com/MichaelPilyavskiy/ReaScripts/raw/057352f496ce53a4e5974004c98fee95b1426dc5/Functions/mpl_Various_functions_v2.bin</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/057352f496ce53a4e5974004c98fee95b1426dc5/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/057352f496ce53a4e5974004c98fee95b1426dc5/Functions/mpl_Various_functions_MOUSE.lua</source>
       </version>
     </reapack>
   </category>
