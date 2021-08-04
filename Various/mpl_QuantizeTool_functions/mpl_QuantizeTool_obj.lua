@@ -5,7 +5,7 @@
   
   
   ---------------------------------------------------
-  function OBJ_init(obj)  
+  function OBJ_init(obj,conf)  
     -- globals
     obj.reapervrs = tonumber(GetAppVersion():match('[%d%.]+')) 
     obj.offs = 5 
@@ -16,10 +16,10 @@
      
     -- font
     obj.GUI_font = 'Calibri'
-    obj.GUI_fontsz = VF_CalibrateFont(21)
-    obj.GUI_fontsz2 = VF_CalibrateFont( 19)
-    obj.GUI_fontsz3 = VF_CalibrateFont( 15)
-    obj.GUI_fontsz_tooltip = VF_CalibrateFont( 13)
+    obj.GUI_fontsz = VF_CalibrateFont(21*conf.font_scaling, true)
+    obj.GUI_fontsz2 = VF_CalibrateFont( 19*conf.font_scaling, true)
+    obj.GUI_fontsz3 = VF_CalibrateFont( 15*conf.font_scaling, true)
+    obj.GUI_fontsz_tooltip = VF_CalibrateFont( 13*conf.font_scaling, true)
     
     -- colors    
     obj.GUIcol = { grey =    {0.5, 0.5,  0.5 },
@@ -37,26 +37,26 @@
   function OBJ_Update(conf, obj, data, refresh, mouse, strategy) 
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
     
-    local min_w = 300
-    local min_h = 200
+    local min_w = 300*conf.GUI_scaling
+    local min_h = 200*conf.GUI_scaling
     local reduced_view = gfx.h  <= min_h
     gfx.w  = math.max(min_w,gfx.w)
     gfx.h  = math.max(min_h,gfx.h)
     
-    obj.menu_w = 15
-    obj.tab_h = 20
-    obj.tab_w = math.ceil(gfx.w/3)
+    obj.menu_w = 15*conf.GUI_scaling
+    obj.tab_h = 20*conf.GUI_scaling
+    obj.tab_w = math.ceil(gfx.w/3)--*conf.GUI_scaling
     obj.slider_tab_h = math.floor(obj.tab_h*2)
     obj.slider_tabinfo_h = math.floor(obj.tab_h)
-    obj.strategy_w = gfx.w * 0.85
+    obj.strategy_w = gfx.w * 0.85--*conf.GUI_scaling
     obj.strategy_h = gfx.h-obj.tab_h*2-obj.offs*2-obj.slider_tab_h
-    obj.strategy_itemh = 14
-    obj.strat_x_ind = 10
-    obj.strat_y_ind = 20
-    obj.knob_w = 40
+    obj.strategy_itemh = 14*conf.GUI_scaling
+    obj.strat_x_ind = 10*conf.GUI_scaling
+    obj.strat_y_ind = 20*conf.GUI_scaling
+    obj.knob_w = 40*conf.GUI_scaling
     obj.knob_h = obj.slider_tab_h-1
-    obj.exe_but_w = 20
-    obj.grid_area = 10
+    obj.exe_but_w = 20*conf.GUI_scaling
+    obj.grid_area = 10*conf.GUI_scaling
     
     
     if not reduced_view then 
@@ -74,9 +74,7 @@
     Obj_MenuMain  (conf, obj, data, refresh, mouse, strategy)
     Obj_TabExecute(conf, obj, data, refresh, mouse, strategy)
     
-    for key in pairs(obj) do if type(obj[key]) == 'table' then 
-      obj[key].context = key 
-    end end    
+    for key in pairs(obj) do if type(obj[key]) == 'table' then obj[key].context = key  end end    
   end
   -----------------------------------------------
   function Obj_TabRef(conf, obj, data, refresh, mouse, strategy)
@@ -1403,7 +1401,24 @@
                         }
     Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, act_strtUI, 'act_strtUI_it', 3, strategy )  
   end  
-
+  -----------------------------------------------
+  function Obj_TabExecute_Controls_Knob1(conf, obj, data, refresh, mouse, strategy) 
+    obj.exe_val1.val = strategy.exe_val1
+    if not obj.knob_txt then obj.knob_txt = {} end
+    if strategy.act_alignflag&1==1 then 
+      obj.exe_val2.val = obj.exe_val1.val
+      strategy.exe_val2 = strategy.exe_val1
+    end
+    
+    if strategy.act_action == 1 or strategy.act_action ==3 then
+      obj.knob_txt.txt = 'Align position '..FormatPercent(strategy.exe_val1)
+     elseif strategy.act_action == 4 then
+      obj.knob_txt.txt = 'Align value '..FormatPercent(strategy.exe_val1)
+    end
+    
+    refresh.GUI_minor = true
+    Data_Execute(conf, obj, data, refresh, mouse, strategy)
+  end
   -----------------------------------------------
   function Obj_TabExecute_Controls(conf, obj, data, refresh, mouse, strategy) 
     local knob_y_shift = 7
@@ -1616,21 +1631,7 @@
                         func_LD2 = function()
                                       if mouse.context_latch_val then 
                                         strategy.exe_val1 = lim(mouse.context_latch_val + mouse.dx*0.001 - mouse.dy*0.01)
-                                        obj.exe_val1.val = strategy.exe_val1
-                                        
-                                        if strategy.act_alignflag&1==1 then 
-                                          obj.exe_val2.val = obj.exe_val1.val
-                                          strategy.exe_val2 = strategy.exe_val1
-                                        end
-                                        
-                                        if strategy.act_action == 1 or strategy.act_action ==3 then
-                                          obj.knob_txt.txt = 'Align position '..FormatPercent(strategy.exe_val1)
-                                         elseif strategy.act_action == 4 then
-                                          obj.knob_txt.txt = 'Align value '..FormatPercent(strategy.exe_val1)
-                                        end
-                                        
-                                        refresh.GUI_minor = true
-                                        Data_Execute(conf, obj, data, refresh, mouse, strategy)
+                                        Obj_TabExecute_Controls_Knob1(conf, obj, data, refresh, mouse, strategy) 
                                       end
                                     end  ,
                         func_mouseover =  function()
@@ -1664,6 +1665,7 @@
                                   end                                      
                         }
       knob_shift = knob_shift+obj.knob_w
+      
     end
      -----------------------------      
     if strategy.act_action == 1 or strategy.act_action ==3 or strategy.act_action ==4 then 
@@ -1962,7 +1964,7 @@
   -----------------------------------------------
   function Obj_TabExecute(conf, obj, data, refresh, mouse, strategy)
   
-    local preset_w = 50
+    local preset_w = 50*conf.GUI_scaling
     obj.TabExe_prestitle = { clear = true,
                       --disable_blitback = true,
                       x =  0,
@@ -2178,7 +2180,7 @@
       { str = 'Contact: MPL SoundCloud|',
         func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
         
-      { str = '#Options'},    
+      { str = '#Strategy options'},    
       { str = 'Apply preset (Get AnchorPoints/Target) on preset change',
         func = function() 
                 conf.app_on_strategy_change = math.abs(1-conf.app_on_strategy_change) 
@@ -2193,8 +2195,34 @@
         func = function() 
                 conf.app_on_groove_change = math.abs(1-conf.app_on_groove_change) 
               end,
-        state = conf.app_on_groove_change == 1},           
+        state = conf.app_on_groove_change == 1},  
         
+      { str = '#GUI Options'},  
+        { str = 'Scaling|',
+          func = function() 
+                  local retval, retvals_csv = reaper.GetUserInputs( 'Quantize tool font scaling', 1, 'scling 50%-300%', math.floor(conf.font_scaling*100) )
+                  if retval then 
+                    local int_scling_perc = retvals_csv:match('%d+')
+                    if int_scling_perc and tonumber(int_scling_perc) then 
+                      int_scling_perc = tonumber(int_scling_perc)
+                      if int_scling_perc >=50 or int_scling_perc <=300 then
+                        conf.font_scaling = int_scling_perc / 100
+                        conf.GUI_scaling = conf.font_scaling
+                        refresh.conf = true 
+                        refresh.GUI = true 
+                        
+                        atexit()
+                        gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
+                                  conf.wind_w, 
+                                  conf.wind_h, 
+                                  conf.dock, conf.wind_x, conf.wind_y)
+                        OBJ_init(obj,conf)
+                        
+                      end
+                    end
+                  end
+                end},      
+          
         
         
                    

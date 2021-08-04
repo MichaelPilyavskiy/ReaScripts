@@ -378,7 +378,13 @@
       local vel = msg1:byte(3) 
       if not vel then vel = 120 end
       
-      local ignore_search = true      
+      local ignore_search = true 
+      
+      if isNoteOn==true and vel == 0 then
+        isNoteOn = false
+        isNoteOff = true
+        msg1 = string.pack("i4Bi4BBB", offset, flags, 3,  0x80| (chan-1), pitch, vel )
+      end
       --[[
       if table_name == 'src' and isNoteOn then ignore_search=false end
       --if strategy.ref_midi_msgflag&1==1  and isNoteOn then ignore_search = false end

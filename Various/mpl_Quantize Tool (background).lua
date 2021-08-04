@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.27
+-- @version 2.30
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -26,12 +26,14 @@
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to 127 steps (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
+--    [main] mpl_QuantizeTool change knob1 (MIDI, OSC, mousewheel).lua
 -- @changelog
---    # Requires VariousFunctions v2
---    + improve logic around various combinations of include/exclude/offset knobs
+--    # Treat NoteOn with velocity 0 as NoteOff
+--    + Allow to change GUI / font scaling 50%-300%
+--    + Support setting knob1 via MIDI, OSC and mousewheel
 
      
-  local vrs = 'v2.27'
+  local vrs = 'v2.30'
   --NOT gfx NOT reaper
   
 
@@ -144,6 +146,9 @@
             app_on_groove_change = 0,
             iterationlim = 30000, -- deductive brutforce
             
+            font_scaling = 1,
+            GUI_scaling = 1,
+            
             }
     return t
   end  
@@ -159,22 +164,33 @@
       ExtState_Save(conf)
       refresh.conf = nil 
     end
-
-    if refresh.GUI == true or refresh.GUI_onStart == true then            OBJ_Update              (conf, obj, data, refresh, mouse,strategy) end  
+    
+    ExternalGMEM(conf, obj, data, refresh, mouse, strategy) 
+    
+    if refresh.GUI == true or refresh.GUI_onStart == true then OBJ_Update (conf, obj, data, refresh, mouse,strategy) end  
     if refresh.GUI_minor == true then refresh.GUI = true end
-    GUI_draw               (conf, obj, data, refresh, mouse, strategy)    
+    GUI_draw (conf, obj, data, refresh, mouse, strategy)    
                                                
  
     ShortCuts(conf, obj, data, refresh, mouse)
-    if mouse.char >= 0 and mouse.char ~= 27 
-      then defer(run) else atexit(gfx.quit) end
+    if mouse.char >= 0 and mouse.char ~= 27 then defer(run) else atexit(gfx.quit) end
   end
-    
-  
+---------------------------------------------------------------------    
+  function ExternalGMEM(conf, obj, data, refresh, mouse, strategy) 
+    if reaper.gmem_read(0) == 1 then -- knob1 
+      -- #0 state
+      -- #1 value
+      strategy.exe_val1 = lim(reaper.gmem_read(1))
+      Obj_TabExecute_Controls_Knob1(conf, obj, data, refresh, mouse, strategy) 
+      UpdateArrange()
+      SaveStrategy(conf, strategy, 1, true) 
+      --msg(reaper.gmem_read(1))
+      reaper.gmem_write(0,0)
+    end
+  end
   
 ---------------------------------------------------------------------
   function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
-
 --------------------------------------------------------------------
   function LoadStrategy(conf, strategy, force_default)
     obj.is_strategy_dirty = false
@@ -294,7 +310,7 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
                     conf.wind_w, 
                     conf.wind_h, 
                     conf.dock, conf.wind_x, conf.wind_y)
-          OBJ_init(obj)
+          OBJ_init(obj,conf)
           OBJ_Update(conf, obj, data, refresh, mouse,strategy) 
           run()  
         end
@@ -305,5 +321,8 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
   local ret = CheckFunctions('VF2_LoadVFv2') 
   if ret then 
     local ret2 = VF_CheckReaperVrs(5.95,true)    
-    if ret2 then main() end
+    if ret2 then 
+      gmem_attach('MPLQT' )
+      main() 
+    end
   end

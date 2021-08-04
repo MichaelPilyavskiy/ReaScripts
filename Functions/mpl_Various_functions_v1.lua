@@ -53,14 +53,20 @@
     end    
   end
   ---------------------------------------------------
-  function VF_CalibrateFont(sz) -- https://forum.cockos.com/showpost.php?p=2066576&postcount=17
+  function VF_CalibrateFont(sz, rawsz) -- https://forum.cockos.com/showpost.php?p=2066576&postcount=17
+    --  rawsz starting from 2.08 used for new script to allow use raw sz values rather than table hardcoded values
    local t = { [13]=80,
                 [15]=90,
                 [19]=110,
                 [21]=150} -- windows measured
     gfx.setfont(1, 'Calibri', sz)    
     local str_width, str_height = gfx.measurestr("MMMMMMMMMM")
-    local font_factor = t[sz]/str_width
+    local font_factor
+    if rawsz then 
+      font_factor = sz*6.5 / str_width 
+     else
+      font_factor = t[sz]/str_width 
+    end
     return math.floor(sz*font_factor)
   end 
   ---------------------------------------------------
