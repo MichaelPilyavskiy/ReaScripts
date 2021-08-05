@@ -11,18 +11,18 @@
     obj.offs = 5 
     obj.grad_sz = 200 
     obj.scroll_val = 0
-    obj.get_w = 60
+    obj.get_w = 60*conf.GUI_scaling
      
     -- font
     obj.GUI_font = 'Calibri'
-    obj.GUI_fontsz = VF_CalibrateFont(21)
-    obj.GUI_fontsz2 = VF_CalibrateFont( 19)
-    obj.GUI_fontsz3 = VF_CalibrateFont( 15)
-    obj.GUI_fontsz_tooltip = VF_CalibrateFont( 13)
+    obj.GUI_fontsz = VF_CalibrateFont(21*conf.font_scaling, true)
+    obj.GUI_fontsz2 = VF_CalibrateFont( 19*conf.font_scaling, true)
+    obj.GUI_fontsz3 = VF_CalibrateFont( 16*conf.font_scaling, true)
+    obj.GUI_fontsz_tooltip = VF_CalibrateFont( 13*conf.font_scaling, true)
     
-    obj.strat_x_ind = 7
-    obj.strategy_itemh = 13
-    obj.but_aback = 0.4
+    obj.strat_x_ind = 7*conf.GUI_scaling
+    obj.strategy_itemh = 13*conf.GUI_scaling
+    obj.but_aback = 0.4*conf.GUI_scaling
     -- colors    
     obj.GUIcol = { grey =    {0.5, 0.5,  0.5 },
                    white =   {1,   1,    1   },
@@ -39,19 +39,19 @@
   function OBJ_Update(conf, obj, data, refresh, mouse, strategy) 
     for key in pairs(obj) do if type(obj[key]) == 'table' and obj[key].clear then obj[key] = {} end end  
     
-    local min_w = 600
-    local min_h = 200
+    local min_w = 600*conf.GUI_scaling
+    local min_h = 200*conf.GUI_scaling
     local reduced_view = gfx.h  <= min_h
     gfx.w  = math.max(min_w,gfx.w)
     gfx.h  = math.max(min_h,gfx.h)
     
-    obj.menu_w = 120
-    obj.menu_h = 35
-    obj.bottom_line_h = 30
-    obj.scroll_w = 20
+    obj.menu_w = 120*conf.GUI_scaling
+    obj.menu_h = 35*conf.GUI_scaling
+    obj.bottom_line_h = 30*conf.GUI_scaling
+    obj.scroll_w = 20*conf.GUI_scaling
     obj.trlistw = math.floor((gfx.w - obj.scroll_w - obj.get_w)*0.7)
     obj.tr_listh = gfx.h-obj.menu_h-obj.bottom_line_h
-    obj.tr_listxindend = 12
+    obj.tr_listxindend = 12*conf.GUI_scaling
     obj.botline_h = gfx.h - (obj.menu_h + obj.tr_listh)
     
     Obj_MenuMain  (conf, obj, data, refresh, mouse, strategy)
@@ -129,26 +129,57 @@
                                       conf.match_flags = BinaryToggle(conf.match_flags, 0)
                                     end ,
                             } ,
-                            { str = 'Case sensitive',
+                            { str = 'Case sensitive|',
                               state = conf.match_flags&2==2,
                               hidden = conf.match_flags&1==0,
                               func = function() 
                                       conf.match_flags = BinaryToggle(conf.match_flags, 1)
                                     end ,
-                            }                                                                                   
+                            },
+                            
+                            
+                            { str = '#GUI Options'},  
+                              { str = 'Scaling: '..math.floor(conf.font_scaling*100) ..'%',
+                                func = function() 
+                                        local retval, retvals_csv = reaper.GetUserInputs( 'Scaling', 1, 'scling 50%-300%', math.floor(conf.font_scaling*100) )
+                                        if retval then 
+                                          local int_scling_perc = retvals_csv:match('%d+')
+                                          if int_scling_perc and tonumber(int_scling_perc) then 
+                                            int_scling_perc = tonumber(int_scling_perc)
+                                            if int_scling_perc >=50 or int_scling_perc <=300 then
+                                              conf.font_scaling = int_scling_perc / 100
+                                              conf.GUI_scaling = conf.font_scaling
+                                              refresh.conf = true 
+                                              refresh.GUI = true 
+                                              
+                                              atexit()
+                                              gfx.init('MPL '..conf.mb_title..' '..conf.vrs,
+                                                          conf.wind_w, 
+                                                          conf.wind_h, 
+                                                          conf.dock, conf.wind_x, conf.wind_y)
+                                              OBJ_init(conf, obj, data, refresh, mouse)
+                                              
+                                            end
+                                          end
+                                        end
+                                      end},  
+                                      
+                                      ----
                             }
     )
                                   refresh.conf = true 
                                   refresh.GUI = true
                                   --refresh.GUI_onStart = true
                                   refresh.data = true
-                                end}  
+                                end,
+                                
+                                }  
   end
   
   -----------------------------------------------
   function Obj_TopLine(conf, obj, data, refresh, mouse)
     if not data.cur_project then return end
-    local but_w = math.floor(gfx.w - obj.menu_w - obj.get_w)
+    local but_w = math.floor((obj.trlistw+obj.scroll_w) - obj.menu_w - obj.get_w)--math.floor(gfx.w - obj.menu_w - obj.get_w)
     local txt = 'Destination: '..data.cur_project..'\nSource: '
     if conf.lastrppsession ~= '' then txt = txt..conf.lastrppsession else txt = txt..'Browse for RPP session...' end
     obj.deffiel = { clear = true,
@@ -168,7 +199,7 @@
                       end}
     local col0 = 'red' if data.hasRPPdata == true then col0 = 'green' end
     obj.parse = { clear = true,
-              x =gfx.w - obj.get_w-1,
+              x =obj.trlistw +obj.scroll_w- obj.get_w-1,
               y = 0,
               w = obj.get_w,
               h = obj.menu_h,
@@ -205,12 +236,12 @@
   --------------------------------------------------- 
   function Obj_Scroll(conf, obj, data, refresh, mouse)
     local pat_scroll_h = obj.trlist.h -- obj.menu_h
-    local scroll_handle_h = 50
+    local scroll_handle_h = 40*conf.GUI_scaling
         obj.scroll_pat = 
                       { clear = true,
-                        x = 0,
+                        x = 2,
                         y = obj.menu_h,
-                        w = obj.scroll_w-1,
+                        w = obj.scroll_w-2,
                         h = pat_scroll_h,
                         txt = '',
                         state = 1,
@@ -222,9 +253,9 @@
                       }
         obj.scroll_pat_handle = 
                       { clear = true,
-                        x = 0,
+                        x = 1,
                         y = obj.menu_h + obj.scroll_val * (pat_scroll_h -scroll_handle_h)+2 ,
-                        w = obj.scroll_w-1,
+                        w = obj.scroll_w-2,
                         h = scroll_handle_h-1,
                         txt = '',
                         fillback = true,
@@ -252,7 +283,7 @@
   function Obj_Tracklist(conf, obj, data, refresh, mouse, strategy)
     local tr_listx, tr_listy, tr_listw = obj.scroll_w  + 1, obj.menu_h+1, obj.trlistw-1
     -- h - obj.menu_h from  top and bottom
-    local tr_h = 20
+    local tr_h = 20*conf.GUI_scaling
     
     local r_count = 0
     for i = 1, #data.tr_chunks do
@@ -453,64 +484,12 @@
 
   ----------------------------------------------- 
   function Obj_trlistActions(conf, obj, data, refresh, mouse, strategy) 
-    local bw = math.ceil(gfx.w/4) --math.ceil((obj.menu_w + obj.get_w+obj.trlistw)/4)
+    --local bw = math.ceil(gfx.w/4)
+    local bw = (obj.trlistw +obj.scroll_w)/4
+    --math.ceil((obj.menu_w + obj.get_w+obj.trlistw)/4)
     local bw_red= 2
     local by = obj.menu_h + obj.tr_listh+2
-    
-    --[[obj.menu_trlistctrl = { clear = true,
-              x = 0,
-              y = by,
-              w = bw-bw_red,
-              h = obj.botline_h,
-              txt= 'Menu / actions >',
-              aligh_txt = 16,
-              show = true,
-              fontsz = obj.GUI_fontsz2,
-              alpha_back = obj.but_aback,
-              func =  function() 
-                        Menu(mouse,               
-                          {
-                            { str = conf.mb_title..' '..conf.vrs,
-                              hidden = true
-                            },
-                            { str = 'Donate to MPL',
-                              func = function() Open_URL('http://www.paypal.me/donate2mpl') end }  ,
-                            { str = 'Contact: Cockos Forum thread|',
-                              func = function() Open_URL('https://forum.cockos.com/showthread.php?t=233358') end  } ,                              
-                            { str = 'Contact: MPL VK',
-                              func = function() Open_URL('http://vk.com/mpl57') end  } ,     
-                            { str = 'Contact: MPL SoundCloud|',
-                              func = function() Open_URL('http://soundcloud.com/mpl57') end  } ,     
-                            { str = 'Reset filename|',
-                              func = function() 
-                                conf.lastrppsession = '' 
-                                Run_Init(conf, obj, data, refresh, mouse) 
-                                refresh.GUI = true 
-                                refresh.data = true end  } ,  
-                            { str = '#Track list actions'},                             
-                            { str = 'Match source tracks, import them to new tracks',
-                              func = function() 
-                                      Data_CollectProjectTracks(conf, obj, data, refresh, mouse)
-                                      Data_ClearDest(conf, obj, data, refresh, mouse, strategy)  
-                                      Data_MatchDest(conf, obj, data, refresh, mouse, strategy, true) 
-                                    end ,
-                            },
-                            { str = 'Mark all source tracks for import to new tracks',
-                              func = function() 
-                                      Data_ClearDest(conf, obj, data, refresh, mouse, strategy, true)  
-                                    end ,
-                            } ,
-                            { str = 'Mark selected source tracks for import to new tracks',
-                              func = function() 
-                                      for i = 1, #data.tr_chunks do if data.tr_chunks[i].selected then data.tr_chunks[i].dest = -1  end end   
-                                    end ,
-                            }                            
-                            }
-                          )
-                        refresh.GUI = true
-                        refresh.conf = true 
-                      end}  ]]
-                          
+     
     local filt = strategy.tr_filter
     if filt == '' then filt = '(empty)' end
    obj.trfilt = { clear = true,
@@ -604,7 +583,7 @@
   function Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, ref_strtUI, strategy) 
     local wstr = gfx.w - (obj.trlistw+obj.scroll_w ) -2
     local x_str = obj.trlistw +obj.scroll_w + 1
-    local y_str = obj.menu_h+1
+    local y_str = 0--obj.menu_h+1
     local name = 'str_tree'
     obj.strframe = { clear = true,
                       disable_blitback = true,
@@ -632,7 +611,8 @@
           --ignore_mouse = true
         end
         
-        if y_str + y_offs+obj.strategy_itemh > gfx.h- obj.bottom_line_h then return end
+        --if y_str + y_offs+obj.strategy_itemh > gfx.h- obj.bottom_line_h then return end
+        if y_str + y_offs+obj.strategy_itemh > gfx.h then return end
         obj[name..i] =  { clear = true,
                         x = x_offs+x_str + ref_strtUI[i].level *obj.strat_x_ind ,
                         y =y_str + y_offs,
@@ -854,19 +834,7 @@
                                       strategy.tritems = BinaryToggle(strategy.tritems, 3)
                                     end,             
                           } ,                          
-                          { name = 'Offset items by '..strategy.tritems_offset..' seconds',
-                            state = strategy.tritems_offset~=0,
-                            show = strategy.tritems&1==1,
-                            has_blit = false,
-                            level = 2,
-                            func =  function() 
-                                      if strategy.tritems_offset == 0 then 
-                                        strategy.tritems_offset =  reaper.GetCursorPosition()
-                                       else
-                                        strategy.tritems_offset = 0 
-                                      end
-                                    end,                                   
-                          } ,                     
+                   
                           { name = 'Track receives import logic',
                             state = -1,
                             show = strategy.comchunk&1==0,
@@ -946,7 +914,7 @@
                                       strategy.master_stuff = BinaryToggle(strategy.master_stuff, 1)
                                     end,             
                           } , 
-                          { name = 'Tempo/Time signature envelope',
+                          { name = 'Tempo / Time signature envelope',
                             state = strategy.master_stuff&4==4,
                             show =  true,
                             hidden = strategy.master_stuff&1==1,
@@ -995,8 +963,40 @@
                                       strategy.markers_flags = BinaryToggle(strategy.markers_flags, 3)
                                     end,             
                           } ,                                                                                                                                                          
-                                                                                                                                  
-                                                                            
+                          { name = 'Offset:'..strategy.offset..' seconds',
+                            state = -1,
+                            show = true,
+                            has_blit = false,
+                            level = 0,
+                            func =  function() strategy.offset =  reaper.GetCursorPosition() end,                                                 
+                          } ,                                                                                                                                   
+                          { name = 'Items position',
+                            state = strategy.offset_flags&1==1,
+                            show = strategy.tritems&1==1,
+                            has_blit = false,
+                            level = 1,
+                            func =  function() 
+                                      strategy.offset_flags = BinaryToggle(strategy.offset_flags, 0)
+                                    end,                                   
+                          } ,    
+                          { name = 'Tempo / Time signature envelope',
+                            state = strategy.offset_flags&2==2,
+                            show = strategy.master_stuff&4==4 or strategy.master_stuff&1==1 ,
+                            has_blit = false,
+                            level = 1,
+                            func =  function() 
+                                      strategy.offset_flags = BinaryToggle(strategy.offset_flags, 1)
+                                    end,                                   
+                          } ,     
+                          { name = 'Markers and regions',
+                            state = strategy.offset_flags&4==4,
+                            show = strategy.markers_flags>0 or strategy.master_stuff&1==1 ,
+                            has_blit = false,
+                            level = 1,
+                            func =  function() 
+                                      strategy.offset_flags = BinaryToggle(strategy.offset_flags,2)
+                                    end,                                   
+                          } ,                           
                         }
     Obj_Strategy_GenerateTable(conf, obj, data, refresh, mouse, act_strtUI, strategy )  
   end  

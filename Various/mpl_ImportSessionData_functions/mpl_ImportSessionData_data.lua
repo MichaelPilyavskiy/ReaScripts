@@ -167,6 +167,7 @@
     end
     return mult_t 
   end
+  ---------------------------------------------------
   function Data_ParseQM_String(text) --https://stackoverflow.com/questions/28664139/lua-split-string-into-words-unless-quoted
     local t = {}
     local spat, epat, buf, quoted = [=[^(['"])]=], [=[(['"])$]=]
@@ -205,8 +206,8 @@
     local tr_chunks = {}
     local t_trackstart = Data_ParseRPP_ExtractChunks(tr_chunks, t) 
     if t_trackstart then 
-      local marker_key = 'marker'
-      data[marker_key] = Data_ParseRPP_GetGlobalParam(t, t_trackstart, 'MARKER', 1)
+      data.marker = Data_ParseRPP_GetGlobalParam(t, t_trackstart, 'MARKER', 1)
+      Data_ParseRPP_ProcessMarkersRegions(data)
     end
     
     data.tr_chunks = {}    
@@ -460,22 +461,18 @@
   end
   --------------------------------------------------------------------  
   function Data_ImportMasterStuff_Markers(conf, obj, data, refresh, mouse, strategy)   
-    local marker_key = 'marker'
-    
+    local marker_key = 'marker' 
     --[[           &1 markers
                 &2 markersreplace
                 &4 regions
                 &8 regionsreplace
                        
                 ]]
-    if not 
-      (strategy.master_stuff&1 == 1 or 
-        (strategy.master_stuff&1 == 0 and 
-          (strategy.markers_flags&1 == 1 or strategy.markers_flags&4 == 4) 
-          and data[marker_key]
-        )
-      ) then return end
-      
+    local offs = 0 if strategy.offset_flags&4==4 and strategy.offset ~= 0 then offs = strategy.offset end
+    
+    if not (strategy.master_stuff&1 == 1 or  (strategy.master_stuff&1 == 0 and  ( strategy.markers_flags&1 == 1 or strategy.markers_flags&4 == 4 ))) then return end
+    if not data.markers_processed then return end
+    
     -- handle replace / aka remove old regions markers
     if (strategy.markers_flags&2 ==2 or strategy.markers_flags&8 ==8) then
       local retval, num_markers, num_regions = CountProjectMarkers( 0 )
@@ -483,55 +480,32 @@
         local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, i-1 )
         if (strategy.markers_flags&2 ==2 and isrgn ==false) or (strategy.markers_flags&8 ==8 and isrgn ==true) then DeleteProjectMarkerByIndex( 0, i-1 ) end
       end
-    end
+    end 
      
-     
-      for i = 1, #data[marker_key] do
-        local flags = data[marker_key][i][4]
-        local isrgn = flags &1==1
-        local pos = data[marker_key][i][2]
-        local rgnend = -1 if isrgn==true then rgnend =data[marker_key][i+1][2] end
-        local name = data[marker_key][i][3]
-        local color = data[marker_key][i][5]
-        --[[if strategy.markers_flags&2==2 then
-          if color~= 0 then
-            local r, g, b = ColorFromNative( color )
-            color = ColorToNative( b, g, r )|0x1000000
-          end
-        end]]
-        local IDnumber = data[marker_key][i][1] 
-        if (strategy.markers_flags&1 == 1 and isrgn==false) or 
-          (strategy.markers_flags&4 == 4 and isrgn==true) or
-          (strategy.master_stuff&1 ==1) and 
-          IDnumber
-          then 
-          if (isrgn == true and pos < rgnend and rgnend ~= -1) or (isrgn == false and rgnend == -1)  then
-
-            local markrgnidx = AddProjectMarker2( 0, 
-                                      true, 
-                                      1, 
-                                      2, 
-                                      '__reserved', 
-                                      0, 
-                                      0 )
-            SetProjectMarkerByIndex2( 0, markrgnidx, isrgn, pos, rgnend, IDnumber, name, color, 0 )
-          end
-        end
-        if is_reg == true then i = i+1 end
+    -- add markers from table
+    for i = 1, #data.markers_processed do
+      if data.markers_processed[i].is_region==false and (strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.markers_flags&1 == 1) ) then
+        local pos_sec=TimeMap2_beatsToTime( 0, data.markers_processed[i].pos )
+        local idx = AddProjectMarker( 0, false, pos_sec+offs, -1, data.markers_processed[i].name, data.markers_processed[i].id, data.markers_processed[i].col )
       end
-      
-    -- workaround to remove invisible temp marker
-    local retval, num_markers, num_regions = CountProjectMarkers( 0 )
-    for i = num_markers+num_regions, 1,-1 do 
-      local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, i-1 )
-      if name == '__reserved' then DeleteProjectMarkerByIndex( 0, i-1 ) end
+    
+    -- add regions from table
+    if data.markers_processed[i].is_region==true and (strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.markers_flags&4 == 4) ) then
+      local pos_sec=TimeMap2_beatsToTime( 0, data.markers_processed[i].pos )
+      local end_sec=TimeMap2_beatsToTime( 0, data.markers_processed[i].rgnend )
+      local idx = AddProjectMarker2( 0, true, pos_sec+offs, end_sec+offs, data.markers_processed[i].name, data.markers_processed[i].id, data.markers_processed[i].col )
     end
+      
+    end 
+    reaper.UpdateTimeline()
   end
   --------------------------------------------------------------------
   function Data_ImportMasterStuff_Tempo(conf, obj, data, refresh, mouse, strategy)  
     if not (strategy.master_stuff&1 == 1 or (strategy.master_stuff&1 == 0 and strategy.master_stuff&4 == 4)) then return end
     if not data.tempodata then return end 
     for markerindex = CountTempoTimeSigMarkers( proj ), 1, -1 do DeleteTempoTimeSigMarker( 0, markerindex-1 ) end 
+    local offs = 0
+    if strategy.offset_flags&2==2 and strategy.offset ~= 0 then offs = strategy.offset end
     for i = 1, #data.tempodata do
       local timesig_num = 0
       local timesig_denom = 0
@@ -541,7 +515,7 @@
         timesig_denom = data.tempodata[i].timesig_denom
       end
       if data.tempodata[i].lineartempochange and data.tempodata[i].lineartempochange==true then lineartempo = data.tempodata[i].lineartempochange end
-      reaper.SetTempoTimeSigMarker( 0, -1, data.tempodata[i].timepos, -1, -1, data.tempodata[i].bpm, timesig_num, timesig_denom, lineartempo )
+      reaper.SetTempoTimeSigMarker( 0, -1, data.tempodata[i].timepos + offs, -1, -1, data.tempodata[i].bpm, timesig_num, timesig_denom, lineartempo )
     end
   end
   --------------------------------------------------------------------
@@ -731,9 +705,9 @@
   
   -------------------------------------------------------------------- 
   function Data_ImportTracks_AppStr_ItOffs(strategy,it)
-    if strategy.tritems_offset ~= 0 then 
+    if strategy.offset_flags&1==1 and strategy.offset ~= 0 then 
       local it_pos = GetMediaItemInfo_Value( it, 'D_POSITION' )
-      SetMediaItemInfo_Value( it, 'D_POSITION', it_pos+strategy.tritems_offset) 
+      SetMediaItemInfo_Value( it, 'D_POSITION', it_pos+strategy.offset) 
     end
   end
   

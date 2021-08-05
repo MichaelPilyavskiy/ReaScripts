@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.24
+-- @version 1.25
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT/S1 Import Session Data feature
@@ -10,11 +10,16 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    + Require VariousFunctions v2.0
---    + Track items: allow to add offset (taken from edit cursor)
+--    + Remove track items offset entry in the strategy, add offset as sub menu + flags
+--    + Add option for setting offset for tempo envelope
+--    + Add option for setting offset for markers and regions
+--    + Allow font/GUI scaling
+--    # GUI improvements
+--    # Rebuild from scratch whole regions/markers import code
+
 
      
-  local vrs = '1.24'
+  local vrs = '1.25'
   --NOT gfx NOT reaper
   
 
@@ -35,6 +40,34 @@
   local info = debug.getinfo(1,'S');  
   local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
   obj.script_path = script_path
+  
+  ---------------------------------------------------   
+  function Data_ParseRPP_ProcessMarkersRegions(data)
+    data.markers_processed = {}
+    local reg_open
+    for i =1, #data.marker do
+      local is_region = tonumber(data.marker[i][4])&1==1
+      local pos_sec = data.marker[i][2]
+      local retval, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos_sec)
+      data.markers_processed[#data.markers_processed+1] = 
+          { id = data.marker[i][1],
+            pos = fullbeats,
+            name = data.marker[i][3],
+            is_region = is_region,
+            is_region_flags = data.marker[i][4],
+            col = data.marker[i][5],
+            val6 = data.marker[i][6],
+            val7 = data.marker[i][7],
+            GUID = data.marker[i][8], 
+          }
+      if is_region and not data.marker[i][8] then
+        local retval, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, data.marker[i][2]  )
+        data.markers_processed[#data.markers_processed-1].rgnend = fullbeats 
+        data.markers_processed[#data.markers_processed] = nil
+      end 
+    end
+    data.marker = nil
+  end
   ---------------------------------------------------   
   function Main_RefreshExternalLibs()     -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua    
     dofile(script_path .. "mpl_ImportSessionData_functions/mpl_ImportSessionData_GUI.lua")
@@ -53,6 +86,9 @@
             wind_w =  1200,
             wind_h =  300,
             dock =    0, 
+            
+            font_scaling =1,
+            GUI_scaling =1,
             
             lastrppsession = '',
             sourceimportpath = 'ISD_mport',
@@ -240,7 +276,6 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
                 &16 copy source to ISD_imported
                 &8 build any missing peaks at the end of import
                 ]]    
-        tritems_offset = 0,
         master_stuff = 0,
           --[[  &2 FX chain
                 &4 tempo/timesignature
@@ -250,7 +285,13 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
                 &2 markersreplace
                 &4 regions
                 &8 regionsreplace
-                ]]                     
+                ]]   
+        offset = 0,
+        offset_flags = 0,
+          --[[  &1 items
+                &2 tempo
+                &4 regions and markes
+                ]]
       }
     return t
   end 
