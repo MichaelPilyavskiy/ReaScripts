@@ -134,10 +134,14 @@
     local tr if conf.ignore_context&(1<<7) ~= (1<<7) then tr = GetSelectedTrack(0,0) end
     data.fsel_tr = GetSelectedTrack(0,0) 
         
-    local ME, MEtake,is_takeOK if conf.ignore_context&(1<<8) ~= (1<<8) then ME = MIDIEditor_GetActive() end
-    if ME then 
-      MEtake = MIDIEditor_GetTake( ME ) 
-      is_takeOK = ValidatePtr2( 0, MEtake, 'MediaItem_Take*' )  
+    local ME, MEtake,is_takeOK 
+    local idmiditake, miditake
+    if conf.ignore_context&(1<<8) ~= (1<<8) then 
+      ME = MIDIEditor_GetActive() 
+      if ME then 
+        MEtake = MIDIEditor_GetTake( ME ) 
+        is_takeOK = ValidatePtr2( 0, MEtake, 'MediaItem_Take*' )  
+      end
     end
     
     if env then
@@ -159,9 +163,19 @@
       goto skip_context_selector
     end
     
+    if item then
+      miditake = GetActiveTake(item ) 
+      if miditake then  ismiditake = TakeIsMIDI(miditake) end 
+    end
+    
     cur_context = 0
-    if ME and MEtake and is_takeOK then
-      DataUpdate_MIDIEditor(data, ME )
+    if (ME and MEtake and is_takeOK) or (conf.miditake_forceMEcontext == 1 and ismiditake)
+     then
+      if conf.miditake_forceMEcontext == 1 then
+        DataUpdate_MIDIEditor(data, ME, miditake )
+       else
+        DataUpdate_MIDIEditor(data, ME )
+      end
       Obj_UpdateMIDIEditor(data, obj, mouse, widgets, conf)
       cur_context = 1
      elseif env then    
@@ -169,7 +183,7 @@
       Obj_UpdateEnvelope(data, obj, mouse, widgets, conf)
       cur_context = 2 
      elseif item then 
-      local obj_type = DataUpdate_Item(data) 
+      local obj_type = DataUpdate_Item(data)
       Obj_UpdateItem(data, obj, mouse, widgets, conf)
       cur_context = 3
       if obj_type == 1 then cur_context = 5 end -- midi
@@ -523,12 +537,13 @@
     return true
   end  
   -------------------------------------------------
-  function DataUpdate_MIDIEditor(data, ME)
+  function DataUpdate_MIDIEditor(data, ME, take0)
     data.name = ''  
     data.ep={}
     data.ME_ptr = ME
     
-    local take= MIDIEditor_GetTake( ME ) 
+    local take
+    if take0 then take = take0 else take = MIDIEditor_GetTake( ME ) end
     if not take or not ValidatePtr2( 0, take, 'MediaItem_Take*' ) then return end
     data.obj_type = 'MIDI Editor'
     data.obj_type_int = 8

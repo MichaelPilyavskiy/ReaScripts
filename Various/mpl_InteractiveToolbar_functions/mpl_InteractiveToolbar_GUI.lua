@@ -967,7 +967,13 @@ msg(
                               conf.actiononchangecontext_ME = ret_val
                               ExtState_Save(conf)
                             end
-                          end} ,                                                      
+                          end} ,  
+                          
+                          
+                { str = 'Force ME context if selected take is MIDI',    
+                  state = conf.miditake_forceMEcontext==1,              
+                  func = function() conf.miditake_forceMEcontext = math.abs(1-conf.miditake_forceMEcontext)end , 
+                  },                          
                 { str = 'Ignore',    
                   state = conf.ignore_context&(1<<8) == (1<<8),              
                   func = function() Menu_IgnoreContext(conf, 8) end , 

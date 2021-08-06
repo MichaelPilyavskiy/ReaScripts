@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.14
+-- @version 2.15
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Item/#leftedge simulate drag of left edge (shift start offset + change position + change length)
+--    + Menu/Context/MIDI editor: allow always force ME context when selecting MIDI take
 
-    local vrs = '2.14'
+    local vrs = '2.15'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -130,8 +130,7 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             persist_clock_showtimesec = 0,
             scaling = 1,
             state_contrast = 0.75,
-            
-            
+             
             MM_doubleclick = 0,
             MM_rightclick = 0,
             MM_grid_rightclick = 0,
@@ -149,6 +148,8 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             master_buf = 100,
             relative_it_len = 0,
             trackvol_slider = 1,
+            miditake_forceMEcontext = 0,
+            
             
             actiononchangecontext_item = '',
             actiononchangecontext_itemM = '',
