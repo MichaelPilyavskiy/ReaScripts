@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a6e1dd9d9615b60171274f7b05d95334952e7686" name="MPL Scripts">
+<index version="1" commit="f5284315c3d155a0b9858ed2fad7c128b6155108" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -230,6 +230,15 @@
       <version name="1.01" author="MPL" time="2018-09-08T09:38:50Z">
         <changelog><![CDATA[# rename title]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25e84f72089c3534945b42a691a8a00d60b8dd58/Envelopes/mpl_Show%20existing%20envelopes%20for%20last%20touched%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Split all track envelopes at selected envelope points positions.lua" type="script" desc="Split all track envelopes at selected envelope points positions">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2021-08-06T08:02:42Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f5284315c3d155a0b9858ed2fad7c128b6155108/Envelopes/mpl_Split%20all%20track%20envelopes%20at%20selected%20envelope%20points%20positions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle bypass selected tracks envelopes (reset FX parameters).lua" type="script" desc="Toggle bypass selected tracks envelopes (reset FX parameters)">
