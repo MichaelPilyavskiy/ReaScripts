@@ -64,7 +64,7 @@
     
     if strategy.ref_positions&1 ==1 and strategy.ref_selitems&1==1 then Data_GetItems(data, strategy, 'ref', strategy.ref_selitems)  end       
     if strategy.ref_positions&1 ==1 and strategy.ref_envpoints&1==1 then Data_GetEP(data, strategy, 'ref', strategy.ref_envpoints)  end
-    if strategy.ref_positions&1 ==1 and strategy.ref_midi&1==1 then Data_GetMIDI(data, strategy, 'ref', strategy.ref_midi)  end
+    if strategy.ref_positions&1 ==1 and strategy.ref_midi&1==1 then Data_GetMIDI(conf, data, strategy, 'ref', strategy.ref_midi)  end
     if strategy.ref_positions&1 ==1 and strategy.ref_strmarkers&1==1 then Data_GetSM(data, strategy, 'ref',strategy.ref_strmarkers)  end
     if strategy.ref_positions&1 ==1 and strategy.ref_marker&1==1 then Data_GetMarkers(data, 'ref')  end
     if strategy.ref_positions&1 ==1 and strategy.ref_timemarker&1==1 then Data_GetTempoMarkers(data, 'ref')  end
@@ -131,6 +131,7 @@
       
       if strategy.ref_grid&2==2 then 
         retval, divisionIn, swingmodeIn, swingamtIn = GetSetProjectGrid( 0, false ) 
+        if swingmodeIn == 0 then swingamtIn = 0 end
        else
         divisionIn = strategy.ref_grid_val
         swingamtIn = 0
@@ -380,11 +381,12 @@
       
       local ignore_search = true 
       
-      if isNoteOn==true and vel == 0 then
+      --[[if isNoteOn==true and vel == 0 then
         isNoteOn = false
         isNoteOff = true
-        msg1 = string.pack("i4Bi4BBB", offset, flags, 3,  0x80| (chan-1), pitch, vel )
-      end
+        msg1 = string.pack("i4Bi4BBB", offset, flags, 3,  0x80| (msg1:byte(1)&0xF), pitch, 0 )
+      end]]
+      
       --[[
       if table_name == 'src' and isNoteOn then ignore_search=false end
       --if strategy.ref_midi_msgflag&1==1  and isNoteOn then ignore_search = false end
@@ -507,19 +509,21 @@
     
   end  
   --------------------------------------------------- 
-  function Data_GetMIDI(data, strategy, table_name, mode) 
+  function Data_GetMIDI(conf, data, strategy, table_name, mode) 
     
     if mode&2 == 0 then -- MIDI editor
       local ME = MIDIEditor_GetActive()
       local take = MIDIEditor_GetTake( ME ) 
       if take then 
         local item =  GetMediaItemTake_Item( take )
+        if conf.convertnoteonvel0tonoteoff == 1 then VFv2_ConvertNoteOnVel0toNoteOff(take) end
         Data_GetMIDI_perTake(data, strategy, table_name, take, item, mode)   
       end
      elseif   mode&2 == 2 then -- selected takes
       for i = 1, CountSelectedMediaItems(0) do
         local item = GetSelectedMediaItem(0,i-1)
         local take = GetActiveTake(item)
+        if conf.convertnoteonvel0tonoteoff == 1 then VFv2_ConvertNoteOnVel0toNoteOff(take) end
         Data_GetMIDI_perTake(data,strategy, table_name, take, item, mode) 
       end
     end
@@ -571,7 +575,7 @@
         local out_vel = math.max(1,math.floor(lim(out_val,0,1)*127))
         str_per_msg = str_per_msg.. string.pack("i4Bi4BBB", out_offs, t.flags, 3,  0x90| (t.chan-1), t.pitch, out_vel )
         
-        if strategy.src_midi_msgflag&4==4 and ((strategy.src_midi&2==0 and t.flags&1 == 1) or strategy.src_midi&2==2) then
+        if strategy.src_midi_msgflag&4==4 and ((strategy.src_midi&2==0 and t.flags&1 == 1) or strategy.src_midi&2==2) and t.noteoff_msg1 then
           str_per_msg = str_per_msg.. string.pack("i4Bs4",  t.note_len_PPQ,  t.flags , t.noteoff_msg1)
           ppq_cur = ppq_cur+ t.note_len_PPQ
         end
@@ -712,7 +716,7 @@
     if strategy.act_action == 1 or strategy.act_action == 3 or strategy.act_action == 4 then -- align/ordered align
       if strategy.src_positions&1 ==1 and strategy.src_selitems&1==1 then Data_GetItems(data, strategy, 'src', strategy.src_selitems) end   
       if strategy.src_positions&1 ==1 and strategy.src_envpoints&1==1 then Data_GetEP(data, strategy, 'src', strategy.src_envpoints) end   
-      if strategy.src_positions&1 ==1 and strategy.src_midi&1==1 then Data_GetMIDI(data, strategy, 'src', strategy.src_midi) end 
+      if strategy.src_positions&1 ==1 and strategy.src_midi&1==1 then Data_GetMIDI(conf, data, strategy, 'src', strategy.src_midi) end 
       if strategy.src_positions&1 ==1 and strategy.src_strmarkers&1==1 then Data_GetSM(data, strategy, 'src', strategy.src_strmarkers) end 
     end
     

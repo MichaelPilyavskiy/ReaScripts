@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.30
+-- @version 2.31
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -28,12 +28,12 @@
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 --    [main] mpl_QuantizeTool change knob1 (MIDI, OSC, mousewheel).lua
 -- @changelog
---    # Treat NoteOn with velocity 0 as NoteOff
---    + Allow to change GUI / font scaling 50%-300%
---    + Support setting knob1 via MIDI, OSC and mousewheel
+--    - Treat NoteOn with velocity 0 as NoteOff
+--    + Add option for convert NoteOn with velocity 0 as NoteOff when taking MIDI data
+--    # Obey swing mode on/off when forming Anchor points / Grid / Current grid
 
      
-  local vrs = 'v2.30'
+  local vrs = 'v2.31'
   --NOT gfx NOT reaper
   
 
@@ -47,7 +47,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-  local data = {}
+   data = {}
   local obj = {}
   local strategy = {}
   
@@ -145,6 +145,7 @@
             app_on_slider_release = 1, 
             app_on_groove_change = 0,
             iterationlim = 30000, -- deductive brutforce
+            convertnoteonvel0tonoteoff=0,
             
             font_scaling = 1,
             GUI_scaling = 1,
@@ -318,7 +319,7 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
   ---------------------------------------------------------------------
   function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Install it via Reapack (Action: browse packages)', '', 0) end   end
   --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF2_LoadVFv2') 
+  local ret = CheckFunctions('VFv2_ConvertNoteOnVel0toNoteOff') 
   if ret then 
     local ret2 = VF_CheckReaperVrs(5.95,true)    
     if ret2 then 

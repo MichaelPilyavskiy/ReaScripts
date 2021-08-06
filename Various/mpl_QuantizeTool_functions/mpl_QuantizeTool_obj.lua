@@ -2191,11 +2191,16 @@
                 conf.app_on_slider_click = math.abs(1-conf.app_on_slider_click) 
               end,
         state = conf.app_on_slider_click == 1},         
-      { str = 'Apply preset (Calculate output and Execute) on groove change|',
+      { str = 'Apply preset (Calculate output and Execute) on groove change',
         func = function() 
                 conf.app_on_groove_change = math.abs(1-conf.app_on_groove_change) 
               end,
         state = conf.app_on_groove_change == 1},  
+      { str = 'When get MIDI data, convert NoteOn with velocity 0 to NoteOff|',
+        func = function() 
+                conf.convertnoteonvel0tonoteoff = math.abs(1-conf.convertnoteonvel0tonoteoff) 
+              end,
+        state = conf.convertnoteonvel0tonoteoff == 1}, 
         
       { str = '#GUI Options'},  
         { str = 'Scaling|',

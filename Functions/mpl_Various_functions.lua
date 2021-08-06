@@ -2,14 +2,14 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with scripts written by MPL.
--- @version 2.08
+-- @version 2.09
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
 --    mpl_Various_functions_GUI.lua
 --    mpl_Various_functions_MOUSE.lua
 -- @changelog
---    # VF_CalibrateFont support raw values. Not tested on Linux/Mac.
+--    + VFv2_ConvertNoteOnVel0toNoteOff
   
     --------------------------------------------------
     function VF_LoadLibraries()
