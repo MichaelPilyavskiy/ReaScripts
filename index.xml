@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="037cbd20cff90dbb6a9d941d0f547f578c0bb22a" name="MPL Scripts">
+<index version="1" commit="06e1c31d77255471c06f89bc75826a5885f2205c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -239,6 +239,10 @@
       <version name="1.0" author="MPL" time="2021-08-06T08:02:42Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f5284315c3d155a0b9858ed2fad7c128b6155108/Envelopes/mpl_Split%20all%20track%20envelopes%20at%20selected%20envelope%20points%20positions.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2021-08-09T05:52:30Z">
+        <changelog><![CDATA[# use sorting when adding new points one-by-one]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/06e1c31d77255471c06f89bc75826a5885f2205c/Envelopes/mpl_Split%20all%20track%20envelopes%20at%20selected%20envelope%20points%20positions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle bypass selected tracks envelopes (reset FX parameters).lua" type="script" desc="Toggle bypass selected tracks envelopes (reset FX parameters)">
@@ -504,6 +508,14 @@
         <source file="mpl_Various_functions_v2.bin">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9600c2aacbbf496ac8ffd524215801d2b2424d85/Functions/mpl_Various_functions_v2.bin</source>
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9600c2aacbbf496ac8ffd524215801d2b2424d85/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9600c2aacbbf496ac8ffd524215801d2b2424d85/Functions/mpl_Various_functions_MOUSE.lua</source>
+      </version>
+      <version name="2.10" author="MPL" time="2021-08-09T05:52:30Z">
+        <changelog><![CDATA[#fix typo]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/06e1c31d77255471c06f89bc75826a5885f2205c/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/06e1c31d77255471c06f89bc75826a5885f2205c/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v2.bin">https://github.com/MichaelPilyavskiy/ReaScripts/raw/06e1c31d77255471c06f89bc75826a5885f2205c/Functions/mpl_Various_functions_v2.bin</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/06e1c31d77255471c06f89bc75826a5885f2205c/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/06e1c31d77255471c06f89bc75826a5885f2205c/Functions/mpl_Various_functions_MOUSE.lua</source>
       </version>
     </reapack>
   </category>
