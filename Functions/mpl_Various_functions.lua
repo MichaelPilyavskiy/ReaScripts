@@ -2,14 +2,14 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions for using with scripts written by MPL.
--- @version 2.09
+-- @version 2.10
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
 --    mpl_Various_functions_GUI.lua
 --    mpl_Various_functions_MOUSE.lua
 -- @changelog
---    + VFv2_ConvertNoteOnVel0toNoteOff
+--    #fix typo
   
     --------------------------------------------------
     function VF_LoadLibraries()
@@ -108,7 +108,7 @@
           local check_offset = VF2_CheckResponseOffset(sysID,resp)
           if check_offset then  
             reaper.SetExtState('MPL_Scripts', 'response',resp, true)
-            MB('SystemID - Responce pair was successfully passed','MPL Various functions',0)
+            MB('SystemID - Response pair was successfully passed','MPL Various functions',0)
            else
             MB('Checksum mismatch. Contact m.pilyavskiy@gmail.com','MPL Various functions',0)
           end

@@ -1,9 +1,9 @@
 -- @description Split all track envelopes at selected envelope points positions
--- @version 1.0
+-- @version 1.01
 -- @author MPL 
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---  + init
+--  # use sorting when adding new points one-by-one
 
 
 
@@ -11,6 +11,10 @@
     local tr_env = GetSelectedEnvelope( 0 )
     if not (tr_env and ValidatePtr2( 0, tr_env, 'TrackEnvelope*')) then return end
     local track = Envelope_GetParentTrack( tr_env )
+    
+    local SR =tonumber(format_timestr_pos( 1, '', 4 ))
+    local b_size = 256
+    local nosort = false
     
     -- collect points
       local point_t = {}
@@ -25,20 +29,20 @@
         for i = 1, #point_t do 
           -- get env point
           local pt_idx = GetEnvelopePointByTime( tr_env_child, point_t[i]+(10^-14) )
-          local retval, time, value, shape, tension, selected = reaper.GetEnvelopePoint( tr_env_child, pt_idx )
-          pt_far = math.abs(time - point_t[i]) > (10^-13)
+          local retval, time, value, shape, tension, selected = GetEnvelopePoint( tr_env_child, pt_idx )
+          local pt_far = math.abs(time - point_t[i]) > (10^-13)
           if pt_far and shape == 0 then -- linear
-            local retval, value = Envelope_Evaluate( tr_env_child, point_t[i], 1, 1 ) 
-            InsertEnvelopePoint( tr_env_child, point_t[i], value, -1, -1, false, true )
+            local retval, value = Envelope_Evaluate( tr_env_child, point_t[i], SR , b_size ) 
+            InsertEnvelopePoint( tr_env_child, point_t[i], value, -1, -1, false, nosort )
            elseif pt_far and shape == 1 then -- square
-            local retval, value = Envelope_Evaluate( tr_env_child, point_t[i], 1, 1 ) 
-            InsertEnvelopePoint( tr_env_child, point_t[i], value, shape, -1, false, true )  
+            local retval, value = Envelope_Evaluate( tr_env_child, point_t[i], SR , b_size ) 
+            InsertEnvelopePoint( tr_env_child, point_t[i], value, shape, -1, false, nosort )  
            elseif pt_far and shape >= 2 then -- slow startend
-            local retval, value = Envelope_Evaluate( tr_env_child, point_t[i], 1, 1 ) 
-            InsertEnvelopePoint( tr_env_child, point_t[i], value, 0, -1, false, true )            
+            local retval, value = Envelope_Evaluate( tr_env_child, point_t[i], SR , b_size ) 
+            InsertEnvelopePoint( tr_env_child, point_t[i], value, 0, -1, false, nosort )            
           end
         end 
-        reaper.Envelope_SortPoints( tr_env_child )
+        --reaper.Envelope_SortPoints( tr_env_child )
       end 
   end
   ---------------------------------------------------------------------
