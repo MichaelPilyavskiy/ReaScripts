@@ -1,14 +1,14 @@
 -- @description Generate CUE from project markers
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Obey markers only inside time selection
---    + Do not add markers with # sign at the start
---    + Skip executing if user cancelled dialog
---    # require VariousFunctions v2+
+--    + Pass time relative to time selection
+--    # Add markers with # sign at the start if any
+--    + Skip markers starting at @ or !
   
-  
+
+  function patternamtch(nameOut) return nameOut:gsub('%s',''):sub(0,1) end
   function main()
     local scr_name = 'MPL Generate CUE from markers'
     local _, cnt_markers =  CountProjectMarkers(0)
@@ -38,13 +38,28 @@
     -- loop markers
     local tsstart, tsend = GetSet_LoopTimeRange2( 0, false, false, 0, 0, false )
     
-      for i = 1, cnt_markers do
+    
+    -- test loop for patterns
+      local haspattern
+      for i = 1, cnt_markers do 
+        local _, _, posOut, _, nameOut, markrgnindexnumber = EnumProjectMarkers2(0, i-1)
+        if not haspattern then 
+          haspattern = patternamtch(nameOut) == '#'
+                      or patternamtch(nameOut) == '!'
+                      or patternamtch(nameOut) == '@'
+        end
+        if not include then include = patternamtch(nameOut) == '#' end
+      end
       
+      for i = 1, cnt_markers do 
         _, _, posOut, _, nameOut, markrgnindexnumber = EnumProjectMarkers2(0, i-1)
-        if not (posOut >= tsstart and posOut<=tsend) or nameOut:gsub('%s',''):sub(0,1) == '#' then goto skip_next end
+        if not (posOut >= tsstart and posOut<=tsend) or 
+          (patternamtch(nameOut) == '!' or patternamtch(nameOut) == '@')
+          or (include and patternamtch(nameOut) ~= '#')
+          then goto skip_next end 
         
-        posOut = format_timestr_pos(posOut, '', 5)
         
+        posOut = format_timestr_pos(posOut-tsstart, '', 5) 
         -- format hours/minutes to minutes 
           local time = {}
           for num in posOut:gmatch('[%d]+') do 
@@ -52,7 +67,7 @@
             time[#time+1] = num
           end
           if tonumber(time[1]) > 0 then time[2] = tonumber(time[2]) + tonumber(time[1]) * 60 end
-        
+          
         perf = fields[3]
         posOut = table.concat(time,':',2)
         
