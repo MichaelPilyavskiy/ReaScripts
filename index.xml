@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="83a6244f50ac4df54faa6987f46c13e9af510f86" name="MPL Scripts">
+<index version="1" commit="8156c6584ea579b215682c21dad6f8e9337143b9" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4670,6 +4670,13 @@ add control for timefall showing last note]]></changelog>
       <version name="1.03" author="MPL" time="2019-05-29T22:18:09Z">
         <changelog><![CDATA[+ Add save file dialog (require JS ReaScript API Extension)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1eff36196d18edb313b57a229b3d036cb941c56/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2021-08-11T19:57:38Z">
+        <changelog><![CDATA[+ Obey markers only inside time selection
++ Do not add markers with # sign at the start
++ Skip executing if user cancelled dialog
+# require VariousFunctions v2+]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8156c6584ea579b215682c21dad6f8e9337143b9/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Go to next marker id.lua" type="script" desc="Go to next marker id">
