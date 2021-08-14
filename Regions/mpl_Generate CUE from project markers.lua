@@ -1,11 +1,10 @@
 -- @description Generate CUE from project markers
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Pass time relative to time selection
---    # Add markers with # sign at the start if any
---    + Skip markers starting at @ or !
+--    # use essential order fro markers rather that markers IDs
+--    # fix use marker name or Untitled X
   
 
   function patternamtch(nameOut) return nameOut:gsub('%s',''):sub(0,1) end
@@ -14,6 +13,7 @@
     local _, cnt_markers =  CountProjectMarkers(0)
     if not cnt_markers or cnt_markers == 0 then MB('Add markers to project first', scr_name, 0) return end
     
+    local mrkerid = 0
     local ret, user_inputs = GetUserInputs('Cue', 5, 
         'Genre,Year,Performer,Album Title,File name (with extension)', 
         'Other,2016,Performer,Album_Title,FileName.wav')
@@ -37,7 +37,7 @@
 
     -- loop markers
     local tsstart, tsend = GetSet_LoopTimeRange2( 0, false, false, 0, 0, false )
-    
+    local hastimesel = math.abs(tsend-tsstart) >0.01
     
     -- test loop for patterns
       local haspattern
@@ -52,14 +52,21 @@
       end
       
       for i = 1, cnt_markers do 
-        _, _, posOut, _, nameOut, markrgnindexnumber = EnumProjectMarkers2(0, i-1)
-        if not (posOut >= tsstart and posOut<=tsend) or 
-          (patternamtch(nameOut) == '!' or patternamtch(nameOut) == '@')
-          or (include and patternamtch(nameOut) ~= '#')
-          then goto skip_next end 
+        local _, _, posOut, _, nameOut, markrgnindexnumber = EnumProjectMarkers2(0, i-1)
+        if (hastimesel and not (posOut >= tsstart and posOut<=tsend)) or 
+           (patternamtch(nameOut) == '!' or patternamtch(nameOut) == '@') or (include and patternamtch(nameOut) ~= '#')
+         then
+          goto skip_next 
+        end 
         
         
-        posOut = format_timestr_pos(posOut-tsstart, '', 5) 
+        -- check time sel
+          if not hastimesel then 
+            posOut = format_timestr_pos(posOut, '', 5) 
+           else
+            posOut = format_timestr_pos(posOut-tsstart, '', 5) 
+          end
+        
         -- format hours/minutes to minutes 
           local time = {}
           for num in posOut:gmatch('[%d]+') do 
@@ -71,22 +78,25 @@
         perf = fields[3]
         posOut = table.concat(time,':',2)
         
-        local s_name  = nameOut:find('[%-]')
+        --[[local s_name  = nameOut:find('[%-]')
         if s_name ~=nil then
           perf = nameOut:sub(0, s_name-2)
           nameOut1 = nameOut:sub(s_name+2)
-        end
+        end]]
         
-        if nameOut1 == nil or nameOut1 == '' then nameOut1 = 'Untitled '..("%02d"):format(markrgnindexnumber) end
-        out_str = out_str..ind3..'TRACK '..("%02d"):format(markrgnindexnumber)..' AUDIO'..'\n'..
-                           ind5..'TITLE '..'"'..nameOut1..'"'..'\n'..
+        --local id = ("%02d"):format(markrgnindexnumber)
+        local id = ("%02d"):format(mrkerid)
+        mrkerid=mrkerid+1
+        if nameOut == nil or nameOut == '' then nameOut1 = 'Untitled '..id end
+        out_str = out_str..ind3..'TRACK '..id..' AUDIO'..'\n'..
+                           ind5..'TITLE '..'"'..nameOut..'"'..'\n'..
                            ind5..'PERFORMER '..'"'..perf..'"'..'\n'..
                            ind5..'INDEX 01 '..posOut..'\n'
         ::skip_next::
       end
       
     -- write to file
-      retval0,  saving_folder = JS_Dialog_BrowseForSaveFile('Generate CUE file', '', '', ".cue")
+      local retval0,  saving_folder = JS_Dialog_BrowseForSaveFile('Generate CUE file', '', '', ".cue")
       if retval0 == 1 then 
         if not saving_folder:lower():match('%.cue') then saving_folder = saving_folder..'.cue' end
         local f = io.open(saving_folder, 'w')
@@ -95,8 +105,7 @@
           f:close()
          else
           msg('(error creating file, here is CUE file content instead)\n'..out_str) 
-        end
-        
+        end 
       end
         
   end
