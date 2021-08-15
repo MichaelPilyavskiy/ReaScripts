@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="42616d6d7f2011d99b2f27a7f34b0b6b41d0b2b9" name="MPL Scripts">
+<index version="1" commit="f627a80c1f6c52af10136cada345495bd9640a15" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4688,6 +4688,11 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[# use essential order fro markers rather that markers IDs
 # fix use marker name or Untitled X]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/42616d6d7f2011d99b2f27a7f34b0b6b41d0b2b9/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
+      </version>
+      <version name="1.07" author="MPL" time="2021-08-15T05:50:52Z">
+        <changelog><![CDATA[# 1-based markers count
+# exculde number sign from marker name]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f627a80c1f6c52af10136cada345495bd9640a15/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Go to next marker id.lua" type="script" desc="Go to next marker id">
