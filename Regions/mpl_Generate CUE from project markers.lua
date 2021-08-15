@@ -1,10 +1,10 @@
 -- @description Generate CUE from project markers
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # use essential order fro markers rather that markers IDs
---    # fix use marker name or Untitled X
+--    # 1-based markers count
+--    # exculde number sign from marker name
   
 
   function patternamtch(nameOut) return nameOut:gsub('%s',''):sub(0,1) end
@@ -13,7 +13,7 @@
     local _, cnt_markers =  CountProjectMarkers(0)
     if not cnt_markers or cnt_markers == 0 then MB('Add markers to project first', scr_name, 0) return end
     
-    local mrkerid = 0
+    local mrkerid = 1
     local ret, user_inputs = GetUserInputs('Cue', 5, 
         'Genre,Year,Performer,Album Title,File name (with extension)', 
         'Other,2016,Performer,Album_Title,FileName.wav')
@@ -59,6 +59,7 @@
           goto skip_next 
         end 
         
+        if patternamtch(nameOut) == '#' then nameOut = nameOut:match('#(.*)') end
         
         -- check time sel
           if not hastimesel then 
@@ -77,13 +78,7 @@
           
         perf = fields[3]
         posOut = table.concat(time,':',2)
-        
-        --[[local s_name  = nameOut:find('[%-]')
-        if s_name ~=nil then
-          perf = nameOut:sub(0, s_name-2)
-          nameOut1 = nameOut:sub(s_name+2)
-        end]]
-        
+ 
         --local id = ("%02d"):format(markrgnindexnumber)
         local id = ("%02d"):format(mrkerid)
         mrkerid=mrkerid+1
