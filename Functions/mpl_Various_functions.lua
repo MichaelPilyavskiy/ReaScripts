@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 2.5
+-- @version 2.50
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
@@ -16,7 +16,7 @@
 --    + Added purchase dialog as separate window
 --    + Big list of small additions inside some functions related to global standartisation
     
-  VF_version = 2.5 -- do not remove, use for versions comparement
+  VF_version = 2.50 -- do not remove, use for versions comparement
      
   --------------------------------------------------
   function VF_LoadLibraries()
