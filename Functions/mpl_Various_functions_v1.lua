@@ -139,11 +139,6 @@
   function deliteralize(str) 
      if str then  return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", '') end
   end  
-  ------------------------------------------------------------------------------------------------------
-  function lim(val, min,max) --local min,max 
-    if not min or not max then min, max = 0,1 end 
-    return math.max(min,  math.min(val, max) ) 
-  end
   ---------------------------------------------------
   function CopyTable(orig)--http://lua-users.org/wiki/CopyTable
       local orig_type = type(orig)
@@ -159,8 +154,6 @@
       end
       return copy
   end 
------------------------------------------------------------------------    
- function Open_URL(url) if GetOS():match("OSX") then os.execute('open "" '.. url) else os.execute('start "" '.. url)  end  end  
   ------------------------------------------------------------------------------------------------------
   function WDL_DB2VAL(x) return math.exp((x)*0.11512925464970228420089957273422) end  --https://github.com/majek/wdl/blob/master/WDL/db2val.h
   --function dBFromVal(val) if val < 0.5 then return 20*math.log(val*2, 10) else return (val*12-6) end end
@@ -356,6 +349,7 @@
   end
   ---------------------------------------------------
   function ExtState_Load(conf)
+    if conf.dontload == true then return end
     local def = ExtState_Def()
     for key in pairs(def) do 
       local es_str = GetExtState(def.ES_key, key)
@@ -364,6 +358,7 @@
   end  
   ---------------------------------------------------
   function ExtState_Save(conf)
+    if conf.dontload == true then return end 
     conf.dock , conf.wind_x, conf.wind_y, conf.wind_w, conf.wind_h= gfx.dock(-1, 0,0,0,0)
     for key in pairs(conf) do SetExtState(conf.ES_key, key, conf[key], true)  end
     --for k,v in spairs(conf, function(t,a,b) return b:lower() > a:lower() end) do SetExtState(conf.ES_key, k, conf[k], true) end  
@@ -466,8 +461,6 @@
     end
   ---------------------------------------------------------------------------------------------------------------------
     function math_q(num)  if math.abs(num - math.floor(num)) < math.abs(num - math.ceil(num)) then return math.floor(num) else return math.ceil(num) end end
-  ---------------------------------------------------------------------------------------------------------------------
-    function math_q_dec(num, pow) return math.floor(num * 10^pow) / 10^pow end
   -------------------------------------------------------------------------------   
   function ExportSelItemsToRs5k_FormMIDItake_data()
     local MIDI = {}
@@ -690,8 +683,6 @@
     end
   end
   ---------------------------------------------------
-  function Action(s) Main_OnCommand(NamedCommandLookup(s), 0) end
-  ---------------------------------------------------
   function VF_GetTrackUnderMouseCursor()
     local screen_x, screen_y = GetMousePosition()
     local retval, info = reaper.GetTrackFromPoint( screen_x, screen_y )
@@ -746,3 +737,77 @@
     --msg(str_mod)
     reaper.SetItemStateChunk( item, str_mod, false )
   end
+  --------------------------------------------------
+  function VF_GetActionCommandIDByFilename(searchfilename) -- https://forum.cockos.com/showpost.php?p=2383082&postcount=6
+    local t = {}
+    local content 
+    local f = io.open(reaper.GetResourcePath().."/reaper-kb.ini",'r')
+    if f then content = f:read('a') f:close() end
+    for k in content:gmatch('[^\r\n]+') do
+      if k:sub(1,3)=="SCR" then 
+        local section, aid, desc, filename=k:match("SCR .- (.-) (.-) (\".-\") (.*)")
+        t[#t+1] = {section=section, aid=aid, desc=desc, filename=filename}
+      end
+    end 
+    for i = 1, #t do if t[i].filename:match(searchfilename) then return t[i].aid end end 
+  end
+  ---------------------------------------------------
+  function VF_ExtState_Load(conf)
+    local def = ExtState_Def()
+    for key in spairs(def) do 
+      local es_str = GetExtState(def.ES_key, key)
+      if es_str == '' then conf[key] = def[key] else conf[key] = tonumber(es_str) or es_str end
+    end  
+  end 
+  ---------------------------------------------------
+  function VF_ExtState_LoadProj(conf,extname )
+    if not extname then return end
+    for idx = 1, 10000 do
+      local retval, key, val = reaper.EnumProjExtState( 0, extname, idx-1 )
+      if not retval then break end
+      conf[key] = tonumber(val) or val
+    end  
+  end 
+  ---------------------------------------------------------------------
+  function VF_MenuReturnToggle(MOUSE,OBJ,DATA,str_name, t, value, statecheck)
+    return {  str=str_name,
+              state = t[value]&statecheck==statecheck,
+              func = function()
+                        if t[value]&statecheck==statecheck then
+                          t[value] = t[value] - statecheck
+                         else
+                          t[value] = t[value]|statecheck
+                        end
+                      end
+              }
+  end
+  ---------------------------------------------------------------------
+  function VF_MenuReturnUserInput(MOUSE,OBJ,DATA, str_name, captions_csv, t, value)
+    return {  str=str_name..': '..t[value],
+              func = function()
+                        local retval, retvals_csv = reaper.GetUserInputs( str_name, 1, captions_csv, t[value] )
+                        if retval and retvals_csv ~= '' then t[value] = tonumber(retvals_csv) or retvals_csv end
+                      end
+              }
+  end
+  ---------------------------------------------------
+  function VF_ExtState_Save(conf) for key in spairs(conf) do SetExtState(conf.ES_key, key, conf[key], true)   end end
+  ---------------------------------------------------
+  function VF_ExtState_SaveProj(conf,extname) for key in spairs(conf) do SetProjExtState( 0, extname, key, conf[key] ) end end
+  -----------------------------------------------------------------------    
+  function VF_Open_URL(url) if GetOS():match("OSX") then os.execute('open "" '.. url) else os.execute('start "" '.. url)  end  end    
+  ---------------------------------------------------
+  function VF_Action(s) Main_OnCommand(NamedCommandLookup(s), 0) end  
+  --------------------------------------------------------------------
+  function VF_math_Qdec(num, pow) if not pow then pow = 3 end return math.floor(num * 10^pow) / 10^pow end
+  ------------------------------------------------------------------------------------------------------
+  function VF_lim(val, min,max) --local min,max 
+    if not min or not max then min, max = 0,1 end 
+    return math.max(min,  math.min(val, max) ) 
+  end
+  
+  -- MAPPING for backwards compability --
+  Open_URL = VF_Open_URL
+  Action = VF_Action
+  lim = VF_lim
+  math_q_dec = VF_math_Qdec

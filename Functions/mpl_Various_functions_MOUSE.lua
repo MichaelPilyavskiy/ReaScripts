@@ -2,201 +2,143 @@
 -- @author MPL
 -- @noindex
   
-  MOUSE = {}
-    ---------------------------------------------------  
-  function MOUSE:Match(b)
-    local edges = 0
-    if not b then return end
-    if b.x and b.y and b.w and b.h then 
-    
-      local ret= MOUSE.x > b.x
-               and MOUSE.x < b.x+b.w
-               and MOUSE.y > b.y
-               and MOUSE.y < b.y+b.h 
-      local top_edge_match =  
-              MOUSE.x > b.x
-               and MOUSE.x < b.x+b.w
-               and MOUSE.y > b.y
-               and MOUSE.y < b.y+MOUSE.edge_catch_px  
-      local bot_edge_match =  
-               MOUSE.x > b.x
-               and MOUSE.x < b.x+b.w
-               and MOUSE.y > b.y+b.h-MOUSE.edge_catch_px 
-               and MOUSE.y < b.y+b.h 
-      local left_edge_match =  
-               MOUSE.x > b.x
-               and MOUSE.x < b.x+MOUSE.edge_catch_px 
-               and MOUSE.y > b.y
-               and MOUSE.y < b.y+b.h          
-      local right_edge_match =  
-               MOUSE.x > b.x+b.w-MOUSE.edge_catch_px 
-               and MOUSE.x < b.x+b.w
-               and MOUSE.y > b.y
-               and MOUSE.y < b.y+b.h 
-
-      local beetween_Hedge_match =  
-               MOUSE.x > b.x+MOUSE.edge_catch_px 
-               and MOUSE.x < b.x+b.w-MOUSE.edge_catch_px 
-               and MOUSE.y > b.y
-               and MOUSE.y < b.y+b.h                
-      local beetween_Vedge_match =  
-               MOUSE.x > b.x
-               and MOUSE.x < b.x+b.w
-               and MOUSE.y > b.y+MOUSE.edge_catch_px 
-               and MOUSE.y < b.y+b.h -MOUSE.edge_catch_px 
-               
-      if top_edge_match then edges = edges|1 end
-      if bot_edge_match then edges = edges|2 end
-      if left_edge_match then edges = edges|4 end
-      if right_edge_match then edges = edges|8 end
-      if beetween_Hedge_match then edges = edges|16 end
-      if beetween_Vedge_match then edges = edges|32 end
-      
-      return ret, edges
-    end  
-  end
- --------------------------------------------------- 
-  function VF_MOUSE(MOUSE, OBJ) 
-    
-    MOUSE.edge_catch_px = OBJ.edge_catch_px or 5
-    
-    -- main
-    MOUSE.char = gfx.getchar()
-    MOUSE.cap = gfx.mouse_cap
-    MOUSE.x = gfx.mouse_x
-    MOUSE.y = gfx.mouse_y
-    
-    -- L/M/R button states
-    MOUSE.LMB_state = gfx.mouse_cap&1 == 1 
-    MOUSE.LMB_trig = MOUSE.LMB_state and not MOUSE.last_LMB_state
-    
-    if MOUSE.LMB_trig_simulate then 
-      MOUSE.LMB_trig_simulate = false
-      MOUSE.LMB_trig = true
-    end
-    MOUSE.RMB_state = gfx.mouse_cap&2 == 2 
-    MOUSE.RMB_trig = MOUSE.RMB_state and not MOUSE.last_RMB_state
-    MOUSE.MMB_state = gfx.mouse_cap&64 == 64
-    MOUSE.MMB_trig = MOUSE.MMB_state and not MOUSE.last_MMB_state 
-    MOUSE.ANY_state = MOUSE.LMB_state or MOUSE.RMB_state or MOUSE.MMB_state
-    MOUSE.ANY_trig = MOUSE.LMB_trig or MOUSE.RMB_trig or MOUSE.MMB_trig
-    
-    -- latchx/y 
-    if MOUSE.ANY_trig then
-      MOUSE.latchx = MOUSE.x
-      MOUSE.latchy = MOUSE.y
-    end
-    if MOUSE.ANY_state then 
-      MOUSE.dx = MOUSE.x - MOUSE.latchx
-      MOUSE.dy = MOUSE.y - MOUSE.latchy
-    end
-    if not MOUSE.ANY_state and MOUSE.last_ANY_state then
-      MOUSE.dx = 0
-      MOUSE.dy = 0
-      MOUSE.latchx = nil
-      MOUSE.latchy = nil
+   ---------------------------------------------------  
+ function VF_MOUSE_Match(b)
+   if not b then return end
+   if b.x and b.y and b.w and b.h then  
+     return MOUSEt.x > b.x
+              and MOUSEt.x < b.x+b.w
+              and MOUSEt.y > b.y
+              and MOUSEt.y < b.y+b.h 
+   end  
+ end
+ --[[-------------------------------------------------
+ function MOUSE_ApproxMatch(t,x,y,w,h)
+   local x0,y0,w0,h0 = t.x,t.y,t.w,t.w,t.h
+   if 
+     math.abs(x-x0) <= 1 
+     and math.abs(y-y0) <= 1
+     and math.abs(w-w0) <= 1
+     and math.abs(h-h0) <= 1
+     then 
+     return 
+   end
+ end]]
+--------------------------------------------------- 
+ function VF_MOUSE(MOUSEt,OBJ,DATA)
+   if MOUSEt.Performafterloop then MOUSEt.Performafterloop(MOUSEt,OBJ,DATA) MOUSEt.Performafterloop = nil end
+   -- main
+   MOUSEt.char = gfx.getchar()
+   MOUSEt.cap = gfx.mouse_cap
+   MOUSEt.x = gfx.mouse_x
+   MOUSEt.y = gfx.mouse_y
+   
+   -- L/M/R button states
+   MOUSEt.LMB_state = gfx.mouse_cap&1 == 1 
+   MOUSEt.LMB_trig = MOUSEt.LMB_state and not MOUSEt.last_LMB_state
+   MOUSEt.RMB_state = gfx.mouse_cap&2 == 2 
+   MOUSEt.RMB_trig = MOUSEt.RMB_state and not MOUSEt.last_RMB_state
+   MOUSEt.MMB_state = gfx.mouse_cap&64 == 64
+   MOUSEt.MMB_trig = MOUSEt.MMB_state and not MOUSEt.last_MMB_state 
+   MOUSEt.ANY_state = MOUSEt.LMB_state or MOUSEt.RMB_state or MOUSEt.MMB_state
+   MOUSEt.ANY_trig = MOUSEt.LMB_trig or MOUSEt.RMB_trig or MOUSEt.MMB_trig
+   
+   -- latchx/y 
+   if MOUSEt.ANY_trig then
+     MOUSEt.latchx = MOUSEt.x
+     MOUSEt.latchy = MOUSEt.y
+   end
+   if MOUSEt.ANY_state then 
+     MOUSEt.dx = MOUSEt.x - MOUSEt.latchx
+     MOUSEt.dy = MOUSEt.y - MOUSEt.latchy
+   end
+   if not MOUSEt.ANY_state and MOUSEt.last_ANY_state then
+     MOUSEt.dx = 0
+     MOUSEt.dy = 0
+     MOUSEt.latchx = nil
+     MOUSEt.latchy = nil
+   end 
+   MOUSEt.is_moving = MOUSEt.last_x and MOUSEt.last_y and (MOUSEt.last_x ~= MOUSEt.x or MOUSEt.last_y ~= MOUSEt.y)
+   
+   -- wheel
+   MOUSEt.wheel = gfx.mouse_wheel
+   MOUSEt.wheel_trig = MOUSEt.last_wheel and MOUSEt.last_wheel ~= MOUSEt.wheel
+   MOUSEt.wheel_dir = MOUSEt.last_wheel and MOUSEt.last_wheel-MOUSEt.wheel>0
+   
+   -- ctrl alt shift
+   MOUSEt.Ctrl = gfx.mouse_cap&4 == 4 
+   MOUSEt.Shift = gfx.mouse_cap&8 == 8 
+   MOUSEt.Alt = gfx.mouse_cap&16 == 16  
+   MOUSEt.hasAltkeys = not (MOUSEt.Ctrl or MOUSEt.Shift or MOUSEt.Alt)
+   MOUSEt.pointer = ''
+   
+for key in spairs(OBJ,function(t,a,b) return b > a end) do
+  --if type(OBJ[key]) == 'table' then OBJ[key].selfkey = key end 
+  if type(OBJ[key]) == 'table' and not OBJ[key].ignore_mouse then
+    local regular_match = VF_MOUSE_Match(OBJ[key]) 
+    OBJ[key].undermouse = regular_match -- frame around button 
+    if regular_match  then  
+      MOUSEt.pointer = key 
+      if OBJ[key].func_undermouse then OBJ[key].func_undermouse() end
+      if MOUSEt.is_moving then DATA.refresh.GUI = DATA.refresh.GUI|4 end -- trig Obj buttons update 
+      if MOUSEt.wheel_trig and OBJ[key].func_Wtrig then OBJ[key].func_Wtrig(MOUSEt) end 
+      if MOUSEt.LMB_trig and   OBJ[key].func_Ltrig then MOUSEt.Performafterloop = OBJ[key].func_Ltrig end
+      if MOUSEt.RMB_trig and   OBJ[key].func_Rtrig then OBJ[key].func_Rtrig(MOUSEt) end
+      if MOUSEt.ANY_trig then 
+        if not OBJ[key].preventregularselection then 
+          OBJ[key].selected = true 
+          DATA.refresh.GUI = DATA.refresh.GUI|4 
+        end
+        MOUSEt.latch_key = key 
+      end  
     end 
-    MOUSE.is_moving = MOUSE.last_x and MOUSE.last_y and (MOUSE.last_x ~= MOUSE.x or MOUSE.last_y ~= MOUSE.y)
+  end 
+end
+   
+   -- hook around change pointer
+   if MOUSEt.last_pointer and MOUSEt.pointer and MOUSEt.last_pointer ~= MOUSEt.pointer then
+     if OBJ[MOUSEt.last_pointer] then OBJ[MOUSEt.last_pointer].undermouse = false end
+     DATA.refresh.GUI = DATA.refresh.GUI|4 -- trig Obj buttons update 
+     if OBJ[MOUSEt.pointer] and OBJ[MOUSEt.pointer].func_onptrcatch then OBJ[MOUSEt.pointer].func_onptrcatch() end
+     if OBJ[MOUSEt.last_pointer] and OBJ[MOUSEt.last_pointer].func_onptrfree then OBJ[MOUSEt.last_pointer].func_onptrfree() end -- release after navigate
+   end 
     
-    -- wheel
-    MOUSE.wheel = gfx.mouse_wheel
-    MOUSE.wheel_trig = MOUSE.last_wheel and MOUSE.last_wheel ~= MOUSE.wheel
-    MOUSE.wheel_dir = MOUSE.last_wheel and MOUSE.last_wheel-MOUSE.wheel>0
+    local dragcond = MOUSEt.latch_key and (MOUSEt.latch_key == MOUSEt.pointer or MOUSEt.pointer == '') and MOUSEt.is_moving 
+   if dragcond and MOUSEt.LMB_state and OBJ[MOUSEt.latch_key].func_Ldrag then OBJ[MOUSEt.latch_key].func_Ldrag() end
+   if dragcond and MOUSEt.RMB_state and OBJ[MOUSEt.latch_key].func_Rdrag then OBJ[MOUSEt.latch_key].func_Rdrag() end
+   if dragcond and MOUSEt.MMB_state and OBJ[MOUSEt.latch_key].func_Mdrag then OBJ[MOUSEt.latch_key].func_Mdrag() end
     
-    -- ctrl alt shift
-    MOUSE.Ctrl = gfx.mouse_cap&4 == 4 
-    MOUSE.Shift = gfx.mouse_cap&8 == 8 
-    MOUSE.Alt = gfx.mouse_cap&16 == 16  
-    MOUSE.hasAltkeys = not (MOUSE.Ctrl or MOUSE.Shift or MOUSE.Alt)
-    MOUSE.pointer = ''
-    
-    for key in spairs(OBJ,function(t,a,b) return b > a end) do
-      if type(OBJ[key]) == 'table' then OBJ[key].selfkey = key end 
-      if type(OBJ[key]) == 'table' and OBJ[key].otype and not OBJ[key].ignore_mouse then
-        local regular_match, edges = MOUSE:Match(OBJ[key]) 
-        if regular_match or MOUSE.force_context then 
-          MOUSE.pointer = key 
-          if MOUSE.force_context then MOUSE.pointer = MOUSE.force_context end
-          
-          if MOUSE.last_pointer then
-            if MOUSE.last_pointer ~= MOUSE.pointer and OBJ[key].func_onptrcatch then --and OBJ[MOUSE.last_pointer] and OBJ[MOUSE.last_pointer].func_onptrfree then OBJ[MOUSE.last_pointer].func_onptrfree() end
-              OBJ[key].func_onptrcatch() 
-              if MOUSE.RMB_state and OBJ[key].func_onptrcatchRdrag then OBJ[key].func_onptrcatchRdrag() end
-            end
-          end
-          
-          if MOUSE.wheel_trig and OBJ[key].func_Wtrig then OBJ[key].func_Wtrig(MOUSE.wheel_dir, MOUSE.Ctrl, MOUSE.Alt, MOUSE.Shift) end 
-          if MOUSE.LMB_trig and   OBJ[key].func_Ltrig then OBJ[key].func_Ltrig() end
-          if MOUSE.RMB_trig and   OBJ[key].func_Rtrig then OBJ[key].func_Rtrig() end
-          if MOUSE.ANY_trig then
-            MOUSE.latch_key = key  
-            MOUSE.latch_key_edges = edges
-            if OBJ[key].val_t then MOUSE.latch_val_t =OBJ[key].val_t end 
-          end  
-          MOUSE.force_context = nil
-          break
-        end 
-      end
-      
-    end
-    
-    ::skip_obj_loop::
-     
-    if MOUSE.latch_key and MOUSE.hasAltkeys and MOUSE.latch_key_edges==0 and MOUSE.LMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_Ldrag then OBJ[MOUSE.latch_key].func_Ldrag() end
-    if MOUSE.latch_key and MOUSE.LMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_Ldrag2 then OBJ[MOUSE.latch_key].func_Ldrag2() end
-    if MOUSE.latch_key and MOUSE.hasAltkeys and MOUSE.latch_key_edges&1==1 and MOUSE.LMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_LTEdrag then OBJ[MOUSE.latch_key].func_LTEdrag() end
-    if MOUSE.latch_key and MOUSE.hasAltkeys and MOUSE.latch_key_edges&2==2 and MOUSE.LMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_LBEdrag then OBJ[MOUSE.latch_key].func_LBEdrag() end
-    if MOUSE.latch_key and MOUSE.hasAltkeys and MOUSE.latch_key_edges&4==4 and MOUSE.LMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_LLEdrag then OBJ[MOUSE.latch_key].func_LLEdrag() end
-    if MOUSE.latch_key and MOUSE.hasAltkeys and MOUSE.latch_key_edges&8==8 and MOUSE.LMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_LREdrag then OBJ[MOUSE.latch_key].func_LREdrag() end
-    if MOUSE.latch_key and MOUSE.hasAltkeys and MOUSE.latch_key_edges&16==16 and MOUSE.LMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_LHdrag then OBJ[MOUSE.latch_key].func_LHdrag() end
-    if MOUSE.latch_key and MOUSE.hasAltkeys and MOUSE.latch_key_edges&32==32 and MOUSE.LMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_LVdrag then OBJ[MOUSE.latch_key].func_LVdrag() end
-    
-    if MOUSE.latch_key and MOUSE.MMB_state and MOUSE.is_moving and OBJ[MOUSE.latch_key].func_Mdrag then OBJ[MOUSE.latch_key].func_Mdrag() end
-    
-    -- execute on lost focus
-      if MOUSE.pointer == "" 
-        and MOUSE.last_pointer 
-        and MOUSE.last_pointer~="" 
-        and OBJ[MOUSE.last_pointer] 
-        and not OBJ[MOUSE.last_pointer].ignore_mouse 
-        and OBJ[MOUSE.last_pointer].func_onptrfree then 
-        OBJ[MOUSE.last_pointer].func_onptrfree()
-        --if not MOUSE.ANY_state and OBJ[MOUSE.last_pointer].func_onptrfree2 then OBJ[MOUSE.last_pointer].func_onptrfree2() end -- for scroll handle, leave focus only if nothing pressed
-      end
-    
-    --  on any buitton release
-      if not MOUSE.ANY_state and MOUSE.last_ANY_state then 
-        local key
-        if MOUSE.latch_key then key = MOUSE.latch_key end
-        if key and OBJ[key] and OBJ[key].func_onrelease then OBJ[key].func_onrelease() end
-        if key and OBJ[key] and MOUSE.last_LMB_state == true and OBJ[key].func_onLrelease then OBJ[key].func_onLrelease() end
-        MOUSE.latch_key = nil
-        MOUSE.latch_val_t = nil
-      end
-    
-    MOUSE.last_x = MOUSE.x
-    MOUSE.last_y = MOUSE.y
-    MOUSE.last_pointer = MOUSE.pointer
-    MOUSE.last_LMB_state = MOUSE.LMB_state  
-    MOUSE.last_RMB_state = MOUSE.RMB_state  
-    MOUSE.last_MMB_state = MOUSE.MMB_state  
-    MOUSE.last_ANY_state = MOUSE.ANY_state 
-    MOUSE.last_wheel = MOUSE.wheel
-  end
-  ---------------------------------------------------
-  function MOUSE_ApproxMatch(t, x,y,w,h)
-    local x0,y0,w0,h0 = t.x,t.y,t.w,t.w,t.h
-    if 
-      math.abs(x-x0) <= 1 
-      and math.abs(y-y0) <= 1
-      and math.abs(w-w0) <= 1
-      and math.abs(h-h0) <= 1
-      then 
-      return 
-    end
-  end
-  ---------------------------------------------------
-  function MOUSE:menu(t)
+   --  on any button release
+     if not MOUSEt.ANY_state and MOUSEt.last_ANY_state then 
+       local key
+       if MOUSEt.latch_key then key = MOUSEt.latch_key end
+       if key and OBJ[key] and OBJ[key].func_onptrrelease then OBJ[key].func_onptrrelease() end -- release after drag
+       if key and OBJ[key] and MOUSEt.LMB_state == false and MOUSEt.last_LMB_state == true and OBJ[key].func_Lrelease then OBJ[key].func_Lrelease() end
+       if key and OBJ[key] and MOUSEt.ANY_state == false and MOUSEt.last_ANY_state == true then
+        if not OBJ[key].preventregularselection then 
+          OBJ[key].selected = false 
+          DATA.refresh.GUI = DATA.refresh.GUI|4 
+        end
+        if OBJ[key].func_Arelease then 
+         OBJ[key].func_Arelease() 
+         OBJ[key].undermouse = false 
+         DATA.refresh.GUI = DATA.refresh.GUI|4 -- trig Obj buttons updat
+        end
+        MOUSEt[key] = nil
+       end
+     end
+   
+   MOUSEt.last_x = MOUSEt.x
+   MOUSEt.last_y = MOUSEt.y
+   MOUSEt.last_pointer = MOUSEt.pointer
+   MOUSEt.last_LMB_state = MOUSEt.LMB_state  
+   MOUSEt.last_RMB_state = MOUSEt.RMB_state  
+   MOUSEt.last_MMB_state = MOUSEt.MMB_state  
+   MOUSEt.last_ANY_state = MOUSEt.ANY_state 
+   MOUSEt.last_wheel = MOUSEt.wheel
+ end
+ ---------------------------------------------------
+  function VF_MOUSE_menu(MOUSEt,OBJ,DATA,t)
     local str, check ,hidden= '', '',''
     for i = 1, #t do
       if t[i].state then check = '!' else check ='' end
@@ -205,8 +147,8 @@
       str = str..add_str
       str = str..'|'
     end
-    gfx.x = MOUSE.x
-    gfx.y = MOUSE.y
+    gfx.x = MOUSEt.x
+    gfx.y = MOUSEt.y
     local ret = gfx.showmenu(str)
     local incr = 0
     if ret > 0 then 
@@ -215,13 +157,16 @@
         if t[i+incr].str:match('>') then incr = incr + 1 end
         if t[i+incr].menu_inc then incr = incr + 1 end
       end
-      if t[ret+incr] and t[ret+incr].func then t[ret+incr].func() end 
-     --- msg(t[ret+incr].str)
-    end
-  end    
+      if t[ret+incr] and t[ret+incr].func then 
+        t[ret+incr].func() 
+        if VF_run_UpdateAll then VF_run_UpdateAll(DATA) end 
+      end 
+      --- msg(t[ret+incr].str)
+    end 
+  end   
   ---------------------------------------------------
   --[[
-    function ShortCuts(conf, obj, data, refresh, mouse)
+    function S hortCuts(conf, obj, data, refresh, mouse)
         if mouse.char == 32 then Main_OnCommandEx(40044, 0,0) end -- space: play/pause
     end
      ------------------------------------------------------------------------------------------------------

@@ -516,7 +516,7 @@
       local take = MIDIEditor_GetTake( ME ) 
       if take then 
         local item =  GetMediaItemTake_Item( take )
-        if conf.convertnoteonvel0tonoteoff == 1 then VFv2_ConvertNoteOnVel0toNoteOff(take) end
+        if conf.convertnoteonvel0tonoteoff == 1 then VF2_ConvertNoteOnVel0toNoteOff(take) end
         Data_GetMIDI_perTake(data, strategy, table_name, take, item, mode)   
       end
      elseif   mode&2 == 2 then -- selected takes
