@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8660e24c6b6a2570151cd68d4833fec2899e5dc6" name="MPL Scripts">
+<index version="1" commit="4750ec1f6d655c9f73e3f2c5a79991aacfe92eb1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1387,6 +1387,10 @@
       <version name="1.0" author="MPL" time="2017-08-14T20:25:55Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ed177efd64b257d2670a94a94a6ebecd561adb7d/FX/mpl_Set%20last%20touched%20parameter%20value%20(via%20deductive%20brutforce).lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2021-08-23T04:50:43Z">
+        <changelog><![CDATA[# fix match error]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4750ec1f6d655c9f73e3f2c5a79991aacfe92eb1/FX/mpl_Set%20last%20touched%20parameter%20value%20(via%20deductive%20brutforce).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set main input as a modulation for last touched parameter.lua" type="script" desc="Set main input as a modulation for last touched parameter">
