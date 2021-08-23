@@ -1,9 +1,9 @@
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description Set last touched parameter value (via deductive brutforce)
 -- @changelog
---    + init
+--    # fix match error
 
   local scr_nm = 'MPL Set last touched parameter'
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
@@ -27,7 +27,7 @@
       for val = BF_s, BF_e, 10^step_pow do 
         if os.clock() - TS > 5 then MB('Brutforce timeout.\nOperation cancelled.', scr_nm, 0) return end 
         local param_n = GetFormattedParamInternal(tr , fx, param, val)
-        if not last_param_n and find <= param_n  then return val end
+        if param_n and not last_param_n and find <= param_n  then return val end
         if last_param_n and find > last_param_n and find <= param_n then 
           BF_s = val - 10^step_pow
           BF_e = val
