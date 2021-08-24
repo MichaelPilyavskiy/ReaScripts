@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 2.50
+-- @version 2.52
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
@@ -12,11 +12,10 @@
 --    mpl_Various_functions_Pers.lua
 --    [main] mpl_Various_functions_PurchaseGUI.lua
 -- @changelog
---    + Added persistent stuff, this planned as framework base for scripts with GUI, standartized to make it more editable at higher level
---    + Added purchase dialog as separate window
---    + Big list of small additions inside some functions related to global standartisation
+--    # VF_MenuReturnUserInput handle undefined values
+--    # VF_MenuReturnToggle handle undefined values
     
-  VF_version = 2.50 -- do not remove, use for versions comparement
+  VF_version = 2.52 -- do not remove, use for versions comparement
      
   --------------------------------------------------
   function VF_LoadLibraries()

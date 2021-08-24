@@ -751,6 +751,53 @@
     end 
     for i = 1, #t do if t[i].filename:match(searchfilename) then return t[i].aid end end 
   end
+  
+  
+  ---------------------------------------------------------------------
+  function VF_MenuReturnAction(MOUSE,OBJ,DATA,str_name, func0)
+    return   { str = str_name,
+                func = func0,
+              }
+  end  
+  ---------------------------------------------------------------------
+  function VF_MenuReturnToggle(MOUSE,OBJ,DATA,str_name, t, value, statecheck)
+    local state
+    local str=''
+    if t[value] then
+      str=str_name
+      state = t[value]&statecheck==statecheck
+     else 
+      str=str_name..' [undefined]'
+      state = false
+    end
+    return {  str=str,
+              state = state,
+              func = function()
+                        if not t[value] then return end
+                        if t[value]&statecheck==statecheck then
+                          t[value] = t[value] - statecheck
+                         else
+                          t[value] = t[value]|statecheck
+                        end
+                      end
+              }
+  end
+  ---------------------------------------------------------------------
+  function VF_MenuReturnUserInput(MOUSE,OBJ,DATA, str_name, captions_csv, t, value)
+    local str = ''
+    if t[value] then
+      str=str_name..': '..t[value]
+     else
+      str=str_name..': [undefined]'
+    end
+    return {  str=str,
+              func = function()
+                        if not t[value] then return end
+                        local retval, retvals_csv = reaper.GetUserInputs( str_name, 1, captions_csv, t[value] )
+                        if retval and retvals_csv ~= '' then t[value] = tonumber(retvals_csv) or retvals_csv end
+                      end
+              }
+  end
   ---------------------------------------------------
   function VF_ExtState_Load(conf)
     local def = ExtState_Def()
@@ -768,28 +815,6 @@
       conf[key] = tonumber(val) or val
     end  
   end 
-  ---------------------------------------------------------------------
-  function VF_MenuReturnToggle(MOUSE,OBJ,DATA,str_name, t, value, statecheck)
-    return {  str=str_name,
-              state = t[value]&statecheck==statecheck,
-              func = function()
-                        if t[value]&statecheck==statecheck then
-                          t[value] = t[value] - statecheck
-                         else
-                          t[value] = t[value]|statecheck
-                        end
-                      end
-              }
-  end
-  ---------------------------------------------------------------------
-  function VF_MenuReturnUserInput(MOUSE,OBJ,DATA, str_name, captions_csv, t, value)
-    return {  str=str_name..': '..t[value],
-              func = function()
-                        local retval, retvals_csv = reaper.GetUserInputs( str_name, 1, captions_csv, t[value] )
-                        if retval and retvals_csv ~= '' then t[value] = tonumber(retvals_csv) or retvals_csv end
-                      end
-              }
-  end
   ---------------------------------------------------
   function VF_ExtState_Save(conf) for key in spairs(conf) do SetExtState(conf.ES_key, key, conf[key], true)   end end
   ---------------------------------------------------
