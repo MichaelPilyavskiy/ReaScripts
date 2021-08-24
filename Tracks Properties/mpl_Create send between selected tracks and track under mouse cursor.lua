@@ -1,6 +1,6 @@
--- @version 1.12
--- @author MPL
 -- @description Create send between selected tracks and track under mouse cursor
+-- @version 1.13
+-- @author MPL
 -- @metapackage
 -- @provides
 --    [main] . > mpl_Send selected tracks to track under mouse cursor (multichannel).lua
@@ -37,8 +37,7 @@
 --    [main] . > mpl_Send track under mouse cursor to selected tracks (channel 15-16 to 1-2).lua
 -- @website http://forum.cockos.com/showthread.php?t=188335  
 -- @changelog
---    # update name
---    + allow to use as Send track under mouse cursor to selected tracks
+--    # fix not creating send 1-2 to 3-4 if send with different channels setup exist on same send-receive tracks
   
 
   
@@ -91,7 +90,11 @@
           for i =1,  GetTrackNumSends( src_tr, 0 ) do
             -- obsolete SWS API //  local dest_tr_check = BR_GetMediaTrackSendInfo_Track( src_tr, 0, i-1, 1 )
             local dest_tr_check = GetTrackSendInfo_Value( src_tr, 0, i-1, 'P_DESTTRACK' ) 
-            if dest_tr_check == dest_tr then is_exist = true break end
+            local dest_tr_src_ch = GetTrackSendInfo_Value( src_tr, 0, i-1, 'I_SRCCHAN')
+            local dest_tr_dest_ch = GetTrackSendInfo_Value( src_tr, 0, i-1, 'I_DSTCHAN')
+            
+            
+            if (dest_tr_check == dest_tr and dest_tr_src_ch == src_ch-1 and dest_tr_dest_ch == dest_ch-1) then is_exist = true break end
           end
         
         -- perform main stuff
