@@ -688,23 +688,23 @@
     local retval, info = reaper.GetTrackFromPoint( screen_x, screen_y )
     return retval
   end
-  ---------------------------------------------------
+  ------------------------------------------------------------------------------------------------------
   function VF_GetItemTakeUnderMouseCursor()
     local screen_x, screen_y = GetMousePosition()
     local item , take = reaper.GetItemFromPoint( screen_x, screen_y, true )
     return item , take
   end
-  --------------------------------------------------
+  ------------------------------------------------------------------------------------------------------
   function VF_GetPositionUnderMouseCursor()
     BR_GetMouseCursorContext()
     return  BR_GetMouseCursorContext_Position()
   end
-  --------------------------------------------------
+  ------------------------------------------------------------------------------------------------------
   function VF_GetEnvelopeUnderMouseCursor()
     reaper.BR_GetMouseCursorContext()
     return  BR_GetMouseCursorContext_Envelope()
   end  
-  --------------------------------------------------
+  ------------------------------------------------------------------------------------------------------
   function VF_SetTimeShiftPitchChange(item, get_only, pshift_mode0, timestr_mode0, stretchfadesz)
     -- 13.07.2021 - mod all takes
     if not item then return end
@@ -737,7 +737,7 @@
     --msg(str_mod)
     reaper.SetItemStateChunk( item, str_mod, false )
   end
-  --------------------------------------------------
+  ------------------------------------------------------------------------------------------------------
   function VF_GetActionCommandIDByFilename(searchfilename) -- https://forum.cockos.com/showpost.php?p=2383082&postcount=6
     local t = {}
     local content 
@@ -753,13 +753,13 @@
   end
   
   
-  ---------------------------------------------------------------------
+  ------------------------------------------------------------------------------------------------------
   function VF_MenuReturnAction(MOUSE,OBJ,DATA,str_name, func0)
     return   { str = str_name,
                 func = func0,
               }
   end  
-  ---------------------------------------------------------------------
+  ------------------------------------------------------------------------------------------------------
   function VF_MenuReturnToggle(MOUSE,OBJ,DATA,str_name, t, value, statecheck)
     local state
     local str=''
@@ -782,8 +782,8 @@
                       end
               }
   end
-  ---------------------------------------------------------------------
-  function VF_MenuReturnUserInput(MOUSE,OBJ,DATA, str_name, captions_csv, t, value)
+  ------------------------------------------------------------------------------------------------------
+  function VF_MenuReturnUserInput(MOUSE,OBJ,DATA, str_name, captions_csv, t, value, allowemptyresponse)
     local str = ''
     if t[value] then
       str=str_name..': '..t[value]
@@ -794,11 +794,15 @@
               func = function()
                         if not t[value] then return end
                         local retval, retvals_csv = reaper.GetUserInputs( str_name, 1, captions_csv, t[value] )
-                        if retval and retvals_csv ~= '' then t[value] = tonumber(retvals_csv) or retvals_csv end
+                        if retval  then 
+                          if retvals_csv ~= '' or (retvals_csv == '' and allowemptyresponse) then
+                            t[value] = tonumber(retvals_csv) or retvals_csv 
+                          end
+                        end
                       end
               }
   end
-  ---------------------------------------------------
+  ------------------------------------------------------------------------------------------------------
   function VF_ExtState_Load(conf)
     local def = ExtState_Def()
     for key in spairs(def) do 
@@ -806,7 +810,7 @@
       if es_str == '' then conf[key] = def[key] else conf[key] = tonumber(es_str) or es_str end
     end  
   end 
-  ---------------------------------------------------
+  ------------------------------------------------------------------------------------------------------
   function VF_ExtState_LoadProj(conf,extname )
     if not extname then return end
     for idx = 1, 10000 do
@@ -815,21 +819,71 @@
       conf[key] = tonumber(val) or val
     end  
   end 
-  ---------------------------------------------------
+  ------------------------------------------------------------------------------------------------------
   function VF_ExtState_Save(conf) for key in spairs(conf) do SetExtState(conf.ES_key, key, conf[key], true)   end end
-  ---------------------------------------------------
+  ------------------------------------------------------------------------------------------------------
+  function VF_ExtState_LoadPreset(conf,preset) 
+    local def = ExtState_Def()
+    local PRESET_str64 = GetExtState(def.ES_key, 'PRESET'..preset)
+    local PRESET_str = VF_decBase64(PRESET_str64)
+    for line in PRESET_str:gmatch('[^\r\n]+') do
+      local key,value = lime:match('(.-)=(.-)')
+      if key and value and key~='' and value ~='' then conf[key] = tonumber(value) or value end
+    end
+  end
+  ------------------------------------------------------------------------------------------------------
+  function VF_ExtState_SavePreset(conf,preset) 
+    local str = ''
+    for key in spairs(conf) do 
+      if key:match('P_(.*)') then str = key..'='..conf[key]..'\n' end
+    end
+    SetExtState(conf.ES_key, 'PRESET'..preset, VF_encBase64(str), true)
+  end
+  ------------------------------------------------------------------------------------------------------
   function VF_ExtState_SaveProj(conf,extname) for key in spairs(conf) do SetProjExtState( 0, extname, key, conf[key] ) end end
-  -----------------------------------------------------------------------    
+  ------------------------------------------------------------------------------------------------------   
   function VF_Open_URL(url) if GetOS():match("OSX") then os.execute('open "" '.. url) else os.execute('start "" '.. url)  end  end    
-  ---------------------------------------------------
+  ------------------------------------------------------------------------------------------------------
   function VF_Action(s) Main_OnCommand(NamedCommandLookup(s), 0) end  
-  --------------------------------------------------------------------
+  ------------------------------------------------------------------------------------------------------
   function VF_math_Qdec(num, pow) if not pow then pow = 3 end return math.floor(num * 10^pow) / 10^pow end
   ------------------------------------------------------------------------------------------------------
   function VF_lim(val, min,max) --local min,max 
     if not min or not max then min, max = 0,1 end 
     return math.max(min,  math.min(val, max) ) 
   end
+  ------------------------------------------------------------------------------------------------------
+  -- encoding
+  function VF_encBase64(data) -- https://stackoverflow.com/questions/34618946/lua-base64-encode
+    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
+      return ((data:gsub('.', function(x) 
+          local r,b='',x:byte()
+          for i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end
+          return r;
+      end)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
+          if (#x < 6) then return '' end
+          local c=0
+          for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
+          return b:sub(c+1,c+1)
+      end)..({ '', '==', '=' })[#data%3+1])
+  end
+  ------------------------------------------------------------------------------------------------------
+  function VF_decBase64(data) -- https://stackoverflow.com/questions/34618946/lua-base64-encode
+    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
+      data = string.gsub(data, '[^'..b..'=]', '')
+      return (data:gsub('.', function(x)
+          if (x == '=') then return '' end
+          local r,f='',(b:find(x)-1)
+          for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+          return r;
+      end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+          if (#x ~= 8) then return '' end
+          local c=0
+          for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+              return string.char(c)
+      end))
+  end
+  ------------------------------------------------------------------------------------------------------  
   
   -- MAPPING for backwards compability --
   Open_URL = VF_Open_URL

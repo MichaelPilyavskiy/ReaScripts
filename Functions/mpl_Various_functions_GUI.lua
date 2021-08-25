@@ -208,15 +208,25 @@
   end
   ---------------------------------------------------  
   function VF_GUI_DrawTxt_WrapTxt(txt, x,y,w,h, drawstr_flags,simulate) 
+    local indent_replace = 'indent_custom'
     local y0 =y
     local ystep = gfx.texth
     for stroke in txt:gmatch('[^\r\n]+') do 
       local t = {}
+      if stroke:find('%s') == 1 then
+        local first_nonindent = stroke:find('[^%s]')
+        if first_nonindent then
+          str1 = stroke:sub(0,first_nonindent)
+          str2 = stroke:sub(first_nonindent+1)
+          stroke = str1:gsub('%s',indent_replace)..str2
+        end
+      end
       for word in stroke:gmatch('[^%s]+') do t[#t+1] = word end
       local s = ''
       for i = 1, #t do
         local s0 = s
         s = s..t[i]..' '
+        s=s:gsub(indent_replace,' ')
         if gfx.measurestr( s) > w  then  
           gfx.y=y
           if not simulate then gfx.drawstr(s0,drawstr_flags,x+w,y+h) end

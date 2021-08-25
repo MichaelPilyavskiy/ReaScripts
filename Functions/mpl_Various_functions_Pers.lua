@@ -9,11 +9,11 @@
           } 
       
     DATA = {-- Data used by script
-      conf = {}, -- &1 all &2 reaper-ext.ini only &4 projextstate only
+      conf = {}, 
       confproj = {}, -- reaper-ext.ini
       dev_mode = 0, -- test stuff
       refresh = { GUI = 1|2|4, --&1 refresh everything &2 buttons &4 buttons update
-                  conf = 0, -- save ext state
+                  conf = 0, -- save ext state &1 all &2 reaper-ext.ini only &4 projextstate only &8 preset only
                   data = 1|2|4, -- &1 init &2 update data &4 read &8 write
                 },
       GUIvars = {
@@ -27,8 +27,10 @@
       
     MOUSEt = {}
     VF_ExtState_Load(DATA.conf) 
-    VF_ExtState_LoadProj(DATA.confproj, DATA.conf.ES_key) 
     if not DATA.conf.vrs then DATA.conf.vrs = '[version undefined]' end
+    if not DATA.conf.preset_current then DATA.conf.preset_current = 0 end
+    if DATA.conf.preset_current ~= 0 then VF_ExtState_LoadPreset(conf,preset) end
+    VF_ExtState_LoadProj(DATA.confproj, DATA.conf.ES_key) 
   end    
   ---------------------------------------------------------------------
   function VF_run_initVars_SetColors(MOUSEt,OBJ,DATA) -- https://htmlcolorcodes.com/colors/
@@ -206,9 +208,10 @@
     -- save ext state
       if DATA.refresh.conf&1==1 or DATA.refresh.conf&2==2 then
         DATA.conf.dock , DATA.conf.wind_x, DATA.conf.wind_y, DATA.conf.wind_w,DATA.conf.wind_h= gfx.dock(-1, 0,0,0,0)
-        VF_ExtState_Save(DATA.conf) 
+        VF_ExtState_Save(DATA.conf)
       end
       if DATA.refresh.conf&1==1 or DATA.refresh.conf&4==4 then VF_ExtState_SaveProj(DATA.confproj,DATA.conf.ES_key) end
+      if DATA.refresh.conf&1==1 or DATA.refresh.conf&8==8 then VF_ExtState_SavePreset(DATA.conf,DATA.conf.preset_current) end
       DATA.refresh.conf = 0 
       
     -- do stuff

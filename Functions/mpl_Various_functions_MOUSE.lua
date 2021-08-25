@@ -80,7 +80,7 @@ for key in spairs(OBJ,function(t,a,b) return b > a end) do
     if regular_match  then  
       MOUSEt.pointer = key 
       if OBJ[key].func_undermouse then OBJ[key].func_undermouse() end
-      if MOUSEt.is_moving then DATA.refresh.GUI = DATA.refresh.GUI|4 end -- trig Obj buttons update 
+      --if MOUSEt.is_moving then DATA.refresh.GUI = DATA.refresh.GUI|4 end -- trig Obj buttons update 
       if MOUSEt.wheel_trig and OBJ[key].func_Wtrig then OBJ[key].func_Wtrig(MOUSEt) end 
       if MOUSEt.LMB_trig and   OBJ[key].func_Ltrig then MOUSEt.Performafterloop = OBJ[key].func_Ltrig end
       if MOUSEt.RMB_trig and   OBJ[key].func_Rtrig then OBJ[key].func_Rtrig(MOUSEt) end
