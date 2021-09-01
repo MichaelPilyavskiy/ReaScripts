@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 2.53
+-- @version 2.55
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
@@ -14,7 +14,7 @@
 -- @changelog
 --    # VF_MenuReturnUserInput allow empty response
     
-  VF_version = 2.53 -- do not remove, use for versions comparement
+  VF_version = 2.55 -- do not remove, use for versions comparement
   VF_isregist = 0 
   --------------------------------------------------
   function VF_LoadLibraries()
