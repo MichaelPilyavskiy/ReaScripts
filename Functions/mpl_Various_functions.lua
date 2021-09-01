@@ -15,7 +15,7 @@
 --    # VF_MenuReturnUserInput allow empty response
     
   VF_version = 2.53 -- do not remove, use for versions comparement
-     
+  VF_isregist = 0 
   --------------------------------------------------
   function VF_LoadLibraries()
     local info = debug.getinfo(1,'S');  
@@ -35,7 +35,7 @@
       local content = f:read('a')
       f:close()
       local funct2run = load(content)
-      if funct2run then funct2run() end
+      if funct2run then funct2run() VF_isregist = VF_isregist|1 end
      else
       reaper.MB('mpl_Various_functions_v1 not found', 'MPL VariousFunctions', 0)
     end
@@ -74,6 +74,7 @@
       local check_offset = VF_CheckResponseOffset(sysID,response)
       if check_offset then 
         VF_LoadVFv2_DecodeBinary(sysID,response)
+        VF_isregist = VF_isregist|2
        else
         MB('Checksum mismatch. Contact m.pilyavskiy@gmail.com','MPL Various functions',0)
       end

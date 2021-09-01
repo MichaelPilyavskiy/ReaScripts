@@ -516,14 +516,14 @@
       local take = MIDIEditor_GetTake( ME ) 
       if take then 
         local item =  GetMediaItemTake_Item( take )
-        if conf.convertnoteonvel0tonoteoff == 1 then VF2_ConvertNoteOnVel0toNoteOff(take) end
+        if conf.convertnoteonvel0tonoteoff == 1 and TakeIsMIDI(take) then VF2_ConvertNoteOnVel0toNoteOff(take) end
         Data_GetMIDI_perTake(data, strategy, table_name, take, item, mode)   
       end
      elseif   mode&2 == 2 then -- selected takes
       for i = 1, CountSelectedMediaItems(0) do
         local item = GetSelectedMediaItem(0,i-1)
         local take = GetActiveTake(item)
-        if conf.convertnoteonvel0tonoteoff == 1 then VF2_ConvertNoteOnVel0toNoteOff(take) end
+        if conf.convertnoteonvel0tonoteoff == 1 and TakeIsMIDI(take) then VF2_ConvertNoteOnVel0toNoteOff(take) end
         Data_GetMIDI_perTake(data,strategy, table_name, take, item, mode) 
       end
     end
@@ -896,8 +896,9 @@
               end     
             end
           end  
-          
-          VF2_MPLQT_Data_ApplyValues(conf, obj, data, refresh, mouse, strategy, i, out_val, out_pos) 
+          if out_val and out_pos then 
+            VF2_MPLQT_Data_ApplyValues(conf, obj, data, refresh, mouse, strategy, i, out_val, out_pos) 
+          end
         end
       end
          

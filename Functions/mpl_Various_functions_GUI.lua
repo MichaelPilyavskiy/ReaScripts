@@ -116,6 +116,7 @@
       local selected = o.selected or false
       local selection_a = o.selection_a or 0.2
       local selection_col = o.selection_col or '#FFFFFF'
+      local backfill_a = o.backfill_a or 0
     -- reset
       gfx.set(1,1,1,1) 
     
@@ -144,6 +145,33 @@
         gfx.rect(x,y,w,h)
       end  
       
+    -- backfill
+      if backfill_a > 0  then
+        VF_hex2rgb(selection_col, true)
+        gfx.a = backfill_a
+        gfx.rect(x,y,w,h)
+      end    
+      
+    -- check
+    local check_ex = ((type(o.check)=='boolean' and o.check==true) or (o.check and o.check&1==1))
+                        or ((type(o.check)=='boolean' and o.check==false) or (o.check and o.check&1==0))
+    if o.check then
+      gfx.a = 0.7
+      if (type(o.check)=='boolean' and o.check==true) or (o.check and o.check&1==1 and o.check~=-1) then
+        local xr = x+2
+        local yr = y+2
+        local wr = h-6
+        local hr = h-5
+        gfx.rect(xr,yr,wr,hr,1)
+        VF_GUI_rect(x,y,h-3,h-2,0)
+       elseif (type(o.check)=='boolean' and o.check==false) or (o.check and o.check&1==0 and o.check~=-1) then
+        VF_GUI_rect(x,y,h-3,h-2,0)
+       elseif o.check and o.check==-1 then
+        gfx.line(x+h-3,y,x,y)        
+        gfx.line(x,y+1,x,y+h-4) 
+      end   
+    end
+    
     VF_GUI_DrawTxt(MOUSEt,OBJ,DATA, o) 
   end
   
@@ -177,6 +205,7 @@
       local txt_col = o.txt_col or '#FFFFFF'
       local txt_a = o.txt_a or 1
       local drawstr_flags = o.drawstr_flags or 1|4
+      if o.check then x =x + h end
       
     gfx.set(1,1,1)
     gfx.x,gfx.y = x,y 

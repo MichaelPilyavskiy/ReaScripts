@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.34
+-- @version 2.35
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -28,11 +28,13 @@
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 --    [main] mpl_QuantizeTool change knob1 (MIDI, OSC, mousewheel).lua
 -- @changelog
---    # (3) fix option for convert NoteOn with velocity 0 as NoteOff when taking MIDI data
+--    # exclude/include withing feature tweaks
+--    # fix error on nonMIDI items
+--    # fix dealing with NoteOn vel=0 convertion when take contain SysEx data (require MPL VariousFunction v2.54+)
 
      
-  local vrs = 'v2.34'
-  version = 2.34
+  local vrs = 'v2.35'
+  --version = 2.35
   --NOT gfx NOT reaper
   
 

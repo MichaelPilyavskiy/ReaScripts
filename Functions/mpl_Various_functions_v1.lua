@@ -820,7 +820,7 @@
     end  
   end 
   ------------------------------------------------------------------------------------------------------
-  function VF_ExtState_Save(conf) for key in spairs(conf) do SetExtState(conf.ES_key, key, conf[key], true)   end end
+  function VF_ExtState_Save(conf) for key in spairs(conf) do if not (key:match('P_(.*)') or key:match('P[%d]+_(.*)')) then SetExtState(conf.ES_key, key, conf[key], true) end  end end
   ------------------------------------------------------------------------------------------------------
   function VF_ExtState_LoadPreset(conf,preset) 
     local def = ExtState_Def()
