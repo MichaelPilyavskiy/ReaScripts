@@ -28,7 +28,7 @@
       end
     
     -- render layers 
-      gfx.mode = 0
+      gfx.mode = 1
       gfx.set(1,1,1,1)
       gfx.dest = -1   
       gfx.a = 1
@@ -70,7 +70,7 @@
     local dbdx = c*0.00008
     local dbdy = c*0.00001
     local dadx = c*0.00001
-    local dady = c*0.00001       
+    local dady = c*0.00001      
     gfx.gradrect(0,0, grad_sz,grad_sz, 
                     r,g,b,a, 
                     drdx, dgdx, dbdx, dadx, 
@@ -117,6 +117,9 @@
       local selection_a = o.selection_a or 0.2
       local selection_col = o.selection_col or '#FFFFFF'
       local backfill_a = o.backfill_a or 0
+      local check = o.check
+      local check_state_cnt = o.check_state_cnt or 1
+      
     -- reset
       gfx.set(1,1,1,1) 
     
@@ -153,22 +156,31 @@
       end    
       
     -- check
-    local check_ex = ((type(o.check)=='boolean' and o.check==true) or (o.check and o.check&1==1))
-                        or ((type(o.check)=='boolean' and o.check==false) or (o.check and o.check&1==0))
-    if o.check then
+    if check==true or check== false or tonumber(check) then
       gfx.a = 0.7
-      if (type(o.check)=='boolean' and o.check==true) or (o.check and o.check&1==1 and o.check~=-1) then
+      if type(check)=='boolean' then
         local xr = x+2
         local yr = y+2
         local wr = h-6
         local hr = h-5
-        gfx.rect(xr,yr,wr,hr,1)
+        if check==true then gfx.rect(xr,yr,wr,hr,1) end
         VF_GUI_rect(x,y,h-3,h-2,0)
-       elseif (type(o.check)=='boolean' and o.check==false) or (o.check and o.check&1==0 and o.check~=-1) then
-        VF_GUI_rect(x,y,h-3,h-2,0)
-       elseif o.check and o.check==-1 then
-        gfx.line(x+h-3,y,x,y)        
-        gfx.line(x,y+1,x,y+h-4) 
+        o.checkxshift = h
+       elseif type(o.check)=='number' then
+        local xr = x+2
+        local yr = y+2
+        local wr = h-6
+        local wr_single = math.ceil(wr / check_state_cnt)
+        wr = wr_single*check_state_cnt
+        o.checkxshift =wr +6 
+        local hr = h-5        
+        VF_GUI_rect(x,y,wr+3,h-2,0)
+        for i = 1, check_state_cnt do
+          local testval = 2^(i-1)
+          if check&testval==testval then 
+            gfx.rect(xr + wr_single*(i-1),yr,wr_single,hr,1)
+          end
+        end
       end   
     end
     
@@ -205,7 +217,12 @@
       local txt_col = o.txt_col or '#FFFFFF'
       local txt_a = o.txt_a or 1
       local drawstr_flags = o.drawstr_flags or 1|4
-      if o.check then x =x + h end
+      local txt_dontwrap = o.txt_dontwrap or false
+      
+      if o.checkxshift then 
+        x = x + o.checkxshift
+        w = w - o.checkxshift
+      end
       
     gfx.set(1,1,1)
     gfx.x,gfx.y = x,y 
@@ -213,7 +230,7 @@
     gfx.setfont(1,font, fontsz, font_flags )
     
     
-    if gfx.measurestr(txt) <= w and not txt:match('[\r\n]+')then
+    if txt_dontwrap or (gfx.measurestr(txt) <= w and not txt:match('[\r\n]+')) then
       gfx.a = txt_a
       gfx.drawstr(txt,drawstr_flags,x+w,y+h )
      else
@@ -276,3 +293,61 @@
     return gfx.y-y0
   end
   
+  -----------------------------------------------   
+  function OBJ_Strategy_Build(MOUSE,OBJ,DATA, ref_strtUI,x,y,w,h) 
+    local name = 'strat'
+    for key in pairs(OBJ)do if key:match(name) then OBJ[key] = nil end end -- reset all existed entries
+    local strat_xind = 7
+    local strat_itemh = 14
+    local y_offs = 0
+    local y_offs0 = 0
+    local x_offs = 0  
+    OBJ.strframe = { x=x,
+                      y=y,
+                      w=w,
+                      h=h,
+                      ignore_mouse = true
+                    }   
+    for i = 1, #ref_strtUI do
+      if ref_strtUI[i].show then
+        local level = ref_strtUI[i].level or 0
+        --[[local disable_blitback if not ref_strtUI[i].has_blit then disable_blitback = true end
+        local col_str 
+        if ref_strtUI[i].col_str then col_str = ref_strtUI[i].col_str end
+        local txt_a,ignore_mouse=0.9
+        if ref_strtUI[i].hidden then txt_a = 0.35 end
+        
+        --if y_str + y_offs+obj.strategy_itemh > gfx.h- obj.bottom_line_h then return end
+        if y + y_offs+DATA.customGUI.strat_itemh > gfx.h then return end
+        --local backfill_a =0.5 if disable_blitback then backfill_a = 0.3 end]]
+        OBJ[name..i] =  { is_button = true,
+                        x = x_offs+x + level *strat_xind ,
+                        y = y + y_offs0 + y_offs,
+                        w = w - level *strat_xind ,
+                        h = strat_itemh,
+                        check = ref_strtUI[i].state,
+                        check_state_cnt = ref_strtUI[i].state_cnt,
+                        txt= ref_strtUI[i].name,
+                        fontsz = 15,
+                        ignore_mouse = ignore_mouse,
+                        grad_back_a =0.9,
+                        backfill_a=backfill_a,
+                        drawstr_flags=0,
+                        txt_dontwrap = true,
+                        func_Ltrig = function()  
+                                if ref_strtUI[i].func then ref_strtUI[i].func() end
+                                DATA.refresh.conf = DATA.refresh.conf|1
+                                DATA.refresh.GUI = DATA.refresh.GUI|2
+                              end,
+                        func_Rtrig = function()  
+                                if ref_strtUI[i].func_R then ref_strtUI[i].func_R() end
+                                DATA.refresh.conf = DATA.refresh.conf|1
+                                DATA.refresh.GUI = DATA.refresh.GUI|2
+                              end,                              
+                        } 
+        y_offs = y_offs + strat_itemh
+      end 
+      
+    end
+    return y_offs - y -- return height of table
+  end    

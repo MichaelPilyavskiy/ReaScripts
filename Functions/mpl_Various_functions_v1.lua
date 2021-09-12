@@ -803,12 +803,46 @@
               }
   end
   ------------------------------------------------------------------------------------------------------
-  function VF_ExtState_Load(conf)
+  function VF_ExtState_Load(conf, preset)
+    -- call non - preset params
     local def = ExtState_Def()
     for key in spairs(def) do 
-      local es_str = GetExtState(def.ES_key, key)
-      if es_str == '' then conf[key] = def[key] else conf[key] = tonumber(es_str) or es_str end
+      --if not key:match('P[%d]+_.*') then
+        local es_str = GetExtState(def.ES_key, key)
+        if es_str == '' then conf[key] = def[key] else conf[key] = tonumber(es_str) or es_str end
+      --end
     end  
+    
+    for i= 0, 100 do
+      local key = 'PRESET'..i
+      local es_str = GetExtState(def.ES_key, key)
+      if es_str ~= '' then conf[key] = es_str end      
+    end
+    
+    -- port defaults to preset0
+      local PRESET_str64 = GetExtState(def.ES_key, 'PRESET0')
+      if not PRESET_str64 or PRESET_str64 =='' then VF_ExtState_Save(conf, 0)  end
+    
+    -- load preset: parse 
+      if not preset then return end 
+      local preset_t = {}
+      local PRESET_str64 = GetExtState(def.ES_key, 'PRESET'..preset)
+      if PRESET_str64 and PRESET_str64 ~= '' then
+        local PRESET_str = VF_decBase64(PRESET_str64)
+        for line in PRESET_str:gmatch('[^\r\n]+') do
+          local key,value = line:match('(.-)=(.*)') 
+          if key and value and key~='' and value ~='' then preset_t[key] = tonumber(value) or value end
+        end 
+      end
+      
+    -- load preset: call preset data based on inital params
+      for key in spairs(def) do  
+        if key:match('P_.*') then
+          local pres_val = preset_t[key]
+          if not pres_val then conf[key] = def[key] else conf[key] = pres_val end
+        end    
+      end
+    
   end 
   ------------------------------------------------------------------------------------------------------
   function VF_ExtState_LoadProj(conf,extname )
@@ -820,9 +854,19 @@
     end  
   end 
   ------------------------------------------------------------------------------------------------------
-  function VF_ExtState_Save(conf) for key in spairs(conf) do if not (key:match('P_(.*)') or key:match('P[%d]+_(.*)')) then SetExtState(conf.ES_key, key, conf[key], true) end  end end
+  function VF_ExtState_Save(conf, preset) 
+    for key in spairs(conf) do SetExtState(conf.ES_key, key, conf[key], true) end
+    
+    if not preset then return end
+    
+    local str = ''
+    for key in spairs(conf) do 
+      if key:match('P_(.*)') then str = str..'\n'..key:gsub('P_','')..'='..conf[key] end
+    end
+    SetExtState(conf.ES_key, 'PRESET'..preset, VF_encBase64(str), true)
+  end
   ------------------------------------------------------------------------------------------------------
-  function VF_ExtState_LoadPreset(conf,preset) 
+  --[[function VF_ExtState_LoadPreset(conf,preset) 
     local def = ExtState_Def()
     local PRESET_str64 = GetExtState(def.ES_key, 'PRESET'..preset)
     local PRESET_str = VF_decBase64(PRESET_str64)
@@ -830,21 +874,27 @@
       local key,value = lime:match('(.-)=(.-)')
       if key and value and key~='' and value ~='' then conf[key] = tonumber(value) or value end
     end
-  end
+  end]]
   ------------------------------------------------------------------------------------------------------
-  function VF_ExtState_SavePreset(conf,preset) 
+  --[[function VF_ExtState_SavePreset(conf,preset) 
     local str = ''
     for key in spairs(conf) do 
       if key:match('P_(.*)') then str = key..'='..conf[key]..'\n' end
     end
     SetExtState(conf.ES_key, 'PRESET'..preset, VF_encBase64(str), true)
-  end
+  end]]
   ------------------------------------------------------------------------------------------------------
   function VF_ExtState_SaveProj(conf,extname) for key in spairs(conf) do SetProjExtState( 0, extname, key, conf[key] ) end end
   ------------------------------------------------------------------------------------------------------   
   function VF_Open_URL(url) if GetOS():match("OSX") then os.execute('open "" '.. url) else os.execute('start "" '.. url)  end  end    
   ------------------------------------------------------------------------------------------------------
-  function VF_Action(s) Main_OnCommand(NamedCommandLookup(s), 0) end  
+  function VF_Action(s, sectionID, ME )  
+    if sectionID == 32060 and ME then 
+      MIDIEditor_OnCommand( ME, NamedCommandLookup(s) )
+     else
+      Main_OnCommand(NamedCommandLookup(s), sectionID or 0) 
+    end
+  end  
   ------------------------------------------------------------------------------------------------------
   function VF_math_Qdec(num, pow) if not pow then pow = 3 end return math.floor(num * 10^pow) / 10^pow end
   ------------------------------------------------------------------------------------------------------

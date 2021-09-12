@@ -22,14 +22,13 @@
                   menu_w = 25, -- top menu, px
                   menu_h = 25, -- top menu, px
                   menu_fontsz = 17, 
+                  scrollt = {}, -- init table for scroll values
                 }
       } 
       
     MOUSEt = {}
-    VF_ExtState_Load(DATA.conf) 
+    VF_ExtState_Load(DATA.conf, DATA.conf.preset_current) 
     if not DATA.conf.vrs then DATA.conf.vrs = '[version undefined]' end
-    if not DATA.conf.preset_current then DATA.conf.preset_current = 0 end
-    if DATA.conf.preset_current ~= 0 then VF_ExtState_LoadPreset(conf,preset) end
     VF_ExtState_LoadProj(DATA.confproj, DATA.conf.ES_key) 
   end    
   ---------------------------------------------------------------------
@@ -211,7 +210,6 @@
         VF_ExtState_Save(DATA.conf)
       end
       if DATA.refresh.conf&1==1 or DATA.refresh.conf&4==4 then VF_ExtState_SaveProj(DATA.confproj,DATA.conf.ES_key) end
-      if DATA.refresh.conf&1==1 or DATA.refresh.conf&8==8 then VF_ExtState_SavePreset(DATA.conf,DATA.conf.preset_current) end
       DATA.refresh.conf = 0 
       
     -- do stuff
