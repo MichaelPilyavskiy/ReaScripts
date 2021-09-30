@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6d38cc5b29b853a5de9626b290b33d7b4c46d3f7" name="MPL Scripts">
+<index version="1" commit="1bb954a03c01e9cd4694f61eaa4d7f49098aa533" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4216,6 +4216,54 @@ add control for timefall showing last note]]></changelog>
         <source main="main" file="mpl_Remove selected takes MIDI CC125 Omni Mode On.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8742b9ec6d169250bbc494a02be89afde0c9e3fd/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
         <source main="main" file="mpl_Remove selected takes MIDI CC126 Mono Operation.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8742b9ec6d169250bbc494a02be89afde0c9e3fd/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
         <source main="main" file="mpl_Remove selected takes MIDI CC127 Poly Mode.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8742b9ec6d169250bbc494a02be89afde0c9e3fd/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+      </version>
+      <version name="1.10" author="MPL" time="2021-09-30T05:45:46Z">
+        <changelog><![CDATA[# Lots of logic improvements around timeselection AND loop source
+# Fix check for true PPQ length
+# Handle negative PPQ events
+# Set undo global state]]></changelog>
+        <source main="main" file="mpl_Remove selected takes all MIDI data except notes.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes ProgramChange.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes AfterTouch.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes PitchWheel.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC0 Bank Select (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC1 Modulation Wheel.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC2 Breath controller.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC4 Foot Pedal (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC5 Portamento Time (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC6 Data Entry (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC7 Volume (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC8 Balance (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC10 Pan position (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC11 Expression (MSB).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC64 Hold Pedal.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC65 Portamento.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC66 Sostenuto Pedal.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC67 Soft Pedal.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC68 Legato Pedal.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC69 Hold 2 Pedal.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC70 Sound Variation.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC71 Resonance (Timbre).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC72 Sound Release Time.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC73 Sound Attack Time.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC74 Frequency Cutoff (Brightness).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC80 Decay.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC81 Hi Pass Filter Frequency.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC84 Portamento Amount.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC91 Reverb Level.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC92 Tremolo Level.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC93 Chorus Level.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC94 Detune Level.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC95 Phaser Level.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC120 All Sound Off.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC121 All Controllers Off.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC122 Local Keyboard.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC123 All Notes Off.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC124 Omni Mode Off.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC125 Omni Mode On.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC126 Mono Operation.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+        <source main="main" file="mpl_Remove selected takes MIDI CC127 Poly Mode.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1bb954a03c01e9cd4694f61eaa4d7f49098aa533/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Send short NoteOn MIDI message to virtual keyboard.lua" type="script" desc="Send short NoteOn MIDI message to virtual keyboard">
