@@ -1,5 +1,5 @@
 -- @description Remove selected takes MIDI data
--- @version 1.05
+-- @version 1.10
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -47,9 +47,10 @@
 --    [main] . > mpl_Remove selected takes MIDI CC126 Mono Operation.lua
 --    [main] . > mpl_Remove selected takes MIDI CC127 Poly Mode.lua
 -- @changelog
---    # check is timeselection outside item bounds
---    # check is timeselection bigger than source len in PPQ
---    # handle loop source
+--    # Lots of logic improvements around timeselection AND loop source
+--    # Fix check for true PPQ length
+--    # Handle negative PPQ events
+--    # Set undo global state
 
   --NOT gfx NOT reaper
   
@@ -62,6 +63,7 @@
     local scr_title = GetShortSmplName(fname:gsub('.lua', '')) 
     local exclude_msg_byte1 = 0xB
     local exclude_msg_byte2 = nil
+    local leave_notes_only = false
     if scr_title:match('CC') then 
       exclude_msg_byte1 = 0xB 
       if scr_title:match('CC%d+') then exclude_msg_byte2 = tonumber(scr_title:match('CC(%d+)')) end
@@ -82,7 +84,7 @@
     local ppqpos = 0
     local ppqlen = 0
     local offset, flags, msg1
-    while stringPos < MIDIlen-12 do -- -12 to exclude final All-Notes-Off message
+    while stringPos < MIDIlen do -- -12 to exclude final All-Notes-Off message
       offset, flags, msg1, stringPos = s_unpack("i4Bs4", MIDIstring, stringPos)
       ppqpos = ppqpos + offset 
       ppqlen = math.max(ppqlen,ppqpos)
@@ -92,13 +94,11 @@
   --------------------------------------------------------------------
   function RemoveMIDIdata(exclude_msg_byte1, exclude_msg_byte2,leave_notes_only) 
     -- check time selection
-      local timesel_cond = true
-      local ts_startppq, ts_endppq
       local ts_start, ts_end = reaper.GetSet_LoopTimeRange2( 0, false, 0, -1, -1, false )
-      if math.abs(ts_end - ts_start) < 0.001 then timesel_cond = false end
-    
+      local timesel_cond = math.abs(ts_end - ts_start) > 0.001
+      
     for i = 1 , CountSelectedMediaItems(0) do
-      local item = GetSelectedMediaItem(0,i-1)
+      local item = GetSelectedMediaItem(0,i-1) 
       
       -- timesel outside item edges
         local item_pos =  GetMediaItemInfo_Value( item, 'D_POSITION' )
@@ -107,75 +107,94 @@
         if timesel_cond == true and ts_end < item_pos then goto skipnextitem end
       
       local take = GetActiveTake(item)
-      if TakeIsMIDI(take) then 
-        local tableEvents = {}
-        local idx = 0 -- Table key
-        local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
-        local MIDIlen = MIDIstring:len()
-        local stringPos = 1 -- Position inside MIDIstring while parsing
-        local offset, flags, msg1
-        
-        local ppq_len = GetTruePPQLen(MIDIstring, MIDIlen)
-        
-        if timesel_cond == true then 
-          ts_startppq = MIDI_GetPPQPosFromProjTime( take, ts_start )
-          ts_endppq = MIDI_GetPPQPosFromProjTime( take, ts_end )
-        end
-        
-        if ts_endppq - ts_startppq > ppq_len then timesel_cond = false end
-        local iter = math.floor(ts_startppq / ppq_len)
-        local iter2 = math.floor(ts_endppq / ppq_len)
-        local area1_start = ts_startppq - ppq_len*iter
-        local area1_end = math.min(area1_start + (ts_endppq - ts_startppq), ppq_len) 
-        local cross = false
-        if iter ~= iter2 then
-          cross = true
-          area2_end = ts_endppq - ppq_len*iter2
-        end
-        local ppqpos = 0
-        while stringPos < MIDIlen-12 do -- -12 to exclude final All-Notes-Off message
-          offset, flags, msg1, stringPos = s_unpack("i4Bs4", MIDIstring, stringPos)
-          ppqpos = ppqpos + offset
-          if msg1:len() > 1 
-            and ( (not leave_notes_only 
-                    and msg1:byte(1)>>4 == exclude_msg_byte1 
-                    and (not exclude_msg_byte2 or exclude_msg_byte2 and msg1:byte(2) == exclude_msg_byte2)
-                   )
-                  or 
-                   (leave_notes_only == true and not (msg1:byte(1)>>4 == 0x9 or msg1:byte(1)>>4 == 0x8) )
-                ) then
-                
-            if timesel_cond == false then 
-              msg1 = ''
-             elseif timesel_cond == true then 
-              if ppqpos > area1_start and ppqpos <= area1_end then  
-                msg1 = '' 
-               elseif cross and ppqpos < area2_end then 
-                msg1 = '' 
-              end
-            end
-              
-          end
-          idx = idx + 1
-          tableEvents[idx] = s_pack("i4Bs4", offset, flags, msg1)
-        end 
-        MIDI_SetAllEvts(take, table.concat(tableEvents) .. MIDIstring:sub(-12))
-        MIDI_Sort(take)    
-      end
+      if TakeIsMIDI(take) then RemoveMIDIdata_take(exclude_msg_byte1, exclude_msg_byte2,leave_notes_only, take, math.max(ts_start,item_pos),  math.min(ts_end,item_pos+item_len), timesel_cond, item_pos+item_len)  end
       ::skipnextitem::
     end
   end
+  --------------------------------------------------------------------
+  function RemoveMIDIdata_take_msgmod(msg1, ppqpos, leave_notes_only, exclude_msg_byte1, exclude_msg_byte2, timesel_cond, area_start, area_end, area_start2, area_end2)
+    if msg1:len() ~=3 then return msg1 end
+    local ALL_CC_REMOVE = leave_notes_only == true and not (msg1:byte(1)>>4 == 0x9 or msg1:byte(1)>>4 == 0x8)
+    local SPEC_REMOVE = leave_notes_only == false and msg1:byte(1)>>4 == exclude_msg_byte1 and not exclude_msg_byte2
+    local SPEC_CC_REMOVE = leave_notes_only == false and msg1:byte(1)>>4 == exclude_msg_byte1 and exclude_msg_byte2 and msg1:byte(2) == exclude_msg_byte2 
+    local TIMESEL = timesel_cond == true and ((ppqpos >= area_start and ppqpos <= area_end) or (ppqpos >= area_start2 and ppqpos <= area_end2) )
+    if (ALL_CC_REMOVE or SPEC_REMOVE or SPEC_CC_REMOVE) and (TIMESEL or timesel_cond == false) then msg1 = '' end
+    return msg1
+  end
+  --------------------------------------------------------------------
+  function RemoveMIDIdata_take(exclude_msg_byte1, exclude_msg_byte2,leave_notes_only, take, ts_start, ts_end, timesel_cond, item_end)  
+    -- init MIDI data
+      local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
+      local MIDIlen = MIDIstring:len()
+      local offset, flags, msg1
+      local ppqpos = 0 
+      
+    -- get PPQ area to check
+       ppq_len = GetTruePPQLen(MIDIstring, MIDIlen) 
+      local cross = false
+      local ts_startppq = MIDI_GetPPQPosFromProjTime( take, ts_start )
+      local ts_endppq = math.min(MIDI_GetPPQPosFromProjTime( take, ts_end ) , MIDI_GetPPQPosFromProjTime( take, item_end ))
+      local iter1 = math.floor(ts_startppq / ppq_len) 
+      local iter2 = math.floor(ts_endppq / ppq_len)
+      local ppq_offs = iter1 * ppq_len
+       area_start = ts_startppq - ppq_offs
+       area_end = ts_endppq - ppq_len*iter2--math.min(area_start + (ts_endppq - ts_startppq), ppq_len) 
+       area_start2 = area_start
+       area_end2 = area_end
+      if iter1 ~= iter2 then
+        cross = true
+        area_start = 0
+        area_end = ts_endppq - ppq_len*iter2
+        area_start2 = ts_startppq - ppq_offs
+        area_end2 = ppq_len
+      end
+      
+    -- put data iunto table
+       evts = {}
+      local i = 1
+      local offset0
+      local stringPos = 1 -- Position inside MIDIstring while parsing
+      while stringPos < MIDIlen do
+        offset, flags, msg1, stringPos = s_unpack("i4Bs4", MIDIstring, stringPos)
+        if offset0 then offset = offset + offset0 offset0 =nil end
+        if offset < 0 then offset0 = offset goto skipevt end
+        ppqpos = ppqpos + offset
+        evts[i] = {offset=offset, flags=flags, msg1=msg1, stringPos=stringPos,ppqpos=ppqpos}
+        i = i+1
+        ::skipevt::
+      end
+    
+    -- loop evts
+      local tableEvents = {}
+      local idx = 1 -- Table key
+      for i =1, #evts-1 do
+        offset, flags, msg1,ppqpos = evts[i].offset, evts[i].flags, evts[i].msg1,evts[i].ppqpos
+        msg1 = RemoveMIDIdata_take_msgmod(msg1, ppqpos, leave_notes_only, exclude_msg_byte1, exclude_msg_byte2, timesel_cond, area_start, area_end, area_start2, area_end2)
+        tableEvents[idx] = s_pack("i4Bs4", offset, flags, msg1)
+        idx = idx + 1
+      end    
+    
+    -- store into take
+      MIDI_SetAllEvts(take, table.concat(tableEvents)..s_pack("i4Bs4", evts[#evts].offset, evts[#evts].flags, evts[#evts].msg1))
+      MIDI_Sort(take)   
+  end
+
   ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
+  function VF_CheckFunctions(vrs) 
+    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' 
+    if  reaper.file_exists( SEfunc_path ) then
+      dofile(SEfunc_path) 
+      if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end  
+     else 
+      reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) 
+      if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end
+    end   
+  end
   --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_CalibrateFont') 
-  if ret then
-    local ret2 = VF_CheckReaperVrs(5.95,true)    
-    if ret and ret2 then 
+  local ret = VF_CheckFunctions(2.5) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then 
       local exclude_msg_byte1, exclude_msg_byte2, leave_notes_only, scr_title = ParseScriptname()
       Undo_BeginBlock() 
       RemoveMIDIdata(exclude_msg_byte1, exclude_msg_byte2, leave_notes_only) 
-      Undo_EndBlock(scr_title, 4) 
-    end
-  end
+      Undo_EndBlock(scr_title, -1)  
+  end end
   
