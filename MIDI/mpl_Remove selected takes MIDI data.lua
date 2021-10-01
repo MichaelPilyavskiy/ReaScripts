@@ -1,5 +1,5 @@
 -- @description Remove selected takes MIDI data
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -8,6 +8,7 @@
 --    [main] . > mpl_Remove selected takes ProgramChange.lua
 --    [main] . > mpl_Remove selected takes AfterTouch.lua
 --    [main] . > mpl_Remove selected takes PitchWheel.lua
+--    [main] . > mpl_Remove selected takes TextEvents.lua
 --    [main] . > mpl_Remove selected takes MIDI CC data.lua
 --    [main] . > mpl_Remove selected takes MIDI CC0 Bank Select (MSB).lua
 --    [main] . > mpl_Remove selected takes MIDI CC1 Modulation Wheel.lua
@@ -47,10 +48,9 @@
 --    [main] . > mpl_Remove selected takes MIDI CC126 Mono Operation.lua
 --    [main] . > mpl_Remove selected takes MIDI CC127 Poly Mode.lua
 -- @changelog
---    # Lots of logic improvements around timeselection AND loop source
---    # Fix check for true PPQ length
---    # Handle negative PPQ events
---    # Set undo global state
+--    # fix refresh arrange for non-in-project MIDI source
+--    # add text events removing support
+--    # fix special events remove for more than 3-byte messages (ex. ProgramChange)
 
   --NOT gfx NOT reaper
   
@@ -60,6 +60,7 @@
   --------------------------------------------------------------------
   function ParseScriptname()
     local fname = ({reaper.get_action_context()})[2]
+    --local scr_title = 'mpl_Remove selected takes TextEvents'
     local scr_title = GetShortSmplName(fname:gsub('.lua', '')) 
     local exclude_msg_byte1 = 0xB
     local exclude_msg_byte2 = nil
@@ -73,6 +74,9 @@
       exclude_msg_byte1 = 0xD      
      elseif scr_title:match('PitchWheel') then 
       exclude_msg_byte1 = 0xE
+     elseif scr_title:match('TextEvents') then       
+      exclude_msg_byte1 = 0xFF
+      exclude_msg_byte2 = 0x06
      elseif scr_title:match('Remove selected takes all MIDI data except notes') then
       leave_notes_only = true
     end  
@@ -110,16 +114,26 @@
       if TakeIsMIDI(take) then RemoveMIDIdata_take(exclude_msg_byte1, exclude_msg_byte2,leave_notes_only, take, math.max(ts_start,item_pos),  math.min(ts_end,item_pos+item_len), timesel_cond, item_pos+item_len)  end
       ::skipnextitem::
     end
+    
+    UpdateArrange()
+    
   end
   --------------------------------------------------------------------
   function RemoveMIDIdata_take_msgmod(msg1, ppqpos, leave_notes_only, exclude_msg_byte1, exclude_msg_byte2, timesel_cond, area_start, area_end, area_start2, area_end2)
-    if msg1:len() ~=3 then return msg1 end
-    local ALL_CC_REMOVE = leave_notes_only == true and not (msg1:byte(1)>>4 == 0x9 or msg1:byte(1)>>4 == 0x8)
-    local SPEC_REMOVE = leave_notes_only == false and msg1:byte(1)>>4 == exclude_msg_byte1 and not exclude_msg_byte2
-    local SPEC_CC_REMOVE = leave_notes_only == false and msg1:byte(1)>>4 == exclude_msg_byte1 and exclude_msg_byte2 and msg1:byte(2) == exclude_msg_byte2 
-    local TIMESEL = timesel_cond == true and ((ppqpos >= area_start and ppqpos <= area_end) or (ppqpos >= area_start2 and ppqpos <= area_end2) )
-    if (ALL_CC_REMOVE or SPEC_REMOVE or SPEC_CC_REMOVE) and (TIMESEL or timesel_cond == false) then msg1 = '' end
-    return msg1
+    if msg1:len() ==3 then 
+      local ALL_CC_REMOVE = leave_notes_only == true and not (msg1:byte(1)>>4 == 0x9 or msg1:byte(1)>>4 == 0x8)
+      local SPEC_REMOVE = leave_notes_only == false and msg1:byte(1)>>4 == exclude_msg_byte1 and not exclude_msg_byte2
+      local SPEC_CC_REMOVE = leave_notes_only == false and msg1:byte(1)>>4 == exclude_msg_byte1 and exclude_msg_byte2 and msg1:byte(2) == exclude_msg_byte2 
+      local TIMESEL = timesel_cond == true and ((ppqpos >= area_start and ppqpos <= area_end) or (ppqpos >= area_start2 and ppqpos <= area_end2) )
+      if (ALL_CC_REMOVE==true or SPEC_REMOVE==true or SPEC_CC_REMOVE==true) and (TIMESEL==true or timesel_cond == false) then msg1 = '' end
+      return msg1
+     else 
+      local SPEC_REMOVE = msg1:byte(1)>>4 == exclude_msg_byte1
+      local TXTEVT = msg1:byte(1) == exclude_msg_byte1 and exclude_msg_byte2 and msg1:byte(2) == exclude_msg_byte2
+      local TIMESEL = timesel_cond == true and ((ppqpos >= area_start and ppqpos <= area_end) or (ppqpos >= area_start2 and ppqpos <= area_end2) )
+      if (TXTEVT==true or SPEC_REMOVE==true) and (TIMESEL or timesel_cond == false) then  msg1 = '' end
+      return msg1 
+    end
   end
   --------------------------------------------------------------------
   function RemoveMIDIdata_take(exclude_msg_byte1, exclude_msg_byte2,leave_notes_only, take, ts_start, ts_end, timesel_cond, item_end)  
