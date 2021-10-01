@@ -718,7 +718,7 @@
     if pshift_mode0 and not timestr_mode0 and not stretchfadesz then 
       for takeidx = 1,  CountTakes( item ) do
         local take =  GetTake( item, takeidx-1 )
-        SetMediaItemTakeInfo_Value( take, 'I_PITCHMODE',pshift_mode0  )
+        if ValidatePtr2( 0, take, 'MediaItem_Take*' ) then SetMediaItemTakeInfo_Value( take, 'I_PITCHMODE',pshift_mode0  ) end
       end
       return
     end
