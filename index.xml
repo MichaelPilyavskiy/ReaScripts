@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="42fa729fa0e9c937bcf7fa151664a4c27d576903" name="MPL Scripts">
+<index version="1" commit="c9e6543c57bef975582ef71cc7c66cf4cb88c2c0" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6359,6 +6359,10 @@ add control for timefall showing last note]]></changelog>
       <version name="1.01" author="MPL" time="2020-05-04T20:23:24Z">
         <changelog><![CDATA[# change name]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fdfdd43b1dd26c368c621ba929ac49dc201b3670/Various/mpl_Adjust%20arrange%20grid%20(mousewheel).lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2021-10-05T20:31:04Z">
+        <changelog><![CDATA[# limit to [1...1/1024]]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c9e6543c57bef975582ef71cc7c66cf4cb88c2c0/Various/mpl_Adjust%20arrange%20grid%20(mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Align takes (without GUI).lua" type="script" desc="Align Takes (without GUI)">
