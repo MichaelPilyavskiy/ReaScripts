@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c9e6543c57bef975582ef71cc7c66cf4cb88c2c0" name="MPL Scripts">
+<index version="1" commit="0127c2a8135b4f1f044356a7ac6c0507fa1dccb6" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1500,6 +1500,15 @@
       <version name="1.0" author="MPL" time="2019-03-05T05:37:44Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/50d88e462832925ddb09d73703313ee3df72d745/FX/mpl_Show%20last%20touched%20FX%20parameter%20info.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Show plugin path for focused FX.lua" type="script" desc="Show plugin path for focused FX">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2021-10-10T19:28:26Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0127c2a8135b4f1f044356a7ac6c0507fa1dccb6/FX/mpl_Show%20plugin%20path%20for%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Sort focused FX presets alphabetically.lua" type="script" desc="Sort focused FX presets alphabetically">
