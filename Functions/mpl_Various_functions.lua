@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 2.58
+-- @version 2.59
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
@@ -14,7 +14,7 @@
 -- @changelog
 --    + VF_GetMediaTrackByGUID
     
-  VF_version = 2.58 -- do not remove, use for versions comparement
+  VF_version = 2.59 -- do not remove, use for versions comparement
   VF_isregist = 0 
   --------------------------------------------------
   function VF_LoadLibraries()
