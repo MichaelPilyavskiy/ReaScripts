@@ -934,7 +934,12 @@
       end))
   end
   ------------------------------------------------------------------------------------------------------  
-  
+  function VF_GetMediaTrackByGUID(optional_proj, GUID)
+    local optional_proj0 = optional_proj or 0
+    for i= 1, CountTracks(optional_proj0) do tr = GetTrack(0,i-1 )if reaper.GetTrackGUID( tr ) == GUID then return tr end end
+    local mast = reaper.GetMasterTrack( optional_proj0 ) if reaper.GetTrackGUID( mast ) == GUID then return mast end
+  end
+  ------------------------------------------------------------------------------------------------------  
   -- MAPPING for backwards compability --
   Open_URL = VF_Open_URL
   Action = VF_Action
