@@ -1,14 +1,15 @@
 -- @description Minimize all tracks envelopes heights
--- @version 1.0
+-- @version 1.01
 -- @author MPL
--- @website http://forum.cockos.com/member.php?u=70694
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init release
+--    # obey master track
 
 
 function main()
-  for sel_tr = 1, reaper.CountTracks(0) do
+  for sel_tr = 0, reaper.CountTracks(0) do
     local track = reaper.GetTrack(0,sel_tr-1)
+    if sel_tr == 0 then track = reaper.GetMasterTrack(0) end
     if track then 
       for i = 1,  reaper.CountTrackEnvelopes( track ) do
         local env = reaper.GetTrackEnvelope( track, i-1 )
