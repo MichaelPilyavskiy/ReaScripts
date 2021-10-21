@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.25
+-- @version 1.26
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT/S1 Import Session Data feature
@@ -10,16 +10,15 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    + Remove track items offset entry in the strategy, add offset as sub menu + flags
---    + Add option for setting offset for tempo envelope
---    + Add option for setting offset for markers and regions
---    + Allow font/GUI scaling
---    # GUI improvements
---    # Rebuild from scratch whole regions/markers import code
+--    + Track import: FX envelopes
+--    + Track import: Option for reset folder structure (ex if importing folders only)
+--    # Set new_track_at_track_list for all selected (in script) tracks as well as current triggered track context
+--    # fix possible wrong FX import
+--    # simplify code around Add new track at the end of tracklist / Replace specific track
 
 
      
-  local vrs = '1.25'
+  local vrs = '1.26'
   --NOT gfx NOT reaper
   
 
@@ -254,7 +253,11 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
         tr_filter = '',
         
         comchunk = 1,
-        fxchain = 0, -- &2 add to chain instead replace
+        fxchain = 0, 
+          --[[  &2 add to chain instead replace
+                &4 clear FX envelopes
+          ]]
+        trenv = 0,
         trparams = 0, 
           --[[  &2 vol
                 &4 pan stuff

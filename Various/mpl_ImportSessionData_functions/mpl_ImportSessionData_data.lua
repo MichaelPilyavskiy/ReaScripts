@@ -224,12 +224,13 @@
         if tr_col == 16576 then tr_col = nil end
         local obj_type = ''
         if ch_str:match('<TRACK') then 
+          local I_FOLDERDEPTH = ISBUS_t[2]
           obj_type = 'track'
           data.tr_chunks[#data.tr_chunks+1] = {chunk = ch_str,
                               tr_name = tr_name,
                               tr_col=tr_col,
                               dest = '',
-                              I_FOLDERDEPTH=ISBUS_t[2],
+                              I_FOLDERDEPTH=I_FOLDERDEPTH,
                               obj_type=obj_type,
                               AUXRECV=AUXRECV}
          end                     
@@ -241,7 +242,6 @@
         end                                 
       end
     end
-    
     
     data.hasRPPdata = true
     refresh.GUI = true
@@ -285,7 +285,7 @@
     new_chunk = new_chunk:gsub('TRACK[%s]+.-\n', 'TRACK '..gGUID..'\n')
     new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
     SetTrackStateChunk( new_tr, new_chunk, false )
-    gGUID = GetTrackGUID( new_tr )
+    --[[gGUID = GetTrackGUID( new_tr )
     data.tr_chunks[i].destGUID = gGUID
     
     if strategy.tritems&1==0 then -- remove dest tr items
@@ -297,16 +297,55 @@
     local it_t = {}
     for itemidx = CountTrackMediaItems( new_tr ), 1, -1 do it_t[#it_t+1] = GetTrackMediaItem( new_tr, itemidx-1 )  end
     for i = 1, #it_t do Data_ImportTracks_AppStr_ItOffs(strategy,it_t[i]) end
-    
-    
+    ]]
     return new_tr
   end
   --------------------------------------------------------------------  
   function Data_ImportTracks(conf, obj, data, refresh, mouse, strategy) 
+    local folder_level = 0
+    local last_folder_level = 0
+    local dest_tr
+    local last_dest_tr
     for i = 1, #data.tr_chunks do
     
-      if data.tr_chunks[i].dest == -1 then  -- end of track list
-        Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy)
+      -- add new track to the end of track list
+      -- if has spec dest track - port params to this track
+      -- if has spec dest track - remove at the end of track list
+      
+      if data.tr_chunks[i].dest == -1 then -- at the end
+        dest_tr = Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy)
+        --Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, new_tr, new_tr) 
+        data.tr_chunks[i].destGUID =  GetTrackGUID( dest_tr )
+        if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&256 == 256) then  
+          folder_level = reaper.GetMediaTrackInfo_Value( dest_tr, 'I_FOLDERDEPTH'  ) 
+          msg(folder_level)
+          msg(last_folder_level)
+          --if last_dest_tr then msg('last_dest_tr')
+          msg('=')
+          if folder_level == 1 and last_folder_level == 1 and last_dest_tr then 
+            
+            SetMediaTrackInfo_Value( last_dest_tr, 'I_FOLDERDEPTH', 0  ) 
+          end 
+        end 
+      end
+      if type(data.tr_chunks[i].dest) == 'string' and data.tr_chunks[i].dest ~= '' then
+        local new_tr = Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy)
+        dest_tr = VF_GetTrackByGUID(data.tr_chunks[i].dest)
+        if dest_tr then  
+          Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, new_tr, dest_tr) 
+          data.tr_chunks[i].destGUID =  GetTrackGUID( dest_tr )
+          DeleteTrack( new_tr )
+          
+          if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&256 == 256) then  folder_level = reaper.GetMediaTrackInfo_Value( dest_tr, 'I_FOLDERDEPTH'  ) if folder_level == 1 and last_folder_level == 1 and last_dest_tr then SetMediaTrackInfo_Value( last_dest_tr, 'I_FOLDERDEPTH', 0  ) end end 
+          
+        end
+      end
+      last_dest_tr = dest_tr
+      last_folder_level =  folder_level
+     --[[ if data.tr_chunks[i].dest == -1 then  -- end of track list
+        --Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy)
+        local new_tr = Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy)
+        Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, new_tr, new_tr) 
       elseif type(data.tr_chunks[i].dest) == 'string' and data.tr_chunks[i].dest ~= '' then  -- to specific track
         local dest_tr = VF_GetTrackByGUID(data.tr_chunks[i].dest)
         if dest_tr then 
@@ -331,9 +370,10 @@
         end
        elseif data.tr_chunks[i].dest == -2 then
         
-      end   
+      end   ]]
           
     end   
+    
     Data_ImportTracks_Send(conf, obj, data, refresh, mouse, strategy) 
     if strategy.tritems&8==8 then Action(40047) end -- Peaks: Build any missing peaks
   end
@@ -768,58 +808,93 @@
     end   
   end
   -------------------------------------------------------------------- 
+  function Data_ImportTracks_AppStr_FXEnvelope(strategy, src_tr, dest_tr, src_fx, dest_fx)
+    if strategy.fxchain&4 ~= 4 then return end
+    for envidx = 1, reaper.CountTrackEnvelopes( src_tr ) do
+      local env = reaper.GetTrackEnvelope( src_tr, envidx-1 )
+      local retval, fxindex, paramindex = reaper.Envelope_GetParentTrack( env )   
+      if fxindex == src_fx then
+        local retval, chunk = reaper.GetEnvelopeStateChunk( env, '', false )
+        local dest_env = reaper.GetFXEnvelope( dest_tr, dest_fx, paramindex, true )
+        if dest_env then  reaper.SetEnvelopeStateChunk( dest_env, chunk, false ) end
+      end
+    end
+  end
+  -------------------------------------------------------------------- 
+  function Data_ImportTracks_AppStr_FX(strategy, src_tr, dest_tr)
+    local dest_cnt = TrackFX_GetCount( dest_tr )
+    if strategy.fxchain&2 == 0 then  
+      for dest_fx = dest_cnt, 1, -1 do   TrackFX_Delete( dest_tr, dest_fx-1 )  end 
+      dest_cnt = 0
+    end
+    for src_fx = 1, TrackFX_GetCount( src_tr ) do 
+      TrackFX_CopyToTrack( src_tr, src_fx-1, dest_tr, dest_cnt + src_fx-1, false ) 
+      Data_ImportTracks_AppStr_FXEnvelope(strategy, src_tr, dest_tr, src_fx-1, dest_cnt + src_fx-1)
+    end
+    
+    --[[ track envelopes
+      if strategy.trenv&1 == 1 then     
+    end end]]
+    
+  end
+  -------------------------------------------------------------------- 
   function Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, src_tr, dest_tr)
     -- complete
     if strategy.comchunk == 1 then
       -- get stuff from track
       local retval, outchunk = reaper.GetTrackStateChunk( src_tr, '', false )
-      -- set needed stuff
+      local gGUID = genGuid('' ) 
+      outchunk = outchunk:gsub('TRACK .-\n', 'TRACK '..gGUID..'\n')
+      outchunk = outchunk:gsub('AUXRECV .-\n', '\n')
       SetTrackStateChunk( dest_tr, outchunk, false )
       return
     end
     
     -- track chain
-    if strategy.fxchain&1 == 1 then
-      local dest_cnt = TrackFX_GetCount( dest_tr )
-      if strategy.fxchain&2 == 0 then  for dest_fx = dest_cnt, 1, -1 do  TrackFX_Delete( dest_tr, dest_fx-1 ) end end
-      for src_fx = 1, TrackFX_GetCount( src_tr ) do TrackFX_CopyToTrack( src_tr, src_fx-1, dest_tr, dest_cnt + src_fx, false ) end
-    end
-
+      if strategy.fxchain&1 == 1 then Data_ImportTracks_AppStr_FX(strategy, src_tr, dest_tr) end          
+      
     -- track properties
-    if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&2 == 2) then
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_VOL')
-    end    
-    if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&4 == 4) then
-      --if ValidatePtr2( 0, src_tr, 'MediaTrack*' ) and ValidatePtr2( 0, dest_tr, 'MediaTrack*' ) then msg(1) end
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_PAN')
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_WIDTH')
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_DUALPANL')
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_DUALPANR')
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_PANMODE')
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_PANLAW')
-    end  
-    if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&8 == 8) then 
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'B_PHASE')   
-    end  
-    if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&16 == 16) then  
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_RECINPUT')
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_RECMODE') 
-    end 
-    if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&32 == 32) then    
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_RECMON')
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_RECMONITEMS')
-    end 
-    if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&64 == 64) then    
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'B_MAINSEND')
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'C_MAINSEND_OFFS')
-    end     
-    if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&128 == 128) then  
-      Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_CUSTOMCOLOR')
-    end     
+      if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&2 == 2) then
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_VOL')
+      end    
+      if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&4 == 4) then
+        --if ValidatePtr2( 0, src_tr, 'MediaTrack*' ) and ValidatePtr2( 0, dest_tr, 'MediaTrack*' ) then msg(1) end
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_PAN')
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_WIDTH')
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_DUALPANL')
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_DUALPANR')
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_PANMODE')
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'D_PANLAW')
+      end  
+      if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&8 == 8) then 
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'B_PHASE')   
+      end  
+      if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&16 == 16) then  
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_RECINPUT')
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_RECMODE') 
+      end 
+      if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&32 == 32) then    
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_RECMON')
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_RECMONITEMS')
+      end 
+      if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&64 == 64) then    
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'B_MAINSEND')
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'C_MAINSEND_OFFS')
+      end     
+      if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&128 == 128) then  
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_CUSTOMCOLOR')
+      end     
+      
     -- tr items
-    if strategy.tritems&1 == 1 then    
-      Data_ImportTracks_AppStr_It(data, src_tr, dest_tr, strategy)
-    end    
+      if strategy.tritems&1==0 then -- remove dest tr items
+        for itemidx = CountTrackMediaItems( new_tr ), 1, -1 do 
+          local item = GetTrackMediaItem( new_tr, itemidx-1 )
+          DeleteTrackMediaItem(  new_tr, item) 
+        end
+      end 
+      if strategy.tritems&1 == 1 then    
+        Data_ImportTracks_AppStr_It(data, src_tr, dest_tr, strategy)
+      end    
        
   end
   

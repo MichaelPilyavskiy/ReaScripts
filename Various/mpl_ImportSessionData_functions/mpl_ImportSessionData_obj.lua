@@ -426,6 +426,7 @@
                             { str = 'New track at the end of tracklist',
                               func =  function() 
                                         data.tr_chunks[i].dest = -1
+                                        for i = 1, #data.tr_chunks do if data.tr_chunks[i].selected then data.tr_chunks[i].dest = -1  end end   -- for selected tracks
                                       end
                             },      
                              
@@ -686,7 +687,17 @@
                                       strategy.comchunk = 0
                                       strategy.fxchain = BinaryToggle(strategy.fxchain, 1)
                                     end,             
-                          } ,                                                      
+                          } ,   
+                          { name = 'FX envelopes',
+                            state = strategy.fxchain&4==4,
+                            show = strategy.comchunk&1==0 and strategy.fxchain&1==1,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.fxchain = BinaryToggle(strategy.fxchain, 2)
+                                    end,             
+                          } ,                            
                           { name = 'Track Properties (LMB to all, RMB to none)',
                             state = strategy.trparams&1==1,
                             show = strategy.comchunk&1==0,
@@ -777,7 +788,18 @@
                                       strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
                                       strategy.trparams = BinaryToggle(strategy.trparams, 7)
                                     end,             
-                          } ,                                                    
+                          } ,   
+                          { name = 'Reset structure for single folders',
+                            state = strategy.trparams&256==256,
+                            show = strategy.trparams&1==0 and strategy.comchunk&1==0,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 8)
+                                    end,             
+                          } ,                           
                           { name = 'Track Items RAW data',
                             state = strategy.tritems&1==1,
                             show = strategy.comchunk&1==0,
