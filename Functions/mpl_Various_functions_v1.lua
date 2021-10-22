@@ -39,16 +39,17 @@
   end
   ---------------------------------------------------
   function VF_GetFXByGUID(GUID, tr)
+    local pat = '[%p]+'
     if not tr then
       for trid = 1, CountTracks(0) do
         local tr = GetTrack(0,trid-1)
         for fx_id =1, TrackFX_GetCount( tr ) do
-          if TrackFX_GetFXGUID( tr, fx_id-1):gsub('%p+','') == GUID:gsub('%p+','') then return true, tr, fx_id-1 end
+          if TrackFX_GetFXGUID( tr, fx_id-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx_id-1 end
         end
       end  
      else
       for fx_id =1, TrackFX_GetCount( tr ) do
-        if TrackFX_GetFXGUID( tr, fx_id-1):gsub('%p+','') == GUID:gsub('%p+','') then return true, tr, fx_id-1 end
+        if TrackFX_GetFXGUID( tr, fx_id-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx_id-1 end
       end
     end    
   end
