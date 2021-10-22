@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0a506fe74a2ca06dd1b9e260dabcf5e51b06fbea" name="MPL Scripts">
+<index version="1" commit="eb93a079a0bb149345e6aad76c27014fd5672ade" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -601,6 +601,17 @@
         <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9ad1bf43c8c48cecc9955969c1d2fa7afeb30745/Functions/mpl_Various_functions_Purchase.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9ad1bf43c8c48cecc9955969c1d2fa7afeb30745/Functions/mpl_Various_functions_Pers.lua</source>
         <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9ad1bf43c8c48cecc9955969c1d2fa7afeb30745/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
+      </version>
+      <version name="2.60" author="MPL" time="2021-10-22T18:26:32Z">
+        <changelog><![CDATA[+ VF2_CycleGrid]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb93a079a0bb149345e6aad76c27014fd5672ade/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb93a079a0bb149345e6aad76c27014fd5672ade/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v2.bin">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb93a079a0bb149345e6aad76c27014fd5672ade/Functions/mpl_Various_functions_v2.bin</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb93a079a0bb149345e6aad76c27014fd5672ade/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb93a079a0bb149345e6aad76c27014fd5672ade/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb93a079a0bb149345e6aad76c27014fd5672ade/Functions/mpl_Various_functions_Purchase.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb93a079a0bb149345e6aad76c27014fd5672ade/Functions/mpl_Various_functions_Pers.lua</source>
+        <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb93a079a0bb149345e6aad76c27014fd5672ade/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
       </version>
     </reapack>
   </category>
@@ -6559,6 +6570,15 @@ add control for timefall showing last note]]></changelog>
       <version name="1.06" author="MPL" time="2018-05-21T18:58:21Z">
         <changelog><![CDATA[# fix msg vsr]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad32074bac41bbe3d1affb23532b5b8e13c443f3/Various/mpl_Create%20layer%20track%20from%20selected%20instruments%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Cycle grid values (mousewheel).lua" type="script" desc="Cycle grid values (mousewheel)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2021-10-22T18:26:32Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb93a079a0bb149345e6aad76c27014fd5672ade/Various/mpl_Cycle%20grid%20values%20(mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Delete non-existing scripts from ActionList.lua" type="script" desc="Delete non-existing scripts from Action List">
