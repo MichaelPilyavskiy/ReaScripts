@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="d791e858775ba0e495df92ce602694b022355f63" name="MPL Scripts">
+<index version="1" commit="d7f2448269c9c58e8435c380f3d22ea4a8f60bb9" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -612,6 +612,17 @@
         <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb93a079a0bb149345e6aad76c27014fd5672ade/Functions/mpl_Various_functions_Purchase.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb93a079a0bb149345e6aad76c27014fd5672ade/Functions/mpl_Various_functions_Pers.lua</source>
         <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb93a079a0bb149345e6aad76c27014fd5672ade/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
+      </version>
+      <version name="2.61" author="MPL" time="2021-10-24T10:08:07Z">
+        <changelog><![CDATA[+ VF2_CycleGridME]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7f2448269c9c58e8435c380f3d22ea4a8f60bb9/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7f2448269c9c58e8435c380f3d22ea4a8f60bb9/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v2.bin">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7f2448269c9c58e8435c380f3d22ea4a8f60bb9/Functions/mpl_Various_functions_v2.bin</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7f2448269c9c58e8435c380f3d22ea4a8f60bb9/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7f2448269c9c58e8435c380f3d22ea4a8f60bb9/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7f2448269c9c58e8435c380f3d22ea4a8f60bb9/Functions/mpl_Various_functions_Purchase.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7f2448269c9c58e8435c380f3d22ea4a8f60bb9/Functions/mpl_Various_functions_Pers.lua</source>
+        <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7f2448269c9c58e8435c380f3d22ea4a8f60bb9/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
       </version>
     </reapack>
   </category>
