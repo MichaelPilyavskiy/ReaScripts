@@ -1,10 +1,10 @@
 -- @description Dump Retrospective Record log
--- @version 1.0
+-- @version 1.01
 -- @author MPL, Justin
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @about Dump MIDI messages log from RetrospectiveRecord_tracker JSFX as new item on selected track placed at edit cursor
+-- @about Dump recent MIDI messages log
 -- @changelog 
---    + init
+--    # fix description, remove VF dependency
 
 
   function DumpRetrospectiveLog_CollectEvents()
@@ -89,14 +89,5 @@
       reaper.UpdateArrange()
   end
   
----------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
---------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_CalibrateFont') 
-  local ret2 = VF_CheckReaperVrs(6.39,true)    
-  if ret and ret2 then 
-    DumpRetrospectiveLog() 
-  end
-  
-  
+  if tonumber(reaper.GetAppVersion():match('[%d%.]+')) >= 6.39 then DumpRetrospectiveLog() end
   
