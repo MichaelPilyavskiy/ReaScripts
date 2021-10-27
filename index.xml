@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3082be47d60be04bfaf4fc784d2bd959192bd306" name="MPL Scripts">
+<index version="1" commit="04403004b187d0704315e6567428127ccaeb5b47" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6636,7 +6636,7 @@ add control for timefall showing last note]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Dump MIDI messages log from RetrospectiveRecord_tracker JSFX as new item on selected track placed at edit cursor\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Dump recent MIDI messages log\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -6644,6 +6644,10 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL, Justin" time="2021-10-27T21:27:49Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3082be47d60be04bfaf4fc784d2bd959192bd306/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+      </version>
+      <version name="1.01" author="MPL, Justin" time="2021-10-27T21:40:27Z">
+        <changelog><![CDATA[# fix description, remove VF dependency]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/04403004b187d0704315e6567428127ccaeb5b47/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Implode mono track session to stereo items relative to LR at the trackname end.lua" type="script" desc="Implode mono track session to stereo items relative to LR at the trackname end">
