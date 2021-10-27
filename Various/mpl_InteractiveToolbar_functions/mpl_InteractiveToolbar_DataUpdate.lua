@@ -237,6 +237,24 @@
     
     ::skip_context_selector::
     data.last_fsel_tr = data.fsel_tr
+    
+    -- custom naming
+      local cmap_str = conf.customname_map
+       cmap ={}
+      for block in cmap_str:gmatch('"(.-)"') do
+        local key,val = block:match('(.-)=(.*)')
+        if key and val then cmap[key] = val end
+      end
+      if obj.b then
+        for key in pairs(obj.b) do
+          if obj.b[key] and obj.b[key] then
+            local txt = obj.b[key].txt
+            if cmap[txt] then 
+              obj.b[key].txt=cmap[txt]
+            end 
+          end
+        end
+      end
     --[[ force_track_context engine
       local window, segment, details = BR_GetMouseCursorContext()
       data.fsel_tr = GetSelectedTrack(0,0)

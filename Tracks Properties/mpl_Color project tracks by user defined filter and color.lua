@@ -1,9 +1,9 @@
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @description Color project tracks by user defined filter and color
 -- @website http://forum.cockos.com/member.php?u=70694  
 -- @changelog
---   + add voc
+--   + add guit, keys, fx
 
 function SetFolderColor(tr)
   _, tr_name =  reaper.GetSetMediaTrackInfo_String( tr, 'P_NAME', '', 0 )
@@ -50,12 +50,29 @@ function SetFolderColor(tr)
               r = 50,
               g = 30,
               b = 30
-              }                          
+              } ,
+        [8] = {
+              cat = 'guit', 
+              r = 50,
+              g = 40,
+              b = 60
+              }  ,
+        [9] = {
+              cat = 'keys', 
+              r = 200,
+              g = 255,
+              b = 200
+              }    ,
+        [9] = {
+              cat = 'fx', 
+              r = 100,
+              g = 250,
+              b = 200
+              }                
       }
   
   for i = 1, #t do
-    if tr_name:lower():find(t[i].cat) 
-      and  reaper.GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' ) == 1 then 
+    if tr_name:lower():find(t[i].cat) and  reaper.GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH' ) == 1 then 
        reaper.SetTrackSelected( tr, true )
        reaper.SetTrackColor( tr,  reaper.ColorToNative( t[i].r, t[i].g, t[i].b ) )
        reaper.Main_OnCommand(  reaper.NamedCommandLookup( '_SWS_COLCHILDREN' ), 0 ) -- set col childs

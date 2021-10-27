@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.15
+-- @version 2.16
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,11 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Menu/Context/MIDI editor: allow always force ME context when selecting MIDI take
+--    + Persist / #timeselLeftEdge, edit description for #timeselstart
+--    + Menu / Context and Widgets configuration: Allow custom widget name mapping
+--    # remove donate link
 
-    local vrs = '2.15'
+    local vrs = '2.16'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -41,12 +43,12 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-   data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
+  local data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title,
           masterdata = {ptr =  GetMasterTrack(reaper.EnumProjects(-1))}}
    
-   mouse = {}
+  local mouse = {}
   local obj = {}
   local  widgets = {    -- map types to data.obj_type_int order
               types_t ={'EmptyItem',
@@ -97,7 +99,7 @@ buttons=#polarity #parentsend #midiin #audioin
 [MIDIEditor]
 order=#position #notelen #CCval #notepitch #notevel #midichan
 [Persist]
-order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport #bpm #clock #tap #master 
+order=#swing #grid #timesellen #timeselend #timeselstart #timeselLeftEdge #lasttouchfx #transport #bpm #clock #tap #master 
 ]]
   end  
   ---------------------------------------------------
@@ -157,7 +159,9 @@ order=#swing #grid #timesellen #timeselend #timeselstart #lasttouchfx #transport
             actiononchangecontext_track = '',
             actiononchangecontext_env = '',
             actiononchangecontext_ME = '',
-            actiononchangecontext_no = ''
+            actiononchangecontext_no = '',
+            
+            customname_map = '"TimeSelLEdge=TS L Edge" "TimeSelEnd=TS End" "TimeSelLen=TS Len" "TimeSelStart=TS Pos"',
             }
             
   end

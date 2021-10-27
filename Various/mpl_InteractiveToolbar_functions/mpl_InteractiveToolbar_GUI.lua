@@ -624,8 +624,9 @@ msg(
           #grid show current grid, allow to change grid lines visibility and relative snap
           #swing show current swing value, 'SWING' text is a toggle
           #timeselend editing time selection end
-          #timeselstart editing time selection start
+          #timeselstart editing time selection start, preserve length
           #timesellen editing time selection length
+          #timeselLeftEdge editing time selection start
           #lasttouchfx editing last touched FX parameter
           #transport show/editing current play state, RightClick - pause, LeftClick - stop/revert to start position, Cltr+Left - record
           #bpm shows/edit tempo and time signature for project (or tempo marker falling at edit cursor if any)
@@ -635,9 +636,7 @@ msg(
  ]] )  
                  
                         end   
-                }  ,                
-                { str = 'Donate to MPL',
-                  func = function() F_open_URL('http://www.paypal.me/donate2mpl') end }  ,
+                }  ,
                 { str = 'Cockos Forum thread|',
                   func = function() F_open_URL('http://forum.cockos.com/showthread.php?t=203393') end  } , 
                   
@@ -1087,7 +1086,7 @@ msg(
                   
                   
                   
-                {str = '|>Global Configuration'},
+                {str = '|>Context and widgets configuration'},
                 { str = 'Enable all contexts + persistent widgets',          
                   func =function() 
                           conf.ignore_context = 0
@@ -1101,7 +1100,25 @@ msg(
                           Menu_IgnoreContext(conf, 7, 0)  -- tr
                           Menu_IgnoreContext(conf, 8, 0)  -- midi
                           Menu_IgnoreContext(conf, 9, 0)  -- persist
-                        end} ,              
+                        end} ,   
+                        
+                { str = '|Edit custom name mapping',          
+                  func =function() 
+                          local ret, str = GetUserInputs( conf.scr_title, 1, 'Custom name mapping,extrawidth=400', conf.customname_map)
+                          if ret  then 
+                            conf.customname_map = str
+                            ExtState_Save(conf) 
+                            redraw = 2 
+                          end
+                        end} ,                  
+                { str = 'Clear custom name mapping',          
+                  func =function() 
+                          conf.customname_map = ''
+                          ExtState_Save(conf) 
+                          redraw = 2 
+                        end} , 
+                        
+                        
                 {str = '|Reset all widgets order to default',
                  func = function()  
                           local ret = MB('Are you sure you want to reset widget configuration of MPL InteractiveToolbar?',  'MPL InteractiveToolbar', 4)
@@ -1113,7 +1130,12 @@ msg(
                         end
                             }  ,                               
                 {str = 'Edit widget order manually|<|',
-                 func = function()  F_open_URL('"" "'..data.conf_path..'"') end}  ,                            
+                 func = function()  F_open_URL('"" "'..data.conf_path..'"') end}  ,   
+                 
+                 
+                 
+                 
+                 
                 {str = 'Dock MPL InteractiveToolbar',
                                  func = function() 
                                           if conf.dock > 0 then conf.dock = 0 else 

@@ -535,6 +535,73 @@
   -------------------------------------------------------------- 
   
   
+  --------------------------------------------------------------
+  function Widgets_Persist_timeselLeftEdge(data, obj, mouse, x_margin, widgets, conf, y_offs)    -- generate position controls 
+    obj.b.obj_tsledge = { persist_buf = true,
+                        x = x_margin-obj.entry_w2,
+                        y = obj.offs ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_header,
+                        txt = 'TimeSelLEdge'} 
+    obj.b.obj_tsledge_back = { persist_buf = true,
+                        x =  x_margin-obj.entry_w2,
+                        y = obj.offs *2 +obj.entry_h ,
+                        w = obj.entry_w2,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        txt = '',
+                        ignore_mouse = true}  
+      if conf.dock_orientation == 1 then
+        obj.b.obj_tsledge.x= 0
+        obj.b.obj_tsledge.y = y_offs-obj.entry_h
+        obj.b.obj_tsledge.w = obj.entry_w2/2
+        obj.b.obj_tsledge_back.x= obj.entry_w2/2
+        obj.b.obj_tsledge_back.y = y_offs-obj.entry_h
+        obj.b.obj_tsledge_back.w = obj.entry_w2/2
+        obj.b.obj_tsledge_back.frame_a = obj.frame_a_head
+      end                          
+                        
+      local TSpos_str =  data.timeselectionstart_format
+
+      Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+                        t = MPL_GetTableOfCtrlValues(TSpos_str), 
+                        table_key='tsledge_position_ctrl',
+                        x_offs= obj.b.obj_tsledge_back.x,  
+                        y_offs= obj.b.obj_tsledge_back.y,  
+                        w_com=obj.b.obj_tsledge_back.w,
+                        src_val=data.timeselectionstart,
+                        src_val_key= '',
+                        modify_func= MPL_ModifyTimeVal,
+                        app_func= Apply_TimeselSt2,                         
+                        mouse_scale= obj.mouse_scal_time,
+                        use_mouse_drag_xAxis = data.always_use_x_axis==1,
+                        persist_buf = true})                         
+    return obj.entry_w2
+  end  
+  function Apply_TimeselSt2(data, obj, out_value, butkey, out_str_toparse, mouse)
+    if not out_str_toparse then  
+      local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )
+      local nudge = startOut - math.max(0,out_value)  
+      GetSet_LoopTimeRange2( 0, true, true, math.max(0,out_value), endOut, false )
+      Main_OnCommand(40749,0) -- Options: Set loop points linked to time selection
+      local new_str = format_timestr_pos( math.max(0,out_value), '', data.timiselwidgetsformatoverride ) 
+      local new_str_t = MPL_GetTableOfCtrlValues(new_str)
+      for i = 1, #new_str_t do
+        obj.b[butkey..i].txt = new_str_t[i]
+      end
+     else
+      -- nudge values from first item
+      local out_val = parse_timestr_pos(out_str_toparse,data.timiselwidgetsformatoverride) 
+      local startOut, endOut = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false )  
+      local nudge = startOut - math.max(0,out_val) 
+      GetSet_LoopTimeRange2( 0, true, true, math.max(0,out_val), endOut, false )
+      redraw = 2   
+    end
+  end  
+  -------------------------------------------------------------- 
   
   function V_Widgets_Persist_transport(data, obj, mouse, x_margin, widgets, conf, y_offs)
     local rep_w = 40
