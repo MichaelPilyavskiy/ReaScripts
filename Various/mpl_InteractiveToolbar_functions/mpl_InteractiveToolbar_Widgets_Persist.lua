@@ -1202,8 +1202,63 @@
       end                                 
     return clock_w   , obj.entry_h*2
   end
-  
 
+  ------------------------------------------------------------------------  
+  function Widgets_Persist_mastermeter(data, obj, mouse, x_margin, widgets, conf, y_offs)
+    local mastermeter_w = 110*conf.scaling
+    local frame_a = 0
+    obj.b.obj_pers_mastermeter_back1 = {persist_buf = true,
+                        x = x_margin - mastermeter_w,
+                        y = obj.offs ,
+                        w = mastermeter_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}
+    obj.b.obj_pers_mastermeter_back2 = {persist_buf = true,
+                        x = x_margin - mastermeter_w,
+                        y = obj.offs+obj.entry_h ,
+                        w = mastermeter_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}  
+    obj.b.obj_pers_mastermeter = { outside_buf = true,
+                        x = x_margin - mastermeter_w,
+                        y = obj.offs ,
+                        w = mastermeter_w,
+                        h = obj.entry_h*2,
+                        frame_a = 0,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock,
+                        txt =data.masterdata.rmsR -- SEE GUI_Main
+                        }
+      if conf.dock_orientation == 1 then
+        obj.b.obj_pers_mastermeter_back1.persist_buf = nil
+        obj.b.obj_pers_mastermeter_back1.x= 0
+        obj.b.obj_pers_mastermeter_back1.y = y_offs-obj.entry_h*2
+        obj.b.obj_pers_mastermeter_back1.w = obj.entry_w2
+        obj.b.obj_pers_mastermeter_back1.h = obj.entry_h
+        obj.b.obj_pers_mastermeter_back2.x= 0
+        obj.b.obj_pers_mastermeter_back2.y = y_offs-obj.entry_h
+        obj.b.obj_pers_mastermeter_back2.w = obj.entry_w2
+        obj.b.obj_pers_mastermeter_back2.frame_a = obj.frame_a_entry   
+        
+        obj.b.obj_pers_mastermeter.x= 0
+        obj.b.obj_pers_mastermeter.y = y_offs-obj.entry_h*2
+        obj.b.obj_pers_mastermeter.w = obj.entry_w2
+        obj.b.obj_pers_mastermeter.h = obj.entry_h*2        
+          
+      end                                 
+    return mastermeter_w   , obj.entry_h*2
+  end
+  
 
 
 

@@ -26,6 +26,9 @@
     end
     data.masterdata.peakL[#data.masterdata.peakL] = 0 
     data.masterdata.peakR[#data.masterdata.peakL] = 0 
+    
+    data.masterdata.rmsL =  WDL_VAL2DB(reaper.Track_GetPeakInfo( reaper.GetMasterTrack(0), 1024 ), true)..'dB'
+    data.masterdata.rmsR =  WDL_VAL2DB(reaper.Track_GetPeakInfo( reaper.GetMasterTrack(0), 1025 ), true)..'dB'
   end
   ---------------------------------------------------
   function DataUpdate(data, mouse, widgets, obj, conf)
@@ -497,8 +500,6 @@
     local obj_type, first_selected, env_hasselpoint
     local cnt_selected_pts = 0
     
-    --reaper.ScaleFromEnvelopeMode( scaling_mode, val )
-    --reaper.ScaleToEnvelopeMode( scaling_mode, val )
     local scaling_mode = GetEnvelopeScalingMode( env )
     
     for i = 1, CountEnvelopePoints( env ) do      
@@ -530,28 +531,12 @@
            data.obj_type = 'Envelope'
         end
       end
-      --[[if selected then 
-        if env_hasselpoint and env_hasselpoint == 1 and not env_hasselpoint == 2 then 
-          env_hasselpoint = 2 
-        end
-        env_hasselpoint = 1        
-      end]]
     end
+    --[[
+    for autoitem_idx = 1,  reaper.CountAutomationItems( env ) do
+      reaper.GetSetAutomationItemInfo( env, autoitem_idx-1, desc, value, is_set )
+    end]]
     
-    
-    
-    -- reaper.CountAutomationItems( env ) 
-       
-    --[[if env_hasselpoint == 1 then 
-      data.obj_type = 'Envelope point'
-      data.obj_type_int = 4  
-     elseif env_hasselpoint == 2 then
-      data.obj_type = 'Envelope points'
-      data.obj_type_int = 5   
-     else
-      data.obj_type_int = 6
-      data.obj_type = 'Envelope'
-    end  ]]  
     return true
   end  
   -------------------------------------------------

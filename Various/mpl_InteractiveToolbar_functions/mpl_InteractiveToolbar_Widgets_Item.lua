@@ -1319,8 +1319,8 @@
   end  
   
   function Apply_ItemCol(data, conf)
-    if conf.use_aironCS_item == 1 then 
-      Action('_RSf336b8010869358bff1b619168ff2216ea2fb64b')
+    if conf.use_custom_color_editor ~= '' then  
+      Action(conf.use_custom_color_editor)
      else
       local retval, colorOut = GR_SelectColor( '' )
       if retval == 0 then return end

@@ -534,11 +534,13 @@ b=0;]]
       
       if data.play then 
         if obj.b.obj_pers_clock then obj.b.obj_pers_clock.txt = data.playcur_pos_format end
+        if obj.b.obj_pers_mastermeter then obj.b.obj_pers_mastermeter.txt = data.masterdata.rmsR end
        else
         if obj.b.obj_pers_clock then obj.b.obj_pers_clock.txt = data.editcur_pos_format end
       end
       GUI_DrawObj(obj.b.obj_pers_clock, obj, conf)
       GUI_DrawObj(obj.b.obj_pers_master, obj, conf)
+      GUI_DrawObj(obj.b.obj_pers_mastermeter, obj, conf)
                                         
     --[[ draw vrs
       gfx.x, gfx.y = gfx.w-150,0
@@ -633,6 +635,7 @@ msg(
           #clock shows play/edit cursor positions
           #tap Get a tempo from tap, allow to distribute that info in different ways. RightClick reset taps data and force current tempo to convertion chart. Shift click for entering new value.     
           #master Shows master track peaks
+          #mastermeter Show master RMS/LUFS
  ]] )  
                  
                         end   
@@ -826,10 +829,10 @@ msg(
                             end
                           end} ,                   
                 { str = '>Item: All '}, 
-                { str = '# #color'},
+                --[[{ str = '# #color'},
                 { str = 'Use ReaPack/Airon_Colour Swatch.lua|',
                   state = conf.use_aironCS_item==1,
-                  func = function() conf.use_aironCS_item = math.abs(1-conf.use_aironCS_item) ExtState_Save(conf) redraw = 2 end }  ,                                
+                  func = function() conf.use_aironCS_item = math.abs(1-conf.use_aironCS_item) ExtState_Save(conf) redraw = 2 end }  ,    ]]    --deprecated at 2.17                         
                 { str = '# #lenght'},                  
                 { str = 'Edit length relatively on typing edits|',    
                   state = conf.relative_it_len==1,              
@@ -901,10 +904,10 @@ msg(
                   func = function() Menu_ChangeOrder(widgets, data, conf, 6 ) end} , 
                   
                 { str = '>Track'},
-                { str = '# #color'},
+                --[[{ str = '# #color'},
                 { str = 'Use ReaPack/Airon_Colour Swatch.lua|',
                   state = conf.use_aironCS==1,
-                  func = function() conf.use_aironCS = math.abs(1-conf.use_aironCS) ExtState_Save(conf) redraw = 2 end }  , 
+                  func = function() conf.use_aironCS = math.abs(1-conf.use_aironCS) ExtState_Save(conf) redraw = 2 end }  , ]]  --deprecated at 2.17    
                 { str = '# #vol'},                  
                 { str = 'Use big knob in vertical mode|',
                   state = conf.trackvol_slider==1,
@@ -1101,7 +1104,15 @@ msg(
                           Menu_IgnoreContext(conf, 8, 0)  -- midi
                           Menu_IgnoreContext(conf, 9, 0)  -- persist
                         end} ,   
-                        
+                { str = '|Use custom color change tool',          
+                  func =function() 
+                          local ret, str = GetUserInputs( conf.scr_title, 1, 'Script ID (from action list),extrawidth=400', conf.use_custom_color_editor)
+                          if ret  then 
+                            conf.use_custom_color_editor = str
+                            ExtState_Save(conf) 
+                            redraw = 2 
+                          end
+                        end} ,                         
                 { str = '|Edit custom name mapping',          
                   func =function() 
                           local ret, str = GetUserInputs( conf.scr_title, 1, 'Custom name mapping,extrawidth=400', conf.customname_map)
