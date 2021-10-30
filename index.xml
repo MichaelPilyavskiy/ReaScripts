@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3ccd2c7fb600cee6fd7d6f634fc62a9325fbd927" name="MPL Scripts">
+<index version="1" commit="7922e1c9c44dfcde78145fe08df62f1f0b3b2916" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6559,27 +6559,6 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[+ G key to get takes
 + Left/Right arrow to set strength of alignment]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aa5803522702111eadd076d4734a2f97cfbf6ad2/Various/mpl_Align%20takes.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Cacophony.lua" type="script" desc="Cacophony">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Script is designed to play MPL Cacophony. Track is actually 4 tracks diffusing each other on rhythmic, melodic and design levels.\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2021-10-30T06:18:45Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ccd2c7fb600cee6fd7d6f634fc62a9325fbd927/Various/mpl_Cacophony.lua</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 1.mp3">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ccd2c7fb600cee6fd7d6f634fc62a9325fbd927/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony%20-%20Track%201.mp3</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 2.mp3">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ccd2c7fb600cee6fd7d6f634fc62a9325fbd927/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony%20-%20Track%202.mp3</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 3.mp3">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ccd2c7fb600cee6fd7d6f634fc62a9325fbd927/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony%20-%20Track%203.mp3</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 4.mp3">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ccd2c7fb600cee6fd7d6f634fc62a9325fbd927/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony%20-%20Track%204.mp3</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony.RPP">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ccd2c7fb600cee6fd7d6f634fc62a9325fbd927/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony.RPP</source>
       </version>
     </reapack>
     <reapack name="mpl_Check REAPER password, quit if not match.lua" type="script" desc="Check REAPER password, quit if not match">
