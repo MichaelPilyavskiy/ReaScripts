@@ -217,7 +217,7 @@
       
       
     -- glass back
-      gfx.a = o.frame_a
+      gfx.a = o.frame_a or 1 
       if o.outside_buf then gfx.a = o.frame_a*0.2 end
       gfx.blit( 2, 1, math.rad(180), -- grad back
                 0,0,  obj.grad_sz,obj.grad_sz,
@@ -636,6 +636,7 @@ msg(
           #tap Get a tempo from tap, allow to distribute that info in different ways. RightClick reset taps data and force current tempo to convertion chart. Shift click for entering new value.     
           #master Shows master track peaks
           #mastermeter Show master RMS/LUFS
+          #masterchan Hover around master width. -100% button makes channes swapped, mono set width to zero. Both change panmode to stereo pan.
  ]] )  
                  
                         end   

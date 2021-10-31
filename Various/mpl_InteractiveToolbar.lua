@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.17
+-- @version 2.18
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,11 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    - deprecate Track/#color and Item/#color options to use Airon`s Color Swatch
---    + Menu / Context and widgets configuration / Use custom color change tool
---    + Persist / #mastermeter Show master RMS/LUFS depending on mode
+--    + Persist / ##masterchan Hover around master width, -100% button makes channes swapped, mono set width to zero. Both change panmode to stereo pan.
 
-    local vrs = '2.17'
+    local vrs = '2.18'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -92,14 +90,14 @@ buttons=#lock #preservepitch #loop #mute #chanmode #srcreverse #bwfsrc #timebase
 order=#color #buttons #position #leftedge #endedge #length #offset #fadein #fadeout #vol #transpose #pan #srclen #rate
 buttons=#lock #preservepitch #chanmode #loop #srcreverse #mute   
 [Envelope]
-order=#floatfx #position #value
+order=#floatfx #position #value #AIlooplen
 [Track]
 order=#color #fxcontrols #buttons #vol #pan #fxlist #sendto #delay #troffs #chsendmixer #chrecvmixer #freeze
 buttons=#polarity #parentsend #midiin #audioin 
 [MIDIEditor]
 order=#position #notelen #CCval #notepitch #notevel #midichan
 [Persist]
-order=#swing #grid #timesellen #timeselend #timeselstart #timeselLeftEdge #lasttouchfx #transport #bpm #clock #tap #master #mastermeter
+order=#swing #grid #timesellen #timeselend #timeselstart #timeselLeftEdge #lasttouchfx #transport #bpm #clock #tap #master #mastermeter #masterchan
 ]]
   end  
   ---------------------------------------------------

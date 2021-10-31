@@ -1717,3 +1717,64 @@ obj.b.obj_pers_swgrid_name = { persist_buf = true,
       end                                 
     return master_w   
   end
+
+  -------------------------------------------------------------- 
+  function Widgets_Persist_masterswapLR(data, obj, mouse, x_margin, widgets, conf, y_offs)  
+    local w = 40*obj.entry_ratio
+    obj.b.obj_pers_swap = {  x = x_offs,
+                        y = y_offs ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = frame_a,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_toolbar,
+                        txt = 'Swap LR',
+                        fontsz = obj.fontsz_entry,
+                        state = data.master_W==-1,
+                        state_col = 'green',
+                        func =  function()
+                          
+                                end                          
+                                
+                                }
+    return w
+  end
+  --------------------------------------------------------------
+  function Widgets_Persist_masterchan(data, obj, mouse, x_margin, widgets, conf, y_offs)  
+    local w = 60*obj.entry_ratio
+    obj.b.obj_masterswapLR = {  x = x_margin-w,
+                        y = y_offs ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = frame_a,
+                        txt_a = obj.txt_a,
+                        fontsz = obj.fontsz_entry,
+                        txt_col = obj.txt_col_toolbar,
+                        txt = 'Swap LR',
+                        state = data.master_W==-1,
+                        state_col = 'red',
+                        func =  function()
+                                  local tr = GetMasterTrack(0)
+                                  if data.master_W < 0 then reaper.SetMediaTrackInfo_Value( tr, 'D_WIDTH', 1 ) elseif data.master_W >0  then SetMediaTrackInfo_Value( tr, 'D_WIDTH', - 1) end
+                                  reaper.SetMediaTrackInfo_Value( tr, 'I_PANMODE', 5 )
+                                  redraw = 1                              
+                                end}
+    obj.b.obj_mastermono = {  x = x_margin-w,
+                        y = y_offs+obj.entry_h ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = frame_a,
+                        txt_a = obj.txt_a,
+                        fontsz = obj.fontsz_entry,
+                        txt_col = obj.txt_col_toolbar,
+                        txt = 'Mono',
+                        state = data.master_W==0,
+                        state_col = 'green',
+                        func =  function()
+                                  local tr = GetMasterTrack(0)
+                                  if data.master_W ~= 0 then reaper.SetMediaTrackInfo_Value( tr, 'D_WIDTH', 0 ) else SetMediaTrackInfo_Value( tr, 'D_WIDTH', 1) end
+                                  reaper.SetMediaTrackInfo_Value( tr, 'I_PANMODE', 5 )
+                                  redraw = 1                              
+                                end}                                
+    return w
+  end 

@@ -657,6 +657,9 @@
       widgets.Persist = {}
       for w in pers_widg:gmatch('#(%a+)') do widgets.Persist [  #widgets.Persist +1 ] = w end
       
+     --[[ widgets.Persist.buttons = {}
+      local retval, buttons_str = BR_Win32_GetPrivateProfileString( 'Persist', 'buttons', '', conf_path )
+      for w in buttons_str:gmatch('#(%a+)') do widgets.Persist.buttons [  #widgets.Persist.buttons +1 ] = w end]]
   end
   ---------------------------------------------------
   function Config_DumpIni(widgets, conf_path) 

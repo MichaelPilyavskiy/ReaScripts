@@ -31,6 +31,11 @@
     data.masterdata.rmsR =  WDL_VAL2DB(reaper.Track_GetPeakInfo( reaper.GetMasterTrack(0), 1025 ), true)..'dB'
   end
   ---------------------------------------------------
+  function DataUpdate_MasterTrack(data)
+    local tr =  reaper.GetMasterTrack( 0 )
+    data.master_W = reaper.GetMediaTrackInfo_Value( tr, 'D_WIDTH')
+  end
+  ---------------------------------------------------
   function DataUpdate(data, mouse, widgets, obj, conf)
     DataUpdate_RulerGrid(data, conf) 
     
@@ -39,6 +44,7 @@
       DataUpdate_PlayState(data, conf)
       DataUpdate_TempoTimeSignature(data)
       DataUpdate_LastTouchedFX(data)
+      DataUpdate_MasterTrack(data)
     end
     --DataUpdate_Toolbar(data,conf)
     
@@ -532,10 +538,18 @@
         end
       end
     end
-    --[[
+    
+    
     for autoitem_idx = 1,  reaper.CountAutomationItems( env ) do
-      reaper.GetSetAutomationItemInfo( env, autoitem_idx-1, desc, value, is_set )
-    end]]
+      local D_UISEL = reaper.GetSetAutomationItemInfo( env, autoitem_idx-1, 'D_UISEL', 0, 0 )
+      if D_UISEL  > 0 then
+        data.env = {AI={}}
+        data.env.AI.idx = autoitem_idx-1
+        data.env.AI.par_env =env
+        data.env.AI.D_POOL_QNLEN = reaper.GetSetAutomationItemInfo( env, autoitem_idx-1, 'D_POOL_QNLEN', 0, 0 )
+        
+      end
+    end
     
     return true
   end  
