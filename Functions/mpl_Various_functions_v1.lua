@@ -485,20 +485,22 @@
     return proceed_MIDI, MIDI
   end
   -------------------------------------------------------------------------------    
-  function ExportSelItemsToRs5k_AddMIDI(track, MIDI, base_pitch)    
+  function ExportSelItemsToRs5k_AddMIDI(track, MIDI, base_pitch, do_not_increment)    
     if not MIDI then return end
       local new_it = reaper.CreateNewMIDIItemInProj( track, MIDI.it_pos, MIDI.it_end_pos )
       local new_tk = reaper.GetActiveTake( new_it )
       for i = 1, #MIDI do
         local startppqpos =  reaper.MIDI_GetPPQPosFromProjTime( new_tk, MIDI[i].pos )
         local endppqpos =  reaper.MIDI_GetPPQPosFromProjTime( new_tk, MIDI[i].end_pos )
+        local pitch = base_pitch+i-1
+        if do_not_increment then pitch = base_pitch end
         local ret = reaper.MIDI_InsertNote( new_tk, 
             false, --selected, 
             false, --muted, 
             startppqpos, 
             endppqpos, 
             0, 
-            base_pitch+i-1, 
+            pitch, 
             100, 
             true)--noSortInOptional )
           --if ret then reaper.ShowConsoleMsg('done') end
