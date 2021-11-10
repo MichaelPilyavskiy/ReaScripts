@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4ab9b9cbe31def6d62bf4591f4dc123e394b6ee8" name="MPL Scripts">
+<index version="1" commit="200d56a4739f6b119c856974a874c47905fd92d8" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4925,6 +4925,15 @@ add control for timefall showing last note]]></changelog>
     </reapack>
   </category>
   <category name="Regions">
+    <reapack name="mpl_Convert CUE file into markers (DDP formatted).lua" type="script" desc="Convert CUE file into markers (DDP formatted)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2021-11-10T19:22:08Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/200d56a4739f6b119c856974a874c47905fd92d8/Regions/mpl_Convert%20CUE%20file%20into%20markers%20(DDP%20formatted).lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Convert CUE file into markers.lua" type="script" desc="Convert CUE file into markers">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
