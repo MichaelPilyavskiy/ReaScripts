@@ -16,7 +16,8 @@
             for src_valID = 1, #src_val do t_out_values[src_valID] = src_val[src_valID][src_val_key] end                                                    
             app_func(data, obj, t_out_values, table_key, ret_str, mouse)
            else 
-            local out_value = src_val[src_val_key] 
+            local out_value 
+            if type(src_val) ~= 'number' and src_val[src_val_key] then out_value = src_val[src_val_key] else out_value = src_val end
             app_func(data, obj, out_value, table_key, ret_str, mouse)
           end
         end

@@ -600,6 +600,7 @@ msg(
           #floatfx float FX related with current envelope
           #position editing point position
           #value editing point value, volume envelopes use db<>linear convertion
+          #AIlooplen edit loop length of Automation Item
         Track
           #vol editing track volume
           #pan editing track pan

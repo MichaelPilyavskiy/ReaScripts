@@ -23,18 +23,16 @@
       obj.b.obj_name.w = gfx.w - obj.menu_b_rect_side
      else 
       y_offs = 0  
-    end
-    
-    
+    end    
     
   --------------------------------------------------------------  
     local tp_ID = data.obj_type_int
     local widg_key = widgets.types_t[tp_ID+1] -- get key of current mapped table
-    if widgets[widg_key] then    
+    if widgets[widg_key] then      
       for i = 1, #widgets[widg_key] do
         local key = widgets[widg_key][i]
         if _G['Widgets_Envelope_'..key] then
-            local retX, retY = _G['Widgets_Envelope_'..key](data, obj, mouse, x_offs, widgets, conf, y_offs) 
+            local retX, retY = _G['Widgets_Envelope_'..key](data, obj, mouse, x_offs, widgets, conf, y_offs)
             if conf.dock_orientation == 1 and not retY then retY = obj.entry_h elseif conf.dock_orientation == 0 and not retY then retY = 0 end
             if retX and retY then 
               if conf.dock_orientation == 0 then 
@@ -45,7 +43,7 @@
             end
         end
       end  
-    end
+    end  
   end
   -------------------------------------------------------------- 
 
@@ -56,8 +54,9 @@
 
 
   --------------------------------------------------------------
+                            
   function Widgets_Envelope_position(data, obj, mouse, x_offs, widgets, conf, y_offs)    -- generate position controls 
-    if not data.ep or not data.ep.sel_point_ID or not data.ep[data.ep.sel_point_ID] then return  x_offs end
+    if not data.ep or not data.ep.sel_point_ID or not data.ep[data.ep.sel_point_ID] then return  0 end
     if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end 
     obj.b.obj_envpos = { x = x_offs,
                         y = y_offs ,
@@ -153,7 +152,7 @@
 
   --------------------------------------------------------------   
   function Widgets_Envelope_value(data, obj, mouse, x_offs, widgets, conf, y_offs) -- generate snap_offs controls
-    if not data.ep or not data.ep.sel_point_ID or not data.ep[data.ep.sel_point_ID] then return  x_offs end
+    if not data.ep or not data.ep.sel_point_ID or not data.ep[data.ep.sel_point_ID] then return 0 end
     if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end  
     obj.b.obj_envval = { x = x_offs,
                         y = y_offs ,
@@ -305,8 +304,8 @@
 
 
   --------------------------------------------------------------   
-  function Widgets_Envelope_AIlooplen(data, obj, mouse, x_offs, widgets, conf, y_offs) -- generate snap_offs controls
-    if not (data.env and data.env.AI and data.env.AI.idx) then return  x_offs end
+  function Widgets_Envelope_AIlooplen(data, obj, mouse, x_offs, widgets, conf, y_offs) 
+    if not (data.env_AI and data.env_AI[data.env_AI_selidx]) then return x_offs end
     if x_offs + obj.entry_w2 > obj.persist_margin then return x_offs end  
     obj.b.obj_AIlooplen = { x = x_offs,
                         y = y_offs ,
@@ -315,7 +314,7 @@
                         frame_a = obj.frame_a_head,
                         txt_a = obj.txt_a,
                         txt_col = obj.txt_col_header,
-                        txt = 'AIlooplen'} 
+                        txt = 'AI Length'} 
     obj.b.obj_AIlooplen_back = { x =  x_offs,
                         y = obj.entry_h+y_offs ,
                         w = obj.entry_w2,
@@ -325,69 +324,60 @@
                         txt = '',
                         ignore_mouse = true}  
                         
-      if conf.dock_orientation == 1 then
-        obj.b.obj_AIlooplen.w = obj.entry_w2/2
-        obj.b.obj_AIlooplen_back.x= obj.entry_w2/2
-        obj.b.obj_AIlooplen_back.y = y_offs
-        obj.b.obj_AIlooplen_back.w = obj.entry_w2/2
-        obj.b.obj_AIlooplen_back.frame_a = obj.frame_a_head
-      end                         
-      local val_str = data.env.AI.D_POOL_QNLEN
-     -- local modify_wholestr = data.env_isvolume
-     Obj_GenerateCtrl(  { data=data,obj=obj,  mouse=mouse,
+    if conf.dock_orientation == 1 then
+      obj.b.obj_AIlooplen.w = obj.entry_w2/2
+      obj.b.obj_AIlooplen_back.x= obj.entry_w2/2
+      obj.b.obj_AIlooplen_back.y = y_offs
+      obj.b.obj_AIlooplen_back.w = obj.entry_w2/2
+      obj.b.obj_AIlooplen_back.frame_a = obj.frame_a_head
+    end     
+      
+                    
+    local val_str = data.env_AI[data.env_AI_selidx].D_POOL_QNLEN
+    Obj_GenerateCtrl(  
+                        { data=data,obj=obj,  mouse=mouse,
                         t = {val_str},
                         table_key='AIlooplen_ctrl',
                         x_offs= obj.b.obj_AIlooplen_back.x,  
                         y_offs= obj.b.obj_AIlooplen_back.y,  
                         w_com=obj.b.obj_AIlooplen_back.w,
-                        src_val=data.env.AI,
-                        src_val_key= 'D_POOL_QNLEN',
-                        modify_func= MPL_ModifyTimeVal,
+                        src_val=data.env_AI[data.env_AI_selidx].D_POOL_QNLEN,
+                        modify_func= MPL_ModifyFloatVal,
                         modify_wholestr=true,
-                        app_func= Apply_D_POOL_QNLEN_Val,                         
+                        app_func= Apply_D_POOL_QNLEN_Val,                          
                         mouse_scale= obj.mouse_scal_float,               -- mouse scaling
                         use_mouse_drag_xAxis = data.always_use_x_axis==1, -- x
                         --ignore_fields= true
-                        onRelease_ActName = data.scr_title..': D_POOL_QNLEN change'  
-                        })  
-    return obj.entry_w2                         
+                        default_val = 4,
+                        onRelease_ActName = data.scr_title..': Change point properties'
+                        }
+                      )
+    return obj.entry_w2                
   end
   
+ 
+  -------------------------------------------------------------- 
   function Apply_D_POOL_QNLEN_Val(data, obj, t_out_values, butkey, out_str_toparse, mouse)
-   test1= t_out_values
-    do return end
-    if not out_str_toparse then  
-      test= t_out_values
-      Envelope_SortPoints( data.env_ptr )
-      UpdateArrange()
-      --[[
-      local new_str = format_timestr_pos( t_out_values[ data.ep.sel_point_ID  ], '', data.ruleroverride ) 
-      local new_str_t = MPL_GetTableOfCtrlValues(new_str)
-      for i = 1, #new_str_t do
-        obj.b[butkey..i].txt = new_str_t[i]
-      end]]
-     else
-      -- nudge values from first item
-      local out_val = parse_timestr_pos(out_str_toparse,data.ruleroverride)
-      diff = data.ep[data.ep.sel_point_ID].pos -out_val
-      
-      local temp_t = {}
-      for i = 1, #t_out_values do
-        if data.ep[i].selected then
-          temp_t[i] = {math.max(0,data.ep[i].pos - diff), data.ep[i].value0, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
-         else 
-          temp_t[i] = {data.ep[i].pos, data.ep[i].value0, data.ep[i].shape, data.ep[i].tension,  data.ep[i].selected}
+    if not out_str_toparse then
+      test = t_out_values
+      local out_val = t_out_values
+      for autoitem_idx = 0,  #data.env_AI do 
+        if data.env_AI[autoitem_idx].D_UISEL ==1 then
+          GetSetAutomationItemInfo( data.env_AI[autoitem_idx].par_env,  autoitem_idx, 'D_POOL_QNLEN', out_val, 1 ) 
         end
       end
-      DeleteEnvelopePointRangeEx( data.env_ptr, -1, 0, math.huge )
-      for i = 1, #temp_t do  InsertEnvelopePointEx( data.env_ptr, -1, temp_t[i][1], temp_t[i][2], temp_t[i][3], temp_t[i][4], temp_t[i][5], true ) end
-      
-
       Envelope_SortPoints( data.env_ptr )
-      UpdateArrange()
-      UpdateTimeline()
-      redraw = 2   
+      obj.b.obj_AIlooplen_back.txt = out
+     else --input str
+      local out_val
+      out_val = tonumber(out_str_toparse) 
+      if not out_val then return end
+      for autoitem_idx = 0,  #data.env_AI do 
+        if data.env_AI[autoitem_idx].D_UISEL ==1 then
+          GetSetAutomationItemInfo( data.env_AI[autoitem_idx].par_env,  autoitem_idx, 'D_POOL_QNLEN', out_val, 1 ) 
+        end
+      end
+      Envelope_SortPoints( data.env_ptr )
+      redraw = 2 
     end
   end  
-  -------------------------------------------------------------- 
-

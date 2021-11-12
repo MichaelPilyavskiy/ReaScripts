@@ -539,16 +539,16 @@
       end
     end
     
-    
+    data.env_AI={}
+    data.env_AI_selidx = nil
     for autoitem_idx = 1,  reaper.CountAutomationItems( env ) do
       local D_UISEL = reaper.GetSetAutomationItemInfo( env, autoitem_idx-1, 'D_UISEL', 0, 0 )
-      if D_UISEL  > 0 then
-        data.env = {AI={}}
-        data.env.AI.idx = autoitem_idx-1
-        data.env.AI.par_env =env
-        data.env.AI.D_POOL_QNLEN = reaper.GetSetAutomationItemInfo( env, autoitem_idx-1, 'D_POOL_QNLEN', 0, 0 )
-        
-      end
+      if not data.env_AI_selidx and D_UISEL > 0 then data.env_AI_selidx=autoitem_idx-1 end
+      data.env_AI[autoitem_idx-1] = {}
+      data.env_AI[autoitem_idx-1].D_POOL_QNLEN = reaper.GetSetAutomationItemInfo( env, autoitem_idx-1, 'D_POOL_QNLEN', 0, 0 )
+      data.env_AI[autoitem_idx-1].D_UISEL=D_UISEL
+      data.env_AI[autoitem_idx-1].par_env=data.env_ptr
+      data.env_AI[autoitem_idx-1].D_MUTE=reaper.GetSetAutomationItemInfo( env, autoitem_idx-1, 'D_ACT', 0, 0 )
     end
     
     return true
