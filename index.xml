@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="04dd39c20e79374ff2e63e387728ea0a503575f6" name="MPL Scripts">
+<index version="1" commit="df8b37efa605dc217b6b45978805469bdce235ac" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -634,6 +634,17 @@
         <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ab9b9cbe31def6d62bf4591f4dc123e394b6ee8/Functions/mpl_Various_functions_Purchase.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ab9b9cbe31def6d62bf4591f4dc123e394b6ee8/Functions/mpl_Various_functions_Pers.lua</source>
         <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ab9b9cbe31def6d62bf4591f4dc123e394b6ee8/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
+      </version>
+      <version name="2.63" author="MPL" time="2021-12-04T14:09:51Z">
+        <changelog><![CDATA[+ VF2_MPL_DumpRetrospectiveLog]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v2.bin">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Functions/mpl_Various_functions_v2.bin</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Functions/mpl_Various_functions_Purchase.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Functions/mpl_Various_functions_Pers.lua</source>
+        <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
       </version>
     </reapack>
   </category>
@@ -2096,22 +2107,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d02548590e8d84d292f139994ee8e9574c586e90/FX%20specific/mpl_Bypass%20all%20UAD%20FX%20on%20all%20tracks.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Clear RetrospectiveRecord tracker log.lua" type="script" desc="Clear RetrospectiveRecord tracker log">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Clear MIDI messages log from RetrospectiveRecord_tracker JSFX\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-03-06T20:19:05Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3b6ed64b3a48a431c25d471ebc23ae92957129d7/FX%20specific/mpl_Clear%20RetrospectiveRecord%20tracker%20log.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Convert Ribs playhead envelope dropouts into ADSR.lua" type="script" desc="Convert Ribs playhead envelope dropouts into ADSR">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -2200,46 +2195,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4547a6c2a80124ec0c3531e76244cf320f1e270b/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Dump RetrospectiveRecord tracker log to selected track.lua" type="script" desc="Dump RetrospectiveRecord tracker log to selected track">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Dump MIDI messages log from RetrospectiveRecord_tracker JSFX as new item on selected track placed at edit cursor\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-02-15T19:06:08Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b674fa1ba5d30c5a27778481f58fd87208530b98/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2019-02-18T11:39:59Z">
-        <changelog><![CDATA[+ Handle support for sync data to timeline if last note was pressed while playing (required RetrospectiveRecord tracker 1.02+), set offset for MIDI take and set position to zero if supposed item postion going to be negative (devnote: gmem slot#8000000=1 support sync, gmem slot#8000001>0 play position on last triggered MIDI event)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/809957a6a06ba31ea895899854b07e4cdc74b54a/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2019-03-06T13:58:09Z">
-        <changelog><![CDATA[# disable loop source for newly created MIDI items
-# handle non-zero project offset]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aac107f8290f9b979fa8a83a7372695843325265/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
-      </version>
-      <version name="1.04" author="MPL" time="2019-03-08T08:40:22Z">
-        <changelog><![CDATA[- remove support for negative project offset
-# improve offset logic]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/380e7b4da1e791eab2a53d2635e607045d7cd3bb/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
-      </version>
-      <version name="1.05" author="MPL" time="2019-03-10T08:52:14Z">
-        <changelog><![CDATA[- drop support for old plugin with no sync option
-+ create new item around edit cursor, build proper take offset
-+ use play cursor if dumping while playing]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0cf4b9e20565ad704d154bc72a1db1009d75a93d/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
-      </version>
-      <version name="1.06" author="MPL" time="2019-03-15T17:45:51Z">
-        <changelog><![CDATA[# set item edges correctly when edit cursor after play position, disable adding CC123 manually]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/97572abe24fc8a431c07e0fa429d612ee8aaa43e/FX%20specific/mpl_Dump%20RetrospectiveRecord%20tracker%20log%20to%20selected%20track.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Float Fre(a)koscope on master channel.lua" type="script" desc="Float Fre(a)koscope on master channel">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -2282,27 +2237,6 @@
       <version name="1.01" author="MPL" time="2017-09-11T12:36:53Z">
         <changelog><![CDATA[+ search level up from parent folder]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2839fea7556cd5b4000a7582d0da015ede876e57/FX%20specific/mpl_List%20random%20impulse%20in%20directory%20for%20focused%20ReaVerb.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Prepare selected track for RetrospectiveRecord tracker.lua" type="script" desc="Prepare selected track for RetrospectiveRecord tracker">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Add RetrospectiveRecord tracker, enable record arm, disable record, enable monitoring, set Input to All MIDI all channels.\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-02-15T19:33:16Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f5477ab91f9dcdf8747dc1fc5a5afb4ca9724e6/FX%20specific/mpl_Prepare%20selected%20track%20for%20RetrospectiveRecord%20tracker.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2019-02-15T20:01:43Z">
-        <changelog><![CDATA[# enable monitoring
-+ disable parent send]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b03f5cb80fd246ad0efef18cfc0f59f29259f376/FX%20specific/mpl_Prepare%20selected%20track%20for%20RetrospectiveRecord%20tracker.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_ReaEQ tools.lua" type="script" desc="ReaEQ tools">
@@ -4001,38 +3935,6 @@
       <version name="1.0" author="MPL" time="2020-05-24T10:20:05Z">
         <changelog><![CDATA[init]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/59c514c307ef173e8696a29a99169631db35cc70/JSFX/POOL%20FX%20slave.jsfx</source>
-      </version>
-    </reapack>
-    <reapack name="RetrospectiveRecord_tracker.jsfx" type="effect" desc="RetrospectiveRecord_tracker">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Tracking MIDI data for further passing them into mpl_RetrospectiveRecord\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-02-15T19:06:08Z">
-        <changelog><![CDATA[init]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/b674fa1ba5d30c5a27778481f58fd87208530b98/JSFX/RetrospectiveRecord_tracker.jsfx</source>
-      </version>
-      <version name="1.01" author="MPL" time="2019-02-15T19:33:16Z">
-        <changelog><![CDATA[code cleanup]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/5f5477ab91f9dcdf8747dc1fc5a5afb4ca9724e6/JSFX/RetrospectiveRecord_tracker.jsfx</source>
-      </version>
-      <version name="1.02" author="MPL" time="2019-02-18T11:39:59Z">
-        <changelog><![CDATA[obey data sync to project time if last note was recorder while playing]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/809957a6a06ba31ea895899854b07e4cdc74b54a/JSFX/RetrospectiveRecord_tracker.jsfx</source>
-      </version>
-      <version name="1.03" author="MPL" time="2019-05-29T22:18:09Z">
-        <changelog><![CDATA[take into account block offset]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1eff36196d18edb313b57a229b3d036cb941c56/JSFX/RetrospectiveRecord_tracker.jsfx</source>
-      </version>
-      <version name="1.04" author="MPL" time="2019-12-14T19:47:11Z">
-        <changelog><![CDATA[remove taking offset]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/c8cad6e48c14dbe70f474acc37b70114352e3365/JSFX/RetrospectiveRecord_tracker.jsfx</source>
       </version>
     </reapack>
     <reapack name="RS5K_Manager_tracker.jsfx" type="effect" desc="RS5K_Manager_tracker">
@@ -6706,7 +6608,7 @@ add control for timefall showing last note]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Dump recent MIDI messages log\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Dump recent MIDI messages log.\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -6718,6 +6620,26 @@ add control for timefall showing last note]]></changelog>
       <version name="1.01" author="MPL, Justin" time="2021-10-27T21:40:27Z">
         <changelog><![CDATA[# fix description, remove VF dependency]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/04403004b187d0704315e6567428127ccaeb5b47/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+      </version>
+      <version name="2.0" author="MPL" time="2021-12-04T14:09:51Z">
+        <changelog><![CDATA[# Internal cleanup and optimisation
+# Remove 4 seconds pause limit
++ Share with ReaPack as metadata package
++ Split data recorded at playing (on initialisation add take bounded to the exact stored events positions)
++ Split data recorded at stop (on initialisation add take to edit cursor)
++ Add script to add both takes with dumped data at play and at stop
++ Implement time stamp filter along with internal data breaks
++ Handle loop recorded data as multiple takes per mode (play/stop)
++ Add script to filter non-note data]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (notes only).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (only data at playing).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (only data at stop).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (everything recorded from last REAPER start).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (everything from last 5 minutes).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (everything from last 10 minutes).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (everything from last 30 minutes).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (everything from last hour, obey stored data break).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/df8b37efa605dc217b6b45978805469bdce235ac/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Implode mono track session to stereo items relative to LR at the trackname end.lua" type="script" desc="Implode mono track session to stereo items relative to LR at the trackname end">
