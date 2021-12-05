@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e3fa5e3cd200e97b6975162677ca5b598d69cb2a" name="MPL Scripts">
+<index version="1" commit="3f4f8dfb409f899416442cfaf94b3378d960739d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6347,6 +6347,22 @@ add control for timefall showing last note]]></changelog>
     <reapack name="mpl_Play from item under mouse cursor.lua" type="script" desc="Play from item under mouse cursor">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Transport/mpl_Play%20from%20item%20under%20mouse%20cursor.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Transport Play Stop (obey longest negative track offset).lua" type="script" desc="Transport Play Stop (obey longest negative track offset)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Triggers play by edit cursor shifted to a maximum negative offset for tracks in project\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2021-12-05T15:24:36Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f4f8dfb409f899416442cfaf94b3378d960739d/Transport/mpl_Transport%20Play%20Stop%20(obey%20longest%20negative%20track%20offset).lua</source>
       </version>
     </reapack>
   </category>
