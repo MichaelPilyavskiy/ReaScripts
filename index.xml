@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3f4f8dfb409f899416442cfaf94b3378d960739d" name="MPL Scripts">
+<index version="1" commit="3dc1b6cbdc67bcea5e03f0e75ebf13bd2c07fa5d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6274,7 +6274,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_VisualMixer (background).lua" type="script" desc="VisualMixer">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -6340,6 +6340,14 @@ add control for timefall showing last note]]></changelog>
         <source file="mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua</source>
         <source file="mpl_VisualMixer_functions/mpl_VisualMixer_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_data.lua</source>
         <source file="mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua</source>
+      </version>
+      <version name="1.08" author="MPL" time="2021-12-08T12:21:29Z">
+        <changelog><![CDATA[+ Display track colors (require mpl_Various_Functions 2.64+)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3dc1b6cbdc67bcea5e03f0e75ebf13bd2c07fa5d/Tracks%20Properties/mpl_VisualMixer%20(background).lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3dc1b6cbdc67bcea5e03f0e75ebf13bd2c07fa5d/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_GUI.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3dc1b6cbdc67bcea5e03f0e75ebf13bd2c07fa5d/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_MOUSE.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3dc1b6cbdc67bcea5e03f0e75ebf13bd2c07fa5d/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_data.lua</source>
+        <source file="mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3dc1b6cbdc67bcea5e03f0e75ebf13bd2c07fa5d/Tracks%20Properties/mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua</source>
       </version>
     </reapack>
   </category>
