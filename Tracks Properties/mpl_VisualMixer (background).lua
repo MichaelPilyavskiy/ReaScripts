@@ -1,5 +1,5 @@
 -- @description VisualMixer
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Pretty same as what Izotope Neutron Visual mixer do, probably with some things act different. I built ReaScript prototype slightly before Izotope thing was released, but it was also inspired by Izotope stuff.
@@ -9,10 +9,10 @@
 --    mpl_VisualMixer_functions/mpl_VisualMixer_data.lua
 --    mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua
 -- @changelog
---    + Store dockstate (require mpl_Various_Functions 1.23+)
+--    + Display track colors (require mpl_Various_Functions 2.64+)
 
 
-  local vrs = 'v1.07'
+  local vrs = 'v1.08'
   --NOT gfx NOT reaper
   
   
@@ -116,17 +116,7 @@
       reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
     end  
   end
-  ---------------------------------------------------
-  function CheckReaperVrs(rvrs) 
-    local vrs_num =  GetAppVersion()
-    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
-    if rvrs > vrs_num then 
-      reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0)
-      return
-     else
-      return true
-    end
-  end
+
 --------------------------------------------------------------------
   function main()
         conf.dev_mode = 0
@@ -141,7 +131,9 @@
         OBJ_Update(conf, obj, data, refresh, mouse, data_ext) 
         run()  
   end
---------------------------------------------------------------------  
-  local ret = CheckFunctions('Action') 
-  local ret2 = CheckReaperVrs(5.95)    
-  if ret and ret2 then main() end
+  ---------------------------------------------------------------------
+  function VF_CheckFunctions(vrs) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end  else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0)  if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end    end
+  --------------------------------------------------------------------  
+  local ret = VF_CheckFunctions(2.64) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then 
+    main()
+  end end

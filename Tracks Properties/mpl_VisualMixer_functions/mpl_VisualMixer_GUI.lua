@@ -559,18 +559,26 @@
     if not o then return end
     gfx.dest = 1
     local x,y,w,h, txt = o.x, o.y, o.w, o.h, o.txt
+    
+    if type(o.col)=='number' then 
+      local b,g,r = ColorFromNative(o.col)
+      if GetOS():match('Win') then gfx.set(r/255,g/255,b/255) else gfx.set(b/255,g/255,r/255) end
+     else
+      gfx.set(1,1,1)
+    end
+    
     -- frame
-      gfx.set(1,1,1,0.3)
+      gfx.a = 0.4
       gfx.rect(x,y,w,h,1)
     -- txt
       local trname = o.txt
-      gfx.set(1,1,1,0.8)
+      gfx.a = 0.9
       gfx.setfont(1, obj.GUI_font, obj.GUI_fontsz2 )
       gfx.x = x + (w-gfx.measurestr(trname))/2
       gfx.y = y + h + 2
       gfx.drawstr(trname) 
     -- cent line
-      gfx.set(1,1,1,0.2)
+      gfx.a = 0.2
       gfx.line(x+w/2, y+1,x+w/2, y + 5 )
     -- w circle
       gfx.circle(x,y+h/2, 5)
