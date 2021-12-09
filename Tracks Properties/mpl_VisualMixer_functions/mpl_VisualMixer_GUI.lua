@@ -562,7 +562,7 @@
     
     if type(o.col)=='number' then 
       local b,g,r = ColorFromNative(o.col)
-      if GetOS():match('Win') then gfx.set(r/255,g/255,b/255) else gfx.set(b/255,g/255,r/255) end
+      gfx.set(b/255,g/255,r/255)
      else
       gfx.set(1,1,1)
     end

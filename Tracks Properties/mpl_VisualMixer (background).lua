@@ -1,5 +1,5 @@
 -- @description VisualMixer
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Pretty same as what Izotope Neutron Visual mixer do, probably with some things act different. I built ReaScript prototype slightly before Izotope thing was released, but it was also inspired by Izotope stuff.
@@ -9,10 +9,10 @@
 --    mpl_VisualMixer_functions/mpl_VisualMixer_data.lua
 --    mpl_VisualMixer_functions/mpl_VisualMixer_obj.lua
 -- @changelog
---    + Display track colors (require mpl_Various_Functions 2.64+)
+--    # fix color issue on Windows
 
 
-  local vrs = 'v1.08'
+  local vrs = 'v1.09'
   --NOT gfx NOT reaper
   
   
