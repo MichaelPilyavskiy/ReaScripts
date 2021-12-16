@@ -228,34 +228,37 @@
   end
   --------------------------------------------------- 
   function Data_GetItems(data, strategy, table_name, mode) 
+    local groupIDt = {}
     local id = 1
     local item =  GetSelectedMediaItem( 0,0 )
     if not item then return end
-    par_tr = reaper.GetMediaItem_Track( item )
-      for itemidx = 1, CountMediaItems(0) do
-        local item =  GetMediaItem( 0,itemidx-1 )
-        item_tr =  GetMediaItem_Track( item )
-        local take = GetActiveTake(item)
-        local pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
-        local it_pos = pos
-        local len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
-        
-        local position_has_snap_offs, snapoffs_sec
-        if mode&2==2 then --snap offset
-          position_has_snap_offs = true
-          snapoffs_sec = GetMediaItemInfo_Value( item, 'D_SNAPOFFSET' )
-          pos = pos + snapoffs_sec
-        end
-        local is_sel = GetMediaItemInfo_Value( item, 'B_UISEL' ) == 1
-        local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
-        local val = GetMediaItemInfo_Value( item, 'D_VOL' )
-        if table_name == 'ref' and strategy.ref_selitems_value > 0 then
-          local peak, RMS = AnalyzeItemLoudness(item)
-          if strategy.ref_selitems_value == 1 then val = peak elseif strategy.ref_selitems_value == 2 then val = RMS end
-        end
-        local tk_rate if take then  tk_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )   end
-        
-        if item_tr == par_tr and is_sel then
+    local par_tr = reaper.GetMediaItem_Track( item )
+    for itemidx = 1, CountMediaItems(0) do
+      local item =  GetMediaItem( 0,itemidx-1 )
+      item_tr =  GetMediaItem_Track( item )
+      local take = GetActiveTake(item)
+      local pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
+      local it_pos = pos
+      local len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
+      local groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
+      
+      local position_has_snap_offs, snapoffs_sec
+      if mode&2==2 then --snap offset
+        position_has_snap_offs = true
+        snapoffs_sec = GetMediaItemInfo_Value( item, 'D_SNAPOFFSET' )
+        pos = pos + snapoffs_sec
+      end
+      local is_sel = GetMediaItemInfo_Value( item, 'B_UISEL' ) == 1
+      local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos )
+      local val = GetMediaItemInfo_Value( item, 'D_VOL' )
+      if table_name == 'ref' and strategy.ref_selitems_value > 0 then
+        local peak, RMS = AnalyzeItemLoudness(item)
+        if strategy.ref_selitems_value == 1 then val = peak elseif strategy.ref_selitems_value == 2 then val = RMS end
+      end
+      local tk_rate if take then  tk_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )   end
+      if is_sel then --- item_tr == par_tr and 
+        local group_master
+        if not groupIDt[groupID] or groupID == 0 then group_master = true  end
         if (table_name == 'ref' and is_sel) or table_name == 'src'then
           if not data[table_name][id] then data[table_name][id] = {} end
           data[table_name][id].ignore_search = not is_sel
@@ -269,10 +272,11 @@
           data[table_name][id].val =val
           data[table_name][id].it_len = len
           data[table_name][id].it_pos=it_pos
-          data[table_name][id].groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
+          data[table_name][id].groupID = groupID 
           data[table_name][id].ptr = item
           data[table_name][id].activetk_ptr = take
           data[table_name][id].activetk_rate = tk_rate
+          data[table_name][id].group_master = group_master
           id = id + 1
         end
         
@@ -293,24 +297,34 @@
           data[table_name][id].groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
           data[table_name][id].ptr = item
           data[table_name][id].activetk_ptr = take
-          data[table_name][id].activetk_rate = tk_rate    
+          data[table_name][id].activetk_rate = tk_rate 
+          data[table_name][id].group_master = group_master
           id = id + 1    
         end
-        end
-      end      
+        
+        groupIDt[groupID] = {}
+      end
+    end      
   end  
   --------------------------------------------------- 
   function Data_GetSM(data, strategy, table_name, mode) 
-    
+    local groupIDt = {}
     for i = 1, CountSelectedMediaItems(0) do
       local item =  GetSelectedMediaItem( 0, i-1 )
       if not item then return end
       local it_pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
       local it_len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
       local it_UIsel = GetMediaItemInfo_Value( item, 'B_UISEL' )
+      local it_groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
+      
       local take = GetActiveTake(item)
       local rate  = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
       local stoffst  = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
+      
+      local group_master
+      if not groupIDt[it_groupID] or it_groupID == 0 then group_master = true  end 
+      groupIDt[it_groupID] = {}
+      
       if not TakeIsMIDI(take) then
         for idx = 1, GetTakeNumStretchMarkers( take ) do
           local retval, sm_pos, srcpos_sec = GetTakeStretchMarker( take, idx-1 )
@@ -337,6 +351,8 @@
                     it_ptr = item,
                     it_pos=it_pos,
                     it_len = it_len,
+                    it_group_master = group_master,
+                    it_groupID = it_groupID,
                     tk_rate = rate,
                     tk_ptr= take,
                     tk_offs =stoffst,
@@ -601,8 +617,8 @@
     local item = GetMediaItemTake_Item( take )
     UpdateItemInProject(item) 
   end
-  --------------------------------------------------- 
-  function Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy)
+  --[[------------------------------------------------- 
+  function Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy) -- old 08.12.2021
     --local take =  reaper.GetMediaItemTakeByGUID( 0, t.tkGUID ) 
     --if not take then return end
     -- collect various takes
@@ -611,6 +627,44 @@
       local t = data.src[i]
       if not takes_t [t.GUID] then takes_t [t.GUID] = {} end
       takes_t [t.GUID] [#takes_t [t.GUID] + 1 ]  = CopyTable(t)
+    end 
+      
+    for GUID in pairs(takes_t) do
+      local take =  GetMediaItemTakeByGUID( 0, GUID )
+      if take then
+        -- remove existed
+        local cur_cnt =  GetTakeNumStretchMarkers( take )
+        DeleteTakeStretchMarkers( take, 0, cur_cnt )
+        for i = 1, #takes_t[GUID] do
+          local t = takes_t[GUID][i]
+          local out_pos
+          if t.out_pos then
+            local out_pos_sec = TimeMap2_beatsToTime( 0, t.out_pos )
+            out_pos = (out_pos_sec - t.it_pos)*t.tk_rate
+            out_pos = t.sm_pos_sec + (out_pos - t.sm_pos_sec)*strategy.exe_val1
+           else
+            out_pos = t.sm_pos_sec
+          end
+          SetTakeStretchMarker( take, -1, out_pos, t.srcpos_sec)
+        end
+      end
+  
+      local item =  GetMediaItemTake_Item( take )
+      UpdateItemInProject( item )
+    end
+  end  ]]
+  --------------------------------------------------- 
+  function Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy)
+    --local take =  reaper.GetMediaItemTakeByGUID( 0, t.tkGUID ) 
+    --if not take then return end
+    -- collect various takes
+    local takes_t = {}
+    for i = 1 , #data.src do
+      local t = data.src[i]
+      if t.it_group_master then
+        if not takes_t [t.GUID] then takes_t [t.GUID] = {} end
+        takes_t [t.GUID] [#takes_t [t.GUID] + 1 ]  = CopyTable(t)
+      end
     end 
       
     for GUID in pairs(takes_t) do
@@ -992,22 +1046,23 @@
     local last_pos
     for i = 1 , #data.src do
       local t = data.src[i]
-      if not t.ignore_search then
-        local it =  BR_GetMediaItemByGUID( 0, t.GUID )
+      if not t.ignore_search and t.group_master == true then
+        local it =  t.ptr--BR_GetMediaItemByGUID( 0, t.GUID )
         if it then 
           if t.out_pos then 
             local out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1
             out_pos = TimeMap2_beatsToTime( 0, out_pos)
-            if t.position_has_snap_offs and t.srctype~='item_end' then out_pos = out_pos - t.snapoffs_sec end  
+            if t.position_has_snap_offs and t.srctype~='item_end' and strategy.src_selitems&2==2 then out_pos = out_pos - t.snapoffs_sec end  
 
                         
-            if strategy.src_selitemsflag&1==1 and t.srctype~='item_end' then 
+            if strategy.src_selitemsflag&1==1 and t.srctype~='item_end' and t.group_master == true then 
               SetMediaItemInfo_Value( it, 'D_POSITION', out_pos )
+              t.it_pos = out_pos
               local pos_shift = out_pos - t.pos_sec
-              if strategy.src_selitems&4==4 and t.groupID ~= 0 then Data_UpdateGroupedItems_PosVal(conf, obj, data, refresh, mouse, strategy, it, t.groupID, pos_shift) end
+              Data_Execute_Align_Items_UpdateItemsGroup(conf, obj, data, refresh, mouse, strategy, t, pos_shift)
             end
             
-            if strategy.src_selitemsflag&2==2 and t.srctype=='item_end' then
+            if strategy.src_selitemsflag&2==2 and t.srctype=='item_end' and t.group_master == true then
               local out_len = out_pos - t.it_pos
               SetMediaItemInfo_Value( it, 'D_LENGTH', out_len)
               if strategy.src_selitemsflag&4==4 then
@@ -1020,7 +1075,7 @@
           if t.out_val then
             local val_shift = (t.out_val - t.val)*strategy.exe_val2 
             SetMediaItemInfo_Value( it, 'D_VOL', t.val + val_shift)  
-            if strategy.src_selitems&4==4 and t.groupID ~= 0 then Data_UpdateGroupedItems_PosVal(conf, obj, data, refresh, mouse, strategy, it, t.groupID, _, val_shift) end
+            Data_Execute_Align_Items_UpdateItemsGroup(conf, obj, data, refresh, mouse, strategy, t, nil, val_shift)
           end
           UpdateItemInProject( it )
         end
@@ -1028,20 +1083,21 @@
     end
   end
   --------------------------------------------------- 
-  function Data_UpdateGroupedItems_PosVal(conf, obj, data, refresh, mouse, strategy, parent_item, groupID_check, pos_shift, val_shift)
+  function Data_Execute_Align_Items_UpdateItemsGroup(conf, obj, data, refresh, mouse, strategy, t, pos_shift, val_shift)
+    local groupID = t.groupID
     for i = 1 , #data.src do
-      local t = data.src[i]
-      if t.ignore_search and t.groupID == groupID_check and t.ptr ~= parent_item then 
+      local t1 = data.src[i]
+      if (not t1.group_master or (t1.group_master and t1.group_master == false) ) and t1.groupID~= groupID then
         if pos_shift then 
-          SetMediaItemInfo_Value( t.ptr, 'D_POSITION' , t.pos_sec + pos_shift)
+          SetMediaItemInfo_Value( t1.ptr, 'D_POSITION' , t1.pos_sec + pos_shift)
         end
         if val_shift then 
-          SetMediaItemInfo_Value( t.ptr, 'D_VOL' , t.val + val_shift)
+          SetMediaItemInfo_Value( t1.ptr, 'D_VOL' , t1.val + val_shift)
         end
-        UpdateItemInProject( t.ptr )
+        UpdateItemInProject( t1.ptr )
       end
     end
-  end
+  end  
   --------------------------------------------------- 
   function Data_Execute_Align_EnvPt(conf, obj, data, refresh, mouse, strategy)
     if not data.src[1] then return end
@@ -1131,20 +1187,19 @@
       local t = itGUID_t[GUID][1]
       local take = GetActiveTake(it)
       if take and not TakeIsMIDI(take) then
-          -- remove existed
-          local cur_cnt =  GetTakeNumStretchMarkers( take )
-          DeleteTakeStretchMarkers( take, 0, cur_cnt )
-          
-          
-            for i2 = 1, #data.ref do
-              if not data.ref[i2].ignore_search then 
-                local out_pos_sec = TimeMap2_beatsToTime( 0, data.ref[i2].pos )
-                local out_pos = (out_pos_sec - t.pos_sec)*t.activetk_rate
-                SetTakeStretchMarker( take, -1, out_pos)--, t.srcpos_sec)
-              end
-            end
-            
-        
+      
+        -- remove existed
+        local cur_cnt =  GetTakeNumStretchMarkers( take )
+        DeleteTakeStretchMarkers( take, 0, cur_cnt )
+         
+        for i2 = 1, #data.ref do
+          if not data.ref[i2].ignore_search then 
+            local out_pos_sec = TimeMap2_beatsToTime( 0, data.ref[i2].pos )
+            local out_pos = (out_pos_sec - t.pos_sec)*t.activetk_rate
+            SetTakeStretchMarker( take, -1, out_pos)--, t.srcpos_sec)
+          end
+        end
+             
       end
     end
     UpdateArrange()

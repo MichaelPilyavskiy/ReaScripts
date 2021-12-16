@@ -120,7 +120,7 @@
                                       refresh.GUI = true
                                     end,                               
                             },  
-                                { name = 'Handle grouping',
+                                --[[{ name = 'Handle grouping',
                                   state = strategy.src_selitems&4==4,
                                   show = strategy.src_positions&1==1 and strategy.src_selitems&1==1
                                       and (strategy.act_action == 1 or strategy.act_action == 3),                                   
@@ -129,7 +129,7 @@
                                           strategy.src_selitems = BinaryToggle(strategy.src_selitems, 2)
                                           refresh.GUI = true
                                         end,                               
-                                },                            
+                                },         ]]                   
                                             
                                         
                                 { name = 'Obey snap offset',

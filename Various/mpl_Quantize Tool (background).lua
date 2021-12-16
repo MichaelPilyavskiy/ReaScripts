@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.35
+-- @version 2.37
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -28,13 +28,12 @@
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 --    [main] mpl_QuantizeTool change knob1 (MIDI, OSC, mousewheel).lua
 -- @changelog
---    # exclude/include withing feature tweaks
---    # fix error on nonMIDI items
---    # fix dealing with NoteOn vel=0 convertion when take contain SysEx data (require MPL VariousFunction v2.54+)
-
+--    - Target/Items: Remove Handle grouping check
+--    - Remove Target/Anchor items only on one track limitation
+--    + Target/Items: Always follow grouping for selected items, get first selected item as group master
+--    # improve performance and reduce using of SWS functions in some areas of code
      
-  local vrs = 'v2.35'
-  --version = 2.35
+  local vrs = 'v2.37'
   --NOT gfx NOT reaper
   
 
@@ -48,7 +47,7 @@
                     data_proj = false, 
                     conf = false}
   local mouse = {}
-   data = {}
+  local data = {}
   local obj = {}
   local strategy = {}
   
