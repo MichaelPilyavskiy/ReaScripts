@@ -1,5 +1,5 @@
 -- @description Cacophony
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Script is designed to play MPL Cacophony. Track is actually 4 tracks diffusing each other on rhythmic, melodic and design levels.
@@ -8,9 +8,9 @@
 --    mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 2.mp3
 --    mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 3.mp3
 --    mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 4.mp3
---    [noindex] mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony.RPP
+--    mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony.RPP
 -- @changelog
---    # remove master analyzer
+--    # fix reapack header
 
 -------------------------------------------
 function run()
