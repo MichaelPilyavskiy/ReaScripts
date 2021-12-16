@@ -1,8 +1,7 @@
 -- @description Create FX send from selected tracks (custom)
--- @version 1.01
+-- @version 1.0
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
--- @noindex
 -- @changelog
 --    + init by custom request
 
