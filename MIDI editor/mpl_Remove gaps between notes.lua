@@ -1,4 +1,4 @@
--- @description Reorder selected notes
+-- @description Remove gaps between notes
 -- @version 1.0
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
@@ -27,4 +27,4 @@
   
   Undo_BeginBlock()
   ReorderNotes()
-  Undo_EndBlock('Reorder notes', 0)
+  Undo_EndBlock('Remove gaps between notes', 0)

@@ -2,9 +2,9 @@
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Triggers play by edit cursor shifted to a maximum negative offset for tracks in project
--- @version 1.0
+-- @version 1.01
 -- @changelog
---    + init
+--    # multiply shift by 2
 
 
 if reaper.GetPlayState()&1==1 then 
@@ -23,7 +23,7 @@ if reaper.GetPlayState()&1==1 then
     end
     cur_pos = reaper.GetCursorPositionEx( 0 )
     reaper.PreventUIRefresh( 1 )
-    reaper.SetEditCurPos2( 0, cur_pos+play_offs, false, true )
+    reaper.SetEditCurPos2( 0, cur_pos+play_offs*2, false, true )
     reaper.OnPlayButtonEx( 0 )
     reaper.SetEditCurPos2( 0, cur_pos, false, false )
     reaper.PreventUIRefresh( -1 )
