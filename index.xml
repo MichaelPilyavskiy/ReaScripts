@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="43b445c8af849f07c06294ba26b09458aca0dc1d" name="MPL Scripts">
+<index version="1" commit="53819570102cb2a627dfd198b18bfe31139b09b7" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4630,6 +4630,15 @@ add control for timefall showing last note]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c93f607301115407928216d6138f21a8cce92ec9/MIDI%20editor/mpl_Quantize%20selected%20MIDI%20notes%20ends.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Remove gaps between notes.lua" type="script" desc="Remove gaps between notes">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2021-12-17T19:47:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/53819570102cb2a627dfd198b18bfe31139b09b7/MIDI%20editor/mpl_Remove%20gaps%20between%20notes.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Remove MIDI AfterTouch.lua" type="script" desc="Remove MIDI AfterTouch">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -4724,15 +4733,6 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="juliansader, MPL" time="2018-03-10T07:38:20Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7f5dfded4057118c622808f3fb0f77cd0edbd963/MIDI%20editor/mpl_Remove%20MIDI%20ProgramChange.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Reorder selected notes.lua" type="script" desc="Reorder selected notes">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-12-23T09:38:14Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc0f426d0ead2164d376810459294f3fe8f8eb95/MIDI%20editor/mpl_Reorder%20selected%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset pitchbend at mouse cursor.lua" type="script" desc="Reset pitchbend under mouse cursor">
@@ -6411,6 +6411,10 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL" time="2021-12-05T15:24:36Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f4f8dfb409f899416442cfaf94b3378d960739d/Transport/mpl_Transport%20Play%20Stop%20(obey%20longest%20negative%20track%20offset).lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2021-12-17T19:47:15Z">
+        <changelog><![CDATA[# multiply shift by 2]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/53819570102cb2a627dfd198b18bfe31139b09b7/Transport/mpl_Transport%20Play%20Stop%20(obey%20longest%20negative%20track%20offset).lua</source>
       </version>
     </reapack>
   </category>
