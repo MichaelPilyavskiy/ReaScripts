@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.26
+-- @version 1.27
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT/S1 Import Session Data feature
@@ -10,15 +10,13 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    + Track import: FX envelopes
---    + Track import: Option for reset folder structure (ex if importing folders only)
---    # Set new_track_at_track_list for all selected (in script) tracks as well as current triggered track context
---    # fix possible wrong FX import
---    # simplify code around Add new track at the end of tracklist / Replace specific track
+--    # improve "Add new track at the end of tracklist"
+--    + Always replace item GUIDs when NOT importing RAW track chunk
+
 
 
      
-  local vrs = '1.26'
+  local vrs = '1.27'
   --NOT gfx NOT reaper
   
 

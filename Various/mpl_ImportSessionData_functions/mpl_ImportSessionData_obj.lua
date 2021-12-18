@@ -658,7 +658,7 @@
                             has_blit = true,
                             level = 0,       
                           } ,]]                        
-                          { name = 'Track raw data (remove routing, GUIDs)',
+                          { name = 'Track raw data (remove routing, replace GUIDs)',
                             state = strategy.comchunk==1,
                             hidden = strategy.comchunk==0,
                             show = true,
@@ -800,7 +800,7 @@
                                       strategy.trparams = BinaryToggle(strategy.trparams, 8)
                                     end,             
                           } ,                           
-                          { name = 'Track Items RAW data',
+                          { name = 'Track Items RAW data (replace GUIDs)',
                             state = strategy.tritems&1==1,
                             show = strategy.comchunk&1==0,
                             has_blit = false,

@@ -277,9 +277,10 @@
     SetTrackStateChunk( mastertr, out_ch, false )
   end
   -------------------------------------------------------------------- 
-  function Data_ImportTracks_NewTrack(data, i, insert_id, strategy)
+  function Data_ImportTracks_NewTrack(data, i, insert_id, strategy, is_empty)
     InsertTrackAtIndex( insert_id, false )
     local new_tr = GetTrack(0, insert_id)
+    if is_empty == true then return new_tr end
     local new_chunk = data.tr_chunks[i].chunk
     local gGUID = genGuid('' ) 
     new_chunk = new_chunk:gsub('TRACK[%s]+.-\n', 'TRACK '..gGUID..'\n')
@@ -313,17 +314,14 @@
       -- if has spec dest track - remove at the end of track list
       
       if data.tr_chunks[i].dest == -1 then -- at the end
-        dest_tr = Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy)
-        --Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, new_tr, new_tr) 
+        local new_tr = Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy)
+        local dest_tr = Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy, true)
+        Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, new_tr, dest_tr) 
+        DeleteTrack( new_tr )
         data.tr_chunks[i].destGUID =  GetTrackGUID( dest_tr )
         if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&256 == 256) then  
           folder_level = reaper.GetMediaTrackInfo_Value( dest_tr, 'I_FOLDERDEPTH'  ) 
-          msg(folder_level)
-          msg(last_folder_level)
-          --if last_dest_tr then msg('last_dest_tr')
-          msg('=')
           if folder_level == 1 and last_folder_level == 1 and last_dest_tr then 
-            
             SetMediaTrackInfo_Value( last_dest_tr, 'I_FOLDERDEPTH', 0  ) 
           end 
         end 
@@ -782,6 +780,8 @@
       local item = GetTrackMediaItem( src_tr, itemidx-1 )
       local retval, chunk = reaper.GetItemStateChunk( item, '', false )
       
+      local gGUID = genGuid('' ) 
+      chunk = chunk:gsub('GUID (%{.-%})\n', 'GUID '..gGUID..'\n')
       local tk_data = {}
       for takeidx = 1,  CountTakes( item ) do
         local take =  GetTake( item, takeidx-1 )
