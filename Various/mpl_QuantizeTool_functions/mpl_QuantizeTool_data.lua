@@ -295,10 +295,12 @@
           data[table_name][id].it_len = len
           data[table_name][id].it_pos=it_pos
           data[table_name][id].groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
+          data[table_name][id].D_FADEOUTLEN = GetMediaItemInfo_Value( item, 'D_FADEOUTLEN_AUTO' )
           data[table_name][id].ptr = item
           data[table_name][id].activetk_ptr = take
           data[table_name][id].activetk_rate = tk_rate 
           data[table_name][id].group_master = group_master
+          data[table_name][id].parent_position_entry = id-1
           id = id + 1    
         end
         
@@ -1025,7 +1027,10 @@
   function Data_Execute(conf, obj, data, refresh, mouse, strategy)
     if strategy.act_action == 1 or strategy.act_action == 3 then 
       if not data.src or not data.ref then return end
-      if strategy.src_selitems&1==1 then  Data_Execute_Align_Items(conf, obj, data, refresh, mouse, strategy) end
+      if strategy.src_selitems&1==1 then  Data_Execute_Align_Items(conf, obj, data, refresh, mouse, strategy, 1) 
+                                          Data_Execute_Align_Items(conf, obj, data, refresh, mouse, strategy, 2) 
+                                          --Data_Execute_Align_Items(conf, obj, data, refresh, mouse, strategy, 3) 
+                                          end
       if strategy.src_envpoints&1==1 then  Data_Execute_Align_EnvPt(conf, obj, data, refresh, mouse, strategy) end
       if strategy.src_midi&1==1 then      Data_Execute_Align_MIDI(conf, obj, data, refresh, mouse, strategy) end
       if strategy.src_strmarkers&1==1 then Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy) end      
@@ -1041,8 +1046,9 @@
       if strategy.src_envpoints&1==1 then  Data_Execute_Align_EnvPt(conf, obj, data, refresh, mouse, strategy) end
     end    
   end
+
   --------------------------------------------------- 
-  function Data_Execute_Align_Items(conf, obj, data, refresh, mouse, strategy)
+  function Data_Execute_Align_Items(conf, obj, data, refresh, mouse, strategy, iteration)
     local last_pos
     for i = 1 , #data.src do
       local t = data.src[i]
@@ -1050,49 +1056,64 @@
         local it =  t.ptr--BR_GetMediaItemByGUID( 0, t.GUID )
         if it then 
           if t.out_pos then 
+          
             local out_pos = t.pos + (t.out_pos - t.pos)*strategy.exe_val1
             out_pos = TimeMap2_beatsToTime( 0, out_pos)
             if t.position_has_snap_offs and t.srctype~='item_end' and strategy.src_selitems&2==2 then out_pos = out_pos - t.snapoffs_sec end  
 
                         
-            if strategy.src_selitemsflag&1==1 and t.srctype~='item_end' and t.group_master == true then 
+            if strategy.src_selitemsflag&1==1 and t.srctype~='item_end' and t.group_master == true and iteration == 1 then 
               SetMediaItemInfo_Value( it, 'D_POSITION', out_pos )
-              t.it_pos = out_pos
+              t.it_pos_change = out_pos
               local pos_shift = out_pos - t.pos_sec
               Data_Execute_Align_Items_UpdateItemsGroup(conf, obj, data, refresh, mouse, strategy, t, pos_shift)
+              --Data_Execute_Align_Items_PropagPosThroughGroup(conf, obj, data, refresh, mouse, strategy, t)
             end
             
-            if strategy.src_selitemsflag&2==2 and t.srctype=='item_end' and t.group_master == true then
-              local out_len = out_pos - t.it_pos
+            if strategy.src_selitemsflag&2==2 and t.srctype=='item_end' and t.group_master == true and iteration == 2 and  t.parent_position_entry and data.src[t.parent_position_entry] and data.src[t.parent_position_entry].it_pos_change then
+              local D_FADEOUTLEN = 0
+              if strategy.src_selitemsflag&8==8 then D_FADEOUTLEN = t.D_FADEOUTLEN end
+              local out_len = out_pos - data.src[t.parent_position_entry].it_pos_change  + D_FADEOUTLEN
               SetMediaItemInfo_Value( it, 'D_LENGTH', out_len)
+              local len_diff = out_len - t.it_len
+              Data_Execute_Align_Items_UpdateItemsGroup(conf, obj, data, refresh, mouse, strategy, t, nil, nil, len_diff)
               if strategy.src_selitemsflag&4==4 then
-                local diff = t.it_len/out_len
-                SetMediaItemTakeInfo_Value( t.activetk_ptr, 'D_PLAYRATE',  t.activetk_rate*diff)
+                local rate_diff = t.it_len/out_len
+                SetMediaItemTakeInfo_Value( t.activetk_ptr, 'D_PLAYRATE',  t.activetk_rate*rate_diff)
+                Data_Execute_Align_Items_UpdateItemsGroup(conf, obj, data, refresh, mouse, strategy, t, nil, nil, nil, rate_diff)
               end
             end
                         
           end 
-          if t.out_val then
+          
+          if t.out_val and iteration == 3 then
             local val_shift = (t.out_val - t.val)*strategy.exe_val2 
             SetMediaItemInfo_Value( it, 'D_VOL', t.val + val_shift)  
             Data_Execute_Align_Items_UpdateItemsGroup(conf, obj, data, refresh, mouse, strategy, t, nil, val_shift)
           end
+          
           UpdateItemInProject( it )
         end
       end  
     end
   end
   --------------------------------------------------- 
-  function Data_Execute_Align_Items_UpdateItemsGroup(conf, obj, data, refresh, mouse, strategy, t, pos_shift, val_shift)
+  function Data_Execute_Align_Items_UpdateItemsGroup(conf, obj, data, refresh, mouse, strategy, t, pos_shift, val_shift, len_diff, rate_diff)
     local groupID = t.groupID
     for i = 1 , #data.src do
       local t1 = data.src[i]
-      if (not t1.group_master or (t1.group_master and t1.group_master == false) ) and t1.groupID~= groupID then
+      if (not t1.group_master or (t1.group_master and t1.group_master == false) ) and t1.groupID== groupID then
         if pos_shift then 
-          SetMediaItemInfo_Value( t1.ptr, 'D_POSITION' , t1.pos_sec + pos_shift)
+          SetMediaItemInfo_Value( t1.ptr, 'D_POSITION' , t1.pos_sec + pos_shift)-- - pos_shift)
         end
         if val_shift then 
           SetMediaItemInfo_Value( t1.ptr, 'D_VOL' , t1.val + val_shift)
+        end
+        if len_diff then
+          SetMediaItemInfo_Value( t1.ptr, 'D_LENGTH' , t1.it_len + len_diff)
+        end
+        if rate_diff then
+          SetMediaItemTakeInfo_Value( t1.activetk_ptr, 'D_PLAYRATE',  t1.activetk_rate*rate_diff)
         end
         UpdateItemInProject( t1.ptr )
       end

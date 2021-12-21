@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.37
+-- @version 2.38
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -28,12 +28,12 @@
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 --    [main] mpl_QuantizeTool change knob1 (MIDI, OSC, mousewheel).lua
 -- @changelog
---    - Target/Items: Remove Handle grouping check
---    - Remove Target/Anchor items only on one track limitation
---    + Target/Items: Always follow grouping for selected items, get first selected item as group master
---    # improve performance and reduce using of SWS functions in some areas of code
+--    # Target/Items/Grouping: major internal issue fix
+--    # Target/Items/Grouping: propagate length change to childrens
+--    # Target/Items/Grouping: propagate playrate change to childrens
+--    + Target/Items/Ends: add option to offset item end by autofade length
      
-  local vrs = 'v2.37'
+  local vrs = 'v2.38'
   --NOT gfx NOT reaper
   
 
@@ -88,11 +88,11 @@
         ref_pattern_len = 4,
         ref_pattern_name = 'last_touched',
         
-    -- source -----------------------
+    -- target -----------------------
       -- positions
         src_positions = 1,
         src_selitems = 1,
-        src_selitemsflag = 1, -- &1 positions &2 length
+        src_selitemsflag = 1, -- &1 positions &2 length &4 stretch &8 offset by autofadeout
         src_envpoints = 0,
         src_envpointsflag = 1, -- 1 values
         src_midi = 0 ,

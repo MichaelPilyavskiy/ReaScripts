@@ -167,11 +167,22 @@
                                   show = strategy.src_positions&1==1 and strategy.src_selitems&1==1
                                       and strategy.act_action == 1 and strategy.src_selitemsflag&2==2,                                 
                                   level = 2,
-                                func =  function()
+                                  func =  function()
                                           strategy.src_selitemsflag = BinaryToggle(strategy.src_selitemsflag, 2)
                                           refresh.GUI = true
-                                        end,                               
-                                },                                                                 
+                                          end,                               
+                                },  
+                                { name = 'Offset by auto fadeout length',
+                                  state = strategy.src_selitemsflag&8==8,
+                                  show = strategy.src_positions&1==1 and strategy.src_selitems&1==1
+                                      and strategy.act_action == 1 and strategy.src_selitemsflag&2==2,                                 
+                                  level = 2,
+                                  func =  function()
+                                          strategy.src_selitemsflag = BinaryToggle(strategy.src_selitemsflag, 3)
+                                          refresh.GUI = true
+                                          end,                               
+                                },                                  
+                                
                                                         
                             { name = 'Envelope points',
                               state = strategy.src_envpoints,
