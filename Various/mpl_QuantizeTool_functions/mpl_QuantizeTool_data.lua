@@ -713,7 +713,7 @@
           ptmax = tmasterpoint.relproj_outpos
           ptmin = tmasterpoint.relproj_pos
         end
-        if relproj_pos >= ptmin and relproj_pos <= ptmax then return tslavepoint.tk_rate * (tmasterpoint.relproj_outpos-tslavepoint.it_pos) end
+        if relproj_pos >= ptmin-0.01 and relproj_pos <= ptmax+0.01 then return tslavepoint.tk_rate * (tmasterpoint.relproj_outpos-tslavepoint.it_pos) end
       end
     end
   end

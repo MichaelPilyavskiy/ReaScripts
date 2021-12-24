@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.40
+-- @version 2.41
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -28,10 +28,9 @@
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 --    [main] mpl_QuantizeTool change knob1 (MIDI, OSC, mousewheel).lua
 -- @changelog
---    + Target/Stretch markers: support grouped items
---    + Add undo point on relese knob1
+--    + Target/Stretch markers: add 0.01 tolerance to child markers as a workaround for REAPER approximations
      
-  local vrs = 'v2.40'
+  local vrs = 'v2.41'
   --NOT gfx NOT reaper
   
 
