@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 2.66
+-- @version 2.68
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
@@ -12,17 +12,16 @@
 --    mpl_Various_functions_Pers.lua
 --    [main] mpl_Various_functions_PurchaseGUI.lua
 -- @changelog
---    + VF2_CreateFXTrack
---    + VF2_IsTrackSendExists
---    + VF2_GetTrackSendOrderIDbyname
+--    + VF2_MPL_DumpRetrospectiveLog_DumpToTake allow to hide message
     
-  VF_version = 2.66 -- do not remove, use for versions comparement
+  VF_version = 2.68 -- do not remove, use for versions comparement
   VF_isregist = 0 
   --------------------------------------------------
   function VF_LoadLibraries()
     local info = debug.getinfo(1,'S');  
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
     dofile(script_path .. "mpl_Various_functions_GUI.lua")
+    dofile(script_path .. "mpl_Various_functions_v3.lua")
     dofile(script_path .. "mpl_Various_functions_MOUSE.lua")
     dofile(script_path .. "mpl_Various_functions_Purchase.lua")
     dofile(script_path .. "mpl_Various_functions_Pers.lua")
@@ -45,32 +44,11 @@
 --------------------------------------------------- 
   function VF2_LoadVFv2()
     local response = reaper.GetExtState('MPL_Scripts', 'response')
-    if response == '' then 
-      
-      --[[ old version
-      local sysID = VF_GetSystemID()
-      local ret = MB('Since version 2.0 "VariousFunction" version 2+ is paid. You can use last available free version (v1.31) via ReaPack. For more information contact me via email m.pilyavskiy@gmail.com\n\nProceed purchasing package?', '' ,4)
-      if ret == 6 then 
-        local retval, retvals_csv = reaper.GetUserInputs( 'Purchasing VariousFunctions v2', 4, '1. Copy System ID,2.Send it to:,3.Pay $30 via Paypal,4:Enter response(1-3days):,extrawidth=200', sysID..',m.pilyavskiy@gmail.com,https://www.paypal.com/paypalme/donate2mpl,' )
-        local resp = retvals_csv:match('.-%,.-%,.-%,(.*)')
-        if not resp then MB('No response entered','',0) return end
-        local check_offset = VF_CheckResponseOffset(sysID,resp)
-        if check_offset then  
-          reaper.SetExtState('MPL_Scripts', 'response',resp, true)
-          MB('SystemID - Response pair was successfully passed','MPL Various functions',0)
-         else
-          MB('Checksum mismatch. Contact m.pilyavskiy@gmail.com','MPL Various functions',0)
-        end
-      end]]
-      
+    if response == '' then  
       local info = debug.getinfo(1,'S');  
       local purch_script_path = info.source:match([[^@?(.*[\/])[^\/]-$]] ) .. "mpl_Various_functions_PurchaseGUI.lua" 
       purch_script_pathID = VF_GetActionCommandIDByFilename('mpl_Various_functions_PurchaseGUI', 0)
       Action('_'..purch_script_pathID)
-      
-      --dofile(purch_script_path )
-      --main = function() end -- clear main() functions
-      
      else
       local sysID = VF_GetSystemID()
       local check_offset = VF_CheckResponseOffset(sysID,response)

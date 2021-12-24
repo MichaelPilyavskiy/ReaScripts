@@ -1,5 +1,5 @@
 -- @description Dump Retrospective Record log
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Dump recent MIDI messages log. 
@@ -15,12 +15,12 @@
 --    [main] . > mpl_Dump Retrospective Record log (everything from last 30 minutes).lua
 --    [main] . > mpl_Dump Retrospective Record log (everything from last hour, obey stored data break).lua
 -- @changelog 
---    # fix VF2_MPL_DumpRetrospectiveLog_Parsing_filename
+--    + allow to hide message by set reaper-extstate.ini, section 'MPL_DRL', parameter 'showmsg' to 0
                     
   ---------------------------------------------------------------------
   function VF_CheckFunctions(vrs) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end  else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0)  if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end    end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(2.64) if ret then local ret2 = VF_CheckReaperVrs(6.39,true) if ret2 then 
+  local ret = VF_CheckFunctions(2.67) if ret then local ret2 = VF_CheckReaperVrs(6.39,true) if ret2 then 
     local filename = ({reaper.get_action_context()})[2]
     local script_title = GetShortSmplName(filename):gsub('%.lua','')
     local settings = VF2_MPL_DumpRetrospectiveLog_Parsing_filename(script_title)
