@@ -320,18 +320,21 @@
       local it_groupID = GetMediaItemInfo_Value( item, 'I_GROUPID' )
       
       local take = GetActiveTake(item)
-      local rate  = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+      local tk_rate  = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
       local stoffst  = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
       
       local group_master
-      if not groupIDt[it_groupID] or it_groupID == 0 then group_master = true  end 
-      groupIDt[it_groupID] = {}
+      if not groupIDt[it_groupID] or it_groupID == 0 then 
+        group_master = true  
+        groupIDt[it_groupID] = #data[table_name]+1
+      end 
+      
       
       if not TakeIsMIDI(take) then
         for idx = 1, GetTakeNumStretchMarkers( take ) do
           local retval, sm_pos, srcpos_sec = GetTakeStretchMarker( take, idx-1 )
           local slope = GetTakeStretchMarkerSlope( take, idx-1 )
-          local pos_glob = it_pos + sm_pos / rate
+          local pos_glob = it_pos + sm_pos / tk_rate
           local beats, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos_glob )
                 
           local ignore_search = false  
@@ -355,10 +358,11 @@
                     it_len = it_len,
                     it_group_master = group_master,
                     it_groupID = it_groupID,
-                    tk_rate = rate,
+                    --it_groupIDmaster = groupIDt[it_groupID],
+                    tk_rate = tk_rate,
                     tk_ptr= take,
                     tk_offs =stoffst,
-                    
+                    smid = idx-1,
                 }
         end
       end 
@@ -620,7 +624,7 @@
     UpdateItemInProject(item) 
   end
   --[[------------------------------------------------- 
-  function Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy) -- old 08.12.2021
+  f unction Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy) -- old 08.12.2021
     --local take =  reaper.GetMediaItemTakeByGUID( 0, t.tkGUID ) 
     --if not take then return end
     -- collect various takes
@@ -657,42 +661,85 @@
   end  ]]
   --------------------------------------------------- 
   function Data_Execute_Align_SM(conf, obj, data, refresh, mouse, strategy)
-    --local take =  reaper.GetMediaItemTakeByGUID( 0, t.tkGUID ) 
-    --if not take then return end
-    -- collect various takes
-    local takes_t = {}
-    for i = 1 , #data.src do
-      local t = data.src[i]
-      if t.it_group_master then
-        if not takes_t [t.GUID] then takes_t [t.GUID] = {} end
-        takes_t [t.GUID] [#takes_t [t.GUID] + 1 ]  = CopyTable(t)
-      end
-    end 
-      
-    for GUID in pairs(takes_t) do
-      local take =  GetMediaItemTakeByGUID( 0, GUID )
-      if take then
-        -- remove existed
-        local cur_cnt =  GetTakeNumStretchMarkers( take )
-        DeleteTakeStretchMarkers( take, 0, cur_cnt )
-        for i = 1, #takes_t[GUID] do
-          local t = takes_t[GUID][i]
-          local out_pos
-          if t.out_pos then
-            local out_pos_sec = TimeMap2_beatsToTime( 0, t.out_pos )
-            out_pos = (out_pos_sec - t.it_pos)*t.tk_rate
-            out_pos = t.sm_pos_sec + (out_pos - t.sm_pos_sec)*strategy.exe_val1
-           else
-            out_pos = t.sm_pos_sec
-          end
-          SetTakeStretchMarker( take, -1, out_pos, t.srcpos_sec)
+    -- collect stuff from points scope to takes scope
+      local takes_t = {}
+      for i = 1 , #data.src do
+        local t = data.src[i]
+        if not takes_t [t.GUID] then takes_t [t.GUID] = {it_group_master = t.it_group_master, smpoints = {}} end
+        takes_t [t.GUID].smpoints[#takes_t [t.GUID].smpoints + 1 ]  = CopyTable(t)
+      end 
+    
+    -- align group masters
+      for GUID in pairs(takes_t) do
+        local tmaster = takes_t[GUID]
+        if tmaster.it_group_master == true and tmaster.smpoints and tmaster.smpoints[1] then
+          local take = tmaster.smpoints[1].tk_ptr
+          if take then
+            -- remove existed
+            local cur_cnt =  GetTakeNumStretchMarkers( take )
+            DeleteTakeStretchMarkers( take, 0, cur_cnt )
+            for i = 1, #tmaster.smpoints do
+              local tmasterpoint = tmaster.smpoints[i]
+              local out_pos
+              if tmasterpoint.out_pos then
+                local out_pos_sec = TimeMap2_beatsToTime( 0, tmasterpoint.out_pos )
+                out_pos = (out_pos_sec - tmasterpoint.it_pos)*tmasterpoint.tk_rate
+                out_pos = tmasterpoint.sm_pos_sec + (out_pos - tmasterpoint.sm_pos_sec)*strategy.exe_val1
+                tmasterpoint.out_pos_sec = out_pos
+               else
+                out_pos = tmasterpoint.sm_pos_sec
+                tmasterpoint.out_pos_sec = out_pos
+              end
+              SetTakeStretchMarker( take, -1, out_pos, tmasterpoint.srcpos_sec)
+              tmasterpoint.relproj_outpos = tmasterpoint.it_pos+tmasterpoint.out_pos_sec/tmasterpoint.tk_rate
+              tmasterpoint.relproj_pos = tmasterpoint.it_pos+tmasterpoint.sm_pos_sec/tmasterpoint.tk_rate
+            end
+            UpdateItemInProject( tmaster.smpoints[1].it_ptr )
+          end 
         end
+        Data_Execute_Align_SMChilds(takes_t, tmaster.smpoints[1].it_groupID, tmaster)
       end
-
-      local item =  GetMediaItemTake_Item( take )
-      UpdateItemInProject( item )
-    end
+      
+        
   end  
+  --------------------------------------------------- 
+  function Data_Execute_Align_SMChilds_GetOutPos(relproj_pos, tmaster, tslavepoint)
+    for i = 1, #tmaster.smpoints do
+      local tmasterpoint = tmaster.smpoints[i]
+      if tmasterpoint.relproj_outpos and tmasterpoint.relproj_pos then
+        local ptmin = tmasterpoint.relproj_outpos
+        local ptmax = tmasterpoint.relproj_pos
+        if tmasterpoint.relproj_outpos > tmasterpoint.relproj_pos then 
+          ptmax = tmasterpoint.relproj_outpos
+          ptmin = tmasterpoint.relproj_pos
+        end
+        if relproj_pos >= ptmin and relproj_pos <= ptmax then return tslavepoint.tk_rate * (tmasterpoint.relproj_outpos-tslavepoint.it_pos) end
+      end
+    end
+  end
+  --------------------------------------------------- 
+  function Data_Execute_Align_SMChilds(takes_t, it_groupID, tmaster)
+    for GUID in pairs(takes_t) do
+      local tslave = takes_t[GUID]
+      if tslave.it_group_master~= true and tslave.smpoints and tslave.smpoints[1] and tslave.it_groupID ~= it_groupID and it_groupID ~= 0 then
+        local take = tslave.smpoints[1].tk_ptr
+        if take then
+          -- remove existed
+          local cur_cnt =  GetTakeNumStretchMarkers( take )
+          DeleteTakeStretchMarkers( take, 0, cur_cnt )
+          for i = 1, #tslave.smpoints do
+            local tslavepoint = tslave.smpoints[i]
+            tslavepoint.relproj_pos = tslavepoint.it_pos+tslavepoint.sm_pos_sec/tslavepoint.tk_rate
+            local ret = Data_Execute_Align_SMChilds_GetOutPos(tslavepoint.relproj_pos, tmaster, tslavepoint)
+            local outpos = tslavepoint.sm_pos_sec
+            if ret then outpos = ret end
+            SetTakeStretchMarker( take, -1, outpos, tslavepoint.srcpos_sec)
+          end
+          UpdateItemInProject( tslave.smpoints[1].it_ptr )
+        end 
+      end
+    end
+  end
   --------------------------------------------------- 
   function Data_GetEP(data, strategy, table_name, mode) 
     if mode&2==2 then 

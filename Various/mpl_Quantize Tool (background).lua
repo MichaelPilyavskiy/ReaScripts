@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.38
+-- @version 2.40
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -28,12 +28,10 @@
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 --    [main] mpl_QuantizeTool change knob1 (MIDI, OSC, mousewheel).lua
 -- @changelog
---    # Target/Items/Grouping: major internal issue fix
---    # Target/Items/Grouping: propagate length change to childrens
---    # Target/Items/Grouping: propagate playrate change to childrens
---    + Target/Items/Ends: add option to offset item end by autofade length
+--    + Target/Stretch markers: support grouped items
+--    + Add undo point on relese knob1
      
-  local vrs = 'v2.38'
+  local vrs = 'v2.40'
   --NOT gfx NOT reaper
   
 
@@ -327,3 +325,7 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
       main() 
     end
   end
+  ---------------------------------------------------------------------
+  function VF_CheckFunctions(vrs) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end  else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0)  if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end    end
+  --------------------------------------------------------------------  
+  local ret = VF_CheckFunctions(2.5) if ret then local ret2 = VF_CheckReaperVrs(5.95,true) if ret2 then gmem_attach('MPLQT' )main()  end end

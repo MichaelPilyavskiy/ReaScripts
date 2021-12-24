@@ -1658,6 +1658,8 @@
                         onrelease_L2  = function()  
                                           UpdateArrange()
                                           SaveStrategy(conf, strategy, 1, true) 
+                                          reaper.Undo_BeginBlock()
+                                          reaper.Undo_EndBlock2( 0, 'MPL QuantizeTool', -1 )
                                         end,
                         func_L_Alt = function()
                                         strategy.exe_val1 = 0
