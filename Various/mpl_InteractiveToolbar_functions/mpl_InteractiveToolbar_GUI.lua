@@ -52,13 +52,13 @@
                   mouse_scal_FXCtrl = 60,   -- FX wheel
                   mouse_scal_FXCtrl2 = 1000, -- FX drag
                   
-                  entry_w = 200,      -- name w
-                  entry_w2 = 90*conf.scaling,     -- controls w / position
-                  entry_ratio = 1*conf.scaling,    -- toolbar
-                  entry_h = 18*conf.scaling,
-                  menu_b_rect_side = 20,
+                  entry_w = 200*scale,      -- name w
+                  entry_w2 = 90*conf.scaling*scale,     -- controls w / position
+                  entry_ratio = 1*conf.scaling*scale,    -- toolbar
+                  entry_h = 18*conf.scaling*scale,
+                  menu_b_rect_side = 20*scale,
                   offs = 0,
-                  offs2 = 2,
+                  offs2 = 2*scale,
                   frame_a_head = 1.3, -- alpha header frames
                   frame_a_entry = 0.95,   -- alpha entries frames
                   frame_a_state = 0.9 -- active state
@@ -288,7 +288,9 @@
            else 
             gfx.a = 0.8 
           end
-          gfx.setfont(1, obj.font, o.fontsz or obj.fontsz )
+          local fontsz= o.fontsz or obj.fontsz
+          
+          gfx.setfont(1, obj.font, fontsz*font_coeff )
           local shift = 2
           local cnt = 0
           for line in txt:gmatch('[^\r\n]+') do cnt = cnt + 1 end
