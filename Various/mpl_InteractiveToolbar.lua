@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.20
+-- @version 2.21
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Retina test build
+--    # Retina another test build
 
-    local vrs = '2.20'
+    local vrs = '2.21'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -235,7 +235,7 @@ order=#swing #grid #timesellen #timeselend #timeselstart #timeselLeftEdge #lastt
   ---------------------------------------------------------------------
   function main()
     ExtState_Load(conf) 
-    
+      local OS = reaper.GetOS()
     --https://forum.cockos.com/showpost.php?p=2493416&postcount=40
       scale, gfx.ext_retina, font_coeff = 1, 1, 1 -- init with 1 
       gfx.init('MPL InteractiveToolbar',conf.wind_w, conf.wind_h,  conf.dock , conf.wind_x, conf.wind_y)
