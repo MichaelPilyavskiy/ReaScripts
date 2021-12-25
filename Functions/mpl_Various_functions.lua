@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 2.68
+-- @version 2.69
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
@@ -14,14 +14,14 @@
 -- @changelog
 --    + VF2_MPL_DumpRetrospectiveLog_DumpToTake allow to hide message
     
-  VF_version = 2.68 -- do not remove, use for versions comparement
+  VF_version = 2.69 -- do not remove, use for versions comparement
   VF_isregist = 0 
   --------------------------------------------------
   function VF_LoadLibraries()
     local info = debug.getinfo(1,'S');  
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]]) 
     dofile(script_path .. "mpl_Various_functions_GUI.lua")
-    dofile(script_path .. "mpl_Various_functions_v3.lua")
+    --dofile(script_path .. "mpl_Various_functions_v3.lua")
     dofile(script_path .. "mpl_Various_functions_MOUSE.lua")
     dofile(script_path .. "mpl_Various_functions_Purchase.lua")
     dofile(script_path .. "mpl_Various_functions_Pers.lua")
