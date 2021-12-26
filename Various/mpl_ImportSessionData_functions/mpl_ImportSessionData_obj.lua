@@ -799,7 +799,30 @@
                                       strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
                                       strategy.trparams = BinaryToggle(strategy.trparams, 8)
                                     end,             
-                          } ,                           
+                          } ,   
+                          { name = 'Track name',
+                            state = strategy.trparams&512==512,
+                            show = strategy.trparams&1==0 and strategy.comchunk&1==0,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 9)
+                                    end,             
+                          } ,                          
+                          { name = 'Folder depth',
+                            state = strategy.trparams&1024==1024,
+                            show = strategy.trparams&1==0 and strategy.comchunk&1==0,
+                            has_blit = false,
+                            level = 2,
+                            func =  function()
+                                      strategy.comchunk = 0
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 0, 0)
+                                      strategy.trparams = BinaryToggle(strategy.trparams, 10)
+                                    end,             
+                          } ,
+                          
                           { name = 'Track Items RAW data (replace GUIDs)',
                             state = strategy.tritems&1==1,
                             show = strategy.comchunk&1==0,

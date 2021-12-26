@@ -314,68 +314,43 @@
       -- if has spec dest track - remove at the end of track list
       
       if data.tr_chunks[i].dest == -1 then -- at the end
-        local new_tr = Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy)
-        local dest_tr = Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy, true)
-        Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, new_tr, dest_tr) 
-        DeleteTrack( new_tr )
+        local new_tr = Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy) -- temporary source
+        dest_tr = Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy, true) -- isempty= true
+        Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, new_tr, dest_tr) -- port from temporary to clear
+        DeleteTrack( new_tr ) -- remove temporary
         data.tr_chunks[i].destGUID =  GetTrackGUID( dest_tr )
-        if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&256 == 256) then  
-          folder_level = reaper.GetMediaTrackInfo_Value( dest_tr, 'I_FOLDERDEPTH'  ) 
-          if folder_level == 1 and last_folder_level == 1 and last_dest_tr then 
-            SetMediaTrackInfo_Value( last_dest_tr, 'I_FOLDERDEPTH', 0  ) 
-          end 
-        end 
+        local ret, folder_level0 = Data_ImportTracks_ResetFolderLevel(conf, obj, data, refresh, mouse, strategy, dest_tr, last_folder_level, last_dest_tr) 
+        if ret then folder_level = folder_level0 end
       end
+      
       if type(data.tr_chunks[i].dest) == 'string' and data.tr_chunks[i].dest ~= '' then
         local new_tr = Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy)
         dest_tr = VF_GetTrackByGUID(data.tr_chunks[i].dest)
         if dest_tr then  
           Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, new_tr, dest_tr) 
           data.tr_chunks[i].destGUID =  GetTrackGUID( dest_tr )
-          DeleteTrack( new_tr )
-          
-          if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&256 == 256) then  folder_level = reaper.GetMediaTrackInfo_Value( dest_tr, 'I_FOLDERDEPTH'  ) if folder_level == 1 and last_folder_level == 1 and last_dest_tr then SetMediaTrackInfo_Value( last_dest_tr, 'I_FOLDERDEPTH', 0  ) end end 
-          
+          DeleteTrack( new_tr ) 
+          local ret, folder_level0 = Data_ImportTracks_ResetFolderLevel(conf, obj, data, refresh, mouse, strategy, dest_tr, last_folder_level, last_dest_tr) 
+          if ret then folder_level = folder_level0 end
         end
       end
+      
       last_dest_tr = dest_tr
       last_folder_level =  folder_level
-     --[[ if data.tr_chunks[i].dest == -1 then  -- end of track list
-        --Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy)
-        local new_tr = Data_ImportTracks_NewTrack(data, i, CountTracks( 0 ),strategy)
-        Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, new_tr, new_tr) 
-      elseif type(data.tr_chunks[i].dest) == 'string' and data.tr_chunks[i].dest ~= '' then  -- to specific track
-        local dest_tr = VF_GetTrackByGUID(data.tr_chunks[i].dest)
-        if dest_tr then 
-          local tr_id = CSurf_TrackToID( dest_tr, false )
-          -- set chunk
-          if strategy.comchunk == 1 then
-            
-            local new_chunk = data.tr_chunks[i].chunk
-            local gGUID = genGuid('' ) 
-            new_chunk = new_chunk:gsub('TRACK .-\n', 'TRACK '..gGUID..'\n')
-            new_chunk = new_chunk:gsub('AUXRECV .-\n', '\n')
-            SetTrackStateChunk( dest_tr, new_chunk, false )
-            gGUID = reaper.GetTrackGUID( dest_tr )
-            data.tr_chunks[i].destGUID = gGUID
-            
-           else   
-            local new_tr = Data_ImportTracks_NewTrack(data, i, tr_id,strategy)
-            Data_ImportTracks_AppStr(conf, obj, data, refresh, mouse, strategy, new_tr, dest_tr) 
-            data.tr_chunks[i].destGUID =  GetTrackGUID( dest_tr )
-            DeleteTrack( new_tr )
-          end
-        end
-       elseif data.tr_chunks[i].dest == -2 then
-        
-      end   ]]
-          
-    end   
-    
+    end
     Data_ImportTracks_Send(conf, obj, data, refresh, mouse, strategy) 
     if strategy.tritems&8==8 then Action(40047) end -- Peaks: Build any missing peaks
   end
-
+  --------------------------------------------------- 
+  function Data_ImportTracks_ResetFolderLevel(conf, obj, data, refresh, mouse, strategy, dest_tr, last_folder_level, last_dest_tr) 
+    if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&256 == 256) then  
+      folder_level = reaper.GetMediaTrackInfo_Value( dest_tr, 'I_FOLDERDEPTH'  ) 
+      if folder_level == 1 and last_folder_level == 1 and last_dest_tr then 
+        SetMediaTrackInfo_Value( last_dest_tr, 'I_FOLDERDEPTH', 0  ) 
+      end 
+      return true, folder_level
+    end  
+  end
   --------------------------------------------------- 
   function Data_ParseRPP_ParseAUXRECV(AUXRECV)
     local t = {}
@@ -737,8 +712,13 @@
   end
   -------------------------------------------------------------------- 
   function Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, key)
+    if key=='P_NAME' then
+      local retval, stringNeedBig = GetSetMediaTrackInfo_String( src_tr, 'P_NAME', '', 0 )
+      GetSetMediaTrackInfo_String( dest_tr, 'P_NAME', stringNeedBig, 1 )
+     else 
       local val = GetMediaTrackInfo_Value( src_tr,key )
       SetMediaTrackInfo_Value( dest_tr, key, val )  
+    end
   end
   
   -------------------------------------------------------------------- 
@@ -883,13 +863,24 @@
       end     
       if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&128 == 128) then  
         Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_CUSTOMCOLOR')
+      end      
+      
+      --&256 Reset structure for single folders
+      
+      if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&512 == 512) then  
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'P_NAME')
       end     
+      if strategy.trparams&1 == 1 or (strategy.trparams&1 == 0 and strategy.trparams&1024 == 1024) then  
+        Data_ImportTracks_AppStr_SetTrVal(src_tr, dest_tr, 'I_FOLDERDEPTH')
+      end       
+      
+      
       
     -- tr items
       if strategy.tritems&1==0 then -- remove dest tr items
-        for itemidx = CountTrackMediaItems( new_tr ), 1, -1 do 
-          local item = GetTrackMediaItem( new_tr, itemidx-1 )
-          DeleteTrackMediaItem(  new_tr, item) 
+        for itemidx = CountTrackMediaItems( dest_tr ), 1, -1 do 
+          local item = GetTrackMediaItem( dest_tr, itemidx-1 )
+          DeleteTrackMediaItem(  dest_tr, item) 
         end
       end 
       if strategy.tritems&1 == 1 then    

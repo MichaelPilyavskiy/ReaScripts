@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 2.69
+-- @version 2.70
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
@@ -12,9 +12,9 @@
 --    mpl_Various_functions_Pers.lua
 --    [main] mpl_Various_functions_PurchaseGUI.lua
 -- @changelog
---    + VF2_MPL_DumpRetrospectiveLog_DumpToTake allow to hide message
+--    # VF_GetTrackByGUID: validate synthax
     
-  VF_version = 2.69 -- do not remove, use for versions comparement
+  VF_version = 2.70 -- do not remove, use for versions comparement
   VF_isregist = 0 
   --------------------------------------------------
   function VF_LoadLibraries()

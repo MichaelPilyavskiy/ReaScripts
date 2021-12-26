@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 1.27
+-- @version 1.28
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT/S1 Import Session Data feature
@@ -10,13 +10,15 @@
 --    mpl_ImportSessionData_functions/mpl_ImportSessionData_obj.lua
 --    [main] mpl_ImportSessionData_presets/mpl_ImportSessionData preset - default.lua
 -- @changelog
---    # improve "Add new track at the end of tracklist"
---    + Always replace item GUIDs when NOT importing RAW track chunk
+--    # fix error when not importing items
+--    + Strategy: TrackProperties / Track name
+--    + Strategy: TrackProperties / Folder depth
+
 
 
 
      
-  local vrs = '1.27'
+  local vrs = '1.28'
   --NOT gfx NOT reaper
   
 
@@ -297,10 +299,6 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
     return t
   end 
   ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Install it via Reapack (Action: browse packages)', '', 0) end   end
+  function VF_CheckFunctions(vrs) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end  else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0)  if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end    end
   --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF2_LoadVFv2') 
-  if ret then 
-    local ret2 = VF_CheckReaperVrs(5.95,true)    
-    if ret2 then main() end
-  end
+  local ret = VF_CheckFunctions(2.70) if ret then local ret2 = VF_CheckReaperVrs(5.95,true) if ret2 then main() end end

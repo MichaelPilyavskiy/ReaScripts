@@ -31,6 +31,7 @@
   end
   ---------------------------------------------------
   function VF_GetTrackByGUID(giv_guid)
+    if not (giv_guid and giv_guid:gsub('%p+','')) then return end
     for i = 1, CountTracks(0) do
       local tr = GetTrack(0,i-1)
       local GUID = reaper.GetTrackGUID( tr )
