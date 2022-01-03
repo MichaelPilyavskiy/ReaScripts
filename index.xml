@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="77fc309fc7ae500b53460b46f93c0d44e80bd597" name="MPL Scripts">
+<index version="1" commit="1779ed6c4d37f92c7476ed6452d1b8753c3f6009" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6721,6 +6721,22 @@ add control for timefall showing last note]]></changelog>
       <version name="1.02" author="MPL" time="2018-09-08T09:38:50Z">
         <changelog><![CDATA[# rename title]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25e84f72089c3534945b42a691a8a00d60b8dd58/Various/mpl_Delete%20non-existing%20scripts%20from%20ActionList.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Dump Retrospective Record log (old version).lua" type="script" desc="Dump Retrospective Record log (old version)">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Dump recent MIDI messages log\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.01" author="MPL, Justin" time="2022-01-03T06:44:51Z">
+        <changelog><![CDATA[# fix description, remove VF dependency]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1779ed6c4d37f92c7476ed6452d1b8753c3f6009/Various/mpl_Dump%20Retrospective%20Record%20log%20(old%20version).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Dump Retrospective Record log.lua" type="script" desc="Dump Retrospective Record log">
