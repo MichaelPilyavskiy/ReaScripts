@@ -1,5 +1,5 @@
 -- @description Create FX send from selected tracks (custom)
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
@@ -13,9 +13,9 @@
      elseif reaper.CountSelectedTracks(0) > 1 then
       local seltr_ptrs = {}
       for i = 1, reaper.CountSelectedTracks(0) do 
-        local tr = reaper.GetSelectedTrack( 0, i-1 )
+        local tr = reaper.GetSelectedTrack( 0, i-1 ) 
         seltr_ptrs[#seltr_ptrs+1]=tr
-        if i == 1 then firsttrackid = i end
+        if i == 1 then firsttrackid = CSurf_TrackToID(tr, false)-1 end
         if i == reaper.CountSelectedTracks(0) then VF2_CreateFXTrack(tr, seltr_ptrs, firsttrackid) end
       end 
     end
