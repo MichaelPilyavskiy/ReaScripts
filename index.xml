@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="81b938767434918501f66987aa043faad636535a" name="MPL Scripts">
+<index version="1" commit="a58b4464341fd3d3cf1f5154d8e8cac1385deb46" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -723,6 +723,22 @@
         <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/636fffbc4a68834040606e86f83207b9565e7b2a/Functions/mpl_Various_functions_Purchase.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/636fffbc4a68834040606e86f83207b9565e7b2a/Functions/mpl_Various_functions_Pers.lua</source>
         <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/636fffbc4a68834040606e86f83207b9565e7b2a/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
+      </version>
+      <version name="2.72" author="MPL" time="2022-01-07T17:32:27Z">
+        <changelog><![CDATA[+ VF2_FormatToNormValue
++ VF2_NormToFormatValue
++ Add v3 persistent/GUI library
+# fix VF2_GetTakeGUID
+# fix GUI:menu(t)
+# mpl_Dump Retrospective Record log (clean buffer only)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v2.bin">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Functions/mpl_Various_functions_v2.bin</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Functions/mpl_Various_functions_Purchase.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Functions/mpl_Various_functions_Pers.lua</source>
+        <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
       </version>
     </reapack>
   </category>
@@ -6520,18 +6536,15 @@ add control for timefall showing last note]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c9e6543c57bef975582ef71cc7c66cf4cb88c2c0/Various/mpl_Adjust%20arrange%20grid%20(mousewheel).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Align takes (without GUI).lua" type="script" desc="Align Takes (without GUI)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.120" author="MPL" time="2016-08-11T13:00:48Z">
-        <changelog><![CDATA[# Temporary fix for 'id_diff' #796
-+ init no GUI branch]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Various/mpl_Align%20takes%20(without%20GUI).lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Align takes.lua" type="script" desc="Align Takes">
       <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for matching RMS of audio takes and stratch them using stretch markers\par}
+}
+]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-11T10:12:56Z">
@@ -6641,6 +6654,63 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[+ G key to get takes
 + Left/Right arrow to set strength of alignment]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aa5803522702111eadd076d4734a2f97cfbf6ad2/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="2.0" author="MPL" time="2022-01-07T17:32:27Z">
+        <changelog><![CDATA[+ Complete core rebuild
++ Complete GUI rebuild
++ Internal cleanup
++ Core/Preset: rebuild preset system
++ Core/Preset: action to reset all settings
++ Core/Preset: right click on parameter reset parameter
++ Core/Preset: general preset management - Save, Save as new, Rename, Delete
++ Core/Global: allow to get reference take on initialization
++ Core/Global: allow to get dub take on initialization
++ Core/Global: if both ref and dub init check is on, get dub take starting from second take
++ Core/Global: allow to apply settings (get ref/dub takes and calculate best fit) on configuration change
++ Core/Global: option to clear stretch markers for dub takes on initialization
++ Core/Global: option to get time selection as data edges
++ Core/Global: option to init UI at mouse position
++ Core/Audio data: separate audio data settings
++ Core/Audio data: support takes with non-1x takerate
++ Core/Audio data: support looped takes
++ Core/Audio data: support dub edges outside reference take edges
++ Core/Audio data: get reference take parent track accessor data rather than take accessor
++ Core/Audio data: get dub takes source track track accessor data enclosed with reference accessor edges
++ Core/Audio data: remove FFT support, use band splitting based on JSFX 4-Band Splitter by Michael Gruhn
++ Core/Audio data: option to limit audio for analyze
++ Core/PeakFollower: separate peak follower (envelope creation) settings
++ Core/PeakFollower: allow to change window ovelap (improve envelope accuracy without changing window)
++ Core/PeakFollower: use pass counter for smoothing envelope
++ Core/PeakFollower: option to reduce points back to non-overlapped (overlap divider = 1) count
++ Core/MarkerGenerator: separate marker generator (phrase slicer) settings
++ Core/MarkerGenerator: remove rise/fall value, use relation value/RMS in defined area of points
++ Core/MatchAlgorithm: separate audio matching algorithm
++ Core/MatchAlgorithm: optionally disable on-the-fly stretching of dub array
++ Core/MatchAlgorithm: replace search area parameter with 'Brutforce search area', this is quantized to window/overlap length
++ Core/MatchAlgorithm: skip difference check at 0 values
++ Core/TakeOutput: separate take output settings
++ Core/TakeOutput: allow to change pitchshift/timestretch mode
++ Core/TakeOutput: allow to change stretchmarker fade size
++ GUI: allow to get reference and dub separately
++ GUI: retina scaling support
++ GUI: extending window extend UI
++ GUI: show all available dub takes
++ GUI: store window position
++ GUI: store window width/heigth
++ GUI: store window docker
++ GUI: scroll parameters list
++ GUI/OneKnobMode: reduce all UI to one knob if script width/height less than 500/200px (or more if retina)
++ GUI/OneKnobMode: override 'get reference/dub on init' checks
++ GUI/Shortcuts: Left / Right arrow move main knob
++ GUI/Shortcuts: G/g get ref/dub
++ GUI/Shortcuts: R/r get ref
++ GUI/Shortcuts: D/d get dub
++ GUI/Shortcuts: space trigger transport
++ GUI/Shortcuts: show src/dest points with green/red colors
+# remove nonGUi version, use OneKnobMode mode instead
+# remove SWS dependency
+# require VF_CheckFunctions 2.71+ ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Cacophony.lua" type="script" desc="Cacophony">
@@ -6820,6 +6890,19 @@ add control for timefall showing last note]]></changelog>
         <source main="main" file="mpl_Dump Retrospective Record log (everything from last 10 minutes).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2313e0e6aaaae95f3e3209ac564c2bcee3c803a1/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
         <source main="main" file="mpl_Dump Retrospective Record log (everything from last 30 minutes).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2313e0e6aaaae95f3e3209ac564c2bcee3c803a1/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
         <source main="main" file="mpl_Dump Retrospective Record log (everything from last hour, obey stored data break).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2313e0e6aaaae95f3e3209ac564c2bcee3c803a1/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+      </version>
+      <version name="2.03" author="MPL" time="2022-01-07T17:32:27Z">
+        <changelog><![CDATA[+ add mpl_Dump Retrospective Record log (clean buffer only)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (notes only).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (only data at playing).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (only data at stop).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (everything recorded from last REAPER start).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (everything from last 5 minutes).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (everything from last 10 minutes).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (everything from last 30 minutes).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (everything from last hour, obey stored data break).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
+        <source main="main" file="mpl_Dump Retrospective Record log (clean buffer only).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a58b4464341fd3d3cf1f5154d8e8cac1385deb46/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Implode mono track session to stereo items relative to LR at the trackname end.lua" type="script" desc="Implode mono track session to stereo items relative to LR at the trackname end">
