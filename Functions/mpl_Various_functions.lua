@@ -2,24 +2,20 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 2.72
+-- @version 2.73
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
+--    mpl_Various_functions_v3.lua
 --    mpl_Various_functions_GUI.lua
 --    mpl_Various_functions_MOUSE.lua
 --    mpl_Various_functions_Purchase.lua
 --    mpl_Various_functions_Pers.lua
 --    [main] mpl_Various_functions_PurchaseGUI.lua
 -- @changelog
---    + VF2_FormatToNormValue
---    + VF2_NormToFormatValue
---    + Add v3 persistent/GUI library
---    # fix VF2_GetTakeGUID
---    # fix GUI:menu(t)
---    # mpl_Dump Retrospective Record log (clean buffer only)
+--    # fix header
     
-  VF_version = 2.72 -- do not remove, use for versions comparement
+  VF_version = 2.73 -- do not remove, use for versions comparement
   VF_isregist = 0 
   --------------------------------------------------
   function VF_LoadLibraries()
