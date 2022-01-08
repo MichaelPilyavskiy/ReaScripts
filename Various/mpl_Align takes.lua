@@ -1,10 +1,11 @@
 -- @description Align Takes
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog--    
---    # if VariousFunctions are not purchased, trigger purchase window, put set dependencies only to the v1
+--    # when VariousFunctions are not purchased, fully functional, but limit some settings
+--    # orevent getting MIDI takes
 
   --[[
     * Changelog: 
@@ -30,7 +31,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.01
+    DATA.extstate.version = 2.02
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
@@ -625,6 +626,8 @@
          onmousereleaseR = function() DATA:ExtStateRestoreDefaults(CONF_obtimesel) GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_obtimesel', DATA.extstate.CONF_obtimesel~1, true, true   ) end, 
          ischeck = true,
          state = DATA.extstate.CONF_obtimesel&1==1,
+         active = VF_isregist&2==2,
+         ignoremouse = VF_isregist&2~=2,
        },  
       { str = 'Enable shortcuts',
          level = 1,
@@ -659,6 +662,8 @@
                       end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_bs_f1') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        active = VF_isregist&2==2,
+        ignoremouse = VF_isregist&2~=2,
       },     
       { customkey = 'settings_bsf2',
         str = 'BandSplitter Freq 2',
@@ -675,6 +680,8 @@
                       end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_bs_f2') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        active = VF_isregist&2==2,
+        ignoremouse = VF_isregist&2~=2,
       },   
       { customkey = 'settings_bsf3',
         str = 'BandSplitter Freq 3',
@@ -691,6 +698,8 @@
                       end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_bs_f3') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        active = VF_isregist&2==2,
+        ignoremouse = VF_isregist&2~=2,
       },  
       { customkey = 'settings_bsa1',
         str = 'BandSplitter Band 1',
@@ -776,6 +785,8 @@
                   {str = '8', func = function()  local val = 8 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_window_overlap', val,true, nil  ) end }  ,   
                 },
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_window_overlap') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        active = VF_isregist&2==2,
+        ignoremouse = VF_isregist&2~=2,
       },  
       { customkey = 'settings_audiodosqrt',
         str = 'val^y (scaling)',
@@ -806,6 +817,8 @@
                   {str = '8x', func = function()  local val = 8 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_smooth', val,true, nil  ) end, true }  ,   
                 },
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_smooth') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        active = VF_isregist&2==2,
+        ignoremouse = VF_isregist&2~=2,
       },  
       { str = 'Compensate overlap / Reduce points',
         level = 1,
@@ -813,6 +826,8 @@
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_compensateoverlap') GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_compensateoverlap', DATA.extstate.CONF_compensateoverlap~1 , true, nil )  end,                          
         ischeck = true,
         state = DATA.extstate.CONF_compensateoverlap&1==1,
+        active = VF_isregist&2==2,
+        ignoremouse = VF_isregist&2~=2,
       }, 
       
       
@@ -835,6 +850,8 @@
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_enveloperisefall') GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_enveloperisefall', 2 , true, nil )  end,                
         ischeck = true,
         state = DATA.extstate.CONF_markgen_enveloperisefall==2,
+        active = VF_isregist&2==2,
+        ignoremouse = VF_isregist&2~=2,
       }, 
       { customkey = 'settings_mark_block',
         str = 'Minimum points distance',
@@ -885,6 +902,8 @@
         onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_levthresval',VF_NormToFormatValue(GUI.buttons['settings_levthresval'].val, 0,100)..'%', 'CONF_markgen_threshold', GUI.buttons['settings_levthresval'].val, nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_threshold') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        active = VF_isregist&2==2,
+        ignoremouse = VF_isregist&2~=2,
       },   
       
       
@@ -950,6 +969,7 @@
         valtxtw_mult = 8,
         menu = {table.unpack(smmode)},
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_post_smmode') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        
       },       
       { customkey = 'settings_postmarksz',
         str = 'Stretch marker fade size',
@@ -961,6 +981,8 @@
         onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_postmarkszval',VF_NormToFormatValue(GUI.buttons['settings_postmarkszval'].val, 0.0025, 0.05, 4)..'s' , 'CONF_post_strmarkfdsize', VF_NormToFormatValue(GUI.buttons['settings_postmarkszval'].val,0.0025, 0.05,4), nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_post_strmarkfdsize') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        active = VF_isregist&2==2,
+        ignoremouse = VF_isregist&2~=2,
       }, 
       { str = 'Add 0 pos marker',
         level = 1,
@@ -1105,6 +1127,7 @@
     for i = st, CountSelectedMediaItems( 0 ) do
       local item = GetSelectedMediaItem(0,i-1)
       local take = GetActiveTake(item)
+      if TakeIsMIDI(take) then  goto skipnextdub end 
       local parent_track = GetMediaItem_Track( item ) 
       if parent_track == reftrack then goto skipnextdub end 
       if not take or (take and TakeIsMIDI(take)) then  goto skipnextdub end
@@ -1158,6 +1181,8 @@
     local edge_start,edge_end = math.huge, 0
     for i = 1, CountSelectedMediaItems(0) do
       local item = GetSelectedMediaItem(0,i-1)
+      local take = GetActiveTake(item)
+      if not take or TakeIsMIDI(take) then goto skipnextref end 
       local track = GetMediaItem_Track( item ) 
       if not parent_track then parent_track = track end
       if parent_track and parent_track ==  track then
@@ -1166,6 +1191,7 @@
         edge_start = math.min(pos,edge_start)
         edge_end = math.max(pos+len,edge_end)
       end
+      ::skipnextref::
     end
     
     if DATA.extstate.CONF_obtimesel == 1 then edge_start,edge_end = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false ) end
@@ -1418,5 +1444,5 @@
   ---------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(2.74) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
-
+  local ret = VF_CheckFunctions(2.75) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  

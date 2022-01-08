@@ -413,6 +413,7 @@
     GUI.default_txt_font = 'Calibri'
     GUI.default_txt_fontsz = 17
     GUI.default_txt_a = 0.9
+    GUI.default_txt_a_inactive = 0.3
     
     
     
@@ -802,6 +803,8 @@
       if item.valtxtw_mult then valmsg_wratio0 = item.valtxtw_mult end
       yid = yid+ 1
       local xoffs = entryh * (item.level or 0)
+      local txt_a =GUI.default_txt_a
+      if item.active == false then txt_a = GUI.default_txt_a_inactive end
       
       -- is check
         if item.ischeck then 
@@ -818,6 +821,7 @@
             layer = layer,
             txt_flags = 1|4,
             txt_col = item.txt_col,
+            txt_a = txt_a,
             state_col = item.txt_col, 
             frame_a = frame_a,
             onmouseclick = item.onmouseclick,
@@ -826,7 +830,9 @@
             onmouseclickR = item.onmouseclickR,
             onmousedragR = item.onmousedragR,
             onmousereleaseR = item.onmousereleaseR,
-            hide = item.hide
+            hide = item.hide,
+            active = item.active,
+            ignoremouse = item.ignoremouse,
           }
           GUI:quantizeXYWH(GUI.buttons[key])
         end
@@ -844,6 +850,7 @@
           back_sela = 0,
           txt = txt,
           txt_col = item.txt_col,
+          txt_a = txt_a,
           layer = layer,
           val = item.val,
           val_res = item.val_res,
@@ -855,7 +862,9 @@
           onmouseclickR = item.onmouseclickR,
           onmousedragR = item.onmousedragR,
           onmousereleaseR = item.onmousereleaseR,
-          hide = item.hide
+          hide = item.hide,
+          active = item.active,
+          ignoremouse = item.ignoremouse,
         }
         if item.menu then GUI.buttons[key].onmouseclick = function() GUI:menu(item.menu) end end
         GUI:quantizeXYWH(GUI.buttons[key])
@@ -878,10 +887,11 @@
           back_sela = 0,
           txt = item.str,
           txt_col = item.txt_col,
+          txt_flags=4 or item.txt_flags,
+          txt_a = txt_a,
           layer = layer,
           frame_a=0 or item.frame_a,
           frame_asel=0 or item.frame_asel,
-          txt_flags=4 or item.txt_flags,
           onmouseclick = item.onmouseclick,
           onmousedrag = item.onmousedrag,
           onmouserelease = item.onmouserelease,
@@ -898,7 +908,9 @@
                             scrollobj.val = GUI.layers[layer].scrollval
                           end
                         end,
-          hide = item.hide
+          hide = item.hide,
+          active = item.active,
+          ignoremouse = item.ignoremouse,
         } 
       GUI:quantizeXYWH(GUI.buttons[key])
       last_h = GUI.buttons[key].y+GUI.buttons[key].h
