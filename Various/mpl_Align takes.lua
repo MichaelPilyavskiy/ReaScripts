@@ -1,63 +1,10 @@
 -- @description Align Takes
--- @version 2.0
+-- @version 2.01
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @changelog
---    + Complete core rebuild
---    + Complete GUI rebuild
---    + Internal cleanup
---    + Core/Preset: rebuild preset system
---    + Core/Preset: action to reset all settings
---    + Core/Preset: right click on parameter reset parameter
---    + Core/Preset: general preset management - Save, Save as new, Rename, Delete
---    + Core/Global: allow to get reference take on initialization
---    + Core/Global: allow to get dub take on initialization
---    + Core/Global: if both ref and dub init check is on, get dub take starting from second take
---    + Core/Global: allow to apply settings (get ref/dub takes and calculate best fit) on configuration change
---    + Core/Global: option to clear stretch markers for dub takes on initialization
---    + Core/Global: option to get time selection as data edges
---    + Core/Global: option to init UI at mouse position
---    + Core/Audio data: separate audio data settings
---    + Core/Audio data: support takes with non-1x takerate
---    + Core/Audio data: support looped takes
---    + Core/Audio data: support dub edges outside reference take edges
---    + Core/Audio data: get reference take parent track accessor data rather than take accessor
---    + Core/Audio data: get dub takes source track track accessor data enclosed with reference accessor edges
---    + Core/Audio data: remove FFT support, use band splitting based on JSFX 4-Band Splitter by Michael Gruhn
---    + Core/Audio data: option to limit audio for analyze
---    + Core/PeakFollower: separate peak follower (envelope creation) settings
---    + Core/PeakFollower: allow to change window ovelap (improve envelope accuracy without changing window)
---    + Core/PeakFollower: use pass counter for smoothing envelope
---    + Core/PeakFollower: option to reduce points back to non-overlapped (overlap divider = 1) count
---    + Core/MarkerGenerator: separate marker generator (phrase slicer) settings
---    + Core/MarkerGenerator: remove rise/fall value, use relation value/RMS in defined area of points
---    + Core/MatchAlgorithm: separate audio matching algorithm
---    + Core/MatchAlgorithm: optionally disable on-the-fly stretching of dub array
---    + Core/MatchAlgorithm: replace search area parameter with 'Brutforce search area', this is quantized to window/overlap length
---    + Core/MatchAlgorithm: skip difference check at 0 values
---    + Core/TakeOutput: separate take output settings
---    + Core/TakeOutput: allow to change pitchshift/timestretch mode
---    + Core/TakeOutput: allow to change stretchmarker fade size
---    + GUI: allow to get reference and dub separately
---    + GUI: retina scaling support
---    + GUI: extending window extend UI
---    + GUI: show all available dub takes
---    + GUI: store window position
---    + GUI: store window width/heigth
---    + GUI: store window docker
---    + GUI: scroll parameters list
---    + GUI/OneKnobMode: reduce all UI to one knob if script width/height less than 500/200px (or more if retina)
---    + GUI/OneKnobMode: override 'get reference/dub on init' checks
---    + GUI/Shortcuts: Left / Right arrow move main knob
---    + GUI/Shortcuts: G/g get ref/dub
---    + GUI/Shortcuts: R/r get ref
---    + GUI/Shortcuts: D/d get dub
---    + GUI/Shortcuts: space trigger transport
---    + GUI/Shortcuts: show src/dest points with green/red colors
---    # remove nonGUi version, use OneKnobMode mode instead
---    # remove SWS dependency
---    # require VF_CheckFunctions 2.71+ 
+-- @changelog--    
+--    # if VariousFunctions are not purchased, trigger purchase window, put set dependencies only to the v1
 
   --[[
     * Changelog: 
@@ -77,12 +24,13 @@
   -- use eel for CPU hungry stuff 
   -- obey pitch data
   -- align pitch data
+  -- big data limit
   
   local DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.0
+    DATA.extstate.version = 2.01
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
@@ -700,13 +648,13 @@
         str = 'BandSplitter Freq 1',
         level = 1,
         isvalue = true,
-        val = VF2_FormatToNormValue(DATA.extstate.CONF_audio_bs_f1, 20, DATA.extstate.CONF_audio_bs_f2),
+        val = VF_FormatToNormValue(DATA.extstate.CONF_audio_bs_f1, 20, DATA.extstate.CONF_audio_bs_f2),
         val_res = 0.1,
         valtxt =  DATA.extstate.CONF_audio_bs_f1..'Hz',
         onmousedrag = function() 
                         local min = 20
                         local max = DATA.extstate.CONF_audio_bs_f2
-                        local Fout = VF2_NormToFormatValue(GUI.buttons['settings_bsf1val'].val,min,max,-1)
+                        local Fout = VF_NormToFormatValue(GUI.buttons['settings_bsf1val'].val,min,max,-1)
                         GUI_settingst_confirmval(GUI, DATA, 'settings_bsf1val',Fout ..'Hz', 'CONF_audio_bs_f1', Fout, nil, nil  )
                       end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
@@ -716,13 +664,13 @@
         str = 'BandSplitter Freq 2',
         level = 1,
         isvalue = true,
-        val = VF2_FormatToNormValue(DATA.extstate.CONF_audio_bs_f2, DATA.extstate.CONF_audio_bs_f1, DATA.extstate.CONF_audio_bs_f3),
+        val = VF_FormatToNormValue(DATA.extstate.CONF_audio_bs_f2, DATA.extstate.CONF_audio_bs_f1, DATA.extstate.CONF_audio_bs_f3),
         val_res = 0.1,
         valtxt =  DATA.extstate.CONF_audio_bs_f2..'Hz',
         onmousedrag = function() 
                         local min = DATA.extstate.CONF_audio_bs_f1
                         local max = DATA.extstate.CONF_audio_bs_f3
-                        local Fout = VF2_NormToFormatValue(GUI.buttons['settings_bsf2val'].val,min,max,-1)
+                        local Fout = VF_NormToFormatValue(GUI.buttons['settings_bsf2val'].val,min,max,-1)
                         GUI_settingst_confirmval(GUI, DATA, 'settings_bsf2val',Fout ..'Hz', 'CONF_audio_bs_f2', Fout, nil, nil  )
                       end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
@@ -732,13 +680,13 @@
         str = 'BandSplitter Freq 3',
         level = 1,
         isvalue = true,
-        val = VF2_FormatToNormValue(DATA.extstate.CONF_audio_bs_f3, DATA.extstate.CONF_audio_bs_f2, 10000),
+        val = VF_FormatToNormValue(DATA.extstate.CONF_audio_bs_f3, DATA.extstate.CONF_audio_bs_f2, 10000),
         val_res = 0.1,
         valtxt =  DATA.extstate.CONF_audio_bs_f3..'Hz',
         onmousedrag = function() 
                         local min = DATA.extstate.CONF_audio_bs_f2
                         local max = 10000
-                        local Fout = VF2_NormToFormatValue(GUI.buttons['settings_bsf3val'].val,min,max,-1)
+                        local Fout = VF_NormToFormatValue(GUI.buttons['settings_bsf3val'].val,min,max,-1)
                         GUI_settingst_confirmval(GUI, DATA, 'settings_bsf3val',Fout ..'Hz', 'CONF_audio_bs_f3', Fout, nil, nil  )
                       end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
@@ -750,8 +698,8 @@
         isvalue = true,
         val = DATA.extstate.CONF_audio_bs_a1,
         val_res = 0.1,
-        valtxt =  VF2_NormToFormatValue(DATA.extstate.CONF_audio_bs_a1, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_bsa1val',VF2_NormToFormatValue(GUI.buttons['settings_bsa1val'].val, 0,100)..'%', 'CONF_audio_bs_a1', GUI.buttons['settings_bsa1val'].val, nil, nil  ) end,
+        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_audio_bs_a1, 0,100)..'%',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_bsa1val',VF_NormToFormatValue(GUI.buttons['settings_bsa1val'].val, 0,100)..'%', 'CONF_audio_bs_a1', GUI.buttons['settings_bsa1val'].val, nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_bs_a1') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
       },   
@@ -761,8 +709,8 @@
         isvalue = true,
         val = DATA.extstate.CONF_audio_bs_a2,
         val_res = 0.1,
-        valtxt =  VF2_NormToFormatValue(DATA.extstate.CONF_audio_bs_a2, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_bsa2val',VF2_NormToFormatValue(GUI.buttons['settings_bsa2val'].val, 0,100)..'%', 'CONF_audio_bs_a2', GUI.buttons['settings_bsa2val'].val, nil, nil  ) end,
+        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_audio_bs_a2, 0,100)..'%',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_bsa2val',VF_NormToFormatValue(GUI.buttons['settings_bsa2val'].val, 0,100)..'%', 'CONF_audio_bs_a2', GUI.buttons['settings_bsa2val'].val, nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_bs_a2') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
       },     
@@ -772,8 +720,8 @@
         isvalue = true,
         val = DATA.extstate.CONF_audio_bs_a3,
         val_res = 0.1,
-        valtxt =  VF2_NormToFormatValue(DATA.extstate.CONF_audio_bs_a3, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_bsa3val',VF2_NormToFormatValue(GUI.buttons['settings_bsa3val'].val, 0,100)..'%', 'CONF_audio_bs_a3', GUI.buttons['settings_bsa3val'].val , nil, nil ) end,
+        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_audio_bs_a3, 0,100)..'%',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_bsa3val',VF_NormToFormatValue(GUI.buttons['settings_bsa3val'].val, 0,100)..'%', 'CONF_audio_bs_a3', GUI.buttons['settings_bsa3val'].val , nil, nil ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function()DATA:ExtStateRestoreDefaults('CONF_audio_bs_a3')  GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
       },      
@@ -783,8 +731,8 @@
         isvalue = true,
         val = DATA.extstate.CONF_audio_bs_a4,
         val_res = 0.1,
-        valtxt =  VF2_NormToFormatValue(DATA.extstate.CONF_audio_bs_a4, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_bsa4val',VF2_NormToFormatValue(GUI.buttons['settings_bsa4val'].val, 0,100)..'%', 'CONF_audio_bs_a4', GUI.buttons['settings_bsa4val'].val, nil, nil  ) end,
+        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_audio_bs_a4, 0,100)..'%',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_bsa4val',VF_NormToFormatValue(GUI.buttons['settings_bsa4val'].val, 0,100)..'%', 'CONF_audio_bs_a4', GUI.buttons['settings_bsa4val'].val, nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_bs_a4') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
       },     
@@ -794,8 +742,8 @@
         isvalue = true,
         val = DATA.extstate.CONF_audio_lim,
         val_res = 0.1,
-        valtxt =  VF2_NormToFormatValue(DATA.extstate.CONF_audio_lim, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_aulimitval',VF2_NormToFormatValue(GUI.buttons['settings_aulimitval'].val, 0,100)..'%', 'CONF_audio_lim', GUI.buttons['settings_aulimitval'].val, nil, nil  ) end,
+        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_audio_lim, 0,100)..'%',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_aulimitval',VF_NormToFormatValue(GUI.buttons['settings_aulimitval'].val, 0,100)..'%', 'CONF_audio_lim', GUI.buttons['settings_aulimitval'].val, nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_lim') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
       },      
@@ -808,10 +756,10 @@
         str = 'Window',
         level = 1,
         isvalue = true,
-        val = VF2_FormatToNormValue(DATA.extstate.CONF_window, 0.01, 0.4),
+        val = VF_FormatToNormValue(DATA.extstate.CONF_window, 0.01, 0.4),
         val_res = 0.1,
         valtxt =  DATA.extstate.CONF_window..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_windval',VF2_NormToFormatValue(GUI.buttons['settings_windval'].val, 0.01, 0.4, 3)..'s' , 'CONF_window', VF2_NormToFormatValue(GUI.buttons['settings_windval'].val, 0.01, 0.4, 3), nil, nil  ) end,
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_windval',VF_NormToFormatValue(GUI.buttons['settings_windval'].val, 0.01, 0.4, 3)..'s' , 'CONF_window', VF_NormToFormatValue(GUI.buttons['settings_windval'].val, 0.01, 0.4, 3), nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_window') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
       },
@@ -833,13 +781,13 @@
         str = 'val^y (scaling)',
         level = 1,
         isvalue = true,
-        val = VF2_FormatToNormValue(DATA.extstate.CONF_audiodosquareroot, 0.1, 2, 1),
+        val = VF_FormatToNormValue(DATA.extstate.CONF_audiodosquareroot, 0.1, 2, 1),
         val_res = 0.1,
         valtxt =  DATA.extstate.CONF_audiodosquareroot,
         onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_audiodosqrtval',   
-        VF2_NormToFormatValue(GUI.buttons['settings_audiodosqrtval'].val, 0.1, 2, 1), 
+        VF_NormToFormatValue(GUI.buttons['settings_audiodosqrtval'].val, 0.1, 2, 1), 
         'CONF_audiodosquareroot', 
-        VF2_NormToFormatValue(GUI.buttons['settings_audiodosqrtval'].val, 0.1, 2, 1)
+        VF_NormToFormatValue(GUI.buttons['settings_audiodosqrtval'].val, 0.1, 2, 1)
         ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audiodosquareroot') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
@@ -893,10 +841,10 @@
         level = 1,
         txt_col = GUI.default_data_col_adv,
         isvalue = true,
-        val = VF2_FormatToNormValue(DATA.extstate.CONF_markgen_filterpoints, 5, 30, -1),
+        val = VF_FormatToNormValue(DATA.extstate.CONF_markgen_filterpoints, 5, 30, -1),
         val_res = 0.1,
         valtxt =  DATA.extstate.CONF_markgen_filterpoints*wind..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_mark_blockval',DATA.extstate.CONF_markgen_filterpoints*wind..'s' , 'CONF_markgen_filterpoints', VF2_NormToFormatValue(GUI.buttons['settings_mark_blockval'].val, 5, 30, -1), nil, nil  ) end,
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_mark_blockval',DATA.extstate.CONF_markgen_filterpoints*wind..'s' , 'CONF_markgen_filterpoints', VF_NormToFormatValue(GUI.buttons['settings_mark_blockval'].val, 5, 30, -1), nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_filterpoints') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
       }, 
@@ -905,10 +853,10 @@
         txt_col = GUI.default_data_col_adv,
         level = 1,
         isvalue = true,
-        val = VF2_FormatToNormValue(DATA.extstate.CONF_markgen_RMSpoints, 5, 30, -1),
+        val = VF_FormatToNormValue(DATA.extstate.CONF_markgen_RMSpoints, 5, 30, -1),
         val_res = 0.1,
         valtxt =  DATA.extstate.CONF_markgen_RMSpoints*wind..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_mark_blockRMSval',DATA.extstate.CONF_markgen_RMSpoints*wind..'s' , 'CONF_markgen_RMSpoints', VF2_NormToFormatValue(GUI.buttons['settings_mark_blockRMSval'].val, 5, 30, -1), nil, nil  ) end,
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_mark_blockRMSval',DATA.extstate.CONF_markgen_RMSpoints*wind..'s' , 'CONF_markgen_RMSpoints', VF_NormToFormatValue(GUI.buttons['settings_mark_blockRMSval'].val, 5, 30, -1), nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_RMSpoints') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
       },       
@@ -921,8 +869,8 @@
         isvalue = true,
         val = DATA.extstate.CONF_markgen_minimalareaRMS,
         val_res = 0.1,
-        valtxt =  VF2_NormToFormatValue(DATA.extstate.CONF_markgen_minimalareaRMS, 0,50)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_arearmsval',VF2_NormToFormatValue(GUI.buttons['settings_arearmsval'].val, 0,50)..'%', 'CONF_markgen_minimalareaRMS', GUI.buttons['settings_arearmsval'].val, nil, nil  ) end,
+        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_markgen_minimalareaRMS, 0,50)..'%',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_arearmsval',VF_NormToFormatValue(GUI.buttons['settings_arearmsval'].val, 0,50)..'%', 'CONF_markgen_minimalareaRMS', GUI.buttons['settings_arearmsval'].val, nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_minimalareaRMS') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
       }, 
@@ -933,8 +881,8 @@
         txt_col = GUI.default_data_col_adv,
         val = DATA.extstate.CONF_markgen_threshold,
         val_res = 0.1,
-        valtxt =  VF2_NormToFormatValue(DATA.extstate.CONF_markgen_threshold, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_levthresval',VF2_NormToFormatValue(GUI.buttons['settings_levthresval'].val, 0,100)..'%', 'CONF_markgen_threshold', GUI.buttons['settings_levthresval'].val, nil, nil  ) end,
+        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_markgen_threshold, 0,100)..'%',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_levthresval',VF_NormToFormatValue(GUI.buttons['settings_levthresval'].val, 0,100)..'%', 'CONF_markgen_threshold', GUI.buttons['settings_levthresval'].val, nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_threshold') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
       },   
@@ -950,10 +898,10 @@
         level = 1,
         txt_col = GUI.default_data_col_adv2,
         isvalue = true,
-        val = VF2_FormatToNormValue(DATA.extstate.CONF_match_blockarea, 1, 50, -1),
+        val = VF_FormatToNormValue(DATA.extstate.CONF_match_blockarea, 1, 50, -1),
         val_res = 0.1,
         valtxt =  DATA.extstate.CONF_match_blockarea*wind..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_algosearchval',DATA.extstate.CONF_match_blockarea *wind..'s', 'CONF_match_blockarea', VF2_NormToFormatValue(GUI.buttons['settings_algosearchval'].val, 1, 50, -1), nil, nil  ) end,
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_algosearchval',DATA.extstate.CONF_match_blockarea *wind..'s', 'CONF_match_blockarea', VF_NormToFormatValue(GUI.buttons['settings_algosearchval'].val, 1, 50, -1), nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_match_blockarea') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
       },    
@@ -1007,10 +955,10 @@
         str = 'Stretch marker fade size',
         level = 1,
         isvalue = true,
-        val = VF2_FormatToNormValue(DATA.extstate.CONF_post_strmarkfdsize, 0.0025, 0.05),
+        val = VF_FormatToNormValue(DATA.extstate.CONF_post_strmarkfdsize, 0.0025, 0.05),
         val_res = 0.05,
         valtxt =  DATA.extstate.CONF_post_strmarkfdsize..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_postmarkszval',VF2_NormToFormatValue(GUI.buttons['settings_postmarkszval'].val, 0.0025, 0.05, 4)..'s' , 'CONF_post_strmarkfdsize', VF2_NormToFormatValue(GUI.buttons['settings_postmarkszval'].val,0.0025, 0.05,4), nil, nil  ) end,
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_postmarkszval',VF_NormToFormatValue(GUI.buttons['settings_postmarkszval'].val, 0.0025, 0.05, 4)..'s' , 'CONF_post_strmarkfdsize', VF_NormToFormatValue(GUI.buttons['settings_postmarkszval'].val,0.0025, 0.05,4), nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_post_strmarkfdsize') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
       }, 
@@ -1160,7 +1108,7 @@
       local parent_track = GetMediaItem_Track( item ) 
       if parent_track == reftrack then goto skipnextdub end 
       if not take or (take and TakeIsMIDI(take)) then  goto skipnextdub end
-      local takeGUID = VF2_GetTakeGUID(take)
+      local takeGUID = VF_GetTakeGUID(take)
       local take_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE')
       local item_pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
       local item_len= GetMediaItemInfo_Value( item, 'D_LENGTH' )
@@ -1470,5 +1418,5 @@
   ---------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(2.72) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(2.74) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
 
