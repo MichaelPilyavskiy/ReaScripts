@@ -198,6 +198,12 @@ For more information contact me via email m.pilyavskiy@gmail.com]],
   local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions_Pers.lua' if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) end  
   local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions_MOUSE.lua' if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) end  
   local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions_GUI.lua' if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) end  
-    
-  VF_run_initVars() 
-  VF_run_init()
+  
+  local last_run = reaper.GetExtState('MPL_Scripts', 'last_run')
+  if last_run == '' then
+    reaper.SetExtState('MPL_Scripts', 'last_run', os.clock(), false)
+    VF_run_initVars() 
+    VF_run_init()
+  end
+  
+  
