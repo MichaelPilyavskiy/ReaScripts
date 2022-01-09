@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 2.77
+-- @version 2.79
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
@@ -13,10 +13,13 @@
 --    mpl_Various_functions_Pers.lua
 --    [main] mpl_Various_functions_PurchaseGUI.lua
 -- @changelog
---    # show purchase window only once from REAPER start
---    # implement script limitation rather that trigger arror
+--    + VF_GetItemGUID
+--    + VF_ConvertNoteOnVel0toNoteOff
+--    + VF_GetMediaItemByGUID
+--    + VF_AnalyzeItemLoudness
+--    # improve generatelisttable with empty entry
     
-  VF_version = 2.77 -- do not remove, use for versions comparement
+  VF_version = 2.79 -- do not remove, use for versions comparement
   VF_isregist = 0 
   --------------------------------------------------
   function VF_LoadLibraries()

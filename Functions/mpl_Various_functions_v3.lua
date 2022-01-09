@@ -81,6 +81,26 @@
         end   
       end
     end
+    
+    for extkey in pairs(DATA.extstate) do
+      if extkey:match('FPRESET%d+')then
+        local str = DATA.extstate[extkey]
+        local str_dec = VF_decBase64(str)
+        if str_dec~= '' then 
+          local tid = #DATA.extstate.presets+1
+          DATA.extstate.presets[tid] = {str=str}
+          for line in str_dec:gmatch('[^\r\n]+') do
+            local key,value = line:gsub('[%{}]',''):match('(.-)=(.*)') 
+            if key and value then
+              DATA.extstate.presets[tid][key]= value
+            end
+          end   
+        end
+      end
+    end
+    
+    --FPRESET1
+      
   end
   ----------------------------------------------------------------------------- 
   function GUI:draw_txt(b)
@@ -781,6 +801,7 @@
   end
   ---------------------------------------------------------------------  
   function GUI:generatelisttable(listtable)
+    if not listtable then return end
     local frameoffs = 2
     local t,boundaryobject,tablename, layer,scrollobj = listtable.t, listtable.boundaryobj, listtable.tablename, listtable.layer, listtable.scrollobj
     local offs = math.floor(GUI.default_scale*GUI.default_txt_fontsz/2)
@@ -794,9 +815,21 @@
       layershiftcompensationy = GUI.layers[layer].layer_y
     end
     local yid = 0
+    
+    
+    for i = 1, 1000 do
+      
+      key = tablename..i..'state'
+      GUI.buttons[key] = nil
+      key = tablename..i..'val' 
+      GUI.buttons[key] = nil
+      key = tablename..i..'name'
+      GUI.buttons[key] = nil
+    end
+    
     for i = 1, #t do
       local item = t[i]
-      if item.hide == true then goto list_skip end
+      if not item or item.hide == true then goto list_skip end
       local level = item.level or 0
       local levelname = level
       local valmsg_wratio0 = valmsg_wratio

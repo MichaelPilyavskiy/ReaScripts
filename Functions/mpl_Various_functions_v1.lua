@@ -942,7 +942,7 @@
     local optional_proj0 = optional_proj or 0
     for i= 1, CountTracks(optional_proj0) do tr = GetTrack(0,i-1 )if reaper.GetTrackGUID( tr ) == GUID then return tr end end
     local mast = reaper.GetMasterTrack( optional_proj0 ) if reaper.GetTrackGUID( mast ) == GUID then return mast end
-  end
+  end  
   ---------------------------------------------------------------------
   function VF_FormatToNormValue(val, min, max)
     return (val - min) /  (max-min) 
@@ -957,11 +957,121 @@
     end
   end
   ----------------------------------------------------------------------
+  function VF_GetItemGUID(take)
+    local item =  GetMediaItemTake_Item( take )
+    local retval, str = reaper.GetItemStateChunk( item, '', false )
+    local GUID = str:match('\nIGUID%s(%{.-%})')
+    return GUID
+  end  
+  ----------------------------------------------------------------------
   function VF_GetTakeGUID(take)
     local item =  GetMediaItemTake_Item( take )
     local retval, str = reaper.GetItemStateChunk( item, '', false )
     local GUID = str:match('\nGUID%s(%{.-%})')
     return GUID
+  end
+  ---------------------------------------------------------------------------------------------------------------------
+  function VF_ConvertNoteOnVel0toNoteOff(take)
+    local tableEvents = {}
+    local s_unpack = string.unpack
+    local s_pack = string.pack
+    local t = 0
+    local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
+    local MIDIlen = MIDIstring:len()
+    local stringPos = 1
+    local offset, flags, msg1
+    while stringPos < MIDIlen-12 do
+      offset, flags, msg1, stringPos = s_unpack("i4Bs4", MIDIstring, stringPos)
+      t = t + 1
+      if msg1:len()==3 then
+        local msgb1 = msg1:byte(1)
+        if msgb1&0xF0 == 0x90 and msg1:byte(3) == 0 then msgb1 =  0x80|(msg1:byte(1)&0xF) end
+        
+        tableEvents[t] = string.pack("i4Bi4BBB", offset, flags, 3, msgb1, msg1:byte(2), msg1:byte(3) )
+        --tableEvents[t] = s_pack("i4Bs4", offset, flags, msgb1 + (msg1:byte(2)<<1) + (msg1:byte(3)>>2) )
+       else
+        tableEvents[t] = s_pack("i4Bs4", offset, flags, msg1)
+      end
+    end 
+    MIDI_SetAllEvts(take, table.concat(tableEvents) .. MIDIstring:sub(-12))
+    MIDI_Sort(take)   
+    return true
+  end
+  ------------------------------------------------------------------------------------------------------
+  function VF_getKeysSortedByValue(tbl, sortFunction, param) -- https://stackoverflow.com/questions/2038418/associatively-sorting-a-table-by-value-in-lua
+    local keys = {}
+    for key in pairs(tbl) do table.insert(keys, key) end  
+    table.sort(keys, function(a, b) return sortFunction(tbl[a][param], tbl[b][param])  end)  
+    return keys
+  end 
+  ---------------------------------------------------
+  function VF_CopyTable(orig)--http://lua-users.org/wiki/CopyTable
+      local orig_type = type(orig)
+      local copy
+      if orig_type == 'table' then
+          copy = {}
+          for orig_key, orig_value in next, orig, nil do
+              copy[CopyTable(orig_key)] = CopyTable(orig_value)
+          end
+          setmetatable(copy, CopyTable(getmetatable(orig)))
+      else -- number, string, boolean, etc
+          copy = orig
+      end
+      return copy
+  end 
+  ---------------------------------------------------------------------
+  function VF_GetMediaItemByGUID(optional_proj, itemGUID)
+    local optional_proj0 = optional_proj or 0
+    local itemCount = CountMediaItems(optional_proj);
+    for i = 1, itemCount do
+      local item = GetMediaItem(0, i-1);
+      if GetSetMediaItemInfo(item, "GUID") == itemGUID then return item end
+    end
+  end  
+  ------------------------------------------------------------------------------------------------------  
+  function VF_AnalyzeItemLoudness(item) -- https://forum.cockos.com/showpost.php?p=2050961&postcount=6
+    if not item then return end
+    
+    -- get channel count
+    local take = GetActiveTake(item)
+    local source = GetMediaItemTake_Source(take)
+    local channelsInSource =  GetMediaSourceNumChannels(source)
+    
+    local windowSize = 0
+    local reaperarray_peaks         = reaper.new_array(channelsInSource)
+    local reaperarray_peakpositions = reaper.new_array(channelsInSource)
+    local reaperarray_RMSs          = reaper.new_array(channelsInSource)
+    local reaperarray_RMSpositions  = reaper.new_array(channelsInSource)
+    
+    -- REAPER sets initial (used) size to maximum size when creating reaper.array
+    -- so we resize (set used size to 0) to make space for writing the values
+    reaperarray_peaks.resize(0)
+    reaperarray_peakpositions.resize(0)
+    reaperarray_RMSs.resize(0)
+    reaperarray_RMSpositions.resize(0)
+    
+    -- analyze
+    local success = reaper.NF_AnalyzeMediaItemPeakAndRMS(item, windowSize, reaperarray_peaks, reaperarray_peakpositions, reaperarray_RMSs, reaperarray_RMSpositions)
+    
+    if success == true then
+      -- convert reaper.arrays to Lua tables
+      local peaksTable = reaperarray_peaks.table()
+      local RMSsTable = reaperarray_RMSs.table()
+      
+      local peaks_com = 0
+      local RMS_com = 0
+      -- print results
+      for i = 1, channelsInSource do
+        peaks_com = peaks_com + peaksTable[i]
+        RMS_com = RMS_com + RMSsTable[i]
+      end
+      
+      peaks_com = peaks_com / channelsInSource
+      RMS_com = RMS_com / channelsInSource
+      
+      return WDL_DB2VAL(peaks_com), WDL_DB2VAL(RMS_com)
+      
+    end
   end
   ------------------------------------------------------------------------------------------------------  
   -- MAPPING for backwards compability --
