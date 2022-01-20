@@ -957,8 +957,7 @@
     end
   end
   ----------------------------------------------------------------------
-  function VF_GetItemGUID(take)
-    local item =  GetMediaItemTake_Item( take )
+  function VF_GetItemGUID(item) 
     local retval, str = reaper.GetItemStateChunk( item, '', false )
     local GUID = str:match('\nIGUID%s(%{.-%})')
     return GUID
@@ -1073,6 +1072,10 @@
       
     end
   end
+  ------------------------------------------------------------------------------------------------------
+  function VF_deliteralize(str) 
+     if str then  return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", '') end
+  end 
   ------------------------------------------------------------------------------------------------------  
   -- MAPPING for backwards compability --
   Open_URL = VF_Open_URL

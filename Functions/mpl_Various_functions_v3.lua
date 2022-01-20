@@ -420,9 +420,6 @@
     GUI.default_data_col = '#FFFFFF'
     GUI.default_data_col_adv = '#00ff00' -- green
     GUI.default_data_col_adv2 = '#e61919 ' -- red
-    GUI.default_data_a = 0.3
-    GUI.default_data_a1 = 0.8
-    GUI.default_data_a2 = 0.8
     
     GUI.default_knob_col = '#FFFFFF' -- white
     GUI.default_knob_a = 0.9
@@ -641,6 +638,7 @@
   end 
   ---------------------------------------------------------------------  
   function GUI:quantizeXYWH(b)
+    if not (b  and b.x and b.y and b.w and b.h ) then return end
     b.x = math.floor(b.x)
     b.y = math.floor(b.y)
     b.w = math.floor(b.w)
@@ -803,7 +801,7 @@
   function GUI:generatelisttable(listtable)
     if not listtable then return end
     local frameoffs = 2
-    local t,boundaryobject,tablename, layer,scrollobj = listtable.t, listtable.boundaryobj, listtable.tablename, listtable.layer, listtable.scrollobj
+    local t,boundaryobject,tablename, layer = listtable.t, listtable.boundaryobj, listtable.tablename, listtable.layer
     local offs = math.floor(GUI.default_scale*GUI.default_txt_fontsz/2)
     local entryh = GUI.default_listentryh
     local last_h = 0
@@ -818,14 +816,14 @@
     
     
     for i = 1, 1000 do
-      
-      key = tablename..i..'state'
+      local key = tablename..i..'state'
       GUI.buttons[key] = nil
       key = tablename..i..'val' 
       GUI.buttons[key] = nil
       key = tablename..i..'name'
       GUI.buttons[key] = nil
     end
+    
     
     for i = 1, #t do
       local item = t[i]
@@ -835,7 +833,8 @@
       local valmsg_wratio0 = valmsg_wratio
       if item.valtxtw_mult then valmsg_wratio0 = item.valtxtw_mult end
       yid = yid+ 1
-      local xoffs = entryh * (item.level or 0)
+      local level_reduce = 0.75
+      local xoffs = entryh * (item.level or 0) * level_reduce
       local txt_a =GUI.default_txt_a
       if item.active == false then txt_a = GUI.default_txt_a_inactive end
       
@@ -931,16 +930,6 @@
           onmouseclickR = item.onmouseclickR,
           onmousedragR = item.onmousedragR,
           onmousereleaseR = item.onmousereleaseR,
-          onwheeltrig = function() 
-                          local dir = 1
-                          if GUI.wheel_dir then dir = -1 end
-                          GUI.layers[layer].scrollval = VF_lim(GUI.layers[layer].scrollval - 0.1 * dir)
-                          GUI.buttons[key].refresh = true
-                          if scrollobj then 
-                            scrollobj.refresh = true
-                            scrollobj.val = GUI.layers[layer].scrollval
-                          end
-                        end,
           hide = item.hide,
           active = item.active,
           ignoremouse = item.ignoremouse,

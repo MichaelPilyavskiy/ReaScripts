@@ -1,11 +1,12 @@
 -- @description Align Takes
--- @version 2.03
+-- @version 2.04
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @changelog--    
---    + add Distorted guitar factory preset
---    + add Picked guitar factory preset
+-- @changelog
+--    # improve settings scroll
+
+
 
   --[[
     * Changelog: 
@@ -31,7 +32,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.03
+    DATA.extstate.version = 2.04
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
@@ -432,7 +433,26 @@
                             layer = GUI.custom_layerset,
                             hide = true,
                             ignoremouse = true,}  
-                            
+      GUI.buttons.settingslist_mouse = { x=GUI.buttons.settings.x +offs*2, -- for scrolling
+                            y=GUI.buttons.settings.y+offs*2,
+                            w=GUI.buttons.settings.w-offs*5-GUI.custom_scrollw,
+                            h=GUI.buttons.settings.h-offs*4  , 
+                            txt = 'list',
+                            frame_a = 1,
+                            --layer = GUI.custom_layerset,
+                            hide = true,
+                            --ignoremouse = true,
+                            onwheeltrig = function() 
+                                            local dir = 1
+                                            local layer= GUI.custom_layerset
+                                            if GUI.wheel_dir then dir = -1 end
+                                            GUI.layers[layer].scrollval = VF_lim(GUI.layers[layer].scrollval - 0.1 * dir)
+                                            --GUI.buttons[key].refresh = true
+                                            if GUI.buttons.settings_scroll then 
+                                              GUI.buttons.settings_scroll.refresh = true
+                                              GUI.buttons.settings_scroll.val = GUI.layers[layer].scrollval
+                                            end
+                                          end,}                               
       GUI:quantizeXYWH(GUI.buttons.settingslist)
       
       if not GUI.layers[GUI.custom_layerset] then GUI.layers[GUI.custom_layerset] = {} end
@@ -1446,5 +1466,5 @@
   ---------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(2.79) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(2.80) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
   
