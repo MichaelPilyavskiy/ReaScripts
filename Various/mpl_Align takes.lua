@@ -1,10 +1,10 @@
 -- @description Align Takes
--- @version 2.04
+-- @version 2.05
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # improve settings scroll
+--    # fix colors error
 
 
 
@@ -32,7 +32,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.04
+    DATA.extstate.version = 2.05
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
@@ -240,6 +240,13 @@
     GUI.custom_spectralw = GUI.custom_mainbutw*3 + GUI.custom_offset*2
     GUI.custom_layerset= 21
     GUI.custom_datah = (gfx.h/GUI.default_scale-GUI.custom_mainbuth-GUI.custom_offset*3) 
+    
+    GUI.default_data_a = 0.3
+    GUI.default_data_a1 = 0.8
+    GUI.default_data_a2 = 0.8
+    GUI.default_data_col = '#FFFFFF'
+    GUI.default_data_col_adv = '#00ff00' -- green
+    GUI.default_data_col_adv2 = '#e61919 ' -- red
     
     GUI_initbuttons_definecompactmode(GUI)
     
