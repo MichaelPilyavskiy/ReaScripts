@@ -1,10 +1,29 @@
 -- @description Align Takes
--- @version 2.05
+-- @version 2.06
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix colors error
+--    + Add Vocals factory preset
+--    + GUI: allow to edit source markers (LMB click add, Right drag remove) (paid VariousFunction only) 
+--    + GUI: show 1st dub take stretched envelope under reference track
+--    + GUI: show tooltips for various parameters
+--    + Change font to Arial for better Win/MacOS consistency (require VariousFunctions update)
+--    + MatchAlgorithm: add option to search audio data forward only
+--    + MatchAlgorithm: add option to limit difference between points while searching
+--    + MatchAlgorithm: clear dub takes markers only inside reference boundary, add markers on edges
+--    + MatchAlgorithm: option to compare stuff before midblock only
+--    + Source marker generator: increase maximum for Minimum points distance
+--    + Source marker generator: increase maximum for Minimum RMS area
+--    + Source marker generator: add gate algorithm (paid VariousFunction only) 
+--    + Source marker generator: add equal distance algorithm
+--    # GUI: fix settings checks
+--    # MatchAlgorithm: fix -1 window offset
+--    # MatchAlgorithm: fix various stretch markers collide on looped takes edges
+--    - TakeOutput: remove option for setting 0 position marker
+--    + TakeOutput: improve sharing stretch markers in various cases
+
+
 
 
 
@@ -18,15 +37,15 @@
     
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
-  -- per item mod
-  -- zero crossing  
-  -- get existed stretch markers as points
-  -- preserve transients (guard)
-  -- manual remove points 
-  -- use eel for CPU hungry stuff 
-  -- obey pitch data
-  -- align pitch data
-  -- big data limit
+  -- to do
+    -- per item mod
+    -- zero crossing  
+    -- get existed stretch markers as points
+    -- preserve transients (guard)
+    -- use eel for CPU hungry stuff 
+    -- obey pitch data
+    -- align pitch data
+    -- big data limit
   
   local DATA2 = {}
   ---------------------------------------------------------------------  
@@ -45,13 +64,17 @@
                           
                           FPRESET1 = 'CkNPTkZfTkFNRT1bZmFjdG9yeV0gUGlja2VkIGd1aXRhcgpDT05GX2FwcGF0Y2hhbmdlPTEKQ09ORl9hdWRpb19ic19hMT0wCkNPTkZfYXVkaW9fYnNfYTI9MQpDT05GX2F1ZGlvX2JzX2EzPTAKQ09ORl9hdWRpb19ic19hND0xCkNPTkZfYXVkaW9fYnNfZjE9MjAwCkNPTkZfYXVkaW9fYnNfZjI9MjAwMApDT05GX2F1ZGlvX2JzX2YzPTUwMDAKQ09ORl9hdWRpb19saW09MQpDT05GX2F1ZGlvZG9zcXVhcmVyb290PTEuMApDT05GX2NsZWFubWFya2R1Yj0xCkNPTkZfY29tcGVuc2F0ZW92ZXJsYXA9MQpDT05GX2VuYWJsZXNob3J0Y3V0cz0wCkNPTkZfaW5pdGF0bW91c2Vwb3M9MApDT05GX2luaXRmbGFncz0zCkNPTkZfbWFya2dlbl9STVNwb2ludHM9NQpDT05GX21hcmtnZW5fZW52ZWxvcGVyaXNlZmFsbD0yCkNPTkZfbWFya2dlbl9maWx0ZXJwb2ludHM9MTEKQ09ORl9tYXJrZ2VuX21pbmltYWxhcmVhUk1TPTAuMDg3NQpDT05GX21hcmtnZW5fdGhyZXNob2xkPTEKQ09ORl9tYXRjaF9ibG9ja2FyZWE9MwpDT05GX21hdGNoX2lnbm9yZXplcm9zPTAKQ09ORl9tYXRjaF9zdHJldGNoZHViYXJyYXk9MQpDT05GX29idGltZXNlbD0wCkNPTkZfcG9zdF9wb3MwbWFyaz0xCkNPTkZfcG9zdF9wc2hpZnQ9LTEKQ09ORl9wb3N0X3BzaGlmdHN1Yj0wCkNPTkZfcG9zdF9zbW1vZGU9MgpDT05GX3Bvc3Rfc3RybWFya2Zkc2l6ZT0wLjAxMTEKQ09ORl9zbW9vdGg9MApDT05GX3dpbmRvdz0wLjAxNwpDT05GX3dpbmRvd19vdmVybGFwPTE=',
                           FPRESET2 = 'CkNPTkZfTkFNRT1bZmFjdG9yeV0gRGlzdG9ydGVkIGd1aXRhcgpDT05GX2FwcGF0Y2hhbmdlPTEKQ09ORl9hdWRpb19ic19hMT0wCkNPTkZfYXVkaW9fYnNfYTI9MQpDT05GX2F1ZGlvX2JzX2EzPTAKQ09ORl9hdWRpb19ic19hND0wCkNPTkZfYXVkaW9fYnNfZjE9ODMKQ09ORl9hdWRpb19ic19mMj0xMjUwCkNPTkZfYXVkaW9fYnNfZjM9NTAwMApDT05GX2F1ZGlvX2xpbT0xCkNPTkZfYXVkaW9kb3NxdWFyZXJvb3Q9MS4wCkNPTkZfY2xlYW5tYXJrZHViPTEKQ09ORl9jb21wZW5zYXRlb3ZlcmxhcD0xCkNPTkZfZW5hYmxlc2hvcnRjdXRzPTAKQ09ORl9pbml0YXRtb3VzZXBvcz0wCkNPTkZfaW5pdGZsYWdzPTMKQ09ORl9tYXJrZ2VuX1JNU3BvaW50cz01CkNPTkZfbWFya2dlbl9lbnZlbG9wZXJpc2VmYWxsPTEKQ09ORl9tYXJrZ2VuX2ZpbHRlcnBvaW50cz0xMQpDT05GX21hcmtnZW5fbWluaW1hbGFyZWFSTVM9MC4wODc1CkNPTkZfbWFya2dlbl90aHJlc2hvbGQ9MQpDT05GX21hdGNoX2Jsb2NrYXJlYT0xCkNPTkZfbWF0Y2hfaWdub3JlemVyb3M9MApDT05GX21hdGNoX3N0cmV0Y2hkdWJhcnJheT0xCkNPTkZfb2J0aW1lc2VsPTAKQ09ORl9wb3N0X3BvczBtYXJrPTEKQ09ORl9wb3N0X3BzaGlmdD0tMQpDT05GX3Bvc3RfcHNoaWZ0c3ViPTAKQ09ORl9wb3N0X3NtbW9kZT0yCkNPTkZfcG9zdF9zdHJtYXJrZmRzaXplPTAuMDExMQpDT05GX3Ntb290aD0wCkNPTkZfd2luZG93PTAuMDE3CkNPTkZfd2luZG93X292ZXJsYXA9MQ==',
+                          FPRESET3 = 'CkNPTkZfTkFNRT1bZmFjdG9yeV0gVm9jYWxzCkNPTkZfYXBwYXRjaGFuZ2U9MQpDT05GX2F1ZGlvX2JzX2ExPTAuMzMxMjUKQ09ORl9hdWRpb19ic19hMj0xCkNPTkZfYXVkaW9fYnNfYTM9MC4zMzEyNQpDT05GX2F1ZGlvX2JzX2E0PTAuNgpDT05GX2F1ZGlvX2JzX2YxPTIwMApDT05GX2F1ZGlvX2JzX2YyPTIwMDAKQ09ORl9hdWRpb19ic19mMz01MDAwCkNPTkZfYXVkaW9fbGltPTEKQ09ORl9hdWRpb2Rvc3F1YXJlcm9vdD0xLjAKQ09ORl9jbGVhbm1hcmtkdWI9MQpDT05GX2NvbXBlbnNhdGVvdmVybGFwPTEKQ09ORl9lbmFibGVzaG9ydGN1dHM9MApDT05GX2luaXRhdG1vdXNlcG9zPTAKQ09ORl9pbml0ZmxhZ3M9MwpDT05GX21hcmtnZW5fUk1TcG9pbnRzPTUKQ09ORl9tYXJrZ2VuX2VudmVsb3BlcmlzZWZhbGw9MQpDT05GX21hcmtnZW5fZmlsdGVycG9pbnRzPTEzCkNPTkZfbWFya2dlbl9taW5pbWFsYXJlYVJNUz0wLjAzMTI1CkNPTkZfbWFya2dlbl90aHJlc2hvbGQ9MQpDT05GX21hdGNoX2Jsb2NrYXJlYT0yNgpDT05GX21hdGNoX2lnbm9yZXplcm9zPTAKQ09ORl9tYXRjaF9tYXhibG9ja3NzdGFydG9mZnM9NgpDT05GX21hdGNoX21pbmJsb2Nrc3N0YXJ0b2Zmcz00CkNPTkZfbWF0Y2hfc2VhcmNoZnVydGhlcm9ubHk9MApDT05GX21hdGNoX3N0cmV0Y2hkdWJhcnJheT0xCkNPTkZfb2J0aW1lc2VsPTAKQ09ORl9wb3N0X3BvczBtYXJrPTEKQ09ORl9wb3N0X3BzaGlmdD0tMQpDT05GX3Bvc3RfcHNoaWZ0c3ViPTAKQ09ORl9wb3N0X3NtbW9kZT0yCkNPTkZfcG9zdF9zdHJtYXJrZmRzaXplPTAuMDExMQpDT05GX3Ntb290aD0wCkNPTkZfd2luZG93PTAuMDE0CkNPTkZfd2luZG93X292ZXJsYXA9MQ==',
                           CONF_NAME = 'default',
+                          
+                          UI_enableshortcuts = 0,
+                          UI_initatmouse = 0,
+                          UI_showtooltips = 1,
+                          
                           CONF_initflags = 3, -- &1 init ref &2 init dub
                           CONF_appatchange = 1,
                           CONF_cleanmarkdub = 1,
-                          CONF_obtimesel = 0,
-                          CONF_enableshortcuts = 0,
-                          CONF_initatmousepos = 0,
+                          CONF_obtimesel = 0, 
                           
                           CONF_window = 0.15,
                           CONF_window_overlap = 2,
@@ -66,18 +89,30 @@
                           CONF_audio_bs_a3 = 1,
                           CONF_audio_bs_a4 = 0.5,
                           CONF_audio_lim = 1,
+                          CONF_audio_gate = 0,
                           CONF_smooth = 2, 
                           CONF_compensateoverlap = 1, 
                           
-                          CONF_markgen_enveloperisefall = 1, -- ==1 at fall ==2 at rise
-                          CONF_markgen_filterpoints = 10, 
-                          CONF_markgen_RMSpoints = 10, 
-                          CONF_markgen_minimalareaRMS = 0.1,
-                          CONF_markgen_threshold = 1,
-                          
+                          CONF_markgen_manualedit = 0, 
+                          CONF_markgen_algo = 0, 
+                            CONF_markgen_enveloperisefall = 1, -- ==1 at fall ==2 at rise
+                            CONF_markgen_filterpoints = 10, 
+                            CONF_markgen_RMSpoints = 10, 
+                            CONF_markgen_minimalareaRMS = 0.1,
+                            CONF_markgen_threshold = 1,
+                          -- alg2
+                            CONF_markgen_filterpoints2 = 10, -- minimal poits distance
+                            CONF_markgen_threshold2 = 1,
+                          -- alg3
+                            CONF_markgen_filterpoints3 = 10, -- minimal poits distance
+                            
                           CONF_match_blockarea = 5, 
                           CONF_match_stretchdubarray = 1,
                           CONF_match_ignorezeros = 0,
+                          CONF_match_searchfurtheronly = 0,
+                          CONF_match_minblocksstartoffs = 0,
+                          CONF_match_maxblocksstartoffs = 0,
+                          CONF_match_firstsrgmonly = 0,
                           
                           CONF_post_pshift = -1,
                           CONF_post_pshiftsub = 0,
@@ -88,7 +123,7 @@
                           
     DATA:ExtStateGet()
     DATA:ExtStateGetPresets()  
-    if DATA.extstate.CONF_initatmousepos&1==1 then
+    if DATA.extstate.UI_initatmouse&1==1 then
       local w = DATA.extstate.wind_w
       local h = DATA.extstate.wind_h 
       local x, y = GetMousePosition()
@@ -108,7 +143,11 @@
     -- R/r get ref
     -- D/d get dub
     
-    if GUI.char <= 0 or DATA.extstate.CONF_enableshortcuts == 0 then return end
+    if GUI.char> 0 then 
+      
+    end
+    
+    if GUI.char <= 0 or DATA.extstate.UI_enableshortcuts == 0 then return end
     
     if GUI.char == 32 then -- space
       VF_Action(40044)
@@ -132,11 +171,11 @@
       if GUI.char == 1818584692 then mult = -1 end
       if GUI.compactmode == 0 then 
         GUI.buttons.knob.val = VF_lim(GUI.buttons.knob.val+mult*step)
-        GUI.buttons.knob.onmousedrag()  
+        DATA2:ApplyOutput(true)  
         GUI.buttons.knob.refresh = true
        else
         GUI.buttons.knobCOMPACT.val = VF_lim(GUI.buttons.knob.val+mult*step)
-        GUI.buttons.knobCOMPACT.onmousedrag()  
+        DATA2:ApplyOutput(true)  
         GUI.buttons.knobCOMPACT.refresh = true
       end
     end
@@ -167,7 +206,8 @@
       -- validate take
         if not ValidatePtr2( 0, take, 'MediaItem_Take*' )  then goto skipdubtake2 end    
       -- clean markers
-        DATA2:CleanDubMarkers(take, DATA2.refdata.edge_start,DATA2.refdata.edge_end, item, item_pos, takerate)   
+        --DATA2:CleanDubMarkers(take, DATA2.refdata.edge_start,DATA2.refdata.edge_end, item, item_pos, takerate)   
+        DATA2:CleanDubMarkers2(take,  takerate, math.max(0,DATA2.refdata.edge_start - item_pos),math.min(item_len ,DATA2.refdata.edge_end - item_pos)) 
       -- get true window
         local wind = DATA2:gettruewindow()
       -- validate data_pointsSRCDEST
@@ -179,38 +219,47 @@
         local last_src_pos
         local last_set_pos
         
-        if DATA.extstate.CONF_post_pos0mark == 1 then SetTakeStretchMarker(take, -1, 0) end
+        --if DATA.extstate.CONF_post_pos0mark == 1 then SetTakeStretchMarker(take, -1, 0) end
         
         for i = 1, #data_pointsSRCDEST do 
         
           local tpair = data_pointsSRCDEST[i]
-          local srcpos = ((tpair.src-1) * wind)
-          local pos = ((tpair.dest-1) * wind)
+          local src_pos = (((tpair.src) * wind) + math.max(0,DATA2.refdata.edge_start - item_pos))*takerate
+          local set_pos = (((tpair.dest-1) * wind) + math.max(0,DATA2.refdata.edge_start - item_pos))*takerate
           
-          local set_pos = pos-(item_pos-DATA2.refdata.edge_start)
+          -- dev test
+          data_pointsSRCDEST[i].srcpos=srcpos
+          data_pointsSRCDEST[i].destpos=set_pos
+          
+          set_pos = src_pos + (set_pos-src_pos) *val--* takerate]]
+          src_pos = src_pos +takeoffs*takerate--+ (takeoffs-item_srclen) * takerate
+          
+          local is_inside_boundary = set_pos < math.min(item_len ,DATA2.refdata.edge_end - item_pos) and set_pos > math.max(0,DATA2.refdata.edge_start - item_pos)
+          --[[local set_pos = set_pos-(item_pos-DATA2.refdata.edge_start)
           local src_pos = (srcpos-(item_pos-DATA2.refdata.edge_start) + takeoffs)--* takerate
-          set_pos = (src_pos - takeoffs - ((src_pos - takeoffs) - set_pos)*val) --* takerate
+          set_pos = (src_pos - takeoffs - ((src_pos - takeoffs) - set_pos)*val)--* takerate]]
+          
           if last_src_pos ~= nil and last_set_pos ~= nil then
             -- check for negative stretch markers
             if (src_pos - last_src_pos) / (set_pos - last_set_pos ) > 0 then
-              SetTakeStretchMarker(take, -1, set_pos,src_pos)
+              if is_inside_boundary then SetTakeStretchMarker(take, -1, set_pos,src_pos ) end
               last_src_pos = src_pos
               last_set_pos = set_pos
             end
            else
-            SetTakeStretchMarker(take, -1, set_pos,src_pos)             
+            if is_inside_boundary then SetTakeStretchMarker(take, -1, set_pos,src_pos )  end           
             last_src_pos = src_pos
             last_set_pos = set_pos
-          end
-          
+          end 
         end
+        --SetTakeStretchMarker(take, -1, 0)
+        --SetTakeStretchMarker(take, -1, item_len)
+        
+      
       if is_major == true then
         if DATA.extstate.CONF_post_pshift >= 0 then pshift = DATA.extstate.CONF_post_pshift end
         if DATA.extstate.CONF_post_pshift >= 0 and  DATA.extstate.CONF_post_pshiftsub >= 0 then  pshiftsub = DATA.extstate.CONF_post_pshiftsub end
-        if DATA.extstate.CONF_post_pshift >= 0 or DATA.extstate.CONF_post_strmarkfdsize ~= 0.0025 then 
-            VF_SetTimeShiftPitchChange(item, false, (DATA.extstate.CONF_post_pshift<<16) + DATA.extstate.CONF_post_pshiftsub, DATA.extstate.CONF_post_smmode, DATA.extstate.CONF_post_strmarkfdsize) 
-        end
-        
+        if DATA.extstate.CONF_post_pshift >= 0 or DATA.extstate.CONF_post_strmarkfdsize ~= 0.0025 then  VF_SetTimeShiftPitchChange(item, false, (DATA.extstate.CONF_post_pshift<<16) + DATA.extstate.CONF_post_pshiftsub, DATA.extstate.CONF_post_smmode, DATA.extstate.CONF_post_strmarkfdsize)  end 
       end
       UpdateItemInProject( item )
       ::skipdubtake2::
@@ -232,7 +281,7 @@
     GUI.custom_mainbuth = 30
     GUI.custom_texthdef = 23
     GUI.custom_offset = math.floor(GUI.default_scale*GUI.default_txt_fontsz/2)
-    GUI.custom_mainsepx = 400*GUI.default_scale--(gfx.w/ 2)/GUI.default_scale
+    GUI.custom_mainsepx = (gfx.w/GUI.default_scale)*0.4-- *GUI.default_scale--400*GUI.default_scale--
     GUI.custom_mainbutw = ((gfx.w/GUI.default_scale - GUI.custom_mainsepx)-GUI.custom_offset*4) / 3
     GUI.custom_scrollw = 10
     GUI.custom_frameascroll = 0.05
@@ -258,7 +307,7 @@
                             h=GUI.custom_mainbuth,
                             txt = 'Get Ref',
                             txt_short = 'REF',
-                            txt_fontsz = GUI.custom_texthdef,
+                            txt_fontsz = GUI.default_txt_fontsz2,
                             onmouseclick =  function() DATA2:GetRefAudioData() end,
                             hide = GUI.compactmode==1,
                             ignoremouse = GUI.compactmode==1,
@@ -269,7 +318,7 @@
                             h=GUI.custom_mainbuth,
                             txt = 'Get Dub',
                             txt_short = 'DUB',
-                            txt_fontsz = GUI.custom_texthdef,
+                            txt_fontsz = GUI.default_txt_fontsz2,
                             hide = GUI.compactmode==1,
                             ignoremouse = GUI.compactmode==1,
                             onmouseclick =  function() DATA2:GetDubAudioData() end}  
@@ -278,7 +327,7 @@
                             w=GUI.custom_mainsepx-GUI.custom_offset*2,
                             h=GUI.custom_mainbuth,
                             txt = 'Preset: '..(DATA.extstate.CONF_NAME or ''),
-                            txt_fontsz = GUI.custom_texthdef,
+                            txt_fontsz = GUI.default_txt_fontsz2,
                             hide = GUI.compactmode==1,
                             ignoremouse = GUI.compactmode==1,
                             onmouseclick =  function() 
@@ -423,7 +472,7 @@
                             w=GUI.custom_mainsepx,
                             h=gfx.h/GUI.default_scale-GUI.custom_mainbuth - GUI.custom_offset,
                             txt = 'Settings',
-                            txt_fontsz = GUI.custom_texthdef,
+                            --txt_fontsz = GUI.default_txt_fontsz3,
                             offsetframe = GUI.custom_offset,
                             frame_a = GUI.custom_default_framea_normal,
                             ignoremouse = true,
@@ -501,6 +550,7 @@
     local cnt_data = cntdub + 1
     local data_h_t = GUI.custom_datah / cnt_data
     local data_h_t_mod = data_h_t -2 
+    local val_data_under 
     
     -- reference data
       local layerref= 22
@@ -509,6 +559,9 @@
         if DATA2.refdata.data then val_data= DATA2.refdata.data  end
         if DATA2.refdata.data_points then val_data_adv= DATA2.refdata.data_points end
       end 
+      if DATA2.dubdata and DATA2.dubdata[1] and DATA2.dubdata[1].stretchedarray then
+        val_data_under= DATA2.dubdata[1].stretchedarray
+      end 
       GUI.buttons.refdata = { x=0, -- link to GUI.buttons.getreference
                             y=0,
                             w=GUI.custom_spectralw ,
@@ -516,6 +569,7 @@
                             ignoremouse = true,
                             val_data = val_data,
                             val_data_adv = val_data_adv,
+                            val_data_under=val_data_under,
                             layer = layerref,
                             hide = GUI.compactmode==1,
                             refresh = true,
@@ -541,12 +595,11 @@
         if dubdata.data_points then val_data_adv= dubdata.data_points end
         if dubdata.data_points_match then val_data_adv2= dubdata.data_points_match end
         if dubdata.data_pointsSRCDEST then data_pointsSRCDEST= dubdata.data_pointsSRCDEST end
-          
+        
         GUI.buttons['dubdata'..i] = { x=0, -- link to GUI.buttons.getreference
                                   y=data_h_t*i,
                                   w=GUI.custom_spectralw ,
                                   h=data_h_t_mod,
-                                  ignoremouse = true,
                                   val_data = val_data,
                                   val_data_adv = val_data_adv,
                                   val_data_adv2 = val_data_adv2,
@@ -554,9 +607,34 @@
                                   layer = layerref,
                                   hide = GUI.compactmode==1,
                                   refresh = true,
-                                  frame_a = 0
+                                  frame_a = 0,
+                                  back_sela = 0,
+                                  onmouseclick = function() if DATA.extstate.CONF_markgen_manualedit == 0 then return end GUI_initdata_DUBedit(0,dubdata.data_points,GUI.buttons['dubdata'..i])  end,
+                                  onmousedragR = function() if DATA.extstate.CONF_markgen_manualedit == 0 then return end GUI_initdata_DUBedit(1,dubdata.data_points, GUI.buttons['dubdata'..i])  end,
+                                  onmouserelease = function() if DATA.extstate.CONF_markgen_manualedit == 0 then return end local dubdataId = i DATA2.dubdata[dubdataId].data_points_match, DATA2.dubdata[dubdataId].data_pointsSRCDEST, DATA2.dubdata[dubdataId].stretchedarray = DATA2:ApplyMatch(DATA2.dubdata[dubdataId])GUI_initdata(GUI) end,
+                                  onmousereleaseR = function() if DATA.extstate.CONF_markgen_manualedit == 0 then return end local dubdataId = i DATA2.dubdata[dubdataId].data_points_match, DATA2.dubdata[dubdataId].data_pointsSRCDEST, DATA2.dubdata[dubdataId].stretchedarray = DATA2:ApplyMatch(DATA2.dubdata[dubdataId]) GUI_initdata(GUI) end
+                                  
                                   }  
       end
+      
+    
+      
+  end
+  ---------------------------------------------------------------------  
+  function GUI_initdata_DUBedit(mode, pointst, b) 
+    if not pointst then return end
+    if mode==0 then -- L click
+      local block = math.floor(#pointst * (GUI.x-b.x) / (b.w-b.x))
+      pointst[block] = 1
+    end 
+    
+    if mode==1 then -- R drag
+      local block = math.floor(#pointst * (GUI.x-b.x) / (b.w-b.x))
+      pointst[block] = 0
+      if pointst[block-1] then pointst[block-1] = 0 end
+      if pointst[block-1] then pointst[block+1] = 0 end
+    end
+    
   end
   ---------------------------------------------------------------------  
   function GUI_settingst(GUI, DATA, boundaryobj, scrollobj) 
@@ -568,6 +646,7 @@
       if major_confirm then 
         GUI:generatelisttable( GUI_settingst(GUI, DATA, boundaryobj) )
         DATA.UPD.onconfchange = true
+        DATA:ExtStateStorePreset(0) 
         boundaryobj.refresh = true 
         if DATA.extstate.CONF_appatchange&1==1 and not ignoreCONF_appatchange then 
           DATA2:GetRefAudioData()
@@ -577,7 +656,22 @@
     end
     
     
-    --CONF_post_strmarkfdsize
+    local function GUI_settingst_getcheck(menuitem,confname, col, protect)
+      local active = true
+      if protect then active = VF_isregist&2==2 end
+      return { str = menuitem,
+        level = 1,
+        txt_col = col,
+        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,confname, math.abs(1-DATA.extstate[confname]) , true, nil )  end,                          
+        onmousereleaseR = function() DATA:ExtStateRestoreDefaults(confname) GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil , true, nil )  end,                          
+        ischeck = true,
+        state = DATA.extstate[confname]==1,
+        active = active,
+        ignoremouse = not active,
+      }
+    end
+    
+    
     --
     -- get true window
       local wind = DATA2:gettruewindow()
@@ -634,44 +728,18 @@
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_initflags')  GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_initflags', DATA.extstate.CONF_initflags~2, true, true   ) end,                          
         ischeck = true,
         state = DATA.extstate.CONF_initflags&2==2,
-      },            
-      { str = 'Apply settings at config change',
-        level = 1,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_appatchange', DATA.extstate.CONF_appatchange~1, true, true   ) end,                          
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_initflags')  GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_appatchange', DATA.extstate.CONF_appatchange~1, true, true   ) end,                          
-        ischeck = true,
-        state = DATA.extstate.CONF_appatchange&1==1,
-      },     
-      { str = 'Clean dub markers at initialization',
-         level = 1,
-         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_cleanmarkdub', DATA.extstate.CONF_cleanmarkdub~1, true, true   ) end, 
-         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_cleanmarkdub') GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_cleanmarkdub', DATA.extstate.CONF_cleanmarkdub~1, true, true   ) end, 
-         ischeck = true,
-         state = DATA.extstate.CONF_cleanmarkdub&1==1,
-       },   
-      { str = 'Obey time selection',
-         level = 1,
-         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_obtimesel', DATA.extstate.CONF_obtimesel~1, true, true   ) end, 
-         onmousereleaseR = function() DATA:ExtStateRestoreDefaults(CONF_obtimesel) GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_obtimesel', DATA.extstate.CONF_obtimesel~1, true, true   ) end, 
-         ischeck = true,
-         state = DATA.extstate.CONF_obtimesel&1==1,
-         active = VF_isregist&2==2,
-         ignoremouse = VF_isregist&2~=2,
-       },  
-      { str = 'Enable shortcuts',
-         level = 1,
-         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_enableshortcuts', DATA.extstate.CONF_enableshortcuts~1, true, true   ) end, 
-         onmousereleaseR = function() DATA:ExtStateRestoreDefaults(CONF_enableshortcuts) GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_enableshortcuts', DATA.extstate.CONF_enableshortcuts~1, true, true   ) end, 
-         ischeck = true,
-         state = DATA.extstate.CONF_enableshortcuts&1==1,
-       },   
-      { str = 'Init UI at mouse position',
-         level = 1,
-         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_initatmousepos', DATA.extstate.CONF_initatmousepos~1, true, true   ) end, 
-         onmousereleaseR = function() DATA:ExtStateRestoreDefaults(CONF_initatmousepos) GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_initatmousepos', DATA.extstate.CONF_initatmousepos~1, true, true   ) end, 
-         ischeck = true,
-         state = DATA.extstate.CONF_initatmousepos&1==1,
-       },         
+      },       
+      
+
+      GUI_settingst_getcheck('Apply settings at config change', 'CONF_appatchange'),  
+      GUI_settingst_getcheck('Clean dub markers at initialization', 'CONF_cleanmarkdub'),  
+      GUI_settingst_getcheck('Obey time selection', 'CONF_obtimesel', GUI.default_data_col, true),  
+      { str = 'User interface' ,
+        issep = true
+      }, 
+      GUI_settingst_getcheck('Enable shortcuts', 'UI_enableshortcuts'),  
+      GUI_settingst_getcheck('Init UI at mouse position', 'UI_initatmouse'),  
+      GUI_settingst_getcheck('Show tootips', 'UI_showtooltips'),  
        
       {str = 'Audio data',
        issep = true
@@ -773,7 +841,23 @@
         onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_bsa4val',VF_NormToFormatValue(GUI.buttons['settings_bsa4val'].val, 0,100)..'%', 'CONF_audio_bs_a4', GUI.buttons['settings_bsa4val'].val, nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_bs_a4') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-      },     
+      }, 
+      { customkey = 'settings_gate',
+        str = 'Gate',
+        level = 1,
+        isvalue = true,
+        val = DATA.extstate.CONF_audio_gate,
+        val_res = 0.1,
+        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_audio_gate, 0,100)..'%',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_gateval',VF_NormToFormatValue(GUI.buttons['settings_gateval'].val, 0,100)..'%', 'CONF_audio_gate', GUI.buttons['settings_gateval'].val, nil, nil  ) end,
+        onmouserelease = function() msg(1)GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_gate') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        
+        
+      },       
+ 
+      
+      
       { customkey = 'settings_aulimit',
         str = 'Limit',
         level = 1,
@@ -816,6 +900,10 @@
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_window_overlap') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         active = VF_isregist&2==2,
         ignoremouse = VF_isregist&2~=2,
+        
+        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Overlap window block back for a window time divided by this coefficient',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
+       -- onmouselost = function() local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( '',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
+        
       },  
       { customkey = 'settings_audiodosqrt',
         str = 'val^y (scaling)',
@@ -831,6 +919,8 @@
         ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audiodosquareroot') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        
+        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( '0.5 do square root of waveform for reducing peaky influence for a comparing algorithm',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
       }, 
       { str = 'Smooth envelope',
         level = 1,
@@ -857,6 +947,8 @@
         state = DATA.extstate.CONF_compensateoverlap&1==1,
         active = VF_isregist&2==2,
         ignoremouse = VF_isregist&2~=2,
+        
+        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'When doing overlap it multiply count of points. This check compensate it',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
       }, 
       
       
@@ -864,40 +956,54 @@
        txt_col = GUI.default_data_col_adv,
        issep = true
       },
-      { str = 'Set at envelope fall',
+      GUI_settingst_getcheck('Allow manual editing', 'CONF_markgen_manualedit',GUI.default_data_col_adv, true),      
+      
+      
+      { str = 'Algorithm1 (slow rise/fall detect)',
         level = 1,
         txt_col = GUI.default_data_col_adv,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_enveloperisefall', 1 , true, nil )  end,                          
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_enveloperisefall') GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_enveloperisefall', 1 , true, nil )  end,                          
+        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_algo',0 , true, nil )  end,                                          
+        ischeck = true,
+        state = DATA.extstate.CONF_markgen_algo==0,
+        
+        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Trigger points for relative rises/falls at defined area by some RMS-per-block change',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
+      },      
+      { str = 'Set at envelope fall',
+        level = 2,
+        txt_col = GUI.default_data_col_adv,
+        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_enveloperisefall', 1 , true, nil )  end,                                              
         ischeck = true,
         state = DATA.extstate.CONF_markgen_enveloperisefall==1,
+        active = DATA.extstate.CONF_markgen_algo==0,
       },
       { str = 'Set at envelope rise',
-        level = 1,
+        level = 2,
         txt_col = GUI.default_data_col_adv,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_enveloperisefall', 2 , true, nil )  end,                
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_enveloperisefall') GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_enveloperisefall', 2 , true, nil )  end,                
+        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_enveloperisefall', 2 , true, nil )  end,                         
         ischeck = true,
         state = DATA.extstate.CONF_markgen_enveloperisefall==2,
-        active = VF_isregist&2==2,
-        ignoremouse = VF_isregist&2~=2,
+        active = DATA.extstate.CONF_markgen_algo==0,
       }, 
       { customkey = 'settings_mark_block',
         str = 'Minimum points distance',
-        level = 1,
+        level = 2,
         txt_col = GUI.default_data_col_adv,
         isvalue = true,
-        val = VF_FormatToNormValue(DATA.extstate.CONF_markgen_filterpoints, 5, 30, -1),
+        val = VF_FormatToNormValue(DATA.extstate.CONF_markgen_filterpoints, 5, 50, -1),
         val_res = 0.1,
         valtxt =  DATA.extstate.CONF_markgen_filterpoints*wind..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_mark_blockval',DATA.extstate.CONF_markgen_filterpoints*wind..'s' , 'CONF_markgen_filterpoints', VF_NormToFormatValue(GUI.buttons['settings_mark_blockval'].val, 5, 30, -1), nil, nil  ) end,
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_mark_blockval',DATA.extstate.CONF_markgen_filterpoints*wind..'s' , 'CONF_markgen_filterpoints', VF_NormToFormatValue(GUI.buttons['settings_mark_blockval'].val, 5, 50, -1), nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_filterpoints') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        active=DATA.extstate.CONF_markgen_algo==0,
+        
+        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Should be more than brutforce search area',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
       }, 
+      
       { customkey = 'settings_mark_blockRMS',
         str = 'area_RMS length',
         txt_col = GUI.default_data_col_adv,
-        level = 1,
+        level = 2,
         isvalue = true,
         val = VF_FormatToNormValue(DATA.extstate.CONF_markgen_RMSpoints, 5, 30, -1),
         val_res = 0.1,
@@ -905,24 +1011,26 @@
         onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_mark_blockRMSval',DATA.extstate.CONF_markgen_RMSpoints*wind..'s' , 'CONF_markgen_RMSpoints', VF_NormToFormatValue(GUI.buttons['settings_mark_blockRMSval'].val, 5, 30, -1), nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_RMSpoints') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        active = DATA.extstate.CONF_markgen_algo==0,
       },       
       
       
       { customkey = 'settings_arearms',
         str = 'minimum of [value/abs(area_RMS-value)]',
-        level = 1,
+        level = 2,
         txt_col = GUI.default_data_col_adv,
         isvalue = true,
         val = DATA.extstate.CONF_markgen_minimalareaRMS,
         val_res = 0.1,
-        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_markgen_minimalareaRMS, 0,50)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_arearmsval',VF_NormToFormatValue(GUI.buttons['settings_arearmsval'].val, 0,50)..'%', 'CONF_markgen_minimalareaRMS', GUI.buttons['settings_arearmsval'].val, nil, nil  ) end,
+        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_markgen_minimalareaRMS, 0,70)..'%',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_arearmsval',VF_NormToFormatValue(GUI.buttons['settings_arearmsval'].val, 0,70)..'%', 'CONF_markgen_minimalareaRMS', GUI.buttons['settings_arearmsval'].val, nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_minimalareaRMS') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        active=DATA.extstate.CONF_markgen_algo==0,
       }, 
       { customkey = 'settings_levthres',
         str = 'Level threshold',
-        level = 1,
+        level = 2,
         isvalue = true,
         txt_col = GUI.default_data_col_adv,
         val = DATA.extstate.CONF_markgen_threshold,
@@ -931,10 +1039,75 @@
         onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_levthresval',VF_NormToFormatValue(GUI.buttons['settings_levthresval'].val, 0,100)..'%', 'CONF_markgen_threshold', GUI.buttons['settings_levthresval'].val, nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_threshold') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        active = VF_isregist&2==2,
+        active = VF_isregist&2==2 and DATA.extstate.CONF_markgen_algo==0,
         ignoremouse = VF_isregist&2~=2,
       },   
       
+      { str = 'Algorithm2 (gate trigger)',
+        level = 1,
+        txt_col = GUI.default_data_col_adv,
+        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_algo', 1 , true, nil )  end,                                          
+        ischeck = true,
+        state = DATA.extstate.CONF_markgen_algo==1,
+        active = VF_isregist&2==2,
+        ignoremouse = VF_isregist&2~=2 ,
+        
+        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Trigger points at gate open/close',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
+      },         
+      { customkey = 'settings_mark_block2',
+        str = 'Minimum points distance',
+        level = 2,
+        txt_col = GUI.default_data_col_adv,
+        isvalue = true,
+        val = VF_FormatToNormValue(DATA.extstate.CONF_markgen_filterpoints2, 5, 50, -1),
+        val_res = 0.1,
+        valtxt =  DATA.extstate.CONF_markgen_filterpoints2*wind..'s',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_mark_block2val',DATA.extstate.CONF_markgen_filterpoints2*wind..'s' , 'CONF_markgen_filterpoints2', VF_NormToFormatValue(GUI.buttons['settings_mark_block2val'].val, 5, 50, -1), nil, nil  ) end,
+        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_filterpoints2') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        active = VF_isregist&2==2 and DATA.extstate.CONF_markgen_algo==1,
+        ignoremouse = VF_isregist&2~=2 ,
+        
+        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Should be more than brutforce search area',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
+      }, 
+      { customkey = 'settings_levthres2',
+        str = 'Trigger threshold',
+        level = 2,
+        isvalue = true,
+        txt_col = GUI.default_data_col_adv,
+        val = DATA.extstate.CONF_markgen_threshold2,
+        val_res = 0.1,
+        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_markgen_threshold2, 0,100)..'%',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_levthres2val',VF_NormToFormatValue(GUI.buttons['settings_levthres2val'].val, 0,100)..'%', 'CONF_markgen_threshold2', GUI.buttons['settings_levthres2val'].val, nil, nil  ) end,
+        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_threshold2') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        active = VF_isregist&2==2 and DATA.extstate.CONF_markgen_algo==1,
+      },       
+      { str = 'Algorithm3 (equal distance)',
+        level = 1,
+        txt_col = GUI.default_data_col_adv,
+        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_algo', 2 , true, nil )  end,                                          
+        ischeck = true,
+        state = DATA.extstate.CONF_markgen_algo==2,
+        
+        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Share points for equal distance',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
+        
+      }, 
+     { customkey = 'settings_mark_block3',
+       str = 'Points distance',
+       level = 2,
+       txt_col = GUI.default_data_col_adv,
+       isvalue = true,
+       val = VF_FormatToNormValue(DATA.extstate.CONF_markgen_filterpoints3, 5, 100, -1),
+       val_res = 0.1,
+       valtxt =  DATA.extstate.CONF_markgen_filterpoints3*wind..'s',
+       onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_mark_block3val',DATA.extstate.CONF_markgen_filterpoints3*wind..'s' , 'CONF_markgen_filterpoints3', VF_NormToFormatValue(GUI.buttons['settings_mark_block3val'].val, 5, 100, -1), nil, nil  ) end,
+       onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+       onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_filterpoints3') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+       active = DATA.extstate.CONF_markgen_algo==2,
+       
+       onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Should be more than brutforce search area',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
+     },      
       
       
       {str = 'Audio match algorithm',
@@ -952,23 +1125,42 @@
         onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_algosearchval',DATA.extstate.CONF_match_blockarea *wind..'s', 'CONF_match_blockarea', VF_NormToFormatValue(GUI.buttons['settings_algosearchval'].val, 1, 50, -1), nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_match_blockarea') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-      },    
-      { str = 'Stretch dub array on the fly',
+        
+        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Maximum deviation of source markers',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
+        
+      },  
+      GUI_settingst_getcheck('Stretch dub array on the fly', 'CONF_match_stretchdubarray',GUI.default_data_col_adv2),      
+      GUI_settingst_getcheck('Ignore zero values difference check', 'CONF_match_ignorezeros',GUI.default_data_col_adv2),      
+      GUI_settingst_getcheck('Search forward only', 'CONF_match_searchfurtheronly',GUI.default_data_col_adv2),       
+      GUI_settingst_getcheck('Compare until midblock', 'CONF_match_firstsrgmonly',GUI.default_data_col_adv2),       
+      { customkey = 'settings_alg_minblock',
+        str = 'Minimum block search start offset',
         level = 1,
         txt_col = GUI.default_data_col_adv2,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_match_stretchdubarray', 1 , true, nil )  end,                          
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_match_stretchdubarray') GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_match_stretchdubarray', 1 , true, nil )  end,                          
-        ischeck = true,
-        state = DATA.extstate.CONF_match_stretchdubarray==1,
-      },          
-      { str = 'Ignore zero values difference check',
+        isvalue = true,
+        val = VF_FormatToNormValue(DATA.extstate.CONF_match_minblocksstartoffs, 0, 30, -1),
+        val_res = 0.1,
+        valtxt =  DATA.extstate.CONF_match_minblocksstartoffs*wind..'s',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_alg_minblockval',DATA.extstate.CONF_match_minblocksstartoffs*wind..'s' , 'CONF_match_minblocksstartoffs', VF_NormToFormatValue(GUI.buttons['settings_alg_minblockval'].val, 0, 30, -1), nil, nil  ) end,
+        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_match_minblocksstartoffs') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        
+        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Minimum between comparing block start poind and movable midpoint',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
+      }, 
+      { customkey = 'settings_alg_maxblock',
+        str = 'Mimimum block search end offset',
         level = 1,
         txt_col = GUI.default_data_col_adv2,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_match_ignorezeros', 1 , true, nil )  end,                          
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_match_ignorezeros') GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_match_ignorezeros', 1 , true, nil )  end,                          
-        ischeck = true,
-        state = DATA.extstate.CONF_match_ignorezeros==1,
-      },      
+        isvalue = true,
+        val = VF_FormatToNormValue(DATA.extstate.CONF_match_maxblocksstartoffs, 0, 30, -1),
+        val_res = 0.1,
+        valtxt =  DATA.extstate.CONF_match_maxblocksstartoffs*wind..'s',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_alg_maxblockval',DATA.extstate.CONF_match_maxblocksstartoffs*wind..'s' , 'CONF_match_maxblocksstartoffs', VF_NormToFormatValue(GUI.buttons['settings_alg_maxblockval'].val, 0, 30, -1), nil, nil  ) end,
+        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_match_maxblocksstartoffs') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        
+        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Minimum between comparing block end poind and movable midpoint',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
+      },       
       
       
       {str = 'Take output',
@@ -1013,13 +1205,7 @@
         active = VF_isregist&2==2,
         ignoremouse = VF_isregist&2~=2,
       }, 
-      { str = 'Add 0 pos marker',
-        level = 1,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_post_pos0mark', DATA.extstate.CONF_post_pos0mark~1, true, nil )  end,                          
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_post_pos0mark') GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_post_pos0mark', DATA.extstate.CONF_post_pos0mark~1 , true, nil )  end,                          
-        ischeck = true,
-        state = DATA.extstate.CONF_post_pos0mark==1,
-      },
+      --GUI_settingst_getcheck('Add 0 pos marker', 'CONF_post_pos0mark')
       
  
     }
@@ -1069,6 +1255,7 @@
     
     for i = 1, sz do  
       s0 = buf[i]; 
+      
       tmplMID = a0MID*s0 - b1MID*tmplMID + cDenorm
       low0 = tmplMID; 
       tmplLOW = a0LOW*low0 - b1LOW*tmplLOW + cDenorm
@@ -1106,7 +1293,12 @@
         local samplebuffer_t = samplebuffer.table()
         samplebuffer.clear()
         DATA2:GetAudioData_BandSplit(samplebuffer_t, SR_spls)
-        local sum = 0 for i = 1, bufsz do sum = sum + math.abs(samplebuffer_t[i]) end
+        local sum = 0 
+        for i = 1, bufsz do 
+          local val = math.abs(samplebuffer_t[i]) 
+          if val < DATA.extstate.CONF_audio_gate then val  = 0 end
+          sum = sum + val 
+        end
         
         id = id + 1
         data[id] = sum / bufsz
@@ -1131,17 +1323,17 @@
       for i = 1, #data do if i%overlap == 1 then reduceddata[#reduceddata+1] = data[i] end end
       if DATA.extstate.CONF_compensateoverlap==1 and overlap ~= 1 then return reduceddata else return data end
   end 
-  ---------------------------------------------------------------------
-  function DATA2:CleanDubMarkers(take, edge_start,edge_end, item, item_pos, takerate) 
+ ---------------------------------------------------------------------
+  function DATA2:CleanDubMarkers2(take, takerate, edge_start,edge_end) 
     if not take then return end
     local approx = 10^-12
-    SetTakeStretchMarker( take, -1, takerate* (edge_start-item_pos) )
-    SetTakeStretchMarker( take, -1, takerate* (edge_end-item_pos ) )
     for idx =  GetTakeNumStretchMarkers( take ), 1, -1 do
       local retval, pos, srcpos = GetTakeStretchMarker( take, idx-1 )
-      if pos*takerate+item_pos>edge_start+approx and pos*takerate+item_pos < edge_end-approx then DeleteTakeStretchMarkers( take, idx-1 ) end
+      if pos>edge_start-approx and pos< edge_end+approx then DeleteTakeStretchMarkers( take, idx-1 ) end
     end
-    UpdateItemInProject( item )
+    SetTakeStretchMarker( take, -1, edge_start*takerate)
+    SetTakeStretchMarker( take, -1, edge_end*takerate )
+    UpdateItemInProject(  reaper.GetMediaItemTake_Item( take ) )
   end
   ---------------------------------------------------------------------
   function DATA2:GetDubAudioData(takefromsecondtake)
@@ -1166,8 +1358,7 @@
       local item_len= GetMediaItemInfo_Value( item, 'D_LENGTH' )
       local src =  GetMediaItemTake_Source( take )
       local item_srclen, lengthIsQN = GetMediaSourceLength( src )
-      if DATA.extstate.CONF_cleanmarkdub&1==1 then  DATA2:CleanDubMarkers(take, DATA2.refdata.edge_start, DATA2.refdata.edge_end, item, item_pos, take_rate) end
-      
+      if DATA.extstate.CONF_cleanmarkdub&1==1 and DATA2.refdata and DATA2.refdata.edge_start then  DATA2:CleanDubMarkers2(take,  take_rate, math.max(0,DATA2.refdata.edge_start - item_pos),math.min(item_len ,DATA2.refdata.edge_end - item_pos))  end
       DATA2.dubdata[dubdataId] = {takeGUID = takeGUID,
                         take = take,
                         item = item,
@@ -1175,12 +1366,15 @@
                         item_len=item_len,
                         take_rate = take_rate,
                         item_srclen=item_srclen,
-                        take_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS')}
-      
+                        take_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS')
+                        }
+                        
       DATA2.dubdata[dubdataId].data = DATA2:GetAudioData_GetTable(parent_track, DATA2.refdata.edge_start, DATA2.refdata.edge_end)
       DATA2.dubdata[dubdataId].data = DATA2:GetAudioData_CorrentSource(DATA2.dubdata[dubdataId].data, DATA2.refdata.edge_start, DATA2.refdata.edge_end, item_pos, item_pos+item_len)
-      DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints(DATA2.dubdata[dubdataId].data)
-      DATA2.dubdata[dubdataId].data_points_match, DATA2.dubdata[dubdataId].data_pointsSRCDEST = DATA2:ApplyMatch(DATA2.dubdata[dubdataId]) 
+      if DATA.extstate.CONF_markgen_algo == 0  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_0(DATA2.dubdata[dubdataId].data) end
+      if DATA.extstate.CONF_markgen_algo == 1  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_1(DATA2.dubdata[dubdataId].data) end
+      if DATA.extstate.CONF_markgen_algo == 2  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_2(DATA2.dubdata[dubdataId].data) end
+      DATA2.dubdata[dubdataId].data_points_match, DATA2.dubdata[dubdataId].data_pointsSRCDEST, DATA2.dubdata[dubdataId].stretchedarray = DATA2:ApplyMatch(DATA2.dubdata[dubdataId]) 
       dubdataId = dubdataId + 1
       ::skipnextdub::
     end
@@ -1236,7 +1430,46 @@
     
   end
   ---------------------------------------------------------------------
-  function DATA2:GeneratePoints(t0)
+  function DATA2:GeneratePoints_2(t0)
+    local t = {}
+    local block_area = DATA.extstate.CONF_markgen_filterpoints3
+    -- get src points
+      for i = 1,#t0 do 
+        t[i] = 0
+        if i%block_area == 0 then  t[i] = 1  end
+      end
+      
+      
+    return t
+  end
+  ---------------------------------------------------------------------
+  function DATA2:GeneratePoints_1(t0)
+    local t = {}
+    local block_area = DATA.extstate.CONF_markgen_filterpoints2
+    local threshold = DATA.extstate.CONF_markgen_threshold2
+    local lastgateid
+    -- get src points
+      t[1] = 1
+      for i = 2,#t0 -1 do 
+        t[i] = 0
+        local curr_val = t0[i]
+        gate = curr_val > threshold
+        local trig 
+        if lastgate == false and gate == true then trig = true end
+        if trig then 
+          if not lastgateid or (lastgateid and i-lastgateid > block_area) then
+            t[i] = 1 
+          end
+          lastgateid =i
+        end
+        lastgate = gate
+      end
+      
+      
+    return t
+  end
+  ---------------------------------------------------------------------
+  function DATA2:GeneratePoints_0(t0)
     local t = {}
     local block_area = DATA.extstate.CONF_markgen_filterpoints 
     local block_RMSarea = DATA.extstate.CONF_markgen_RMSpoints 
@@ -1299,9 +1532,13 @@
     return t
   end    
   ---------------------------------------------------------------------
-  function DATA2:ApplyMatch_GetTableDifference(t1,t2,block_st,block_end) 
+  function DATA2:ApplyMatch_GetTableDifference(t1,t2,block_st,block_end, block_src, midblock) 
     local diff = 0 
-    for block = block_st, block_end do  
+    local block_end0 = block_end
+    if DATA.extstate.CONF_match_firstsrgmonly == 1 then 
+      block_end0 = midblock
+    end
+    for block = block_st, block_end0 do  
       if t1[block] and t2[block] then
         if DATA.extstate.CONF_match_ignorezeros == 1 or (DATA.extstate.CONF_match_ignorezeros == 0 and t1[block] ~= 0 and t2[block] ~= 0) then
           diff = diff + math.abs(t1[block]-t2[block]) 
@@ -1312,19 +1549,23 @@
   end
   ---------------------------------------------------------------------
   function DATA2:ApplyMatch_Find(t1,t2,block_st,block_src,block_end)
-    if not (block_st and block_src and block_end) then return block_src end
+    
+    if not (block_st and block_src and block_end and block_st ~= 1) then return block_src end
     local block_search = DATA.extstate.CONF_match_blockarea
     
     -- init edges for searches
-       local block_mid_search_min = math.max(block_st + 1, block_src - block_search)
-       local block_mid_search_max = math.min(block_end - 1, block_src + block_search) 
+      local offs =DATA.extstate.CONF_match_minblocksstartoffs
+      local offs2 =DATA.extstate.CONF_match_maxblocksstartoffs
+      local block_mid_search_min = math.max(block_st+offs, block_src - block_search)
+      if DATA.extstate.CONF_match_searchfurtheronly == 1  then block_mid_search_min = block_src end
+      local block_mid_search_max = math.min(block_end - 1 - offs2, block_src + block_search) 
     
     -- loop through difference block
       local refdub_diffence = math.huge
       local bestblock
       for midblock = block_mid_search_min, block_mid_search_max do
         local t2_stretched = DATA2:ApplyMatch_StretchT(t2, block_st, block_end, block_src, midblock) 
-        local tablediff = DATA2:ApplyMatch_GetTableDifference(t1,t2_stretched,block_st,block_end)
+        local tablediff = DATA2:ApplyMatch_GetTableDifference(t1,t2_stretched,block_st,block_end, block_src, midblock)
         if tablediff < refdub_diffence then
           bestblock = midblock
           refdub_diffence = tablediff
@@ -1348,10 +1589,13 @@
         tout[i] = t[stri] 
       end
     end 
+    
+    
     return tout
   end
   ---------------------------------------------------------------------
   function DATA2:ApplyMatch(t)
+    if not t.data_points then return end
     local t_out = {}
     local t1 = DATA2.refdata.data
     local t2 = t.data
@@ -1371,8 +1615,10 @@
       local block_mid = pointsID[i]
       local block_end = pointsID[i+1]
       pointsID[i] = DATA2:ApplyMatch_Find(t1,t2,block_st,block_mid,block_end)
-      pointsID2[#pointsID2 + 1] = {src = block_mid, dest = pointsID[i]}
-      if DATA.extstate.CONF_match_stretchdubarray&1==1 then DATA2:ApplyMatch_StretchT(t2, block_st, block_end, block_mid, pointsID[i]) end
+      --if block_mid ~= pointsID[i] then 
+        pointsID2[#pointsID2 + 1] = {src = block_mid, dest = pointsID[i]} 
+      --end
+      if DATA.extstate.CONF_match_stretchdubarray&1==1 then t2=DATA2:ApplyMatch_StretchT(t2, block_st, block_end, block_mid, pointsID[i]) end
     end
     
     table.insert(pointsID2, 1,{src= 1, dest = 1}  ) -- fill start marker
@@ -1381,7 +1627,7 @@
     for i = 1, #pointsID do t_out[pointsID[i]] = 1  end -- force output
     for i = 1, #t2pts do if not t_out[i] then t_out[i] = 0 end end
     t_out[1] = 0 t_out[pointsID[#pointsID]] =0 -- clean edges
-    return t_out, pointsID2
+    return t_out, pointsID2, t2
   end    
       
   -----------------------------------------------------------------------------  
@@ -1406,6 +1652,7 @@
       local t = b.val_data
       local t0 = b.val_data_adv
       local t1 = b.val_data_adv2
+      local tund = b.val_data_under
       local dataw = w/#t
       local datax = 0
       local last_datax,last_datay= datax,y+h
@@ -1429,6 +1676,7 @@
           end 
           
           
+          
           if  t0 and t0[i] and t0[i] ~= 0 then
             GUI:hex2rgb(GUI.default_data_col_adv, true)
             gfx.a = GUI.default_data_a1
@@ -1442,6 +1690,15 @@
             --gfx.line(datax,y0,datax,datay)  
             gfx.rect(datax,y+1,2,h-2,1,1) 
           end 
+          
+          if  tund and tund[i] and tund[i] ~= 0 then
+            local datay = math.floor(y+h-h*tund[i])
+            if tund[i-1] and tund[i-1] == 0 then last_datax = datax end
+            GUI:hex2rgb(GUI.default_data_col_adv, true)
+            gfx.a = GUI.default_data_a
+            gfx.line(last_datax,last_datay-1,datax,datay-1)
+          end 
+          
           last_datay = datay
         end
         last_datax= datax
@@ -1473,5 +1730,5 @@
   ---------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(2.80) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(2.84) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
   

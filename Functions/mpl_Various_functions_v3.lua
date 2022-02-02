@@ -76,7 +76,7 @@
         for line in str_dec:gmatch('[^\r\n]+') do
           local key,value = line:gsub('[%{}]',''):match('(.-)=(.*)') 
           if key and value then
-            DATA.extstate.presets[tid][key]= value
+            DATA.extstate.presets[tid][key]= tonumber(value) or value
           end
         end   
       end
@@ -92,9 +92,12 @@
           for line in str_dec:gmatch('[^\r\n]+') do
             local key,value = line:gsub('[%{}]',''):match('(.-)=(.*)') 
             if key and value then
-              DATA.extstate.presets[tid][key]= value
+              DATA.extstate.presets[tid][key]= tonumber(value) or value
             end
-          end   
+          end  
+          if DATA.extstate.presets[tid].CONF_NAME then
+            DATA.extstate.presets[tid].CONF_NAME = '*'..DATA.extstate.presets[tid].CONF_NAME
+          end
         end
       end
     end
@@ -129,7 +132,7 @@
       local txt_fontsz_out = txt_fontsz
       if b.offsetframe then 
         txt_flags = 1 
-        txt_fontsz_out = b.offsetframe*2
+        txt_fontsz_out = b.txt_fontsz or b.offsetframe*2
       end -- center button horiz / align top verically for frame
       GUI:hex2rgb(txt_col, true)
       local calibrated_txt_fontsz = GUI:draw_txtCalibrateFont(txt_font, txt_fontsz_out, txt_fontflags)--, txt, w) 
@@ -187,10 +190,17 @@
       -- hovering mouse
         GUI:handlemousestate_match(b) 
         if b.mouse_match then
-          if b.nmouse_onmatchcont then DATA.perform_quere[#DATA.perform_quere+1] = b.nmouse_onmatchcont end 
+          b.mouse_matchparent = b
+          if b.onmousematchcont then DATA.perform_quere[#DATA.perform_quere+1] = b.onmousematchcont end 
           if GUI.mouse_ismoving then b.refresh = true end
         end
-        if b.mouse_lastmatch  and b.mouse_lastmatch ~=b.mouse_match  then b.refresh = true end
+        if b.mouse_match and not b.mouse_lastmatch  and b.mouse_lastmatch ~=b.mouse_match  then 
+          if b.onmousematch then DATA.perform_quere[#DATA.perform_quere+1] = b.onmousematch end
+          b.refresh = true 
+        end
+        if b.mouse_lastmatch  and not b.mouse_match  then 
+          if b.mouse_matchparent and b.mouse_matchparent.onmouselost then DATA.perform_quere[#DATA.perform_quere+1] = b.mouse_matchparent.onmouselost end
+        end
         b.mouse_lastmatch = b.mouse_match
       
       
@@ -427,10 +437,15 @@
     
     GUI.default_txt_col = '#FFFFFF'
     GUI.default_txt_flags = 1|4
-    GUI.default_txt_font = 'Calibri'
-    GUI.default_txt_fontsz = 17
+    GUI.default_txt_font = 'Arial'
+    GUI.default_txt_fontsz = 15 -- settings
+    GUI.default_txt_fontsz2 = 20 -- preset names, buttons
     GUI.default_txt_a = 0.9
     GUI.default_txt_a_inactive = 0.3
+    
+    
+    GUI.default_tooltipxoffs = 10
+    GUI.default_tooltipyoffs = 0
     
     
     
@@ -439,7 +454,6 @@
       GUI.default_font_coeff = 1
       GUI.default_scale = 1
       gfx.ext_retina = 1 -- init with 1 
-      
       gfx.init( title,
                 DATA.extstate.wind_w or 100,
                 DATA.extstate.wind_h or 100,
@@ -447,9 +461,10 @@
                 DATA.extstate.wind_x or 100, 
                 DATA.extstate.wind_y or 100)
       
-      local retinatest = 0
+      local retinatest = 0--2
       if GUI.default_scale ~= gfx.ext_retina or retinatest ~= 0 then -- dpi changed (either initially or from the user moving the window or the OS changing
         GUI.default_scale = gfx.ext_retina
+              
         if retinatest ~= 0 then GUI.default_scale = retinatest end
         GUI.default_font_coeff = (1+GUI.default_scale)*0.5 
         -- Resize manually gfx window, if not MacOS
@@ -464,7 +479,6 @@
             
         end
       end
-    
     GUI.default_listentryh = 20*GUI.default_scale
     GUI.default_listentryxoffset = 5*GUI.default_scale
     GUI.default_listentryframea = 0.4
@@ -499,7 +513,7 @@
   end
 -----------------------------------------------------------------------------  
   function GUI:getmousestate()
-    GUI.char = gfx.getchar()
+    GUI.char = math.floor(gfx.getchar())
     GUI.cap = gfx.mouse_cap
     GUI.x = gfx.mouse_x
     GUI.y = gfx.mouse_y
@@ -930,6 +944,11 @@
           onmouseclickR = item.onmouseclickR,
           onmousedragR = item.onmousedragR,
           onmousereleaseR = item.onmousereleaseR,
+          
+          onmousematch = item.onmousematch,
+          onmouselost = item.onmouselost,
+                  
+                  
           hide = item.hide,
           active = item.active,
           ignoremouse = item.ignoremouse,
