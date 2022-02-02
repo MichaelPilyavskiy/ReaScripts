@@ -1,13 +1,10 @@
 -- @description Align Takes
--- @version 2.07
+-- @version 2.08
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Add per item alignment (reference take = active take, dub takes = other item takes) (paid VariousFunction only)
-
-
-
+--    # always add points at edges
 
 
   --[[
@@ -33,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.05
+    DATA.extstate.version = 2.08
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
