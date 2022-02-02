@@ -1,27 +1,10 @@
 -- @description Align Takes
--- @version 2.06
+-- @version 2.07
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Add Vocals factory preset
---    + GUI: allow to edit source markers (LMB click add, Right drag remove) (paid VariousFunction only) 
---    + GUI: show 1st dub take stretched envelope under reference track
---    + GUI: show tooltips for various parameters
---    + Change font to Arial for better Win/MacOS consistency (require VariousFunctions update)
---    + MatchAlgorithm: add option to search audio data forward only
---    + MatchAlgorithm: add option to limit difference between points while searching
---    + MatchAlgorithm: clear dub takes markers only inside reference boundary, add markers on edges
---    + MatchAlgorithm: option to compare stuff before midblock only
---    + Source marker generator: increase maximum for Minimum points distance
---    + Source marker generator: increase maximum for Minimum RMS area
---    + Source marker generator: add gate algorithm (paid VariousFunction only) 
---    + Source marker generator: add equal distance algorithm
---    # GUI: fix settings checks
---    # MatchAlgorithm: fix -1 window offset
---    # MatchAlgorithm: fix various stretch markers collide on looped takes edges
---    - TakeOutput: remove option for setting 0 position marker
---    + TakeOutput: improve sharing stretch markers in various cases
+--    + Add per item alignment (reference take = active take, dub takes = other item takes) (paid VariousFunction only)
 
 
 
@@ -38,7 +21,6 @@
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
   -- to do
-    -- per item mod
     -- zero crossing  
     -- get existed stretch markers as points
     -- preserve transients (guard)
@@ -75,6 +57,7 @@
                           CONF_appatchange = 1,
                           CONF_cleanmarkdub = 1,
                           CONF_obtimesel = 0, 
+                          CONF_alignitemtakes = 0, -- per item mode
                           
                           CONF_window = 0.15,
                           CONF_window_overlap = 2,
@@ -261,7 +244,7 @@
         if DATA.extstate.CONF_post_pshift >= 0 and  DATA.extstate.CONF_post_pshiftsub >= 0 then  pshiftsub = DATA.extstate.CONF_post_pshiftsub end
         if DATA.extstate.CONF_post_pshift >= 0 or DATA.extstate.CONF_post_strmarkfdsize ~= 0.0025 then  VF_SetTimeShiftPitchChange(item, false, (DATA.extstate.CONF_post_pshift<<16) + DATA.extstate.CONF_post_pshiftsub, DATA.extstate.CONF_post_smmode, DATA.extstate.CONF_post_strmarkfdsize)  end 
       end
-      UpdateItemInProject( item )
+      if item then UpdateItemInProject( item ) end
       ::skipdubtake2::
     end
   end
@@ -734,6 +717,7 @@
       GUI_settingst_getcheck('Apply settings at config change', 'CONF_appatchange'),  
       GUI_settingst_getcheck('Clean dub markers at initialization', 'CONF_cleanmarkdub'),  
       GUI_settingst_getcheck('Obey time selection', 'CONF_obtimesel', GUI.default_data_col, true),  
+      GUI_settingst_getcheck('Align takes inside item', 'CONF_alignitemtakes', GUI.default_data_col, true ),  
       { str = 'User interface' ,
         issep = true
       }, 
@@ -959,7 +943,7 @@
       GUI_settingst_getcheck('Allow manual editing', 'CONF_markgen_manualedit',GUI.default_data_col_adv, true),      
       
       
-      { str = 'Algorithm1 (slow rise/fall detect)',
+      { str = 'Algorithm 1 (slow rise/fall detect)',
         level = 1,
         txt_col = GUI.default_data_col_adv,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_algo',0 , true, nil )  end,                                          
@@ -1043,7 +1027,7 @@
         ignoremouse = VF_isregist&2~=2,
       },   
       
-      { str = 'Algorithm2 (gate trigger)',
+      { str = 'Algorithm 2 (gate trigger)',
         level = 1,
         txt_col = GUI.default_data_col_adv,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_algo', 1 , true, nil )  end,                                          
@@ -1083,7 +1067,7 @@
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_threshold2') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         active = VF_isregist&2==2 and DATA.extstate.CONF_markgen_algo==1,
       },       
-      { str = 'Algorithm3 (equal distance)',
+      { str = 'Algorithm 3 (equal distance)',
         level = 1,
         txt_col = GUI.default_data_col_adv,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_algo', 2 , true, nil )  end,                                          
@@ -1108,6 +1092,16 @@
        
        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Should be more than brutforce search area',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
      },      
+      --[[{ str = 'Algorithm 4 (get stretch markers as points)',
+        level = 1,
+        txt_col = GUI.default_data_col_adv,
+        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_algo', 3 , true, nil )  end,                                          
+        ischeck = true,
+        state = DATA.extstate.CONF_markgen_algo==3,
+        --active = VF_isregist&2==2,
+        --ignoremouse = VF_isregist&2~=2 ,
+        
+      },    ]]
       
       
       {str = 'Audio match algorithm',
@@ -1277,9 +1271,16 @@
     
   end
   ---------------------------------------------------------------------
-  function DATA2:GetAudioData_GetTable(parent_track, edge_start, edge_end) 
+  function DATA2:GetAudioData_GetTable(parent_track, edge_start, edge_end, take, item, tkoffs, take_rate) 
     -- init 
-      local accessor = CreateTrackAudioAccessor( parent_track )
+      local accessor 
+      if take then 
+        accessor = CreateTakeAudioAccessor( take )
+        edge_end = edge_end - edge_start -- tkoffs*take_rate
+        edge_start = 0
+       else
+        accessor = CreateTrackAudioAccessor( parent_track )
+      end
       local data = {}
       local id = 0
       local SR_spls = tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) -- get sample rate obey project start offset
@@ -1336,49 +1337,70 @@
     UpdateItemInProject(  reaper.GetMediaItemTake_Item( take ) )
   end
   ---------------------------------------------------------------------
+  function DATA2:GetDubAudioData_Sub(item,take)
+    local dubdataId = #DATA2.dubdata+1
+    local parent_track = GetMediaItem_Track( item ) 
+    local takeGUID = VF_GetTakeGUID(take)
+    local take_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE')
+    local item_pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
+    local item_len= GetMediaItemInfo_Value( item, 'D_LENGTH' )
+    local src =  GetMediaItemTake_Source( take )
+    local tkoffs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS'  )
+    local item_srclen, lengthIsQN = GetMediaSourceLength( src )
+    if DATA.extstate.CONF_cleanmarkdub&1==1 and DATA2.refdata and DATA2.refdata.edge_start  then  DATA2:CleanDubMarkers2(take,  take_rate, math.max(0,DATA2.refdata.edge_start - item_pos),math.min(item_len ,DATA2.refdata.edge_end - item_pos))  end--and DATA.extstate.CONF_markgen_algo ~= 3
+    DATA2.dubdata[dubdataId] = {takeGUID = takeGUID,
+                      take = take,
+                      item = item,
+                      item_pos = item_pos,
+                      item_len=item_len,
+                      take_rate = take_rate,
+                      item_srclen=item_srclen,
+                      take_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS')
+                      }
+                      
+    local take_src, item_src
+    if DATA.extstate.CONF_alignitemtakes == 1 then take_src = take item_src = item end
+    DATA2.dubdata[dubdataId].data = DATA2:GetAudioData_GetTable(parent_track, DATA2.refdata.edge_start, DATA2.refdata.edge_end, take_src, item_src, tkoffs, take_rate)
+    DATA2.dubdata[dubdataId].data = DATA2:GetAudioData_CorrentSource(DATA2.dubdata[dubdataId].data, DATA2.refdata.edge_start, DATA2.refdata.edge_end, item_pos, item_pos+item_len)
+    if DATA.extstate.CONF_markgen_algo == 0  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_0(DATA2.dubdata[dubdataId].data) end -- legacy v1
+    if DATA.extstate.CONF_markgen_algo == 1  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_1(DATA2.dubdata[dubdataId].data) end -- gate
+    if DATA.extstate.CONF_markgen_algo == 2  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_2(DATA2.dubdata[dubdataId].data) end -- equal
+    if DATA.extstate.CONF_markgen_algo == 3  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_3(take) end -- get stretch markers
+    DATA2.dubdata[dubdataId].data_points_match, DATA2.dubdata[dubdataId].data_pointsSRCDEST, DATA2.dubdata[dubdataId].stretchedarray = DATA2:ApplyMatch(DATA2.dubdata[dubdataId]) 
+  end
+  ---------------------------------------------------------------------
   function DATA2:GetDubAudioData(takefromsecondtake)
     if not DATA2.refdata then return end
     local reftrack = VF_GetTrackByGUID(DATA2.refdata.parent_trackGUID) 
     if not reftrack then return end
     DATA2.dubdata = {}
     
-    local dubdataId = 1
-    local st = 1
-    if takefromsecondtake == true then st = 2 end
-    for i = st, CountSelectedMediaItems( 0 ) do
-      local item = GetSelectedMediaItem(0,i-1)
-      local take = GetActiveTake(item)
-      if TakeIsMIDI(take) then  goto skipnextdub end 
-      local parent_track = GetMediaItem_Track( item ) 
-      if parent_track == reftrack then goto skipnextdub end 
-      if not take or (take and TakeIsMIDI(take)) then  goto skipnextdub end
-      local takeGUID = VF_GetTakeGUID(take)
-      local take_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE')
-      local item_pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
-      local item_len= GetMediaItemInfo_Value( item, 'D_LENGTH' )
-      local src =  GetMediaItemTake_Source( take )
-      local item_srclen, lengthIsQN = GetMediaSourceLength( src )
-      if DATA.extstate.CONF_cleanmarkdub&1==1 and DATA2.refdata and DATA2.refdata.edge_start then  DATA2:CleanDubMarkers2(take,  take_rate, math.max(0,DATA2.refdata.edge_start - item_pos),math.min(item_len ,DATA2.refdata.edge_end - item_pos))  end
-      DATA2.dubdata[dubdataId] = {takeGUID = takeGUID,
-                        take = take,
-                        item = item,
-                        item_pos = item_pos,
-                        item_len=item_len,
-                        take_rate = take_rate,
-                        item_srclen=item_srclen,
-                        take_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS')
-                        }
-                        
-      DATA2.dubdata[dubdataId].data = DATA2:GetAudioData_GetTable(parent_track, DATA2.refdata.edge_start, DATA2.refdata.edge_end)
-      DATA2.dubdata[dubdataId].data = DATA2:GetAudioData_CorrentSource(DATA2.dubdata[dubdataId].data, DATA2.refdata.edge_start, DATA2.refdata.edge_end, item_pos, item_pos+item_len)
-      if DATA.extstate.CONF_markgen_algo == 0  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_0(DATA2.dubdata[dubdataId].data) end
-      if DATA.extstate.CONF_markgen_algo == 1  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_1(DATA2.dubdata[dubdataId].data) end
-      if DATA.extstate.CONF_markgen_algo == 2  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_2(DATA2.dubdata[dubdataId].data) end
-      DATA2.dubdata[dubdataId].data_points_match, DATA2.dubdata[dubdataId].data_pointsSRCDEST, DATA2.dubdata[dubdataId].stretchedarray = DATA2:ApplyMatch(DATA2.dubdata[dubdataId]) 
-      dubdataId = dubdataId + 1
-      ::skipnextdub::
+    if DATA.extstate.CONF_alignitemtakes == 0 then -- normal mode
+      local st = 1
+      if takefromsecondtake == true then st = 2 end
+      for i = st, CountSelectedMediaItems( 0 ) do
+        local item = GetSelectedMediaItem(0,i-1)
+        local parent_track = GetMediaItem_Track( item ) 
+        local take = GetActiveTake(item) 
+        if not take or (take and TakeIsMIDI(take)) then  goto skipnextdub end  
+        if parent_track == reftrack then goto skipnextdub end  
+        DATA2:GetDubAudioData_Sub(item,take) 
+        ::skipnextdub::
+      end
     end
     
+    if DATA.extstate.CONF_alignitemtakes == 1 then -- per item  mode
+      local item = GetSelectedMediaItem(0,0)
+      if item then
+        local acttake = GetActiveTake(item) 
+        for takeidx = 1,  CountTakes( item ) do
+          local take =  GetTake( item, takeidx-1 )
+          if not take or (take and TakeIsMIDI(take)) or (take and take == acttake) then goto skipnextdub end  
+          DATA2:GetDubAudioData_Sub(item,take) 
+          ::skipnextdub::
+        end
+      end
+    end
     
     GUI_initdata(GUI) 
   end
@@ -1430,6 +1452,12 @@
     
   end
   ---------------------------------------------------------------------
+  function DATA2:GeneratePoints_3(take)
+    --DATA2.refdata.edge_start, DATA2.refdata.edge_end
+    --reaper.GetTakeNumStretchMarkers( take )
+    --retval, pos, srcpos = reaper.GetTakeStretchMarker( take, idx )
+  end
+  ---------------------------------------------------------------------
   function DATA2:GeneratePoints_2(t0)
     local t = {}
     local block_area = DATA.extstate.CONF_markgen_filterpoints3
@@ -1438,7 +1466,8 @@
         t[i] = 0
         if i%block_area == 0 then  t[i] = 1  end
       end
-      
+      t[1] = 1
+      t[#t] = 1
       
     return t
   end
@@ -1449,7 +1478,6 @@
     local threshold = DATA.extstate.CONF_markgen_threshold2
     local lastgateid
     -- get src points
-      t[1] = 1
       for i = 2,#t0 -1 do 
         t[i] = 0
         local curr_val = t0[i]
@@ -1464,7 +1492,8 @@
         end
         lastgate = gate
       end
-      
+      t[1] = 1
+      t[#t] = 1
       
     return t
   end
@@ -1529,6 +1558,9 @@
       end
     end
     
+    t[1] = 1
+    t[#t] = 1
+    
     return t
   end    
   ---------------------------------------------------------------------
@@ -1539,7 +1571,7 @@
       block_end0 = midblock
     end
     for block = block_st, block_end0 do  
-      if t1[block] and t2[block] then
+      if t1[block] and t2 and t2[block] then
         if DATA.extstate.CONF_match_ignorezeros == 1 or (DATA.extstate.CONF_match_ignorezeros == 0 and t1[block] ~= 0 and t2[block] ~= 0) then
           diff = diff + math.abs(t1[block]-t2[block]) 
         end
@@ -1577,6 +1609,7 @@
   ---------------------------------------------------------------------
   function DATA2:ApplyMatch_StretchT(t, block_st, block_end, block_src, block_dest) 
     local tout = {}
+    if not (t and block_st) then return end
     local ratio1 = (block_src - block_st) / (block_dest - block_st)
     local ratio2 = (block_end - block_src) / (block_end - block_dest)
     for i = 1, block_st-1 do tout[i] = t[i] end for i = block_end+1, #t do tout[i] = t[i] end -- copy src table
@@ -1610,8 +1643,9 @@
                         --[t_out] = {src= 1, dest = 1}
                         }
                         
-    for i = 2, #pointsID-1 do
+    for i = 1, #pointsID-1 do
       local block_st = pointsID[i-1]
+      if i == 1 then block_st = 1 end
       local block_mid = pointsID[i]
       local block_end = pointsID[i+1]
       pointsID[i] = DATA2:ApplyMatch_Find(t1,t2,block_st,block_mid,block_end)
