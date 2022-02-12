@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="49b9dfa0cf347f1fbf36a690afcf21372bd30c11" name="MPL Scripts">
+<index version="1" commit="cd0bc9bb2f9159b4e14616467d768a2b2f250dfe" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -958,6 +958,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d0e62059f03b2bd930eebc361b019096e3f42dc3/FX/mpl_Bypass%20all%20FX%20except%20instruments%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Bypass all the selected track FX starting from focused FX.lua" type="script" desc="Bypass all the selected track FX starting from focused FX">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-02-12T20:09:13Z">
+        <changelog><![CDATA[+ init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd0bc9bb2f9159b4e14616467d768a2b2f250dfe/FX/mpl_Bypass%20all%20the%20selected%20track%20FX%20starting%20from%20focused%20FX.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Copy Focused FX data.lua" type="script" desc="Copy Focused FX data">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -1428,6 +1437,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14779eec07d96d9975a1b80160c343393584e8b6/FX/mpl_Move%20focused%20Track%20FX%20to%20screen%20center.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Offline all the selected track FX before focused FX.lua" type="script" desc="Offline all the selected track FX before focused FX">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-02-12T20:09:13Z">
+        <changelog><![CDATA[+ init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd0bc9bb2f9159b4e14616467d768a2b2f250dfe/FX/mpl_Offline%20all%20the%20selected%20track%20FX%20before%20focused%20FX.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Offline bypassed fx on selected tracks.lua" type="script" desc="Offline bypassed fx on selected tracks">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -1633,6 +1651,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6f5b4f7439e828e0e70c3c0fbea740d2c8d746b3/FX/mpl_Reset%20FX%20chain%20pin%20mapping.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Restore focused FX parent track bypass states.lua" type="script" desc="Restore focused FX parent track bypass states">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-02-12T20:09:13Z">
+        <changelog><![CDATA[+ init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd0bc9bb2f9159b4e14616467d768a2b2f250dfe/FX/mpl_Restore%20focused%20FX%20parent%20track%20bypass%20states.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Route FX chain followed by focused FX to 3-4 pair.lua" type="script" desc="Route FX chain followed by focused FX to 3-4 pair">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
@@ -1659,6 +1686,15 @@
 # disable change name
 + add information message]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6f5b4f7439e828e0e70c3c0fbea740d2c8d746b3/FX/mpl_Route%20FX%20chain%20followed%20by%20focused%20FX%20to%203-4%20pair.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Save focused FX parent track bypass states.lua" type="script" desc="Save focused FX parent track bypass states">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-02-12T20:09:13Z">
+        <changelog><![CDATA[+ init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd0bc9bb2f9159b4e14616467d768a2b2f250dfe/FX/mpl_Save%20focused%20FX%20parent%20track%20bypass%20states.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Save selected tracks FX chains.lua" type="script" desc="Save selected tracks FX chains">
@@ -5781,6 +5817,15 @@ add control for timefall showing last note]]></changelog>
     <reapack name="mpl_Color pooled MIDI takes as selected reference.lua" type="script" desc="Color pooled MIDI takes as selected reference">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Takes%20Properties/mpl_Color%20pooled%20MIDI%20takes%20as%20selected%20reference.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Rename active take as (itemname)_bounce_(date time).lua" type="script" desc="Rename active take as (itemname)_bounce_(date time)">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-02-12T20:09:13Z">
+        <changelog><![CDATA[+ init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd0bc9bb2f9159b4e14616467d768a2b2f250dfe/Takes%20Properties/mpl_Rename%20active%20take%20as%20(itemname)_bounce_(date%20time).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set selected items pitch shift mode to Dirac LE.lua" type="script" desc="Set selected items pitch shift mode to Dirac LE">
