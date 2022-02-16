@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="38211ae529d1ca251bf34b4584497c79a1642ba6" name="MPL Scripts">
+<index version="1" commit="3f13b61503fff962b2d90c1fc72ccf26ed8ef492" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3760,6 +3760,15 @@
         <changelog><![CDATA[# ReaPack header
 # fix error on no items selected]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3a2158fb623c3c6be3aa95aaa02cfdd9ff4ad854/Items%20Editing/mpl_Duplicate%20items%20grid%20relative.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Duplicate items until end of time selection.lua" type="script" desc="Duplicate items until end of time selection">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-02-16T19:45:46Z">
+        <changelog><![CDATA[+ init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f13b61503fff962b2d90c1fc72ccf26ed8ef492/Items%20Editing/mpl_Duplicate%20items%20until%20end%20of%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Explode stereo take into 2 mono takes in place and normalize.lua" type="script" desc="Explode stereo take into 2 mono takes in place and normalize">
