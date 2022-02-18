@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.23
+-- @version 2.24
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Presist/#chordlive: show note / chord of recent played incoming MIDI events
+--    + Presist/#chordlive: fix error
 
-    local vrs = '2.23'
+    local vrs = '2.24'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])

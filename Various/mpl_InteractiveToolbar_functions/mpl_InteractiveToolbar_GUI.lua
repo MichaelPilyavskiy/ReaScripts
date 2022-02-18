@@ -540,7 +540,7 @@ b=0;]]
        else
         if obj.b.obj_pers_clock then obj.b.obj_pers_clock.txt = data.editcur_pos_format end
       end
-      obj.b.obj_pers_chordlive.txt = data.retrospectchordkey..' '..data.retrospectchordname
+      if obj.b.obj_pers_chordlive then obj.b.obj_pers_chordlive.txt = data.retrospectchordkey..' '..data.retrospectchordname end
       GUI_DrawObj(obj.b.obj_pers_clock, obj, conf)
       GUI_DrawObj(obj.b.obj_pers_master, obj, conf)
       GUI_DrawObj(obj.b.obj_pers_mastermeter, obj, conf)
