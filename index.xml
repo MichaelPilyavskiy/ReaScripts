@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="1918d7edb978a973667383f4653d25fd49272936" name="MPL Scripts">
+<index version="1" commit="fbdf80bef02a91f00cb6393e676803b79dc05796" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3778,6 +3778,10 @@
       <version name="1.0" author="MPL" time="2022-02-16T19:45:46Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3f13b61503fff962b2d90c1fc72ccf26ed8ef492/Items%20Editing/mpl_Duplicate%20items%20until%20end%20of%20time%20selection.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2022-02-18T19:24:37Z">
+        <changelog><![CDATA[# fix math a bit]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fbdf80bef02a91f00cb6393e676803b79dc05796/Items%20Editing/mpl_Duplicate%20items%20until%20end%20of%20time%20selection.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Explode stereo take into 2 mono takes in place and normalize.lua" type="script" desc="Explode stereo take into 2 mono takes in place and normalize">
