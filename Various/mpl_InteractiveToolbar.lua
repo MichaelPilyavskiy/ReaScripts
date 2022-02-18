@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.22
+-- @version 2.23
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # rolling back retina changes, leave it for a future GUI rebuild
+--    + Presist/#chordlive: show note / chord of recent played incoming MIDI events
 
-    local vrs = '2.22'
+    local vrs = '2.23'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -41,7 +41,7 @@
   for key in pairs(reaper) do _G[key]=reaper[key]  end  
   local conf = {} 
   local scr_title = 'InteractiveToolbar'
-  local data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
+   data = {conf_path = script_path:gsub('\\ ','/') .. "mpl_InteractiveToolbar_Config.ini",
           vrs = vrs,
           scr_title=scr_title,
           masterdata = {ptr =  GetMasterTrack(reaper.EnumProjects(-1))}}
@@ -97,7 +97,7 @@ buttons=#polarity #parentsend #midiin #audioin
 [MIDIEditor]
 order=#position #notelen #CCval #notepitch #notevel #midichan
 [Persist]
-order=#swing #grid #timesellen #timeselend #timeselstart #timeselLeftEdge #lasttouchfx #transport #bpm #clock #tap #master #mastermeter #masterchan
+order=#swing #grid #timesellen #timeselend #timeselstart #timeselLeftEdge #lasttouchfx #transport #bpm #clock #tap #master #mastermeter #masterchan #chordlive
 ]]
   end  
   ---------------------------------------------------

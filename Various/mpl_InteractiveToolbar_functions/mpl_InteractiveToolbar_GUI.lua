@@ -540,9 +540,11 @@ b=0;]]
        else
         if obj.b.obj_pers_clock then obj.b.obj_pers_clock.txt = data.editcur_pos_format end
       end
+      obj.b.obj_pers_chordlive.txt = data.retrospectchordkey..' '..data.retrospectchordname
       GUI_DrawObj(obj.b.obj_pers_clock, obj, conf)
       GUI_DrawObj(obj.b.obj_pers_master, obj, conf)
       GUI_DrawObj(obj.b.obj_pers_mastermeter, obj, conf)
+      GUI_DrawObj(obj.b.obj_pers_chordlive, obj, conf)
                                         
     --[[ draw vrs
       gfx.x, gfx.y = gfx.w-150,0
@@ -640,6 +642,7 @@ msg(
           #master Shows master track peaks
           #mastermeter Show master RMS/LUFS
           #masterchan Hover around master width. -100% button makes channes swapped, mono set width to zero. Both change panmode to stereo pan.
+          #chordlive Show note / chord of recent played incoming MIDI events
  ]] )  
                  
                         end   

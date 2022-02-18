@@ -1202,7 +1202,61 @@
       end                                 
     return clock_w   , obj.entry_h*2
   end
-
+  ------------------------------------------------------------------------  
+  function Widgets_Persist_chordlive(data, obj, mouse, x_margin, widgets, conf, y_offs)
+    local clock_w = 130*conf.scaling
+    local frame_a = 0
+    obj.b.obj_pers_chordlive_back1 = {persist_buf = true,
+                        x = x_margin - clock_w,
+                        y = obj.offs ,
+                        w = clock_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}
+    obj.b.obj_pers_chordlive_back2 = {persist_buf = true,
+                        x = x_margin - clock_w,
+                        y = obj.offs+obj.entry_h ,
+                        w = clock_w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}  
+    obj.b.obj_pers_chordlive = { outside_buf = true,
+                        x = x_margin - clock_w,
+                        y = obj.offs ,
+                        w = clock_w,
+                        h = obj.entry_h*2,
+                        frame_a = 0,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock,
+                        txt = data.retrospectchordkey..' '..data.retrospectchordname  -- SEE GUI_Main
+                        }
+      if conf.dock_orientation == 1 then
+        obj.b.obj_pers_chordlive_back1.persist_buf = nil
+        obj.b.obj_pers_chordlive_back1.x= 0
+        obj.b.obj_pers_chordlive_back1.y = y_offs-obj.entry_h*2
+        obj.b.obj_pers_chordlive_back1.w = obj.entry_w2
+        obj.b.obj_pers_chordlive_back1.h = obj.entry_h
+        obj.b.obj_pers_chordlive_back2.x= 0
+        obj.b.obj_pers_chordlive_back2.y = y_offs-obj.entry_h
+        obj.b.obj_pers_chordlive_back2.w = obj.entry_w2
+        obj.b.obj_pers_chordlive_back2.frame_a = obj.frame_a_entry   
+        
+        obj.b.obj_pers_chordlive.x= 0
+        obj.b.obj_pers_chordlive.y = y_offs-obj.entry_h*2
+        obj.b.obj_pers_chordlive.w = obj.entry_w2
+        obj.b.obj_pers_chordlive.h = obj.entry_h*2        
+          
+      end                                 
+    return clock_w   , obj.entry_h*2
+  end
   ------------------------------------------------------------------------  
   function Widgets_Persist_mastermeter(data, obj, mouse, x_margin, widgets, conf, y_offs)
     local mastermeter_w = 110*conf.scaling

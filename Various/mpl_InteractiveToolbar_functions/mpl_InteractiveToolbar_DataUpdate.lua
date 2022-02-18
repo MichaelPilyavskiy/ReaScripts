@@ -3,32 +3,221 @@
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @noindex
 
-  -- update obj/project data for 
   
+  ------------------------------------------------------------------------------------------------------  
   function DataUpdate2(data, mouse, widgets, obj, conf)
+    DataUpdate2_UpdMasterpeaks(data, mouse, widgets, obj, conf) 
+    local ret2 = VF_CheckReaperVrs(6.39,true)   
+    if ret2 then DataUpdate2_UpdRetrospectiveLog(data, mouse, widgets, obj, conf)  end
+  end
+  ---------------------------------------------------------------------------------
+  function DataUpdate2_UpdRetrospectiveLog(data, mouse, widgets, obj, conf)  -- collect raw data
+    local t = {}
+    local idx = 0
+    local idx_max_count = 14
+    local evt_id = 0
+    --while true do
+    while idx<idx_max_count do
+      local retval, rawmsg, tsval, devIdx, projPos, projLoopCnt = MIDI_GetRecentInputEvent(idx)
+      if retval == 0 then break end -- stop if return null sequence
+      idx = idx + 1 
+      if (devIdx & 0x10000) == 0 or devIdx == 0x1003e then -- should works without this after REAPER6.39rc2, so thats just in case
+        local isNoteOn = rawmsg:byte(1)>>4 == 0x9
+        local isNoteOff = rawmsg:byte(1)>>4 == 0x8
+        if isNoteOn or isNoteOff then
+          evt_id = evt_id + 1 
+          t[evt_id] = {retval=retval, rawmsg=rawmsg, tsval=tsval, devIdx=devIdx, projPos=projPos, projLoopCnt=projLoopCnt}
+        end
+      end
+    end 
+    
+    -- reverse table
+      local rev_t = {}
+      local rev_t_id = 0
+      for i=#t, 1, -1 do rev_t_id = rev_t_id + 1 rev_t[rev_t_id] = t[i] end
+    
+    -- get opening notes
+     pitcht = {}
+    for i = 1, #rev_t do
+      local rawmsg = rev_t[i].rawmsg
+      local pitch = rawmsg:byte(2) 
+      local isNoteOn = rawmsg:byte(1)>>4 == 0x9
+      local isNoteOff = rawmsg:byte(1)>>4 == 0x8
+      if pitch and isNoteOn then
+        pitcht[#pitcht+1] = pitch
+       elseif pitch and isNoteOff then
+        for j = #pitcht, 1, -1 do
+          if pitcht[j] == pitch then table.remove(pitcht, j) end
+        end
+      end
+    end
+    
+    --[[ form key string
+       strkey = ''
+      for key in spairs(pitcht) do
+        strkey = strkey..(1+(key%12))..' '
+      end
+      strkey = strkey:sub(0,-2)]]
+      
+    -- get lowest key
+      local low = 13
+      data.retrospectchordkey = ''
+      for i=1, #pitcht do low = math.min(low, (pitcht[i]%12)+1 ) end
+      local key_names = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'}
+      if key_names[low] then data.retrospectchordkey = key_names[low]  end 
+      for i=1, #pitcht do pitcht[i] = (pitcht[i]%12) - low+2 end 
+      
+      function compare(a,b) return a < b end
+      table.sort(pitcht, compare)
+      strkey = ''
+      for i=1, #pitcht do strkey = strkey..pitcht[i]..' ' end
+      strkey = strkey:sub(0,-2)
+      
+    if not data.chord_names then
+      data.chord_names = {} --https://github.com/iliaspoulakis/Reaper-Tools/blob/master/MIDI%20editor/Lil%20Chordbox.lua#L63
+      -- Dyads
+      data.chord_names['1 2'] = 'minor 2nd'
+      data.chord_names['1 3'] = 'major 2nd'
+      data.chord_names['1 4'] = 'minor 3rd'
+      data.chord_names['1 5'] = 'major 3rd'
+      data.chord_names['1 6'] = 'perfect 4th'
+      data.chord_names['1 7'] = '5-'
+      data.chord_names['1 8'] = '5'
+      data.chord_names['1 9'] = 'minor 6th'
+      data.chord_names['1 10'] = 'major 6th'
+      data.chord_names['1 11'] = 'minor 7th'
+      data.chord_names['1 12'] = 'major 7th'
+      
+      -- Major chords
+      data.chord_names['1 5 8'] = 'maj'
+      data.chord_names['1 8 12'] = 'maj7 omit3'
+      data.chord_names['1 5 12'] = 'maj7 omit5'
+      data.chord_names['1 5 8 12'] = 'maj7'
+      data.chord_names['1 3 5 12'] = 'maj9 omit5'
+      data.chord_names['1 3 5 8 12'] = 'maj9'
+      data.chord_names['1 3 5 6 12'] = 'maj11 omit5'
+      data.chord_names['1 5 6 8 12'] = 'maj11 omit9'
+      data.chord_names['1 3 5 6 8 12'] = 'maj11'
+      data.chord_names['1 3 5 6 10 12'] = 'maj13 omit5'
+      data.chord_names['1 5 6 8 10 12'] = 'maj13 omit9'
+      data.chord_names['1 3 5 6 8 10 12'] = 'maj13'
+      data.chord_names['1 8 10'] = '6 omit3'
+      data.chord_names['1 5 8 10'] = '6'
+      data.chord_names['1 3 5 10'] = '6/9 omit5'
+      data.chord_names['1 3 5 8 10'] = '6/9'
+      
+      -- Dominant/Seventh
+      data.chord_names['1 8 11'] = '7 omit3'
+      data.chord_names['1 5 11'] = '7 omit5'
+      data.chord_names['1 5 8 11'] = '7'
+      data.chord_names['1 3 8 11'] = '9 omit3'
+      data.chord_names['1 3 5 11'] = '9 omit5'
+      data.chord_names['1 3 5 8 11'] = '9'
+      data.chord_names['1 3 5 10 11'] = '13 omit5'
+      data.chord_names['1 5 8 10 11'] = '13 omit9'
+      data.chord_names['1 3 5 8 10 11'] = '13'
+      data.chord_names['1 5 7 11'] = '7#11 omit5'
+      data.chord_names['1 5 7 8 11'] = '7#11'
+      data.chord_names['1 3 5 7 11'] = '9#11 omit5'
+      data.chord_names['1 3 5 7 8 11'] = '9#11'
+      
+      -- Altered
+      data.chord_names['1 2 5 11'] = '7b9 omit5'
+      data.chord_names['1 2 5 8 11'] = '7b9'
+      data.chord_names['1 2 5 7 8 11'] = '7b9#11'
+      data.chord_names['1 4 5 11'] = '7#9 omit5'
+      data.chord_names['1 4 5 8 11'] = '7#9'
+      data.chord_names['1 4 5 9 11'] = '7#5#9'
+      data.chord_names['1 4 5 7 8 11'] = '7#9#11'
+      data.chord_names['1 2 5 8 10 11'] = '13b9'
+      data.chord_names['1 3 5 7 8 10 11'] = '13#11'
+      data.chord_names['1 5 7 12'] = 'maj7#11 omit5'
+      data.chord_names['1 5 7 8 12'] = 'maj7#11'
+      data.chord_names['1 3 5 7 12'] = 'maj9#11 omit5'
+      data.chord_names['1 3 5 7 8 12'] = 'maj9#11'
+      data.chord_names['1 3 5 7 10 12'] = 'maj13#11 omit5'
+      data.chord_names['1 5 7 8 10 12'] = 'maj13#11 omit9'
+      data.chord_names['1 3 5 7 8 10 12'] = 'maj13#11'
+      
+      -- Suspended
+      data.chord_names['1 6 8'] = 'sus4'
+      data.chord_names['1 3 8'] = 'sus2'
+      data.chord_names['1 6 11'] = '7sus4 omit5'
+      data.chord_names['1 6 8 11'] = '7sus4'
+      data.chord_names['1 3 6 11'] = '11 omit5'
+      data.chord_names['1 6 8 11'] = '11 omit9'
+      data.chord_names['1 3 6 8 11'] = '11'
+      
+      -- Minor
+      data.chord_names['1 4 8'] = 'm'
+      data.chord_names['1 4 11'] = 'm7 omit5'
+      data.chord_names['1 4 8 11'] = 'm7'
+      data.chord_names['1 4 12'] = 'm/maj7 omit5'
+      data.chord_names['1 4 8 12'] = 'm/maj7'
+      data.chord_names['1 3 4 12'] = 'm/maj9 omit5'
+      data.chord_names['1 3 4 8 12'] = 'm/maj9'
+      data.chord_names['1 3 4 11'] = 'm9 omit5'
+      data.chord_names['1 3 4 8 11'] = 'm9'
+      data.chord_names['1 3 4 6 11'] = 'm11 omit5'
+      data.chord_names['1 4 6 8 11'] = 'm11 omit9'
+      data.chord_names['1 3 4 6 8 11'] = 'm11'
+      data.chord_names['1 3 4 6 10 11'] = 'm13 omit5'
+      data.chord_names['1 4 6 8 10 11'] = 'm13 omit9'
+      data.chord_names['1 3 4 6 8 10 11'] = 'm13'
+      data.chord_names['1 4 8 10'] = 'm6'
+      data.chord_names['1 3 4 10'] = 'm6/9 omit5'
+      data.chord_names['1 3 4 8 10'] = 'm6/9'
+      
+      -- Diminished
+      data.chord_names['1 4 7'] = 'dim'
+      data.chord_names['1 4 7 10'] = 'dim7'
+      data.chord_names['1 2 4 7 11'] = 'm7b5'
+      data.chord_names['1 3 4 7 11'] = 'm9b5'
+      data.chord_names['1 3 4 6 7 11'] = 'm11b5'
+      data.chord_names['1 3 5 7 10 11'] = '13b5'
+      
+      -- Augmented
+      data.chord_names['1 5 9'] = 'aug'
+      data.chord_names['1 5 9 11'] = 'aug7'
+      data.chord_names['1 5 9 12'] = 'aug/maj7'
+      
+      -- Additions
+      data.chord_names['1 3 4 8'] = 'm add9'
+      data.chord_names['1 3 5 8'] = 'maj add9'
+      data.chord_names['1 5 10 11'] = '7 add13'
+    end
+    
+    if data.chord_names[strkey] then 
+      data.retrospectchordname = data.chord_names[strkey] 
+     else 
+      data.retrospectchordname = '' 
+    end
+  end
+  ------------------------------------------------------------------------------------------------------
+  function DataUpdate2_UpdMasterpeaks(data, mouse, widgets, obj, conf)
     -- update master track peaks
-    if not data.masterdata.peakR then 
-      data.masterdata.peakR = {} 
-      data.masterdata.peakL = {} 
-    end
-    if not ValidatePtr2( 0, data.masterdata.ptr, 'MediaTrack*') then return end
-    local id = #data.masterdata.peakL +1
-    local pkL =  Track_GetPeakInfo( data.masterdata.ptr,0 )
-    if pkL < 0.001 then pkL = 0 end
-    local pkR = Track_GetPeakInfo( data.masterdata.ptr,1 )
-    if pkR < 0.001 then pkR = 0 end
-    
-    table.insert(data.masterdata.peakL, 1 , pkL)
-    table.insert(data.masterdata.peakR, 1 , pkR)
-    if #data.masterdata.peakL > conf.master_buf*conf.scaling then 
-      table.remove(data.masterdata.peakL, #data.masterdata.peakL)
-      table.remove(data.masterdata.peakR, #data.masterdata.peakL)
-    end
-    data.masterdata.peakL[#data.masterdata.peakL] = 0 
-    data.masterdata.peakR[#data.masterdata.peakL] = 0 
-    
-    data.masterdata.rmsL =  WDL_VAL2DB(reaper.Track_GetPeakInfo( reaper.GetMasterTrack(0), 1024 ), true)..'dB'
-    data.masterdata.rmsR =  WDL_VAL2DB(reaper.Track_GetPeakInfo( reaper.GetMasterTrack(0), 1025 ), true)..'dB'
+     if not data.masterdata.peakR then 
+       data.masterdata.peakR = {} 
+       data.masterdata.peakL = {} 
+     end
+     if not ValidatePtr2( 0, data.masterdata.ptr, 'MediaTrack*') then return end
+     local id = #data.masterdata.peakL +1
+     local pkL =  Track_GetPeakInfo( data.masterdata.ptr,0 )
+     if pkL < 0.001 then pkL = 0 end
+     local pkR = Track_GetPeakInfo( data.masterdata.ptr,1 )
+     if pkR < 0.001 then pkR = 0 end
+     
+     table.insert(data.masterdata.peakL, 1 , pkL)
+     table.insert(data.masterdata.peakR, 1 , pkR)
+     if #data.masterdata.peakL > conf.master_buf*conf.scaling then 
+       table.remove(data.masterdata.peakL, #data.masterdata.peakL)
+       table.remove(data.masterdata.peakR, #data.masterdata.peakL)
+     end
+     data.masterdata.peakL[#data.masterdata.peakL] = 0 
+     data.masterdata.peakR[#data.masterdata.peakL] = 0 
+     
+     data.masterdata.rmsL =  WDL_VAL2DB(reaper.Track_GetPeakInfo( reaper.GetMasterTrack(0), 1024 ), true)..'dB'
+     data.masterdata.rmsR =  WDL_VAL2DB(reaper.Track_GetPeakInfo( reaper.GetMasterTrack(0), 1025 ), true)..'dB'
   end
   ---------------------------------------------------
   function DataUpdate_MasterTrack(data)

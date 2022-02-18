@@ -1,9 +1,9 @@
--- @description Offline all the selected track FX before focused FX
--- @version 1.0
+-- @description Offline all the track FX before focused FX
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init 
+--    # change name
 
   function main()
     local retval, tracknumber, itemnumber, fxnumber = reaper.GetFocusedFX2()
@@ -22,5 +22,5 @@
   local ret = VF_CheckFunctions(2.84) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then 
     Undo_BeginBlock2( 0 )
     main() 
-    Undo_EndBlock2( 0, 'Offline all the selected track FX before focused FX', 0 )
+    Undo_EndBlock2( 0, 'Offline all the track FX before focused FX', 0 )
   end end
