@@ -1,9 +1,9 @@
 -- @description Duplicate items until end of time selection
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init 
+--    # fix math a bit
 
   function main()
     local tsstart, tsend = GetSet_LoopTimeRange2( 0, false, false, 0, 0, false )
@@ -20,12 +20,12 @@
         bound_st = math.min(bound_st, pos)
         bound_end = math.max(bound_end, pos+len) 
       end
-      local bound_len = bound_end - bound_st
+      local bound_len = bound_end - bound_st-10^-14
       if bound_len > 10^15 then return end
       
       
     -- get duplicates count
-      local copies = math.ceil((tsend - bound_st) / bound_len)-1
+      local copies = math.floor((tsend - bound_st) / bound_len)-1
     
     -- share duplicates
       ApplyNudge( 0,--project, 
