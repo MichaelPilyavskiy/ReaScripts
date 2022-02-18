@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c4f5e936491a005c00a6ab0eadc6dcc37d6998aa" name="MPL Scripts">
+<index version="1" commit="7148a93a3e34030e821c02de9131183744ac77c3" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1446,22 +1446,31 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14779eec07d96d9975a1b80160c343393584e8b6/FX/mpl_Move%20focused%20Track%20FX%20to%20screen%20center.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Offline all the selected track FX before focused FX.lua" type="script" desc="Offline all the selected track FX before focused FX">
+    <reapack name="mpl_Offline all the track FX before focused FX (including focused FX).lua" type="script" desc="Offline all the track FX before focused FX (including focused FX)">
       <metadata>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2022-02-12T20:09:13Z">
-        <changelog><![CDATA[+ init ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd0bc9bb2f9159b4e14616467d768a2b2f250dfe/FX/mpl_Offline%20all%20the%20selected%20track%20FX%20before%20focused%20FX.lua</source>
+      <version name="1.0" author="MPL" time="2022-02-18T19:13:41Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/FX/mpl_Offline%20all%20the%20track%20FX%20before%20focused%20FX%20(including%20focused%20FX).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Offline all the selected track FX starting from focused FX.lua" type="script" desc="Offline all the selected track FX starting from focused FX">
+    <reapack name="mpl_Offline all the track FX before focused FX.lua" type="script" desc="Offline all the track FX before focused FX">
       <metadata>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2022-02-16T19:13:41Z">
-        <changelog><![CDATA[+ init ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/38211ae529d1ca251bf34b4584497c79a1642ba6/FX/mpl_Offline%20all%20the%20selected%20track%20FX%20starting%20from%20focused%20FX.lua</source>
+      <version name="1.01" author="MPL" time="2022-02-18T19:13:41Z">
+        <changelog><![CDATA[# change name]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/FX/mpl_Offline%20all%20the%20track%20FX%20before%20focused%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Offline all the track FX starting from focused FX.lua" type="script" desc="Offline all the track FX starting from focused FX">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2022-02-18T19:13:41Z">
+        <changelog><![CDATA[# changing name]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/FX/mpl_Offline%20all%20the%20track%20FX%20starting%20from%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Offline bypassed fx on selected tracks.lua" type="script" desc="Offline bypassed fx on selected tracks">
@@ -8893,6 +8902,19 @@ add control for timefall showing last note]]></changelog>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2e9d6fcb9d4a30ad19dd1e9f79254c1216bae027/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2e9d6fcb9d4a30ad19dd1e9f79254c1216bae027/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
         <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2e9d6fcb9d4a30ad19dd1e9f79254c1216bae027/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
+      </version>
+      <version name="2.23" author="MPL" time="2022-02-18T19:13:41Z">
+        <changelog><![CDATA[+ Presist/#chordlive: show note / chord of recent played incoming MIDI events]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/Various/mpl_InteractiveToolbar.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_DataUpdate.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_MOUSE.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Item.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Envelope.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Persist.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua</source>
+        <source file="mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7148a93a3e34030e821c02de9131183744ac77c3/Various/mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar_RefreshGUI.lua" type="script" desc="InteractiveToolbar_refreshGUI">
