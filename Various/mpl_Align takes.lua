@@ -1,10 +1,12 @@
 -- @description Align Takes
--- @version 2.08
+-- @version 2.09
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # always add points at edges
+--    + Preset: add [factory] Vocals - tiny align mostly by highs
+--    + Preset: set Vocals - tiny align mostly by highs as default
+--    # Take output: fix source position broken for takes with non 1x playrate and non-zero offset
 
 
   --[[
@@ -30,7 +32,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.08
+    DATA.extstate.version = 2.09
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
@@ -44,6 +46,7 @@
                           FPRESET1 = 'CkNPTkZfTkFNRT1bZmFjdG9yeV0gUGlja2VkIGd1aXRhcgpDT05GX2FwcGF0Y2hhbmdlPTEKQ09ORl9hdWRpb19ic19hMT0wCkNPTkZfYXVkaW9fYnNfYTI9MQpDT05GX2F1ZGlvX2JzX2EzPTAKQ09ORl9hdWRpb19ic19hND0xCkNPTkZfYXVkaW9fYnNfZjE9MjAwCkNPTkZfYXVkaW9fYnNfZjI9MjAwMApDT05GX2F1ZGlvX2JzX2YzPTUwMDAKQ09ORl9hdWRpb19saW09MQpDT05GX2F1ZGlvZG9zcXVhcmVyb290PTEuMApDT05GX2NsZWFubWFya2R1Yj0xCkNPTkZfY29tcGVuc2F0ZW92ZXJsYXA9MQpDT05GX2VuYWJsZXNob3J0Y3V0cz0wCkNPTkZfaW5pdGF0bW91c2Vwb3M9MApDT05GX2luaXRmbGFncz0zCkNPTkZfbWFya2dlbl9STVNwb2ludHM9NQpDT05GX21hcmtnZW5fZW52ZWxvcGVyaXNlZmFsbD0yCkNPTkZfbWFya2dlbl9maWx0ZXJwb2ludHM9MTEKQ09ORl9tYXJrZ2VuX21pbmltYWxhcmVhUk1TPTAuMDg3NQpDT05GX21hcmtnZW5fdGhyZXNob2xkPTEKQ09ORl9tYXRjaF9ibG9ja2FyZWE9MwpDT05GX21hdGNoX2lnbm9yZXplcm9zPTAKQ09ORl9tYXRjaF9zdHJldGNoZHViYXJyYXk9MQpDT05GX29idGltZXNlbD0wCkNPTkZfcG9zdF9wb3MwbWFyaz0xCkNPTkZfcG9zdF9wc2hpZnQ9LTEKQ09ORl9wb3N0X3BzaGlmdHN1Yj0wCkNPTkZfcG9zdF9zbW1vZGU9MgpDT05GX3Bvc3Rfc3RybWFya2Zkc2l6ZT0wLjAxMTEKQ09ORl9zbW9vdGg9MApDT05GX3dpbmRvdz0wLjAxNwpDT05GX3dpbmRvd19vdmVybGFwPTE=',
                           FPRESET2 = 'CkNPTkZfTkFNRT1bZmFjdG9yeV0gRGlzdG9ydGVkIGd1aXRhcgpDT05GX2FwcGF0Y2hhbmdlPTEKQ09ORl9hdWRpb19ic19hMT0wCkNPTkZfYXVkaW9fYnNfYTI9MQpDT05GX2F1ZGlvX2JzX2EzPTAKQ09ORl9hdWRpb19ic19hND0wCkNPTkZfYXVkaW9fYnNfZjE9ODMKQ09ORl9hdWRpb19ic19mMj0xMjUwCkNPTkZfYXVkaW9fYnNfZjM9NTAwMApDT05GX2F1ZGlvX2xpbT0xCkNPTkZfYXVkaW9kb3NxdWFyZXJvb3Q9MS4wCkNPTkZfY2xlYW5tYXJrZHViPTEKQ09ORl9jb21wZW5zYXRlb3ZlcmxhcD0xCkNPTkZfZW5hYmxlc2hvcnRjdXRzPTAKQ09ORl9pbml0YXRtb3VzZXBvcz0wCkNPTkZfaW5pdGZsYWdzPTMKQ09ORl9tYXJrZ2VuX1JNU3BvaW50cz01CkNPTkZfbWFya2dlbl9lbnZlbG9wZXJpc2VmYWxsPTEKQ09ORl9tYXJrZ2VuX2ZpbHRlcnBvaW50cz0xMQpDT05GX21hcmtnZW5fbWluaW1hbGFyZWFSTVM9MC4wODc1CkNPTkZfbWFya2dlbl90aHJlc2hvbGQ9MQpDT05GX21hdGNoX2Jsb2NrYXJlYT0xCkNPTkZfbWF0Y2hfaWdub3JlemVyb3M9MApDT05GX21hdGNoX3N0cmV0Y2hkdWJhcnJheT0xCkNPTkZfb2J0aW1lc2VsPTAKQ09ORl9wb3N0X3BvczBtYXJrPTEKQ09ORl9wb3N0X3BzaGlmdD0tMQpDT05GX3Bvc3RfcHNoaWZ0c3ViPTAKQ09ORl9wb3N0X3NtbW9kZT0yCkNPTkZfcG9zdF9zdHJtYXJrZmRzaXplPTAuMDExMQpDT05GX3Ntb290aD0wCkNPTkZfd2luZG93PTAuMDE3CkNPTkZfd2luZG93X292ZXJsYXA9MQ==',
                           FPRESET3 = 'CkNPTkZfTkFNRT1bZmFjdG9yeV0gVm9jYWxzCkNPTkZfYXBwYXRjaGFuZ2U9MQpDT05GX2F1ZGlvX2JzX2ExPTAuMzMxMjUKQ09ORl9hdWRpb19ic19hMj0xCkNPTkZfYXVkaW9fYnNfYTM9MC4zMzEyNQpDT05GX2F1ZGlvX2JzX2E0PTAuNgpDT05GX2F1ZGlvX2JzX2YxPTIwMApDT05GX2F1ZGlvX2JzX2YyPTIwMDAKQ09ORl9hdWRpb19ic19mMz01MDAwCkNPTkZfYXVkaW9fbGltPTEKQ09ORl9hdWRpb2Rvc3F1YXJlcm9vdD0xLjAKQ09ORl9jbGVhbm1hcmtkdWI9MQpDT05GX2NvbXBlbnNhdGVvdmVybGFwPTEKQ09ORl9lbmFibGVzaG9ydGN1dHM9MApDT05GX2luaXRhdG1vdXNlcG9zPTAKQ09ORl9pbml0ZmxhZ3M9MwpDT05GX21hcmtnZW5fUk1TcG9pbnRzPTUKQ09ORl9tYXJrZ2VuX2VudmVsb3BlcmlzZWZhbGw9MQpDT05GX21hcmtnZW5fZmlsdGVycG9pbnRzPTEzCkNPTkZfbWFya2dlbl9taW5pbWFsYXJlYVJNUz0wLjAzMTI1CkNPTkZfbWFya2dlbl90aHJlc2hvbGQ9MQpDT05GX21hdGNoX2Jsb2NrYXJlYT0yNgpDT05GX21hdGNoX2lnbm9yZXplcm9zPTAKQ09ORl9tYXRjaF9tYXhibG9ja3NzdGFydG9mZnM9NgpDT05GX21hdGNoX21pbmJsb2Nrc3N0YXJ0b2Zmcz00CkNPTkZfbWF0Y2hfc2VhcmNoZnVydGhlcm9ubHk9MApDT05GX21hdGNoX3N0cmV0Y2hkdWJhcnJheT0xCkNPTkZfb2J0aW1lc2VsPTAKQ09ORl9wb3N0X3BvczBtYXJrPTEKQ09ORl9wb3N0X3BzaGlmdD0tMQpDT05GX3Bvc3RfcHNoaWZ0c3ViPTAKQ09ORl9wb3N0X3NtbW9kZT0yCkNPTkZfcG9zdF9zdHJtYXJrZmRzaXplPTAuMDExMQpDT05GX3Ntb290aD0wCkNPTkZfd2luZG93PTAuMDE0CkNPTkZfd2luZG93X292ZXJsYXA9MQ==',
+                          FPRESET4 = 'CkNPTkZfTkFNRT1bZmFjdG9yeV0gVm9jYWxzIC0gdGlueSBhbGlnbiBtb3N0bHkgYnkgaGlnaHMKQ09ORl9hbGlnbml0ZW10YWtlcz0wCkNPTkZfYXBwYXRjaGFuZ2U9MQpDT05GX2F1ZGlvX2JzX2ExPTAKQ09ORl9hdWRpb19ic19hMj0wLjIxODc1CkNPTkZfYXVkaW9fYnNfYTM9MQpDT05GX2F1ZGlvX2JzX2E0PTEKQ09ORl9hdWRpb19ic19mMT04OApDT05GX2F1ZGlvX2JzX2YyPTIwMDAKQ09ORl9hdWRpb19ic19mMz01MDAwCkNPTkZfYXVkaW9fZ2F0ZT0wCkNPTkZfYXVkaW9fbGltPTEKQ09ORl9hdWRpb2Rvc3F1YXJlcm9vdD0wLjQKQ09ORl9jbGVhbm1hcmtkdWI9MQpDT05GX2NvbXBlbnNhdGVvdmVybGFwPTEKQ09ORl9pbml0ZmxhZ3M9MwpDT05GX21hcmtnZW5fUk1TcG9pbnRzPTEwCkNPTkZfbWFya2dlbl9hbGdvPTEKQ09ORl9tYXJrZ2VuX2VudmVsb3BlcmlzZWZhbGw9MQpDT05GX21hcmtnZW5fZmlsdGVycG9pbnRzPTE2CkNPTkZfbWFya2dlbl9maWx0ZXJwb2ludHMyPTIxCkNPTkZfbWFya2dlbl9maWx0ZXJwb2ludHMzPTg0CkNPTkZfbWFya2dlbl9tYW51YWxlZGl0PTEKQ09ORl9tYXJrZ2VuX21pbmltYWxhcmVhUk1TPTAuMDE4NzUKQ09ORl9tYXJrZ2VuX3RocmVzaG9sZD0wLjcxODc1CkNPTkZfbWFya2dlbl90aHJlc2hvbGQyPTAuMzkzNzUKQ09ORl9tYXRjaF9ibG9ja2FyZWE9MTUKQ09ORl9tYXRjaF9maXJzdHNyZ21vbmx5PTAKQ09ORl9tYXRjaF9pZ25vcmV6ZXJvcz0wCkNPTkZfbWF0Y2hfbWF4YmxvY2tzc3RhcnRvZmZzPTEKQ09ORl9tYXRjaF9taW5ibG9ja3NzdGFydG9mZnM9MgpDT05GX21hdGNoX3NlYXJjaGZ1cnRoZXJvbmx5PTAKQ09ORl9tYXRjaF9zdHJldGNoZHViYXJyYXk9MQpDT05GX29idGltZXNlbD0wCkNPTkZfcG9zdF9wb3MwbWFyaz0xCkNPTkZfcG9zdF9wc2hpZnQ9LTEKQ09ORl9wb3N0X3BzaGlmdHN1Yj0wCkNPTkZfcG9zdF9zbW1vZGU9MgpDT05GX3Bvc3Rfc3RybWFya2Zkc2l6ZT0wLjAxMTEKQ09ORl9zbW9vdGg9MApDT05GX3dpbmRvdz0wLjAxCkNPTkZfd2luZG93X292ZXJsYXA9MQ==',
                           CONF_NAME = 'default',
                           
                           UI_enableshortcuts = 0,
@@ -56,48 +59,48 @@
                           CONF_obtimesel = 0, 
                           CONF_alignitemtakes = 0, -- per item mode
                           
-                          CONF_window = 0.15,
-                          CONF_window_overlap = 2,
+                          CONF_window = 0.01,
+                          CONF_window_overlap = 1,
                           
-                          CONF_audiodosquareroot = 0.5,
+                          CONF_audiodosquareroot = 0.4,
                           
-                          CONF_audio_bs_f1 = 200,
+                          CONF_audio_bs_f1 = 88,
                           CONF_audio_bs_f2 = 2000,
                           CONF_audio_bs_f3 = 5000,
-                          CONF_audio_bs_a1 = 0.5,
-                          CONF_audio_bs_a2 = 1,
+                          CONF_audio_bs_a1 = 0,
+                          CONF_audio_bs_a2 = 0.21875,
                           CONF_audio_bs_a3 = 1,
-                          CONF_audio_bs_a4 = 0.5,
+                          CONF_audio_bs_a4 = 1,
                           CONF_audio_lim = 1,
                           CONF_audio_gate = 0,
-                          CONF_smooth = 2, 
+                          CONF_smooth = 0, 
                           CONF_compensateoverlap = 1, 
                           
                           CONF_markgen_manualedit = 0, 
-                          CONF_markgen_algo = 0, 
+                          CONF_markgen_algo = 1, 
                             CONF_markgen_enveloperisefall = 1, -- ==1 at fall ==2 at rise
-                            CONF_markgen_filterpoints = 10, 
+                            CONF_markgen_filterpoints = 16, 
                             CONF_markgen_RMSpoints = 10, 
-                            CONF_markgen_minimalareaRMS = 0.1,
-                            CONF_markgen_threshold = 1,
+                            CONF_markgen_minimalareaRMS = 0.01875,
+                            CONF_markgen_threshold = 0.71875,
                           -- alg2
-                            CONF_markgen_filterpoints2 = 10, -- minimal poits distance
-                            CONF_markgen_threshold2 = 1,
+                            CONF_markgen_filterpoints2 = 21, -- minimal poits distance
+                            CONF_markgen_threshold2 = 0.39375,
                           -- alg3
-                            CONF_markgen_filterpoints3 = 10, -- minimal poits distance
+                            CONF_markgen_filterpoints3 = 84, -- minimal poits distance
                             
-                          CONF_match_blockarea = 5, 
+                          CONF_match_blockarea = 15, 
                           CONF_match_stretchdubarray = 1,
                           CONF_match_ignorezeros = 0,
                           CONF_match_searchfurtheronly = 0,
-                          CONF_match_minblocksstartoffs = 0,
-                          CONF_match_maxblocksstartoffs = 0,
+                          CONF_match_minblocksstartoffs = 2,
+                          CONF_match_maxblocksstartoffs = 1,
                           CONF_match_firstsrgmonly = 0,
                           
                           CONF_post_pshift = -1,
                           CONF_post_pshiftsub = 0,
-                          CONF_post_strmarkfdsize = 0.0025,
-                          CONF_post_smmode = 0,
+                          CONF_post_strmarkfdsize = 0.0111,
+                          CONF_post_smmode = 2,
                           CONF_post_pos0mark = 1,
                           }
                           
@@ -166,6 +169,16 @@
     if DATA.extstate.CONF_compensateoverlap == 1 then wind = DATA.extstate.CONF_window end
     return wind
   end
+  ---------------------------------------------------------------------   
+  function DATA2:ApplyOutput_ProjPosToStretchMarkerPos(projpos, item_pos, takerate) 
+    local markpos = takerate * (projpos - item_pos)
+    return markpos
+  end
+  --------------------------------------------------------------------- 
+  function DATA2:ApplyOutput_ProjPosToStretchMarkerSrcPos(projpos, item_pos, takerate, takeoffs) 
+    local markpos = takeoffs + (projpos - item_pos)*takerate
+    return markpos
+  end
   --------------------------------------------------------------------- 
   function DATA2:ApplyOutput(is_major) 
     if not DATA2.dubdata then return end
@@ -183,6 +196,7 @@
         local item_pos =  take_dubdata.item_pos
         local item_len =  take_dubdata.item_len
         local item_srclen =  take_dubdata.item_srclen
+        
       -- validate take
         if not ValidatePtr2( 0, take, 'MediaItem_Take*' )  then goto skipdubtake2 end    
       -- clean markers
@@ -197,44 +211,31 @@
         if GUI.compactmode == 1 then val =  GUI.buttons.knobCOMPACT.val or 1 end
       -- add markers      
         local last_src_pos
-        local last_set_pos
-        
-        --if DATA.extstate.CONF_post_pos0mark == 1 then SetTakeStretchMarker(take, -1, 0) end
-        
+        local last_dest_pos 
         for i = 1, #data_pointsSRCDEST do 
         
           local tpair = data_pointsSRCDEST[i]
-          local src_pos = (((tpair.src) * wind) + math.max(0,DATA2.refdata.edge_start - item_pos))*takerate
-          local set_pos = (((tpair.dest-1) * wind) + math.max(0,DATA2.refdata.edge_start - item_pos))*takerate
+          local src_pos = DATA2:ApplyOutput_ProjPosToStretchMarkerPos((tpair.src) * wind + DATA2.refdata.edge_start, item_pos, takerate) 
+          local dest_pos = DATA2:ApplyOutput_ProjPosToStretchMarkerPos((tpair.dest-1) * wind + DATA2.refdata.edge_start, item_pos, takerate) 
+          local dest_pos = src_pos + (dest_pos-src_pos) *val
+          local src_pos0 = DATA2:ApplyOutput_ProjPosToStretchMarkerSrcPos((tpair.src) * wind + DATA2.refdata.edge_start, item_pos, takerate, takeoffs) 
           
-          -- dev test
-          data_pointsSRCDEST[i].srcpos=srcpos
-          data_pointsSRCDEST[i].destpos=set_pos
           
-          set_pos = src_pos + (set_pos-src_pos) *val--* takerate]]
-          src_pos = src_pos +takeoffs*takerate--+ (takeoffs-item_srclen) * takerate
           
-          local is_inside_boundary = set_pos < math.min(item_len ,DATA2.refdata.edge_end - item_pos) and set_pos > math.max(0,DATA2.refdata.edge_start - item_pos)
-          --[[local set_pos = set_pos-(item_pos-DATA2.refdata.edge_start)
-          local src_pos = (srcpos-(item_pos-DATA2.refdata.edge_start) + takeoffs)--* takerate
-          set_pos = (src_pos - takeoffs - ((src_pos - takeoffs) - set_pos)*val)--* takerate]]
-          
-          if last_src_pos ~= nil and last_set_pos ~= nil then
+          local is_inside_boundary = dest_pos < math.min(item_len ,DATA2.refdata.edge_end - item_pos) and dest_pos > math.max(0,DATA2.refdata.edge_start - item_pos)
+          if last_src_pos ~= nil and last_dest_pos ~= nil then
             -- check for negative stretch markers
-            if (src_pos - last_src_pos) / (set_pos - last_set_pos ) > 0 then
-              if is_inside_boundary then SetTakeStretchMarker(take, -1, set_pos,src_pos ) end
+            if (src_pos - last_src_pos) / (dest_pos - last_dest_pos ) > 0 then
+              if is_inside_boundary then SetTakeStretchMarker(take, -1, dest_pos,src_pos0 ) end
               last_src_pos = src_pos
-              last_set_pos = set_pos
+              last_dest_pos = dest_pos
             end
            else
-            if is_inside_boundary then SetTakeStretchMarker(take, -1, set_pos,src_pos )  end           
+            if is_inside_boundary then SetTakeStretchMarker(take, -1, dest_pos,src_pos )  end           
             last_src_pos = src_pos
-            last_set_pos = set_pos
+            last_dest_pos = dest_pos
           end 
-        end
-        --SetTakeStretchMarker(take, -1, 0)
-        --SetTakeStretchMarker(take, -1, item_len)
-        
+        end 
       
       if is_major == true then
         if DATA.extstate.CONF_post_pshift >= 0 then pshift = DATA.extstate.CONF_post_pshift end
@@ -831,7 +832,7 @@
         val_res = 0.1,
         valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_audio_gate, 0,100)..'%',
         onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_gateval',VF_NormToFormatValue(GUI.buttons['settings_gateval'].val, 0,100)..'%', 'CONF_audio_gate', GUI.buttons['settings_gateval'].val, nil, nil  ) end,
-        onmouserelease = function() msg(1)GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_gate') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         
         
