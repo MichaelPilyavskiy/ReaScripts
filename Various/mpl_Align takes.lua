@@ -1,12 +1,11 @@
 -- @description Align Takes
--- @version 2.09
+-- @version 2.10
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Preset: add [factory] Vocals - tiny align mostly by highs
---    + Preset: set Vocals - tiny align mostly by highs as default
---    # Take output: fix source position broken for takes with non 1x playrate and non-zero offset
+--    # MarkerGenerator: always add mid marker between 1st and 2nd block
+--    # MatchAlgorithm: always remove points with src=dest except boundary points (all algorithms)
 
 
   --[[
@@ -32,7 +31,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.09
+    DATA.extstate.version = 2.10
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
@@ -213,7 +212,6 @@
         local last_src_pos
         local last_dest_pos 
         for i = 1, #data_pointsSRCDEST do 
-        
           local tpair = data_pointsSRCDEST[i]
           local src_pos = DATA2:ApplyOutput_ProjPosToStretchMarkerPos((tpair.src) * wind + DATA2.refdata.edge_start, item_pos, takerate) 
           local dest_pos = DATA2:ApplyOutput_ProjPosToStretchMarkerPos((tpair.dest-1) * wind + DATA2.refdata.edge_start, item_pos, takerate) 
@@ -231,10 +229,10 @@
               last_dest_pos = dest_pos
             end
            else
-            if is_inside_boundary then SetTakeStretchMarker(take, -1, dest_pos,src_pos )  end           
+            if is_inside_boundary then SetTakeStretchMarker(take, -1, dest_pos,src_pos0 )  end           
             last_src_pos = src_pos
             last_dest_pos = dest_pos
-          end 
+          end
         end 
       
       if is_major == true then
@@ -1467,6 +1465,8 @@
       t[1] = 1
       t[#t] = 1
       
+      for i = 3, #t do if t[i] == 1 then t[math.floor(i/2)] = 1 break end end -- create mdi point between 1nd and 2nd blocks
+      
     return t
   end
   ---------------------------------------------------------------------
@@ -1492,6 +1492,8 @@
       end
       t[1] = 1
       t[#t] = 1
+      
+      for i = 3, #t do if t[i] == 1 then t[math.floor(i/2)] = 1 break end end  -- create mdi point between 1nd and 2nd blocks
       
     return t
   end
@@ -1558,6 +1560,8 @@
     
     t[1] = 1
     t[#t] = 1
+    
+    for i = 3, #t do if t[i] == 1 then t[math.floor(i/2)] = 1 break end end  -- create mdi point between 1nd and 2nd blocks
     
     return t
   end    
@@ -1631,25 +1635,23 @@
     local t1 = DATA2.refdata.data
     local t2 = t.data
     local t2pts = t.data_points
-    
     -- collect src point
-    local pointsID = {[1]=1}
+    local pointsID = {}
     for i = 1, #t2pts do if t2pts[i] == 1 then pointsID[#pointsID+1] = i end end
-    pointsID[#pointsID+1] = #t2pts
-    
+    pointsID[#pointsID+1] = #t2pts 
+    --if #pointsID>3 then  table.insert(pointsID, 1 , math.floor(pointsID[2]/2)) end
     local pointsID2 = { --[1]     = {src= 1, dest = 1} -- create edges
                         --[t_out] = {src= 1, dest = 1}
                         }
-                        
+    
+    
     for i = 1, #pointsID-1 do
       local block_st = pointsID[i-1]
       if i == 1 then block_st = 1 end
       local block_mid = pointsID[i]
       local block_end = pointsID[i+1]
       pointsID[i] = DATA2:ApplyMatch_Find(t1,t2,block_st,block_mid,block_end)
-      --if block_mid ~= pointsID[i] then 
-        pointsID2[#pointsID2 + 1] = {src = block_mid, dest = pointsID[i]} 
-      --end
+      pointsID2[#pointsID2 + 1] = {src = block_mid, dest = pointsID[i]} 
       if DATA.extstate.CONF_match_stretchdubarray&1==1 then t2=DATA2:ApplyMatch_StretchT(t2, block_st, block_end, block_mid, pointsID[i]) end
     end
     
@@ -1659,6 +1661,10 @@
     for i = 1, #pointsID do t_out[pointsID[i]] = 1  end -- force output
     for i = 1, #t2pts do if not t_out[i] then t_out[i] = 0 end end
     t_out[1] = 0 t_out[pointsID[#pointsID]] =0 -- clean edges
+    
+    -- clean same src dest
+    for i = #pointsID2, 1, -1 do if pointsID2[i].src == pointsID2[i].dest then table.remove(pointsID2,i) end  end -- force output
+    
     return t_out, pointsID2, t2
   end    
       
