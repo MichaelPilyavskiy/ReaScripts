@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0c5235a6c33fd7b7bb57a2fd59cb08dad6326db1" name="MPL Scripts">
+<index version="1" commit="9aa50cfc6598fc7795aeb2c19faddbfed94f2d1b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -7001,6 +7001,10 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[# MarkerGenerator: always add mid marker between 1st and 2nd block
 # MatchAlgorithm: always remove points with src=dest except boundary points (all algorithms)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c5235a6c33fd7b7bb57a2fd59cb08dad6326db1/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="2.11" author="MPL" time="2022-02-20T18:54:56Z">
+        <changelog><![CDATA[# GUI: better draw 1st dub for reference take]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9aa50cfc6598fc7795aeb2c19faddbfed94f2d1b/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Cacophony.lua" type="script" desc="Cacophony">
