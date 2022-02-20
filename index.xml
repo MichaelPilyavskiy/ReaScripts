@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="623281158ab439088454a891497ded765fe6b6c2" name="MPL Scripts">
+<index version="1" commit="671564fa238d0ec173b2fc7fdfd60514643786d3" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -15,17 +15,6 @@
       <version name="1.0" author="MPL" time="2018-09-20T21:35:00Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/Automation%20Items/mpl_Generate%20pooled%20automation%20items%20for%20selected%20envelope%20based%20on%20selected%20track%20peaks.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Generate track volume automation item from audio take.lua" type="script" desc="Generate track volume automation item from audio take">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.1" author="MPL" time="2017-12-19T17:48:16Z">
-        <changelog><![CDATA[+ respect multiple items
-+ Consolidate undo
-# fix proper add points positions]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9c1a6b7054783de9bc6a8a9c9edf731d54dc1e6/Automation%20Items/mpl_Generate%20track%20volume%20automation%20item%20from%20audio%20take.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Insert 1 measure long automation item for last touched parameter.lua" type="script" desc="Insert 1 measure long automation item for last touched parameter">
@@ -208,6 +197,22 @@
         <changelog><![CDATA[+ internal cleanup
 + include Master track if selected]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0a6a7b6eaee38f5b7d96b1d4d11bdc740e9f86ba/Envelopes/mpl_Minimize%20selected%20tracks%20envelopes%20heights.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Peak follower tools.lua" type="script" desc="Peak follower tools">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Generate envelope from audio data\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-02-20T21:57:53Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/671564fa238d0ec173b2fc7fdfd60514643786d3/Envelopes/mpl_Peak%20follower%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Select active envelopes tracks.lua" type="script" desc="Select active envelopes tracks">
