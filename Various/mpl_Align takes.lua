@@ -1,11 +1,10 @@
 -- @description Align Takes
--- @version 2.10
+-- @version 2.11
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # MarkerGenerator: always add mid marker between 1st and 2nd block
---    # MatchAlgorithm: always remove points with src=dest except boundary points (all algorithms)
+--    # GUI: better draw 1st dub for reference take
 
 
   --[[
@@ -31,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.10
+    DATA.extstate.version = 2.11
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
@@ -1729,12 +1728,16 @@
             gfx.rect(datax,y+1,2,h-2,1,1) 
           end 
           
-          if  tund and tund[i] and tund[i] ~= 0 then
+          if  tund 
+            and tund[i+1] and tund[i+1] ~= 0 
+            and tund[i] and tund[i] ~= 0 
+            then
             local datay = math.floor(y+h-h*tund[i])
+            local datay2 = math.floor(y+h-h*tund[i+1])
             if tund[i-1] and tund[i-1] == 0 then last_datax = datax end
             GUI:hex2rgb(GUI.default_data_col_adv, true)
             gfx.a = GUI.default_data_a
-            gfx.line(last_datax,last_datay-1,datax,datay-1)
+            gfx.line(last_datax,datay,datax-1,datay2)
           end 
           
           last_datay = datay
