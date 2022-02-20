@@ -90,6 +90,7 @@
       
       -- Major chords
       data.chord_names['1 5 8'] = 'maj'
+      data.chord_names['1 5 10'] = 'Am'
       data.chord_names['1 8 12'] = 'maj7 omit3'
       data.chord_names['1 5 12'] = 'maj7 omit5'
       data.chord_names['1 5 8 12'] = 'maj7'
