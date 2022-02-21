@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="671564fa238d0ec173b2fc7fdfd60514643786d3" name="MPL Scripts">
+<index version="1" commit="bb2d54f96aac890ea5779db7323fd1990d062403" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -846,6 +846,22 @@
         <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eadd7c8fa2dc4e051ad35b8e246a06f771fd52fc/Functions/mpl_Various_functions_Purchase.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eadd7c8fa2dc4e051ad35b8e246a06f771fd52fc/Functions/mpl_Various_functions_Pers.lua</source>
         <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eadd7c8fa2dc4e051ad35b8e246a06f771fd52fc/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
+      </version>
+      <version name="2.86" author="MPL" time="2022-02-21T06:43:52Z">
+        <changelog><![CDATA[+ add counter
+# better handle multiline
+# intergate Preset menu
+# better handle mouse focus lost
+# add GUI:shortcuts_ParseKBINI()]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb2d54f96aac890ea5779db7323fd1990d062403/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb2d54f96aac890ea5779db7323fd1990d062403/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v2.bin">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb2d54f96aac890ea5779db7323fd1990d062403/Functions/mpl_Various_functions_v2.bin</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb2d54f96aac890ea5779db7323fd1990d062403/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb2d54f96aac890ea5779db7323fd1990d062403/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb2d54f96aac890ea5779db7323fd1990d062403/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb2d54f96aac890ea5779db7323fd1990d062403/Functions/mpl_Various_functions_Purchase.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb2d54f96aac890ea5779db7323fd1990d062403/Functions/mpl_Various_functions_Pers.lua</source>
+        <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bb2d54f96aac890ea5779db7323fd1990d062403/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
       </version>
     </reapack>
   </category>
