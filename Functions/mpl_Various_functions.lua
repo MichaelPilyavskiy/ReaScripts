@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 2.84
+-- @version 2.86
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v2.bin
@@ -13,11 +13,15 @@
 --    mpl_Various_functions_Pers.lua
 --    [main] mpl_Various_functions_PurchaseGUI.lua
 -- @changelog
---    # fix preset loading
+--    + add counter
+--    # better handle multiline
+--    # intergate Preset menu
+--    # better handle mouse focus lost
+--    # add GUI:shortcuts_ParseKBINI()
     
 
     
-  VF_version = 2.84 -- do not remove, use for versions comparement
+  VF_version = 2.86 -- do not remove, use for versions comparement
   VF_isregist = 0 
   --------------------------------------------------
   function VF_LoadLibraries()
@@ -45,6 +49,15 @@
     end
   end  
 --------------------------------------------------- 
+  function VF2_UpdUsedCount() 
+    local cnt = reaper.GetExtState('MPL_Scripts', 'counttotal')
+    if cnt == '' then cnt = 0 end
+    cnt = tonumber(cnt)
+    if not cnt then cnt = 0 end
+    cnt = cnt + 1 
+    reaper.SetExtState('MPL_Scripts', 'counttotal', cnt, true)
+  end
+  --------------------------------------------------- 
   function VF2_LoadVFv2()
     local response = reaper.GetExtState('MPL_Scripts', 'response')
     if response == '' then  
@@ -67,4 +80,6 @@
   VF_LoadLibraries()
   VF_LoadVFv1() 
   VF2_LoadVFv2()
+  VF2_UpdUsedCount() 
+  
   

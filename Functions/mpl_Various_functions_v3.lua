@@ -138,21 +138,44 @@
       local calibrated_txt_fontsz = GUI:draw_txtCalibrateFont(txt_font, txt_fontsz_out, txt_fontflags)--, txt, w) 
       
       gfx.setfont(1,txt_font, calibrated_txt_fontsz, txt_fontflags )
-      gfx.x, gfx.y = x,y
-      gfx.a = txt_a
-      local strw = gfx.measurestr(txt)
-      if strw > w and txt_short then 
-        txt = txt_short
-        strw = gfx.measurestr(txt)
+      
+      if txt:match('\n') then 
+        GUI:draw_txt_multiline(x,y,w,h,txt_flags, txt_a, txt) 
+       else 
+        gfx.x, gfx.y = x,y
+        gfx.a = txt_a
+        local strw = gfx.measurestr(txt)
+        if strw > w and txt_short then 
+          txt = txt_short
+          strw = gfx.measurestr(txt)
+        end
+        local strh = gfx.texth
+        if txt_flags&1==1 then gfx.x = x+(w-strw)/2+1 end
+        if txt_flags&4==4 then gfx.y = y+(h-strh)/2 end
+        gfx.drawstr(txt) 
       end
-      local strh = gfx.texth
-      if txt_flags&1==1 then gfx.x = x+(w-strw)/2+1 end
-      if txt_flags&4==4 then gfx.y = y+(h-strh)/2 end
-      gfx.drawstr(txt) 
     --
     return strw, strh
   end
   
+  ----------------------------------------------------------------------------- 
+  function GUI:draw_txt_multiline(x,y0,w,h,txt_flags, txt_a,txt) 
+    if not txt then return end
+    local cnt = 0 for line in txt:gmatch('[^\r\n]+') do cnt = cnt + 1 end
+    local i = 0
+    for line in txt:gmatch('[^\r\n]+') do
+      gfx.x, gfx.y = x,y0
+      gfx.a = txt_a
+      local strw = gfx.measurestr(line)
+      local strh = gfx.texth
+      if txt_flags&1==1 then gfx.x = x+(w-strw)/2+1 end
+      y = y0 + i *strh + h/2 - 0.5*cnt*strh
+      gfx.y = y
+      --if txt_flags&4==4 then gfx.y = y+(h-strh)/2 end
+      gfx.drawstr(line)
+      i =i +1
+    end
+  end
   ----------------------------------------------------------------------------- 
   function GUI:draw_txtCalibrateFont(txt_font, txt_fontsz_px, txt_fontflags)--, txtmsg, maxv) 
     if not txt_fontsz_px then return end
@@ -194,12 +217,13 @@
           if b.onmousematchcont then DATA.perform_quere[#DATA.perform_quere+1] = b.onmousematchcont end 
           if GUI.mouse_ismoving then b.refresh = true end
         end
-        if b.mouse_match and not b.mouse_lastmatch  and b.mouse_lastmatch ~=b.mouse_match  then 
+        if b.mouse_match and (not b.mouse_lastmatch  or ( b.mouse_lastmatch and b.mouse_lastmatch ~=b.mouse_match))  then 
           if b.onmousematch then DATA.perform_quere[#DATA.perform_quere+1] = b.onmousematch end
           b.refresh = true 
         end
         if b.mouse_lastmatch  and not b.mouse_match  then 
           if b.mouse_matchparent and b.mouse_matchparent.onmouselost then DATA.perform_quere[#DATA.perform_quere+1] = b.mouse_matchparent.onmouselost end
+          b.refresh = true 
         end
         b.mouse_lastmatch = b.mouse_match
       
@@ -482,6 +506,8 @@
     GUI.default_listentryh = 20*GUI.default_scale
     GUI.default_listentryxoffset = 5*GUI.default_scale
     GUI.default_listentryframea = 0.4
+    
+    GUI:shortcuts_ParseKBINI()
   end
   ---------------------------------------------------
   function GUI:menu(t)
@@ -958,4 +984,121 @@
       ::list_skip::
     end
     return last_h+1
+  end
+  ---------------------------------------------------------------------    
+  function GUI:but_preset(GUI,DATA)
+    -- form presets menu    
+      local presets_t = {
+        {str = 'Reset all settings to default',
+          func = function() 
+                    DATA.extstate.current_preset = nil
+                    GUI.buttons.preset.txt = 'Preset: default'
+                    DATA:ExtStateRestoreDefaults() 
+                    GUI.firstloop = 1 
+                    DATA.UPD.onconfchange = true 
+                    GUI:generatelisttable( GUI_settingst(GUI, DATA, GUI.buttons.settingslist, GUI.buttons.settings_scroll) ) 
+                  end},
+        {str = 'Save current preset',
+        func = function() 
+                  local id 
+                  if DATA.extstate.current_preset then id = DATA.extstate.current_preset end
+                  local retval, retvals_csv = reaper.GetUserInputs( 'Save current preset', 1, 'preset name', DATA.extstate.CONF_NAME )
+                  if not retval then return end
+                  if retvals_csv~= '' then DATA.extstate.CONF_NAME = retvals_csv end
+                  DATA:ExtStateStorePreset(id) 
+                  DATA:ExtStateGetPresets()
+                  GUI.buttons.preset.refresh = true 
+                  GUI.firstloop = 1 
+                  DATA.UPD.onconfchange = true 
+                  GUI:generatelisttable( GUI_settingst(GUI, DATA, GUI.buttons.settingslist, GUI.buttons.settings_scroll) ) 
+                end
+        }, 
+        {str = 'Rename current preset',
+        func = function() 
+                  local id 
+                  if not DATA.extstate.current_preset then return else id = DATA.extstate.current_preset end
+                  local retval, retvals_csv = reaper.GetUserInputs( 'Save current preset', 1, 'preset name', DATA.extstate.CONF_NAME )
+                  if not retval then return end
+                  if retvals_csv~= '' then DATA.extstate.CONF_NAME = retvals_csv end
+                  DATA:ExtStateStorePreset(id) 
+                  DATA:ExtStateGetPresets()
+                  GUI.buttons.preset.refresh = true 
+                  GUI.buttons.preset.txt = 'Preset: '..(DATA.extstate.CONF_NAME or '')
+                  GUI.firstloop = 1 
+                  DATA.UPD.onconfchange = true 
+                  GUI:generatelisttable( GUI_settingst(GUI, DATA, GUI.buttons.settingslist, GUI.buttons.settings_scroll) ) 
+                end
+        },                                                   
+        {str = 'Save current preset as new',
+        func = function() 
+                  local id 
+                  local retval, retvals_csv = reaper.GetUserInputs( 'Save current preset', 1, 'preset name', DATA.extstate.CONF_NAME )
+                  if not retval then return end
+                  if retvals_csv~= '' then DATA.extstate.CONF_NAME = retvals_csv end
+                  DATA:ExtStateStorePreset() 
+                  DATA:ExtStateGetPresets()
+                  GUI.buttons.preset.refresh = true 
+                  GUI.firstloop = 1 
+                  DATA.UPD.onconfchange = true 
+                  GUI:generatelisttable( GUI_settingst(GUI, DATA, GUI.buttons.settingslist, GUI.buttons.settings_scroll) ) 
+                end
+        },     
+        {str = 'Remove current preset',
+        func = function()
+                  if DATA.extstate.current_preset then 
+                    DATA:ExtStatePresetRemove(DATA.extstate.current_preset)
+                    DATA.extstate.presets[DATA.extstate.current_preset] = nil
+                    DATA.extstate.current_preset = nil
+                  end
+                  local id 
+                  DATA:ExtStateGetPresets()
+                  GUI.buttons.preset.refresh = true 
+                  GUI.firstloop = 1 
+                  DATA.UPD.onconfchange = true 
+                  GUI:generatelisttable( GUI_settingst(GUI, DATA, GUI.buttons.settingslist, GUI.buttons.settings_scroll) ) 
+                end
+        },                                                    
+        {str = ''},
+        {str = '#Preset list'},
+                        }
+    -- add preset list    
+      for i = 1, #DATA.extstate.presets do
+        local state = DATA.extstate.current_preset and DATA.extstate.current_preset == i
+        
+        presets_t[#presets_t+1] = { str = DATA.extstate.presets[i].CONF_NAME or '[no name]',
+                                    func = function()  
+                                              DATA:ExtStateApplyPreset(DATA.extstate.presets[i]) 
+                                              DATA.extstate.current_preset = i
+                                              GUI.buttons.preset.refresh = true 
+                                              GUI.buttons.preset.txt = 'Preset: '..(DATA.extstate.CONF_NAME or '')
+                                              GUI.firstloop = 1 
+                                              DATA.UPD.onconfchange = true 
+                                              GUI:generatelisttable( GUI_settingst(GUI, DATA, GUI.buttons.settingslist, GUI.buttons.settings_scroll) ) 
+                                            end,
+                                    state = state,
+        
+          
+                                    }
+      end
+    -- form table
+      GUI:menu(presets_t)  
+    end
+  --------------------------------------------------------------------- 
+  function GUI:shortcuts_ParseKBINI()
+    local kbini = reaper.GetResourcePath()..'/reaper-kb.ini'
+    local f = io.open(kbini, 'r')
+    local cont = f:read('a')
+    if not f then return else  f:close() end
+    GUI.parsed_shortcuts = {}
+    for line in cont:gmatch('[^\r\n]+') do
+      if line:match('KEY%s') then
+        local flags, key, action, page = line:match('KEY%s(%d+)%s(%d+)%s([%d%a%_]+)%s(%d+)')
+        local char = tonumber(key)
+        if char then
+          GUI.parsed_shortcuts[char] = { action = tonumber(action) or action,
+                      page = tonumber(page),
+                      flags =tonumber(flags)}
+        end
+      end
+    end
   end

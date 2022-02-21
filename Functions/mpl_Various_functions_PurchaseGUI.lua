@@ -2,208 +2,144 @@
 -- @author MPL
 -- @noindex
 
-  function ExtState_Def()  
-    local t= { 
-            -- globals
-            vrs = 1.0,
-            mb_title = 'MPL Various Function package Purchasing',
-            ES_key = 'MPLVFpurch',
-            wind_x =  100,
-            wind_y =  50,
-            wind_w =  500,
-            wind_h =  500,
-            dock =    0, 
-            }
-    return t
+  ---------------------------------------------------------------------  
+  function main()
+    if not DATA.extstate then DATA.extstate = {} end
+    DATA.extstate.version = ''
+    DATA.extstate.extstatesection = 'MPL_Scripts'
+    DATA.extstate.mb_title = 'MPL scripts purchase'
+    DATA.extstate.default = 
+                          {  
+                          wind_x =  100,
+                          wind_y =  100,
+                          wind_w =  500,
+                          wind_h =  300,
+                          dock =    0,
+                          }
+                          
+    DATA:ExtStateGet()
+    DATA.extstate.wind_x =  100
+    DATA.extstate.wind_y =  100
+    DATA.extstate.wind_w =  500
+    DATA.extstate.wind_h =  300
+    DATA.extstate.dock =  0
+    GUI:init()
+    GUI.userfollow = 0
+    GUI_RESERVED_initbuttons(GUI)
+    RUN()
   end
-  ---------------------------------------------------------------------
-  function OBJ_Buttons_Init(MOUSE,OBJ,DATA)
-    local offset = 10
-    local but_h = 120
-    local proccedh = (gfx.h-but_h-offset*3)/5
-    local txt_a_vis = 1
-    local txt_a_unactive = 0.3
-    local fontsz_buttons = 17
+  
+  ---------------------------------------------------------------------  
+  function GUI_RESERVED_initbuttons(GUI)
     
-    OBJ.purchase = {is_button = true,
-                    x=offset,
-                    y=offset,
-                    w=gfx.w - offset*2,
-                    h=but_h,
-                    grad_back_a = 1,
-                    highlight = false,
-                    txt=
-[[You updated "Various Functions" package from MPL`s ReaPack repository. 
-Since version 1.31 this package is paid. 
-For more information contact me via email m.pilyavskiy@gmail.com]],
-                    fontsz = 20,
-                    drawstr_flags = 1|4,
-                    }
-    OBJ.backtofree = {is_button = true,
-                    x=offset,
-                    y=offset*2+but_h,
-                    w=(gfx.w - offset*2)/2-offset/2,
-                    h=proccedh,
-                    grad_back_a = 0,
-                    txt='Back to free version?',
-                    txt_a = txt_a_vis,
-                    highlight = false,
-                    func_Ltrig = function() 
-                      --OBJ.purchase.selected = true 
-                      DATA.refresh.GUI = DATA.refresh.GUI|4 
-                    end ,
-                    --func_Lrelease = function() OBJ.purchase.selected = false DATA.refresh.GUI = DATA.refresh.GUI|4 end,
-                    fontsz = 20,
-                    drawstr_flags = 1|4,
-                    } 
-    OBJ.backtofree1 = {is_button = true,
-                    x=offset,
-                    y=offset*2+but_h+proccedh,
-                    w=(gfx.w - offset*2)/2-offset/2,
-                    h=proccedh,
-                    grad_back_a = 1,
-                    txt='1. Open Action List \naction "Reapack:Browse packages" \nnavigate to Various functions',
-                    func_Ltrig = function() 
-                      OBJ.purchase.selected = true 
-                      DATA.refresh.GUI = DATA.refresh.GUI|4 
-                      ReaPack_BrowsePackages( 'Various functions' ) 
-                    end ,
-                    func_Lrelease = function() OBJ.purchase.selected = false DATA.refresh.GUI = DATA.refresh.GUI|4 end,
-                    fontsz = fontsz_buttons,
-                    drawstr_flags = 1|4,
-                    }      
-    OBJ.backtofree2 = {is_button = true,
-                    x=offset,
-                    y=offset*2+but_h+proccedh*2,
-                    w=(gfx.w - offset*2)/2-offset/2,
-                    h=proccedh,
-                    grad_back_a = 1,
-                    txt='2. Rightclick on package: \n set "Pin Current Version on"',
-                    highlight = false,
-                    fontsz = fontsz_buttons,
-                    drawstr_flags = 1|4,
-                    }  
-    OBJ.backtofree3 = {is_button = true,
-                    x=offset,
-                    y=offset*2+but_h+proccedh*3,
-                    w=(gfx.w - offset*2)/2-offset/2,
-                    h=proccedh,
-                    grad_back_a = 1,
-                    txt='3. Rightclick on package: \n set "Versions - 1.31"',
-                    highlight = false,
-                    fontsz = fontsz_buttons,
-                    drawstr_flags = 1|4,
-                    } 
-    OBJ.backtofree4 = {is_button = true,
-                    x=offset,
-                    y=offset*2+but_h+proccedh*4,
-                    w=(gfx.w - offset*2)/2-offset/2,
-                    h=proccedh,
-                    grad_back_a = 1,
-                    txt='4. Click Apply and Sync packages',
-                    fontsz = fontsz_buttons,
-                    drawstr_flags = 1|4,
-                    func_Ltrig =  function()  
-                                    OBJ.backtofree4.selected = true  
-                                    DATA.refresh.GUI = DATA.refresh.GUI|4  
-                                    VF_Action('_REAPACK_SYNC') 
-                                  end ,
-                    func_Lrelease = function() OBJ.backtofree4.selected = false DATA.refresh.GUI = DATA.refresh.GUI|4 end,
-                                        
-                    }                      
-    OBJ.proccedreg = {is_button = true,
-                    x=offset*1.5+(gfx.w - offset*2)/2,
-                    y=offset*2+but_h,
-                    w=(gfx.w - offset*2)/2-offset/2,
-                    h=proccedh,
-                    grad_back_a = 0,
-                    txt='Purchase?',
-                    highlight = false,
-                    --func_Ltrig = function()  OBJ.purchase.selected = true  DATA.refresh.GUI = DATA.refresh.GUI|4  end ,
-                    --func_Lrelease = function() OBJ.purchase.selected = false DATA.refresh.GUI = DATA.refresh.GUI|4 end,
-                    fontsz = 20,
-                    drawstr_flags = 1|4,
-                    }  
-    OBJ.proccedreg1 = {is_button = true,
-                    x=offset*1.5+(gfx.w - offset*2)/2,
-                    y=offset*2+but_h+proccedh,
-                    w=(gfx.w - offset*2)/2-offset/2,
-                    h=proccedh,
-                    grad_back_a = 1,
-                    txt='1. Send $30 to paypal.me/donate2mpl \nSkip it if you donated before may 2021',
-                    func_Ltrig =  function()  
-                                    OBJ.purchase.selected = true  
-                                    DATA.refresh.GUI = DATA.refresh.GUI|4 
-                                    VF_Open_URL('https://www.paypal.me/donate2mpl')  
-                                  end ,
-                    func_Lrelease = function() OBJ.purchase.selected = false DATA.refresh.GUI = DATA.refresh.GUI|4 end,
-                    fontsz = fontsz_buttons,
-                    drawstr_flags = 1|4,
-                    }   
+    GUI.custom_texthdef = 23
+    GUI.custom_offset = math.floor(GUI.default_scale*GUI.default_txt_fontsz/2)
+    GUI.custom_mainbutw = gfx.w/GUI.default_scale-GUI.custom_offset*2
+    GUI.custom_mainbuth = (gfx.h/GUI.default_scale-GUI.custom_offset*3)/2
+    GUI.custom_mainbuth2 = (gfx.h/GUI.default_scale-GUI.custom_offset*4)/3
+    GUI.custom_scrollw = 10
+    GUI.custom_frameascroll = 0.05
+    GUI.custom_default_framea_normal = 0.1
+    GUI.custom_datah = (gfx.h/GUI.default_scale-GUI.custom_mainbuth-GUI.custom_offset*3) 
+    GUI.custom_layerset = 21
+    
+    local cnt = reaper.GetExtState('MPL_Scripts', 'counttotal')
+    if not (cnt and cnt ~= '' and tonumber(cnt)) then cnt = 0 end
     local sysID = VF_GetSystemID()
-    OBJ.proccedreg2 = {is_button = true,
-                    x=offset*1.5+(gfx.w - offset*2)/2,
-                    y=offset*2+but_h+proccedh*2,
-                    w=(gfx.w - offset*2)/2-offset/2,
-                    h=proccedh,
-                    grad_back_a = 1,
-                    txt='2. Copy this system ID and send to m.pilyavskiy@gmail.com: '..sysID,
-                    func_Ltrig =  function()  
-                                    OBJ.purchase.selected = true  
-                                    DATA.refresh.GUI = DATA.refresh.GUI|4 
-                                    msg('SystemID:\n'..sysID..'\n\nMail:\nm.pilyavskiy@gmail.com')
-                                  end ,
-                    func_Lrelease = function() OBJ.purchase.selected = false DATA.refresh.GUI = DATA.refresh.GUI|4 end,
-                    fontsz = fontsz_buttons,
-                    drawstr_flags = 1|4,
-                    }    
-    OBJ.proccedreg3 = {is_button = true,
-                    x=offset*1.5+(gfx.w - offset*2)/2,
-                    y=offset*2+but_h+proccedh*3,
-                    w=(gfx.w - offset*2)/2-offset/2,
-                    h=proccedh,
-                    grad_back_a = 1,
-                    txt='3. Paste response code here \n(getting ready in 1-3 days)',
-                    func_Ltrig =  function()  
-                                    OBJ.purchase.selected = true  
-                                    DATA.refresh.GUI = DATA.refresh.GUI|4 
-                                    VF_InputResponse()
-                                  end ,
-                    func_Lrelease = function() OBJ.purchase.selected = false DATA.refresh.GUI = DATA.refresh.GUI|4 end,
-                    fontsz = fontsz_buttons,
-                    drawstr_flags = 1|4,
-                    }                      
-  end
-  ---------------------------------------------------------------------
-  function OBJ_Buttons_Update(MOUSE,OBJ,DATA)
     
+    GUI.buttons = {} 
+    
+      GUI.buttons.p1 = {  x=GUI.custom_offset,
+                            y=GUI.custom_offset,
+                            w=GUI.custom_mainbutw,
+                            h=GUI.custom_mainbuth,
+                            txt = 'Purchase MPL`s scripts. (Used '..cnt..' times)',
+                            txt_fontsz = GUI.default_txt_fontsz2,
+                            hide = GUI.userfollow~=0,
+                            ignoremouse = GUI.userfollow~=0,
+                            onmouseclick =  function() 
+                                              GUI.userfollow = 1
+                                              DATA.UPD.onGUIinit = true 
+                                            end} 
+                                            
+      GUI.buttons.p2 = {  x=GUI.custom_offset,
+                            y=GUI.custom_offset*2+GUI.custom_mainbuth,
+                            w=GUI.custom_mainbutw,
+                            h=GUI.custom_mainbuth,
+                            txt = 'Revert free version of MPL repository',
+                            txt_fontsz = GUI.default_txt_fontsz2,
+                            hide = GUI.userfollow~=0,
+                            ignoremouse = GUI.userfollow~=0,
+                            onmouseclick =  function() 
+                                              GUI.userfollow = 2
+                                              DATA.UPD.onGUIinit = true
+                                            end}                                             
+  
+      GUI.buttons.p11 = {  x=GUI.custom_offset,
+                            y=GUI.custom_offset,
+                            w=GUI.custom_mainbutw,
+                            h=GUI.custom_mainbuth2,
+                            txt = '1. Send $30 to paypal.me/donate2mpl \nSkip it if you donated before may 2021\nContact m.pilyavskiy@gmail.com if you don`t have paypal',
+                            txt_fontsz = GUI.default_txt_fontsz2,
+                            hide = GUI.userfollow~=1,
+                            ignoremouse = GUI.userfollow~=1,
+                            onmouseclick =  function() VF_Open_URL('https://www.paypal.me/donate2mpl')    end}     
+      GUI.buttons.p12 = {  x=GUI.custom_offset,
+                            y=GUI.custom_offset*2+GUI.custom_mainbuth2,
+                            w=GUI.custom_mainbutw,
+                            h=GUI.custom_mainbuth2,
+                            txt = '2. Send ID by mail (click to show and copy mail and ID)',
+                            txt_fontsz = GUI.default_txt_fontsz2,
+                            hide = GUI.userfollow~=1,
+                            ignoremouse = GUI.userfollow~=1,
+                            onmouseclick =  function() ClearConsole() msg('SystemID:\n'..sysID..'\n\nMail:\nm.pilyavskiy@gmail.com')    end}          
+      GUI.buttons.p13 = {  x=GUI.custom_offset,
+                            y=GUI.custom_offset*3+GUI.custom_mainbuth2*2,
+                            w=GUI.custom_mainbutw,
+                            h=GUI.custom_mainbuth2,
+                            txt = '3. Paste response code here \n(getting ready in 1-3 days)',
+                            txt_fontsz = GUI.default_txt_fontsz2,
+                            hide = GUI.userfollow~=1,
+                            ignoremouse = GUI.userfollow~=1,
+                            onmouseclick =  function() VF_InputResponse()    end}      
+                            
+                            
+                          -- free --
+      GUI.buttons.p21 = {  x=GUI.custom_offset,
+                            y=GUI.custom_offset,
+                            w=GUI.custom_mainbutw,
+                            h=GUI.custom_mainbuth,
+                            txt = 'action "Reapack:Browse packages" \nnavigate to Various functions',
+                            txt_fontsz = GUI.default_txt_fontsz2,
+                            hide = GUI.userfollow~=2,
+                            ignoremouse = GUI.userfollow~=2,
+                            onmouseclick =  function() ReaPack_BrowsePackages( 'Various functions' )  end}     
+      GUI.buttons.p22 = {  x=GUI.custom_offset,
+                            y=GUI.custom_offset*2+GUI.custom_mainbuth,
+                            w=GUI.custom_mainbutw,
+                            h=GUI.custom_mainbuth,
+                            txt = '1. Rightclick on package\n2. Set "Pin Current Version on"\n3. Set "Versions - 1.31"\n4. Click "Apply"',
+                            txt_fontsz = GUI.default_txt_fontsz2,
+                            hide = GUI.userfollow~=2,
+                            frame_a = 0,
+                            ignoremouse = true,--GUI.userfollow~=2,
+                            onmouseclick =  function() ReaPack_BrowsePackages( 'Various functions' )  end}     
+                            
+                            
+                            
+    for but in pairs(GUI.buttons) do GUI.buttons[but].key = but end
   end
-  ---------------------------------------------------------------------
-  function VF_CheckFunctions(vrs) 
-    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' 
-    if  reaper.file_exists( SEfunc_path ) then
-      dofile(SEfunc_path) 
-      if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return false end  
-     else 
-      reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) 
-      if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end
-    end   
-  end
+  ----------------------------------------------------------------------
+  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  -- local ret = VF_CheckFunctions(2.2) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then VF_run_initVars() VF_run_init() end end
-  -- local ret = VF_CheckFunctions(2.2) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(2.84) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) 
+  if ret2 then 
+    local last_run = reaper.GetExtState('MPL_Scripts', 'last_run')
+    if last_run == '' then
+      reaper.SetExtState('MPL_Scripts', 'last_run', os.clock(), false)
+      main() 
+    end
+  end end
   
-  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions_v1.lua' if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) end
-  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions_Purchase.lua' if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) end  
-  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions_Pers.lua' if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) end  
-  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions_MOUSE.lua' if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) end  
-  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions_GUI.lua' if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) end  
-  
-  local last_run = reaper.GetExtState('MPL_Scripts', 'last_run')
-  if last_run == '' then
-    reaper.SetExtState('MPL_Scripts', 'last_run', os.clock(), false)
-    VF_run_initVars() 
-    VF_run_init()
-  end
   
   
