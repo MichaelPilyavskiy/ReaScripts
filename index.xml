@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2e3216c7d7ad3c85e8ae06ea78f714327393a30b" name="MPL Scripts">
+<index version="1" commit="966ce50d430b9e46aa4aabea6badd7bd350071eb" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -213,6 +213,11 @@
       <version name="1.0" author="MPL" time="2022-02-20T21:57:53Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/671564fa238d0ec173b2fc7fdfd60514643786d3/Envelopes/mpl_Peak%20follower%20tools.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2022-02-22T20:24:50Z">
+        <changelog><![CDATA[# fix potential leakage
++ Add gate mode]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/966ce50d430b9e46aa4aabea6badd7bd350071eb/Envelopes/mpl_Peak%20follower%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Select active envelopes tracks.lua" type="script" desc="Select active envelopes tracks">
@@ -874,6 +879,18 @@
         <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2e3216c7d7ad3c85e8ae06ea78f714327393a30b/Functions/mpl_Various_functions_Purchase.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2e3216c7d7ad3c85e8ae06ea78f714327393a30b/Functions/mpl_Various_functions_Pers.lua</source>
         <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2e3216c7d7ad3c85e8ae06ea78f714327393a30b/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
+      </version>
+      <version name="2.88" author="MPL" time="2022-02-22T20:24:50Z">
+        <changelog><![CDATA[# fix draw frame]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/966ce50d430b9e46aa4aabea6badd7bd350071eb/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/966ce50d430b9e46aa4aabea6badd7bd350071eb/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v2.bin">https://github.com/MichaelPilyavskiy/ReaScripts/raw/966ce50d430b9e46aa4aabea6badd7bd350071eb/Functions/mpl_Various_functions_v2.bin</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/966ce50d430b9e46aa4aabea6badd7bd350071eb/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/966ce50d430b9e46aa4aabea6badd7bd350071eb/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/966ce50d430b9e46aa4aabea6badd7bd350071eb/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/966ce50d430b9e46aa4aabea6badd7bd350071eb/Functions/mpl_Various_functions_Purchase.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/966ce50d430b9e46aa4aabea6badd7bd350071eb/Functions/mpl_Various_functions_Pers.lua</source>
+        <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/966ce50d430b9e46aa4aabea6badd7bd350071eb/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
       </version>
     </reapack>
   </category>
@@ -7248,8 +7265,17 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Implode mono track session to stereo items relative to LR at the trackname end.lua" type="script" desc="Implode mono track session to stereo items relative to LR at the trackname end">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Various/mpl_Implode%20mono%20track%20session%20to%20stereo%20items%20relative%20to%20LR%20at%20the%20trackname%20end.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2022-02-22T20:24:50Z">
+        <changelog><![CDATA[# cleanup
+# remove SWS dependency, pan takes and set mode from API
+# do not using workaround by selecting/unselecting tracks etc]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/966ce50d430b9e46aa4aabea6badd7bd350071eb/Various/mpl_Implode%20mono%20track%20session%20to%20stereo%20items%20relative%20to%20LR%20at%20the%20trackname%20end.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Import media folder content as structured tracks.lua" type="script" desc="Import media folder content as structured tracks">
