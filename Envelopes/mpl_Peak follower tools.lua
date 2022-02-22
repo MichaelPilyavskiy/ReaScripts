@@ -1,10 +1,11 @@
 -- @description Peak follower tools
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    # fix potential leakage
+--    + Add gate mode
 
     
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
@@ -14,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.0
+    DATA.extstate.version = 1.01
     DATA.extstate.extstatesection = 'PeakFollowTools'
     DATA.extstate.mb_title = 'Peak follower tools'
     DATA.extstate.default = 
@@ -28,10 +29,12 @@
                           CONF_NAME = 'default',
                           
                           CONF_window = 0.05,
-                          CONF_mode = 0, -- 0 peak follower
+                          CONF_mode = 0, -- 0 peak follower 1 gate
                           CONF_boundary = 0, -- 0 item edges 1 time selection
                           CONF_dest = 0, -- 0 AI track vol 1 take vol env
                           
+                          -- gate
+                          CONF_gate_threshold = 0.4,
                           
                           UI_appatchange = 0, 
                           UI_enableshortcuts = 0,
@@ -328,6 +331,7 @@
     {
       { str = 'Mode' , issep = true }, 
         GUI_settingst_getcheck('Peak follower', 'CONF_mode', nil, nil, 0),  
+        GUI_settingst_getcheck('Gate', 'CONF_mode', nil, nil, 1),  
       { str = 'Boundaries' , issep = true }, 
         GUI_settingst_getcheck('Item edges', 'CONF_boundary', nil, nil, 0),  
         GUI_settingst_getcheck('Time selection', 'CONF_boundary', nil, nil, 1), 
@@ -343,7 +347,20 @@
         onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_windval',VF_NormToFormatValue(GUI.buttons['settings_windval'].val, 0.002, 0.4, 3)..'s' , 'CONF_window', VF_NormToFormatValue(GUI.buttons['settings_windval'].val, 0.002, 0.4, 3), nil, nil  ) end,
         onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
         onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_window') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-      },
+      },      
+      { customkey = 'settings_gtshresh',
+        str = 'Gate threshold',
+        level = 1,
+        isvalue = true,
+        val = DATA.extstate.CONF_gate_threshold,
+        val_res = 0.1,
+        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_gate_threshold, 0,100)..'%',
+        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_gtshreshval',VF_NormToFormatValue(GUI.buttons['settings_gtshreshval'].val, 0,100)..'%', 'CONF_gate_threshold', GUI.buttons['settings_gtshreshval'].val, nil, nil  ) end,
+        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_gate_threshold') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
+        active = DATA.extstate.CONF_mode==1,
+        ignoremouse = DATA.extstate.CONF_mode~=1,
+      }, 
       
       { str = 'Destination' , issep = true },  
         GUI_settingst_getcheck('Track volume env AI', 'CONF_dest', nil, nil, 0), 
@@ -385,7 +402,7 @@
     end
   end
   ---------------------------------------------------------------------------------------------------------------------  
-  function DATA2:Process_GenerateAI(item, t) 
+  function DATA2:Process_GenerateAI(item) 
     
     -- get boundary
       local ret, boundary_start, boundary_end, i_pos = DATA2:Process_GetBoundary(item)
@@ -403,37 +420,33 @@
           env =  GetTrackEnvelopeByName( track, 'Volume' )
         end
         AI_idx = DATA2:GetEditAIbyEdges(env, boundary_start, boundary_end)  
-        if not AI_idx then 
-          AI_idx = InsertAutomationItem( env, -1, boundary_start, boundary_end-boundary_start )
-        end
+        if not AI_idx then AI_idx = InsertAutomationItem( env, -1, boundary_start, boundary_end-boundary_start )end
       end
-      
-      if DATA.extstate.CONF_dest == 1 then -- take env
+      -- take env
+      if DATA.extstate.CONF_dest == 1 then 
         local take = GetActiveTake(item)
         if not take then return end
         for envidx = 1,  CountTakeEnvelopes( take ) do local tkenv = GetTakeEnvelope( take, envidx-1 ) local retval, envname = reaper.GetEnvelopeName(tkenv ) if envname == 'Volume' then env = tkenv break end end
         if not ValidatePtr2( 0, env, 'TrackEnvelope*' ) then 
-          VF_Action(40693) -- Take: Toggle take volume envelope
-          for envidx = 1,  CountTakeEnvelopes( take ) do local tkenv = GetTakeEnvelope( take, envidx-1 ) local retval, envname = reaper.GetEnvelopeName(tkenv ) if envname == 'Volume' then env = tkenv break end end
+          VF_Action(40693) -- Take: Toggle take volume envelope 
+          for envidx = 1,  CountTakeEnvelopes( take ) do 
+            local tkenv = GetTakeEnvelope( take, envidx-1 ) 
+            local retval, envname = reaper.GetEnvelopeName(tkenv ) 
+            if envname == 'Volume' then env = tkenv break end 
+          end 
         end
       end
             
             
     -- apply points
       if not env then return end
-      local window_ms = DATA.extstate.CONF_window
-      local offs = 0 if DATA.extstate.CONF_dest == 1 then  offs = i_pos end -- compensate points for AI
       --local cntpts = CountEnvelopePointsEx( env, AI_idx )
       --DeleteEnvelopePointEx( env, AI_idx,  cntpts )
       --Envelope_SortPointsEx( env, AI_idx )
-      DeleteEnvelopePointRangeEx( env, AI_idx, boundary_start-offs, boundary_end-offs ) 
-      local scaling_mode = GetEnvelopeScalingMode( env )
-      for i = 1, #t do  InsertEnvelopePointEx( env, AI_idx, (i-1)*window_ms+boundary_start-offs,  reaper.ScaleToEnvelopeMode( scaling_mode, t[i] ), 0, 0, 0, true )  end
-      Envelope_SortPointsEx( env, AI_idx )
       
-    UpdateArrange()
+      
+      return true, env, AI_idx
   end
-  
   -------------------------------------------------------------------
   function DATA2:Process_GetBoundary(item)
     local i_pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
@@ -478,19 +491,50 @@
         id = id + 1
         data[id] = sum / bufsz
       end
-      
+      reaper.DestroyAudioAccessor( accessor )
       local max_val = 0
       for i = 1, #data do max_val = math.max(max_val, data[i]) end -- abs all values 
       for i = 1, #data do data[i] = (data[i]/max_val) end -- normalize 
       
       return data
   end
+  -------------------------------------------------------------------
+  function DATA2:Process_InsertData(item, env, AI_idx, t)
+    -- get boundary
+      local ret, boundary_start, boundary_end, i_pos = DATA2:Process_GetBoundary(item)
+      if not ret then return end
+      
+    -- init vars
+      local scaling_mode = GetEnvelopeScalingMode( env )
+      local window_ms = DATA.extstate.CONF_window
+      local offs = 0 if DATA.extstate.CONF_dest == 1 then  offs = i_pos end -- compensate points for AI
+    
+    -- clear
+      DeleteEnvelopePointRangeEx( env, AI_idx, boundary_start-offs, boundary_end-offs ) 
+      
+    -- add -- peak follow
+      if DATA.extstate.CONF_mode ==0 then 
+        for i = 1, #t do  InsertEnvelopePointEx( env, AI_idx, (i-1)*window_ms+boundary_start-offs,  reaper.ScaleToEnvelopeMode( scaling_mode, t[i] ), 0, 0, 0, true )  end
+      end
+    -- add -- gate
+      if DATA.extstate.CONF_mode ==1 then
+        for i = 1, #t do   
+          local val = t[i]
+          if val > DATA.extstate.CONF_gate_threshold then val = 1 else val = 0 end
+          InsertEnvelopePointEx( env, AI_idx, (i-1)*window_ms+boundary_start-offs,  reaper.ScaleToEnvelopeMode( scaling_mode,val ), 0, 0, 0, true )  
+        end
+      end
+    
+    -- sort
+    Envelope_SortPointsEx( env, AI_idx )
+  end
   ----------------------------------------------------------------------
   function DATA2:Process()
     for i = 1,  CountSelectedMediaItems( 0 ) do
       local item = GetSelectedMediaItem(0,i-1)
       local t = DATA2:Process_CalcpointsAI(item)
-      if t then DATA2:Process_GenerateAI(item, t) end
+      local ret, env, AI_idx =  DATA2:Process_GenerateAI(item)
+      if ret then DATA2:Process_InsertData(item, env, AI_idx, t) end
     end  
   end
   ----------------------------------------------------------------------

@@ -140,16 +140,16 @@
       gfx.setfont(1,txt_font, calibrated_txt_fontsz, txt_fontflags )
       if txt then 
         if txt and tostring(txt) and tostring(txt):match('\n') then 
-          GUI:draw_txt_multiline(x,y,w,h,txt_flags, txt_a, txt) 
+          strw, strh = GUI:draw_txt_multiline(x,y,w,h,txt_flags, txt_a, txt) 
          else 
           gfx.x, gfx.y = x,y
           gfx.a = txt_a
-          local strw = gfx.measurestr(txt)
+          strw = gfx.measurestr(txt)
           if strw > w and txt_short then 
             txt = txt_short
             strw = gfx.measurestr(txt)
           end
-          local strh = gfx.texth
+          strh = gfx.texth
           if txt_flags&1==1 then gfx.x = x+(w-strw)/2+1 end
           if txt_flags&4==4 then gfx.y = y+(h-strh)/2 end
           gfx.drawstr(txt) 
@@ -164,10 +164,12 @@
     if not txt then return end
     local cnt = 0 for line in txt:gmatch('[^\r\n]+') do cnt = cnt + 1 end
     local i = 0
+    local  strw0, strh0 = 0, gfx.texth*cnt
     for line in txt:gmatch('[^\r\n]+') do
       gfx.x, gfx.y = x,y0
       gfx.a = txt_a
       local strw = gfx.measurestr(line)
+      strw0 = math.max(strw,strw0)
       local strh = gfx.texth
       if txt_flags&1==1 then gfx.x = x+(w-strw)/2+1 end
       y = y0 + i *strh + h/2 - 0.5*cnt*strh
@@ -176,6 +178,7 @@
       gfx.drawstr(line)
       i =i +1
     end
+    return 10,gfx.texth*cnt-- strw0, strh0
   end
   ----------------------------------------------------------------------------- 
   function GUI:draw_txtCalibrateFont(txt_font, txt_fontsz_px, txt_fontflags)--, txtmsg, maxv) 
