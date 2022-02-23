@@ -137,6 +137,7 @@
       GUI:hex2rgb(txt_col, true)
       local calibrated_txt_fontsz = GUI:draw_txtCalibrateFont(txt_font, txt_fontsz_out, txt_fontflags)--, txt, w) 
       
+      local strw, strh
       gfx.setfont(1,txt_font, calibrated_txt_fontsz, txt_fontflags )
       if txt then 
         if txt and tostring(txt) and tostring(txt):match('\n') then 
@@ -164,12 +165,12 @@
     if not txt then return end
     local cnt = 0 for line in txt:gmatch('[^\r\n]+') do cnt = cnt + 1 end
     local i = 0
-    local  strw0, strh0 = 0, gfx.texth*cnt
+    local strwmax = 0
     for line in txt:gmatch('[^\r\n]+') do
       gfx.x, gfx.y = x,y0
       gfx.a = txt_a
       local strw = gfx.measurestr(line)
-      strw0 = math.max(strw,strw0)
+      strwmax = math.max(strwmax,strw )
       local strh = gfx.texth
       if txt_flags&1==1 then gfx.x = x+(w-strw)/2+1 end
       y = y0 + i *strh + h/2 - 0.5*cnt*strh
@@ -178,7 +179,7 @@
       gfx.drawstr(line)
       i =i +1
     end
-    return 10,gfx.texth*cnt-- strw0, strh0
+    return strwmax, cnt*strh
   end
   ----------------------------------------------------------------------------- 
   function GUI:draw_txtCalibrateFont(txt_font, txt_fontsz_px, txt_fontflags)--, txtmsg, maxv) 
