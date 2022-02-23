@@ -1,5 +1,5 @@
 -- @description QuantizeTool
--- @version 2.41
+-- @version 2.42
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
@@ -28,9 +28,9 @@
 --    mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt
 --    [main] mpl_QuantizeTool change knob1 (MIDI, OSC, mousewheel).lua
 -- @changelog
---    + Target/Stretch markers: add 0.01 tolerance to child markers as a workaround for REAPER approximations
+--    # fix data error
      
-  local vrs = 'v2.41'
+  local vrs = 'v2.42'
   --NOT gfx NOT reaper
   
 
@@ -313,18 +313,7 @@ reaper.SetExtState("]].. conf.ES_key..[[","ext_state",1,false)
           run()  
         end
   end
-  ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Install it via Reapack (Action: browse packages)', '', 0) end   end
+
+  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF2_ConvertNoteOnVel0toNoteOff') 
-  if ret then 
-    local ret2 = VF_CheckReaperVrs(5.95,true)    
-    if ret2 then 
-      gmem_attach('MPLQT' )
-      main() 
-    end
-  end
-  ---------------------------------------------------------------------
-  function VF_CheckFunctions(vrs) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end  else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0)  if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end    end
-  --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(2.5) if ret then local ret2 = VF_CheckReaperVrs(5.95,true) if ret2 then gmem_attach('MPLQT' )main()  end end
+  local ret = VF_CheckFunctions(2.84) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then gmem_attach('MPLQT' ) main() end end

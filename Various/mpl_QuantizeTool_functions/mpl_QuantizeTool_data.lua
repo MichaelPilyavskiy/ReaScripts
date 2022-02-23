@@ -1000,7 +1000,20 @@
             end
           end  
           if out_val and out_pos then 
-            VF2_MPLQT_Data_ApplyValues(conf, obj, data, refresh, mouse, strategy, i, out_val, out_pos) 
+            -- app values
+            data.src[i].out_val = out_val
+            data.src[i].out_pos = out_pos
+            if strategy.act_action==1 then
+              if strategy.exe_val3 > 0 and math.abs(out_pos - data.src[i].pos) >= strategy.exe_val3 then data.src[i].out_pos = data.src[i].pos end            
+              if strategy.exe_val4 > 0 and math.abs(out_pos - data.src[i].pos) <= strategy.exe_val4 then data.src[i].out_pos = data.src[i].pos end            
+            end
+            
+            if strategy.act_action==1 or strategy.act_action==3 then
+              local offs = (math.floor((strategy.exe_val5*2-1)*1000)/1000)
+              if out_pos then
+                data.src[i].out_pos = out_pos + offs
+              end
+            end
           end
         end
       end
