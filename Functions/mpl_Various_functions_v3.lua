@@ -166,12 +166,13 @@
     local cnt = 0 for line in txt:gmatch('[^\r\n]+') do cnt = cnt + 1 end
     local i = 0
     local strwmax = 0
+    local strh = 0
     for line in txt:gmatch('[^\r\n]+') do
       gfx.x, gfx.y = x,y0
       gfx.a = txt_a
       local strw = gfx.measurestr(line)
       strwmax = math.max(strwmax,strw )
-      local strh = gfx.texth
+      strh = gfx.texth
       if txt_flags&1==1 then gfx.x = x+(w-strw)/2+1 end
       y = y0 + i *strh + h/2 - 0.5*cnt*strh
       gfx.y = y
