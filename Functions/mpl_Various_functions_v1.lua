@@ -3,7 +3,7 @@
 -- @noindex  
   
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
-  
+  function VF2_LoadVFv2() return true end
   ---------------------------------------------------
   function msg(s) 
     if not s then return end 
@@ -1076,7 +1076,363 @@
   function VF_deliteralize(str) 
      if str then  return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", '') end
   end 
-  ------------------------------------------------------------------------------------------------------  
+  
+    ---------------------------------------------------
+    function VF2_Action(s,section,midieditor,flag,proj) 
+      if not flag then flag = 0 end 
+      if not proj then proj = 0 end 
+      if not section then 
+        Main_OnCommandEx(NamedCommandLookup(s), flag, proj) 
+       elseif section == 32060 and midieditor then -- midi ed
+        MIDIEditor_OnCommand( midieditor, NamedCommandLookup(s) )
+      end
+    end
+    
+    ---------------------------------------------------
+    function VF2_GetSetFXChunk(track, fx, strreplace) -- from BYPASS to WAK -- 15.05.2021
+      local retval, trchunk = reaper.GetTrackStateChunk( track, '', false ) 
+      local GUID = reaper.TrackFX_GetFXGUID( track, fx )
+      local FXchunk_find
+      for fxchunk in trchunk:gmatch('(BYPASS.-WAK %d)') do
+        local fxGUID = fxchunk:match('FXID (.-)\n')
+        if not fxGUID then fxGUID = fxchunk:match('FXID_NEXT (.-)\n') end 
+        if fxGUID:match(literalize(GUID):gsub('%s', '')) then  
+          FXchunk_find = literalize(fxchunk)
+          return fxchunk
+        end
+      end
+      if not FXchunk_find then return end
+      if strreplace then trchunk = trchunk:gsub(FXchunk_find, strreplace) reaper.SetTrackStateChunk( track, trchunk, false )end
+      return FXchunk
+    end 
+  -------------------------------------------------------------------
+    function VF2_GetMEZoom(take)
+      local Hzoom
+      if not take then return end
+      local item =  GetMediaItemTake_Item( take )
+      if not item then return end
+      local _, chunk = reaper.GetItemStateChunk( item, "", false )
+      
+      local active_take
+      for line in chunk:gmatch('[^\r\n]+') do
+        if line:match('GUID (.*)') then 
+           local testGUID = line:match('GUID (%{.*%})')--:gsub('[%{%}]','')
+           local testtake = GetMediaItemTakeByGUID( 0, testGUID )
+          if testtake and testtake == take then active_take = true end 
+        end
+        if active_take and line:match('CFGEDITVIEW') then 
+          Hzoom = line:match('CFGEDITVIEW [%-%.%d]+ ([%-%.%d]+)')
+          Hzoom=tonumber(Hzoom)
+          if Hzoom then return true, Hzoom end
+        end
+      end
+    end 
+    ---------------------------------------------------------------------------------------------------------------------
+    function VF2_NormalizeT(t, key)
+      local m = 0 
+      for i in pairs(t) do 
+        if not key then 
+          m = math.max(math.abs(t[i]),m) 
+         else
+          m = math.max(math.abs(t[i][key]),m) 
+        end
+      end
+      for i in pairs(t) do 
+        if not key then
+          t[i] = t[i] / m 
+         else 
+          t[i][key] = t[i][key] / m 
+        end
+      end
+    end 
+    ---------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------------------------------------------------
+    function VF2_ShiftRegions(offset) 
+      local regions={}
+      local retval, num_markers, num_regions = reaper.CountProjectMarkers( 0 )
+      local rgn_idx = 0
+      for idx = 1, num_markers + num_regions do
+        local retval, isrgn, pos, rgnend, name, markrgnindexnumber, color = reaper.EnumProjectMarkers3( 0, idx-1 )
+        if isrgn == true then rgn_idx = rgn_idx + 1 end 
+        regions[idx] = {isrgn=isrgn,
+                              pos = pos,
+                              rgnend=rgnend,
+                              rgnlen=rgnlen,
+                              name=name,
+                              markrgnindexnumber=markrgnindexnumber,
+                              color=color,
+                              rgn_idx=rgn_idx,
+                              show = true}
+      end
+      -- remove all
+        for idx = num_markers + num_regions, 1, -1 do reaper.DeleteProjectMarkerByIndex( 0, idx-1 ) end 
+      -- add back
+        for i = 1, #regions do AddProjectMarker2( 0, regions[i].isrgn, regions[i].pos+offset, regions[i].rgnend+offset, regions[i].name, regions[i].markrgnindexnumber,regions[i]. color ) end
+      return true
+    end
+    ---------------------------------------------------------------------------------------------------------------------
+    function VF2_ConvertNoteOnVel0toNoteOff(take)
+      local tableEvents = {}
+      local s_unpack = string.unpack
+      local s_pack = string.pack
+      local t = 0
+      local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
+      local MIDIlen = MIDIstring:len()
+      local stringPos = 1
+      local offset, flags, msg1
+      while stringPos < MIDIlen-12 do
+        offset, flags, msg1, stringPos = s_unpack("i4Bs4", MIDIstring, stringPos)
+        t = t + 1
+        if msg1:len()==3 then
+          local msgb1 = msg1:byte(1)
+          if msgb1&0xF0 == 0x90 and msg1:byte(3) == 0 then msgb1 =  0x80|(msg1:byte(1)&0xF) end
+          
+          tableEvents[t] = string.pack("i4Bi4BBB", offset, flags, 3, msgb1, msg1:byte(2), msg1:byte(3) )
+          --tableEvents[t] = s_pack("i4Bs4", offset, flags, msgb1 + (msg1:byte(2)<<1) + (msg1:byte(3)>>2) )
+         else
+          tableEvents[t] = s_pack("i4Bs4", offset, flags, msg1)
+        end
+      end 
+      MIDI_SetAllEvts(take, table.concat(tableEvents) .. MIDIstring:sub(-12))
+      MIDI_Sort(take)   
+      return true
+    end
+    --------------------------------------------------------------------
+    function VF2_EnumeratePlugins(plugs_t)
+      local res_path = GetResourcePath()
+      VF2_EnumeratePlugins_Sub(plugs_t, res_path..'/reaper-vstplugins.ini', '%=.-%,.-%,(.*)', 0)
+      VF2_EnumeratePlugins_Sub(plugs_t, res_path..'/reaper-vstplugins64.ini', '%=.-%,.-%,(.*)', 0)
+      VF2_EnumeratePlugins_Sub(plugs_t, res_path..'/reaper-dxplugins.ini',  'Name=(.*)', 2)  
+      VF2_EnumeratePlugins_Sub(plugs_t, res_path..'/reaper-dxplugins64.ini',  'Name=(.*)', 2) 
+      VF2_EnumeratePlugins_Sub(plugs_t, res_path..'/reaper-auplugins.ini',  'AU%s%"(.-)%"', 3) 
+      VF2_EnumeratePlugins_Sub(plugs_t, res_path..'/reaper-auplugins64.ini',  'AU%s%"(.-)%"', 3)  
+      VF2_EnumeratePlugins_Sub(plugs_t, res_path..'/reaper-jsfx.ini',  'NAME (.-)%s', 4) 
+    end
+  --------------------------------------------------------------------
+    function VF2_EnumeratePlugins_Sub(plugs_t, fp, pat, plugtype)
+      -- validate file
+        local f = io.open(fp, 'r')
+        local content
+        if f then  content = f:read('a') f:close() else return  end
+        if not content then return end
+        
+      -- create if not exist
+        if not plugs_t then plugs_t = {} end
+        
+      -- parse
+        for line in content:gmatch('[^\r\n]+') do
+          local str = line:match(pat)
+          if plugtype == 4 and line:match('NAME "') then
+            str = line:match('NAME "(.-)"') 
+            --str = str:gsub('.jsfx','')
+          end
+          if str then 
+            if str:match('!!!VSTi') and plugtype == 0 then plugtype = 1 end
+            str = str:gsub('!!!VSTi','')
+            
+            -- reduced_name
+              local reduced_name = str
+              if plugtype == 3 then  if reduced_name:match('%:.*') then reduced_name = reduced_name:match('%:(.*)') end    end
+              if plugtype == 4 then  
+              
+                --reduced_name = reduced_name:sub(5)
+                local pat_js = '.*[%/](.*)'
+                if reduced_name:match(pat_js) then reduced_name = reduced_name:match(pat_js) end    
+              end
+            plugs_t[#plugs_t+1] = {name = str, 
+                                   reduced_name = reduced_name ,
+                                   plugtype = plugtype}
+          end
+        end
+    end  
+    --------------------------------------------------------------------
+    function VF2_CollectFXData() 
+      --if not pluginsdata then return end
+      local pluginsdata = {} -- reset
+      for i = 1, CountTracks(0)  do
+        local tr = GetTrack(0,i-1)
+        local fxcnt = TrackFX_GetCount( tr )
+        for fx=1, fxcnt do
+          local retval, buf = reaper.TrackFX_GetFXName( tr, fx-1, '' )
+          if not pluginsdata[buf] then pluginsdata[buf] = {} end 
+          local GUID =  TrackFX_GetFXGUID( tr, fx-1 )
+          pluginsdata[buf][#pluginsdata[buf]+1] =   {tr_ptr=tr,
+                                  name=buf,
+                                  pos=fx-1,
+                                  GUID = GUID }
+  
+        end
+      end
+      return pluginsdata
+    end
+    ---------------------------------------------------------------------
+    function VF2_GetLTP()
+      local retval, tracknumber, fxnumber, paramnumber = reaper.GetLastTouchedFX() 
+      local tr, trGUID, fxGUID, param, paramname, ret, fxname,paramformat
+      if retval then 
+        tr = CSurf_TrackFromID( tracknumber, false )
+        trGUID = GetTrackGUID( tr )
+        fxGUID = TrackFX_GetFXGUID( tr, fxnumber )
+        retval, buf = reaper.GetTrackName( tr )
+        ret, paramname = TrackFX_GetParamName( tr, fxnumber, paramnumber, '')
+        ret, fxname = TrackFX_GetFXName( tr, fxnumber, '' )
+        paramval = TrackFX_GetParam( tr, fxnumber, paramnumber )
+        retval, paramformat = TrackFX_GetFormattedParamValue(  tr, fxnumber, paramnumber, '' )
+       else 
+        return
+      end
+      return {tr = tr,
+              trtracknumber=tracknumber,
+              trGUID = trGUID,
+              fxGUID = fxGUID,
+              trname = buf,
+              paramnumber=paramnumber,
+              paramname=paramname,
+              paramformat = paramformat,
+              paramval=paramval,
+              fxnumber=fxnumber,
+              fxname=fxname
+              }
+    end
+    ---------------------------------------------------
+    function VF2_ValidateFX(trGUID,fxGUID)
+      if not (trGUID and fxGUID) then return end
+      local tr = VF_GetTrackByGUID(trGUID)
+      if not tr then return end 
+      local ret, tr, fxnumber = VF_GetFXByGUID(fxGUID, tr) 
+      if not ret then return end 
+      return fxnumber
+    end
+    ---------------------------------------------------
+    function VF2_CycleGrid(stages)
+      local _,_,_,_,_,_,mouse_scroll  = reaper.get_action_context() 
+      stateid = reaper.GetExtState( 'mpl_cycle_grid', 'val' )
+      stateid = tonumber(stateid) or 1
+      if mouse_scroll == -1 then return end
+      if mouse_scroll > 0 then 
+        stateid = stateid + 1
+       elseif mouse_scroll < 0 then 
+        stateid = stateid - 1
+      end
+      local outval = math.min(#stages, math.max(stateid, 1))
+      reaper.SetExtState( 'mpl_cycle_grid', 'val' , outval, true)
+      if stages[outval] ~= 0 then
+        reaper.Main_OnCommand(40754,0)      --Snapping: Enable snap
+        reaper.SetProjectGrid( 0, stages[outval] )
+       else
+        reaper.Main_OnCommand(40753,0) -- Snapping: Disable snap
+      end
+    end
+    ---------------------------------------------------
+    function VF2_CycleGridME(stages)
+      local ME =  reaper.MIDIEditor_GetActive()
+      if not ME then return end
+      local _,_,_,_,_,_,mouse_scroll  = reaper.get_action_context() 
+      stateid = reaper.GetExtState( 'mpl_cycle_grid', 'val' )
+      stateid = tonumber(stateid) or 1
+      if mouse_scroll == -1 then return end
+      if mouse_scroll > 0 then 
+        stateid = stateid + 1
+       elseif mouse_scroll < 0 then 
+        stateid = stateid - 1
+      end
+      local outval = math.min(#stages, math.max(stateid, 1))
+      reaper.SetExtState( 'mpl_cycle_grid', 'val' , outval, true)
+      if stages[outval] ~= 0 then
+        reaper.MIDIEditor_SetSetting_int( ME, 'snap_enabled',1 )      --Snapping: Enable snap
+        reaper.SetMIDIEditorGrid( 0, stages[outval]  )
+       else
+        reaper.MIDIEditor_SetSetting_int( ME, 'snap_enabled',0 )
+      end
+    end
+      
+  
+    ----------------------------------------------------------------------
+    function VF2_GetTrackSendOrderIDbyname(src_tr, namepattern)
+      local max_id = 0
+      for sid = 1, GetTrackNumSends( src_tr, 0 ) do
+        local dest_tr = GetTrackSendInfo_Value( src_tr, 0, sid-1, 'P_DESTTRACK' )
+        if dest_tr then
+          local retval, buf = GetTrackName( dest_tr )
+          if buf:match(namepattern) then
+            local id = tonumber(buf:match(namepattern))
+            if id then 
+              max_id = math.max(max_id, id)
+            end
+          end
+        end
+      end
+      return max_id
+    end
+    ----------------------------------------------------------------------
+    function VF2_IsTrackSendExists(src_tr, dest_tr0)
+      for sid = 1, GetTrackNumSends( src_tr, 0 ) do
+        local dest_tr = GetTrackSendInfo_Value( src_tr, 0, sid-1, 'P_DESTTRACK' )
+        if GetTrackGUID( dest_tr ) == GetTrackGUID( dest_tr0 ) then return true end
+      end
+    end
+    ----------------------------------------------------------------------
+    function VF2_CreateFXTrack(tr, seltr_ptrs, firsttrackid) -- seltr_ptrs for multiple tracks, see mpl_Create send from selected tracks (custom)
+      
+      local folder_bus
+      if not tr then return end 
+      
+      -- add track, handle folder structure
+        local tracknumberOut =  CSurf_TrackToID( tr, false ) 
+        InsertTrackAtIndex( tracknumberOut, true ) 
+        local prev_tr = CSurf_TrackFromID( tracknumberOut, false )
+        local fdepth = GetMediaTrackInfo_Value( prev_tr, 'I_FOLDERDEPTH' ) 
+        local new_tr = CSurf_TrackFromID( tracknumberOut+1, false )
+        if fdepth <= 0 then
+          SetMediaTrackInfo_Value( new_tr, 'I_FOLDERDEPTH', fdepth )
+          SetMediaTrackInfo_Value( prev_tr, 'I_FOLDERDEPTH', 0 )
+         else
+          folder_bus = true
+          SetOnlyTrackSelected( new_tr )
+          ReorderSelectedTracks( tracknumberOut-1, 0 )
+          SetMediaTrackInfo_Value( new_tr, 'I_FOLDERDEPTH', 0 )
+        end
+      -- name
+        local pat = 'Fx%s(%d+)'
+        local name = 'Fx '
+        if folder_bus then 
+          pat = 'Bus%sFX%s(%d+)' 
+          name = 'Bus FX ' 
+        end
+        local max_id = VF2_GetTrackSendOrderIDbyname(prev_tr, pat)
+        GetSetMediaTrackInfo_String( new_tr, 'P_NAME', name.. max_id+1, 1 )
+        if not seltr_ptrs then 
+          local ret = VF2_IsTrackSendExists(tr, new_tr)
+          if not ret then CreateTrackSend( tr, new_tr )  end
+         else
+          for i = 1, #seltr_ptrs do
+            local ret = VF2_IsTrackSendExists( seltr_ptrs[i], new_tr)
+            if not ret then CreateTrackSend( seltr_ptrs[i], new_tr )  end
+          end
+        end
+      -- color
+        SetTrackColor( new_tr, tonumber('0x8d46cc') )  
+      -- selection
+        SetOnlyTrackSelected( new_tr )
+      -- icon
+        GetSetMediaTrackInfo_String( new_tr, 'P_ICON', 'fx.png', 1 )
+      -- level down
+        SetMediaTrackInfo_Value( new_tr, 'D_VOL',0 )
+      -- TCP MCP layouts
+        GetSetMediaTrackInfo_String( new_tr, 'P_TCP_LAYOUT', 'C-DPI-translated to 200% C', 1 )
+        GetSetMediaTrackInfo_String( new_tr, 'P_MCP_LAYOUT', 'Track layout 200%_B', 1 )
+      -- move folder before dirts track
+        if folder_bus and firsttrackid then
+          local ID = CSurf_TrackToID(new_tr, false)
+          SetOnlyTrackSelected(new_tr)
+          ReorderSelectedTracks(firsttrackid, 0)
+        end
+    end
+    ------------------------------------------------------------------------------------------------------
+    function VF2_lit(str) -- http://stackoverflow.com/questions/1745448/lua-plain-string-gsub
+       if str then  return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", function(c) return "%" .. c end) end
+    end  
+  
   -- MAPPING for backwards compability --
   Open_URL = VF_Open_URL
   Action = VF_Action
