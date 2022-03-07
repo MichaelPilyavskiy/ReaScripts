@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 2.91
+-- @version 2.92
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v3.lua
@@ -10,11 +10,11 @@
 --    mpl_Various_functions_MOUSE.lua
 --    mpl_Various_functions_Pers.lua
 -- @changelog
---    # remove all paid dependencies
+--    # remove all paid dependencies 
     
 
     
-  VF_version = 2.91 -- do not remove, used for versions comparement
+  VF_version = 2.92 -- do not remove, used for versions comparement
   VF_isregist = 1|2 -- do not remove, used for VF versions check
   --------------------------------------------------
   function VF_LoadLibraries()
@@ -24,7 +24,7 @@
     dofile(script_path .. "mpl_Various_functions_v1.lua")
     dofile(script_path .. "mpl_Various_functions_v3.lua")
     dofile(script_path .. "mpl_Various_functions_MOUSE.lua")
-    dofile(script_path .. "mpl_Various_functions_Purchase.lua")
+    --dofile(script_path .. "mpl_Various_functions_Purchase.lua")
     dofile(script_path .. "mpl_Various_functions_Pers.lua")
   end
 --------------------------------------------------- 
