@@ -1097,10 +1097,10 @@
     local settingsit_offs = t.settingsit_offs
     local settingsit_layer = t.settingsit_layer
     local group = t.group or 0
-    local state = '?'
+    local state = '-'
     
     if not DATA.extstate.UI_groupflags then DATA.extstate.UI_groupflags = 0 end
-    if DATA.extstate.UI_groupflags&(1<<group)==(1<<group) then state = '?' end
+    if DATA.extstate.UI_groupflags&(1<<group)==(1<<group) then state = '+' end
     DATA.GUI.buttons[key] = 
     {
       x = settingsxoffs,
