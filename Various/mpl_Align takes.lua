@@ -50,9 +50,10 @@
                           UI_enableshortcuts = 0,
                           UI_initatmouse = 0,
                           UI_showtooltips = 1,
+                          UI_groupflags = 0,
+                          UI_appatchange = 1,
                           
                           CONF_initflags = 3, -- &1 init ref &2 init dub
-                          CONF_appatchange = 1,
                           CONF_cleanmarkdub = 1,
                           CONF_obtimesel = 0, 
                           CONF_alignitemtakes = 0, -- per item mode
@@ -111,55 +112,45 @@
       DATA.extstate.wind_x = x-w/2
       DATA.extstate.wind_y = y-h/2
     end
-    GUI:init()
-    GUI_RESERVED_initbuttons(GUI)
-    if DATA.extstate.CONF_initflags&1==1 or GUI.compactmode == 1 then DATA2:GetRefAudioData() end 
-    if DATA.extstate.CONF_initflags&2==2 or GUI.compactmode == 1 then DATA2:GetDubAudioData(  (DATA.extstate.CONF_initflags&1==1 or GUI.compactmode == 1 )) end 
+    DATA:GUIinit()
+    GUI_RESERVED_init(DATA)
+    if DATA.extstate.CONF_initflags&1==1 or DATA.GUI.compactmode == 1 then DATA2:GetRefAudioData() end 
+    if DATA.extstate.CONF_initflags&2==2 or DATA.GUI.compactmode == 1 then DATA2:GetDubAudioData(  (DATA.extstate.CONF_initflags&1==1 or DATA.GUI.compactmode == 1 )) end 
     RUN()
   end
   --------------------------------------------------------------------- 
-  function GUI_RESERVED_shortcuts(GUI)
+  function GUI_RESERVED_init_shortcuts(DATA)
     -- left/right arrow move main knob
     -- G/g get ref/dub
     -- R/r get ref
     -- D/d get dub
+    if DATA.extstate.UI_enableshortcuts == 0 then return end
     
-    if GUI.char> 0 then 
-      
-    end
-    
-    if GUI.char <= 0 or DATA.extstate.UI_enableshortcuts == 0 then return end
-    
-    if GUI.char == 32 then -- space
-      VF_Action(40044)
-    end
-    if GUI.char == 71 or GUI.char == 103 then -- G/g
-      DATA2:GetRefAudioData()
-      DATA2:GetDubAudioData(true)
-    end
-
-    if GUI.char == 82 or GUI.char == 114 then -- R/r
-      DATA2:GetRefAudioData()
-    end
-    
-    if GUI.char == 68 or GUI.char == 100 then -- D/d
-      DATA2:GetDubAudioData()
-    end
-    
-    if GUI.char == 1919379572 or GUI.char == 1818584692 then -- left/right arrow
-      local mult = 1
+    local function GUI_RESERVED_init_shortcutsLRArrow(DATA, mult0)
+      local mult = mult0 or 1
       local step = 0.1
-      if GUI.char == 1818584692 then mult = -1 end
-      if GUI.compactmode == 0 then 
-        GUI.buttons.knob.val = VF_lim(GUI.buttons.knob.val+mult*step)
-        DATA2:ApplyOutput(true)  
-        GUI.buttons.knob.refresh = true
+      if DATA.GUI.compactmode == 0 then 
+        DATA.GUI.buttons.knob.val = VF_lim(DATA.GUI.buttons.knob.val+mult*step)
+        DATA2:ApplyOutput(DATA,true)  
+        DATA.GUI.buttons.knob.refresh = true
        else
-        GUI.buttons.knobCOMPACT.val = VF_lim(GUI.buttons.knob.val+mult*step)
-        DATA2:ApplyOutput(true)  
-        GUI.buttons.knobCOMPACT.refresh = true
+        DATA.GUI.buttons.knobCOMPACT.val = VF_lim(DATA.GUI.buttons.knob.val+mult*step)
+        DATA2:ApplyOutput(DATA, true)  
+        DATA.GUI.buttons.knobCOMPACT.refresh = true
       end
     end
+    
+    DATA.GUI.shortcuts[32] = function() VF_Action(40044) end -- space to transport play
+    DATA.GUI.shortcuts[71] = function() DATA2:GetRefAudioData() DATA2:GetDubAudioData(true) end -- G / g to get data
+    DATA.GUI.shortcuts[103] = DATA.GUI.shortcuts[71]
+    DATA.GUI.shortcuts[82] = function() DATA2:GetRefAudioData() end -- R / r to get reference
+    DATA.GUI.shortcuts[114] = DATA.GUI.shortcuts[82] 
+    DATA.GUI.shortcuts[68] = function() DATA2:GetDubAudioData() end -- R / r to get reference
+    DATA.GUI.shortcuts[100] = DATA.GUI.shortcuts[68]  
+    DATA.GUI.shortcuts[1919379572] = function() GUI_RESERVED_init_shortcutsLRArrow(DATA, 1) end
+    DATA.GUI.shortcuts[1818584692] = function() GUI_RESERVED_init_shortcutsLRArrow(DATA, -1) end
+    
+    
   end
   --------------------------------------------------------------------- 
   function DATA2:gettruewindow()
@@ -178,7 +169,7 @@
     return markpos
   end
   --------------------------------------------------------------------- 
-  function DATA2:ApplyOutput(is_major) 
+  function DATA2:ApplyOutput(DATA, is_major) 
     if not DATA2.dubdata then return end
     
     for dubdataID = 1, #DATA2.dubdata do
@@ -205,8 +196,8 @@
       -- validate data_pointsSRCDEST
         if not data_pointsSRCDEST then goto skipdubtake2 end
       -- get value
-        local val = GUI.buttons.knob.val or 1
-        if GUI.compactmode == 1 then val =  GUI.buttons.knobCOMPACT.val or 1 end
+        local val = DATA.GUI.buttons.knob.val or 1
+        if DATA.GUI.compactmode == 1 then val =  DATA.GUI.buttons.knobCOMPACT.val or 1 end
       -- add markers      
         local last_src_pos
         local last_dest_pos 
@@ -244,289 +235,134 @@
     end
   end
   ---------------------------------------------------------------------  
-  function GUI_initbuttons_definecompactmode(GUI, w0, h0)
-    local w,h = gfx.w,gfx.h
-    GUI.compactmode = 0
-    GUI.compactmodelimh = 200
-    GUI.compactmodelimw = 500
-    if w < GUI.compactmodelimw*GUI.default_scale or h < GUI.compactmodelimh*GUI.default_scale then GUI.compactmode = 1 end
-  end
-  ---------------------------------------------------------------------  
-  function GUI_RESERVED_initbuttons(GUI)
-    if not GUI.layers then GUI.layers = {} end
+  function GUI_RESERVED_init(DATA)
     --GUI.default_scale = 2
     
-    GUI.custom_mainbuth = 30
-    GUI.custom_texthdef = 23
-    GUI.custom_offset = math.floor(GUI.default_scale*GUI.default_txt_fontsz/2)
-    GUI.custom_mainsepx = (gfx.w/GUI.default_scale)*0.4-- *GUI.default_scale--400*GUI.default_scale--
-    GUI.custom_mainbutw = ((gfx.w/GUI.default_scale - GUI.custom_mainsepx)-GUI.custom_offset*4) / 3
-    GUI.custom_scrollw = 10
-    GUI.custom_frameascroll = 0.05
-    GUI.custom_default_framea_normal = 0.1
-    GUI.custom_spectralw = GUI.custom_mainbutw*3 + GUI.custom_offset*2
-    GUI.custom_layerset= 21
-    GUI.custom_datah = (gfx.h/GUI.default_scale-GUI.custom_mainbuth-GUI.custom_offset*3) 
+    DATA.GUI.custom_mainbuth = 30
+    DATA.GUI.custom_texthdef = 23
+    DATA.GUI.custom_offset = math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
+    DATA.GUI.custom_mainsepx = (gfx.w/DATA.GUI.default_scale)*0.4-- *GUI.default_scale--400*GUI.default_scale--
+    DATA.GUI.custom_mainbutw = ((gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx)-DATA.GUI.custom_offset*4) / 3
+    DATA.GUI.custom_scrollw = 10
+    DATA.GUI.custom_frameascroll = 0.05
+    DATA.GUI.custom_default_framea_normal = 0.1
+    DATA.GUI.custom_spectralw = DATA.GUI.custom_mainbutw*3 + DATA.GUI.custom_offset*2
+    DATA.GUI.custom_layerset= 21
+    DATA.GUI.custom_datah = (gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_mainbuth-DATA.GUI.custom_offset*3) 
     
-    GUI.default_data_a = 0.3
-    GUI.default_data_a1 = 0.8
-    GUI.default_data_a2 = 0.8
-    GUI.default_data_col = '#FFFFFF'
-    GUI.default_data_col_adv = '#00ff00' -- green
-    GUI.default_data_col_adv2 = '#e61919 ' -- red
+    DATA.GUI.default_data_a = 0.3
+    DATA.GUI.default_data_a1 = 0.8
+    DATA.GUI.default_data_a2 = 0.8
+    DATA.GUI.default_data_col = '#FFFFFF'
+    DATA.GUI.default_data_col_adv = '#00ff00' -- green
+    DATA.GUI.default_data_col_adv2 = '#e61919' -- red
     
-    GUI_initbuttons_definecompactmode(GUI)
+    GUI_RESERVED_init_shortcuts(DATA)
     
-    GUI.buttons = {} 
+    -- define compact mode
+      local w,h = gfx.w,gfx.h
+      DATA.GUI.compactmode = 0
+      DATA.GUI.compactmodelimh = 200
+      DATA.GUI.compactmodelimw = 500
+      if w < DATA.GUI.compactmodelimw*DATA.GUI.default_scale or h < DATA.GUI.compactmodelimh*DATA.GUI.default_scale then DATA.GUI.compactmode = 1 end
+    
+    DATA.GUI.buttons = {} 
     -- main buttons
-      GUI.buttons.getreference = { x=GUI.custom_offset,
-                            y=GUI.custom_offset,
-                            w=GUI.custom_mainbutw,
-                            h=GUI.custom_mainbuth,
+      DATA.GUI.buttons.getreference = { x=DATA.GUI.custom_offset,
+                            y=DATA.GUI.custom_offset,
+                            w=DATA.GUI.custom_mainbutw,
+                            h=DATA.GUI.custom_mainbuth,
                             txt = 'Get Ref',
                             txt_short = 'REF',
-                            txt_fontsz = GUI.default_txt_fontsz2,
+                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
                             onmouseclick =  function() DATA2:GetRefAudioData() end,
-                            hide = GUI.compactmode==1,
-                            ignoremouse = GUI.compactmode==1,
+                            hide = DATA.GUI.compactmode==1,
+                            ignoremouse = DATA.GUI.compactmode==1,
                             } 
-      GUI.buttons.getdub = { x=GUI.custom_offset*2+GUI.custom_mainbutw,
-                            y=GUI.custom_offset,
-                            w=GUI.custom_mainbutw,
-                            h=GUI.custom_mainbuth,
+      DATA.GUI.buttons.getdub = { x=DATA.GUI.custom_offset*2+DATA.GUI.custom_mainbutw,
+                            y=DATA.GUI.custom_offset,
+                            w=DATA.GUI.custom_mainbutw,
+                            h=DATA.GUI.custom_mainbuth,
                             txt = 'Get Dub',
                             txt_short = 'DUB',
-                            txt_fontsz = GUI.default_txt_fontsz2,
-                            hide = GUI.compactmode==1,
-                            ignoremouse = GUI.compactmode==1,
+                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
+                            hide = DATA.GUI.compactmode==1,
+                            ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =  function() DATA2:GetDubAudioData() end}  
-      GUI.buttons.preset = { x=GUI.custom_offset*5+GUI.custom_mainbutw*3,
-                            y=GUI.custom_offset,
-                            w=GUI.custom_mainsepx-GUI.custom_offset*2,
-                            h=GUI.custom_mainbuth,
+      DATA.GUI.buttons.preset = { x=DATA.GUI.custom_offset*5+DATA.GUI.custom_mainbutw*3,
+                            y=DATA.GUI.custom_offset,
+                            w=DATA.GUI.custom_mainsepx-DATA.GUI.custom_offset*2,
+                            h=DATA.GUI.custom_mainbuth,
                             txt = 'Preset: '..(DATA.extstate.CONF_NAME or ''),
-                            txt_fontsz = GUI.default_txt_fontsz2,
-                            hide = GUI.compactmode==1,
-                            ignoremouse = GUI.compactmode==1,
-                            onmouseclick =  function() 
-                                              -- form presets menu    
-                                                local presets_t = {
-                                                  {str = 'Reset all settings to default',
-                                                    func = function() 
-                                                              DATA.extstate.current_preset = nil
-                                                              GUI.buttons.preset.txt = 'Preset: default'
-                                                              DATA:ExtStateRestoreDefaults() 
-                                                              GUI.firstloop = 1 
-                                                              DATA.UPD.onconfchange = true 
-                                                              GUI:generatelisttable( GUI_settingst(GUI, DATA, GUI.buttons.settingslist, GUI.buttons.settings_scroll) ) 
-                                                            end},
-                                                  {str = 'Save current preset',
-                                                  func = function() 
-                                                            local id 
-                                                            if DATA.extstate.current_preset then id = DATA.extstate.current_preset end
-                                                            local retval, retvals_csv = reaper.GetUserInputs( 'Save current preset', 1, 'preset name', DATA.extstate.CONF_NAME )
-                                                            if not retval then return end
-                                                            if retvals_csv~= '' then DATA.extstate.CONF_NAME = retvals_csv end
-                                                            DATA:ExtStateStorePreset(id) 
-                                                            DATA:ExtStateGetPresets()
-                                                            GUI.buttons.preset.refresh = true 
-                                                            GUI.firstloop = 1 
-                                                            DATA.UPD.onconfchange = true 
-                                                            GUI:generatelisttable( GUI_settingst(GUI, DATA, GUI.buttons.settingslist, GUI.buttons.settings_scroll) ) 
-                                                          end
-                                                  }, 
-                                                  {str = 'Rename current preset',
-                                                  func = function() 
-                                                            local id 
-                                                            if not DATA.extstate.current_preset then return else id = DATA.extstate.current_preset end
-                                                            local retval, retvals_csv = reaper.GetUserInputs( 'Save current preset', 1, 'preset name', DATA.extstate.CONF_NAME )
-                                                            if not retval then return end
-                                                            if retvals_csv~= '' then DATA.extstate.CONF_NAME = retvals_csv end
-                                                            DATA:ExtStateStorePreset(id) 
-                                                            DATA:ExtStateGetPresets()
-                                                            GUI.buttons.preset.refresh = true 
-                                                            GUI.buttons.preset.txt = 'Preset: '..(DATA.extstate.CONF_NAME or '')
-                                                            GUI.firstloop = 1 
-                                                            DATA.UPD.onconfchange = true 
-                                                            GUI:generatelisttable( GUI_settingst(GUI, DATA, GUI.buttons.settingslist, GUI.buttons.settings_scroll) ) 
-                                                          end
-                                                  },                                                   
-                                                  {str = 'Save current preset as new',
-                                                  func = function() 
-                                                            local id 
-                                                            local retval, retvals_csv = reaper.GetUserInputs( 'Save current preset', 1, 'preset name', DATA.extstate.CONF_NAME )
-                                                            if not retval then return end
-                                                            if retvals_csv~= '' then DATA.extstate.CONF_NAME = retvals_csv end
-                                                            DATA:ExtStateStorePreset() 
-                                                            DATA:ExtStateGetPresets()
-                                                            GUI.buttons.preset.refresh = true 
-                                                            GUI.firstloop = 1 
-                                                            DATA.UPD.onconfchange = true 
-                                                            GUI:generatelisttable( GUI_settingst(GUI, DATA, GUI.buttons.settingslist, GUI.buttons.settings_scroll) ) 
-                                                          end
-                                                  },     
-                                                  {str = 'Remove current preset',
-                                                  func = function()
-                                                            if DATA.extstate.current_preset then 
-                                                              DATA:ExtStatePresetRemove(DATA.extstate.current_preset)
-                                                              DATA.extstate.presets[DATA.extstate.current_preset] = nil
-                                                              DATA.extstate.current_preset = nil
-                                                            end
-                                                            local id 
-                                                            DATA:ExtStateGetPresets()
-                                                            GUI.buttons.preset.refresh = true 
-                                                            GUI.firstloop = 1 
-                                                            DATA.UPD.onconfchange = true 
-                                                            GUI:generatelisttable( GUI_settingst(GUI, DATA, GUI.buttons.settingslist, GUI.buttons.settings_scroll) ) 
-                                                          end
-                                                  },                                                    
-                                                  {str = ''},
-                                                  {str = '#Preset list'},
-                                                                  }
-                                              -- add preset list    
-                                                for i = 1, #DATA.extstate.presets do
-                                                  local state = DATA.extstate.current_preset and DATA.extstate.current_preset == i
-                                                  
-                                                  presets_t[#presets_t+1] = { str = DATA.extstate.presets[i].CONF_NAME or '[no name]',
-                                                                              func = function()  
-                                                                                        DATA:ExtStateApplyPreset(DATA.extstate.presets[i]) 
-                                                                                        DATA.extstate.current_preset = i
-                                                                                        GUI.buttons.preset.refresh = true 
-                                                                                        GUI.buttons.preset.txt = 'Preset: '..(DATA.extstate.CONF_NAME or '')
-                                                                                        GUI.firstloop = 1 
-                                                                                        DATA.UPD.onconfchange = true 
-                                                                                        GUI:generatelisttable( GUI_settingst(GUI, DATA, GUI.buttons.settingslist, GUI.buttons.settings_scroll) ) 
-                                                                                      end,
-                                                                              state = state,
-                                                  
-                                                    
-                                                                              }
-                                                end
-                                              -- form table
-                                                GUI:menu(presets_t)  
-                                            end} 
+                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
+                            hide = DATA.GUI.compactmode==1,
+                            ignoremouse = DATA.GUI.compactmode==1,
+                            onmouseclick =  function() DATA:GUIbut_preset() end} 
                                             
-      GUI.buttons.knob = { x=GUI.custom_offset*3 + GUI.custom_mainbutw*2 ,
-                            y=GUI.custom_offset,
-                            w=GUI.custom_mainbutw,
-                            h=GUI.custom_mainbuth,
+      DATA.GUI.buttons.knob = { x=DATA.GUI.custom_offset*3 + DATA.GUI.custom_mainbutw*2 ,
+                            y=DATA.GUI.custom_offset,
+                            w=DATA.GUI.custom_mainbutw,
+                            h=DATA.GUI.custom_mainbuth,
                             txt = '',
-                            txt_fontsz = GUI.custom_texthdef,
+                            txt_fontsz = DATA.GUI.custom_texthdef,
                             knob_isknob = true,
                             val_res = 0.25,
                             val = 0,
-                            frame_a = GUI.default_framea_normal,
-                            frame_asel = GUI.default_framea_normal,
+                            frame_a = DATA.GUI.default_framea_normal,
+                            frame_asel = DATA.GUI.default_framea_normal,
                             back_sela = 0,
-                            hide = GUI.compactmode==1,
-                            ignoremouse = GUI.compactmode==1,
-                            onmousedrag =  function() DATA2:ApplyOutput() end,
+                            hide = DATA.GUI.compactmode==1,
+                            ignoremouse = DATA.GUI.compactmode==1,
+                            onmousedrag =  function() DATA2:ApplyOutput(DATA) end,
                             onmouserelease  =  function() 
-                                                  DATA2:ApplyOutput(true)
+                                                  DATA2:ApplyOutput(DATA, true)
                                                   Undo_OnStateChange2( 0, 'Align Takes' ) 
                                                 end
                                             
                                             }   
 
-      GUI.buttons.knobCOMPACT = { x=0 ,
+      DATA.GUI.buttons.knobCOMPACT = { x=0 ,
                             y=0,
-                            w=gfx.w/GUI.default_scale,
-                            h=gfx.h/GUI.default_scale,
+                            w=gfx.w/DATA.GUI.default_scale,
+                            h=gfx.h/DATA.GUI.default_scale,
                             txt = '',
-                            txt_fontsz = GUI.custom_texthdef,
+                            txt_fontsz = DATA.GUI.custom_texthdef,
                             knob_isknob = true,
                             --val_res = 0.25,
                             val = 0,
-                            frame_a = GUI.default_framea_normal,
-                            frame_asel = GUI.default_framea_normal,
+                            frame_a = DATA.GUI.default_framea_normal,
+                            frame_asel = DATA.GUI.default_framea_normal,
                             back_sela = 0,
-                            hide = GUI.compactmode~=1,
-                            ignoremouse = GUI.compactmode~=1,
-                            onmousedrag =  function()  DATA2:ApplyOutput() end,
-                            onmouserelease  = GUI.buttons.knob.onmouserelease }                            
-    -- settings
-      GUI.buttons.settings = { x=gfx.w/GUI.default_scale - GUI.custom_mainsepx,
-                            y=GUI.custom_mainbuth + GUI.custom_offset,
-                            w=GUI.custom_mainsepx,
-                            h=gfx.h/GUI.default_scale-GUI.custom_mainbuth - GUI.custom_offset,
+                            hide = DATA.GUI.compactmode~=1,
+                            ignoremouse = DATA.GUI.compactmode~=1,
+                            onmousedrag =  function()  DATA2:ApplyOutput(DATA) end,
+                            onmouserelease  = DATA.GUI.buttons.knob.onmouserelease }  
+
+      DATA.GUI.buttons.Rsettings = { x=gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx,
+                            y=DATA.GUI.custom_mainbuth + DATA.GUI.custom_offset,
+                            w=DATA.GUI.custom_mainsepx,
+                            h=gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_mainbuth - DATA.GUI.custom_offset,
                             txt = 'Settings',
-                            --txt_fontsz = GUI.default_txt_fontsz3,
-                            offsetframe = GUI.custom_offset,
-                            frame_a = GUI.custom_default_framea_normal,
+                            --txt_fontsz = DATA.GUI.default_txt_fontsz3,
+                            frame_a = 0,
+                            offsetframe = DATA.GUI.custom_offset,
+                            offsetframe_a = 0.1,
                             ignoremouse = true,
-                            hide = GUI.compactmode==1,
                             }
-  
-      local offs = GUI.custom_offset
-      GUI.buttons.settingslist = { x=GUI.buttons.settings.x +offs*2,
-                            y=GUI.buttons.settings.y+offs*2,
-                            w=GUI.buttons.settings.w-offs*5-GUI.custom_scrollw,
-                            h=GUI.buttons.settings.h-offs*4  , 
-                            txt = 'list',
-                            frame_a = 1,
-                            layer = GUI.custom_layerset,
-                            hide = true,
-                            ignoremouse = true,}  
-      GUI.buttons.settingslist_mouse = { x=GUI.buttons.settings.x +offs*2, -- for scrolling
-                            y=GUI.buttons.settings.y+offs*2,
-                            w=GUI.buttons.settings.w-offs*5-GUI.custom_scrollw,
-                            h=GUI.buttons.settings.h-offs*4  , 
-                            txt = 'list',
-                            frame_a = 1,
-                            --layer = GUI.custom_layerset,
-                            hide = true,
-                            --ignoremouse = true,
-                            onwheeltrig = function() 
-                                            local dir = 1
-                                            local layer= GUI.custom_layerset
-                                            if GUI.wheel_dir then dir = -1 end
-                                            GUI.layers[layer].scrollval = VF_lim(GUI.layers[layer].scrollval - 0.1 * dir)
-                                            --GUI.buttons[key].refresh = true
-                                            if GUI.buttons.settings_scroll then 
-                                              GUI.buttons.settings_scroll.refresh = true
-                                              GUI.buttons.settings_scroll.val = GUI.layers[layer].scrollval
-                                            end
-                                          end,}                               
-      GUI:quantizeXYWH(GUI.buttons.settingslist)
-      
-      if not GUI.layers[GUI.custom_layerset] then GUI.layers[GUI.custom_layerset] = {} end
-      GUI.layers[GUI.custom_layerset].scrollval=0
-      
-      GUI.buttons.settings_scroll = { x=GUI.buttons.settings.x+GUI.buttons.settings.w-GUI.custom_scrollw-offs*2,
-                            y=GUI.buttons.settings.y+offs*2,
-                            w=GUI.custom_scrollw,
-                            h=GUI.buttons.settings.h-offs*4,
-                            frame_a = GUI.custom_frameascroll,
-                            frame_asel = GUI.custom_frameascroll,
-                            val = 0,
-                            val_res = -1,
-                            slider_isslider = true,
-                            hide = GUI.compactmode==1,
-                            ignoremouse = GUI.compactmode==1,
-                            onmousedrag = function() GUI.layers[GUI.custom_layerset].scrollval = GUI.buttons.settings_scroll.val end
-                            }
-                            
-                            
-      GUI.layers[GUI.custom_layerset].a=1
-      GUI.layers[GUI.custom_layerset].hide = GUI.compactmode==1
-      GUI.layers[GUI.custom_layerset].layer_x = GUI.buttons.settingslist.x
-      GUI.layers[GUI.custom_layerset].layer_y = GUI.buttons.settingslist.y
-      GUI.layers[GUI.custom_layerset].layer_yshift = 0
-      GUI.layers[GUI.custom_layerset].layer_w = GUI.buttons.settingslist.w+1
-      GUI.layers[GUI.custom_layerset].layer_h = GUI.buttons.settingslist.h
-      if GUI.compactmode==0 then GUI.layers[GUI.custom_layerset].layer_hmeasured = GUI:generatelisttable( GUI_settingst(GUI, DATA, GUI.buttons.settingslist, GUI.buttons.settings_scroll) ) end
- 
-      GUI_initdata(GUI)
+      if DATA.GUI.compactmode==0 then 
+        DATA:GUIBuildSettings()
+        GUI_initdata(DATA)
+      end
       
     
-    for but in pairs(GUI.buttons) do GUI.buttons[but].key = but end
+    for but in pairs(DATA.GUI.buttons) do DATA.GUI.buttons[but].key = but end
   end
   ---------------------------------------------------------------------  
   function GUI_initdata(GUI) 
     local cntdub = 0
     if DATA2.dubdata then cntdub  = #DATA2.dubdata end
     local cnt_data = cntdub + 1
-    local data_h_t = GUI.custom_datah / cnt_data
+    local data_h_t = DATA.GUI.custom_datah / cnt_data
     local data_h_t_mod = data_h_t -2 
     local val_data_under 
     
@@ -540,32 +376,32 @@
       if DATA2.dubdata and DATA2.dubdata[1] and DATA2.dubdata[1].stretchedarray then
         val_data_under= DATA2.dubdata[1].stretchedarray
       end 
-      GUI.buttons.refdata = { x=0, -- link to GUI.buttons.getreference
+      DATA.GUI.buttons.refdata = { x=0, -- link to GUI.buttons.getreference
                             y=0,
-                            w=GUI.custom_spectralw ,
+                            w=DATA.GUI.custom_spectralw ,
                             h=data_h_t_mod,
                             ignoremouse = true,
                             val_data = val_data,
                             val_data_adv = val_data_adv,
                             val_data_under=val_data_under,
                             layer = layerref,
-                            hide = GUI.compactmode==1,
+                            hide = DATA.GUI.compactmode==1,
                             refresh = true,
                             frame_a = 0
                             } 
-      GUI:quantizeXYWH(GUI.buttons.refdata)
-      if not GUI.layers[layerref] then GUI.layers[layerref] = {} end
-      GUI.layers[layerref].a=1
-      GUI.layers[layerref].hide = GUI.compactmode==1
-      GUI.layers[layerref].layer_x = GUI.custom_offset
-      GUI.layers[layerref].layer_y = GUI.custom_offset*2+GUI.custom_mainbuth
-      GUI.layers[layerref].layer_w = GUI.buttons.refdata.w+1
-      GUI.layers[layerref].layer_h = GUI.custom_datah
-      GUI.layers[layerref].layer_yshift = 0
+      DATA:GUIquantizeXYWH(DATA.GUI.buttons.refdata)
+      if not DATA.GUI.layers[layerref] then DATA.GUI.layers[layerref] = {} end
+      DATA.GUI.layers[layerref].a=1
+      DATA.GUI.layers[layerref].hide = DATA.GUI.compactmode==1
+      DATA.GUI.layers[layerref].layer_x = DATA.GUI.custom_offset
+      DATA.GUI.layers[layerref].layer_y = DATA.GUI.custom_offset*2+DATA.GUI.custom_mainbuth
+      DATA.GUI.layers[layerref].layer_w = DATA.GUI.buttons.refdata.w+1
+      DATA.GUI.layers[layerref].layer_h = DATA.GUI.custom_datah
+      DATA.GUI.layers[layerref].layer_yshift = 0
     
     -- dub data
       if not DATA2.dubdata then return end
-      for i = 1, 1000 do GUI.buttons['dubdata'..i] = nil end
+      for i = 1, 1000 do DATA.GUI.buttons['dubdata'..i] = nil end
       for i = 1, #DATA2.dubdata do
         local dubdata = DATA2.dubdata[i]
         local val_data, val_data_adv, val_data_adv2,data_pointsSRCDEST
@@ -574,23 +410,23 @@
         if dubdata.data_points_match then val_data_adv2= dubdata.data_points_match end
         if dubdata.data_pointsSRCDEST then data_pointsSRCDEST= dubdata.data_pointsSRCDEST end
         
-        GUI.buttons['dubdata'..i] = { x=0, -- link to GUI.buttons.getreference
+        DATA.GUI.buttons['dubdata'..i] = { x=0, -- link to GUI.buttons.getreference
                                   y=data_h_t*i,
-                                  w=GUI.custom_spectralw ,
+                                  w=DATA.GUI.custom_spectralw ,
                                   h=data_h_t_mod,
                                   val_data = val_data,
                                   val_data_adv = val_data_adv,
                                   val_data_adv2 = val_data_adv2,
                                   val_data_com = data_pointsSRCDEST,
                                   layer = layerref,
-                                  hide = GUI.compactmode==1,
+                                  hide = DATA.GUI.compactmode==1,
                                   refresh = true,
                                   frame_a = 0,
                                   back_sela = 0,
-                                  onmouseclick = function() if DATA.extstate.CONF_markgen_manualedit == 0 then return end GUI_initdata_DUBedit(0,dubdata.data_points,GUI.buttons['dubdata'..i])  end,
-                                  onmousedragR = function() if DATA.extstate.CONF_markgen_manualedit == 0 then return end GUI_initdata_DUBedit(1,dubdata.data_points, GUI.buttons['dubdata'..i])  end,
-                                  onmouserelease = function() if DATA.extstate.CONF_markgen_manualedit == 0 then return end local dubdataId = i DATA2.dubdata[dubdataId].data_points_match, DATA2.dubdata[dubdataId].data_pointsSRCDEST, DATA2.dubdata[dubdataId].stretchedarray = DATA2:ApplyMatch(DATA2.dubdata[dubdataId])GUI_initdata(GUI) end,
-                                  onmousereleaseR = function() if DATA.extstate.CONF_markgen_manualedit == 0 then return end local dubdataId = i DATA2.dubdata[dubdataId].data_points_match, DATA2.dubdata[dubdataId].data_pointsSRCDEST, DATA2.dubdata[dubdataId].stretchedarray = DATA2:ApplyMatch(DATA2.dubdata[dubdataId]) GUI_initdata(GUI) end
+                                  onmouseclick = function() if DATA.extstate.CONF_markgen_manualedit == 0 then return end GUI_initdata_DUBedit(DATA, 0,dubdata.data_points,DATA.GUI.buttons['dubdata'..i])  end,
+                                  onmousedragR = function() if DATA.extstate.CONF_markgen_manualedit == 0 then return end GUI_initdata_DUBedit(DATA, 1,dubdata.data_points, DATA.GUI.buttons['dubdata'..i])  end,
+                                  onmouserelease = function() if DATA.extstate.CONF_markgen_manualedit == 0 then return end local dubdataId = i DATA2.dubdata[dubdataId].data_points_match, DATA2.dubdata[dubdataId].data_pointsSRCDEST, DATA2.dubdata[dubdataId].stretchedarray = DATA2:ApplyMatch(DATA2.dubdata[dubdataId])GUI_initdata(DATA) end,
+                                  onmousereleaseR = function() if DATA.extstate.CONF_markgen_manualedit == 0 then return end local dubdataId = i DATA2.dubdata[dubdataId].data_points_match, DATA2.dubdata[dubdataId].data_pointsSRCDEST, DATA2.dubdata[dubdataId].stretchedarray = DATA2:ApplyMatch(DATA2.dubdata[dubdataId]) GUI_initdata(DATA) end
                                   
                                   }  
       end
@@ -599,15 +435,15 @@
       
   end
   ---------------------------------------------------------------------  
-  function GUI_initdata_DUBedit(mode, pointst, b) 
+  function GUI_initdata_DUBedit(DATA, mode, pointst, b) 
     if not pointst then return end
     if mode==0 then -- L click
-      local block = math.floor(#pointst * (GUI.x-b.x) / (b.w-b.x))
+      local block = math.floor(#pointst * (DATA.GUI.x-b.x) / (b.w-b.x))
       pointst[block] = 1
     end 
     
     if mode==1 then -- R drag
-      local block = math.floor(#pointst * (GUI.x-b.x) / (b.w-b.x))
+      local block = math.floor(#pointst * (DATA.GUI.x-b.x) / (b.w-b.x))
       pointst[block] = 0
       if pointst[block-1] then pointst[block-1] = 0 end
       if pointst[block-1] then pointst[block+1] = 0 end
@@ -615,598 +451,132 @@
     
   end
   ---------------------------------------------------------------------  
-  function GUI_settingst(GUI, DATA, boundaryobj, scrollobj) 
-  
-    local function GUI_settingst_confirmval(GUI, DATA, key,txt,confkey, val, major_confirm, ignoreCONF_appatchange) 
-      if key and GUI.buttons[key] then GUI.buttons[key].txt = txt GUI.buttons[key].refresh = true  end
-      if confkey then DATA.extstate[confkey] = val end 
-      boundaryobj.refresh = true 
-      if major_confirm then 
-        GUI:generatelisttable( GUI_settingst(GUI, DATA, boundaryobj) )
-        DATA.UPD.onconfchange = true
-        DATA:ExtStateStorePreset(0) 
-        boundaryobj.refresh = true 
-        if DATA.extstate.CONF_appatchange&1==1 and not ignoreCONF_appatchange then 
-          DATA2:GetRefAudioData()
-          DATA2:GetDubAudioData(true)
-        end
-      end
+  function DATA2:ProcessAtChange(DATA)
+    if DATA.extstate.UI_appatchange&1==1 then 
+      DATA2:GetRefAudioData()
+      DATA2:GetDubAudioData(true)
     end
-    
-    
-    local function GUI_settingst_getcheck(menuitem,confname, col, protect)
-      local active = true
-      if protect then active = VF_isregist&2==2 end
-      return { str = menuitem,
-        level = 1,
-        txt_col = col,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,confname, math.abs(1-DATA.extstate[confname]) , true, nil )  end,                          
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults(confname) GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil , true, nil )  end,                          
-        ischeck = true,
-        state = DATA.extstate[confname]==1,
-        active = active,
-        ignoremouse = not active,
-      }
-    end
-    
-    
+  end
+  ---------------------------------------------------------------------  
+  function GUI_RESERVED_BuildSettings(DATA)
+    local BandSplitterFreq_res = 0.05
+    local readoutw_extw = 150
     --
-    -- get true window
-      local wind = DATA2:gettruewindow()
+    
     -- get pitch shift mode
-      local pitch_shift_t = {
-        {str = '[default]', func = function()  local val = -1 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_post_pshift', val,true, nil  ) end, true}  }
-      local pshift_txt = '[default]'  
+      pitch_shift_t = {}
+      pitch_shift_t[-1] = '[default]'
       for mode=0, 32 do
         local retval, modename = reaper.EnumPitchShiftModes( mode )
-        if mode == DATA.extstate.CONF_post_pshift then pshift_txt = modename end
-        if retval and modename and modename ~= '' then pitch_shift_t[#pitch_shift_t+1] = {str = modename, func = function()  local val = mode GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_post_pshift', val,true, nil  ) end, true}   end
+        if retval and modename and modename ~= '' then pitch_shift_t[mode] = modename   end
       end
+      
     -- get pitch shift sub mode
-      local pitch_shift_tsub = {
-        {str = '[default]', func = function()  local val = -1 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_post_pshiftsub', val,true, nil  ) end, true}  }
-      local pshiftsub_txt = '[default]'  
+      local pitch_shift_tsub = {}
+      pitch_shift_tsub[-1] = '[default]'
       local mode = 0
       if DATA.extstate.CONF_post_pshift >=0 then mode = DATA.extstate.CONF_post_pshift end
       for submode=0, 32 do
         local modename = EnumPitchShiftSubModes( mode, submode )
-        if submode == DATA.extstate.CONF_post_pshiftsub then pshiftsub_txt = modename end
-        if modename and modename ~= '' then pitch_shift_tsub[#pitch_shift_tsub+1] = {str = modename, func = function()  local val = submode GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_post_pshiftsub', val,true, nil  ) end, true} end
-      end    
+        if modename and modename ~= '' then pitch_shift_tsub[submode] = modename end
+      end   
+      
     -- form sm mod table
-      local smmode = {
-        {str = 'default', TEMPval = 0,  func = function()  local val = 0 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_post_smmode', val,true, nil  ) end, true}  ,       
-        {str = 'Balanced',  TEMPval = 1,  func = function()  local val = 1 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_post_smmode', val,true, nil  ) end, true}  ,                      
-        {str = 'Tonal optimized',  TEMPval = 2,  func = function()  local val = 2 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_post_smmode', val,true, nil  ) end, true}  ,  
-        {str = 'Transient optimized',  TEMPval = 4,  func = function()  local val = 4 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_post_smmode', val,true, nil  ) end, true }  ,   
-        {str = 'No pre echo reduction',  TEMPval = 5,  func = function()  local val = 5 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_post_smmode', val,true, nil  ) end, true } 
-                              }
-            
-      local smmode_txt = ''
-      for i = 1, #smmode do
-        if smmode[i].TEMPval ==  DATA.extstate.CONF_post_smmode then smmode_txt = smmode[i].str end
-      end
-      
-      
+      local smmode = { 
+        [0] = 'default',      
+        [1] = 'Balanced',      
+        [2] = 'Tonal optimized',
+        [4] = 'Transient optimized',
+        [5] = 'No pre echo reduction'}
+        
     local  t = 
-    {
-      { str = 'Global' ,
-        issep = true
-      }, 
-      { str = 'Get reference take at initialization',
-        level = 1,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_initflags', DATA.extstate.CONF_initflags~1 , true, true )  end,                          
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_initflags') GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_initflags', DATA.extstate.CONF_initflags~1 , true, true )  end,                          
-        ischeck = true,
-        state = DATA.extstate.CONF_initflags&1==1,
-      },
-      { str = 'Get dub take at initialization',
-        level = 1,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_initflags', DATA.extstate.CONF_initflags~2, true, true   ) end,                          
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_initflags')  GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_initflags', DATA.extstate.CONF_initflags~2, true, true   ) end,                          
-        ischeck = true,
-        state = DATA.extstate.CONF_initflags&2==2,
-      },       
+    { 
+      {str = 'Global' ,                                   group = 1, itype = 'sep'},
+        {str = 'Get reference take at initialization' ,   group = 1, itype = 'check', confkey = 'CONF_initflags', confkeybyte=1, level = 1},
+        {str = 'Get dub take at initialization' ,         group = 1, itype = 'check', confkey = 'CONF_initflags', confkeybyte=2, level = 1},
+        {str = 'Clean dub markers at initialization' ,    group = 1, itype = 'check', confkey = 'CONF_cleanmarkdub', level = 1},
+        {str = 'Obey time selection' ,                    group = 1, itype = 'check', confkey = 'CONF_obtimesel', level = 1},
+        {str = 'Align takes inside item' ,                group = 1, itype = 'check', confkey = 'CONF_alignitemtakes', level = 1},
+        
+      {str = 'Audio data' ,                               group = 2, itype = 'sep'},  
+        {str = 'BandSplitter Freq 1' ,                    group = 2, itype = 'readout', confkey = 'CONF_audio_bs_f1', level = 1, val_min = 20, val_max = DATA.extstate.CONF_audio_bs_f2,                                  val_res = BandSplitterFreq_res, val_format = function(x) return math.floor(x)..'Hz' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+        {str = 'BandSplitter Freq 2' ,                    group = 2, itype = 'readout', confkey = 'CONF_audio_bs_f2', level = 1, val_min = DATA.extstate.CONF_audio_bs_f1, val_max = DATA.extstate.CONF_audio_bs_f3,      val_res = BandSplitterFreq_res, val_format = function(x) return math.floor(x)..'Hz' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+        {str = 'BandSplitter Freq 3' ,                    group = 2, itype = 'readout', confkey = 'CONF_audio_bs_f3', level = 1, val_min = DATA.extstate.CONF_audio_bs_f2, val_max = 10000,                               val_res = BandSplitterFreq_res, val_format = function(x) return math.floor(x)..'Hz' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+        {str = 'BandSplitter Band 1' ,                    group = 2, itype = 'readout', confkey = 'CONF_audio_bs_a1', level = 1, val_res = 0.05, ispercentvalue = true, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+        {str = 'BandSplitter Band 2' ,                    group = 2, itype = 'readout', confkey = 'CONF_audio_bs_a2', level = 1, val_res = 0.05, ispercentvalue = true, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+        {str = 'BandSplitter Band 3' ,                    group = 2, itype = 'readout', confkey = 'CONF_audio_bs_a3', level = 1, val_res = 0.05, ispercentvalue = true, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+        {str = 'BandSplitter Band 4' ,                    group = 2, itype = 'readout', confkey = 'CONF_audio_bs_a4', level = 1, val_res = 0.05, ispercentvalue = true, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+        {str = 'Gate' ,                                   group = 2, itype = 'readout', confkey = 'CONF_audio_gate', level = 1, val_res = 0.05, ispercentvalue = true, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+        {str = 'Limit' ,                                  group = 2, itype = 'readout', confkey = 'CONF_audio_lim', level = 1, val_res = 0.05, ispercentvalue = true, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
       
-
-      GUI_settingst_getcheck('Apply settings at config change', 'CONF_appatchange'),  
-      GUI_settingst_getcheck('Clean dub markers at initialization', 'CONF_cleanmarkdub'),  
-      GUI_settingst_getcheck('Obey time selection', 'CONF_obtimesel', GUI.default_data_col, true),  
-      GUI_settingst_getcheck('Align takes inside item', 'CONF_alignitemtakes', GUI.default_data_col, true ),  
-      { str = 'User interface' ,
-        issep = true
-      }, 
-      GUI_settingst_getcheck('Enable shortcuts', 'UI_enableshortcuts'),  
-      GUI_settingst_getcheck('Init UI at mouse position', 'UI_initatmouse'),  
-      GUI_settingst_getcheck('Show tootips', 'UI_showtooltips'),  
-       
-      {str = 'Audio data',
-       issep = true
-      }, 
-      { customkey = 'settings_bsf1',
-        str = 'BandSplitter Freq 1',
-        level = 1,
-        isvalue = true,
-        val = VF_FormatToNormValue(DATA.extstate.CONF_audio_bs_f1, 20, DATA.extstate.CONF_audio_bs_f2),
-        val_res = 0.1,
-        valtxt =  DATA.extstate.CONF_audio_bs_f1..'Hz',
-        onmousedrag = function() 
-                        local min = 20
-                        local max = DATA.extstate.CONF_audio_bs_f2
-                        local Fout = VF_NormToFormatValue(GUI.buttons['settings_bsf1val'].val,min,max,-1)
-                        GUI_settingst_confirmval(GUI, DATA, 'settings_bsf1val',Fout ..'Hz', 'CONF_audio_bs_f1', Fout, nil, nil  )
-                      end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_bs_f1') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        active = VF_isregist&2==2,
-        ignoremouse = VF_isregist&2~=2,
-      },     
-      { customkey = 'settings_bsf2',
-        str = 'BandSplitter Freq 2',
-        level = 1,
-        isvalue = true,
-        val = VF_FormatToNormValue(DATA.extstate.CONF_audio_bs_f2, DATA.extstate.CONF_audio_bs_f1, DATA.extstate.CONF_audio_bs_f3),
-        val_res = 0.1,
-        valtxt =  DATA.extstate.CONF_audio_bs_f2..'Hz',
-        onmousedrag = function() 
-                        local min = DATA.extstate.CONF_audio_bs_f1
-                        local max = DATA.extstate.CONF_audio_bs_f3
-                        local Fout = VF_NormToFormatValue(GUI.buttons['settings_bsf2val'].val,min,max,-1)
-                        GUI_settingst_confirmval(GUI, DATA, 'settings_bsf2val',Fout ..'Hz', 'CONF_audio_bs_f2', Fout, nil, nil  )
-                      end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_bs_f2') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        active = VF_isregist&2==2,
-        ignoremouse = VF_isregist&2~=2,
-      },   
-      { customkey = 'settings_bsf3',
-        str = 'BandSplitter Freq 3',
-        level = 1,
-        isvalue = true,
-        val = VF_FormatToNormValue(DATA.extstate.CONF_audio_bs_f3, DATA.extstate.CONF_audio_bs_f2, 10000),
-        val_res = 0.1,
-        valtxt =  DATA.extstate.CONF_audio_bs_f3..'Hz',
-        onmousedrag = function() 
-                        local min = DATA.extstate.CONF_audio_bs_f2
-                        local max = 10000
-                        local Fout = VF_NormToFormatValue(GUI.buttons['settings_bsf3val'].val,min,max,-1)
-                        GUI_settingst_confirmval(GUI, DATA, 'settings_bsf3val',Fout ..'Hz', 'CONF_audio_bs_f3', Fout, nil, nil  )
-                      end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_bs_f3') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        active = VF_isregist&2==2,
-        ignoremouse = VF_isregist&2~=2,
-      },  
-      { customkey = 'settings_bsa1',
-        str = 'BandSplitter Band 1',
-        level = 1,
-        isvalue = true,
-        val = DATA.extstate.CONF_audio_bs_a1,
-        val_res = 0.1,
-        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_audio_bs_a1, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_bsa1val',VF_NormToFormatValue(GUI.buttons['settings_bsa1val'].val, 0,100)..'%', 'CONF_audio_bs_a1', GUI.buttons['settings_bsa1val'].val, nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_bs_a1') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-      },   
-      { customkey = 'settings_bsa2',
-        str = 'BandSplitter Band 2',
-        level = 1,
-        isvalue = true,
-        val = DATA.extstate.CONF_audio_bs_a2,
-        val_res = 0.1,
-        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_audio_bs_a2, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_bsa2val',VF_NormToFormatValue(GUI.buttons['settings_bsa2val'].val, 0,100)..'%', 'CONF_audio_bs_a2', GUI.buttons['settings_bsa2val'].val, nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_bs_a2') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-      },     
-      { customkey = 'settings_bsa3',
-        str = 'BandSplitter Band 3',
-        level = 1,
-        isvalue = true,
-        val = DATA.extstate.CONF_audio_bs_a3,
-        val_res = 0.1,
-        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_audio_bs_a3, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_bsa3val',VF_NormToFormatValue(GUI.buttons['settings_bsa3val'].val, 0,100)..'%', 'CONF_audio_bs_a3', GUI.buttons['settings_bsa3val'].val , nil, nil ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function()DATA:ExtStateRestoreDefaults('CONF_audio_bs_a3')  GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-      },      
-      { customkey = 'settings_bsa4',
-        str = 'BandSplitter Band 4',
-        level = 1,
-        isvalue = true,
-        val = DATA.extstate.CONF_audio_bs_a4,
-        val_res = 0.1,
-        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_audio_bs_a4, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_bsa4val',VF_NormToFormatValue(GUI.buttons['settings_bsa4val'].val, 0,100)..'%', 'CONF_audio_bs_a4', GUI.buttons['settings_bsa4val'].val, nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_bs_a4') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-      }, 
-      { customkey = 'settings_gate',
-        str = 'Gate',
-        level = 1,
-        isvalue = true,
-        val = DATA.extstate.CONF_audio_gate,
-        val_res = 0.1,
-        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_audio_gate, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_gateval',VF_NormToFormatValue(GUI.buttons['settings_gateval'].val, 0,100)..'%', 'CONF_audio_gate', GUI.buttons['settings_gateval'].val, nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_gate') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        
-        
-      },       
- 
+      {str = 'Peak follower' ,                            group = 3, itype = 'sep'}, 
+        {str = 'Window' ,                                 group = 3, itype = 'readout', confkey = 'CONF_window', level = 1, val_min = 0.01, val_max = 0.4, val_res = 0.05, val_format = function(x) return VF_math_Qdec(x,3)..'s' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, func_onrelease = function() DATA2:ProcessAtChange(DATA) end,tooltip='Time of audio block for read'},
+        {str = 'Overlap divider' ,                        group = 3, itype = 'readout', confkey = 'CONF_window_overlap', level = 1, menu = { [1]='[window]', [2]='2x', [4]='4x', [8]='8x' },tooltip='Overlap window block back for a window time divided by this coefficient',func_onrelease = function() DATA2:ProcessAtChange(DATA) end, }, 
+        {str = 'val^y (scaling)' ,                        group = 3, itype = 'readout', confkey = 'CONF_audiodosquareroot', level = 1, val_min = 0.1, val_max = 2, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end}, 
+        {str = 'Smooth envelope' ,                        group = 3, itype = 'readout', confkey = 'CONF_smooth', level = 1, menu = { [0]='[none]', [1]='1x',  [2]='2x', [4]='4x', [8]='8x' }, func_onrelease = function() DATA2:ProcessAtChange(DATA) end}, 
+        {str = 'Compensate overlap / Reduce points' ,     group = 3, itype = 'check', confkey = 'CONF_compensateoverlap', level = 1, tooltip='When doing overlap it multiply count of points. This check compensate it'},
       
+      {str = 'Source markers generator' ,                 group = 4, itype = 'sep'}, 
+        {str = 'Allow manual editing' ,                   group = 4, itype = 'check', confkey = 'CONF_markgen_manualedit', level = 1},
+        {str = 'Algorithm 1 (slow rise/fall detect)' ,    group = 4, itype = 'check', confkey = 'CONF_markgen_algo', level = 1, isset = 0, tooltip='Trigger points for relative rises/falls at defined area by some RMS-per-block change'},
+          {str = 'Set at envelope fall' ,                 group = 4, itype = 'check', confkey = 'CONF_markgen_enveloperisefall', level = 2, confkeybyte = 1, hide = DATA.extstate.CONF_markgen_algo~=0},
+          {str = 'Set at envelope rise' ,                 group = 4, itype = 'check', confkey = 'CONF_markgen_enveloperisefall', level = 2, confkeybyte = 2, hide = DATA.extstate.CONF_markgen_algo~=0},
+          {str = 'Minimum points distance' ,              group = 4, itype = 'readout', confkey = 'CONF_markgen_filterpoints', level = 2, val_min = 5, val_max = 50, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide = DATA.extstate.CONF_markgen_algo~=0,
+                                                          val_isinteger = true,
+                                                          val_format = function(x) return x*DATA.extstate.CONF_window..'s' end,
+                                                          val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},
+          {str = 'area_RMS length' ,                      group = 4, itype = 'readout', confkey = 'CONF_markgen_RMSpoints', level = 2, val_min = 5, val_max = 30, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide = DATA.extstate.CONF_markgen_algo~=0,
+                                                          val_isinteger = true,
+                                                          val_format = function(x) return x*DATA.extstate.CONF_window..'s' end,
+                                                          val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},
+          {str = 'minimum of [value/abs(area_RMS-value)]',group = 4, itype = 'readout', confkey = 'CONF_markgen_minimalareaRMS', level = 2, val_min = 0, val_max =0.7, val_res = 0.05, ispercentvalue = true, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide = DATA.extstate.CONF_markgen_algo~=0,},                                                
+          {str = 'Level threshold',                       group = 4, itype = 'readout', confkey = 'CONF_markgen_threshold', level = 2, val_res = 0.05, ispercentvalue = true, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide = DATA.extstate.CONF_markgen_algo~=0,},                                                
+        {str = 'Algorithm 2 (gate trigger)' ,             group = 4, itype = 'check', confkey = 'CONF_markgen_algo', level = 1, isset = 1, tooltip='Trigger points at gate open/close'},
+          {str = 'Minimum points distance' ,              group = 4, itype = 'readout', confkey = 'CONF_markgen_filterpoints2', level = 2, val_min = 5, val_max = 50, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide = DATA.extstate.CONF_markgen_algo~=1,
+                                                          val_isinteger = true,
+                                                          val_format = function(x) return x*DATA.extstate.CONF_window..'s' end,
+                                                          val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},
+          {str = 'Trigger threshold',                     group = 4, itype = 'readout', confkey = 'CONF_markgen_threshold2', level = 2, val_res = 0.05, ispercentvalue = true, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide = DATA.extstate.CONF_markgen_algo~=1,},           
+        {str = 'Algorithm 3 (equal distance)' ,           group = 4, itype = 'check', confkey = 'CONF_markgen_algo', level = 1, isset = 2},
+          {str = 'Points distance' ,                      group = 4, itype = 'readout', confkey = 'CONF_markgen_filterpoints3', level = 2, val_min = 5, val_max = 100, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide = DATA.extstate.CONF_markgen_algo~=2,
+                                                          val_isinteger = true,
+                                                          val_format = function(x) return x*DATA.extstate.CONF_window..'s' end,
+                                                          val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},        
+        
+      {str = 'Audio match algorithm' ,                    group = 6, itype = 'sep'},  
+          {str = 'Brutforce search area' ,                group = 6, itype = 'readout', confkey = 'CONF_markgen_filterpoints3', level = 2, val_min = 3, val_max = 50, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, tooltip='Maximum deviation of source markers',
+                                                          val_isinteger = true,
+                                                          val_format = function(x) return x*DATA.extstate.CONF_window..'s' end,
+                                                          val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},           
+          {str = 'Stretch dub array on the fly' ,         group = 6, itype = 'check', confkey = 'CONF_match_stretchdubarray', level = 1},
+          {str = 'Ignore zero values difference check' ,  group = 6, itype = 'check', confkey = 'CONF_match_ignorezeros', level = 1},
+          {str = 'Search forward only' ,                  group = 6, itype = 'check', confkey = 'CONF_match_searchfurtheronly', level = 1},
+          {str = 'Compare until midblock' ,               group = 6, itype = 'check', confkey = 'CONF_match_firstsrgmonly', level = 1},
+          {str = 'Minimum block search start offset' ,    group = 6, itype = 'readout', confkey = 'CONF_match_minblocksstartoffs', level = 1, val_min =0, val_max = 30, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, tooltip='Minimum between comparing block start poind and movable midpoint',
+                                                          val_isinteger = true,
+                                                          val_format = function(x) return x*DATA.extstate.CONF_window..'s' end,
+                                                          val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},             
+          {str = 'Minimum block search end offset' ,      group = 6, itype = 'readout', confkey = 'CONF_match_maxblocksstartoffs', level = 1, val_min =0, val_max = 30, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, tooltip='Minimum between comparing block end poind and movable midpoint',
+                                                          val_isinteger = true,
+                                                          val_format = function(x) return x*DATA.extstate.CONF_window..'s' end,
+                                                          val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},   
+                                                          
+      {str = 'Take output' ,                              group = 7, itype = 'sep'}, 
+        {str = 'Pitch shift mode' ,                       group = 7, itype = 'readout', confkey = 'CONF_post_pshift', readoutw_extw = readoutw_extw, level = 1, menu = pitch_shift_t, func_onrelease = function() DATA2:ProcessAtChange(DATA) end,}, 
+        {str = 'Pitch shift submode' ,                    group = 7, itype = 'readout', confkey = 'CONF_post_pshiftsub', readoutw_extw = readoutw_extw, level = 1, menu = pitch_shift_tsub, func_onrelease = function() DATA2:ProcessAtChange(DATA) end,},  
+        {str = 'Stretch marker mode' ,                    group = 7, itype = 'readout', confkey = 'CONF_post_smmode', readoutw_extw = readoutw_extw, level = 1, menu = smmode, func_onrelease = function() DATA2:ProcessAtChange(DATA) end,},  
+        {str = 'Stretch marker fade size' ,               group = 7, itype = 'readout', confkey = 'CONF_post_strmarkfdsize', level = 1, val_min = 0.0025, val_max =0.05, val_res = 0.05, val_format = function(x) return VF_math_Qdec(x,4)..'s' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, func_onrelease = function() DATA2:ProcessAtChange(DATA) end,},
+        
+        
+      {str = 'UI options' ,                               group = 5, itype = 'sep'},  
+        {str = 'Enable shortcuts' ,                       group = 5, itype = 'check', confkey = 'UI_enableshortcuts', level = 1},
+        {str = 'Init UI at mouse position' ,              group = 5, itype = 'check', confkey = 'UI_initatmouse', level = 1},
+        {str = 'Show tootips' ,                           group = 5, itype = 'check', confkey = 'UI_showtooltips', level = 1},
+        {str = 'Process on settings change',              group = 5, itype = 'check', confkey = 'UI_appatchange', level = 1},
+        
       
-      { customkey = 'settings_aulimit',
-        str = 'Limit',
-        level = 1,
-        isvalue = true,
-        val = DATA.extstate.CONF_audio_lim,
-        val_res = 0.1,
-        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_audio_lim, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_aulimitval',VF_NormToFormatValue(GUI.buttons['settings_aulimitval'].val, 0,100)..'%', 'CONF_audio_lim', GUI.buttons['settings_aulimitval'].val, nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audio_lim') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-      },      
-       
-      
-      {str = 'Peak follower',
-       issep = true
-      },       
-      { customkey = 'settings_wind',
-        str = 'Window',
-        level = 1,
-        isvalue = true,
-        val = VF_FormatToNormValue(DATA.extstate.CONF_window, 0.01, 0.4),
-        val_res = 0.1,
-        valtxt =  DATA.extstate.CONF_window..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_windval',VF_NormToFormatValue(GUI.buttons['settings_windval'].val, 0.01, 0.4, 3)..'s' , 'CONF_window', VF_NormToFormatValue(GUI.buttons['settings_windval'].val, 0.01, 0.4, 3), nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_window') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-      },
-      { str = 'Overlap divider',
-        level = 1,
-        isvalue = true,
-        val = DATA.extstate.CONF_window_overlap,
-        val_res = 0.1,
-        valtxt =  DATA.extstate.CONF_window_overlap,
-        menu = {
-                  {str = '1', func = function()  local val = 1 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_window_overlap', val,true, nil  ) end}  ,                      
-                  {str = '2', func = function()  local val = 2 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_window_overlap', val,true, nil  ) end }  ,                      
-                  {str = '4', func = function()  local val = 4 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_window_overlap', val,true, nil  ) end }  ,                      
-                  {str = '8', func = function()  local val = 8 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_window_overlap', val,true, nil  ) end }  ,   
-                },
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_window_overlap') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        active = VF_isregist&2==2,
-        ignoremouse = VF_isregist&2~=2,
-        
-        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Overlap window block back for a window time divided by this coefficient',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
-       -- onmouselost = function() local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( '',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
-        
-      },  
-      { customkey = 'settings_audiodosqrt',
-        str = 'val^y (scaling)',
-        level = 1,
-        isvalue = true,
-        val = VF_FormatToNormValue(DATA.extstate.CONF_audiodosquareroot, 0.1, 2, 1),
-        val_res = 0.1,
-        valtxt =  DATA.extstate.CONF_audiodosquareroot,
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_audiodosqrtval',   
-        VF_NormToFormatValue(GUI.buttons['settings_audiodosqrtval'].val, 0.1, 2, 1), 
-        'CONF_audiodosquareroot', 
-        VF_NormToFormatValue(GUI.buttons['settings_audiodosqrtval'].val, 0.1, 2, 1)
-        ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_audiodosquareroot') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        
-        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( '0.5 do square root of waveform for reducing peaky influence for a comparing algorithm',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
-      }, 
-      { str = 'Smooth envelope',
-        level = 1,
-        isvalue = true,
-        val = DATA.extstate.CONF_smooth,
-        val_res = 0.1,
-        valtxt =  DATA.extstate.CONF_smooth..'x',
-        menu = {
-                  {str = '0x', func = function()  local val = 0 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_smooth', val,true, nil  ) end, true}  ,       
-                  {str = '1x', func = function()  local val = 1 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_smooth', val,true, nil  ) end, true}  ,                      
-                  {str = '2x', func = function()  local val = 2 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_smooth', val,true, nil  ) end, true}  ,                      
-                  {str = '4x', func = function()  local val = 4 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_smooth', val,true, nil  ) end, true }  ,                      
-                  {str = '8x', func = function()  local val = 8 GUI_settingst_confirmval(GUI, DATA, nil,nil, 'CONF_smooth', val,true, nil  ) end, true }  ,   
-                },
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_smooth') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        active = VF_isregist&2==2,
-        ignoremouse = VF_isregist&2~=2,
-      },  
-      { str = 'Compensate overlap / Reduce points',
-        level = 1,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_compensateoverlap', DATA.extstate.CONF_compensateoverlap~1 , true, nil )  end,                          
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_compensateoverlap') GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_compensateoverlap', DATA.extstate.CONF_compensateoverlap~1 , true, nil )  end,                          
-        ischeck = true,
-        state = DATA.extstate.CONF_compensateoverlap&1==1,
-        active = VF_isregist&2==2,
-        ignoremouse = VF_isregist&2~=2,
-        
-        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'When doing overlap it multiply count of points. This check compensate it',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
-      }, 
-      
-      
-      {str = 'Source markers generator',
-       txt_col = GUI.default_data_col_adv,
-       issep = true
-      },
-      GUI_settingst_getcheck('Allow manual editing', 'CONF_markgen_manualedit',GUI.default_data_col_adv, true),      
-      
-      
-      { str = 'Algorithm 1 (slow rise/fall detect)',
-        level = 1,
-        txt_col = GUI.default_data_col_adv,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_algo',0 , true, nil )  end,                                          
-        ischeck = true,
-        state = DATA.extstate.CONF_markgen_algo==0,
-        
-        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Trigger points for relative rises/falls at defined area by some RMS-per-block change',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
-      },      
-      { str = 'Set at envelope fall',
-        level = 2,
-        txt_col = GUI.default_data_col_adv,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_enveloperisefall', 1 , true, nil )  end,                                              
-        ischeck = true,
-        state = DATA.extstate.CONF_markgen_enveloperisefall==1,
-        active = DATA.extstate.CONF_markgen_algo==0,
-      },
-      { str = 'Set at envelope rise',
-        level = 2,
-        txt_col = GUI.default_data_col_adv,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_enveloperisefall', 2 , true, nil )  end,                         
-        ischeck = true,
-        state = DATA.extstate.CONF_markgen_enveloperisefall==2,
-        active = DATA.extstate.CONF_markgen_algo==0,
-      }, 
-      { customkey = 'settings_mark_block',
-        str = 'Minimum points distance',
-        level = 2,
-        txt_col = GUI.default_data_col_adv,
-        isvalue = true,
-        val = VF_FormatToNormValue(DATA.extstate.CONF_markgen_filterpoints, 5, 50, -1),
-        val_res = 0.1,
-        valtxt =  DATA.extstate.CONF_markgen_filterpoints*wind..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_mark_blockval',DATA.extstate.CONF_markgen_filterpoints*wind..'s' , 'CONF_markgen_filterpoints', VF_NormToFormatValue(GUI.buttons['settings_mark_blockval'].val, 5, 50, -1), nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_filterpoints') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        active=DATA.extstate.CONF_markgen_algo==0,
-        
-        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Should be more than brutforce search area',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
-      }, 
-      
-      { customkey = 'settings_mark_blockRMS',
-        str = 'area_RMS length',
-        txt_col = GUI.default_data_col_adv,
-        level = 2,
-        isvalue = true,
-        val = VF_FormatToNormValue(DATA.extstate.CONF_markgen_RMSpoints, 5, 30, -1),
-        val_res = 0.1,
-        valtxt =  DATA.extstate.CONF_markgen_RMSpoints*wind..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_mark_blockRMSval',DATA.extstate.CONF_markgen_RMSpoints*wind..'s' , 'CONF_markgen_RMSpoints', VF_NormToFormatValue(GUI.buttons['settings_mark_blockRMSval'].val, 5, 30, -1), nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_RMSpoints') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        active = DATA.extstate.CONF_markgen_algo==0,
-      },       
-      
-      
-      { customkey = 'settings_arearms',
-        str = 'minimum of [value/abs(area_RMS-value)]',
-        level = 2,
-        txt_col = GUI.default_data_col_adv,
-        isvalue = true,
-        val = DATA.extstate.CONF_markgen_minimalareaRMS,
-        val_res = 0.1,
-        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_markgen_minimalareaRMS, 0,70)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_arearmsval',VF_NormToFormatValue(GUI.buttons['settings_arearmsval'].val, 0,70)..'%', 'CONF_markgen_minimalareaRMS', GUI.buttons['settings_arearmsval'].val, nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_minimalareaRMS') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        active=DATA.extstate.CONF_markgen_algo==0,
-      }, 
-      { customkey = 'settings_levthres',
-        str = 'Level threshold',
-        level = 2,
-        isvalue = true,
-        txt_col = GUI.default_data_col_adv,
-        val = DATA.extstate.CONF_markgen_threshold,
-        val_res = 0.1,
-        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_markgen_threshold, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_levthresval',VF_NormToFormatValue(GUI.buttons['settings_levthresval'].val, 0,100)..'%', 'CONF_markgen_threshold', GUI.buttons['settings_levthresval'].val, nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_threshold') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        active = VF_isregist&2==2 and DATA.extstate.CONF_markgen_algo==0,
-        ignoremouse = VF_isregist&2~=2,
-      },   
-      
-      { str = 'Algorithm 2 (gate trigger)',
-        level = 1,
-        txt_col = GUI.default_data_col_adv,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_algo', 1 , true, nil )  end,                                          
-        ischeck = true,
-        state = DATA.extstate.CONF_markgen_algo==1,
-        active = VF_isregist&2==2,
-        ignoremouse = VF_isregist&2~=2 ,
-        
-        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Trigger points at gate open/close',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
-      },         
-      { customkey = 'settings_mark_block2',
-        str = 'Minimum points distance',
-        level = 2,
-        txt_col = GUI.default_data_col_adv,
-        isvalue = true,
-        val = VF_FormatToNormValue(DATA.extstate.CONF_markgen_filterpoints2, 5, 50, -1),
-        val_res = 0.1,
-        valtxt =  DATA.extstate.CONF_markgen_filterpoints2*wind..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_mark_block2val',DATA.extstate.CONF_markgen_filterpoints2*wind..'s' , 'CONF_markgen_filterpoints2', VF_NormToFormatValue(GUI.buttons['settings_mark_block2val'].val, 5, 50, -1), nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_filterpoints2') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        active = VF_isregist&2==2 and DATA.extstate.CONF_markgen_algo==1,
-        ignoremouse = VF_isregist&2~=2 ,
-        
-        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Should be more than brutforce search area',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
-      }, 
-      { customkey = 'settings_levthres2',
-        str = 'Trigger threshold',
-        level = 2,
-        isvalue = true,
-        txt_col = GUI.default_data_col_adv,
-        val = DATA.extstate.CONF_markgen_threshold2,
-        val_res = 0.1,
-        valtxt =  VF_NormToFormatValue(DATA.extstate.CONF_markgen_threshold2, 0,100)..'%',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_levthres2val',VF_NormToFormatValue(GUI.buttons['settings_levthres2val'].val, 0,100)..'%', 'CONF_markgen_threshold2', GUI.buttons['settings_levthres2val'].val, nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_threshold2') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        active = VF_isregist&2==2 and DATA.extstate.CONF_markgen_algo==1,
-      },       
-      { str = 'Algorithm 3 (equal distance)',
-        level = 1,
-        txt_col = GUI.default_data_col_adv,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_algo', 2 , true, nil )  end,                                          
-        ischeck = true,
-        state = DATA.extstate.CONF_markgen_algo==2,
-        
-        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Share points for equal distance',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
-        
-      }, 
-     { customkey = 'settings_mark_block3',
-       str = 'Points distance',
-       level = 2,
-       txt_col = GUI.default_data_col_adv,
-       isvalue = true,
-       val = VF_FormatToNormValue(DATA.extstate.CONF_markgen_filterpoints3, 5, 100, -1),
-       val_res = 0.1,
-       valtxt =  DATA.extstate.CONF_markgen_filterpoints3*wind..'s',
-       onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_mark_block3val',DATA.extstate.CONF_markgen_filterpoints3*wind..'s' , 'CONF_markgen_filterpoints3', VF_NormToFormatValue(GUI.buttons['settings_mark_block3val'].val, 5, 100, -1), nil, nil  ) end,
-       onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-       onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_markgen_filterpoints3') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-       active = DATA.extstate.CONF_markgen_algo==2,
-       
-       onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Should be more than brutforce search area',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
-     },      
-      --[[{ str = 'Algorithm 4 (get stretch markers as points)',
-        level = 1,
-        txt_col = GUI.default_data_col_adv,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,'CONF_markgen_algo', 3 , true, nil )  end,                                          
-        ischeck = true,
-        state = DATA.extstate.CONF_markgen_algo==3,
-        --active = VF_isregist&2==2,
-        --ignoremouse = VF_isregist&2~=2 ,
-        
-      },    ]]
-      
-      
-      {str = 'Audio match algorithm',
-      txt_col = GUI.default_data_col_adv2,
-       issep = true
-      },
-      { customkey = 'settings_algosearch',
-        str = 'Brutforce search area',
-        level = 1,
-        txt_col = GUI.default_data_col_adv2,
-        isvalue = true,
-        val = VF_FormatToNormValue(DATA.extstate.CONF_match_blockarea, 1, 50, -1),
-        val_res = 0.1,
-        valtxt =  DATA.extstate.CONF_match_blockarea*wind..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_algosearchval',DATA.extstate.CONF_match_blockarea *wind..'s', 'CONF_match_blockarea', VF_NormToFormatValue(GUI.buttons['settings_algosearchval'].val, 1, 50, -1), nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_match_blockarea') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        
-        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Maximum deviation of source markers',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
-        
-      },  
-      GUI_settingst_getcheck('Stretch dub array on the fly', 'CONF_match_stretchdubarray',GUI.default_data_col_adv2),      
-      GUI_settingst_getcheck('Ignore zero values difference check', 'CONF_match_ignorezeros',GUI.default_data_col_adv2),      
-      GUI_settingst_getcheck('Search forward only', 'CONF_match_searchfurtheronly',GUI.default_data_col_adv2),       
-      GUI_settingst_getcheck('Compare until midblock', 'CONF_match_firstsrgmonly',GUI.default_data_col_adv2),       
-      { customkey = 'settings_alg_minblock',
-        str = 'Minimum block search start offset',
-        level = 1,
-        txt_col = GUI.default_data_col_adv2,
-        isvalue = true,
-        val = VF_FormatToNormValue(DATA.extstate.CONF_match_minblocksstartoffs, 0, 30, -1),
-        val_res = 0.1,
-        valtxt =  DATA.extstate.CONF_match_minblocksstartoffs*wind..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_alg_minblockval',DATA.extstate.CONF_match_minblocksstartoffs*wind..'s' , 'CONF_match_minblocksstartoffs', VF_NormToFormatValue(GUI.buttons['settings_alg_minblockval'].val, 0, 30, -1), nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_match_minblocksstartoffs') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        
-        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Minimum between comparing block start poind and movable midpoint',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
-      }, 
-      { customkey = 'settings_alg_maxblock',
-        str = 'Mimimum block search end offset',
-        level = 1,
-        txt_col = GUI.default_data_col_adv2,
-        isvalue = true,
-        val = VF_FormatToNormValue(DATA.extstate.CONF_match_maxblocksstartoffs, 0, 30, -1),
-        val_res = 0.1,
-        valtxt =  DATA.extstate.CONF_match_maxblocksstartoffs*wind..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_alg_maxblockval',DATA.extstate.CONF_match_maxblocksstartoffs*wind..'s' , 'CONF_match_maxblocksstartoffs', VF_NormToFormatValue(GUI.buttons['settings_alg_maxblockval'].val, 0, 30, -1), nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_match_maxblocksstartoffs') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        
-        onmousematch = function() if DATA.extstate.UI_showtooltips == 0 then return end local x, y = reaper.GetMousePosition() reaper.TrackCtl_SetToolTip( 'Minimum between comparing block end poind and movable midpoint',x+GUI.default_tooltipxoffs, y+GUI.default_tooltipyoffs, false ) end,
-      },       
-      
-      
-      {str = 'Take output',
-       issep = true
-      },  
-      { str = 'Pitch shift mode',
-        level = 1,
-        isvalue = true,
-        val = DATA.extstate.CONF_post_pshift,
-        valtxt =  pshift_txt,
-        valtxtw_mult = 8,
-        menu = { table.unpack( pitch_shift_t )}, 
-       },
-       { str = 'Pitch shift submode',
-        level = 1,
-        isvalue = true,
-        val = DATA.extstate.CONF_post_pshiftsub,
-        valtxt =  pshiftsub_txt,
-        valtxtw_mult = 8,
-        menu = { table.unpack( pitch_shift_tsub )}, 
-       },
-      { str = 'Stretch marker mode',
-        level = 1,
-        isvalue = true,
-        val_res = 0.1,
-        valtxt =  smmode_txt,
-        valtxtw_mult = 8,
-        menu = {table.unpack(smmode)},
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_post_smmode') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        
-      },       
-      { customkey = 'settings_postmarksz',
-        str = 'Stretch marker fade size',
-        level = 1,
-        isvalue = true,
-        val = VF_FormatToNormValue(DATA.extstate.CONF_post_strmarkfdsize, 0.0025, 0.05),
-        val_res = 0.05,
-        valtxt =  DATA.extstate.CONF_post_strmarkfdsize..'s',
-        onmousedrag = function() GUI_settingst_confirmval(GUI, DATA, 'settings_postmarkszval',VF_NormToFormatValue(GUI.buttons['settings_postmarkszval'].val, 0.0025, 0.05, 4)..'s' , 'CONF_post_strmarkfdsize', VF_NormToFormatValue(GUI.buttons['settings_postmarkszval'].val,0.0025, 0.05,4), nil, nil  ) end,
-        onmouserelease = function() GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_post_strmarkfdsize') GUI_settingst_confirmval(GUI, DATA, nil,nil,nil,nil,true, nil ) end,
-        active = VF_isregist&2==2,
-        ignoremouse = VF_isregist&2~=2,
-      }, 
-      --GUI_settingst_getcheck('Add 0 pos marker', 'CONF_post_pos0mark')
-      
- 
-    }
-    
-    return 
-    {
-    t=t, 
-    boundaryobj = boundaryobj,
-    tablename = 'settings',
-    layer = boundaryobj.layer,
-    scrollobj = scrollobj
-    }
+    } 
+    return t
     
   end
   ---------------------------------------------------------------------
@@ -1668,7 +1038,7 @@
   end    
       
   -----------------------------------------------------------------------------  
-    function GUI_RESERVED_draw_data(GUI, b)
+    function GUI_RESERVED_draw_data(DATA, b)
       if not b.val_data then return end
       local x,y,w,h, backgr_col, frame_a, frame_asel, back_sela,val =  
                               b.x or 0,
@@ -1676,16 +1046,16 @@
                               b.w or 100,
                               b.h or 100,
                               b.backgr_col or '#333333',
-                              b.frame_a or GUI.default_framea_normal,
-                              b.frame_asel or GUI.default_framea_selected,
-                              b.back_sela or GUI.default_back_sela,
+                              b.frame_a or DATA.GUI.default_framea_normal,
+                              b.frame_asel or DATA.GUI.default_framea_selected,
+                              b.back_sela or DATA.GUI.default_back_sela,
                               b.val or 0
   
       x,y,w,h = 
-                x*GUI.default_scale,
-                y*GUI.default_scale,           
-                w*GUI.default_scale,            
-                h*GUI.default_scale
+                x*DATA.GUI.default_scale,
+                y*DATA.GUI.default_scale,           
+                w*DATA.GUI.default_scale,            
+                h*DATA.GUI.default_scale
       local t = b.val_data
       local t0 = b.val_data_adv
       local t1 = b.val_data_adv2
@@ -1706,8 +1076,8 @@
           
           if  t and t[i] and t[i] ~= 0 then
             if t[i-1] and t[i-1] == 0 then last_datax = datax end
-            GUI:hex2rgb(GUI.default_data_col, true)
-            gfx.a = GUI.default_data_a
+            DATA:GUIhex2rgb(DATA.GUI.default_data_col, true)
+            gfx.a = DATA.GUI.default_data_a
             gfx.line(last_datax,last_datay-1,datax,datay-1)
             gfx.line(datax,y+h,datax,datay) 
           end 
@@ -1715,15 +1085,15 @@
           
           
           if  t0 and t0[i] and t0[i] ~= 0 then
-            GUI:hex2rgb(GUI.default_data_col_adv, true)
-            gfx.a = GUI.default_data_a1
+            DATA:GUIhex2rgb(DATA.GUI.default_data_col_adv, true)
+            gfx.a = DATA.GUI.default_data_a1
             --gfx.line(datax,y0,datax,datay) 
             gfx.rect(datax,y+1,2,h-2,1,1) 
           end 
           
           if  t1 and t1[i] and t1[i] ~= 0 then
-            GUI:hex2rgb(GUI.default_data_col_adv2, true)
-            gfx.a = GUI.default_data_a2
+            DATA:GUIhex2rgb(DATA.GUI.default_data_col_adv2, true)
+            gfx.a = DATA.GUI.default_data_a2
             --gfx.line(datax,y0,datax,datay)  
             gfx.rect(datax,y+1,2,h-2,1,1) 
           end 
@@ -1735,8 +1105,8 @@
             local datay = math.floor(y+h-h*tund[i])
             local datay2 = math.floor(y+h-h*tund[i+1])
             if tund[i-1] and tund[i-1] == 0 then last_datax = datax end
-            GUI:hex2rgb(GUI.default_data_col_adv, true)
-            gfx.a = GUI.default_data_a
+            DATA:GUIhex2rgb(DATA.GUI.default_data_col_adv, true)
+            gfx.a = DATA.GUI.default_data_a
             gfx.line(last_datax,datay,datax-1,datay2)
           end 
           
@@ -1746,9 +1116,9 @@
         ::skipdataentry::
       end
       
-      GUI:hex2rgb(GUI.default_data_col_adv, true)
+      DATA:GUIhex2rgb(DATA.GUI.default_data_col_adv, true)
       local srcR, srcG, srcB = gfx.r,gfx.g,gfx.b
-      GUI:hex2rgb(GUI.default_data_col_adv2, true)
+      DATA:GUIhex2rgb(DATA.GUI.default_data_col_adv2, true)
       local destR, destG, destB = gfx.r,gfx.g,gfx.b
       
       gfx.a = 0.2
@@ -1768,8 +1138,7 @@
         end
       end
     end
-  ---------------------------------------------------------------------
+  ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(2.84) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
-  
+  local ret = VF_CheckFunctions(3.0) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
