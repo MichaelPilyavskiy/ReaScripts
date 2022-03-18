@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6b837d7e3721ac8b9ec9e23440bf749be644dc80" name="MPL Scripts">
+<index version="1" commit="8e4632cb8b562ec875a1c41871649d7e28da89b9" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -218,6 +218,14 @@
         <changelog><![CDATA[# fix potential leakage
 + Add gate mode]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/966ce50d430b9e46aa4aabea6badd7bd350071eb/Envelopes/mpl_Peak%20follower%20tools.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2022-03-18T19:40:36Z">
+        <changelog><![CDATA[# code cleanup, require mpl_VariousFunction 3.0+
++ Output/allow to reduce points with same values
++ GUI (VF3): allow to hide settings blocks
++ GUI (VF3): doubleclick on readout reset it to default
++ GUI (VF3): rightclick on readout to type it manually (if available)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e4632cb8b562ec875a1c41871649d7e28da89b9/Envelopes/mpl_Peak%20follower%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Select active envelopes tracks.lua" type="script" desc="Select active envelopes tracks">
@@ -933,6 +941,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6b837d7e3721ac8b9ec9e23440bf749be644dc80/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6b837d7e3721ac8b9ec9e23440bf749be644dc80/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6b837d7e3721ac8b9ec9e23440bf749be644dc80/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.0" author="MPL" time="2022-03-18T19:40:36Z">
+        <changelog><![CDATA[# integratig DATA and GUI table into single data table]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e4632cb8b562ec875a1c41871649d7e28da89b9/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e4632cb8b562ec875a1c41871649d7e28da89b9/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e4632cb8b562ec875a1c41871649d7e28da89b9/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e4632cb8b562ec875a1c41871649d7e28da89b9/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e4632cb8b562ec875a1c41871649d7e28da89b9/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e4632cb8b562ec875a1c41871649d7e28da89b9/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -7099,36 +7116,6 @@ add control for timefall showing last note]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9aa50cfc6598fc7795aeb2c19faddbfed94f2d1b/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Cacophony.lua" type="script" desc="Cacophony">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Script is designed to play MPL Cacophony. Track is actually 4 tracks diffusing each other on rhythmic, melodic and design levels.\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2021-10-30T06:18:45Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ccd2c7fb600cee6fd7d6f634fc62a9325fbd927/Various/mpl_Cacophony.lua</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 1.mp3">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ccd2c7fb600cee6fd7d6f634fc62a9325fbd927/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony%20-%20Track%201.mp3</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 2.mp3">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ccd2c7fb600cee6fd7d6f634fc62a9325fbd927/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony%20-%20Track%202.mp3</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 3.mp3">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ccd2c7fb600cee6fd7d6f634fc62a9325fbd927/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony%20-%20Track%203.mp3</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 4.mp3">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ccd2c7fb600cee6fd7d6f634fc62a9325fbd927/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony%20-%20Track%204.mp3</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony.RPP">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3ccd2c7fb600cee6fd7d6f634fc62a9325fbd927/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony.RPP</source>
-      </version>
-      <version name="1.02" author="MPL" time="2021-12-16T21:15:28Z">
-        <changelog><![CDATA[# fix reapack header]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/693bbdb3f53353916e86f1efafb195166ed56c07/Various/mpl_Cacophony.lua</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 1.mp3">https://github.com/MichaelPilyavskiy/ReaScripts/raw/693bbdb3f53353916e86f1efafb195166ed56c07/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony%20-%20Track%201.mp3</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 2.mp3">https://github.com/MichaelPilyavskiy/ReaScripts/raw/693bbdb3f53353916e86f1efafb195166ed56c07/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony%20-%20Track%202.mp3</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 3.mp3">https://github.com/MichaelPilyavskiy/ReaScripts/raw/693bbdb3f53353916e86f1efafb195166ed56c07/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony%20-%20Track%203.mp3</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony - Track 4.mp3">https://github.com/MichaelPilyavskiy/ReaScripts/raw/693bbdb3f53353916e86f1efafb195166ed56c07/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony%20-%20Track%204.mp3</source>
-        <source file="mpl_Cacophony_stuff/Michael Pilyavskiy - Cacophony.RPP">https://github.com/MichaelPilyavskiy/ReaScripts/raw/693bbdb3f53353916e86f1efafb195166ed56c07/Various/mpl_Cacophony_stuff/Michael%20Pilyavskiy%20-%20Cacophony.RPP</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Check REAPER password, quit if not match.lua" type="script" desc="Check REAPER password, quit if not match">
       <metadata>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
@@ -10325,6 +10312,16 @@ add control for timefall showing last note]]></changelog>
         <source file="mpl_QuantizeTool_presets/(MPL) Snap envelope points to toggle states (no GUI).qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2c132609cd205f1ee348c2b289839c9b9d952fc3/Various/mpl_QuantizeTool_presets/(MPL)%20Snap%20envelope%20points%20to%20toggle%20states%20(no%20GUI).qt</source>
         <source file="mpl_QuantizeTool_presets/(MPL) Stretch fit item to grid (no GUI).qt">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2c132609cd205f1ee348c2b289839c9b9d952fc3/Various/mpl_QuantizeTool_presets/(MPL)%20Stretch%20fit%20item%20to%20grid%20(no%20GUI).qt</source>
         <source main="main" file="mpl_QuantizeTool change knob1 (MIDI, OSC, mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2c132609cd205f1ee348c2b289839c9b9d952fc3/Various/mpl_QuantizeTool%20change%20knob1%20(MIDI,%20OSC,%20mousewheel).lua</source>
+      </version>
+      <version name="3.0" author="MPL" time="2022-03-18T19:40:36Z">
+        <changelog><![CDATA[+ Core/GUI rebuild, internal cleanup, remove useless modes, improve overall performance
++ AnchorPoints: allow to get multiple types of sources as anchor points
++ Targets: allow to align multiple types of sources as targets
++ Action / Position-based alignment: use deductive brotfurce for more than 10-50-100 reference points
++ Targets / StretchMarkers: prevent taking boundary edge markers
++ Targets / Envelopepoints: better handle envelopes with non-default scaling mode
++ GUI: show anchor points / targets positions]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e4632cb8b562ec875a1c41871649d7e28da89b9/Various/mpl_Quantize%20Tool%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
