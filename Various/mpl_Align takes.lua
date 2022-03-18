@@ -1,10 +1,10 @@
 -- @description Align Takes
--- @version 2.11
+-- @version 2.20
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # GUI: better draw 1st dub for reference take
+--    + code clean up
 
 
   --[[
@@ -30,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.11
+    DATA.extstate.version = 2.20
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
