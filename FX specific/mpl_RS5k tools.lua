@@ -1,5 +1,5 @@
 -- @description RS5k tools
--- @version 1.15
+-- @version 1.16
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -30,5 +30,6 @@
 --    [main] mpl_RS5k tools/mpl_Add note into RS5k instance name on selected track.lua
 --    [main] mpl_RS5k tools/mpl_Sort by note start RS5k instances on selected track.lua
 --    [main] mpl_RS5k tools/mpl_Export selected items to single RS5k instance on selected track (use original source).lua
+--    [main] mpl_RS5k tools/mpl_Set RS5k sample start offset based on sample peak.lua
 -- @changelog
---    + Export selected items to single RS5k instance on selected track (use original source)
+--    + Set RS5k sample start offset based on sample peak.lua

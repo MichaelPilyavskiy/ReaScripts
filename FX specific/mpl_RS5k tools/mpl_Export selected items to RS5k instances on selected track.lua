@@ -1,10 +1,10 @@
--- @version 1.16
+-- @version 1.17
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Export selected items to RS5k instances on selected track
 -- @noindex
 -- @changelog
---    # use VF version check
+--    # remove SWS dependency
 
   local script_title = 'Export selected items to RS5k instances on selected track'
   
@@ -57,27 +57,27 @@
       local GUIDs = {}
       for it_id = 1, reaper.CountSelectedMediaItems(0) do
         local item =  reaper.GetSelectedMediaItem( 0, it_id-1 )
-        local it_GUID = reaper.BR_GetMediaItemGUID( item )
+        local it_GUID = VF_GetItemGUID( item )
         GUIDs[#GUIDs+1] = it_GUID
       end
       
     -- glue items
       local new_GUIDs = {}
       for i = 1, #GUIDs do
-        local item = reaper.BR_GetMediaItemByGUID( 0, GUIDs[i] )
+        local item = VF_GetMediaItemByGUID( 0, GUIDs[i] )
         if item then 
           reaper.Main_OnCommand(40289, 0) -- unselect all items
           reaper.SetMediaItemSelected(item, true)
           reaper.Main_OnCommand(40362, 0) -- glue without time selection
           local cur_item =  reaper.GetSelectedMediaItem( 0, 0)
-          if cur_item then new_GUIDs[#new_GUIDs+1] = reaper.BR_GetMediaItemGUID( cur_item ) end
+          if cur_item then new_GUIDs[#new_GUIDs+1] = VF_GetItemGUID( cur_item ) end
         end
       end
     
     reaper.Main_OnCommand(40289, 0) -- unselect all items
     -- add new items to selection
       for i = 1, #new_GUIDs do
-        local item = reaper.BR_GetMediaItemByGUID( 0, new_GUIDs[i] )
+        local item = VF_GetMediaItemByGUID( 0, new_GUIDs[i] )
         if item then reaper.SetMediaItemSelected(item, true) end
       end
     reaper.UpdateArrange() 
@@ -209,13 +209,7 @@
       reaper.SetMediaTrackInfo_Value( tr, 'I_RECMODE',0) -- record MIDI out
     end
   
-    ---------------------------------------------------------------------
-      function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
+  ----------------------------------------------------------------------
+  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-    local ret = CheckFunctions('VF_CalibrateFont') 
-    local ret2 = VF_CheckReaperVrs(5.4,true)    
-    if ret and ret2 then 
-      reaper.Undo_BeginBlock()
-      main()
-      reaper.Undo_EndBlock(script_title, 1)
-    end
+  local ret = VF_CheckFunctions(3.0) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then reaper.Undo_BeginBlock() main() reaper.Undo_EndBlock(script_title, 1) end end
