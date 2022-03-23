@@ -1,23 +1,17 @@
 -- @description QuantizeTool
--- @version 3.0
+-- @version 3.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    + Core/GUI rebuild, internal cleanup, remove useless modes, improve overall performance
---    + AnchorPoints: allow to get multiple types of sources as anchor points
---    + Targets: allow to align multiple types of sources as targets
---    + Action / Position-based alignment: use deductive brotfurce for more than 10-50-100 reference points
---    + Targets / StretchMarkers: prevent taking boundary edge markers
---    + Targets / Envelopepoints: better handle envelopes with non-default scaling mode
---    + GUI: show anchor points / targets positions
+--    # minor GUI tweaks
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.0
+    DATA.extstate.version = 3.01
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -1555,6 +1549,7 @@
                             h=gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_mainbuth - DATA.GUI.custom_offset,
                             txt = 'Settings',
                             --txt_fontsz = GUI.default_txt_fontsz3,
+                            offsetframe_a = 0.1,
                             offsetframe = DATA.GUI.custom_offset,
                             frame_a = DATA.GUI.custom_default_framea_normal,
                             ignoremouse = true,
