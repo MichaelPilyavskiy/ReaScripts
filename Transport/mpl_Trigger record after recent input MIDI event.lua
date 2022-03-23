@@ -1,17 +1,29 @@
--- @description Trigger record after input MIDI event
--- @version 2.0
+-- @description Trigger record after recent input MIDI event
+-- @version 2.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Remove JSFX tracker dependency, use native retrospective log instead (REAPER 6.39+)
+--    # stuff into stream chord notes (performed 1 second just before the recent MIDI event come)
 
 
   function Run()
-    RIE,midimsg = MIDI_GetRecentInputEvent(0) 
+    RIE,midimsg0,tsval0, devIdx, projPos, projLoopCnt = MIDI_GetRecentInputEvent(0) 
     if RIE0 ~= RIE then  
-      Action(1013) -- record 
-      StuffMIDIMessage( 2, midimsg:byte(1),midimsg:byte(2),midimsg:byte(3) )
-     else
+      Action(1013) -- record  
+      StuffMIDIMessage( 2, midimsg0:byte(1),midimsg0:byte(2),midimsg0:byte(3) )
+      chord_evts = {}
+      for i = 1, 12 do
+        local RIE,midimsg,tsval, devIdx, projPos, projLoopCnt = MIDI_GetRecentInputEvent(i) 
+        if math.abs(tsval - tsval0 ) > 44100 then break end
+        chord_evts[#chord_evts+1] = {tsval1=tsval,midimsg=midimsg}
+      end 
+      
+      for i = 1 , #chord_evts do
+        local midimsg = chord_evts[i].midimsg 
+        StuffMIDIMessage( 2, midimsg:byte(1),midimsg:byte(2),midimsg:byte(3) )
+      end
+      
+     else 
       defer(Run)
     end
   end
