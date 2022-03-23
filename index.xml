@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="78754ac69a278a51ebdf5a50c6d8b689ed36e65a" name="MPL Scripts">
+<index version="1" commit="250d68335346ed905bff82abd73fef40c858df0d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3811,20 +3811,6 @@
         <source main="main" file="mpl_Toggle solo focused ReaXcomp band 6.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4be1840a710bad1cff78c3300821786e9f2f52e9/FX%20specific/mpl_Toggle%20solo%20focused%20ReaXcomp%20band%20X.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Trigger record after input note on selected track.lua" type="script" desc="Trigger record after input note on selected track">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2020-03-12T19:27:03Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e925c1eed31926b5b661380d5e38817d2f9c0d2b/FX%20specific/mpl_Trigger%20record%20after%20input%20note%20on%20selected%20track.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2020-03-12T19:43:17Z">
-        <changelog><![CDATA[# trigger first note from VKB after start record
-# Always move tracker to the top of FX chain]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c5424275f2fe3ccd463715e0fd99d73cbecc3ff6/FX%20specific/mpl_Trigger%20record%20after%20input%20note%20on%20selected%20track.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_VCV Rack tools.lua" type="script" desc="VCV Rack tools">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -4424,26 +4410,6 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL" time="2019-05-27T12:56:51Z">
         <changelog><![CDATA[+ initial state]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e4bd69adb8e7a01876f702830b657b9ccb84744/JSFX/SysEx_Tracker.jsfx</source>
-      </version>
-    </reapack>
-    <reapack name="WaitInput_tracker.jsfx" type="effect" desc="WaitInput_tracker">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Tracking MIDI data\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2020-03-12T19:27:03Z">
-        <changelog><![CDATA[init]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/e925c1eed31926b5b661380d5e38817d2f9c0d2b/JSFX/WaitInput_tracker.jsfx</source>
-      </version>
-      <version name="1.01" author="MPL" time="2020-03-12T19:43:17Z">
-        <changelog><![CDATA[write first note data]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/c5424275f2fe3ccd463715e0fd99d73cbecc3ff6/JSFX/WaitInput_tracker.jsfx</source>
       </version>
     </reapack>
   </category>
@@ -6874,6 +6840,15 @@ add control for timefall showing last note]]></changelog>
       <version name="1.01" author="MPL" time="2021-12-17T19:47:15Z">
         <changelog><![CDATA[# multiply shift by 2]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/53819570102cb2a627dfd198b18bfe31139b09b7/Transport/mpl_Transport%20Play%20Stop%20(obey%20longest%20negative%20track%20offset).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Trigger record after input MIDI event.lua" type="script" desc="Trigger record after input MIDI event">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="2.0" author="MPL" time="2022-03-23T06:12:36Z">
+        <changelog><![CDATA[+ Remove JSFX tracker dependency, use native retrospective log instead (REAPER 6.39+)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/250d68335346ed905bff82abd73fef40c858df0d/Transport/mpl_Trigger%20record%20after%20input%20MIDI%20event.lua</source>
       </version>
     </reapack>
   </category>
@@ -10383,6 +10358,10 @@ add control for timefall showing last note]]></changelog>
 + Targets / Envelopepoints: better handle envelopes with non-default scaling mode
 + GUI: show anchor points / targets positions]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e4632cb8b562ec875a1c41871649d7e28da89b9/Various/mpl_Quantize%20Tool%20(background).lua</source>
+      </version>
+      <version name="3.01" author="MPL" time="2022-03-23T06:12:36Z">
+        <changelog><![CDATA[# minor GUI tweaks]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/250d68335346ed905bff82abd73fef40c858df0d/Various/mpl_Quantize%20Tool%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
