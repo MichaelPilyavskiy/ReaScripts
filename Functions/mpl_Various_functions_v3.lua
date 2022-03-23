@@ -661,20 +661,21 @@
     
     if not DATA.GUI.layers_refresh  then DATA.GUI.layers_refresh = {} end
     local upd_customlayers = false
-    for but in pairs(DATA.GUI.buttons) do 
-      local but_t = DATA.GUI.buttons[but]
-      if but_t.refresh ==true then 
-        local layer = but_t.layer or 2
-        if layer and layer ~= 2 then 
-          upd_customlayers = true 
-          DATA.GUI.layers_refresh[layer] = true
-         elseif layer == 2 then 
-          DATA.GUI.layers_refresh[2] = true
+    if DATA.GUI.buttons then
+      for but in pairs(DATA.GUI.buttons) do 
+        local but_t = DATA.GUI.buttons[but]
+        if but_t.refresh ==true then 
+          local layer = but_t.layer or 2
+          if layer and layer ~= 2 then 
+            upd_customlayers = true 
+            DATA.GUI.layers_refresh[layer] = true
+           elseif layer == 2 then 
+            DATA.GUI.layers_refresh[2] = true
+          end
+          but_t.refresh = false
         end
-        but_t.refresh = false
       end
     end
-    
     
     if DATA.GUI.firstloop == 1 or DATA.UPD.onWHchange == true then DATA:GUIdraw_Layer1_MainBack() end
     if DATA.GUI.firstloop == 1 or DATA.UPD.onWHchange == true or DATA.GUI.layers_refresh[2] then DATA:GUIdraw_Layer2_MainButtons() end
@@ -984,19 +985,22 @@
   ----------------------------------------------------------------------------------------------------------------
   function DATA:GUIBuildSettings()
     if not DATA.GUI.buttons.Rsettings then return end
-    DATA.GUI.buttons.Rsettingslist = { x=DATA.GUI.buttons.Rsettings.x +DATA.GUI.custom_offset*2,
-                          y=DATA.GUI.buttons.Rsettings.y+DATA.GUI.custom_offset*2,
-                          w=DATA.GUI.buttons.Rsettings.w-DATA.GUI.custom_offset*5-DATA.GUI.custom_scrollw,
-                          h=DATA.GUI.buttons.Rsettings.h-DATA.GUI.custom_offset*4  , 
+    local custom_scrollw = DATA.GUI.custom_scrollw or 10
+    local custom_offset = DATA.GUI.custom_offset or  math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
+    local custom_frameascroll = DATA.GUI.custom_frameascroll or 0.05
+    DATA.GUI.buttons.Rsettingslist = { x=DATA.GUI.buttons.Rsettings.x +custom_offset*2,
+                          y=DATA.GUI.buttons.Rsettings.y+custom_offset*2,
+                          w=DATA.GUI.buttons.Rsettings.w-custom_offset*5-custom_scrollw,
+                          h=DATA.GUI.buttons.Rsettings.h-custom_offset*4  , 
                           txt = 'list',
                           frame_a = 0,
                           layer = DATA.GUI.custom_layerset,
                           hide = true,
                           ignoremouse = true,}  
-    DATA.GUI.buttons.Rsettingslist_mouse = { x=DATA.GUI.buttons.Rsettings.x +DATA.GUI.custom_offset*2, -- for scrolling
-                          y=DATA.GUI.buttons.Rsettings.y+DATA.GUI.custom_offset*2,
-                          w=DATA.GUI.buttons.Rsettings.w-DATA.GUI.custom_offset*5-DATA.GUI.custom_scrollw,
-                          h=DATA.GUI.buttons.Rsettings.h-DATA.GUI.custom_offset*4  , 
+    DATA.GUI.buttons.Rsettingslist_mouse = { x=DATA.GUI.buttons.Rsettings.x +custom_offset*2, -- for scrolling
+                          y=DATA.GUI.buttons.Rsettings.y+custom_offset*2,
+                          w=DATA.GUI.buttons.Rsettings.w-custom_offset*5-custom_scrollw,
+                          h=DATA.GUI.buttons.Rsettings.h-custom_offset*4  , 
                           txt = 'list',
                           frame_a = 1,
                           --layer = DATA.GUI.custom_layerset,
@@ -1019,12 +1023,12 @@
     if not DATA.GUI.layers[DATA.GUI.custom_layerset].scrollval then DATA.GUI.layers[DATA.GUI.custom_layerset].scrollval=0 end
     
     if not DATA.GUI.buttons.Rsettings_scroll then 
-      DATA.GUI.buttons.Rsettings_scroll = { x=DATA.GUI.buttons.Rsettings.x+DATA.GUI.buttons.Rsettings.w-DATA.GUI.custom_scrollw-DATA.GUI.custom_offset*2,
-                          y=DATA.GUI.buttons.Rsettings.y+DATA.GUI.custom_offset*2,
-                          w=DATA.GUI.custom_scrollw,
-                          h=DATA.GUI.buttons.Rsettings.h-DATA.GUI.custom_offset*4,
-                          frame_a = DATA.GUI.custom_frameascroll,
-                          frame_asel = DATA.GUI.custom_frameascroll,
+      DATA.GUI.buttons.Rsettings_scroll = { x=DATA.GUI.buttons.Rsettings.x+DATA.GUI.buttons.Rsettings.w-custom_scrollw-custom_offset*2,
+                          y=DATA.GUI.buttons.Rsettings.y+custom_offset*2,
+                          w=custom_scrollw,
+                          h=DATA.GUI.buttons.Rsettings.h-custom_offset*4,
+                          frame_a = custom_frameascroll,
+                          frame_asel = custom_frameascroll,
                           val = 0,
                           val_res = -1,
                           slider_isslider = true,
@@ -1033,7 +1037,6 @@
                           onmousedrag = function() DATA.GUI.layers[DATA.GUI.custom_layerset].scrollval = DATA.GUI.buttons.Rsettings_scroll.val end
                           }
     end                     
-                          
     DATA.GUI.layers[DATA.GUI.custom_layerset].a=1
     DATA.GUI.layers[DATA.GUI.custom_layerset].hide = DATA.GUI.compactmode==1
     DATA.GUI.layers[DATA.GUI.custom_layerset].layer_x = DATA.GUI.buttons.Rsettingslist.x
@@ -1053,7 +1056,7 @@
       if not key then return end
       
       local group = t.group or 0
-      if DATA.extstate.UI_groupflags&(1<<group)==(1<<group) then return settingsyoffs end
+      if DATA.extstate.UI_groupflags&(1<<group)==(1<<group) or (t.group_inv and t.group_inv == true and DATA.extstate.UI_groupflags&(1<<group)~=(1<<group)) then return settingsyoffs end
       
       local level = t.level or 0
       local settingsit_offs = t.settingsit_offs
@@ -1097,10 +1100,14 @@
     local settingsit_offs = t.settingsit_offs
     local settingsit_layer = t.settingsit_layer
     local group = t.group or 0
-    local state = '-'
     
+    local state_check = false 
     if not DATA.extstate.UI_groupflags then DATA.extstate.UI_groupflags = 0 end
-    if DATA.extstate.UI_groupflags&(1<<group)==(1<<group) then state = '+' end
+    if DATA.extstate.UI_groupflags&(1<<group)==(1<<group) then state_check = true end 
+    if t.group_inv and t.group_inv == true then state_check = not state_check end 
+    local state ='-'
+    if state_check == true then state = '+' end
+    
     DATA.GUI.buttons[key] = 
     {
       x = settingsxoffs,
@@ -1128,7 +1135,7 @@
     local key = t.key
     
     local group = t.group or 0
-    if DATA.extstate.UI_groupflags&(1<<group)==(1<<group) then return settingsyoffs end
+    if DATA.extstate.UI_groupflags&(1<<group)==(1<<group) or (t.group_inv and t.group_inv == true and DATA.extstate.UI_groupflags&(1<<group)~=(1<<group)) then return settingsyoffs end
     
     local settingsit_offs = t.settingsit_offs
     local level = t.level or 0
@@ -1223,8 +1230,9 @@
     local settingsit_w = t.settingsit_w
     local settingsit_h = t.settingsit_h
     local settingsit_layer = t.settingsit_layer
+    
     local group = t.group or 0
-    if DATA.extstate.UI_groupflags&(1<<group)==(1<<group) then return settingsyoffs end
+    if DATA.extstate.UI_groupflags&(1<<group)==(1<<group) or (t.group_inv and t.group_inv == true and DATA.extstate.UI_groupflags&(1<<group)~=(1<<group)) then return settingsyoffs end
     
     -- init format functions
       local val_format=t.val_format or function(x) return tonumber(x) end 
