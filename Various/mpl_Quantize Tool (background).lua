@@ -4,14 +4,14 @@
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    # minor GUI tweaks
+--    # add compact mode
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.01
+    DATA.extstate.version = 3.02
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -976,8 +976,8 @@
   --------------------------------------------------------------------- 
   function DATA2:Execute_Align_Items(iteration)
     local last_pos
-    local val1 = DATA.GUI.buttons.knob.val
-    local val2 = DATA.GUI.buttons.knob2.val
+    local val1 = DATA2.val1 or 0
+    local val2 = DATA2.val2 or 0
     for i = 1 , #DATA2.src do
       local t = DATA2.src[i]
       if not t.ignore_search and t.group_master == true then
@@ -1022,8 +1022,8 @@
   end
   --------------------------------------------------------------------- 
   function DATA2:Execute_Align_EnvPt()
-    local val1 = DATA.GUI.buttons.knob.val
-    local val2 = DATA.GUI.buttons.knob2.val
+    local val1 = DATA2.val1 or 0
+    local val2 = DATA2.val2 or 0
     if not DATA2.src[1] then return end
     
     -- collect various takes
@@ -1056,8 +1056,8 @@
   end
   --------------------------------------------------------------------- 
   function DATA2:Execute_Align_MIDI_sub(take_t, take) 
-    local val1 = DATA.GUI.buttons.knob.val
-    local val2 = DATA.GUI.buttons.knob2.val
+    local val1 = DATA2.val1 or 0
+    local val2 = DATA2.val2 or 0
     if not take then return end
     local str_per_msg  = ''
     local ppq_cur = 0
@@ -1164,8 +1164,8 @@
   end
   --------------------------------------------------------------------- 
   function DATA2:Execute_Align_SM()
-    local val1 = DATA.GUI.buttons.knob.val
-    local val2 = DATA.GUI.buttons.knob2.val
+    local val1 = DATA2.val1 or 0
+    local val2 = DATA2.val2 or 0
     -- collect stuff from points scope to takes scope
       local takes_t = {}
       for i = 1 , #DATA2.src do
@@ -1431,6 +1431,7 @@
   --------------------------------------------------------------------- 
   function GUI_buttons(DATA) 
     DATA.GUI.buttons = {} 
+    if DATA.GUI.compactmode==0 then 
     -- main buttons
       DATA.GUI.buttons.getreference = { x=DATA.GUI.custom_offset,
                             y=DATA.GUI.custom_offset,
@@ -1511,8 +1512,8 @@
                             hide = DATA.GUI.compactmode==1,
                             ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =    function() DATA2:Quantize() end,
-                            onmousedrag =     function() DATA2:Execute() end,
-                            onmouserelease  = function() DATA2:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' )  end 
+                            onmousedrag =     function() DATA2.val1 = DATA.GUI.buttons.knob.val DATA2:Execute() end,
+                            onmouserelease  = function() DATA2.val1 = DATA.GUI.buttons.knob.val DATA2:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' )  end 
                           } 
       DATA.GUI.buttons.knob2 = { x=DATA.GUI.custom_offset*3 + DATA.GUI.custom_mainbutw + knobw,
                             y=DATA.GUI.custom_offset*5 + DATA.GUI.custom_mainbuth*2+DATA.GUI.custom_datah*2,
@@ -1530,8 +1531,8 @@
                             ignoremouse = DATA.GUI.compactmode==1,
                             ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =    function() DATA2:Quantize() end,
-                            onmousedrag =     function() DATA2:Execute() end,
-                            onmouserelease  = function() DATA2:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' )  end 
+                            onmousedrag =     function() DATA2.val2 = DATA.GUI.buttons.knob2.val DATA2:Execute() end,
+                            onmouserelease  = function() DATA2.val2 = DATA.GUI.buttons.knob2.val DATA2:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' )  end 
                                             }                                             
       DATA.GUI.buttons.preset = { x=DATA.GUI.custom_offset*3+DATA.GUI.custom_mainbutw*2,
                             y=DATA.GUI.custom_offset,
@@ -1555,11 +1556,81 @@
                             ignoremouse = true,
                             hide = DATA.GUI.compactmode==1,
                             }  
-      
-    if DATA.GUI.compactmode==0 then 
       DATA:GUIBuildSettings()
       GUI_initdata(DATA)
     end 
+    
+    if DATA.GUI.compactmode==1 then 
+      local butw = math.floor(((gfx.w-DATA.GUI.custom_offset*6)/DATA.GUI.default_scale)/5)
+      local buth = gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_offset*2
+      DATA.GUI.buttons.getreferenceCM = { x=DATA.GUI.custom_offset,
+                            y=DATA.GUI.custom_offset,
+                            w=butw,
+                            h=buth,
+                            txt = 'Anchor',
+                            txt_short = 'ANC',
+                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
+                            onmouseclick =  function() DATA2:GetAnchorPoints() GUI_initdata(DATA) end,
+                            hide = DATA.GUI.compactmode==0,
+                            ignoremouse = DATA.GUI.compactmode==0,
+                            } 
+      DATA.GUI.buttons.getdubCM = { x=DATA.GUI.custom_offset*2+butw,
+                            y=DATA.GUI.custom_offset,
+                            w=butw,
+                            h=buth,
+                            txt = 'Targets',
+                            txt_short = 'TARG',
+                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
+                            hide = DATA.GUI.compactmode==0,
+                            ignoremouse = DATA.GUI.compactmode==0,
+                            onmouseclick =  function() DATA2:GetTargets() GUI_initdata(DATA) end}
+      DATA.GUI.buttons.knobCM = { x=DATA.GUI.custom_offset*3+butw*2 ,
+                            y=DATA.GUI.custom_offset,
+                            w=butw,
+                            h=buth,
+                            txt = '',
+                            txt_fontsz = DATA.GUI.custom_texthdef,
+                            knob_isknob = true,
+                            val_res = 0.25,
+                            val = 0,
+                            frame_a = DATA.GUI.default_framea_normal,
+                            frame_asel = DATA.GUI.default_framea_normal,
+                            back_sela = 0,
+                            hide = DATA.GUI.compactmode==0,
+                            ignoremouse = DATA.GUI.compactmode==0,
+                            onmouseclick =    function() DATA2:Quantize() end,
+                            onmousedrag =     function() DATA2.val1 = DATA.GUI.buttons.knobCM.val DATA2:Execute() end,
+                            onmouserelease  = function() DATA2.val1 = DATA.GUI.buttons.knobCM.val DATA2:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' )  end }
+      DATA.GUI.buttons.knob2CM = { x=DATA.GUI.custom_offset*4+butw*3,
+                            y=DATA.GUI.custom_offset,
+                            w=butw,
+                            h=buth,
+                            txt = '',
+                            txt_fontsz = DATA.GUI.custom_texthdef,
+                            knob_isknob = true,
+                            val_res = 0.25,
+                            val = 0,
+                            frame_a = DATA.GUI.default_framea_normal,
+                            frame_asel = DATA.GUI.default_framea_normal,
+                            back_sela = 0,
+                            hide = DATA.GUI.compactmode==0,
+                            ignoremouse = DATA.GUI.compactmode==0,
+                            onmouseclick =    function() DATA2:Quantize() end,
+                            onmousedrag =     function() DATA2.val2 = DATA.GUI.buttons.knob2CM.val DATA2:Execute() end,
+                            onmouserelease  = function() DATA2.val2 = DATA.GUI.buttons.knob2CM.val DATA2:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' )  end                             
+                          }  
+      DATA.GUI.buttons.preset = { x=DATA.GUI.custom_offset*5+butw*4,
+                            y=DATA.GUI.custom_offset,
+                            w=butw,
+                            h=buth,
+                            --txt = 'Preset: '..(DATA.extstate.CONF_NAME or ''),
+                            txt = 'Preset',
+                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
+                            hide = DATA.GUI.compactmode==0,
+                            ignoremouse = DATA.GUI.compactmode==0,
+                            onmouseclick =  function() DATA:GUIbut_preset(true) end}                           
+    end
+    
     for but in pairs(DATA.GUI.buttons) do DATA.GUI.buttons[but].key = but end                                 
     
   end
@@ -1817,4 +1888,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.0) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.04) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end

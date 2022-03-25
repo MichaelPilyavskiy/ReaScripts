@@ -803,7 +803,7 @@
     return r/255, g/255, b/255
   end
   ---------------------------------------------------------------------    
-  function DATA:GUIbut_preset()
+  function DATA:GUIbut_preset(preset_dontchangebutton)
     -- form presets menu    
       local presets_t = {
         {str = 'Reset all settings to default',
@@ -891,12 +891,13 @@
                                     func = function()  
                                               DATA:ExtStateApplyPreset(DATA.extstate.presets[i]) 
                                               DATA.extstate.current_preset = i
-                                              DATA.GUI.buttons.preset.refresh = true 
-                                              DATA.GUI.buttons.preset.txt = 'Preset: '..(DATA.extstate.CONF_NAME or '')
-                                              DATA.GUI.firstloop = 1 
-                                              DATA.UPD.onconfchange = true 
-                                              DATA:GUIBuildSettings()
-                                              --DATA:GUIgeneratelisttable( GUI_settingst(DATA2, DATA, DATA.GUI.buttons.settingslist, DATA.GUI.buttons.settings_scroll) ) 
+                                              if not (preset_dontchangebutton and type(preset_dontchangebutton) == 'boolean' and preset_dontchangebutton == true) then
+                                                DATA.GUI.buttons.preset.refresh = true 
+                                                DATA.GUI.buttons.preset.txt = 'Preset: '..(DATA.extstate.CONF_NAME or '')
+                                                DATA.GUI.firstloop = 1 
+                                                DATA.UPD.onconfchange = true 
+                                                DATA:GUIBuildSettings()
+                                              end
                                             end,
                                     state = state,
         
@@ -1074,7 +1075,7 @@
         x = settingsxoffs+level*settingsit_offs,
         y = settingsyoffs,--settingsyoffs + settingsit_h * (idx-1),
         w = settingsit_w-level*settingsit_offs,
-        h = settingsit_h,
+        h = settingsit_h-2,
         layer = settingsit_layer,
         txt = t.str,
         txt_flags=4 ,
@@ -1113,7 +1114,7 @@
       x = settingsxoffs,
       y = settingsyoffs,--settingsyoffs + settingsit_h * (idx-1),
       w = settingsit_w,
-      h = settingsit_h,
+      h = settingsit_h-2,
       layer = settingsit_layer,
       txt = state..' '..t.str,
       txt_flags=4 ,
@@ -1152,7 +1153,7 @@
       x = settingsxoffs+check_w+DATA.GUI.default_offset/2+ level*settingsit_offs,
       y = settingsyoffs,--settingsyoffs + settingsit_h * (idx-1),
       w = settingsit_w -(settingsxoffs+check_w+DATA.GUI.default_offset/2+ level*settingsit_offs)-1,
-      h = settingsit_h,
+      h = settingsit_h-2,
       layer = settingsit_layer,
       txt = t.str,
       txt_flags=4 ,
@@ -1188,7 +1189,7 @@
       x = settingsxoffs+ level*settingsit_offs,
       y = settingsyoffs,--settingsyoffs + settingsit_h * (idx-1),
       w = check_w,
-      h = check_w-3,
+      h = check_w-2,
       layer = settingsit_layer,
       txt = t.str,
       txt_flags=4 ,
@@ -1285,7 +1286,7 @@
       x = settingsxoffs + level*settingsit_offs,
       y = settingsyoffs,--settingsyoffs + settingsit_h * (idx-1),
       w = readoutw,
-      h = settingsit_h-1,
+      h = settingsit_h-2,
       layer = settingsit_layer,
       txt = val_formatted,
       txt_flags=1|4 ,
@@ -1317,6 +1318,7 @@
                                     DATA.GUI.buttons[key..'rout'].txt=t.menu[keym]
                                     DATA.GUI.buttons[key..'rout'].refresh = true
                                     DATA.UPD.onconfchange = true 
+                                    DATA:GUIBuildSettings()
                                     if t.func_onrelease then t.func_onrelease() end
                                   end}
                                 end
@@ -1330,6 +1332,7 @@
                               DATA.extstate[confkey] = new_val
                               DATA.GUI.buttons[key..'rout'].txt = val_format(new_val)
                               DATA.UPD.onconfchange = true 
+                              DATA:GUIBuildSettings()
                               if t.func_onrelease then t.func_onrelease() end
                           end,
       onmousereleaseR =    function() 
@@ -1345,6 +1348,7 @@
                             DATA.GUI.buttons[key..'rout'].txt = val_format(new_val)
                             DATA.GUI.buttons[key..'rout'].refresh = true
                             DATA.UPD.onconfchange = true 
+                            DATA:GUIBuildSettings()
                             if t.func_onrelease then t.func_onrelease() end
                           end,                          
       onmousedoubleclick =   function() 
@@ -1354,6 +1358,7 @@
                             DATA.GUI.buttons[key..'rout'].val = DATA.extstate[confkey]
                             DATA.GUI.buttons[key..'rout'].txt = val_format(DATA.extstate[confkey])
                             DATA.UPD.onconfchange = true 
+                            DATA:GUIBuildSettings()
                             if t.func_onrelease then t.func_onrelease() end
                           end
     } 
