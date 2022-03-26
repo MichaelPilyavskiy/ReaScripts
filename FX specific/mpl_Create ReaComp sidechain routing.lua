@@ -66,6 +66,7 @@
           SetTrackSendInfo_Value( src_tr, 0, new_id, 'D_VOL', defsendvol)
           SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SENDMODE', 3)
           SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', 2) -- 3/4
+          SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_MIDIFLAGS', 31) -- MIDI None
         end
       end
   end
