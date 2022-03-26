@@ -1,10 +1,17 @@
 -- @description Peak follower tools
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Mode/Compressor: add compressor mode (ashcat_lt & SaulT's code with modificaions
+--    + Audio: add FFT mode 
+--    + Audio: add scaling
+--    + Audio: add offset
+--    # Output/reset boundary edges: reset to 1
+--    + Output: invert points
+--    + Output: scale points
+--    + Output: offset points
+--    + Add bypass button
 
     
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
@@ -14,26 +21,33 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.03
+    DATA.extstate.version = 1.04
     DATA.extstate.extstatesection = 'PeakFollowTools'
     DATA.extstate.mb_title = 'Peak follower tools'
     DATA.extstate.default = 
                           {  
                           wind_x =  100,
                           wind_y =  100,
-                          wind_w =  500,
-                          wind_h =  500,
+                          wind_w =  400,
+                          wind_h =  600,
                           dock =    0,
                           
                           CONF_NAME = 'default',
                           
                           -- mode
-                          CONF_mode = 0, -- 0 peak follower 1 gate 2 compressor
+                          CONF_bypass = 0,
+                          CONF_mode = 0, -- 0 peak follower 1 gate 2 compressor 3 fft deessed
                           CONF_boundary = 0, -- 0 item edges 1 time selection
                           
                           -- audio data
                           CONF_removetkenvvol = 1, -- remove take vol
                           CONF_window = 0.02,
+                          CONF_FFTsz = -1,
+                          CONF_FFT_min = 0,
+                          CONF_FFT_max = 0,
+                          CONF_normalize = 0,
+                          CONF_scale = 1,
+                          CONF_offset = 0,
                           
                           -- gate
                           CONF_gate_threshold = 0.538,
@@ -53,7 +67,9 @@
                           CONF_reducesamevalues = 1, -- do not add point if previous point has same value
                           CONF_reducesamevalues_mindiff = 0.1, -- db
                           CONF_zeroboundary = 1, -- zero reset for boundaries
-                          
+                          CONF_out_invert = 0, 
+                          CONF_out_scale = 1, 
+                          CONF_out_offs = 0, 
                           
                           -- UI
                           UI_appatchange = 0, 
@@ -244,7 +260,9 @@
       
       local ret, boundary_start, boundary_end = DATA2:Process_GetBoundary(item)
       if not ret then return end
-      if DATA.extstate.CONF_mode==2 then-- compressor 
+      
+    -- compressor 
+      if DATA.extstate.CONF_mode==2 then -- compressor/deeeser
         local bufsz = SR_spls
         for pos = boundary_start, boundary_end, 1 do 
           local samplebuffer = new_array(bufsz);
@@ -258,51 +276,87 @@
       end
       
       
-    -- loop stuff 
-      for pos = boundary_start, boundary_end, window_sec do 
-        local samplebuffer = new_array(bufsz);
-        GetAudioAccessorSamples( accessor, SR_spls, 1, pos, bufsz, samplebuffer )
-        local sum = 0 
-        for i = 1, bufsz do 
-          local val = math.abs(samplebuffer[i]) 
-          sum = sum + val 
-        end 
-        samplebuffer.clear()
-        id = id + 1
-        data[id] = sum / bufsz
+    -- peak follower in RMS mode
+      if DATA.extstate.CONF_FFTsz==-1 then 
+        for pos = boundary_start, boundary_end, window_sec do 
+          local samplebuffer = new_array(bufsz);
+          GetAudioAccessorSamples( accessor, SR_spls, 1, pos, bufsz, samplebuffer )
+          local sum = 0 
+          for i = 1, bufsz do 
+            local val = math.abs(samplebuffer[i]) 
+            sum = sum + val 
+          end 
+          samplebuffer.clear()
+          id = id + 1
+          data[id] = sum / bufsz -- get RMS
+        end
+        reaper.DestroyAudioAccessor( accessor )
       end
-      reaper.DestroyAudioAccessor( accessor )
-      local max_val = 0
-      for i = 1, #data do max_val = math.max(max_val, data[i]) end -- abs all values 
-      for i = 1, #data do data[i] = (data[i]/max_val) end -- normalize 
+
+      -- peak follower in FFT mode
+      if DATA.extstate.CONF_FFTsz~=-1 then 
+        local fftsz = DATA.extstate.CONF_FFTsz
+        local bufsz = fftsz *2
+        --local window_sec = fftsz / SR_spls
+        for pos = boundary_start, boundary_end, window_sec do 
+          local samplebuffer = new_array(bufsz);
+          GetAudioAccessorSamples( accessor, SR_spls, 1, pos, bufsz, samplebuffer )
+          samplebuffer.fft_real(fftsz, true)
+          local sum = 0 
+          local cnt = 0
+          local fftst = math.max(1,math.ceil(DATA.extstate.CONF_FFT_min*fftsz))
+          local fftend = math.floor(DATA.extstate.CONF_FFT_max*fftsz)
+          for i = fftst, fftend do 
+            local val = math.abs(samplebuffer[i]) 
+            sum = sum + val 
+          end 
+          samplebuffer.clear()
+          id = id + 1
+          data[id] = sum / (fftend-fftst)
+        end
+        reaper.DestroyAudioAccessor( accessor )
+      end
+      
+      if DATA.extstate.CONF_normalize ==1 then
+        local max_val = 0
+        for i = 1, #data do max_val = math.max(max_val, data[i]) end -- abs all values 
+        for i = 1, #data do data[i] = DATA.extstate.CONF_offset + (data[i]/max_val)^DATA.extstate.CONF_scale end -- normalize 
+      end
+      
       
     return data
   end
   -------------------------------------------------------------------
   function DATA2:Process_InsertData_Gate(t, boundary_start, boundary_end, offs, env, AI_idx) 
+    local SR_spls = tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) -- get sample rate obey project start offset
     local scaling_mode = GetEnvelopeScalingMode( env )
     local gateDb = (math.floor(SLIDER2DB((DATA.extstate.CONF_gate_threshold*1000))*10)/10)
     local output = {}
+    local window_sec = DATA.extstate.CONF_window
+    --if DATA.extstate.CONF_FFTsz~=-1 then  window_sec = DATA.extstate.CONF_FFTsz / SR_spls end 
     for i = #t, 1, -1 do   
-        local val =  t[i]
-        val = ScaleToEnvelopeMode( scaling_mode, val ) 
-        local valdB = SLIDER2DB(val)
-        if valdB > gateDb then setval = ScaleToEnvelopeMode( scaling_mode, 1 ) else setval = ScaleToEnvelopeMode( scaling_mode, 0 ) end
-        local tpos = (i-1)*DATA.extstate.CONF_window+boundary_start-offs
-        output[#output+1] = {tpos=tpos,val=setval,valnorm = t[i]}
+      local tpos = (i-1)*window_sec+boundary_start-offs 
+      local val = ScaleToEnvelopeMode( scaling_mode, t[i] ) 
+      local valdB = SLIDER2DB(val)
+      if valdB > gateDb then setval = 1 else setval = 0 end
+      output[#output+1] = {tpos=tpos,val=setval}
+        
     end
     return output
   end
   -------------------------------------------------------------------
   function DATA2:Process_InsertData_PF(t, boundary_start, boundary_end, offs, env, AI_idx)
-    local last_val = math.huge
+    local SR_spls = tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) -- get sample rate obey project start offset
     local scaling_mode = GetEnvelopeScalingMode( env )
     local output = {}
+    local val_norm
+    local window_sec = DATA.extstate.CONF_window
+    --if DATA.extstate.CONF_FFTsz~=-1 then  window_sec = DATA.extstate.CONF_FFTsz / SR_spls end 
     for i = #t-1,1,-1 do  
-        local val = ScaleToEnvelopeMode( scaling_mode, t[i] ) 
-        local tpos = (i-1)*DATA.extstate.CONF_window+boundary_start-offs
-        output[#output+1] = {tpos=tpos,val=val,valnorm = t[i]}
+      local tpos = (i-1)*window_sec+boundary_start-offs
+      output[#output+1] = {tpos=tpos,val=t[i]}
     end
+    
     return output
   end  
 
@@ -413,16 +467,33 @@
       for i = 1, tsz, wind_spls do  
         local val = ScaleToEnvelopeMode( scaling_mode, gain_t[i] ) 
         tpos = boundary_start + i*spl_time-offs+lookahead_ms
-        if tpos > 0 and val >= 0 and val <= 1000 then
-          output[#output+1] = {tpos=tpos,val=val,valnorm = gain_t[i]}
+        if tpos > 0 then --and val >= 0 and val <= 1000 then
+          output[#output+1] = {tpos=tpos,val=VF_lim(gain_t[i])}
         end
       end
       
       
     return output
+  end  
+  -------------------------------------------------------------------
+  function DATA2:Process_InsertData_reduceSameVal(output)
+    local sz = #output  
+    -- reduce pts with same values
+      if DATA.extstate.CONF_reducesamevalues == 1 then
+        local last_val = 0
+        local trigval
+        for i = 1, sz-1 do  
+          local val = output[i].val
+          local valnext = output[i+1].val
+          if last_val == val and valnext == val then output[i].ignore = true end 
+          last_val = val
+        end
+      end
   end
   -------------------------------------------------------------------
   function DATA2:Process_InsertData(item, env, AI_idx, t)
+    local scaling_mode = GetEnvelopeScalingMode( env )
+    
     -- get boundary
       local ret, boundary_start, boundary_end, i_pos = DATA2:Process_GetBoundary(item)
       if not ret then return end
@@ -438,29 +509,25 @@
       local wind_offs = 0--window_ms
       
     -- get output points
-       output = {}
+      local output = {}
       if DATA.extstate.CONF_mode ==0 then output = DATA2:Process_InsertData_PF(t, boundary_start, boundary_end, offs, env, AI_idx) end -- peak follow 
       if DATA.extstate.CONF_mode ==1 then output = DATA2:Process_InsertData_Gate(t,  boundary_start, boundary_end, offs, env, AI_idx) end-- gate
       if DATA.extstate.CONF_mode ==2 then output = DATA2:Process_InsertData_Compressor(t,  boundary_start, boundary_end, offs, env, AI_idx) end-- gate 
       
+      if DATA.extstate.CONF_bypass == 1 then output = nil end
+      
       
     -- add points
       if output then 
-        local sz = #output 
-        
-        -- reduce pts with same values
-          if DATA.extstate.CONF_reducesamevalues == 1 then
-            local last_val = 0
-            local trigval
-            for i = 1, sz-1 do  
-              local val = output[i].val
-              local valnext = output[i+1].val
-              if last_val == val and valnext == val then output[i].ignore = true end 
-              last_val = val
-            end
-          end
-        
-        for i = 1, sz do if output[i] and (not output[i].ignore or output[i].ignore==false) then InsertEnvelopePointEx( env, AI_idx, output[i].tpos, output[i].val, 0, 0, 0, true ) end end 
+        DATA2:Process_InsertData_reduceSameVal(output)
+        local valout
+        local sz = #output  
+        for i = 1, sz do if output[i] and (not output[i].ignore or output[i].ignore==false) then 
+          valout = VF_lim(output[i].val*DATA.extstate.CONF_out_scale - DATA.extstate.CONF_out_offs)
+          local valout = ScaleToEnvelopeMode( scaling_mode, valout) 
+          if DATA.extstate.CONF_out_invert ==1 then valout = 1000- valout end
+          InsertEnvelopePointEx( env, AI_idx, output[i].tpos, valout, 0, 0, 0, true ) 
+        end end 
         Envelope_SortPointsEx( env, AI_idx ) 
       end
       
@@ -470,7 +537,7 @@
         local ptidx = GetEnvelopePointByTimeEx(env, AI_idx, #t*DATA.extstate.CONF_window+boundary_start-offs )
         if ptidx then
           local retval, time, value, shape, tension, selected = reaper.GetEnvelopePointEx( env, AI_idx, ptidx )
-          reaper.SetEnvelopePointEx(  env, AI_idx, ptidx, time, 0, shape, tension, selected, true )
+          reaper.SetEnvelopePointEx(  env, AI_idx, ptidx, time,     ScaleToEnvelopeMode( scaling_mode, 1 ) , shape, tension, selected, true )
         end
       end
       
@@ -492,13 +559,41 @@
   end
   ---------------------------------------------------------------------  
   function GUI_RESERVED_BuildSettings(DATA)
+    local readoutw_extw = 200
+    local SR_spls = tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) -- get sample rate obey project start offset
     local  t = 
     { 
-      {str = 'Global' ,                       group = 1, itype = 'sep'},
-        {str = 'Mode' ,                       group = 1, itype = 'readout', level = 1,  confkey = 'CONF_mode', menu = { [0]='Peak follower', [1]='Gate', [2] = 'Compressor'},readoutw_extw=150, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
-        {str = 'Boundaries' ,                 group = 1, itype = 'readout', level = 1,  confkey = 'CONF_boundary', menu = { [0]='Item edges', [1]='Time selection'},readoutw_extw=150, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
-      {str = 'Peak follower parameters' ,     group = 3, itype = 'sep'},
+      {str = 'Global' ,                       group = 1, itype = 'sep'}, 
+        {str = 'Bypass',                      group = 1, itype = 'check', confkey = 'CONF_bypass', level = 1, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+        {str = 'Mode' ,                       group = 1, itype = 'readout', level = 1,  confkey = 'CONF_mode', menu = { 
+          [0]='Peak follower', 
+          [1]='Gate', 
+          [2] = 'Compressor (by ashcat_lt & SaulT)',
+          --[3] = 'Deesser (by Liteon)', 
+          },readoutw_extw=readoutw_extw, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+        {str = 'Boundaries' ,                 group = 1, itype = 'readout', level = 1,  confkey = 'CONF_boundary', menu = { [0]='Item edges', [1]='Time selection'},readoutw_extw=readoutw_extw, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+      {str = 'Audio data reader' ,            group = 3, itype = 'sep'},
         {str = 'Clear take volume envelope before' ,             group = 3, itype = 'check', confkey = 'CONF_removetkenvvol', level = 1}, 
+        {str = 'FFT size' ,                   group = 3, itype = 'readout', level = 1,  confkey = 'CONF_FFTsz', func_onrelease = function() DATA2:ProcessAtChange(DATA) end, menu = { 
+          [-1]='[disabled]', 
+          [1024]='1024', 
+          [2048] ='2048'},
+          hide=DATA.extstate.CONF_mode==2
+        },
+        {str = 'FFT min freq' ,                 group = 3, itype = 'readout', confkey = 'CONF_FFT_min', level = 1, 
+          val_res = 0.05, 
+          val_format = function(x) return math.floor(x*SR_spls/2)..'Hz' end, 
+          val_format_rev = function(x) return VF_lim(x/(SR_spls/2),0,SR_spls) end, 
+          func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
+          hide=DATA.extstate.CONF_FFTsz==-1 or  DATA.extstate.CONF_mode==2
+          }, 
+        {str = 'FFT max freq' ,                 group = 3, itype = 'readout', confkey = 'CONF_FFT_max', level = 1, 
+          val_res = 0.05, 
+          val_format = function(x) return math.floor(x*SR_spls/2)..'Hz' end, 
+          val_format_rev = function(x) return VF_lim(x/(SR_spls/2),0,SR_spls) end, 
+          func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
+          hide=DATA.extstate.CONF_FFTsz==-1 or  DATA.extstate.CONF_mode==2
+          },        
         {str = 'RMS Window' ,                 group = 3, itype = 'readout', confkey = 'CONF_window', level = 1, 
           val_min = 0.001, 
           val_max = 0.4, 
@@ -506,8 +601,18 @@
           val_format = function(x) return (math.floor(x*1000)/1000)..'s' end, 
           val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, 
           func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
-          hide=DATA.extstate.CONF_mode==2
+          hide=DATA.extstate.CONF_mode==2,--  or DATA.extstate.CONF_FFTsz~=-1
           },
+        {str = 'Normalize envelope' ,          group = 3, itype = 'check', confkey = 'CONF_normalize', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide=DATA.extstate.CONF_mode==2,}, 
+        {str = 'Scale envelope x^[0.5...4]' ,              group = 3, itype = 'readout', val_min = 0.5, val_max = 4, val_res = 0.05, confkey = 'CONF_scale', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide=DATA.extstate.CONF_mode==2,
+          val_format = function(x) return math.floor(x*1000)/1000 end, 
+          val_format_rev = function(x) return tonumber(x) end, }, 
+        {str = 'Offset' ,              group = 3, itype = 'readout', val_min = -1, val_max = 1, val_res = 0.05, confkey = 'CONF_offset', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide=DATA.extstate.CONF_mode==2,
+          val_format = function(x) return math.floor(x*1000)/1000 end, 
+          val_format_rev = function(x) return tonumber(x) end, },    
+          
+  
+                    
           
       {str = 'Mode parameters' ,     group = 2, itype = 'sep'},
       
@@ -587,11 +692,18 @@
         {str = 'Take volume env' ,              group = 4, itype = 'check', confkey = 'CONF_dest', level = 1, isset = 1, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
       {str = 'Output' ,                         group = 6, itype = 'sep'},
         {str = 'Reduce points with same values',group = 6, itype = 'check', confkey = 'CONF_reducesamevalues', level = 1, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+        {str = 'Invert points',                 group = 6, itype = 'check', confkey = 'CONF_out_invert', level = 1, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+        {str = 'Scale x*[0...1]' ,              group = 3, itype = 'readout', val_min = 0, val_max = 1, val_res = 0.05, confkey = 'CONF_out_scale', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
+            val_format = function(x) return math.floor(x*1000)/1000 end, 
+            val_format_rev = function(x) return tonumber(x) end, },    
+        {str = 'Offset' ,              group = 3, itype = 'readout', val_min = -1, val_max = 1, val_res = 0.05, confkey = 'CONF_out_offs', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
+          val_format = function(x) return math.floor(x*1000)/1000 end, 
+          val_format_rev = function(x) return tonumber(x) end, },          
           --[[{str = 'Minimum value difference' ,     group = 6, itype = 'readout', confkey = 'CONF_reducesamevalues_mindiff', 
             val_format = function(x) return (math.floor(x*1000)/1000)..'dB' end, 
             val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end,
             level = 2, val_res = 0.05, val_min = 0, val_max = 5, func_onrelease = function() DATA2:ProcessAtChange(DATA) end,hide=DATA.extstate.CONF_reducesamevalues~=1}, ]]
-        {str = 'Reset boundary edges to zero',  group = 6, itype = 'check', confkey = 'CONF_zeroboundary', level = 1, func_onrelease = function()DATA2:ProcessAtChange(DATA)  end},
+        {str = 'Reset boundary edges',          group = 6, itype = 'check', confkey = 'CONF_zeroboundary', level = 1, func_onrelease = function()DATA2:ProcessAtChange(DATA)  end},
       {str = 'UI options' ,                     group = 5, itype = 'sep'},  
         {str = 'Enable shortcuts' ,             group = 5, itype = 'check', confkey = 'UI_enableshortcuts', level = 1},
         {str = 'Init UI at mouse' ,             group = 5, itype = 'check', confkey = 'UI_initatmouse', level = 1},
@@ -602,6 +714,317 @@
     return t
     
   end
+  --[[-----------------------------------------------------------------
+  fun ction D ATA2:Process_InsertData_Deeser(t, boundary_start, boundary_end, offs, env, AI_idx)
+    local SR_spls = tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) -- get sample rate obey project start offset
+    local scaling_mode = GetEnvelopeScalingMode( env )
+     --// (C) 2009, Lubomir I. Ivanov
+     --// Includes optimized version of Linkwitz-Riley (LR2) filters
+     --// by T. Lossius - ttblue project
+     
+     -- deeser
+       local b1_s0 = 0
+       local b2_s0 = 0
+       local d_b1_s0 = 0
+       local d_b2_s0 = 0
+       local a0_s0_lp = 0
+       local a1_s0_lp = 0
+       local a2_s0_lp = 0
+       local d_a0_s0_lp = 0
+       local d_a1_s0_lp = 0
+       local d_a2_s0_lp = 0
+       local s0_lp_l_xm0 = 0
+       local s0_lp_l_xm1 = 0
+       local a0_s0_hp = 0
+       local a1_s0_hp = 0
+       local a2_s0_hp = 0
+       local d_a0_s0_hp = 0
+       local d_a1_s0_hp = 0
+       local d_a2_s0_hp = 0
+       local s0_hp_l_xm0 = 0
+       local s0_hp_l_xm1 = 0
+       local tgt_b1_s0 = 0
+       local src_b1_s0 = 0
+       local tgt_b2_s0 = 0
+       local src_b2_s0 = 0
+       local tgt_a0_s0_lp = 0
+       local src_a0_s0_lp = 0
+       local tgt_a1_s0_lp = 0
+       local src_a1_s0_lp = 0
+       local tgt_a2_s0_lp = 0
+       local src_a2_s0_lp = 0
+       local tgt_a0_s0_hp = 0
+       local src_a0_s0_hp = 0
+       local tgt_a1_s0_hp = 0
+       local src_a1_s0_hp = 0
+       local tgt_a2_s0_hp = 0
+       local src_a2_s0_hp = 0
+       local s0_hp_l_in = 0
+       local s0_hp_l_output = 0
+       local cband_l = 0
+       local dtl = 0
+       local envl = 0
+       local att = 0
+       local rel = 0
+       local thr = 0
+       local e10 = 0
+       local k = 0 
+       local k2 = 0 
+       local k22 = 0 
+       local sum_l = 0 
+       local s0_lp_l_in = 0 
+       local s0_lp_l_output = 0 
+       local out = 0 
+       local tmpk = 0 
+       local wc = 0 
+       local wc2 = 0 
+       local wc22 = 0 
+       local wck2 = 0 
+       local outl = 0 
+       
+       
+       -- sliders
+       local target = 1; --1<0,1,1{Bandpass,Hipass}>Target Type
+       local fc = 4000;--slider4:4000<1500,12000,1>Frequency (Hz)
+       local bw  = 1.5; -- slider5:1.5<0.1,3.1,0.0005>Bandwidth (Oct)
+       local thr_dB = -50-- slider6:-65<-80,0,0.01>Threshold (dB)
+       local ratctrl = 11--slider7:11<1,20,0.01>Ratio
+       local thr = 10^( 2 * (thr_dB/80+1) - 2); 
+       local rat = (ratctrl-1)/19;
+       local timeconst = 0 -- slider8:0<0,1,1{A: 3 es - R: 50 ms,A: 30 es - R: 100 ms,A: 100 es - R: 300 ms}>Time Constants
+       
+       
+       local n = 0;
+       local sqrt2 = math.sqrt(2);
+       local s2 = sqrt2/2;
+       local cgain = 1;
+       local cdenorm = 10^-30;
+       local e10 = 10^-10;
+       
+      --//comp
+      if timeconst == 0 then
+        att = 10^(-0.002 - 3.97772619*(0/100));
+        rel = 10^(-3.11 - 1.8698*(21.20/100));
+       elseif timeconst == 1 then
+        att = 10^(-0.002 - 3.97772619*(9.71/100));
+        rel = 10^(-3.11 - 1.8698*(37.19/100));
+       elseif timeconst == 2 then
+        att = 10^(-0.002 - 3.97772619*(20.97/100));
+        rel = 10^(-3.11 - 1.8698*(62.61/100));
+      end
+       
+     -- crossover type: 2 or 3 bands
+     if target == 0 then
+      fh = math.min((fc + fc*bw/2),20000);
+      --// high-band split - s1 (at fh)
+      fpi = math.pi*fh;
+      wc = 2*fpi;
+      wc2 = wc*wc;
+      wc22 = 2*wc2;
+      k = wc/math.tan(fpi/SR_spls);
+      k2 = k*k;
+      k22 = 2*k2;
+      wck2 = 2*wc*k; 
+      tmpk = (k2+wc2+wck2);
+      tgt_b1_s1 = (-k22+wc22)/tmpk;
+      tgt_b2_s1 = (-wck2+k2+wc2)/tmpk;
+      --// low-pass (s1)
+      tgt_a0_s1_lp = (wc2)/tmpk;
+      tgt_a1_s1_lp = (wc22)/tmpk;
+      tgt_a2_s1_lp = (wc2)/tmpk;
+     --// high-pass (s1)
+      tgt_a0_s1_hp = (k2)/tmpk;
+      tgt_a1_s1_hp = (-k22)/tmpk;
+      tgt_a2_s1_hp = (k2)/tmpk;
+      --// prepare for s0
+      fl = fc - fc*bw/4;
+      fpi = math.pi*fl; 
+     else 
+      fpi = math.pi*fc;
+    end
+    
+    --// low-band split - s0 (case: at 'fc' or 'fl')
+    -- // s0 is always processed (2 band split)
+      wc = 2*fpi;
+      wc2 = wc*wc;
+      wc22 = 2*wc2;
+      k = wc/math.tan(fpi/SR_spls);
+      k2 = k*k;
+      k22 = 2*k2;
+      wck2 = 2*wc*k; 
+      tmpk = (k2+wc2+wck2);
+      tgt_b1_s0 = (-k22+wc22)/tmpk;
+      tgt_b2_s0 = (-wck2+k2+wc2)/tmpk;
+      --// low-pass (s0)
+      tgt_a0_s0_lp = (wc2)/tmpk;
+      tgt_a1_s0_lp = (wc22)/tmpk;
+      tgt_a2_s0_lp = (wc2)/tmpk;
+      --// high-pass (s0)
+      tgt_a0_s0_hp = (k2)/tmpk;
+      tgt_a1_s0_hp = (-k22)/tmpk;
+      tgt_a2_s0_hp = (k2)/tmpk;
+     
+      
+      local gain_t = {}
+      local tsz = #t
+      local spl0 = 0
+      local samplesblock = 1024
+      
+      
+      -- main loop
+      for i = 1, tsz do
+        spl0 = t[i]; 
+        -- // s0, b
+        b1_s0 = b1_s0 + d_b1_s0;
+        b2_s0 = b2_s0 + d_b2_s0;
+        -- // s0, lp 
+        a0_s0_lp = a0_s0_lp + d_a0_s0_lp;
+        a1_s0_lp = a1_s0_lp + d_a1_s0_lp;
+        a2_s0_lp = a2_s0_lp + d_a2_s0_lp;
+        s0_lp_l_in = spl0;
+        s0_lp_l_output = a0_s0_lp*s0_lp_l_in + s0_lp_l_xm0;
+        s0_lp_l_xm0 = a1_s0_lp*s0_lp_l_in - b1_s0*s0_lp_l_output + s0_lp_l_xm1;
+        s0_lp_l_xm1 = a2_s0_lp*s0_lp_l_in - b2_s0*s0_lp_l_output;
+        -- // s0, hp 
+        a0_s0_hp = a0_s0_hp + d_a0_s0_hp;
+        a1_s0_hp = a1_s0_hp + d_a1_s0_hp;
+        a2_s0_hp = a2_s0_hp + d_a2_s0_hp;
+        s0_hp_l_in = spl0;
+        s0_hp_l_output = a0_s0_hp*s0_hp_l_in + s0_hp_l_xm0;
+        s0_hp_l_xm0 = a1_s0_hp*s0_hp_l_in - b1_s0*s0_hp_l_output + s0_hp_l_xm1;
+        s0_hp_l_xm1 = a2_s0_hp*s0_hp_l_in - b2_s0*s0_hp_l_output;
+        s0_hp_l_output = s0_hp_l_output * -1;
+        --// s1, b
+        if target == 0 then
+          b1_s1 = b1_s1 + d_b1_s1;
+          b2_s1 = b2_s1 + d_b2_s1;
+          --  // s1, lp 
+          a0_s1_lp = a0_s1_lp + d_a0_s1_lp;
+          a1_s1_lp = a1_s1_lp + d_a1_s1_lp;
+          a2_s1_lp = a2_s1_lp + d_a2_s1_lp;
+          s1_lp_l_in = s0_hp_l_output;
+          s1_lp_l_output = a0_s1_lp*s1_lp_l_in + s1_lp_l_xm0;
+          s1_lp_l_xm0 = a1_s1_lp*s1_lp_l_in - b1_s1*s1_lp_l_output + s1_lp_l_xm1;
+          s1_lp_l_xm1 = a2_s1_lp*s1_lp_l_in - b2_s1*s1_lp_l_output;
+          --  // s1, hp 
+          a0_s1_hp = a0_s1_hp+ d_a0_s1_hp;
+          a1_s1_hp = a1_s1_hp+ d_a1_s1_hp;
+          a2_s1_hp = a2_s1_hp + d_a2_s1_hp;
+          s1_hp_l_in = s0_hp_l_output;
+          s1_hp_l_output = a0_s1_hp*s1_hp_l_in + s1_hp_l_xm0;
+          s1_hp_l_xm0 = a1_s1_hp*s1_hp_l_in - b1_s1*s1_hp_l_output + s1_hp_l_xm1;
+          s1_hp_l_xm1 = a2_s1_hp*s1_hp_l_in - b2_s1*s1_hp_l_output;
+          s1_hp_l_output = s1_hp_l_output * -1;
+          --// set process band (cband)
+          cband_l = s1_lp_l_output;
+         else
+          cband_l = s0_hp_l_output;
+        end
+        
+        -- // compressor 
+        dtl = math.abs(cband_l);
+        if (dtl > envl) then envl = envl + att*(dtl - envl) else envl = envl*(1 - rel); end
+        if (envl > thr) then 
+          cgainl = 1+(rat*  ( (envl/thr)-1) ); 
+          g_reset = 0;
+         else
+          cgainl = 1; g_reset = 1;
+        end
+        if (envl < e10) then envl = 0 end
+        
+        -- // monitor or sum bands
+        if target == 0 then 
+          sum_l = s0_lp_l_output+cband_l/cgainl+s1_hp_l_output;
+         else
+          sum_l = s0_lp_l_output+cband_l/cgainl;
+        end
+        outl = sum_l+cdenorm;
+        
+        
+        -- @block
+        --// interpolate *all* coefficients here 
+        -- // s0 b
+        d_b1_s0 = (tgt_b1_s0-src_b1_s0)/samplesblock;
+        b1_s0 = src_b1_s0;
+        src_b1_s0 = tgt_b1_s0;
+        d_b2_s0 = (tgt_b2_s0-src_b2_s0)/samplesblock;
+        b2_s0 = src_b2_s0;
+        src_b2_s0 = tgt_b2_s0;
+        --// s0 a lp
+        d_a0_s0_lp = (tgt_a0_s0_lp-src_a0_s0_lp)/samplesblock;
+        a0_s0_lp = src_a0_s0_lp;
+        src_a0_s0_lp = tgt_a0_s0_lp;
+        d_a1_s0_lp = (tgt_a1_s0_lp-src_a1_s0_lp)/samplesblock;
+        a1_s0_lp = src_a1_s0_lp;
+        src_a1_s0_lp = tgt_a1_s0_lp;
+        d_a2_s0_lp = (tgt_a2_s0_lp-src_a2_s0_lp)/samplesblock;
+        a2_s0_lp = src_a2_s0_lp;
+        src_a2_s0_lp = tgt_a2_s0_lp;
+        --// s0 a hp
+        d_a0_s0_hp = (tgt_a0_s0_hp-src_a0_s0_hp)/samplesblock;
+        a0_s0_hp = src_a0_s0_hp;
+        src_a0_s0_hp = tgt_a0_s0_hp;
+        d_a1_s0_hp = (tgt_a1_s0_hp-src_a1_s0_hp)/samplesblock;
+        a1_s0_hp = src_a1_s0_hp;
+        src_a1_s0_hp = tgt_a1_s0_hp;
+        d_a2_s0_hp = (tgt_a2_s0_hp-src_a2_s0_hp)/samplesblock;
+        a2_s0_hp = src_a2_s0_hp;
+        src_a2_s0_hp = tgt_a2_s0_hp;
+        --// s1
+        if target == 0 then
+          --// s1 b
+          d_b1_s1 = (tgt_b1_s1-src_b1_s1)/samplesblock;
+          b1_s1 = src_b1_s1;
+          src_b1_s1 = tgt_b1_s1;
+          d_b2_s1 = (tgt_b2_s1-src_b2_s1)/samplesblock;
+          b2_s1 = src_b2_s1;
+          src_b2_s1 = tgt_b2_s1;
+          --// s1 a lp
+          d_a0_s1_lp = (tgt_a0_s1_lp-src_a0_s1_lp)/samplesblock;
+          a0_s1_lp = src_a0_s1_lp;
+          src_a0_s1_lp = tgt_a0_s1_lp;
+          d_a1_s1_lp = (tgt_a1_s1_lp-src_a1_s1_lp)/samplesblock;
+          a1_s1_lp = src_a1_s1_lp;
+          src_a1_s1_lp = tgt_a1_s1_lp;
+          d_a2_s1_lp = (tgt_a2_s1_lp-src_a2_s1_lp)/samplesblock;
+          a2_s1_lp = src_a2_s1_lp;
+          src_a2_s1_lp = tgt_a2_s1_lp;
+          --// s1 a hp
+          d_a0_s1_hp = (tgt_a0_s1_hp-src_a0_s1_hp)/samplesblock;
+          a0_s1_hp = src_a0_s1_hp;
+          src_a0_s1_hp = tgt_a0_s1_hp;
+          d_a1_s1_hp = (tgt_a1_s1_hp-src_a1_s1_hp)/samplesblock;
+          a1_s1_hp = src_a1_s1_hp;
+          src_a1_s1_hp = tgt_a1_s1_hp;
+          d_a2_s1_hp = (tgt_a2_s1_hp-src_a2_s1_hp)/samplesblock;
+          a2_s1_hp = src_a2_s1_hp;
+          src_a2_s1_hp = tgt_a2_s1_hp;
+        end
+             
+        diff = spl0 - outl;
+        spl0 = outl;
+        
+        gain_t[i] = math.max(diff,0)
+      end
+      
+      
+      
+    -- add points 
+      --wind_spls = 1
+      local wind_spls = math.ceil(DATA.extstate.CONF_window/2 * SR_spls) 
+      local output = {}
+      local spl_time = 1/SR_spls
+      for i = 1, tsz, wind_spls do  
+        local val = ScaleToEnvelopeMode( scaling_mode, gain_t[i] ) 
+        tpos = boundary_start + i*spl_time-offs--+lookahead_ms
+        if tpos > 0 and val >= 0 and val <= 1000 then
+          output[#output+1] = {tpos=tpos,val=val,valnorm = gain_t[i]}
+        end
+      end
+      
+      
+    return output
+  end]]
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
