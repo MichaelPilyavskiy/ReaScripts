@@ -1,5 +1,5 @@
 -- @description Peak follower tools
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
@@ -7,6 +7,7 @@
 --    + Audio: add FFT mode 
 --    + Audio: add scaling
 --    + Audio: add offset
+--    + Audio: add smmothing
 --    # Output/reset boundary edges: reset to 1
 --    + Output: invert points
 --    + Output: scale points
@@ -21,7 +22,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.04
+    DATA.extstate.version = 1.05
     DATA.extstate.extstatesection = 'PeakFollowTools'
     DATA.extstate.mb_title = 'Peak follower tools'
     DATA.extstate.default = 
@@ -42,12 +43,15 @@
                           -- audio data
                           CONF_removetkenvvol = 1, -- remove take vol
                           CONF_window = 0.02,
+                          CONF_windowoverlap = 1,
                           CONF_FFTsz = -1,
                           CONF_FFT_min = 0,
-                          CONF_FFT_max = 0,
+                          CONF_FFT_max = 1,
                           CONF_normalize = 0,
                           CONF_scale = 1,
                           CONF_offset = 0,
+                          CONF_smoothblock = 1,
+                          
                           
                           -- gate
                           CONF_gate_threshold = 0.538,
@@ -278,7 +282,7 @@
       
     -- peak follower in RMS mode
       if DATA.extstate.CONF_FFTsz==-1 then 
-        for pos = boundary_start, boundary_end, window_sec do 
+        for pos = boundary_start, boundary_end, window_sec/DATA.extstate.CONF_windowoverlap do 
           local samplebuffer = new_array(bufsz);
           GetAudioAccessorSamples( accessor, SR_spls, 1, pos, bufsz, samplebuffer )
           local sum = 0 
@@ -298,7 +302,7 @@
         local fftsz = DATA.extstate.CONF_FFTsz
         local bufsz = fftsz *2
         --local window_sec = fftsz / SR_spls
-        for pos = boundary_start, boundary_end, window_sec do 
+        for pos = boundary_start, boundary_end, window_sec/DATA.extstate.CONF_windowoverlap do 
           local samplebuffer = new_array(bufsz);
           GetAudioAccessorSamples( accessor, SR_spls, 1, pos, bufsz, samplebuffer )
           samplebuffer.fft_real(fftsz, true)
@@ -320,9 +324,19 @@
       if DATA.extstate.CONF_normalize ==1 then
         local max_val = 0
         for i = 1, #data do max_val = math.max(max_val, data[i]) end -- abs all values 
-        for i = 1, #data do data[i] = DATA.extstate.CONF_offset + (data[i]/max_val)^DATA.extstate.CONF_scale end -- normalize 
+        for i = 1, #data do data[i] = (data[i]/max_val) end -- normalize 
       end
       
+      for i = 1, #data do data[i] = data[i]^DATA.extstate.CONF_scale + DATA.extstate.CONF_offset end
+      local block =DATA.extstate.CONF_smoothblock
+      if block > 1 then
+        local data0 = CopyTable(data)
+        for i = block+1, #data do 
+          avg = 0
+          for j = i-block, i do avg = avg + data0[j] end
+          data[i] = avg /block
+        end
+      end
       
     return data
   end
@@ -332,7 +346,7 @@
     local scaling_mode = GetEnvelopeScalingMode( env )
     local gateDb = (math.floor(SLIDER2DB((DATA.extstate.CONF_gate_threshold*1000))*10)/10)
     local output = {}
-    local window_sec = DATA.extstate.CONF_window
+    local window_sec = DATA.extstate.CONF_window/DATA.extstate.CONF_windowoverlap
     --if DATA.extstate.CONF_FFTsz~=-1 then  window_sec = DATA.extstate.CONF_FFTsz / SR_spls end 
     for i = #t, 1, -1 do   
       local tpos = (i-1)*window_sec+boundary_start-offs 
@@ -350,7 +364,7 @@
     local scaling_mode = GetEnvelopeScalingMode( env )
     local output = {}
     local val_norm
-    local window_sec = DATA.extstate.CONF_window
+    local window_sec = DATA.extstate.CONF_window/DATA.extstate.CONF_windowoverlap
     --if DATA.extstate.CONF_FFTsz~=-1 then  window_sec = DATA.extstate.CONF_FFTsz / SR_spls end 
     for i = #t-1,1,-1 do  
       local tpos = (i-1)*window_sec+boundary_start-offs
@@ -513,10 +527,8 @@
       if DATA.extstate.CONF_mode ==0 then output = DATA2:Process_InsertData_PF(t, boundary_start, boundary_end, offs, env, AI_idx) end -- peak follow 
       if DATA.extstate.CONF_mode ==1 then output = DATA2:Process_InsertData_Gate(t,  boundary_start, boundary_end, offs, env, AI_idx) end-- gate
       if DATA.extstate.CONF_mode ==2 then output = DATA2:Process_InsertData_Compressor(t,  boundary_start, boundary_end, offs, env, AI_idx) end-- gate 
-      
       if DATA.extstate.CONF_bypass == 1 then output = nil end
-      
-      
+       
     -- add points
       if output then 
         DATA2:Process_InsertData_reduceSameVal(output)
@@ -561,6 +573,7 @@
   function GUI_RESERVED_BuildSettings(DATA)
     local readoutw_extw = 200
     local SR_spls = tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) -- get sample rate obey project start offset
+
     local  t = 
     { 
       {str = 'Global' ,                       group = 1, itype = 'sep'}, 
@@ -603,6 +616,16 @@
           func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
           hide=DATA.extstate.CONF_mode==2,--  or DATA.extstate.CONF_FFTsz~=-1
           },
+       {str = 'Window overlap' ,                 group = 3, itype = 'readout', confkey = 'CONF_windowoverlap', level = 1, val_isinteger = true,
+         val_min = 1, 
+         val_max = 16, 
+         val_res = 0.05, 
+         val_format = function(x) return x..'x' end, 
+         val_format_rev = function(x) return VF_lim(math.floor(tonumber(x) or 1), 1,16) end, 
+         func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
+         hide=DATA.extstate.CONF_mode==2,--  or DATA.extstate.CONF_FFTsz~=-1
+         },         
+          
         {str = 'Normalize envelope' ,          group = 3, itype = 'check', confkey = 'CONF_normalize', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide=DATA.extstate.CONF_mode==2,}, 
         {str = 'Scale envelope x^[0.5...4]' ,              group = 3, itype = 'readout', val_min = 0.5, val_max = 4, val_res = 0.05, confkey = 'CONF_scale', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide=DATA.extstate.CONF_mode==2,
           val_format = function(x) return math.floor(x*1000)/1000 end, 
@@ -610,7 +633,9 @@
         {str = 'Offset' ,              group = 3, itype = 'readout', val_min = -1, val_max = 1, val_res = 0.05, confkey = 'CONF_offset', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide=DATA.extstate.CONF_mode==2,
           val_format = function(x) return math.floor(x*1000)/1000 end, 
           val_format_rev = function(x) return tonumber(x) end, },    
-          
+        {str = 'Smooth' ,              group = 3, itype = 'readout', val_min = 1, val_max = 15, val_res = 0.05, confkey = 'CONF_smoothblock', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide=DATA.extstate.CONF_mode==2, val_isinteger = true,
+          val_format = function(x) return (math.floor(1000*x*DATA.extstate.CONF_window/DATA.extstate.CONF_windowoverlap)/1000)..'s' end, 
+          val_format_rev = function(x) return math.floor(tonumber(x/(DATA.extstate.CONF_window/DATA.extstate.CONF_windowoverlap))) end, },             
   
                     
           
