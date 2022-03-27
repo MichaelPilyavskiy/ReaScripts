@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 3.04
+-- @version 3.05
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v3.lua
@@ -10,12 +10,12 @@
 --    mpl_Various_functions_MOUSE.lua
 --    mpl_Various_functions_Pers.lua
 -- @changelog
---    # Settings: rebuild on menu selection
---    # Preset: don`t rebuild stuff for specific flags
+--    # Settings/retina: remove test from check
+--    # Settings/retina: fix readout width
 
 
     
-  VF_version = 3.04 -- do not remove, used for versions comparement
+  VF_version = 3.05 -- do not remove, used for versions comparement
   VF_isregist = 1|2 -- do not remove, used for VF versions check
   --------------------------------------------------
   function VF_LoadLibraries()

@@ -959,10 +959,9 @@
                 DATA.extstate.wind_x or 100, 
                 DATA.extstate.wind_y or 100)
       
-      local retinatest = 0--2
+      local retinatest = 0
       if DATA.GUI.default_scale ~= gfx.ext_retina or retinatest ~= 0 then -- dpi changed (either initially or from the user moving the window or the OS changing
         DATA.GUI.default_scale = gfx.ext_retina
-              
         if retinatest ~= 0 then DATA.GUI.default_scale = retinatest end
         DATA.GUI.default_font_coeff = (1+DATA.GUI.default_scale)*0.5 
         -- Resize manually gfx window, if not MacOS
@@ -1191,7 +1190,7 @@
       w = check_w,
       h = check_w-2,
       layer = settingsit_layer,
-      txt = t.str,
+      --txt = t.str,
       txt_flags=4 ,
       frame_a=DATA.GUI.default_framea_normal,
       onmousematch=onmousematch,
@@ -1223,7 +1222,7 @@
     local key = t.key
     
     local readoutw = 70*DATA.GUI.default_scale
-    if t.readoutw_extw then readoutw = t.readoutw_extw*DATA.GUI.default_scale end
+    if t.readoutw_extw then readoutw = t.readoutw_extw end
     local level = t.level or 0
     local settingsit_offs = t.settingsit_offs
     local settingsxoffs = t.settingsxoffs 

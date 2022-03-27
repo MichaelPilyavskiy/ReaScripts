@@ -1,10 +1,10 @@
 -- @description Peak follower tools
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Add deesser perset
+--    # fix GUI on retina (require latest VF)
 
     
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
@@ -14,7 +14,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.06
+    DATA.extstate.version = 1.07
     DATA.extstate.extstatesection = 'PeakFollowTools'
     DATA.extstate.mb_title = 'Peak follower tools'
     DATA.extstate.default = 
@@ -99,10 +99,10 @@
     --DATA.GUI.default_scale = 2
     
     -- init main stuff
-      DATA.GUI.custom_mainbuth = 30
+      DATA.GUI.custom_mainbuth = 30*DATA.GUI.default_scale
       DATA.GUI.custom_texthdef = 23
       DATA.GUI.custom_offset = math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
-      DATA.GUI.custom_mainsepx = gfx.w--(gfx.w/DATA.GUI.default_scale)*0.4-- *DATA.GUI.default_scale--400*DATA.GUI.default_scale--
+      DATA.GUI.custom_mainsepx = gfx.w/DATA.GUI.default_scale--(gfx.w/DATA.GUI.default_scale)*0.4-- *DATA.GUI.default_scale--400*DATA.GUI.default_scale--
       DATA.GUI.custom_mainbutw = 0.5*(gfx.w/DATA.GUI.default_scale-DATA.GUI.custom_offset*3) --(gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx)-DATA.GUI.custom_offset*3
       DATA.GUI.custom_scrollw = 10
       DATA.GUI.custom_frameascroll = 0.05
@@ -1046,4 +1046,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.0) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.05) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end

@@ -1399,7 +1399,7 @@
     DATA.GUI.custom_mainbuth = 30
     DATA.GUI.custom_texthdef = 23
     DATA.GUI.custom_offset = math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
-    DATA.GUI.custom_mainsepx = 400*DATA.GUI.default_scale--(gfx.w/ 2)/GUI.default_scale
+    DATA.GUI.custom_mainsepx = 400--(gfx.w/ 2)/GUI.default_scale
     DATA.GUI.custom_mainbutw = ((gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx)-DATA.GUI.custom_offset*2) / 2
     DATA.GUI.custom_scrollw = 10
     DATA.GUI.custom_frameascroll = 0.05
@@ -1653,7 +1653,7 @@
           h = math.floor(b.h*val)
         end
         local x = b.x + (b.w-b.x) * pos_norm
-        gfx.rect(x,y,w,h)
+        gfx.rect(x * DATA.GUI.default_scale,y * DATA.GUI.default_scale,w,h * DATA.GUI.default_scale)
       end
       --[[
       local min_betweentxt_px = 20
@@ -1721,7 +1721,8 @@
         end
       end    
     
-    DATA.GUI.buttons.anchpdata = { x=DATA.GUI.custom_offset, -- link to GUI.buttons.getreference
+    local xdata = DATA.GUI.custom_offset
+    DATA.GUI.buttons.anchpdata = { x=xdata, -- link to GUI.buttons.getreference
                             y=DATA.GUI.custom_mainbuth+DATA.GUI.custom_offset*2,
                             w=DATA.GUI.custom_dataw,
                             h=DATA.GUI.custom_datah,
@@ -1733,7 +1734,7 @@
                             } 
     DATA:GUIquantizeXYWH(DATA.GUI.buttons.refdata)
     
-    DATA.GUI.buttons.targdata = { x=DATA.GUI.custom_offset, -- link to GUI.buttons.getreference
+    DATA.GUI.buttons.targdata = { x=xdata, -- link to GUI.buttons.getreference
                             y=DATA.GUI.custom_mainbuth*2+DATA.GUI.custom_offset*4 + DATA.GUI.custom_datah,
                             w=DATA.GUI.custom_dataw,
                             h=DATA.GUI.custom_datah,
@@ -1888,4 +1889,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.04) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.05) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
