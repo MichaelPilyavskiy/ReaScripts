@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dbc31cb98a0dd59492496977c8ae4ee488413283" name="MPL Scripts">
+<index version="1" commit="e7290c8cc1300acce25e76ffe7690eb331f694fb" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -969,6 +969,16 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25a431dcb6354981bd1a3dac5864055a797f3fc5/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25a431dcb6354981bd1a3dac5864055a797f3fc5/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25a431dcb6354981bd1a3dac5864055a797f3fc5/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.05" author="MPL" time="2022-03-27T21:23:49Z">
+        <changelog><![CDATA[# Settings/retina: remove test from check
+# Settings/retina: fix readout width]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e7290c8cc1300acce25e76ffe7690eb331f694fb/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e7290c8cc1300acce25e76ffe7690eb331f694fb/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e7290c8cc1300acce25e76ffe7690eb331f694fb/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e7290c8cc1300acce25e76ffe7690eb331f694fb/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e7290c8cc1300acce25e76ffe7690eb331f694fb/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e7290c8cc1300acce25e76ffe7690eb331f694fb/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -9319,6 +9329,14 @@ add control for timefall showing last note]]></changelog>
 + Output: offset points
 + Add bypass button]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dbc31cb98a0dd59492496977c8ae4ee488413283/Various/mpl_Peak%20follower%20tools.lua</source>
+      </version>
+      <version name="1.06" author="MPL" time="2022-03-27T05:29:13Z">
+        <changelog><![CDATA[+ Add deesser perset]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/db173ede27b7a86545b03f3ddd74595e61fe2130/Various/mpl_Peak%20follower%20tools.lua</source>
+      </version>
+      <version name="1.07" author="MPL" time="2022-03-27T21:23:49Z">
+        <changelog><![CDATA[# fix GUI on retina (require latest VF)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e7290c8cc1300acce25e76ffe7690eb331f694fb/Various/mpl_Peak%20follower%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_PitchEditor.lua" type="script" desc="PitchEditor">
