@@ -1,18 +1,10 @@
 -- @description Peak follower tools
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Audio: add FFT mode 
---    + Audio: add scaling
---    + Audio: add offset
---    + Audio: add smmothing
---    # Output/reset boundary edges: reset to 1
---    + Output: invert points
---    + Output: scale points
---    + Output: offset points
---    + Add bypass button
+--    + Add deesser perset
 
     
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
@@ -22,7 +14,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.05
+    DATA.extstate.version = 1.06
     DATA.extstate.extstatesection = 'PeakFollowTools'
     DATA.extstate.mb_title = 'Peak follower tools'
     DATA.extstate.default = 
@@ -34,7 +26,7 @@
                           dock =    0,
                           
                           CONF_NAME = 'default',
-                          
+                          FPRESET1= 'CkNPTkZfRkZUX21heD0wLjQ3ODY2NjY2NjY2NjY3CkNPTkZfRkZUX21pbj0wLjM4MDU0MTY2NjY2NjY3CkNPTkZfRkZUc3o9MTAyNApDT05GX05BTUU9W2ZhY3RvcnldIGRlLWVzc2VyCkNPTkZfYm91bmRhcnk9MApDT05GX2J5cGFzcz0wCkNPTkZfY29tcF9SYXRpbz0yCkNPTkZfY29tcF9hdHRhY2s9MApDT05GX2NvbXBfa25lZT0wCkNPTkZfY29tcF9sb29rYWhlYWQ9MApDT05GX2NvbXBfcmVsZWFzZT0wLjEKQ09ORl9jb21wX3RocmVzaG9sZD0wLjkyMwpDT05GX2Rlc3Q9MQpDT05GX2dhdGVfdGhyZXNob2xkPTAuNTM4CkNPTkZfbW9kZT0wCkNPTkZfbm9ybWFsaXplPTAKQ09ORl9vZmZzZXQ9MApDT05GX291dF9pbnZlcnQ9MQpDT05GX291dF9vZmZzPS0wLjAyCkNPTkZfb3V0X3NjYWxlPTAuMDgKQ09ORl9yZWR1Y2VzYW1ldmFsdWVzPTEKQ09ORl9yZWR1Y2VzYW1ldmFsdWVzX21pbmRpZmY9MC4xCkNPTkZfcmVtb3ZldGtlbnZ2b2w9MQpDT05GX3NjYWxlPTMuNQpDT05GX3Ntb290aGJsb2NrPTE1CkNPTkZfd2luZG93PTAuMDEyCkNPTkZfd2luZG93b3ZlcmxhcD02CkNPTkZfemVyb2JvdW5kYXJ5PTE=',
                           -- mode
                           CONF_bypass = 0,
                           CONF_mode = 0, -- 0 peak follower 1 gate 2 compressor 3 fft deessed
@@ -141,6 +133,7 @@
                             w=DATA.GUI.custom_mainbutw,
                             h=DATA.GUI.custom_mainbuth,
                             txt = 'Preset: '..(DATA.extstate.CONF_NAME or ''),
+                            txt_short = (DATA.extstate.CONF_NAME or '[untitled]'),
                             txt_fontsz = DATA.GUI.default_txt_fontsz2,
                             hide = DATA.GUI.compactmode==1,
                             ignoremouse = DATA.GUI.compactmode==1,
