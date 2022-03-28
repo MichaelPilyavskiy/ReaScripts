@@ -1,10 +1,10 @@
 -- @description Peak follower tools
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix GUI on retina (require latest VF)
+--    + Add peak difference mode
 
     
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
@@ -14,7 +14,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.07
+    DATA.extstate.version = 1.08
     DATA.extstate.extstatesection = 'PeakFollowTools'
     DATA.extstate.mb_title = 'Peak follower tools'
     DATA.extstate.default = 
@@ -29,7 +29,7 @@
                           FPRESET1= 'CkNPTkZfRkZUX21heD0wLjQ3ODY2NjY2NjY2NjY3CkNPTkZfRkZUX21pbj0wLjM4MDU0MTY2NjY2NjY3CkNPTkZfRkZUc3o9MTAyNApDT05GX05BTUU9W2ZhY3RvcnldIGRlLWVzc2VyCkNPTkZfYm91bmRhcnk9MApDT05GX2J5cGFzcz0wCkNPTkZfY29tcF9SYXRpbz0yCkNPTkZfY29tcF9hdHRhY2s9MApDT05GX2NvbXBfa25lZT0wCkNPTkZfY29tcF9sb29rYWhlYWQ9MApDT05GX2NvbXBfcmVsZWFzZT0wLjEKQ09ORl9jb21wX3RocmVzaG9sZD0wLjkyMwpDT05GX2Rlc3Q9MQpDT05GX2dhdGVfdGhyZXNob2xkPTAuNTM4CkNPTkZfbW9kZT0wCkNPTkZfbm9ybWFsaXplPTAKQ09ORl9vZmZzZXQ9MApDT05GX291dF9pbnZlcnQ9MQpDT05GX291dF9vZmZzPS0wLjAyCkNPTkZfb3V0X3NjYWxlPTAuMDgKQ09ORl9yZWR1Y2VzYW1ldmFsdWVzPTEKQ09ORl9yZWR1Y2VzYW1ldmFsdWVzX21pbmRpZmY9MC4xCkNPTkZfcmVtb3ZldGtlbnZ2b2w9MQpDT05GX3NjYWxlPTMuNQpDT05GX3Ntb290aGJsb2NrPTE1CkNPTkZfd2luZG93PTAuMDEyCkNPTkZfd2luZG93b3ZlcmxhcD02CkNPTkZfemVyb2JvdW5kYXJ5PTE=',
                           -- mode
                           CONF_bypass = 0,
-                          CONF_mode = 0, -- 0 peak follower 1 gate 2 compressor 3 fft deessed
+                          CONF_mode = 0, -- 0 peak follower 1 gate 2 compressor 3 fft deessed 4 rms peak difference
                           CONF_boundary = 0, -- 0 item edges 1 time selection
                           
                           -- audio data
@@ -517,7 +517,7 @@
       
     -- get output points
       local output = {}
-      if DATA.extstate.CONF_mode ==0 then output = DATA2:Process_InsertData_PF(t, boundary_start, boundary_end, offs, env, AI_idx) end -- peak follow 
+      if DATA.extstate.CONF_mode ==0 or DATA.extstate.CONF_mode == 4 then output = DATA2:Process_InsertData_PF(t, boundary_start, boundary_end, offs, env, AI_idx) end -- peak follow 
       if DATA.extstate.CONF_mode ==1 then output = DATA2:Process_InsertData_Gate(t,  boundary_start, boundary_end, offs, env, AI_idx) end-- gate
       if DATA.extstate.CONF_mode ==2 then output = DATA2:Process_InsertData_Compressor(t,  boundary_start, boundary_end, offs, env, AI_idx) end-- gate 
       if DATA.extstate.CONF_bypass == 1 then output = nil end
@@ -551,12 +551,38 @@
   end
   ----------------------------------------------------------------------
   function DATA2:Process()
-    for i = 1,  CountSelectedMediaItems( 0 ) do
-      local item = GetSelectedMediaItem(0,i-1)
-      local t0 = DATA2:Process_GetAudioData(item)
-      local ret, env, AI_idx =  DATA2:Process_GenerateAI(item)
-      if ret then DATA2:Process_InsertData(item, env, AI_idx, t0) end
-    end  
+  
+    if DATA.extstate.CONF_mode==0 
+      or DATA.extstate.CONF_mode==1
+      or DATA.extstate.CONF_mode==2
+     then
+      for i = 1,  CountSelectedMediaItems( 0 ) do
+        local item = GetSelectedMediaItem(0,i-1)
+        local t0 = DATA2:Process_GetAudioData(item)
+        local ret, env, AI_idx =  DATA2:Process_GenerateAI(item)
+        if ret then DATA2:Process_InsertData(item, env, AI_idx, t0) end
+      end  
+    end
+    
+    if DATA.extstate.CONF_mode==4 then
+      local audio = {}
+      if CountSelectedMediaItems( 0 ) == 2 then
+        local item1 = GetSelectedMediaItem(0,0)
+        local item2 = GetSelectedMediaItem(0,1)
+        local t0 = DATA2:Process_GetAudioData(item1)
+        local t1 = DATA2:Process_GetAudioData(item2)
+         tdiff = {}
+        local min = math.huge
+        for i = 1, #t0 do 
+          tdiff[i] = t0[i] - t1[i] 
+          min = math.min(min, tdiff[i] )
+        end
+        for i = 1, #tdiff do tdiff[i] = tdiff[i] - min end
+        local ret, env, AI_idx =  DATA2:Process_GenerateAI(item2)
+        if ret then DATA2:Process_InsertData(item2, env, AI_idx, tdiff) end
+      end  
+    end
+    
   end
   ----------------------------------------------------------------------
   function DATA2:ProcessAtChange(DATA)
@@ -575,6 +601,7 @@
           [0]='Peak follower', 
           [1]='Gate', 
           [2] = 'Compressor (by ashcat_lt & SaulT)',
+          [4] = 'Peak fol. difference',
           --[3] = 'Deesser (by Liteon)', 
           },readoutw_extw=readoutw_extw, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
         {str = 'Boundaries' ,                 group = 1, itype = 'readout', level = 1,  confkey = 'CONF_boundary', menu = { [0]='Item edges', [1]='Time selection'},readoutw_extw=readoutw_extw, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
