@@ -136,7 +136,7 @@
       local txt_fontsz_out = txt_fontsz
       if b.offsetframe then 
         txt_flags = 1 
-        txt_fontsz_out = b.txt_fontsz or b.offsetframe*2
+        txt_fontsz_out = b.txt_fontsz or b.offsetframe*2/DATA.GUI.default_scale
       end -- center button horiz / align top verically for frame
       DATA:GUIhex2rgb(txt_col, true)
       local calibrated_txt_fontsz = DATA:GUIdraw_txtCalibrateFont(txt_font, txt_fontsz_out, txt_fontflags)--, txt, w) 
@@ -157,6 +157,9 @@
           strh = gfx.texth
           if txt_flags&1==1 then gfx.x = x+(w-strw)/2 end
           if txt_flags&4==4 then gfx.y = y+(h-strh)/2 end
+          if b.offsetframe then 
+            gfx.y = y+b.offsetframe*DATA.GUI.default_scale-calibrated_txt_fontsz/2
+          end
           gfx.drawstr(txt) 
         end
       end
@@ -657,7 +660,7 @@
     --if not DATA.GUI.layers[4] then DATA.GUI.layers[4] = {a=1} end -- Alt buttons
     -- 10 - 20 reserved
     --if not DATA.GUI.layers[21] then DATA.GUI.layers[21] = {a=1} end -- Dynamic stuff 1 -- typically settings list
-    --if not DATA.GUI.layers[22] then DATA.GUI.layers[22] = {a=1} end -- Dynamic stuff 2
+    --if not DATA.GUI.layers[22] then DATA.GUI.layers[22] = {a=1} end -- Dynamic stuff 2 -- typically scrollable list
     
     if not DATA.GUI.layers_refresh  then DATA.GUI.layers_refresh = {} end
     local upd_customlayers = false
@@ -771,9 +774,17 @@
         if not activelayers[b.layer] then
           gfx.dest = b.layer
           gfx.setimgdim(b.layer, -1, -1)  
-          local layer_hmeasured = DATA.GUI.layers[b.layer].layer_hmeasured or DATA.GUI.layers[b.layer].layer_h
+          local layer_hmeasured = 0
+          if DATA.GUI.layers[b.layer].layer_h then layer_hmeasured = DATA.GUI.layers[b.layer].layer_hmeasured or DATA.GUI.layers[b.layer].layer_h end
           gfx.setimgdim(b.layer, DATA.GUI.layers[b.layer].layer_w*DATA.GUI.default_scale, layer_hmeasured*DATA.GUI.default_scale) 
           activelayers[b.layer] = true
+          
+          -- draw back
+            if not DATA.GUI.gradback_col then DATA.GUI.gradback_col = DATA.GUI.default_backgr end
+            local r,g,b = DATA:GUIhex2rgb(DATA.GUI.gradback_col)
+            gfx.set(r,g,b,1) 
+            gfx.rect(0,0,gfx.w,gfx.h)
+            
         end
         gfx.dest = b.layer
         DATA:GUIdraw_Button(b) 
@@ -910,6 +921,7 @@
 -----------------------------------------------------------------------------  
   function DATA:GUIinit() 
     DATA.GUI.custom_layerset= 21 -- settings layer idx
+    DATA.GUI.custom_layerset2= 22 -- scrollable list layer idx
     DATA.GUI.doubleclicktime = 0.4 -- s
     
     
@@ -959,7 +971,7 @@
                 DATA.extstate.wind_x or 100, 
                 DATA.extstate.wind_y or 100)
       
-      local retinatest = 0
+      local retinatest =0
       if DATA.GUI.default_scale ~= gfx.ext_retina or retinatest ~= 0 then -- dpi changed (either initially or from the user moving the window or the OS changing
         DATA.GUI.default_scale = gfx.ext_retina
         if retinatest ~= 0 then DATA.GUI.default_scale = retinatest end
@@ -981,6 +993,63 @@
     DATA.GUI.default_listentryxoffset = 5*DATA.GUI.default_scale
     DATA.GUI.default_listentryframea = 0.4
     DATA.GUI.default_offset =DATA.GUI.default_scale*10
+  end
+  ----------------------------------------------------------------------------------------------------------------
+  function DATA:GUIBuildLayer(boundary)
+    if not DATA.GUI.buttons.Rlayer then return end
+    local custom_scrollw = DATA.GUI.custom_scrollw or 10
+    local custom_offset = DATA.GUI.custom_offset or  math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
+    local custom_frameascroll = DATA.GUI.custom_frameascroll or 0.05
+    DATA.GUI.buttons.Rlayerlist_mouse = { x=DATA.GUI.buttons.Rlayer.x +custom_offset*2, -- for scrolling
+                          y=DATA.GUI.buttons.Rlayer.y+custom_offset*2,
+                          w=DATA.GUI.buttons.Rlayer.w-custom_offset*5-custom_scrollw,
+                          h=DATA.GUI.buttons.Rlayer.h-custom_offset*4  , 
+                          txt = 'list',
+                          frame_a = 1,
+                          --layer = DATA.GUI.custom_layerset2,
+                          hide = true,
+                          --ignoremouse = true,
+                          onwheeltrig = function() 
+                                          local dir = 1
+                                          local layer= DATA.GUI.custom_layerset2
+                                          if DATA.GUI.wheel_dir then dir = -1 end
+                                          DATA.GUI.layers[layer].scrollval = VF_lim(DATA.GUI.layers[layer].scrollval - 0.1 * dir)
+                                          --DATA.GUI.buttons[key].refresh = true
+                                          if DATA.GUI.buttons.Rlayer_scroll then 
+                                            DATA.GUI.buttons.Rlayer_scroll.refresh = true
+                                            DATA.GUI.buttons.Rlayer_scroll.val = DATA.GUI.layers[layer].scrollval
+                                          end
+                                        end,}                               
+    DATA:GUIquantizeXYWH(DATA.GUI.buttons.Rlayerlist)
+    
+    if not DATA.GUI.layers[DATA.GUI.custom_layerset2] then DATA.GUI.layers[DATA.GUI.custom_layerset2] = {} end
+    if not DATA.GUI.layers[DATA.GUI.custom_layerset2].scrollval then DATA.GUI.layers[DATA.GUI.custom_layerset2].scrollval=0 end
+    
+    if not DATA.GUI.buttons.Rlayer_scroll then 
+      DATA.GUI.buttons.Rlayer_scroll = { x=DATA.GUI.buttons.Rlayer.x+DATA.GUI.buttons.Rlayer.w-custom_scrollw,---custom_offset*2,
+                          y=DATA.GUI.buttons.Rlayer.y,
+                          w=custom_scrollw,
+                          h=DATA.GUI.buttons.Rlayer.h,
+                          frame_a = custom_frameascroll,
+                          frame_asel = custom_frameascroll,
+                          val = 0,
+                          val_res = -1,
+                          slider_isslider = true,
+                          hide = DATA.GUI.compactmode==1,
+                          ignoremouse = DATA.GUI.compactmode==1,
+                          onmousedrag = function() DATA.GUI.layers[DATA.GUI.custom_layerset2].scrollval = DATA.GUI.buttons.Rlayer_scroll.val end
+                          }
+    end                     
+    DATA.GUI.layers[DATA.GUI.custom_layerset2].a=1
+    DATA.GUI.layers[DATA.GUI.custom_layerset2].hide = DATA.GUI.compactmode==1
+    DATA.GUI.layers[DATA.GUI.custom_layerset2].layer_x = 0--DATA.GUI.buttons.Rlayerlist.x
+    DATA.GUI.layers[DATA.GUI.custom_layerset2].layer_y = DATA.GUI.buttons.Rlayer.y
+    DATA.GUI.layers[DATA.GUI.custom_layerset2].layer_yshift = 0
+    DATA.GUI.layers[DATA.GUI.custom_layerset2].layer_w = DATA.GUI.buttons.Rlayer.w-custom_scrollw
+    DATA.GUI.layers[DATA.GUI.custom_layerset2].layer_h = DATA.GUI.buttons.Rlayer.h
+    local layer_h = 0
+    if GUI_RESERVED_BuildLayer then layer_h  = GUI_RESERVED_BuildLayer(DATA) end
+    DATA.GUI.layers[DATA.GUI.custom_layerset2].layer_hmeasured = layer_h 
   end
   ----------------------------------------------------------------------------------------------------------------
   function DATA:GUIBuildSettings()
