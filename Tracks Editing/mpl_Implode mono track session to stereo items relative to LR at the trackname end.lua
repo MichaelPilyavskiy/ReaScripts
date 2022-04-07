@@ -1,5 +1,5 @@
 -- @description Implode mono track session to stereo items relative to LR at the trackname end
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
@@ -86,70 +86,9 @@
   ---------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(2.86) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then 
+  local ret = VF_CheckFunctions(3.07) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then 
     Undo_BeginBlock2( 0 )
     CacheDATA()
     main() 
     Undo_EndBlock2( 0, 'mpl_Implode mono track session to stereo items relative to LR at the trackname end', 0 )
   end end
-  
-  --[[
-    
-  script_title = "Implode mono tracks session to stereo items"
-   reaper.Undo_BeginBlock()
-  
-  function main(x) reaper.Main_OnCommand(x,0) end
-  
-  if reaper.CountTracks(0) ~= nil then
-    tracks_t = {}
-    for i = 1, reaper.CountTracks(0) do
-      tr = reaper.GetTrack(0,i-1)
-      table.insert(tracks_t, reaper.BR_GetMediaTrackGUID(tr))    
-    end  
-  end
-  
-  if tracks_t ~= nil then
-    for i = 1, #tracks_t do
-      guid = tracks_t[i]
-      tr = reaper.BR_GetMediaTrackByGUID(0, guid)
-      if tr ~= nil then
-        _, tr_name = reaper.GetSetMediaTrackInfo_String(tr, 'P_NAME', '', false)
-        tr_name_last_sym = string.upper(string.sub(tr_name,-1))
-        if tr_name_last_sym == 'L' or tr_name_last_sym == 'R' then 
-        -- if there is L or R check for name matching
-          for j = 1, #tracks_t do
-            guid1 = tracks_t[j]
-            tr2 = reaper.BR_GetMediaTrackByGUID(0, guid1)
-            if tr2 ~= nil then
-              _, tr_name2 = reaper.GetSetMediaTrackInfo_String(tr2, 'P_NAME', '', false)
-              if tr2~= tr and 
-                string.sub(tr_name,0,string.len(tr_name)-1) == string.sub(tr_name2,0,string.len(tr_name2)-1) then      
-                main(40289) -- unselect all items
-                main(40297) -- unselect all tracks
-                reaper.SetTrackSelected(tr, true)
-                reaper.SetTrackSelected(tr2, true)
-                main(40421) -- select all items in sel tracks
-                main(40438) -- implode selected items into takes
-                if reaper.CountTrackMediaItems(tr) ~= nil then
-                  for k = 1, reaper.CountTrackMediaItems(tr) do
-                    item = reaper.GetTrackMediaItem(tr, k-1)
-                    reaper.SetMediaItemInfo_Value(item, 'B_ALLTAKESPLAY', 1)
-                  end
-                end              
-                main(reaper.NamedCommandLookup('_XENAKIOS_PANTAKESOFITEMSYM')) -- pan takes symmetrically
-                
-                -- delete second track
-                main(40297) -- unselect all tracks
-                reaper.SetTrackSelected(tr2, true)
-                main(40337) -- cut track
-              end
-            end  
-          end  
-        end  
-      end  
-    end 
-  end
-  reaper.TrackList_AdjustWindows(false)
-  
-  reaper.Undo_EndBlock(script_title,0)
-  ]]
