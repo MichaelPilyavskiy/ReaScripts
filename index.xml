@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="63b78200177e8a695b35fb45cd0117ac2972fccb" name="MPL Scripts">
+<index version="1" commit="f7f134f10d5e88618507b858455f7c80d743a77a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6378,6 +6378,14 @@ add control for timefall showing last note]]></changelog>
 # do not using workaround by selecting/unselecting tracks etc]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6426e2b49d24d6d0996960c348de157fa227a382/Tracks%20Editing/mpl_Implode%20mono%20track%20session%20to%20stereo%20items%20relative%20to%20LR%20at%20the%20trackname%20end.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2022-04-02T03:23:21Z">
+        <changelog><![CDATA[# fix looping all items instead only first one]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9a87037f897e2091255b7cf5a4126dd2c1e29cda/Tracks%20Editing/mpl_Implode%20mono%20track%20session%20to%20stereo%20items%20relative%20to%20LR%20at%20the%20trackname%20end.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2022-04-07T18:17:34Z">
+        <changelog><![CDATA[# fix looping all items instead only first one]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f7f134f10d5e88618507b858455f7c80d743a77a/Tracks%20Editing/mpl_Implode%20mono%20track%20session%20to%20stereo%20items%20relative%20to%20LR%20at%20the%20trackname%20end.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Import media folder content as structured tracks.lua" type="script" desc="Import media folder content as structured tracks">
       <metadata>
@@ -6708,19 +6716,6 @@ add control for timefall showing last note]]></changelog>
     <reapack name="mpl_Select tracks with instruments.lua" type="script" desc="Select tracks with instruments">
       <version name="1.0" author="MPL" time="2016-01-15T07:07:25Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Select%20tracks%20with%20instruments.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Select tracks with SWS Notes.lua" type="script" desc="Select tracks with SWS Notes">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-08-03T14:15:09Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa6f22285ffa69136dcfe9449255eff8e85ccdd2/Tracks%20Properties/mpl_Select%20tracks%20with%20SWS%20Notes.lua</source>
-      </version>
-      <version name="1.1" author="MPL" time="2017-07-10T13:54:32Z">
-        <changelog><![CDATA[#proper match GUID]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e717c0b7c7ef5cffd8d691ecb4cf5f9d7a9a94c6/Tracks%20Properties/mpl_Select%20tracks%20with%20SWS%20Notes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Send tracks (background).lua" type="script" desc="Send tracks">
