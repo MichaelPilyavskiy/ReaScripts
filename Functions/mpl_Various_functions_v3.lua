@@ -143,6 +143,7 @@
       
       local strw, strh
       gfx.setfont(1,txt_font, calibrated_txt_fontsz, txt_fontflags )
+      local drawstr_flags,right, bottom = 0
       if txt then 
         if txt and tostring(txt) and tostring(txt):match('\n') then 
           strw, strh = DATA:GUIdraw_txt_multiline(x,y,w,h,txt_flags, txt_a, txt) 
@@ -150,9 +151,19 @@
           gfx.x, gfx.y = x+2,y
           gfx.a = txt_a
           strw = gfx.measurestr(txt)
-          if strw > w and txt_short then 
+          if strw > w and txt_short~= ''  then 
             txt = txt_short
             strw = gfx.measurestr(txt)
+           elseif strw > w and txt_short== ''  then 
+            local len = txt:len()
+            for i = len, 1,-1 do
+              local test_str = txt:sub(0,i)
+              if gfx.measurestr(test_str) < w then 
+                txt = test_str 
+                strw = gfx.measurestr(txt) 
+                break 
+              end
+            end
           end
           strh = gfx.texth
           if txt_flags&1==1 then gfx.x = x+(w-strw)/2 end
@@ -404,17 +415,19 @@
     local offsetframe_a = b.offsetframe_a or 0
     
     x,y,w,h = 
-              x*DATA.GUI.default_scale,
-              y*DATA.GUI.default_scale,           
-              w*DATA.GUI.default_scale,            
-              h*DATA.GUI.default_scale            
+              math.floor(x*DATA.GUI.default_scale),
+              math.floor(y*DATA.GUI.default_scale),           
+              math.floor(w*DATA.GUI.default_scale),            
+              math.floor(h*DATA.GUI.default_scale)            
 
                     
     -- backgr fill
       DATA:GUIhex2rgb(backgr_col, true)
-      gfx.a  =1
+      gfx.a =1
       gfx.rect(x+1,y+1,w-1,h-1,1)
-      
+      --gfx.set(1,1,1,1)
+      --gfx.line(x+w,y,x+w,y+h)
+        
     -- latched by mouse
       if b.mouse_latch == true then 
         gfx.set(1,1,1,back_sela)
@@ -433,6 +446,14 @@
       
     -- knob
       if b.knob_isknob then DATA:GUIdraw_knob(b) end
+    -- state 
+      if b.state and b.state  == true then 
+        local state_offs = 2
+        local state_col = b.state_col or DATA.GUI.default_state_col
+        DATA:GUIhex2rgb(state_col, true)
+        gfx.a = DATA.GUI.default_state_a
+        gfx.rect(x+state_offs+1,y+state_offs+1,w-state_offs*2-1,h-state_offs*2-1,1) 
+      end 
       
     -- frame
       DATA:GUIhex2rgb(DATA.GUI.default_frame_col, true)
@@ -458,14 +479,6 @@
         end
       end
       
-    -- state 
-      if b.state and b.state  == true then 
-        local state_offs = 2
-        local state_col = b.state_col or DATA.GUI.default_state_col
-        DATA:GUIhex2rgb(state_col, true)
-        gfx.a = DATA.GUI.default_state_a
-        gfx.rect(x+state_offs+1,y+state_offs+1,w-state_offs*2-1,h-state_offs*2-1,1) 
-      end 
       
     -- val_data
       if GUI_RESERVED_draw_data then GUI_RESERVED_draw_data(DATA, b) end
@@ -779,14 +792,15 @@
           gfx.setimgdim(b.layer, DATA.GUI.layers[b.layer].layer_w*DATA.GUI.default_scale, layer_hmeasured*DATA.GUI.default_scale) 
           activelayers[b.layer] = true
           
-          -- draw back
+          --[[ draw back
             if not DATA.GUI.gradback_col then DATA.GUI.gradback_col = DATA.GUI.default_backgr end
             local r,g,b = DATA:GUIhex2rgb(DATA.GUI.gradback_col)
             gfx.set(r,g,b,1) 
-            gfx.rect(0,0,gfx.w,gfx.h)
+            gfx.rect(0,0,gfx.w,gfx.h)]]
             
         end
         gfx.dest = b.layer
+        gfx.a = 1
         DATA:GUIdraw_Button(b) 
       end
     end
@@ -999,7 +1013,7 @@
     if not DATA.GUI.buttons.Rlayer then return end
     local custom_scrollw = DATA.GUI.custom_scrollw or 10
     local custom_offset = DATA.GUI.custom_offset or  math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
-    local custom_frameascroll = DATA.GUI.custom_frameascroll or 0.05
+    local custom_frameascroll = 0.3
     DATA.GUI.buttons.Rlayerlist_mouse = { x=DATA.GUI.buttons.Rlayer.x +custom_offset*2, -- for scrolling
                           y=DATA.GUI.buttons.Rlayer.y+custom_offset*2,
                           w=DATA.GUI.buttons.Rlayer.w-custom_offset*5-custom_scrollw,
@@ -1056,7 +1070,6 @@
     if not DATA.GUI.buttons.Rsettings then return end
     local custom_scrollw = DATA.GUI.custom_scrollw or 10
     local custom_offset = DATA.GUI.custom_offset or  math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
-    local custom_frameascroll = DATA.GUI.custom_frameascroll or 0.05
     DATA.GUI.buttons.Rsettingslist = { x=DATA.GUI.buttons.Rsettings.x +custom_offset*2,
                           y=DATA.GUI.buttons.Rsettings.y+custom_offset*2,
                           w=DATA.GUI.buttons.Rsettings.w-custom_offset*5-custom_scrollw,
@@ -1096,8 +1109,8 @@
                           y=DATA.GUI.buttons.Rsettings.y+custom_offset*2,
                           w=custom_scrollw,
                           h=DATA.GUI.buttons.Rsettings.h-custom_offset*4,
-                          frame_a = custom_frameascroll,
-                          frame_asel = custom_frameascroll,
+                          frame_a = DATA.GUI.custom_frameascroll or 0.05,
+                          frame_asel = DATA.GUI.custom_frameascroll or 0.05,
                           val = 0,
                           val_res = -1,
                           slider_isslider = true,
@@ -1231,7 +1244,7 @@
     
     local isset = t.isset
     local confkey = t.confkey 
-    if not DATA.extstate[confkey] then return settingsyoffs end
+    if not DATA.extstate[confkey] then return DATA.GUI.buttons[key].y+settingsit_h end
     local state = false
     local byte = t.confkeybyte or 0
     if confkey then

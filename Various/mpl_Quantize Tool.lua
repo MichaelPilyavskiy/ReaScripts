@@ -1,17 +1,17 @@
 -- @description QuantizeTool
--- @version 3.01
+-- @version 3.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    # add compact mode
+--    # Show anchor points: fix show pattern for project grid
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.02
+    DATA.extstate.version = 3.03
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -1452,7 +1452,7 @@
                             txt_short = 'Show AP',
                             txt_fontsz = DATA.GUI.default_txt_fontsz2,
                             onmouseclick =  function() 
-                                              if (DATA.extstate.CONF_ref_grid&16==16 or DATA.extstate.CONF_ref_grid&1==1) then
+                                              if DATA.extstate.CONF_ref_grid>0 then--xtstate.CONF_ref_grid&16==16 or DATA.extstate.CONF_ref_grid&1==1) then
                                                 DATA2:MarkerPoints_Show(DATA2.ref_pat, DATA.GUI.default_data_col_adv, true) 
                                                else
                                                 DATA2:MarkerPoints_Show(DATA2.ref, DATA.GUI.default_data_col_adv, false) 
@@ -1889,4 +1889,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.05) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.08) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
