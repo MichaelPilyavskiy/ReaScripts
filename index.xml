@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="14e5eb2bbbcb7ccfa8c7d71199567a10f2b8fd34" name="MPL Scripts">
+<index version="1" commit="a21d90d642545a521022c57bdd84ec5ef2853bd9" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -998,6 +998,19 @@
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14e5eb2bbbcb7ccfa8c7d71199567a10f2b8fd34/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14e5eb2bbbcb7ccfa8c7d71199567a10f2b8fd34/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
+      <version name="3.10" author="MPL" time="2022-04-13T16:55:02Z">
+        <changelog><![CDATA[+ GUI_RESERVED_draw_data2 for draw before text
+# drawtxt: support flag2
++ DATA_RESERVED_ONPROJCHANGE(DATA)
++ Custom Layer: redraw only visible area
++ Settings: allow long readout up to item width]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a21d90d642545a521022c57bdd84ec5ef2853bd9/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a21d90d642545a521022c57bdd84ec5ef2853bd9/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a21d90d642545a521022c57bdd84ec5ef2853bd9/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a21d90d642545a521022c57bdd84ec5ef2853bd9/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a21d90d642545a521022c57bdd84ec5ef2853bd9/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a21d90d642545a521022c57bdd84ec5ef2853bd9/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
     </reapack>
   </category>
   <category name="FX">
@@ -1785,7 +1798,7 @@
     </reapack>
     <reapack name="mpl_Randomize Track FX parameters.lua" type="script" desc="Randomize Track FX parameters">
       <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=233358</link>
       </metadata>
       <version name="1.0" author="mpl" time="2016-06-20T19:40:13Z">
         <changelog><![CDATA[+ init]]></changelog>
@@ -1810,6 +1823,13 @@
       <version name="1.21" author="MPL" time="2019-03-10T20:28:31Z">
         <changelog><![CDATA[+ add option to get second preset for morph]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
+      </version>
+      <version name="2.0" author="MPL" time="2022-04-13T16:55:02Z">
+        <changelog><![CDATA[+ Rebuild GUI using VF3 framework
++ Rebuild core
++ Randomize all parameters if not selection, randomize selection if any
++ Allow smooth transition]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a21d90d642545a521022c57bdd84ec5ef2853bd9/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_ReplaceFX.lua" type="script" desc="ReplaceFX">
