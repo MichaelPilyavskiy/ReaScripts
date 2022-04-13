@@ -422,23 +422,17 @@
     local backgr_col2 = b.backgr_col2 or '#333333'
     local backgr_fill = b.backgr_fill or 1
     local backgr_fill2 = b.backgr_fill2 or 0
-    
     x,y,w,h = 
               math.floor(x*DATA.GUI.default_scale),
               math.floor(y*DATA.GUI.default_scale),           
               math.ceil(w*DATA.GUI.default_scale),            
               math.ceil(h*DATA.GUI.default_scale)            
     
-    local layer = gfx.dest
-    if layer and DATA.GUI.layers[layer] and DATA.GUI.layers[layer].layer_yshift then 
-      local layerh = DATA.GUI.layers[layer].layer_h
-      local layer_yshift = DATA.GUI.layers[layer].layer_yshift
-      local preload = h*4
-      if not (y >= (layer_yshift - preload) and y + h < (layer_yshift + layerh*DATA.GUI.default_scale+preload)) then 
-        return 
-      end
-    end
     
+    local layer, layer_yshift= gfx.dest,0
+    if DATA.GUI.layers[layer] and DATA.GUI.layers[layer].layer_yshift then layer_yshift = -DATA.GUI.layers[layer].layer_yshift end
+    
+    if y+layer_yshift<-h or y+h+layer_yshift>gfx.h then return end 
     
     -- backgr fill
       if backgr_fill ~= 0 then
@@ -745,7 +739,6 @@
         if DATA.GUI.layers[layer].layer_y then desty = DATA.GUI.layers[layer].layer_y*DATA.GUI.default_scale end
         if DATA.GUI.layers[layer].layer_w then srcw = DATA.GUI.layers[layer].layer_w*DATA.GUI.default_scale destw = srcw end
         if DATA.GUI.layers[layer].layer_h then srch = DATA.GUI.layers[layer].layer_h*DATA.GUI.default_scale desth = srch end
-        --if DATA.GUI.layers[layer].layer_hmeasured then desth = DATA.GUI.layers[layer].layer_hmeasured srch =desth end
         if DATA.GUI.layers[layer].scrollval and DATA.GUI.layers[layer].layer_hmeasured and DATA.GUI.layers[layer].layer_h and DATA.GUI.layers[layer].layer_hmeasured > DATA.GUI.layers[layer].layer_h then 
           local reallayerh = (DATA.GUI.layers[layer].layer_hmeasured  - DATA.GUI.layers[layer].layer_h)*DATA.GUI.default_scale
           srcy = math.floor(srcy + DATA.GUI.layers[layer].scrollval*  reallayerh)
@@ -754,11 +747,9 @@
         
       end
       
-      --if layer ~= 1 and DATA.GUI.layers[layer] and not DATA.GUI.layers[layer].hide then
-        gfx.blit(layer, 1, 0, 
-            srcx,srcy,srcw,srch,
-            destx,desty,destw,desth, 0,0) 
-      --end
+      gfx.blit(layer, 1, 0, 
+          srcx,srcy,srcw,srch,
+          destx,desty,destw,desth, 0,0) 
     end
     
     DATA.GUI.layers_refresh  = {} -- clear
@@ -826,6 +817,7 @@
         end
         gfx.dest = b.layer
         gfx.a = 1 
+        b.y= b.y
         DATA:GUIdraw_Button(b) 
       end
     end
@@ -1148,7 +1140,13 @@
                           slider_isslider = true,
                           hide = DATA.GUI.compactmode==1,
                           ignoremouse = DATA.GUI.compactmode==1,
-                          onmousedrag = function() DATA.GUI.layers[DATA.GUI.custom_layerset].scrollval = DATA.GUI.buttons.Rsettings_scroll.val end
+                          onmousedrag = function() 
+                            DATA.GUI.layers[DATA.GUI.custom_layerset].scrollval = DATA.GUI.buttons.Rsettings_scroll.val 
+                            DATA.GUI.buttons.Rsettingslist.refresh = true
+                          end,
+                          onmouserelease = function() 
+                            DATA.GUI.buttons.Rsettingslist.refresh = true
+                          end
                           }
     end                     
     DATA.GUI.layers[DATA.GUI.custom_layerset].a=1
@@ -1273,7 +1271,9 @@
       txt = t.str,
       txt_flags=4 ,
       frame_a=0,
-      ignoremouse = true,
+      ignoremouse = not t.func_onreleaseNAME,
+      onmouserelease = function()   if t.func_onreleaseNAME then t.func_onreleaseNAME() end end
+      
     } 
     
     local isset = t.isset
