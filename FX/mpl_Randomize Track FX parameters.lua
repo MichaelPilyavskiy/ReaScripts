@@ -1,466 +1,517 @@
 -- @description Randomize Track FX parameters
--- @version 1.21
+-- @version 2.0
 -- @author MPL
--- @website https://forum.cockos.com/showthread.php?t=188335
+-- @website http://forum.cockos.com/showthread.php?t=233358
 -- @changelog
---    + add option to get second preset for morph
+--    + Rebuild GUI using VF3 framework
+--    + Rebuild core
+--    + Randomize all parameters if not selection, randomize selection if any
+--    + Allow smooth transition
 
-  --------------------------------------------
-  --------------------------------------------
-  protected_table = {
-    "upsmpl",
-    "upsampl",
-    "render",
-    "gain", 
-    "vol", 
-    "on" ,
-    "off",
-    "wet",
-    "dry",
-    "oversamp",
-    "alias",
-    "input",
-    "power",
-    "solo",
-    "mute",
-    "feed",
-    
-    "attack",
-    "decay",
-    "sustain",
-    "release",
-    
-    "bypass",
-    "dest",
-    "mix",
-    "out",
-    "make",
-    "auto",
-    "level",
-    "peak",
-    "limit",
-    "velocity",
-    "active",
-    "master"
-    }
-        
-        
-  ------------------------------------------------------------
+
+
+
+  -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
-  function GetObjects()
-    local obj = {}
-      
-      obj.sections = {}
-      local num = 6
-      for i  =1, num do
-        obj.sections[i] = {x = 0 ,
-                           y = gfx1.main_h / num * (i-1),
-                           w = gfx1.main_w,
-                           h = gfx1.main_h / num}
-      end
-      
-      obj.sections[3].w = 200
-      
-      obj.sections[10] = {x = 210 ,
-                          y = obj.sections[3].y,
-                          w = 80,
-                          h = obj.sections[3].h}
-      obj.sections[11] = {x = 300 ,
-                          y = obj.sections[3].y,
-                          w = gfx.w - 300,
-                          h = obj.sections[3].h}   
+  DATA2 = {}
+  ---------------------------------------------------------------------  
+  function main()
+    if not DATA.extstate then DATA.extstate = {} end
+    DATA.extstate.version = 2.0
+    DATA.extstate.extstatesection = 'mpl_randomizefxparams'
+    DATA.extstate.mb_title = 'MPL Randomize FX parameters'
+    DATA.extstate.default = 
+                          {  
+                          wind_x =  100,
+                          wind_y =  100,
+                          wind_w =  800,
+                          wind_h =  600,
+                          dock =    0,
                           
-      obj.sections[4].w = 250
-      obj.sections[12] = {x = 250 ,
-                          y = obj.sections[4].y,
-                          w = 250,
-                          h = obj.sections[4].h}                                           
-    return obj
-  end
-  
-  -----------------------------------------------------------------------     
-  
-  function GetGUI_vars()
-    gfx.mode = 0
-    
-    local gui = {}
-      gui.aa = 1
-      gui.fontname = 'Calibri'
-      gui.fontsize_tab = 20    
-      gui.fontsz_knob = 18
-      if OS == "OSX32" or OS == "OSX64" then gui.fontsize_tab = gui.fontsize_tab - 5 end
-      if OS == "OSX32" or OS == "OSX64" then gui.fontsz_knob = gui.fontsz_knob - 5 end
-      if OS == "OSX32" or OS == "OSX64" then gui.fontsz_get = gui.fontsz_get - 5 end
-      
-      gui.color = {['back'] = '71 71 71 ',
-                      ['back2'] = '51 63 56',
-                      ['black'] = '0 0 0',
-                      ['green'] = '102 255 102',
-                      ['blue'] = '127 204 255',
-                      ['white'] = '255 255 255',
-                      ['red'] = '255 70 50',
-                      ['green_dark'] = '102 153 102',
-                      ['yellow'] = '200 200 0',
-                      ['pink'] = '200 150 200',
-                    }
-    return gui
-  end  
-  ------------------------------------------------------------
-      
-  function f_Get_SSV(s)
-    if not s then return end
-    local t = {}
-    for i in s:gmatch("[%d%.]+") do 
-      t[#t+1] = tonumber(i) / 255
-    end
-    gfx.r, gfx.g, gfx.b = t[1], t[2], t[3]
-  end
-  
-  ------------------------------------------------------------
-    
-  function GUI_text(gui, xywh, text)
-    --gfx.rect(xywh.x,xywh.y, xywh.w, xywh.h)
-        f_Get_SSV(gui.color.white)  
-        gfx.a = 1 
-        gfx.setfont(1, gui.fontname, gui.fontsz_knob)
-        local text_len = gfx.measurestr(text)
-        gfx.x, gfx.y = xywh.x+(xywh.w-text_len)/2,xywh.y+(xywh.h-gfx.texth)/2 + 1
-        gfx.drawstr(text)
-  end
-  
-  ------------------------------------------------------------
-  
-  function GUI_draw(obj, gui)
-    gfx.mode =4
-    
-    if update_gfx then    
-      gfx.dest = 1
-      gfx.setimgdim(1, -1, -1)  
-      gfx.setimgdim(1, gfx1.main_w,gfx1.main_h)  
-      -- gradient
-        gfx.gradrect(0,0, gfx1.main_w,gfx1.main_h, 1,1,1,0.5, 0,0.001,0,0.0001, 0,0,0,-0.0005)
-      -- rects
-        gfx.a = 0.05
-        f_Get_SSV(gui.color.white) 
-        for i = 1, #obj.sections do
-          local x,y,w,h = obj.sections[i].x,
-                    obj.sections[i].y,
-                    gfx.w,
-                    obj.sections[i].h
-          gfx.line (x,y,x+w,y,0, 1)
-        end
-        GUI_text(gui, obj.sections[1], '1. Get focused FX')
-        
-      -- gfx defaults
-        if def_params ~= nil then
-          for i = 1, #def_params do
-            if def_params[i].is_act then gfx.a = 0.6 fill = 1 else  gfx.a = 0.2 fill = 0 end
-            f_Get_SSV(gui.color.blue)  
-            gfx.rect((i-1)*obj.sections[2].w / #def_params,
-             obj.sections[2].y + obj.sections[2].h * (1 - def_params[i].val) + 1, 
-             obj.sections[2].w / #def_params,
-             obj.sections[2].h * def_params[i].val -2, fill, 1 )
-          end
-          GUI_text(gui, obj.sections[2], def_params.fx_name)
-        end
-      
-      -- generate pattern
-        GUI_text(gui, obj.sections[4], '3. Generate random pattern')
-        GUI_text(gui, obj.sections[12], '/3b Get current preset')
-        
-      -- gfx rand
-        if rand_params ~= nil then
-          for i = 1, #rand_params do
-            gfx.a = 0.4
-            f_Get_SSV(gui.color.green)  
-            gfx.rect((i-1)*2*obj.sections[4].w / #rand_params,
-             obj.sections[5].y + obj.sections[4].h * (1 - rand_params[i]) + 1, 
-             obj.sections[5].w / #rand_params,
-             obj.sections[5].h * rand_params[i] -2 )
-          end
-        end      
-      
-      -- pick
-        
-        if not pick_state then 
-           gfx.a = time
-           GUI_text(gui, obj.sections[3], '2. Click and pick parameters')
-          else 
-            if not pick_state_cnt then pick_state_cnt = 0 end
-           GUI_text(gui, obj.sections[3], 'Stored :'..pick_state_cnt)
-           
-        end
-        
-        GUI_text(gui, obj.sections[10], '/2a Get all')
-        GUI_text(gui, obj.sections[11], '/2b Get all except protected')
-        
-      -- val      
-       if morph_val ~= nil then 
-        GUI_text(gui, obj.sections[6], '4. Morph: '.. math.floor(morph_val*100)..'%' ) 
-        f_Get_SSV(gui.color.red) 
-        gfx.a = 0.5
-        gfx.rect(obj.sections[6].x,
-                  obj.sections[6].y,
-                  obj.sections[6].w *morph_val ,
-                  obj.sections[6].h, 1)
-        else 
-         GUI_text(gui, obj.sections[6], '4. Morph')
-       end
-       
-    end 
-    
-    if pick_state then 
-      gfx.a = time * 0.3
-      f_Get_SSV(gui.color.pink) 
-      gfx.rect(obj.sections[3].x,
-                obj.sections[3].y,
-                obj.sections[3].w  ,
-                obj.sections[3].h, 1)
-    end
-    
-    gfx.dest = -1
-    gfx.a = 1
-    gfx.blit(1, 1, 0, 
-      0,0, gfx1.main_w,gfx1.main_h,
-      0,0, gfx1.main_w,gfx1.main_h, 0,0)
-      
-    update_gfx = false
-    
-  end
-  
-  ------------------------------------------------------------
-  
-  function Lokasenna_Window_At_Center (w, h)
-    -- thanks to Lokasenna 
-    -- http://forum.cockos.com/showpost.php?p=1689028&postcount=15    
-    local l, t, r, b = 0, 0, w, h    
-    local __, __, screen_w, screen_h = reaper.my_getViewport(l, t, r, b, l, t, r, b, 1)    
-    local x, y = (screen_w - w) / 2, (screen_h - h) / 2    
-    gfx.init("mpl Randomize Track FX parameters", w, h, 0, x, y)  
-  end
-
- -------------------------------------------------------------     
-      
-  function F_limit(val,min,max)
-      if val == nil or min == nil or max == nil then return end
-      local val_out = val
-      if val < min then val_out = min end
-      if val > max then val_out = max end
-      return val_out
-    end   
-  ------------------------------------------------------------
-  
-  function MOUSE_slider(b)
-    if mouse.mx > b.x and mouse.mx < b.x+b.w
-      --and mouse.my > b.y and mouse.my < b.y+b.h 
-      and mouse.LB then
-     return math.floor(100*(mouse.mx-40) / (b.w-80))/100
-    end 
-  end
-    
-  function MOUSE_click(b)
-    if mouse.mx > b.x and mouse.mx < b.x+b.w
-      and mouse.my > b.y and mouse.my < b.y+b.h 
-      and mouse.LB 
-      and not mouse.last_LB then
-     return true 
-    end 
-  end
-  
-  function GetProtectedState(track, fx, param)
-    local _, buf = reaper.TrackFX_GetParamName( track, fx, param, '' )
-    local t = {}
-    for word in buf:gmatch('[%a]+') do t [#t+1] = word end
-    if #t == 0 then return false end
-    for i = 1, #t do
-      local par_name = t[i]
-      protect = false
-      for j = 1, #protected_table do
-        if par_name:lower():find(protected_table[j])~=nil then return true end
-      end
-    end 
-    return false
-  end
-  
-  ------------------------------------------------------------
-    
-  function ENGINE_GetParams()
-    local params = {}
-     
-    local retval, tracknumberOut, _, fxnumberOut = reaper.GetFocusedFX()
-    local track = reaper.GetTrack(0, tracknumberOut-1)
-    if track == nil then return end
-    params.fxnumberOut = fxnumberOut
-    params.guid =   reaper.TrackFX_GetFXGUID( track, params.fxnumberOut )
-    params.tracknumberOut = tracknumberOut
-    _, params.fx_name =  reaper.TrackFX_GetFXName( track, params.fxnumberOut, '' )
-    if retval ~= 1 or tracknumberOut <= 0 or params.fxnumberOut == nil then return end    
-    local num_params = reaper.TrackFX_GetNumParams( track, params.fxnumberOut )
-    if not num_params or num_params == 0 then return end    
-    
-    
-    for i = 1, num_params do 
-      local  is_prot = GetProtectedState(track, params.fxnumberOut, i-1 )
-      params[i] =  {val = reaper.TrackFX_GetParamNormalized( track, params.fxnumberOut, i-1 ) ,
-                    is_act = false,
-                    is_protected = is_prot}
-    end
-    return params
-  end
-  
-  ------------------------------------------------------------
-  
-  function ENGINE_SetParams()
-    if def_params == nil then return end
-    if rand_params == nil then return end
-    if morph_val == nil then return end
-    
-    
-    
-    local retval, tracknumberOut, _, fxnumberOut = reaper.GetFocusedFX()
-    track = reaper.GetTrack(0,tracknumberOut-1)
-    _, fx_name =  reaper.TrackFX_GetFXName( track, fxnumberOut, '' )
-    guid =    reaper.TrackFX_GetFXGUID( track, fxnumberOut )
-    if def_params.tracknumberOut == tracknumberOut
-      and def_params.guid == guid
-      and def_params.fx_name == fx_name 
-      and tracknumberOut > 0 
-      and track ~= nil then
-        
-       max_params_count = 200
-        for i = 1, math.min(#def_params, max_params_count) do
-          if def_params[i].is_act then
-             reaper.TrackFX_SetParamNormalized( track, fxnumberOut, i-1, 
-                      def_params[i].val + (rand_params[i] - def_params[i].val) * morph_val
-                      )
-          end
-          
-        end
-        
-    end
-  end 
-  
-  ------------------------------------------------------------
-  
-  function ENGINE_GenerateRandPatt(is_current)
-    if def_params ~= nil then 
-      local rand = {}
-      local morph_params
-      if is_current then morph_params = ENGINE_GetParams()  end
-      for i = 1, #def_params do
-        if is_current then
-          rand[i] = morph_params[i].val
-         else
-          rand[i] = math.random()
-        end
-      end
-      return rand
-    end
-  end
-  
-  ------------------------------------------------------------
-    
-  function run()  
-    time = math.abs(math.sin( -1 + (os.clock() % 2)))
-    local obj = GetObjects()
-    local gui = GetGUI_vars()
-    GUI_draw(obj, gui)
-    
-    mouse.mx, mouse.my = gfx.mouse_x, gfx.mouse_y  
-    mouse.LB = gfx.mouse_cap&1==1 
-    
-    -- get params
-      if MOUSE_click(obj.sections[1]) then 
-        def_params = ENGINE_GetParams() 
-        update_gfx = true 
-      end
-    
-    -- 2 pick
-      if MOUSE_click(obj.sections[3]) then 
-        pick_state = not pick_state
-        update_gfx = true 
-      end 
-
-    if pick_state then
-      _, _, _, paramnumber =reaper.GetLastTouchedFX()
-      if def_params 
-        and paramnumber +1 <= #def_params  
-        and def_params[paramnumber+1] then  def_params[paramnumber+1].is_act = true
-      end
-      
-      pick_state_cnt = 0
-      if def_params then 
-        for i = 1, #def_params do
-          if def_params[i].is_act then pick_state_cnt = pick_state_cnt + 1 end
-        end
-      end
-      update_gfx = true 
-    end
-    
-    -- 2a get all
-      if MOUSE_click(obj.sections[10]) then 
-        if def_params  then  
-          for i = 1, #def_params do def_params[i].is_act = true end
-        end
-        update_gfx = true 
-      end 
-      
-    -- 2a get all except protected
-      if MOUSE_click(obj.sections[11]) then 
-        if def_params  then  
-          for i = 1, #def_params do def_params[i].is_act = false end
-          for i = 1, #def_params do 
-            if not def_params[i].is_protected then def_params[i].is_act = true end 
-          end
-        end
-        update_gfx = true 
-      end 
+                          CONF_NAME = 'default',
                           
-    -- gen pattern
-      if MOUSE_click(obj.sections[4]) then 
-        rand_params = ENGINE_GenerateRandPatt() 
-        update_gfx = true 
-      end
-    -- gen pattern
-      if MOUSE_click(obj.sections[12]) then 
-        rand_params = ENGINE_GenerateRandPatt(true) 
-        update_gfx = true 
-      end      
+                          UI_enableshortcuts = 0,
+                          UI_initatmouse = 0,
+                          UI_showtooltips = 1,
+                          UI_groupflags = 0, -- show/hide setting flags
+                          UI_appatchange = 1, 
+                          UI_appatinit = 1, 
+                          UI_mergegenmorph = 1, 
+                          
+                          CONF_filter_untitledparams = 1,
+                          CONF_filter_system = 1,
+                          CONF_filter_Keywords1str = 'dry wet bypass preview gain vol ctrl control midi upsmpl upsampl render oversamp alias input power solo mute feed auto resvd meter depr sign aud dest mix out make level peak limit velocity active master',
+                          CONF_filter_Keywords1 = 1,                          
+                          CONF_filter_Keywords2str = 'att dec sust rel',
+                          CONF_filter_Keywords2 = 0,
+                          CONF_filter_Keywords3str = 'lfo osc pitch',
+                          CONF_filter_Keywords3 = 0,
+                          CONF_filter_Keywords4str = 'arp eq porta chor delay unison',
+                          CONF_filter_Keywords4 = 0,
+                          CONF_smooth = 0,
+                          
+                          }
+                          
+    DATA:ExtStateGet()
+    DATA:ExtStateGetPresets()  
+    if DATA.extstate.UI_initatmouse&1==1 then
+      local w = DATA.extstate.wind_w
+      local h = DATA.extstate.wind_h 
+      local x, y = GetMousePosition()
+      DATA.extstate.wind_x = x-w/2
+      DATA.extstate.wind_y = y-h/2
+    end
     
-  
-      
-    -- morph
-      if MOUSE_click(obj.sections[6]) then mouse.context = 'slider' end
-      if mouse.context and mouse.context == 'slider' then
-         morph_val = F_limit(MOUSE_slider(obj.sections[5]),0,1)
-         ENGINE_SetParams()
-         update_gfx = true 
-      end      
+    if DATA.extstate.UI_appatinit == 1 then 
+      DATA2:GetFocusedFXData() 
+    end
     
-    if not mouse.LB then mouse.context = nil end
-    local char = gfx.getchar() 
-    if char == 32 then reaper.Main_OnCommandEx(40044, 0,0) end
-    if char == 27 then gfx.quit() end     
-    if char ~= -1 then reaper.defer(run) else gfx.quit() end
-    gfx.update()
-    mouse.last_LB = mouse.LB
+    DATA:GUIinit()
+    GUI_RESERVED_init(DATA)
+    RUN()
+  end
+  --------------------------------------------------------------------- 
+  function GUI_RESERVED_init_shortcuts(DATA)
+    if DATA.extstate.UI_enableshortcuts == 0 then return end
     
-    if morph_val ~= nil then
-      last_morph_val = morph_val
+    DATA.GUI.shortcuts[32] = function() VF_Action(40044) end -- space to transport play
+    
+  end
+  -------------------------------------------------------------------- 
+  function DATA_RESERVED_ONPROJCHANGE(DATA)
+    --DATA2:GetFocusedFXData() 
+    GUI_RESERVED_BuildLayer_Refresh(DATA) 
+  end
+  ---------------------------------------------------------------------  
+  function GUI_RESERVED_BuildLayer_Refresh(DATA) 
+    DATA.GUI.buttons.Rlayer.refresh = true  
+    local layerid = DATA.GUI.custom_layerset2
+    if not (DATA2.FXdata and DATA2.FXdata.params ) then return end
+    for paramid = 1, #DATA2.FXdata.params do
+      if not DATA.GUI.buttons['paramsrc'..paramid] then return end
+      DATA.GUI.buttons['paramsrc'..paramid].txt = DATA2.FXdata.params[paramid].name..': '.. DATA2.FXdata.params[paramid].formatparam
+      DATA.GUI.buttons['paramsrc'..paramid].data = DATA2.FXdata.params[paramid]
+      DATA.GUI.buttons['paramdest'..paramid].txt = DATA2.FXdata.params[paramid].name
+      DATA.GUI.buttons['paramdest'..paramid].data = DATA2.FXdata.params[paramid] 
+    end
+  end
+  -------------------------------------------------------------------- 
+  function DATA2:RevertInitialValues()
+    if not DATA2.FXdata.params then return end
+    local ptr = DATA2.FXdata.ptr
+    local fxnum = DATA2.FXdata.fxnum
+    local func_str = DATA2.FXdata.func_str
+    for paramid = 1, #DATA2.FXdata.params_init do  
+      local out_val = DATA2.FXdata.params_init[paramid].value
+      _G[func_str..'SetParamNormalized'](ptr, fxnum, paramid-1, out_val) 
+      _G[func_str..'EndParamEdit'](ptr, fxnum,paramid-1 )
+    end
+  end
+  --------------------------------------------------------------------  
+  function DATA2:GetFocusedFXData() -- also update to current params
+    -- get current config  
+    local parse_globalfilt = {}
+    if DATA.extstate.CONF_filter_Keywords1==1 and  DATA.extstate.CONF_filter_Keywords1str ~= '' then for word in DATA.extstate.CONF_filter_Keywords1str:gmatch('[^%s]+') do parse_globalfilt[#parse_globalfilt+1] = word end  end
+    if DATA.extstate.CONF_filter_Keywords2==1 and  DATA.extstate.CONF_filter_Keywords2str ~= '' then for word in DATA.extstate.CONF_filter_Keywords2str:gmatch('[^%s]+') do parse_globalfilt[#parse_globalfilt+1] = word end  end
+    if DATA.extstate.CONF_filter_Keywords3==1 and  DATA.extstate.CONF_filter_Keywords3str ~= '' then for word in DATA.extstate.CONF_filter_Keywords3str:gmatch('[^%s]+') do parse_globalfilt[#parse_globalfilt+1] = word end  end
+    if DATA.extstate.CONF_filter_Keywords4==1 and  DATA.extstate.CONF_filter_Keywords4str ~= '' then for word in DATA.extstate.CONF_filter_Keywords4str:gmatch('[^%s]+') do parse_globalfilt[#parse_globalfilt+1] = word end  end
+    
+    -- get main stuff
+    local retval, tracknumber, itemnumber, fxnum = reaper.GetFocusedFX2()
+    local tr = CSurf_TrackFromID( tracknumber, false )
+    if not ValidatePtr2( 0, tr, 'MediaTrack*' ) then return end
+     local it = GetTrackMediaItem( tr, itemnumber ) 
+    local func_str = 'TrackFX_'
+    if retval&1 == 1 then 
+      ptr = tr 
+     elseif retval&2 == 2 then 
+      local takeidx = (fxnum>>16)&0xFFFF 
+      ptr = GetTake( it, takeidx ) 
+      func_str = 'TakeFX_'
      else
-      morph_val = last_morph_val
+      return 
+    end
+    local fx_GUID = _G[func_str..'GetFXGUID'](ptr, fxnum&0xFFFF)    
+    local retval, buf = _G[func_str..'GetFXName'](ptr, fxnum&0xFFFF)
+    local cnt_params = _G[func_str..'GetNumParams'](ptr, fxnum&0xFFFF)
+    
+    
+    
+    -- init tables
+      --if DATA2.FXdata and DATA2.FXdata.fx_GUID == fx_GUID then       DATA2:RevertInitialValues()  return end
+      if not DATA2.FXdata then DATA2.FXdata = {}  end
+      local t = DATA2.FXdata 
+      t.fx_GUID = fx_GUID
+      t.fx_name = buf
+      t.ptr = ptr
+      t.func_str = func_str
+      t.fxnum = fxnum&0xFFFF 
+      local param_bypass = _G[func_str..'GetParamFromIdent']( ptr, fxnum&0xFFFF, ':bypass' )
+      local param_wet = _G[func_str..'GetParamFromIdent']( ptr, fxnum&0xFFFF, ':wet' )
+      local param_delta = _G[func_str..'GetParamFromIdent']( ptr, fxnum&0xFFFF, ':delta' ) 
+      
+      for i = 1, cnt_params do
+        local value = _G[func_str..'GetParamNormalized'](ptr, fxnum&0xFFFF, i-1) 
+        local retval, bufparam = _G[func_str..'GetParamName'](ptr, fxnum&0xFFFF, i-1) 
+        local retval, formatparam = _G[func_str..'GetFormattedParamValue'](ptr, fxnum&0xFFFF, i-1) 
+        local retval, step, smallstep, largestep, istoggle = _G[func_str..'GetParameterStepSizes'](ptr, fxnum&0xFFFF, i-1) 
+        
+        local ignore = false
+        if DATA.extstate.CONF_filter_untitledparams == 1 and bufparam:gsub('[%s]+','') == '' then ignore = true end
+        if ignore == false and DATA.extstate.CONF_filter_system == 1 and (i-1==param_bypass or  i-1==param_wet or i-1==param_delta ) then ignore = true end
+        if ignore == false and #parse_globalfilt> 0 then
+          for word = 1, #parse_globalfilt do
+            if bufparam:lower():match(parse_globalfilt[word]:lower()) then ignore = true break end
+          end
+        end
+        if not t.params then t.params = {} end
+        if not t.params[i] then t.params[i] = {} end
+        t.params[i].value = value
+        t.params[i].name = bufparam
+        t.params[i].formatparam = formatparam
+        t.params[i].istoggle = istoggle
+        t.params[i].ignore = ignore
+        if not t.hasinitialparams then 
+          if not t.params_init then t.params_init = {} end
+          if not t.params_init[i] then t.params_init[i] = {value = value} end
+        end
+      end 
+      
+    return t
+  end
+  ---------------------------------------------------------------------  
+  function GUI_RESERVED_draw_data2(DATA, b)
+    if not b.data then return end
+    local x,y,w,h = b.x*DATA.GUI.default_scale,b.y*DATA.GUI.default_scale,b.w*DATA.GUI.default_scale,b.h*DATA.GUI.default_scale
+    local t = b.data
+    local val = t.value or 0
+    if b.data_ismorph then val = t.value_morph end
+    if val and not t.istoggle then  
+      -- backgr fill
+        DATA:GUIhex2rgb('#FFFFFF', true)
+        gfx.a =0.3
+        gfx.rect(x+1,y+h-3,w*val-1,2,1)
+    end
+    if t.istoggle then
+      val = 0
+      if t.value >= 0.5 then val = 1 end
+      gfx.set(1,1,1,1)
+      circle_r = 3
+      gfx.circle(x+w- circle_r-DATA.GUI.custom_offset,math.floor(y+h/2-circle_r/2 +1) ,4,val)
+    end
+  end
+  ---------------------------------------------------------------------  
+  function GUI_RESERVED_BuildLayer(DATA) 
+    local boundary = DATA.GUI.buttons.Rlayer
+    DATA.GUI.buttons.Rlayer.refresh = true 
+    
+    local layerid = DATA.GUI.custom_layerset2
+    if not (DATA2.FXdata and DATA2.FXdata.params ) then return end
+    
+    -- clean table
+    for key in spairs(DATA.GUI.buttons) do if key:match('paramsrc') or key:match('paramdest') then DATA.GUI.buttons[key] = nil end end
+    
+    local y_out0 = 0
+    local y_out = y_out0
+    local param_h = 25
+    for paramid = 1, #DATA2.FXdata.params do
+      DATA.GUI.buttons['paramsrc'..paramid] = 
+      {
+        x = boundary.x,
+        y = y_out,
+        w = DATA.GUI.custom_setposx/2-DATA.GUI.custom_offset,
+        h = param_h-1,
+        layer = layerid,
+        txt = DATA2.FXdata.params[paramid].name..': '.. DATA2.FXdata.params[paramid].formatparam,
+        data = DATA2.FXdata.params[paramid],
+        txt_flags=4 ,
+        frame_a = 0,
+        hide = DATA2.FXdata.params[paramid].ignore,
+        onmouserelease = function() 
+                  -- collect selection
+                    if DATA.GUI.Shift then 
+                      DATA.GUI.buttons['paramsrc'..paramid].sel_isselected = true
+                      local cnt_selection = 0
+                      local cur_id = paramid
+                      local min_id, max_id = math.huge,-1
+                      for paramid0 = 1, #DATA2.FXdata.params do
+                        if DATA.GUI.buttons['paramsrc'..paramid0] and DATA.GUI.buttons['paramsrc'..paramid0].sel_isselected == true then 
+                          cnt_selection = cnt_selection + 1
+                          min_id = math.min(min_id, paramid0)
+                          max_id = math.max(max_id, paramid0)
+                        end
+                      end
+                      if cnt_selection == 1 then 
+                        return
+                       elseif cnt_selection > 1 then 
+                        if min_id < cur_id then
+                          for i = min_id, cur_id do DATA.GUI.buttons['paramsrc'..i].sel_isselected = true end
+                         elseif min_id >= cur_id and max_id > cur_id then
+                          for i = cur_id, max_id do DATA.GUI.buttons['paramsrc'..i].sel_isselected = true end
+                        end
+                      end
+                      DATA.GUI.buttons.Rlayer.refresh = true 
+                      return
+                    end
+                  
+                  -- toggle selection
+                    DATA.GUI.buttons['paramsrc'..paramid].sel_isselected = not DATA.GUI.buttons['paramsrc'..paramid].sel_isselected  
+                    DATA.GUI.buttons.Rlayer.refresh = true 
+                end,
+                onmousereleaseR = function() -- reset selection
+                    for paramid0 = 1, #DATA2.FXdata.params do DATA.GUI.buttons['paramsrc'..paramid0].sel_isselected = false end
+                    DATA.GUI.buttons.Rlayer.refresh = true 
+                  end,
+                sel_allow = true,
+              } 
+      DATA.GUI.buttons['paramdest'..paramid] = 
+            {
+              x = boundary.x+DATA.GUI.custom_setposx/2,
+              y = y_out,
+              w = DATA.GUI.custom_setposx/2-DATA.GUI.custom_offset*3-DATA.GUI.custom_scrollw,
+              h = param_h-1,
+              layer = layerid,
+              txt = DATA2.FXdata.params[paramid].name,
+              data = DATA2.FXdata.params[paramid],
+              data_ismorph = true,
+              txt_flags=4 ,
+              frame_a = 0,
+              ignoremouse_refresh = true,
+              hide = DATA2.FXdata.params[paramid].ignore,
+              }
+      if not DATA2.FXdata.params[paramid].ignore then y_out = y_out + param_h end
+    end
+
+    return y_out-y_out0
+  end
+  ---------------------------------------------------------------------  
+  function DATA2:GenerateRandomSnapshot()
+    if not DATA2.FXdata.params then return end
+    for paramid = 1, #DATA2.FXdata.params do
+      DATA2.FXdata.params[paramid].value_morph = math.random()
+    end
+    GUI_RESERVED_BuildLayer_Refresh(DATA) 
+  end  
+  ----------------------------------------------------------------------  
+  function DATA_RESERVED_ONCUSTSTATECHANGE(DATA)
+    if DATA.morphstate and DATA.extstate.CONF_smooth >  0 then
+      local cur_clock = os.clock()
+      DATA2.morph_value = VF_lim((cur_clock - DATA.TS_morph+0.04) / DATA.extstate.CONF_smooth)
+      if cur_clock - DATA.TS_morph > DATA.extstate.CONF_smooth then
+        DATA.UPD.oncustomstatechange = false
+        DATA.morphstate = nil
+       else
+        DATA2:Morph()
+        --GUI_RESERVED_BuildLayer_Refresh(DATA) 
+      end
+    end
+  end
+  ----------------------------------------------------------------------  
+  function DATA2:Morph(not_generate, slider_mode, is_init)
+    if is_init then DATA2:GetFocusedFXData() end
+    if not DATA.morphstate then 
+      if not slider_mode then DATA2:GetFocusedFXData()  end
+      if not not_generate then DATA2:GenerateRandomSnapshot() end
+    end 
+    
+    if not DATA2.FXdata.params then return end
+    
+    if is_init or (DATA.extstate.CONF_smooth > 0 and not DATA.morphstate and not slider_mode) then
+      DATA.morphstate = true
+      DATA.morphstate_cnt = 0
+      DATA.TS_morph = os.clock()
+      DATA.UPD.oncustomstatechange = true
+    end
+    local ptr = DATA2.FXdata.ptr
+    local fxnum = DATA2.FXdata.fxnum
+    local func_str = DATA2.FXdata.func_str
+    
+    local cnt_selection = 0 
+    for paramid = 1, #DATA2.FXdata.params do  
+      if not DATA2.FXdata.params[paramid].ignore and DATA.GUI.buttons['paramsrc'..paramid].sel_isselected and DATA.GUI.buttons['paramsrc'..paramid].sel_isselected  == true then cnt_selection = cnt_selection + 1 end
     end
     
+    for paramid = 1, #DATA2.FXdata.params do  
+      if not DATA2.FXdata.params[paramid].ignore and (cnt_selection == 0 or (cnt_selection > 0 and DATA.GUI.buttons['paramsrc'..paramid].sel_isselected and DATA.GUI.buttons['paramsrc'..paramid].sel_isselected == true)) then
+        if not DATA2.FXdata.params[paramid].value_morph then break end
+        if (DATA2.morph_value and (DATA.extstate.CONF_smooth > 0 and DATA.morphstate_cnt and DATA.morphstate_cnt > 0)) or DATA.extstate.CONF_smooth ==0 then 
+          local out_val = DATA2.FXdata.params[paramid].value - (DATA2.FXdata.params[paramid].value - DATA2.FXdata.params[paramid].value_morph ) * (DATA2.morph_value or 1)
+          _G[func_str..'SetParamNormalized'](ptr, fxnum, paramid-1, out_val) 
+          --_G[func_str..'EndParamEdit'](ptr, fxnum,paramid-1 )
+        end
+      end
+    end
+    
+    if DATA.morphstate and DATA.morphstate_cnt then  DATA.morphstate_cnt = DATA.morphstate_cnt + 1 end
+    DATA.morphstate_cnt = DATA.morphstate_cnt + 1
+  end
+  ---------------------------------------------------------------------  
+  function GUI_RESERVED_init(DATA)
+    GUI_RESERVED_init_shortcuts(DATA)
+    DATA.GUI.buttons = {} 
+    
+    DATA.GUI.custom_scrollw = 10
+    DATA.GUI.custom_offset = math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
+    DATA.GUI.custom_mainsepx = (gfx.w/DATA.GUI.default_scale)*0.4
+    DATA.GUI.custom_mainsepxupd = 150
+    DATA.GUI.custom_setposx = gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx
+    DATA.GUI.custom_mainbuth = 30
+    DATA.GUI.custom_setposy = (DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*3
+    DATA.GUI.custom_tracklistw = (gfx.w/DATA.GUI.default_scale- DATA.GUI.custom_mainsepx)-DATA.GUI.custom_offset
+    DATA.GUI.custom_tracklisty = DATA.GUI.custom_offset*2+DATA.GUI.custom_mainbuth
+    DATA.GUI.custom_tracklisth = gfx.h/DATA.GUI.default_scale - DATA.GUI.custom_tracklisty-DATA.GUI.custom_offset
+    DATA.GUI.custom_matchmenu = 30--*DATA.GUI.default_scale
+    DATA.GUI.custom_knobw = 90--*DATA.GUI.default_scale
+    
+    DATA.GUI.buttons.Rlayer = { x=DATA.GUI.custom_offset,
+                           y=DATA.GUI.custom_tracklisty,
+                           w=DATA.GUI.custom_tracklistw,
+                           h=DATA.GUI.custom_tracklisth,
+                           frame_a = 0,
+                           layer = DATA.GUI.custom_layerset2,
+                           ignoremouse = true,
+                           hide = true,
+                           }
+    DATA:GUIBuildLayer()
+    
+    DATA.GUI.buttons.getFX = { x=DATA.GUI.custom_offset,
+                          y=DATA.GUI.custom_offset,
+                          w=DATA.GUI.custom_setposx/2-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_mainbuth,
+                          txt = DATA2.FXdata.fx_name or 'Get focused FX',
+                          txt_fontsz = DATA.GUI.default_txt_fontsz3,
+                          onmouseclick =  function () 
+                            DATA2:GetFocusedFXData()
+                            DATA.GUI.buttons.getFX.txt = DATA2.FXdata.fx_name or 'Get focused FX'
+                            --GUI_RESERVED_BuildLayer(DATA) 
+                            DATA:GUIBuildLayer()
+                          end,
+                          } 
+    
+    local gentxt = 'Generate snapshot'
+    if DATA.extstate.UI_mergegenmorph == 1 then gentxt = 'Generate / Morph snapshot' end
+    DATA.GUI.buttons.generate = { x=DATA.GUI.custom_setposx/2+DATA.GUI.custom_offset,
+                          y=DATA.GUI.custom_offset,
+                          w=DATA.GUI.custom_setposx/2-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_mainbuth,
+                          txt = gentxt,
+                          txt_short = DATA.extstate.UI_trfilter,
+                          txt_fontsz = DATA.GUI.default_txt_fontsz3,
+                          onmouseclick =  function () 
+                                            DATA2:GenerateRandomSnapshot()
+                                            if DATA.extstate.UI_mergegenmorph == 1 then 
+                                              Undo_BeginBlock2( 0 )
+                                              reaper.PreventUIRefresh( -1 )
+                                              DATA2:Morph(true, nil, true)
+                                              Undo_EndBlock2( 0,DATA.extstate.mb_title, 0xFFFFFFFF )
+                                            end
+                                          end,
+                          } 
+                          
+    DATA.GUI.buttons.preset = { x=DATA.GUI.custom_setposx+DATA.GUI.custom_offset,
+                            y=gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_mainbuth-DATA.GUI.custom_offset,
+                            w=DATA.GUI.custom_mainsepx-DATA.GUI.custom_offset*2,
+                            h=DATA.GUI.custom_mainbuth,
+                            txt = 'Preset: '..(DATA.extstate.CONF_NAME or ''),
+                            txt_fontsz = DATA.GUI.default_txt_fontsz3,
+                            onmouseclick =  function() DATA:GUIbut_preset() end}                          
+    DATA.GUI.buttons.Morph = { x=DATA.GUI.custom_setposx+DATA.GUI.custom_offset,--
+                          y=DATA.GUI.custom_offset,--
+                          w=DATA.GUI.custom_mainsepx-DATA.GUI.custom_offset*2-DATA.GUI.custom_knobw-DATA.GUI.custom_offset,--
+                          h=DATA.GUI.custom_mainbuth,--
+                          txt = 'Morph',
+                          txt_fontsz = DATA.GUI.default_txt_fontsz3,
+                          onmouseclick =  function () 
+                            Undo_BeginBlock2( 0 )
+                            reaper.PreventUIRefresh( -1 )
+                            DATA2:Morph(true, nil, true)
+                            Undo_EndBlock2( 0, DATA.extstate.mb_title, 0xFFFFFFFF )
+                          end,
+                          }                                             
+    DATA.GUI.buttons.knob = { x=DATA.GUI.custom_setposx+DATA.GUI.custom_mainsepx-DATA.GUI.custom_knobw-DATA.GUI.custom_offset,
+                          y=DATA.GUI.custom_offset,
+                          w=DATA.GUI.custom_knobw,
+                          h=DATA.GUI.custom_mainbuth,
+                          txt = '',
+                          knob_isknob = true,
+                          val_res = 0.25,
+                          val = 0,
+                          frame_a = DATA.GUI.default_framea_normal,
+                          frame_asel = DATA.GUI.default_framea_normal,
+                          back_sela = 0,
+                          hide = DATA.GUI.compactmode==1,
+                          ignoremouse = DATA.GUI.compactmode==1,
+                          onmousedrag =     function() DATA2.morph_value = DATA.GUI.buttons.knob.val DATA2:Morph(true, true) end,
+                          onmouserelease  = function() DATA2.morph_value = DATA.GUI.buttons.knob.val DATA2:Morph(true, true) Undo_OnStateChange2( 0, DATA.extstate.mb_title )  end 
+                        }                          
+    DATA.GUI.buttons.Rsettings = { x=DATA.GUI.custom_setposx,
+                           y=DATA.GUI.custom_mainbuth+DATA.GUI.custom_offset,
+                           w=DATA.GUI.custom_mainsepx,
+                           h=gfx.h/DATA.GUI.default_scale - DATA.GUI.custom_mainbuth*2-DATA.GUI.custom_offset*2,
+                           txt = 'Settings',
+                           --txt_fontsz = DATA.GUI.default_txt_fontsz3,
+                           frame_a = 0,
+                           offsetframe = DATA.GUI.custom_offset,
+                           offsetframe_a = 0.1,
+                           ignoremouse = true,
+                           }
+    DATA:GUIBuildSettings() 
+    
+    for but in pairs(DATA.GUI.buttons) do DATA.GUI.buttons[but].key = but end
+  end
+  ---------------------------------------------------------------------  
+  function DATA2:ProcessAtChange() 
+  
+  end
+  ---------------------------------------------------------------------  
+  function GUI_RESERVED_BuildSettings(DATA)
+    local readoutw_extw = 150
+    local globfiltstr = 'Keywords1: '..DATA.extstate.CONF_filter_Keywords1str 
+    local globfiltstr2 = 'Keywords2: '..DATA.extstate.CONF_filter_Keywords2str 
+    local globfiltstr3 = 'Keywords3: '..DATA.extstate.CONF_filter_Keywords3str 
+    local globfiltstr4 = 'Keywords3: '..DATA.extstate.CONF_filter_Keywords4str 
+    local  t = 
+    { 
+      {str = 'Actions' ,                                  group = 1, itype = 'sep'}, 
+        {str = 'Revert init values',                      group = 1, itype = 'button', level = 1, func_onrelease =  function()DATA2:RevertInitialValues() end},
+      {str = 'Filtering params (all plugins)' ,           group = 2, itype = 'sep'}, 
+        {str = 'Untitled parameters' ,                    group = 2, itype = 'check', level = 1, confkey = 'CONF_filter_untitledparams'},
+        {str = 'Bypass / Wet / Delta' ,                   group = 2, itype = 'check', level = 1, confkey = 'CONF_filter_system'},
+        {str = globfiltstr,                               group = 2, itype = 'button', level = 1, func_onrelease =  function()  
+                                                                                                                      local retval, retvals_csv = GetUserInputs( 'Global filter', 1, 'Space separated words,extrawidth=500', DATA.extstate.CONF_filter_Keywords1str )
+                                                                                                                      if retval then DATA.extstate.CONF_filter_Keywords1str = retvals_csv DATA.UPD.onconfchange = true DATA2:GetFocusedFXData() DATA:GUIBuildSettings() DATA:GUIBuildLayer() end
+                                                                                                                    end},
+        {str = 'Keywords1' ,                              group = 2, itype = 'check', level = 1, confkey = 'CONF_filter_Keywords1', func_onrelease = function() DATA2:GetFocusedFXData() DATA:GUIBuildLayer() end},                                                                                                                    
+        {str = globfiltstr2,                              group = 2, itype = 'button', level = 1, func_onrelease =  function()  
+                                                                                                                      local retval, retvals_csv = GetUserInputs( 'Global filter', 1, 'Space separated words,extrawidth=500', DATA.extstate.CONF_filter_Keywords2str )
+                                                                                                                      if retval then DATA.extstate.CONF_filter_Keywords2str = retvals_csv DATA.UPD.onconfchange = true DATA2:GetFocusedFXData() DATA:GUIBuildSettings() DATA:GUIBuildLayer() end
+                                                                                                                    end},
+        {str = 'Keywords2' ,                              group = 2, itype = 'check', level = 1, confkey = 'CONF_filter_Keywords2', func_onrelease = function() DATA2:GetFocusedFXData() DATA:GUIBuildLayer() end},          
+        {str = globfiltstr3,                              group = 2, itype = 'button', level = 1, func_onrelease =  function()  
+                                                                                                                      local retval, retvals_csv = GetUserInputs( 'Global filter', 1, 'Space separated words,extrawidth=500', DATA.extstate.CONF_filter_Keywords3str )
+                                                                                                                      if retval then DATA.extstate.CONF_filter_Keywords3str = retvals_csv DATA.UPD.onconfchange = true DATA2:GetFocusedFXData() DATA:GUIBuildSettings() DATA:GUIBuildLayer() end
+                                                                                                                    end},
+        {str = 'Keywords3' ,                              group = 2, itype = 'check', level = 1, confkey = 'CONF_filter_Keywords3', func_onrelease = function() DATA2:GetFocusedFXData() DATA:GUIBuildLayer() end},      
+        {str = globfiltstr4,                              group = 2, itype = 'button', level = 1, func_onrelease =  function()  
+                                                                                                                      local retval, retvals_csv = GetUserInputs( 'Global filter', 1, 'Space separated words,extrawidth=500', DATA.extstate.CONF_filter_Keywords4str )
+                                                                                                                      if retval then DATA.extstate.CONF_filter_Keywords4str = retvals_csv DATA.UPD.onconfchange = true DATA2:GetFocusedFXData() DATA:GUIBuildSettings() DATA:GUIBuildLayer() end
+                                                                                                                    end},
+        {str = 'Keywords4' ,                              group = 2, itype = 'check', level = 1, confkey = 'CONF_filter_Keywords4', func_onrelease = function() DATA2:GetFocusedFXData() DATA:GUIBuildLayer() end},   
+         --
+      {str = 'UI options' ,                               group = 5, itype = 'sep'},  
+        {str = 'Enable shortcuts' ,                       group = 5, itype = 'check', confkey = 'UI_enableshortcuts', level = 1},
+        {str = 'Init UI at mouse position' ,              group = 5, itype = 'check', confkey = 'UI_initatmouse', level = 1},
+        --{str = 'Show tootips' ,                           group = 5, itype = 'check', confkey = 'UI_showtooltips', level = 1},
+        --{str = 'Process on settings change',              group = 5, itype = 'check', confkey = 'UI_appatchange', level = 1},
+        {str = 'Get Focused FX at initialization',        group = 5, itype = 'check', confkey = 'UI_appatinit', level = 1},
+        {str = 'Generate / Morph',                        group = 5, itype = 'check', confkey = 'UI_mergegenmorph', level = 1, func_onrelease = function() GUI_RESERVED_init(DATA) end},
+        {str = 'Smooth transition' ,                      group = 5, itype = 'readout', confkey = 'CONF_smooth', level = 1, val_min = 0, val_max = 10, val_res = 0.05, val_format = function(x) return VF_math_Qdec(x,3)..'s' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
+      
+    } 
+    return t
     
   end
-  
-  ------------------------------------------------------------
-  update_gfx = true
-  pick_state = false
-  gfx1 = {main_w = 500, main_h = 200}  
-  Lokasenna_Window_At_Center(gfx1.main_w,gfx1.main_h) 
-  mouse = {}
-  run()
-  reaper.atexit(gfx.quit)
-  
-  ------------------------------------------------------------
+  ----------------------------------------------------------------------
+  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
+  --------------------------------------------------------------------  
+  local ret = VF_CheckFunctions(3.10) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end

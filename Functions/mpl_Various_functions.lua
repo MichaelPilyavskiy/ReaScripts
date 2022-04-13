@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 3.08
+-- @version 3.10
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v3.lua
@@ -10,11 +10,15 @@
 --    mpl_Various_functions_MOUSE.lua
 --    mpl_Various_functions_Pers.lua
 -- @changelog
---    # Settings: prevent showing wrong state of variable readout if confkey is not defined
+--    + GUI_RESERVED_draw_data2 for draw before text
+--    # drawtxt: support flag2
+--    + DATA_RESERVED_ONPROJCHANGE(DATA)
+--    + Custom Layer: redraw only visible area
+--    + Settings: allow long readout up to item width
 
 
     
-  VF_version = 3.08 -- do not remove, used for versions comparement
+  VF_version = 3.10 -- do not remove, used for versions comparement
   VF_isregist = 1|2 -- do not remove, used for VF versions check
   --------------------------------------------------
   function VF_LoadLibraries()

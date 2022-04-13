@@ -168,6 +168,7 @@
           strh = gfx.texth
           if txt_flags&1==1 then gfx.x = x+(w-strw)/2 end
           if txt_flags&4==4 then gfx.y = y+(h-strh)/2 end
+          if txt_flags&2==2 then gfx.x = x + w - strw end
           if b.offsetframe then 
             gfx.y = y+b.offsetframe*DATA.GUI.default_scale-calibrated_txt_fontsz/2
           end
@@ -235,22 +236,27 @@
       if b.ignoremouse ==true then goto skipb end 
       
       -- hovering mouse
+        local refresh = true
+        --if not b.ignoremouse_refresh then refresh = false end
+      
         DATA:GUIhandlemousestate_match(b) 
         if b.mouse_match then
           b.mouse_matchparent = b
           if b.onmousematchcont then DATA.perform_quere[#DATA.perform_quere+1] = b.onmousematchcont end 
-          if DATA.GUI.mouse_ismoving then b.refresh = true end
+          if DATA.GUI.mouse_ismoving then b.refresh = refresh end
+          --msg('mouse_matchparent')
         end
         if b.mouse_match and (not b.mouse_lastmatch  or ( b.mouse_lastmatch and b.mouse_lastmatch ~=b.mouse_match))  then 
           if b.onmousematch then DATA.perform_quere[#DATA.perform_quere+1] = b.onmousematch end
-          b.refresh = true 
+          b.refresh = refresh
+          --msg('mouse_match2t')
         end
         if b.mouse_lastmatch  and not b.mouse_match  then 
           if b.mouse_matchparent and b.mouse_matchparent.onmouselost then DATA.perform_quere[#DATA.perform_quere+1] = b.mouse_matchparent.onmouselost end
-          b.refresh = true 
+          b.refresh = refresh 
+          --msg('mouse_lastmatch')
         end
         b.mouse_lastmatch = b.mouse_match
-      
       
       
       -- LMB
@@ -400,12 +406,11 @@
   -----------------------------------------------------------------------------    
   function DATA:GUIdraw_Button(b)
     if b.hide then return end
-    local x,y,w,h, backgr_col, frame_a, frame_asel, back_sela,val =  
+    local x,y,w,h, frame_a, frame_asel, back_sela,val =  
                             b.x or 0,
                             b.y or 0,
                             b.w or 100,
                             b.h or 100,
-                            b.backgr_col or '#333333',
                             b.frame_a or DATA.GUI.default_framea_normal,
                             b.frame_asel or DATA.GUI.default_framea_selected,
                             b.back_sela or DATA.GUI.default_back_sela,
@@ -413,23 +418,44 @@
                             
     local offsetframe = b.offsetframe or 0
     local offsetframe_a = b.offsetframe_a or 0
+    local backgr_col = b.backgr_col or '#333333'
+    local backgr_col2 = b.backgr_col2 or '#333333'
+    local backgr_fill = b.backgr_fill or 1
+    local backgr_fill2 = b.backgr_fill2 or 0
     
     x,y,w,h = 
               math.floor(x*DATA.GUI.default_scale),
               math.floor(y*DATA.GUI.default_scale),           
-              math.floor(w*DATA.GUI.default_scale),            
-              math.floor(h*DATA.GUI.default_scale)            
-
-                    
+              math.ceil(w*DATA.GUI.default_scale),            
+              math.ceil(h*DATA.GUI.default_scale)            
+    
+    local layer = gfx.dest
+    if layer and DATA.GUI.layers[layer] and DATA.GUI.layers[layer].layer_yshift then 
+      local layerh = DATA.GUI.layers[layer].layer_h
+      local layer_yshift = DATA.GUI.layers[layer].layer_yshift
+      local preload = h*4
+      if not (y >= (layer_yshift - preload) and y + h < (layer_yshift + layerh*DATA.GUI.default_scale+preload)) then 
+        return 
+      end
+    end
+    
+    
     -- backgr fill
-      DATA:GUIhex2rgb(backgr_col, true)
-      gfx.a =1
-      gfx.rect(x+1,y+1,w-1,h-1,1)
-      --gfx.set(1,1,1,1)
-      --gfx.line(x+w,y,x+w,y+h)
+      if backgr_fill ~= 0 then
+        DATA:GUIhex2rgb(backgr_col, true)
+        gfx.a =backgr_fill
+        gfx.rect(x+1,y+1,w-1,h-1,1)
+      end
+      
+    -- backgr fill 2
+      if backgr_fill2 ~= 0 and backgr_col2 then
+        DATA:GUIhex2rgb(backgr_col2, true)
+        gfx.a =backgr_fill2
+        gfx.rect(x+1,y+1,w-1,h-1,1)
+      end
         
     -- latched by mouse
-      if b.mouse_latch == true then 
+      if b.mouse_latch == true or (b.sel_allow and b.sel_isselected == true) then 
         gfx.set(1,1,1,back_sela)
         gfx.rect(x+1,y+1,w-1,h-1,1) 
       end 
@@ -440,6 +466,9 @@
         local r = math.floor(w/2)
         gfx.circle(x+r,y+r + (h-r*2)*val,r,1)
       end
+    
+    -- val_data
+      if GUI_RESERVED_draw_data2 then GUI_RESERVED_draw_data2(DATA, b) end -- before text
       
     -- txt
       b.txt_strw, b.txt_strh = DATA:GUIdraw_txt(b)
@@ -644,6 +673,9 @@
       if DATA.UPD.onconfchange == true or DATA.UPD.onXYchange == true or DATA.UPD.onWHchange == true then DATA:ExtStateSet() DATA:ExtStateGet()  end
       if DATA.UPD.onWHchange == true or DATA.UPD.onGUIinit == true then if GUI_RESERVED_init then GUI_RESERVED_init(DATA) end DATA.GUI.firstloop = 1 end
     
+      if DATA.UPD.onprojstatechange == true and DATA_RESERVED_ONPROJCHANGE then DATA_RESERVED_ONPROJCHANGE(DATA) end
+      if DATA.UPD.oncustomstatechange == true and DATA_RESERVED_ONCUSTSTATECHANGE then DATA_RESERVED_ONCUSTSTATECHANGE(DATA) end
+      
     -- reset triggers
       DATA.UPD.onconfchange = false
       DATA.UPD.onGUIinit = false
@@ -791,16 +823,9 @@
           if DATA.GUI.layers[b.layer].layer_h then layer_hmeasured = DATA.GUI.layers[b.layer].layer_hmeasured or DATA.GUI.layers[b.layer].layer_h end
           gfx.setimgdim(b.layer, DATA.GUI.layers[b.layer].layer_w*DATA.GUI.default_scale, layer_hmeasured*DATA.GUI.default_scale) 
           activelayers[b.layer] = true
-          
-          --[[ draw back
-            if not DATA.GUI.gradback_col then DATA.GUI.gradback_col = DATA.GUI.default_backgr end
-            local r,g,b = DATA:GUIhex2rgb(DATA.GUI.gradback_col)
-            gfx.set(r,g,b,1) 
-            gfx.rect(0,0,gfx.w,gfx.h)]]
-            
         end
         gfx.dest = b.layer
-        gfx.a = 1
+        gfx.a = 1 
         DATA:GUIdraw_Button(b) 
       end
     end
@@ -820,8 +845,12 @@
   ----------------------------------------------------------------------------- 
   function DATA:GUIhex2rgb(s16,set)
     if not s16 then return end
-    s16 = s16:gsub('#',''):gsub('0X',''):gsub('0x','')
-    local b,g,r = ColorFromNative(tonumber(s16, 16))
+    if type(s16) =='string' then 
+      s16 = s16:gsub('#',''):gsub('0X',''):gsub('0x','')
+      int = tonumber(s16, 16)
+      else return
+    end
+    local b,g,r = ColorFromNative(int)
     if set then
       if GetOS():match('Win') then gfx.set(r/255,g/255,b/255) else gfx.set(b/255,g/255,r/255) end
     end
@@ -943,7 +972,7 @@
     if DATA.extstate.version then title = title..' '..DATA.extstate.version end
               
     DATA.GUI.default_backgr = '#333333' --grey
-    DATA.GUI.default_back_sela = 0.05 -- pressed button
+    DATA.GUI.default_back_sela = 0.1 -- pressed button
     
     DATA.GUI.default_frame_col = '#FFFFFF'
     DATA.GUI.default_framea_normal = 0.4
@@ -1009,7 +1038,7 @@
     DATA.GUI.default_offset =DATA.GUI.default_scale*10
   end
   ----------------------------------------------------------------------------------------------------------------
-  function DATA:GUIBuildLayer(boundary)
+  function DATA:GUIBuildLayer()
     if not DATA.GUI.buttons.Rlayer then return end
     local custom_scrollw = DATA.GUI.custom_scrollw or 10
     local custom_offset = DATA.GUI.custom_offset or  math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
@@ -1051,7 +1080,10 @@
                           slider_isslider = true,
                           hide = DATA.GUI.compactmode==1,
                           ignoremouse = DATA.GUI.compactmode==1,
-                          onmousedrag = function() DATA.GUI.layers[DATA.GUI.custom_layerset2].scrollval = DATA.GUI.buttons.Rlayer_scroll.val end
+                          onmousedrag = function() 
+                            DATA.GUI.layers[DATA.GUI.custom_layerset2].scrollval = DATA.GUI.buttons.Rlayer_scroll.val 
+                            DATA.GUI.buttons.Rlayer.refresh = true
+                          end
                           }
     end                     
     DATA.GUI.layers[DATA.GUI.custom_layerset2].a=1
@@ -1150,6 +1182,8 @@
       local settingsit_layer = t.settingsit_layer
       local group = t.group or 0
       local state = '?'
+      local readouth = settingsit_h-2
+      if t.readouthlev then readouth = settingsit_h * t.readouthlev -2 end
       
       DATA.GUI.buttons[key] = 
       {
@@ -1304,7 +1338,10 @@
     local key = t.key
     
     local readoutw = 70*DATA.GUI.default_scale
-    if t.readoutw_extw then readoutw = t.readoutw_extw end
+    if t.readoutw_extw then 
+      readoutw = t.readoutw_extw 
+      if readoutw < 0 then readoutw = t.settingsit_w-t.settingsxoffs-t.settingsit_offs  end
+    end
     local level = t.level or 0
     local settingsit_offs = t.settingsit_offs
     local settingsxoffs = t.settingsxoffs 
@@ -1312,6 +1349,8 @@
     local settingsit_w = t.settingsit_w
     local settingsit_h = t.settingsit_h
     local settingsit_layer = t.settingsit_layer
+    local readouth = settingsit_h-2
+    if t.readouthlev then readouth = settingsit_h * t.readouthlev -2 end
     
     local group = t.group or 0
     if DATA.extstate.UI_groupflags&(1<<group)==(1<<group) or (t.group_inv and t.group_inv == true and DATA.extstate.UI_groupflags&(1<<group)~=(1<<group)) then return settingsyoffs end
@@ -1367,7 +1406,7 @@
       x = settingsxoffs + level*settingsit_offs,
       y = settingsyoffs,--settingsyoffs + settingsit_h * (idx-1),
       w = readoutw,
-      h = settingsit_h-2,
+      h = readouth,
       layer = settingsit_layer,
       txt = val_formatted,
       txt_flags=1|4 ,
@@ -1464,7 +1503,7 @@
             onmousereleaseR = function() DATA:ExtStateRestoreDefaults('CONF_window') GUI_settingst_confirmval(DATA, nil,nil,nil,nil,true, nil ) end,
             ]]
     
-    return DATA.GUI.buttons[key].y+settingsit_h--DATA.GUI.buttons[key].h
+    return DATA.GUI.buttons[key].y+math.max(DATA.GUI.buttons[key].h,DATA.GUI.buttons[key..'rout'].h)--+settingsit_h
   end   
   ---------------------------------------------------------------------  
    function DATA:GUIBuildSettings_BuildTable(t)
