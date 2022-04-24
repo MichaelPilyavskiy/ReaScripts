@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="704714216a269cfc9f9b18d2656d5d46b84c9e2b" name="MPL Scripts">
+<index version="1" commit="a5100e2c8585ad5fe844e52b0b9d4088f1b1cf75" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1939,6 +1939,15 @@
       <version name="1.0" author="MPL" time="2022-02-12T20:09:13Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd0bc9bb2f9159b4e14616467d768a2b2f250dfe/FX/mpl_Save%20focused%20FX%20parent%20track%20bypass%20states.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Save selected tracks FX chains (no prompt, saved project only).lua" type="script" desc="Save selected tracks FX chains (no prompt, saved project only)">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-04-24T16:07:51Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a5100e2c8585ad5fe844e52b0b9d4088f1b1cf75/FX/mpl_Save%20selected%20tracks%20FX%20chains%20(no%20prompt,%20saved%20project%20only).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Save selected tracks FX chains.lua" type="script" desc="Save selected tracks FX chains">
