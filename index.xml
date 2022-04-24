@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="abfa1c83aa2454bce5419ab347eebf3cae713f53" name="MPL Scripts">
+<index version="1" commit="704714216a269cfc9f9b18d2656d5d46b84c9e2b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2611,6 +2611,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/112b63231e2bd1b3bb97250ab2360e81eebf990a/FX%20specific/mpl_Convert%20RS5k%20MIDI%20item%20into%20source%20based%20audio%20items%20(drum%20mode).lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Create ReaComp sidechain routing (ask for track IDs).lua" type="script" desc="Create ReaComp sidechain routing (ask for track IDs)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-04-24T15:50:41Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/704714216a269cfc9f9b18d2656d5d46b84c9e2b/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(ask%20for%20track%20IDs).lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing (inversed source destination).lua" type="script" desc="Create ReaComp sidechain routing from track under mouse cursor to selected track">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -2651,6 +2660,15 @@
         <changelog><![CDATA[# improve logic around existing send
 # remove SWS dependency]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d6ce0e8eff7f831c7a3b3d4b63da27556a0870/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Create ReaGate sidechain routing (ask for track IDs).lua" type="script" desc="Create ReaGate sidechain routing (ask for track IDs)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-04-24T15:50:41Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/704714216a269cfc9f9b18d2656d5d46b84c9e2b/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing%20(ask%20for%20track%20IDs).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaGate sidechain routing (inversed source destination).lua" type="script" desc="Create ReaGate sidechain routing from track under mouse cursor to selected track">
@@ -6660,6 +6678,15 @@ add control for timefall showing last note]]></changelog>
     <reapack name="mpl_Go to first send destination track.lua" type="script" desc="Go to first send destination track">
       <version name="1.0" author="MPL" time="2016-01-15T07:07:25Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Go%20to%20first%20send%20destination%20track.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Invert selected tracks solo to mute states.lua" type="script" desc="Invert selected tracks solo to mute states">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-04-24T15:50:41Z">
+        <changelog><![CDATA[+init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/704714216a269cfc9f9b18d2656d5d46b84c9e2b/Tracks%20Properties/mpl_Invert%20selected%20tracks%20solo%20to%20mute%20states.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Move selected tracks faders to 0dB relative to holded peak.lua" type="script" desc="Move selected tracks faders to 0dB relative to holded peak">
