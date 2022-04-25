@@ -1,11 +1,11 @@
 -- @description Save selected tracks FX chains (no prompt, saved project only)
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    + use wildcards (editable inside script)
   
-  
+  pat = [[#resourcepath/fxchains/projects/#title OR #filename/#tracknum-#trackname-#datestamp_%d%m%y]]
   
   ---------------------------------------------------
   function ExtractFXChunk(track )
@@ -16,20 +16,24 @@
     return out_ch
   end
   ---------------------------------------------------------------------
-  function main(conf)
+  function main(pat)
     -- check are tracks selected
       local cnt_seltr = CountSelectedTracks(0)
       if cnt_seltr == 0 then MB('There aren`t selected tracks', 'Error', 0) return end   
       
-    -- ask for output path
+    -- get data
       local retval, projfn = reaper.EnumProjects( -1, '' )
-      local  proj_path = GetProjectPath(0,'')..'/'
+      local  proj_path = GetProjectPath(0,'')
       if projfn == '' then return end
-      local ts = os.date():gsub('%:', '-') 
       
-      local saving_folder = proj_path..'FXChains/'..ts..'/'
-      
-      
+      local _, title = reaper.GetSetProjectInfo_String( 0, 'PROJECT_TITLE', '', false )
+      local resourcepath = reaper.GetResourcePath()
+      local ProjectName = reaper.GetProjectName( 0 ):gsub('%.rpp',''):gsub('%.RPP','')
+      local datestamp = os.date()
+      if pat:match('#datestamp_[%%%d]+') then
+        local dspat = pat:match('#datestamp_([%%%a]+)')
+        datestamp = os.date(dspat)
+      end
       
       
     -- extract chunks
@@ -37,26 +41,31 @@
       for i = 1, cnt_seltr do
         local tr = GetSelectedTrack(0,i-1)
         local ch = ExtractFXChunk(tr)
-        if ch then  t[#t+1] = {name = ({GetTrackName( tr )})[2]:gsub('[%/%\\%:%*%?%"%<%>%|]+', '_'), chunk = ch} end
+        if ch then  t[#t+1] = {ptr = tr,
+                               name = ({GetTrackName( tr )})[2]:gsub('[%/%\\%:%*%?%"%<%>%|]+', '_'), 
+                               chunk = ch,
+                               id =  CSurf_TrackToID( tr, false )
+                               } 
+                              end
       end
+      
+      
       
     -- write files
       if #t ==0 then return end 
-      local ret1 = RecursiveCreateDirectory(saving_folder, 1)
       --if ret1 == 0 then MB('Can`t create path', 'Error', 0) return end   
-      for i = 1, #t do
-        local fname = t[i].name
-        --local f = io.open (saving_folder..'/'..fname..'.RfxChain', 'r')
-        --[[if f then
-          if fname:match('%(v[%d]+%)') then
-            local vers = fname:match('.*(%(([%d]+)%))')
-            if tonumber(vers) then fname = fname:gsub('%([%d]+%)', '(v'..(tonumber(vers)+1)..')') else fname = fname..' (1)' end
-           else
-            fname = fname..' (1)'
-          end
-          f:close()
-        end]]
-        local f = io.open (saving_folder..'/'..fname..'.RfxChain', 'w')
+      for i = 1, #t do 
+        local title2 = title if title2 == '' then title2 = ProjectName end
+        local outfp =  pat:gsub('#resourcepath',resourcepath)
+                          :gsub('#title OR #filename', title2)
+                          :gsub('#filename', ProjectName)
+                          :gsub('#title', title)
+                          :gsub('#tracknum', t[i].id)
+                          :gsub('#trackname', t[i].name)
+                          :gsub('#datestamp_[%%%a]+', datestamp)
+                          ..'.RfxChain'
+        local ret1 = RecursiveCreateDirectory(GetParentFolder(outfp), 1)
+        local f = io.open (outfp, 'w')
         if f then
           f:write(t[i].chunk)
           f:close()
@@ -69,4 +78,4 @@
   --------------------------------------------------------------------  
   local ret = CheckFunctions('VF_CalibrateFont') 
   local ret2 = VF_CheckReaperVrs(5.95,true)    
-  if ret and ret2 then main(conf) end
+  if ret and ret2 then main(pat) end
