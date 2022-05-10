@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b72962f9631d62b1b470a783e4aa2d0991e57cc2" name="MPL Scripts">
+<index version="1" commit="4cd700ea4d1604cd033ea02c69d21396a2dcadfb" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1667,11 +1667,15 @@
     </reapack>
     <reapack name="mpl_Offline bypassed fx on selected tracks.lua" type="script" desc="Offline bypassed fx on selected tracks">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2018-08-10T14:29:23Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f796fb7ee80aec7289d049eabde20aa2ffe11c25/FX/mpl_Offline%20bypassed%20fx%20on%20selected%20tracks.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2022-05-10T23:42:45Z">
+        <changelog><![CDATA[# do not bypass FX with bypass envelope (req Reaper 6.37+)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cd700ea4d1604cd033ea02c69d21396a2dcadfb/FX/mpl_Offline%20bypassed%20fx%20on%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Open FX browser and close FX browser when FX is inserted.lua" type="script" desc="Open FX browser and close FX browser when FX is inserted">
