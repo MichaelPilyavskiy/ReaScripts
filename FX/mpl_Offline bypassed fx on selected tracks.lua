@@ -1,9 +1,9 @@
--- @version 1.0
 -- @author MPL
 -- @description Offline bypassed fx on selected tracks
--- @website http://forum.cockos.com/member.php?u=70694
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @version 1.01
 -- @changelog
---   + init
+--   # do not bypass FX with bypass envelope (req Reaper 6.37+)
 
   
   --------------------------------------------------------------------
@@ -13,42 +13,19 @@
       local tr = GetSelectedTrack(0,i-1)
       for fx = TrackFX_GetCount( tr ), 1, -1 do
         local is_byp = TrackFX_GetEnabled( tr, fx-1 )
-        if not is_byp then TrackFX_SetOffline( tr, fx-1, 1 ) end
+        if not is_byp then 
+          local byp_param =  TrackFX_GetParamFromIdent( tr, fx-1, ':bypass' )
+          local byp_envelope = reaper.GetFXEnvelope( tr, fx-1, byp_param, false )
+          if not byp_envelope then 
+            TrackFX_SetOffline( tr, fx-1, 1 ) 
+          end
+        end
       end
     end
     Undo_EndBlock('Offline bypassed fx on selected tracks', 0)
-  end
----------------------------------------------------------------------
-  function CheckFunctions(str_func)
-    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
-    local f = io.open(SEfunc_path, 'r')
-    if f then
-      f:close()
-      dofile(SEfunc_path)
-      
-      if not _G[str_func] then 
-        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
-       else
-        return true
-      end
-      
-     else
-      reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
-    end  
-  end
-  function CheckReaperVrs(rvrs) 
-    local vrs_num =  GetAppVersion()
-    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
-    if rvrs > vrs_num then 
-      reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0)
-      return
-     else
-      return true
-    end
-  end
-
+  end 
+  ----------------------------------------------------------------------
+  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-    local ret = CheckFunctions('MPL_ReduceFXname') 
-    local ret2 = CheckReaperVrs(5.95)    
-    if ret and ret2 then main() end
-    
+  local ret = VF_CheckFunctions(3.08) if ret then local ret2 = VF_CheckReaperVrs(6.37,true) if ret2 then main() end end
+  
