@@ -1,11 +1,9 @@
 -- @description Apply selected track pan to its pre-fader sends pan
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # sligtly cleanup code
---    # use all Undo flags
---    + Apply pan envelope to send pan envelope if any, obey dualpan envelopes
+--    # set envelope visible and armed
 
   function main()
     Undo_BeginBlock2( 0 )
@@ -81,6 +79,10 @@
             end
             Envelope_SortPoints(P_ENV)
           end
+          local retval, chunk = reaper.GetEnvelopeStateChunk( P_ENV, '', false )
+          chunk = chunk:gsub('VIS 0','VIS 1'):gsub('ARM 0','ARM 1')
+          SetEnvelopeStateChunk( P_ENV, chunk, false )
+          msg(chunk)
         end
       end
     end
