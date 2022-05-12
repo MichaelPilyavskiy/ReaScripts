@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4cd700ea4d1604cd033ea02c69d21396a2dcadfb" name="MPL Scripts">
+<index version="1" commit="5d505c4dfb887fe09e2f046a6423ac41a44ef239" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6517,6 +6517,12 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL" time="2018-08-26T01:18:10Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/122df421e003d35da552311a45f15feb496a7db2/Tracks%20Properties/mpl_Apply%20selected%20track%20pan%20to%20its%20pre-fader%20sends%20pan.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2022-05-12T05:51:01Z">
+        <changelog><![CDATA[# sligtly cleanup code
+# use all Undo flags
++ Apply pan envelope to send pan envelope if any, obey dualpan envelopes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5d505c4dfb887fe09e2f046a6423ac41a44ef239/Tracks%20Properties/mpl_Apply%20selected%20track%20pan%20to%20its%20pre-fader%20sends%20pan.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Apply visibility of focused FX TCP controls to instances in selected tracks.lua" type="script" desc="Apply visibility of focused FX TCP controls to instances in selected tracks">
