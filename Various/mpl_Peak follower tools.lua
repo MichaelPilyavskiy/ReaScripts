@@ -1,10 +1,10 @@
 -- @description Peak follower tools
--- @version 1.08
+-- @version 1.09
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Add peak difference mode
+--    + Add slow compression-15dB factory preset
 
     
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
@@ -14,7 +14,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.08
+    DATA.extstate.version = 1.09
     DATA.extstate.extstatesection = 'PeakFollowTools'
     DATA.extstate.mb_title = 'Peak follower tools'
     DATA.extstate.default = 
@@ -27,6 +27,7 @@
                           
                           CONF_NAME = 'default',
                           FPRESET1= 'CkNPTkZfRkZUX21heD0wLjQ3ODY2NjY2NjY2NjY3CkNPTkZfRkZUX21pbj0wLjM4MDU0MTY2NjY2NjY3CkNPTkZfRkZUc3o9MTAyNApDT05GX05BTUU9W2ZhY3RvcnldIGRlLWVzc2VyCkNPTkZfYm91bmRhcnk9MApDT05GX2J5cGFzcz0wCkNPTkZfY29tcF9SYXRpbz0yCkNPTkZfY29tcF9hdHRhY2s9MApDT05GX2NvbXBfa25lZT0wCkNPTkZfY29tcF9sb29rYWhlYWQ9MApDT05GX2NvbXBfcmVsZWFzZT0wLjEKQ09ORl9jb21wX3RocmVzaG9sZD0wLjkyMwpDT05GX2Rlc3Q9MQpDT05GX2dhdGVfdGhyZXNob2xkPTAuNTM4CkNPTkZfbW9kZT0wCkNPTkZfbm9ybWFsaXplPTAKQ09ORl9vZmZzZXQ9MApDT05GX291dF9pbnZlcnQ9MQpDT05GX291dF9vZmZzPS0wLjAyCkNPTkZfb3V0X3NjYWxlPTAuMDgKQ09ORl9yZWR1Y2VzYW1ldmFsdWVzPTEKQ09ORl9yZWR1Y2VzYW1ldmFsdWVzX21pbmRpZmY9MC4xCkNPTkZfcmVtb3ZldGtlbnZ2b2w9MQpDT05GX3NjYWxlPTMuNQpDT05GX3Ntb290aGJsb2NrPTE1CkNPTkZfd2luZG93PTAuMDEyCkNPTkZfd2luZG93b3ZlcmxhcD02CkNPTkZfemVyb2JvdW5kYXJ5PTE=',
+                          FPRESET2= 'CkNPTkZfRkZUX21heD0xCkNPTkZfRkZUX21pbj0wCkNPTkZfRkZUc3o9LTEKQ09ORl9OQU1FPXNsb3cgY29tcHJlc3Npb24tMTVkQgpDT05GX2JvdW5kYXJ5PTAKQ09ORl9ieXBhc3M9MApDT05GX2NvbXBfUmF0aW89NS4xMTExMTExMTExMTExCkNPTkZfY29tcF9hdHRhY2s9MC4xNDg2MTExMTExMTExMQpDT05GX2NvbXBfa25lZT0wCkNPTkZfY29tcF9sb29rYWhlYWQ9MApDT05GX2NvbXBfcmVsZWFzZT0wLjkxOTQ0NDQ0NDQ0NDQ0CkNPTkZfY29tcF90aHJlc2hvbGQ9MC43MzEzMzMzMzMzMzMzNApDT05GX2Rlc3Q9MQpDT05GX2dhdGVfdGhyZXNob2xkPTAuNTM4CkNPTkZfbW9kZT0yCkNPTkZfbm9ybWFsaXplPTAKQ09ORl9vZmZzZXQ9MApDT05GX291dF9pbnZlcnQ9MApDT05GX291dF9vZmZzPTAKQ09ORl9vdXRfc2NhbGU9MQpDT05GX3JlZHVjZXNhbWV2YWx1ZXM9MQpDT05GX3JlZHVjZXNhbWV2YWx1ZXNfbWluZGlmZj0wLjEKQ09ORl9yZW1vdmV0a2VudnZvbD0xCkNPTkZfc2NhbGU9MQpDT05GX3Ntb290aGJsb2NrPTEKQ09ORl93aW5kb3c9MC4wNTY0ODMzMzMzMzMzMzMKQ09ORl93aW5kb3dvdmVybGFwPTEKQ09ORl96ZXJvYm91bmRhcnk9MQ==',
                           -- mode
                           CONF_bypass = 0,
                           CONF_mode = 0, -- 0 peak follower 1 gate 2 compressor 3 fft deessed 4 rms peak difference
