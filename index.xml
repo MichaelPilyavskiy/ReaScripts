@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a63c56cab45c6626bcf8ce5f467268b2162a1209" name="MPL Scripts">
+<index version="1" commit="b86e31771a27823f09842cc70f2a4bb30efe861b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2626,6 +2626,10 @@
 # obey sample offset
 # obey sample pan]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/112b63231e2bd1b3bb97250ab2360e81eebf990a/FX%20specific/mpl_Convert%20RS5k%20MIDI%20item%20into%20source%20based%20audio%20items%20(drum%20mode).lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2022-05-23T19:14:38Z">
+        <changelog><![CDATA[# obey MIDI notes length]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b86e31771a27823f09842cc70f2a4bb30efe861b/FX%20specific/mpl_Convert%20RS5k%20MIDI%20item%20into%20source%20based%20audio%20items%20(drum%20mode).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing (ask for track IDs).lua" type="script" desc="Create ReaComp sidechain routing (ask for track IDs)">
