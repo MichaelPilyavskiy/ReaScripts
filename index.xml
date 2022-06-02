@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b86e31771a27823f09842cc70f2a4bb30efe861b" name="MPL Scripts">
+<index version="1" commit="7ac2619685f78f8cac05476c4765b57cbae51949" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -9712,6 +9712,23 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL" time="2020-03-18T20:01:20Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2a246e0cda73e1a37a1e324e2ca54505f11b9f13/Various/mpl_Set%20REAPER%20password.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Spectral editing tools.lua" type="script" desc="Spectral editing tools">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Various tools for spectral editing\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-06-02T17:11:33Z">
+        <changelog><![CDATA[+ port Script: mpl_Add spectral edit at specified frequency.lua
+# improved parsing item chunk]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ac2619685f78f8cac05476c4765b57cbae51949/Various/mpl_Spectral%20editing%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
