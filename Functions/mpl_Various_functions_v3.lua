@@ -637,7 +637,7 @@
   end
   -----------------------------------------------------------------------------  
   function DATA:perform()
-    if not DATA.perform_quere then  return end
+    if not DATA.perform_quere then return end
     for i = 1, #DATA.perform_quere do if DATA.perform_quere[i] then DATA.perform_quere[i]() end end
     DATA.perform_quere = {} --- clear
   end
@@ -669,6 +669,7 @@
     
       if DATA.UPD.onprojstatechange == true and DATA_RESERVED_ONPROJCHANGE then DATA_RESERVED_ONPROJCHANGE(DATA) end
       if DATA.UPD.oncustomstatechange == true and DATA_RESERVED_ONCUSTSTATECHANGE then DATA_RESERVED_ONCUSTSTATECHANGE(DATA) end
+      if DATA_RESERVED_DYNUPDATE then DATA_RESERVED_DYNUPDATE(DATA) end
       
     -- reset triggers
       DATA.UPD.onconfchange = false

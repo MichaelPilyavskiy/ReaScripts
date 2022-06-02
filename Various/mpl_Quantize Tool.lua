@@ -1,17 +1,17 @@
 -- @description QuantizeTool
--- @version 3.03
+-- @version 3.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    # Show anchor points: fix show pattern for project grid
+--    # fix ref_pat error
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.03
+    DATA.extstate.version = 3.04
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -1704,11 +1704,13 @@
         end
       end
     -- add anchor pattern
-      for i = 1, #DATA2.ref_pat do 
-        for measures = 0, project_end_measure + 1 do
-          local pos_sec =  TimeMap2_beatsToTime( 0, DATA2.ref_pat[i].pos_beats, measures )
-          local pos_normal = pos_sec / project_end
-          DATA.GUI.srcpoints[pos_normal] = DATA2.ref_pat[i].val or 1
+      if DATA2.ref_pat then
+        for i = 1, #DATA2.ref_pat do 
+          for measures = 0, project_end_measure + 1 do
+            local pos_sec =  TimeMap2_beatsToTime( 0, DATA2.ref_pat[i].pos_beats, measures )
+            local pos_normal = pos_sec / project_end
+            DATA.GUI.srcpoints[pos_normal] = DATA2.ref_pat[i].val or 1
+          end
         end
       end
     -- add targets

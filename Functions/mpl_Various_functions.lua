@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 3.12
+-- @version 3.13
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v3.lua
@@ -10,12 +10,11 @@
 --    mpl_Various_functions_MOUSE.lua
 --    mpl_Various_functions_Pers.lua
 -- @changelog
---    # remove spectral edit stuff, this will be reimplemented with slightly more clever chunking
---    # minor GUI improvements
+--    # add DATA_RESERVED_DYNUPDATE(DATA)
 
 
     
-  VF_version = 3.12 -- do not remove, used for versions comparement
+  VF_version = 3.13 -- do not remove, used for versions comparement
   VF_isregist = 1|2 -- do not remove, used for VF versions check
   --------------------------------------------------
   function VF_LoadLibraries()
