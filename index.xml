@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7ac2619685f78f8cac05476c4765b57cbae51949" name="MPL Scripts">
+<index version="1" commit="9c7c81c447c2113ba1fd08a948b14d85d7fe94f8" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1019,6 +1019,16 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/abfa1c83aa2454bce5419ab347eebf3cae713f53/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/abfa1c83aa2454bce5419ab347eebf3cae713f53/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/abfa1c83aa2454bce5419ab347eebf3cae713f53/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.12" author="MPL" time="2022-06-02T18:16:09Z">
+        <changelog><![CDATA[# remove spectral edit stuff, this will be reimplemented with slightly more clever chunking
+# minor GUI improvements]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9c7c81c447c2113ba1fd08a948b14d85d7fe94f8/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9c7c81c447c2113ba1fd08a948b14d85d7fe94f8/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9c7c81c447c2113ba1fd08a948b14d85d7fe94f8/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9c7c81c447c2113ba1fd08a948b14d85d7fe94f8/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9c7c81c447c2113ba1fd08a948b14d85d7fe94f8/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9c7c81c447c2113ba1fd08a948b14d85d7fe94f8/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -5952,27 +5962,6 @@ add control for timefall showing last note]]></changelog>
     </reapack>
   </category>
   <category name="Spectral Edits">
-    <reapack name="mpl_Add spectral edit at specified frequency.lua" type="script" desc="Add spectral edit at specified frequency">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-11-12T14:56:46Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Spectral%20Edits/mpl_Add%20spectral%20edit%20at%20specified%20frequency.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-11-12T16:05:37Z">
-        <changelog><![CDATA[# fix non-WAVE sources]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9b880105b5af5feb25e3430f3b7164376cceeb92/Spectral%20Edits/mpl_Add%20spectral%20edit%20at%20specified%20frequency.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-11-12T16:59:26Z">
-        <changelog><![CDATA[# fix non-WAVE sources]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ceba174625e3b20d34d8cb89ab31b46339c4f3d/Spectral%20Edits/mpl_Add%20spectral%20edit%20at%20specified%20frequency.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2018-06-08T19:58:56Z">
-        <changelog><![CDATA[# use external functions]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd5ff083479e0913b01c5947ff1d20db195ba820/Spectral%20Edits/mpl_Add%20spectral%20edit%20at%20specified%20frequency.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Copy selected item spectral edits.lua" type="script" desc="Copy selected item spectral edits">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -9729,6 +9718,10 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[+ port Script: mpl_Add spectral edit at specified frequency.lua
 # improved parsing item chunk]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ac2619685f78f8cac05476c4765b57cbae51949/Various/mpl_Spectral%20editing%20tools.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2022-06-02T18:16:09Z">
+        <changelog><![CDATA[+ Action: Add user-defined spectral edits pattern]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9c7c81c447c2113ba1fd08a948b14d85d7fe94f8/Various/mpl_Spectral%20editing%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
