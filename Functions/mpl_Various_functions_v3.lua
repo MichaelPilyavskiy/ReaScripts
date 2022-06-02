@@ -282,7 +282,7 @@
       -- handle mouse_latch on left drag
         if DATA.GUI.LMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true then
           DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedrag
-          if b.val then 
+          if b.val and b.latchval and type(b.latchval) == 'number' then 
             local res= b.val_res or 1
             if DATA.GUI.Ctrl then res = res /10 end
             b.val = VF_lim(b.latchval - (DATA.GUI.dy*res/DATA.GUI.default_scale) / b.h)
@@ -313,7 +313,7 @@
         end 
         
       -- handle mouse_latch on left drag
-        if DATA.GUI.RMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true then
+        if DATA.GUI.RMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true and b.latchval and type(b.latchval) == 'number' then
           DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedragR
           if b.val then 
             local res= b.val_res or 1
@@ -1421,6 +1421,7 @@
       onmouseclick =      function() end,
       onmousedrag =       function() 
                             if t.menu then return end
+                            if t.val_isstring then return end
                             if not val_format then return end
                             local new_val = VF_lim(DATA.GUI.buttons[key..'rout'].val,t.val_min or 0, t.val_max or 1)
                             if t.val_isinteger then new_val = math.floor(new_val) end
@@ -1429,6 +1430,7 @@
                             DATA.GUI.buttons[key..'rout'].refresh = true
                           end,
       onmouserelease =    function() 
+                            if t.val_isstring then return end
                             -- menu
                               if t.menu then
                                 local tm={}
@@ -1458,13 +1460,19 @@
       onmousereleaseR =    function() 
                             if not val_format_rev then return end
                             if t.menu then return end
-                            local retval, retvals_csv = GetUserInputs( 'Set '..(t.str or ''), 1, '', val_format(DATA.extstate[confkey]) )
+                            local valf = val_format(DATA.extstate[confkey])
+                            if t.val_isstring then valf = DATA.extstate[confkey] end
+                            local retval, retvals_csv = GetUserInputs( 'Set '..(t.str or ''), 1, ',extrawidth='..tonumber(t.val_input_extrawidth or 200), valf )
                             if not retval then return end
-                            local new_val = val_format_rev(retvals_csv)
-                            if not new_val then return end
-                            new_val = VF_lim(new_val,t.val_min or 0, t.val_max or 1)
-                            if t.val_isinteger then new_val = math.floor(new_val) end
-                            DATA.extstate[confkey] = new_val
+                            if not t.val_isstring then 
+                              local new_val = val_format_rev(retvals_csv)
+                              if not new_val then return end
+                              new_val = VF_lim(new_val,t.val_min or 0, t.val_max or 1)
+                              if t.val_isinteger then new_val = math.floor(new_val) end
+                              DATA.extstate[confkey] = new_val
+                             else
+                              DATA.extstate[confkey] = retvals_csv
+                            end
                             DATA.GUI.buttons[key..'rout'].txt = val_format(new_val)
                             DATA.GUI.buttons[key..'rout'].refresh = true
                             DATA.UPD.onconfchange = true 

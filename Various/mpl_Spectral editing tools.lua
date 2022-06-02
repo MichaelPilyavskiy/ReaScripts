@@ -1,11 +1,10 @@
 -- @description Spectral editing tools
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @about Various tools for spectral editing
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + port Script: mpl_Add spectral edit at specified frequency.lua
---    # improved parsing item chunk
+--    + Action: Add user-defined spectral edits pattern
 
     
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
@@ -21,7 +20,6 @@
   Script: mpl_Toggle bypass all spectral edits in selected items.lua
   
   -- pencil
-  -- add pattern
   -- analyzer + clever artefacts remove
   ]]
   
@@ -29,7 +27,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.0
+    DATA.extstate.version = 1.01
     DATA.extstate.extstatesection = 'SETools'
     DATA.extstate.mb_title = 'Spectral editing tools'
     DATA.extstate.default = 
@@ -45,11 +43,14 @@
                           -- mode
                           CONF_action = 2, -- init
                             -- 2 == add SE at specified frequency
+                            -- 3 == Add user-defined spectral edits pattern
                           
                           -- CONF_action = 2 add at spec freq
                           CONF_ASF_Fbase = 10000,
                           CONF_ASF_Farea = 1000,
                           CONF_ASF_Gaindb = -10,
+                          
+                          CONF_AUDP_pattern = 'F500A100P0L0.5G-20 F1000A100P0.5L0.5G-20 F1500A100P1L0.5G-20 F2000A100P1.5L0.5G-20',
                           
                           
                           -- UI
@@ -97,13 +98,16 @@
     
     -- buttons
       local txt = ''
-      local t_map = {
+      DATA.GUI.custom_t_map = {
         [1] = '#Action',
         [2]='Add spectral edit at specific frequency',
+        [3]='Add user-defined spectral edits pattern',
         }
-      for i = 1, #t_map do
-        if DATA.extstate.CONF_action == i then txt = t_map[i]  end
-      end
+        
+        
+        
+        
+      for i = 1, #DATA.GUI.custom_t_map do if DATA.extstate.CONF_action == i then txt = DATA.GUI.custom_t_map[i]  end end
       DATA.GUI.buttons = {} 
       DATA.GUI.buttons.app = {  x=DATA.GUI.custom_offset,
                             y=DATA.GUI.custom_offset,
@@ -115,8 +119,8 @@
                             ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =  function() 
                                               local mt = {}
-                                              for i = 1, #t_map do
-                                                mt[#mt+1] = {str=t_map[i],
+                                              for i = 1, #DATA.GUI.custom_t_map do
+                                                mt[#mt+1] = {str=DATA.GUI.custom_t_map[i],
                                                              func = function() DATA.extstate.CONF_action = i DATA.UPD.onconfchange = true DATA.UPD.onGUIinit = true end}
                                               end
                                               DATA:GUImenu(mt)
@@ -183,77 +187,146 @@
     DATA.custom.valid = true
   end
   -------------------------------------------------------
-  function DATA2:Process_AddSpectralEditIntoTable(it_table)
-    local SEdata = it_table.SEdata
-    local tk_id = it_table.tk_id
-    local SR = it_table.tk_SR
-    local item_pos = it_table.item_pos
-    local item_len = it_table.item_len
-    local loopS = DATA.custom.loopS
-    local loopE = DATA.custom.loopE
-    
-    local F_base = DATA.extstate.CONF_ASF_Fbase
-    local F_Area = DATA.extstate.CONF_ASF_Farea
-    local gain_dB = DATA.extstate.CONF_ASF_Gaindb
-                              
-    
-    if not SEdata.takes[tk_id+1] then return end
-    if not SEdata.takes[tk_id+1].SE then SEdata.takes[tk_id+1].SE = {} end
-    
+  function DATA2:Process_AddUserDefPattern()
+    -- parse pattern
+      local pat = DATA.extstate.CONF_AUDP_pattern
+       val_block_t = {}
+      local letters = {'F','A','P','L','G'} -- 'F','A','P','L','G' must have, others can be added further like fades
+      for val_block in pat:gmatch('[^%s]+') do
+        local t = {}
+        for i = 1, #letters do t[letters[i]] = val_block:match(letters[i]..'([%d%p]+)') if t[letters[i]] then t[letters[i]] = tonumber(t[letters[i]]) end end
+        if t.F and t.A and t.P and t.L and t.G then val_block_t[#val_block_t+1 ] = CopyTable(t) end
+      end
+      if #val_block_t <2 then return end
       
-    -- obey time selection
-    local pos, len = 0, item_len
-    if loopE - loopS > 0.001 then 
-      if loopS >= item_pos and loopS <= item_pos + item_len then pos = loopS- item_pos end
-      if loopE >= item_pos and loopE <= item_pos + item_len then 
-        len = loopE - loopS 
-       else
-        len = item_pos + item_len - loopS
+    -- add blocks 
+      local cur_pos = GetCursorPosition()
+    
+    for i = 1, #DATA.custom.items do 
+      local it_table = DATA.custom.items[i]
+      local SEdata = it_table.SEdata
+      local tk_id = it_table.tk_id -- ONLY ACTIVE TAKE
+      local SR = it_table.tk_SR
+      local item_pos = it_table.item_pos
+      local item_len = it_table.item_len
+      local loopS = DATA.custom.loopS
+      local loopE = DATA.custom.loopE
+      
+      local F_base = DATA.extstate.CONF_ASF_Fbase
+      local F_Area = DATA.extstate.CONF_ASF_Farea
+      local gain_dB = DATA.extstate.CONF_ASF_Gaindb
+                                
+      
+      if not SEdata.takes[tk_id+1] then return end
+      if not SEdata.takes[tk_id+1].SE then SEdata.takes[tk_id+1].SE = {} end
+      
+      
+      
+      for block =1, #val_block_t do
+        local offset = DATA.custom.items[i].SEdata.takes[tk_id+1].s_offs
+        local playrate = DATA.custom.items[i].SEdata.takes[tk_id+1].rate
+        local mark_pos = (cur_pos - item_pos + offset)*playrate
+        
+        local freq_L = math.max(0, val_block_t[block].F-val_block_t[block].A)
+        local freq_H = math.min(SR, val_block_t[block].F+val_block_t[block].A)
+        local pos = mark_pos + val_block_t[block].P
+        local len = val_block_t[block].L
+        local gain = 10^(val_block_t[block].G/20)
+        
+        SEdata.takes[tk_id+1].SE [ #SEdata.takes[tk_id+1].SE + 1] = -- ADD FOR ACTIVE TAKE
+          {pos = pos,
+           len = len,
+           gain = gain,
+           fadeinout_horiz = 0,
+           fadeinout_vert = 0,
+           freq_low = freq_L,
+           freq_high = freq_H,
+           chan = -1, -- -1 all 0 L 1 R
+           bypass = 0, -- bypass&1 solo&2
+           gate_threshold = 0,
+           gate_floor = 0,
+           compress_threshold = 1,
+           compress_ratio = 1,
+           unknown1 = 1,
+           unknown2 = 1,
+           fadeinout_horiz2 = 0, 
+           fadeinout_vert2 = 0}
       end
     end
-    local freq_L = math.max(0, F_base-F_Area)
-    local freq_H = math.min(SR, F_base+F_Area)
-    
-    
-    SEdata.takes[tk_id+1].SE [ #SEdata.takes[tk_id+1].SE + 1] = 
-      {pos = pos,
-       len = len,
-       gain = 10^(gain_dB/20),
-       fadeinout_horiz = 0,
-       fadeinout_vert = 0,
-       freq_low = freq_L,
-       freq_high = freq_H,
-       chan = -1, -- -1 all 0 L 1 R
-       bypass = 0, -- bypass&1 solo&2
-       gate_threshold = 0,
-       gate_floor = 0,
-       compress_threshold = 1,
-       compress_ratio = 1,
-       unknown1 = 1,
-       unknown2 = 1,
-       fadeinout_horiz2 = 0, 
-       fadeinout_vert2 = 0}
+  end
+  -------------------------------------------------------
+  function DATA2:Process_AddSpectralEditIntoTable()
+    for i = 1, #DATA.custom.items do 
+      local it_table = DATA.custom.items[i]
+      local SEdata = it_table.SEdata
+      local tk_id = it_table.tk_id
+      local SR = it_table.tk_SR
+      local item_pos = it_table.item_pos
+      local item_len = it_table.item_len
+      local loopS = DATA.custom.loopS
+      local loopE = DATA.custom.loopE
+      
+      local F_base = DATA.extstate.CONF_ASF_Fbase
+      local F_Area = DATA.extstate.CONF_ASF_Farea
+      local gain_dB = DATA.extstate.CONF_ASF_Gaindb
+                                
+      
+      if not SEdata.takes[tk_id+1] then return end
+      if not SEdata.takes[tk_id+1].SE then SEdata.takes[tk_id+1].SE = {} end
+      
+        
+      -- obey time selection
+      local pos, len = 0, item_len
+      if loopE - loopS > 0.001 then 
+        if loopS >= item_pos and loopS <= item_pos + item_len then pos = loopS- item_pos end
+        if loopE >= item_pos and loopE <= item_pos + item_len then 
+          len = loopE - loopS 
+         else
+          len = item_pos + item_len - loopS
+        end
+      end
+      local freq_L = math.max(0, F_base-F_Area)
+      local freq_H = math.min(SR, F_base+F_Area)
+      
+      
+      SEdata.takes[tk_id+1].SE [ #SEdata.takes[tk_id+1].SE + 1] = 
+        {pos = pos,
+         len = len,
+         gain = 10^(gain_dB/20),
+         fadeinout_horiz = 0,
+         fadeinout_vert = 0,
+         freq_low = freq_L,
+         freq_high = freq_H,
+         chan = -1, -- -1 all 0 L 1 R
+         bypass = 0, -- bypass&1 solo&2
+         gate_threshold = 0,
+         gate_floor = 0,
+         compress_threshold = 1,
+         compress_ratio = 1,
+         unknown1 = 1,
+         unknown2 = 1,
+         fadeinout_horiz2 = 0, 
+         fadeinout_vert2 = 0}
+    end
   end
   ---------------------------------------------------------------------  
   function DATA2:Process()
-    
-    if DATA.extstate.CONF_action == 2 then -- Add spectral edit at specific frequency
-      DATA2:Process_refresh()
-      if not DATA.custom.valid then return end
+    DATA2:Process_refresh()
+    if not DATA.custom.valid then return end
+    local process = false
+    if DATA.extstate.CONF_action == 2 then DATA2:Process_AddSpectralEditIntoTable() process = true end
+    if DATA.extstate.CONF_action == 3 then DATA2:Process_AddUserDefPattern() process = true  end 
+    if process == true then
       Undo_BeginBlock() 
-      for i = 1, #DATA.custom.items do
-        DATA2:Process_AddSpectralEditIntoTable(DATA.custom.items[i]) 
-        DATA2:Process_SetSpectralData(DATA.custom.items[i])  
-      end
-      Undo_EndBlock( 'Add spectral edit at specific frequency', 0xFFFFFFFF )
+      DATA2:Process_SetSpectralData()  
+      Undo_EndBlock( DATA.GUI.custom_t_map[DATA.extstate.CONF_action], 0xFFFFFFFF )
     end
-    
   end      
     
     
   ---------------------------------------------------------------------  
   function GUI_RESERVED_BuildSettings(DATA)
-    local readoutw_extw = 200
+    local readoutw_extw = DATA.GUI.custom_mainsepx*0.7*DATA.GUI.default_scale
     local SR_spls = 22050--tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) -- get sample rate obey project start offset
     
     
@@ -275,12 +348,20 @@
           val_format = function(x) return math.floor(x)..'Hz' end,
           hide=DATA.extstate.CONF_action~=2
           },
-        {str = 'Gain' ,                      group = 1, itype = 'readout', confkey = 'CONF_ASF_Gaindb',
+        {str = 'Gain' ,                             group = 1, itype = 'readout', confkey = 'CONF_ASF_Gaindb',
           val_res = 0.05, 
           val_min = -80, 
           val_max = 2, 
           val_format = function(x) return math.floor(x)..'dB' end,
           hide=DATA.extstate.CONF_action~=2
+          },
+        
+        
+        {str = 'Pattern' ,                          group = 1, itype = 'readout', confkey = 'CONF_AUDP_pattern',readoutw_extw=readoutw_extw,
+          val_isstring = true,
+          val_input_extrawidth = 400,
+          val = 0,
+          hide=DATA.extstate.CONF_action~=3
           },
           
           
@@ -505,86 +586,89 @@
   end
   ------------------------------------------------------------------------------------------------------
   function DATA2:Process_SetSpectralData(item_t)
-    local data = item_t.SEdata
-    local item = item_t.item_ptr
-    if not (data and item) then return end
-    local out_chunk = data.itemchunk
-    for tkid = 1, #data.takes do
-      -- add basic take data
-      local tkchunksrc = data.takes[tkid].chunk:gsub('SPECTRAL_.-[\r\n]','')
-      local issel = '' if tkid > 1 and data.takes[tkid].selected then  issel = ' SEL' end
-      local head = 'TAKE'..issel..'\n'
-      if tkid == 1 then head = '' end
-      out_chunk = out_chunk..'\n\n'..head..tkchunksrc
-      
-      -- add spectral edits
-      out_chunk = out_chunk..'SPECTRAL_CONFIG '..(data.takes[tkid].FFT_sz or 1024)..'\n'
-      for SEid = 1, #data.takes[tkid].SE do
-        out_chunk = out_chunk..'SPECTRAL_EDIT '
-                ..data.takes[tkid].SE[SEid].pos*data.takes[tkid].rate + data.takes[tkid].s_offs..' '
-                ..data.takes[tkid].SE[SEid].len*data.takes[tkid].rate..' '
-                ..data.takes[tkid].SE[SEid].gain..' '
-                ..data.takes[tkid].SE[SEid].fadeinout_horiz..' '
-                ..data.takes[tkid].SE[SEid].fadeinout_vert..' '
-                ..data.takes[tkid].SE[SEid].freq_low..' '
-                ..data.takes[tkid].SE[SEid].freq_high..' '
-                ..data.takes[tkid].SE[SEid].chan..' '
-                ..data.takes[tkid].SE[SEid].bypass..' '
-                ..data.takes[tkid].SE[SEid].gate_threshold..' '
-                ..data.takes[tkid].SE[SEid].gate_floor..' '
-                ..data.takes[tkid].SE[SEid].compress_threshold..' '
-                ..data.takes[tkid].SE[SEid].compress_ratio..' '
-                ..data.takes[tkid].SE[SEid].unknown1..' '
-                ..data.takes[tkid].SE[SEid].unknown2..' '
-                ..data.takes[tkid].SE[SEid].fadeinout_horiz2..' '
-                ..data.takes[tkid].SE[SEid].fadeinout_vert2..' '
-                ..'\n'
-                
-                
-        local dropnextline = 8        
-        if data.takes[tkid].SE[SEid].freedrawT and #data.takes[tkid].SE[SEid].freedrawT > 2 then 
-          local freedrawTstr = 'SPECTRAL_EDIT_T '
-          for freedrawT_ID = 2, #data.takes[tkid].SE[SEid].freedrawT, 2 do
-            if freedrawT_ID%dropnextline==0 then
-              freedrawTstr = freedrawTstr:sub(0,-3)
-              freedrawTstr = freedrawTstr..'\nSPECTRAL_EDIT_T '
-            end
-            freedrawTstr = freedrawTstr
-              ..data.takes[tkid].SE[SEid].freedrawT[freedrawT_ID-1].ptpos..' '..data.takes[tkid].SE[SEid].freedrawT[freedrawT_ID-1].ptval..' + '
-              ..data.takes[tkid].SE[SEid].freedrawT[freedrawT_ID].ptpos..' '..data.takes[tkid].SE[SEid].freedrawT[freedrawT_ID].ptval..' + '
-          end
-          freedrawTstr = freedrawTstr:sub(0,-3)
-          out_chunk = out_chunk..freedrawTstr..'\n'
-        end
-  
-        if data.takes[tkid].SE[SEid].freedrawB and #data.takes[tkid].SE[SEid].freedrawB > 2 then 
-          local freedrawBstr = 'SPECTRAL_EDIT_B '
-          for freedrawB_ID = 2, #data.takes[tkid].SE[SEid].freedrawB, 2 do
-            if freedrawB_ID%dropnextline==0 then
-              freedrawBstr = freedrawBstr:sub(0,-3)
-              freedrawBstr = freedrawBstr..'\nSPECTRAL_EDIT_B '
-            end
-            freedrawBstr = freedrawBstr
-              ..data.takes[tkid].SE[SEid].freedrawB[freedrawB_ID-1].ptpos..' '..data.takes[tkid].SE[SEid].freedrawB[freedrawB_ID-1].ptval..' + '
-              ..data.takes[tkid].SE[SEid].freedrawB[freedrawB_ID].ptpos..' '..data.takes[tkid].SE[SEid].freedrawB[freedrawB_ID].ptval..' + '
-          end
-          freedrawBstr = freedrawBstr:sub(0,-3)
-          out_chunk = out_chunk..freedrawBstr..'\n'
-        end
+    for i = 1, #DATA.custom.items do 
+      local item_t = DATA.custom.items[i]
+      local data = item_t.SEdata
+      local item = item_t.item_ptr
+      if not (data and item) then return end
+      local out_chunk = data.itemchunk
+      for tkid = 1, #data.takes do
+        -- add basic take data
+        local tkchunksrc = data.takes[tkid].chunk:gsub('SPECTRAL_.-[\r\n]','')
+        local issel = '' if tkid > 1 and data.takes[tkid].selected then  issel = ' SEL' end
+        local head = 'TAKE'..issel..'\n'
+        if tkid == 1 then head = '' end
+        out_chunk = out_chunk..'\n\n'..head..tkchunksrc
         
-        
+        -- add spectral edits
+        out_chunk = out_chunk..'SPECTRAL_CONFIG '..(data.takes[tkid].FFT_sz or 1024)..'\n'
+        for SEid = 1, #data.takes[tkid].SE do
+          out_chunk = out_chunk..'SPECTRAL_EDIT '
+                  ..data.takes[tkid].SE[SEid].pos*data.takes[tkid].rate + data.takes[tkid].s_offs..' '
+                  ..data.takes[tkid].SE[SEid].len*data.takes[tkid].rate..' '
+                  ..data.takes[tkid].SE[SEid].gain..' '
+                  ..data.takes[tkid].SE[SEid].fadeinout_horiz..' '
+                  ..data.takes[tkid].SE[SEid].fadeinout_vert..' '
+                  ..data.takes[tkid].SE[SEid].freq_low..' '
+                  ..data.takes[tkid].SE[SEid].freq_high..' '
+                  ..data.takes[tkid].SE[SEid].chan..' '
+                  ..data.takes[tkid].SE[SEid].bypass..' '
+                  ..data.takes[tkid].SE[SEid].gate_threshold..' '
+                  ..data.takes[tkid].SE[SEid].gate_floor..' '
+                  ..data.takes[tkid].SE[SEid].compress_threshold..' '
+                  ..data.takes[tkid].SE[SEid].compress_ratio..' '
+                  ..data.takes[tkid].SE[SEid].unknown1..' '
+                  ..data.takes[tkid].SE[SEid].unknown2..' '
+                  ..data.takes[tkid].SE[SEid].fadeinout_horiz2..' '
+                  ..data.takes[tkid].SE[SEid].fadeinout_vert2..' '
+                  ..'\n'
+                  
+                  
+          local dropnextline = 8        
+          if data.takes[tkid].SE[SEid].freedrawT and #data.takes[tkid].SE[SEid].freedrawT > 2 then 
+            local freedrawTstr = 'SPECTRAL_EDIT_T '
+            for freedrawT_ID = 2, #data.takes[tkid].SE[SEid].freedrawT, 2 do
+              if freedrawT_ID%dropnextline==0 then
+                freedrawTstr = freedrawTstr:sub(0,-3)
+                freedrawTstr = freedrawTstr..'\nSPECTRAL_EDIT_T '
+              end
+              freedrawTstr = freedrawTstr
+                ..data.takes[tkid].SE[SEid].freedrawT[freedrawT_ID-1].ptpos..' '..data.takes[tkid].SE[SEid].freedrawT[freedrawT_ID-1].ptval..' + '
+                ..data.takes[tkid].SE[SEid].freedrawT[freedrawT_ID].ptpos..' '..data.takes[tkid].SE[SEid].freedrawT[freedrawT_ID].ptval..' + '
+            end
+            freedrawTstr = freedrawTstr:sub(0,-3)
+            out_chunk = out_chunk..freedrawTstr..'\n'
+          end
+    
+          if data.takes[tkid].SE[SEid].freedrawB and #data.takes[tkid].SE[SEid].freedrawB > 2 then 
+            local freedrawBstr = 'SPECTRAL_EDIT_B '
+            for freedrawB_ID = 2, #data.takes[tkid].SE[SEid].freedrawB, 2 do
+              if freedrawB_ID%dropnextline==0 then
+                freedrawBstr = freedrawBstr:sub(0,-3)
+                freedrawBstr = freedrawBstr..'\nSPECTRAL_EDIT_B '
+              end
+              freedrawBstr = freedrawBstr
+                ..data.takes[tkid].SE[SEid].freedrawB[freedrawB_ID-1].ptpos..' '..data.takes[tkid].SE[SEid].freedrawB[freedrawB_ID-1].ptval..' + '
+                ..data.takes[tkid].SE[SEid].freedrawB[freedrawB_ID].ptpos..' '..data.takes[tkid].SE[SEid].freedrawB[freedrawB_ID].ptval..' + '
+            end
+            freedrawBstr = freedrawBstr:sub(0,-3)
+            out_chunk = out_chunk..freedrawBstr..'\n'
+          end
+          
+          
+          
+        end
         
       end
+      out_chunk = out_chunk..'\n>'
       
+      
+    
+      --ClearConsole()
+      --msg(out_chunk)
+      SetItemStateChunk( item, out_chunk, false )
+      UpdateItemInProject( item )
     end
-    out_chunk = out_chunk..'\n>'
-    
-    
-  
-    --ClearConsole()
-    --msg(out_chunk)
-    SetItemStateChunk( item, out_chunk, false )
-    UpdateItemInProject( item )
   end
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
