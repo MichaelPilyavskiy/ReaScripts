@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9c7c81c447c2113ba1fd08a948b14d85d7fe94f8" name="MPL Scripts">
+<index version="1" commit="6647ffad9ddb2419d5b954b1025554df3d7dc35f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1029,6 +1029,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9c7c81c447c2113ba1fd08a948b14d85d7fe94f8/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9c7c81c447c2113ba1fd08a948b14d85d7fe94f8/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9c7c81c447c2113ba1fd08a948b14d85d7fe94f8/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.13" author="MPL" time="2022-06-02T23:49:03Z">
+        <changelog><![CDATA[# add DATA_RESERVED_DYNUPDATE(DATA)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6647ffad9ddb2419d5b954b1025554df3d7dc35f/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6647ffad9ddb2419d5b954b1025554df3d7dc35f/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6647ffad9ddb2419d5b954b1025554df3d7dc35f/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6647ffad9ddb2419d5b954b1025554df3d7dc35f/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6647ffad9ddb2419d5b954b1025554df3d7dc35f/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6647ffad9ddb2419d5b954b1025554df3d7dc35f/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -5962,15 +5971,6 @@ add control for timefall showing last note]]></changelog>
     </reapack>
   </category>
   <category name="Spectral Edits">
-    <reapack name="mpl_Copy selected item spectral edits.lua" type="script" desc="Copy selected item spectral edits">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-06-08T19:58:56Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd5ff083479e0913b01c5947ff1d20db195ba820/Spectral%20Edits/mpl_Copy%20selected%20item%20spectral%20edits.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Explode and solo selected item spectral edits.lua" type="script" desc="Explode selected item spectral edits">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -5992,53 +5992,6 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[# use external functions
 + Explode new items to new tracks]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd5ff083479e0913b01c5947ff1d20db195ba820/Spectral%20Edits/mpl_Explode%20selected%20item%20spectrally%20at%203%20bands.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Paste and replace spectral edits to selected item.lua" type="script" desc="Paste and replace spectral edits to selected items">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-06-08T19:58:56Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd5ff083479e0913b01c5947ff1d20db195ba820/Spectral%20Edits/mpl_Paste%20and%20replace%20spectral%20edits%20to%20selected%20item.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Remove all spectral edits from selected items active takes.lua" type="script" desc="Remove all spectral edits from selected items active takes">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-11-12T14:56:46Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Spectral%20Edits/mpl_Remove%20all%20spectral%20edits%20from%20selected%20items%20active%20takes.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-11-12T16:05:37Z">
-        <changelog><![CDATA[# fix non-WAVE sources]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9b880105b5af5feb25e3430f3b7164376cceeb92/Spectral%20Edits/mpl_Remove%20all%20spectral%20edits%20from%20selected%20items%20active%20takes.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-11-12T16:59:26Z">
-        <changelog><![CDATA[# fix non-WAVE sources]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ceba174625e3b20d34d8cb89ab31b46339c4f3d/Spectral%20Edits/mpl_Remove%20all%20spectral%20edits%20from%20selected%20items%20active%20takes.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Remove all spectral edits from selected items.lua" type="script" desc="Remove all spectral edits from selected items">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-11-12T14:56:46Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee6e69d497f23ede7a13dbda2d0d61517357b72d/Spectral%20Edits/mpl_Remove%20all%20spectral%20edits%20from%20selected%20items.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-11-12T16:05:37Z">
-        <changelog><![CDATA[# fix non-WAVE sources]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9b880105b5af5feb25e3430f3b7164376cceeb92/Spectral%20Edits/mpl_Remove%20all%20spectral%20edits%20from%20selected%20items.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-11-12T16:59:26Z">
-        <changelog><![CDATA[# fix non-WAVE sources]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7ceba174625e3b20d34d8cb89ab31b46339c4f3d/Spectral%20Edits/mpl_Remove%20all%20spectral%20edits%20from%20selected%20items.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2018-06-08T19:58:56Z">
-        <changelog><![CDATA[# use external functions]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd5ff083479e0913b01c5947ff1d20db195ba820/Spectral%20Edits/mpl_Remove%20all%20spectral%20edits%20from%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle bypass all spectral edits in selected items active takes.lua" type="script" desc="Toggle bypass all spectral edits in selected items active takes">
@@ -9643,6 +9596,10 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[# Show anchor points: fix show pattern for project grid]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14e5eb2bbbcb7ccfa8c7d71199567a10f2b8fd34/Various/mpl_Quantize%20Tool.lua</source>
       </version>
+      <version name="3.04" author="MPL" time="2022-06-02T23:49:03Z">
+        <changelog><![CDATA[# fix ref_pat error]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6647ffad9ddb2419d5b954b1025554df3d7dc35f/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
       <metadata>
@@ -9703,6 +9660,22 @@ add control for timefall showing last note]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2a246e0cda73e1a37a1e324e2ca54505f11b9f13/Various/mpl_Set%20REAPER%20password.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Spectral editing tools - perform.lua" type="script" desc="Spectral editing tools - perform">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Trigger SETools action while main script GUI is opened\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-06-02T23:49:03Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6647ffad9ddb2419d5b954b1025554df3d7dc35f/Various/mpl_Spectral%20editing%20tools%20-%20perform.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Spectral editing tools.lua" type="script" desc="Spectral editing tools">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
@@ -9722,6 +9695,18 @@ add control for timefall showing last note]]></changelog>
       <version name="1.01" author="MPL" time="2022-06-02T18:16:09Z">
         <changelog><![CDATA[+ Action: Add user-defined spectral edits pattern]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9c7c81c447c2113ba1fd08a948b14d85d7fe94f8/Various/mpl_Spectral%20editing%20tools.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2022-06-02T23:49:03Z">
+        <changelog><![CDATA[+ Support trigger action externally for item under mouse without main window focus (but still runnung), see mpl_Spectral editing tools - perform.lua
++ Action: Copy/paste/clear spectral edits
++ Action: Bypass spectral edits
+# Action / Add SE: increase area limit to 22050
++ Action / Add SE: add pencil mode
++ Action / Add SE / pencil mode: add length option
+# Add UD pattern: get mouse position when triggered externally
+# GUI: remove preset button, clean settings frame
+# Performance: internal improvents]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6647ffad9ddb2419d5b954b1025554df3d7dc35f/Various/mpl_Spectral%20editing%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
