@@ -155,6 +155,7 @@
             txt = txt_short
             strw = gfx.measurestr(txt)
            elseif strw > w and txt_short== ''  then 
+            txt = tostring(txt) or ''
             local len = txt:len()
             for i = len, 1,-1 do
               local test_str = txt:sub(0,i)
@@ -1419,7 +1420,9 @@
       --frame_a=0,
       --frame_asel=0,
       onmousematch = onmousematch,
-      onmouseclick =      function() end,
+      onmouseclick =      function() 
+                            if t.func_onmouseclick then t.func_onmouseclick() end
+                          end,
       onmousedrag =       function() 
                             if t.menu then return end
                             if t.val_isstring then return end
@@ -1459,6 +1462,7 @@
                               if t.func_onrelease then t.func_onrelease() end
                           end,
       onmousereleaseR =    function() 
+                            local new_val
                             if not val_format_rev then return end
                             if t.menu then return end
                             local valf = val_format(DATA.extstate[confkey])
@@ -1466,7 +1470,7 @@
                             local retval, retvals_csv = GetUserInputs( 'Set '..(t.str or ''), 1, ',extrawidth='..tonumber(t.val_input_extrawidth or 200), valf )
                             if not retval then return end
                             if not t.val_isstring then 
-                              local new_val = val_format_rev(retvals_csv)
+                              new_val = val_format_rev(retvals_csv)
                               if not new_val then return end
                               new_val = VF_lim(new_val,t.val_min or 0, t.val_max or 1)
                               if t.val_isinteger then new_val = math.floor(new_val) end

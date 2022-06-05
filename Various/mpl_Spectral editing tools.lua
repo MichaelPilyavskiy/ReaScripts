@@ -1,36 +1,22 @@
 -- @description Spectral editing tools
--- @version 1.02
+-- @version 1.04
 -- @author MPL
 -- @about Various tools for spectral editing
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Support trigger action externally for item under mouse without main window focus (but still runnung), see mpl_Spectral editing tools - perform.lua
---    + Action: Copy/paste/clear spectral edits
---    + Action: Bypass spectral edits
---    # Action / Add SE: increase area limit to 22050
---    + Action / Add SE: add pencil mode
---    + Action / Add SE / pencil mode: add length option
---    # Add UD pattern: get mouse position when triggered externally
---    # GUI: remove preset button, clean settings frame
---    # Performance: internal improvents
+--    + Action: port focused FX to spectral edits
+--    + Manipulate SE: add scaling gain tweak
+--    + Manipulate SE: add set gain tweak
+--    # Add SE: properly handle time selection outside item
 
-
-
-    
+ 
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
-  --[[
-  Script: mpl_Explode and solo selected item spectral edits.lua
-  Script: mpl_Explode selected item spectrally at 3 bands.lua
-  Script: mpl_Port focused ReaEQ bands to spectral edits on selected items.lua
-  
-  -- analyzer + clever artefacts remove
-  ]]
   
   local DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.02
+    DATA.extstate.version = 1.04
     DATA.extstate.extstatesection = 'SETools'
     DATA.extstate.mb_title = 'Spectral editing tools'
     DATA.extstate.default = 
@@ -47,10 +33,9 @@
                           CONF_action = 2, -- 1 == init
                             -- 2 == add SE at specified frequency
                             -- 3 == Add user-defined spectral edits pattern
-                            -- 4 == copy/paste/clear spectral edits
-                            -- 4 == bypeass spectral edits
+                            -- 4 == manipulate spectral edit parameters
+                            -- 5 == various
                           
-                          -- CONF_action = 2 add at spec freq
                           CONF_ASF_Fbase = 10000,
                           CONF_ASF_Farea = 1000,
                           CONF_ASF_Gaindb = -10,
@@ -59,6 +44,9 @@
                           
                           CONF_AUDP_pattern = 'F500A100P0L0.5G-20 F1000A100P0.5L0.5G-20 F1500A100P1L0.5G-20 F2000A100P1.5L0.5G-20',
                           
+                          CONF_gain_scaling = 1,
+                          CONF_Params_GAIN = 0,--dB
+                          CONF_Params_GTO = -200, -- gate threshold
                           
                           -- UI
                           UI_appatchange = 0, 
@@ -109,8 +97,8 @@
         [1] = '#Action',
         [2]='Add spectral edit',
         [3]='Add user-defined spectral edits pattern',
-        [4]='Copy/paste/clear spectral edits',
-        [5]='Bypass spectral edits',
+        [4]='Manipulate spectral edits',
+        [5]='Advanced Actions',
         }
         
         
@@ -142,7 +130,7 @@
                             ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =  function() DATA:GUIbut_preset() end}     ]]  
                             
-      local hide_exec = DATA.extstate.CONF_action==4 or DATA.extstate.CONF_action==5 or (DATA.extstate.CONF_action==2 and DATA.extstate.CONF_ASF_pencilmode ==1)
+      local hide_exec = DATA.extstate.CONF_action==4 or DATA.extstate.CONF_action==5 or (DATA.extstate.CONF_action==2 and DATA.extstate.CONF_ASF_pencilmode ==1) or DATA.extstate.CONF_action==6
       local runtxt = 'Run'
       if DATA.extstate.CONF_action ==2 or DATA.extstate.CONF_action ==3 then runtxt = 'Run (or trig externally)' end
       DATA.GUI.buttons.exec = {  x=DATA.GUI.custom_offset,
@@ -281,69 +269,122 @@
     end
   end
   -------------------------------------------------------
-  function DATA2:Process_AddSpectralEditIntoTable()
+  function DATA2:Process_Actions_PortReaEQ()
+    
+    local  retval, tracknumber, itemnumber, fx = GetFocusedFX2()
+    if not (retval &1==1 and fx >= 0) then return end
+    local tr = CSurf_TrackFromID( tracknumber, false )
+    local isReaEQ = TrackFX_GetEQParam( tr, fx, 0 )
+    if not isReaEQ then return end
+    local num_params = TrackFX_GetNumParams( tr, fx )
+    local bands = {}
+    for param = 1, num_params - 2, 3 do
+      local retval, b_enabled = TrackFX_GetNamedConfigParm( tr, fx, 'BANDENABLED'..(-1+(param+2)/3) )
+      b_enabled = tonumber(b_enabled)
+      if b_enabled == 1 then
+        local retval, db_gain  = TrackFX_GetFormattedParamValue( tr, fx, param, '' )
+        db_gain = tonumber(db_gain) if not db_gain then db_gain = -150 end 
+        local retval, freq = TrackFX_GetFormattedParamValue( tr, fx, param-1,'')
+        freq = math.floor(tonumber(freq) ) 
+        local retval, N = TrackFX_GetFormattedParamValue( tr, fx, param+1,'') 
+        N = tonumber(N) 
+        local retval_type, b_type = TrackFX_GetNamedConfigParm( tr, fx, 'BANDTYPE'..(-1+(param+2)/3) )  
+        b_type = tonumber(b_type)
+        
+        if b_type == 0 or b_type == 4 then DATA2:Process_AddSpectralEditIntoTable({FL=freq,G=db_gain }) end-- low shelf / hi pass
+        if b_type == 1 or b_type == 3 then DATA2:Process_AddSpectralEditIntoTable({G=db_gain,FH=freq}) end -- high shelf / low pass
+        if b_type == 8 or b_type == 6 then -- band / notch
+          if db_gain < -60 then N = 0.5 end
+          local Q = math.sqrt(2^N) / (2^N - 1 ) 
+          local BW = freq/Q
+          DATA2:Process_AddSpectralEditIntoTable({FL = freq - BW/2 , FH = freq + BW/2, G =db_gain, FIV = N/4, FOV = N/4 })
+        end 
+        if b_type == 7 or b_type == 10 then -- band pass / parallel band pass
+          if db_gain < -60 then N = 0.5 end
+          local Q = math.sqrt(2^N) / (2^N - 1 ) 
+          local BW = freq/Q
+          DATA2:Process_AddSpectralEditIntoTable({FH = freq - BW/2, G =db_gain, FIV = 0, FOV = N/4 })
+          DATA2:Process_AddSpectralEditIntoTable({FL = freq + BW/2, G =db_gain, FIV = N/4, FOV = 0 })
+        end         
+      end
+    end
+    
+  end
+  -------------------------------------------------------
+  function DATA2:Process_AddSpectralEditIntoTable(t)
+    if not t then t = {} end
+    local pencilmode =   APIExists( 'JS_Window_GetClientRect'  ) and APIExists( 'JS_Window_FindChildByID'  ) and  DATA.extstate.CONF_ASF_pencilmode == 1 and (DATA.extstate.CONF_action == 2 or DATA.extstate.CONF_action == 3) -- only for add se / add pattern
+    local x,y, cur_pos 
+    if pencilmode then
+      x,y = reaper.GetMousePosition()
+      cur_pos = reaper.GetSet_ArrangeView2(0, false, x, x+1)  
+    end
+    
     for i = 1, #DATA.custom.items do 
       local it_table = DATA.custom.items[i]
-      
-      --pos / len
-        local item_pos = it_table.item_pos 
-        local item_len = it_table.item_len 
-        local loopS = DATA.custom.loopS
-        local loopE = DATA.custom.loopE
-        local pos, len = 0, item_len
-        if loopE - loopS > 0.001 then 
-          if loopS >= item_pos and loopS <= item_pos + item_len then pos = loopS- item_pos end
-          if loopE >= item_pos and loopE <= item_pos + item_len then 
-            len = loopE - loopS 
-           else
-            len = item_pos + item_len - loopS
-          end
-        end 
-        if len < 0 then len = item_len end
-        
-      -- gain
-        local gain_dB = DATA.extstate.CONF_ASF_Gaindb
-      
-        
       local active_tk = it_table.active_take
       if not it_table.takes[active_tk] then return end
       if not it_table.takes[active_tk].SE then it_table.takes[active_tk].SE = {} end 
       
-      -- frequency R
-        local SR = it_table.takes[active_tk].SR
-        local F_base = DATA.extstate.CONF_ASF_Fbase
-        
+      -- pos / len 
+        -- handle time selection
+          local item_pos = it_table.item_pos 
+          local item_len = it_table.item_len 
+          local loopS = DATA.custom.loopS
+          local loopE = DATA.custom.loopE
+          local pos, len = 0, item_len
+          if loopE - loopS > 0.001 and 
+            ( -- do time selection cross item
+              (item_pos > loopS and item_pos < loopE)
+              or (item_pos+item_len > loopS and item_pos+item_len < loopE)
+              or (item_pos< loopS and item_pos+item_len > loopE)
+            )
+            then 
+            if loopS >= item_pos and loopS <= item_pos + item_len then pos = loopS- item_pos end
+            if loopE >= item_pos and loopE <= item_pos + item_len then  len = loopE - loopS  else len = item_pos + item_len - loopS end
+          end 
+          if len < 0 then len = item_len end
+        -- handle pencil mode
+          if pencilmode then
+            local offset = it_table.takes[active_tk].s_offs
+            local playrate = it_table.takes[active_tk].rate
+            pos = (cur_pos - item_pos + offset)*playrate
+            len = DATA.extstate.CONF_ASF_pencil_len  
+          end
       
-      -- handle pencil mode
-      local hasJSAPI =   APIExists( 'JS_Window_GetClientRect'  ) and APIExists( 'JS_Window_FindChildByID'  ) 
-      if DATA.extstate.CONF_ASF_pencilmode == 1 and hasJSAPI then
-        --pos / len
-          local x,y = reaper.GetMousePosition()
-          local cur_pos = reaper.GetSet_ArrangeView2(0, false, x, x+1) 
-          local offset = it_table.takes[active_tk].s_offs
-          local playrate = it_table.takes[active_tk].rate
-          local numCH = it_table.takes[active_tk].numCH
-          local tky = it_table.takes[active_tk].I_LASTY
-          local tkh = it_table.takes[active_tk].I_LASTH
-          pos = (cur_pos - item_pos + offset)*playrate
-          len = DATA.extstate.CONF_ASF_pencil_len 
-        -- frequency
-          
-          local ypos = 1/numCH - ((y-tky) / tkh) % (1/numCH)
-          F_base = SR*ypos
-      end
+      -- gain
+        local gain_dB = DATA.extstate.CONF_ASF_Gaindb
       
       -- frequency
-      local F_Area = DATA.extstate.CONF_ASF_Farea 
+        local SR = it_table.takes[active_tk].SR
+        local F_base = DATA.extstate.CONF_ASF_Fbase
+        -- handle pencil mode
+          if pencilmode then
+            local numCH = it_table.takes[active_tk].numCH
+            local tky = it_table.takes[active_tk].I_LASTY
+            local tkh = it_table.takes[active_tk].I_LASTH
+            local ypos = 1/numCH - ((y-tky) / tkh) % (1/numCH)
+            F_base = SR*ypos
+          end
+      
+      local F_base = t.F or F_base
+      local F_Area = t.A or DATA.extstate.CONF_ASF_Farea  
+      local gain_dB = t.G or gain_dB
       local freq_L = math.max(0, F_base-F_Area)
       local freq_H = math.min(SR, F_base+F_Area)
+      if t.FL or t.FH then 
+        if t.FL then freq_L = t.FL else freq_L = 0 end
+        if t.FH then freq_H = t.FH else freq_H = SR/2 end
+      end
+      local fadein_vert = t.FIV or 0
+      local fadeout_vert = t.FOV or 0
       
       it_table.takes[active_tk].SE [ #it_table.takes[active_tk].SE + 1] = 
         {pos = pos,
          len = len,
          gain = 10^(gain_dB/20),
          fadeinout_horiz = 0,
-         fadeinout_vert = 0,
+         fadeinout_vert = fadein_vert,
          freq_low = freq_L,
          freq_high = freq_H,
          chan = -1, -- -1 all 0 L 1 R
@@ -355,7 +396,7 @@
          unknown1 = 1,
          unknown2 = 1,
          fadeinout_horiz2 = 0, 
-         fadeinout_vert2 = 0}
+         fadeinout_vert2 = fadeout_vert}
     end
   end
   ---------------------------------------------------------------------  
@@ -440,6 +481,25 @@
         
       end
     end
+  end  
+  ---------------------------------------------------------------------  
+  function DATA2:Process_EditParams(mode)
+    for it_id = 1, #DATA.custom.items do
+      if DATA.custom.items[it_id] and DATA.custom.items[it_id].takes then
+        
+        for tk_id = 1, #DATA.custom.items[it_id].takes do
+          if DATA.custom.items[it_id].takes[tk_id].SE then 
+            for se_id = 1, #DATA.custom.items[it_id].takes[tk_id].SE do 
+              if mode == 30 then DATA.custom.items[it_id].takes[tk_id].SE[se_id].gain = DATA.custom.items[it_id].takes[tk_id].SE[se_id].gain * DATA.extstate.CONF_gain_scaling end
+              if mode == 31 then DATA.custom.items[it_id].takes[tk_id].SE[se_id].gain = WDL_DB2VAL(DATA.extstate.CONF_Params_GAIN) end
+              if mode == 32 then DATA.custom.items[it_id].takes[tk_id].SE[se_id].gate_threshold = WDL_DB2VAL(DATA.extstate.CONF_Params_GTO) end
+              
+            end
+          end
+        end
+        
+      end
+    end
   end
   ---------------------------------------------------------------------  
   function DATA2:Process(mode) 
@@ -450,13 +510,10 @@
           =4 paste to all takes
           =5 clean, 
           =6 clean to all takes
-        for bypass
-          =2 toggle
-          =3 enable
-          =4 disaable
+          =20 toggle =21 enable =22 disaable
     ]]
     
-    DATA2:Process_refresh(mode)
+    DATA2:Process_refresh(mode) -- =1 triggered externally, 
     if not DATA.custom.valid then return end
     local process = false
     
@@ -464,10 +521,12 @@
     if DATA.extstate.CONF_action == 3 then DATA2:Process_AddUserDefPattern(mode) process = true  end 
     if DATA.extstate.CONF_action == 4 then 
       if mode ==2 then DATA2:Process_CopyPaste_Copy() end 
-      if mode ==3 or mode ==4  then DATA2:Process_CopyPaste_Paste(mode) process = true end 
-      if mode ==5 or mode ==6 then DATA2:Process_CopyPaste_Clear(mode) process = true end 
+      if mode ==3 or mode ==4  then DATA2:Process_CopyPaste_Paste(mode) process = true end --3 paste, =4 paste to all takes
+      if mode ==5 or mode ==6 then DATA2:Process_CopyPaste_Clear(mode) process = true end  -- =5 clean, =6 clean to all takes
+      if mode ==20 or mode ==21 or mode ==22 then DATA2:Process_Bypass(mode) process = true end --=20 toggle =21 enable =22 disaable
+      if mode >30 then DATA2:Process_EditParams(mode) process = true end -- 30 scale gain 31 set gain
     end
-    if DATA.extstate.CONF_action == 5 then DATA2:Process_Bypass(mode) process = true end 
+    if DATA.extstate.CONF_action == 5 then if mode ==2 then DATA2:Process_Actions_PortReaEQ() process = true end end 
     
     
     if process == true then
@@ -526,9 +585,6 @@
           hide=DATA.extstate.CONF_action~=2 or (DATA.extstate.CONF_action==2 and DATA.extstate.CONF_ASF_pencilmode ~=1)
           },          
           
-          
-          
-        
           -----------------------------------------        
         {str = 'Pattern' ,                          group = 1, itype = 'readout', confkey = 'CONF_AUDP_pattern',readoutw_extw=readoutw_extw,func_onrelease = function()DATA.UPD.onconfchange=true  end,
           val_isstring = true,
@@ -537,199 +593,27 @@
           hide=DATA.extstate.CONF_action~=3
           },
           -----------------------------------------
-        {str = 'Copy selected item active take SE' ,                            group = 1, itype = 'button', 
-          func = function() DATA2:Process(2) end,
-          hide=DATA.extstate.CONF_action~=4
-          },      
-        {str = 'Paste SE to selected items active take' ,                        group = 1, itype = 'button', 
-          func = function() DATA2:Process(3) end,
-          hide=DATA.extstate.CONF_action~=4
-          },   
-        {str = 'Paste SE to selected items all takes' ,                        group = 1, itype = 'button', 
-          func = function() DATA2:Process(4) end,
-          hide=DATA.extstate.CONF_action~=4
-          },            
-        {str = '' ,                                                             group = 1, itype = 'sep', 
-          hide=DATA.extstate.CONF_action~=4,
-          },           
-        {str = 'Clear SE from selected items active take' ,                        group = 1, itype = 'button', 
-          func = function() DATA2:Process(5) end,
-          hide=DATA.extstate.CONF_action~=4
-          },  
-        {str = 'Clear SE from selected items all takes' ,                        group = 1, itype = 'button', 
-          func = function() DATA2:Process(6) end,
-          hide=DATA.extstate.CONF_action~=4
-          },     
+        {str = 'Copy selected item active take SE' ,                            group = 1, itype = 'button',  func = function() DATA2:Process(2) end, hide=DATA.extstate.CONF_action~=4 },      
+        {str = 'Paste SE to selected items active take' ,                       group = 1, itype = 'button',  func = function() DATA2:Process(3) end, hide=DATA.extstate.CONF_action~=4 },   
+        {str = 'Paste SE to selected items all takes' ,                         group = 1, itype = 'button',  func = function() DATA2:Process(4) end, hide=DATA.extstate.CONF_action~=4 },            
+        {str = '' ,                                                             group = 1, itype = 'sep',  hide=DATA.extstate.CONF_action~=4, },           
+        {str = 'Clear SE from selected items active take' ,                     group = 1, itype = 'button',  func = function() DATA2:Process(5) end, hide=DATA.extstate.CONF_action~=4 },  
+        {str = 'Clear SE from selected items all takes' ,                       group = 1, itype = 'button',  func = function() DATA2:Process(6) end, hide=DATA.extstate.CONF_action~=4 },     
+        {str = '' ,                                                             group = 1, itype = 'sep',  hide=DATA.extstate.CONF_action~=4, },            
+        {str = 'Toggle bypass for selected items all takes SE' ,                group = 1, itype = 'button',  func = function() DATA2:Process(20) end, hide=DATA.extstate.CONF_action~=4 },   
+        {str = 'Enable bypass for selected items all takes SE' ,                group = 1, itype = 'button',  func = function() DATA2:Process(21) end, hide=DATA.extstate.CONF_action~=4 },    
+        {str = 'Disable bypass for selected items all takes SE' ,               group = 1, itype = 'button',  func = function() DATA2:Process(22) end, hide=DATA.extstate.CONF_action~=4 }, 
+        {str = '' ,                                                             group = 1, itype = 'sep',  hide=DATA.extstate.CONF_action~=4, },            
+        {str = 'Scale (tweak only)' ,                                                group = 1, itype = 'readout', confkey = 'CONF_gain_scaling',  val_min = 0.01,  val_max = 4, 
+          val_format = function(x) return (math.floor(x*1000)/1000)..'x' end,  val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end,  val_res = 0.05,  func_onrelease = function() DATA2:Process(30) DATA.extstate.CONF_gain_scaling = 1 DATA.UPD.onconfchange = true DATA.UPD.onGUIinit = true end,  func_onmouseclick = function() DATA2:Process_refresh() end, hide=DATA.extstate.CONF_action~=4},
+        {str = 'Gain' ,                                                group = 1, itype = 'readout', confkey = 'CONF_Params_GAIN',  val_min = -80,  val_max = 12, 
+          val_format = function(x) return (math.floor(x*1000)/1000)..'dB' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end,  val_res = 0.05,  func_onrelease = function() DATA2:Process(31)end, func_onmouseclick = function() DATA2:Process_refresh() end, hide=DATA.extstate.CONF_action~=4},          
+        {str = 'Gate threshold' ,                                                group = 1, itype = 'readout', confkey = 'CONF_Params_GTO',  val_min = -200,  val_max = 0, 
+          val_format = function(x) return (math.floor(x*1000)/1000)..'dB' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end,  val_res = 0.05,  func_onrelease = function() DATA2:Process(32)end, func_onmouseclick = function() DATA2:Process_refresh() end, hide=DATA.extstate.CONF_action~=4},          
+          
           -----------------------------------------          
-        {str = 'Toggle bypass for selected items all takes SE' ,                            group = 1, itype = 'button', 
-          func = function() DATA2:Process(2) end,
-          hide=DATA.extstate.CONF_action~=5
-          },   
-        {str = 'Enable bypass for selected items all takes SE' ,                            group = 1, itype = 'button', 
-          func = function() DATA2:Process(3) end,
-          hide=DATA.extstate.CONF_action~=5
-          },    
-        {str = 'Disable bypass for selected items all takes SE' ,                            group = 1, itype = 'button', 
-          func = function() DATA2:Process(4) end,
-          hide=DATA.extstate.CONF_action~=5
-          },           
-      --[[{str = 'Global' ,                       group = 1, itype = 'sep'}, 
-        {str = 'Bypass',                      group = 1, itype = 'check', confkey = 'CONF_bypass', level = 1, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
-        {str = 'Mode' ,                       group = 1, itype = 'readout', level = 1,  confkey = 'CONF_mode', menu = { 
-          [0]='Peak follower', 
-          [1]='Gate', 
-          [2] = 'Compressor (by ashcat_lt & SaulT)',
-          [4] = 'Peak fol. difference',
-          --[3] = 'Deesser (by Liteon)', 
-          },readoutw_extw=readoutw_extw, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
-        {str = 'Boundaries' ,                 group = 1, itype = 'readout', level = 1,  confkey = 'CONF_boundary', menu = { [0]='Item edges', [1]='Time selection'},readoutw_extw=readoutw_extw, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
-      {str = 'Audio data reader' ,            group = 3, itype = 'sep'},
-        {str = 'Clear take volume envelope before' ,             group = 3, itype = 'check', confkey = 'CONF_removetkenvvol', level = 1}, 
-        {str = 'FFT size' ,                   group = 3, itype = 'readout', level = 1,  confkey = 'CONF_FFTsz', func_onrelease = function() DATA2:ProcessAtChange(DATA) end, menu = { 
-          [-1]='[disabled]', 
-          [1024]='1024', 
-          [2048] ='2048'},
-          hide=DATA.extstate.CONF_mode==2
-        },
-        {str = 'FFT min freq' ,                 group = 3, itype = 'readout', confkey = 'CONF_FFT_min', level = 1, 
-          val_res = 0.05, 
-          val_format = function(x) return math.floor(x*SR_spls/2)..'Hz' end, 
-          val_format_rev = function(x) return VF_lim(x/(SR_spls/2),0,SR_spls) end, 
-          func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
-          hide=DATA.extstate.CONF_action~=2
-          }, 
-        {str = 'FFT max freq' ,                 group = 3, itype = 'readout', confkey = 'CONF_FFT_max', level = 1, 
-          val_res = 0.05, 
-          val_format = function(x) return math.floor(x*SR_spls/2)..'Hz' end, 
-          val_format_rev = function(x) return VF_lim(x/(SR_spls/2),0,SR_spls) end, 
-          func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
-          hide=DATA.extstate.CONF_FFTsz==-1 or  DATA.extstate.CONF_mode==2
-          },        
-        {str = 'RMS Window' ,                 group = 3, itype = 'readout', confkey = 'CONF_window', level = 1, 
-          val_min = 0.001, 
-          val_max = 0.4, 
-          val_res = 0.05, 
-          val_format = function(x) return (math.floor(x*1000)/1000)..'s' end, 
-          val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, 
-          func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
-          hide=DATA.extstate.CONF_mode==2,--  or DATA.extstate.CONF_FFTsz~=-1
-          },
-       {str = 'Window overlap' ,                 group = 3, itype = 'readout', confkey = 'CONF_windowoverlap', level = 1, val_isinteger = true,
-         val_min = 1, 
-         val_max = 16, 
-         val_res = 0.05, 
-         val_format = function(x) return x..'x' end, 
-         val_format_rev = function(x) return VF_lim(math.floor(tonumber(x) or 1), 1,16) end, 
-         func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
-         hide=DATA.extstate.CONF_mode==2,--  or DATA.extstate.CONF_FFTsz~=-1
-         },         
+        {str = 'Port focused ReaEQ bands to SE on selected items' ,                group = 1, itype = 'button',  func = function() DATA2:Process(2) end, hide=DATA.extstate.CONF_action~=5 },           
           
-        {str = 'Normalize envelope' ,          group = 3, itype = 'check', confkey = 'CONF_normalize', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide=DATA.extstate.CONF_mode==2,}, 
-        {str = 'Scale envelope x^[0.5...4]' ,              group = 3, itype = 'readout', val_min = 0.5, val_max = 4, val_res = 0.05, confkey = 'CONF_scale', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide=DATA.extstate.CONF_mode==2,
-          val_format = function(x) return math.floor(x*1000)/1000 end, 
-          val_format_rev = function(x) return tonumber(x) end, }, 
-        {str = 'Offset' ,              group = 3, itype = 'readout', val_min = -1, val_max = 1, val_res = 0.05, confkey = 'CONF_offset', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide=DATA.extstate.CONF_mode==2,
-          val_format = function(x) return math.floor(x*1000)/1000 end, 
-          val_format_rev = function(x) return tonumber(x) end, },    
-        {str = 'Smooth' ,              group = 3, itype = 'readout', val_min = 1, val_max = 15, val_res = 0.05, confkey = 'CONF_smoothblock', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide=DATA.extstate.CONF_mode==2, val_isinteger = true,
-          val_format = function(x) return (math.floor(1000*x*DATA.extstate.CONF_window/DATA.extstate.CONF_windowoverlap)/1000)..'s' end, 
-          val_format_rev = function(x) return math.floor(tonumber(x/(DATA.extstate.CONF_window/DATA.extstate.CONF_windowoverlap))) end, },             
-  
-                    
-          
-      {str = 'Mode parameters' ,     group = 2, itype = 'sep'},
-      
-        -- gate 
-        {str = 'Threshold' ,             group = 2, itype = 'readout', confkey = 'CONF_gate_threshold', level = 1, 
-          val_res = 0.05, 
-          val_format = function(x) return (math.floor(SLIDER2DB((x*1000))*10)/10)..'dB' end, 
-          val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
-          func_onrelease = function() DATA2:ProcessAtChange(DATA) end, 
-          hide=DATA.extstate.CONF_mode~=1},
-          
-        -- compressor
-        {str = 'Threshold' ,             group = 2, itype = 'readout', confkey = 'CONF_comp_threshold', level = 1, 
-          val_res = 0.05, 
-          val_format = function(x) return (math.floor(SLIDER2DB((x*1000))*10)/10)..'dB' end, 
-          val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
-          func_onrelease = function() DATA2:ProcessAtChange(DATA) end, 
-          hide=DATA.extstate.CONF_mode~=2},   
-        {str = 'Lookahead / delay' ,             group = 2, itype = 'readout', confkey = 'CONF_comp_lookahead', level = 1, 
-          val_res = 0.05, 
-          val_min = -0.05,
-          val_max = 0.05,
-          val_format = function(x) return (math.floor(x*10000)/10)..'ms' end, 
-          val_format_rev = function(x) return VF_lim((tonumber(x) or 0)/1000, -0.05,0.05) end, 
-          func_onrelease = function() DATA2:ProcessAtChange(DATA) end, 
-          hide=DATA.extstate.CONF_mode~=2},           
-        {str = 'Attack' ,             group = 2, itype = 'readout', confkey = 'CONF_comp_attack', level = 1, 
-          val_res = 0.05, 
-          val_min = 0,
-          val_max = 0.5,
-          val_format = function(x) return (math.floor(x*10000)/10)..'ms' end, 
-          val_format_rev = function(x) return VF_lim((tonumber(x) or 0), 0,500)/1000 end, 
-          func_onrelease = function() DATA2:ProcessAtChange(DATA) end, 
-          hide=DATA.extstate.CONF_mode~=2},             
-        {str = 'Release' ,             group = 2, itype = 'readout', confkey = 'CONF_comp_release', level = 1, 
-          val_res = 0.05, 
-          val_min = 0,
-          val_max = 5,
-          val_format = function(x) return (math.floor(x*10000)/10)..'ms' end, 
-          val_format_rev = function(x) return VF_lim((tonumber(x) or 0), 0,500)/1000 end, 
-          func_onrelease = function() DATA2:ProcessAtChange(DATA) end, 
-          hide=DATA.extstate.CONF_mode~=2},             
-        {str = 'Ratio' ,             group = 2, itype = 'readout', confkey = 'CONF_comp_Ratio', level = 1, 
-          val_res = 0.05, 
-          val_min = 1,
-          val_max = 41,
-          val_format = function(x) if x == 41 then return '-inf' else return (math.floor(x*10)/10)..' : 1' end end ,
-          val_format_rev = function(x) 
-            local y= x:match('[%d%.]+')
-            if not y then return 2 end
-            y = tonumber(y)
-            if y then return VF_lim(y, 1,21) end 
-          end, 
-          func_onrelease = function() DATA2:ProcessAtChange(DATA) end, 
-          hide=DATA.extstate.CONF_mode~=2},            
-        {str = 'Knee' ,             group = 2, itype = 'readout', confkey = 'CONF_comp_knee', level = 1, 
-          val_res = 0.05, 
-          val_min = 0,
-          val_max = 20,
-          val_format = function(x) return (math.floor(x*10)/10)..'dB' end, 
-          val_format_rev = function(x) return VF_lim(      math.floor((tonumber(x) or 0)*10)/10      , 0,20) end, 
-          func_onrelease = function() DATA2:ProcessAtChange(DATA) end, 
-          hide=DATA.extstate.CONF_mode~=2},        
-        {str = 'RMS Window' ,                 group = 3, itype = 'readout', confkey = 'CONF_window', level = 1, 
-          val_min = 0.002, 
-          val_max = 0.4, 
-          val_res = 0.05, 
-          val_format = function(x) return (math.floor(x*1000))..'ms' end, 
-          val_format_rev = function(x) return tonumber(x:match('[%d%.]+')/1000) end,
-          func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
-          hide=DATA.extstate.CONF_mode~=2
-          },          
-          
-          
-      {str = 'Destination' ,                    group = 4, itype = 'sep'},
-        {str = 'Track volume env AI' ,          group = 4, itype = 'check', confkey = 'CONF_dest', level = 1, isset = 0, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
-        {str = 'Take volume env' ,              group = 4, itype = 'check', confkey = 'CONF_dest', level = 1, isset = 1, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
-      {str = 'Output' ,                         group = 6, itype = 'sep'},
-        {str = 'Reduce points with same values',group = 6, itype = 'check', confkey = 'CONF_reducesamevalues', level = 1, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
-        {str = 'Invert points',                 group = 6, itype = 'check', confkey = 'CONF_out_invert', level = 1, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
-        {str = 'Scale x*[0...1]' ,              group = 3, itype = 'readout', val_min = 0, val_max = 1, val_res = 0.05, confkey = 'CONF_out_scale', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
-            val_format = function(x) return math.floor(x*1000)/1000 end, 
-            val_format_rev = function(x) return tonumber(x) end, },    
-        {str = 'Offset' ,              group = 3, itype = 'readout', val_min = -1, val_max = 1, val_res = 0.05, confkey = 'CONF_out_offs', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end,
-          val_format = function(x) return math.floor(x*1000)/1000 end, 
-          val_format_rev = function(x) return tonumber(x) end, },          
-
-        {str = 'Reset boundary edges',          group = 6, itype = 'check', confkey = 'CONF_zeroboundary', level = 1, func_onrelease = function()DATA2:ProcessAtChange(DATA)  end},
-      {str = 'UI options' ,                     group = 5, itype = 'sep'},  
-        {str = 'Enable shortcuts' ,             group = 5, itype = 'check', confkey = 'UI_enableshortcuts', level = 1},
-        {str = 'Init UI at mouse' ,             group = 5, itype = 'check', confkey = 'UI_initatmouse', level = 1},
-        --{str = 'Show tootips' ,               group = 5, itype = 'check', confkey = 'UI_showtooltips', level = 1},
-        {str = 'Process on settings change',    group = 5, itype = 'check', confkey = 'UI_appatchange', level = 1},
-        {str = 'Process on initialization',     group = 5, itype = 'check', confkey = 'UI_processoninit', level = 1},]]
     } 
     return t
     
@@ -912,4 +796,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.13) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then reaper.gmem_attach('MPL_SPEDIT_TOOLS' ) gmem_write(1,0 ) main() end end
+  local ret = VF_CheckFunctions(3.14) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then reaper.gmem_attach('MPL_SPEDIT_TOOLS' ) gmem_write(1,0 ) main() end end
