@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e5d18b5360aaf1283df9afef94060cce7a0c054b" name="MPL Scripts">
+<index version="1" commit="e241de297d2d1e2b4186a8cdc330186d4456e750" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -9539,6 +9539,12 @@ add control for timefall showing last note]]></changelog>
       <version name="3.04" author="MPL" time="2022-06-02T23:49:03Z">
         <changelog><![CDATA[# fix ref_pat error]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6647ffad9ddb2419d5b954b1025554df3d7dc35f/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
+      <version name="3.05" author="MPL" time="2022-06-08T15:59:11Z">
+        <changelog><![CDATA[+ Enter percent value on knobs by right click
++ Global: allow to separate APP button and knobs
+# Move knob2 for value align to Action settings]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e241de297d2d1e2b4186a8cdc330186d4456e750/Various/mpl_Quantize%20Tool.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
