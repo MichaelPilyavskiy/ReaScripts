@@ -1,25 +1,27 @@
 -- @description QuantizeTool
--- @version 3.04
+-- @version 3.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    # fix ref_pat error
+--    + Enter percent value on knobs by right click
+--    + Global: allow to separate APP button and knobs
+--    # Move knob2 for value align to Action settings
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.04
+    DATA.extstate.version = 3.05
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
                           {  
                           wind_x =  100,
                           wind_y =  100,
-                          wind_w =  800,
-                          wind_h =  150,
+                          wind_w =  470,
+                          wind_h =  65,
                           dock =    0, 
                           
                           UI_groupflags = 0,
@@ -36,6 +38,7 @@
                           CONF_act_catchsrctimesel = 0 , 
                           CONF_act_initapp = 0,
                           --CONF_act_initact = 0  ,
+                          CONF_act_appbuttoexecute = 0,
                           
                           FPRESET1='CkNPTkZfTkFNRT1BbGlnbiBpdGVtcyB0byBlZGl0IGN1cnNvcgpDT05GX2FjdF9hY3Rpb249MQpDT05GX2FjdF9hbGlnbmRpcj0xCkNPTkZfYWN0X2NhdGNocmVmdGltZXNlbD0wCkNPTkZfYWN0X2NhdGNoc3JjdGltZXNlbD0wCkNPTkZfYWN0X2luaXRhcHA9MApDT05GX2FjdF9pbml0Y2F0Y2hyZWY9MQpDT05GX2FjdF9pbml0Y2F0Y2hzcmM9MQpDT05GX2NvbnZlcnRub3Rlb252ZWwwdG9ub3Rlb2ZmPTAKQ09ORl9lbnZzdGVwcz0wCkNPTkZfZXhjbHdpdGhpbj0wCkNPTkZfaW5jbHdpdGhpbj0wCkNPTkZfaW5pdGF0bW91c2Vwb3M9MApDT05GX2l0ZXJhdGlvbmxpbT0zMDAwMApDT05GX29mZnNldD0wLjUKQ09ORl9yZWZfZWRpdGN1cj0xCkNPTkZfcmVmX2VudnBvaW50cz0wCkNPTkZfcmVmX2VudnBvaW50c2ZsYWdzPTEKQ09ORl9yZWZfZ3JpZD0wCkNPTkZfcmVmX2dyaWRfc3c9MApDT05GX3JlZl9ncmlkX3ZhbD0wLjUKQ09ORl9yZWZfbWFya2VyPTAKQ09ORl9yZWZfbWlkaT0wCkNPTkZfcmVmX21pZGlfbXNnZmxhZz0xCkNPTkZfcmVmX21pZGlmbGFncz0xCkNPTkZfcmVmX3BhdHRlcm49MApDT05GX3JlZl9wYXR0ZXJuX2dlbnNyYz0xCkNPTkZfcmVmX3BhdHRlcm5fbGVuMj04CkNPTkZfcmVmX3BhdHRlcm5fbmFtZT1sYXN0X3RvdWNoZWQKQ09ORl9yZWZfc2VsaXRlbXM9MApDT05GX3JlZl9zZWxpdGVtc192YWx1ZT0wCkNPTkZfcmVmX3N0cm1hcmtlcnM9MApDT05GX3JlZl90aW1lbWFya2VyPTAKQ09ORl9zcmNfZW52cG9pbnRzPTAKQ09ORl9zcmNfZW52cG9pbnRzZmxhZz0xCkNPTkZfc3JjX2VudnBvaW50c2ZsYWdzPTEKQ09ORl9zcmNfbWlkaT0wCkNPTkZfc3JjX21pZGlfbXNnZmxhZz01CkNPTkZfc3JjX21pZGlmbGFncz0xCkNPTkZfc3JjX3Bvc2l0aW9ucz0xCkNPTkZfc3JjX3NlbGl0ZW1zPTEKQ09ORl9zcmNfc2VsaXRlbXNmbGFnPTEKQ09ORl9zcmNfc3RybWFya2Vycz0w',
                           FPRESET2='CkNPTkZfTkFNRT1BbGlnbiBpdGVtcyB0byBwcm9qZWN0IGdyaWQKQ09ORl9hY3RfYWN0aW9uPTEKQ09ORl9hY3RfYWxpZ25kaXI9MQpDT05GX2FjdF9jYXRjaHJlZnRpbWVzZWw9MApDT05GX2FjdF9jYXRjaHNyY3RpbWVzZWw9MApDT05GX2FjdF9pbml0YXBwPTAKQ09ORl9hY3RfaW5pdGNhdGNocmVmPTEKQ09ORl9hY3RfaW5pdGNhdGNoc3JjPTEKQ09ORl9jb252ZXJ0bm90ZW9udmVsMHRvbm90ZW9mZj0wCkNPTkZfZW52c3RlcHM9MApDT05GX2V4Y2x3aXRoaW49MApDT05GX2luY2x3aXRoaW49MApDT05GX2luaXRhdG1vdXNlcG9zPTAKQ09ORl9pdGVyYXRpb25saW09MzAwMDAKQ09ORl9vZmZzZXQ9MC41CkNPTkZfcmVmX2VkaXRjdXI9MApDT05GX3JlZl9lbnZwb2ludHM9MApDT05GX3JlZl9lbnZwb2ludHNmbGFncz0xCkNPTkZfcmVmX2dyaWQ9MgpDT05GX3JlZl9ncmlkX3N3PTAKQ09ORl9yZWZfZ3JpZF92YWw9MC41CkNPTkZfcmVmX21hcmtlcj0wCkNPTkZfcmVmX21pZGk9MApDT05GX3JlZl9taWRpX21zZ2ZsYWc9MQpDT05GX3JlZl9taWRpZmxhZ3M9MQpDT05GX3JlZl9wYXR0ZXJuPTAKQ09ORl9yZWZfcGF0dGVybl9nZW5zcmM9MQpDT05GX3JlZl9wYXR0ZXJuX2xlbjI9OApDT05GX3JlZl9wYXR0ZXJuX25hbWU9bGFzdF90b3VjaGVkCkNPTkZfcmVmX3NlbGl0ZW1zPTAKQ09ORl9yZWZfc2VsaXRlbXNfdmFsdWU9MApDT05GX3JlZl9zdHJtYXJrZXJzPTAKQ09ORl9yZWZfdGltZW1hcmtlcj0wCkNPTkZfc3JjX2VudnBvaW50cz0wCkNPTkZfc3JjX2VudnBvaW50c2ZsYWc9MQpDT05GX3NyY19lbnZwb2ludHNmbGFncz0xCkNPTkZfc3JjX21pZGk9MApDT05GX3NyY19taWRpX21zZ2ZsYWc9NQpDT05GX3NyY19taWRpZmxhZ3M9MQpDT05GX3NyY19wb3NpdGlvbnM9MQpDT05GX3NyY19zZWxpdGVtcz0xCkNPTkZfc3JjX3NlbGl0ZW1zZmxhZz0xCkNPTkZfc3JjX3N0cm1hcmtlcnM9MA==',
@@ -85,7 +88,7 @@
                           --  align
                           CONF_act_action = 1 ,  -- 2 create -- 3 ordered alignment -- 4 raw quantize
                           CONF_act_aligndir = 1, -- 0 - always previous 1 - closest 2 - always next
-                          
+                          CONF_act_valuealign = 0, -- knob2 in the past
                               
                           -- execute -----------------------
                           --exe_val1 = 0, -- align=strength, raw=value 
@@ -1208,6 +1211,7 @@
   end  
   --------------------------------------------------------------------- 
   function DATA2:Execute()  
+    DATA2.val2 = DATA.extstate.CONF_act_valuealign -- get from config, knob 2 in the past
     if not DATA2.src or not DATA2.ref then return end
     if DATA.extstate.CONF_src_selitems&1==1 then    
       DATA2:Execute_Align_Items(1)  
@@ -1484,25 +1488,33 @@
                             hide = DATA.GUI.compactmode==1,
                             ignoremouse = DATA.GUI.compactmode==1,
                             }  
+      local frame_a, ignoremouse = 0, true
+      if DATA.extstate.CONF_act_appbuttoexecute ==1 then frame_a,ignoremouse = nil, false end
       DATA.GUI.buttons.calcapp = { x=DATA.GUI.custom_offset,
                             y=DATA.GUI.custom_offset*5 + DATA.GUI.custom_mainbuth*2+DATA.GUI.custom_datah*2,
                             w=DATA.GUI.custom_mainbutw,
                             h=DATA.GUI.custom_mainbuth,
-                            txt = 'Apply output (position / value):',
+                            txt = 'Apply output',
                             txt_short = 'APP',
                             txt_fontsz = DATA.GUI.default_txt_fontsz2,
-                            ignoremouse = true,
+                            ignoremouse = ignoremouse,
                             hide = DATA.GUI.compactmode==1,
-                            frame_a = 0,
-                            frame_asel = 0,
+                            frame_a = frame_a,
+                            frame_asel = frame_a,
+                            onmouserelease = function() 
+                                      if DATA.extstate.CONF_act_appbuttoexecute ==0 then return end
+                                      DATA2:Execute() 
+                                      Undo_OnStateChange2( 0, 'QuantizeTool' )  
+                                    end
                             }      
-      local knobw = (DATA.GUI.custom_mainbutw-DATA.GUI.custom_offset)/2                      
+      local knobw = (DATA.GUI.custom_mainbutw-DATA.GUI.custom_offset)--/2  
+      if not DATA2.val1 then DATA2.val1 = 0 end
       DATA.GUI.buttons.knob = { x=DATA.GUI.custom_offset*2 + DATA.GUI.custom_mainbutw ,
                             y=DATA.GUI.custom_offset*5 + DATA.GUI.custom_mainbuth*2+DATA.GUI.custom_datah*2,
                             w=knobw,
                             h=DATA.GUI.custom_mainbuth,
                             txt = '',
-                            txt_fontsz = DATA.GUI.custom_texthdef,
+                            --txt_fontsz = DATA.GUI.default_txt_fontsz,
                             knob_isknob = true,
                             val_res = 0.25,
                             val = 0,
@@ -1512,28 +1524,22 @@
                             hide = DATA.GUI.compactmode==1,
                             ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =    function() DATA2:Quantize() end,
-                            onmousedrag =     function() DATA2.val1 = DATA.GUI.buttons.knob.val DATA2:Execute() end,
-                            onmouserelease  = function() DATA2.val1 = DATA.GUI.buttons.knob.val DATA2:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' )  end 
+                            onmousedrag =     function() DATA2.val1 = DATA.GUI.buttons.knob.val if DATA.extstate.CONF_act_appbuttoexecute ==0 then DATA2:Execute() end end,
+                            onmouserelease  = function() DATA2.val1 = DATA.GUI.buttons.knob.val if DATA.extstate.CONF_act_appbuttoexecute ==0 then DATA2:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' )  end end,
+                            onmousereleaseR  = function() 
+                              if not DATA2.val1 then DATA2.val1 = 0 end
+                              local retval, retvals_csv = GetUserInputs('Align percent', 1, '', DATA2.val1..'%')
+                              if not retval then return end
+                              retvals_csv = tonumber(retvals_csv)
+                              if not retvals_csv then return end
+                              
+                              DATA2.val1 = VF_lim(retvals_csv/100) 
+                              DATA.GUI.buttons.knob.val = DATA2.val1
+                              if DATA.extstate.CONF_act_appbuttoexecute ==1 then return end
+                              DATA2:Execute() 
+                              Undo_OnStateChange2( 0, 'QuantizeTool' )  
+                            end 
                           } 
-      DATA.GUI.buttons.knob2 = { x=DATA.GUI.custom_offset*3 + DATA.GUI.custom_mainbutw + knobw,
-                            y=DATA.GUI.custom_offset*5 + DATA.GUI.custom_mainbuth*2+DATA.GUI.custom_datah*2,
-                            w=knobw,
-                            h=DATA.GUI.custom_mainbuth,
-                            txt = '',
-                            txt_fontsz = DATA.GUI.custom_texthdef,
-                            knob_isknob = true,
-                            val_res = 0.25,
-                            val = 0,
-                            frame_a = DATA.GUI.default_framea_normal,
-                            frame_asel = DATA.GUI.default_framea_normal,
-                            back_sela = 0,
-                            hide = DATA.GUI.compactmode==1,
-                            ignoremouse = DATA.GUI.compactmode==1,
-                            ignoremouse = DATA.GUI.compactmode==1,
-                            onmouseclick =    function() DATA2:Quantize() end,
-                            onmousedrag =     function() DATA2.val2 = DATA.GUI.buttons.knob2.val DATA2:Execute() end,
-                            onmouserelease  = function() DATA2.val2 = DATA.GUI.buttons.knob2.val DATA2:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' )  end 
-                                            }                                             
       DATA.GUI.buttons.preset = { x=DATA.GUI.custom_offset*3+DATA.GUI.custom_mainbutw*2,
                             y=DATA.GUI.custom_offset,
                             w=DATA.GUI.custom_mainsepx-DATA.GUI.custom_offset*2,
@@ -1561,7 +1567,7 @@
     end 
     
     if DATA.GUI.compactmode==1 then 
-      local butw = math.floor(((gfx.w-DATA.GUI.custom_offset*6)/DATA.GUI.default_scale)/5)
+      local butw = math.floor(((gfx.w-DATA.GUI.custom_offset*6)/DATA.GUI.default_scale)/4)
       local buth = gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_offset*2
       DATA.GUI.buttons.getreferenceCM = { x=DATA.GUI.custom_offset,
                             y=DATA.GUI.custom_offset,
@@ -1601,25 +1607,7 @@
                             onmouseclick =    function() DATA2:Quantize() end,
                             onmousedrag =     function() DATA2.val1 = DATA.GUI.buttons.knobCM.val DATA2:Execute() end,
                             onmouserelease  = function() DATA2.val1 = DATA.GUI.buttons.knobCM.val DATA2:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' )  end }
-      DATA.GUI.buttons.knob2CM = { x=DATA.GUI.custom_offset*4+butw*3,
-                            y=DATA.GUI.custom_offset,
-                            w=butw,
-                            h=buth,
-                            txt = '',
-                            txt_fontsz = DATA.GUI.custom_texthdef,
-                            knob_isknob = true,
-                            val_res = 0.25,
-                            val = 0,
-                            frame_a = DATA.GUI.default_framea_normal,
-                            frame_asel = DATA.GUI.default_framea_normal,
-                            back_sela = 0,
-                            hide = DATA.GUI.compactmode==0,
-                            ignoremouse = DATA.GUI.compactmode==0,
-                            onmouseclick =    function() DATA2:Quantize() end,
-                            onmousedrag =     function() DATA2.val2 = DATA.GUI.buttons.knob2CM.val DATA2:Execute() end,
-                            onmouserelease  = function() DATA2.val2 = DATA.GUI.buttons.knob2CM.val DATA2:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' )  end                             
-                          }  
-      DATA.GUI.buttons.preset = { x=DATA.GUI.custom_offset*5+butw*4,
+      DATA.GUI.buttons.preset = { x=DATA.GUI.custom_offset*4+butw*3,
                             y=DATA.GUI.custom_offset,
                             w=butw,
                             h=buth,
@@ -1823,6 +1811,7 @@
         {str = 'Obey time selection for anchor points' ,  group = 1, itype = 'check', confkey = 'CONF_act_catchreftimesel', level = 1},
         {str = 'Detect targets on initialization' ,       group = 1, itype = 'check', confkey = 'CONF_act_initcatchsrc', level = 1},
         {str = 'Obey time selection for targets' ,        group = 1, itype = 'check', confkey = 'CONF_act_catchsrctimesel', level = 1},
+        {str = 'Knob to set value, APP to execute' ,      group = 1, itype = 'check', confkey = 'CONF_act_appbuttoexecute', level = 1, func_onrelease = function() DATA.UPD.onGUIinit = true end},
         
       {str = 'Anchor points' ,                            group = 2, itype = 'sep'},
         {str = 'Items' ,                                  group = 2, itype = 'check', confkey = 'CONF_ref_selitems', confkeybyte = 0, level = 1},
@@ -1870,7 +1859,8 @@
       {str = 'Action' ,                                   group = 6, itype = 'sep'}, 
         {str = 'Position-based alignment' ,               group = 6, itype = 'check', confkey = 'CONF_act_action', level = 1, isset = 1, tooltip='Search and brutforce closer objects'},
           {str = 'Direction' ,group = 6, itype = 'readout', confkey = 'CONF_act_aligndir', level = 2, hide = DATA.extstate.CONF_act_action~=1, menu={[0]='Always previous point',[1]='Closest point',[2]='Always next point'},readoutw_extw = readoutw_extw},
-        {str = 'Ordered alignment' ,                      group = 6, itype = 'check', confkey = 'CONF_act_action', level = 1, isset = 2, tooltip='Align by point order'},  
+        {str = 'Ordered alignment' ,                      group = 6, itype = 'check', confkey = 'CONF_act_action', level = 1, isset = 2, tooltip='Align by point order'},   
+        {str = 'Align value (velocity, gain)' ,           group = 6, itype = 'readout', confkey = 'CONF_act_valuealign', level = 1, val_res = 0.05, val_format = function(x) return math.floor(x*100)..'%' end,val_format_rev = function(x) if not (x and tonumber(x)) then return 0 end return tonumber(x)/100 end },   
 
       {str = 'UI options' ,                               group = 5, itype = 'sep'},  
         {str = 'Enable shortcuts' ,                       group = 5, itype = 'check', confkey = 'UI_enableshortcuts', level = 1},
