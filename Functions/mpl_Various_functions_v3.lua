@@ -170,6 +170,7 @@
           if txt_flags&1==1 then gfx.x = x+(w-strw)/2 end
           if txt_flags&4==4 then gfx.y = y+(h-strh)/2 end
           if txt_flags&2==2 then gfx.x = x + w - strw end
+          if b.knob_isknob and b.knob_showvalueright and strw then gfx.x = x+w/2-(b.knob_arcR*2+strw)/2+ b.knob_arcR*2 end
           if b.offsetframe then 
             gfx.y = y+b.offsetframe*DATA.GUI.default_scale-calibrated_txt_fontsz/2
           end
@@ -350,25 +351,27 @@
                             b.knob_a or DATA.GUI.default_knob_a,
                             b.knob_arca or DATA.GUI.default_knob_arca,
                             b.val or 0
+    local arc_r = b.knob_arcR
+    local knob_minside = b.knob_minside
     x,y,w,h = 
               x*DATA.GUI.default_scale,
               y*DATA.GUI.default_scale,           
               w*DATA.GUI.default_scale,            
               h*DATA.GUI.default_scale  
-              
+     
+    local x_shift = w/2
     local ang_gr = 120
-    local min_side = math.min(w,h)
-    local arc_r = math.floor(min_side/2 ) -2
+    if b.knob_showvalueright and b.txt_strw then x_shift = math.max(arc_r+2,w/2-(arc_r*2+b.txt_strw)/2) end
     local ang_val = math.rad(-ang_gr+ang_gr*2*knob_val)
     local ang = math.rad(ang_gr)
     local thickness = 1
-    local y = y + min_side * 0.08
+    local y = y + b.knob_minside * 0.08
     -- arc back 
       DATA:GUIhex2rgb(knob_col, true)
       gfx.a = knob_arca
       local halfh = math.floor(h/2)
       local halfw = math.floor(w/2)
-      for i = 0, thickness, 0.5 do DATA:GUIdraw_arc(x+w/2,y+h/2,arc_r-i, -ang_gr, ang_gr, ang_gr) end
+      for i = 0, thickness, 0.5 do DATA:GUIdraw_arc(x+x_shift,y+h/2,arc_r-i, -ang_gr, ang_gr, ang_gr) end
     
     -- value
       DATA:GUIhex2rgb(knob_col, true)
@@ -377,14 +380,14 @@
         -- val       
         local ang_val = -ang_gr+ang_gr*2*knob_val
         for i = 0, thickness, 0.5 do
-          DATA:GUIdraw_arc(x+w/2,y+h/2,arc_r-i, -ang_gr, ang_val, ang_gr)
+          DATA:GUIdraw_arc(x+x_shift,y+h/2,arc_r-i, -ang_gr, ang_val, ang_gr)
         end 
        else -- if centered
         for i = 0, thickness, 0.5 do
           if knob_val< 0.5 then
-            DATA:GUIdraw_arc(x+w/2,y+h/2 ,arc_r-i, -ang_gr+ang_gr*2*knob_val, 0, ang_gr)
+            DATA:GUIdraw_arc(x+x_shift,y+h/2 ,arc_r-i, -ang_gr+ang_gr*2*knob_val, 0, ang_gr)
            elseif knob_val> 0.5 then
-            DATA:GUIdraw_arc(x+w/2,y+h/2,arc_r-i, 0, -ang_gr+ang_gr*2*knob_val, ang_gr)
+            DATA:GUIdraw_arc(x+x_shift,y+h/2,arc_r-i, 0, -ang_gr+ang_gr*2*knob_val, ang_gr)
           end
         end
       end 
@@ -423,12 +426,14 @@
     local backgr_col2 = b.backgr_col2 or '#333333'
     local backgr_fill = b.backgr_fill or 1
     local backgr_fill2 = b.backgr_fill2 or 0
+    
     x,y,w,h = 
               math.floor(x*DATA.GUI.default_scale),
               math.floor(y*DATA.GUI.default_scale),           
               math.ceil(w*DATA.GUI.default_scale),            
               math.ceil(h*DATA.GUI.default_scale)            
-    
+    b.knob_minside = math.min(w,h)
+    b.knob_arcR = math.floor(b.knob_minside/2 ) -2 
     
     local layer, layer_yshift= gfx.dest,0
     if DATA.GUI.layers[layer] and DATA.GUI.layers[layer].layer_yshift then layer_yshift = -DATA.GUI.layers[layer].layer_yshift end

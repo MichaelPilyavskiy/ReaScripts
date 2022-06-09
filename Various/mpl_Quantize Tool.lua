@@ -4,9 +4,11 @@
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    + Enter percent value on knobs by right click
---    + Global: allow to separate APP button and knobs
---    # Move knob2 for value align to Action settings
+--    + Knob: fix entering decimal values
+--    + Knob: show value
+--    + Knob: allow to set with mousewheel
+--    # Compact mode: rearrange view
+--    # Change width/height defaults
 
   
   DATA2 = {}
@@ -1227,6 +1229,7 @@
     if not DATA2.ref or not DATA2.src then return end  
     if DATA.extstate.CONF_act_action == 1 then DATA2:Quantize_CalculatePBA() end
     if DATA.extstate.CONF_act_action == 2 then DATA2:Quantize_CalculateOA() end
+    DATA2.Quantize_state= true
   end
   --------------------------------------------------------------------- 
   function DATA2:Quantize_brutforce_RefID(pos_src)
@@ -1419,12 +1422,12 @@
     DATA.GUI.default_data_col_adv = '#00ff00' -- green
     DATA.GUI.default_data_col_adv2 = '#e61919 ' -- red
     
-    -- define compact mode
+    --[[ define compact mode
       local w,h = gfx.w,gfx.h
       DATA.GUI.compactmode = 0
       DATA.GUI.compactmodelimh = 200
       DATA.GUI.compactmodelimw = 500
-      if w < DATA.GUI.compactmodelimw*DATA.GUI.default_scale or h < DATA.GUI.compactmodelimh*DATA.GUI.default_scale then DATA.GUI.compactmode = 1 end
+      if w < DATA.GUI.compactmodelimw*DATA.GUI.default_scale or h < DATA.GUI.compactmodelimh*DATA.GUI.default_scale then DATA.GUI.compactmode = 1 end]]
     
     -- shortcuts
       GUI_RESERVED_init_shortcuts(DATA)
@@ -1435,18 +1438,17 @@
   --------------------------------------------------------------------- 
   function GUI_buttons(DATA) 
     DATA.GUI.buttons = {} 
-    if DATA.GUI.compactmode==0 then 
     -- main buttons
       DATA.GUI.buttons.getreference = { x=DATA.GUI.custom_offset,
                             y=DATA.GUI.custom_offset,
                             w=DATA.GUI.custom_mainbutw,
                             h=DATA.GUI.custom_mainbuth,
                             txt = 'Get anchor points',
-                            txt_short = 'AP',
+                            txt_short = 'Get AP',
                             txt_fontsz = DATA.GUI.default_txt_fontsz2,
                             onmouseclick =  function() DATA2:GetAnchorPoints() GUI_initdata(DATA) end,
-                            hide = DATA.GUI.compactmode==1,
-                            ignoremouse = DATA.GUI.compactmode==1,
+                            --hide = DATA.GUI.compactmode==1,
+                            --ignoremouse = DATA.GUI.compactmode==1,
                             } 
       DATA.GUI.buttons.showreference = { x=DATA.GUI.custom_offset*2+DATA.GUI.custom_mainbutw,
                             y=DATA.GUI.custom_offset,
@@ -1463,30 +1465,30 @@
                                               end
                                             end,
                             onmouserelease = function() DATA2:MarkerPoints_Clear() end,
-                            hide = DATA.GUI.compactmode==1,
-                            ignoremouse = DATA.GUI.compactmode==1,
+                            --hide = DATA.GUI.compactmode==1,
+                            --ignoremouse = DATA.GUI.compactmode==1,
                             }                             
       DATA.GUI.buttons.getdub = { x=DATA.GUI.custom_offset,
                             y=DATA.GUI.custom_offset*3 + DATA.GUI.custom_mainbuth+DATA.GUI.custom_datah,
                             w=DATA.GUI.custom_mainbutw,
                             h=DATA.GUI.custom_mainbuth,
                             txt = 'Get targets',
-                            txt_short = 'TARG',
+                            txt_short = 'Get Targ',
                             txt_fontsz = DATA.GUI.default_txt_fontsz2,
-                            hide = DATA.GUI.compactmode==1,
-                            ignoremouse = DATA.GUI.compactmode==1,
+                            --hide = DATA.GUI.compactmode==1,
+                            --ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =  function() DATA2:GetTargets() GUI_initdata(DATA) end}
       DATA.GUI.buttons.showdub = { x=DATA.GUI.custom_offset*2+DATA.GUI.custom_mainbutw,
                             y=DATA.GUI.custom_offset*3 + DATA.GUI.custom_mainbuth+DATA.GUI.custom_datah,
                             w=DATA.GUI.custom_mainbutw,
                             h=DATA.GUI.custom_mainbuth,
                             txt = 'Show targets',
-                            txt_short = 'Show TARG',
+                            txt_short = 'Show targ',
                             txt_fontsz = DATA.GUI.default_txt_fontsz2,
                             onmouseclick =  function() DATA2:MarkerPoints_Show(DATA2.src, DATA.GUI.default_data_col_adv2) end,
                             onmouserelease = function() DATA2:MarkerPoints_Clear() end,
-                            hide = DATA.GUI.compactmode==1,
-                            ignoremouse = DATA.GUI.compactmode==1,
+                            --hide = DATA.GUI.compactmode==1,
+                            --ignoremouse = DATA.GUI.compactmode==1,
                             }  
       local frame_a, ignoremouse = 0, true
       if DATA.extstate.CONF_act_appbuttoexecute ==1 then frame_a,ignoremouse = nil, false end
@@ -1494,11 +1496,12 @@
                             y=DATA.GUI.custom_offset*5 + DATA.GUI.custom_mainbuth*2+DATA.GUI.custom_datah*2,
                             w=DATA.GUI.custom_mainbutw,
                             h=DATA.GUI.custom_mainbuth,
-                            txt = 'Apply output',
+                            txt = 'Quantize',
                             txt_short = 'APP',
+                            txt_col = '#00FF00',--'#FF0000',
                             txt_fontsz = DATA.GUI.default_txt_fontsz2,
                             ignoremouse = ignoremouse,
-                            hide = DATA.GUI.compactmode==1,
+                            --hide = DATA.GUI.compactmode==1,
                             frame_a = frame_a,
                             frame_asel = frame_a,
                             onmouserelease = function() 
@@ -1507,38 +1510,69 @@
                                       Undo_OnStateChange2( 0, 'QuantizeTool' )  
                                     end
                             }      
-      local knobw = (DATA.GUI.custom_mainbutw-DATA.GUI.custom_offset)--/2  
+      local knobw = (DATA.GUI.custom_mainbutw)---DATA.GUI.custom_offset /2  
       if not DATA2.val1 then DATA2.val1 = 0 end
       DATA.GUI.buttons.knob = { x=DATA.GUI.custom_offset*2 + DATA.GUI.custom_mainbutw ,
                             y=DATA.GUI.custom_offset*5 + DATA.GUI.custom_mainbuth*2+DATA.GUI.custom_datah*2,
                             w=knobw,
                             h=DATA.GUI.custom_mainbuth,
-                            txt = '',
+                            txt = VF_math_Qdec(DATA2.val1*100,2)..'%',
                             --txt_fontsz = DATA.GUI.default_txt_fontsz,
                             knob_isknob = true,
+                            knob_showvalueright = true,
                             val_res = 0.25,
                             val = 0,
                             frame_a = DATA.GUI.default_framea_normal,
                             frame_asel = DATA.GUI.default_framea_normal,
                             back_sela = 0,
-                            hide = DATA.GUI.compactmode==1,
-                            ignoremouse = DATA.GUI.compactmode==1,
+                            --hide = DATA.GUI.compactmode==1,
+                            --ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =    function() DATA2:Quantize() end,
-                            onmousedrag =     function() DATA2.val1 = DATA.GUI.buttons.knob.val if DATA.extstate.CONF_act_appbuttoexecute ==0 then DATA2:Execute() end end,
-                            onmouserelease  = function() DATA2.val1 = DATA.GUI.buttons.knob.val if DATA.extstate.CONF_act_appbuttoexecute ==0 then DATA2:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' )  end end,
+                            onmousedrag =     function() 
+                                DATA.GUI.buttons.knob.txt = VF_math_Qdec(DATA2.val1*100,2)..'%'
+                                DATA2.val1 = DATA.GUI.buttons.knob.val 
+                                if DATA.extstate.CONF_act_appbuttoexecute ==0 then 
+                                  DATA2:Execute()
+                                end 
+                              end,
+                            onmouserelease  = function() 
+                                DATA.GUI.buttons.knob.txt = VF_math_Qdec(DATA2.val1*100,2)..'%'
+                                DATA2.val1 = DATA.GUI.buttons.knob.val 
+                                if DATA.extstate.CONF_act_appbuttoexecute ==0 then 
+                                  DATA2:Execute() 
+                                  Undo_OnStateChange2( 0, 'QuantizeTool' )  
+                                end 
+                                DATA.GUI.buttons.knob.refresh = true
+                              end,
                             onmousereleaseR  = function() 
                               if not DATA2.val1 then DATA2.val1 = 0 end
-                              local retval, retvals_csv = GetUserInputs('Align percent', 1, '', DATA2.val1..'%')
+                              local retval, retvals_csv = GetUserInputs('Align percent', 1, '', VF_math_Qdec(DATA2.val1*100,2)..'%')
                               if not retval then return end
                               retvals_csv = tonumber(retvals_csv)
                               if not retvals_csv then return end
                               
                               DATA2.val1 = VF_lim(retvals_csv/100) 
                               DATA.GUI.buttons.knob.val = DATA2.val1
+                              DATA.GUI.buttons.knob.txt = VF_math_Qdec(DATA2.val1*100,2)..'%'
                               if DATA.extstate.CONF_act_appbuttoexecute ==1 then return end
                               DATA2:Execute() 
                               Undo_OnStateChange2( 0, 'QuantizeTool' )  
-                            end 
+                            end ,
+                            onwheeltrig = function() 
+                                            local mult = 0
+                                            if not DATA.GUI.wheel_trig then return end
+                                            if DATA.GUI.wheel_dir then mult =1 else mult = -1 end
+                                            if not DATA2.Quantize_state then DATA2:Quantize()   end
+                                            DATA2.val1 = VF_lim(DATA2.val1 - 0.01*mult, 0,1)
+                                            DATA.GUI.buttons.knob.txt = 100*VF_math_Qdec(DATA2.val1,2)..'%'
+                                            DATA.GUI.buttons.knob.val  = DATA2.val1
+                                            if DATA.extstate.CONF_act_appbuttoexecute ==0 then 
+                                              DATA2:Execute() 
+                                              Undo_OnStateChange2( 0, 'QuantizeTool' )  
+                                            end 
+                                            DATA.GUI.buttons.knob.refresh = true
+                                            
+                                          end
                           } 
       DATA.GUI.buttons.preset = { x=DATA.GUI.custom_offset*3+DATA.GUI.custom_mainbutw*2,
                             y=DATA.GUI.custom_offset,
@@ -1546,8 +1580,8 @@
                             h=DATA.GUI.custom_mainbuth,
                             txt = 'Preset: '..(DATA.extstate.CONF_NAME or ''),
                             txt_fontsz = DATA.GUI.default_txt_fontsz2,
-                            hide = DATA.GUI.compactmode==1,
-                            ignoremouse = DATA.GUI.compactmode==1,
+                            --hide = DATA.GUI.compactmode==1,
+                            --ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =  function() DATA:GUIbut_preset(DATA) end} 
     -- settings
       DATA.GUI.buttons.Rsettings = { x=gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx,
@@ -1560,65 +1594,68 @@
                             offsetframe = DATA.GUI.custom_offset,
                             frame_a = DATA.GUI.custom_default_framea_normal,
                             ignoremouse = true,
-                            hide = DATA.GUI.compactmode==1,
-                            }  
-      DATA:GUIBuildSettings()
-      GUI_initdata(DATA)
-    end 
-    
-    if DATA.GUI.compactmode==1 then 
-      local butw = math.floor(((gfx.w-DATA.GUI.custom_offset*6)/DATA.GUI.default_scale)/4)
-      local buth = gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_offset*2
-      DATA.GUI.buttons.getreferenceCM = { x=DATA.GUI.custom_offset,
-                            y=DATA.GUI.custom_offset,
-                            w=butw,
-                            h=buth,
-                            txt = 'Anchor',
-                            txt_short = 'ANC',
-                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
-                            onmouseclick =  function() DATA2:GetAnchorPoints() GUI_initdata(DATA) end,
-                            hide = DATA.GUI.compactmode==0,
-                            ignoremouse = DATA.GUI.compactmode==0,
+                            --hide = DATA.GUI.compactmode==1,
                             } 
-      DATA.GUI.buttons.getdubCM = { x=DATA.GUI.custom_offset*2+butw,
-                            y=DATA.GUI.custom_offset,
-                            w=butw,
-                            h=buth,
-                            txt = 'Targets',
-                            txt_short = 'TARG',
-                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
-                            hide = DATA.GUI.compactmode==0,
-                            ignoremouse = DATA.GUI.compactmode==0,
-                            onmouseclick =  function() DATA2:GetTargets() GUI_initdata(DATA) end}
-      DATA.GUI.buttons.knobCM = { x=DATA.GUI.custom_offset*3+butw*2 ,
-                            y=DATA.GUI.custom_offset,
-                            w=butw,
-                            h=buth,
-                            txt = '',
-                            txt_fontsz = DATA.GUI.custom_texthdef,
-                            knob_isknob = true,
-                            val_res = 0.25,
-                            val = 0,
-                            frame_a = DATA.GUI.default_framea_normal,
-                            frame_asel = DATA.GUI.default_framea_normal,
-                            back_sela = 0,
-                            hide = DATA.GUI.compactmode==0,
-                            ignoremouse = DATA.GUI.compactmode==0,
-                            onmouseclick =    function() DATA2:Quantize() end,
-                            onmousedrag =     function() DATA2.val1 = DATA.GUI.buttons.knobCM.val DATA2:Execute() end,
-                            onmouserelease  = function() DATA2.val1 = DATA.GUI.buttons.knobCM.val DATA2:Execute() Undo_OnStateChange2( 0, 'QuantizeTool' )  end }
-      DATA.GUI.buttons.preset = { x=DATA.GUI.custom_offset*4+butw*3,
-                            y=DATA.GUI.custom_offset,
-                            w=butw,
-                            h=buth,
-                            --txt = 'Preset: '..(DATA.extstate.CONF_NAME or ''),
-                            txt = 'Preset',
-                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
-                            hide = DATA.GUI.compactmode==0,
-                            ignoremouse = DATA.GUI.compactmode==0,
-                            onmouseclick =  function() DATA:GUIbut_preset(true) end}                           
-    end
+                                              
     
+      if DATA.GUI.custom_mainbutw/DATA.GUI.default_scale < 150 then
+        local butw = math.floor(((gfx.w-DATA.GUI.custom_offset*6)/DATA.GUI.default_scale)/4)
+        local buth = DATA.GUI.custom_mainbuth
+        DATA.GUI.buttons.Rsettings.y = buth*3+DATA.GUI.custom_offset*3
+        DATA.GUI.buttons.Rsettings.h = gfx.h/DATA.GUI.default_scale - (buth*3+DATA.GUI.custom_offset*3)
+        
+        DATA.GUI.buttons.getreference.x=DATA.GUI.custom_offset 
+        DATA.GUI.buttons.getreference.y=DATA.GUI.custom_offset
+        DATA.GUI.buttons.getreference.w=butw
+        DATA.GUI.buttons.getreference.h=buth
+        
+        DATA.GUI.buttons.showreference.x=DATA.GUI.custom_offset*2 +butw
+        DATA.GUI.buttons.showreference.y=DATA.GUI.custom_offset
+        DATA.GUI.buttons.showreference.w=butw
+        DATA.GUI.buttons.showreference.h=buth
+                                      
+        DATA.GUI.buttons.getdub.x=DATA.GUI.custom_offset*3 +butw*2
+        DATA.GUI.buttons.getdub.y=DATA.GUI.custom_offset
+        DATA.GUI.buttons.getdub.w=butw
+        DATA.GUI.buttons.getdub.h=buth        
+        
+        DATA.GUI.buttons.showdub.x=DATA.GUI.custom_offset*4 +butw*3
+        DATA.GUI.buttons.showdub.y=DATA.GUI.custom_offset
+        DATA.GUI.buttons.showdub.w=butw
+        DATA.GUI.buttons.showdub.h=buth        
+        
+        DATA.GUI.buttons.calcapp.x=DATA.GUI.custom_offset
+        DATA.GUI.buttons.calcapp.y=DATA.GUI.custom_offset*2+buth
+        DATA.GUI.buttons.calcapp.w=butw
+        DATA.GUI.buttons.calcapp.h=buth   
+        
+        DATA.GUI.buttons.knob.x=DATA.GUI.custom_offset*2 +butw
+        DATA.GUI.buttons.knob.y=DATA.GUI.custom_offset*2+buth
+        DATA.GUI.buttons.knob.w=butw
+        DATA.GUI.buttons.knob.h=buth   
+        
+        DATA.GUI.buttons.preset.x=DATA.GUI.custom_offset*3 +butw*2
+        DATA.GUI.buttons.preset.y=DATA.GUI.custom_offset*2+buth
+        DATA.GUI.buttons.preset.w=butw*2+DATA.GUI.custom_offset
+        DATA.GUI.buttons.preset.h=buth    
+        
+        DATA.GUI.buttons.Rsettings.x=DATA.GUI.custom_offset
+        DATA.GUI.buttons.Rsettings.y=DATA.GUI.custom_offset*3+buth*2
+        DATA.GUI.buttons.Rsettings.w=gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_offset*2
+        DATA.GUI.buttons.Rsettings.h=gfx.h/DATA.GUI.default_scale-(DATA.GUI.custom_offset*3+buth*2)
+        
+      end
+      
+      GUI_initdata(DATA)
+      DATA:GUIBuildSettings()
+      
+    --[[ define compact mode
+      local w,h = gfx.w,gfx.h
+      DATA.GUI.compactmode = 0
+      DATA.GUI.compactmodelimh = 200
+      DATA.GUI.compactmodelimw = 500
+      if w < DATA.GUI.compactmodelimw*DATA.GUI.default_scale or h < DATA.GUI.compactmodelimh*DATA.GUI.default_scale then DATA.GUI.compactmode = 1 end]]
+      
     for but in pairs(DATA.GUI.buttons) do DATA.GUI.buttons[but].key = but end                                 
     
   end
@@ -1674,6 +1711,7 @@
     end
   ---------------------------------------------------------------------  
   function GUI_initdata(DATA) 
+    if DATA.GUI.custom_mainbutw/DATA.GUI.default_scale < 150 then return end
     -- init data
       DATA.GUI.srcpoints = {}
       DATA.GUI.destpoints = {} 
@@ -1881,4 +1919,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.08) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.15) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
