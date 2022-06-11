@@ -1,21 +1,17 @@
 -- @description QuantizeTool
--- @version 3.05
+-- @version 3.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    + Knob: fix entering decimal values
---    + Knob: show value
---    + Knob: allow to set with mousewheel
---    # Compact mode: rearrange view
---    # Change width/height defaults
+--    # reapack-index push
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.05
+    DATA.extstate.version = 3.06
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
