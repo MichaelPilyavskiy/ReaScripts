@@ -1,9 +1,9 @@
 -- @description Create ReaComp sidechain routing from track under mouse cursor to selected track
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # inversed port
+--    # set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26
   
   
   threshold = 0.25
@@ -61,6 +61,7 @@
             SetTrackSendInfo_Value( src_tr, 0, new_id, 'D_VOL', defsendvol)
             SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SENDMODE', 3)
             SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', 2) -- 3/4
+            SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_MIDIFLAGS', 31) -- MIDI None
           end
         end
       end

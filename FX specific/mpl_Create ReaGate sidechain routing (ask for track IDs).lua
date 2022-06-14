@@ -1,9 +1,9 @@
 -- @description Create ReaGate sidechain routing (ask for track IDs)
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    # set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26
   
   
   threshold = 0.25
@@ -58,6 +58,7 @@
             new_id = CreateTrackSend( src_tr, dest_tr )
             SetTrackSendInfo_Value( src_tr, 0, new_id, 'D_VOL', defsendvol)
             SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', 2) -- 3/4
+            SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_MIDIFLAGS', 31) -- MIDI None
           end
         end
       end

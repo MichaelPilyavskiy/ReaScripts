@@ -1,10 +1,9 @@
 -- @description Create ReaComp sidechain routing from selected track to track under mouse cursor
--- @version 1.05
+-- @version 1.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # improve logic around existing send
---    # remove SWS dependency
+--    # set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26
   
   
   local threshold = 0.25
@@ -66,6 +65,7 @@
           SetTrackSendInfo_Value( src_tr, 0, new_id, 'D_VOL', defsendvol)
           SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SENDMODE', 3)
           SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', 2) -- 3/4
+          SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_MIDIFLAGS', 31) -- MIDI None
         end
       end
   end
