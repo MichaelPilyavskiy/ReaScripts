@@ -9698,26 +9698,35 @@ add control for timefall showing last note]]></changelog>
     </reapack>
   </category>
   <metadata>
-    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+    <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
 {\pard \ql \f0 \sa180 \li0 \fi0 Lua and EEL scripts for {\field{\*\fldinst{HYPERLINK "http://reaper.fm"}}{\fldrslt{\ul
 Cockos REAPER
 }}}
- coded by Michael Pilyavskiy. This repository is compatible with the ReaPack {\field{\*\fldinst{HYPERLINK "http://reapack.com/"}}{\fldrslt{\ul
+ written by Michael Pilyavskiy. This repository is compatible with the ReaPack {\field{\*\fldinst{HYPERLINK "http://reapack.com/"}}{\fldrslt{\ul
 REAPER extension
 }}}
  for easy downloading and updating. It is embedded into Reapack by default.\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Discussion is {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/showthread.php?t=188335"}}{\fldrslt{\ul
+{\pard \ql \f0 \sa180 \li0 \fi0 Discussion on Cockos forum is {\field{\*\fldinst{HYPERLINK "https://forum.cockos.com/showthread.php?t=188335"}}{\fldrslt{\ul
 here
 }}}
 .\par}
 {\pard \ql \f0 \sa180 \li0 \fi0 MPL contacts:\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://t.me/mplscripts_chat"}}{\fldrslt{\ul
+Telegram
+}}}
+\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://vk.com/michael_pilyavskiy"}}{\fldrslt{\ul
 VK
 }}}
 \par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=70694"}}{\fldrslt{\ul
+Cockos Forum
+}}}
+\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 MPL music:\par}
 {\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://soundcloud.com/mpl57"}}{\fldrslt{\ul
 SoundCloud
 }}}
@@ -9726,15 +9735,15 @@ SoundCloud
 PromoDJ
 }}}
 \par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://forum.cockos.com/member.php?u=70694"}}{\fldrslt{\ul
-Cockos Forum
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://vk.com/dochband"}}{\fldrslt{\ul
+VK DOCH
+}}}
+\par}
+{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "https://vk.com/mpl57"}}{\fldrslt{\ul
+VK MPL
 }}}
 \sa180\par}
-{\pard \ql \f0 \sa180 \li0 \fi0 Donate if you like my stuff:\par}
-{\pard \ql \f0 \sa0 \li360 \fi-360 \bullet \tx360\tab {\field{\*\fldinst{HYPERLINK "http://paypal.me/donate2mpl"}}{\fldrslt{\ul
-PayPal
-}}}
-\sa180\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Donation is not possible since March 2022 because of sanctions against russians. Thanks for anyone supported me in the past.\par}
 }
 ]]></description>
     <link rel="donation">https://www.paypal.me/donate2mpl</link>
