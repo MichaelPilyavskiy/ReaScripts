@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5d89e956c9483996a892731e65553e5653b522e2" name="MPL Scripts">
+<index version="1" commit="f0ca89b66808ca91ec7232b94aca4e9abd6b481e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2677,6 +2677,10 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/704714216a269cfc9f9b18d2656d5d46b84c9e2b/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(ask%20for%20track%20IDs).lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2022-06-14T19:00:10Z">
+        <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(ask%20for%20track%20IDs).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing (inversed source destination).lua" type="script" desc="Create ReaComp sidechain routing from track under mouse cursor to selected track">
       <metadata>
@@ -2685,6 +2689,10 @@
       <version name="1.04" author="MPL" time="2020-08-02T07:27:30Z">
         <changelog><![CDATA[# inversed port]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e85522832f7ce3e6ff4becb53526aed6042dc026/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(inversed%20source%20destination).lua</source>
+      </version>
+      <version name="1.05" author="MPL" time="2022-06-14T19:00:10Z">
+        <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(inversed%20source%20destination).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing.lua" type="script" desc="Create ReaComp sidechain routing from selected track to track under mouse cursor">
@@ -2719,6 +2727,10 @@
 # remove SWS dependency]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d6ce0e8eff7f831c7a3b3d4b63da27556a0870/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
       </version>
+      <version name="1.06" author="MPL" time="2022-06-14T19:00:10Z">
+        <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Create ReaGate sidechain routing (ask for track IDs).lua" type="script" desc="Create ReaGate sidechain routing (ask for track IDs)">
       <metadata>
@@ -2727,6 +2739,10 @@
       <version name="1.0" author="MPL" time="2022-04-24T15:50:41Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/704714216a269cfc9f9b18d2656d5d46b84c9e2b/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing%20(ask%20for%20track%20IDs).lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2022-06-14T19:00:10Z">
+        <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing%20(ask%20for%20track%20IDs).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaGate sidechain routing (inversed source destination).lua" type="script" desc="Create ReaGate sidechain routing from track under mouse cursor to selected track">
@@ -2737,6 +2753,10 @@
         <changelog><![CDATA[# inversed port]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d0f96937c23a9889e57a93f528963393ed037b4/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing%20(inversed%20source%20destination).lua</source>
       </version>
+      <version name="1.05" author="MPL" time="2022-06-14T19:00:10Z">
+        <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing%20(inversed%20source%20destination).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Create ReaGate sidechain routing.lua" type="script" desc="Create ReaGate sidechain routing from selected track to track under mouse cursor">
       <metadata>
@@ -2745,6 +2765,10 @@
       <version name="1.0" author="MPL" time="2019-11-16T19:17:54Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4547a6c2a80124ec0c3531e76244cf320f1e270b/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2022-06-14T19:00:10Z">
+        <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Float Fre(a)koscope on master channel.lua" type="script" desc="Float Fre(a)koscope on master channel">
