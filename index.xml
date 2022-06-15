@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f0ca89b66808ca91ec7232b94aca4e9abd6b481e" name="MPL Scripts">
+<index version="1" commit="19f62c275647c5809891fa73043fe049f14168ec" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -9582,6 +9582,20 @@ add control for timefall showing last note]]></changelog>
       <version name="3.06" author="MPL" time="2022-06-11T07:08:29Z">
         <changelog><![CDATA[# reapack-index push]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5d89e956c9483996a892731e65553e5653b522e2/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
+      <version name="3.10" author="MPL" time="2022-06-15T21:27:03Z">
+        <changelog><![CDATA[# Anchor point pat/Custom grid: don`t show custom grid if project grid is active
+# Anchor point pat/Project grid: show value
++ Parameters: separate params section
++ Parameters/GroupMode: interpret closer events as group
++ Parameters/GroupMode: allow to set threshold
++ Parameters/GroupMode: allow to except events with the different pitch from group
++ Parameters/GroupMode: allow to set event priority
++ Parameters/Offset: allow to set quantize offset
++ Parameters/MaxDist: allow to set quantize maximum distance
++ Parameters/MaxDist: allow to ignore events that reach limit
++ Parameters/MaxDist: allow to set quantize minimum distance]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/19f62c275647c5809891fa73043fe049f14168ec/Various/mpl_Quantize%20Tool.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
