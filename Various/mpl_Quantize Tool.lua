@@ -1,17 +1,27 @@
 -- @description QuantizeTool
--- @version 3.06
+-- @version 3.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    # reapack-index push
+--    # Anchor point pat/Custom grid: don`t show custom grid if project grid is active
+--    # Anchor point pat/Project grid: show value
+--    + Parameters: separate params section
+--    + Parameters/GroupMode: interpret closer events as group
+--    + Parameters/GroupMode: allow to set threshold
+--    + Parameters/GroupMode: allow to except events with the different pitch from group
+--    + Parameters/GroupMode: allow to set event priority
+--    + Parameters/Offset: allow to set quantize offset
+--    + Parameters/MaxDist: allow to set quantize maximum distance
+--    + Parameters/MaxDist: allow to ignore events that reach limit
+--    + Parameters/MaxDist: allow to set quantize minimum distance
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.06
+    DATA.extstate.version = 3.10
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -87,6 +97,14 @@
                           CONF_act_action = 1 ,  -- 2 create -- 3 ordered alignment -- 4 raw quantize
                           CONF_act_aligndir = 1, -- 0 - always previous 1 - closest 2 - always next
                           CONF_act_valuealign = 0, -- knob2 in the past
+                          CONF_offset_ms = 0,
+                          CONF_maxquantize_ms = 0, -- limit distance
+                          CONF_maxquantize_ignoreatreach = 0, -- limit distance
+                          CONF_minquantize_ms = 0, -- limit distance
+                          CONF_act_groupmode = 0, -- interpret closer items as group
+                          CONF_act_groupmode_valbeats = 0.015625, 
+                          CONF_act_groupmode_obeypitch = 0, 
+                          CONF_act_groupmode_direction = 0, -- 0 first note 1 between first and last 2 last
                               
                           -- execute -----------------------
                           --exe_val1 = 0, -- align=strength, raw=value 
@@ -525,6 +543,7 @@
       end
     end
     
+    
   end
   ---------------------------------------------------------------------- 
   function DATA2:GetAnchorPoints_MIDIsub(take)
@@ -932,13 +951,12 @@
     if DATA.extstate.CONF_src_midi&1==1 then DATA2:GetTargets_MIDI()  end 
     if DATA.extstate.CONF_src_strmarkers&1==1 then DATA2:GetTargets_SM() end 
     
-    -- sort ref table by position 
+    -- sort src table by position 
     if DATA.extstate.CONF_act_action == 3 then 
       local sortedKeys = VF_getKeysSortedByValue(DATA2.src, function(a, b) return a < b end, 'pos')
       local t = {}
       for _, key in ipairs(sortedKeys) do t[#t+1] = DATA2.src[key] end
-      DATA2.src = t
-      
+      DATA2.src = t 
     end
   
     -- filter time selection
@@ -949,7 +967,59 @@
           if not DATA2:TimeSelMatchCondition(DATA2.src[i].pos_sec, ts_startb, ts_endb) and DATA2.src[i].ignore_search == false then DATA2.src[i].ignore_search = true end
         end
       end
-              
+        
+    -- handle grouping notes mode
+      local beats_difference_threshold = 1/64
+      local aligngroup_isActive, aligngroup_ID, aligngroup_basepos, aligngroup_masterID = nil, 0, 0, 0
+      for srcid = 1, #DATA2.src do
+        local target_t = DATA2.src[srcid]
+        local curpos = target_t.pos_beats
+        
+        -- trigger run group from this event
+          if target_t.ignore_search == false and not aligngroup_isActive then 
+            aligngroup_isActive = true
+            aligngroup_ID = aligngroup_ID + 1
+            aligngroup_basepos = curpos
+            aligngroup_masterPitch = target_t.pitch
+            target_t.aligngroup_ids = {}
+            table.insert(target_t.aligngroup_ids, srcid)
+          end
+
+        -- following notes ARE in group 
+          if target_t.ignore_search == false 
+            and aligngroup_isActive  
+            and aligngroup_ID  
+            and aligngroup_basepos  
+            and aligngroup_masterID 
+            and math.abs(aligngroup_basepos- curpos) < beats_difference_threshold 
+            and (DATA.extstate.CONF_act_groupmode_obeypitch == 0 or not (target_t.pitch and aligngroup_masterPitch)) or (DATA.extstate.CONF_act_groupmode_obeypitch == 1 and target_t.pitch and aligngroup_masterPitch and target_t.pitch ==aligngroup_masterPitch)
+            then 
+              target_t.aligngroup_ID = aligngroup_ID
+              target_t.aligngroup_masterID = aligngroup_masterID
+              target_t.aligngroup_basepos = aligngroup_basepos
+              if DATA2.src[aligngroup_masterID] then 
+                table.insert(DATA2.src[aligngroup_masterID].aligngroup_ids, srcid)
+              end
+          end
+        
+        -- following note ARE NOT in group 
+          if target_t.ignore_search == false  
+          and aligngroup_isActive  
+          and aligngroup_ID  
+          and aligngroup_basepos 
+            and math.abs(aligngroup_basepos- curpos) > beats_difference_threshold then 
+              aligngroup_masterPitch = target_t.pitch
+              aligngroup_ID = aligngroup_ID + 1
+              aligngroup_basepos = curpos
+              aligngroup_masterID = srcid
+              target_t.aligngroup_ID = aligngroup_ID
+              target_t.aligngroup_masterID = aligngroup_masterID
+              target_t.aligngroup_ids = {}
+              table.insert(target_t.aligngroup_ids, srcid)
+          end
+        
+       
+      end
           
   end
   --------------------------------------------------------------------- 
@@ -1346,7 +1416,7 @@
       if DATA2.src[i].pos_sec and DATA2.src[i].ignore_search == false then 
         if DATA2.ref[i] then
           local pos_secOUT, out_val = DATA2.ref[i].pos_sec, DATA2.ref[i].pos_val 
-          DATA2.src[i].pos_secOUT = pos_secOUT
+          DATA2.src[i].pos_secOUT = pos_secOUT - DATA.extstate.CONF_offset_ms
           DATA2.src[i].valOUT = out_val
         end
       end
@@ -1386,10 +1456,69 @@
           end   
         end
         
-        DATA2.src[i].pos_secOUT = pos_secOUT
+        DATA2.src[i].pos_secOUT = pos_secOUT - DATA.extstate.CONF_offset_ms
         DATA2.src[i].valOUT = out_val
+        
+        if DATA.extstate.CONF_maxquantize_ms > 0  then
+          if math.abs(DATA2.src[i].pos_secOUT-DATA2.src[i].pos_sec) > DATA.extstate.CONF_maxquantize_ms then 
+            if DATA.extstate.CONF_maxquantize_ignoreatreach == 1 then 
+              DATA2.src[i].ignore_search = true
+              DATA2.src[i].pos_secOUT=DATA2.src[i].pos_sec
+             else
+              if DATA2.src[i].pos_secOUT>DATA2.src[i].pos_sec then DATA2.src[i].pos_secOUT = DATA2.src[i].pos_sec + DATA.extstate.CONF_maxquantize_ms else DATA2.src[i].pos_secOUT = DATA2.src[i].pos_sec - DATA.extstate.CONF_maxquantize_ms end
+            end
+          end
+        end
+        
+        if DATA.extstate.CONF_minquantize_ms > 0 and math.abs(DATA2.src[i].pos_secOUT-DATA2.src[i].pos_sec) < DATA.extstate.CONF_minquantize_ms then
+          DATA2.src[i].ignore_search = true
+          DATA2.src[i].pos_secOUT=DATA2.src[i].pos_sec
+        end
+        
+        if DATA.extstate.CONF_act_groupmode == 1 then -- treat closer events as group
+          if DATA2.src[i].aligngroup_ID and DATA2.src[i].aligngroup_masterID and DATA2.src[i].aligngroup_masterID ~= 0 and DATA2.src[i].aligngroup_masterID ~= i and DATA.extstate.CONF_act_groupmode_direction == 0 then -- validate as slave / first note attach
+            local masterID = DATA2.src[i].aligngroup_masterID 
+            local basediff = DATA2.src[i].pos_sec - DATA2.src[masterID].pos_sec 
+            DATA2.src[i].pos_secOUT = DATA2.src[masterID].pos_secOUT  + basediff 
+          end
+        end
+        
       end
     end
+    
+    
+    if DATA.extstate.CONF_act_groupmode == 1 and DATA.extstate.CONF_act_groupmode_direction ~= 0 then -- treat closer events as group / between / last
+      for i = 1, #DATA2.src do 
+        if DATA2.src[i].aligngroup_ID and DATA2.src[i].aligngroup_masterID and DATA2.src[i].aligngroup_masterID ~= 0 then 
+          local masterID = DATA2.src[i].aligngroup_masterID 
+          local aligngroup_ids = DATA2.src[masterID].aligngroup_ids   
+          if aligngroup_ids then
+            
+            if DATA.extstate.CONF_act_groupmode_direction == 1 then -- between first event
+              local first_evt = aligngroup_ids[1]
+              local last_evt = aligngroup_ids[#aligngroup_ids]
+              local midposdiff = (DATA2.src[last_evt].pos_sec  + DATA2.src[first_evt].pos_sec )/2  - DATA2.src[i].pos_secOUT
+              for aligngroup_id = 1, #aligngroup_ids do
+                DATA2.src[i].pos_secOUT = DATA2.src[i].pos_sec-midposdiff
+              end
+            end
+            
+            if DATA.extstate.CONF_act_groupmode_direction == 2 then -- last event
+              local last_evt = aligngroup_ids[#aligngroup_ids]
+              if i ~= last_evt then
+                for aligngroup_id = 1, #aligngroup_ids-1 do
+                  local basediff = DATA2.src[i].pos_sec - DATA2.src[last_evt].pos_sec 
+                  DATA2.src[i].pos_secOUT = DATA2.src[last_evt].pos_secOUT  + basediff 
+                end
+              end
+            end
+          
+          end
+        end
+      end
+    end
+    
+    
   end
   --------------------------------------------------------------------- 
   function GUI_RESERVED_init_shortcuts(DATA)
@@ -1814,18 +1943,21 @@
   function GUI_RESERVED_BuildSettings(DATA)   
     local readoutw_extw = 150
     
-    -- grid
-      local cust_grid
-      if DATA.extstate.CONF_ref_grid&2==0 then cust_grid = DATA.extstate.CONF_ref_grid_val end
-      local grid_division, grid_str, is_triplet, grid_swingmode, grid_swingamt, grid_swingamt_format = VF_GetFormattedGrid(cust_grid)
-      if DATA.extstate.CONF_ref_grid&2==0 and DATA.extstate.CONF_ref_grid&4 == 4 then is_triplet  = true end
-      if DATA.extstate.CONF_ref_grid&2==0 and  DATA.extstate.CONF_ref_grid&8 == 8 then 
+    -- custom grid
+      local grid_division, grid_str, is_triplet, grid_swingmode, grid_swingamt, grid_swingamt_format = VF_GetFormattedGrid(DATA.extstate.CONF_ref_grid_val ) 
+      if DATA.extstate.CONF_ref_grid&4 == 4 then is_triplet  = true end
+      if DATA.extstate.CONF_ref_grid&8 == 8 then 
         grid_swingamt = DATA.extstate.CONF_ref_grid_sw
         grid_swingamt_format  = math.floor(DATA.extstate.CONF_ref_grid_sw *100)..'%'
       end 
-      if is_triplet then grid_str = grid_str..'T' end
+      if is_triplet then grid_str = grid_str..'T'  end
       if grid_swingamt ~= 0 then grid_str = grid_str..' swing '..grid_swingamt_format end
-    
+
+    -- proj grid
+      local projgrid_division, projgrid_str, projis_triplet, projgrid_swingmode, projgrid_swingamt, projgrid_swingamt_format = VF_GetFormattedGrid()
+      if projis_triplet then projgrid_str = projgrid_str..'T'  end
+      if projgrid_swingamt ~= 0 then projgrid_str = projgrid_str..' swing '..projgrid_swingamt_format end
+      
     
     -- SWS
       local readoutw_extwSWSgr = 300
@@ -1863,15 +1995,15 @@
         {str = 'Tempo markers' ,                          group = 2, itype = 'check', confkey = 'CONF_ref_timemarker', level = 1},
         
       {str = 'Anchor points pattern' ,                    group = 3, itype = 'sep'},
-        {str = 'Custom Grid ('..grid_str..')' ,           group = 3, itype = 'check', confkey = 'CONF_ref_grid', level = 1},
-          {str = '/ 2' ,                                  group = 3, itype = 'button', level = 2, hide = DATA.extstate.CONF_ref_grid&1~=1, func = function() DATA.extstate.CONF_ref_grid_val = VF_lim(DATA.extstate.CONF_ref_grid_val / 2, 1/128, 1) end },
-          {str = '* 2' ,                                  group = 3, itype = 'button', level = 2, hide = DATA.extstate.CONF_ref_grid&1~=1, func = function() DATA.extstate.CONF_ref_grid_val = VF_lim(DATA.extstate.CONF_ref_grid_val * 2, 1/128, 1) end },
-          {str = 'Triplet' ,                              group = 3, itype = 'check', level = 2, hide = DATA.extstate.CONF_ref_grid&1~=1, confkey='CONF_ref_grid', confkeybyte = 2},
-          {str = 'Swing' ,                                group = 3, itype = 'check', level = 2, hide = DATA.extstate.CONF_ref_grid&1~=1, confkey='CONF_ref_grid', confkeybyte = 3},
-          {str = 'Swing value' ,                          group = 3, itype = 'readout', level = 2, hide = DATA.extstate.CONF_ref_grid&1~=1, confkey ='CONF_ref_grid_sw', val_res = 0.05, ispercentvalue = true},
-        {str = 'Project Grid' ,                           group = 3, itype = 'check', confkey = 'CONF_ref_grid', level = 1, confkeybyte = 1},
-        {str = 'SWS Groove' ,                           group = 3, itype = 'check', confkey='CONF_ref_grid', level = 1, confkeybyte = 4},
-          {str = '' ,                               group = 3, itype = 'readout', confkey='CONF_ref_pattern_name', level = 2, menu=SWSgr,readoutw_extw = readoutw_extwSWSgr },
+        {str = 'Custom Grid ('..grid_str..')' ,           group = 3, itype = 'check', confkey = 'CONF_ref_grid', level = 1, hide = DATA.extstate.CONF_ref_grid&2==2},
+          {str = '/ 2' ,                                  group = 3, itype = 'button', level = 2, hide = DATA.extstate.CONF_ref_grid&1~=1 or DATA.extstate.CONF_ref_grid&2==2 , func = function() DATA.extstate.CONF_ref_grid_val = VF_lim(DATA.extstate.CONF_ref_grid_val / 2, 1/128, 1) end },
+          {str = '* 2' ,                                  group = 3, itype = 'button', level = 2, hide = DATA.extstate.CONF_ref_grid&1~=1 or DATA.extstate.CONF_ref_grid&2==2, func = function() DATA.extstate.CONF_ref_grid_val = VF_lim(DATA.extstate.CONF_ref_grid_val * 2, 1/128, 1) end },
+          {str = 'Triplet' ,                              group = 3, itype = 'check', level = 2, hide = DATA.extstate.CONF_ref_grid&1~=1 or DATA.extstate.CONF_ref_grid&2==2, confkey='CONF_ref_grid', confkeybyte = 2},
+          {str = 'Swing' ,                                group = 3, itype = 'check', level = 2, hide = DATA.extstate.CONF_ref_grid&1~=1 or DATA.extstate.CONF_ref_grid&2==2, confkey='CONF_ref_grid', confkeybyte = 3},
+          {str = 'Swing value' ,                          group = 3, itype = 'readout', level = 2, hide = DATA.extstate.CONF_ref_grid&1~=1 or DATA.extstate.CONF_ref_grid&2==2, confkey ='CONF_ref_grid_sw', val_res = 0.05, ispercentvalue = true},
+        {str = 'Project Grid ('..projgrid_str..')' ,          group = 3, itype = 'check', confkey = 'CONF_ref_grid', level = 1, confkeybyte = 1},
+        {str = 'SWS Groove' ,                             group = 3, itype = 'check', confkey='CONF_ref_grid', level = 1, confkeybyte = 4},
+          {str = '' ,                                     group = 3, itype = 'readout', confkey='CONF_ref_pattern_name', level = 2, menu=SWSgr,readoutw_extw = readoutw_extwSWSgr },
         {str = 'Pattern length (beats)' ,                 group = 3, itype = 'readout', confkey = 'CONF_ref_pattern_len2', level = 1, menu = { [4]='4', [8]='8', [16]='16' },}, 
         
       {str = 'Targets' ,                                  group = 4, itype = 'sep'},
@@ -1892,10 +2024,36 @@
         
       {str = 'Action' ,                                   group = 6, itype = 'sep'}, 
         {str = 'Position-based alignment' ,               group = 6, itype = 'check', confkey = 'CONF_act_action', level = 1, isset = 1, tooltip='Search and brutforce closer objects'},
-          {str = 'Direction' ,group = 6, itype = 'readout', confkey = 'CONF_act_aligndir', level = 2, hide = DATA.extstate.CONF_act_action~=1, menu={[0]='Always previous point',[1]='Closest point',[2]='Always next point'},readoutw_extw = readoutw_extw},
-        {str = 'Ordered alignment' ,                      group = 6, itype = 'check', confkey = 'CONF_act_action', level = 1, isset = 2, tooltip='Align by point order'},   
-        {str = 'Align value (velocity, gain)' ,           group = 6, itype = 'readout', confkey = 'CONF_act_valuealign', level = 1, val_res = 0.05, val_format = function(x) return math.floor(x*100)..'%' end,val_format_rev = function(x) if not (x and tonumber(x)) then return 0 end return tonumber(x)/100 end },   
-
+        {str = 'Ordered alignment' ,                      group = 6, itype = 'check', confkey = 'CONF_act_action', level = 1, isset = 2, tooltip='Align by point order'},  
+          
+       
+      {str = 'Parameters' ,                               group = 7, itype = 'sep'}, 
+        {str = 'PBA Direction' ,                          group = 7, itype = 'readout', confkey = 'CONF_act_aligndir', level = 1, hide = DATA.extstate.CONF_act_action~=1, menu={[0]='Always previous point',[1]='Closest point',[2]='Always next point'},readoutw_extw = readoutw_extw},
+        {str = 'Align value (velocity, gain)' ,           group = 7, itype = 'readout', confkey = 'CONF_act_valuealign', level = 1, val_res = 0.05, val_format = function(x) return math.floor(x*100)..'%' end,val_format_rev = function(x) if not (x and tonumber(x)) then return 0 end return tonumber(x)/100 end },   
+        {str = 'Offset' ,                                 group = 7, itype = 'readout', confkey = 'CONF_offset_ms', level = 1, val_format = function(x) return (math.floor(x*10000)/10000)..'s' end,  val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, 
+          val_min = 0, 
+          val_max = 0.5, 
+          val_res = 0.01, 
+          },
+        {str = 'Maximum distance' ,                       group = 7, itype = 'readout', confkey = 'CONF_maxquantize_ms', level = 1, val_format = function(x) return (math.floor(x*10000)/10000)..'s' end,  val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, 
+          val_min = 0, 
+          val_max = 0.5, 
+          val_res = 0.01, 
+          hide=DATA.extstate.CONF_act_action~=1
+          },   
+          {str = 'Do not quantize at reaching limit' ,    group = 7, itype = 'check', confkey = 'CONF_maxquantize_ignoreatreach', level = 2,  hide = DATA.extstate.CONF_maxquantize_ms==0},
+        {str = 'Minimum distance' ,                       group = 7, itype = 'readout', confkey = 'CONF_minquantize_ms', level = 1, val_format = function(x) return (math.floor(x*10000)/10000)..'s' end,  val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, 
+          val_min = 0, 
+          val_max = 0.5, 
+          val_res = 0.01, 
+          hide=DATA.extstate.CONF_act_action~=1
+          },          
+          
+        {str = 'GroupMode' ,       group = 7, itype = 'check', confkey = 'CONF_act_groupmode', level = 1,  hide = DATA.extstate.CONF_act_action~=1, tooltip='Interpret closer events as group'},
+        {str = 'Grouping threshold, beats' ,              group = 7, itype = 'readout', confkey = 'CONF_act_groupmode_valbeats', level = 2, hide = DATA.extstate.CONF_act_action~=1 or DATA.extstate.CONF_act_groupmode~=1,  menu={[1/128]='1/128',[1/64]='1/64',[1/32]='1/32',[1/16]='1/16',[1/8]='1/8'},readoutw_extw = readoutw_extw},
+        {str = 'MIDI: obey same pitch for notes' ,        group = 7, itype = 'check', confkey = 'CONF_act_groupmode_obeypitch', level = 2,  hide = DATA.extstate.CONF_act_action~=1 or DATA.extstate.CONF_act_groupmode~=1},
+        {str = 'Priority' ,                               group = 7, itype = 'readout', confkey = 'CONF_act_groupmode_direction', level = 2, hide = DATA.extstate.CONF_act_action~=1 or DATA.extstate.CONF_act_groupmode~=1, menu={[0]='First event',[1]='Between first and last events',[2]='Last event'},readoutw_extw = readoutw_extw},
+        
       {str = 'UI options' ,                               group = 5, itype = 'sep'},  
         {str = 'Enable shortcuts' ,                       group = 5, itype = 'check', confkey = 'UI_enableshortcuts', level = 1},
         {str = 'Init UI at mouse position' ,              group = 5, itype = 'check', confkey = 'UI_initatmouse', level = 1},
