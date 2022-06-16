@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="19f62c275647c5809891fa73043fe049f14168ec" name="MPL Scripts">
+<index version="1" commit="75bfc7e56224d6de49437ead0a1103449ff31ff0" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6161,6 +6161,15 @@ add control for timefall showing last note]]></changelog>
     </reapack>
   </category>
   <category name="Takes Properties">
+    <reapack name="mpl_Check is multichannel item mono sourced, convert to mono if need.lua" type="script" desc="Check is multichannel item mono sourced, convert to mono if need">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-06-16T04:47:31Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/75bfc7e56224d6de49437ead0a1103449ff31ff0/Takes%20Properties/mpl_Check%20is%20multichannel%20item%20mono%20sourced,%20convert%20to%20mono%20if%20need.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Color pooled MIDI takes as selected reference.lua" type="script" desc="Color pooled MIDI takes as selected reference">
       <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Takes%20Properties/mpl_Color%20pooled%20MIDI%20takes%20as%20selected%20reference.lua</source>
