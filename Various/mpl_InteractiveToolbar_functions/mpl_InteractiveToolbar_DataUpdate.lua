@@ -382,7 +382,7 @@
       Obj_UpdateEnvelope(data, obj, mouse, widgets, conf)
       cur_context = 2 
      elseif item then 
-      local obj_type = DataUpdate_Item(data)
+      local obj_type = DataUpdate_Item(data, nil, conf)
       Obj_UpdateItem(data, obj, mouse, widgets, conf)
       cur_context = 3
       if obj_type == 1 then cur_context = 5 end -- midi
@@ -559,7 +559,7 @@
     if data.TempoMarker_bpm then data.TempoMarker_bpm_format= string.format("%.3f", data.TempoMarker_bpm) end
   end
   ---------------------------------------------------
-  function DataUpdate_Item(data, item)
+  function DataUpdate_Item(data, item, conf)
     data.name = ''  
     data.it={}
     
@@ -615,19 +615,21 @@
         data.it[i].rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
         data.it[i].rate_format = math.floor(data.it[i].rate *100) / 100
         
-        local retval, sectionOut, startOut, lengthOut, fadeOut, reverseOut  = BR_GetMediaSourceProperties( take )
-        data.it[i].srclen = lengthOut
-        data.it[i].srclen_format = format_timestr_len( data.it[i].srclen, '', 0, data.ruleroverride ) 
-        data.it[i].src_reverse = reverseOut
-        data.it[i].src_start = startOut
-        data.it[i].src_fade = fadeOut
-        data.it[i].src_section = sectionOut
+        if conf.runnatAPI==0 then
+          local retval, sectionOut, startOut, lengthOut, fadeOut, reverseOut  = BR_GetMediaSourceProperties( take )
+          data.it[i].srclen = lengthOut
+          data.it[i].srclen_format = format_timestr_len( data.it[i].srclen, '', 0, data.ruleroverride ) 
+          data.it[i].src_reverse = reverseOut
+          data.it[i].src_start = startOut
+          data.it[i].src_fade = fadeOut
+          data.it[i].src_section = sectionOut
+        end
         
        else
-        local note = ULT_GetMediaItemNote( item )
-        if note then 
-          data.it[i].name = note:match('.-\n')
-        end        
+        if conf.runnatAPI==0 then
+          local note = ULT_GetMediaItemNote( item )
+          if note then data.it[i].name = note:match('.-\n') end     
+        end
       end 
       
       
