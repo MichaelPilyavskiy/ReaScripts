@@ -351,6 +351,10 @@
                             b.knob_a or DATA.GUI.default_knob_a,
                             b.knob_arca or DATA.GUI.default_knob_arca,
                             b.val or 0
+                            
+    if b.val_min and b.val_max then 
+      knob_val = (knob_val - b.val_min) / (b.val_max-b.val_min)
+    end
     local arc_r = b.knob_arcR
     local knob_minside = b.knob_minside
     x,y,w,h = 
