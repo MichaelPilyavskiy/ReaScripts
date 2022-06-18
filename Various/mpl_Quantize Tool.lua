@@ -1,27 +1,17 @@
 -- @description QuantizeTool
--- @version 3.10
+-- @version 3.11
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    # Anchor point pat/Custom grid: don`t show custom grid if project grid is active
---    # Anchor point pat/Project grid: show value
---    + Parameters: separate params section
---    + Parameters/GroupMode: interpret closer events as group
---    + Parameters/GroupMode: allow to set threshold
---    + Parameters/GroupMode: allow to except events with the different pitch from group
---    + Parameters/GroupMode: allow to set event priority
---    + Parameters/Offset: allow to set quantize offset
---    + Parameters/MaxDist: allow to set quantize maximum distance
---    + Parameters/MaxDist: allow to ignore events that reach limit
---    + Parameters/MaxDist: allow to set quantize minimum distance
+--    + Parameters/GroupMode: various internal fixes and cleanup
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.10
+    DATA.extstate.version = 3.11
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -943,6 +933,66 @@
     
   end
   --------------------------------------------------------------------- 
+  function DATA2:GetTargets_HandleGroupMode()
+    if DATA.extstate.CONF_act_groupmode == 0 then return end
+    
+    local beats_difference_threshold = DATA.extstate.CONF_act_groupmode_valbeats
+    local aligngroup_isActive, aligngroup_ID, aligngroup_basepos, aligngroup_masterID, aligngroup_masterPitch = nil, 0, 0, 0, -1
+    local last_evt_pos = -math.huge
+    
+    if DATA.extstate.CONF_act_groupmode_obeypitch == 0 then 
+      for srcid = 1, #DATA2.src do
+        local target_t = DATA2.src[srcid]
+        local curpos = target_t.pos_beats 
+        if target_t.ignore_search == false then 
+          if curpos - last_evt_pos > beats_difference_threshold then  -- init group or too far from last grouped point
+            aligngroup_ID = aligngroup_ID + 1 
+            aligngroup_masterID = srcid
+            target_t.aligngroup_ids= {[1]=srcid}
+            target_t.aligngroup_masterID = srcid
+            target_t.aligngroup_ID = aligngroup_ID
+          end 
+          if curpos - last_evt_pos < beats_difference_threshold then -- tracking events in group
+            target_t.aligngroup_ID = aligngroup_ID
+            target_t.aligngroup_masterID = aligngroup_masterID
+            if DATA2.src[aligngroup_masterID] then table.insert(DATA2.src[aligngroup_masterID].aligngroup_ids, srcid) end 
+          end
+          last_evt_pos = curpos
+        end 
+      end
+    end
+    
+    local pitch_t = {}
+    for i = -1, 127 do pitch_t[i] = {last_pos = -math.huge} end
+    if DATA.extstate.CONF_act_groupmode_obeypitch == 1 then 
+      for srcid = 1, #DATA2.src do
+        local target_t = DATA2.src[srcid]
+        local curpos = target_t.pos_beats 
+        local pitch = target_t.pitch or -1
+        if target_t.ignore_search == false then 
+        
+          if curpos - pitch_t[pitch].last_pos > beats_difference_threshold then  -- init group or too far from last grouped point
+            aligngroup_ID = aligngroup_ID + 1 
+            aligngroup_masterID = srcid
+            target_t.aligngroup_ids= {[1]=srcid}
+            target_t.aligngroup_masterID = srcid 
+            target_t.aligngroup_ID = aligngroup_ID
+            pitch_t[pitch].aligngroup_ID = aligngroup_ID
+            pitch_t[pitch].aligngroup_masterID = aligngroup_masterID
+            pitch_t[pitch].last_pos = curpos
+          elseif curpos - pitch_t[target_t.pitch].last_pos < beats_difference_threshold then -- tracking events in group
+            target_t.aligngroup_ID = pitch_t[pitch].aligngroup_ID
+            target_t.aligngroup_masterID = pitch_t[pitch].aligngroup_masterID
+            aligngroup_masterID = pitch_t[pitch].aligngroup_masterID
+            if DATA2.src[aligngroup_masterID] then table.insert(DATA2.src[aligngroup_masterID].aligngroup_ids, srcid) end 
+          end
+          last_evt_pos = curpos
+        end 
+      end
+    end
+        
+  end
+  --------------------------------------------------------------------- 
   function DATA2:GetTargets()
     DATA2.src = {}
     
@@ -952,12 +1002,10 @@
     if DATA.extstate.CONF_src_strmarkers&1==1 then DATA2:GetTargets_SM() end 
     
     -- sort src table by position 
-    if DATA.extstate.CONF_act_action == 3 then 
       local sortedKeys = VF_getKeysSortedByValue(DATA2.src, function(a, b) return a < b end, 'pos')
       local t = {}
       for _, key in ipairs(sortedKeys) do t[#t+1] = DATA2.src[key] end
       DATA2.src = t 
-    end
   
     -- filter time selection
       if DATA.extstate.CONF_act_catchsrctimesel&1==1 then
@@ -966,61 +1014,9 @@
         for i = 1, #DATA2.src do
           if not DATA2:TimeSelMatchCondition(DATA2.src[i].pos_sec, ts_startb, ts_endb) and DATA2.src[i].ignore_search == false then DATA2.src[i].ignore_search = true end
         end
-      end
-        
-    -- handle grouping notes mode
-      local beats_difference_threshold = 1/64
-      local aligngroup_isActive, aligngroup_ID, aligngroup_basepos, aligngroup_masterID = nil, 0, 0, 0
-      for srcid = 1, #DATA2.src do
-        local target_t = DATA2.src[srcid]
-        local curpos = target_t.pos_beats
-        
-        -- trigger run group from this event
-          if target_t.ignore_search == false and not aligngroup_isActive then 
-            aligngroup_isActive = true
-            aligngroup_ID = aligngroup_ID + 1
-            aligngroup_basepos = curpos
-            aligngroup_masterPitch = target_t.pitch
-            target_t.aligngroup_ids = {}
-            table.insert(target_t.aligngroup_ids, srcid)
-          end
-
-        -- following notes ARE in group 
-          if target_t.ignore_search == false 
-            and aligngroup_isActive  
-            and aligngroup_ID  
-            and aligngroup_basepos  
-            and aligngroup_masterID 
-            and math.abs(aligngroup_basepos- curpos) < beats_difference_threshold 
-            and (DATA.extstate.CONF_act_groupmode_obeypitch == 0 or not (target_t.pitch and aligngroup_masterPitch)) or (DATA.extstate.CONF_act_groupmode_obeypitch == 1 and target_t.pitch and aligngroup_masterPitch and target_t.pitch ==aligngroup_masterPitch)
-            then 
-              target_t.aligngroup_ID = aligngroup_ID
-              target_t.aligngroup_masterID = aligngroup_masterID
-              target_t.aligngroup_basepos = aligngroup_basepos
-              if DATA2.src[aligngroup_masterID] then 
-                table.insert(DATA2.src[aligngroup_masterID].aligngroup_ids, srcid)
-              end
-          end
-        
-        -- following note ARE NOT in group 
-          if target_t.ignore_search == false  
-          and aligngroup_isActive  
-          and aligngroup_ID  
-          and aligngroup_basepos 
-            and math.abs(aligngroup_basepos- curpos) > beats_difference_threshold then 
-              aligngroup_masterPitch = target_t.pitch
-              aligngroup_ID = aligngroup_ID + 1
-              aligngroup_basepos = curpos
-              aligngroup_masterID = srcid
-              target_t.aligngroup_ID = aligngroup_ID
-              target_t.aligngroup_masterID = aligngroup_masterID
-              target_t.aligngroup_ids = {}
-              table.insert(target_t.aligngroup_ids, srcid)
-          end
-        
-       
-      end
-          
+      end 
+      
+    DATA2:GetTargets_HandleGroupMode()
   end
   --------------------------------------------------------------------- 
   function DATA2:Execute_Align_Items_UpdateItemsGroup(t, pos_shift, val_shift, len_diff, rate_diff)
@@ -1423,6 +1419,89 @@
     end
   end
   --------------------------------------------------------------------- 
+  function DATA2:Quantize_CalculatePBA_handleGroupMode()   
+    if DATA.extstate.CONF_act_groupmode == 0 then return end
+    
+    --[[ reset all slave outputs position
+      for i = 1, #DATA2.src do
+        if DATA2.src[i].ignore_search == true then goto next_targ end
+        if not DATA2.src[i].aligngroup_ID then goto next_targ end
+        local aligngroup_masterID = DATA2.src[i].aligngroup_masterID
+        if aligngroup_masterID ~= i then DATA2.src[i].pos_secOUT = DATA2.src[i].pos_sec end
+        ::next_targ::
+      end]]
+    
+    -- first event align
+      if DATA.extstate.CONF_act_groupmode_direction == 0 then
+        for i = 1, #DATA2.src do
+          if DATA2.src[i].ignore_search == true then goto next_targ0 end
+          if not DATA2.src[i].aligngroup_ID then goto next_targ0 end
+          local aligngroup_masterID = DATA2.src[i].aligngroup_masterID
+          if aligngroup_masterID ~= i then goto next_targ0 end 
+          local aligngroup_ids = DATA2.src[aligngroup_masterID].aligngroup_ids
+          if #aligngroup_ids == 1 then goto next_targ0 end 
+          
+          local shift = DATA2.src[aligngroup_masterID].pos_secOUT  - DATA2.src[aligngroup_masterID].pos_sec 
+          for i2 = 1, #aligngroup_ids do
+            local slaveID = aligngroup_ids[i2]
+            if slaveID~= aligngroup_masterID then
+              local diff = DATA2.src[aligngroup_masterID].pos_secOUT-DATA2.src[aligngroup_masterID].pos_sec
+              DATA2.src[slaveID].pos_secOUT = DATA2.src[slaveID].pos_sec + diff
+            end
+          end
+          ::next_targ0::
+        end
+      end
+
+    -- last event align
+      if DATA.extstate.CONF_act_groupmode_direction == 2 then
+        for i = 1, #DATA2.src do
+          if DATA2.src[i].ignore_search == true then goto next_targ2 end
+          if not DATA2.src[i].aligngroup_ID then goto next_targ2 end
+          local aligngroup_masterID = DATA2.src[i].aligngroup_masterID
+          if aligngroup_masterID ~= i then goto next_targ2 end 
+          local aligngroup_ids = DATA2.src[aligngroup_masterID].aligngroup_ids
+          if #aligngroup_ids == 1 then goto next_targ2 end 
+          
+          local lastevtID = aligngroup_ids[#aligngroup_ids]
+          local shift = DATA2.src[lastevtID].pos_secOUT  - DATA2.src[lastevtID].pos_sec 
+          for i2 = 1, #aligngroup_ids do
+            local slaveID = aligngroup_ids[i2]
+            if slaveID~= lastevtID then
+              local diff = DATA2.src[lastevtID].pos_secOUT-DATA2.src[lastevtID].pos_sec
+              DATA2.src[slaveID].pos_secOUT = DATA2.src[slaveID].pos_sec + diff
+            end
+          end
+          ::next_targ2::
+        end
+      end
+        
+      -- between first and last event
+        if DATA.extstate.CONF_act_groupmode_direction == 1 then 
+          for i = 1, #DATA2.src do
+            if DATA2.src[i].ignore_search == true then goto next_targ1 end
+            if not DATA2.src[i].aligngroup_ID then goto next_targ1 end 
+            local aligngroup_masterID = DATA2.src[i].aligngroup_masterID
+            if aligngroup_masterID ~= i then goto next_targ1 end 
+            local aligngroup_ids = DATA2.src[aligngroup_masterID].aligngroup_ids 
+            if #aligngroup_ids == 1 then goto next_targ1 end 
+            local midID = aligngroup_ids[math.max(1,math.floor(#aligngroup_ids/2))]
+            local midOUT = DATA2.src[midID].pos_secOUT
+             
+            local first_evt = aligngroup_ids[1]
+            local last_evt = aligngroup_ids[#aligngroup_ids]
+            local midposdiff = (DATA2.src[last_evt].pos_sec  + DATA2.src[first_evt].pos_sec )/2
+            
+            local diff =  midposdiff - midOUT
+            for i2 = 1, #aligngroup_ids do
+              local slaveID = aligngroup_ids[i2]
+              DATA2.src[slaveID].pos_secOUT = DATA2.src[slaveID].pos_sec - diff
+            end
+            ::next_targ1::
+          end
+        end
+  end
+  --------------------------------------------------------------------- 
   function DATA2:Quantize_CalculatePBA() 
     
     DATA2:Quantize_CalculatePBA_addpattern()  -- convert pattern into src edges
@@ -1473,52 +1552,10 @@
         if DATA.extstate.CONF_minquantize_ms > 0 and math.abs(DATA2.src[i].pos_secOUT-DATA2.src[i].pos_sec) < DATA.extstate.CONF_minquantize_ms then
           DATA2.src[i].ignore_search = true
           DATA2.src[i].pos_secOUT=DATA2.src[i].pos_sec
-        end
-        
-        if DATA.extstate.CONF_act_groupmode == 1 then -- treat closer events as group
-          if DATA2.src[i].aligngroup_ID and DATA2.src[i].aligngroup_masterID and DATA2.src[i].aligngroup_masterID ~= 0 and DATA2.src[i].aligngroup_masterID ~= i and DATA.extstate.CONF_act_groupmode_direction == 0 then -- validate as slave / first note attach
-            local masterID = DATA2.src[i].aligngroup_masterID 
-            local basediff = DATA2.src[i].pos_sec - DATA2.src[masterID].pos_sec 
-            DATA2.src[i].pos_secOUT = DATA2.src[masterID].pos_secOUT  + basediff 
-          end
-        end
-        
+        end 
       end
     end
-    
-    
-    if DATA.extstate.CONF_act_groupmode == 1 and DATA.extstate.CONF_act_groupmode_direction ~= 0 then -- treat closer events as group / between / last
-      for i = 1, #DATA2.src do 
-        if DATA2.src[i].aligngroup_ID and DATA2.src[i].aligngroup_masterID and DATA2.src[i].aligngroup_masterID ~= 0 then 
-          local masterID = DATA2.src[i].aligngroup_masterID 
-          local aligngroup_ids = DATA2.src[masterID].aligngroup_ids   
-          if aligngroup_ids then
-            
-            if DATA.extstate.CONF_act_groupmode_direction == 1 then -- between first event
-              local first_evt = aligngroup_ids[1]
-              local last_evt = aligngroup_ids[#aligngroup_ids]
-              local midposdiff = (DATA2.src[last_evt].pos_sec  + DATA2.src[first_evt].pos_sec )/2  - DATA2.src[i].pos_secOUT
-              for aligngroup_id = 1, #aligngroup_ids do
-                DATA2.src[i].pos_secOUT = DATA2.src[i].pos_sec-midposdiff
-              end
-            end
-            
-            if DATA.extstate.CONF_act_groupmode_direction == 2 then -- last event
-              local last_evt = aligngroup_ids[#aligngroup_ids]
-              if i ~= last_evt then
-                for aligngroup_id = 1, #aligngroup_ids-1 do
-                  local basediff = DATA2.src[i].pos_sec - DATA2.src[last_evt].pos_sec 
-                  DATA2.src[i].pos_secOUT = DATA2.src[last_evt].pos_secOUT  + basediff 
-                end
-              end
-            end
-          
-          end
-        end
-      end
-    end
-    
-    
+    DATA2:Quantize_CalculatePBA_handleGroupMode() 
   end
   --------------------------------------------------------------------- 
   function GUI_RESERVED_init_shortcuts(DATA)
@@ -2073,4 +2110,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.15) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.18) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end

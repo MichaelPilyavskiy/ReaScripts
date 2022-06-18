@@ -230,11 +230,19 @@
     end
   end
   ----------------------------------------------------------------------------- 
+  function DATA:GUIhandlemousestate_is_offlayer(b)
+    local layer= b.layer
+    if not (layer and DATA.GUI.layers[layer] and DATA.GUI.layers[layer].layer_yshift) then return end
+    local real_y = (b.y+ DATA.GUI.layers[layer].layer_y  )*DATA.GUI.default_scale -DATA.GUI.layers[layer].layer_yshift
+    if real_y+b.h < DATA.GUI.layers[layer].layer_y or real_y+b.h > DATA.GUI.layers[layer].layer_y + DATA.GUI.layers[layer].layer_h then return true end
+  end
+  ----------------------------------------------------------------------------- 
   function DATA:GUIhandlemousestate()
     DATA.perform_quere = {}
     if not (DATA.GUI and DATA.GUI.buttons) then return end
     for but in spairs(DATA.GUI.buttons ) do 
       local b = DATA.GUI.buttons[but] 
+      if DATA:GUIhandlemousestate_is_offlayer(b) then goto skipb end 
       if b.ignoremouse ==true then goto skipb end 
       
       -- hovering mouse
@@ -264,6 +272,7 @@
       -- LMB
       -- handle mouse_latch on left click
         if DATA.GUI.LMB_trig == true and b.mouse_match == true then 
+          --msg(b.key)
           DATA.perform_quere[#DATA.perform_quere+1] = b.onmouseclick
           b.mouse_latch = true 
           if b.mouse_latchTS and os.clock()  - b.mouse_latchTS < DATA.GUI.doubleclicktime and b.onmousedoubleclick then
@@ -1569,138 +1578,6 @@
         if item.itype == 'button'    then last_y = DATA:GUIBuildSettings_BuildTable_Button(item, last_y) end
       end
     end
-    
-    --[[local valmsg_wratio = 3
-    local frame_a = DATA.GUI.default_listentryframea
-    local yid = 0]]
-    
-     --[[for i = 1, 1000 do
-       local key = tablename..i..'state'
-       DATA.GUI.buttons[key] = nil
-       key = tablename..i..'val' 
-       DATA.GUI.buttons[key] = nil
-       key = tablename..i..'name'
-       DATA.GUI.buttons[key] = nil
-     end]]
-     
-     
-     --[[for i = 1, #t do
-       local item = t[i]
-       if not item or item.hide == true then goto list_skip end
-       local level = item.level or 0
-       local levelname = level
-       local valmsg_wratio0 = valmsg_wratio
-       if item.valtxtw_mult then valmsg_wratio0 = item.valtxtw_mult end
-       yid = yid+ 1
-       local level_reduce = 0.75
-       local xoffs = entryh * (item.level or 0) * level_reduce
-       local txt_a =DATA.GUI.default_txt_a
-       if item.active == false then txt_a = DATA.GUI.default_txt_a_inactive end
-       
-       -- is check
-         if item.ischeck then 
-           local key = item.customkey or tablename..i
-           key = key..'state'
-           DATA.GUI.buttons[key] = 
-           {
-             x = boundaryobject.x-layershiftcompensationx + xoffs,
-             y = boundaryobject.y + entryh * (yid-1)-layershiftcompensationy+frameoffs,
-             w = entryh,
-             h = entryh-frameoffs*2,
-             back_sela = 0,
-             state = item.state,
-             layer = layer,
-             txt_flags = 1|4,
-             txt_col = item.txt_col,
-             txt_a = txt_a,
-             state_col = item.txt_col, 
-             frame_a = frame_a,
-             onmouseclick = item.onmouseclick,
-             onmousedrag = item.onmousedrag,
-             onmouserelease = item.onmouserelease,            
-             onmouseclickR = item.onmouseclickR,
-             onmousedragR = item.onmousedragR,
-             onmousereleaseR = item.onmousereleaseR,
-             hide = item.hide,
-             active = item.active,
-             ignoremouse = item.ignoremouse,
-           }
-           DATA:GUIquantizeXYWH(DATA.GUI.buttons[key])
-         end
-       
-       if item.isvalue then -- is value
-         local txt = '' if item.valtxt then txt = item.valtxt end
-         local key = item.customkey or tablename..i
-         key = key..'val' 
-         DATA.GUI.buttons[key] = 
-         {
-           x = boundaryobject.x-layershiftcompensationx + xoffs,
-           y = boundaryobject.y + entryh * (yid-1)-layershiftcompensationy+frameoffs,
-           w = entryh*valmsg_wratio0,
-           h = entryh-frameoffs*2,
-           back_sela = 0,
-           txt = txt,
-           txt_col = item.txt_col,
-           txt_a = txt_a,
-           layer = layer,
-           val = item.val,
-           val_res = item.val_res,
-           frame_a = frame_a,
-           txt_flags = 1|4,
-           onmouseclick = item.onmouseclick,
-           onmousedrag = item.onmousedrag,
-           onmouserelease = item.onmouserelease,
-           onmouseclickR = item.onmouseclickR,
-           onmousedragR = item.onmousedragR,
-           onmousereleaseR = item.onmousereleaseR,
-           hide = item.hide,
-           active = item.active,
-           ignoremouse = item.ignoremouse,
-         }
-         if item.menu then DATA.GUI.buttons[key].onmouseclick = function() DATA:GUImenu(item.menu) end end
-         DATA:GUIquantizeXYWH(DATA.GUI.buttons[key])
-       end
-       
-       
-       if item.ischeck then xoffs = xoffs + entryh + offs end
-       if item.isvalue then xoffs = xoffs + entryh*valmsg_wratio0 + offs  end
-       
-       
-       -- name
-         local key = item.customkey or tablename..i
-         key = key..'name'
-         DATA.GUI.buttons[key] = 
-         {
-           x = boundaryobject.x-layershiftcompensationx + xoffs ,
-           y = boundaryobject.y + entryh * (yid-1)-layershiftcompensationy,
-           w = boundaryobject.w-xoffs,
-           h = entryh,
-           back_sela = 0,
-           txt = item.str,
-           txt_col = item.txt_col,
-           txt_flags=4 or item.txt_flags,
-           txt_a = txt_a,
-           layer = layer,
-           frame_a=0.5,--0 or item.frame_a,
-           frame_asel=0 or item.frame_asel,
-           onmouseclick = item.onmouseclick,
-           onmousedrag = item.onmousedrag,
-           onmouserelease = item.onmouserelease,
-           onmouseclickR = item.onmouseclickR,
-           onmousedragR = item.onmousedragR,
-           onmousereleaseR = item.onmousereleaseR,
-           
-           onmousematch = item.onmousematch,
-           onmouselost = item.onmouselost,
-                   
-                   
-           hide = item.hide,
-           active = item.active,
-           ignoremouse = item.ignoremouse,
-         } 
-       DATA:GUIquantizeXYWH(DATA.GUI.buttons[key])
-       last_h = DATA.GUI.buttons[key].y+DATA.GUI.buttons[key].h
-       ::list_skip::
-     end]]
+
      return last_y+1
    end
