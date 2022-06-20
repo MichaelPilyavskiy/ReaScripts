@@ -1,14 +1,14 @@
 -- @description Adjust selected notes pitch (mousewheel)
--- @version 2.0
+-- @version 2.01
 -- @author MPL
 -- @metapackage
 -- @provides
---    [midi_editor] . > mpl_Adjust selected notes pitch (mousewheel).lua
---    [midi_editor] . > mpl_Adjust selected notes pitch obey keysnap (mousewheel).lua
---    [midi_editor] . > mpl_Adjust selected notes pitch by octave (mousewheel).lua
---    [midi_editor] . > mpl_Adjust selected notes pitch (mousewheel, inverted).lua
---    [midi_editor] . > mpl_Adjust selected notes pitch obey keysnap (mousewheel, inverted).lua
---    [midi_editor] . > mpl_Adjust selected notes pitch by octave (mousewheel, inverted).lua
+--    . > mpl_Adjust selected notes pitch (mousewheel).lua
+--    . > mpl_Adjust selected notes pitch obey keysnap (mousewheel).lua
+--    . > mpl_Adjust selected notes pitch by octave (mousewheel).lua
+--    . > mpl_Adjust selected notes pitch (mousewheel, inverted).lua
+--    . > mpl_Adjust selected notes pitch obey keysnap (mousewheel, inverted).lua
+--    . > mpl_Adjust selected notes pitch by octave (mousewheel, inverted).lua
 -- @website http://forum.cockos.com/showthread.php?t=188335  
 -- @changelog
 --    + ReaPack index: convert to metapackage
