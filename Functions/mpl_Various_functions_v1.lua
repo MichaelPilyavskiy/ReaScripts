@@ -1535,59 +1535,66 @@
           end
           return tables[1]
        end
-  -----------------------------------------------------------------------------------------
-  function VF_spk77_getinivalue(ini_file_name, section, key) -- https://forum.cockos.com/showpost.php?p=1535873&postcount=8
-    -- String functions from Haywoods DROPP Script..
-    local function VF_spk77_get_ini_value_startswith(text,prefix) return string.sub(text, 1, string.len(prefix)) == prefix end
-    local function VF_spk77_get_ini_value_split(s, sep) return s:match("([^" .. sep .. "]+)[" .. sep .. "]+(.+)") end
-    local function VF_spk77_get_ini_value_trim(s) return s:match("^%s*(.-)%s*$")end
-    
-    local section_found = false
-    local key_found = false
-    for line in io.lines(ini_file_name) do
-      -- Try to find the section
-      if not section_found and line == "[" .. section .. "]" then
-        section_found = true
-      end
+       
+       
+function VF_spk77_getinivalue(ini_file_name, section, key) -- https://forum.cockos.com/showpost.php?p=1535873&postcount=8
+  -- String functions from Haywoods DROPP Script..
+  local function VF_spk77_get_ini_value_startswith(text,prefix) return string.sub(text, 1, string.len(prefix)) == prefix end
+  local function VF_spk77_get_ini_value_split(s, sep) return s:match("([^" .. sep .. "]+)[" .. sep .. "]+(.+)") end
+  local function VF_spk77_get_ini_value_trim(s) return s:match("^%s*(.-)%s*$")end
   
-      -- Section was found, but it has no keys (-> return and show error message)
-      if section_found and VF_spk77_get_ini_value_startswith(line, "[") and line ~= "[" .. section .. "]" then
-        if section_found and not key_found then reaper.ShowConsoleMsg("Couldn't find key: " .. key .. "\n") end
-        return false
-      end
-      
-      -- Section found -> try to find the key
-      if section_found then
-        if not VF_spk77_get_ini_value_startswith(line, ";") then
-          local temp_line = line:match("([^=]+)")
-          if temp_line ~= nil and VF_spk77_get_ini_value_trim(temp_line) ~= nil then
-            temp_line = VF_spk77_get_ini_value_trim(temp_line)
-            if temp_line == key then
-              key_found = true
-              
-              -- Key found -> Try to get the value
-              local val = ({VF_spk77_get_ini_value_split(line,"=")})[2]
-              -- No value set for this key -> return an empty string
-              if val == nil then
-                val = ""
-              end
-              return VF_spk77_get_ini_value_trim(val)
+  local section_found = false
+  local key_found = false
+  local f = io.open(ini_file_name,'rb')
+  if not f then return end
+  local content = f:read('a')
+  f:close()
+  
+  
+  for line in content:gmatch('[^\r\n]+') do
+    if not section_found and line == "[" .. section .. "]" then    -- Try to find the section
+      section_found = true
+      goto skipnextline
+    end
+    
+    if section_found and line == "%[.*%]" then break end -- break at next section
+    
+    
+    if section_found then
+      if not VF_spk77_get_ini_value_startswith(line, ";") then
+        local temp_line = line:match("([^=]+)")
+        if temp_line ~= nil and VF_spk77_get_ini_value_trim(temp_line) ~= nil then
+          temp_line = VF_spk77_get_ini_value_trim(temp_line)
+          if temp_line == key then
+            key_found = true
+            
+            -- Key found -> Try to get the value
+            local val = ({VF_spk77_get_ini_value_split(line,"=")})[2]
+            -- No value set for this key -> return an empty string
+            if val == nil then
+              val = ""
             end
+            return VF_spk77_get_ini_value_trim(val)
           end
         end
       end
     end
     
-    -- Section was not found
-    if not section_found then 
-      reaper.ShowConsoleMsg("Couldn't find section: " .. section .. "\n")
-      return false
-    end
-    if not key_found then 
-      if section_found and not key_found then reaper.ShowConsoleMsg("Couldn't find key: " .. key .. "\n") end
+    ::skipnextline::
+  end
+  
+  -- Section was not found
+  if not section_found then 
+    reaper.ShowConsoleMsg("Couldn't find section: " .. section .. "\n")
     return false
-    end
-  end    
+  end
+  if not key_found then 
+    if section_found and not key_found then reaper.ShowConsoleMsg("Couldn't find key: " .. key .. "\n") end
+  return false
+  end
+end
+
+
   -- MAPPING for backwards compability --
   Open_URL = VF_Open_URL
   Action = VF_Action
