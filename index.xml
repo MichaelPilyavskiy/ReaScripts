@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2bcc6342235883fca6d459c39e6e89e12d087a7a" name="MPL Scripts">
+<index version="1" commit="780dee8bf1cc658fc41649c71508335654cb7979" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5157,6 +5157,15 @@ add control for timefall showing last note]]></changelog>
         <source file="mpl_Adjust selected notes pitch (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2bcc6342235883fca6d459c39e6e89e12d087a7a/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
         <source file="mpl_Adjust selected notes pitch obey keysnap (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2bcc6342235883fca6d459c39e6e89e12d087a7a/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
         <source file="mpl_Adjust selected notes pitch by octave (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2bcc6342235883fca6d459c39e6e89e12d087a7a/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+      </version>
+      <version name="2.02" author="MPL" time="2022-06-21T04:25:02Z">
+        <changelog><![CDATA[# ReaPack index: fix ME section]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/780dee8bf1cc658fc41649c71508335654cb7979/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch obey keysnap (mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/780dee8bf1cc658fc41649c71508335654cb7979/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch by octave (mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/780dee8bf1cc658fc41649c71508335654cb7979/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/780dee8bf1cc658fc41649c71508335654cb7979/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch obey keysnap (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/780dee8bf1cc658fc41649c71508335654cb7979/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
+        <source main="midi_editor" file="mpl_Adjust selected notes pitch by octave (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/780dee8bf1cc658fc41649c71508335654cb7979/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Copy selected CC.lua" type="script" desc="Copy selected CC">
