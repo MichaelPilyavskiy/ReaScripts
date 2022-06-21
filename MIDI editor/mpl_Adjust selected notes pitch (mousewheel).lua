@@ -1,21 +1,17 @@
 -- @description Adjust selected notes pitch (mousewheel)
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @metapackage
 -- @provides
---    . > mpl_Adjust selected notes pitch (mousewheel).lua
---    . > mpl_Adjust selected notes pitch obey keysnap (mousewheel).lua
---    . > mpl_Adjust selected notes pitch by octave (mousewheel).lua
---    . > mpl_Adjust selected notes pitch (mousewheel, inverted).lua
---    . > mpl_Adjust selected notes pitch obey keysnap (mousewheel, inverted).lua
---    . > mpl_Adjust selected notes pitch by octave (mousewheel, inverted).lua
+--    [main=midi_editor] . > mpl_Adjust selected notes pitch (mousewheel).lua
+--    [main=midi_editor] . > mpl_Adjust selected notes pitch obey keysnap (mousewheel).lua
+--    [main=midi_editor] . > mpl_Adjust selected notes pitch by octave (mousewheel).lua
+--    [main=midi_editor] . > mpl_Adjust selected notes pitch (mousewheel, inverted).lua
+--    [main=midi_editor] . > mpl_Adjust selected notes pitch obey keysnap (mousewheel, inverted).lua
+--    [main=midi_editor] . > mpl_Adjust selected notes pitch by octave (mousewheel, inverted).lua
 -- @website http://forum.cockos.com/showthread.php?t=188335  
 -- @changelog
---    + ReaPack index: convert to metapackage
---    # correct undo flags
---    + add mpl_Adjust selected notes pitch by octave (mousewheel).lua
---    + add mpl_Adjust selected notes pitch obey keysnap (mousewheel).lua
---    + add inverted versions
+--    # ReaPack index: fix ME section
 
   function MoveNotesVertically_Scale(pitch, dir, pat)
     local note = (pitch % 12)
