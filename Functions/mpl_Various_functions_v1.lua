@@ -1571,10 +1571,10 @@ function VF_spk77_getinivalue(ini_file_name, section, key) -- https://forum.cock
             -- Key found -> Try to get the value
             local val = ({VF_spk77_get_ini_value_split(line,"=")})[2]
             -- No value set for this key -> return an empty string
-            if val == nil then
-              val = ""
-            end
-            return VF_spk77_get_ini_value_trim(val)
+            if val == nil then val = "" end
+            val = VF_spk77_get_ini_value_trim(val)
+            if tonumber(val) then val = tonumber(val) end
+            return val
           end
         end
       end

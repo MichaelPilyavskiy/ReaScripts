@@ -1,5 +1,5 @@
 -- @description Create send between selected tracks and track under mouse cursor
--- @version 1.14
+-- @version 1.15
 -- @author MPL
 -- @metapackage
 -- @provides
@@ -40,11 +40,7 @@
 --    [main] . > mpl_Send track under mouse cursor to selected tracks (channel 15-16 to 1-2).lua
 -- @website http://forum.cockos.com/showthread.php?t=188335  
 -- @changelog
---    + Proper undo flags
---    + Remove SWS dependency
---    + Send selected tracks to track under mouse cursor (channel 1-2 to 1-2, post-fader)
---    + Send selected tracks to track under mouse cursor (channel 1-2 to 1-2, pre-fx)
---    + Send selected tracks to track under mouse cursor (channel 1-2 to 1-2, post-fx)
+--    # improve data transfer
 
   
 
@@ -78,12 +74,12 @@
     end
   end
   ---------------------------------------------------------------------   
-  function AddSends(source_type, src_t0, dest_t0, MCH_mode, src_ch, dest_ch, defsendvol, defsendflag, custom_sendmode)
-     src_t, dest_t = CopyTable(src_t0), CopyTable(dest_t0)
-    if source_type == false then  src_t, dest_t = CopyTable(dest_t0), CopyTable(src_t0) end
+  function AddSends(data_t, src_t0, dest_t0)
+    local src_t, dest_t = CopyTable(src_t0), CopyTable(dest_t0)
+    if data_t.source_type == false then  src_t, dest_t = CopyTable(dest_t0), CopyTable(src_t0) end
     
     -- validate mode
-      if MCH_mode==false and not (src_ch and dest_ch) then return end
+      if data_t.MCH_mode==false and not (data_t.src_ch and data_t.dest_ch) then return end
     
     -- loop source tracks
     for srci = 1, #src_t do
@@ -101,18 +97,18 @@
             local dest_tr_dest_ch = GetTrackSendInfo_Value( src_tr, 0, sendid-1, 'I_DSTCHAN')
             
             
-            if (dest_tr_check == dest_tr and dest_tr_src_ch == src_ch-1 and dest_tr_dest_ch == dest_ch-1) then is_exist = true break end
+            if (dest_tr_check == dest_tr and dest_tr_src_ch == data_t.src_ch-1 and dest_tr_dest_ch == data_t.dest_ch-1) then is_exist = true break end
           end
         
         -- perform main stuff
         if not is_exist then  
           local new_id = CreateTrackSend( src_tr, dest_tr )
-          SetTrackSendInfo_Value( src_tr, 0, new_id, 'D_VOL', defsendvol)
-          local sendmode = defsendflag
-          if custom_sendmode then sendmode = custom_sendmode end
-          SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SENDMODE', defsendflag&255) -- obey MIDI flag
+          SetTrackSendInfo_Value( src_tr, 0, new_id, 'D_VOL', data_t.defsendvol)
+          local sendmode = data_t.defsendflag
+          if data_t.custom_sendmode then sendmode = data_t.custom_sendmode end
+          SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SENDMODE', sendmode&255) -- obey MIDI flag
           
-          if MCH_mode == true then
+          if data_t.MCH_mode == true then
             local dest_tr_ch = GetMediaTrackInfo_Value( dest_tr, 'I_NCHAN')
             if dest_tr_ch < src_tr_ch then SetMediaTrackInfo_Value( dest_tr, 'I_NCHAN', src_tr_ch ) end -- increase dest channel count up to src track
             SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', 0) -- always start multichannel from 1st chan
@@ -120,11 +116,11 @@
             SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SRCCHAN',src_flag)
           end
           
-          if MCH_mode == false then
-            if GetMediaTrackInfo_Value( src_tr, 'I_NCHAN'  ) < src_ch+1 then SetMediaTrackInfo_Value( src_tr, 'I_NCHAN', src_ch+1  ) end 
-            if GetMediaTrackInfo_Value( dest_tr, 'I_NCHAN'  ) < dest_ch+1 then SetMediaTrackInfo_Value( dest_tr, 'I_NCHAN', dest_ch+1  ) end  
-            SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SRCCHAN', src_ch-1)
-            SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', dest_ch-1)
+          if data_t.MCH_mode == false then
+            if GetMediaTrackInfo_Value( src_tr, 'I_NCHAN'  ) < data_t.src_ch+1 then SetMediaTrackInfo_Value( src_tr, 'I_NCHAN', data_t.src_ch+1  ) end 
+            if GetMediaTrackInfo_Value( dest_tr, 'I_NCHAN'  ) < data_t.dest_ch+1 then SetMediaTrackInfo_Value( dest_tr, 'I_NCHAN', data_t.dest_ch+1  ) end  
+            SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SRCCHAN', data_t.src_ch-1)
+            SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', data_t.dest_ch-1)
           end   
                    
         end
@@ -153,22 +149,23 @@
     return source_type, MCH_mode, src_ch, dest_ch, script_title, custom_sendmode
   end
   ---------------------------------------------------------------------  
-  function main(source_type, MCH_mode, src_ch, dest_ch, script_title, defsendvol, defsendflag, custom_sendmode)
+  function main(data_t)
     Undo_BeginBlock()
     local src_GUID = GetSrcTrGUID()
     local dest_GUID = GetDestTrGUID()    
     Check_t(src_GUID,dest_GUID)
     if #src_GUID < 1 or #dest_GUID < 1 then return end
-    AddSends(source_type, src_GUID,dest_GUID, MCH_mode, src_ch, dest_ch, defsendvol, defsendflag, custom_sendmode)
+    AddSends(data_t, src_GUID,dest_GUID)
     TrackList_AdjustWindows(false)
-    Undo_EndBlock(script_title, 0xFFFFFFFF) 
+    Undo_EndBlock(data_t.script_title, 0xFFFFFFFF) 
   end 
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.17) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then 
+  local ret = VF_CheckFunctions(3.20) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then 
     local defsendvol = VF_spk77_getinivalue( get_ini_file(), 'REAPER', 'defsendvol')
     local defsendflag = VF_spk77_getinivalue( get_ini_file(), 'REAPER', 'defsendflag')
     local source_type, MCH_mode, src_ch, dest_ch, script_title, custom_sendmode = Parsing_filename()
-    main(source_type, MCH_mode, src_ch, dest_ch, script_title, defsendvol, defsendflag, custom_sendmode)
+    local data_t = {source_type=source_type, MCH_mode=MCH_mode, src_ch=src_ch, dest_ch=dest_ch, script_title=script_title, defsendvol=defsendvol, defsendflag=defsendflag, custom_sendmode=custom_sendmode}
+    main(data_t)
   end end
