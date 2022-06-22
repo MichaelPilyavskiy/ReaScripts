@@ -1,17 +1,17 @@
 -- @description QuantizeTool
--- @version 3.11
+-- @version 3.12
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    + Parameters/GroupMode: various internal fixes and cleanup
+--    + GroupMode: add 1/4, 1/2 threshold
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.11
+    DATA.extstate.version = 3.12
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -2087,7 +2087,8 @@
           },          
           
         {str = 'GroupMode' ,       group = 7, itype = 'check', confkey = 'CONF_act_groupmode', level = 1,  hide = DATA.extstate.CONF_act_action~=1, tooltip='Interpret closer events as group'},
-        {str = 'Grouping threshold, beats' ,              group = 7, itype = 'readout', confkey = 'CONF_act_groupmode_valbeats', level = 2, hide = DATA.extstate.CONF_act_action~=1 or DATA.extstate.CONF_act_groupmode~=1,  menu={[1/128]='1/128',[1/64]='1/64',[1/32]='1/32',[1/16]='1/16',[1/8]='1/8'},readoutw_extw = readoutw_extw},
+        {str = 'Grouping threshold, beats' ,              group = 7, itype = 'readout', confkey = 'CONF_act_groupmode_valbeats', level = 2, hide = DATA.extstate.CONF_act_action~=1 or DATA.extstate.CONF_act_groupmode~=1,  
+          menu={[1/128]='1/128',[1/64]='1/64',[1/32]='1/32',[1/16]='1/16',[1/8]='1/8',[1/4]='1/4',[1/2]='1/2'},readoutw_extw = readoutw_extw},
         {str = 'MIDI: obey same pitch for notes' ,        group = 7, itype = 'check', confkey = 'CONF_act_groupmode_obeypitch', level = 2,  hide = DATA.extstate.CONF_act_action~=1 or DATA.extstate.CONF_act_groupmode~=1},
         {str = 'Priority' ,                               group = 7, itype = 'readout', confkey = 'CONF_act_groupmode_direction', level = 2, hide = DATA.extstate.CONF_act_action~=1 or DATA.extstate.CONF_act_groupmode~=1, menu={[0]='First event',[1]='Between first and last events',[2]='Last event'},readoutw_extw = readoutw_extw},
         
