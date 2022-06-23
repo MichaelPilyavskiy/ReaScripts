@@ -1,11 +1,9 @@
 -- @description Create ReaComp sidechain routing (always new renamed instance)
--- @version 1.07
+-- @version 1.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init from Create ReaComp sidechain routing 1.06
---    # rename FX to ReaComp SC, do not create if such name is already exists
---    # ignore existin non-'ReaComp SC' instance
+--    # fix check for reacomp name
   
   
   local threshold = 0.25
@@ -41,8 +39,8 @@
   function MPL_CreateReaCompSidechainRouting_addcomp(dest_tr)
     local sccomp_name = 'ReaComp SC'
     for fx = 1,  reaper.TrackFX_GetCount( dest_tr ) do
-      local retval, buf = reaper.TrackFX_GetFXName( track, fx-1 )
-      if retval then 
+      local retval, buf = reaper.TrackFX_GetFXName( dest_tr, fx-1 )
+      if retval then  
         if buf:match(sccomp_name ) then return end
       end
     end
