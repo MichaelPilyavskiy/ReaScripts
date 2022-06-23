@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f2d5b06d83d61577c6b39fb26dece514c02a9d81" name="MPL Scripts">
+<index version="1" commit="c5f892ae61b7c23d079782917a8945bccd3023b1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2712,6 +2712,17 @@
       <version name="1.03" author="MPL" time="2022-05-23T19:14:38Z">
         <changelog><![CDATA[# obey MIDI notes length]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b86e31771a27823f09842cc70f2a4bb30efe861b/FX%20specific/mpl_Convert%20RS5k%20MIDI%20item%20into%20source%20based%20audio%20items%20(drum%20mode).lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Create ReaComp sidechain routing (always new renamed instance).lua" type="script" desc="Create ReaComp sidechain routing (always new renamed instance)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.07" author="MPL" time="2022-06-23T19:34:01Z">
+        <changelog><![CDATA[+ init from Create ReaComp sidechain routing 1.06
+# rename FX to ReaComp SC, do not create if such name is already exists
+# ignore existin non-'ReaComp SC' instance]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c5f892ae61b7c23d079782917a8945bccd3023b1/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(always%20new%20renamed%20instance).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing (ask for track IDs).lua" type="script" desc="Create ReaComp sidechain routing (ask for track IDs)">
