@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="c5f892ae61b7c23d079782917a8945bccd3023b1" name="MPL Scripts">
+<index version="1" commit="c768c66598ab67b372f36b23c50cd0fd98d45618" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2723,6 +2723,10 @@
 # rename FX to ReaComp SC, do not create if such name is already exists
 # ignore existin non-'ReaComp SC' instance]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c5f892ae61b7c23d079782917a8945bccd3023b1/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(always%20new%20renamed%20instance).lua</source>
+      </version>
+      <version name="1.08" author="MPL" time="2022-06-23T19:48:32Z">
+        <changelog><![CDATA[# fix check for reacomp name]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c768c66598ab67b372f36b23c50cd0fd98d45618/FX%20specific/mpl_Create%20ReaComp%20sidechain%20routing%20(always%20new%20renamed%20instance).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Create ReaComp sidechain routing (ask for track IDs).lua" type="script" desc="Create ReaComp sidechain routing (ask for track IDs)">
