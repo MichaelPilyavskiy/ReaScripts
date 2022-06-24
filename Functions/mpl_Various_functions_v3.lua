@@ -1208,7 +1208,7 @@
         x = settingsxoffs+level*settingsit_offs,
         y = settingsyoffs,--settingsyoffs + settingsit_h * (idx-1),
         w = settingsit_w-level*settingsit_offs,
-        h = settingsit_h-2,
+        h = settingsit_h-3,
         layer = settingsit_layer,
         txt = t.str,
         txt_flags=4 ,
@@ -1221,7 +1221,7 @@
                             if t.func_onrelease then t.func_onrelease() end
                           end
       }
-      return DATA.GUI.buttons[key].y+DATA.GUI.buttons[key].h
+      return DATA.GUI.buttons[key].y+DATA.GUI.buttons[key].h+2
     end
   --------------------------------------------------------------------- 
   function DATA:GUIBuildSettings_BuildTable_Sep(t, settingsyoffs) 
