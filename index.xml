@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cf4b21f1c341dc480714e7893b742f6a15d66fb3" name="MPL Scripts">
+<index version="1" commit="55e612f5e2e9cd3346e86cf06ff53d4ca5d9b30e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -9831,6 +9831,17 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL" time="2022-06-24T22:27:42Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cf4b21f1c341dc480714e7893b742f6a15d66fb3/Various/mpl_Sampling%20tool.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2022-06-25T06:44:16Z">
+        <changelog><![CDATA[+ Due to REAPER crashes while adding a lot rs5k instances at short time, added schedule mode
++ AddRs5k/Shedule mode: add option to change schedule pause
++ AddRs5k: add option to hide new instances
++ AddRs5k/Rename: add option to rename new instances
++ AddRs5k/Rename: allow wildcards
++ AddRs5k/Rename: add #note wildcard
+# do not allow to set notes boundary negative crossing each other
+# fix non - integer internal values for menu readout fields]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55e612f5e2e9cd3346e86cf06ff53d4ca5d9b30e/Various/mpl_Sampling%20tool.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_SendFader (background).lua" type="script" desc="SendFader">
