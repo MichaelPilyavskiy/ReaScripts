@@ -1552,7 +1552,7 @@ function VF_spk77_getinivalue(ini_file_name, section, key) -- https://forum.cock
   
   
   for line in content:gmatch('[^\r\n]+') do
-    if not section_found and line == "[" .. section .. "]" then    -- Try to find the section
+    if not section_found and line:lower() == "[" .. section:lower() .. "]" then    -- Try to find the section
       section_found = true
       goto skipnextline
     end
@@ -1565,7 +1565,7 @@ function VF_spk77_getinivalue(ini_file_name, section, key) -- https://forum.cock
         local temp_line = line:match("([^=]+)")
         if temp_line ~= nil and VF_spk77_get_ini_value_trim(temp_line) ~= nil then
           temp_line = VF_spk77_get_ini_value_trim(temp_line)
-          if temp_line == key then
+          if temp_line:lower() == key:lower() then
             key_found = true
             
             -- Key found -> Try to get the value
