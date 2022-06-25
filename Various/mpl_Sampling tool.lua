@@ -1,10 +1,17 @@
 -- @description Sampling tool
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @about Sample instrument to a rs5k sampler
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    + Due to REAPER crashes while adding a lot rs5k instances at short time, added schedule mode
+--    + AddRs5k/Shedule mode: add option to change schedule pause
+--    + AddRs5k: add option to hide new instances
+--    + AddRs5k/Rename: add option to rename new instances
+--    + AddRs5k/Rename: allow wildcards
+--    + AddRs5k/Rename: add #note wildcard
+--    # do not allow to set notes boundary negative crossing each other
+--    # fix non - integer internal values for menu readout fields
 
     
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
@@ -14,7 +21,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.0
+    DATA.extstate.version = 1.01
     DATA.extstate.extstatesection = 'SamplingTool'
     DATA.extstate.mb_title = 'MPL Sampling tool'
     DATA.extstate.default = 
@@ -34,13 +41,18 @@
                           CONF_noteend = 72,
                           CONF_itempos_beats = 0,
                           
+                          CONF_schedmode = 1,
+                          CONF_schedmode_s = 1, 
+                          CONF_showflag = 2,
+                          CONF_rename = 0,
+                          CONF_rename_wildcard = 'RS5k #note',
+                          
                           -- UI
                           UI_appatchange = 0, 
                           UI_enableshortcuts = 0,
                           UI_initatmouse = 0,
                           UI_showtooltips = 1,
                           UI_groupflags = 0,
-                          UI_processoninit = 0,
                           
                           }
                           
@@ -54,9 +66,7 @@
       DATA.extstate.wind_y = y-h/2
     end
     
-    if DATA.extstate.UI_processoninit == 1 then
-      DATA2:Process()
-    end
+
     DATA:GUIinit()
     GUI_RESERVED_init(DATA)
     RUN()
@@ -72,6 +82,7 @@
       DATA.GUI.custom_offset = math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
       DATA.GUI.custom_mainsepx = gfx.w/DATA.GUI.default_scale--(gfx.w/DATA.GUI.default_scale)*0.4-- *DATA.GUI.default_scale--400*DATA.GUI.default_scale--
       DATA.GUI.custom_mainbutw = (gfx.w/DATA.GUI.default_scale-DATA.GUI.custom_offset*3) --(gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx)-DATA.GUI.custom_offset*3
+      DATA.GUI.custom_mainbutw2 = 0.5*(gfx.w/DATA.GUI.default_scale-DATA.GUI.custom_offset*3) --(gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx)-DATA.GUI.custom_offset*3
       DATA.GUI.custom_scrollw = 10
       DATA.GUI.custom_frameascroll = 0.05
       DATA.GUI.custom_default_framea_normal = 0.1
@@ -127,7 +138,7 @@
                                             end}                                             
       DATA.GUI.buttons.app4 = {  x=DATA.GUI.custom_offset,--*2 + DATA.GUI.custom_mainbutw,
                             y=DATA.GUI.custom_offset+(DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*3,
-                            w=DATA.GUI.custom_mainbutw,
+                            w=DATA.GUI.custom_mainbutw2-DATA.GUI.custom_offset,
                             h=DATA.GUI.custom_mainbuth,
                             txt = '4. Perform sampling',
                             txt_fontsz = DATA.GUI.default_txt_fontsz2,
@@ -137,8 +148,19 @@
                                               Undo_BeginBlock()
                                               DATA2:Process_PerformSampling()
                                               Undo_EndBlock( DATA.extstate.mb_title..' - sample FX', 4 )
-                                            end}                                            
-                                                                                      
+                                            end}    
+      DATA.GUI.buttons.app4s = {  x=DATA.GUI.custom_offset+DATA.GUI.custom_mainbutw2,
+                            y=DATA.GUI.custom_offset+(DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*3,
+                            w=DATA.GUI.custom_mainbutw2,
+                            h=DATA.GUI.custom_mainbuth,
+                            txt = 'Stop sampling',
+                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
+                            hide = DATA.GUI.compactmode==1,
+                            ignoremouse = DATA.GUI.compactmode==1,
+                            onmouseclick =  function() 
+                                              DATA.perform_quere_sheduled  = nil
+                                            end}                                             
+                                                                                     
       DATA.GUI.buttons.preset = { x=DATA.GUI.custom_offset,
                             y=DATA.GUI.custom_offset+(DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*4,
                             w=DATA.GUI.custom_mainbutw,--*2+DATA.GUI.custom_offset,
@@ -250,26 +272,52 @@
     local notecnt_end = DATA.extstate.CONF_noteend
     local notecnt = notecnt_end-notecnt_start + 1
     
+    if DATA.extstate.CONF_schedmode==1 then DATA.perform_quere_sheduled = {} end
     for pitch = notecnt_start, notecnt_end do
-      local fx = reaper.TrackFX_AddByName( tr, 'ReaSamplOmatic5000 (Cockos)', false, -1 )
-      TrackFX_SetNamedConfigParm( tr, fx, 'FILE0', filename )
-      reaper.TrackFX_SetParamNormalized( tr, fx, 21, 1 )-- filter played notes
-      local rs5k_note_norm = pitch/127
-      local rs5k_offset = (pitch-notecnt_start)/notecnt
-      reaper.TrackFX_SetParamNormalized( tr, fx, 3, rs5k_note_norm )-- start range
-      reaper.TrackFX_SetParamNormalized( tr, fx, 4, rs5k_note_norm )-- end range
-      reaper.TrackFX_SetParamNormalized( tr, fx, 5, rs5k_note_norm )-- start note
-      reaper.TrackFX_SetParamNormalized( tr, fx, 6, rs5k_note_norm )-- end note
-      
-      reaper.TrackFX_SetParamNormalized( tr, fx, 13, rs5k_offset )-- offset start
-      reaper.TrackFX_SetParamNormalized( tr, fx, 14, rs5k_offset + 1/notecnt)-- offset end
-      
+      local function add_rs5k()
+        local fx = reaper.TrackFX_AddByName( tr, 'ReaSamplOmatic5000 (Cockos)', false, -1 )
+        TrackFX_SetNamedConfigParm( tr, fx, 'FILE0', filename )
+        TrackFX_SetParamNormalized( tr, fx, 21, 1 )-- filter played notes
+        local rs5k_note_norm = pitch/127
+        local rs5k_offset = (pitch-notecnt_start)/notecnt
+        TrackFX_SetParamNormalized( tr, fx, 3, rs5k_note_norm )-- start range
+        TrackFX_SetParamNormalized( tr, fx, 4, rs5k_note_norm )-- end range
+        TrackFX_SetParamNormalized( tr, fx, 5, rs5k_note_norm )-- start note
+        TrackFX_SetParamNormalized( tr, fx, 6, rs5k_note_norm )-- end note
+        
+        TrackFX_SetParamNormalized( tr, fx, 13, rs5k_offset )-- offset start
+        TrackFX_SetParamNormalized( tr, fx, 14, rs5k_offset + 1/notecnt)-- offset end]]
+        
+        if DATA.extstate.CONF_showflag ~= -1 then TrackFX_Show( tr, fx, DATA.extstate.CONF_showflag )  else
+          TrackFX_Show( tr, fx, 1 )
+          TrackFX_Show( tr, fx, 2 )
+        end
+        
+        if DATA.extstate.CONF_rename == 1 then
+          local new_name = DATA.extstate.CONF_rename_wildcard
+          new_name = new_name:gsub('#note', pitch)
+          SetFXName(tr, fx, new_name)
+        end
+        
+      end
+      if DATA.extstate.CONF_schedmode==1 then table.insert(DATA.perform_quere_sheduled,add_rs5k) else add_rs5k() end
     end
     
   end
   ----------------------------------------------------------------------
+  function DATA_RESERVED_DYNUPDATE(DATA)
+    if not DATA.perform_quere_sheduledTS then DATA.perform_quere_sheduledTS = 0 end
+    if not DATA.perform_quere_sheduled or (DATA.perform_quere_sheduled and #DATA.perform_quere_sheduled==0) then return end
+    local f= DATA.perform_quere_sheduled[1]
+    if f and os.clock()-DATA.perform_quere_sheduledTS > DATA.extstate.CONF_schedmode_s then
+      f()
+      table.remove(DATA.perform_quere_sheduled,1)
+      DATA.perform_quere_sheduledTS = os.clock()
+    end
+  end
+  ----------------------------------------------------------------------
   function DATA2:ProcessAtChange(DATA)
-    if DATA.extstate.UI_appatchange&1==1 then DATA2:Process() end
+  
   end
   ---------------------------------------------------------------------  
   function GUI_RESERVED_BuildSettings(DATA)
@@ -283,6 +331,7 @@
         val_res = 0.05, 
         val_min = 1, 
         val_max = 64, 
+        val_isinteger = true,
         val_format = function(x) return math.floor(x) end, 
         val_format_rev = function(x) if not tonumber(x) then return end return math.floor(x) end, 
         },
@@ -290,23 +339,48 @@
         val_res = 0.05, 
         val_min = 1, 
         val_max = 64, 
+        val_isinteger = true,
         val_format = function(x) return math.floor(x) end, 
         val_format_rev = function(x) if not tonumber(x) then return end return math.floor(x) end, 
         },
         {str = 'Note start' ,                           group = 1, itype = 'readout', confkey = 'CONF_notestart', level = 1, 
         val_res = 0.05, 
         val_min = 0, 
-        val_max = 127, 
+        val_max = DATA.extstate.CONF_noteend, 
+        val_isinteger = true,
         val_format = function(x) return math.floor(x) end, 
         val_format_rev = function(x) if not tonumber(x) then return end return math.floor(x) end, 
         },        
         {str = 'Note end' ,                           group = 1, itype = 'readout', confkey = 'CONF_noteend', level = 1, 
         val_res = 0.05, 
-        val_min = 0, 
+        val_min = DATA.extstate.CONF_notestart, 
         val_max = 127, 
+        val_isinteger = true,
         val_format = function(x) return math.floor(x) end, 
         val_format_rev = function(x) if not tonumber(x) then return end return math.floor(x) end, 
-        },           
+        },  
+      
+      {str = 'Adding RS5k instances' ,                group = 2, itype = 'sep'},    
+        {str = 'Schedule mode',                      group = 2, itype = 'check', confkey = 'CONF_schedmode', level = 1}, 
+        {str = 'Pause between adding new instances' , group = 2, itype = 'readout', confkey = 'CONF_schedmode_s', level = 1,
+        val_res = 0.05, 
+        val_min = 0.5, 
+        val_max = 3, 
+        val_format = function(x) return math.floor(x*100)/100 end, 
+        val_format_rev = function(x) if not tonumber(x) then return end return math.floor(x) end, 
+        hide =  DATA.extstate.CONF_schedmode ~= 1
+        }, 
+        {str = 'Show FX' ,                         group = 2, itype = 'readout', level = 1,  confkey = 'CONF_showflag', menu = {[-1]='Show chain, hide floating', [1]='Show FX chain', [2]='Hide floating window', [3]='Show floating window'},readoutw_extw=readoutw_extw},
+        {str = 'Rename',                           group = 2, itype = 'check', confkey = 'CONF_rename', level = 1}, 
+          {str = 'Wildcards' ,                     group = 2, itype = 'readout', level = 2,  confkey = 'CONF_rename_wildcard',val_isstring=true,readoutw_extw=readoutw_extw,hide =  DATA.extstate.CONF_rename ~= 1},
+          {str = 'Clear' ,                         group = 2, itype = 'button', level = 3, func_onrelease = function() DATA.extstate.CONF_rename_wildcard = 'RS5k' DATA.UPD.onconfchange = true DATA.UPD.onGUIinit = true end,hide =  DATA.extstate.CONF_rename ~= 1},
+          {str = '#note' ,                         group = 2, itype = 'button', level = 3, func_onrelease = function() DATA.extstate.CONF_rename_wildcard = DATA.extstate.CONF_rename_wildcard..' #note' DATA.UPD.onconfchange = true DATA.UPD.onGUIinit = true end,hide =  DATA.extstate.CONF_rename ~= 1},
+        
+        
+    } 
+    return t
+    
+  end        
           --[[{str = 'Global' ,                       group = 1, itype = 'sep'}, 
         {str = 'Bypass',                      group = 1, itype = 'check', confkey = 'CONF_bypass', level = 1, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
         {str = 'Mode' ,                       group = 1, itype = 'readout', level = 1,  confkey = 'CONF_mode', menu = { 
@@ -467,10 +541,6 @@
         --{str = 'Show tootips' ,               group = 5, itype = 'check', confkey = 'UI_showtooltips', level = 1},
         {str = 'Process on settings change',    group = 5, itype = 'check', confkey = 'UI_appatchange', level = 1},
         {str = 'Process on initialization',     group = 5, itype = 'check', confkey = 'UI_processoninit', level = 1},]]
-    } 
-    return t
-    
-  end
 
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
