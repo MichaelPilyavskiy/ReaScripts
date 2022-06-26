@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="55e612f5e2e9cd3346e86cf06ff53d4ca5d9b30e" name="MPL Scripts">
+<index version="1" commit="e497e953ec20bef4fc3c1fefdab30c5bf9a81731" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1110,6 +1110,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cf4b21f1c341dc480714e7893b742f6a15d66fb3/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cf4b21f1c341dc480714e7893b742f6a15d66fb3/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cf4b21f1c341dc480714e7893b742f6a15d66fb3/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.22" author="MPL" time="2022-06-25T07:13:12Z">
+        <changelog><![CDATA[# fix case sensivity for VF_spk77_getinivalue]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40a5fcfefd3d349c4aa7895e212d4ac1db34cb5e/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40a5fcfefd3d349c4aa7895e212d4ac1db34cb5e/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40a5fcfefd3d349c4aa7895e212d4ac1db34cb5e/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40a5fcfefd3d349c4aa7895e212d4ac1db34cb5e/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40a5fcfefd3d349c4aa7895e212d4ac1db34cb5e/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40a5fcfefd3d349c4aa7895e212d4ac1db34cb5e/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -9842,6 +9851,13 @@ add control for timefall showing last note]]></changelog>
 # do not allow to set notes boundary negative crossing each other
 # fix non - integer internal values for menu readout fields]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55e612f5e2e9cd3346e86cf06ff53d4ca5d9b30e/Various/mpl_Sampling%20tool.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2022-06-26T16:49:57Z">
+        <changelog><![CDATA[# remove depencency from apply FX tail
+# Generate MIDI: select item
++ Add option to add test MIDI item for sampler track
++ Add option to fill boundaries]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e497e953ec20bef4fc3c1fefdab30c5bf9a81731/Various/mpl_Sampling%20tool.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_SendFader (background).lua" type="script" desc="SendFader">
