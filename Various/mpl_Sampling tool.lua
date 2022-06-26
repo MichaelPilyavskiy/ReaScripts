@@ -1,14 +1,10 @@
 -- @description Sampling tool
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @about Sample instrument to a rs5k sampler
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # remove depencency from apply FX tail
---    # Generate MIDI: select item
---    + Add option to add test MIDI item for sampler track
---    + Add option to fill boundaries
-
+--    # fix error when not item selected between split/sample
     
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
@@ -17,7 +13,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.02
+    DATA.extstate.version = 1.03
     DATA.extstate.extstatesection = 'SamplingTool'
     DATA.extstate.mb_title = 'MPL Sampling tool'
     DATA.extstate.default = 
@@ -277,6 +273,7 @@
     for pitch = notecnt_start, notecnt_end do
       local function add_rs5k()
         local sitem = GetSelectedMediaItem(0,pitch-notecnt_start) 
+        if not sitem then return end
         local it_len = GetMediaItemInfo_Value( sitem, 'D_LENGTH' )
         local s_take = GetActiveTake(sitem)
         local s_offs =  GetMediaItemTakeInfo_Value( s_take, 'D_STARTOFFS' )
