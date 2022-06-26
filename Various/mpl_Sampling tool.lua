@@ -1,27 +1,23 @@
 -- @description Sampling tool
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @about Sample instrument to a rs5k sampler
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Due to REAPER crashes while adding a lot rs5k instances at short time, added schedule mode
---    + AddRs5k/Shedule mode: add option to change schedule pause
---    + AddRs5k: add option to hide new instances
---    + AddRs5k/Rename: add option to rename new instances
---    + AddRs5k/Rename: allow wildcards
---    + AddRs5k/Rename: add #note wildcard
---    # do not allow to set notes boundary negative crossing each other
---    # fix non - integer internal values for menu readout fields
+--    # remove depencency from apply FX tail
+--    # Generate MIDI: select item
+--    + Add option to add test MIDI item for sampler track
+--    + Add option to fill boundaries
 
     
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
-  
+     
   local DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.01
+    DATA.extstate.version = 1.02
     DATA.extstate.extstatesection = 'SamplingTool'
     DATA.extstate.mb_title = 'MPL Sampling tool'
     DATA.extstate.default = 
@@ -46,6 +42,8 @@
                           CONF_showflag = 2,
                           CONF_rename = 0,
                           CONF_rename_wildcard = 'RS5k #note',
+                          CONF_addtestmidiitem = 1,
+                          CONF_extend_bounds = 1, 
                           
                           -- UI
                           UI_appatchange = 0, 
@@ -116,11 +114,11 @@
                             hide = DATA.GUI.compactmode==1,
                             ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =  function() 
-                                              local applyfxtail = VF_spk77_getinivalue( get_ini_file(), 'REAPER', 'applyfxtail')
+                                              --[[local applyfxtail = VF_spk77_getinivalue( get_ini_file(), 'REAPER', 'applyfxtail')
                                               if applyfxtail ~= 0 then
                                                 MB('Preferences/Media/Tail length when using Apply FX is not zero',DATA.extstate.mb_title,0 )
                                                 return
-                                              end
+                                              end]]
                                               Action(40209)--Item: Apply track/take FX to items 
                                             end}                                            
       DATA.GUI.buttons.app3 = {  x=DATA.GUI.custom_offset,
@@ -187,7 +185,7 @@
     for but in pairs(DATA.GUI.buttons) do DATA.GUI.buttons[but].key = but end
   end
   ----------------------------------------------------------------------
-  function DATA2:Process_GenerateMIDI()
+  function DATA2:Process_GenerateMIDI(tr)
       
     -- preset
       local notecnt_start = DATA.extstate.CONF_notestart
@@ -204,7 +202,7 @@
       local item_len_sec = TimeMap2_beatsToTime( 0, item_len_beats, 0 )
       
     -- init
-      local track = GetSelectedTrack(0,0)
+      local track =tr or GetSelectedTrack(0,0)
       if not track then return end
       local it = reaper.CreateNewMIDIItemInProj( track, item_pos_sec, item_pos_sec+item_len_sec, false )
       if not it then return end
@@ -222,7 +220,9 @@
         reaper.MIDI_InsertNote( take, false, false, startppqpos, endppqpos, chan, pitch, vel, true )
       end
       reaper.MIDI_Sort( take ) 
-    
+      
+    Action(40289)--  Item: Unselect (clear selection of) all items
+    SetMediaItemSelected( it, true )
   end
   ---------------------------------------------------------------------  
   function DATA2:Process_Split() 
@@ -257,6 +257,7 @@
     
     local take = GetActiveTake(item)
     local source =  GetMediaItemTake_Source( take )
+    local srclen = GetMediaSourceLength( source )
     local filename = GetMediaSourceFileName( source )
     
     local par_track = GetMediaItemTrack( item )
@@ -275,18 +276,24 @@
     if DATA.extstate.CONF_schedmode==1 then DATA.perform_quere_sheduled = {} end
     for pitch = notecnt_start, notecnt_end do
       local function add_rs5k()
+        local sitem = GetSelectedMediaItem(0,pitch-notecnt_start) 
+        local it_len = GetMediaItemInfo_Value( sitem, 'D_LENGTH' )
+        local s_take = GetActiveTake(sitem)
+        local s_offs =  GetMediaItemTakeInfo_Value( s_take, 'D_STARTOFFS' )
+        offset_s = s_offs/srclen
+        offset_e = (s_offs+it_len)/srclen
+        
         local fx = reaper.TrackFX_AddByName( tr, 'ReaSamplOmatic5000 (Cockos)', false, -1 )
         TrackFX_SetNamedConfigParm( tr, fx, 'FILE0', filename )
         TrackFX_SetParamNormalized( tr, fx, 21, 1 )-- filter played notes
-        local rs5k_note_norm = pitch/127
+        local rs5k_note_norm = pitch/127+0.001
         local rs5k_offset = (pitch-notecnt_start)/notecnt
+        
         TrackFX_SetParamNormalized( tr, fx, 3, rs5k_note_norm )-- start range
         TrackFX_SetParamNormalized( tr, fx, 4, rs5k_note_norm )-- end range
-        TrackFX_SetParamNormalized( tr, fx, 5, rs5k_note_norm )-- start note
-        TrackFX_SetParamNormalized( tr, fx, 6, rs5k_note_norm )-- end note
         
-        TrackFX_SetParamNormalized( tr, fx, 13, rs5k_offset )-- offset start
-        TrackFX_SetParamNormalized( tr, fx, 14, rs5k_offset + 1/notecnt)-- offset end]]
+        TrackFX_SetParamNormalized( tr, fx, 13, offset_s )-- offset start
+        TrackFX_SetParamNormalized( tr, fx, 14, offset_e)-- offset end
         
         if DATA.extstate.CONF_showflag ~= -1 then TrackFX_Show( tr, fx, DATA.extstate.CONF_showflag )  else
           TrackFX_Show( tr, fx, 1 )
@@ -299,9 +306,26 @@
           SetFXName(tr, fx, new_name)
         end
         
+        if DATA.extstate.CONF_extend_bounds == 1 then
+          if pitch == notecnt_start then
+            TrackFX_SetParamNormalized( tr, fx, 3, 0 )-- start range
+            TrackFX_SetParamNormalized( tr, fx, 5, (-pitch +80) / 160 )-- start note
+            TrackFX_SetNamedConfigParm(tr, fx, "MODE", 2)
+          end
+          
+          if pitch == notecnt_end then
+            TrackFX_SetParamNormalized( tr, fx, 4, 1 )-- end range
+            TrackFX_SetParamNormalized( tr, fx, 5,0.5 )-- end note
+            TrackFX_SetNamedConfigParm(tr, fx, "MODE", 2)
+          end
+          
+        end
+        
       end
       if DATA.extstate.CONF_schedmode==1 then table.insert(DATA.perform_quere_sheduled,add_rs5k) else add_rs5k() end
     end
+    
+    DATA2:Process_GenerateMIDI(tr)
     
   end
   ----------------------------------------------------------------------
@@ -361,6 +385,8 @@
         },  
       
       {str = 'Adding RS5k instances' ,                group = 2, itype = 'sep'},    
+        {str = 'Add test MIDI item',                      group = 2, itype = 'check', confkey = 'CONF_addtestmidiitem', level = 1}, 
+        {str = 'Extend bounds',                      group = 2, itype = 'check', confkey = 'CONF_extend_bounds', level = 1}, 
         {str = 'Schedule mode',                      group = 2, itype = 'check', confkey = 'CONF_schedmode', level = 1}, 
         {str = 'Pause between adding new instances' , group = 2, itype = 'readout', confkey = 'CONF_schedmode_s', level = 1,
         val_res = 0.05, 
@@ -375,7 +401,6 @@
           {str = 'Wildcards' ,                     group = 2, itype = 'readout', level = 2,  confkey = 'CONF_rename_wildcard',val_isstring=true,readoutw_extw=readoutw_extw,hide =  DATA.extstate.CONF_rename ~= 1},
           {str = 'Clear' ,                         group = 2, itype = 'button', level = 3, func_onrelease = function() DATA.extstate.CONF_rename_wildcard = 'RS5k' DATA.UPD.onconfchange = true DATA.UPD.onGUIinit = true end,hide =  DATA.extstate.CONF_rename ~= 1},
           {str = '#note' ,                         group = 2, itype = 'button', level = 3, func_onrelease = function() DATA.extstate.CONF_rename_wildcard = DATA.extstate.CONF_rename_wildcard..' #note' DATA.UPD.onconfchange = true DATA.UPD.onGUIinit = true end,hide =  DATA.extstate.CONF_rename ~= 1},
-        
         
     } 
     return t
