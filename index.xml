@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="80cd1c76f1ee209a038c212ad00a888e9d1dccd5" name="MPL Scripts">
+<index version="1" commit="263509947199c930c965cc4809540aecd258e6fe" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -9862,6 +9862,16 @@ add control for timefall showing last note]]></changelog>
       <version name="1.03" author="MPL" time="2022-06-26T22:19:42Z">
         <changelog><![CDATA[# fix error when not item selected between split/sample]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/80cd1c76f1ee209a038c212ad00a888e9d1dccd5/Various/mpl_Sampling%20tool.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2022-06-27T19:17:52Z">
+        <changelog><![CDATA[+ Merge all functions into single button
++ Allow to clear notes after RS5k instance adding
++ Add message if track is not selected
++ Add message if instrument is not found (allowed to be ignored)
+# add #fxname wildcard
+# Defaults: set rename pattern to '#fxname sampled - #note'
+# Defaults: set rename FX to ON]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/263509947199c930c965cc4809540aecd258e6fe/Various/mpl_Sampling%20tool.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_SendFader (background).lua" type="script" desc="SendFader">
