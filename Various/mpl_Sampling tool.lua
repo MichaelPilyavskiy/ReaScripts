@@ -1,10 +1,18 @@
 -- @description Sampling tool
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @about Sample instrument to a rs5k sampler
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix error when not item selected between split/sample
+--    + Merge all functions into single button
+--    + Allow to clear notes after RS5k instance adding
+--    + Add message if track is not selected
+--    + Add message if instrument is not found (allowed to be ignored)
+--    # add #fxname wildcard
+--    # Defaults: set rename pattern to '#fxname sampled - #note'
+--    # Defaults: set rename FX to ON
+    
+    
     
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
@@ -13,7 +21,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.03
+    DATA.extstate.version = 1.04
     DATA.extstate.extstatesection = 'SamplingTool'
     DATA.extstate.mb_title = 'MPL Sampling tool'
     DATA.extstate.default = 
@@ -34,12 +42,13 @@
                           CONF_itempos_beats = 0,
                           
                           CONF_schedmode = 1,
-                          CONF_schedmode_s = 1, 
+                          CONF_schedmode_s = 0.5, 
                           CONF_showflag = 2,
-                          CONF_rename = 0,
-                          CONF_rename_wildcard = 'RS5k #note',
+                          CONF_rename = 1,
+                          CONF_rename_wildcard = '#fxname sampled - #note ',
                           CONF_addtestmidiitem = 1,
                           CONF_extend_bounds = 1, 
+                          CONF_renameMEnotes = 1, 
                           
                           -- UI
                           UI_appatchange = 0, 
@@ -90,61 +99,34 @@
       DATA.GUI.buttons = {} 
       DATA.GUI.buttons.app = {  x=DATA.GUI.custom_offset,
                             y=DATA.GUI.custom_offset+(DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*0,
-                            w=DATA.GUI.custom_mainbutw,
+                            w=DATA.GUI.custom_mainbutw2,
                             h=DATA.GUI.custom_mainbuth,
-                            txt = '1. Generate MIDI',
+                            txt = 'Start sampling',
                             txt_fontsz = DATA.GUI.default_txt_fontsz2,
                             hide = DATA.GUI.compactmode==1,
                             ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =  function() 
+                                              local tr = GetSelectedTrack( 0, 0 )
+                                              if not tr then MB('Track with instrument is not selected',DATA.extstate.mb_title,0 ) return end
+                                              local instr = TrackFX_GetInstrument( tr )
+                                              if instr == -1 then 
+                                                local cont = MB('Instrument is not found on selected track',DATA.extstate.mb_title,2 ) 
+                                                if cont ~= 5 then return end
+                                              end
+                                              
                                               Undo_BeginBlock()
-                                              DATA2:Process_GenerateMIDI()
+                                              -- gen midi item
+                                                DATA2:Process_GenerateMIDI()
+                                              -- apply fx
+                                                Action(40209)--Item: Apply track/take FX to items 
+                                              -- split by note
+                                                DATA2:Process_Split()
+                                              -- add to rs5k
+                                                DATA2:Process_PerformSampling()
                                               Undo_EndBlock( DATA.extstate.mb_title..' - generate MIDI', 4 )
                                             end} 
-      DATA.GUI.buttons.app2 = {  x=DATA.GUI.custom_offset,--*2 + DATA.GUI.custom_mainbutw,
-                            y=DATA.GUI.custom_offset+(DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*1,
-                            w=DATA.GUI.custom_mainbutw,
-                            h=DATA.GUI.custom_mainbuth,
-                            txt = '2. Apply FX to take',
-                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
-                            hide = DATA.GUI.compactmode==1,
-                            ignoremouse = DATA.GUI.compactmode==1,
-                            onmouseclick =  function() 
-                                              --[[local applyfxtail = VF_spk77_getinivalue( get_ini_file(), 'REAPER', 'applyfxtail')
-                                              if applyfxtail ~= 0 then
-                                                MB('Preferences/Media/Tail length when using Apply FX is not zero',DATA.extstate.mb_title,0 )
-                                                return
-                                              end]]
-                                              Action(40209)--Item: Apply track/take FX to items 
-                                            end}                                            
-      DATA.GUI.buttons.app3 = {  x=DATA.GUI.custom_offset,
-                            y=DATA.GUI.custom_offset+(DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*2,
-                            w=DATA.GUI.custom_mainbutw,
-                            h=DATA.GUI.custom_mainbuth,
-                            txt = '3. Split audio',
-                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
-                            hide = DATA.GUI.compactmode==1,
-                            ignoremouse = DATA.GUI.compactmode==1,
-                            onmouseclick =  function() 
-                                              Undo_BeginBlock()
-                                              DATA2:Process_Split()
-                                              Undo_EndBlock( DATA.extstate.mb_title..' - split', 4 )
-                                            end}                                             
-      DATA.GUI.buttons.app4 = {  x=DATA.GUI.custom_offset,--*2 + DATA.GUI.custom_mainbutw,
-                            y=DATA.GUI.custom_offset+(DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*3,
-                            w=DATA.GUI.custom_mainbutw2-DATA.GUI.custom_offset,
-                            h=DATA.GUI.custom_mainbuth,
-                            txt = '4. Perform sampling',
-                            txt_fontsz = DATA.GUI.default_txt_fontsz2,
-                            hide = DATA.GUI.compactmode==1,
-                            ignoremouse = DATA.GUI.compactmode==1,
-                            onmouseclick =  function() 
-                                              Undo_BeginBlock()
-                                              DATA2:Process_PerformSampling()
-                                              Undo_EndBlock( DATA.extstate.mb_title..' - sample FX', 4 )
-                                            end}    
-      DATA.GUI.buttons.app4s = {  x=DATA.GUI.custom_offset+DATA.GUI.custom_mainbutw2,
-                            y=DATA.GUI.custom_offset+(DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*3,
+      DATA.GUI.buttons.app4s = {  x=DATA.GUI.custom_offset*2+DATA.GUI.custom_mainbutw2,
+                            y=DATA.GUI.custom_offset+(DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*0,
                             w=DATA.GUI.custom_mainbutw2,
                             h=DATA.GUI.custom_mainbuth,
                             txt = 'Stop sampling',
@@ -156,7 +138,7 @@
                                             end}                                             
                                                                                      
       DATA.GUI.buttons.preset = { x=DATA.GUI.custom_offset,
-                            y=DATA.GUI.custom_offset+(DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*4,
+                            y=DATA.GUI.custom_offset+(DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*1,
                             w=DATA.GUI.custom_mainbutw,--*2+DATA.GUI.custom_offset,
                             h=DATA.GUI.custom_mainbuth,
                             txt = 'Preset: '..(DATA.extstate.CONF_NAME or ''),
@@ -166,9 +148,9 @@
                             ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =  function() DATA:GUIbut_preset() end}                  
       DATA.GUI.buttons.Rsettings = { x=gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx,
-                            y=(DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*5,
+                            y=(DATA.GUI.custom_offset+DATA.GUI.custom_mainbuth)*2,
                             w=DATA.GUI.custom_mainsepx,
-                            h=gfx.h/DATA.GUI.default_scale-(DATA.GUI.custom_mainbuth + DATA.GUI.custom_offset)*5,
+                            h=gfx.h/DATA.GUI.default_scale-(DATA.GUI.custom_mainbuth + DATA.GUI.custom_offset)*2,
                             txt = 'Settings',
                             --txt_fontsz = DATA.GUI.default_txt_fontsz3,
                             frame_a = 0,
@@ -181,7 +163,7 @@
     for but in pairs(DATA.GUI.buttons) do DATA.GUI.buttons[but].key = but end
   end
   ----------------------------------------------------------------------
-  function DATA2:Process_GenerateMIDI(tr)
+  function DATA2:Process_GenerateMIDI(tr, selected)
       
     -- preset
       local notecnt_start = DATA.extstate.CONF_notestart
@@ -218,7 +200,7 @@
       reaper.MIDI_Sort( take ) 
       
     Action(40289)--  Item: Unselect (clear selection of) all items
-    SetMediaItemSelected( it, true )
+    SetMediaItemSelected( it, selected or true )
   end
   ---------------------------------------------------------------------  
   function DATA2:Process_Split() 
@@ -257,6 +239,8 @@
     local filename = GetMediaSourceFileName( source )
     
     local par_track = GetMediaItemTrack( item )
+    local instr = TrackFX_GetInstrument( par_track )
+    local retval, fxname = reaper.TrackFX_GetFXName( par_track, instr )
     local ID = reaper.GetMediaTrackInfo_Value( par_track, 'IP_TRACKNUMBER' )
     -- add sampling track
       reaper.InsertTrackAtIndex( ID, false )
@@ -271,6 +255,7 @@
     
     if DATA.extstate.CONF_schedmode==1 then DATA.perform_quere_sheduled = {} end
     for pitch = notecnt_start, notecnt_end do
+    
       local function add_rs5k()
         local sitem = GetSelectedMediaItem(0,pitch-notecnt_start) 
         if not sitem then return end
@@ -300,29 +285,33 @@
         if DATA.extstate.CONF_rename == 1 then
           local new_name = DATA.extstate.CONF_rename_wildcard
           new_name = new_name:gsub('#note', pitch)
+          new_name = new_name:gsub('#fxname', fxname)
           SetFXName(tr, fx, new_name)
-        end
+        end 
         
         if DATA.extstate.CONF_extend_bounds == 1 then
           if pitch == notecnt_start then
             TrackFX_SetParamNormalized( tr, fx, 3, 0 )-- start range
             TrackFX_SetParamNormalized( tr, fx, 5, (-pitch +80) / 160 )-- start note
             TrackFX_SetNamedConfigParm(tr, fx, "MODE", 2)
-          end
-          
+          end 
           if pitch == notecnt_end then
             TrackFX_SetParamNormalized( tr, fx, 4, 1 )-- end range
             TrackFX_SetParamNormalized( tr, fx, 5,0.5 )-- end note
             TrackFX_SetNamedConfigParm(tr, fx, "MODE", 2)
-          end
-          
-        end
-        
-      end
+          end 
+        end 
+      end -- function end
+      
       if DATA.extstate.CONF_schedmode==1 then table.insert(DATA.perform_quere_sheduled,add_rs5k) else add_rs5k() end
     end
     
-    DATA2:Process_GenerateMIDI(tr)
+    if DATA.extstate.CONF_renameMEnotes == 1 then 
+      for pitch = 0, 127 do
+        SetTrackMIDINoteNameEx( 0, tr, pitch, -1, '' )
+      end
+    end
+    if DATA.extstate.CONF_addtestmidiitem==1 then DATA2:Process_GenerateMIDI(tr, false) end
     
   end
   ----------------------------------------------------------------------
@@ -347,7 +336,7 @@
 
     local  t = 
     { 
-      {str = 'Generate MIDI item' ,        group = 1, itype = 'sep'},  
+      {str = 'MIDI item generator' ,        group = 1, itype = 'sep'},  
         {str = 'Note length, beats' ,                           group = 1, itype = 'readout', confkey = 'CONF_notelen_beats', level = 1, 
         val_res = 0.05, 
         val_min = 1, 
@@ -380,11 +369,11 @@
         val_format = function(x) return math.floor(x) end, 
         val_format_rev = function(x) if not tonumber(x) then return end return math.floor(x) end, 
         },  
-      
       {str = 'Adding RS5k instances' ,                group = 2, itype = 'sep'},    
-        {str = 'Add test MIDI item',                      group = 2, itype = 'check', confkey = 'CONF_addtestmidiitem', level = 1}, 
-        {str = 'Extend bounds',                      group = 2, itype = 'check', confkey = 'CONF_extend_bounds', level = 1}, 
-        {str = 'Schedule mode',                      group = 2, itype = 'check', confkey = 'CONF_schedmode', level = 1}, 
+        {str = 'Clear MIDI editor note names',                  group = 2, itype = 'check', confkey = 'CONF_renameMEnotes', level = 1}, 
+        {str = 'Add test MIDI item',                  group = 2, itype = 'check', confkey = 'CONF_addtestmidiitem', level = 1}, 
+        {str = 'Extend note bounds',                       group = 2, itype = 'check', confkey = 'CONF_extend_bounds', level = 1}, 
+        {str = 'Schedule mode',                       group = 2, itype = 'check', confkey = 'CONF_schedmode', level = 1}, 
         {str = 'Pause between adding new instances' , group = 2, itype = 'readout', confkey = 'CONF_schedmode_s', level = 1,
         val_res = 0.05, 
         val_min = 0.5, 
@@ -398,6 +387,7 @@
           {str = 'Wildcards' ,                     group = 2, itype = 'readout', level = 2,  confkey = 'CONF_rename_wildcard',val_isstring=true,readoutw_extw=readoutw_extw,hide =  DATA.extstate.CONF_rename ~= 1},
           {str = 'Clear' ,                         group = 2, itype = 'button', level = 3, func_onrelease = function() DATA.extstate.CONF_rename_wildcard = 'RS5k' DATA.UPD.onconfchange = true DATA.UPD.onGUIinit = true end,hide =  DATA.extstate.CONF_rename ~= 1},
           {str = '#note' ,                         group = 2, itype = 'button', level = 3, func_onrelease = function() DATA.extstate.CONF_rename_wildcard = DATA.extstate.CONF_rename_wildcard..' #note' DATA.UPD.onconfchange = true DATA.UPD.onGUIinit = true end,hide =  DATA.extstate.CONF_rename ~= 1},
+          {str = '#fxname' ,                         group = 2, itype = 'button', level = 3, func_onrelease = function() DATA.extstate.CONF_rename_wildcard = DATA.extstate.CONF_rename_wildcard..' #fxname' DATA.UPD.onconfchange = true DATA.UPD.onGUIinit = true end,hide =  DATA.extstate.CONF_rename ~= 1},
         
     } 
     return t
