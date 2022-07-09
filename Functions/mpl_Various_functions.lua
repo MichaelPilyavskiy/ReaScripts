@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 3.22
+-- @version 3.23
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v3.lua
@@ -10,11 +10,11 @@
 --    mpl_Various_functions_MOUSE.lua
 --    mpl_Various_functions_Pers.lua
 -- @changelog
---    # fix case sensivity for VF_spk77_getinivalue
+--    + add GUI_RESERVED_drawDYN for future updates
 
 
     
-  VF_version = 3.22 -- do not remove, used for versions comparement
+  VF_version = 3.23 -- do not remove, used for versions comparement
   VF_isregist = 1|2 -- do not remove, used for VF versions check
   --------------------------------------------------
   function VF_LoadLibraries()

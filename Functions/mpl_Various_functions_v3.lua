@@ -772,6 +772,8 @@
           destx,desty,destw,desth, 0,0) 
     end
     
+    if GUI_RESERVED_drawDYN then GUI_RESERVED_drawDYN(DATA) end -- draw dynamic stuff if any
+    
     DATA.GUI.layers_refresh  = {} -- clear
     
     gfx.update()
