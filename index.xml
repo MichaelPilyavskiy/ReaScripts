@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2b0540d76f7419e32cfadc00fe6a06f158c081c1" name="MPL Scripts">
+<index version="1" commit="64742c57c9feec3cdb2c5621ab2a094a89f17165" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -40,7 +40,7 @@
     </reapack>
     <reapack name="mpl_Move cursor to next selected item edge, keep overlapping condition.lua" type="script" desc="Move cursor to next selected item edge, keep overlapping condition">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -108,9 +108,9 @@
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-09-16T20:06:18Z">
+      <version name="1.0" author="mpl" time="2016-09-16T20:06:18Z">
         <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/Envelopes/mpl_Decrease%20selected%20tracks%20envelopes%20heights.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b94d833a4a2b989d5658963b45475c506f0a4593/Envelopes/mpl_Decrease%20selected%20tracks%20envelopes%20heights.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Duplicate envelope points.lua" type="script" desc="Duplicate envelope points">
@@ -138,18 +138,18 @@
         <changelog><![CDATA[#enabled track envelope support]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/653bd21badb09305b18d5a5d067aa7b05e43795f/Envelopes/mpl_Duplicate%20envelope%20points.lua</source>
       </version>
-      <version name="1.04" author="MPL" time="2016-09-01T18:11:50Z">
+      <version name="1.04" author="mpl" time="2016-09-01T18:11:50Z">
         <changelog><![CDATA[# fix dealing with take envelopes]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/Envelopes/mpl_Duplicate%20envelope%20points.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/38d2aa292749c5ae9863538252b5d1628b290f02/Envelopes/mpl_Duplicate%20envelope%20points.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Hide all track envelopes except envelope under mouse cursor.lua" type="script" desc="Hide all track envelopes except envelope under mouse cursor">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-09-16T20:49:27Z">
+      <version name="1.0" author="mpl" time="2016-09-16T20:49:27Z">
         <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/Envelopes/mpl_Hide%20all%20track%20envelopes%20except%20envelope%20under%20mouse%20cursor.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e059ccf5961be2173c180f051d0559132265a627/Envelopes/mpl_Hide%20all%20track%20envelopes%20except%20envelope%20under%20mouse%20cursor.lua</source>
       </version>
       <version name="1.01" author="MPL" time="2019-08-03T08:46:00Z">
         <changelog><![CDATA[+ init release]]></changelog>
@@ -164,27 +164,27 @@
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-09-16T20:44:07Z">
+      <version name="1.0" author="mpl" time="2016-09-16T20:44:07Z">
         <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/Envelopes/mpl_Hide%20all%20track%20envelopes%20except%20last%20touched%20parameter%20envelope.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4049a95749a54c589560e2af149f03459d599348/Envelopes/mpl_Hide%20all%20track%20envelopes%20except%20last%20touched%20parameter%20envelope.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Increase selected tracks envelopes heights.lua" type="script" desc="Increase selected tracks envelopes heights">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-09-16T20:10:08Z">
+      <version name="1.0" author="mpl" time="2016-09-16T20:10:08Z">
         <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/Envelopes/mpl_Increase%20selected%20tracks%20envelopes%20heights.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/85ccf24536125079ec39cc5119d4f3de5015edc2/Envelopes/mpl_Increase%20selected%20tracks%20envelopes%20heights.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Maximize selected tracks envelopes heights.lua" type="script" desc="Maximize selected tracks envelopes heights">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-09-16T20:01:14Z">
+      <version name="1.0" author="mpl" time="2016-09-16T20:01:14Z">
         <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/Envelopes/mpl_Maximize%20selected%20tracks%20envelopes%20heights.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e7936fdeadfd8c07a5b7f50c6f402fe7f7092a02/Envelopes/mpl_Maximize%20selected%20tracks%20envelopes%20heights.lua</source>
       </version>
       <version name="1.01" author="MPL" time="2021-12-16T20:53:44Z">
         <changelog><![CDATA[+ internal cleanup
@@ -196,9 +196,9 @@
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-09-16T20:02:50Z">
+      <version name="1.0" author="mpl" time="2016-09-16T20:02:50Z">
         <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/Envelopes/mpl_Minimize%20all%20tracks%20envelopes%20heights.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7772b271ed10e46e3ee5915e49f51e906262d47/Envelopes/mpl_Minimize%20all%20tracks%20envelopes%20heights.lua</source>
       </version>
       <version name="1.01" author="MPL" time="2021-10-21T18:56:36Z">
         <changelog><![CDATA[# obey master track]]></changelog>
@@ -209,9 +209,9 @@
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-09-16T20:01:31Z">
+      <version name="1.0" author="mpl" time="2016-09-16T20:01:31Z">
         <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/Envelopes/mpl_Minimize%20selected%20tracks%20envelopes%20heights.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18597ec1247d54f2e99441488e0c67ed6798f75c/Envelopes/mpl_Minimize%20selected%20tracks%20envelopes%20heights.lua</source>
       </version>
       <version name="1.01" author="MPL" time="2021-12-16T20:53:44Z">
         <changelog><![CDATA[+ internal cleanup
@@ -232,18 +232,18 @@
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-09-16T20:15:29Z">
+      <version name="1.0" author="mpl" time="2016-09-16T20:15:29Z">
         <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/Envelopes/mpl_Show%20all%20active%20track%20envelopes,%20hide%20unactive.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bcd946bf9c2852fc2414b75ef1d1ac1453cc04a9/Envelopes/mpl_Show%20all%20active%20track%20envelopes,%20hide%20unactive.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Show all armed track envelopes, hide unarmed.lua" type="script" desc="Show all armed track envelopes, hide unarmed">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-09-16T20:16:17Z">
+      <version name="1.0" author="mpl" time="2016-09-16T20:16:17Z">
         <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/Envelopes/mpl_Show%20all%20armed%20track%20envelopes,%20hide%20unarmed.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d5f2ecfb9ee96616942487148031c7eec5492bc/Envelopes/mpl_Show%20all%20armed%20track%20envelopes,%20hide%20unarmed.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Show existing envelopes for last touched FX.lua" type="script" desc="Show existing envelopes for last touched FX">
@@ -609,6 +609,17 @@
         <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7623522363fec8252c2187ef589caf6aa60ed85b/Functions/mpl_Various_functions_Purchase.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7623522363fec8252c2187ef589caf6aa60ed85b/Functions/mpl_Various_functions_Pers.lua</source>
         <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7623522363fec8252c2187ef589caf6aa60ed85b/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
+      </version>
+      <version name="2.58" author="MPL" time="2021-10-11T05:05:31Z">
+        <changelog><![CDATA[+ VF_GetMediaTrackByGUID]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d6ce0e8eff7f831c7a3b3d4b63da27556a0870/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d6ce0e8eff7f831c7a3b3d4b63da27556a0870/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v2.bin">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d6ce0e8eff7f831c7a3b3d4b63da27556a0870/Functions/mpl_Various_functions_v2.bin</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d6ce0e8eff7f831c7a3b3d4b63da27556a0870/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d6ce0e8eff7f831c7a3b3d4b63da27556a0870/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Purchase.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d6ce0e8eff7f831c7a3b3d4b63da27556a0870/Functions/mpl_Various_functions_Purchase.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d6ce0e8eff7f831c7a3b3d4b63da27556a0870/Functions/mpl_Various_functions_Pers.lua</source>
+        <source main="main" file="mpl_Various_functions_PurchaseGUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1d6ce0e8eff7f831c7a3b3d4b63da27556a0870/Functions/mpl_Various_functions_PurchaseGUI.lua</source>
       </version>
       <version name="2.59" author="MPL" time="2021-10-11T20:00:03Z">
         <changelog><![CDATA[+ VF_GetMediaTrackByGUID]]></changelog>
@@ -1120,6 +1131,15 @@
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40a5fcfefd3d349c4aa7895e212d4ac1db34cb5e/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/40a5fcfefd3d349c4aa7895e212d4ac1db34cb5e/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
+      <version name="3.23" author="MPL" time="2022-07-09T03:39:52Z">
+        <changelog><![CDATA[+ add GUI_RESERVED_drawDYN for future updates]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/64742c57c9feec3cdb2c5621ab2a094a89f17165/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/64742c57c9feec3cdb2c5621ab2a094a89f17165/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/64742c57c9feec3cdb2c5621ab2a094a89f17165/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/64742c57c9feec3cdb2c5621ab2a094a89f17165/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/64742c57c9feec3cdb2c5621ab2a094a89f17165/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/64742c57c9feec3cdb2c5621ab2a094a89f17165/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
     </reapack>
   </category>
   <category name="FX">
@@ -1262,9 +1282,9 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b14eb396eda3e6f8cad28fd0ba8934bed6130389/FX/mpl_Copy%20Focused%20FX%20data.lua</source>
       </version>
-      <version name="1.01" author="MPL" time="2017-01-12T05:25:41Z">
+      <version name="1.01" author="mpl" time="2017-01-12T05:25:41Z">
         <changelog><![CDATA[+ support parameters copypaste]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Copy%20Focused%20FX%20data.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/93d5ae1dbb4a92fddc2ac9bab32ae34b1340b691/FX/mpl_Copy%20Focused%20FX%20data.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Copy LFO settings from last touched FX parameter.lua" type="script" desc="Copy LFO settings from last touched FX parameter">
@@ -1423,9 +1443,9 @@
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-08-03T12:57:15Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Generate%20reabank%20from%20focused%20FX.lua</source>
+      <version name="1.0" author="mpl" time="2016-08-03T12:57:15Z">
+        <changelog><![CDATA[+ init alpha]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e940e5111272af87c3cf63455cd983163347cef2/FX/mpl_Generate%20reabank%20from%20focused%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Insert focused FX to selected tracks, preserve parameters.lua" type="script" desc="Insert focused FX to selected tracks, preserve parameters">
@@ -1453,7 +1473,7 @@
     </reapack>
     <reapack name="mpl_InstrumentRack.lua" type="script" desc="InstrumentRack">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -1582,7 +1602,7 @@
     </reapack>
     <reapack name="mpl_LearnEditor.lua" type="script" desc="LearnEditor">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -1670,16 +1690,6 @@
         <source file="mpl_LearnEditor_functions/mpl_LearnEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e16b577a274c81b980ceb270d3fb7cf64c03de35/FX/mpl_LearnEditor_functions/mpl_LearnEditor_data.lua</source>
         <source file="mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e16b577a274c81b980ceb270d3fb7cf64c03de35/FX/mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua</source>
       </version>
-      <version name="1.08" author="MPL" time="2020-05-20T19:39:20Z">
-        <changelog><![CDATA[# allow to port some actions as separate scripts out of LearnEditor, based on internal data structure
-# refresh arrange/tracklist after Show and arm envelopes with learn and parameter modulation for selected tracks]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3c6e79e4dd32a025e94edba64eca50d677bdfed/FX/mpl_LearnEditor.lua</source>
-        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3c6e79e4dd32a025e94edba64eca50d677bdfed/FX/mpl_LearnEditor_functions/mpl_LearnEditor_GUI.lua</source>
-        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3c6e79e4dd32a025e94edba64eca50d677bdfed/FX/mpl_LearnEditor_functions/mpl_LearnEditor_MOUSE.lua</source>
-        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3c6e79e4dd32a025e94edba64eca50d677bdfed/FX/mpl_LearnEditor_functions/mpl_LearnEditor_data.lua</source>
-        <source file="mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3c6e79e4dd32a025e94edba64eca50d677bdfed/FX/mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua</source>
-        <source file="mpl_LearnEditor_functions/mpl_Show and arm envelopes with learn and parameter modulation for selected tracks.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3c6e79e4dd32a025e94edba64eca50d677bdfed/FX/mpl_LearnEditor_functions/mpl_Show%20and%20arm%20envelopes%20with%20learn%20and%20parameter%20modulation%20for%20selected%20tracks.lua</source>
-      </version>
       <version name="1.09" author="MPL" time="2020-05-21T07:23:14Z">
         <changelog><![CDATA[+ port Show and arm envelopes with learn and parameter modulation for selected tracks]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/098fffcc1e8ee1f310bc4abbb55dfdf1444de96c/FX/mpl_LearnEditor.lua</source>
@@ -1729,9 +1739,9 @@
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-07-23T04:51:54Z">
+      <version name="1.0" author="mpl" time="2016-07-23T04:51:54Z">
         <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Move%20focused%20Track%20FX%20to%20screen%20center.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0dc278d52ea804274a91ee710161b1fd5139e224/FX/mpl_Move%20focused%20Track%20FX%20to%20screen%20center.lua</source>
       </version>
       <version name="1.01" author="MPL" time="2020-04-11T07:50:12Z">
         <changelog><![CDATA[# improve fix chunk modification]]></changelog>
@@ -1834,9 +1844,9 @@
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ccb758fd1b7d0473b930c1007d30f0c645a914d1/FX/mpl_Paste%20Focused%20FX%20data.lua</source>
       </version>
-      <version name="1.01" author="MPL" time="2017-01-12T05:24:04Z">
+      <version name="1.01" author="mpl" time="2017-01-12T05:24:04Z">
         <changelog><![CDATA[+ support parameters copypaste]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Paste%20Focused%20FX%20data.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6059ffb0f56e5275efd7af4db1898a8a7f63292a/FX/mpl_Paste%20Focused%20FX%20data.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Paste LFO settings for last touched FX parameter.lua" type="script" desc="Paste LFO settings for last touched FX parameter">
@@ -1927,11 +1937,11 @@
 - Ignore protected table]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8be803e61a540a42bef17b8fc2e609386ddf2750/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
       </version>
-      <version name="1.20" author="MPL" time="2016-07-28T11:02:53Z">
+      <version name="1.20" author="mpl" time="2016-07-28T11:02:53Z">
         <changelog><![CDATA[+ Add 'Get all parameters' button
 + Add 'Get all parameters except protected' button
 + Add 'render', "upsampl" to protected table]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fc6ca45d2fd9634679bd15e71a5817c6aef5df43/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
       </version>
       <version name="1.21" author="MPL" time="2019-03-10T20:28:31Z">
         <changelog><![CDATA[+ add option to get second preset for morph]]></changelog>
@@ -1947,7 +1957,7 @@
     </reapack>
     <reapack name="mpl_ReplaceFX.lua" type="script" desc="ReplaceFX">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -1967,7 +1977,7 @@
     </reapack>
     <reapack name="mpl_Reset FX chain pin mapping.lua" type="script" desc="Reset FX chain pin mapping">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -2010,7 +2020,7 @@
     </reapack>
     <reapack name="mpl_Route FX chain followed by focused FX to 3-4 pair.lua" type="script" desc="Route FX chain followed by focused FX to 3-4 pair">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -2370,14 +2380,14 @@
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d724d301ee914b52fad0eacdacc8a8ff91e885e2/FX/mpl_Toggle%20solo%20for%20selected%20FX.lua</source>
       </version>
-      <version name="1.1" author="MPL" time="2016-09-19T11:01:50Z">
+      <version name="1.1" author="mpl" time="2016-09-19T11:01:50Z">
         <changelog><![CDATA[# perform only one FX chain (first track with opened FX chain)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b346a1f11fd6b9887bf1b8e513aaa9ce25096efc/FX/mpl_Toggle%20solo%20for%20selected%20FX.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e09644009b45769cf68ec960bfcea0141ef65fd/FX/mpl_Toggle%20solo%20for%20selected%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_WiredChain (background).lua" type="script" desc="WiredChain">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -2647,7 +2657,7 @@
   <category name="FX specific">
     <reapack name="mpl_Add channel strip controls to selected tracks TCP.lua" type="script" desc="Add channel strip controls to selected tracks TCP">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -2937,7 +2947,7 @@
     </reapack>
     <reapack name="mpl_RS5k manager (background).lua" type="script" desc="RS5k manager">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -4046,6 +4056,38 @@
         <source main="main" file="mpl_RS5k tools/mpl_Set RS5k sample start offset based on sample peak.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/63b78200177e8a695b35fb45cd0117ac2972fccb/FX%20specific/mpl_RS5k%20tools/mpl_Set%20RS5k%20sample%20start%20offset%20based%20on%20sample%20peak.lua</source>
         <source main="main" file="mpl_RS5k tools/mpl_Move sample selection for focused RS5k (MIDI, OSC, Mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/63b78200177e8a695b35fb45cd0117ac2972fccb/FX%20specific/mpl_RS5k%20tools/mpl_Move%20sample%20selection%20for%20focused%20RS5k%20(MIDI,%20OSC,%20Mousewheel).lua</source>
       </version>
+      <version name="1.18" author="MPL" time="2022-06-28T17:01:29Z">
+        <changelog><![CDATA[+ mpl_Export selected items to RS5k instances on selected track (use original source, wait for input)]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Add or replace source of item under mouse cursor for RS5k instance on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Add%20or%20replace%20source%20of%20item%20under%20mouse%20cursor%20for%20RS5k%20instance%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Add or replace source of selected item for RS5k instance on its track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20its%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Add or replace source of selected item for RS5k instance on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Add or replace source of selected item for RS5k instance on track under mouse cursor.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Add%20or%20replace%20source%20of%20selected%20item%20for%20RS5k%20instance%20on%20track%20under%20mouse%20cursor.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Explode selected track RS5k instances to new tracks.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Explode%20selected%20track%20RS5k%20instances%20to%20new%20tracks.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected item to RS5k instance on same track as chromatic source.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20item%20to%20RS5k%20instance%20on%20same%20track%20as%20chromatic%20source.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to RS5k instances on selected track (drum mode).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(drum%20mode).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to RS5k instances on selected track (use original source).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to RS5k instances on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to single RS5k instance on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20single%20RS5k%20instance%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Float RS5k related to input note on last touched track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Float%20RS5k%20related%20to%20input%20note%20on%20last%20touched%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List next sample in directory for focused RS5k.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_List%20next%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List next sample in directory for RS5k on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_List%20next%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List previous sample in directory for focused RS5k.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_List%20previous%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List previous sample in directory for RS5k on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_List%20previous%20sample%20in%20directory%20for%20RS5k%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List random sample in directory for focused RS5k.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_List%20random%20sample%20in%20directory%20for%20focused%20RS5k.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_List samples in directory for focused RS5k (MIDI, OSC, Mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_List%20samples%20in%20directory%20for%20focused%20RS5k%20(MIDI,%20OSC,%20Mousewheel).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export chromatically to RS5k (background).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20chromatically%20to%20RS5k%20(background).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k (background).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Open%20and%20Close%20Media%20Explorer%20when%20single%20item%20is%20inserted,%20export%20it%20to%20RS5k%20(background).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Reverse focused RS5k instance sample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Reverse%20focused%20RS5k%20instance%20sample.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Collect and replace selected tracks RS5k instances samples into project folder.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Collect%20and%20replace%20selected%20tracks%20RS5k%20instances%20samples%20into%20project%20folder.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected Media Explorer items to RS5k instances on selected track (use original source).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20Media%20Explorer%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Add note into RS5k instance name on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Add%20note%20into%20RS5k%20instance%20name%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Sort by note start RS5k instances on selected track.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Sort%20by%20note%20start%20RS5k%20instances%20on%20selected%20track.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to single RS5k instance on selected track (use original source).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20single%20RS5k%20instance%20on%20selected%20track%20(use%20original%20source).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Export selected items to RS5k instances on selected track (use original source, wait for input).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Export%20selected%20items%20to%20RS5k%20instances%20on%20selected%20track%20(use%20original%20source,%20wait%20for%20input).lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Set RS5k sample start offset based on sample peak.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Set%20RS5k%20sample%20start%20offset%20based%20on%20sample%20peak.lua</source>
+        <source main="main" file="mpl_RS5k tools/mpl_Move sample selection for focused RS5k (MIDI, OSC, Mousewheel).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c524403914345af5bc85781e8c233a7497d76e52/FX%20specific/mpl_RS5k%20tools/mpl_Move%20sample%20selection%20for%20focused%20RS5k%20(MIDI,%20OSC,%20Mousewheel).lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Search ReaControlMIDI bank.lua" type="script" desc="Search ReaControlMIDI bank">
       <metadata>
@@ -4263,9 +4305,9 @@
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-08-02T16:47:13Z">
+      <version name="1.0" author="mpl" time="2016-08-02T16:47:13Z">
         <changelog><![CDATA[+ init alpha]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Items%20Editing/mpl_Move%20selected%20items%20to%20selected%20track.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ccd1d4c7ac374e798f7c3492ea618722b2a755c/Items%20Editing/mpl_Move%20selected%20items%20to%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Move selected items to tracks with same name as items.lua" type="script" desc="Move selected items to tracks on same name as items">
@@ -4322,8 +4364,8 @@
       </version>
     </reapack>
     <reapack name="mpl_Select items named as selected item.lua" type="script" desc="Select items named as selected item">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Items%20Editing/mpl_Select%20items%20named%20as%20selected%20item.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Items%20Editing/mpl_Select%20items%20named%20as%20selected%20item.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Smart duplicate items grid relative.lua" type="script" desc="Smart duplicate items grid relative">
@@ -4333,8 +4375,8 @@
       <version name="1.1" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Items%20Editing/mpl_Smart%20duplicate%20items%20grid%20relative.lua</source>
       </version>
-      <version name="1.0" author="MPL" time="2015-12-03T07:03:19Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Items%20Editing/mpl_Smart%20duplicate%20items%20grid%20relative.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-03T07:03:19Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6caed9225c6810020c093f472df171c6e0464de4/Items%20Editing/mpl_Smart%20duplicate%20items%20grid%20relative.lua</source>
       </version>
       <version name="1.11" author="MPL" time="2018-03-08T15:28:17Z">
         <changelog><![CDATA[# ReaPack header]]></changelog>
@@ -4350,8 +4392,8 @@
       </version>
     </reapack>
     <reapack name="mpl_Smart duplicate items N times.eel" type="script" desc="Smart duplicate items N times">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Items%20Editing/mpl_Smart%20duplicate%20items%20N%20times.eel</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Items%20Editing/mpl_Smart%20duplicate%20items%20N%20times.eel</source>
       </version>
     </reapack>
     <reapack name="mpl_Smart duplicate items.lua" type="script" desc="Smart duplicate items">
@@ -4383,8 +4425,8 @@
       </version>
     </reapack>
     <reapack name="mpl_Snap selected items to each other.lua" type="script" desc="Snap selected items to each other">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Items%20Editing/mpl_Snap%20selected%20items%20to%20each%20other.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Items%20Editing/mpl_Snap%20selected%20items%20to%20each%20other.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Split item under mouse cursor at mouse cursor.lua" type="script" desc="Split item under mouse cursor at mouse cursor">
@@ -4401,8 +4443,8 @@
       </version>
     </reapack>
     <reapack name="mpl_Stretch selected items to edit cursor preserve snapoffset.eel" type="script" desc="Stretch selected items to edit cursor preserve snapoffset">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Items%20Editing/mpl_Stretch%20selected%20items%20to%20edit%20cursor%20preserve%20snapoffset.eel</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Items%20Editing/mpl_Stretch%20selected%20items%20to%20edit%20cursor%20preserve%20snapoffset.eel</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle stretch selected items positions (background).lua" type="script" desc="Toggle stretch selected items positions">
@@ -4534,9 +4576,9 @@
       </version>
     </reapack>
     <reapack name="mpl_Send midi source as channel x.lua" type="script" desc="Send midi source as channel x">
-      <version name="1.0" author="MPL" time="2016-02-17T09:33:10Z">
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-17T09:33:10Z">
         <changelog><![CDATA[+ Initial Release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Items%20Properties/mpl_Send%20midi%20source%20as%20channel%20x.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/062e91fb0a2b44e2605852d1244271e0e506b96f/Items%20Properties/mpl_Send%20midi%20source%20as%20channel%20x.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set fadein of item under cursor to mouse position.lua" type="script" desc="Set fadein of item under cursor to mouse position">
@@ -4581,15 +4623,15 @@
       </version>
     </reapack>
     <reapack name="mpl_Unlock selected items for 30 seconds.lua" type="script" desc="Unlock selected items for 30 seconds">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Items%20Properties/mpl_Unlock%20selected%20items%20for%2030%20seconds.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Items%20Properties/mpl_Unlock%20selected%20items%20for%2030%20seconds.lua</source>
       </version>
     </reapack>
   </category>
   <category name="JSFX">
     <reapack name="Convert Pitch(L) Gate(R) pair from Reaktor Blocks to MIDI.jsfx" type="effect" desc="Convert Pitch(L) Gate(R) pair from Reaktor Blocks to MIDI">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -4614,7 +4656,7 @@
     </reapack>
     <reapack name="MappingPanel_master.jsfx" type="effect" desc="MappingPanel_master">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -4630,7 +4672,7 @@
     </reapack>
     <reapack name="MappingPanel_slave.jsfx" type="effect" desc="MappingPanel_slave">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -4654,7 +4696,7 @@
     </reapack>
     <reapack name="POOL FX slave.jsfx" type="effect" desc="POOL FX slave">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -4670,7 +4712,7 @@
     </reapack>
     <reapack name="RS5K_Manager_tracker.jsfx" type="effect" desc="RS5K_Manager_tracker">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -4696,7 +4738,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="SysEx_Tracker.jsfx" type="effect" desc="SysEx_Tracker">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -4713,8 +4755,8 @@ add control for timefall showing last note]]></changelog>
   </category>
   <category name="MIDI">
     <reapack name="mpl_Copy MIDI notes from selected item.lua" type="script" desc="Copy MIDI notes from selected item">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI/mpl_Copy%20MIDI%20notes%20from%20selected%20item.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/MIDI/mpl_Copy%20MIDI%20notes%20from%20selected%20item.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Generate MIDICC from audio take.lua" type="script" desc="Generate MIDICC from audio take">
@@ -4740,8 +4782,8 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Paste MIDI notes to selected item.lua" type="script" desc="Paste MIDI notes to selected item">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI/mpl_Paste%20MIDI%20notes%20to%20selected%20item.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/MIDI/mpl_Paste%20MIDI%20notes%20to%20selected%20item.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove selected takes MIDI data.lua" type="script" desc="Remove selected takes MIDI data">
@@ -5064,7 +5106,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_Show selected MIDI item data.lua" type="script" desc="Show selected MIDI item data">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -5138,13 +5180,13 @@ add control for timefall showing last note]]></changelog>
   </category>
   <category name="MIDI editor">
     <reapack name="mpl_Add CC64 off to channel 0 of active MIDI Editor take.lua" type="script" desc="Add CC64 off to channel 0 of active MIDI Editor take">
-      <version name="1.0" author="MPL" time="2016-03-06T15:37:32Z">
-        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI%20editor/mpl_Add%20CC64%20off%20to%20channel%200%20of%20active%20MIDI%20Editor%20take.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T15:37:32Z">
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/09dd2087376277711bd0170d161249e5191ec658/MIDI%20editor/mpl_Add%20CC64%20off%20to%20channel%200%20of%20active%20MIDI%20Editor%20take.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Add CC64 on to channel 0 of active MIDI Editor take.lua" type="script" desc="Add CC64 on to channel 0 of active MIDI Editor take">
-      <version name="1.0" author="MPL" time="2016-03-06T15:35:15Z">
-        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI%20editor/mpl_Add%20CC64%20on%20to%20channel%200%20of%20active%20MIDI%20Editor%20take.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T15:35:15Z">
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/79253c8915de905288e9c0893b76116f2e0f40ed/MIDI%20editor/mpl_Add%20CC64%20on%20to%20channel%200%20of%20active%20MIDI%20Editor%20take.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Add note beetween two selected.lua" type="script" desc="Add note beetween two selected">
@@ -5205,9 +5247,9 @@ add control for timefall showing last note]]></changelog>
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-11-21T16:23:23Z">
+      <version name="1.0" author="mpl" time="2016-11-21T16:23:23Z">
         <changelog><![CDATA[+ init release]]></changelog>
-        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI%20editor/mpl_Copy%20selected%20CC.lua</source>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3e0c4a2c8c07c1f91a31efde5edcae867f1d86a0/MIDI%20editor/mpl_Copy%20selected%20CC.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Copy selected notes velocities.lua" type="script" desc="Copy selected notes velocities">
@@ -5268,7 +5310,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_Note selector.lua" type="script" desc="Note selector">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -5286,9 +5328,9 @@ add control for timefall showing last note]]></changelog>
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-11-21T16:27:24Z">
+      <version name="1.0" author="mpl" time="2016-11-21T16:27:24Z">
         <changelog><![CDATA[+ init release]]></changelog>
-        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI%20editor/mpl_Paste%20selected%20CC.lua</source>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f690e13d3c3962bdb5bc8ceb1120380ff33304f1/MIDI%20editor/mpl_Paste%20selected%20CC.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Paste selected notes velocities.lua" type="script" desc="Paste selected notes velocities">
@@ -5340,7 +5382,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_Remove MIDI AfterTouch.lua" type="script" desc="Remove MIDI AfterTouch">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -5356,7 +5398,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_Remove MIDI CC.lua" type="script" desc="Remove MIDI CC">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -5372,7 +5414,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_Remove MIDI CC64 (hold pedal).lua" type="script" desc="Remove MIDI CC64 (hold pedal)">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -5388,7 +5430,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_Remove MIDI CC64-69 (all pedals).lua" type="script" desc="Remove MIDI CC64-69 (all pedals)">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -5404,7 +5446,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_Remove MIDI PitchWheel.lua" type="script" desc="Remove MIDI PitchWheel">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -5420,7 +5462,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_Remove MIDI ProgramChange.lua" type="script" desc="Remove MIDI ProgramChange">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -5454,13 +5496,13 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Select high pitch MIDI notes.lua" type="script" desc="Select high pitch MIDI notes">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI%20editor/mpl_Select%20high%20pitch%20MIDI%20notes.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/MIDI%20editor/mpl_Select%20high%20pitch%20MIDI%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set selected CC.eel" type="script" desc="Set selected CC">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI%20editor/mpl_Set%20selected%20CC.eel</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/MIDI%20editor/mpl_Set%20selected%20CC.eel</source>
       </version>
     </reapack>
     <reapack name="mpl_Smart duplicate events.lua" type="script" desc="Smart duplicate events">
@@ -5506,8 +5548,8 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Split selected notes to equal parts.lua" type="script" desc="Split selected notes to equal parts">
-      <version name="1.0" author="MPL" time="2016-03-10T10:47:28Z">
-        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/MIDI%20editor/mpl_Split%20selected%20notes%20to%20equal%20parts.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-10T10:47:28Z">
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5709e04c5222b5fbd6915f77dedb84f4f31f2519/MIDI%20editor/mpl_Split%20selected%20notes%20to%20equal%20parts.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Stretch selected MIDI notes positions by custom x.lua" type="script" desc="Stretch selected MIDI notes positions by custom x">
@@ -5594,9 +5636,9 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[+ fix split name]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0dde77cb7dae0eea2fd8064ba641f3fc432ea448/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
       </version>
-      <version name="1.02" author="MPL" time="2016-06-21T11:31:25Z">
+      <version name="1.02" author="mpl" time="2016-06-21T11:31:25Z">
         <changelog><![CDATA[+ fix split name]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/be6729359d51511981bdb34cadada7c5d3dfa5bc/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
       </version>
       <version name="1.03" author="MPL" time="2019-05-29T22:18:09Z">
         <changelog><![CDATA[+ Add save file dialog (require JS ReaScript API Extension)]]></changelog>
@@ -5771,7 +5813,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_Shift regions and markers to edit cursor.lua" type="script" desc="Shift regions and markers to edit cursor">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -5790,8 +5832,8 @@ add control for timefall showing last note]]></changelog>
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20parents.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20parents.lua</source>
       </version>
       <version name="1.01" author="MPL" time="2018-12-22T08:06:31Z">
         <changelog><![CDATA[# fix check for parent track
@@ -5804,8 +5846,8 @@ add control for timefall showing last note]]></changelog>
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20sends.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20sends.lua</source>
       </version>
       <version name="1.01" author="MPL" time="2018-12-22T08:06:31Z">
         <changelog><![CDATA[# fix check for children track
@@ -5858,8 +5900,8 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Render inversed midi.lua" type="script" desc="Render inversed midi">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Render/mpl_Render%20inversed%20midi.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Render/mpl_Render%20inversed%20midi.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set render bounds to entire project.lua" type="script" desc="Set render bounds to entire project">
@@ -6122,13 +6164,13 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Move take content under stretch markers 10ms left.lua" type="script" desc="Move take content under stretch markers 10ms left">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Stretch%20Markers/mpl_Move%20take%20content%20under%20stretch%20markers%2010ms%20left.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Stretch%20Markers/mpl_Move%20take%20content%20under%20stretch%20markers%2010ms%20left.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Move take content under stretch markers 10ms right.lua" type="script" desc="Move take content under stretch markers 10ms right">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Stretch%20Markers/mpl_Move%20take%20content%20under%20stretch%20markers%2010ms%20right.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Stretch%20Markers/mpl_Move%20take%20content%20under%20stretch%20markers%2010ms%20right.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Paste and replace stretch markers to selected items.lua" type="script" desc="Paste and replace stretch markers to selected items">
@@ -6170,18 +6212,18 @@ add control for timefall showing last note]]></changelog>
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-07-28T14:37:29Z">
-        <changelog><![CDATA[+ init ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e717c0b7c7ef5cffd8d691ecb4cf5f9d7a9a94c6/Stretch%20Markers/mpl_Randomize%20stretch%20markers.lua</source>
+      <version name="1.0" author="mpl" time="2016-07-28T14:37:29Z">
+        <changelog><![CDATA[init release]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/60930572d15a62ecf221774c57cc72a7644d5b43/Stretch%20Markers/mpl_Randomize%20stretch%20markers.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove all non-1x stretch markers from selected takes.lua" type="script" desc="Remove all non-1x stretch markers from selected items">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-09-23T12:00:10Z">
+      <version name="1.0" author="mpl" time="2016-09-23T12:00:10Z">
         <changelog><![CDATA[+ init ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Stretch%20Markers/mpl_Remove%20all%20non-1x%20stretch%20markers%20from%20selected%20takes.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25fcdddfbc75e85be0176730523fe22e0d83ee11/Stretch%20Markers/mpl_Remove%20all%20non-1x%20stretch%20markers%20from%20selected%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Stretch marker guard.lua" type="script" desc="Stretch marker guard">
@@ -6229,16 +6271,16 @@ add control for timefall showing last note]]></changelog>
   </category>
   <category name="Takes Editing">
     <reapack name="mpl_Copy selection area of active take to new track.lua" type="script" desc="Copy selection area of active take to new track">
-      <version name="1.0" author="MPL" time="2016-02-03T15:20:40Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Takes%20Editing/mpl_Copy%20selection%20area%20of%20active%20take%20to%20new%20track.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-03T15:20:40Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4f5e813e92e041701a39379af009387ef47f226a/Takes%20Editing/mpl_Copy%20selection%20area%20of%20active%20take%20to%20new%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Copy selection area of take under mouse cursor to new track.lua" type="script" desc="Copy selection area of take under mouse cursor to new track">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Takes%20Editing/mpl_Copy%20selection%20area%20of%20take%20under%20mouse%20cursor%20to%20new%20track.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Takes%20Editing/mpl_Copy%20selection%20area%20of%20take%20under%20mouse%20cursor%20to%20new%20track.lua</source>
       </version>
       <version name="1.02" author="MPL" time="2019-08-08T19:12:26Z">
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
@@ -6246,8 +6288,8 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Delete take number x from selected items.lua" type="script" desc="Delete take number x from selected items">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Takes%20Editing/mpl_Delete%20take%20number%20x%20from%20selected%20items.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Takes%20Editing/mpl_Delete%20take%20number%20x%20from%20selected%20items.lua</source>
       </version>
     </reapack>
   </category>
@@ -6262,8 +6304,8 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Color pooled MIDI takes as selected reference.lua" type="script" desc="Color pooled MIDI takes as selected reference">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Takes%20Properties/mpl_Color%20pooled%20MIDI%20takes%20as%20selected%20reference.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Takes%20Properties/mpl_Color%20pooled%20MIDI%20takes%20as%20selected%20reference.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Rename active take as (itemname)_bounce_(date time).lua" type="script" desc="Rename active take as (itemname)_bounce_(date time)">
@@ -6458,8 +6500,8 @@ add control for timefall showing last note]]></changelog>
   </category>
   <category name="Tempo">
     <reapack name="mpl_Import Cubase tempo map.lua" type="script" desc="Import Cubase tempo map">
-      <version name="1.0" author="MPL" time="2016-06-11T07:29:01Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tempo/mpl_Import%20Cubase%20tempo%20map.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-06-11T07:29:01Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b0bbbc46b349837b79ac23c2661562de41a73639/Tempo/mpl_Import%20Cubase%20tempo%20map.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle gradually transition for tempo marker before edit cursor.lua" type="script" desc="Toggle gradually transition for tempo marker before edit cursor">
@@ -6778,8 +6820,8 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Delete x characters from selected track names.eel" type="script" desc="Delete x characters from selected track names">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Delete%20x%20characters%20from%20selected%20track%20names.eel</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Tracks%20Properties/mpl_Delete%20x%20characters%20from%20selected%20track%20names.eel</source>
       </version>
     </reapack>
     <reapack name="mpl_Disable master or parent send for track under mouse cursor.lua" type="script" desc="Disable master or parent send for track under mouse cursor">
@@ -6814,13 +6856,13 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Go to first receive track.lua" type="script" desc="Go to first receive track">
-      <version name="1.0" author="MPL" time="2016-01-15T07:07:25Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Go%20to%20first%20receive%20track.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-15T07:07:25Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Go%20to%20first%20receive%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Go to first send destination track.lua" type="script" desc="Go to first send destination track">
-      <version name="1.0" author="MPL" time="2016-01-15T07:07:25Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Go%20to%20first%20send%20destination%20track.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-15T07:07:25Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Go%20to%20first%20send%20destination%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Invert selected tracks solo to mute states.lua" type="script" desc="Invert selected tracks solo to mute states">
@@ -6843,8 +6885,8 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Pan selected tracks with LR at the end of trackname respectively.lua" type="script" desc="Pan selected tracks with LR at the end of trackname respectively">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Pan%20selected%20tracks%20with%20LR%20at%20the%20end%20of%20trackname%20respectively.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Tracks%20Properties/mpl_Pan%20selected%20tracks%20with%20LR%20at%20the%20end%20of%20trackname%20respectively.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Prepare MIDI input for last touched track.lua" type="script" desc="Prepare MIDI input for last touched track">
@@ -6886,9 +6928,9 @@ add control for timefall showing last note]]></changelog>
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-08-17T14:58:41Z">
+      <version name="1.0" author="mpl" time="2016-08-17T14:58:41Z">
         <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Search%20tracks.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/72e9f6731cd59682231f6a592445a5f0f09a3e1f/Tracks%20Properties/mpl_Search%20tracks.lua</source>
       </version>
       <version name="1.0.1" author="MPL" time="2019-10-15T23:09:07Z">
         <changelog><![CDATA[+ fix crash when pressing Ctrl+Right before typing anything]]></changelog>
@@ -6936,8 +6978,8 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Select tracks with instruments.lua" type="script" desc="Select tracks with instruments">
-      <version name="1.0" author="MPL" time="2016-01-15T07:07:25Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Select%20tracks%20with%20instruments.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-15T07:07:25Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Select%20tracks%20with%20instruments.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Send tracks (background).lua" type="script" desc="Send tracks">
@@ -6988,9 +7030,9 @@ add control for timefall showing last note]]></changelog>
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-11-20T19:31:41Z">
+      <version name="1.0" author="mpl" time="2016-11-20T19:31:41Z">
         <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Set%20solo%20for%20random%20selected%20track.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/37abb63c3392a975e07e254e404461da65761cbf/Tracks%20Properties/mpl_Set%20solo%20for%20random%20selected%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set track offset in seconds.lua" type="script" desc="Set track offset in seconds">
@@ -7003,8 +7045,8 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Solo track with opened FX chain.lua" type="script" desc="Solo track with opened FX chain">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Solo%20track%20with%20opened%20FX%20chain.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Tracks%20Properties/mpl_Solo%20track%20with%20opened%20FX%20chain.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Sort selected tracks by color.lua" type="script" desc="Sort selected tracks by color">
@@ -7071,18 +7113,18 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Toggle recarm on track under mouse cursor.lua" type="script" desc="Toggle recarm on track under mouse cursor">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Toggle%20recarm%20on%20track%20under%20mouse%20cursor.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Tracks%20Properties/mpl_Toggle%20recarm%20on%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle reverse pan flag and invert color of track under mouse cursor.lua" type="script" desc="Toggle reverse pan flag and invert color of track under mouse cursor">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Toggle%20reverse%20pan%20flag%20and%20invert%20color%20of%20track%20under%20mouse%20cursor.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Tracks%20Properties/mpl_Toggle%20reverse%20pan%20flag%20and%20invert%20color%20of%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle reverse volume flag and invert color of track under mouse cursor.lua" type="script" desc="Toggle reverse volume flag and invert color of track under mouse cursor">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Toggle%20reverse%20volume%20flag%20and%20invert%20color%20of%20track%20under%20mouse%20cursor.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Tracks%20Properties/mpl_Toggle%20reverse%20volume%20flag%20and%20invert%20color%20of%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle set midi routing mode for all selected tracks sends.lua" type="script" desc="Toggle set midi routing mode for all selected tracks sends">
@@ -7095,8 +7137,8 @@ add control for timefall showing last note]]></changelog>
       </version>
     </reapack>
     <reapack name="mpl_Toggle show only selected tracks in mixer.lua" type="script" desc="Toggle show only selected tracks in mixer">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Tracks%20Properties/mpl_Toggle%20show%20only%20selected%20tracks%20in%20mixer.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Tracks%20Properties/mpl_Toggle%20show%20only%20selected%20tracks%20in%20mixer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle show tracks if edit cursor crossing any of their items.lua" type="script" desc="Toggle show tracks if edit cursor crossing any of their items">
@@ -7225,8 +7267,8 @@ add control for timefall showing last note]]></changelog>
   </category>
   <category name="Transport">
     <reapack name="mpl_Play from item under mouse cursor.lua" type="script" desc="Play from item under mouse cursor">
-      <version name="1.0" author="MPL" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Transport/mpl_Play%20from%20item%20under%20mouse%20cursor.lua</source>
+      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Transport/mpl_Play%20from%20item%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Transport Play Stop (obey longest negative track offset).lua" type="script" desc="Transport Play Stop (obey longest negative track offset)">
@@ -7521,7 +7563,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_Delete non-existing scripts from ActionList.lua" type="script" desc="Delete non-existing scripts from Action List">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -7647,9 +7689,9 @@ add control for timefall showing last note]]></changelog>
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2016-08-23T11:06:45Z">
+      <version name="1.0" author="mpl" time="2016-08-23T11:06:45Z">
         <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4bfc4638deb2042dcfe5ad384884a3b32a254873/Various/mpl_Import%20Winamp%20Playlist.lua</source>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9271eb5fe2df842dee33cc6027d8ead9288352e2/Various/mpl_Import%20Winamp%20Playlist.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_ImportSessionData.lua" type="script" desc="ImportSessionData">
@@ -9455,7 +9497,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_Mapping Panel (background).lua" type="script" desc="MappingPanel">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
@@ -9626,7 +9668,7 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_PitchEditor.lua" type="script" desc="PitchEditor">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 Courier;}}
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
