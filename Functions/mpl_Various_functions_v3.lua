@@ -293,13 +293,14 @@
       -- handle mouse_latch on left drag
         if DATA.GUI.LMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true then
           DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedrag
+          
           if b.val and b.latchval and type(b.latchval) == 'number' then 
             local res= b.val_res or 1
             if DATA.GUI.Ctrl then res = res /10 end
+            
             b.val = VF_lim(b.latchval - (DATA.GUI.dy*res/DATA.GUI.default_scale) / b.h)
-            if b.val_min and b.val_max then
-              b.val = b.val_min + (b.val_max - b.val_min) * b.val
-            end
+            if b.val_xaxis then b.val = VF_lim(b.latchval - (DATA.GUI.dx*res/DATA.GUI.default_scale) / b.w) end
+            if b.val_min and b.val_max then b.val = b.val_min + (b.val_max - b.val_min) * b.val end
           end
           b.refresh = true
         end
@@ -348,7 +349,9 @@
           b.refresh = true
           DATA.perform_quere[#DATA.perform_quere+1] = b.onwheeltrig
         end
-          
+      
+      --
+      if DATA.GUI.LMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true and b.onmousedrag_skipotherobjects then return end
       ::skipb::
     end
   end
