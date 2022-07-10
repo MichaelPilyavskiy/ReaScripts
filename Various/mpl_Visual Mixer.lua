@@ -1,21 +1,10 @@
 -- @description VisualMixer
--- @version 2.0
+-- @version 2.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Pretty same as what Izotope Neutron Visual mixer do
 -- @changelog
---    # remove SWS dependency
---    # code/GUI cleanup
---    # GUI: improve Y scale
---    # GUI: do not change size of rectangles while change track width
---    # GUI: use left to right peaks rather than mirrored
---    + GUI: allow to change size of rectangles
---    + GUI: mark is track folder
---    + GUI: mark active snapshots
---    # Snapshots: improve snapshots
---    + Snapshots: allow to clear current snapshot
---    + Snapshots: allow to clear all snapshots
---    + Snapshots: allow to reset current snapshot track volumes/pan/width
+--    # fix set width after changing track vol/pan
 
 
   
@@ -23,7 +12,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.0
+    DATA.extstate.version = 2.01
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -393,7 +382,7 @@
   function DATA2:GUI_inittracks_initstuff(DATA,GUID,xpos,ypos)  
     -- width
     if not DATA.GUI.buttons['trackrect'..GUID..'widthhandle'] then
-      local wtr = GUI_Scale_GetWPosFromW   (DATA2.tracks[GUID].width)--* DATA.GUI.custom_tr_w
+      local wtr = GUI_Scale_GetWPosFromW   (DATA2.tracks[GUID].width)--* DATA.GUI.custom_tr_w 
       DATA.GUI.buttons['trackrect'..GUID..'widthhandle']={x=xpos+DATA.GUI.custom_tr_h/2-wtr/2,
                           y=ypos+DATA.GUI.custom_tr_h,
                           w=wtr,
@@ -411,7 +400,8 @@
                           onmousedrag = function()
                                           local wout = VF_lim(DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].latch_w + DATA.GUI.dx/DATA.GUI.default_scale, DATA.GUI.custom_tr_w*DATA.GUI.custom_minw_ratio, DATA.GUI.custom_tr_w)
                                           DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].w = wout
-                                          DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].x=xpos+DATA.GUI.custom_tr_h/2-wout/2
+                                          local xpos = math.floor(GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan)-DATA.GUI.custom_tr_w/2)
+                                          DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].x= xpos+DATA.GUI.custom_tr_w/2-wout/2
                                           DATA2:TrackMap_ApplyTrWidth(GUID,wout) 
                                         end,
                           onmouserelease =  function()
@@ -422,8 +412,10 @@
                                             end
                           } 
      else 
-      DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].x=xpos
+      local wtr = GUI_Scale_GetWPosFromW   (DATA2.tracks[GUID].width)--* DATA.GUI.custom_tr_w
+      DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].x=xpos+DATA.GUI.custom_tr_w/2-wtr/2
       DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].y=ypos+DATA.GUI.custom_tr_h
+      DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].w=wtr
     end
     -- folder 
     if DATA2.tracks[GUID].I_FOLDERDEPTH == 1 then 
