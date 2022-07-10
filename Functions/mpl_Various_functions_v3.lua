@@ -442,6 +442,7 @@
     local backgr_col2 = b.backgr_col2 or '#333333'
     local backgr_fill = b.backgr_fill or 1
     local backgr_fill2 = b.backgr_fill2 or 0
+    local frame_col = b.frame_col
     
     x,y,w,h = 
               math.floor(x*DATA.GUI.default_scale),
@@ -501,7 +502,7 @@
       end 
       
     -- frame
-      DATA:GUIhex2rgb(DATA.GUI.default_frame_col, true)
+      DATA:GUIhex2rgb(frame_col or DATA.GUI.default_frame_col, true)
       gfx.a = frame_a
       if b.mouse_match == true or b.mouse_latch == true then gfx.a = frame_asel end
       if gfx.a > 0 then DATA:GUIdraw_rect(x,y,w,h,0)  end

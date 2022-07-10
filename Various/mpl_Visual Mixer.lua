@@ -1,10 +1,12 @@
 -- @description VisualMixer
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Pretty same as what Izotope Neutron Visual mixer do
 -- @changelog
---    # fix set width after changing track vol/pan
+--    # store rect size to a persistent config
+--    # fix update peaks for bigger rectangles
+--    # revert track colors 
 
 
   
@@ -12,7 +14,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.01
+    DATA.extstate.version = 2.02
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -33,6 +35,8 @@
                           CONF_NAME = 'default',
                           CONF_snapshcnt = 8,
                           CONF_scalecent = 0.7,
+                          CONF_tr_rect_px = 50,
+                          
                           
                           }
     DATA:ExtStateGet()
@@ -78,9 +82,8 @@
     DATA.GUI.custom_foldrect  = 5
     DATA.GUI.custom_txtfontszinfo = 14
     
-    DATA.GUI.custom_tr_w = 50
-    DATA.GUI.custom_tr_h =DATA.GUI.custom_tr_w
-    DATA.GUI.custom_tr_widthhandleh = 5
+    DATA.GUI.custom_tr_h =DATA.extstate.CONF_tr_rect_px
+    DATA.GUI.custom_trwidthhandleh = 5
     
     DATA.GUI.default_data_a = 0.7-- normal
     DATA.GUI.default_data_a2 = 0.2 -- ignore serach
@@ -156,9 +159,9 @@
   --------------------------------------------------------------------- 
   function GUI_buttons(DATA) 
     DATA.GUI.buttons = {} 
-    DATA.GUI.buttons.scale = { x=DATA.GUI.custom_offset, -- link to GUI.buttons.getreference--+DATA.GUI.custom_tr_w/2
+    DATA.GUI.buttons.scale = { x=DATA.GUI.custom_offset, -- link to GUI.buttons.getreference--+DATA.extstate.CONF_tr_rect_px/2
                             y=DATA.GUI.custom_mainbuth+DATA.GUI.custom_offset*2,--+DATA.GUI.custom_tr_h/2
-                            w=gfx.w/DATA.GUI.default_scale-DATA.GUI.custom_offset*2,--DATA.GUI.custom_tr_w,
+                            w=gfx.w/DATA.GUI.default_scale-DATA.GUI.custom_offset*2,--DATA.extstate.CONF_tr_rect_px,
                             h=gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_mainbuth-DATA.GUI.custom_offset*3,--DATA.GUI.custom_tr_h,
                             ignoremouse = true,
                             --refresh = true,
@@ -170,11 +173,11 @@
                             y=DATA.GUI.custom_offset,
                             w=DATA.GUI.custom_knob_w,
                             h=DATA.GUI.custom_mainbuth,
-                            txt = 'Size: '..math.floor(DATA.GUI.custom_tr_w)..'px',
+                            txt = 'Size: '..math.floor(DATA.extstate.CONF_tr_rect_px)..'px',
                             knob_isknob = true,
                             knob_showvalueright = true,
                             val_res = 0.25,
-                            val = 50,
+                            val = DATA.extstate.CONF_tr_rect_px,
                             val_min = 20,
                             val_max = 150,
                             frame_a = DATA.GUI.default_framea_normal,
@@ -183,12 +186,14 @@
                             onmouseclick =    function()  end,
                             onmousedrag =     function() 
                                 DATA.GUI.buttons.knob.txt = 'Size: '..math.floor(DATA.GUI.buttons.knob.val )..'px'
-                                DATA.GUI.custom_tr_w = math.floor(DATA.GUI.buttons.knob.val )
-                                DATA.GUI.custom_tr_h =DATA.GUI.custom_tr_w
+                                DATA.extstate.CONF_tr_rect_px = math.floor(DATA.GUI.buttons.knob.val )
+                                DATA.GUI.custom_tr_h =DATA.extstate.CONF_tr_rect_px
                               end,
-                            onmouserelease  = function() 
+                            onmouserelease  = function()     
+                              DATA.extstate.CONF_tr_rect_px = math.floor(DATA.GUI.buttons.knob.val )
+                              DATA.UPD.onconfchange = true
                               DATA2:tracks_init()
-                              DATA2:GUI_inittracks(DATA) 
+                              DATA2:GUI_inittracks(DATA)
                             end,
                           }
     DATA.GUI.buttons.knob2 = { x=DATA.GUI.custom_offset*2+DATA.GUI.custom_knob_w,
@@ -315,14 +320,14 @@
   
   -----------------------------------------------
   function GUI_Scale_GetXPosFromPan(pan)
-    local area = DATA.GUI.buttons.scale.w - DATA.GUI.custom_tr_w
-    if pan then return DATA.GUI.buttons.scale.x +DATA.GUI.custom_tr_w/2+ area*0.5* (1+pan) end
+    local area = DATA.GUI.buttons.scale.w - DATA.extstate.CONF_tr_rect_px
+    if pan then return DATA.GUI.buttons.scale.x +DATA.extstate.CONF_tr_rect_px/2+ area*0.5* (1+pan) end
   end 
   ---------------------------------------------------------------------  
   function DATA2:TrackMap_ApplyTrPan(GUID, Xval) 
     local tr = VF_GetTrackByGUID(GUID)
     if not tr then return end
-    local area = DATA.GUI.buttons.scale.w - DATA.GUI.custom_tr_w
+    local area = DATA.GUI.buttons.scale.w - DATA.extstate.CONF_tr_rect_px
     local pan = -0.5+(Xval - DATA.GUI.buttons.scale.x) / area
     --CSurf_OnPanChangeEx(tr, pan, false, false)
     SetMediaTrackInfo_Value( tr, 'D_PAN', pan*2)
@@ -335,13 +340,13 @@
   function GUI_Scale_GetWPosFromW(width)
     if not width then return 1 end 
     local width = math.abs(width)*(1-DATA.GUI.custom_minw_ratio) + DATA.GUI.custom_minw_ratio
-    return DATA.GUI.custom_tr_w * width
+    return DATA.extstate.CONF_tr_rect_px * width
   end
   ----------------------------------------------------------------------  
   function DATA2:TrackMap_ApplyTrWidth(GUID,Wval) 
     local tr = VF_GetTrackByGUID(GUID)
     if not tr then return end 
-    local width = ((Wval / DATA.GUI.custom_tr_w)-DATA.GUI.custom_minw_ratio)/(1-DATA.GUI.custom_minw_ratio) 
+    local width = ((Wval / DATA.extstate.CONF_tr_rect_px)-DATA.GUI.custom_minw_ratio)/(1-DATA.GUI.custom_minw_ratio) 
     SetMediaTrackInfo_Value( tr, 'D_WIDTH', width)
     SetMediaTrackInfo_Value( tr, 'I_PANMODE', 5)
   end
@@ -372,36 +377,37 @@
   
   ---------------------------- 
   function DATA2:GUI_inittracks_refreshXY(DATA, GUID) 
-    local xpos = GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan)-DATA.GUI.custom_tr_w/2
+    local xpos = GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan)-DATA.extstate.CONF_tr_rect_px/2
     local ypos = GUI_Scale_GetYPosFromdB  (DATA2.tracks[GUID].vol_dB)   -DATA.GUI.custom_tr_h/2
     DATA.GUI.buttons['trackrect'..GUID].x=xpos
     DATA.GUI.buttons['trackrect'..GUID].y=ypos
     DATA.GUI.buttons['trackrect'..GUID].refresh = true
   end
   ---------------------------------------------------------------------  
-  function DATA2:GUI_inittracks_initstuff(DATA,GUID,xpos,ypos)  
+  function DATA2:GUI_inittracks_initstuff(DATA,GUID,xpos,ypos, frame_col)  
     -- width
     if not DATA.GUI.buttons['trackrect'..GUID..'widthhandle'] then
-      local wtr = GUI_Scale_GetWPosFromW   (DATA2.tracks[GUID].width)--* DATA.GUI.custom_tr_w 
+      local wtr = GUI_Scale_GetWPosFromW   (DATA2.tracks[GUID].width)
       DATA.GUI.buttons['trackrect'..GUID..'widthhandle']={x=xpos+DATA.GUI.custom_tr_h/2-wtr/2,
                           y=ypos+DATA.GUI.custom_tr_h,
                           w=wtr,
-                          h=DATA.GUI.custom_tr_widthhandleh,
+                          h=DATA.GUI.custom_trwidthhandleh,
                           backgr_fill = 0.2,
+                          backgr_col = frame_col,
                           frame_a =0.2,
+                          frame_col =frame_col,
                           val=0,
                           val_xaxis = true,
                           val_res=0.05,
                           refresh = true,
-                          backgr_col = '#FFFFFF',
                           onmouseclick = function() 
                                             DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].latch_w = DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].w
                                           end,
                           onmousedrag = function()
-                                          local wout = VF_lim(DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].latch_w + DATA.GUI.dx/DATA.GUI.default_scale, DATA.GUI.custom_tr_w*DATA.GUI.custom_minw_ratio, DATA.GUI.custom_tr_w)
+                                          local wout = VF_lim(DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].latch_w + DATA.GUI.dx/DATA.GUI.default_scale, DATA.extstate.CONF_tr_rect_px*DATA.GUI.custom_minw_ratio, DATA.extstate.CONF_tr_rect_px)
                                           DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].w = wout
-                                          local xpos = math.floor(GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan)-DATA.GUI.custom_tr_w/2)
-                                          DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].x= xpos+DATA.GUI.custom_tr_w/2-wout/2
+                                          local xpos = math.floor(GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan)-DATA.extstate.CONF_tr_rect_px/2)
+                                          DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].x= xpos+DATA.extstate.CONF_tr_rect_px/2-wout/2
                                           DATA2:TrackMap_ApplyTrWidth(GUID,wout) 
                                         end,
                           onmouserelease =  function()
@@ -412,14 +418,14 @@
                                             end
                           } 
      else 
-      local wtr = GUI_Scale_GetWPosFromW   (DATA2.tracks[GUID].width)--* DATA.GUI.custom_tr_w
-      DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].x=xpos+DATA.GUI.custom_tr_w/2-wtr/2
+      local wtr = GUI_Scale_GetWPosFromW   (DATA2.tracks[GUID].width)
+      DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].x=xpos+DATA.extstate.CONF_tr_rect_px/2-wtr/2
       DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].y=ypos+DATA.GUI.custom_tr_h
       DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].w=wtr
     end
     -- folder 
     if DATA2.tracks[GUID].I_FOLDERDEPTH == 1 then 
-      DATA.GUI.buttons['trackrect'..GUID..'isfolder']={x=xpos+DATA.GUI.custom_tr_w-DATA.GUI.custom_foldrect,
+      DATA.GUI.buttons['trackrect'..GUID..'isfolder']={x=xpos+DATA.extstate.CONF_tr_rect_px-DATA.GUI.custom_foldrect,
                             y=ypos+DATA.GUI.custom_tr_h-DATA.GUI.custom_foldrect,
                             w=DATA.GUI.custom_foldrect,
                             h=DATA.GUI.custom_foldrect,
@@ -432,8 +438,8 @@
     --info
     local infotxt = DATA2.tracks[GUID].name
     local w_txt = gfx.measurestr(infotxt)
-    DATA.GUI.buttons['trackrect'..GUID..'info']={x=xpos+DATA.GUI.custom_tr_w/2-w_txt/2,
-                            y=ypos+DATA.GUI.custom_tr_h+DATA.GUI.custom_tr_widthhandleh,
+    DATA.GUI.buttons['trackrect'..GUID..'info']={x=xpos+DATA.extstate.CONF_tr_rect_px/2-w_txt/2,
+                            y=ypos+DATA.GUI.custom_tr_h+DATA.GUI.custom_trwidthhandleh,
                             w=w_txt,
                             h=DATA.GUI.custom_txtfontszinfo*DATA.GUI.default_scale,
                             frame_a =0,
@@ -451,14 +457,20 @@
     
     if not (DATA and DATA.GUI.buttons and DATA2.tracks) then return end  
     for GUID in pairs(DATA2.tracks) do
-      local xpos = math.floor(GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan)-DATA.GUI.custom_tr_w/2)
+      local frame_col
+      if DATA2.tracks[GUID].col and DATA2.tracks[GUID].col ~= 0 then
+        local r,g,b = ColorFromNative(DATA2.tracks[GUID].col)
+        frame_col = string.format("#%02x%02x%02x",math.floor(r),math.floor(g),math.floor(b))
+      end
+      local xpos = math.floor(GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan)-DATA.extstate.CONF_tr_rect_px/2)
       local ypos = math.floor(GUI_Scale_GetYPosFromdB  (DATA2.tracks[GUID].vol_dB)   -DATA.GUI.custom_tr_h/2)
       DATA.GUI.buttons['trackrect'..GUID]={x=xpos,
                             y=ypos,
-                            w=DATA.GUI.custom_tr_w,
+                            w=DATA.extstate.CONF_tr_rect_px,
                             h=DATA.GUI.custom_tr_h,
                             backgr_fill = 0,
                             frame_a =0.4,
+                            frame_col = frame_col,
                             refresh = true,
                             onmouseclick = function() 
                                               DATA.GUI.buttons['trackrect'..GUID].latch_x = DATA.GUI.buttons['trackrect'..GUID].x
@@ -467,7 +479,7 @@
                                             end,
                             onmousedrag_skipotherobjects = true,
                             onmousedrag = function()
-                                            DATA.GUI.buttons['trackrect'..GUID].x = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_x + DATA.GUI.dx/DATA.GUI.default_scale, DATA.GUI.buttons.scale.x , DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w-DATA.GUI.custom_tr_w)
+                                            DATA.GUI.buttons['trackrect'..GUID].x = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_x + DATA.GUI.dx/DATA.GUI.default_scale, DATA.GUI.buttons.scale.x , DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w-DATA.extstate.CONF_tr_rect_px)
                                             DATA.GUI.buttons['trackrect'..GUID].y = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_y + DATA.GUI.dy/DATA.GUI.default_scale, DATA.GUI.buttons.scale.y, DATA.GUI.buttons.scale.y+DATA.GUI.buttons.scale.h-DATA.GUI.custom_tr_h)
                                             DATA.GUI.buttons['trackrect'..GUID].refresh = true
                                             DATA2:TrackMap_ApplyTrPan(GUID,DATA.GUI.buttons['trackrect'..GUID].x) 
@@ -481,7 +493,7 @@
                                                 DATA2:Snapshot_Write()
                                               end
                             }
-      DATA2:GUI_inittracks_initstuff(DATA,GUID,xpos,ypos)
+      DATA2:GUI_inittracks_initstuff(DATA,GUID,xpos,ypos, frame_col)
     end
   end
   --------------------------------------------------- 
@@ -583,6 +595,12 @@
     for GUID in pairs(DATA2.tracks) do
       if DATA.GUI.buttons['trackrect'..GUID] then  
         local o = DATA.GUI.buttons['trackrect'..GUID]
+        local frame_col
+        if DATA2.tracks[GUID].col and DATA2.tracks[GUID].col ~= 0 then
+          local r,g,b = ColorFromNative(DATA2.tracks[GUID].col)
+          frame_col = string.format("#%02x%02x%02x",math.floor(r),math.floor(g),math.floor(b))
+        end
+        
         local x,y,w,h, txt = o.x, o.y, o.w, o.h
         local cnt_lp = math.floor(w*DATA.GUI.default_scale)
         local peakvalL, peakvalR, peakvalmid
@@ -601,7 +619,8 @@
               peakvalL = lim(peakvalL, 0,1)
               peakvalR = lim(peakvalR, 0,1)
               peakvalmid = (peakvalL + peakvalR) /2
-              gfx.set(1,1,1)       
+              --gfx.set(1,1,1)     
+              DATA:GUIhex2rgb(frame_col,true)
               gfx.a = 0.5 * (cnt_lp-i)/cnt_lp
               gfx.line( x0,
                         (y +  h/2 -peakvalmid*h/2)*DATA.GUI.default_scale,
@@ -663,7 +682,7 @@
   end
   ---------------------------------------------------------------------- 
   function DATA2:tracks_update_peaks()
-    local max_peak_cnt = 100
+    local max_peak_cnt = math.max(100,DATA.extstate.CONF_tr_rect_px)
     if not DATA2.tracks then return end
     for GUID in pairs(DATA2.tracks) do
       if DATA2.tracks[GUID].ptr and ValidatePtr2(0,DATA2.tracks[GUID].ptr, 'MediaTrack*') then
@@ -700,4 +719,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.24) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.25) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
