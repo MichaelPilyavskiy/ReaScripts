@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7dfff5257dd373240b95f317f26d9bcaa6c4fcb5" name="MPL Scripts">
+<index version="1" commit="8bcec0d06d5c81e1425f3f8dac6074cf57198d39" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1149,6 +1149,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/92d418e72e62a4404e44dca9fa1a7cb848f1f0c7/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/92d418e72e62a4404e44dca9fa1a7cb848f1f0c7/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/92d418e72e62a4404e44dca9fa1a7cb848f1f0c7/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.25" author="MPL" time="2022-07-10T21:05:09Z">
+        <changelog><![CDATA[+ GUI: add support for colored frame]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8bcec0d06d5c81e1425f3f8dac6074cf57198d39/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8bcec0d06d5c81e1425f3f8dac6074cf57198d39/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8bcec0d06d5c81e1425f3f8dac6074cf57198d39/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8bcec0d06d5c81e1425f3f8dac6074cf57198d39/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8bcec0d06d5c81e1425f3f8dac6074cf57198d39/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8bcec0d06d5c81e1425f3f8dac6074cf57198d39/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -9989,6 +9998,12 @@ add control for timefall showing last note]]></changelog>
       <version name="2.01" author="MPL" time="2022-07-10T13:31:14Z">
         <changelog><![CDATA[# fix set width after changing track vol/pan]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7dfff5257dd373240b95f317f26d9bcaa6c4fcb5/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.02" author="MPL" time="2022-07-10T21:05:09Z">
+        <changelog><![CDATA[# store rect size to a persistent config
+# fix update peaks for bigger rectangles
+# revert track colors ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8bcec0d06d5c81e1425f3f8dac6074cf57198d39/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
