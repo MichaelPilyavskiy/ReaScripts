@@ -1,4 +1,4 @@
--- @description Various_functions_v1
+﻿-- @description Various_functions_v1
 -- @author MPL
 -- @noindex  
   
@@ -1593,7 +1593,62 @@ function VF_spk77_getinivalue(ini_file_name, section, key) -- https://forum.cock
   return false
   end
 end
-
+  -----------------------------------------------------
+  function VF_TrackFX_SetEmbeddedState(track, fx0, func_perform)
+    -- func_perform is like 
+      --[[
+       func = function(flag1,flag2) 
+              local WAKflag1 = flag1
+              local WAKflag2 = 2
+              return WAKflag1, WAKflag2 
+            end
+      ]]
+            
+    --  0-based fx
+      if not fx0 then return end
+      if not track then return end
+      local retval, inchunk = GetTrackStateChunk( track, '', false )
+    -- parse FX
+      local t,i,brackets = {},0,0
+      local wak_ids = {}
+      for line in inchunk:gmatch('[^\r\n]+') do
+        if line:match('<FXCHAIN') then collect = true end
+        if collect == true then 
+          local count_brackets_open = #string.gsub(line, "[^<]", "")
+          local count_brackets_close = #string.gsub(line, "[^>]", "")
+          i = i + 1 
+          if line:match('WAK %d') then
+            wak_ids[#wak_ids+1] = i
+          end
+          t[i] = line 
+          brackets = brackets + count_brackets_open - count_brackets_close
+          if brackets == 0 then break end
+        end
+      end 
+      local fxchunk = table.concat(t,'\n')
+    
+    -- mod flags
+      for fx = 0,  TrackFX_GetCount( track )-1 do 
+        if fx0 == -1 or (fx0 ~= -1 and fx0 == fx) then
+          local wakID = wak_ids[fx+1] 
+          if wakID and t[wakID] then
+            local src_line = t[wakID]
+            if not src_line:match('WAK [%d%-]+ [%d%-]+') then src_line = src_line..' 0' end -- backward comatibility with old reaper versions
+            local flag1, flag2 = src_line:match('WAK ([%d%-]+) ([%d%-]+)')
+            flag1 = tonumber(flag1)
+            flag2 = tonumber(flag2)
+            local flag1out, flag2out = func_perform(flag1,flag2)
+            t[wakID] = 'WAK '..flag1out..' '..flag2out
+          end 
+        end
+      end
+      
+      local fxchunk_mod = table.concat(t,'\n')
+    
+    -- apply out
+      local outchunk = inchunk:gsub(literalize(fxchunk), fxchunk_mod)
+      SetTrackStateChunk( track, outchunk, false )
+  end
 
   -- MAPPING for backwards compability --
   Open_URL = VF_Open_URL
