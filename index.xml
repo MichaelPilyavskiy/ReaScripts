@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8bcec0d06d5c81e1425f3f8dac6074cf57198d39" name="MPL Scripts">
+<index version="1" commit="735935d70652032082cc65617880072b451abb5b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1159,6 +1159,15 @@
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8bcec0d06d5c81e1425f3f8dac6074cf57198d39/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8bcec0d06d5c81e1425f3f8dac6074cf57198d39/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
+      <version name="3.26" author="MPL" time="2022-07-12T15:38:14Z">
+        <changelog><![CDATA[+ MPL_TrackFX_SetEmbeddedState]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
     </reapack>
   </category>
   <category name="FX">
@@ -1465,6 +1474,15 @@
       <version name="1.0" author="mpl" time="2016-08-03T12:57:15Z">
         <changelog><![CDATA[+ init alpha]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e940e5111272af87c3cf63455cd983163347cef2/FX/mpl_Generate%20reabank%20from%20focused%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Hide all selected tracks FX embedded UI in MCP.lua" type="script" desc="Hide all selected tracks FX embedded UI in MCP">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-07-12T15:38:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/FX/mpl_Hide%20all%20selected%20tracks%20FX%20embedded%20UI%20in%20MCP.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Insert focused FX to selected tracks, preserve parameters.lua" type="script" desc="Insert focused FX to selected tracks, preserve parameters">
@@ -2190,6 +2208,15 @@
       <version name="1.0" author="MPL" time="2021-10-10T19:28:26Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0127c2a8135b4f1f044356a7ac6c0507fa1dccb6/FX/mpl_Show%20plugin%20path%20for%20focused%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Show selected tracks first FX embedded UI in MCP.lua" type="script" desc="Show selected tracks first FX embedded UI in MCP">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-07-12T15:38:14Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/FX/mpl_Show%20selected%20tracks%20first%20FX%20embedded%20UI%20in%20MCP.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Sort focused FX presets alphabetically.lua" type="script" desc="Sort focused FX presets alphabetically">
