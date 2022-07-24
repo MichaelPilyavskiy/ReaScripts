@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="735935d70652032082cc65617880072b451abb5b" name="MPL Scripts">
+<index version="1" commit="f89a3087632fd2a42329df430214cfb3068e69a4" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1167,6 +1167,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.27" author="MPL" time="2022-07-24T17:26:04Z">
+        <changelog><![CDATA[+ GUI: add selection rectangle]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f89a3087632fd2a42329df430214cfb3068e69a4/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f89a3087632fd2a42329df430214cfb3068e69a4/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f89a3087632fd2a42329df430214cfb3068e69a4/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f89a3087632fd2a42329df430214cfb3068e69a4/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f89a3087632fd2a42329df430214cfb3068e69a4/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f89a3087632fd2a42329df430214cfb3068e69a4/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -5623,6 +5632,22 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL" time="2017-08-13T07:20:40Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/801cd554dff93b46cc3b43b133da25b9bc5195ce/MIDI%20editor/mpl_Stretch%20selected%20MIDI%20notes%20positions%20by%20x2.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Strum selected notes.lua" type="script" desc="Strum selected notes">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Shift selected notes positions by user defined PPQ amount\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-07-24T17:26:04Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f89a3087632fd2a42329df430214cfb3068e69a4/MIDI%20editor/mpl_Strum%20selected%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
