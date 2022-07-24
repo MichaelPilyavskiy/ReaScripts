@@ -443,6 +443,7 @@
     local backgr_fill = b.backgr_fill or 1
     local backgr_fill2 = b.backgr_fill2 or 0
     local frame_col = b.frame_col
+    local back_sel_recta = b.back_sel_recta
     
     x,y,w,h = 
               math.floor(x*DATA.GUI.default_scale),
@@ -475,6 +476,10 @@
       if b.mouse_latch == true or (b.sel_allow and b.sel_isselected == true) then 
         gfx.set(1,1,1,back_sela)
         gfx.rect(x+1,y+1,w-1,h-1,1) 
+        if back_sel_recta then 
+          gfx.set(1,1,1,back_sel_recta)
+          gfx.rect(x+1,y+1,w-1,h-1,0) 
+        end
       end 
       
     -- slider
