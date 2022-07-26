@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="f89a3087632fd2a42329df430214cfb3068e69a4" name="MPL Scripts">
+<index version="1" commit="4886d865a8016c15a3a7a2955abf18ff15e588a2" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -7298,6 +7298,15 @@ add control for timefall showing last note]]></changelog>
     </reapack>
   </category>
   <category name="Various">
+    <reapack name="mpl_Adjust items or envelope points positons (mousewheel).lua" type="script" desc="Adjust items or envelope points positons (mousewheel)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-07-26T03:14:55Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4886d865a8016c15a3a7a2955abf18ff15e588a2/Various/mpl_Adjust%20items%20or%20envelope%20points%20positons%20(mousewheel).lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Align takes.lua" type="script" desc="Align Takes">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
