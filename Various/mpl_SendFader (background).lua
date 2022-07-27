@@ -1,13 +1,13 @@
--- @version 1.34
+﻿-- @version 1.35
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description SendFader
 -- @changelog
---    + master/parent send toggle
+--    # show name when docked
 
 
   -------------------------------------------------------------------- 
-  vrs = '1.34'
+  vrs = '1.35'
   name = 'MPL SendFader'
   --------------------------------------------------------------------           
 
@@ -1957,9 +1957,9 @@
     end
     gfx.quit()
     if x_pos and x_pos ~= '' then 
-      gfx.init('', data.wind_w, data.wind_h, is_docked, x_pos, y_pos)
+      gfx.init('MPL SendFader', data.wind_w, data.wind_h, is_docked, x_pos, y_pos)
      else
-      gfx.init('', data.wind_w, data.wind_h, is_docked)--mouse_x, mouse_y)    
+      gfx.init('MPL SendFader', data.wind_w, data.wind_h, is_docked)--mouse_x, mouse_y)    
     end
     DEFINE_Objects()
     update_gfx = true
