@@ -1,4 +1,4 @@
-﻿-- @description Various_functions_v1
+-- @description Various_functions_v1
 -- @author MPL
 -- @noindex  
   
@@ -40,6 +40,7 @@
   end
   ---------------------------------------------------
   function VF_GetFXByGUID(GUID, tr)
+    if not GUID then return end
     local pat = '[%p]+'
     if not tr then
       for trid = 1, CountTracks(0) do
