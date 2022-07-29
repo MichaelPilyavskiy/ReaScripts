@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="31eed1e653997d9d3ec03b9c50618b2c0ac7249a" name="MPL Scripts">
+<index version="1" commit="fed564a8a0b3491efc7a83312839ccdb69587111" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1176,6 +1176,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f89a3087632fd2a42329df430214cfb3068e69a4/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f89a3087632fd2a42329df430214cfb3068e69a4/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f89a3087632fd2a42329df430214cfb3068e69a4/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.28" author="MPL" time="2022-07-27T20:26:54Z">
+        <changelog><![CDATA[# fix VF_GetFXByGUID]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c9e004cf6de1ba74fbd54a4c22682344117da817/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c9e004cf6de1ba74fbd54a4c22682344117da817/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c9e004cf6de1ba74fbd54a4c22682344117da817/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c9e004cf6de1ba74fbd54a4c22682344117da817/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c9e004cf6de1ba74fbd54a4c22682344117da817/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c9e004cf6de1ba74fbd54a4c22682344117da817/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -6478,6 +6487,15 @@ add control for timefall showing last note]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20pitch%20shift%20mode%20to%20project%20default.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Set selected items pitch shift mode to Rrreeeaaa.lua" type="script" desc="Set selected items pitch shift mode to Rrreeeaaa">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-07-29T19:49:20Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fed564a8a0b3491efc7a83312839ccdb69587111/Takes%20Properties/mpl_Set%20selected%20items%20pitch%20shift%20mode%20to%20Rrreeeaaa.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Set selected items pitch shift mode to Rubber Band.lua" type="script" desc="Set selected items pitch shift mode to Rubber Band">
       <metadata>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
@@ -6503,6 +6521,15 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL" time="2020-04-28T04:19:17Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/26994397873c3979998ea3142fb3325fac8bf147/Takes%20Properties/mpl_Set%20selected%20items%20stretch%20marker%20fade%20size%20to%2010ms.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected items stretch marker fade size to 15ms.lua" type="script" desc="Set selected items stretch marker fade size to 15ms">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-07-29T19:49:20Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fed564a8a0b3491efc7a83312839ccdb69587111/Takes%20Properties/mpl_Set%20selected%20items%20stretch%20marker%20fade%20size%20to%2015ms.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set selected items stretch marker fade size to 2.5ms.lua" type="script" desc="Set selected items stretch marker fade size to 2.5ms">
