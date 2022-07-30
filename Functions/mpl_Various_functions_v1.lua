@@ -1650,7 +1650,8 @@ end
       local outchunk = inchunk:gsub(literalize(fxchunk), fxchunk_mod)
       SetTrackStateChunk( track, outchunk, false )
   end
-
+  -----------------------------------------------------
+  function VF_GetProjectSampleRate() return tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) end -- get sample rate obey project start offset
   -- MAPPING for backwards compability --
   Open_URL = VF_Open_URL
   Action = VF_Action

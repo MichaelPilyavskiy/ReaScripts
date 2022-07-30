@@ -279,7 +279,8 @@
             --msg(os.clock()  - b.mouse_latchTS)
             DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedoubleclick
           end
-          b.mouse_latchTS = os.clock() 
+          tslatch = os.clock()
+          DATA.GUI.buttons[but] .mouse_latchTS =  tslatch
           if b.val then 
             
             b.latchval = b.val   
@@ -312,8 +313,6 @@
           DATA.perform_quere[#DATA.perform_quere+1] = b.onmouserelease
         end      
         
-      
-      
       
       -- RMB
       -- handle mouse_latch on left click
@@ -838,7 +837,7 @@
     for but in spairs(DATA.GUI.buttons ) do 
       b = DATA.GUI.buttons[but]
       if b.layer and (DATA.GUI.layers_refresh[b.layer] or DATA.GUI.firstloop == 1 ) then 
-        if not activelayers[b.layer] then
+        if not activelayers[b.layer]and DATA.GUI.layers[b.layer] then
           gfx.dest = b.layer
           gfx.setimgdim(b.layer, -1, -1)  
           local layer_hmeasured = 0
@@ -1487,7 +1486,7 @@
                               DATA.extstate[confkey] = new_val
                               DATA.GUI.buttons[key..'rout'].txt = val_format(new_val)
                               DATA.UPD.onconfchange = true 
-                              DATA:GUIBuildSettings()
+                              --DATA:GUIBuildSettings()
                               if t.func_onrelease then t.func_onrelease() end
                           end,
       onmousereleaseR =    function() 
