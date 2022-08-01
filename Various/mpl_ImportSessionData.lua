@@ -1,31 +1,10 @@
 -- @description ImportSessionData
--- @version 2.0
+-- @version 2.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about Port of PT/S1 Import Session Data feature
 -- @changelog
---    + Rebuild GUI using VF3 framework
---    - Preset: remove option to import tracks as is to prevent inconsistency, allow to only transfer settings and stuff
---    + Internal code cleanup
---    + RPP parser: improve parsing huge chunks
---    - Match algo: remove matching options
---    + Match algo: firstly try to match complete track name, then match by maximum mathed words
---    + Match algo: obey track selection if any
---    + Destination/set to new tracks: obey track selection
---    + Destination/reset: obey track selection
---    + Destination: allow to place matched track under destination track
---    + Destination: allow to place matched track under destination track as child
---    + Destination: show mode in dropdown destination menu
---    # Destination: ignore v1 childrens import logic, use 'obey structure' check instead
---    + Destination: auto clean up source mapping if destination has multiple sources
---    + Preset: separate track, items, fx, import options
---    + Preset / Item: allow to separately check clear destination track items
---    + Preset / FX: allow to separately check clear destination track FX
---    + Preset / UI options: allow to parse last project on init
---    + Preset / UI options: allow to match last project tracks on init
---    + Preset / UI options: allow to match source project tracks on source change
---    - Preset: temporary remove option for relinking item source paths as unstable
---    - Preset: temporary remove option for importing/handling sends/receives as unstable
+--    # fix import master FX error
 
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
@@ -33,7 +12,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.0
+    DATA.extstate.version = 2.01
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -1017,7 +996,8 @@
     local retval, cur_chunk = reaper.GetTrackStateChunk( master_tr, '', false )
     if not DATA2.srcproj.MASTERFXLIST[1] and DATA2.srcproj.MASTERFXLIST[1].chunk then return end
     local src_chunk = DATA2.srcproj.MASTERFXLIST[1].chunk:gsub('MASTERFXLIST', '') 
-    DATA2:Import2_MasterFX_AddChunkToTrack(master_tr,src_chunk)
+    DATA2:Import2_Header_MasterFX_AddChunkToTrack(master_tr,src_chunk)
+    
   end
   ----------------------------------------------------------------------
   function DATA2:Import2_Header_Markers()   
