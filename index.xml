@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e8256749e7c6ac5d4ef171f6c5678665e83465c0" name="MPL Scripts">
+<index version="1" commit="bce04aea41f1258e93e3a8a1f39712207751dafa" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -8060,6 +8060,10 @@ add control for timefall showing last note]]></changelog>
 - Preset: temporary remove option for relinking item source paths as unstable
 - Preset: temporary remove option for importing/handling sends/receives as unstable]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7613cb07686c1409e014a4e4f5374346ea215922/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="2.01" author="MPL" time="2022-08-01T15:54:21Z">
+        <changelog><![CDATA[# fix import master FX error]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bce04aea41f1258e93e3a8a1f39712207751dafa/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
