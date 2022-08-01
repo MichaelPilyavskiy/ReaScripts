@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bce04aea41f1258e93e3a8a1f39712207751dafa" name="MPL Scripts">
+<index version="1" commit="dcfec8962b03d8256663217a27135b5f4dde477c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1194,6 +1194,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e8256749e7c6ac5d4ef171f6c5678665e83465c0/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e8256749e7c6ac5d4ef171f6c5678665e83465c0/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e8256749e7c6ac5d4ef171f6c5678665e83465c0/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.30" author="MPL" time="2022-08-01T21:06:12Z">
+        <changelog><![CDATA[# minor GUI tweaks]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dcfec8962b03d8256663217a27135b5f4dde477c/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dcfec8962b03d8256663217a27135b5f4dde477c/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dcfec8962b03d8256663217a27135b5f4dde477c/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dcfec8962b03d8256663217a27135b5f4dde477c/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dcfec8962b03d8256663217a27135b5f4dde477c/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dcfec8962b03d8256663217a27135b5f4dde477c/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -10067,6 +10076,35 @@ add control for timefall showing last note]]></changelog>
 + Manipulate SE: add set gain tweak
 # Add SE: properly handle time selection outside item]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e5d18b5360aaf1283df9afef94060cce7a0c054b/Various/mpl_Spectral%20editing%20tools.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Spectral search.lua" type="script" desc="Spectral search">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Script allows to search audio data spectrum match based on given piece of other audio data\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-08-01T21:06:12Z">
+        <changelog><![CDATA[+ initial release
++ Get source: take spectral print of selected track - item - take as matching source
++ Get destination: take spectral print of selected track - item - take as matching destination
++ Preset/Action: Share points to destination track as razor edits
++ Preset: allow to clear razor edits before sharing
++ Preset: Spectrum settings
++ Preset/Spectrum settings: FFT size
++ Preset/Spectrum settings: window, independent from FFT size, can overlap or be inside [0.5 x FFT size / Sample rate]
++ Preset/PointsDetectionAlgorithm: allow to limit source length
++ Preset/PointsDetectionAlgorithm: allow to set threshold for minimum difference betweeen src and dest
++ Preset/Initialization: various init options
++ GUI: show source
++ GUI/Difference graph: show difference graph
++ GUI/Difference graph: show points detection threshold]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dcfec8962b03d8256663217a27135b5f4dde477c/Various/mpl_Spectral%20search.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_TaskScheduler.lua" type="script" desc="TaskScheduler">
