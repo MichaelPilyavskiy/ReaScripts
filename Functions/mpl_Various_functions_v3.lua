@@ -1223,6 +1223,7 @@
         txt = t.str,
         txt_flags=4 ,
         frame_a=0,
+        ignoremouse = t.func_onrelease==nil,
         --frame_asel=0,
         onmouserelease = function()   
                             if t.func then t.func() end 
@@ -1460,6 +1461,7 @@
                             DATA.extstate[confkey] = new_val
                             DATA.GUI.buttons[key..'rout'].txt = val_format(new_val) 
                             DATA.GUI.buttons[key..'rout'].refresh = true
+                            if t.func_onmousedrag then t.func_onmousedrag() end
                           end,
       onmouserelease =    function() 
                             if t.val_isstring then return end
