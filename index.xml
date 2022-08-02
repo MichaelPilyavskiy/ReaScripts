@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="dcfec8962b03d8256663217a27135b5f4dde477c" name="MPL Scripts">
+<index version="1" commit="1291a24880c3fa0e92ba59a4767f3c720f1bf2eb" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -7750,7 +7750,7 @@ add control for timefall showing last note]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Port of PT/S1 Import Session Data feature\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 This script allow to import tracks, items, FX etc from defined RPP project file\par}
 }
 ]]></description>
         <link rel="website">http://forum.cockos.com/showthread.php?t=233358</link>
@@ -8073,6 +8073,11 @@ add control for timefall showing last note]]></changelog>
       <version name="2.01" author="MPL" time="2022-08-01T15:54:21Z">
         <changelog><![CDATA[# fix import master FX error]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bce04aea41f1258e93e3a8a1f39712207751dafa/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="2.02" author="MPL" time="2022-08-02T18:12:27Z">
+        <changelog><![CDATA[# improve RPP markers parsing
+# fix error if there is no master FX in source project]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1291a24880c3fa0e92ba59a4767f3c720f1bf2eb/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
