@@ -1,10 +1,11 @@
 -- @description ImportSessionData
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
--- @about Port of PT/S1 Import Session Data feature
+-- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # fix import master FX error
+--    # improve RPP markers parsing
+--    # fix error if there is no master FX in source project
 
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
@@ -12,7 +13,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.01
+    DATA.extstate.version = 2.02
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -730,30 +731,65 @@
       end
     end
   end
+  
+  ----------------------------------------------------------------------
+  function DATA2:ParseSourceProject_ExtractMarkers_parse(line, pat)
+    local t = {} 
+    local temp
+    for val in line:gmatch("%S+") do         -- based on https://stackoverflow.com/a/39757839
+      if temp then
+        if val:sub(#val, #val) == pat or '"' then
+          print(temp.." "..val)
+          temp = nil
+        else
+          temp = temp.." "..val
+        end
+      elseif val:sub(1,1) == '"' then
+        temp = val
+      else
+        t[#t+1] = tonumber(val) or val
+      end
+    end
+    table.remove(t,1)
+    return t
+  end
   ----------------------------------------------------------------------
   function DATA2:ParseSourceProject_ExtractMarkers(content)
     DATA2.srcproj.MARKERS = {}
     local reg_open
     for line in content:gmatch('[^\r\n]+') do
       if line:match('MARKER') then
-        local t = {} for val in line:gmatch('[^%s]+') do t[#t+1] = tonumber(val) or val end
-        table.remove(t,1)
-        local is_region = t[4]&1==1
-        local pos_sec = t[2]
+        local id, pos_sec, name, is_region_flags, col, val6, val7, GUID = line:match('MARKER ([%d]+) ([%d%p]+) (.-) ([%d]+) ([%d%p]+) ([%d%p]+) ([%a]+) {(.-)}')
+        id = tonumber(id)
+        pos_sec = tonumber(pos_sec)
+        is_region_flags = tonumber(is_region_flags)
+        col = tonumber(col)
+        val6 = tonumber(val6)
+        
+        if not is_region_flags then -- region end
+          id, pos_sec, name, is_region_flags, col, val6, val7 = line:match('MARKER ([%d]+) ([%d%p]+) (.-) ([%d]+) ([%d%p]+) ([%d%p]+) ([%a]+)')
+          id = tonumber(id)
+          pos_sec = tonumber(pos_sec)
+          is_region_flags = tonumber(is_region_flags)
+          col = tonumber(col)
+          val6 = tonumber(val6)
+        end
+        
+        local is_region = is_region_flags&1==1 
         local retval, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos_sec)
         DATA2.srcproj.MARKERS[#DATA2.srcproj.MARKERS+1] = 
-            { id = t[1],
+            { id = id,
               pos = fullbeats,
-              name = t[3],
+              name = name,
               is_region = is_region,
-              is_region_flags = t[4],
-              col = t[5],
-              val6 = t[6],
-              val7 = t[7],
-              GUID = t[8], 
+              is_region_flags = is_region_flags,
+              col = col,
+              val6 = val6,
+              val7 = val7,
+              GUID = GUID, 
             }
-        if is_region and not t[8] then
-          local retval, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, t[2]  )
+        if is_region and not GUID then
+          local retval, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos_sec  )
           DATA2.srcproj.MARKERS[#DATA2.srcproj.MARKERS-1].rgnend = fullbeats 
           DATA2.srcproj.MARKERS[#DATA2.srcproj.MARKERS] = nil
         end  
@@ -992,9 +1028,10 @@
   ----------------------------------------------------------------------
   function DATA2:Import2_Header_MasterFX()
     if DATA.extstate.CONF_head_mast_FX == 0 then return end  
+    if #DATA2.srcproj.MASTERFXLIST == 0  then return end  
     local master_tr = GetMasterTrack( 0 )
     local retval, cur_chunk = reaper.GetTrackStateChunk( master_tr, '', false )
-    if not DATA2.srcproj.MASTERFXLIST[1] and DATA2.srcproj.MASTERFXLIST[1].chunk then return end
+    if not (DATA2.srcproj.MASTERFXLIST[1] and DATA2.srcproj.MASTERFXLIST[1].chunk) then return end
     local src_chunk = DATA2.srcproj.MASTERFXLIST[1].chunk:gsub('MASTERFXLIST', '') 
     DATA2:Import2_Header_MasterFX_AddChunkToTrack(master_tr,src_chunk)
     
