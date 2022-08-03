@@ -1,12 +1,9 @@
 -- @description Randomize Track FX parameters
--- @version 2.0
+-- @version 2.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @changelog
---    + Rebuild GUI using VF3 framework
---    + Rebuild core
---    + Randomize all parameters if not selection, randomize selection if any
---    + Allow smooth transition
+--    # fix error is no FX is presented
 
 
 
@@ -17,7 +14,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.0
+    DATA.extstate.version = 2.01
     DATA.extstate.extstatesection = 'mpl_randomizefxparams'
     DATA.extstate.mb_title = 'MPL Randomize FX parameters'
     DATA.extstate.default = 
@@ -373,16 +370,17 @@
                            hide = true,
                            }
     DATA:GUIBuildLayer()
-    
+    local fx_name ='Get focused FX'
+    if DATA2.FXdata and DATA2.FXdata.fx_name then fx_name =DATA2.FXdata.fx_name end
     DATA.GUI.buttons.getFX = { x=DATA.GUI.custom_offset,
                           y=DATA.GUI.custom_offset,
                           w=DATA.GUI.custom_setposx/2-DATA.GUI.custom_offset,
                           h=DATA.GUI.custom_mainbuth,
-                          txt = DATA2.FXdata.fx_name or 'Get focused FX',
+                          txt = fx_name,
                           txt_fontsz = DATA.GUI.default_txt_fontsz3,
                           onmouseclick =  function () 
                             DATA2:GetFocusedFXData()
-                            DATA.GUI.buttons.getFX.txt = DATA2.FXdata.fx_name or 'Get focused FX'
+                            DATA.GUI.buttons.getFX.txt = DATA2.FXdata.fx_name
                             --GUI_RESERVED_BuildLayer(DATA) 
                             DATA:GUIBuildLayer()
                           end,
