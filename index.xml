@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="63018541ccd42c54d5b23e9aa569794474a7ca62" name="MPL Scripts">
+<index version="1" commit="70b3eca10eab2e76bdd89fae23798dad097d116e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -7141,12 +7141,28 @@ add control for timefall showing last note]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0bec563fc22114ad8960e4c9a902623fe679fd43/Tracks%20Properties/mpl_Set%20parent%20channels%20according%20to%20index%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Set selected tracks audio input device to Guit.lua" type="script" desc="Set selected tracks audio input device to Guit">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-08-05T21:20:07Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/70b3eca10eab2e76bdd89fae23798dad097d116e/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Guit.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Set selected tracks audio input device to Lambda guitar.lua" type="script" desc="Set selected tracks audio input device to Lambda guitar">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
       </metadata>
       <version name="1.0" author="MPL" time="2019-05-21T21:10:31Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d289995570fe32730851fe3560ac8f54e5a7497/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Lambda%20guitar.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected tracks audio input device to Mic.lua" type="script" desc="Set selected tracks audio input device to Mic">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-08-05T21:20:07Z">
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/70b3eca10eab2e76bdd89fae23798dad097d116e/Tracks%20Properties/mpl_Set%20selected%20tracks%20audio%20input%20device%20to%20Mic.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set selected tracks MIDI input device to TouchOSC bridge.lua" type="script" desc="Set selected tracks MIDI input device to TouchOSC bridge">
