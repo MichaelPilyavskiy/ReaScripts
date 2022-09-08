@@ -1114,6 +1114,7 @@
     DATA.GUI.layers[DATA.GUI.custom_layerset2].layer_y = DATA.GUI.buttons.Rlayer.y
     DATA.GUI.layers[DATA.GUI.custom_layerset2].layer_yshift = 0
     DATA.GUI.layers[DATA.GUI.custom_layerset2].layer_w = DATA.GUI.buttons.Rlayer.w-custom_scrollw
+    if DATA.GUI.buttons.Rlayer.noscroll == true then DATA.GUI.layers[DATA.GUI.custom_layerset2].layer_w = DATA.GUI.buttons.Rlayer.w end
     DATA.GUI.layers[DATA.GUI.custom_layerset2].layer_h = DATA.GUI.buttons.Rlayer.h
     local layer_h = 0
     if GUI_RESERVED_BuildLayer then layer_h  = GUI_RESERVED_BuildLayer(DATA) end
