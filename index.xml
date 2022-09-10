@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="cb8635250e193f812175c720025eb82c2e110fd2" name="MPL Scripts">
+<index version="1" commit="951a4dfd09cb57713941f7c77fbd7a90a729abb5" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -114,6 +114,10 @@
       <version name="1.0" author="MPL" time="2022-09-08T19:38:46Z">
         <changelog><![CDATA[init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb8635250e193f812175c720025eb82c2e110fd2/Development/mpl_Split%20selected%20item%20at%20waveform%20fall%20below%20zero.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2022-09-10T10:45:21Z">
+        <changelog><![CDATA[# fix direction]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/951a4dfd09cb57713941f7c77fbd7a90a729abb5/Development/mpl_Split%20selected%20item%20at%20waveform%20fall%20below%20zero.lua</source>
       </version>
     </reapack>
   </category>
