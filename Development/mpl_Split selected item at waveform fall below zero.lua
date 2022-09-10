@@ -1,8 +1,8 @@
 -- @description Split selected item at waveform fall below zero
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @changelog
---  # fix direction
+--  # use item length as loop end
 
   function main()
     -- get item
@@ -11,6 +11,7 @@
     local take = GetActiveTake(it)
     if not take or TakeIsMIDI(take) then return end
     local itpos = GetMediaItemInfo_Value( it, 'D_POSITION'  )
+    local itlen = GetMediaItemInfo_Value( it, 'D_LENGTH'  )
     
     -- get samples
     local data = {}
@@ -21,21 +22,24 @@
     local SR_spls =  GetMediaSourceSampleRate( src ) 
     local samplebuffer = new_array(SR_spls);
     local accessor = CreateTakeAudioAccessor( take )
-    GetAudioAccessorSamples( accessor, SR_spls, 1, 0, SR_spls, samplebuffer ) 
-    local buf_t = samplebuffer.table()
-    samplebuffer.clear() 
+    
+    sp_t = {}
+    idx = 1
+    for pos = 0, itlen do--srclen do
+      GetAudioAccessorSamples( accessor, SR_spls, 1, pos, SR_spls, samplebuffer ) 
+      for i = 2, SR_spls do 
+        if samplebuffer[i] then 
+          if samplebuffer[i-1] > 0 and samplebuffer[i] < 0 then 
+            sp_t[idx] = itpos + pos+ (i-1)/SR_spls
+            idx = idx +1 
+          end
+        end
+      end
+      samplebuffer.clear() 
+    end
     DestroyAudioAccessor( accessor )
     
     -- get split points
-    sp_t = {}
-    idx = 1
-    local bt_sz = #buf_t
-    for i = 2, bt_sz do 
-      if buf_t[i-1] < 0 and buf_t[i] > 0 then 
-        sp_t[idx] = itpos + (i-1)/SR_spls
-        idx = idx +1 
-      end
-    end
     
     for i = 1, #sp_t do
       it = SplitMediaItem( it, sp_t[i] )
