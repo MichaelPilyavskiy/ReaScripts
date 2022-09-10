@@ -1,8 +1,8 @@
 -- @description Split selected item at waveform fall below zero
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @changelog
---  init 
+--  # fix direction
 
   function main()
     -- get item
@@ -31,7 +31,7 @@
     idx = 1
     local bt_sz = #buf_t
     for i = 2, bt_sz do 
-      if buf_t[i-1] > 0 and buf_t[i] < 0 then 
+      if buf_t[i-1] < 0 and buf_t[i] > 0 then 
         sp_t[idx] = itpos + (i-1)/SR_spls
         idx = idx +1 
       end
