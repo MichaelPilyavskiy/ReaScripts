@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a533579a5a6f6b230bec8b2735fec4d820422e66" name="MPL Scripts">
+<index version="1" commit="c509802cfdbf82745471a87c155f1b1dc94bae01" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6248,15 +6248,6 @@ add control for timefall showing last note]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6426e2b49d24d6d0996960c348de157fa227a382/Ruler/mpl_Set%20project%20grid%20(MIDI%20CC%20and%20OSC%20only).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Zoom arrange horizontally and vertically.lua" type="script" desc="Zoom arrange horizontally and vertically">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-03-30T20:17:44Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6426e2b49d24d6d0996960c348de157fa227a382/Ruler/mpl_Zoom%20arrange%20horizontally%20and%20vertically.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively (mousewheel)">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -6268,11 +6259,18 @@ add control for timefall showing last note]]></changelog>
     </reapack>
     <reapack name="mpl_Zoom horizontally, change grid relatively, preserve grid visibility and snap state  (mousewheel).lua" type="script" desc="Zoom horizontally, change grid relatively, preserve grid visibility and snap state  (mousewheel)">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2022-03-30T20:17:44Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6426e2b49d24d6d0996960c348de157fa227a382/Ruler/mpl_Zoom%20horizontally,%20change%20grid%20relatively,%20preserve%20grid%20visibility%20and%20snap%20state%20%20(mousewheel).lua</source>
+      </version>
+      <version name="2.01" author="MPL" time="2022-09-11T08:47:09Z">
+        <changelog><![CDATA[+ Make zoom slightly smoother with sort of amortization
++ increase zoom-grid mapping down to 1/256
+# properly restore grid lines
+# properly restore swing grid / swing amount]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c509802cfdbf82745471a87c155f1b1dc94bae01/Ruler/mpl_Zoom%20horizontally,%20change%20grid%20relatively,%20preserve%20grid%20visibility%20and%20snap%20state%20%20(mousewheel).lua</source>
       </version>
     </reapack>
   </category>
