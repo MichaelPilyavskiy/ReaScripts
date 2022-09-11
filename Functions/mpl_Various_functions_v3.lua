@@ -323,10 +323,10 @@
           b.refresh = true
         end 
         
-      -- handle mouse_latch on left drag
-        if DATA.GUI.RMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true and b.latchval and type(b.latchval) == 'number' then
+      -- handle mouse_latch on right drag
+        if DATA.GUI.RMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true then
           DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedragR
-          if b.val then 
+          if  b.latchval  and type(b.latchval) == 'number' and b.val then 
             local res= b.val_res or 1
             b.val = VF_lim(b.latchval - (DATA.GUI.dy*res/DATA.GUI.default_scale) / b.h) 
           end

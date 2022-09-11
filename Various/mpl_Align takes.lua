@@ -1,10 +1,14 @@
 -- @description Align Takes
--- @version 2.20
+-- @version 2.21
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + code clean up
+--    # fix some long float formatting
+--    # add message if reference is longer than 20 second
+--    + Preset/Global: allow to not analyze empty takes (enable by default)
+--    # requere VariousFinctions 3.32 (solve right drag edit issue)
+--    + Add presets for growling dubs
 
 
   --[[
@@ -24,9 +28,8 @@
     -- use eel for CPU hungry stuff 
     -- obey pitch data
     -- align pitch data
-    -- big data limit
   
-  local DATA2 = {}
+   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
@@ -45,6 +48,8 @@
                           FPRESET2 = 'CkNPTkZfTkFNRT1bZmFjdG9yeV0gRGlzdG9ydGVkIGd1aXRhcgpDT05GX2FwcGF0Y2hhbmdlPTEKQ09ORl9hdWRpb19ic19hMT0wCkNPTkZfYXVkaW9fYnNfYTI9MQpDT05GX2F1ZGlvX2JzX2EzPTAKQ09ORl9hdWRpb19ic19hND0wCkNPTkZfYXVkaW9fYnNfZjE9ODMKQ09ORl9hdWRpb19ic19mMj0xMjUwCkNPTkZfYXVkaW9fYnNfZjM9NTAwMApDT05GX2F1ZGlvX2xpbT0xCkNPTkZfYXVkaW9kb3NxdWFyZXJvb3Q9MS4wCkNPTkZfY2xlYW5tYXJrZHViPTEKQ09ORl9jb21wZW5zYXRlb3ZlcmxhcD0xCkNPTkZfZW5hYmxlc2hvcnRjdXRzPTAKQ09ORl9pbml0YXRtb3VzZXBvcz0wCkNPTkZfaW5pdGZsYWdzPTMKQ09ORl9tYXJrZ2VuX1JNU3BvaW50cz01CkNPTkZfbWFya2dlbl9lbnZlbG9wZXJpc2VmYWxsPTEKQ09ORl9tYXJrZ2VuX2ZpbHRlcnBvaW50cz0xMQpDT05GX21hcmtnZW5fbWluaW1hbGFyZWFSTVM9MC4wODc1CkNPTkZfbWFya2dlbl90aHJlc2hvbGQ9MQpDT05GX21hdGNoX2Jsb2NrYXJlYT0xCkNPTkZfbWF0Y2hfaWdub3JlemVyb3M9MApDT05GX21hdGNoX3N0cmV0Y2hkdWJhcnJheT0xCkNPTkZfb2J0aW1lc2VsPTAKQ09ORl9wb3N0X3BvczBtYXJrPTEKQ09ORl9wb3N0X3BzaGlmdD0tMQpDT05GX3Bvc3RfcHNoaWZ0c3ViPTAKQ09ORl9wb3N0X3NtbW9kZT0yCkNPTkZfcG9zdF9zdHJtYXJrZmRzaXplPTAuMDExMQpDT05GX3Ntb290aD0wCkNPTkZfd2luZG93PTAuMDE3CkNPTkZfd2luZG93X292ZXJsYXA9MQ==',
                           FPRESET3 = 'CkNPTkZfTkFNRT1bZmFjdG9yeV0gVm9jYWxzCkNPTkZfYXBwYXRjaGFuZ2U9MQpDT05GX2F1ZGlvX2JzX2ExPTAuMzMxMjUKQ09ORl9hdWRpb19ic19hMj0xCkNPTkZfYXVkaW9fYnNfYTM9MC4zMzEyNQpDT05GX2F1ZGlvX2JzX2E0PTAuNgpDT05GX2F1ZGlvX2JzX2YxPTIwMApDT05GX2F1ZGlvX2JzX2YyPTIwMDAKQ09ORl9hdWRpb19ic19mMz01MDAwCkNPTkZfYXVkaW9fbGltPTEKQ09ORl9hdWRpb2Rvc3F1YXJlcm9vdD0xLjAKQ09ORl9jbGVhbm1hcmtkdWI9MQpDT05GX2NvbXBlbnNhdGVvdmVybGFwPTEKQ09ORl9lbmFibGVzaG9ydGN1dHM9MApDT05GX2luaXRhdG1vdXNlcG9zPTAKQ09ORl9pbml0ZmxhZ3M9MwpDT05GX21hcmtnZW5fUk1TcG9pbnRzPTUKQ09ORl9tYXJrZ2VuX2VudmVsb3BlcmlzZWZhbGw9MQpDT05GX21hcmtnZW5fZmlsdGVycG9pbnRzPTEzCkNPTkZfbWFya2dlbl9taW5pbWFsYXJlYVJNUz0wLjAzMTI1CkNPTkZfbWFya2dlbl90aHJlc2hvbGQ9MQpDT05GX21hdGNoX2Jsb2NrYXJlYT0yNgpDT05GX21hdGNoX2lnbm9yZXplcm9zPTAKQ09ORl9tYXRjaF9tYXhibG9ja3NzdGFydG9mZnM9NgpDT05GX21hdGNoX21pbmJsb2Nrc3N0YXJ0b2Zmcz00CkNPTkZfbWF0Y2hfc2VhcmNoZnVydGhlcm9ubHk9MApDT05GX21hdGNoX3N0cmV0Y2hkdWJhcnJheT0xCkNPTkZfb2J0aW1lc2VsPTAKQ09ORl9wb3N0X3BvczBtYXJrPTEKQ09ORl9wb3N0X3BzaGlmdD0tMQpDT05GX3Bvc3RfcHNoaWZ0c3ViPTAKQ09ORl9wb3N0X3NtbW9kZT0yCkNPTkZfcG9zdF9zdHJtYXJrZmRzaXplPTAuMDExMQpDT05GX3Ntb290aD0wCkNPTkZfd2luZG93PTAuMDE0CkNPTkZfd2luZG93X292ZXJsYXA9MQ==',
                           FPRESET4 = 'CkNPTkZfTkFNRT1bZmFjdG9yeV0gVm9jYWxzIC0gdGlueSBhbGlnbiBtb3N0bHkgYnkgaGlnaHMKQ09ORl9hbGlnbml0ZW10YWtlcz0wCkNPTkZfYXBwYXRjaGFuZ2U9MQpDT05GX2F1ZGlvX2JzX2ExPTAKQ09ORl9hdWRpb19ic19hMj0wLjIxODc1CkNPTkZfYXVkaW9fYnNfYTM9MQpDT05GX2F1ZGlvX2JzX2E0PTEKQ09ORl9hdWRpb19ic19mMT04OApDT05GX2F1ZGlvX2JzX2YyPTIwMDAKQ09ORl9hdWRpb19ic19mMz01MDAwCkNPTkZfYXVkaW9fZ2F0ZT0wCkNPTkZfYXVkaW9fbGltPTEKQ09ORl9hdWRpb2Rvc3F1YXJlcm9vdD0wLjQKQ09ORl9jbGVhbm1hcmtkdWI9MQpDT05GX2NvbXBlbnNhdGVvdmVybGFwPTEKQ09ORl9pbml0ZmxhZ3M9MwpDT05GX21hcmtnZW5fUk1TcG9pbnRzPTEwCkNPTkZfbWFya2dlbl9hbGdvPTEKQ09ORl9tYXJrZ2VuX2VudmVsb3BlcmlzZWZhbGw9MQpDT05GX21hcmtnZW5fZmlsdGVycG9pbnRzPTE2CkNPTkZfbWFya2dlbl9maWx0ZXJwb2ludHMyPTIxCkNPTkZfbWFya2dlbl9maWx0ZXJwb2ludHMzPTg0CkNPTkZfbWFya2dlbl9tYW51YWxlZGl0PTEKQ09ORl9tYXJrZ2VuX21pbmltYWxhcmVhUk1TPTAuMDE4NzUKQ09ORl9tYXJrZ2VuX3RocmVzaG9sZD0wLjcxODc1CkNPTkZfbWFya2dlbl90aHJlc2hvbGQyPTAuMzkzNzUKQ09ORl9tYXRjaF9ibG9ja2FyZWE9MTUKQ09ORl9tYXRjaF9maXJzdHNyZ21vbmx5PTAKQ09ORl9tYXRjaF9pZ25vcmV6ZXJvcz0wCkNPTkZfbWF0Y2hfbWF4YmxvY2tzc3RhcnRvZmZzPTEKQ09ORl9tYXRjaF9taW5ibG9ja3NzdGFydG9mZnM9MgpDT05GX21hdGNoX3NlYXJjaGZ1cnRoZXJvbmx5PTAKQ09ORl9tYXRjaF9zdHJldGNoZHViYXJyYXk9MQpDT05GX29idGltZXNlbD0wCkNPTkZfcG9zdF9wb3MwbWFyaz0xCkNPTkZfcG9zdF9wc2hpZnQ9LTEKQ09ORl9wb3N0X3BzaGlmdHN1Yj0wCkNPTkZfcG9zdF9zbW1vZGU9MgpDT05GX3Bvc3Rfc3RybWFya2Zkc2l6ZT0wLjAxMTEKQ09ORl9zbW9vdGg9MApDT05GX3dpbmRvdz0wLjAxCkNPTkZfd2luZG93X292ZXJsYXA9MQ==',
+                          FPRESET5 = 'CkNPTkZfTkFNRT1bZmFjdG9yeV0gR3Jvd2xpbmcgdm9jYWxzLCB0aW1lIHNlbGVjdGlvbgpDT05GX2FsaWduaXRlbXRha2VzPTAKQ09ORl9hdWRpb19ic19hMT0wLjE0NDQ0NDQ0NDQ0NDQ0CkNPTkZfYXVkaW9fYnNfYTI9MC45MTY2NjY2NjY2NjY2NwpDT05GX2F1ZGlvX2JzX2EzPTEKQ09ORl9hdWRpb19ic19hND0xLjAKQ09ORl9hdWRpb19ic19mMT0xOTIuNQpDT05GX2F1ZGlvX2JzX2YyPTIwMDAKQ09ORl9hdWRpb19ic19mMz04MjY2LjY2NjY2NjY2NjcKQ09ORl9hdWRpb19nYXRlPTAKQ09ORl9hdWRpb19saW09MQpDT05GX2F1ZGlvZG9zcXVhcmVyb290PTAuNTMwMjc3Nzc3Nzc3NzgKQ09ORl9jbGVhbm1hcmtkdWI9MQpDT05GX2NvbXBlbnNhdGVvdmVybGFwPTEKQ09ORl9pZ25vcmVlbXB0eXRha2VzPTEKQ09ORl9pbml0ZmxhZ3M9MwpDT05GX21hcmtnZW5fUk1TcG9pbnRzPTEwCkNPTkZfbWFya2dlbl9hbGdvPTEKQ09ORl9tYXJrZ2VuX2VudmVsb3BlcmlzZWZhbGw9MQpDT05GX21hcmtnZW5fZmlsdGVycG9pbnRzPTE2CkNPTkZfbWFya2dlbl9maWx0ZXJwb2ludHMyPTE4CkNPTkZfbWFya2dlbl9maWx0ZXJwb2ludHMzPTQwCkNPTkZfbWFya2dlbl9tYW51YWxlZGl0PTEKQ09ORl9tYXJrZ2VuX21pbmltYWxhcmVhUk1TPTAuMDE4NzUKQ09ORl9tYXJrZ2VuX3RocmVzaG9sZD0wLjcxODc1CkNPTkZfbWFya2dlbl90aHJlc2hvbGQyPTAuNzAyMDgzMzMzMzMzMzMKQ09ORl9tYXRjaF9ibG9ja2FyZWE9MTUKQ09ORl9tYXRjaF9maXJzdHNyZ21vbmx5PTAKQ09ORl9tYXRjaF9pZ25vcmV6ZXJvcz0xCkNPTkZfbWF0Y2hfbWF4YmxvY2tzc3RhcnRvZmZzPTEKQ09ORl9tYXRjaF9taW5ibG9ja3NzdGFydG9mZnM9MgpDT05GX21hdGNoX3NlYXJjaGZ1cnRoZXJvbmx5PTAKQ09ORl9tYXRjaF9zdHJldGNoZHViYXJyYXk9MQpDT05GX29idGltZXNlbD0xCkNPTkZfcG9zdF9wb3MwbWFyaz0xCkNPTkZfcG9zdF9wc2hpZnQ9LTEKQ09ORl9wb3N0X3BzaGlmdHN1Yj0wCkNPTkZfcG9zdF9zbW1vZGU9MgpDT05GX3Bvc3Rfc3RybWFya2Zkc2l6ZT0wLjAxMTEKQ09ORl9zbW9vdGg9MApDT05GX3dpbmRvdz0wLjAxCkNPTkZfd2luZG93X292ZXJsYXA9MQ==',
+                          FPRESET6 = 'CkNPTkZfTkFNRT1bZmFjdG9yeV0gR3Jvd2xpbmcgdm9jYWxzMiBmaW5pc2ggMC4xc2hpZnQKQ09ORl9hbGlnbml0ZW10YWtlcz0wCkNPTkZfYXVkaW9fYnNfYTE9MApDT05GX2F1ZGlvX2JzX2EyPTAuMjE5NDQ0NDQ0NDQ0NDQKQ09ORl9hdWRpb19ic19hMz0wLjQKQ09ORl9hdWRpb19ic19hND0wLjUyNQpDT05GX2F1ZGlvX2JzX2YxPTE5Mi41CkNPTkZfYXVkaW9fYnNfZjI9MTY2My41NzYzODg4ODg5CkNPTkZfYXVkaW9fYnNfZjM9ODI2Ni42NjY2NjY2NjY3CkNPTkZfYXVkaW9fZ2F0ZT0wCkNPTkZfYXVkaW9fbGltPTEKQ09ORl9hdWRpb2Rvc3F1YXJlcm9vdD0wLjUzMDI3Nzc3Nzc3Nzc4CkNPTkZfYnVpbGRyZWZhc21heGltdW1zPTEKQ09ORl9jbGVhbm1hcmtkdWI9MQpDT05GX2NvbXBlbnNhdGVvdmVybGFwPTEKQ09ORl9pZ25vcmVlbXB0eXRha2VzPTEKQ09ORl9pbml0ZmxhZ3M9MwpDT05GX21hcmtnZW5fUk1TcG9pbnRzPTEwCkNPTkZfbWFya2dlbl9hbGdvPTEKQ09ORl9tYXJrZ2VuX2VudmVsb3BlcmlzZWZhbGw9MQpDT05GX21hcmtnZW5fZmlsdGVycG9pbnRzPTE2CkNPTkZfbWFya2dlbl9maWx0ZXJwb2ludHMyPTI5CkNPTkZfbWFya2dlbl9maWx0ZXJwb2ludHMzPTIwCkNPTkZfbWFya2dlbl9tYW51YWxlZGl0PTEKQ09ORl9tYXJrZ2VuX21pbmltYWxhcmVhUk1TPTAuMDE4NzUKQ09ORl9tYXJrZ2VuX3RocmVzaG9sZD0wLjcxODc1CkNPTkZfbWFya2dlbl90aHJlc2hvbGQyPTAuNzAyMDgzMzMzMzMzMzMKQ09ORl9tYXRjaF9ibG9ja2FyZWE9MTUKQ09ORl9tYXRjaF9maXJzdHNyZ21vbmx5PTAKQ09ORl9tYXRjaF9pZ25vcmV6ZXJvcz0xCkNPTkZfbWF0Y2hfbWF4YmxvY2tzc3RhcnRvZmZzPTEKQ09ORl9tYXRjaF9taW5ibG9ja3NzdGFydG9mZnM9MgpDT05GX21hdGNoX3NlYXJjaGZ1cnRoZXJvbmx5PTAKQ09ORl9tYXRjaF9zdHJldGNoZHViYXJyYXk9MQpDT05GX29idGltZXNlbD0xCkNPTkZfcG9zdF9wb3MwbWFyaz0xCkNPTkZfcG9zdF9wc2hpZnQ9LTEKQ09ORl9wb3N0X3BzaGlmdHN1Yj0wCkNPTkZfcG9zdF9zbW1vZGU9MgpDT05GX3Bvc3Rfc3RybWFya2Zkc2l6ZT0wLjAxMTEKQ09ORl9zbW9vdGg9MQpDT05GX3dpbmRvdz0wLjAwNQpDT05GX3dpbmRvd19vdmVybGFwPTE=',
                           CONF_NAME = 'default',
                           
                           UI_enableshortcuts = 0,
@@ -57,6 +62,8 @@
                           CONF_cleanmarkdub = 1,
                           CONF_obtimesel = 0, 
                           CONF_alignitemtakes = 0, -- per item mode
+                          CONF_ignoreemptytakes = 1, -- skip takes with linear amp < 0.05
+                          CONF_buildrefasmaximums = 0, 
                           
                           CONF_window = 0.01,
                           CONF_window_overlap = 1,
@@ -497,6 +504,8 @@
         {str = 'Clean dub markers at initialization' ,    group = 1, itype = 'check', confkey = 'CONF_cleanmarkdub', level = 1},
         {str = 'Obey time selection' ,                    group = 1, itype = 'check', confkey = 'CONF_obtimesel', level = 1},
         {str = 'Align takes inside item' ,                group = 1, itype = 'check', confkey = 'CONF_alignitemtakes', level = 1},
+        {str = 'Skip empty audio takes' ,                group = 1, itype = 'check', confkey = 'CONF_ignoreemptytakes', level = 1},
+        {str = 'Use maximul amplitude values from all takes as ref' ,                group = 1, itype = 'check', confkey = 'CONF_buildrefasmaximums', level = 1},
         
       {str = 'Audio data' ,                               group = 2, itype = 'sep'},  
         {str = 'BandSplitter Freq 1' ,                    group = 2, itype = 'readout', confkey = 'CONF_audio_bs_f1', level = 1, val_min = 20, val_max = DATA.extstate.CONF_audio_bs_f2,                                  val_res = BandSplitterFreq_res, val_format = function(x) return math.floor(x)..'Hz' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
@@ -510,9 +519,9 @@
         {str = 'Limit' ,                                  group = 2, itype = 'readout', confkey = 'CONF_audio_lim', level = 1, val_res = 0.05, ispercentvalue = true, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
       
       {str = 'Peak follower' ,                            group = 3, itype = 'sep'}, 
-        {str = 'Window' ,                                 group = 3, itype = 'readout', confkey = 'CONF_window', level = 1, val_min = 0.01, val_max = 0.4, val_res = 0.05, val_format = function(x) return VF_math_Qdec(x,3)..'s' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, func_onrelease = function() DATA2:ProcessAtChange(DATA) end,tooltip='Time of audio block for read'},
+        {str = 'Window' ,                                 group = 3, itype = 'readout', confkey = 'CONF_window', level = 1, val_min = 0.005, val_max = 0.4, val_res = 0.05, val_format = function(x) return VF_math_Qdec(x,3)..'s' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, func_onrelease = function() DATA2:ProcessAtChange(DATA) end,tooltip='Time of audio block for read'},
         {str = 'Overlap divider' ,                        group = 3, itype = 'readout', confkey = 'CONF_window_overlap', level = 1, menu = { [1]='[window]', [2]='2x', [4]='4x', [8]='8x' },tooltip='Overlap window block back for a window time divided by this coefficient',func_onrelease = function() DATA2:ProcessAtChange(DATA) end, }, 
-        {str = 'val^y (scaling)' ,                        group = 3, itype = 'readout', confkey = 'CONF_audiodosquareroot', level = 1, val_min = 0.1, val_max = 2, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end}, 
+        {str = 'val^y (scaling)' ,                        group = 3, itype = 'readout', confkey = 'CONF_audiodosquareroot', level = 1, val_min = 0.1, val_max = 2, val_res = 0.05, val_format = function(x) return VF_math_Qdec(x,3) end, func_onrelease = function() DATA2:ProcessAtChange(DATA) end}, 
         {str = 'Smooth envelope' ,                        group = 3, itype = 'readout', confkey = 'CONF_smooth', level = 1, menu = { [0]='[none]', [1]='1x',  [2]='2x', [4]='4x', [8]='8x' }, func_onrelease = function() DATA2:ProcessAtChange(DATA) end}, 
         {str = 'Compensate overlap / Reduce points' ,     group = 3, itype = 'check', confkey = 'CONF_compensateoverlap', level = 1, tooltip='When doing overlap it multiply count of points. This check compensate it'},
       
@@ -527,26 +536,26 @@
                                                           val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},
           {str = 'area_RMS length' ,                      group = 4, itype = 'readout', confkey = 'CONF_markgen_RMSpoints', level = 2, val_min = 5, val_max = 30, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide = DATA.extstate.CONF_markgen_algo~=0,
                                                           val_isinteger = true,
-                                                          val_format = function(x) return x*DATA.extstate.CONF_window..'s' end,
+                                                          val_format = function(x) return VF_math_Qdec(x*DATA.extstate.CONF_window,3)..'s' end,
                                                           val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},
           {str = 'minimum of [value/abs(area_RMS-value)]',group = 4, itype = 'readout', confkey = 'CONF_markgen_minimalareaRMS', level = 2, val_min = 0, val_max =0.7, val_res = 0.05, ispercentvalue = true, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide = DATA.extstate.CONF_markgen_algo~=0,},                                                
           {str = 'Level threshold',                       group = 4, itype = 'readout', confkey = 'CONF_markgen_threshold', level = 2, val_res = 0.05, ispercentvalue = true, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide = DATA.extstate.CONF_markgen_algo~=0,},                                                
         {str = 'Algorithm 2 (gate trigger)' ,             group = 4, itype = 'check', confkey = 'CONF_markgen_algo', level = 1, isset = 1, tooltip='Trigger points at gate open/close'},
           {str = 'Minimum points distance' ,              group = 4, itype = 'readout', confkey = 'CONF_markgen_filterpoints2', level = 2, val_min = 5, val_max = 50, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide = DATA.extstate.CONF_markgen_algo~=1,
                                                           val_isinteger = true,
-                                                          val_format = function(x) return x*DATA.extstate.CONF_window..'s' end,
+                                                          val_format = function(x) return VF_math_Qdec(x*DATA.extstate.CONF_window,3)..'s' end,
                                                           val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},
           {str = 'Trigger threshold',                     group = 4, itype = 'readout', confkey = 'CONF_markgen_threshold2', level = 2, val_res = 0.05, ispercentvalue = true, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide = DATA.extstate.CONF_markgen_algo~=1,},           
         {str = 'Algorithm 3 (equal distance)' ,           group = 4, itype = 'check', confkey = 'CONF_markgen_algo', level = 1, isset = 2},
           {str = 'Points distance' ,                      group = 4, itype = 'readout', confkey = 'CONF_markgen_filterpoints3', level = 2, val_min = 5, val_max = 100, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide = DATA.extstate.CONF_markgen_algo~=2,
                                                           val_isinteger = true,
-                                                          val_format = function(x) return x*DATA.extstate.CONF_window..'s' end,
+                                                          val_format = function(x) return VF_math_Qdec(x*DATA.extstate.CONF_window,3)..'s' end,
                                                           val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},        
         
       {str = 'Audio match algorithm' ,                    group = 6, itype = 'sep'},  
-          {str = 'Brutforce search area' ,                group = 6, itype = 'readout', confkey = 'CONF_markgen_filterpoints3', level = 2, val_min = 3, val_max = 50, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, tooltip='Maximum deviation of source markers',
+          {str = 'Brutforce search area' ,                group = 6, itype = 'readout', confkey = 'CONF_markgen_filterpoints3', level = 2, val_min = 3, val_max = 100, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, tooltip='Maximum deviation of source markers',
                                                           val_isinteger = true,
-                                                          val_format = function(x) return x*DATA.extstate.CONF_window..'s' end,
+                                                          val_format = function(x) return VF_math_Qdec(x*DATA.extstate.CONF_window,3)..'s' end,
                                                           val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},           
           {str = 'Stretch dub array on the fly' ,         group = 6, itype = 'check', confkey = 'CONF_match_stretchdubarray', level = 1},
           {str = 'Ignore zero values difference check' ,  group = 6, itype = 'check', confkey = 'CONF_match_ignorezeros', level = 1},
@@ -554,11 +563,11 @@
           {str = 'Compare until midblock' ,               group = 6, itype = 'check', confkey = 'CONF_match_firstsrgmonly', level = 1},
           {str = 'Minimum block search start offset' ,    group = 6, itype = 'readout', confkey = 'CONF_match_minblocksstartoffs', level = 1, val_min =0, val_max = 30, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, tooltip='Minimum between comparing block start poind and movable midpoint',
                                                           val_isinteger = true,
-                                                          val_format = function(x) return x*DATA.extstate.CONF_window..'s' end,
+                                                          val_format = function(x) return VF_math_Qdec(x*DATA.extstate.CONF_window,3)..'s' end,
                                                           val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},             
           {str = 'Minimum block search end offset' ,      group = 6, itype = 'readout', confkey = 'CONF_match_maxblocksstartoffs', level = 1, val_min =0, val_max = 30, val_res = 0.05, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, tooltip='Minimum between comparing block end poind and movable midpoint',
                                                           val_isinteger = true,
-                                                          val_format = function(x) return x*DATA.extstate.CONF_window..'s' end,
+                                                          val_format = function(x) return VF_math_Qdec(x*DATA.extstate.CONF_window,3)..'s' end,
                                                           val_format_rev = function(x) x = x:match('[%d%.]+') if not x then return end return math.floor(tonumber(x)/DATA.extstate.CONF_window) end},   
                                                           
       {str = 'Take output' ,                              group = 7, itype = 'sep'}, 
@@ -687,7 +696,7 @@
       
       local reduceddata = {}
       for i = 1, #data do if i%overlap == 1 then reduceddata[#reduceddata+1] = data[i] end end
-      if DATA.extstate.CONF_compensateoverlap==1 and overlap ~= 1 then return reduceddata else return data end
+      if DATA.extstate.CONF_compensateoverlap==1 and overlap ~= 1 then return reduceddata, max_val else return data, max_val end
   end 
  ---------------------------------------------------------------------
   function DATA2:CleanDubMarkers2(take, takerate, edge_start,edge_end) 
@@ -725,13 +734,25 @@
                       
     local take_src, item_src
     if DATA.extstate.CONF_alignitemtakes == 1 then take_src = take item_src = item end
-    DATA2.dubdata[dubdataId].data = DATA2:GetAudioData_GetTable(parent_track, DATA2.refdata.edge_start, DATA2.refdata.edge_end, take_src, item_src, tkoffs, take_rate)
+    DATA2.dubdata[dubdataId].data,max_val = DATA2:GetAudioData_GetTable(parent_track, DATA2.refdata.edge_start, DATA2.refdata.edge_end, take_src, item_src, tkoffs, take_rate) 
+    if DATA.extstate.CONF_ignoreemptytakes == 1 and max_val < 0.05 then DATA2.dubdata[dubdataId] = nil return end 
     DATA2.dubdata[dubdataId].data = DATA2:GetAudioData_CorrentSource(DATA2.dubdata[dubdataId].data, DATA2.refdata.edge_start, DATA2.refdata.edge_end, item_pos, item_pos+item_len)
+    if DATA.extstate.CONF_buildrefasmaximums == 1 then DATA2:GetAudioData_ForceTakeMaxReference() end
     if DATA.extstate.CONF_markgen_algo == 0  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_0(DATA2.dubdata[dubdataId].data) end -- legacy v1
     if DATA.extstate.CONF_markgen_algo == 1  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_1(DATA2.dubdata[dubdataId].data) end -- gate
     if DATA.extstate.CONF_markgen_algo == 2  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_2(DATA2.dubdata[dubdataId].data) end -- equal
     if DATA.extstate.CONF_markgen_algo == 3  then DATA2.dubdata[dubdataId].data_points = DATA2:GeneratePoints_3(take) end -- get stretch markers
     DATA2.dubdata[dubdataId].data_points_match, DATA2.dubdata[dubdataId].data_pointsSRCDEST, DATA2.dubdata[dubdataId].stretchedarray = DATA2:ApplyMatch(DATA2.dubdata[dubdataId]) 
+  end
+  ---------------------------------------------------------------------
+  function DATA2:GetAudioData_ForceTakeMaxReference()
+    for i =1, #DATA2.refdata.data do
+      local max = DATA2.refdata.data[i]
+      for dubdataId = 1, #DATA2.dubdata do
+        max = math.max(max, DATA2.dubdata[dubdataId].data[i])
+      end
+      DATA2.refdata.data[i] = max
+    end
   end
   ---------------------------------------------------------------------
   function DATA2:GetDubAudioData(takefromsecondtake)
@@ -787,7 +808,7 @@
   end
   ---------------------------------------------------------------------
   function DATA2:GetRefAudioData()
-    local parent_track
+    local parent_track 
     local edge_start,edge_end = math.huge, 0
     for i = 1, CountSelectedMediaItems(0) do
       local item = GetSelectedMediaItem(0,i-1)
@@ -806,6 +827,11 @@
     
     if DATA.extstate.CONF_obtimesel == 1 then edge_start,edge_end = GetSet_LoopTimeRange2( 0, false, false, -1, -1, false ) end
     if not parent_track or edge_start > edge_end then return end 
+    
+    if edge_end - edge_start > 20 then 
+      local ret = MB('Analyzing can take long time, proceed anyway?', 'Align Takes', 3)
+      if ret ~= 6 then return end
+    end
     
     DATA2.refdata = {}
     DATA2.refdata.data = DATA2:GetAudioData_GetTable(parent_track, edge_start, edge_end)
@@ -1141,4 +1167,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.0) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.32) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
