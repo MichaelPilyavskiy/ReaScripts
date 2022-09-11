@@ -1,8 +1,8 @@
--- @description Split selected item at waveform fall below zero
+-- @description Split selected item at waveform rise above zero
 -- @version 1.02
 -- @author MPL
 -- @changelog
---  # use item length as loop end
+--  # fix name and direction
 
   function main()
     -- get item
@@ -29,7 +29,7 @@
       GetAudioAccessorSamples( accessor, SR_spls, 1, pos, SR_spls, samplebuffer ) 
       for i = 2, SR_spls do 
         if samplebuffer[i] then 
-          if samplebuffer[i-1] > 0 and samplebuffer[i] < 0 then 
+          if samplebuffer[i-1] < 0 and samplebuffer[i] > 0 then 
             sp_t[idx] = itpos + pos+ (i-1)/SR_spls
             idx = idx +1 
           end
