@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="2697dc0fbf1d1e62ee4b6491ff93d5000dd62ce3" name="MPL Scripts">
+<index version="1" commit="a533579a5a6f6b230bec8b2735fec4d820422e66" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -110,18 +110,10 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb8635250e193f812175c720025eb82c2e110fd2/Development/mpl_Set%20selected%20items%20offset%20by%20custom%20defined%20shifts.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Split selected item at waveform fall below zero.lua" type="script" desc="Split selected item at waveform fall below zero">
-      <version name="1.0" author="MPL" time="2022-09-08T19:38:46Z">
-        <changelog><![CDATA[init ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb8635250e193f812175c720025eb82c2e110fd2/Development/mpl_Split%20selected%20item%20at%20waveform%20fall%20below%20zero.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2022-09-10T10:45:21Z">
-        <changelog><![CDATA[# fix direction]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/951a4dfd09cb57713941f7c77fbd7a90a729abb5/Development/mpl_Split%20selected%20item%20at%20waveform%20fall%20below%20zero.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2022-09-10T11:09:20Z">
-        <changelog><![CDATA[# use item length as loop end]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2697dc0fbf1d1e62ee4b6491ff93d5000dd62ce3/Development/mpl_Split%20selected%20item%20at%20waveform%20fall%20below%20zero.lua</source>
+    <reapack name="mpl_Split selected item at waveform rise above zero.lua" type="script" desc="Split selected item at waveform rise above zero">
+      <version name="1.02" author="MPL" time="2022-09-11T06:56:51Z">
+        <changelog><![CDATA[# fix name and direction]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a533579a5a6f6b230bec8b2735fec4d820422e66/Development/mpl_Split%20selected%20item%20at%20waveform%20rise%20above%20zero.lua</source>
       </version>
     </reapack>
   </category>
