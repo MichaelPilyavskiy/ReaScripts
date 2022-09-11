@@ -1,8 +1,8 @@
 -- @description Zoom horizontally, change grid relatively, preserve grid visibility and snap state  (mousewheel) 
--- @version 2.0
+-- @version 2.01
 -- @author MPL
--- @changelog
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
 --    + Make zoom slightly smoother with sort of amortization
 --    + increase zoom-grid mapping down to 1/256
 --    # properly restore grid lines
