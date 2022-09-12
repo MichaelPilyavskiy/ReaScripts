@@ -233,8 +233,8 @@
   function DATA:GUIhandlemousestate_is_offlayer(b)
     local layer= b.layer
     if not (layer and DATA.GUI.layers[layer] and DATA.GUI.layers[layer].layer_yshift) then return end
-    local real_y = (b.y+ DATA.GUI.layers[layer].layer_y  )*DATA.GUI.default_scale -DATA.GUI.layers[layer].layer_yshift
-    if real_y+b.h < DATA.GUI.layers[layer].layer_y or real_y+b.h > DATA.GUI.layers[layer].layer_y + DATA.GUI.layers[layer].layer_h then return true end
+    local real_y = (b.y+ DATA.GUI.layers[layer].layer_y  ) *DATA.GUI.default_scale -DATA.GUI.layers[layer].layer_yshift--*DATA.GUI.default_scale
+    if real_y+b.h < DATA.GUI.layers[layer].layer_y*DATA.GUI.default_scale or real_y+b.h > (DATA.GUI.layers[layer].layer_y + DATA.GUI.layers[layer].layer_h)*DATA.GUI.default_scale then return true end
   end
   ----------------------------------------------------------------------------- 
   function DATA:GUIhandlemousestate()
@@ -259,12 +259,11 @@
         if b.mouse_match and (not b.mouse_lastmatch  or ( b.mouse_lastmatch and b.mouse_lastmatch ~=b.mouse_match))  then 
           if b.onmousematch then DATA.perform_quere[#DATA.perform_quere+1] = b.onmousematch end
           b.refresh = refresh
-          --msg('mouse_match2t')
+          --msg(b.key)
         end
         if b.mouse_lastmatch  and not b.mouse_match  then 
           if b.mouse_matchparent and b.mouse_matchparent.onmouselost then DATA.perform_quere[#DATA.perform_quere+1] = b.mouse_matchparent.onmouselost end
           b.refresh = refresh 
-          --msg('mouse_lastmatch')
         end
         b.mouse_lastmatch = b.mouse_match
       
