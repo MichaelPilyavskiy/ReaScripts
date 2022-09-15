@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="eb3d3090a29a34274405ea62fd46632b856e5d98" name="MPL Scripts">
+<index version="1" commit="74bb42d4b56299f6ebbb3635fc5a65097fe9cd35" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -104,6 +104,12 @@
     </reapack>
   </category>
   <category name="Development">
+    <reapack name="mpl_Glue selected items by custom defined counts.lua" type="script" desc="Glue selected items by custom defined counts">
+      <version name="1.0" author="MPL" time="2022-09-15T20:07:06Z">
+        <changelog><![CDATA[init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/74bb42d4b56299f6ebbb3635fc5a65097fe9cd35/Development/mpl_Glue%20selected%20items%20by%20custom%20defined%20counts.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Set selected items offset by custom defined shifts.lua" type="script" desc="Set selected items offset by custom defined shifts">
       <version name="1.0" author="MPL" time="2022-09-08T19:38:46Z">
         <changelog><![CDATA[init ]]></changelog>
