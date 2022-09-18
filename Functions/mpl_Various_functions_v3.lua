@@ -131,6 +131,7 @@
                             b.txtback_col or DATA.GUI.default_backgr,
                             b.txt_a or DATA.GUI.default_txt_a,
                             b.txt_short or ''
+    local txt_allowreduce = b.txt_allowreduce or '' -- allow reduce to [...minimumtexzt] in multiline mode
                             
     -- txt
       local txt_fontsz_out = txt_fontsz
@@ -146,7 +147,7 @@
       local drawstr_flags,right, bottom = 0
       if txt then 
         if txt and tostring(txt) and tostring(txt):match('\n') then 
-          strw, strh = DATA:GUIdraw_txt_multiline(x,y,w,h,txt_flags, txt_a, txt) 
+          strw, strh = DATA:GUIdraw_txt_multiline(x,y,w,h,txt_flags, txt_a, txt,txt_allowreduce) 
          else 
           gfx.x, gfx.y = x+2,y
           gfx.a = txt_a
@@ -180,9 +181,22 @@
     --
     return strw, strh
   end
-  
+  -----------------------------------------------------------------------------
+  function DATA:GUIdraw_txt_reduce(line,x,w)
+    local symbcnt = line:len()
+    if symbcnt < 4 then gfx.drawstr(line) else
+      for symb = symbcnt, 1, -1 do
+        if gfx.measurestr(line:sub(-symb) ) < w then 
+          local out_str = '...'..line:sub(-symb+3) 
+          gfx.x = x + (w- gfx.measurestr(out_str))/2
+          gfx.drawstr(out_str)
+          break
+        end
+      end
+    end
+  end
   ----------------------------------------------------------------------------- 
-  function DATA:GUIdraw_txt_multiline(x,y0,w,h,txt_flags, txt_a,txt) 
+  function DATA:GUIdraw_txt_multiline(x,y0,w,h,txt_flags, txt_a,txt, txt_allowreduce) 
     if not txt then return end
     local cnt = 0 for line in txt:gmatch('[^\r\n]+') do cnt = cnt + 1 end
     local i = 0
@@ -198,7 +212,11 @@
       y = y0 + i *strh + h/2 - 0.5*cnt*strh
       gfx.y = y
       --if txt_flags&4==4 then gfx.y = y+(h-strh)/2 end
-      gfx.drawstr(line)
+      if txt_allowreduce and strw > w then 
+        DATA:GUIdraw_txt_reduce(line,x,w)
+       else
+        gfx.drawstr(line)
+      end
       i =i +1
     end
     return strwmax, cnt*strh

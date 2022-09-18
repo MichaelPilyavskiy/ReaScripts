@@ -1,5 +1,5 @@
 -- @description ImportSessionData
--- @version 2.03
+-- @version 2.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
@@ -13,7 +13,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.03
+    DATA.extstate.version = 2.04
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -454,17 +454,12 @@
     local srcprojfp = '[not defined]' 
     if DATA2.srcproj and DATA2.srcproj.fp then srcprojfp = DATA2.srcproj.fp end 
     
-    -- handle compact name
-      local srcprojfp_short = srcprojfp
-      if  GetShortSmplName(srcprojfp) then  srcprojfp_short = GetShortSmplName(srcprojfp) end
-      local  srcproj_w = DATA.GUI.custom_mainsepx-DATA.GUI.custom_offset*2
-      if srcproj_w < DATA.GUI.custom_srcdestnames_w_limit*DATA.GUI.default_scale then srcprojfp = srcprojfp_short end
-    
     DATA.GUI.buttons.proj_src = { x=DATA.GUI.custom_setposx+DATA.GUI.custom_offset,
                           y=DATA.GUI.custom_offset,
-                          w=srcproj_w,
+                          w=DATA.GUI.custom_mainsepx-DATA.GUI.custom_offset*2,
                           h=DATA.GUI.custom_mainbuth,
                           txt = 'Source RPP:\n'..srcprojfp,
+                          txt_allowreduce = true,
                           txt_fontsz = DATA.GUI.default_txt_fontsz3,
                           onmouseclick =  function () 
                             local retval, filenameNeed4096 = reaper.GetUserFileNameForRead(DATA.extstate.UI_lastsrcproj, 'Import RPP session data', '.RPP' )
@@ -484,19 +479,12 @@
                           end,
                           }
     local destprojname = DATA2.destproj.fp
-    
-    -- handle compact name
-      local destprojname_short = destprojname
-      if  GetShortSmplName(destprojname) then  destprojname_short = GetShortSmplName(destprojname) end
-      local  destproj_w = DATA.GUI.custom_mainsepx-DATA.GUI.custom_offset*2
-      if destproj_w < DATA.GUI.custom_srcdestnames_w_limit*DATA.GUI.default_scale then destprojname = destprojname_short end
-      
-      
     DATA.GUI.buttons.proj_dest = { x=DATA.GUI.custom_setposx+DATA.GUI.custom_offset,
                           y=DATA.GUI.custom_offset*2+DATA.GUI.custom_mainbuth,
                           w=DATA.GUI.custom_mainsepx-DATA.GUI.custom_offset*2,
                           h=DATA.GUI.custom_mainbuth,
                           txt = 'Dest RPP:\n'..destprojname,
+                          txt_allowreduce = true,
                           txt_fontsz = DATA.GUI.default_txt_fontsz3,
                           onmouseclick =  function ()  end,
                           } 
@@ -1445,4 +1433,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.27) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.34) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
