@@ -1,11 +1,11 @@
 -- @description ImportSessionData
--- @version 2.02
+-- @version 2.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # improve RPP markers parsing
---    # fix error if there is no master FX in source project
+--    # fix shift track selection
+--    # use reduced name for projects for lower than 250px width
 
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
@@ -13,7 +13,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.02
+    DATA.extstate.version = 2.03
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -290,9 +290,12 @@
     -- collect/handle selection
       if DATA.GUI.Shift == true then 
         local cnt_selection, min_id, max_id = GUI_RESERVED_BuildLayer_Selection_Get(DATA,trid) 
-        
         if cnt_selection == 1 then 
-          return
+          if trid > min_id then 
+            for i = min_id, trid do DATA2.srcproj.TRACK[i].sel_isselected = true end
+           elseif trid < min_id then 
+            for i = trid, min_id do DATA2.srcproj.TRACK[i].sel_isselected = true end
+          end
          elseif cnt_selection > 1 then 
           if min_id < trid then
             --for i = min_id, trid do DATA.GUI.buttons['tracksrc'..i].sel_isselected = true end
@@ -435,7 +438,7 @@
     DATA.GUI.custom_intname0 = 'none'
     DATA.GUI.custom_intname1 = 'new track at the end of tracklist'
     DATA.GUI.custom_intname2 = 'new track at the end of tracklist, obey structure'
-    
+    DATA.GUI.custom_srcdestnames_w_limit = 250
     
     DATA.GUI.buttons.Rlayer = { x=DATA.GUI.custom_offset,
                            y=DATA.GUI.custom_tracklisty,
@@ -450,9 +453,16 @@
     
     local srcprojfp = '[not defined]' 
     if DATA2.srcproj and DATA2.srcproj.fp then srcprojfp = DATA2.srcproj.fp end 
+    
+    -- handle compact name
+      local srcprojfp_short = srcprojfp
+      if  GetShortSmplName(srcprojfp) then  srcprojfp_short = GetShortSmplName(srcprojfp) end
+      local  srcproj_w = DATA.GUI.custom_mainsepx-DATA.GUI.custom_offset*2
+      if srcproj_w < DATA.GUI.custom_srcdestnames_w_limit*DATA.GUI.default_scale then srcprojfp = srcprojfp_short end
+    
     DATA.GUI.buttons.proj_src = { x=DATA.GUI.custom_setposx+DATA.GUI.custom_offset,
                           y=DATA.GUI.custom_offset,
-                          w=DATA.GUI.custom_mainsepx-DATA.GUI.custom_offset*2,
+                          w=srcproj_w,
                           h=DATA.GUI.custom_mainbuth,
                           txt = 'Source RPP:\n'..srcprojfp,
                           txt_fontsz = DATA.GUI.default_txt_fontsz3,
@@ -474,6 +484,14 @@
                           end,
                           }
     local destprojname = DATA2.destproj.fp
+    
+    -- handle compact name
+      local destprojname_short = destprojname
+      if  GetShortSmplName(destprojname) then  destprojname_short = GetShortSmplName(destprojname) end
+      local  destproj_w = DATA.GUI.custom_mainsepx-DATA.GUI.custom_offset*2
+      if destproj_w < DATA.GUI.custom_srcdestnames_w_limit*DATA.GUI.default_scale then destprojname = destprojname_short end
+      
+      
     DATA.GUI.buttons.proj_dest = { x=DATA.GUI.custom_setposx+DATA.GUI.custom_offset,
                           y=DATA.GUI.custom_offset*2+DATA.GUI.custom_mainbuth,
                           w=DATA.GUI.custom_mainsepx-DATA.GUI.custom_offset*2,
