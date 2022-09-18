@@ -1,5 +1,5 @@
 -- @description RS5k tools
--- @version 1.18
+-- @version 1.19
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -33,5 +33,6 @@
 --    [main] mpl_RS5k tools/mpl_Export selected items to RS5k instances on selected track (use original source, wait for input).lua
 --    [main] mpl_RS5k tools/mpl_Set RS5k sample start offset based on sample peak.lua
 --    [main] mpl_RS5k tools/mpl_Move sample selection for focused RS5k (MIDI, OSC, Mousewheel).lua
+--    [main] mpl_RS5k tools/mpl_Float RS5k instance by last incoming note.lua
 -- @changelog
---    + mpl_Export selected items to RS5k instances on selected track (use original source, wait for input)
+--    + mpl_Float RS5k instance by last incoming note
