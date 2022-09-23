@@ -1,14 +1,11 @@
 -- @description Zoom horizontally, change grid relatively, preserve grid visibility and snap state  (mousewheel) 
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Make zoom slightly smoother with sort of amortization
---    + increase zoom-grid mapping down to 1/256
---    # properly restore grid lines
---    # properly restore swing grid / swing amount
+--    # revert smoothing changes back, too slow on some machines. Smoothing code reserved for future developer tests.
  
-  DATA = {  reduceviewratio = 0.5, -- horizontal
+  DATA = {  reduceviewratio = 0.9, -- horizontal
             inc = 0.7 ,-- init progress increment 
             inc_current = 0}
   
@@ -61,15 +58,16 @@
   end
   ------------------------------------------------------------------
   function run_progress()
-    run_progress_cnt = run_progress_cnt + 1
-    ignore_skipframes = true
+    --run_progress_cnt = run_progress_cnt + 1
+    --ignore_skipframes = true
     
-    if run_progress_cnt%2 == 0 or ignore_skipframes then 
+    --if run_progress_cnt%2 == 0 or ignore_skipframes then 
       -- progress stuff
-        if not DATA.zoom_progress then DATA.zoom_progress = 0 end -- init progress
-        DATA.inc_current = math.max(0.02, 0.3*(1-DATA.zoom_progress)) -- handle smooth braking
+        --if not DATA.zoom_progress then DATA.zoom_progress = 0 end -- init progress
+        DATA.zoom_progress = 1
+        --[[DATA.inc_current = math.max(0.02, 0.3*(1-DATA.zoom_progress)) -- handle smooth braking
         DATA.zoom_progress = DATA.zoom_progress + DATA.inc_current -- increment progress 
-        if DATA.zoom_progress>1 then return end -- stop on reaching 1
+        if DATA.zoom_progress>1 then return end -- stop on reaching 1]]
       
       -- actually zoom arrange horizontally
         reaper.GetSet_ArrangeView2( 0, true, 0, 0, 
@@ -79,8 +77,9 @@
         
       -- handle grid stuff
         Applyzoom_gridmap()
-    end
-    reaper.defer(run_progress) 
+    --end
+    
+    --reaper.defer(run_progress) 
     
   end
   ------------------------------------------------------------------
@@ -104,7 +103,7 @@
       DATA.grid_flags, DATA.division, DATA.swingmode, DATA.swingamt = reaper.GetSetProjectGrid( 0, false, 0, 0, 0 )
       DATA.is_triplet = (1/DATA.division) % 3 == 0 
       
-    run_progress_cnt = 0
+    --run_progress_cnt = 0
     run_progress()
     
   end
