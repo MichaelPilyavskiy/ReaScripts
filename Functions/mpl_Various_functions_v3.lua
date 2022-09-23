@@ -298,28 +298,30 @@
           end
           tslatch = os.clock()
           DATA.GUI.buttons[but] .mouse_latchTS =  tslatch
-          if b.val then 
-            
-            b.latchval = b.val   
-            if b.val_min and b.val_max then
-              b.latchval = (b.val - b.val_min) / (b.val_max - b.val_min)
-            end
-          end
+          -- handle relative val slider
+          if b.val then   b.latchval = b.val    if b.val_min and b.val_max then b.latchval = (b.val - b.val_min) / (b.val_max - b.val_min) end end
+          -- handle absolute val slider
+          local res = b.val_res or 1 b.val_abs = ((DATA.GUI.y*res/DATA.GUI.default_scale)-b.y) / b.h
+          
           b.refresh = true
         end 
         
       -- handle mouse_latch on left drag
         if DATA.GUI.LMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true then
           DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedrag
-          
+          -- handle relative val slider
           if b.val and b.latchval and type(b.latchval) == 'number' then 
             local res= b.val_res or 1
-            if DATA.GUI.Ctrl then res = res /10 end
-            
+            if DATA.GUI.Ctrl then res = res /10 end 
             b.val = VF_lim(b.latchval - (DATA.GUI.dy*res/DATA.GUI.default_scale) / b.h)
             if b.val_xaxis then b.val = VF_lim(b.latchval - (DATA.GUI.dx*res/DATA.GUI.default_scale) / b.w) end
             if b.val_min and b.val_max then b.val = b.val_min + (b.val_max - b.val_min) * b.val end
           end
+          -- handle absolute val slider
+          local res = b.val_res or 1
+          b.val_abs = ((DATA.GUI.y*res/DATA.GUI.default_scale)-b.y) / b.h
+          
+          
           b.refresh = true
         end
         
@@ -526,7 +528,13 @@
       DATA:GUIhex2rgb(frame_col or DATA.GUI.default_frame_col, true)
       gfx.a = frame_a
       if b.mouse_match == true or b.mouse_latch == true then gfx.a = frame_asel end
-      if gfx.a > 0 then DATA:GUIdraw_rect(x,y,w,h,0)  end
+      if gfx.a > 0 then 
+        if b.frame_arcborder then 
+          DATA:GUIdraw_rectarcborder(x,y,w,h,b.frame_arcborder) 
+         else
+          DATA:GUIdraw_rect(x,y,w,h,0)  
+        end
+      end
     -- offsetframe
       if offsetframe > 0 and b.txt_strw and b.txt_strh then
         DATA:GUIhex2rgb(DATA.GUI.default_frame_col, true)
@@ -881,6 +889,25 @@
     gfx.x,gfx.y = x+w-1,y
     gfx.lineto(x+1,y)
   end 
+  ----------------------------------------------------------------------------- 
+  function DATA:GUIdraw_rectarcborder(x,y,w,h,arcborder0) 
+    local arcborder = math.floor(w*0.05)
+    if type(arcborder0)== 'number' then arcborder = arcborder0 end
+    
+    gfx.x,gfx.y = x,y+arcborder+1
+    gfx.lineto(x,y+h-arcborder-1)
+    gfx.x,gfx.y = x+1+arcborder,y+h
+    gfx.lineto(x+w-arcborder,y+h)
+    gfx.x,gfx.y = x+w,y+h-1-arcborder
+    gfx.lineto(x+w,y+arcborder+1)
+    gfx.x,gfx.y = x+w-1-arcborder,y
+    gfx.lineto(x+1+arcborder,y)
+    local aa =1
+    gfx.arc(x+arcborder,y+arcborder,arcborder,math.rad(0),math.rad(-90),aa )
+    gfx.arc(x+w-arcborder,y+arcborder,arcborder,math.rad(0),math.rad(90),aa )
+    gfx.arc(x+w-arcborder,y+h-arcborder,arcborder,math.rad(180),math.rad(90),aa )
+    gfx.arc(x+arcborder,y+h-arcborder,arcborder,math.rad(180),math.rad(270),aa )
+  end
   ----------------------------------------------------------------------------- 
   function DATA:GUIhex2rgb(s16,set)
     if not s16 then return end
