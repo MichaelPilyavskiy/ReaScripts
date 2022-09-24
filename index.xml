@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a097c6a3be4507aeff2505c0cca8cd4681d40aaa" name="MPL Scripts">
+<index version="1" commit="2e621cb6e3c060f3f1ccc60b3027618c6f42c208" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6372,6 +6372,11 @@ add control for timefall showing last note]]></changelog>
       <version name="2.02" author="MPL" time="2022-09-23T09:01:03Z">
         <changelog><![CDATA[# revert smoothing changes back, too slow on some machines. Smoothing code reserved for future developer tests.]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b3b8a7e76f605b697de07f4432dc4e54aa642431/Ruler/mpl_Zoom%20horizontally,%20change%20grid%20relatively,%20preserve%20grid%20visibility%20and%20snap%20state%20%20(mousewheel).lua</source>
+      </version>
+      <version name="2.03" author="MPL" time="2022-09-24T15:16:49Z">
+        <changelog><![CDATA[- disable snap at 1/256
+# fix grid conditions]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2e621cb6e3c060f3f1ccc60b3027618c6f42c208/Ruler/mpl_Zoom%20horizontally,%20change%20grid%20relatively,%20preserve%20grid%20visibility%20and%20snap%20state%20%20(mousewheel).lua</source>
       </version>
     </reapack>
   </category>
