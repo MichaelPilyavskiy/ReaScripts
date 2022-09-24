@@ -306,7 +306,7 @@
         
       -- handle mouse_latch on left drag
         if DATA.GUI.LMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true then
-          DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedrag
+          DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedrag 
           -- handle relative val slider
           if b.val and b.latchval and type(b.latchval) == 'number' then 
             local res= b.val_res or 1
@@ -323,13 +323,12 @@
           b.refresh = true
         end
         
-      -- handle mouse_latch on left release
-        if DATA.GUI.LMB_release == true and b.mouse_match == true then
+     -- handle mouse_latch on left release
+        if DATA.GUI.LMB_release == true and b.mouse_latch == true then
           b.mouse_latch = false
           b.refresh = true
           DATA.perform_quere[#DATA.perform_quere+1] = b.onmouserelease
-        end      
-        
+        end 
       
       -- RMB
       -- handle mouse_latch on left click
@@ -713,8 +712,8 @@
   end
 -----------------------------------------------------------------------------  
   function RUN()
-    if not DATA.UPD then DATA.UPD = {onGUIinit = true
-                                    } end
+    DATA.cnt = (DATA.cnt  or 0 )+ 1
+    if not DATA.UPD then DATA.UPD = {onGUIinit = true } end
       
     -- data
       DATA:handleProjUpdates()
