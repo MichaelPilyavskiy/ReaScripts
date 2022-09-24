@@ -1,12 +1,13 @@
 -- @description Zoom horizontally, change grid relatively, preserve grid visibility and snap state  (mousewheel) 
--- @version 2.02
+-- @version 2.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # revert smoothing changes back, too slow on some machines. Smoothing code reserved for future developer tests.
+--    - disable snap at 1/256
+--    # fix grid conditions
  
-  DATA = {  reduceviewratio = 0.9, -- horizontal
-            inc = 0.7 ,-- init progress increment 
+  DATA = {  reduceviewratio = 0.7, -- horizontal
+            inc = 0.5 ,-- init progress increment 
             inc_current = 0}
   
   
@@ -33,7 +34,7 @@
               3200, -- 1/64
               5000, -- 1/128
               7000, -- 1/256
-              8000} -- no snap / no grid
+              9000} -- no snap / no grid
     grid_t = {}
     for i = 2, -(#DATA.zoom_gridmap-3), -1 do grid_t[#grid_t+1] = 2^i end
    
@@ -43,15 +44,16 @@
         local grid_div_out = grid_t[i]
         if DATA.is_triplet then grid_div_out = grid_div_out /3 end
         local retval, division, swingmode, swingamt = reaper.GetSetProjectGrid( 0, true, grid_div_out, DATA.swingmode, DATA.swingamt ) 
+        --msg(grid_div_out)
         break
       end
     end
     
     DATA.arr_zoom = reaper.GetHZoomLevel()   
     if DATA.arr_zoom < DATA.zoom_gridmap[2] or DATA.arr_zoom > DATA.zoom_gridmap[#DATA.zoom_gridmap] then 
-      reaper.Main_OnCommand(40753,0) -- disable snap
+      --reaper.Main_OnCommand(40753,0) -- disable snap
      else
-      reaper.Main_OnCommand(40754,0) -- enable snap
+      --reaper.Main_OnCommand(40754,0) -- enable snap
     end
     if DATA.gridlinestate == 0 then reaper.Main_OnCommand(40145,0)  end-- restore toggle grid lines
     
