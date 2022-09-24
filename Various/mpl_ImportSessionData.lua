@@ -1,11 +1,10 @@
 -- @description ImportSessionData
--- @version 2.04
+-- @version 2.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # fix shift track selection
---    # use reduced name for projects for lower than 250px width
+--    # Fix markers error for old projects
 
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
@@ -13,7 +12,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.04
+    DATA.extstate.version = 2.05
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -773,7 +772,7 @@
         val6 = tonumber(val6)
         
         if not is_region_flags then -- region end
-          id, pos_sec, name, is_region_flags, col, val6, val7 = line:match('MARKER ([%d]+) ([%d%p]+) (.-) ([%d]+) ([%d%p]+) ([%d%p]+) ([%a]+)')
+          id, pos_sec, name, is_region_flags, col = line:match('MARKER ([%d]+) ([%d%p]+) (.-) ([%d]+) ([%d%p]+)')
           id = tonumber(id)
           pos_sec = tonumber(pos_sec)
           is_region_flags = tonumber(is_region_flags)
@@ -781,7 +780,11 @@
           val6 = tonumber(val6)
         end
         
-        local is_region = is_region_flags&1==1 
+        if not is_region_flags then 
+          id, pos_sec, name, is_region_flags, col = line:match('MARKER ([%d]+) ([%d%p]+) (.-) ([%d]+) ([%d%p]+) ([%d%p]+) ([%a]+)')
+        end
+        
+        local is_region = is_region_flags&1==1
         local retval, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos_sec)
         DATA2.srcproj.MARKERS[#DATA2.srcproj.MARKERS+1] = 
             { id = id,

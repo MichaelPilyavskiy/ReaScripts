@@ -395,7 +395,7 @@
   ---------------------------------------------------------------------------------------------------------------------
   function GetParentFolder(dir) return dir:match('(.*)[%\\/]') end
   ---------------------------------------------------------------------------------------------------------------------
-  function GetShortSmplName(path) 
+  function VF_GetShortSmplName(path) 
     local fn = path
     fn = fn:gsub('%\\','/')
     if fn then fn = fn:reverse():match('(.-)/') end
@@ -1656,4 +1656,6 @@ end
   Open_URL = VF_Open_URL
   Action = VF_Action
   lim = VF_lim
-  math_q_dec = VF_math_Qdec
+  math_q_dec = VF_math_Qdec 
+  GetShortSmplName = VF_GetShortSmplName  
+  

@@ -270,18 +270,16 @@
         DATA:GUIhandlemousestate_match(b) 
         if b.mouse_match then
           b.mouse_matchparent = b
-          if b.onmousematchcont then DATA.perform_quere[#DATA.perform_quere+1] = b.onmousematchcont end 
-          if DATA.GUI.mouse_ismoving then b.refresh = refresh end
-          --msg('mouse_matchparent')
+          if b.onmousematchcont then DATA.perform_quere[#DATA.perform_quere+1] = b.onmousematchcont end                                                     -- arrow above pointer coninioulsy
+          if DATA.GUI.mouse_ismoving then b.refresh = refresh end                                                                                           -- refresh object is arrow above (handle context rectangle selection)
+          if DATA.GUI.droppedfiles.exist == true and b.onmousefiledrop then DATA.perform_quere[#DATA.perform_quere+1] = b.onmousefiledrop end               -- handle file drop
         end
-        if b.mouse_match and (not b.mouse_lastmatch  or ( b.mouse_lastmatch and b.mouse_lastmatch ~=b.mouse_match))  then 
+        if b.mouse_match and (not b.mouse_lastmatch  or ( b.mouse_lastmatch and b.mouse_lastmatch ~=b.mouse_match))  then                                   -- arrow is above AND [first loop OR arrow was nt above this object previously
           if b.onmousematch then DATA.perform_quere[#DATA.perform_quere+1] = b.onmousematch end
-          b.refresh = refresh
-          --msg(b.key)
-        end
-        if b.mouse_lastmatch  and not b.mouse_match  then 
+          if not b.prevent_matchrefresh then b.refresh = refresh end
+         elseif b.mouse_lastmatch and not b.mouse_match  then                                                                                                -- arrow is not above object but it was previously
           if b.mouse_matchparent and b.mouse_matchparent.onmouselost then DATA.perform_quere[#DATA.perform_quere+1] = b.mouse_matchparent.onmouselost end
-          b.refresh = refresh 
+          if not b.prevent_matchrefresh then b.refresh = refresh end
         end
         b.mouse_lastmatch = b.mouse_match
       
@@ -326,7 +324,7 @@
         end
         
       -- handle mouse_latch on left release
-        if DATA.GUI.LMB_release == true and b.mouse_latch == true then
+        if DATA.GUI.LMB_release == true and b.mouse_match == true then
           b.mouse_latch = false
           b.refresh = true
           DATA.perform_quere[#DATA.perform_quere+1] = b.onmouserelease
@@ -342,9 +340,9 @@
           b.refresh = true
         end 
         
-      -- handle mouse_latch on right drag
-        if DATA.GUI.RMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true then
-          DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedragR
+      -- handle mouse_latch on right drag 
+        if DATA.GUI.RMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true then 
+          DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedragR 
           if  b.latchval  and type(b.latchval) == 'number' and b.val then 
             local res= b.val_res or 1
             b.val = VF_lim(b.latchval - (DATA.GUI.dy*res/DATA.GUI.default_scale) / b.h) 
@@ -370,8 +368,10 @@
       
       --
       if DATA.GUI.LMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true and b.onmousedrag_skipotherobjects then return end
+      --if b.refresh then msg(1) end
       ::skipb::
     end
+    
   end
   ----------------------------------------------------------------------------- 
   function DATA:GUIdraw_knob(b)
@@ -644,6 +644,16 @@
     DATA.GUI.last_MMB_state = DATA.GUI.MMB_state  
     DATA.GUI.last_ANY_state = DATA.GUI.ANY_state 
     DATA.GUI.last_wheel = DATA.GUI.wheel 
+    
+    -- handle drop stuff
+    DATA.GUI.droppedfiles = {files = {}, exist = false}
+    for i = 0, 1000 do
+      local DRret, DRstr = gfx.getdropfile(i)
+      if DRret == 0 then break end
+      DATA.GUI.droppedfiles.files[i] = DRstr
+      DATA.GUI.droppedfiles.exist = true
+    end
+    gfx.getdropfile(-1)
   end
 -----------------------------------------------------------------------------  
   function DATA:handleProjUpdates()
@@ -703,7 +713,8 @@
   end
 -----------------------------------------------------------------------------  
   function RUN()
-    if not DATA.UPD then DATA.UPD = {} end
+    if not DATA.UPD then DATA.UPD = {onGUIinit = true
+                                    } end
       
     -- data
       DATA:handleProjUpdates()
@@ -715,7 +726,7 @@
       DATA:GUIhandleshortcuts()
       DATA:GUIhandlemousestate() -- create a quere for performing stuff
       DATA:GUIdraw() -- draw stuff 
-    
+      
       if DATA.UPD.onconfchange == true or DATA.UPD.onXYchange == true or DATA.UPD.onWHchange == true then DATA:ExtStateSet() DATA:ExtStateGet()  end
       if DATA.UPD.onWHchange == true or DATA.UPD.onGUIinit == true then if GUI_RESERVED_init then GUI_RESERVED_init(DATA) end DATA.GUI.firstloop = 1 end
     
@@ -780,6 +791,7 @@
     for layer in spairs(DATA.GUI.layers )do
       gfx.set(1,1,1,1)
       gfx.dest = -1   
+      if DATA.GUI.layers[layer].a and DATA.GUI.layers[layer].a == 0 then goto skip_layerdraw end
       gfx.a = DATA.GUI.layers[layer].a or 1
       gfx.x,gfx.y = 0,0
       local w,h = gfx.w, gfx.h
@@ -803,6 +815,7 @@
       gfx.blit(layer, 1, 0, 
           srcx,srcy,srcw,srch,
           destx,desty,destw,desth, 0,0) 
+      ::skip_layerdraw::
     end
     
     if GUI_RESERVED_drawDYN then GUI_RESERVED_drawDYN(DATA) end -- draw dynamic stuff if any
@@ -851,7 +864,7 @@
     local b
     for but in spairs(DATA.GUI.buttons ) do 
       b = DATA.GUI.buttons[but]
-      if not b.layer then DATA:GUIdraw_Button(b) end
+      if b and not b.layer then DATA:GUIdraw_Button(b) end
     end
   end
   -----------------------------------------------------------------------------  
@@ -891,13 +904,13 @@
   end 
   ----------------------------------------------------------------------------- 
   function DATA:GUIdraw_rectarcborder(x,y,w,h,arcborder0) 
-    local arcborder = math.floor(w*0.05)
+    local arcborder = math.floor(w*0.1)
     if type(arcborder0)== 'number' then arcborder = arcborder0 end
     
     gfx.x,gfx.y = x,y+arcborder+1
     gfx.lineto(x,y+h-arcborder-1)
     gfx.x,gfx.y = x+1+arcborder,y+h
-    gfx.lineto(x+w-arcborder,y+h)
+    gfx.lineto(x+w-arcborder-1,y+h)
     gfx.x,gfx.y = x+w,y+h-1-arcborder
     gfx.lineto(x+w,y+arcborder+1)
     gfx.x,gfx.y = x+w-1-arcborder,y
