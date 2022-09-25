@@ -1,10 +1,9 @@
 -- @description Paste and replace stretch markers to selected items
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + improve paste formula (handle slopes, both take offsets, both take rates)
---    # don`t use chunks, parse all data directly from ProjExtState buffer
+--    # fix wrong positions
 
   -- NOT gfx NOT reaper
   local scr_title = 'Paste and replace stretch markers to selected items'
@@ -19,7 +18,7 @@
     local tk_rate  = tonumber(({GetProjExtState( 0, 'MPLSMCLIPBOARD', 'TKRATE')})[2])    
     local tk_offs = tonumber(({GetProjExtState( 0, 'MPLSMCLIPBOARD', 'TKOFFS')})[2])  
     
-    local t = {}
+     t = {}
     for pair in str:gmatch('[^\r\n]+') do
       local t_id = #t+1
       local pos, srcpos, slope = pair:match('([%d%.%-]+)%s([%d%.%-]+)%s([%d%.%-]+)')
@@ -40,9 +39,9 @@
           
           for i = #t , 1, -1 do
             if t[i].pos then
-              local pos_ruler_src = (t[i].pos/tk_rate) + item_pos
-              pos_out = (pos_ruler_src - item_pos0  )*tk_rate0 
-              new_id = SetTakeStretchMarker( take, -1, pos_out )
+              --local pos_ruler_src = (t[i].pos/tk_rate) + item_pos
+              --pos_out = (pos_ruler_src - item_pos0  )*tk_rate0 
+              new_id = SetTakeStretchMarker( take, -1, t[i].pos/tk_rate, t[i].srcpos/tk_rate )
               SetTakeStretchMarkerSlope( take, new_id, t[i].slope )
             end
           end
@@ -54,22 +53,7 @@
   end
   
   
----------------------------------------------------------------------
-  function CheckFunctions(str_func)
-    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
-    local f = io.open(SEfunc_path, 'r')
-    if f then
-      f:close()
-      dofile(SEfunc_path)      
-      if not _G[str_func] then 
-        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
-       else
-        return true
-      end      
-     else
-      reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
-    end  
-  end
-
-  --------------------------------------------------------
-  if CheckFunctions('Action') and VF_CheckReaperVrs(5.95) then main() end
+  ----------------------------------------------------------------------
+  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
+  --------------------------------------------------------------------  
+  local ret = VF_CheckFunctions(3.0) if ret then local ret2 = VF_CheckReaperVrs(5.95,true) if ret2 then main() end end
