@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0e4ddeeaeb44b7649eb28698fcc418e9ae0cbdd8" name="MPL Scripts">
+<index version="1" commit="52e7fcf4bc51ea291dc56d3dc726049d9f444aa1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -6501,6 +6501,10 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[+ improve paste formula (handle slopes, both take offsets, both take rates)
 # don`t use chunks, parse all data directly from ProjExtState buffer]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/730c2a896e103c3071221cf606cb55ebec2ef311/Stretch%20Markers/mpl_Paste%20and%20replace%20stretch%20markers%20to%20selected%20items.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2022-09-25T20:50:54Z">
+        <changelog><![CDATA[# fix wrong positions]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52e7fcf4bc51ea291dc56d3dc726049d9f444aa1/Stretch%20Markers/mpl_Paste%20and%20replace%20stretch%20markers%20to%20selected%20items.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Quantize stretch markers in selected items to zero crossings.lua" type="script" desc="Quantize stretch markers in selected items to zero crossings">
