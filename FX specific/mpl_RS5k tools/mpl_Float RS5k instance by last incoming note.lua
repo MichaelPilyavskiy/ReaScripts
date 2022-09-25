@@ -1,13 +1,13 @@
 -- @description Float RS5k instance by last incoming note
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @noindex
 -- @changelog
---    + init
+--    # fix handle all tracks if no selected one
 
 
-  local vrs = 'v1.0'
+  local vrs = 'v1.01'
  --------------------------------------------------------------------
   function main()
     -- selected track
@@ -16,8 +16,8 @@
     
     -- all tracks search
     if not track then
-      for i = 1, CountSelectedTracks(0) do
-        local tr = GetSelectedTrack(0,i-1)
+      for i = 1, CountTracks(0) do
+        local tr = GetTrack(0,i-1)
         local ret = FloatRs5kbyPitch(base_pitch,tr)
         if ret then return end
       end
