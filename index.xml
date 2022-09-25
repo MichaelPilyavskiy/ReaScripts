@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9f3ee141a14ed7615fd56f8eaf47b5b179d4054b" name="MPL Scripts">
+<index version="1" commit="4cb24f1ccb2007122a3e56fdaa01f421bf9c61a5" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1286,6 +1286,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9f3ee141a14ed7615fd56f8eaf47b5b179d4054b/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9f3ee141a14ed7615fd56f8eaf47b5b179d4054b/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9f3ee141a14ed7615fd56f8eaf47b5b179d4054b/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.38" author="MPL" time="2022-09-25T20:06:46Z">
+        <changelog><![CDATA[+ add arcrectborder flags]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cb24f1ccb2007122a3e56fdaa01f421bf9c61a5/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cb24f1ccb2007122a3e56fdaa01f421bf9c61a5/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cb24f1ccb2007122a3e56fdaa01f421bf9c61a5/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cb24f1ccb2007122a3e56fdaa01f421bf9c61a5/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cb24f1ccb2007122a3e56fdaa01f421bf9c61a5/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cb24f1ccb2007122a3e56fdaa01f421bf9c61a5/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -3831,6 +3840,32 @@
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d565216893924540628addbeb31617cb84dc225b/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_data.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d565216893924540628addbeb31617cb84dc225b/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_obj.lua</source>
         <source file="mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d565216893924540628addbeb31617cb84dc225b/FX%20specific/mpl_RS5k_manager_functions/mpl_RS5k_manager_pat.lua</source>
+      </version>
+      <version name="3.0alpha1" author="MPL" time="2022-09-25T20:06:46Z">
+        <changelog><![CDATA[+ GUI: use MPL library
++ Replace all 3rd party APIs by native solutions
++ ParentTrack: catch parent track even if child selected (write data to extstate per track)
++ PadView: basic Ableton DrumRack port
++ PadView: store/load with track
++ PadView: show played notes
++ PadView: show active notes
++ DrumRack: basic Ableton DrumRack port
++ DrumRack: mute pads (layer bus if multilayer mode)
++ DrumRack: solo pads (layer bus if multilayer mode)
++ DrumRack: preview pads
++ DrumRack: show first layer sample in MediaExplorer
++ DrumRack: add MIDI bus to folder
++ DrumRack: on drop sample replace by default 1st layer 
++ DrumRack: on drop sample add new child if need 
++ DrumRack: on drop sample convert channel to multisampler mode if drop at 2+layer
++ Device: show child track sampler parameters, multiple samples if in multilayer mode
++ Device: show volume/pan/enabled from parent track controls
++ Sampler: show waveform
++ Sampler: show loop-oneshot buttons
++ Sampler: add gain control
++ Sampler: add ADSR control
++ Setting: separate settings from main window]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cb24f1ccb2007122a3e56fdaa01f421bf9c61a5/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k tools.lua" type="script" desc="RS5k tools">
