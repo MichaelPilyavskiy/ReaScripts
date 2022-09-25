@@ -234,6 +234,7 @@
   end
   ----------------------------------------------------------------------------- 
   function DATA:GUIhandlemousestate_match(b)
+    if not b.x and b.y and b.w and b.h then return end
     b.mouse_match = false
     if DATA.GUI.x > gfx.w*DATA.GUI.default_scale or DATA.GUI.y > gfx.h*DATA.GUI.default_scale then return end
     b.mouse_match = DATA.GUI.x > b.x*DATA.GUI.default_scale and DATA.GUI.x < b.x*DATA.GUI.default_scale+b.w*DATA.GUI.default_scale and DATA.GUI.y > b.y*DATA.GUI.default_scale and DATA.GUI.y < b.y*DATA.GUI.default_scale+b.h*DATA.GUI.default_scale -- is mouse under object
@@ -299,8 +300,7 @@
           -- handle relative val slider
           if b.val then   b.latchval = b.val    if b.val_min and b.val_max then b.latchval = (b.val - b.val_min) / (b.val_max - b.val_min) end end
           -- handle absolute val slider
-          local res = b.val_res or 1 b.val_abs = ((DATA.GUI.y*res/DATA.GUI.default_scale)-b.y) / b.h
-          
+          local res = b.val_res or 1 b.val_abs = ((DATA.GUI.y*res/DATA.GUI.default_scale)-b.y) / b.h 
           b.refresh = true
         end 
         
@@ -486,7 +486,11 @@
       if backgr_fill2 ~= 0 and backgr_col2 then
         DATA:GUIhex2rgb(backgr_col2, true)
         gfx.a =backgr_fill2
-        gfx.rect(x+1,y+1,w-1,h-1,1)
+        if b.backgr_usevalue and b.val then 
+          gfx.rect(x+1,y+1,math.floor(w*VF_lim(b.val))-1,h-1,1)
+         else
+          gfx.rect(x+1,y+1,w-1,h-1,1)
+        end
       end
         
     -- latched by mouse
@@ -529,7 +533,7 @@
       if b.mouse_match == true or b.mouse_latch == true then gfx.a = frame_asel end
       if gfx.a > 0 then 
         if b.frame_arcborder then 
-          DATA:GUIdraw_rectarcborder(x,y,w,h,b.frame_arcborder) 
+          DATA:GUIdraw_rectarcborder(x,y,w,h,b.frame_arcborder, b.frame_arcborderflags, b.frame_arcborderr) 
          else
           DATA:GUIdraw_rect(x,y,w,h,0)  
         end
@@ -783,7 +787,7 @@
     end
     
     if DATA.GUI.firstloop == 1 or DATA.UPD.onWHchange == true then DATA:GUIdraw_Layer1_MainBack() end
-    if DATA.GUI.firstloop == 1 or DATA.UPD.onWHchange == true or DATA.GUI.layers_refresh[2] then DATA:GUIdraw_Layer2_MainButtons() end
+    if DATA.GUI.firstloop == 1 or DATA.UPD.onWHchange == true or DATA.GUI.layers_refresh[2] then DATA:GUIdraw_Layer2_MainButtons() end--msg(os.clock())
     if DATA.GUI.firstloop == 1 or DATA.UPD.onWHchange == true or upd_customlayers == true then DATA:GUIdraw_LayerCustom() end
     
     gfx.mode = 0
@@ -902,23 +906,52 @@
     gfx.lineto(x+1,y)
   end 
   ----------------------------------------------------------------------------- 
-  function DATA:GUIdraw_rectarcborder(x,y,w,h,arcborder0) 
-    local arcborder = math.floor(w*0.1)
-    if type(arcborder0)== 'number' then arcborder = arcborder0 end
+  function DATA:GUIdraw_rectarcborder(x,y,w,h,arcborder0, arcborderflags, arcborderr) 
+    local arcborder = arcborderr or math.floor(w*0.1)
+    if type(arcborder0)== 'number' then arcborder = arcborder0 end 
+    local aa =1
+    if not arcborderflags then arcborderflags = 1|2|4|8 end
+    
+      
+    -- draw lines
+    gfx.x,gfx.y = x+w-1-arcborder,y
+    gfx.lineto(x+1+arcborder,y) -- top 
+    
+    gfx.x,gfx.y = x+1+arcborder,y+h 
+    gfx.lineto(x+w-arcborder-1,y+h) -- bottom
+    
+    gfx.x,gfx.y = x+w,y+h-1-arcborder
+    gfx.lineto(x+w,y+arcborder+1) -- side right 
     
     gfx.x,gfx.y = x,y+arcborder+1
-    gfx.lineto(x,y+h-arcborder-1)
-    gfx.x,gfx.y = x+1+arcborder,y+h
-    gfx.lineto(x+w-arcborder-1,y+h)
-    gfx.x,gfx.y = x+w,y+h-1-arcborder
-    gfx.lineto(x+w,y+arcborder+1)
-    gfx.x,gfx.y = x+w-1-arcborder,y
-    gfx.lineto(x+1+arcborder,y)
-    local aa =1
-    gfx.arc(x+arcborder,y+arcborder,arcborder,math.rad(0),math.rad(-90),aa )
-    gfx.arc(x+w-arcborder,y+arcborder,arcborder,math.rad(0),math.rad(90),aa )
-    gfx.arc(x+w-arcborder,y+h-arcborder,arcborder,math.rad(180),math.rad(90),aa )
-    gfx.arc(x+arcborder,y+h-arcborder,arcborder,math.rad(180),math.rad(270),aa )
+    gfx.lineto(x,y+h-arcborder-1) -- side left 
+    
+    -- draw arcs
+    
+    if arcborderflags&1==1 then  
+      gfx.arc(x+arcborder,y+arcborder,arcborder,math.rad(0),math.rad(-90),aa ) -- top left
+     else
+      gfx.line(x+arcborder,y,x,y) 
+      gfx.line(x,y,x,y+arcborder)
+    end
+    if arcborderflags&2==2 then  
+      gfx.arc(x+w-arcborder,y+arcborder,arcborder,math.rad(0),math.rad(90),aa )-- top right
+     else
+      gfx.line(x+w-arcborder,y,x+w,y) 
+      gfx.line(x+w,y,x+w,y+arcborder)
+    end
+    if arcborderflags&4==4 then  
+      gfx.arc(x+w-arcborder,y+h-arcborder,arcborder,math.rad(180),math.rad(90),aa ) -- bot right
+     else
+      gfx.line(x+w,y+h-arcborder,x+w,y+h)
+      gfx.line(x+w,y+h,x+w-arcborder,y+h) 
+    end
+    if arcborderflags&8==8 then 
+      gfx.arc(x+arcborder,y+h-arcborder,arcborder,math.rad(180),math.rad(270),aa ) -- bot left
+     else
+      gfx.line(x+arcborder,y+h,x,y+h) 
+      gfx.line(x,y+h,x,y+h-arcborder)
+    end
   end
   ----------------------------------------------------------------------------- 
   function DATA:GUIhex2rgb(s16,set)
