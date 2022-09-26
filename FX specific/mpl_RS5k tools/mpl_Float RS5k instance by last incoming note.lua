@@ -4,24 +4,41 @@
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @noindex
 -- @changelog
---    # fix handle all tracks if no selected one
+--    + Catch record armed track if not found on selected track
 
 
-  local vrs = 'v1.01'
+  local vrs = 'v1.02'
+ --------------------------------------------------------------------
+  function main_sub(tr)
+    if not tr then return end
+    local arm = GetMediaTrackInfo_Value( tr, 'I_RECARM' )
+    if arm==1 then 
+      local ret = FloatRs5kbyPitch(base_pitch,tr) if ret then return true end 
+      for sendidx = 1, GetTrackNumSends( tr, 0 ) do
+        local flags = GetTrackSendInfo_Value( tr, 0, sendidx-1, 'I_MIDIFLAGS' )
+        if flags >= 0 then
+          local dest_tr= GetTrackSendInfo_Value( tr, 0, sendidx-1, 'P_DESTTRACK' )
+          local ret = FloatRs5kbyPitch(base_pitch,dest_tr) if ret then return true end
+        end
+      end
+    end
+  end
  --------------------------------------------------------------------
   function main()
     -- selected track
-    local track = GetSelectedTrack(0,0)
-    if track then FloatRs5kbyPitch(base_pitch, track) end
+    local tr = GetSelectedTrack(0,0)
+    if tr then 
+      local ret = main_sub(tr)
+      if ret then return end
+    end
     
     -- all tracks search
-    if not track then
-      for i = 1, CountTracks(0) do
-        local tr = GetTrack(0,i-1)
-        local ret = FloatRs5kbyPitch(base_pitch,tr)
-        if ret then return end
-      end
+    for i = 1, CountTracks(0) do
+      local tr = GetTrack(0,i-1)
+      local ret = main_sub(tr)
+      if ret then return end
     end
+    
   end
   --------------------------------------------------------------------
   function FloatRs5kbyPitch(base_pitch, track)

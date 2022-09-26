@@ -1,5 +1,5 @@
 -- @description RS5k tools
--- @version 1.20
+-- @version 1.21
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -35,4 +35,4 @@
 --    [main] mpl_RS5k tools/mpl_Move sample selection for focused RS5k (MIDI, OSC, Mousewheel).lua
 --    [main] mpl_RS5k tools/mpl_Float RS5k instance by last incoming note.lua
 -- @changelog
---    # fix Float RS5k instance by last incoming note
+--    # Float RS5k instance by last incoming note: add recarm search if selected track not found
