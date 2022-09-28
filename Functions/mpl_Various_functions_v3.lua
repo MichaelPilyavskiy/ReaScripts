@@ -907,7 +907,7 @@
   end 
   ----------------------------------------------------------------------------- 
   function DATA:GUIdraw_rectarcborder(x,y,w,h,arcborder0, arcborderflags, arcborderr) 
-    local arcborder = arcborderr or math.floor(w*0.1)
+    local arcborder = arcborderr or math.floor(w*DATA.GUI.default_button_framew_arcratio)
     if type(arcborder0)== 'number' then arcborder = arcborder0 end 
     local aa =1
     if not arcborderflags then arcborderflags = 1|2|4|8 end
@@ -1110,6 +1110,8 @@
     
     DATA.GUI.default_tooltipxoffs = 10
     DATA.GUI.default_tooltipyoffs = 0
+    
+    DATA.GUI.default_button_framew_arcratio = 0.1
     
     
     
