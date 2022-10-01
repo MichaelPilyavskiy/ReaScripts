@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0300eefdf81aa789898cebc78284f1aebf50106a" name="MPL Scripts">
+<index version="1" commit="c9ff742bf3f6e52d6f89711e589e2d3f6db82a31" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3157,7 +3157,7 @@
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Script for handling ReaSamplomatic5000 data on selected track\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Script for handling ReaSamplomatic5000 data on group of connected tracks\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/showthread.php?t=207971</link>
@@ -3875,6 +3875,53 @@
 + Sampler: add ADSR control
 + Setting: separate settings from main window]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cb24f1ccb2007122a3e56fdaa01f421bf9c61a5/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+      </version>
+      <version name="3.0alpha2" author="MPL" time="2022-10-01T17:57:22Z">
+        <changelog><![CDATA[# Do not update GUI if currently dragging any control in the script UI
++ DrumRack: clear/refresh rack at child delete
++ DrumRack: on drop show device chain and sample of recent dropped sample
++ DrumRack: support multiple samples drop incrementally at pads
++ DrumRack: rightclick on pad name open pad menu
++ DrumRack/Menu: add action for export selected items
++ DrumRack/Menu: add action for export selected items
++ DrumRack/Menu: link to device name menu
++ DrumRack: click on pad open RS5k window
+# DrumRack: more carefully validate MIDI bus pointer
++ Macro: add Macro section with 16 knobs
++ Macro: add Macro JSFX to a script package
++ Macro: instantiate Macro JSFX when clicking macro section for the first time (JSFX is packed with RS5k manager)
++ Macro: hide Macro JSFX when instantiate
++ Sampler: add show button to float active RS5k instance
++ Sampler: add start/end offset control, show it visually on waveform
++ Sampler: fix hdpi scaling
++ Sampler: click on controls reset them fo default (defaults initiated from hardcoded values but can be changed in the future)
++ Defaults: when creating new drum rack hide macro section for the first time
+# Add MIDI bus after parant track
+# Add MIDI bus with small foldercompact state
+# Add child always after MIDI bus
+# Add child with small foldercompact state
+# Validate childrens by their external state rather than depth
+# Reset MIDI bus on track change
+# prepare external chunk for further reading multiple parameters
+- pattern editing stuff removed for now]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c9ff742bf3f6e52d6f89711e589e2d3f6db82a31/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c9ff742bf3f6e52d6f89711e589e2d3f6db82a31/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_RS5k manager_MacroControls.jsfx" type="effect" desc="RS5K_manager_MacroControls">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Dummy controls to use with RS5k manager\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-10-01T17:57:22Z">
+        <changelog><![CDATA[init]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/c9ff742bf3f6e52d6f89711e589e2d3f6db82a31/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k tools.lua" type="script" desc="RS5k tools">
