@@ -1,11 +1,15 @@
 -- @description RS5k manager
--- @version 3.0alpha2
+-- @version 3.0alpha3
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
+--    # Macro: fix release macro error
+
+--[[ 
+3.0alpha2
 --    # Do not update GUI if currently dragging any control in the script UI
 --    + DrumRack: clear/refresh rack at child delete
 --    + DrumRack: on drop show device chain and sample of recent dropped sample
@@ -33,9 +37,6 @@
 --    # Reset MIDI bus on track change
 --    # prepare external chunk for further reading multiple parameters
 --    - pattern editing stuff removed for now
-
-
---[[ 
 
 3.0alpha1
 --    + GUI: use MPL library
@@ -73,7 +74,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0alpha2'
+    DATA.extstate.version = '3.0alpha3'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -757,7 +758,7 @@
                         onmousedoubleclick = function() f_double() end,
                         onmouseclick = function() end,
                         onmousedrag = function() f()  end,
-                        onmouserelease = function() f_release() end,
+                        onmouserelease = function() if f_release then f_release() else f() end end,
                         } 
   end
   ------------------------------------------------------------------------
