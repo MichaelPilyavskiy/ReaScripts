@@ -1,20 +1,21 @@
 -- @description RS5k manager
--- @version 3.0alpha6
+-- @version 3.0alpha7
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
+--    # Properly solo/mute pads depending on device state
+
+
+--[[ 
+3.0alpha6 02.10.2022
 --    + Settings: click on pad select track, enabled by default
 --    + Settings: incoming note on trigger active pad, disabled by default
 --    + Sampler: draw 3 signs after point
 --    + DrumRack: show device name
 --    + Structure: take device name as device trac
-
-
-
---[[ 
 
 3.0alpha5 02.10.2022
 --    # Structure: write parent GUID as track ext variable
@@ -119,7 +120,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0alpha6'
+    DATA.extstate.version = '3.0alpha7'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -230,23 +231,35 @@
   end
   ---------------------------------------------------------------------  
   function DATA2:TrackDataRead_GetChildrens_GetTrackParams(track)
-    -- handle parent track parameters
-    for note in pairs(DATA2.notes) do
-      if DATA2.notes[note].partrack_ptr and ValidatePtr2(0,DATA2.notes[note].partrack_ptr, 'MediaTrack*')then
-        DATA2.notes[note].partrack_mute = GetMediaTrackInfo_Value( DATA2.notes[note].partrack_ptr, 'B_MUTE' )
-        DATA2.notes[note].partrack_solo = GetMediaTrackInfo_Value( DATA2.notes[note].partrack_ptr, 'I_SOLO' )
-      end
-    end
+    if not track then return end
+    -- handle track parameters
+    local tr_vol = GetMediaTrackInfo_Value( track, 'D_VOL' )
+    local tr_vol_format = WDL_VAL2DB(tr_vol,2) ..'dB'
+    local tr_pan = GetMediaTrackInfo_Value( track, 'D_PAN' )
+    local tr_pan_format = DATA2:FormatPan(tr_pan)
+    local tr_mute = GetMediaTrackInfo_Value( track, 'B_MUTE' )
+    local tr_solo = GetMediaTrackInfo_Value( track, 'I_SOLO' )
+    
+    
+    return {
+      tr_ptr = track,
+      tr_vol=tr_vol,
+      tr_vol_format=tr_vol_format,
+      tr_pan=tr_pan,
+      tr_pan_format=tr_pan_format,
+      tr_mute=tr_mute,
+      tr_solo=tr_solo,
+      }
   end
   ---------------------------------------------------------------------  
-  function DATA2:FormatPan(dev_pan)
-    local dev_pan_format = 'C'
-    if dev_pan > 0 then 
-      dev_pan_format = math.floor(math.abs(dev_pan*100))..'R'
-     elseif dev_pan < 0 then 
-      dev_pan_format = math.floor(math.abs(dev_pan*100))..'L'
+  function DATA2:FormatPan(tr_pan)
+    local tr_pan_format = 'C'
+    if tr_pan > 0 then 
+      tr_pan_format = math.floor(math.abs(tr_pan*100))..'R'
+     elseif tr_pan < 0 then 
+      tr_pan_format = math.floor(math.abs(tr_pan*100))..'L'
     end
-    return dev_pan_format
+    return tr_pan_format
   end
   ---------------------------------------------------------------------  
   
@@ -282,10 +295,6 @@
     local filepath_short = GetShortSmplName(filepath)
     if filepath_short and filepath_short:match('(.*)%.[%a]+') then filepath_short = filepath_short:match('(.*)%.[%a]+') end
     if not DATA2.notes[note] then DATA2.notes[note] = {layers = {}} end
-    local dev_vol = GetMediaTrackInfo_Value( track, 'D_VOL' )
-    local dev_vol_format = WDL_VAL2DB(dev_vol,2)          
-    local dev_pan = GetMediaTrackInfo_Value( track, 'D_PAN' )
-    local dev_pan_format = DATA2:FormatPan(dev_pan)
     
     local ret,cached_len = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_SAMPLELEN', '', false) 
     if cached_len then cached_len = tonumber(cached_len) end
@@ -299,10 +308,6 @@
                          name = filepath_short,
                          trackptr = track,
                          instrument_pos = fxid,
-                         dev_vol = dev_vol,
-                         dev_pan = dev_pan,
-                         dev_vol_format = dev_vol_format..'dB',
-                         dev_pan_format  =dev_pan_format,
                          
                          cached_len = cached_len,
                          
@@ -343,6 +348,10 @@
                          
                          enabled = enabled,
                         }
+                        
+    local tr_data = DATA2:TrackDataRead_GetChildrens_GetTrackParams(track)
+    for key in pairs(tr_data) do sampledata[key] = tr_data[key] end
+    
     if not DATA2.notes[note] then DATA2.notes[note] = {} end
     if not DATA2.notes[note].layers then DATA2.notes[note].layers = {} end
     if layer == -1 then layer = #DATA2.notes[note].layers + 1 end
@@ -381,7 +390,8 @@
     DATA2.notes[note].device_GUID =  GetTrackGUID(track)
     ret , DATA2.notes[note].device_name =  GetTrackName( track )
     
-    -- if DATA2.notes[note].device_isdevice then msg(1) end
+    local tr_data = DATA2:TrackDataRead_GetChildrens_GetTrackParams(track)
+    for key in pairs(tr_data) do DATA2.notes[note][key] = tr_data[key] end
   end
   ---------------------------------------------------------------------   
   function DATA2:TrackDataRead_GetChildrens_DeviceChild(track)
@@ -410,6 +420,9 @@
           --DATA2.notes[note].device_isdevice = false
         end]]
         if not DATA2.notes[note].name then DATA2.notes[note].name = filepath_short end
+        --[[
+        local tr_data = DATA2:TrackDataRead_GetChildrens_GetTrackParams(track)
+        for key in pairs(tr_data) do DATA2.notes[note] = tr_data[key] end]]
       end
     end
   end
@@ -543,6 +556,7 @@
         break
       end
     end
+    
     DATA2:TrackDataRead_GetChildrens_GetTrackParams(track)
   end
   --------------------------------------------------------------------- 
@@ -1162,7 +1176,7 @@
                               prevent_matchrefresh = true,
                               backgr_fill = backgr_fill,
                               backgr_col = DATA.GUI.custom_backcol2,
-                              onmouseclick = function() DATA2:PAD_mute(note) end,
+                              onmouseclick = function() DATA2:PAD_mute(note, true) end,
                               } 
                               
       if DATA.extstate.UI_useplaybutton == 1 then
@@ -1194,7 +1208,7 @@
                               prevent_matchrefresh = true,
                               backgr_fill = backgr_fill,
                               backgr_col = DATA.GUI.custom_backcol2,
-                              onmouseclick = function() DATA2:PAD_solo(note) end,
+                              onmouseclick = function() DATA2:PAD_solo(note, true) end,
                               }    
       if DATA.extstate.UI_useplaybutton == 0 then DATA.GUI.buttons['drumrackpad_pad'..padID0..'solo'].x=padx+controlbut_w end
       DATA.GUI.buttons['drumrackpad_pad'..padID0..'show'] = { x=padx+controlbut_w*3,
@@ -1216,13 +1230,17 @@
     end
   end
   ----------------------------------------------------------------------- 
-  function DATA2:PAD_mute(note)
-    if not (DATA2.notes[note] and DATA2.notes[note].partrack_ptr and DATA2.notes[note].partrack_mute) then return end 
-    local state = DATA2.notes[note].partrack_mute > 0
-    if state then state = 0 else state =1 end 
-    SetMediaTrackInfo_Value( DATA2.notes[note].partrack_ptr, 'B_MUTE', state )
-    DATA2.notes[note].partrack_mute = state
+  function DATA2:PAD_mute(note) 
+    if (DATA2.notes[note] and DATA2.notes[note].tr_ptr and ValidatePtr2(0,DATA2.notes[note].tr_ptr, 'MediaTrack*')) then t = DATA2.notes[note] end
+    if not t and (DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_ptr and ValidatePtr2(0,DATA2.notes[note].layers[1].tr_ptr, 'MediaTrack*')) then t = DATA2.notes[note].layers[1] end
+    
+    if not t then return end
+    local state = t.tr_mute > 0
+    if state then state = 0 else state =2 end 
+    SetMediaTrackInfo_Value( t.tr_ptr, 'B_MUTE', state )
+    t.tr_mute = state
     GUI_MODULE_DRUMRACKPAD(DATA)  
+    
   end
   ----------------------------------------------------------------------- 
   
@@ -1232,13 +1250,18 @@
     OpenMediaExplorer( filepath, false )
   end
   ----------------------------------------------------------------------- 
-  function DATA2:PAD_solo(note)
-    if not (DATA2.notes[note] and DATA2.notes[note].partrack_ptr and ValidatePtr2(0,DATA2.notes[note].partrack_ptr, 'MediaTrack*')) then return end 
-    local state = DATA2.notes[note].partrack_solo > 0
+  function DATA2:PAD_solo(note, callfrompad)
+    if (DATA2.notes[note] and DATA2.notes[note].tr_ptr and ValidatePtr2(0,DATA2.notes[note].tr_ptr, 'MediaTrack*')) then t = DATA2.notes[note] end
+    if not t and (DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_ptr and ValidatePtr2(0,DATA2.notes[note].layers[1].tr_ptr, 'MediaTrack*')) then t = DATA2.notes[note].layers[1] end
+    
+    if not t then return end
+    local state = t.tr_solo > 0
     if state then state = 0 else state =2 end 
-    SetMediaTrackInfo_Value( DATA2.notes[note].partrack_ptr, 'I_SOLO', state )
-    DATA2.notes[note].partrack_solo = state
+    SetMediaTrackInfo_Value( t.tr_ptr, 'I_SOLO', state )
+    t.tr_solo = state
     GUI_MODULE_DRUMRACKPAD(DATA)  
+      
+      
   end  
   ----------------------------------------------------------------------- 
   function DATA2:FormatMIDIPitch(note)
@@ -1528,10 +1551,10 @@
                         y=y_offs,
                         w=w_vol-reduce,
                         h=DATA.GUI.custom_deviceentryh-reduce,
-                        val = DATA2.notes[note].layers[layer].dev_vol/2,
+                        val = DATA2.notes[note].layers[layer].tr_vol/2,
                         val_res = -0.1,
                         val_xaxis = true,
-                        txt = DATA2.notes[note].layers[layer].dev_vol_format,
+                        txt = DATA2.notes[note].layers[layer].tr_vol_format,
                         txt_fontsz = ctrl_txtsz,
                         backgr_fill2 = backgr_fill_param,
                         backgr_col2 =backgr_col,
@@ -1541,7 +1564,7 @@
                               local new_val = DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].val
                               DATA2:TrackData_SetTrackParams(src_t, 'D_VOL', new_val*2)
                               DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(src_t.trackptr, src_t.instrument_pos, note,layer)
-                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].txt = DATA2.notes[note].layers[layer].dev_vol_format
+                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].txt = DATA2.notes[note].layers[layer].tr_vol_format
                               DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].refresh = true
                               DATA2.ONPARAMDRAG = true
                             end,
@@ -1551,7 +1574,7 @@
                                 local src_t = DATA2.notes[note].layers[layer]
                                 local new_val = DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].val
                                 DATA2:TrackData_SetTrackParams(src_t, 'D_VOL', new_val*2)
-                                DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].txt = DATA2.notes[note].layers[layer].dev_vol_format
+                                DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].txt = DATA2.notes[note].layers[layer].tr_vol_format
                                 DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].refresh = true
                                else
                                 DATA2.ONDOUBLECLICK = nil
@@ -1562,7 +1585,7 @@
                               local new_val = 1
                               DATA2:TrackData_SetTrackParams(src_t, 'D_VOL', new_val)
                               DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(src_t.trackptr, src_t.instrument_pos, note,layer) 
-                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].txt = DATA2.notes[note].layers[layer].dev_vol_format
+                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].txt = DATA2.notes[note].layers[layer].tr_vol_format
                               DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].refresh = true
                               DATA2.ONDOUBLECLICK = true
                             end,
@@ -1572,13 +1595,13 @@
                         y=y_offs,
                         w=w_pan-reduce,
                         h=DATA.GUI.custom_deviceentryh-reduce,
-                        val = DATA2.notes[note].layers[layer].dev_pan,
+                        val = DATA2.notes[note].layers[layer].tr_pan,
                         val_res = -0.6,
                         val_xaxis = true,
                         val_centered = true,
                         val_min = -1,
                         val_max = 1,
-                        txt = DATA2.notes[note].layers[layer].dev_pan_format,
+                        txt = DATA2.notes[note].layers[layer].tr_pan_format,
                         txt_fontsz = ctrl_txtsz,
                         backgr_fill2 = backgr_fill_param,
                         backgr_col2 =backgr_col,
