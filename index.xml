@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a2508fa04b6920b7c0bb5da849db0b26a9f9730b" name="MPL Scripts">
+<index version="1" commit="debd0b8f0724fa8fcfddae62f88f95790ada0cea" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3911,6 +3911,35 @@
         <changelog><![CDATA[# Macro: fix release macro error]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2508fa04b6920b7c0bb5da849db0b26a9f9730b/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
         <source file="mpl_RS5k manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a2508fa04b6920b7c0bb5da849db0b26a9f9730b/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
+      </version>
+      <version name="3.0alpha4" author="MPL" time="2022-10-02T08:03:44Z">
+        <changelog><![CDATA[+ Sampler: add loop offset control, unlike REAPER native knob, properly limit to boundary start/end offset edges
+# Sampler: cache item length into track external state for better control loop length (which is fixed internally to 30sec)
+# Sampler: limit attack, decay and release to sample length
++ Sampler: add voices control
++ Sampler: add filter section
++ Sampler: on tweak any filter control, add ReaEq on current sample track
++ Sampler: initialize ReaEq hidden
++ Sampler: initialize ReaEq with opened lowpass filter
++ Sampler: drop sample on peaks window replace sample
+# Sampler: change width to 8 controls for now
++ Device: drop on layer change sample at current layer
++ Settings: allow to enable/disable 'obey note off' on sample add
++ Settings: allow to not update UI by incoming played notes
++ Settings: allow to hide play button from DrumRack, use pad name instead
++ Settings: allow to add custom FX chain when adding child
++ DrumRack: set MIDI note names for MIDI bus on RS5k adding
++ DrumRack: show playing notes
+# DrumRack: refresh internal data on dropping pad
+# Setting: clear blit layer correctly
+# Setting: clear blit layer on project state change
+# MIDI bus: set record mode to 'record output'
+# fix error when play notes without active track
+# UI: tweak font size ratios a bit
+# Always add RS5k to the start of chain
+# Whaen adding track with external template, hide chain and all floating FX in this chain]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/debd0b8f0724fa8fcfddae62f88f95790ada0cea/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/debd0b8f0724fa8fcfddae62f88f95790ada0cea/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k manager_MacroControls.jsfx" type="effect" desc="RS5K_manager_MacroControls">
