@@ -295,7 +295,7 @@
             --msg(os.clock()  - b.mouse_latchTS)
             DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedoubleclick
           end
-          tslatch = os.clock()
+          local tslatch = os.clock()
           DATA.GUI.buttons[but] .mouse_latchTS =  tslatch
           -- handle relative val slider
           if b.val then   b.latchval = b.val    if b.val_min and b.val_max then b.latchval = (b.val - b.val_min) / (b.val_max - b.val_min) end end
@@ -487,7 +487,16 @@
         DATA:GUIhex2rgb(backgr_col2, true)
         gfx.a =backgr_fill2
         if b.backgr_usevalue and b.val then 
-          gfx.rect(x+1,y+1,math.floor(w*VF_lim(b.val))-1,h-1,1)
+          if not b.val_centered then 
+            gfx.rect(x+1,y+1,math.floor(w*VF_lim(b.val))-1,h-1,1)
+           else
+            local rectw = math.floor( w*math.abs( b.val*0.5 )  )
+            if b.val < 0 then 
+              gfx.rect(x+1+w/2-rectw,y+1,rectw-1,h-1,1)
+             else
+              gfx.rect(x+1+w/2,y+1,rectw-1,h-1,1)
+            end
+          end
          else
           gfx.rect(x+1,y+1,w-1,h-1,1)
         end

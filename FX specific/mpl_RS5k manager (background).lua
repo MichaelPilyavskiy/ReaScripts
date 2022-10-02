@@ -1,11 +1,26 @@
 -- @description RS5k manager
--- @version 3.0alpha4
+-- @version 3.0alpha5
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
+--    # Structure: write parent GUID as track ext variable
+--    # Structure: write MIDI bus state as track ext variable, this will allow to name MIDI bus whatever you want
+--    # Structure: write child state as track ext variable, this will allow to name MIDI bus whatever you want
+--    + Sampler: show active layer
+--    + Device: support multiple layers per device
+--    + Device: show active note + formatted note
+--    + Device: internal structure changes
+--    # Device: draw pan correctly
+--    # MIDI bus: fix error on add
+
+
+
+
+--[[ 
+3.0alpha4 02.10.2022
 --    + Sampler: add loop offset control, unlike REAPER native knob, properly limit to boundary start/end offset edges
 --    # Sampler: cache item length into track external state for better control loop length (which is fixed internally to 30sec)
 --    # Sampler: limit attack, decay and release to sample length
@@ -32,12 +47,7 @@
 --    # Always add RS5k to the start of chain
 --    # Whaen adding track with external template, hide chain and all floating FX in this chain
 
-
-
-
-
---[[ 
-3.0alpha2
+3.0alpha2 01.10.2022
 --    # Do not update GUI if currently dragging any control in the script UI
 --    + DrumRack: clear/refresh rack at child delete
 --    + DrumRack: on drop show device chain and sample of recent dropped sample
@@ -66,7 +76,7 @@
 --    # prepare external chunk for further reading multiple parameters
 --    - pattern editing stuff removed for now
 
-3.0alpha1
+3.0alpha1 25.09.2022
 --    + GUI: use MPL library
 --    + Replace all 3rd party APIs by native solutions
 --    + ParentTrack: catch parent track even if child selected (write data to extstate per track)
@@ -102,7 +112,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0alpha4'
+    DATA.extstate.version = '3.0alpha5'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -219,6 +229,16 @@
     end
   end
   ---------------------------------------------------------------------  
+  function DATA2:FormatPan(dev_pan)
+    local dev_pan_format = 'C'
+    if dev_pan > 0 then 
+      dev_pan_format = math.floor(math.abs(dev_pan*100))..'R'
+     elseif dev_pan < 0 then 
+      dev_pan_format = math.floor(math.abs(dev_pan*100))..'L'
+    end
+    return dev_pan_format
+  end
+  ---------------------------------------------------------------------  
   
   function DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(track, fxid, note,layer)
     local notest = TrackFX_GetParamNormalized( track, fxid, 3 ) -- note range start
@@ -255,6 +275,7 @@
     local dev_vol = GetMediaTrackInfo_Value( track, 'D_VOL' )
     local dev_vol_format = WDL_VAL2DB(dev_vol,2)          
     local dev_pan = GetMediaTrackInfo_Value( track, 'D_PAN' )
+    local dev_pan_format = DATA2:FormatPan(dev_pan)
     
     local ret,cached_len = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_SAMPLELEN', '', false) 
     if cached_len then cached_len = tonumber(cached_len) end
@@ -271,6 +292,7 @@
                          dev_vol = dev_vol,
                          dev_pan = dev_pan,
                          dev_vol_format = dev_vol_format..'dB',
+                         dev_pan_format  =dev_pan_format,
                          
                          cached_len = cached_len,
                          
@@ -313,6 +335,7 @@
                         }
     if not DATA2.notes[note] then DATA2.notes[note] = {} end
     if not DATA2.notes[note].layers then DATA2.notes[note].layers = {} end
+    if layer == -1 then layer = #DATA2.notes[note].layers + 1 end
     if not DATA2.notes[note].layers[layer] then DATA2.notes[note].layers[layer] = {} end
     DATA2.notes[note].layers[layer]=sampledata
     return note,filepath_short
@@ -336,29 +359,46 @@
       end
     end
   end
-  ---------------------------------------------------------------------  
-  function DATA2:TrackDataRead_GetChildrens_pertrack(track,curdepth,depth)
+  ---------------------------------------------------------------------   
+  function DATA2:TrackDataRead_GetChildrens_Device(track, note0) 
+    local ret, note_ext = DATA2:TrackDataRead_IsDevice(track) 
+    local note = note_ext
+    if note0 then note = note0 end
+    if not DATA2.notes[note] then DATA2.notes[note] = {} end
+    DATA2.notes[note].device_isdevice = true
+    DATA2.notes[note].device_trID =  CSurf_TrackToID( track, false )
+    DATA2.notes[note].device_ptr =  track
+    DATA2.notes[note].device_GUID =  GetTrackGUID(track)
+    
+    -- if DATA2.notes[note].device_isdevice then msg(1) end
+  end
+  ---------------------------------------------------------------------   
+  function DATA2:TrackDataRead_GetChildrens_DeviceChild(track)
     for fxid = 1,  TrackFX_GetCount( track ) do
-      if DATA2:ValidateRS5k(track, fxid-1) then 
-        
-        if (curdepth==1 and depth ==0) or (curdepth==0 and depth ==-1) then  -- regular child
-          local note,filepath_short = DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(track, fxid-1, note, 1)
-          if not DATA2.notes[note].partrack_ptr then 
-            DATA2.notes[note].partrack_ptr = track 
-            DATA2.notes[note].partrack_ID =   CSurf_TrackToID( track, false) 
-            DATA2.notes[note].partrack_curdepth =   curdepth
-          end
-          if not DATA2.notes[note].name then DATA2.notes[note].name = filepath_short end
-         elseif curdepth >= 1 and depth <=0 then
-          if DATA2.notes[note] and DATA2.notes[note].layers then 
-            local note,filepath_short = DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(track, fxid-1, note, #DATA2.notes[note].layers+1)
-            DATA2.notes[note].is_device = true
-            DATA2.notes[note].partrack_ptr = partrack
-            DATA2.notes[note].name = partrack_name
-            DATA2.notes[note].partrack_ID =   CSurf_TrackToID( partrack, false) 
-          end
+      if DATA2:ValidateRS5k(track, fxid-1) then  
+        local note,filepath_short = DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(track, fxid-1, note, -1 )
+        if not DATA2.notes[note].partrack_ptr then 
+          DATA2.notes[note].partrack_ptr = track 
+          DATA2.notes[note].partrack_ID =   CSurf_TrackToID( track, false) 
+          DATA2.notes[note].partrack_curdepth =   curdepth
         end
-        
+        --if not DATA2.notes[note].name then DATA2.notes[note].name = filepath_short end
+      end
+    end
+    
+  end  
+  ---------------------------------------------------------------------   
+  function DATA2:TrackDataRead_GetChildrens_RegularChild(track)
+    for fxid = 1,  TrackFX_GetCount( track ) do
+      if DATA2:ValidateRS5k(track, fxid-1) then  
+        local note,filepath_short = DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(track, fxid-1, note, 1)
+        if not DATA2.notes[note].partrack_ptr then 
+          DATA2.notes[note].partrack_ptr = track 
+          DATA2.notes[note].partrack_ID =   CSurf_TrackToID( track, false) 
+          DATA2.notes[note].partrack_curdepth =   curdepth
+          --DATA2.notes[note].device_isdevice = false
+        end
+        if not DATA2.notes[note].name then DATA2.notes[note].name = filepath_short end
       end
     end
   end
@@ -387,12 +427,12 @@
     end
   end
   ---------------------------------------------------------------------
-  function DATA2:TrackDataWrite_MarkParentFolder(tr) 
+  function DATA2:TrackDataWrite_MarkParentFolder() 
     SetMediaTrackInfo_Value( DATA2.tr_ptr, 'I_FOLDERDEPTH',1 )
   end
   ---------------------------------------------------------------------  
   function DATA2:TrackDataRead_ValidateMIDIbus() 
-    if (DATA2.MIDIbus and DATA2.MIDIbus.ptr and ValidatePtr2(0,DATA2.MIDIbus.ptr,'MediaTrack*')) then return end
+    if (DATA2.MIDIbus and DATA2.MIDIbus.ptr and ValidatePtr2(0,DATA2.MIDIbus.ptr,'MediaTrack*')) then return end 
     
     InsertTrackAtIndex( DATA2.tr_ID, false )
     local new_tr = CSurf_TrackFromID( DATA2.tr_ID+1,false)
@@ -401,78 +441,97 @@
     SetMediaTrackInfo_Value( new_tr, 'I_RECMON', 1 )
     SetMediaTrackInfo_Value( new_tr, 'I_RECARM', 1 )
     SetMediaTrackInfo_Value( new_tr, 'I_RECMODE', 0 ) -- record MIDI out
-    local channel,physical_input = 0, DATA.CONF_midiinput
+    local channel,physical_input = 0, DATA.extstate.CONF_midiinput
     SetMediaTrackInfo_Value( new_tr, 'I_RECINPUT', 4096 + channel + (physical_input<<5)) -- set input to all MIDI
+    DATA2:TrackDataWrite_MarkChildIsMIDIBus(new_tr)    
+    DATA2:TrackDataRead_InitMIDIBus(new_tr)
     
-    DATA2.MIDIbus = {ptr = new_tr,ID = CSurf_TrackToID( new_tr, false )}
+    -- 
+    local cnt = 0
+    for key in pairs(DATA2.notes) do cnt = cnt+ 1 end
+    if cnt == 0 then SetMediaTrackInfo_Value( new_tr, 'I_FOLDERDEPTH',-1 ) end
     
-    if DATA2.tr_children_count ==0 then  -- MIDI bus is added before first child added
-      DATA2:TrackDataWrite_MarkParentFolder(tr) 
-      DATA2.enclose_trPtr = DATA2.MIDIbus.ptr
-      DATA2.enclose_trID = CSurf_TrackToID(DATA2.MIDIbus.ptr,false) 
-      SetMediaTrackInfo_Value( DATA2.MIDIbus.ptr, 'I_FOLDERDEPTH',-1 ) -- enclose folder
-    end
+  end
+  ---------------------------------------------------------------------
+  function DATA2:TrackDataRead_IsMIDIBus(track)   
+    local ret, isMIDIbus = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_MIDIBUS', 0, false)
+    return (tonumber(isMIDIbus) or 0)==1
+  end  
+  ---------------------------------------------------------------------
+  function DATA2:TrackDataRead_IsDevice(track)  
+    local ret, isDev = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_DEVICE_ISDEVICE', 0, false)
+    local ret, note = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_DEVICE_NOTE',0, false)
+    return (tonumber(isDev) or 0)==1, tonumber(note)
+  end
+  ---------------------------------------------------------------------
+  function DATA2:TrackDataRead_IsRegularChild(track)   
+    local ret, isRegChild = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_ISCHILD', 0, false)
+    return (tonumber(isRegChild) or 0)==1
+  end  
+  ---------------------------------------------------------------------
+  function DATA2:TrackDataRead_IsDeviceChild(track)   
+    local ret, isDevChild = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_DEVICE_ISDEVICECHILD', 0, false)
+    return (tonumber(isDevChild) or 0)==1
   end
   ---------------------------------------------------------------------
   function DATA2:TrackDataRead_IsChildAppendsToCurrentParent(track)   
-    local ext_t = {}
-    local ret, ext = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD', '', false)
-    if ext ~= '' then
-      for line in ext:gmatch('[^\r\n]+') do
-        local key,val = line:match('([%a%p]+) (.*)')
-        if key and val then 
-          ext_t[key]=tonumber(val) or val
-        end
-      end
+    local ret, parGUID = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_PARENTGUID', '', false)
+    if DATA2.tr_GUID and parGUID == DATA2.tr_GUID then ret = true end 
+    return ret, parGUID
+  end
+  ---------------------------------------------------------------------
+  function DATA2:TrackDataWrite_MarkChildIsMIDIBus(tr)   
+    GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_MIDIBUS', 1, true)
+  end
+  ---------------------------------------------------------------------
+  function DATA2:TrackDataWrite_MarkTrackAsDevice(devicetr, note)    
+    GetSetMediaTrackInfo_String( devicetr, 'P_EXT:MPLRS5KMAN_DEVICE_ISDEVICE', 1, true)
+    GetSetMediaTrackInfo_String( devicetr, 'P_EXT:MPLRS5KMAN_DEVICE_NOTE',note, true)
+  end
+  ---------------------------------------------------------------------
+  function DATA2:TrackDataWrite_UnMarkChild(tr)   
+    GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_ISCHILD', 0, true)
+  end
+  ---------------------------------------------------------------------
+  function DATA2:TrackDataWrite_MarkChild(tr, device_isdevice_child, deviceGUID) 
+    if not device_isdevice_child then 
+      GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_ISCHILD', 1, true)
+     else
+     
+      GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_ISCHILD', 0, true)
+      GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_DEVICE_ISDEVICECHILD', 1, true)
+      GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_DEVICEGUID', deviceGUID, true)
     end
-    
-    local ret = nil
-    if DATA2.tr_GUID and ext_t.par_tr_GUID == DATA2.tr_GUID then ret = true end
-    
-    return ret, ext_t
   end
   ---------------------------------------------------------------------
   function DATA2:TrackDataWrite_MarkChildAppendsToCurrentParent(tr)   
-    GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD', 'par_tr_GUID '..DATA2.tr_GUID, true)
+    GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_PARENTGUID', DATA2.tr_GUID, true)
+  end
+  ---------------------------------------------------------------------  
+  function DATA2:TrackDataRead_InitMIDIBus(track)
+    DATA2.MIDIbus = {ptr = track, ID = CSurf_TrackToID( track, false )}
   end
   ---------------------------------------------------------------------  
   function DATA2:TrackDataRead_GetChildrens()
   
-    local curdepth = 1
-    local children_count = 0
     local partrack, partrack_name
     for i = DATA2.tr_ID+1, CountTracks(0) do
       local track = GetTrack(0,i-1)
       
       -- validate childen
       if DATA2:TrackDataRead_IsChildAppendsToCurrentParent(track) == true  then
-        local isMIDIbus = false
-        
-        -- read depth
-          local depth = GetMediaTrackInfo_Value( track, 'I_FOLDERDEPTH' )
-          curdepth = curdepth + depth
-        
-        -- validate midi tr by name
-          local ret, trname = GetSetMediaTrackInfo_String( track, 'P_NAME', '', false )
-          if trname == 'MIDI bus' then 
-            isMIDIbus = true
-            DATA2.MIDIbus = {ptr = track, ID = CSurf_TrackToID( track, false )}  
-          end
+        if      DATA2:TrackDataRead_IsMIDIBus(track) then       
+          DATA2:TrackDataRead_InitMIDIBus(track) 
           
-        -- 
-          if not isMIDIbus then 
-            DATA2:TrackDataRead_GetChildrens_pertrack(track,curdepth,depth)
-          end
-          
-          DATA2.enclose_trID = CSurf_TrackToID(track,false) 
-          DATA2.enclose_trPtr = track 
-          children_count = children_count + 1
-              
+         elseif DATA2:TrackDataRead_IsRegularChild(track) then  DATA2:TrackDataRead_GetChildrens_RegularChild(track) -- msg('TrackDataRead_GetChildrens_RegularChild')
+         elseif DATA2:TrackDataRead_IsDevice(track) then        DATA2:TrackDataRead_GetChildrens_Device(track) --msg('TrackDataRead_GetChildrens_Device')
+         elseif DATA2:TrackDataRead_IsDeviceChild(track)   then DATA2:TrackDataRead_GetChildrens_DeviceChild(track) --msg('TrackDataRead_GetChildrens_DeviceChild')
+           
+        end 
        else
         break
       end
     end
-    DATA2.tr_children_count = children_count
     DATA2:TrackDataRead_GetChildrens_GetTrackParams(track)
   end
   --------------------------------------------------------------------- 
@@ -489,8 +548,6 @@
     DATA2.tr_name =  trname
     DATA2.tr_GUID =  GetTrackGUID( track )
     DATA2.tr_ID = CSurf_TrackToID( track, false) 
-    DATA2.enclose_trID = DATA2.tr_ID
-    DATA2.tr_children_count = 0
      
     DATA2.tr_extparams_activepad = 3
     DATA2.tr_extparams_macrocnt = 16
@@ -511,8 +568,8 @@
     
     -- catch parent by childen
     if parenttrack then 
-      local ret, ext = DATA2:TrackDataRead_IsChildAppendsToCurrentParent(parenttrack)   
-      if ext.par_tr_GUID then parenttrack = VF_GetTrackByGUID(ext.par_tr_GUID) end 
+      local ret, parGUID = DATA2:TrackDataRead_IsChildAppendsToCurrentParent(parenttrack)   
+      if ret and parGUID then parenttrack = VF_GetTrackByGUID(parGUID) end 
     end
     
     if parenttrack then
@@ -1173,10 +1230,10 @@
     SetTrackSendInfo_Value( DATA2.MIDIbus.ptr, 0, sendidx, 'I_SRCCHAN',-1 )
     SetTrackSendInfo_Value( DATA2.MIDIbus.ptr, 0, sendidx, 'I_MIDIFLAGS',0 )
   end
-  -----------------------------------------------------------------------   
-  function DATA2:PAD_onfiledrop_AddChildTrack() 
-    --local ID = DATA2.MIDIbus.ID
-    local ID = DATA2.enclose_trID
+  --------------------------------------------------------------------- 
+  function DATA2:PAD_onfiledrop_AddChildTrack(ID_spec) 
+    local ID = DATA2.tr_ID
+    if ID_spec then ID = ID_spec end
     InsertTrackAtIndex( ID, false )
     local new_tr = CSurf_TrackFromID(ID+1,false)
     
@@ -1197,18 +1254,8 @@
     end
     
     DATA2:TrackDataWrite_MarkChildAppendsToCurrentParent(new_tr)  
-    SetMediaTrackInfo_Value( new_tr, 'I_FOLDERDEPTH',-1 ) -- enclose folder
-    if DATA2.enclose_trPtr ~= DATA2.tr_ptr then
-      local depth = GetMediaTrackInfo_Value( DATA2.enclose_trPtr, 'I_FOLDERDEPTH')
-      if depth == -1 then 
-        SetMediaTrackInfo_Value( DATA2.enclose_trPtr, 'I_FOLDERDEPTH',0)
-       elseif depth == -2 then -- multilayer
-        SetMediaTrackInfo_Value( DATA2.enclose_trPtr, 'I_FOLDERDEPTH',-1)
-      end
-    end
-    DATA2.enclose_trPtr = new_tr
-    DATA2.enclose_trID = CSurf_TrackToID(new_tr,false) 
-    
+    DATA2:TrackDataWrite_MarkChild(new_tr)  
+     
     return new_tr
   end
   -----------------------------------------------------------------------
@@ -1291,6 +1338,40 @@
     end
   end
   -----------------------------------------------------------------------
+  function DATA2:PAD_onfiledrop_ConvertChildToDevice(note) 
+  
+    -- add device track
+    local ID_curchild =  CSurf_TrackToID( DATA2.notes[note].layers[1].trackptr, false )-1
+    local devicetr = DATA2:PAD_onfiledrop_AddChildTrack(ID_curchild) 
+    DATA2:TrackDataWrite_MarkTrackAsDevice(devicetr, note) 
+    DATA2:TrackDataWrite_UnMarkChild(devicetr)  
+    DATA2:TrackDataWrite_MarkChildAppendsToCurrentParent(devicetr)   
+    SetMediaTrackInfo_Value( devicetr, 'I_FOLDERDEPTH', 1 ) -- make device track folder 
+    local ID_devicetr =  CSurf_TrackToID(devicetr, false ) 
+    local deviceGUID =  GetTrackGUID( devicetr )
+    GetSetMediaTrackInfo_String( devicetr, 'P_NAME', 'Note '..note, 1 )
+    DATA2:TrackDataRead_GetChildrens_Device(devicetr, note0) 
+    --[[DATA2.notes[note].device_isdevice = 1
+    DATA2.notes[note].device_trID =  CSurf_TrackToID( devicetr, false )
+    DATA2.notes[note].device_ptr =  devicetr
+    DATA2.notes[note].device_GUID =  GetTrackGUID(devicetr)]]
+    
+    
+    -- set layer 1 as a device child
+    local layer1_ptr = DATA2.notes[note].layers[1].trackptr
+    DATA2:TrackDataWrite_MarkChild(layer1_ptr, true, deviceGUID) 
+    SetMediaTrackInfo_Value( layer1_ptr, 'I_FOLDERDEPTH',- 1 ) 
+    
+  end
+  ----------------------------------------------------------------------- 
+  function DATA2:PAD_onfiledrop_ReplaceLayer(note,layer0,filepath)
+    local layer = layer0 or 1
+    local new_tr = DATA2.notes[note].layers[layer].trackptr
+    local instrument_pos = DATA2:GetFirstRS5k(new_tr)
+    TrackFX_SetNamedConfigParm(  DATA2.notes[note].layers[layer].trackptr, DATA2.notes[note].layers[layer].instrument_pos, 'FILE0', filepath)
+    TrackFX_SetNamedConfigParm(  DATA2.notes[note].layers[layer].trackptr, DATA2.notes[note].layers[layer].instrument_pos, 'DONE', '') 
+  end
+  -----------------------------------------------------------------------
   function DATA2:PAD_onfiledrop_sub(note, layer, filepath)
       local filepath_sh, it_len
       if filepath ~= '' then 
@@ -1299,35 +1380,40 @@
         local tk_src = PCM_Source_CreateFromFile( filepath )
         it_len =  GetMediaSourceLength( tk_src )
       end
-    
+      
     -- handle multilayer mode
     if not layer then layer =1 end
-    if not DATA2.notes[note] then -- add new non-device child
+    DATA2:TrackDataWrite_MarkParentFolder()  -- make sure folder is parent
+    DATA2:TrackDataRead_ValidateMIDIbus()
+    
+    if not DATA2.notes[note] then 
+    
+      -- add new non-device child
       SetMediaTrackInfo_Value( DATA2.tr_ptr, 'I_FOLDERDEPTH', 1 ) -- make sure parent folder get parent ono adding first child
       local new_tr = DATA2:PAD_onfiledrop_AddChildTrack() 
-      DATA2:PAD_onfiledrop_ExportToRS5k(new_tr, filepath,note,filepath_sh)
-      DATA2:PAD_onfiledrop_AddMIDISend(new_tr) 
-     elseif DATA2.notes[note] and not DATA2.notes[note].is_device and layer == 1 then -- replace existing sample into 1st layer
-      local new_tr = DATA2.notes[note].layers[1].trackptr
-      local instrument_pos = DATA2:GetFirstRS5k(new_tr)
-      TrackFX_SetNamedConfigParm(  DATA2.notes[note].layers[layer].trackptr, DATA2.notes[note].layers[layer].instrument_pos, 'FILE0', filepath)
-      TrackFX_SetNamedConfigParm(  DATA2.notes[note].layers[layer].trackptr, DATA2.notes[note].layers[layer].instrument_pos, 'DONE', '') 
-     elseif DATA2.notes[note] and not DATA2.notes[note].is_device and layer ~= 1 then -- convert child to a device + add new instance and 
-      --[[local ID_curchild =  CSurf_TrackToID( DATA2.notes[note].layers[1].trackptr, false )-1
-      local devicetr = DATA2:PAD_onfiledrop_AddChildTrack(ID_curchild) 
-      --SetMediaTrackInfo_Value( devicetr, 'I_FOLDERDEPTH', 1 ) -- make device track folder
-      GetSetMediaTrackInfo_String( devicetr, 'P_NAME', DATA2.notes[note].name, true )
-      --SetMediaTrackInfo_Value( DATA2.notes[note].layers[1].trackptr, 'I_FOLDERDEPTH', -1 ) -- make prev track enclose device
+      DATA2:PAD_onfiledrop_ExportToRS5k(new_tr, filepath,note,filepath_sh) 
+      DATA2:PAD_onfiledrop_AddMIDISend(new_tr)
       
-      local ID_devicetr =  CSurf_TrackToID(devicetr, false ) 
-      local new_tr = DATA2:PAD_onfiledrop_AddChildTrack(ID_devicetr) 
-      DATA2:PAD_onfiledrop_ExportToRS5k(new_tr, filepath, note,filepath_sh)
-      DATA2:PAD_onfiledrop_AddMIDISend(new_tr)]]
-     elseif DATA2.notes[note] and DATA2.notes[note].is_device ==true and DATA2.notes[note].layers[layer] then -- replace sample in specific layer
-      -- reserved
-     elseif DATA2.notes[note] and DATA2.notes[note].is_device ==true and not DATA2.notes[note].layers[layer] then -- add new layer to device
-      -- reserved
+     elseif DATA2.notes[note] and DATA2.notes[note].device_isdevice ~= true  and layer == 1 then 
+      DATA2:PAD_onfiledrop_ReplaceLayer(note,1, filepath) -- replace existing sample into 1st layer 
       
+     elseif DATA2.notes[note] and DATA2.notes[note].device_isdevice ~= true and layer ~= 1 then -- create device / move first layer to a device
+      DATA2:PAD_onfiledrop_ConvertChildToDevice(note) 
+      local device_trID = DATA2.notes[note].device_trID
+      local new_tr = DATA2:PAD_onfiledrop_AddChildTrack(device_trID) 
+      DATA2:PAD_onfiledrop_ExportToRS5k(new_tr, filepath,note,filepath_sh) 
+      DATA2:PAD_onfiledrop_AddMIDISend(new_tr)
+      DATA2:TrackDataWrite_MarkChild(new_tr, true, DATA2.notes[note].device_GUID)
+      
+     elseif DATA2.notes[note] and DATA2.notes[note].device_isdevice == true and DATA2.notes[note].layers[layer] then 
+      DATA2:PAD_onfiledrop_ReplaceLayer(note,layer,filepath) -- replace existing sample into 1st layer -- replace sample in specific layer
+      -- reserved
+     elseif DATA2.notes[note] and DATA2.notes[note].device_isdevice == true and not DATA2.notes[note].layers[layer] then 
+      local device_trID = DATA2.notes[note].device_trID
+      local new_tr = DATA2:PAD_onfiledrop_AddChildTrack(device_trID) 
+      DATA2:PAD_onfiledrop_ExportToRS5k(new_tr, filepath,note,filepath_sh) 
+      DATA2:PAD_onfiledrop_AddMIDISend(new_tr)
+      DATA2:TrackDataWrite_MarkChild(new_tr, true, DATA2.notes[note].device_GUID)
       
     end
   end
@@ -1339,7 +1425,7 @@
     -- validate additional stuff
     DATA2:TrackDataRead_ValidateMIDIbus()
     SetMediaTrackInfo_Value( DATA2.tr_ptr, 'I_FOLDERCOMPACT',1 ) -- folder compacted state (only valid on folders), 0=normal, 1=small, 2=tiny children
-    
+    DATA2:TrackDataRead(DATA2.tr_ptr)
     -- get fp
       if filepath0 then 
         DATA2:PAD_onfiledrop_sub(note, layer, filepath)
@@ -1374,16 +1460,21 @@
     local w_vol = w_ctr*3
     local w_pan = w_ctr*3
     local reduce = 3
-    local w_layername = DATA.GUI.buttons.devicestuff_frame.w - w_vol - w_pan - w_ctr + reduce--*2 
+    local w_layername = DATA.GUI.buttons.devicestuff_frame.w - w_vol - w_pan - w_ctr --*2 
     local ctrl_txtsz = DATA.GUI.custom_devicectrl_txtsz
-    local frame_a = 0
-    local tr_extparams_note_active_layer = DATA2.tr_extparams_note_active_layer
-    if not tr_extparams_note_active_layer then tr_extparams_note_active_layer = 1 end
+    local frame_a = 0--DATA.GUI.custom_framea
+    --local tr_extparams_note_active_layer = DATA2.tr_extparams_note_active_layer
+    --if not tr_extparams_note_active_layer then tr_extparams_note_active_layer = 1 end
     local backgr_col=DATA.GUI.custom_backcol2
-    local backgr_fill =0 
     local backgr_fill_param = 0.2
-    if tr_extparams_note_active_layer == layer then backgr_fill = DATA.GUI.custom_backfill2 end-- backgr_col = '#b6d7a8'
+    --[[local backgr_fill =0 
+    local backgr_fill_param = 0.2
+    if tr_extparams_note_active_layer == layer then backgr_fill = DATA.GUI.custom_backfill2 end-- backgr_col = '#b6d7a8']]
     
+    local backgr_fill_name = 0
+    if DATA2.tr_extparams_note_active_layer and DATA2.tr_extparams_note_active_layer == layer then 
+      backgr_fill_name = DATA.GUI.custom_backfill2 
+    end
     -- name
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'name'] = { 
                         x=x_offs,
@@ -1394,12 +1485,12 @@
                         txt = DATA2.notes[note].layers[layer].filepath_short,
                         txt_fontsz = ctrl_txtsz,
                         frame_a = frame_a,
-                        backgr_fill = backgr_fill,
+                        backgr_fill = backgr_fill_name,
                         backgr_col =backgr_col,
-                        prevent_matchrefresh = true,
                         onmouseclick = function() 
                           DATA2.tr_extparams_note_active_layer = layer 
                           GUI_MODULE_SAMPLER(DATA)
+                          GUI_MODULE_DEVICE(DATA) 
                         end,
                         onmousefiledrop = function() DATA2:PAD_onfiledrop(note,layer) end,
                         }
@@ -1456,7 +1547,10 @@
                         val = DATA2.notes[note].layers[layer].dev_pan,
                         val_res = -0.6,
                         val_xaxis = true,
-                        txt = VF_math_Qdec(DATA2.notes[note].layers[layer].dev_pan,3),
+                        val_centered = true,
+                        val_min = -1,
+                        val_max = 1,
+                        txt = DATA2.notes[note].layers[layer].dev_pan_format,
                         txt_fontsz = ctrl_txtsz,
                         backgr_fill2 = backgr_fill_param,
                         backgr_col2 =backgr_col,
@@ -1466,14 +1560,14 @@
                               local new_val = DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].val
                               DATA2:TrackData_SetTrackParams(src_t, 'D_PAN', new_val)
                               DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(src_t.trackptr, src_t.instrument_pos, note,layer)
-                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].txt = VF_math_Qdec(DATA2.notes[note].layers[layer].dev_pan,3)
+                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].txt = DATA2:FormatPan(new_val)
                               DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].refresh = true
                             end,
                         onmouserelease = function()
                               local src_t = DATA2.notes[note].layers[layer]
                               local new_val = DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].val
                               DATA2:TrackData_SetTrackParams(src_t, 'D_PAN', new_val)
-                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].txt = VF_math_Qdec(DATA2.notes[note].layers[layer].dev_pan,3)
+                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].txt = DATA2:FormatPan(new_val)
                               DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].refresh = true
                         end,
                         }   
@@ -1495,8 +1589,6 @@
                               local newval = 1 if src_t.enabled == true then newval = 0 end
                               DATA2:TrackData_SetRS5kParams(src_t, 'enabled', newval)
                               DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(src_t.trackptr, src_t.instrument_pos, note,layer)
-                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].txt = VF_math_Qdec(DATA2.notes[note].layers[layer].dev_pan,3)
-                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].refresh = true
                             end,
                         }            
     --[[DATA.GUI.buttons['devicestuff_'..'layer'..layer..'solo'] = { 
@@ -1516,14 +1608,22 @@
   function GUI_MODULE_DEVICE(DATA)  
     for key in pairs(DATA.GUI.buttons) do if key:match('devicestuff') then DATA.GUI.buttons[key] = nil end end
     if not DATA2.tr_extparams_showstates or ( DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&2==0) then return end
-    if not (DATA2.tr_extparams_note_active and DATA2.tr_extparams_note_active~=-1) then return end
-    
+    if not (DATA2.tr_extparams_note_active and DATA2.tr_extparams_note_active~=-1 and DATA2.notes[DATA2.tr_extparams_note_active] ) then return end
+    local layers_cnt = 0
+    if DATA2.notes[DATA2.tr_extparams_note_active].layers then 
+      layers_cnt = #DATA2.notes[DATA2.tr_extparams_note_active].layers
+    end
     local name = '' 
-    if DATA2.tr_extparams_note_active and DATA2.notes[DATA2.tr_extparams_note_active] and DATA2.notes[DATA2.tr_extparams_note_active].name then name = '['..DATA2.tr_extparams_note_active..'] '..DATA2.notes[DATA2.tr_extparams_note_active].name end
+    if DATA2.tr_extparams_note_active and DATA2.notes[DATA2.tr_extparams_note_active] and DATA2.notes[DATA2.tr_extparams_note_active].name then 
+      name = '[Note '..DATA2.tr_extparams_note_active..': '..DATA2:FormatMIDIPitch(DATA2.tr_extparams_note_active)..'] '..DATA2.notes[DATA2.tr_extparams_note_active].name 
+    end
     local x_offs = DATA.GUI.custom_offset +DATA.GUI.custom_settingsbut_w
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&16==16 then x_offs = x_offs + DATA.GUI.custom_offset+  DATA.GUI.custom_macroW end -- macro
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&8==8 then x_offs = x_offs + DATA.GUI.custom_padgridw + DATA.GUI.custom_offset end -- pad view
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&1==1 then x_offs = x_offs + DATA.GUI.custom_padrackW + DATA.GUI.custom_offset end -- drrack
+    
+    local device_y = DATA.GUI.custom_infoh+DATA.GUI.custom_offset2
+    
     DATA.GUI.buttons.devicestuff_name = { x=x_offs,
                          y=0,
                          w=DATA.GUI.custom_devicew,
@@ -1535,14 +1635,15 @@
     if not DATA2.tr_extparams_note_active then return end
     local tr_extparams_note_active = DATA2.tr_extparams_note_active
     if not DATA2.notes[tr_extparams_note_active] then return end
-    
+                          
     DATA.GUI.buttons.devicestuff_frame = { x=x_offs,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_offset2,
-                          w=DATA.GUI.custom_devicew,
+                          y=device_y,
+                          w=DATA.GUI.custom_devicew+1,
                           h=DATA.GUI.custom_deviceh-DATA.GUI.custom_offset+DATA.GUI.custom_offset2,
                           ignoremouse = true,
                           frame_a =1,
                           frame_col = '#333333',
+                          backgr_fill = 0,
                           }  
                           
     local y_offs = DATA.GUI.buttons.devicestuff_frame.y+ DATA.GUI.custom_offset2
@@ -1552,6 +1653,24 @@
       y_offs = y_offs + DATA.GUI.custom_deviceentryh
     end
     
+    DATA.GUI.buttons.devicestuff_frame_fillactive = { x=x_offs,
+                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_offset2,
+                          w=DATA.GUI.custom_devicew,
+                          h=y_offs - device_y,--DATA.GUI.custom_deviceh-DATA.GUI.custom_offset+DATA.GUI.custom_offset2,
+                          ignoremouse = true,
+                          frame_a =1,
+                          frame_col = '#333333',
+                          }
+    DATA.GUI.buttons.devicestuff_droparea = { x=x_offs+1,
+                          y=y_offs+DATA.GUI.custom_offset2,
+                          w=DATA.GUI.custom_devicew-1,
+                          h=DATA.GUI.custom_deviceh-(y_offs-device_y)-DATA.GUI.custom_offset2,
+                          --ignoremouse = true,
+                          txt = 'Drop new instrument here',
+                          --frame_a =0.1,
+                          --frame_col = '#333333',
+                          onmousefiledrop = function() DATA2:PAD_onfiledrop(DATA2.tr_extparams_note_active, layers_cnt+1) end,
+                          }                           
   end
   -----------------------------------------------------------------------------  
   function GUI_MODULE_PADOVERVIEW_generategrid(DATA)
@@ -1886,7 +2005,7 @@
     
       local spl_t, note, layer = DATA2:ActiveNoteLayer_GetTable()
       if not spl_t then return end 
-      name = '['..layer..'] '..spl_t.name
+      name = '[Layer '..layer..'] '..spl_t.name
      
       DATA.GUI.buttons.sampler_name = { x=x_offs,
                            y=0,
@@ -2482,7 +2601,7 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.39) if ret then local ret2 = VF_CheckReaperVrs(6.64,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.40) if ret then local ret2 = VF_CheckReaperVrs(6.64,true) if ret2 then main() end end
   
   
   

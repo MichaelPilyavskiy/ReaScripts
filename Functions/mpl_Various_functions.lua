@@ -10,11 +10,11 @@
 --    mpl_Various_functions_MOUSE.lua
 --    mpl_Various_functions_Pers.lua
 -- @changelog
---    # GUI minor tweaks
+--    + Add val_centered
 
 
     
-  VF_version = 3.39 -- do not remove, used for versions comparement
+  VF_version = 3.40 -- do not remove, used for versions comparement
   VF_isregist = 1|2 -- do not remove, used for VF versions check
   --------------------------------------------------
   function VF_LoadLibraries()
