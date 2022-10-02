@@ -1,11 +1,22 @@
 -- @description RS5k manager
--- @version 3.0alpha5
+-- @version 3.0alpha6
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
+--    + Settings: click on pad select track, enabled by default
+--    + Settings: incoming note on trigger active pad, disabled by default
+--    + Sampler: draw 3 signs after point
+--    + DrumRack: show device name
+--    + Structure: take device name as device trac
+
+
+
+--[[ 
+
+3.0alpha5 02.10.2022
 --    # Structure: write parent GUID as track ext variable
 --    # Structure: write MIDI bus state as track ext variable, this will allow to name MIDI bus whatever you want
 --    # Structure: write child state as track ext variable, this will allow to name MIDI bus whatever you want
@@ -16,10 +27,6 @@
 --    # Device: draw pan correctly
 --    # MIDI bus: fix error on add
 
-
-
-
---[[ 
 3.0alpha4 02.10.2022
 --    + Sampler: add loop offset control, unlike REAPER native knob, properly limit to boundary start/end offset edges
 --    # Sampler: cache item length into track external state for better control loop length (which is fixed internally to 30sec)
@@ -112,7 +119,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0alpha5'
+    DATA.extstate.version = '3.0alpha6'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -134,7 +141,7 @@
                           CONF_midiinput = 63, -- 63 all 62 midi kb
                           
                           -- drum rack
-                          CONF_useplaybutton = 1, -- 0 == click on play trigger note
+                          UI_useplaybutton = 1, -- 0 == click on play trigger note
                           
                           
                           -- UI
@@ -145,6 +152,9 @@
                           UI_groupflags = 0,
                           UI_processoninit = 0,
                           UI_donotupdateonplay = 0,
+                          UI_clickonpadselecttrack = 1,
+                          UI_incomingnoteselectpad = 0,
+                          
                           
                           }
     
@@ -369,6 +379,7 @@
     DATA2.notes[note].device_trID =  CSurf_TrackToID( track, false )
     DATA2.notes[note].device_ptr =  track
     DATA2.notes[note].device_GUID =  GetTrackGUID(track)
+    ret , DATA2.notes[note].device_name =  GetTrackName( track )
     
     -- if DATA2.notes[note].device_isdevice then msg(1) end
   end
@@ -392,12 +403,12 @@
     for fxid = 1,  TrackFX_GetCount( track ) do
       if DATA2:ValidateRS5k(track, fxid-1) then  
         local note,filepath_short = DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(track, fxid-1, note, 1)
-        if not DATA2.notes[note].partrack_ptr then 
+        --[[if not DATA2.notes[note].partrack_ptr then 
           DATA2.notes[note].partrack_ptr = track 
           DATA2.notes[note].partrack_ID =   CSurf_TrackToID( track, false) 
           DATA2.notes[note].partrack_curdepth =   curdepth
           --DATA2.notes[note].device_isdevice = false
-        end
+        end]]
         if not DATA2.notes[note].name then DATA2.notes[note].name = filepath_short end
       end
     end
@@ -856,6 +867,7 @@
   ---------------------------------------------------------------------  
   function GUI_RESERVED_BuildSettings(DATA)
     local readoutw_extw = 150
+    
     local customtemplate = DATA.extstate.CONF_onadd_customtemplate
     local  t = 
     { 
@@ -868,7 +880,10 @@
         {str = 'MIDI bus default input',                        group = 2, itype = 'readout', confkey = 'CONF_midiinput', level = 1, menu = {[63]='All inputs',[62]='Virtual keyboard'},readoutw_extw = readoutw_extw},
       {str = 'UI',                                              group = 3, itype = 'sep'},
         {str = 'Do not update UI from played notes',            group = 3, itype = 'check', confkey = 'UI_donotupdateonplay', level = 1},
-        {str = 'DrumRack: Use play button',                     group = 3, itype = 'check', confkey = 'CONF_useplaybutton', level = 1},
+      {str = 'DrumRack',                                        group = 4, itype = 'sep'},  
+        {str = 'Use play button',                               group = 4, itype = 'check', confkey = 'UI_useplaybutton', level = 1}, 
+        {str = 'Click on pad select track',                     group = 4, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
+        {str = 'Incoming notes activate pads',                  group = 4, itype = 'check', confkey = 'UI_incomingnoteselectpad', level = 1},
     } 
     return t
     
@@ -1068,6 +1083,7 @@
       if note > 127 then break end
       local frame_a = DATA.GUI.custom_framea if DATA2.tr_extparams_note_active and DATA2.tr_extparams_note_active == note then frame_a = 0.7 end
       if DATA2.notes[note] and DATA2.notes[note].name then txt = DATA2.notes[note].name end
+      if DATA2.notes[note] and DATA2.notes[note].device_isdevice and DATA2.notes[note].device_isdevice == true and DATA2.notes[note].device_name then txt ='[D] '..DATA2.notes[note].device_name end
       DATA.GUI.buttons['drumrackpad_pad'..padID0] = { x=DATA.GUI.buttons.drumrackpad.x+(padID0%4)*DATA.GUI.custom_padsideX+1,
                               y=DATA.GUI.buttons.drumrackpad.y+DATA.GUI.buttons.drumrackpad.h-DATA.GUI.custom_padsideY*(math.floor(padID0/4)+1)+DATA.GUI.custom_offset_pads,
                               w=DATA.GUI.custom_padsideX-DATA.GUI.custom_offset_pads,
@@ -1085,10 +1101,10 @@
       local pady = DATA.GUI.buttons.drumrackpad.y+DATA.GUI.buttons.drumrackpad.h-DATA.GUI.custom_padsideY*(math.floor(padID0/4)+1)+DATA.GUI.custom_offset_pads
       local controlbut_h2 = DATA.GUI.custom_padsideY/2-DATA.GUI.custom_offset_pads
       local controlbut_w = math.floor(DATA.GUI.custom_padsideX / 4)
-      if DATA.extstate.CONF_useplaybutton == 0 then controlbut_w = math.floor(DATA.GUI.custom_padsideX / 3) end
+      if DATA.extstate.UI_useplaybutton == 0 then controlbut_w = math.floor(DATA.GUI.custom_padsideX / 3) end
       local frame_actrl =0
       local txt_actrl = 0.2
-      local txt_a
+      local txt_a 
       if not DATA2.notes[note] then txt_a = 0.1 end
       DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'] = { x=padx,
                               y=pady,
@@ -1103,7 +1119,19 @@
                               back_sela = 0 ,
                               --prevent_matchrefresh = true,
                               onmouseclick = function() 
-                                if DATA.extstate.CONF_useplaybutton == 0 then  StuffMIDIMessage( 0, 0x90, note, 120 ) DATA.ontrignoteTS = os.clock() DATA.ontrignote = note end
+                                if DATA.extstate.UI_clickonpadselecttrack == 1 then
+                                    if DATA2.notes[note].device_isdevice ~= true then 
+                                      SetOnlyTrackSelected( DATA2.notes[note].layers[1].trackptr ) 
+                                     else 
+                                      SetOnlyTrackSelected(DATA2.notes[note].device_ptr) 
+                                    end
+                                  end
+                                if DATA.extstate.UI_useplaybutton == 0 then  
+                                  StuffMIDIMessage( 0, 0x90, note, 120 ) 
+                                  DATA.ontrignoteTS = os.clock() 
+                                  DATA.ontrignote = note 
+    
+                                end
                                 
                                 if DATA.GUI.Ctrl == true then DATA2:ActiveNoteLayer_ShowRS5k(note, 1) 
                                  else
@@ -1118,7 +1146,7 @@
                               end,
                               onmouseclickR = function() DATA2:PAD_onrightclick(note) end,
                               onmousefiledrop = function() DATA2:PAD_onfiledrop(note) end,
-                              onmouserelease =  function() if DATA.extstate.CONF_useplaybutton == 0 then  StuffMIDIMessage( 0, 0x80, note, 0 ) DATA.ontrignoteTS =  nil end end,
+                              onmouserelease =  function() if DATA.extstate.UI_useplaybutton == 0 then  StuffMIDIMessage( 0, 0x80, note, 0 ) DATA.ontrignoteTS =  nil end end,
                               }     
       --local txt_a,txt_col= txt_actrl if DATA2.notes[note] and DATA2.notes[note].partrack_mute and DATA2.notes[note].partrack_mute == 1 then txt_col = '#A55034' txt_a = 1 end
       local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].partrack_mute and DATA2.notes[note].partrack_mute ==1 then backgr_fill = 0.2 txt_a = nil end
@@ -1137,7 +1165,7 @@
                               onmouseclick = function() DATA2:PAD_mute(note) end,
                               } 
                               
-      if DATA.extstate.CONF_useplaybutton == 1 then
+      if DATA.extstate.UI_useplaybutton == 1 then
         local backgr_fill2,frame_actrl0=nil,frame_actrl if DATA2.playingnote_pitch and DATA2.playingnote_pitch == note  then backgr_fill2 = 0.8 frame_actrl0 = 1 end
         DATA.GUI.buttons['drumrackpad_pad'..padID0..'play'] = { x=padx+controlbut_w,
                                 y=pady+DATA.GUI.custom_controlbut_h,
@@ -1168,7 +1196,7 @@
                               backgr_col = DATA.GUI.custom_backcol2,
                               onmouseclick = function() DATA2:PAD_solo(note) end,
                               }    
-      if DATA.extstate.CONF_useplaybutton == 0 then DATA.GUI.buttons['drumrackpad_pad'..padID0..'solo'].x=padx+controlbut_w end
+      if DATA.extstate.UI_useplaybutton == 0 then DATA.GUI.buttons['drumrackpad_pad'..padID0..'solo'].x=padx+controlbut_w end
       DATA.GUI.buttons['drumrackpad_pad'..padID0..'show'] = { x=padx+controlbut_w*3,
                               y=pady+DATA.GUI.custom_controlbut_h,
                               w=controlbut_w-1,
@@ -1183,7 +1211,7 @@
                               --frame_arcborderflags = 4,
                               onmouseclick = function() DATA2:PAD_showinME(note) end,
                               } 
-      if DATA.extstate.CONF_useplaybutton == 0 then DATA.GUI.buttons['drumrackpad_pad'..padID0..'show'].x=padx+controlbut_w*2 end
+      if DATA.extstate.UI_useplaybutton == 0 then DATA.GUI.buttons['drumrackpad_pad'..padID0..'show'].x=padx+controlbut_w*2 end
       padID0 = padID0 + 1
     end
   end
@@ -1613,10 +1641,14 @@
     if DATA2.notes[DATA2.tr_extparams_note_active].layers then 
       layers_cnt = #DATA2.notes[DATA2.tr_extparams_note_active].layers
     end
+    
     local name = '' 
-    if DATA2.tr_extparams_note_active and DATA2.notes[DATA2.tr_extparams_note_active] and DATA2.notes[DATA2.tr_extparams_note_active].name then 
-      name = '[Note '..DATA2.tr_extparams_note_active..': '..DATA2:FormatMIDIPitch(DATA2.tr_extparams_note_active)..'] '..DATA2.notes[DATA2.tr_extparams_note_active].name 
+    if DATA2.tr_extparams_note_active and DATA2.notes[DATA2.tr_extparams_note_active] and DATA2.notes[DATA2.tr_extparams_note_active].name and not DATA2.notes[DATA2.tr_extparams_note_active].device_isdevice  then 
+      name = '[Note '..DATA2.tr_extparams_note_active..' / '..DATA2:FormatMIDIPitch(DATA2.tr_extparams_note_active)..'] '..DATA2.notes[DATA2.tr_extparams_note_active].name 
+     elseif DATA2.tr_extparams_note_active and DATA2.notes[DATA2.tr_extparams_note_active]  and DATA2.notes[DATA2.tr_extparams_note_active].device_isdevice ==true then
+      name = '[Device '..DATA2.tr_extparams_note_active..' / '..DATA2:FormatMIDIPitch(DATA2.tr_extparams_note_active)..'] '..(DATA2.notes[DATA2.tr_extparams_note_active].device_name or '')
     end
+    
     local x_offs = DATA.GUI.custom_offset +DATA.GUI.custom_settingsbut_w
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&16==16 then x_offs = x_offs + DATA.GUI.custom_offset+  DATA.GUI.custom_macroW end -- macro
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&8==8 then x_offs = x_offs + DATA.GUI.custom_padgridw + DATA.GUI.custom_offset end -- pad view
@@ -1900,7 +1932,7 @@
       gfx.x = x1+3
       gfx.y = y0 + gfx.texth*0.5--*1.5
       if idx%4==1 then
-        gfx.drawstr(VF_math_Qdec(pos,2))
+        gfx.drawstr(VF_math_Qdec(pos,3))
         gfx.line(x1,y0+hgrid,x1,y0)
        else 
         gfx.line(x1,y0+hgrid2,x1,y0)
@@ -2590,10 +2622,21 @@
     end
     DATA2.recentmsg_last = rawmsg
     
-    if DATA2.recentmsg_trig == true and DATA.extstate.UI_donotupdateonplay == 0 then 
+    if DATA2.recentmsg_trig == true and DATA.extstate.UI_donotupdateonplay == 0 then  
       GUI_MODULE_PADOVERVIEW_generategrid(DATA) -- refresh pad
       GUI_MODULE_DRUMRACKPAD(DATA)  
     end
+    
+    if DATA2.recentmsg_trig == true and DATA2.recentmsg_isNoteOn == true and DATA.extstate.UI_incomingnoteselectpad == 1 then 
+      DATA2.tr_extparams_note_active = DATA2.playingnote_pitch 
+      DATA2.tr_extparams_note_active_layer = 1 
+      DATA2:TrackDataWrite() 
+      GUI_MODULE_DRUMRACKPAD(DATA)  
+      DATA2.tr_extparams_note_active_layer = layer 
+      GUI_MODULE_DEVICE(DATA)  
+      GUI_MODULE_SAMPLER(DATA)
+    end
+    
     
     if DATA2.FORCEONPROJCHANGE == true then DATA_RESERVED_ONPROJCHANGE(DATA) DATA2.FORCEONPROJCHANGE = nil end
   end
