@@ -1,5 +1,5 @@
 -- @description RS5k tools
--- @version 1.22
+-- @version 1.23
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -35,4 +35,4 @@
 --    [main] mpl_RS5k tools/mpl_Move sample selection for focused RS5k (MIDI, OSC, Mousewheel).lua
 --    [main] mpl_RS5k tools/mpl_Float RS5k instance by last incoming note.lua
 -- @changelog
---    # upd Float RS5k instance by last incoming note
+--    # sort files for listing

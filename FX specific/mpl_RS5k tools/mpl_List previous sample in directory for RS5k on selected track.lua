@@ -1,10 +1,10 @@
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description List previous sample in directory for RS5k on selected track
 -- @noindex
 -- @changelog
---    #header
+--    # sort files
 
 
   local script_title = 'List previous sample for RS5k on selected track'
@@ -52,6 +52,8 @@
       end
       i = i+1
       until file == nil
+      table.sort(files, function(a,b) return a<b end )
+      
     -- search file list
       local trig_file
       if #files < 2 then return end

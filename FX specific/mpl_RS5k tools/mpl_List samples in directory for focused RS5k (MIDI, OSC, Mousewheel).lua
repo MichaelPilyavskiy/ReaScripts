@@ -1,10 +1,10 @@
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description List samples in directory for focused RS5k (MIDI, OSC, Mousewheel)
 -- @noindex
 -- @changelog
---    #header
+--    # sort files
 
 -- note : mousewheel works only when arrange focused after RS5k focus
 
@@ -34,6 +34,8 @@ function main(mode, val, res)
       end
       i = i+1
       until file == nil
+      
+      table.sort(files, function(a,b) return a<b end )
       
     -- search file list
       local trig_file

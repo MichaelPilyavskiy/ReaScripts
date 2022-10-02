@@ -1,10 +1,10 @@
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @description List next sample in directory for focused RS5k
 -- @noindex
 -- @changelog
---    # avoid non-media extension
+--    # sort files
 
 
 function main()
@@ -17,8 +17,9 @@ function main()
     
     path = fn:reverse():match('[%/]+.*'):reverse():sub(0,-2)
     cur_file =     fn:reverse():match('.-[%/]'):reverse():sub(2)
+    
     -- get files list
-      local files = {}
+       files = {}
       local i = 0
       repeat
       local file = reaper.EnumerateFiles( path, i )
@@ -27,6 +28,7 @@ function main()
       end
       i = i+1
       until file == nil
+      table.sort(files, function(a,b) return a<b end )
       
     -- search file list
       local trig_file
