@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="51d04d8a9157c617ec253f201892938adc117afa" name="MPL Scripts">
+<index version="1" commit="132a8555cd25e49f7da60c2279b833993aa07700" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1304,6 +1304,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f71d8022b86611f76b4abf5b37a99706abc5f85/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f71d8022b86611f76b4abf5b37a99706abc5f85/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f71d8022b86611f76b4abf5b37a99706abc5f85/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.40" author="MPL" time="2022-10-02T15:52:48Z">
+        <changelog><![CDATA[+ Add val_centered]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a619307bf15db8b121c47740929ee092be4096a1/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a619307bf15db8b121c47740929ee092be4096a1/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a619307bf15db8b121c47740929ee092be4096a1/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a619307bf15db8b121c47740929ee092be4096a1/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a619307bf15db8b121c47740929ee092be4096a1/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a619307bf15db8b121c47740929ee092be4096a1/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -3953,6 +3962,15 @@
 # MIDI bus: fix error on add]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/51d04d8a9157c617ec253f201892938adc117afa/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
         <source file="mpl_RS5k manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/51d04d8a9157c617ec253f201892938adc117afa/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
+      </version>
+      <version name="3.0alpha6" author="MPL" time="2022-10-02T15:56:14Z">
+        <changelog><![CDATA[+ Settings: click on pad select track, enabled by default
++ Settings: incoming note on trigger active pad, disabled by default
++ Sampler: draw 3 signs after point
++ DrumRack: show device name
++ Structure: take device name as device trac]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/132a8555cd25e49f7da60c2279b833993aa07700/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/132a8555cd25e49f7da60c2279b833993aa07700/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k manager_MacroControls.jsfx" type="effect" desc="RS5K_manager_MacroControls">
