@@ -676,7 +676,7 @@
     end
   end  
   ---------------------------------------------------
-  function MPL_ReduceFXname(s)
+  function VF_ReduceFXname(s)
     local s_out = s:match('[%:%/%s]+(.*)')
     if not s_out then return s end
     s_out = s_out:gsub('%(.-%)','') 
@@ -1658,4 +1658,4 @@ end
   lim = VF_lim
   math_q_dec = VF_math_Qdec 
   GetShortSmplName = VF_GetShortSmplName  
-  
+  MPL_ReduceFXname = VF_ReduceFXname
