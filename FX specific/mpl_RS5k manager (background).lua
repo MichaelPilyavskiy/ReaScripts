@@ -1,11 +1,22 @@
 -- @description RS5k manager
--- @version 3.0alpha9
+-- @version 3.0beta10
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
+--    # Defaults: use play button is off by default
+--    # fix error on empty readout
+--    + Sampler: add pitch offset
+--    + Sampler: look up for pitch offset for plugin parameter
+--    # Sampler: fix error on drop sample onto peaks
+--    # DrumRack: another fix for not updating pads when input note is triggered
+
+
+
+--[[ 
+3.0alpha8/9 03.10.2022
 --    # fix error at empty rack on click pad
 --    # fix update DrumRack when 'Incoming note trigger active pad' enabled
 --    # Structure: validate note by ext state, this will potentially allow to move intrument track whenever in the rack chain
@@ -16,7 +27,6 @@
 --    # Fix error on clear pad
 --    + Clear pad select parent track
 
---[[ 
 3.0alpha6/7 02.10.2022
 --    + Settings: click on pad select track, enabled by default
 --    + Settings: incoming note on trigger active pad, disabled by default
@@ -128,7 +138,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0alpha9'
+    DATA.extstate.version = '3.0beta10'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -150,7 +160,7 @@
                           CONF_midiinput = 63, -- 63 all 62 midi kb
                           
                           -- drum rack
-                          UI_useplaybutton = 1, -- 0 == click on play trigger note
+                          UI_useplaybutton = 0, -- 0 == click on play trigger note
                           
                           
                           -- UI
@@ -296,11 +306,13 @@
       param_names[#param_names+1] = buf
     end
     
-    local vol,vol_format,vol_id = DATA2:TrackDataRead_GetChildrens_GetPluginParams_GuessByName(track, fxid, param_names, {'general level','amp gain','gain','vol'})  
-    local attack,attack_format,attack_id = DATA2:TrackDataRead_GetChildrens_GetPluginParams_GuessByName(track, fxid, param_names, {'vca attack','amp attack','attack'}) 
-    local decay,decay_format,decay_id = DATA2:TrackDataRead_GetChildrens_GetPluginParams_GuessByName(track, fxid, param_names, {'vca decay','amp decay','decay'})  
-    local sustain,sustain_format,sustain_id = DATA2:TrackDataRead_GetChildrens_GetPluginParams_GuessByName(track, fxid, param_names, {'vca sustain','amp sustain','sustain'})    
-    local release,release_format,release_id = DATA2:TrackDataRead_GetChildrens_GetPluginParams_GuessByName(track, fxid, param_names, {'vca release','amp release','release'})    
+    local vol,vol_format,vol_id =                   DATA2:TrackDataRead_GetChildrens_GetPluginParams_GuessByName(track, fxid, param_names, {'general level','amp gain','gain','vol'})  
+    local attack,attack_format,attack_id =          DATA2:TrackDataRead_GetChildrens_GetPluginParams_GuessByName(track, fxid, param_names, {'vca attack','amp attack','attack'}) 
+    local decay,decay_format,decay_id =             DATA2:TrackDataRead_GetChildrens_GetPluginParams_GuessByName(track, fxid, param_names, {'vca decay','amp decay','decay'})  
+    local sustain,sustain_format,sustain_id =       DATA2:TrackDataRead_GetChildrens_GetPluginParams_GuessByName(track, fxid, param_names, {'vca sustain','amp sustain','sustain'})    
+    local release,release_format,release_id =       DATA2:TrackDataRead_GetChildrens_GetPluginParams_GuessByName(track, fxid, param_names, {'vca release','amp release','release'})    
+    local pitchoffs,pitchoffs_format,pitchoffs_id = DATA2:TrackDataRead_GetChildrens_GetPluginParams_GuessByName(track, fxid, param_names, {'tune','tuning', 'detune', 'pitch'})    
+    
     --[[local notest = TrackFX_GetParamNormalized( track, fxid, 3 ) -- note range start
     local pan = TrackFX_GetParamNormalized( track, fxid, 1 ) 
     local loop = TrackFX_GetParamNormalized( track, fxid, 12 ) 
@@ -350,9 +362,13 @@
                          
                          params_release=release,
                          params_release_format  =release_format,
-                         params_release_id  =release_id,
+                         params_release_id  =release_id,                         
                          
-                         --params_pan = pan,
+                         params_pitchoffs=pitchoffs,
+                         params_pitchoffs_format  =pitchoffs_format,
+                         params_pitchoffs_id  =pitchoffs_id,
+                         
+                         --[[params_pan = pan,
                          params_pan_format = pan_format,
                          params_loop = loop,
                          params_samplestoffs = samplestoffs,
@@ -364,7 +380,7 @@
                          params_samplestoffs_format =  samplestoffs_format,
                          params_sampleendoffs_format =  sampleendoffs_format,
                          params_loopoffs_format =  loopoffs_format,
-                         params_maxvoices_format =  maxvoices_format,
+                         params_maxvoices_format =  maxvoices_format,]]
                          
                          
                          
@@ -413,6 +429,7 @@
     local sampleendoffs = TrackFX_GetParamNormalized( track, fxid, 14 ) 
     local loopoffs = TrackFX_GetParamNormalized( track, fxid, 23 ) 
     local maxvoices = TrackFX_GetParamNormalized( track, fxid, 8 ) 
+    local pitchoffs = TrackFX_GetParamNormalized( track, fxid, 15 ) 
     
     local ret, vol_format = TrackFX_GetFormattedParamValue( track, fxid, 0 )
     vol_format=vol_format..'dB'
@@ -421,6 +438,7 @@
     local ret, decay_format = TrackFX_GetFormattedParamValue( track, fxid, 24 ) 
     local ret, sustain_format = TrackFX_GetFormattedParamValue( track, fxid, 25 ) 
     local ret, release_format = TrackFX_GetFormattedParamValue( track, fxid, 10 ) 
+    local ret, pitchoffs_format = TrackFX_GetFormattedParamValue( track, fxid, 15 ) 
     local samplestoffs_format = math.floor(samplestoffs*1000)/10
     local sampleendoffs_format = math.floor(sampleendoffs*1000)/10
     local loopoffs_format = math.floor(loopoffs *30*10000)/10
@@ -462,6 +480,7 @@
                          params_sampleendoffs = sampleendoffs,
                          params_loopoffs = loopoffs,
                          params_maxvoices =  maxvoices,
+                         params_pitchoffs =  pitchoffs,
                          
                          params_attack_format  =attack_format..'ms',
                          params_decay_format  =decay_format..'ms',
@@ -471,6 +490,7 @@
                          params_sampleendoffs_format =  sampleendoffs_format..'%',
                          params_loopoffs_format =  loopoffs_format..'ms',
                          params_maxvoices_format =  maxvoices_format,
+                         params_pitchoffs_format =  pitchoffs_format,
                          
                          reaeq_valid = reaeq_valid,
                          reaeq_pos = reaeq_pos,
@@ -764,6 +784,7 @@
     
     DATA.GUI.Settings_open = 0
     GUI_MODULE_SETTINGS(DATA)
+      
   end
   ---------------------------------------------------------------------  
   function GUI_RESERVED_init_settingbut(DATA) 
@@ -1239,6 +1260,7 @@
                               frame_arcborderr = DATA.GUI.custom_arcr,
                               frame_arcborderflags = 1|2,
                               onmouseclick = function() end, 
+                              refresh = true,
                               }
                               
       local padx= DATA.GUI.buttons.drumrackpad.x+(padID0%4)*DATA.GUI.custom_padsideX+1
@@ -1258,9 +1280,12 @@
                               txt_a = txt_a,
                               txt_fontsz =DATA.GUI.custom_controltxt_sz,
                               frame_a = 0,
-                              frame_asel = 0,
+                              frame_asel = 0.1,
                               backgr_fill = 0 ,
-                              back_sela = 0 ,
+                              back_sela = 0.1 ,
+                              frame_arcborder = true,
+                              frame_arcborderr = DATA.GUI.custom_arcr,
+                              frame_arcborderflags = 1|2,
                               --prevent_matchrefresh = true,
                               onmouseclick = function() 
                                 if DATA.extstate.UI_clickonpadselecttrack == 1 then
@@ -1850,7 +1875,7 @@
     DATA.GUI.buttons.devicestuff_frame = { x=x_offs,
                           y=device_y,
                           w=DATA.GUI.custom_devicew+1,
-                          h=DATA.GUI.custom_deviceh-DATA.GUI.custom_offset+DATA.GUI.custom_offset2,
+                          h=DATA.GUI.custom_deviceh+DATA.GUI.custom_offset2,
                           ignoremouse = true,
                           frame_a =1,
                           frame_col = '#333333',
@@ -2026,14 +2051,13 @@
     local src_len =  GetMediaSourceLength( src )
     if src_len > 15 then return end
     
-    local n_spls = math.floor(src_len*peakrate)
-    if n_spls < 10 then return end 
-    local n_ch = 1
-    local want_extra_type = 0--115  -- 's' char
-    local buf = new_array(n_spls * n_ch * 2) -- min, max, spectral each chan(but now mono only)
-    
-    
-    local retval =  PCM_Source_GetPeaks(    src, 
+      local n_spls = math.floor(src_len*peakrate)
+      if n_spls < 10 then return end 
+      local n_ch = 1
+      local want_extra_type = 0--115  -- 's' char
+      local buf = new_array(n_spls * n_ch * 2) -- min, max, spectral each chan(but now mono only)
+     
+      local retval =  PCM_Source_GetPeaks(    src, 
                                         peakrate, 
                                         0,--starttime, 
                                         n_ch,--numchannels, 
@@ -2044,6 +2068,8 @@
       local peaks = {}
       for i=1, spl_cnt, 2 do  peaks[#peaks+1] = buf[i] end --(math.abs(buf[i])+buf[i+1])/2  end
       buf.clear()
+      
+      
       PCM_Source_Destroy( src )
       VF2_NormalizeT(peaks)
       --for i =1, #peaks do peaks[i] = peaks[i]^0.8 end
@@ -2134,6 +2160,7 @@
   end  
   -----------------------------------------------------------------------  
   function DATA2:TrackData_SetRS5kParams(t, param, value)
+    if not value then return end
     local track = t.tr_ptr
     if not (track  and ValidatePtr2(0,track,'MediaTrack*')) then return end
     local instrument_pos= t.instrument_pos
@@ -2259,7 +2286,7 @@
                           --ignoremouse = true,
                           frame_a = DATA.GUI.custom_framea,
                           data = {['datatype'] = 'samplepeaks'},
-                          onmousefiledrop = function() DATA2:PAD_onfiledrop(note) end,
+                          onmousefiledrop = function() if DATA2.tr_extparams_note_active then DATA2:PAD_onfiledrop(DATA2.tr_extparams_note_active) end end,
                           }
     end
   end  
@@ -2293,6 +2320,30 @@
         note =note,
         layer=layer
       } )
+    
+    xoffs = xoffs + woffs
+    local paramid = 15
+    if src_t.params_pitchoffs_id then paramid = src_t.params_pitchoffs_id  end
+    GUI_CTRL_Readout(DATA,
+      {
+        key = 'spl_pitchoffs',
+        ctrlname = 'Tune',
+        val_format_key = 'params_pitchoffs_format',
+        val = src_t.params_pitchoffs,
+        paramid = paramid,
+        val_default = 0.5,
+        val_iscentered = true,
+        val_res = val_res,
+        src_t = src_t,
+        x = xoffs,
+        y= yoffs,
+        w = DATA.GUI.custom_spl_modew,
+        h = DATA.GUI.custom_splctrl_h*2,
+        note =note,
+        layer=layer
+      } )    
+    
+    
     
     if src_t.ISPLUGIN then return end
     
@@ -2906,75 +2957,6 @@
                end
              end
            end
-           ---------------------------------------------------
-           fu nction v2SearchSample(fn, dir_next )
-             fn = fn:gsub('\\', '/')
-             local path = fn:reverse():match('[%/]+.*'):reverse():sub(0,-2)
-             local cur_file =     fn:reverse():match('.-[%/]'):reverse():sub(2)
-             -- get files list
-               local files = {}
-               local i = 0
-               repeat
-               local file = reaper.EnumerateFiles( path, i )
-               if file then
-                 if IsMediaExtension( file:match('.*%.(.*)'), false ) and not file:lower():match('%.rpp') then files[#files+1] = file end
-               end
-               i = i+1
-               until file == nil
-               
-             -- search file list
-               local trig_file
-               if #files < 2 then return fn end
-               local i_st, i_end, i_step, i_coeff, i_ret
-               if dir_next then 
-               i_st = 2
-               i_end = #files
-               i_step = 1
-               i_coeff = -1
-               i_ret = 1
-               else
-               i_st = #files-1
-               i_end = 1
-               i_step = -1
-               i_coeff = 1
-               i_ret = #files
-               end
-               for i = i_st,i_end,i_step   do
-                 if files[i+1*i_coeff] == cur_file then 
-                   trig_file = path..'/'..files[i] 
-                   break 
-                  elseif i == i_end then trig_file = path..'/'..files[i_ret] 
-                 end
-               end  
-             return trig_file
-           end
-           ---------------------------------------------------
-           fun ction v2ExplodeRS5K_Extract_rs5k_tChunks(tr)
-             local _, chunk = GetTrackStateChunk(tr, '', false)
-             local t = {}
-             for fx_chunk in chunk:gmatch('BYPASS(.-)WAK') do 
-               if fx_chunk:match('<(.*)') and fx_chunk:match('<(.*)'):match('reasamplomatic.dll') then 
-                 t[#t+1] = 'BYPASS 0 0 0\n<'..fx_chunk:match('<(.*)') ..'WAK 0'
-               end
-             end
-             return t
-           end
-             ------------------------------------------------------------------------  
-             fu nction v2ExplodeRS5K_AddChunkToTrack(tr, chunk) -- add empty fx chain chunk if not exists
-               local _, chunk_ch = GetTrackStateChunk(tr, '', false)
-               -- add fxchain if not exists
-               if not chunk_ch:match('FXCHAIN') then 
-                 chunk_ch = chunk_ch:sub(0,-3)..[=[
-           <FXCHAIN
-           SHOW 0
-           LASTSEL 0
-           DOCKED 0
-           >
-           >]=]
-               end
-               if chunk then chunk_ch = chunk_ch:gsub('DOCKED %d', chunk) end
-               SetTrackStateChunk(tr, chunk_ch, false)
-             end
            ------------------------------------------------------------------------  
            fu nction v2ExplodeRS5K_main(tr)
              if tr then 
@@ -2998,44 +2980,6 @@
                Undo_EndBlock2( 0, 'Explode selected track RS5k instances to new tracks', 0 )
              end
            end 
-           
-           ----------------------------------------------------------------------- 
-           
-           fu nction v2AddFXChainToTrack_ExtractBlock(str)
-             local s = ''
-             local count = 1
-             count_lines = 0
-             for line in str:gmatch('[^\n]+') do
-               count_lines = count_lines + 1
-               s = s..'\n'..line
-               if line:find('<') then count = count +1 end
-               if line:find('>') then count = count -1 end 
-               if count == 1 then return s, count_lines end     
-             end
-           end   
-           f unction v2AddFXChainToTrack(track, chain_fp)
-             -- get some chain file, ex. from GetUserFileForRead()
-               local file = io.open(chain_fp)
-               if not file then return end
-               local external_FX_chain_content = file:read('a')
-               file:close()  
-         
-             -- get track chunk
-               local chunk = eugen27771_GetObjStateChunk(track) 
-               if not chunk then return end   
-             -- split chunk by lines into table
-               local t = {} 
-               for line in chunk:gmatch('[^\n]+') do       if line:find('<FXCHAIN') then fx_chain_id0 = #t end       t[#t+1] = line     end 
-             --  find size of FX chain and where it placed
-               local _, cnt_lines = AddFXChainToTrack_ExtractBlock(chunk:match('<FXCHAIN.*'))
-               local fx_chain_id1 = fx_chain_id0 + cnt_lines -1
-             -- insert FX chain
-               local new_chunk = table.concat(t,'\n',  1, fx_chain_id1)..'\n'..
-                         external_FX_chain_content..
-                         table.concat(t,'\n',  fx_chain_id1)     
-             -- apply new chunk                
-               SetTrackStateChunk(track, new_chunk, false) 
-           end
              
              
            
@@ -3280,23 +3224,6 @@
                state = conf.allow_dragpads&1==1,
                func =  function() 
                          conf.allow_dragpads = math.abs(1-conf.allow_dragpads)
-                       end },             
-                       
-             
-           
-
-             { str = 'Use custom FX chain for newly dragged samples '..conf.draggedfile_fxchain..'|<',
-               func =  function() 
-                         if conf.draggedfile_fxchain ~= '' then conf.draggedfile_fxchain = '' return end
-                         local retval, fp = GetUserFileNameForRead('', 'FX chain for newly dragged samples', 'RfxChain')
-                         if retval then 
-                           conf.draggedfile_fxchain =  fp
-                         end
-                       end,
-               state = conf.draggedfile_fxchain ~= '',
-             } ,   
-
-
-               
+                       end },      
 
       ]]
