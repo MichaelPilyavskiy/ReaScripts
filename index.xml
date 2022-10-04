@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b9a3b5b640b894006787519462c9cb7a7edb5274" name="MPL Scripts">
+<index version="1" commit="579234d1848af7f0d0325fc3cd2f40c2e534d750" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -100,26 +100,6 @@
       <version name="1.01" author="MPL" time="2018-07-07T07:19:34Z">
         <changelog><![CDATA[# fix comparing region ID (http://forum.cockos.com/showpost.php?p=2008307)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71ac415044a8e716d0b01f982b5165cca7c26d42/Cursor/mpl_Set%20time%20selection%20from%20edit%20cursor%20to%20start%20of%20current%20region.lua</source>
-      </version>
-    </reapack>
-  </category>
-  <category name="Development">
-    <reapack name="mpl_Glue selected items by custom defined counts.lua" type="script" desc="Glue selected items by custom defined counts">
-      <version name="1.0" author="MPL" time="2022-09-15T20:07:06Z">
-        <changelog><![CDATA[init ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/74bb42d4b56299f6ebbb3635fc5a65097fe9cd35/Development/mpl_Glue%20selected%20items%20by%20custom%20defined%20counts.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Set selected items offset by custom defined shifts.lua" type="script" desc="Set selected items offset by custom defined shifts">
-      <version name="1.0" author="MPL" time="2022-09-08T19:38:46Z">
-        <changelog><![CDATA[init ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cb8635250e193f812175c720025eb82c2e110fd2/Development/mpl_Set%20selected%20items%20offset%20by%20custom%20defined%20shifts.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Split selected item at waveform rise above zero.lua" type="script" desc="Split selected item at waveform rise above zero">
-      <version name="1.02" author="MPL" time="2022-09-11T06:56:51Z">
-        <changelog><![CDATA[# fix name and direction]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a533579a5a6f6b230bec8b2735fec4d820422e66/Development/mpl_Split%20selected%20item%20at%20waveform%20rise%20above%20zero.lua</source>
       </version>
     </reapack>
   </category>
@@ -4619,82 +4599,6 @@
         <source main="main" file="mpl_Toggle solo focused ReaXcomp band 6.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4be1840a710bad1cff78c3300821786e9f2f52e9/FX%20specific/mpl_Toggle%20solo%20focused%20ReaXcomp%20band%20X.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_VCV Rack tools.lua" type="script" desc="VCV Rack tools">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.02" author="MPL" time="2019-05-30T14:04:33Z">
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate clock for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate clock reset for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20reset%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by destination module.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20destination%20module.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by source module.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20source%20module.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20pitch%20CV%20for%20last%20touched%20VCVRack%20bridge%20CC%20from%20selected%20MIDI%20take.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate random impulses for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20random%20impulses%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source file="mpl_VCV Rack tools/json2lua.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fe0a84c774ecec10d100334fe9ddc5510550626/FX%20specific/mpl_VCV%20Rack%20tools/json2lua.lua</source>
-      </version>
-      <version name="1.05" author="MPL" time="2019-05-30T15:41:20Z">
-        <changelog><![CDATA[# fix broken json2lua lib path
-+ Add: randomize VCVRack wire colors by module row
-+ Add: randomize VCVRack module parameters]]></changelog>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate clock for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/790768300e98b3e3e34f3108b04a575529068ff1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate clock reset for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/790768300e98b3e3e34f3108b04a575529068ff1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20reset%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by destination module.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/790768300e98b3e3e34f3108b04a575529068ff1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20destination%20module.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by source module.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/790768300e98b3e3e34f3108b04a575529068ff1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20source%20module.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/790768300e98b3e3e34f3108b04a575529068ff1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20pitch%20CV%20for%20last%20touched%20VCVRack%20bridge%20CC%20from%20selected%20MIDI%20take.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate random impulses for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/790768300e98b3e3e34f3108b04a575529068ff1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20random%20impulses%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by source module row.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/790768300e98b3e3e34f3108b04a575529068ff1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20source%20module%20row.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by destination module row.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/790768300e98b3e3e34f3108b04a575529068ff1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20destination%20module%20row.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack module parameters (except Core).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/790768300e98b3e3e34f3108b04a575529068ff1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20module%20parameters%20(except%20Core).lua</source>
-        <source file="mpl_VCV Rack tools/json2lua.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/790768300e98b3e3e34f3108b04a575529068ff1/FX%20specific/mpl_VCV%20Rack%20tools/json2lua.lua</source>
-      </version>
-      <version name="1.06" author="MPL" time="2019-05-30T15:51:37Z">
-        <changelog><![CDATA[# fix broken file asking]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa7f35b6212da27e4da12cba070878fc39838fe1/FX%20specific/mpl_VCV%20Rack%20tools.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate clock for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa7f35b6212da27e4da12cba070878fc39838fe1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate clock reset for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa7f35b6212da27e4da12cba070878fc39838fe1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20reset%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by destination module.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa7f35b6212da27e4da12cba070878fc39838fe1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20destination%20module.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by source module.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa7f35b6212da27e4da12cba070878fc39838fe1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20source%20module.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa7f35b6212da27e4da12cba070878fc39838fe1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20pitch%20CV%20for%20last%20touched%20VCVRack%20bridge%20CC%20from%20selected%20MIDI%20take.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate random impulses for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa7f35b6212da27e4da12cba070878fc39838fe1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20random%20impulses%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by source module row.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa7f35b6212da27e4da12cba070878fc39838fe1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20source%20module%20row.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by destination module row.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa7f35b6212da27e4da12cba070878fc39838fe1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20destination%20module%20row.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack module parameters (except Core).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa7f35b6212da27e4da12cba070878fc39838fe1/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20module%20parameters%20(except%20Core).lua</source>
-        <source file="mpl_VCV Rack tools/json2lua.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa7f35b6212da27e4da12cba070878fc39838fe1/FX%20specific/mpl_VCV%20Rack%20tools/json2lua.lua</source>
-      </version>
-      <version name="1.07" author="MPL" time="2019-05-30T21:08:21Z">
-        <changelog><![CDATA[+ add mpl_Randomize VCVRack module parameters by 0.05V (except Core)
-+ add mpl_Generate random VCV patch from Fundamental modules.lua as an example to patch creation]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9437ec1602796e04418280f7170e22ed28c7c07/FX%20specific/mpl_VCV%20Rack%20tools.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate clock for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9437ec1602796e04418280f7170e22ed28c7c07/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate clock reset for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9437ec1602796e04418280f7170e22ed28c7c07/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20reset%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by destination module.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9437ec1602796e04418280f7170e22ed28c7c07/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20destination%20module.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by source module.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9437ec1602796e04418280f7170e22ed28c7c07/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20source%20module.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9437ec1602796e04418280f7170e22ed28c7c07/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20pitch%20CV%20for%20last%20touched%20VCVRack%20bridge%20CC%20from%20selected%20MIDI%20take.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate random impulses for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9437ec1602796e04418280f7170e22ed28c7c07/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20random%20impulses%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by source module row.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9437ec1602796e04418280f7170e22ed28c7c07/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20source%20module%20row.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by destination module row.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9437ec1602796e04418280f7170e22ed28c7c07/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20destination%20module%20row.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack module parameters (except Core).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9437ec1602796e04418280f7170e22ed28c7c07/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20module%20parameters%20(except%20Core).lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack module parameters by 0.05V (except Core).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9437ec1602796e04418280f7170e22ed28c7c07/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20module%20parameters%20by%200.05V%20(except%20Core).lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate random VCV patch from Fundamental modules.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9437ec1602796e04418280f7170e22ed28c7c07/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20random%20VCV%20patch%20from%20Fundamental%20modules.lua</source>
-        <source file="mpl_VCV Rack tools/json2lua.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b9437ec1602796e04418280f7170e22ed28c7c07/FX%20specific/mpl_VCV%20Rack%20tools/json2lua.lua</source>
-      </version>
-      <version name="1.08" author="MPL" time="2019-05-31T07:17:57Z">
-        <changelog><![CDATA[# fix mpl_Randomize VCVRack wire colors by source module.lua src dest invertion]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/52de19187fd3ec13846ad4d5208e3bc460b26d63/FX%20specific/mpl_VCV%20Rack%20tools.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate clock for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52de19187fd3ec13846ad4d5208e3bc460b26d63/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate clock reset for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52de19187fd3ec13846ad4d5208e3bc460b26d63/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20clock%20reset%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by destination module.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52de19187fd3ec13846ad4d5208e3bc460b26d63/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20destination%20module.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by source module.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52de19187fd3ec13846ad4d5208e3bc460b26d63/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20source%20module.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate pitch CV for last touched VCVRack bridge CC from selected MIDI take.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52de19187fd3ec13846ad4d5208e3bc460b26d63/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20pitch%20CV%20for%20last%20touched%20VCVRack%20bridge%20CC%20from%20selected%20MIDI%20take.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate random impulses for last touched VCVRack bridge CC.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52de19187fd3ec13846ad4d5208e3bc460b26d63/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20random%20impulses%20for%20last%20touched%20VCVRack%20bridge%20CC.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by source module row.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52de19187fd3ec13846ad4d5208e3bc460b26d63/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20source%20module%20row.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack wire colors by destination module row.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52de19187fd3ec13846ad4d5208e3bc460b26d63/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20wire%20colors%20by%20destination%20module%20row.lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack module parameters (except Core).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52de19187fd3ec13846ad4d5208e3bc460b26d63/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20module%20parameters%20(except%20Core).lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Randomize VCVRack module parameters by 0.05V (except Core).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52de19187fd3ec13846ad4d5208e3bc460b26d63/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Randomize%20VCVRack%20module%20parameters%20by%200.05V%20(except%20Core).lua</source>
-        <source main="main" file="mpl_VCV Rack tools/mpl_Generate random VCV patch from Fundamental modules.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52de19187fd3ec13846ad4d5208e3bc460b26d63/FX%20specific/mpl_VCV%20Rack%20tools/mpl_Generate%20random%20VCV%20patch%20from%20Fundamental%20modules.lua</source>
-        <source file="mpl_VCV Rack tools/json2lua.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52de19187fd3ec13846ad4d5208e3bc460b26d63/FX%20specific/mpl_VCV%20Rack%20tools/json2lua.lua</source>
-      </version>
-    </reapack>
   </category>
   <category name="Items Editing">
     <reapack name="mpl_Convert selected looped items to multiple splits.lua" type="script" desc="Convert selected looped items to multiple splits">
@@ -8079,22 +7983,6 @@ add control for timefall showing last note]]></changelog>
       <version name="1.02" author="MPL" time="2018-09-08T09:38:50Z">
         <changelog><![CDATA[# rename title]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25e84f72089c3534945b42a691a8a00d60b8dd58/Various/mpl_Delete%20non-existing%20scripts%20from%20ActionList.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Dump Retrospective Record log (old version).lua" type="script" desc="Dump Retrospective Record log (old version)">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Dump recent MIDI messages log\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.01" author="MPL, Justin" time="2022-01-03T06:44:51Z">
-        <changelog><![CDATA[# fix description, remove VF dependency]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1779ed6c4d37f92c7476ed6452d1b8753c3f6009/Various/mpl_Dump%20Retrospective%20Record%20log%20(old%20version).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Dump Retrospective Record log.lua" type="script" desc="Dump Retrospective Record log">
