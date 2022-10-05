@@ -10,11 +10,11 @@
 --    mpl_Various_functions_MOUSE.lua
 --    mpl_Various_functions_Pers.lua
 -- @changelog
---    # VF_ReduceFXname
+--    + VF_BFpluginparam
 
 
     
-  VF_version = 3.41 -- do not remove, used for versions comparement
+  VF_version = 3.42 -- do not remove, used for versions comparement
   VF_isregist = 1|2 -- do not remove, used for VF versions check
   --------------------------------------------------
   function VF_LoadLibraries()

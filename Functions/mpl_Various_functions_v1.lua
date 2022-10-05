@@ -1652,6 +1652,81 @@ end
   end
   -----------------------------------------------------
   function VF_GetProjectSampleRate() return tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) end -- get sample rate obey project start offset
+  ------------------------------------------------------- 
+  function VF_BFpluginparam(find_Str, tr, fx, param) 
+    if not find_Str then return end
+    local find_Str_val = find_Str:match('[%d%-%.]+')
+    if not (find_Str_val and tonumber(find_Str_val)) then return end
+    local find_val =  tonumber(find_Str_val)
+    
+    local iterations = 300
+    local mindiff = 10^-14
+    local precision = 10^-7
+    local min, max = 0,1
+    for i = 1, iterations do -- iterations
+      local param_low = VF_BFpluginparam_GetFormattedParamInternal(tr , fx, param, min) 
+      local param_mid = VF_BFpluginparam_GetFormattedParamInternal(tr , fx, param, min + (max-min)/2) 
+      local param_high = VF_BFpluginparam_GetFormattedParamInternal(tr , fx, param, max)  
+      if find_val <= param_low then return min  end
+      if find_val == param_mid and math.abs(min-max) < mindiff then return VF_BFpluginparam_PreciseCheck(tr, fx, param, find_val, min, max, precision) end
+      if find_val >= param_high then return max end
+      if find_val > param_low and find_val < param_mid then 
+        min = min 
+        max = min + (max-min)/2 
+        if math.abs(min-max) < mindiff then return VF_BFpluginparam_PreciseCheck(tr, fx, param, find_val, min, max, precision) end
+       else
+        min = min + (max-min)/2 
+        max = max 
+        if math.abs(min-max) < mindiff then return VF_BFpluginparam_PreciseCheck(tr, fx, param, find_val, min, max, precision) end
+      end
+    end
+    
+    
+    --[[
+    local BF_s, BF_e,closer_out_val = 0, 1
+    local TS = os.clock()
+    for step_pow = -1, pow, -1 do
+      local last_param_n
+      for val = BF_s, BF_e, 10^step_pow do 
+        if os.clock() - TS > 5 then MB('Brutforce timeout.\nOperation cancelled.', scr_nm, 0) return end 
+        local param_n = VF_BFpluginparam_GetFormattedParamInternal(tr , fx, param, val)
+        if param_n and not last_param_n and find <= param_n  then return val end
+        if last_param_n and find > last_param_n and find <= param_n then 
+          BF_s = val - 10^step_pow
+          BF_e = val
+          closer_out_val = val
+          break
+        end
+        last_param_n = param_n
+      end
+      if not closer_out_val then return 1 end
+    end
+    return closer_out_val
+    ]]
+    
+    
+  end
+  -------------------------------------------------------  
+  function VF_BFpluginparam_PreciseCheck(tr, fx, param, find_val, min, max, precision)
+    for value_precise = min, max, precision do
+      local param_form = VF_BFpluginparam_GetFormattedParamInternal(tr , fx, param, value_precise)  
+      if find_val == param_form then  return value_precise end
+    end
+    return min + (max-min)/2 
+  end 
+  -------------------------------------------------------  
+  function VF_BFpluginparam_GetFormattedParamInternal(tr, fx, param, val)
+    local param_n
+    if val then TrackFX_SetParamNormalized( tr, fx, param, val ) end
+    local _, buf = TrackFX_GetFormattedParamValue( tr , fx, param, '' )
+    --local param_str = buf:match('%-[%d%.]+') or buf:match('[%d%.]+')
+    local param_str = buf:match('[%d%a%-%.]+')
+    if param_str then param_n = tonumber(param_str) end
+    if not param_n and param_str:lower():match('%-inf') then param_n = - math.huge
+    elseif not param_n and param_str:lower():match('inf') then param_n = math.huge end
+    return param_n
+  end
+  -------------------------------------------------------  
   -- MAPPING for backwards compability --
   Open_URL = VF_Open_URL
   Action = VF_Action

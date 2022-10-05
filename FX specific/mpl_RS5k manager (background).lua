@@ -1,11 +1,17 @@
 -- @description RS5k manager
--- @version 3.0beta10
+-- @version 3.0beta11
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
+--    # refresh peaks follow sampler refresh / at note input if enabled
+--    + Allow to enter params even for external plugins by right click
+
+
+--[[ 
+3.0beta10 05.10.2022
 --    # Defaults: use play button is off by default
 --    # fix error on empty readout
 --    + Sampler: add pitch offset
@@ -13,9 +19,6 @@
 --    # Sampler: fix error on drop sample onto peaks
 --    # DrumRack: another fix for not updating pads when input note is triggered
 
-
-
---[[ 
 3.0alpha8/9 03.10.2022
 --    # fix error at empty rack on click pad
 --    # fix update DrumRack when 'Incoming note trigger active pad' enabled
@@ -138,7 +141,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta10'
+    DATA.extstate.version = '3.0beta11'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -555,7 +558,6 @@
   function DATA2:TrackDataRead_GetChildrens_GetChild(track, isregularchild)
     local note, fxid = DATA2:TrackDataRead_GetNote(track)
     if not note and fxid then return end
-    
     local layer = -1
     if isregularchild then layer = 1 end
     local notename = DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(track, fxid, note, layer )
@@ -693,9 +695,7 @@
       
       -- validate childen
       if DATA2:TrackDataRead_IsChildAppendsToCurrentParent(track) == true  then
-        if      DATA2:TrackDataRead_IsMIDIBus(track) then       
-          DATA2:TrackDataRead_InitMIDIBus(track) 
-          
+        if      DATA2:TrackDataRead_IsMIDIBus(track) then DATA2:TrackDataRead_InitMIDIBus(track)          
          elseif DATA2:TrackDataRead_IsRegularChild(track) then  DATA2:TrackDataRead_GetChildrens_GetChild(track, true) -- msg('TrackDataRead_GetChildrens_RegularChild')
          elseif DATA2:TrackDataRead_IsDevice(track) then        DATA2:TrackDataRead_GetChildrens_Device(track) --msg('TrackDataRead_GetChildrens_Device')
          elseif DATA2:TrackDataRead_IsDeviceChild(track)   then DATA2:TrackDataRead_GetChildrens_GetChild(track) --msg('TrackDataRead_GetChildrens_DeviceChild')
@@ -1116,6 +1116,16 @@
                         onmouseclick = function() end,
                         onmousedrag = function() f()  end,
                         onmouserelease = function() if f_release then f_release() else f() end end,
+                        onmousereleaseR = function()
+                                local retval, new_val = GetUserInputs( 'Set values', 1, '', t.val_format )
+                                if not (retval and new_val~='' ) then return end 
+                                local new_val = VF_BFpluginparam(new_val, t.src_t.tr_ptr, t.src_t.instrument_pos, t.paramid)  
+                                --msg(new_val)
+                                DATA2:TrackData_SetRS5kParams(t.src_t, t.paramid, new_val)
+                                DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(t.src_t.tr_ptr, t.src_t.instrument_pos, note,layer)
+                                DATA.GUI.buttons['sampler_'..t.key..'val'].txt = DATA2.notes[note].layers[layer][val_format_key]
+                                DATA.GUI.buttons['sampler_'..t.key..'val'].refresh = true
+                        end, 
                         } 
   end
   ------------------------------------------------------------------------
@@ -2082,7 +2092,6 @@
   ----------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_peaks()
     if not (DATA2.cursplpeaks and DATA2.cursplpeaks.peaks) then return end
-    
     local note, layer = DATA2.cursplpeaks.note,DATA2.cursplpeaks.layer
     if DATA2.notes[note].layers[layer].ISPLUGIN then return end
     local offs_start = DATA2.notes[note].layers[layer].params_samplestoffs
@@ -2275,6 +2284,7 @@
     GUI_MODULE_SAMPLER_Section_EnvelopeKnobs(DATA) 
     GUI_MODULE_SAMPLER_Section_FilterKnobs(DATA) 
     DATA2:SAMPLER_GetPeaks() 
+    --GUI_MODULE_SAMPLER_peaks()
   end
   ----------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_Section_SplPeakFrame(DATA)  
@@ -2287,6 +2297,7 @@
                           frame_a = DATA.GUI.custom_framea,
                           data = {['datatype'] = 'samplepeaks'},
                           onmousefiledrop = function() if DATA2.tr_extparams_note_active then DATA2:PAD_onfiledrop(DATA2.tr_extparams_note_active) end end,
+                          refresh = true,
                           }
     end
   end  
@@ -2456,6 +2467,7 @@
         prefix = prefix,
         key = key,
         ctrlname = ctrlname,
+        paramid=paramid,
         val = src_t[param_val],
         val_res = 0.1,
         val_format = DATA2.notes[note].layers[layer][val_format_key],
@@ -2530,6 +2542,7 @@
         val_format = DATA2.notes[note].layers[layer][val_format_key] ,
         val_min = 0,
         val_max = val_max,
+        paramid=paramid,
         --val_res = 0.05,
         src_t = src_t,
         x = DATA.GUI.buttons.sampler_frame.x+(xoffs or 0 ),
@@ -2771,6 +2784,16 @@
                                 DATA2.ONDOUBLECLICK = nil
                               end
                         end,
+                        onmousereleaseR = function()
+                                local retval, new_val = GetUserInputs( 'Set values', 1, '', DATA2.notes[note].layers[layer][val_format_key] )
+                                if not (retval and new_val~='' ) then return end 
+                                local new_val = VF_BFpluginparam(new_val,t.src_t.tr_ptr, t.src_t.instrument_pos, t.paramid)  
+                                --msg(new_val)
+                                DATA2:TrackData_SetRS5kParams(t.src_t, t.paramid, new_val)
+                                DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(t.src_t.tr_ptr, t.src_t.instrument_pos, note,layer)
+                                DATA.GUI.buttons['sampler_'..t.key..'val'].txt = DATA2.notes[note].layers[layer][val_format_key]
+                                DATA.GUI.buttons['sampler_'..t.key..'val'].refresh = true
+                        end,                        
                         } 
   end
   --[[local knobw = (DATA.GUI.custom_mainbutw)---DATA.GUI.custom_offset /2  
@@ -2885,7 +2908,7 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.41) if ret then local ret2 = VF_CheckReaperVrs(6.68,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.42) if ret then local ret2 = VF_CheckReaperVrs(6.68,true) if ret2 then main() end end
   
   
   
