@@ -1,18 +1,16 @@
 -- @description RS5k manager
--- @version 3.0beta13
+-- @version 3.0beta14
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    # DrumRack: fix mute/solo/showME errors
---    # Sample: decrease resolution
---    + Sampler: add drive knob
+--    # Sampler: fix error on empty drive knob
 
 
 --[[ 
-3.0beta13 12.10.2022
+3.0beta14 12.10.2022
 --    # DrumRack: fix mute/solo/showME errors
 --    # Sample: decrease resolution
 --    + Sampler: add drive knob
@@ -161,7 +159,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta13'
+    DATA.extstate.version = '3.0beta14'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -493,7 +491,7 @@
     
     
     local reaeq_valid, reaeq_pos, reaeq_enabledband1, reaeq_bandtype, reaeq_cut, reaeq_gain, reaeq_bw, reaeq_cut_format,reaeq_gain_format,reaeq_bw_format, reaeq_bandtype_format = DATA2:TrackDataRead_GetChildrens_GetSampleDataParams_reaEQ(track)
-    local ws_valid, ws_pos, ws_drive = DATA2:TrackDataRead_GetChildrens_GetSampleDataParams_WS(track)
+    local ws_valid, ws_pos, ws_drive, ws_drive_format = DATA2:TrackDataRead_GetChildrens_GetSampleDataParams_WS(track)
     
     local ret, trname = GetTrackName( track )
     local sampledata = { filepath = filepath,
@@ -544,7 +542,7 @@
                          ws_valid = ws_valid,
                          ws_pos = ws_pos,
                          ws_drive = ws_drive,
-                         ws_drive_format = (math.floor(1000*ws_drive)/10)..'%',
+                         ws_drive_format =ws_drive_format ,
                          enabled = enabled,
                         }
                         
@@ -563,7 +561,8 @@
     for fxid = 1,  TrackFX_GetCount( track ) do
       if DATA2:ValidateWS(track, fxid-1) then
         local drive = TrackFX_GetParamNormalized( track, fxid-1, 0 )
-        return true, fxid-1, drive
+        local drive_form = (math.floor(1000*drive)/10)..'%'
+        return true, fxid-1, drive, drive_form
       end
     end
   end
