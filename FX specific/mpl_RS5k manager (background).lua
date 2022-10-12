@@ -1,12 +1,23 @@
 -- @description RS5k manager
--- @version 3.0beta12
+-- @version 3.0beta13
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    # fix mute/solo/showME errors, properly handle logic around note/layers of instrument/device
+--    # DrumRack: fix mute/solo/showME errors
+--    # Sample: decrease resolution
+--    + Sampler: add drive knob
+
+
+--[[ 
+3.0beta13 12.10.2022
+--    # DrumRack: fix mute/solo/showME errors
+--    # Sample: decrease resolution
+--    + Sampler: add drive knob
+
+3.0beta12 07.10.202
 --    + Write version to parent, children, MIDI bus for further developement and removing backward compatibility errors
 --    + DrumRack: rename pads
 --    + When drop FX, rename its newly created track to short name if possible
@@ -16,8 +27,6 @@
 --    + Guess params: add 'att,dec,sus,rel,tun'
 --    + Guess params: rename params on UI if guessed
 
-
---[[ 
 3.0beta11 06.10.2022
 --    # refresh peaks follow sampler refresh / at note input if enabled
 --    + Allow to enter params even for external plugins by right click
@@ -152,7 +161,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta12'
+    DATA.extstate.version = '3.0beta13'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -250,6 +259,11 @@
     for fxid = 1,  TrackFX_GetCount( track ) do
       if DATA2:ValidateRS5k(track, fxid-1) then return fxid-1 end
     end
+  end
+  ---------------------------------------------------------------------  
+  function DATA2:ValidateWS(track, pos)
+    local retval, buf1 = reaper.TrackFX_GetParamName( track, pos, 0 )
+    if buf1:match'Distortion' then return true end
   end
   ---------------------------------------------------------------------  
   function DATA2:ValidateReaEQ(track, reaeq_pos)
@@ -479,6 +493,7 @@
     
     
     local reaeq_valid, reaeq_pos, reaeq_enabledband1, reaeq_bandtype, reaeq_cut, reaeq_gain, reaeq_bw, reaeq_cut_format,reaeq_gain_format,reaeq_bw_format, reaeq_bandtype_format = DATA2:TrackDataRead_GetChildrens_GetSampleDataParams_reaEQ(track)
+    local ws_valid, ws_pos, ws_drive = DATA2:TrackDataRead_GetChildrens_GetSampleDataParams_WS(track)
     
     local ret, trname = GetTrackName( track )
     local sampledata = { filepath = filepath,
@@ -526,6 +541,10 @@
                          reaeq_gain_format = reaeq_gain_format,
                          reaeq_bw_format = reaeq_bw_format,
                          
+                         ws_valid = ws_valid,
+                         ws_pos = ws_pos,
+                         ws_drive = ws_drive,
+                         ws_drive_format = (math.floor(1000*ws_drive)/10)..'%',
                          enabled = enabled,
                         }
                         
@@ -538,6 +557,15 @@
     if not DATA2.notes[note].layers[layer] then DATA2.notes[note].layers[layer] = {} end
     DATA2.notes[note].layers[layer]=sampledata
     return filepath_short
+  end 
+  ---------------------------------------------------------------------  
+  function DATA2:TrackDataRead_GetChildrens_GetSampleDataParams_WS(track)
+    for fxid = 1,  TrackFX_GetCount( track ) do
+      if DATA2:ValidateWS(track, fxid-1) then
+        local drive = TrackFX_GetParamNormalized( track, fxid-1, 0 )
+        return true, fxid-1, drive
+      end
+    end
   end
   ---------------------------------------------------------------------  
   function DATA2:TrackDataRead_GetChildrens_GetSampleDataParams_reaEQ(track)
@@ -1353,7 +1381,7 @@
                               onmouserelease =  function() if DATA.extstate.UI_useplaybutton == 0 then  StuffMIDIMessage( 0, 0x80, note, 0 ) DATA.ontrignoteTS =  nil end end,
                               }     
       --local txt_a,txt_col= txt_actrl if DATA2.notes[note] and DATA2.notes[note].partrack_mute and DATA2.notes[note].partrack_mute == 1 then txt_col = '#A55034' txt_a = 1 end
-      local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].partrack_mute and DATA2.notes[note].partrack_mute ==1 then backgr_fill = 0.2 txt_a = nil end
+      local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers[1].tr_mute and DATA2.notes[note].layers[1].tr_mute >0 then backgr_fill = 0.2 txt_a = nil end
       DATA.GUI.buttons['drumrackpad_pad'..padID0..'mute'] = { x=padx,
                               y=pady+DATA.GUI.custom_controlbut_h,
                               w=controlbut_w,
@@ -1386,7 +1414,7 @@
                                 refresh = true,
                                 }   
       end
-      local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].partrack_solo and DATA2.notes[note].partrack_solo >0 then backgr_fill = 0.2 txt_a = nil end
+      local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers[1].tr_solo and DATA2.notes[note].layers[1].tr_solo >0 then backgr_fill = 0.2 txt_a = nil end
       DATA.GUI.buttons['drumrackpad_pad'..padID0..'solo'] = { x=padx+controlbut_w*2,
                               y=pady+DATA.GUI.custom_controlbut_h,
                               w=controlbut_w,
@@ -1422,6 +1450,7 @@
   end
   ----------------------------------------------------------------------- 
   function DATA2:PAD_mute(note, layer) 
+    if not DATA2.notes[note] then return end
     if not layer then 
       if DATA2.notes[note].device_isdevice == true then t = DATA2.notes[note] else t = DATA2.notes[note].layers[1] end       -- do stuff on device or first layer only
      else t = DATA2.notes[note].layers[layer] -- do stuff on defined layer 
@@ -1437,6 +1466,7 @@
   end
   -----------------------------------------------------------------------  
   function DATA2:PAD_showinME(note, layer)
+    if not DATA2.notes[note] then return end
     if not layer then 
       t = DATA2.notes[note].layers[1]       -- do stuff on device/instrument or first layer only
      else 
@@ -1450,6 +1480,7 @@
   end
   ----------------------------------------------------------------------- 
   function DATA2:PAD_solo(note,layer)
+    if not DATA2.notes[note] then return end
     if not layer then 
       if DATA2.notes[note].device_isdevice == true then t = DATA2.notes[note] else t = DATA2.notes[note].layers[1] end       -- do stuff on device or first layer only
      else t = DATA2.notes[note].layers[layer] -- do stuff on defined layer 
@@ -2548,7 +2579,7 @@
         ctrlname = ctrlname,
         paramid=paramid,
         val = src_t[param_val],
-        val_res = 0.1,
+        val_res = 0.2,
         val_format = DATA2.notes[note].layers[layer][val_format_key],
         val_min = 0,
         val_max = val_max,
@@ -2590,6 +2621,23 @@
     TrackFX_SetParamNormalized( track, reaeq_pos, 0, 1 ) 
     return reaeq_pos
   end
+  -----------------------------------------------------------------------  
+  function DATA2:TrackData_ValidateWS(track)
+    local ws_pos = TrackFX_AddByName( track, 'waveShapingDstr', 0, 1 )
+    TrackFX_Show( track, ws_pos, 2 )
+    TrackFX_SetParamNormalized( track, ws_pos, 0, 0 ) 
+    return ws_pos
+  end 
+  -----------------------------------------------------------------------  
+  function DATA2:TrackData_SetDriveParams(t, param, value)
+    local track = t.tr_ptr
+    if not (track  and ValidatePtr2(0,track,'MediaTrack*')) then return end
+    
+    local reaeq_pos 
+    if not t.ws_valid then ws_pos = DATA2:TrackData_ValidateWS(track)  else  ws_pos= t.ws_pos end
+    
+    TrackFX_SetParamNormalized( track, ws_pos, param, value ) 
+  end  
   -----------------------------------------------------------------------  
   function DATA2:TrackData_SetReaEQParams(t, param, value)
     local track = t.tr_ptr
@@ -2741,7 +2789,60 @@
                           end
                           DATA:GUImenu(t)
                         end
-                        }                         
+                        }  
+                        
+    local key = 'spl_ws_drive'
+    local val_format_key = 'ws_drive_format'
+    local param_val = 'ws_drive'
+    local ctrlname = 'Drive'
+    local val_default = 0 
+    local prefix = 'sampler_'
+    local paramid = 0 
+    if not src_t then return end
+    local prefix = 'sampler_'
+    GUI_CTRL_Knob(DATA,
+      {
+        prefix = prefix,
+        key = key,
+        ctrlname = ctrlname,
+        val = src_t[param_val],
+        val_res = 0.1,
+        val_format = DATA2.notes[note].layers[layer][val_format_key] ,
+        val_min = 0,
+        val_max = val_max,
+        paramid=paramid,
+        --val_res = 0.05,
+        src_t = src_t,
+        x = DATA.GUI.buttons.sampler_frame.x+((DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*3 or 0 ),
+        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_spl_areah+DATA.GUI.custom_offset2*3+DATA.GUI.custom_splctrl_h*2,
+        w = DATA.GUI.custom_spl_modew,
+        h = DATA.GUI.custom_splknob_h,
+        note =note,
+        layer=layer,
+        frame_arcborder=true,
+        f= function()     
+          local new_val = DATA.GUI.buttons[prefix..key..'knob'].val
+          if not new_val then DATA2:TrackData_SetDriveParams(src_t, 0, 0) return end
+          DATA2:TrackData_SetDriveParams(src_t, paramid, new_val)
+          DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(src_t.tr_ptr, src_t.instrument_pos, note,layer)
+          DATA.GUI.buttons[prefix..key..'val'].txt = DATA2.notes[note].layers[layer][val_format_key]
+          DATA.GUI.buttons[prefix..key..'val'].refresh = true   
+          DATA2.ONPARAMDRAG = true
+        end  ,
+        f_release= function()    
+          if not DATA2.ONDOUBLECLICK then
+            local new_val = DATA.GUI.buttons[prefix..key..'knob'].val
+            if not new_val then return end
+            DATA2:TrackData_SetDriveParams(src_t, paramid, new_val)
+            DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(src_t.tr_ptr, src_t.instrument_pos, note,layer)
+            DATA.GUI.buttons[prefix..key..'val'].txt = DATA2.notes[note].layers[layer][val_format_key]
+            DATA.GUI.buttons[prefix..key..'val'].refresh = true   
+            DATA2.ONPARAMDRAG = nil
+           else
+            DATA2.ONDOUBLECLICK = nil
+          end
+        end  ,  
+      } )
   end
   ------------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_Section_EnvelopeKnobs(DATA)   
