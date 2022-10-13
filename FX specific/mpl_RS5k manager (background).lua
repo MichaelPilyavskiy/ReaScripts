@@ -1,19 +1,31 @@
 -- @description RS5k manager
--- @version 3.0beta14
+-- @version 3.0beta15
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    # Sampler: fix error on empty drive knob
+--    # Sample: fix oneshot/loop selector
+--    + Sampler: onshot deactivates obey note-off [https://forum.cockos.com/showpost.php?p=2601997&postcount=340]
+--    + Sampler: click on peaks trigger note
+--    + Device: doubleclick on pan reset pan
+--    # Device: correctly reset visual values on doubleclick
 
 
 --[[ 
+3.0beta15 13.10.2022
+--    # Sample: fix oneshot/loop selector
+--    + Sampler: onshot deactivates obey note-off [https://forum.cockos.com/showpost.php?p=2601997&postcount=340]
+--    + Sampler: click on peaks trigger note
+--    + Device: doubleclick on pan reset pan
+--    # Device: correctly reset visual values on doubleclick
+
 3.0beta14 12.10.2022
 --    # DrumRack: fix mute/solo/showME errors
 --    # Sample: decrease resolution
 --    + Sampler: add drive knob
+--    # Sampler: fix error on empty drive knob
 
 3.0beta12 07.10.202
 --    + Write version to parent, children, MIDI bus for further developement and removing backward compatibility errors
@@ -159,7 +171,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta14'
+    DATA.extstate.version = '3.0beta15'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -1256,6 +1268,12 @@
                           
   end
   -----------------------------------------------------------------------------  
+  function DATA2:Stuff_NoteOn(note, vel)
+    StuffMIDIMessage( 0, 0x90, note, vel or 120 ) 
+    DATA.ontrignoteTS = os.clock() 
+    DATA.ontrignote = note 
+  end
+  -----------------------------------------------------------------------------  
   function GUI_MODULE_DRUMRACKPAD(DATA) 
     for key in pairs(DATA.GUI.buttons) do if key:match('drumrack') then DATA.GUI.buttons[key] = nil end end 
     if not DATA2.tr_extparams_showstates or ( DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&1==0) then return end
@@ -1357,12 +1375,7 @@
                                     end
                                   end
                                 end
-                                if DATA.extstate.UI_useplaybutton == 0 then  
-                                  StuffMIDIMessage( 0, 0x90, note, 120 ) 
-                                  DATA.ontrignoteTS = os.clock() 
-                                  DATA.ontrignote = note 
-    
-                                end
+                                if DATA.extstate.UI_useplaybutton == 0 then  DATA2:Stuff_NoteOn(note)  end
                                 
                                 if DATA.GUI.Ctrl == true then DATA2:ActiveNoteLayer_ShowRS5k(note, 1) 
                                  else
@@ -1408,7 +1421,7 @@
                                 prevent_matchrefresh = true,
                                 frame_a = frame_actrl0,
                                 backgr_fill = backgr_fill2 ,
-                                onmouseclick =    function() StuffMIDIMessage( 0, 0x90, note, 120 ) DATA.ontrignoteTS = os.clock() DATA.ontrignote = note end,
+                                onmouseclick =    function() DATA2:Stuff_NoteOn(note, vel) end,
                                 onmouserelease =  function() StuffMIDIMessage( 0, 0x80, note, 0 ) DATA.ontrignoteTS =  nil end,
                                 refresh = true,
                                 }   
@@ -1867,6 +1880,7 @@
                               DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(src_t.tr_ptr, src_t.instrument_pos, note,layer) 
                               DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].txt = DATA2.notes[note].layers[layer].tr_vol_format
                               DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].refresh = true
+                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'].val = 0.5
                               DATA2.ONDOUBLECLICK = true
                             end,
                         }   
@@ -1893,15 +1907,30 @@
                               DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(src_t.tr_ptr, src_t.instrument_pos, note,layer)
                               DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].txt = DATA2:FormatPan(new_val)
                               DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].refresh = true
+                              DATA2.ONPARAMDRAG = true
                             end,
                         onmouserelease = function()
+                            if not DATA2.ONDOUBLECLICK then
+                              DATA2.ONPARAMDRAG = nil
                               local src_t = DATA2.notes[note].layers[layer]
                               local new_val = DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].val
                               DATA2:TrackData_SetTrackParams(src_t, 'D_PAN', new_val)
                               DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].txt = DATA2:FormatPan(new_val)
                               DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].refresh = true
+                             else
+                              DATA2.ONDOUBLECLICK = nil
+                            end
                         end,
-                        }   
+                        onmousedoubleclick = function() 
+                              local src_t = DATA2.notes[note].layers[layer]
+                              local new_val = 0
+                              DATA2:TrackData_SetTrackParams(src_t, 'D_PAN', new_val)
+                              DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(src_t.tr_ptr, src_t.instrument_pos, note,layer) 
+                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].txt = DATA2:FormatPan(new_val)
+                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].val = new_val
+                              DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].refresh = true
+                              DATA2.ONDOUBLECLICK = true
+                            end,}   
                         
     local backgr_fill_param_en
     if DATA2.notes[note].layers[layer].enabled == true then backgr_fill_param_en = backgr_fill_param end
@@ -2287,15 +2316,18 @@
     end
   end
   ----------------------------------------------------------------------
-  function GUI_MODULE_SAMPLER_Section_Loopstate_set(DATA,val)
-    if not spl_t then return end
+  function GUI_MODULE_SAMPLER_Section_Loopstate_set(DATA,spl_t, note, layer, val)
+    if not (spl_t and note and layer ) then return end
     if val then
       DATA2:TrackData_SetRS5kParams(spl_t, 12, val) -- set loop on 
+      if val == 0 then 
+        DATA2:TrackData_SetRS5kParams(spl_t, 11, 0) -- set obey note off OFF
+      end
       DATA2:TrackDataRead_GetChildrens_GetSampleDataParams(spl_t.tr_ptr, spl_t.instrument_pos, note,layer)
       GUI_MODULE_SAMPLER_Section_Loopstate(DATA)
       return 
     end
-    local backgr_col,backgr_fill
+    --[[local backgr_col,backgr_fill
     if spl_t.params_loop == 1 then 
       backgr_col = DATA.GUI.custom_backcol2 backgr_fill=DATA.GUI.custom_backfill2
       DATA.GUI.buttons.sampler_mode1.backgr_col=backgr_col
@@ -2304,13 +2336,16 @@
       backgr_col = DATA.GUI.custom_backcol2 backgr_fill=DATA.GUI.custom_backfill2
       DATA.GUI.buttons.sampler_mode2.backgr_col=backgr_col
       DATA.GUI.buttons.sampler_mode2.backgr_fill=backgr_fill
-    end
+    end]]
   end
   ----------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_Section_Loopstate(DATA)
     local spl_t, note, layer = DATA2:ActiveNoteLayer_GetTable()
     if not (spl_t and not spl_t.ISPLUGIN) then return end
     if not DATA.GUI.buttons.sampler_frame then return end
+    local backgr_fill = 0
+    local backgr_col = 0
+    if DATA2.notes[note].layers[layer].params_loop == 1 then backgr_fill = 0.2 end
     DATA.GUI.buttons.sampler_mode1 = { x= DATA.GUI.buttons.sampler_frame.x ,
                         y=DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset2,
                         w=DATA.GUI.custom_spl_modew,
@@ -2321,8 +2356,11 @@
                         backgr_fill=backgr_fill,
                         txt = 'Loop',
                         txt_fontsz = DATA.GUI.custom_splknob_txtsz,
-                        onmouseclick = function() GUI_MODULE_SAMPLER_Section_Loopstate_set(DATA,1) end,
+                        onmouseclick = function() GUI_MODULE_SAMPLER_Section_Loopstate_set(DATA,spl_t, note, layer, 1) end,
                         } 
+    local backgr_fill = 0
+    local backgr_col = 0
+    if DATA2.notes[note].layers[layer].params_loop == 0 then backgr_fill = 0.2 end
     DATA.GUI.buttons.sampler_mode2 = { x= DATA.GUI.buttons.sampler_frame.x,
                         y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_spl_modeh+ DATA.GUI.custom_offset2+1 ,
                         w=DATA.GUI.custom_spl_modew,
@@ -2333,9 +2371,8 @@
                         txt_fontsz = DATA.GUI.custom_splknob_txtsz,
                         backgr_col=backgr_col,
                         backgr_fill=backgr_fill,
-                        onmouseclick = function() GUI_MODULE_SAMPLER_Section_Loopstate_set(DATA,0) end,
+                        onmouseclick = function() GUI_MODULE_SAMPLER_Section_Loopstate_set(DATA,spl_t, note, layer, 0) end,
                         } 
-    GUI_MODULE_SAMPLER_Section_Loopstate_set(DATA)
   end
   ----------------------------------------------------------------------
   function DATA2:ActiveNoteLayer_ShowRS5k(note, layer)
@@ -2402,6 +2439,7 @@
                           frame_a = DATA.GUI.custom_framea,
                           data = {['datatype'] = 'samplepeaks'},
                           onmousefiledrop = function() if DATA2.tr_extparams_note_active then DATA2:PAD_onfiledrop(DATA2.tr_extparams_note_active) end end,
+                          onmouseclick = function() DATA2:Stuff_NoteOn(DATA2.tr_extparams_note_active)  end,
                           refresh = true,
                           }
     end
