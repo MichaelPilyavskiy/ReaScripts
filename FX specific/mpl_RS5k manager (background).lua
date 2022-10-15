@@ -1,10 +1,10 @@
 -- @description RS5k manager
--- @version 3.0beta20
+-- @version 3.0beta21
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
---    [jsfx] mpl_RS5k manager_MacroControls.jsfx
+--    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
 --    # fix jsfx path
 
@@ -179,7 +179,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta20'
+    DATA.extstate.version = '3.0beta21'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
