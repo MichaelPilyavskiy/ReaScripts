@@ -1,28 +1,26 @@
 -- @description RS5k manager
--- @version 3.0beta22
+-- @version 3.0beta24
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    # Cleanup GUI varioables, hopefully fix various retina problems
+--    + Pad Overview: drop on pad overview add sample(s) to first available note starting this area
 
 
 --[[ 
-
-
-3.0beta17 17.10.2022 
+3.0beta23 15.10.2022 
 --    + Sampler: Actions menu by click on actions button or rightclick peaks
 --    + Sample/Actions: set start offset to loudest peak
 --    + Sample/Actions: crop start/end offset to item boundaries
 --    + Settings: allow to set threshold for crop start/end item boundaries
 --    # GUI: various retina/scaling mode tweaks
 --    # fix header (properly added Macro JSFX)
-
-3.0beta16 15.10.2022
+--    # Cleanup GUI variables, hopefully fix various retina problems
 --    # Sampler: fix corner case error on trigger note via peaks
 --    # Sampler: turn Attack control powered by y=x^2
+--    # DrumRack: fix  clear device
 
 3.0beta15 13.10.2022
 --    # Sample: fix oneshot/loop selector
@@ -181,7 +179,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta22'
+    DATA.extstate.version = '3.0beta24'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -830,7 +828,6 @@
   end
   ---------------------------------------------------------------------  
   function DATA_RESERVED_ONPROJCHANGE(DATA)
-  
     DATA2.tr_valid = false
     local tr_ptr_last = DATA2.tr_ptr_last
     if DATA.GUI.buttons.info then DATA.GUI.buttons.info.txt = '[no data]' end
@@ -866,6 +863,9 @@
   function GUI_MODULE_TABS(DATA)  
     local txt_a_unabled = 0.25
     local txt_a 
+    local frame_a = 1
+    local frame_asel = 1
+    local frame_col = '#333333'
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&16==0 then txt_a = txt_a_unabled end
     DATA.GUI.buttons.showhide_macroglob = { x=0,
                           y=DATA.GUI.custom_infoh+DATA.GUI.custom_tab_h*0 ,
@@ -874,8 +874,9 @@
                           txt = 'Macro',
                           txt_a = txt_a,
                           txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
-                          frame_a = 1,
-                          frame_col = '#333333',
+                          frame_a = frame_a,
+                          frame_asel = frame_asel,
+                          frame_col = frame_col,
                           onmouseclick = function()
                             if DATA2.tr_extparams_showstates then 
                               DATA2.tr_extparams_showstates = DATA2.tr_extparams_showstates ~ 16
@@ -888,6 +889,7 @@
     local txt_a
     local txt_a_unabled = 0.25
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&8==0 then txt_a = txt_a_unabled end
+    
     DATA.GUI.buttons.showhide_pad = { x=0,
                           y=DATA.GUI.custom_infoh+DATA.GUI.custom_tab_h*1 ,
                           w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
@@ -895,8 +897,9 @@
                           txt = 'Pad overview',
                           txt_a = txt_a,
                           txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
-                          frame_a = 1,
-                          frame_col = '#333333',
+                          frame_a = frame_a,
+                          frame_asel = frame_asel,
+                          frame_col = frame_col,
                           onmouseclick = function()
                             if DATA2.tr_extparams_showstates then 
                               DATA2.tr_extparams_showstates = DATA2.tr_extparams_showstates ~ 8
@@ -914,8 +917,9 @@
                           txt = 'Drum Rack',
                           txt_a = txt_a,
                           txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
-                          frame_a = 1,
-                          frame_col = '#333333',
+                          frame_a = frame_a,
+                          frame_asel = frame_asel,
+                          frame_col = frame_col,
                           onmouseclick = function()
                             if DATA2.tr_extparams_showstates then 
                               DATA2.tr_extparams_showstates = DATA2.tr_extparams_showstates ~ 1
@@ -933,8 +937,9 @@
                           txt = 'Device',
                           txt_a = txt_a,
                           txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
-                          frame_a = 1,
-                          frame_col = '#333333',
+                          frame_a = frame_a,
+                          frame_asel = frame_asel,
+                          frame_col = frame_col,
                           onmouseclick = function()
                             if DATA2.tr_extparams_showstates then 
                               DATA2.tr_extparams_showstates = DATA2.tr_extparams_showstates ~ 2
@@ -952,8 +957,9 @@
                           txt = 'Sampler',
                           txt_a = txt_a,
                           txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
-                          frame_a = 1,
-                          frame_col = '#333333',
+                          frame_a = frame_a,
+                          frame_asel = frame_asel,
+                          frame_col = frame_col,
                           onmouseclick = function()
                             if DATA2.tr_extparams_showstates then 
                               DATA2.tr_extparams_showstates = DATA2.tr_extparams_showstates ~ 4
@@ -982,7 +988,7 @@
       DATA.GUI.custom_backfill2 = 0.1-- device selection
       
     -- settings / tabs
-      DATA.GUI.custom_tab_w = math.floor(DATA.GUI.custom_moduleW*0.3)
+      DATA.GUI.custom_tab_w = math.floor(DATA.GUI.custom_moduleW*0.25)
       DATA.GUI.custom_tab_h = (gfx_h - DATA.GUI.custom_infoh)/5
       DATA.GUI.custom_tabnames_txtsz = 16*DATA.GUI.custom_Yrelation--*DATA.GUI.default_scale
       
@@ -1415,7 +1421,7 @@
                               onmouserelease =  function() if DATA.extstate.UI_useplaybutton == 0 then  StuffMIDIMessage( 0, 0x80, note, 0 ) DATA.ontrignoteTS =  nil end end,
                               }     
       --local txt_a,txt_col= txt_actrl if DATA2.notes[note] and DATA2.notes[note].partrack_mute and DATA2.notes[note].partrack_mute == 1 then txt_col = '#A55034' txt_a = 1 end
-      local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers[1].tr_mute and DATA2.notes[note].layers[1].tr_mute >0 then backgr_fill = 0.2 txt_a = nil end
+      local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1].tr_mute and DATA2.notes[note].layers[1].tr_mute >0 then backgr_fill = 0.2 txt_a = nil end
       DATA.GUI.buttons['drumrackpad_pad'..padID0..'mute'] = { x=padx,
                               y=pady+DATA.GUI.custom_drrack_ctrlbut_h,
                               w=controlbut_w,
@@ -1448,7 +1454,7 @@
                                 refresh = true,
                                 }   
       end
-      local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers[1].tr_solo and DATA2.notes[note].layers[1].tr_solo >0 then backgr_fill = 0.2 txt_a = nil end
+      local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1].tr_solo and DATA2.notes[note].layers[1].tr_solo >0 then backgr_fill = 0.2 txt_a = nil end
       DATA.GUI.buttons['drumrackpad_pad'..padID0..'solo'] = { x=padx+controlbut_w*2,
                               y=pady+DATA.GUI.custom_drrack_ctrlbut_h,
                               w=controlbut_w,
@@ -1639,7 +1645,21 @@
   -----------------------------------------------------------------------
   function DATA2:PAD_ClearPad(note)
     if not DATA2.notes[note] then return end
-    DeleteTrack( DATA2.notes[note].tr_ptr )
+    local  tr_ptr
+    if DATA2.notes[note].device_isdevice then 
+      if DATA2.notes[note].layers then 
+        for layer = 1, #DATA2.notes[note].layers do
+          tr_ptr = DATA2.notes[note].layers[layer].tr_ptr 
+          if tr_ptr and ValidatePtr2(0,tr_ptr, 'MediaTrack*')then DeleteTrack( tr_ptr) end
+        end
+      end
+      tr_ptr = DATA2.notes[note].tr_ptr 
+      if tr_ptr and ValidatePtr2(0,tr_ptr, 'MediaTrack*')then DeleteTrack( tr_ptr) end
+     else 
+      tr_ptr = DATA2.notes[note].layers[1].tr_ptr 
+      if tr_ptr and ValidatePtr2(0,tr_ptr, 'MediaTrack*')then DeleteTrack( tr_ptr) end
+    end
+    
     DATA2.FORCEONPROJCHANGE = true
     SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, '')
     reaper.SetOnlyTrackSelected( DATA2.tr_ptr )
@@ -1771,10 +1791,10 @@
       DATA2:PAD_onfiledrop_AddMIDISend(new_tr)
       DATA2:TrackDataWrite_MarkChild(new_tr, true, DATA2.notes[note].device_GUID)
       
-     elseif DATA2.notes[note] and DATA2.notes[note].device_isdevice == true and DATA2.notes[note].layers[layer] then 
+     elseif DATA2.notes[note] and DATA2.notes[note].device_isdevice == true and DATA2.notes[note].layers and DATA2.notes[note].layers[layer] then 
       DATA2:PAD_onfiledrop_ReplaceLayer(note,layer,filepath) -- replace existing sample into 1st layer -- replace sample in specific layer
       -- reserved
-     elseif DATA2.notes[note] and DATA2.notes[note].device_isdevice == true and not DATA2.notes[note].layers[layer] then 
+     elseif DATA2.notes[note] and DATA2.notes[note].device_isdevice == true and DATA2.notes[note].layers and not DATA2.notes[note].layers[layer] then 
       local device_trID = DATA2.notes[note].device_trID
       local new_tr = DATA2:PAD_onfiledrop_AddChildTrack(device_trID) 
       DATA2:PAD_onfiledrop_ExportToRS5k(new_tr, filepath,note,filepath_sh) 
@@ -2193,6 +2213,24 @@
                                             GUI_MODULE_DRUMRACKPAD(DATA)  
                                             DATA2:TrackDataWrite() 
                                           end,
+                          onmousefiledrop = function() 
+                            local note = 0
+                            if DATA2.tr_extparams_activepad == 0 then note = 0
+                             elseif DATA2.tr_extparams_activepad == 1 then note = 4
+                             elseif DATA2.tr_extparams_activepad == 2 then note = 20
+                             elseif DATA2.tr_extparams_activepad == 3 then note = 36
+                             elseif DATA2.tr_extparams_activepad == 4 then note = 52
+                             elseif DATA2.tr_extparams_activepad == 5 then note = 68
+                             elseif DATA2.tr_extparams_activepad == 6 then note = 84
+                             elseif DATA2.tr_extparams_activepad == 7 then note = 100
+                             elseif DATA2.tr_extparams_activepad == 8 then note = 116
+                            end
+                            
+                            for i = note, 127 do
+                              if not DATA2.notes[i] then note = i break end
+                            end
+                            DATA2:PAD_onfiledrop(note) 
+                          end,
                           }
     GUI_MODULE_PADOVERVIEW_generategrid(DATA)
   end
