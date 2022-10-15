@@ -1,15 +1,17 @@
 -- @description RS5k manager
--- @version 3.0beta21
+-- @version 3.0beta22
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    # fix jsfx path
+--    # Cleanup GUI varioables, hopefully fix various retina problems
 
 
 --[[ 
+
+
 3.0beta17 17.10.2022 
 --    + Sampler: Actions menu by click on actions button or rightclick peaks
 --    + Sample/Actions: set start offset to loudest peak
@@ -179,7 +181,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta21'
+    DATA.extstate.version = '3.0beta22'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -840,7 +842,7 @@
       for key in pairs(DATA.GUI.buttons) do if key:match('Rsettings') then DATA.GUI.buttons[key] = nil end end
       
       if DATA2.ONPARAMDRAG ~= true then 
-        GUI_RESERVED_init_settingbut(DATA)  
+        GUI_MODULE_TABS(DATA)  
         GUI_MODULE_PADOVERVIEW(DATA)
         GUI_MODULE_DRUMRACKPAD(DATA)
         GUI_MODULE_DEVICE(DATA)  
@@ -861,17 +863,17 @@
       
   end
   ---------------------------------------------------------------------  
-  function GUI_RESERVED_init_settingbut(DATA) 
+  function GUI_MODULE_TABS(DATA)  
     local txt_a_unabled = 0.25
     local txt_a 
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&16==0 then txt_a = txt_a_unabled end
     DATA.GUI.buttons.showhide_macroglob = { x=0,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_settingsbut_h*0 ,
-                          w=DATA.GUI.custom_settingsbut_w,-- - DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_settingsbut_h-1,
+                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_tab_h*0 ,
+                          w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_tab_h-1,
                           txt = 'Macro',
                           txt_a = txt_a,
-                          txt_fontsz=DATA.GUI.custom_settingsbut_txtsz,
+                          txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
                           frame_a = 1,
                           frame_col = '#333333',
                           onmouseclick = function()
@@ -887,12 +889,12 @@
     local txt_a_unabled = 0.25
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&8==0 then txt_a = txt_a_unabled end
     DATA.GUI.buttons.showhide_pad = { x=0,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_settingsbut_h*1 ,
-                          w=DATA.GUI.custom_settingsbut_w,-- - DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_settingsbut_h-1,
+                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_tab_h*1 ,
+                          w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_tab_h-1,
                           txt = 'Pad overview',
                           txt_a = txt_a,
-                          txt_fontsz=DATA.GUI.custom_settingsbut_txtsz,
+                          txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
                           frame_a = 1,
                           frame_col = '#333333',
                           onmouseclick = function()
@@ -906,12 +908,12 @@
     local txt_a 
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&1==0 then txt_a = txt_a_unabled end
     DATA.GUI.buttons.showhide_drrack = { x=0,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_settingsbut_h*2 ,
-                          w=DATA.GUI.custom_settingsbut_w,-- - DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_settingsbut_h-1,
+                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_tab_h*2 ,
+                          w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_tab_h-1,
                           txt = 'Drum Rack',
                           txt_a = txt_a,
-                          txt_fontsz=DATA.GUI.custom_settingsbut_txtsz,
+                          txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
                           frame_a = 1,
                           frame_col = '#333333',
                           onmouseclick = function()
@@ -925,12 +927,12 @@
     local txt_a
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&2==0 then txt_a = txt_a_unabled end 
     DATA.GUI.buttons.showhide_device = { x=0,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_settingsbut_h*3 ,
-                          w=DATA.GUI.custom_settingsbut_w,-- - DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_settingsbut_h-1,
+                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_tab_h*3 ,
+                          w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_tab_h-1,
                           txt = 'Device',
                           txt_a = txt_a,
-                          txt_fontsz=DATA.GUI.custom_settingsbut_txtsz,
+                          txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
                           frame_a = 1,
                           frame_col = '#333333',
                           onmouseclick = function()
@@ -944,12 +946,12 @@
     local txt_a
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&4==0 then txt_a = txt_a_unabled end 
     DATA.GUI.buttons.showhide_sampler = { x=0,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_settingsbut_h*4 ,
-                          w=DATA.GUI.custom_settingsbut_w,-- - DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_settingsbut_h,
+                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_tab_h*4 ,
+                          w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_tab_h,
                           txt = 'Sampler',
                           txt_a = txt_a,
-                          txt_fontsz=DATA.GUI.custom_settingsbut_txtsz,
+                          txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
                           frame_a = 1,
                           frame_col = '#333333',
                           onmouseclick = function()
@@ -963,82 +965,80 @@
   end
   ---------------------------------------------------------------------  
   function GUI_RESERVED_init(DATA)
-    -- init h
-      local gfx_h = gfx.h/DATA.GUI.default_scale--math.max(250,gfx.h/DATA.GUI.default_scale)
-      local gfx_w = gfx.w/DATA.GUI.default_scale--math.max(250,gfx.h/DATA.GUI.default_scale)
-    --DATA.GUI.default_scale = 2
+    -- get globals
+      local gfx_h = math.floor(gfx.h/DATA.GUI.default_scale)--math.max(250,gfx.h/DATA.GUI.default_scale)
+      local gfx_w = math.floor(gfx.w/DATA.GUI.default_scale)--math.max(250,gfx.h/DATA.GUI.default_scale)
+    --DATA.GUI.default_scale = 1
+      
     -- init main stuff
-      DATA.GUI.custom_mainbuth = 30*DATA.GUI.default_scale
-      DATA.GUI.custom_offset = math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
-      DATA.GUI.custom_texthdef = (DATA.GUI.custom_mainbuth -DATA.GUI.custom_offset*2) --*DATA.GUI.default_scale
-      DATA.GUI.custom_mainsepx = gfx_w--(gfx.w/DATA.GUI.default_scale)*0.4-- *DATA.GUI.default_scale--400*DATA.GUI.default_scale--
-      DATA.GUI.custom_mainbutw = gfx_w-DATA.GUI.custom_offset*2 --(gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx)-DATA.GUI.custom_offset*3
-      DATA.GUI.custom_scrollw = 10*DATA.GUI.default_scale
-      DATA.GUI.custom_frameascroll = 0.05
-      DATA.GUI.custom_default_framea_normal = 0.1
-      DATA.GUI.custom_spectralw = DATA.GUI.custom_mainbutw*3 + DATA.GUI.custom_offset*2
-      DATA.GUI.custom_datah = (gfx_h-DATA.GUI.custom_mainbuth-DATA.GUI.custom_offset*3) 
-      DATA.GUI.custom_offset2 =  3 * DATA.GUI.default_scale
-      DATA.GUI.custom_backcol2 = '#f3f6f4' -- grey back 
-      DATA.GUI.custom_backfill2 = 0.1
-      DATA.GUI.custom_framea = 0.1
+      DATA.GUI.custom_Yrelation = math.max(gfx_h/300, 0.5) -- global W
+      DATA.GUI.custom_offset =  3 * DATA.GUI.custom_Yrelation
+      DATA.GUI.custom_infoh = math.floor(gfx_h*0.1)
+      DATA.GUI.custom_moduleH = gfx_h - DATA.GUI.custom_infoh-DATA.GUI.custom_offset -- global H
+      DATA.GUI.custom_moduleW = math.floor(DATA.GUI.custom_moduleH*1.5) -- global W
       
-      DATA.GUI.custom_infoh = 25 * DATA.GUI.default_scale
-      DATA.GUI.custom_settingsbut_w = 70 * DATA.GUI.default_scale
-      DATA.GUI.custom_settingsbut_h = 15 * DATA.GUI.default_scale
-      DATA.GUI.custom_settingsbut_yoffs = DATA.GUI.custom_offset2
-      DATA.GUI.custom_settingsbut_txtsz = 12 * DATA.GUI.default_scale
+      DATA.GUI.custom_framea = 0.1 -- greyed drum rack pads
+      DATA.GUI.custom_backcol2 = '#f3f6f4' -- grey back  -- device selection
+      DATA.GUI.custom_backfill2 = 0.1-- device selection
       
-      DATA.GUI.custom_moduleh = gfx_h - DATA.GUI.custom_infoh-DATA.GUI.custom_offset -- global H
-      DATA.GUI.custom_modulew = math.floor(DATA.GUI.custom_moduleh*1.5) -- global W
-      DATA.GUI.custom_modulex = DATA.GUI.custom_settingsbut_w + DATA.GUI.custom_offset -- first mod offset
+    -- settings / tabs
+      DATA.GUI.custom_tab_w = math.floor(DATA.GUI.custom_moduleW*0.3)
+      DATA.GUI.custom_tab_h = (gfx_h - DATA.GUI.custom_infoh)/5
+      DATA.GUI.custom_tabnames_txtsz = 16*DATA.GUI.custom_Yrelation--*DATA.GUI.default_scale
       
-      -- macro 
-      DATA.GUI.custom_macroW = math.floor(DATA.GUI.custom_modulew*1.3)
-      DATA.GUI.custom_macroY = DATA.GUI.custom_infoh+ DATA.GUI.custom_offset
-      DATA.GUI.custom_macroH = DATA.GUI.custom_moduleh--DATA.GUI.custom_offset
-      DATA.GUI.custom_macro_knobH = math.floor(DATA.GUI.custom_macroH/2-DATA.GUI.custom_offset2)
-      DATA.GUI.custom_macro_knobW =  math.floor(DATA.GUI.custom_macroW/8)
-      DATA.GUI.custom_macroW = DATA.GUI.custom_macro_knobW*8 --DATA.GUI.custom_offset2+1
+    -- modules
+      DATA.GUI.custom_module_startoffsx = DATA.GUI.custom_tab_w + DATA.GUI.custom_offset -- first mod offset
+      DATA.GUI.custom_module_ctrlreadout_h = math.floor(DATA.GUI.custom_moduleH * 0.1) 
       
-      -- pad overview
-      DATA.GUI.custom_padgridy = 0--DATA.GUI.custom_infoh
+    -- macro 
+      DATA.GUI.custom_macroY = DATA.GUI.custom_infoh--+ DATA.GUI.custom_offset
+      DATA.GUI.custom_macroW = math.floor(DATA.GUI.custom_moduleW*1.3)
+      DATA.GUI.custom_macroH = DATA.GUI.custom_moduleH--DATA.GUI.custom_offset
+      local knobcol = 2
+      DATA.GUI.custom_macro_knobH = math.floor(DATA.GUI.custom_macroH/knobcol)
+      local knobrow = 8
+      DATA.GUI.custom_macro_knobW =  math.floor((DATA.GUI.custom_macroW - (knobrow-1)*DATA.GUI.custom_offset)/knobrow)
+      DATA.GUI.custom_macroW = DATA.GUI.custom_macro_knobW*(knobrow)-DATA.GUI.custom_offset+2
+      DATA.GUI.custom_macro_knobtxtsz= 15* DATA.GUI.custom_Yrelation
+      
+    -- pad overview
+      DATA.GUI.custom_padgridy = 0
       DATA.GUI.custom_padgridh = gfx_h-DATA.GUI.custom_offset -- - DATA.GUI.custom_infoh-DATA.GUI.custom_offset 
       DATA.GUI.custom_padgridblockh = math.floor(DATA.GUI.custom_padgridh/8)
-      DATA.GUI.custom_padgridw = DATA.GUI.custom_padgridblockh
+      DATA.GUI.custom_padgridw = DATA.GUI.custom_padgridblockh 
+       
+    -- drrack 
+      DATA.GUI.custom_drrack_sideY = math.floor(DATA.GUI.custom_moduleH/4)
+      DATA.GUI.custom_drrack_sideX = DATA.GUI.custom_drrack_sideY*1.5
+      DATA.GUI.custom_drrack_sideW = DATA.GUI.custom_moduleW--DATA.GUI.custom_offset
+      DATA.GUI.custom_drrack_pad_txtsz = 15* DATA.GUI.custom_Yrelation--0.5*(DATA.GUI.custom_drrack_sideY/2-DATA.GUI.custom_offset*2)
+      DATA.GUI.custom_drrack_arcr = math.floor(DATA.GUI.custom_drrack_sideX*0.1) 
+      DATA.GUI.custom_drrack_sideW = DATA.GUI.custom_drrack_sideX*4 -- reset to 4 pads
+      DATA.GUI.custom_drrackH = DATA.GUI.custom_drrack_sideY*4
+      DATA.GUI.custom_drrack_ctrlbut_h = DATA.GUI.custom_drrack_sideY/2
       
-       -- dr rack pads
-      DATA.GUI.custom_padrackY = DATA.GUI.custom_infoh+ DATA.GUI.custom_offset2
-      DATA.GUI.custom_padsideY = math.floor(DATA.GUI.custom_moduleh/4)
-      DATA.GUI.custom_padsideX = DATA.GUI.custom_padsideY*1.5
-      DATA.GUI.custom_padrackW = DATA.GUI.custom_modulew--DATA.GUI.custom_offset2
-      DATA.GUI.custom_offset_pads = DATA.GUI.custom_offset2
-      DATA.GUI.custom_padstxtsz = 0.5*(DATA.GUI.custom_padsideY/2-DATA.GUI.custom_offset2*2)
-      DATA.GUI.custom_padsctrltxtsz = 10
-      DATA.GUI.custom_arcr = math.floor(DATA.GUI.custom_padsideX*0.1)
-      DATA.GUI.custom_controlbut_h = DATA.GUI.custom_padsideY/2
-      DATA.GUI.custom_controltxt_sz = (math.floor(DATA.GUI.custom_controlbut_h*0.6- DATA.GUI.custom_offset2*2))*DATA.GUI.default_scale
-      
-      -- device
-      DATA.GUI.custom_devicew = 400*DATA.GUI.default_scale
+    -- device
+      DATA.GUI.custom_device_droptxtsz =  20* DATA.GUI.custom_Yrelation
+      DATA.GUI.custom_devicew = math.floor(DATA.GUI.custom_moduleW*1.3)
       DATA.GUI.custom_deviceh = gfx_h - DATA.GUI.custom_infoh-DATA.GUI.custom_offset -- DEVICE H
-      DATA.GUI.custom_deviceentryh = math.floor(18 * DATA.GUI.default_scale)
-      DATA.GUI.custom_devicectrl_txtsz = 13 * DATA.GUI.default_scale
+      DATA.GUI.custom_deviceentryh = 25 * DATA.GUI.custom_Yrelation
+      DATA.GUI.custom_devicectrl_txtsz = 15 *DATA.GUI.custom_Yrelation   
       
-      -- sampler
-      --DATA.GUI.custom_samplerW = math.floor(DATA.GUI.custom_modulew*1.5)
-      DATA.GUI.custom_sampler_showbutw = 50 * DATA.GUI.default_scale
-      DATA.GUI.custom_samplerH = DATA.GUI.custom_moduleh
-      DATA.GUI.custom_spl_areah = math.floor(DATA.GUI.custom_deviceh * 0.5)
-      DATA.GUI.custom_spl_modew = math.floor(DATA.GUI.custom_spl_areah/2)
-      DATA.GUI.custom_samplerW = (DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2) * 8
-      DATA.GUI.custom_sampler_namebutw = DATA.GUI.custom_samplerW-DATA.GUI.custom_sampler_showbutw*2
-      DATA.GUI.custom_spl_modeh =DATA.GUI.custom_spl_modew+1
-      DATA.GUI.custom_splctrl_h = math.floor(DATA.GUI.custom_spl_areah*0.15)
-      DATA.GUI.custom_splknob_h = DATA.GUI.custom_samplerH - DATA.GUI.custom_splctrl_h*2 - DATA.GUI.custom_spl_areah - DATA.GUI.custom_offset2*2-DATA.GUI.custom_offset
-      DATA.GUI.custom_splknob_txtsz = (DATA.GUI.custom_splctrl_h - DATA.GUI.custom_offset2*2)--*DATA.GUI.default_scale
-      DATA.GUI.custom_splgridtxtsz = DATA.GUI.custom_splknob_txtsz--12 * DATA.GUI.default_scale
-      DATA.GUI.custom_sampler_peaksw = DATA.GUI.custom_samplerW-DATA.GUI.custom_offset2-DATA.GUI.custom_spl_modew-1
+      
+    -- sampler  
+      DATA.GUI.custom_sampler_showbutw = 70 *DATA.GUI.custom_Yrelation  
+      DATA.GUI.custom_sampler_peakareah = math.floor(DATA.GUI.custom_moduleH * 0.4) 
+      DATA.GUI.custom_sampler_modew = math.floor(DATA.GUI.custom_sampler_peakareah/2) 
+      DATA.GUI.custom_samplerW = (DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset) * 8
+      DATA.GUI.custom_sampler_namebutw = DATA.GUI.custom_samplerW-DATA.GUI.custom_sampler_showbutw*2 
+      DATA.GUI.custom_sampler_readouth =DATA.GUI.custom_sampler_modew+1 
+      DATA.GUI.custom_sampler_knob_h = DATA.GUI.custom_moduleH - DATA.GUI.custom_module_ctrlreadout_h*2 - DATA.GUI.custom_sampler_peakareah - DATA.GUI.custom_offset*4-DATA.GUI.custom_offset 
+      DATA.GUI.custom_sampler_ctrl_txtsz = 13 *DATA.GUI.custom_Yrelation  
+      DATA.GUI.custom_sampler_peaksw = DATA.GUI.custom_samplerW-DATA.GUI.custom_offset-DATA.GUI.custom_sampler_modew-1
+      
+      
+      
+      
       if not DATA.GUI.layers then DATA.GUI.layers = {} end 
       DATA.GUI.layers[23]={
         ['a']=1,
@@ -1052,10 +1052,10 @@
     -- settings
       DATA.GUI.buttons.settings = { x=0,
                             y=0,
-                            w=DATA.GUI.custom_settingsbut_w,-- - DATA.GUI.custom_offset,
+                            w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
                             h=DATA.GUI.custom_infoh-1,
                             txt = '>',
-                            txt_fontsz = DATA.GUI.custom_texthdef,
+                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                             --frame_a = 1,
                             onmouseclick = function()
                               if DATA.GUI.Settings_open then DATA.GUI.Settings_open = math.abs(1-DATA.GUI.Settings_open) else DATA.GUI.Settings_open = 1 end 
@@ -1067,7 +1067,7 @@
       if DATA.GUI.Settings_open ==0 then  
         if not DATA.GUI.layers[21] then DATA.GUI.layers[21] = {} end DATA.GUI.layers[21].a = 0
         --if DATA2.tr_valid ==true and DATA2.tr_extparams_showstates then 
-          GUI_RESERVED_init_settingbut(DATA)
+          GUI_MODULE_TABS(DATA)
           GUI_MODULE_MACRO(DATA) 
           GUI_MODULE_PADOVERVIEW(DATA)
           GUI_MODULE_DRUMRACKPAD(DATA)
@@ -1143,6 +1143,7 @@
     local f_double = t.f_double
     local f_release = t.f_release
     local val_ispow = t.val_ispow
+    local txt_fontsz_knob = t.txt_fontsz
     
     local txt_line_ratio = t.txt_line_ratio or 1
     DATA.GUI.buttons[prefix..t.key..'frame'] = { x= t.x,
@@ -1159,28 +1160,28 @@
     DATA.GUI.buttons[prefix..t.key..'name'] = { x= t.x+arc_shift ,
                         y=t.y+1 ,
                         w=t.w-arc_shift*2,
-                        h=DATA.GUI.custom_splctrl_h*txt_line_ratio,
+                        h=DATA.GUI.custom_module_ctrlreadout_h*txt_line_ratio,
                         ignoremouse = true,
                         frame_a = 1,
                         frame_col = '#333333',
                         txt = t.ctrlname,
-                        txt_fontsz = DATA.GUI.custom_splknob_txtsz,
+                        txt_fontsz = txt_fontsz_knob,
                         } 
     DATA.GUI.buttons[prefix..t.key..'val'] = { x= t.x+arc_shift ,
-                        y=t.y+t.h-DATA.GUI.custom_splctrl_h ,
+                        y=t.y+t.h-DATA.GUI.custom_module_ctrlreadout_h ,
                         w=t.w-arc_shift*2,
-                        h=DATA.GUI.custom_splctrl_h-1,
+                        h=DATA.GUI.custom_module_ctrlreadout_h-1,
                         --ignoremouse = true,
                         frame_a = 0,
                         --backgr_fill = 0,
                         frame_col = '#333333',
                         txt = val_format,
-                        txt_fontsz = DATA.GUI.custom_splknob_txtsz,
+                        txt_fontsz = txt_fontsz_knob,
                         } 
     DATA.GUI.buttons[prefix..t.key..'knob'] = { x= t.x+arc_shift,
-                        y=t.y+DATA.GUI.custom_splctrl_h*txt_line_ratio ,
+                        y=t.y+DATA.GUI.custom_module_ctrlreadout_h*txt_line_ratio ,
                         w=t.w-arc_shift*2,
-                        h=t.h-DATA.GUI.custom_splctrl_h*(txt_line_ratio+1)-1,
+                        h=t.h-DATA.GUI.custom_module_ctrlreadout_h*(txt_line_ratio+1)-1,
                         --ignoremouse = true,
                         frame_a =1,
                         frame_col = '#333333',
@@ -1191,7 +1192,7 @@
                         val_min = t.val_min,
                         val_ispow = val_ispow,
                         txt = '',
-                        txt_fontsz = DATA.GUI.custom_splknob_txtsz,
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         onmousedoubleclick = function() f_double() end,
                         onmouseclick = function() end,
                         onmousedrag = function() f()  end,
@@ -1237,10 +1238,11 @@
           val = DATA2.Macro.sliders[ctrlid].val,
           val_format = math.floor(DATA2.Macro.sliders[ctrlid].val*100)..'%',
           val_res = 0.2,
+          txt_fontsz = DATA.GUI.custom_macro_knobtxtsz,
           x = math.floor(DATA.GUI.buttons.macroglob_frame.x+xshift)+1,
           y = math.floor(DATA.GUI.buttons.macroglob_frame.y+yshift)+1,
-          w = DATA.GUI.custom_macro_knobW-DATA.GUI.custom_offset2,
-          h = DATA.GUI.custom_macro_knobH-DATA.GUI.custom_offset2,
+          w = DATA.GUI.custom_macro_knobW-DATA.GUI.custom_offset,
+          h = DATA.GUI.custom_macro_knobH-DATA.GUI.custom_offset,
           frame_arcborder = true,
           txt_line_ratio = 2,
           f= function() GUI_MODULE_MACRO_stuff_Knobs_app(DATA, prefix, key, ctrlid) end,--,key,paramid,src_t,note,layer,val_format_key)   end  ,
@@ -1252,19 +1254,19 @@
   function GUI_MODULE_MACRO_stuff(DATA)  
     for ctrlid = 1, 16 do
       key = 'macroknob_'..ctrlid 
-      GUI_MODULE_MACRO_stuff_knob_preset(DATA, key, ctrlid)--,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)
+      GUI_MODULE_MACRO_stuff_knob_preset(DATA, key, ctrlid)--,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset)
     end
   end
   -----------------------------------------------------------------------------  
   function GUI_MODULE_MACRO(DATA)    
     for key in pairs(DATA.GUI.buttons) do if key:match('macroglob_') then DATA.GUI.buttons[key] = nil end end 
     if not DATA2.tr_extparams_showstates or ( DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&16==0) then return end
-    local x_offs= DATA.GUI.custom_modulex
+    local x_offs= DATA.GUI.custom_module_startoffsx
     
     DATA.GUI.buttons.macroglob_actionframe = { x=x_offs,
                           y=0,
                           w=DATA.GUI.custom_macroW,
-                          h=DATA.GUI.custom_infoh,
+                          h=DATA.GUI.custom_infoh-1,
                           txt = '',
                           val = 0,
                           frame_a = 0.3,
@@ -1298,22 +1300,22 @@
     if not DATA2.tr_extparams_showstates or ( DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&1==0) then return end
     
     local trname = DATA2.tr_name or '[no data]'      
-    local x_offs= DATA.GUI.custom_modulex
+    local x_offs= DATA.GUI.custom_module_startoffsx
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&16==16 then x_offs = x_offs + DATA.GUI.custom_offset+  DATA.GUI.custom_macroW end -- macro
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&8==8 then x_offs = x_offs + DATA.GUI.custom_offset +  DATA.GUI.custom_padgridw end -- pad view
      
        -- dr rack
        DATA.GUI.buttons.drumrack_trackname = { x=x_offs,
                             y=0,
-                            w=DATA.GUI.custom_padrackW-DATA.GUI.custom_offset2,
-                            h=DATA.GUI.custom_infoh,
+                            w=DATA.GUI.custom_drrack_sideW,
+                            h=DATA.GUI.custom_infoh-1,
                             txt = trname,
-                            txt_fontsz = DATA.GUI.custom_texthdef,
+                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                             }
        DATA.GUI.buttons.drumrackpad = { x=x_offs,
-                             y=DATA.GUI.custom_padrackY,
-                             w=DATA.GUI.custom_padrackW,
-                             h=DATA.GUI.custom_deviceh,
+                             y=DATA.GUI.custom_infoh,
+                             w=DATA.GUI.custom_drrack_sideW,
+                             h=DATA.GUI.custom_drrackH,
                              ignoremouse = true,
                              frame_a = 0,
                              }
@@ -1347,42 +1349,42 @@
       if DATA2.notes[note] and DATA2.notes[note].name then txt = DATA2.notes[note].name end
       if DATA2.notes[note] and DATA2.notes[note].device_isdevice and DATA2.notes[note].device_isdevice == true and DATA2.notes[note].device_name then txt ='[D] '..DATA2.notes[note].device_name end
       
-      DATA.GUI.buttons['drumrackpad_pad'..padID0] = { x=DATA.GUI.buttons.drumrackpad.x+(padID0%4)*DATA.GUI.custom_padsideX+1,
-                              y=DATA.GUI.buttons.drumrackpad.y+DATA.GUI.buttons.drumrackpad.h-DATA.GUI.custom_padsideY*(math.floor(padID0/4)+1)+DATA.GUI.custom_offset_pads,
-                              w=DATA.GUI.custom_padsideX-DATA.GUI.custom_offset_pads,
-                              h=DATA.GUI.custom_padsideY-DATA.GUI.custom_offset_pads-1,
+      DATA.GUI.buttons['drumrackpad_pad'..padID0] = { x=DATA.GUI.buttons.drumrackpad.x+(padID0%4)*DATA.GUI.custom_drrack_sideX+1,
+                              y=DATA.GUI.custom_infoh+DATA.GUI.custom_drrackH-DATA.GUI.custom_drrack_sideY*(math.floor(padID0/4)+1)+DATA.GUI.custom_offset,
+                              w=DATA.GUI.custom_drrack_sideX-DATA.GUI.custom_offset,
+                              h=DATA.GUI.custom_drrack_sideY-DATA.GUI.custom_offset-1,
                               ignoremouse = true,
                               txt='',
                               frame_a = frame_a,
                               frame_arcborder = true,
-                              frame_arcborderr = DATA.GUI.custom_arcr,
+                              frame_arcborderr = DATA.GUI.custom_drrack_arcr,
                               frame_arcborderflags = 1|2,
                               onmouseclick = function() end, 
                               refresh = true,
                               }
                               
-      local padx= DATA.GUI.buttons.drumrackpad.x+(padID0%4)*DATA.GUI.custom_padsideX+1
-      local pady = DATA.GUI.buttons.drumrackpad.y+DATA.GUI.buttons.drumrackpad.h-DATA.GUI.custom_padsideY*(math.floor(padID0/4)+1)+DATA.GUI.custom_offset_pads
-      local controlbut_h2 = DATA.GUI.custom_padsideY/2-DATA.GUI.custom_offset_pads
-      local controlbut_w = math.floor((DATA.GUI.custom_padsideX-DATA.GUI.custom_offset_pads) / 4)
-      if DATA.extstate.UI_useplaybutton == 0 then controlbut_w = math.floor(DATA.GUI.custom_padsideX / 3) end
+      local padx= DATA.GUI.buttons.drumrackpad.x+(padID0%4)*DATA.GUI.custom_drrack_sideX+1
+      local pady = DATA.GUI.buttons.drumrackpad.y+DATA.GUI.buttons.drumrackpad.h-DATA.GUI.custom_drrack_sideY*(math.floor(padID0/4)+1)+DATA.GUI.custom_offset
+      local controlbut_h2 = DATA.GUI.custom_drrack_sideY/2-DATA.GUI.custom_offset
+      local controlbut_w = math.floor((DATA.GUI.custom_drrack_sideX-DATA.GUI.custom_offset) / 4)
+      if DATA.extstate.UI_useplaybutton == 0 then controlbut_w = math.floor((DATA.GUI.custom_drrack_sideX -DATA.GUI.custom_offset)/ 3) end
       local frame_actrl =0
       local txt_actrl = 0.2
       local txt_a 
       if not DATA2.notes[note] then txt_a = 0.1 end
       DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'] = { x=padx,
                               y=pady,
-                              w=DATA.GUI.custom_padsideX-DATA.GUI.custom_offset_pads,
-                              h=DATA.GUI.custom_controlbut_h,
+                              w=DATA.GUI.custom_drrack_sideX-DATA.GUI.custom_offset,
+                              h=DATA.GUI.custom_drrack_ctrlbut_h,
                               txt=txt,
                               txt_a = txt_a,
-                              txt_fontsz =DATA.GUI.custom_padstxtsz,
+                              txt_fontsz =DATA.GUI.custom_drrack_pad_txtsz,
                               frame_a = 0,
                               frame_asel = 0.1,
                               backgr_fill = 0 ,
                               back_sela = 0.1 ,
                               frame_arcborder = true,
-                              frame_arcborderr = DATA.GUI.custom_arcr,
+                              frame_arcborderr = DATA.GUI.custom_drrack_arcr,
                               frame_arcborderflags = 1|2,
                               --prevent_matchrefresh = true,
                               onmouseclick = function() 
@@ -1415,13 +1417,13 @@
       --local txt_a,txt_col= txt_actrl if DATA2.notes[note] and DATA2.notes[note].partrack_mute and DATA2.notes[note].partrack_mute == 1 then txt_col = '#A55034' txt_a = 1 end
       local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers[1].tr_mute and DATA2.notes[note].layers[1].tr_mute >0 then backgr_fill = 0.2 txt_a = nil end
       DATA.GUI.buttons['drumrackpad_pad'..padID0..'mute'] = { x=padx,
-                              y=pady+DATA.GUI.custom_controlbut_h,
+                              y=pady+DATA.GUI.custom_drrack_ctrlbut_h,
                               w=controlbut_w,
                               h=controlbut_h2-1,
                               txt='M',
                               txt_col=txt_col,
                               txt_a = txt_a,
-                              txt_fontsz = DATA.GUI.custom_padstxtsz,
+                              txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
                               frame_a = frame_actrl,
                               prevent_matchrefresh = true,
                               backgr_fill = backgr_fill,
@@ -1432,11 +1434,11 @@
       if DATA.extstate.UI_useplaybutton == 1 then
         local backgr_fill2,frame_actrl0=nil,frame_actrl if DATA2.playingnote_pitch and DATA2.playingnote_pitch == note  then backgr_fill2 = 0.8 frame_actrl0 = 1 end
         DATA.GUI.buttons['drumrackpad_pad'..padID0..'play'] = { x=padx+controlbut_w,
-                                y=pady+DATA.GUI.custom_controlbut_h,
+                                y=pady+DATA.GUI.custom_drrack_ctrlbut_h,
                                 w=controlbut_w,
                                 h=controlbut_h2-1,
                                 txt='>',
-                                txt_fontsz = DATA.GUI.custom_padstxtsz,
+                                txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
                                 txt_a = txt_actrl,
                                 prevent_matchrefresh = true,
                                 frame_a = frame_actrl0,
@@ -1448,13 +1450,13 @@
       end
       local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers[1].tr_solo and DATA2.notes[note].layers[1].tr_solo >0 then backgr_fill = 0.2 txt_a = nil end
       DATA.GUI.buttons['drumrackpad_pad'..padID0..'solo'] = { x=padx+controlbut_w*2,
-                              y=pady+DATA.GUI.custom_controlbut_h,
+                              y=pady+DATA.GUI.custom_drrack_ctrlbut_h,
                               w=controlbut_w,
                               h=controlbut_h2-1,
                               --txt_col=txt_col,
                               txt_a = txt_a,
                               txt='S',
-                              txt_fontsz = DATA.GUI.custom_padstxtsz,
+                              txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
                               frame_a = frame_actrl,
                               prevent_matchrefresh = true,
                               backgr_fill = backgr_fill,
@@ -1463,16 +1465,16 @@
                               }    
       if DATA.extstate.UI_useplaybutton == 0 then DATA.GUI.buttons['drumrackpad_pad'..padID0..'solo'].x=padx+controlbut_w end
       DATA.GUI.buttons['drumrackpad_pad'..padID0..'show'] = { x=padx+controlbut_w*3,
-                              y=pady+DATA.GUI.custom_controlbut_h,
+                              y=pady+DATA.GUI.custom_drrack_ctrlbut_h,
                               w=controlbut_w-1,
                               h=controlbut_h2-1,
                               txt_a = txt_actrl,
                               txt='ME',
-                              txt_fontsz = DATA.GUI.custom_padstxtsz,
+                              txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
                               frame_a = 0,
                               backgr_fill = 0,
                               --frame_arcborder = true,
-                              --frame_arcborderr = DATA.GUI.custom_arcr,
+                              --frame_arcborderr = DATA.GUI.custom_drrack_arcr,
                               --frame_arcborderflags = 4,
                               onmouseclick = function() DATA2:PAD_showinME(note) end,
                               } 
@@ -1820,9 +1822,9 @@
   
   function GUI_MODULE_DEVICE_stuff(DATA, note, layer, y_offs) 
     local x_offs = DATA.GUI.buttons.devicestuff_frame.x
-    local w_layername = math.floor(DATA.GUI.buttons.devicestuff_frame.w*0.4)
-    local w_ctrls = DATA.GUI.buttons.devicestuff_frame.w - w_layername
-    local w_ctrls_single = math.floor(w_ctrls / 5)
+    local w_layername = math.floor(DATA.GUI.buttons.devicestuff_frame.w*0.55)
+    local w_ctrls = DATA.GUI.buttons.devicestuff_frame.w - w_layername-DATA.GUI.custom_offset
+    local w_ctrls_single = (w_ctrls / 10)
     local reduce = 1--3*DATA.GUI.default_scale
     
     --[[local w_ctr = 20*DATA.GUI.default_scale
@@ -1831,7 +1833,6 @@
     
     
     --local w_layername = DATA.GUI.buttons.devicestuff_frame.w - w_vol - w_pan - w_ctr*3 
-    local ctrl_txtsz = DATA.GUI.custom_devicectrl_txtsz
     local frame_a = 0--DATA.GUI.custom_framea
     --local tr_extparams_note_active_layer = DATA2.tr_extparams_note_active_layer
     --if not tr_extparams_note_active_layer then tr_extparams_note_active_layer = 1 end
@@ -1853,7 +1854,7 @@
                         h=DATA.GUI.custom_deviceentryh-reduce,
                         --ignoremouse = DATA2.tr_extparams_showstates&2==0,
                         txt = DATA2.notes[note].layers[layer].name,
-                        txt_fontsz = ctrl_txtsz,
+                        txt_fontsz = DATA.GUI.custom_devicectrl_txtsz,
                         frame_a = frame_a,
                         backgr_fill = backgr_fill_name,
                         backgr_col =backgr_col,
@@ -1866,15 +1867,15 @@
                         }
     -- vol
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'] = { 
-                        x=x_offs+w_layername,
+                        x=x_offs+w_layername+DATA.GUI.custom_offset,
                         y=y_offs,
-                        w=w_ctrls_single-reduce,
+                        w=w_ctrls_single*4-reduce,
                         h=DATA.GUI.custom_deviceentryh-reduce,
                         val = DATA2.notes[note].layers[layer].tr_vol/2,
                         val_res = -0.1,
                         val_xaxis = true,
                         txt = DATA2.notes[note].layers[layer].tr_vol_format,
-                        txt_fontsz = ctrl_txtsz,
+                        txt_fontsz = DATA.GUI.custom_devicectrl_txtsz,
                         backgr_fill2 = backgr_fill_param,
                         backgr_col2 =backgr_col,
                         backgr_usevalue = true,
@@ -1911,9 +1912,9 @@
                             end,
                         }   
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'] = { 
-                        x=x_offs+w_layername+w_ctrls_single,
+                        x=x_offs+w_layername+w_ctrls_single*4+DATA.GUI.custom_offset,
                         y=y_offs,
-                        w=w_ctrls_single-reduce,
+                        w=w_ctrls_single*3-reduce,
                         h=DATA.GUI.custom_deviceentryh-reduce,
                         val = DATA2.notes[note].layers[layer].tr_pan,
                         val_res = -0.6,
@@ -1922,7 +1923,7 @@
                         val_min = -1,
                         val_max = 1,
                         txt = DATA2.notes[note].layers[layer].tr_pan_format,
-                        txt_fontsz = ctrl_txtsz,
+                        txt_fontsz = DATA.GUI.custom_devicectrl_txtsz,
                         backgr_fill2 = backgr_fill_param,
                         backgr_col2 =backgr_col,
                         backgr_usevalue = true,
@@ -1961,7 +1962,7 @@
     local backgr_fill_param_en
     if DATA2.notes[note].layers[layer].enabled == true then backgr_fill_param_en = backgr_fill_param end
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'enable'] = { 
-                        x=x_offs+w_layername+w_ctrls_single*2,
+                        x=x_offs+w_layername+w_ctrls_single*7+DATA.GUI.custom_offset,
                         y=y_offs,
                         w=w_ctrls_single-reduce,
                         h=DATA.GUI.custom_deviceentryh-reduce,
@@ -1969,7 +1970,7 @@
                         backgr_col2 =backgr_col,
                         backgr_usevalue = true,
                         txt = 'On',
-                        txt_fontsz = ctrl_txtsz,
+                        txt_fontsz = DATA.GUI.custom_devicectrl_txtsz,
                         onmouserelease = function()
                               local src_t = DATA2.notes[note].layers[layer]
                               local newval = 1 if src_t.enabled == true then newval = 0 end
@@ -1981,7 +1982,7 @@
     local backgr_fill_param_en
     if DATA2.notes[note].layers[layer].tr_solo >0 then backgr_fill_param_en = backgr_fill_param end
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'solo'] = { 
-                        x=x_offs+w_layername+w_ctrls_single*3,
+                        x=x_offs+w_layername+w_ctrls_single*8+DATA.GUI.custom_offset,
                         y=y_offs,
                         w=w_ctrls_single-reduce,
                         h=DATA.GUI.custom_deviceentryh-reduce,
@@ -1989,21 +1990,21 @@
                         backgr_col2 =backgr_col,
                         backgr_usevalue = true,
                         txt = 'S',
-                        txt_fontsz = ctrl_txtsz,
+                        txt_fontsz = DATA.GUI.custom_devicectrl_txtsz,
                         onmouserelease = function()DATA2:PAD_solo(note,layer) end,
                         }   
     local backgr_fill_param_en
     if DATA2.notes[note].layers[layer].tr_mute >0 then backgr_fill_param_en = backgr_fill_param end
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'mute'] = { 
-                        x=x_offs+w_layername+w_ctrls_single*4,
+                        x=x_offs+w_layername+w_ctrls_single*9+DATA.GUI.custom_offset,
                         y=y_offs,
-                        w=w_ctrls_single-reduce,
+                        w=w_ctrls_single-reduce-1,
                         h=DATA.GUI.custom_deviceentryh-reduce,
                         backgr_fill2 = backgr_fill_param_en,
                         backgr_col2 =backgr_col,
                         backgr_usevalue = true,
                         txt = 'M',
-                        txt_fontsz = ctrl_txtsz,
+                        txt_fontsz = DATA.GUI.custom_devicectrl_txtsz,
                         onmouserelease = function()DATA2:PAD_mute(note,layer) end,
                         }                         
   end
@@ -2023,19 +2024,19 @@
      elseif DATA2.tr_extparams_note_active and DATA2.notes[DATA2.tr_extparams_note_active]  and DATA2.notes[DATA2.tr_extparams_note_active].device_isdevice ==true then
       name = '[Device '..DATA2.tr_extparams_note_active..' / '..DATA2:FormatMIDIPitch(DATA2.tr_extparams_note_active)..'] '..(DATA2.notes[DATA2.tr_extparams_note_active].device_name or '')
     end
-    local x_offs = DATA.GUI.custom_offset +DATA.GUI.custom_settingsbut_w
+    local x_offs = DATA.GUI.custom_offset +DATA.GUI.custom_tab_w
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&16==16 then x_offs = x_offs + DATA.GUI.custom_offset+  DATA.GUI.custom_macroW end -- macro
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&8==8 then x_offs = x_offs + DATA.GUI.custom_padgridw + DATA.GUI.custom_offset end -- pad view
-    if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&1==1 then x_offs = x_offs + DATA.GUI.custom_padrackW + DATA.GUI.custom_offset end -- drrack
+    if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&1==1 then x_offs = x_offs + DATA.GUI.custom_drrack_sideW + DATA.GUI.custom_offset end -- drrack
     
-    local device_y = DATA.GUI.custom_infoh+DATA.GUI.custom_offset2
+    local device_y = DATA.GUI.custom_infoh+DATA.GUI.custom_offset
     
     DATA.GUI.buttons.devicestuff_name = { x=x_offs,
                          y=0,
                          w=DATA.GUI.custom_devicew,
-                         h=DATA.GUI.custom_infoh,
+                         h=DATA.GUI.custom_infoh-1,
                          txt = name,
-                         txt_fontsz = DATA.GUI.custom_texthdef,
+                         txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                          onmouseclick = function() DATA2:PAD_onrightclick(DATA2.tr_extparams_note_active) end
                          }
         
@@ -2046,14 +2047,14 @@
     DATA.GUI.buttons.devicestuff_frame = { x=x_offs,
                           y=device_y,
                           w=DATA.GUI.custom_devicew+1,
-                          h=DATA.GUI.custom_deviceh+DATA.GUI.custom_offset2,
+                          h=DATA.GUI.custom_deviceh+DATA.GUI.custom_offset,
                           ignoremouse = true,
                           frame_a =1,
                           frame_col = '#333333',
                           backgr_fill = 0,
                           }  
                           
-    local y_offs = DATA.GUI.buttons.devicestuff_frame.y+ DATA.GUI.custom_offset2
+    local y_offs = DATA.GUI.buttons.devicestuff_frame.y+ DATA.GUI.custom_offset
     local w_dev = DATA.GUI.buttons.devicestuff_frame.w
     if DATA2.notes and DATA2.notes[tr_extparams_note_active] and DATA2.notes[tr_extparams_note_active].layers then 
       for layer = 1, #DATA2.notes[tr_extparams_note_active].layers do
@@ -2063,19 +2064,20 @@
     end
     
     DATA.GUI.buttons.devicestuff_frame_fillactive = { x=x_offs,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_offset2,
+                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
                           w=DATA.GUI.custom_devicew,
-                          h=y_offs - device_y,--DATA.GUI.custom_deviceh-DATA.GUI.custom_offset+DATA.GUI.custom_offset2,
+                          h=y_offs - device_y,--DATA.GUI.custom_deviceh-DATA.GUI.custom_offset+DATA.GUI.custom_offset,
                           ignoremouse = true,
                           frame_a =1,
                           frame_col = '#333333',
                           }
     DATA.GUI.buttons.devicestuff_droparea = { x=x_offs+1,
-                          y=y_offs+DATA.GUI.custom_offset2,
+                          y=y_offs+DATA.GUI.custom_offset,
                           w=DATA.GUI.custom_devicew-1,
-                          h=DATA.GUI.custom_deviceh-(y_offs-device_y)-DATA.GUI.custom_offset2,
+                          h=DATA.GUI.custom_deviceh-(y_offs-device_y)-DATA.GUI.custom_offset*3,
                           --ignoremouse = true,
                           txt = 'Drop new instrument here',
+                          txt_fontsz = DATA.GUI.custom_device_droptxtsz,
                           --frame_a =0.1,
                           --frame_col = '#333333',
                           onmousefiledrop = function() DATA2:PAD_onfiledrop(DATA2.tr_extparams_note_active, layers_cnt+1) end,
@@ -2155,7 +2157,7 @@
     for key in pairs(DATA.GUI.buttons) do if key:match('padgrid_but') then DATA.GUI.buttons[key] = nil end end
     if not DATA2.tr_extparams_showstates or ( DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&8==0) then return end
     
-    local x_offs= DATA.GUI.custom_modulex
+    local x_offs= DATA.GUI.custom_module_startoffsx
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&16==16 and skip_grid~=true then x_offs = x_offs + DATA.GUI.custom_offset+  DATA.GUI.custom_macroW end -- macro
     DATA.GUI.buttons.padgrid = { x=x_offs,
                           y=DATA.GUI.custom_padgridy,
@@ -2338,7 +2340,7 @@
     -- draw grid
     local src_len = DATA2.cursplpeaks.src_len
     local txt_font = DATA.GUI.default_txt_font
-    local txt_fontsz_out = DATA.GUI.custom_splgridtxtsz
+    local txt_fontsz_out = DATA.GUI.custom_sampler_ctrl_txtsz
     local txt_fontflags= 0
     local txt_col = '#ffffff'
     local txt_a = 0.7
@@ -2400,16 +2402,6 @@
       GUI_MODULE_SAMPLER_Section_Loopstate(DATA)
       return 
     end
-    --[[local backgr_col,backgr_fill
-    if spl_t.params_loop == 1 then 
-      backgr_col = DATA.GUI.custom_backcol2 backgr_fill=DATA.GUI.custom_backfill2
-      DATA.GUI.buttons.sampler_mode1.backgr_col=backgr_col
-      DATA.GUI.buttons.sampler_mode1.backgr_fill=backgr_fill
-     else
-      backgr_col = DATA.GUI.custom_backcol2 backgr_fill=DATA.GUI.custom_backfill2
-      DATA.GUI.buttons.sampler_mode2.backgr_col=backgr_col
-      DATA.GUI.buttons.sampler_mode2.backgr_fill=backgr_fill
-    end]]
   end
   ----------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_Section_Loopstate(DATA)
@@ -2420,28 +2412,28 @@
     local backgr_col = 0
     if DATA2.notes[note].layers[layer].params_loop == 1 then backgr_fill = 0.2 end
     DATA.GUI.buttons.sampler_mode1 = { x= DATA.GUI.buttons.sampler_frame.x ,
-                        y=DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset2,
-                        w=DATA.GUI.custom_spl_modew,
-                        h=DATA.GUI.custom_spl_modeh-1,
+                        y=DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset,
+                        w=DATA.GUI.custom_sampler_modew,
+                        h=DATA.GUI.custom_sampler_readouth-1,
                         --ignoremouse = true,
                         frame_a = DATA.GUI.custom_framea,
                         backgr_col=backgr_col,
                         backgr_fill=backgr_fill,
                         txt = 'Loop',
-                        txt_fontsz = DATA.GUI.custom_splknob_txtsz,
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         onmouseclick = function() GUI_MODULE_SAMPLER_Section_Loopstate_set(DATA,spl_t, note, layer, 1) end,
                         } 
     local backgr_fill = 0
     local backgr_col = 0
     if DATA2.notes[note].layers[layer].params_loop == 0 then backgr_fill = 0.2 end
     DATA.GUI.buttons.sampler_mode2 = { x= DATA.GUI.buttons.sampler_frame.x,
-                        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_spl_modeh+ DATA.GUI.custom_offset2+1 ,
-                        w=DATA.GUI.custom_spl_modew,
-                        h=DATA.GUI.custom_spl_modeh-2,
+                        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_readouth+ DATA.GUI.custom_offset+1 ,
+                        w=DATA.GUI.custom_sampler_modew,
+                        h=DATA.GUI.custom_sampler_readouth-2,
                         --ignoremouse = true,
                         frame_a = DATA.GUI.custom_framea,
                         txt = '1-shot',
-                        txt_fontsz = DATA.GUI.custom_splknob_txtsz,
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         backgr_col=backgr_col,
                         backgr_fill=backgr_fill,
                         onmouseclick = function() GUI_MODULE_SAMPLER_Section_Loopstate_set(DATA,spl_t, note, layer, 0) end,
@@ -2460,10 +2452,10 @@
     for key in pairs(DATA.GUI.buttons) do if key:match('sampler_') and key~=sampler_framepeaks then DATA.GUI.buttons[key] = nil end end
     if not DATA2.tr_extparams_showstates or ( DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&4==0) then return end
     
-    local x_offs = DATA.GUI.custom_modulex
+    local x_offs = DATA.GUI.custom_module_startoffsx
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&16==16 then x_offs = x_offs + DATA.GUI.custom_offset+  DATA.GUI.custom_macroW end -- macro
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&8==8 then x_offs = x_offs + DATA.GUI.custom_padgridw + DATA.GUI.custom_offset end -- pad view
-    if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&1==1 then x_offs = x_offs + DATA.GUI.custom_padrackW + DATA.GUI.custom_offset end -- drrack
+    if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&1==1 then x_offs = x_offs + DATA.GUI.custom_drrack_sideW + DATA.GUI.custom_offset end -- drrack
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&2==2 then x_offs = x_offs + DATA.GUI.custom_devicew + DATA.GUI.custom_offset end -- device
     
     -- sample name  
@@ -2472,35 +2464,35 @@
       if not spl_t then return end 
       name = '[Layer '..layer..'] '..(spl_t.name or '')
       DATA.GUI.buttons.sampler_frame = { x=x_offs,
-                            y=DATA.GUI.custom_infoh+DATA.GUI.custom_offset2,
+                            y=DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
                             w=DATA.GUI.custom_samplerW,
-                            h=DATA.GUI.custom_deviceh-DATA.GUI.custom_offset+DATA.GUI.custom_offset2,
+                            h=DATA.GUI.custom_deviceh-DATA.GUI.custom_offset+DATA.GUI.custom_offset,
                             ignoremouse = true,
                             frame_a =1,
                             frame_col = '#333333',
                             } 
       DATA.GUI.buttons.sampler_name = { x=x_offs,
                            y=0,
-                           w=DATA.GUI.custom_sampler_namebutw-DATA.GUI.custom_offset2*2,
-                           h=DATA.GUI.custom_infoh,
+                           w=DATA.GUI.custom_sampler_namebutw-DATA.GUI.custom_offset*2,
+                           h=DATA.GUI.custom_infoh-1,
                            txt = name,
-                           txt_fontsz = DATA.GUI.custom_texthdef,
+                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                            }
                             
-      DATA.GUI.buttons.sampler_actions = { x=x_offs+DATA.GUI.custom_sampler_namebutw-DATA.GUI.custom_offset2,
+      DATA.GUI.buttons.sampler_actions = { x=x_offs+DATA.GUI.custom_sampler_namebutw-DATA.GUI.custom_offset,
                            y=0,
                            w=DATA.GUI.custom_sampler_showbutw-1,
-                           h=DATA.GUI.custom_infoh,
+                           h=DATA.GUI.custom_infoh-1,
                            txt = 'Actions',
-                           txt_fontsz = DATA.GUI.custom_texthdef,
+                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                            onmouserelease = function()  DATA2:SAMPLER_Actions()  end,
                            }                             
       DATA.GUI.buttons.sampler_show = { x=x_offs+DATA.GUI.custom_sampler_namebutw+DATA.GUI.custom_sampler_showbutw,
                            y=0,
                            w=DATA.GUI.custom_sampler_showbutw-1,
-                           h=DATA.GUI.custom_infoh,
+                           h=DATA.GUI.custom_infoh-1,
                            txt = 'Show',
-                           txt_fontsz = DATA.GUI.custom_texthdef,
+                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                            onmouserelease = function() DATA2:ActiveNoteLayer_ShowRS5k(note, layer) end,
                            }                     
                           
@@ -2515,10 +2507,10 @@
   ----------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_Section_SplPeakFrame(DATA)  
     if not tr_ptr_last or (tr_ptr_last and tr_ptr_last ~= DATA2.tr_ptr) then
-      DATA.GUI.buttons.sampler_framepeaks = { x= DATA.GUI.buttons.sampler_frame.x + DATA.GUI.custom_offset2+DATA.GUI.custom_spl_modew,
-                          y=DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset2,
+      DATA.GUI.buttons.sampler_framepeaks = { x= DATA.GUI.buttons.sampler_frame.x + DATA.GUI.custom_offset+DATA.GUI.custom_sampler_modew,
+                          y=DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset,
                           w=DATA.GUI.custom_sampler_peaksw,
-                          h=DATA.GUI.custom_spl_areah,
+                          h=DATA.GUI.custom_sampler_peakareah,
                           --ignoremouse = true,
                           frame_a = DATA.GUI.custom_framea,
                           data = {['datatype'] = 'samplepeaks'},
@@ -2534,9 +2526,9 @@
     local src_t, note, layer = DATA2:ActiveNoteLayer_GetTable()
     
     local val_res = 0.03
-    local woffs= DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2
+    local woffs= DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset
     local xoffs= DATA.GUI.buttons.sampler_frame.x
-    local yoffs= DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_spl_areah+DATA.GUI.custom_offset2*2
+    local yoffs= DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_peakareah+DATA.GUI.custom_offset*2
     
     xoffs = xoffs + 0
     local paramid = 0
@@ -2556,8 +2548,8 @@
         src_t = src_t,
         x = DATA.GUI.buttons.sampler_frame.x,
         y= yoffs,
-        w = DATA.GUI.custom_spl_modew,
-        h = DATA.GUI.custom_splctrl_h*2,
+        w = DATA.GUI.custom_sampler_modew,
+        h = DATA.GUI.custom_module_ctrlreadout_h*2,
         note =note,
         layer=layer
       } )
@@ -2580,8 +2572,8 @@
         src_t = src_t,
         x = xoffs,
         y= yoffs,
-        w = DATA.GUI.custom_spl_modew,
-        h = DATA.GUI.custom_splctrl_h*2,
+        w = DATA.GUI.custom_sampler_modew,
+        h = DATA.GUI.custom_module_ctrlreadout_h*2,
         note =note,
         layer=layer
       } )    
@@ -2606,8 +2598,8 @@
         src_t = src_t,
         x = xoffs,
         y= yoffs,
-        w = DATA.GUI.custom_spl_modew-1,
-        h = DATA.GUI.custom_splctrl_h*2,
+        w = DATA.GUI.custom_sampler_modew-1,
+        h = DATA.GUI.custom_module_ctrlreadout_h*2,
         note =note,
         layer=layer
       } )  
@@ -2628,8 +2620,8 @@
         src_t = src_t,
         x = xoffs,
         y= yoffs,
-        w = DATA.GUI.custom_spl_modew-1,
-        h = DATA.GUI.custom_splctrl_h*2,
+        w = DATA.GUI.custom_sampler_modew-1,
+        h = DATA.GUI.custom_module_ctrlreadout_h*2,
         note =note,
         layer=layer
       } )  
@@ -2656,8 +2648,8 @@
         src_t = src_t,
         x = xoffs,
         y= yoffs,
-        w = DATA.GUI.custom_spl_modew-1,
-        h = DATA.GUI.custom_splctrl_h*2,
+        w = DATA.GUI.custom_sampler_modew-1,
+        h = DATA.GUI.custom_module_ctrlreadout_h*2,
         note =note,
         layer=layer
       } )  
@@ -2676,8 +2668,8 @@
           src_t = src_t,
           x = xoffs,
           y= yoffs,
-          w = DATA.GUI.custom_spl_modew-1,
-          h = DATA.GUI.custom_splctrl_h*2,
+          w = DATA.GUI.custom_sampler_modew-1,
+          h = DATA.GUI.custom_module_ctrlreadout_h*2,
           note =note,
           layer=layer
         } )  
@@ -2692,7 +2684,7 @@
     DATA.GUI.buttons[prefix..key..'val'].refresh = true
   end
   ------------------------------------------------------------------------
-  function GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,xoffs,val_default, val_max, ispow)
+  function GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,xoffs,val_default, val_max, ispow,frame_arcborder,frame_arcborderflags)
     local prefix = 'sampler_'
     GUI_CTRL_Knob(DATA,
       {
@@ -2708,14 +2700,15 @@
         val_ispow = ispow,
         --val_res = 0.05,
         src_t = src_t,
+        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
         x = DATA.GUI.buttons.sampler_frame.x+(xoffs or 0 ),
-        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_spl_areah+DATA.GUI.custom_offset2*3+DATA.GUI.custom_splctrl_h*2,
-        w = DATA.GUI.custom_spl_modew,
-        h = DATA.GUI.custom_splknob_h,
+        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_peakareah+DATA.GUI.custom_offset*3+DATA.GUI.custom_module_ctrlreadout_h*2,
+        w = DATA.GUI.custom_sampler_modew,
+        h = DATA.GUI.custom_sampler_knob_h,
         note =note,
         layer=layer,
-        frame_arcborder=true,
-        
+        frame_arcborder=frame_arcborder,
+        frame_arcborderflags=frame_arcborderflags,
         f= function()     
           local new_val = DATA.GUI.buttons[prefix..key..'knob'].val
           GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_app(DATA, prefix,key,paramid,src_t,note,layer,val_format_key, val_default,new_val)  
@@ -2781,7 +2774,7 @@
     end
   end    
   ------------------------------------------------------------------------
-  function GUI_MODULE_SAMPLER_Section_FilterKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,xoffs,val_default, val_max)
+  function GUI_MODULE_SAMPLER_Section_FilterKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,xoffs,val_default, val_max, frame_arcborder, frame_arcborderflags)
     if not src_t then return end
     local prefix = 'sampler_'
     GUI_CTRL_Knob(DATA,
@@ -2796,14 +2789,16 @@
         val_max = val_max,
         paramid=paramid,
         --val_res = 0.05,
+        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
         src_t = src_t,
         x = DATA.GUI.buttons.sampler_frame.x+(xoffs or 0 ),
-        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_spl_areah+DATA.GUI.custom_offset2*3+DATA.GUI.custom_splctrl_h*2,
-        w = DATA.GUI.custom_spl_modew,
-        h = DATA.GUI.custom_splknob_h,
+        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_peakareah+DATA.GUI.custom_offset*3+DATA.GUI.custom_module_ctrlreadout_h*2,
+        w = DATA.GUI.custom_sampler_modew,
+        h = DATA.GUI.custom_sampler_knob_h,
         note =note,
         layer=layer,
-        frame_arcborder=true,
+        frame_arcborder=frame_arcborder,
+        frame_arcborderflags=frame_arcborderflags,
         f= function()     
           local new_val = DATA.GUI.buttons[prefix..key..'knob'].val
           if not new_val then DATA2:TrackData_SetReaEQParams(src_t, -1, -1) return end
@@ -2839,7 +2834,7 @@
     local val_default = 0 
     local prefix = 'sampler_'
     local paramid = 0
-    GUI_MODULE_SAMPLER_Section_FilterKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val, (DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*1, val_default, val_max)
+    GUI_MODULE_SAMPLER_Section_FilterKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val, (DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset)*1, val_default, val_max,frame_arcborder,frame_arcborderflags)
     
     local key = 'spl_reaeq_gain'
     local val_format_key = 'reaeq_gain_format'
@@ -2848,7 +2843,9 @@
     local val_default = 0 
     local prefix = 'sampler_'
     local paramid = 1
-    GUI_MODULE_SAMPLER_Section_FilterKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val, (DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*2, val_default, val_max)
+    local frame_arcborder = true
+    local frame_arcborderflags = 2|4
+    GUI_MODULE_SAMPLER_Section_FilterKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val, (DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset)*2, val_default, val_max,frame_arcborder,frame_arcborderflags)
     --[[
     local key = 'spl_reaeq_bw'
     local val_format_key = 'reaeq_bw_format'
@@ -2857,16 +2854,16 @@
     local val_default = 0 
     local prefix = 'sampler_'
     local paramid = 2
-    GUI_MODULE_SAMPLER_Section_FilterKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val, (DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*3, val_default, val_max)]]
+    GUI_MODULE_SAMPLER_Section_FilterKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val, (DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset)*3, val_default, val_max)]]
     
     DATA.GUI.buttons.sampler_spl_reaeq_toggle = { 
                         x = DATA.GUI.buttons.sampler_frame.x,
-                        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_spl_areah+DATA.GUI.custom_offset2*3+DATA.GUI.custom_splctrl_h*2,
-                        w = DATA.GUI.custom_splctrl_h,
-                        h = DATA.GUI.custom_splctrl_h,
+                        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_peakareah+DATA.GUI.custom_offset*4+DATA.GUI.custom_module_ctrlreadout_h*3,
+                        w = DATA.GUI.custom_module_ctrlreadout_h*2,
+                        h = DATA.GUI.custom_module_ctrlreadout_h,
                         --ignoremouse = true,
                         txt = '',
-                        txt_fontsz = DATA.GUI.custom_splknob_txtsz,
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         --frame_a =DATA.GUI.custom_framea,
                         state = DATA2.notes[note].layers[layer].reaeq_enabledband1==1,
                         onmouserelease = function() 
@@ -2881,23 +2878,25 @@
                         } 
                         
     DATA.GUI.buttons.sampler_spl_reaeq_togglename = { 
-                        x = DATA.GUI.buttons.sampler_frame.x+DATA.GUI.custom_splctrl_h+DATA.GUI.custom_offset2,
-                        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_spl_areah+DATA.GUI.custom_offset2*3+DATA.GUI.custom_splctrl_h*2,
-                        w = DATA.GUI.custom_spl_modew-DATA.GUI.custom_splctrl_h-DATA.GUI.custom_offset2,
-                        h = DATA.GUI.custom_splctrl_h,
+                        x = DATA.GUI.buttons.sampler_frame.x,
+                        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_peakareah+DATA.GUI.custom_offset*3+DATA.GUI.custom_module_ctrlreadout_h*2,
+                        w = DATA.GUI.custom_sampler_modew,
+                        h = DATA.GUI.custom_module_ctrlreadout_h,
                         ignoremouse = true,
                         txt = 'Filter',
-                        txt_fontsz = DATA.GUI.custom_splknob_txtsz,
+                        frame_arcborder = true,
+                        frame_arcborderflags = 1,
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         --frame_a =DATA.GUI.custom_framea, 
                         } 
     DATA.GUI.buttons.sampler_spl_reaeq_bandtype = { 
                         x = DATA.GUI.buttons.sampler_frame.x,
-                        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_spl_areah+DATA.GUI.custom_offset2*4+DATA.GUI.custom_splctrl_h*3,
-                        w = DATA.GUI.custom_spl_modew,
-                        h = DATA.GUI.custom_splctrl_h,
+                        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_peakareah+DATA.GUI.custom_offset*5+DATA.GUI.custom_module_ctrlreadout_h*4,
+                        w = DATA.GUI.custom_sampler_modew,
+                        h = DATA.GUI.custom_module_ctrlreadout_h,
                         --ignoremouse = true,
                         txt = DATA2.notes[note].layers[layer].reaeq_bandtype_format,
-                        txt_fontsz = DATA.GUI.custom_splknob_txtsz,
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         onmouserelease = function() 
                           local function GUI_MODULE_SAMPLER_Section_FilterKnobs_addknob_setband(src_t,note,layer,out)
                             DATA2:TrackData_SetReaEQParams(src_t, 'bandtype', out) 
@@ -2937,10 +2936,11 @@
         paramid=paramid,
         --val_res = 0.05,
         src_t = src_t,
-        x = DATA.GUI.buttons.sampler_frame.x+((DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*3 or 0 ),
-        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_spl_areah+DATA.GUI.custom_offset2*3+DATA.GUI.custom_splctrl_h*2,
-        w = DATA.GUI.custom_spl_modew,
-        h = DATA.GUI.custom_splknob_h,
+        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
+        x = DATA.GUI.buttons.sampler_frame.x+((DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset)*3 or 0 ),
+        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_peakareah+DATA.GUI.custom_offset*3+DATA.GUI.custom_module_ctrlreadout_h*2,
+        w = DATA.GUI.custom_sampler_modew,
+        h = DATA.GUI.custom_sampler_knob_h,
         note =note,
         layer=layer,
         frame_arcborder=true,
@@ -2985,7 +2985,9 @@
     if not src_t.ISPLUGIN then 
       val_max = DATA2.notes[note].layers[layer].cached_len/2
     end
-    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val, (DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*4, val_default, val_max, ispow)
+    local frame_arcborder=true
+    local frame_arcborderflags = 1|8
+    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val, (DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset)*4, val_default, val_max, ispow,frame_arcborder,frame_arcborderflags)
     
     local paramid = 24
     local ispow
@@ -3000,7 +3002,8 @@
     if not src_t.ISPLUGIN then 
       val_max = DATA2.notes[note].layers[layer].cached_len/15
     end
-    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,(DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*5, val_default, val_max, ispow)
+    local frame_arcborder=false
+    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,(DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset)*5, val_default, val_max, ispow,frame_arcborder,frame_arcborderflags)
     
     local paramid = 25
     local ispow
@@ -3012,7 +3015,8 @@
     if src_t.params_sustain_name then ctrlname =src_t.params_sustain_name end
     local val_default = 0.5
     local val_max = 1
-    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,(DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*6, val_default, val_max, ispow)
+    local frame_arcborder=false
+    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,(DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset)*6, val_default, val_max, ispow,frame_arcborder,frame_arcborderflags)
     
     local paramid = 10
     local ispow
@@ -3027,7 +3031,9 @@
     if not src_t.ISPLUGIN then 
       val_max = DATA2.notes[note].layers[layer].cached_len/2
     end
-    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,(DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*7, val_default, val_max, ispow)
+    local frame_arcborder=true
+    local frame_arcborderflags = 2|4
+    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,(DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset)*7, val_default, val_max, ispow,frame_arcborder,frame_arcborderflags)
   end
   ---------------------------------------------------------------------- 
   
@@ -3052,7 +3058,7 @@
                         frame_a = 1,
                         frame_col = '#333333',
                         txt = t.ctrlname,
-                        txt_fontsz = DATA.GUI.custom_splknob_txtsz,
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         } 
     
     DATA.GUI.buttons['sampler_'..t.key..'val'] = { x= t.x +1,
@@ -3067,7 +3073,7 @@
                         val_min = t.val_min,
                         val_res = t.val_res,
                         txt = DATA2.notes[note].layers[layer][val_format_key],
-                        txt_fontsz = DATA.GUI.custom_splknob_txtsz,
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         onmousedoubleclick = function() 
                                 if t.val_default then 
                                   DATA2:TrackData_SetRS5kParams(t.src_t, t.paramid, t.val_default)
@@ -3109,70 +3115,6 @@
                         end,                        
                         } 
   end
-  --[[local knobw = (DATA.GUI.custom_mainbutw)---DATA.GUI.custom_offset /2  
-  if not DATA2.val1 then DATA2.val1 = 0 end
-  DATA.GUI.buttons.knob = { x=DATA.GUI.custom_offset*2 + DATA.GUI.custom_mainbutw ,
-                        y=DATA.GUI.custom_offset*5 + DATA.GUI.custom_mainbuth*2+DATA.GUI.custom_datah*2,
-                        w=knobw,
-                        h=DATA.GUI.custom_mainbuth,
-                        txt = VF_math_Qdec(DATA2.val1*100,2)..'%',
-                        --txt_fontsz = DATA.GUI.default_txt_fontsz,
-                        knob_isknob = true,
-                        knob_showvalueright = true,
-                        val_res = 0.25,
-                        val = 0,
-                        frame_a = DATA.GUI.default_framea_normal,
-                        frame_asel = DATA.GUI.default_framea_normal,
-                        back_sela = 0,
-                        --hide = DATA.GUI.compactmode==1,
-                        --ignoremouse = DATA.GUI.compactmode==1,
-                        onmouseclick =    function() DATA2:Quantize() end,
-                        onmousedrag =     function() 
-                            DATA.GUI.buttons.knob.txt = VF_math_Qdec(DATA2.val1*100,2)..'%'
-                            DATA2.val1 = DATA.GUI.buttons.knob.val 
-                            if DATA.extstate.CONF_act_appbuttoexecute ==0 then 
-                              DATA2:Execute()
-                            end 
-                          end,
-                        onmouserelease  = function() 
-                            DATA.GUI.buttons.knob.txt = VF_math_Qdec(DATA2.val1*100,2)..'%'
-                            DATA2.val1 = DATA.GUI.buttons.knob.val 
-                            if DATA.extstate.CONF_act_appbuttoexecute ==0 then 
-                              DATA2:Execute() 
-                              Undo_OnStateChange2( 0, 'QuantizeTool' )  
-                            end 
-                            DATA.GUI.buttons.knob.refresh = true
-                          end,
-                        onmousereleaseR  = function() 
-                          if not DATA2.val1 then DATA2.val1 = 0 end
-                          local retval, retvals_csv = GetUserInputs('Align percent', 1, '', VF_math_Qdec(DATA2.val1*100,2)..'%')
-                          if not retval then return end
-                          retvals_csv = tonumber(retvals_csv)
-                          if not retvals_csv then return end
-                          
-                          DATA2.val1 = VF_lim(retvals_csv/100) 
-                          DATA.GUI.buttons.knob.val = DATA2.val1
-                          DATA.GUI.buttons.knob.txt = VF_math_Qdec(DATA2.val1*100,2)..'%'
-                          if DATA.extstate.CONF_act_appbuttoexecute ==1 then return end
-                          DATA2:Execute() 
-                          Undo_OnStateChange2( 0, 'QuantizeTool' )  
-                        end ,
-                        onwheeltrig = function() 
-                                        local mult = 0
-                                        if not DATA.GUI.wheel_trig then return end
-                                        if DATA.GUI.wheel_dir then mult =1 else mult = -1 end
-                                        if not DATA2.Quantize_state then DATA2:Quantize()   end
-                                        DATA2.val1 = VF_lim(DATA2.val1 - 0.01*mult, 0,1)
-                                        DATA.GUI.buttons.knob.txt = 100*VF_math_Qdec(DATA2.val1,2)..'%'
-                                        DATA.GUI.buttons.knob.val  = DATA2.val1
-                                        if DATA.extstate.CONF_act_appbuttoexecute ==0 then 
-                                          DATA2:Execute() 
-                                          Undo_OnStateChange2( 0, 'QuantizeTool' )  
-                                        end 
-                                        DATA.GUI.buttons.knob.refresh = true
-                                        
-                                      end
-                      }]]
   ----------------------------------------------------------------------
   function DATA_RESERVED_DYNUPDATE()
     if DATA.ontrignoteTS and  os.clock() - DATA.ontrignoteTS >3 then StuffMIDIMessage( 0, 0x80, DATA.ontrignote, 0 ) DATA.ontrignoteTS = nil end
