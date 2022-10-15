@@ -1,16 +1,28 @@
 -- @description RS5k manager
--- @version 3.0beta16
+-- @version 3.0beta17
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
---    mpl_RS5k manager_MacroControls.jsfx
+--    [jsfx] mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    # Sampler: fix corner case error on trigger note via peaks
---    # Sampler: turn Attack control powered by y=x^2
+--    + Sampler: Actions menu by click on actions button or rightclick peaks
+--    + Sample/Actions: set start offset to loudest peak
+--    + Sample/Actions: crop start/end offset to item boundaries
+--    + Settings: allow to set threshold for crop start/end item boundaries
+--    # GUI: various retina/scaling mode tweaks
+--    # fix header (properly added Macro JSFX)
 
 
 --[[ 
+3.0beta17 17.10.2022 
+--    + Sampler: Actions menu by click on actions button or rightclick peaks
+--    + Sample/Actions: set start offset to loudest peak
+--    + Sample/Actions: crop start/end offset to item boundaries
+--    + Settings: allow to set threshold for crop start/end item boundaries
+--    # GUI: various retina/scaling mode tweaks
+--    # fix header (properly added Macro JSFX)
+
 3.0beta16 15.10.2022
 --    # Sampler: fix corner case error on trigger note via peaks
 --    # Sampler: turn Attack control powered by y=x^2
@@ -172,7 +184,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta16'
+    DATA.extstate.version = '3.0beta17'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -195,6 +207,9 @@
                           
                           -- drum rack
                           UI_useplaybutton = 0, -- 0 == click on play trigger note
+                          
+                          -- Actions
+                          CONF_cropthreshold = -60, -- db
                           
                           
                           -- UI
@@ -959,11 +974,11 @@
     --DATA.GUI.default_scale = 2
     -- init main stuff
       DATA.GUI.custom_mainbuth = 30*DATA.GUI.default_scale
-      DATA.GUI.custom_texthdef = 23
       DATA.GUI.custom_offset = math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
+      DATA.GUI.custom_texthdef = (DATA.GUI.custom_mainbuth -DATA.GUI.custom_offset*2) --*DATA.GUI.default_scale
       DATA.GUI.custom_mainsepx = gfx_w--(gfx.w/DATA.GUI.default_scale)*0.4-- *DATA.GUI.default_scale--400*DATA.GUI.default_scale--
       DATA.GUI.custom_mainbutw = gfx_w-DATA.GUI.custom_offset*2 --(gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx)-DATA.GUI.custom_offset*3
-      DATA.GUI.custom_scrollw = 10
+      DATA.GUI.custom_scrollw = 10*DATA.GUI.default_scale
       DATA.GUI.custom_frameascroll = 0.05
       DATA.GUI.custom_default_framea_normal = 0.1
       DATA.GUI.custom_spectralw = DATA.GUI.custom_mainbutw*3 + DATA.GUI.custom_offset*2
@@ -1003,14 +1018,14 @@
       DATA.GUI.custom_padsideX = DATA.GUI.custom_padsideY*1.5
       DATA.GUI.custom_padrackW = DATA.GUI.custom_modulew--DATA.GUI.custom_offset2
       DATA.GUI.custom_offset_pads = DATA.GUI.custom_offset2
-      DATA.GUI.custom_padstxtsz = 14
+      DATA.GUI.custom_padstxtsz = 0.5*(DATA.GUI.custom_padsideY/2-DATA.GUI.custom_offset2*2)
       DATA.GUI.custom_padsctrltxtsz = 10
       DATA.GUI.custom_arcr = math.floor(DATA.GUI.custom_padsideX*0.1)
       DATA.GUI.custom_controlbut_h = DATA.GUI.custom_padsideY/2
-      DATA.GUI.custom_controltxt_sz = math.floor(DATA.GUI.custom_controlbut_h*0.6- DATA.GUI.custom_offset2*2)
+      DATA.GUI.custom_controltxt_sz = (math.floor(DATA.GUI.custom_controlbut_h*0.6- DATA.GUI.custom_offset2*2))*DATA.GUI.default_scale
       
       -- device
-      DATA.GUI.custom_devicew = math.floor(DATA.GUI.custom_moduleh*1.5)
+      DATA.GUI.custom_devicew = 400*DATA.GUI.default_scale
       DATA.GUI.custom_deviceh = gfx_h - DATA.GUI.custom_infoh-DATA.GUI.custom_offset -- DEVICE H
       DATA.GUI.custom_deviceentryh = math.floor(18 * DATA.GUI.default_scale)
       DATA.GUI.custom_devicectrl_txtsz = 13 * DATA.GUI.default_scale
@@ -1022,11 +1037,11 @@
       DATA.GUI.custom_spl_areah = math.floor(DATA.GUI.custom_deviceh * 0.5)
       DATA.GUI.custom_spl_modew = math.floor(DATA.GUI.custom_spl_areah/2)
       DATA.GUI.custom_samplerW = (DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2) * 8
-      DATA.GUI.custom_sampler_namebutw = DATA.GUI.custom_samplerW-DATA.GUI.custom_sampler_showbutw
+      DATA.GUI.custom_sampler_namebutw = DATA.GUI.custom_samplerW-DATA.GUI.custom_sampler_showbutw*2
       DATA.GUI.custom_spl_modeh =DATA.GUI.custom_spl_modew+1
       DATA.GUI.custom_splctrl_h = math.floor(DATA.GUI.custom_spl_areah*0.15)
       DATA.GUI.custom_splknob_h = DATA.GUI.custom_samplerH - DATA.GUI.custom_splctrl_h*2 - DATA.GUI.custom_spl_areah - DATA.GUI.custom_offset2*2-DATA.GUI.custom_offset
-      DATA.GUI.custom_splknob_txtsz = DATA.GUI.custom_splctrl_h - DATA.GUI.custom_offset2*2
+      DATA.GUI.custom_splknob_txtsz = (DATA.GUI.custom_splctrl_h - DATA.GUI.custom_offset2*2)--*DATA.GUI.default_scale
       DATA.GUI.custom_splgridtxtsz = DATA.GUI.custom_splknob_txtsz--12 * DATA.GUI.default_scale
       DATA.GUI.custom_sampler_peaksw = DATA.GUI.custom_samplerW-DATA.GUI.custom_offset2-DATA.GUI.custom_spl_modew-1
       if not DATA.GUI.layers then DATA.GUI.layers = {} end 
@@ -1045,6 +1060,7 @@
                             w=DATA.GUI.custom_settingsbut_w,-- - DATA.GUI.custom_offset,
                             h=DATA.GUI.custom_infoh-1,
                             txt = '>',
+                            txt_fontsz = DATA.GUI.custom_texthdef,
                             --frame_a = 1,
                             onmouseclick = function()
                               if DATA.GUI.Settings_open then DATA.GUI.Settings_open = math.abs(1-DATA.GUI.Settings_open) else DATA.GUI.Settings_open = 1 end 
@@ -1112,6 +1128,9 @@
         {str = 'Use play button',                               group = 4, itype = 'check', confkey = 'UI_useplaybutton', level = 1}, 
         {str = 'Click on pad select track',                     group = 4, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
         {str = 'Incoming notes activate pads',                  group = 4, itype = 'check', confkey = 'UI_incomingnoteselectpad', level = 1},
+      {str = 'Sample actions',                                  group = 5, itype = 'sep'},    
+        {str = 'Crop threshold',                                group = 5, itype = 'readout', confkey = 'CONF_cropthreshold', level = 1, menu = {[-80]='-80dB',[-60]='-60dB', [-40]='-40dB',[-30]='-30dB'},readoutw_extw = readoutw_extw},
+
     } 
     return t
     
@@ -1294,6 +1313,7 @@
                             w=DATA.GUI.custom_padrackW-DATA.GUI.custom_offset2,
                             h=DATA.GUI.custom_infoh,
                             txt = trname,
+                            txt_fontsz = DATA.GUI.custom_texthdef,
                             }
        DATA.GUI.buttons.drumrackpad = { x=x_offs,
                              y=DATA.GUI.custom_padrackY,
@@ -1349,7 +1369,7 @@
       local padx= DATA.GUI.buttons.drumrackpad.x+(padID0%4)*DATA.GUI.custom_padsideX+1
       local pady = DATA.GUI.buttons.drumrackpad.y+DATA.GUI.buttons.drumrackpad.h-DATA.GUI.custom_padsideY*(math.floor(padID0/4)+1)+DATA.GUI.custom_offset_pads
       local controlbut_h2 = DATA.GUI.custom_padsideY/2-DATA.GUI.custom_offset_pads
-      local controlbut_w = math.floor(DATA.GUI.custom_padsideX / 4)
+      local controlbut_w = math.floor((DATA.GUI.custom_padsideX-DATA.GUI.custom_offset_pads) / 4)
       if DATA.extstate.UI_useplaybutton == 0 then controlbut_w = math.floor(DATA.GUI.custom_padsideX / 3) end
       local frame_actrl =0
       local txt_actrl = 0.2
@@ -1361,7 +1381,7 @@
                               h=DATA.GUI.custom_controlbut_h,
                               txt=txt,
                               txt_a = txt_a,
-                              txt_fontsz =DATA.GUI.custom_controltxt_sz,
+                              txt_fontsz =DATA.GUI.custom_padstxtsz,
                               frame_a = 0,
                               frame_asel = 0.1,
                               backgr_fill = 0 ,
@@ -1406,7 +1426,7 @@
                               txt='M',
                               txt_col=txt_col,
                               txt_a = txt_a,
-                              txt_fontsz = DATA.GUI.custom_controltxt_sz,
+                              txt_fontsz = DATA.GUI.custom_padstxtsz,
                               frame_a = frame_actrl,
                               prevent_matchrefresh = true,
                               backgr_fill = backgr_fill,
@@ -1421,7 +1441,7 @@
                                 w=controlbut_w,
                                 h=controlbut_h2-1,
                                 txt='>',
-                                txt_fontsz = DATA.GUI.custom_controltxt_sz,
+                                txt_fontsz = DATA.GUI.custom_padstxtsz,
                                 txt_a = txt_actrl,
                                 prevent_matchrefresh = true,
                                 frame_a = frame_actrl0,
@@ -1439,7 +1459,7 @@
                               --txt_col=txt_col,
                               txt_a = txt_a,
                               txt='S',
-                              txt_fontsz = DATA.GUI.custom_controltxt_sz,
+                              txt_fontsz = DATA.GUI.custom_padstxtsz,
                               frame_a = frame_actrl,
                               prevent_matchrefresh = true,
                               backgr_fill = backgr_fill,
@@ -1453,7 +1473,7 @@
                               h=controlbut_h2-1,
                               txt_a = txt_actrl,
                               txt='ME',
-                              txt_fontsz = DATA.GUI.custom_controltxt_sz,
+                              txt_fontsz = DATA.GUI.custom_padstxtsz,
                               frame_a = 0,
                               backgr_fill = 0,
                               --frame_arcborder = true,
@@ -1803,13 +1823,19 @@
   end
   -----------------------------------------------------------------------------  
   
-  function GUI_MODULE_DEVICE_stuff(DATA, note, layer, y_offs)  
+  function GUI_MODULE_DEVICE_stuff(DATA, note, layer, y_offs) 
     local x_offs = DATA.GUI.buttons.devicestuff_frame.x
-    local w_ctr = 20
+    local w_layername = math.floor(DATA.GUI.buttons.devicestuff_frame.w*0.4)
+    local w_ctrls = DATA.GUI.buttons.devicestuff_frame.w - w_layername
+    local w_ctrls_single = math.floor(w_ctrls / 5)
+    local reduce = 1--3*DATA.GUI.default_scale
+    
+    --[[local w_ctr = 20*DATA.GUI.default_scale
     local w_vol = w_ctr*3
-    local w_pan = w_ctr*3
-    local reduce = 3
-    local w_layername = DATA.GUI.buttons.devicestuff_frame.w - w_vol - w_pan - w_ctr*3 
+    local w_pan = w_ctr*3]]
+    
+    
+    --local w_layername = DATA.GUI.buttons.devicestuff_frame.w - w_vol - w_pan - w_ctr*3 
     local ctrl_txtsz = DATA.GUI.custom_devicectrl_txtsz
     local frame_a = 0--DATA.GUI.custom_framea
     --local tr_extparams_note_active_layer = DATA2.tr_extparams_note_active_layer
@@ -1828,7 +1854,7 @@
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'name'] = { 
                         x=x_offs,
                         y=y_offs,
-                        w=w_layername-reduce,
+                        w=w_layername,
                         h=DATA.GUI.custom_deviceentryh-reduce,
                         --ignoremouse = DATA2.tr_extparams_showstates&2==0,
                         txt = DATA2.notes[note].layers[layer].name,
@@ -1847,7 +1873,7 @@
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'] = { 
                         x=x_offs+w_layername,
                         y=y_offs,
-                        w=w_vol-reduce,
+                        w=w_ctrls_single-reduce,
                         h=DATA.GUI.custom_deviceentryh-reduce,
                         val = DATA2.notes[note].layers[layer].tr_vol/2,
                         val_res = -0.1,
@@ -1890,9 +1916,9 @@
                             end,
                         }   
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'] = { 
-                        x=x_offs+w_layername+w_vol,
+                        x=x_offs+w_layername+w_ctrls_single,
                         y=y_offs,
-                        w=w_pan-reduce,
+                        w=w_ctrls_single-reduce,
                         h=DATA.GUI.custom_deviceentryh-reduce,
                         val = DATA2.notes[note].layers[layer].tr_pan,
                         val_res = -0.6,
@@ -1940,9 +1966,9 @@
     local backgr_fill_param_en
     if DATA2.notes[note].layers[layer].enabled == true then backgr_fill_param_en = backgr_fill_param end
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'enable'] = { 
-                        x=x_offs+w_layername+w_vol+w_pan,
+                        x=x_offs+w_layername+w_ctrls_single*2,
                         y=y_offs,
-                        w=w_ctr-reduce,
+                        w=w_ctrls_single-reduce,
                         h=DATA.GUI.custom_deviceentryh-reduce,
                         backgr_fill2 = backgr_fill_param_en,
                         backgr_col2 =backgr_col,
@@ -1960,9 +1986,9 @@
     local backgr_fill_param_en
     if DATA2.notes[note].layers[layer].tr_solo >0 then backgr_fill_param_en = backgr_fill_param end
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'solo'] = { 
-                        x=x_offs+w_layername+w_vol+w_pan+w_ctr*2,
+                        x=x_offs+w_layername+w_ctrls_single*3,
                         y=y_offs,
-                        w=w_ctr-reduce,
+                        w=w_ctrls_single-reduce,
                         h=DATA.GUI.custom_deviceentryh-reduce,
                         backgr_fill2 = backgr_fill_param_en,
                         backgr_col2 =backgr_col,
@@ -1974,9 +2000,9 @@
     local backgr_fill_param_en
     if DATA2.notes[note].layers[layer].tr_mute >0 then backgr_fill_param_en = backgr_fill_param end
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'mute'] = { 
-                        x=x_offs+w_layername+w_vol+w_pan+w_ctr,
+                        x=x_offs+w_layername+w_ctrls_single*4,
                         y=y_offs,
-                        w=w_ctr-reduce,
+                        w=w_ctrls_single-reduce,
                         h=DATA.GUI.custom_deviceentryh-reduce,
                         backgr_fill2 = backgr_fill_param_en,
                         backgr_col2 =backgr_col,
@@ -2014,6 +2040,7 @@
                          w=DATA.GUI.custom_devicew,
                          h=DATA.GUI.custom_infoh,
                          txt = name,
+                         txt_fontsz = DATA.GUI.custom_texthdef,
                          onmouseclick = function() DATA2:PAD_onrightclick(DATA2.tr_extparams_note_active) end
                          }
         
@@ -2229,6 +2256,52 @@
                         layer=layer}
   end 
   ----------------------------------------------------------------------
+  function DATA2:SAMPLER_Actions_SetStartToLoudestPeak() 
+    local note = DATA2.tr_extparams_note_active
+    local layer = DATA2.tr_extparams_note_active_layer or 1
+    if not note then return end 
+    if not (DATA2.cursplpeaks and DATA2.cursplpeaks.peaks)then return end  
+    
+    local cnt_peaks = #DATA2.cursplpeaks.peaks
+    for i = 1, cnt_peaks do if math.abs(DATA2.cursplpeaks.peaks[i]) ==1 then loopst = i/cnt_peaks break end end
+    local t = DATA2.notes[note].layers[layer]
+    DATA2:TrackData_SetRS5kParams(t, 13, loopst) 
+  end    
+  ----------------------------------------------------------------------
+  function DATA2:SAMPLER_Actions_CropToAudibleBoundaries()
+    local note = DATA2.tr_extparams_note_active
+    local layer = DATA2.tr_extparams_note_active_layer or 1
+    if not note then return end 
+    if not (DATA2.cursplpeaks and DATA2.cursplpeaks.peaks)then return end
+    
+    -- threshold
+    local threshold_lin = WDL_DB2VAL(DATA.extstate.CONF_cropthreshold)
+    local cnt_peaks = #DATA2.cursplpeaks.peaks
+    local loopst = 0
+    local loopend = 1
+    for i = 1, cnt_peaks do if math.abs(DATA2.cursplpeaks.peaks[i]) > threshold_lin then loopst = i/cnt_peaks break end end
+    for i = cnt_peaks, 1, -1 do if math.abs(DATA2.cursplpeaks.peaks[i]) > threshold_lin then loopend = i/cnt_peaks break end end
+    
+    local t = DATA2.notes[note].layers[layer]
+    DATA2:TrackData_SetRS5kParams(t, 13, loopst) 
+    DATA2:TrackData_SetRS5kParams(t, 14, loopend) 
+  end
+  ----------------------------------------------------------------------
+  function  DATA2:SAMPLER_Actions()  
+    local t = {
+              
+  {str = '#Actions'},
+  {str = 'Crop sample to audible boundaries, threshold '..DATA.extstate.CONF_cropthreshold..'dB',
+   func = function() DATA2:SAMPLER_Actions_CropToAudibleBoundaries()   end},
+
+  {str = 'Set start offset to a loudest peak',
+   func = function() DATA2:SAMPLER_Actions_SetStartToLoudestPeak()   end},
+   
+  
+              }
+    DATA:GUImenu(t)
+  end 
+  ----------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_peaks()
     if not (DATA2.cursplpeaks and DATA2.cursplpeaks.peaks) then return end
     local note, layer = DATA2.cursplpeaks.note,DATA2.cursplpeaks.layer
@@ -2413,15 +2486,26 @@
                             } 
       DATA.GUI.buttons.sampler_name = { x=x_offs,
                            y=0,
-                           w=DATA.GUI.custom_sampler_namebutw-DATA.GUI.custom_offset2,
+                           w=DATA.GUI.custom_sampler_namebutw-DATA.GUI.custom_offset2*2,
                            h=DATA.GUI.custom_infoh,
                            txt = name,
+                           txt_fontsz = DATA.GUI.custom_texthdef,
                            }
-      DATA.GUI.buttons.sampler_show = { x=x_offs+DATA.GUI.custom_sampler_namebutw,
+                            
+      DATA.GUI.buttons.sampler_actions = { x=x_offs+DATA.GUI.custom_sampler_namebutw-DATA.GUI.custom_offset2,
+                           y=0,
+                           w=DATA.GUI.custom_sampler_showbutw-1,
+                           h=DATA.GUI.custom_infoh,
+                           txt = 'Actions',
+                           txt_fontsz = DATA.GUI.custom_texthdef,
+                           onmouserelease = function()  DATA2:SAMPLER_Actions()  end,
+                           }                             
+      DATA.GUI.buttons.sampler_show = { x=x_offs+DATA.GUI.custom_sampler_namebutw+DATA.GUI.custom_sampler_showbutw,
                            y=0,
                            w=DATA.GUI.custom_sampler_showbutw-1,
                            h=DATA.GUI.custom_infoh,
                            txt = 'Show',
+                           txt_fontsz = DATA.GUI.custom_texthdef,
                            onmouserelease = function() DATA2:ActiveNoteLayer_ShowRS5k(note, layer) end,
                            }                     
                           
@@ -2445,6 +2529,7 @@
                           data = {['datatype'] = 'samplepeaks'},
                           onmousefiledrop = function() if DATA2.tr_extparams_note_active then DATA2:PAD_onfiledrop(DATA2.tr_extparams_note_active) end end,
                           onmouseclick = function() if DATA2.tr_extparams_note_active then DATA2:Stuff_NoteOn(DATA2.tr_extparams_note_active) end  end,
+                          onmouseclickR = function() DATA2:SAMPLER_Actions()  end,
                           refresh = true,
                           }
     end
@@ -2635,6 +2720,7 @@
         note =note,
         layer=layer,
         frame_arcborder=true,
+        
         f= function()     
           local new_val = DATA.GUI.buttons[prefix..key..'knob'].val
           GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_app(DATA, prefix,key,paramid,src_t,note,layer,val_format_key, val_default,new_val)  
