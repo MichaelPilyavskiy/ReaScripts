@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="70c3d2d851d7dea7d3405ff30c445d4ac595fb07" name="MPL Scripts">
+<index version="1" commit="06e87b4f8bc5f4a8fe7f16d12947267bf94d52a8" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4014,6 +4014,11 @@
         <changelog><![CDATA[# Cleanup GUI varioables, hopefully fix various retina problems]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f572ec40896cb47cb8f82b22a8957f77f4e9da2b/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
         <source file="mpl_RS5k manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f572ec40896cb47cb8f82b22a8957f77f4e9da2b/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
+      </version>
+      <version name="3.0beta24" author="MPL" time="2022-10-15T18:19:51Z">
+        <changelog><![CDATA[+ Pad Overview: drop on pad overview add sample(s) to first available note starting this area]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/06e87b4f8bc5f4a8fe7f16d12947267bf94d52a8/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/06e87b4f8bc5f4a8fe7f16d12947267bf94d52a8/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k manager_MacroControls.jsfx" type="effect" desc="RS5K_manager_MacroControls">
