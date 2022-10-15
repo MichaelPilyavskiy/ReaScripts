@@ -1,19 +1,20 @@
 -- @description RS5k manager
--- @version 3.0beta15
+-- @version 3.0beta16
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    # Sample: fix oneshot/loop selector
---    + Sampler: onshot deactivates obey note-off [https://forum.cockos.com/showpost.php?p=2601997&postcount=340]
---    + Sampler: click on peaks trigger note
---    + Device: doubleclick on pan reset pan
---    # Device: correctly reset visual values on doubleclick
+--    # Sampler: fix corner case error on trigger note via peaks
+--    # Sampler: turn Attack control powered by y=x^2
 
 
 --[[ 
+3.0beta16 15.10.2022
+--    # Sampler: fix corner case error on trigger note via peaks
+--    # Sampler: turn Attack control powered by y=x^2
+
 3.0beta15 13.10.2022
 --    # Sample: fix oneshot/loop selector
 --    + Sampler: onshot deactivates obey note-off [https://forum.cockos.com/showpost.php?p=2601997&postcount=340]
@@ -171,7 +172,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta15'
+    DATA.extstate.version = '3.0beta16'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -520,6 +521,7 @@
                          params_pan_format = pan_format,
                          params_loop = loop,
                          params_attack=attack,
+                         params_attack_ispow=true,
                          params_decay=decay,
                          params_sustain=sustain,
                          params_release=release,
@@ -1126,6 +1128,7 @@
     local f = t.f
     local f_double = t.f_double
     local f_release = t.f_release
+    local val_ispow = t.val_ispow
     
     local txt_line_ratio = t.txt_line_ratio or 1
     DATA.GUI.buttons[prefix..t.key..'frame'] = { x= t.x,
@@ -1172,6 +1175,7 @@
                         val_res = t.val_res,
                         val_max = t.val_max,
                         val_min = t.val_min,
+                        val_ispow = val_ispow,
                         txt = '',
                         txt_fontsz = DATA.GUI.custom_splknob_txtsz,
                         onmousedoubleclick = function() f_double() end,
@@ -1269,6 +1273,7 @@
   end
   -----------------------------------------------------------------------------  
   function DATA2:Stuff_NoteOn(note, vel)
+   if not note then return end
     StuffMIDIMessage( 0, 0x90, note, vel or 120 ) 
     DATA.ontrignoteTS = os.clock() 
     DATA.ontrignote = note 
@@ -2439,7 +2444,7 @@
                           frame_a = DATA.GUI.custom_framea,
                           data = {['datatype'] = 'samplepeaks'},
                           onmousefiledrop = function() if DATA2.tr_extparams_note_active then DATA2:PAD_onfiledrop(DATA2.tr_extparams_note_active) end end,
-                          onmouseclick = function() DATA2:Stuff_NoteOn(DATA2.tr_extparams_note_active)  end,
+                          onmouseclick = function() if DATA2.tr_extparams_note_active then DATA2:Stuff_NoteOn(DATA2.tr_extparams_note_active) end  end,
                           refresh = true,
                           }
     end
@@ -2607,7 +2612,7 @@
     DATA.GUI.buttons[prefix..key..'val'].refresh = true
   end
   ------------------------------------------------------------------------
-  function GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,xoffs,val_default, val_max)
+  function GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,xoffs,val_default, val_max, ispow)
     local prefix = 'sampler_'
     GUI_CTRL_Knob(DATA,
       {
@@ -2620,6 +2625,7 @@
         val_format = DATA2.notes[note].layers[layer][val_format_key],
         val_min = 0,
         val_max = val_max,
+        val_ispow = ispow,
         --val_res = 0.05,
         src_t = src_t,
         x = DATA.GUI.buttons.sampler_frame.x+(xoffs or 0 ),
@@ -2889,7 +2895,8 @@
     if src_t.params_attack_id then paramid = src_t.params_attack_id  end
     local key = 'spl_attack'
     local val_format_key = 'params_attack_format'
-    local param_val = 'params_attack'
+    local param_val = 'params_attack' 
+    local ispow = src_t.params_attack_ispow
     local ctrlname = 'Attack'
     if src_t.params_attack_name then ctrlname =src_t.params_attack_name end
     local val_default = 0 
@@ -2897,9 +2904,10 @@
     if not src_t.ISPLUGIN then 
       val_max = DATA2.notes[note].layers[layer].cached_len/2
     end
-    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val, (DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*4, val_default, val_max)
+    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val, (DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*4, val_default, val_max, ispow)
     
     local paramid = 24
+    local ispow
     if src_t.params_decay_id then paramid = src_t.params_decay_id end
     local key = 'spl_decay'
     local val_format_key = 'params_decay_format'
@@ -2911,9 +2919,10 @@
     if not src_t.ISPLUGIN then 
       val_max = DATA2.notes[note].layers[layer].cached_len/15
     end
-    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,(DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*5, val_default, val_max)
+    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,(DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*5, val_default, val_max, ispow)
     
     local paramid = 25
+    local ispow
     if src_t.params_sustain_id then paramid = src_t.params_sustain_id end
     local key = 'spl_sustain'
     local val_format_key = 'params_sustain_format'
@@ -2922,9 +2931,10 @@
     if src_t.params_sustain_name then ctrlname =src_t.params_sustain_name end
     local val_default = 0.5
     local val_max = 1
-    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,(DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*6, val_default, val_max)
+    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,(DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*6, val_default, val_max, ispow)
     
     local paramid = 10
+    local ispow
     if src_t.params_release_id then paramid = src_t.params_release_id end
     local key = 'spl_release'
     local val_format_key = 'params_release_format'
@@ -2936,7 +2946,7 @@
     if not src_t.ISPLUGIN then 
       val_max = DATA2.notes[note].layers[layer].cached_len/2
     end
-    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,(DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*7, val_default, val_max)
+    GUI_MODULE_SAMPLER_Section_EnvelopeKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val,(DATA.GUI.custom_spl_modew+DATA.GUI.custom_offset2)*7, val_default, val_max, ispow)
   end
   ---------------------------------------------------------------------- 
   
@@ -3130,7 +3140,7 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.42) if ret then local ret2 = VF_CheckReaperVrs(6.68,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.43) if ret then local ret2 = VF_CheckReaperVrs(6.68,true) if ret2 then main() end end
   
   
   

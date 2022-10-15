@@ -311,9 +311,22 @@
           if b.val and b.latchval and type(b.latchval) == 'number' then 
             local res= b.val_res or 1
             if DATA.GUI.Ctrl then res = res /10 end 
-            b.val = VF_lim(b.latchval - (DATA.GUI.dy*res/DATA.GUI.default_scale) / b.h)
-            if b.val_xaxis then b.val = VF_lim(b.latchval - (DATA.GUI.dx*res/DATA.GUI.default_scale) / b.w) end
-            if b.val_min and b.val_max then b.val = b.val_min + (b.val_max - b.val_min) * b.val end
+            
+            local sourcediff = DATA.GUI.dy
+            local comdim = b.h
+            if b.val_xaxis then 
+              sourcediff = DATA.GUI.dx
+              comdim = b.w
+            end
+            local outval = 0
+            outval = VF_lim(b.latchval - (sourcediff*res/DATA.GUI.default_scale) / comdim)
+            local pow = 3
+            if b.val_ispow then 
+              outval = (VF_lim(b.latchval^(1/pow) - (sourcediff*res/DATA.GUI.default_scale) / comdim))^pow
+            end
+            if b.val_min and b.val_max then outval = b.val_min + (b.val_max - b.val_min) * outval end
+            b.val = outval
+            --val_islog
           end
           -- handle absolute val slider
           local res = b.val_res or 1
