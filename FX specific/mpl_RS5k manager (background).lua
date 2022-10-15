@@ -1,17 +1,12 @@
 -- @description RS5k manager
--- @version 3.0beta18
+-- @version 3.0beta19
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    [jsfx] mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    + Sampler: Actions menu by click on actions button or rightclick peaks
---    + Sample/Actions: set start offset to loudest peak
---    + Sample/Actions: crop start/end offset to item boundaries
---    + Settings: allow to set threshold for crop start/end item boundaries
---    # GUI: various retina/scaling mode tweaks
---    # fix header (properly added Macro JSFX)
+--    # fix jsfx path
 
 
 --[[ 
@@ -184,7 +179,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta18'
+    DATA.extstate.version = '3.0beta19'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
