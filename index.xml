@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0eb7047db68deef93889bd54ecde05dbc35c3af1" name="MPL Scripts">
+<index version="1" commit="ba699d50a4a443c01483dec6cc63a9c7dc9a59bf" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -3997,22 +3997,6 @@
         <source file="mpl_RS5k manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0eb7047db68deef93889bd54ecde05dbc35c3af1/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
       </version>
     </reapack>
-    <reapack name="mpl_RS5k manager_MacroControls.jsfx" type="effect" desc="RS5K_manager_MacroControls">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Dummy controls to use with RS5k manager\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-10-01T17:57:22Z">
-        <changelog><![CDATA[init]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/c9ff742bf3f6e52d6f89711e589e2d3f6db82a31/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
-      </version>
-    </reapack>
     <reapack name="mpl_RS5k tools.lua" type="script" desc="RS5k tools">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -5151,6 +5135,22 @@
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/5c24a9dc9284dd4944fb92d9ac97fd3cf2dddd45/JSFX/MappingPanel_slave.jsfx</source>
       </version>
     </reapack>
+    <reapack name="mpl_RS5k manager_MacroControls.jsfx" type="effect" desc="RS5K_manager_MacroControls">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Dummy controls to use with RS5k manager\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-10-15T13:07:23Z">
+        <changelog><![CDATA[init]]></changelog>
+        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/ba699d50a4a443c01483dec6cc63a9c7dc9a59bf/JSFX/mpl_RS5k%20manager_MacroControls.jsfx</source>
+      </version>
+    </reapack>
     <reapack name="POOL FX slave.jsfx" type="effect" desc="POOL FX slave">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
@@ -5165,22 +5165,6 @@
       <version name="1.0" author="MPL" time="2020-05-24T10:20:05Z">
         <changelog><![CDATA[init]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/59c514c307ef173e8696a29a99169631db35cc70/JSFX/POOL%20FX%20slave.jsfx</source>
-      </version>
-    </reapack>
-    <reapack name="RS5K_manager_MacroControls.jsfx" type="effect" desc="RS5K_manager_MacroControls">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Dummy controls to use with RS5k manager\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-09-28T06:20:08Z">
-        <changelog><![CDATA[init]]></changelog>
-        <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f71d8022b86611f76b4abf5b37a99706abc5f85/JSFX/RS5K_manager_MacroControls.jsfx</source>
       </version>
     </reapack>
     <reapack name="RS5K_Manager_tracker.jsfx" type="effect" desc="RS5K_Manager_tracker">
