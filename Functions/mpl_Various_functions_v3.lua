@@ -721,6 +721,12 @@
     DATA.extstate.wind_h =  wh
     DATA.extstate.dock =    dock
                           
+    -- handle real gfx w/h change
+    DATA.UPD.test_gfxw = gfx.w                      
+    DATA.UPD.test_gfxh = gfx.h 
+    if DATA.UPD.test_lastgfxw and (DATA.UPD.test_lastgfxw~= DATA.UPD.test_gfxw or DATA.UPD.test_lastgfxh~= DATA.UPD.test_gfxh) then DATA.UPD.onWHchange = true  end
+    DATA.UPD.test_lastgfxw = DATA.UPD.test_gfxw                   
+    DATA.UPD.test_lastgfxh = DATA.UPD.test_gfxh  
   end
   -----------------------------------------------------------------------------  
   function DATA:perform()
