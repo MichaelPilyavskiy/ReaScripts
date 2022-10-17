@@ -1,15 +1,26 @@
 -- @description RS5k manager
--- @version 3.0beta24
+-- @version 3.0beta25
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    + Pad Overview: drop on pad overview add sample(s) to first available note starting this area
-
+--    # Pad Overview: fix incorrect view at some scales
+--    # Sampler: fix doubleclick on filter / drive section
+--    # Settings: remove "Do not update on play"
+--    # Settings: move and rename 'Incoming note activate pad' to UI/'Active note follow incoming note'
 
 --[[ 
+3.0beta25 17.10.2022 
+--    # Pad Overview: fix incorrect view at some scales
+--    # Sampler: fix doubleclick on filter / drive section
+--    # Settings: remove "Do not update on play"
+--    # Settings: move and rename 'Incoming note activate pad' to UI/'Active note follow incoming note'
+
+3.0beta24 16.10.2022 
+--    + Pad Overview: drop on pad overview add sample(s) to first available note starting this area
+
 3.0beta23 15.10.2022 
 --    + Sampler: Actions menu by click on actions button or rightclick peaks
 --    + Sample/Actions: set start offset to loudest peak
@@ -179,7 +190,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta24'
+    DATA.extstate.version = '3.0beta25'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -214,7 +225,7 @@
                           UI_showtooltips = 1,
                           UI_groupflags = 0,
                           UI_processoninit = 0,
-                          UI_donotupdateonplay = 0,
+                          --UI_donotupdateonplay = 0,
                           UI_clickonpadselecttrack = 1,
                           UI_incomingnoteselectpad = 0,
                           
@@ -308,8 +319,9 @@
     local tr_pan_format = DATA2:FormatPan(tr_pan)
     local tr_mute = GetMediaTrackInfo_Value( track, 'B_MUTE' )
     local tr_solo = GetMediaTrackInfo_Value( track, 'I_SOLO' )
-    
-    
+    local tr_col = GetMediaTrackInfo_Value( track, 'I_CUSTOMCOLOR' )
+    if tr_col&0x1000000==0x1000000 then tr_col = tr_col-0x1000000 end
+    if tr_col==16576 then tr_col = nil end
     return {
       tr_ptr = track,
       tr_vol=tr_vol,
@@ -318,6 +330,7 @@
       tr_pan_format=tr_pan_format,
       tr_mute=tr_mute,
       tr_solo=tr_solo,
+      tr_col=tr_col,
       }
   end
   ---------------------------------------------------------------------  
@@ -702,6 +715,7 @@
     local ret, fxGUID = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_FXGUID', 0, false)
     local fxid = -1
     if fxGUID then ret, tr, fxid =  VF_GetFXByGUID(fxGUID, track) end
+          
     return tonumber(note), fxid
   end
   ---------------------------------------------------------------------
@@ -748,9 +762,17 @@
     end
   end
   ---------------------------------------------------------------------
-  function DATA2:TrackDataWrite_MarkChildAppendsToNote(tr, note, instrumentGUID)   
+  function DATA2:TrackDataWrite_MarkChildAppendsToNote_SetNote(tr, note)  
     GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_NOTE', note, true)
+  end
+  ---------------------------------------------------------------------
+  function DATA2:TrackDataWrite_MarkChildAppendsToNote(tr, note, instrumentGUID, midifiltGUID)   
+    DATA2:TrackDataWrite_MarkChildAppendsToNote_SetNote(tr, note)
     GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_FXGUID', instrumentGUID, true)
+    if midifiltGUID then 
+      GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_MIDIFILTGUID', midifiltGUID, true)
+      GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_FX_NOTRS5K', '1', true)
+    end
   end
   ---------------------------------------------------------------------
   function DATA2:TrackDataWrite_MarkChildAppendsToCurrentParent(tr)   
@@ -1124,11 +1146,10 @@
       {str = 'MIDI bus',                                        group = 2, itype = 'sep'}, 
         {str = 'MIDI bus default input',                        group = 2, itype = 'readout', confkey = 'CONF_midiinput', level = 1, menu = {[63]='All inputs',[62]='Virtual keyboard'},readoutw_extw = readoutw_extw},
       {str = 'UI',                                              group = 3, itype = 'sep'},
-        {str = 'Do not update UI from played notes',            group = 3, itype = 'check', confkey = 'UI_donotupdateonplay', level = 1},
+        {str = 'Active note follow incoming note',              group = 3, itype = 'check', confkey = 'UI_incomingnoteselectpad', level = 1},
       {str = 'DrumRack',                                        group = 4, itype = 'sep'},  
         {str = 'Use play button',                               group = 4, itype = 'check', confkey = 'UI_useplaybutton', level = 1}, 
         {str = 'Click on pad select track',                     group = 4, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
-        {str = 'Incoming notes activate pads',                  group = 4, itype = 'check', confkey = 'UI_incomingnoteselectpad', level = 1},
       {str = 'Sample actions',                                  group = 5, itype = 'sep'},    
         {str = 'Crop threshold',                                group = 5, itype = 'readout', confkey = 'CONF_cropthreshold', level = 1, menu = {[-80]='-80dB',[-60]='-60dB', [-40]='-40dB',[-30]='-30dB'},readoutw_extw = readoutw_extw},
 
@@ -1351,7 +1372,6 @@
     for note = 0+padactiveshift, 15+padactiveshift do
       local txt = DATA2:FormatMIDIPitch(note) 
       if note > 127 then break end
-      local frame_a = DATA.GUI.custom_framea if DATA2.tr_extparams_note_active and DATA2.tr_extparams_note_active == note then frame_a = 0.7 end
       if DATA2.notes[note] and DATA2.notes[note].name then txt = DATA2.notes[note].name end
       if DATA2.notes[note] and DATA2.notes[note].device_isdevice and DATA2.notes[note].device_isdevice == true and DATA2.notes[note].device_name then txt ='[D] '..DATA2.notes[note].device_name end
       
@@ -1368,7 +1388,11 @@
                               onmouseclick = function() end, 
                               refresh = true,
                               }
-                              
+      -- mark active
+      local frame_a = DATA.GUI.custom_framea 
+      if DATA2.tr_extparams_note_active and DATA2.tr_extparams_note_active == note then frame_a = 0.7 end
+      DATA.GUI.buttons['drumrackpad_pad'..padID0].frame_a=frame_a
+      
       local padx= DATA.GUI.buttons.drumrackpad.x+(padID0%4)*DATA.GUI.custom_drrack_sideX+1
       local pady = DATA.GUI.buttons.drumrackpad.y+DATA.GUI.buttons.drumrackpad.h-DATA.GUI.custom_drrack_sideY*(math.floor(padID0/4)+1)+DATA.GUI.custom_offset
       local controlbut_h2 = DATA.GUI.custom_drrack_sideY/2-DATA.GUI.custom_offset
@@ -1378,6 +1402,24 @@
       local txt_actrl = 0.2
       local txt_a 
       if not DATA2.notes[note] then txt_a = 0.1 end
+      
+      
+      local frame_a = 0
+      --[[local col 
+      if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_col then 
+        col = DATA2.notes[note].layers[1].tr_col 
+        col = string.format("#%06X", col);
+      end
+        ]]
+      --msg(col)
+      
+      local backgr_col =DATA.GUI.custom_backcol2-- '#33FF45'
+      backgr_col = col
+      --[[if col then 
+        frame_a = 0.1
+        backgr_col =col     
+        frame_col = col
+      end]]
       DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'] = { x=padx,
                               y=pady,
                               w=DATA.GUI.custom_drrack_sideX-DATA.GUI.custom_offset,
@@ -1385,14 +1427,21 @@
                               txt=txt,
                               txt_a = txt_a,
                               txt_fontsz =DATA.GUI.custom_drrack_pad_txtsz,
-                              frame_a = 0,
+                              txt_col = backgr_col,
+                              frame_a = frame_a,
                               frame_asel = 0.1,
+                              frame_col = backgr_col,--DATA.GUI.custom_backcol2,
                               backgr_fill = 0 ,
+                              --backgr_col = backgr_col,
                               back_sela = 0.1 ,
                               frame_arcborder = true,
                               frame_arcborderr = DATA.GUI.custom_drrack_arcr,
                               frame_arcborderflags = 1|2,
                               --prevent_matchrefresh = true,
+                              onmousedrag = function() 
+                                              DATA2.PAD_HOLD = note
+                                            end,
+                                            
                               onmouseclick = function() 
                                 if DATA.extstate.UI_clickonpadselecttrack == 1 then
                                   if DATA2.notes[note] then
@@ -1410,7 +1459,8 @@
                                   DATA2.tr_extparams_note_active = note 
                                   DATA2.tr_extparams_note_active_layer = 1 
                                   DATA2:TrackDataWrite() 
-                                  GUI_MODULE_DRUMRACKPAD(DATA)  
+                                  --GUI_MODULE_DRUMRACKPAD(DATA)  
+                                  if DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'] then DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].refresh = true end
                                   DATA2.tr_extparams_note_active_layer = layer 
                                   GUI_MODULE_DEVICE(DATA)  
                                   GUI_MODULE_SAMPLER(DATA)
@@ -1418,7 +1468,18 @@
                               end,
                               onmouseclickR = function() DATA2:PAD_onrightclick(note) end,
                               onmousefiledrop = function() DATA2:PAD_onfiledrop(note) end,
-                              onmouserelease =  function() if DATA.extstate.UI_useplaybutton == 0 then  StuffMIDIMessage( 0, 0x80, note, 0 ) DATA.ontrignoteTS =  nil end end,
+                              onmouserelease =  function() 
+                                GUI_MODULE_DRUMRACKPAD(DATA)   
+                                DATA2.PAD_DROP_HOLD = nil  
+                                if DATA.extstate.UI_useplaybutton == 0 then  StuffMIDIMessage( 0, 0x80, note, 0 ) DATA.ontrignoteTS =  nil end 
+                                if DATA.GUI.mouse_match and DATA2.PAD_HOLD then 
+                                  local padsrc = DATA2.PAD_HOLD
+                                  local paddest = DATA.GUI.mouse_match:match('drumrackpad_pad(%d+)')
+                                  if paddest then paddest = tonumber(paddest) end
+                                  --DATA2:PAD_move(padsrc,paddest)
+                                end
+                                
+                              end,
                               }     
       --local txt_a,txt_col= txt_actrl if DATA2.notes[note] and DATA2.notes[note].partrack_mute and DATA2.notes[note].partrack_mute == 1 then txt_col = '#A55034' txt_a = 1 end
       local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1].tr_mute and DATA2.notes[note].layers[1].tr_mute >0 then backgr_fill = 0.2 txt_a = nil end
@@ -1427,28 +1488,29 @@
                               w=controlbut_w,
                               h=controlbut_h2-1,
                               txt='M',
-                              txt_col=txt_col,
+                              txt_col = backgr_col,
                               txt_a = txt_a,
                               txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
                               frame_a = frame_actrl,
                               prevent_matchrefresh = true,
                               backgr_fill = backgr_fill,
-                              backgr_col = DATA.GUI.custom_backcol2,
+                              backgr_col = backgr_col,
                               onmouseclick = function() DATA2:PAD_mute(note) end,
                               } 
                               
       if DATA.extstate.UI_useplaybutton == 1 then
         local backgr_fill2,frame_actrl0=nil,frame_actrl if DATA2.playingnote_pitch and DATA2.playingnote_pitch == note  then backgr_fill2 = 0.8 frame_actrl0 = 1 end
         DATA.GUI.buttons['drumrackpad_pad'..padID0..'play'] = { x=padx+controlbut_w,
-                                y=pady+DATA.GUI.custom_drrack_ctrlbut_h,
+                                y=pady+DATA.GUI.custom_drrack_ctrlbut_h+1,
                                 w=controlbut_w,
-                                h=controlbut_h2-1,
+                                h=controlbut_h2-2,
                                 txt='>',
                                 txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
                                 txt_a = txt_actrl,
+                                txt_col = backgr_col,
                                 prevent_matchrefresh = true,
                                 frame_a = frame_actrl0,
-                                backgr_fill = backgr_fill2 ,
+                                backgr_fill = 0.2 ,
                                 onmouseclick =    function() DATA2:Stuff_NoteOn(note, vel) end,
                                 onmouserelease =  function() StuffMIDIMessage( 0, 0x80, note, 0 ) DATA.ontrignoteTS =  nil end,
                                 refresh = true,
@@ -1463,6 +1525,7 @@
                               txt_a = txt_a,
                               txt='S',
                               txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
+                              txt_col = backgr_col,
                               frame_a = frame_actrl,
                               prevent_matchrefresh = true,
                               backgr_fill = backgr_fill,
@@ -1477,6 +1540,7 @@
                               txt_a = txt_actrl,
                               txt='ME',
                               txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
+                              txt_col = backgr_col,
                               frame_a = 0,
                               backgr_fill = 0,
                               --frame_arcborder = true,
@@ -1596,14 +1660,24 @@
     local fxname_settrname =  VF_ReduceFXname(fxname) or fxname
     GetSetMediaTrackInfo_String( new_tr, 'P_NAME', fxname_settrname, true )
     local instrumentGUID = TrackFX_GetFXGUID( new_tr, instrument_pos)
-    DATA2:TrackDataWrite_MarkChildAppendsToNote(new_tr, note, instrumentGUID)   
-    
     local midifilt_pos = TrackFX_AddByName( new_tr, 'midi_note_filter', false, -1000 ) 
-    TrackFX_SetParamNormalized( new_tr, midifilt_pos, 0, note/128)
-    TrackFX_SetParamNormalized( new_tr, midifilt_pos, 1, note/128)
-    TrackFX_Show( new_tr, midifilt_pos, 2 )
+    DATA2:TrackDataWrite_MarkChildAppendsToNote(new_tr, note, instrumentGUID, midifilt_pos)   
+    
+    TrackFX_Show( new_tr, midifilt_pos, 2 )      
+    DATA2:PAD_onfiledrop_setnote(new_tr, instrument_pos, note, midifilt_pos)
+    return midifilt_pos
   end
   -----------------------------------------------------------------------
+  function DATA2:PAD_onfiledrop_setnote(tr, instrument_pos, note, midifilt_pos)
+    if not midifilt_pos then 
+      TrackFX_SetParamNormalized( tr, instrument_pos, 3, (note)/127 ) -- note range start
+      TrackFX_SetParamNormalized( tr, instrument_pos, 4, (note)/127 ) -- note range end
+     else 
+      TrackFX_SetParamNormalized( tr, midifilt_pos, 0, note/128)
+      TrackFX_SetParamNormalized( tr, midifilt_pos, 1, note/128)
+    end
+  end
+  -----------------------------------------------------------------------  
   function DATA2:PAD_onfiledrop_ExportToRS5k(new_tr, filepath,note,filepath_sh)
     if filepath:match('@fx') then
       DATA2:PAD_onfiledrop_ExportFXasDeviceInstrument(new_tr, filepath,note)
@@ -1616,13 +1690,12 @@
     TrackFX_SetNamedConfigParm(  new_tr, instrument_pos, 'FILE0', filepath)
     TrackFX_SetNamedConfigParm(  new_tr, instrument_pos, 'DONE', '')      
     TrackFX_SetParamNormalized( new_tr, instrument_pos, 2, 0) -- gain for min vel
-    TrackFX_SetParamNormalized( new_tr, instrument_pos, 3, (note)/127 ) -- note range start
-    TrackFX_SetParamNormalized( new_tr, instrument_pos, 4, (note)/127 ) -- note range end
     TrackFX_SetParamNormalized( new_tr, instrument_pos, 5, 0.5 ) -- pitch for start
     TrackFX_SetParamNormalized( new_tr, instrument_pos, 6, 0.5 ) -- pitch for end
     TrackFX_SetParamNormalized( new_tr, instrument_pos, 8, 0 ) -- max voices = 0
     TrackFX_SetParamNormalized( new_tr, instrument_pos, 9, 0 ) -- attack
     TrackFX_SetParamNormalized( new_tr, instrument_pos, 11, DATA.extstate.CONF_onadd_obeynoteoff) -- obey note offs
+    DATA2:PAD_onfiledrop_setnote(new_tr, instrument_pos, note)
     
     -- set parent track name
     GetSetMediaTrackInfo_String( new_tr, 'P_NAME', filepath_sh, true )
@@ -1664,6 +1737,29 @@
     SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, '')
     reaper.SetOnlyTrackSelected( DATA2.tr_ptr )
   end 
+  -----------------------------------------------------------------------
+  function DATA2:PAD_UpdateNote(note, newnote)
+    if DATA2.notes[note].device_isdevice then 
+      local devicetr = DATA2.notes[note].device_ptr
+      DATA2:TrackDataWrite_MarkTrackAsDevice(devicetr, newnote) 
+      for layer = 1, #DATA2.notes[note].layers do
+        local child_tr = DATA2.notes[note].layers[layer].tr_ptr
+        DATA2:TrackDataWrite_MarkChildAppendsToNote_SetNote(child_tr, newnote)  
+        DATA2:PAD_onfiledrop_setnote(new_tr, DATA2.notes[note].layers[layer].instrument_pos, newnote, DATA2.notes[note].layers[layer].midifilt_pos)
+      end
+      
+     else
+      DATA2:TrackDataWrite_MarkChildAppendsToNote_SetNote(DATA2.notes[note].layers[1].tr_ptr, newnote) 
+      DATA2:PAD_onfiledrop_setnote(DATA2.notes[note].layers[1].tr_ptr, DATA2.notes[note].layers[1].instrument_pos, newnote, DATA2.notes[note].layers[1].midifilt_pos)
+    end
+  end
+  -----------------------------------------------------------------------
+  function DATA2:PAD_move(padsrc,paddest)
+    -- remove old pad
+      DATA2:PAD_ClearPad(paddest)
+    -- refresh external states
+      DATA2:PAD_UpdateNote(padsrc, paddest)
+  end
   -----------------------------------------------------------------------
   function DATA2:PAD_RenamePad(note,layer)
     if not layer then 
@@ -1806,7 +1902,6 @@
   -----------------------------------------------------------------------
   function DATA2:PAD_onfiledrop(note, layer, filepath0)
     if not DATA2.tr_valid then return end
-    
     
     -- validate additional stuff
     DATA2:TrackDataRead_ValidateMIDIbus()
@@ -2126,7 +2221,7 @@
       if DATA2.playingnote_pitch and DATA2.playingnote_pitch == note  then blockcol = '#ffe494' backgr_fill2 = 0.7 end
       
       DATA.GUI.buttons['padgrid_but'..note] = { x=    DATA.GUI.buttons.padgrid.x+math.floor(cellside*(note%4)),
-                          y=DATA.GUI.custom_padgridy+DATA.GUI.custom_padgridh - cellside*(math.floor(note/4))-cellside,
+                          y=DATA.GUI.custom_padgridy+DATA.GUI.custom_padgridh - cellside*(1+(math.floor(note/4))),
                           w=cellside,
                           h=cellside,
                           ignoremouse = true,
@@ -2179,10 +2274,10 @@
     
     local x_offs= DATA.GUI.custom_module_startoffsx
     if DATA2.tr_extparams_showstates and DATA2.tr_extparams_showstates&16==16 and skip_grid~=true then x_offs = x_offs + DATA.GUI.custom_offset+  DATA.GUI.custom_macroW end -- macro
-    DATA.GUI.buttons.padgrid = { x=x_offs,
-                          y=DATA.GUI.custom_padgridy,
-                          w=DATA.GUI.custom_padgridw,
-                          h=DATA.GUI.custom_padgridh,
+    DATA.GUI.buttons.padgrid = { x=math.floor(x_offs),
+                          y=math.floor(DATA.GUI.custom_padgridy),
+                          w=math.floor(DATA.GUI.custom_padgridw),
+                          h=math.floor(DATA.GUI.custom_padgridh),
                           txt = '',
                           
                           val = 0,
@@ -2858,7 +2953,12 @@
            else
             DATA2.ONDOUBLECLICK = nil
           end
-        end  ,  
+        end  ,
+        f_double= function() 
+          local new_val = val_default
+          DATA2:TrackData_SetReaEQParams(src_t, paramid, new_val)
+          DATA2.ONDOUBLECLICK = true
+        end  ,
       } )
   end
   ------------------------------------------------------------------------
@@ -2869,7 +2969,7 @@
     local val_format_key = 'reaeq_cut_format'
     local param_val = 'reaeq_cut'
     local ctrlname = 'Freq'
-    local val_default = 0 
+    local val_default = 0.95
     local prefix = 'sampler_'
     local paramid = 0
     GUI_MODULE_SAMPLER_Section_FilterKnobs_addknob(DATA, key,ctrlname,paramid,src_t,note,layer,val_format_key,param_val, (DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset)*1, val_default, val_max,frame_arcborder,frame_arcborderflags)
@@ -2878,7 +2978,7 @@
     local val_format_key = 'reaeq_gain_format'
     local param_val = 'reaeq_gain'
     local ctrlname = 'Gain'
-    local val_default = 0 
+    local val_default = 0.5
     local prefix = 'sampler_'
     local paramid = 1
     local frame_arcborder = true
@@ -3003,7 +3103,9 @@
            else
             DATA2.ONDOUBLECLICK = nil
           end
-        end  ,  
+        end  , 
+        f_double= function() DATA2:TrackData_SetDriveParams(src_t, paramid, 0) DATA2.ONDOUBLECLICK = true  end  ,
+        
       } )
   end
   ------------------------------------------------------------------------
@@ -3162,6 +3264,7 @@
     local retval, rawmsg, tsval, devIdx, projPos, projLoopCnt = MIDI_GetRecentInputEvent(0)
     DATA2.recentmsg = rawmsg
     if DATA2.recentmsg_last and DATA2.recentmsg_last ~= DATA2.recentmsg then 
+      
       DATA2.recentmsg_isNoteOn = rawmsg:byte(1)>>4 == 0x9 
       DATA2.recentmsg_isNoteOff = rawmsg:byte(1)>>4 == 0x8 
       if DATA2.recentmsg_isNoteOn == true then 
@@ -3177,18 +3280,21 @@
     end
     DATA2.recentmsg_last = rawmsg
     
-    if DATA2.recentmsg_trig == true and DATA.extstate.UI_donotupdateonplay == 0 then  
+    --[[if DATA2.recentmsg_trig == true and DATA.extstate.UI_donotupdateonplay == 0 then  
+      msg(1)
       DATA2.tr_extparams_note_active = DATA2.playingnote_pitch 
       DATA2.tr_extparams_note_active_layer = 1 
       DATA2:TrackDataWrite() 
       GUI_MODULE_PADOVERVIEW_generategrid(DATA) -- refresh pad
       GUI_MODULE_DRUMRACKPAD(DATA)  
-    end
+    end]]
     
     if DATA2.recentmsg_trig == true and DATA2.recentmsg_isNoteOn == true and DATA.extstate.UI_incomingnoteselectpad == 1 then 
+      --msg(2)
       DATA2.tr_extparams_note_active = DATA2.playingnote_pitch 
       DATA2.tr_extparams_note_active_layer = 1 
       DATA2:TrackDataWrite() 
+      GUI_MODULE_PADOVERVIEW_generategrid(DATA) -- refresh pad
       GUI_MODULE_DRUMRACKPAD(DATA)  
       GUI_MODULE_DEVICE(DATA)  
       GUI_MODULE_SAMPLER(DATA)
