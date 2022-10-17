@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="06e87b4f8bc5f4a8fe7f16d12947267bf94d52a8" name="MPL Scripts">
+<index version="1" commit="9e20c01d47557cc564164d241f0c0d7302a955ae" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4019,6 +4019,14 @@
         <changelog><![CDATA[+ Pad Overview: drop on pad overview add sample(s) to first available note starting this area]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/06e87b4f8bc5f4a8fe7f16d12947267bf94d52a8/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
         <source file="mpl_RS5k manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/06e87b4f8bc5f4a8fe7f16d12947267bf94d52a8/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
+      </version>
+      <version name="3.0beta25" author="MPL" time="2022-10-17T17:11:24Z">
+        <changelog><![CDATA[# Pad Overview: fix incorrect view at some scales
+# Sampler: fix doubleclick on filter / drive section
+# Settings: remove "Do not update on play"
+# Settings: move and rename 'Incoming note activate pad' to UI/'Active note follow incoming note']]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e20c01d47557cc564164d241f0c0d7302a955ae/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e20c01d47557cc564164d241f0c0d7302a955ae/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k manager_MacroControls.jsfx" type="effect" desc="RS5K_manager_MacroControls">
