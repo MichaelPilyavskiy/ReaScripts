@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="9e20c01d47557cc564164d241f0c0d7302a955ae" name="MPL Scripts">
+<index version="1" commit="287de75bfbfcdeafcd3ff596df36bae622d5e3bd" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1329,6 +1329,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/70c3d2d851d7dea7d3405ff30c445d4ac595fb07/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/70c3d2d851d7dea7d3405ff30c445d4ac595fb07/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/70c3d2d851d7dea7d3405ff30c445d4ac595fb07/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.45" author="MPL" time="2022-10-26T20:23:04Z">
+        <changelog><![CDATA[+ Handle mouse drop from other ptr]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/287de75bfbfcdeafcd3ff596df36bae622d5e3bd/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/287de75bfbfcdeafcd3ff596df36bae622d5e3bd/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/287de75bfbfcdeafcd3ff596df36bae622d5e3bd/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/287de75bfbfcdeafcd3ff596df36bae622d5e3bd/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/287de75bfbfcdeafcd3ff596df36bae622d5e3bd/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/287de75bfbfcdeafcd3ff596df36bae622d5e3bd/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -4027,6 +4036,24 @@
 # Settings: move and rename 'Incoming note activate pad' to UI/'Active note follow incoming note']]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e20c01d47557cc564164d241f0c0d7302a955ae/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
         <source file="mpl_RS5k manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e20c01d47557cc564164d241f0c0d7302a955ae/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
+      </version>
+      <version name="3.0beta30" author="MPL" time="2022-10-26T20:23:04Z">
+        <changelog><![CDATA[# NO BACKWARD COMPATIBILITY for 3.0beta1-25 versions
+# Internal code clean up, change names of external states
+# GUI: use single control form for readouts/knobs
+# GUI: tweak area is whole frame, not only value field
+# When drop to replace sample, also rename track and note names
+# fix and properly handle device / regular child states
++ 3rd party instrument: cache param IDs
++ DrumRack: left drag move/replace pads content (single sample/devices)
++ DrumRack: ctrl drag copy pad content (only non-device is available)
++ DrumRack: draw frame / names as track colors
+# DrumRack: remove ME button, use MediaExp button for show active note/layer sampler in MediaExplorer
++ Sampler/Tune: quantize values, use Ctrl+Drag for fine tune
++ Sampler/Tune: obey fraction/quantized difference on regular drag
++ Add help tips at modules]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/287de75bfbfcdeafcd3ff596df36bae622d5e3bd/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/287de75bfbfcdeafcd3ff596df36bae622d5e3bd/FX%20specific/mpl_RS5k%20manager_MacroControls.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k manager_MacroControls.jsfx" type="effect" desc="RS5K_manager_MacroControls">
