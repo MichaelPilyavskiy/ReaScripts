@@ -268,8 +268,9 @@
         local refresh = true
         --if not b.ignoremouse_refresh then refresh = false end
       
-        DATA:GUIhandlemousestate_match(b) 
+        DATA:GUIhandlemousestate_match(b)
         if b.mouse_match then
+          --DATA.GUI.mouse_match = but
           b.mouse_matchparent = b
           if b.onmousematchcont then DATA.perform_quere[#DATA.perform_quere+1] = b.onmousematchcont end                                                     -- arrow above pointer coninioulsy
           if DATA.GUI.mouse_ismoving then b.refresh = refresh end                                                                                           -- refresh object is arrow above (handle context rectangle selection)
@@ -337,12 +338,15 @@
         end
         
      -- handle mouse_latch on left release
+        local mouse_latch = b.mouse_latch
         if DATA.GUI.LMB_release == true and b.mouse_latch == true then
           b.mouse_latch = false
           b.refresh = true
           DATA.perform_quere[#DATA.perform_quere+1] = b.onmouserelease
-        end 
-      
+        elseif DATA.GUI.LMB_release == true and b.mouse_match == true and mouse_latch ~= true then -- handle mouse_latch on left release
+         DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedrop
+       end 
+         
       -- RMB
       -- handle mouse_latch on left click
         if DATA.GUI.RMB_trig == true and b.mouse_match == true then 
