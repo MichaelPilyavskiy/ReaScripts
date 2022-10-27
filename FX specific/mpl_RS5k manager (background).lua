@@ -1,25 +1,12 @@
 -- @description RS5k manager
--- @version 3.0beta30
+-- @version 3.0beta31
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    # NO BACKWARD COMPATIBILITY for 3.0beta1-25 versions
---    # Internal code clean up, change names of external states
---    # GUI: use single control form for readouts/knobs
---    # GUI: tweak area is whole frame, not only value field
---    # When drop to replace sample, also rename track and note names
---    # fix and properly handle device / regular child states
---    + 3rd party instrument: cache param IDs
---    + DrumRack: left drag move/replace pads content (single sample/devices)
---    + DrumRack: ctrl drag copy pad content (only non-device is available)
---    + DrumRack: draw frame / names as track colors
---    # DrumRack: remove ME button, use MediaExp button for show active note/layer sampler in MediaExplorer
---    + Sampler/Tune: quantize values, use Ctrl+Drag for fine tune
---    + Sampler/Tune: obey fraction/quantized difference on regular drag
---    + Add help tips at modules
+--    # fix nil parent track
 
 
 --[[ 
@@ -201,7 +188,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta30'
+    DATA.extstate.version = '3.0beta31'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -734,16 +721,6 @@ Device childs:
   end 
   --------------------------------------------------------------------- 
   function DATA2:TrackDataRead_GetParent(track)
-    -- remove 3.0beta30 backward compatibility
-    local _, VERSION = GetSetMediaTrackInfo_String ( track, 'P_EXT:MPLRS5KMAN_VERSION', 0, false) if VERSION == '' then VERSION = nil end 
-    DATA2.VERSION = VERSION
-    if not VERSION then return end
-    vrs_maj = tonumber(VERSION:match('[%d%p]+'))
-    vrs_alpha = tonumber(VERSION:match('alpha([%d%p]+)')) or 0
-    vrs_beta = tonumber(VERSION:match('beta([%d%p]+)')) or 0
-    vrs = vrs_maj + vrs_beta * 0.000001 + vrs_alpha * 0.000000001
-    if vrs < 3.00003 then  MB('This version require new rack. Rack was created in unsupported beta of RS5k manager','Error', 0) return end
-    
     local retval, trname = reaper.GetTrackName( track )
     local GUID = reaper.GetTrackGUID( track)  
     DATA2.tr_valid = true
@@ -751,7 +728,18 @@ Device childs:
     DATA2.tr_name =  trname
     DATA2.tr_GUID =  GetTrackGUID( track )
     DATA2.tr_ID = CSurf_TrackToID( track, false) 
-     
+    
+    -- remove 3.0beta30 backward compatibility
+    local _, VERSION = GetSetMediaTrackInfo_String ( track, 'P_EXT:MPLRS5KMAN_VERSION', 0, false) if VERSION == '' then VERSION = nil end  
+    if  VERSION then 
+      DATA2.VERSION = VERSION
+      vrs_maj = tonumber(VERSION:match('[%d%p]+'))
+      vrs_alpha = tonumber(VERSION:match('alpha([%d%p]+)')) or 0
+      vrs_beta = tonumber(VERSION:match('beta([%d%p]+)')) or 0
+      vrs = vrs_maj + vrs_beta * 0.000001 + vrs_alpha * 0.000000001
+      if vrs < 3.00003 then DATA2.tr_valid = false MB('This version require new rack. Rack was created in unsupported beta of RS5k manager','Error', 0) return end
+    end
+    
     DATA2.PARENT_ACTIVEPAD = 3
     DATA2.PARENT_MACROCNT = 16
     DATA2.PARENT_TABSTATEFLAGS=1|2|4|8--|16 -- 1=drumrack   2=device  4=sampler 8=padview 16=macro
