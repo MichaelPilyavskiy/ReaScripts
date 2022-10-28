@@ -1,71 +1,108 @@
 desc:RS5K_manager_MacroControls
-version: 1.0
+version: 1.01
 author: MPL
 website: http://forum.cockos.com/member.php?u=70694
 about:
   Dummy controls to use with RS5k manager
 changelog: 
-  init
+  testing modification
 
  
 desc:RS5K_manager_MacroControls
-options:gmem=RS5K_manager_MacroControls
+options:gmem=RS5K_manager
 
-slider1:0<0, 1, 0.00000001>Macro 1
-slider2:0<0, 1, 0.00000001>Macro 2
-slider3:0<0, 1, 0.00000001>Macro 3
-slider4:0<0, 1, 0.00000001>Macro 4
-slider5:0<0, 1, 0.00000001>Macro 5
-slider6:0<0, 1, 0.00000001>Macro 6
-slider7:0<0, 1, 0.00000001>Macro 7
-slider8:0<0, 1, 0.00000001>Macro 8
-slider9:0<0, 1, 0.00000001>Macro 9
-slider10:0<0, 1, 0.00000001>Macro 10
-slider11:0<0, 1, 0.00000001>Macro 11
-slider12:0<0, 1, 0.00000001>Macro 12
-slider13:0<0, 1, 0.00000001>Macro 13
-slider14:0<0, 1, 0.00000001>Macro 14
-slider15:0<0, 1, 0.00000001>Macro 15
-slider16:0<0, 1, 0.00000001>Macro 16
+slider1:0<0, 1, 1>is_slave
 
-slider17:0<0, 1024, 1>-gmem sourceID for slider 1
-slider18:0<0, 1024, 1>-gmem sourceID for slider 2
-slider19:0<0, 1024, 1>-gmem sourceID for slider 3
-slider20:0<0, 1024, 1>-gmem sourceID for slider 4
-slider21:0<0, 1024, 1>-gmem sourceID for slider 5
-slider22:0<0, 1024, 1>-gmem sourceID for slider 6
-slider23:0<0, 1024, 1>-gmem sourceID for slider 7
-slider24:0<0, 1024, 1>-gmem sourceID for slider 8
-slider25:0<0, 1024, 1>-gmem sourceID for slider 9
-slider26:0<0, 1024, 1>-gmem sourceID for slider 10
-slider27:0<0, 1024, 1>-gmem sourceID for slider 11
-slider28:0<0, 1024, 1>-gmem sourceID for slider 12
-slider29:0<0, 1024, 1>-gmem sourceID for slider 13
-slider30:0<0, 1024, 1>-gmem sourceID for slider 14
-slider31:0<0, 1024, 1>-gmem sourceID for slider 15
-slider32:0<0, 1024, 1>-gmem sourceID for slider 16
+slider2:0<0, 1, 0.00000001>Macro 1
+slider3:0<0, 1, 0.00000001>Macro 2
+slider4:0<0, 1, 0.00000001>Macro 3
+slider5:0<0, 1, 0.00000001>Macro 4
+slider6:0<0, 1, 0.00000001>Macro 5
+slider7:0<0, 1, 0.00000001>Macro 6
+slider8:0<0, 1, 0.00000001>Macro 7
+slider9:0<0, 1, 0.00000001>Macro 8
+slider10:0<0, 1, 0.00000001>Macro 9
+slider11:0<0, 1, 0.00000001>Macro 10
+slider12:0<0, 1, 0.00000001>Macro 11
+slider13:0<0, 1, 0.00000001>Macro 12
+slider14:0<0, 1, 0.00000001>Macro 13
+slider15:0<0, 1, 0.00000001>Macro 14
+slider16:0<0, 1, 0.00000001>Macro 15
+slider17:0<0, 1, 0.00000001>Macro 16
 
-slider33:0<0, 1, 1>is_slave
 
+slider18:0<0, 1024, 1>gmem sourceID for Macro 1
+slider19:0<0, 1024, 1>gmem sourceID for Macro 2
+slider20:0<0, 1024, 1>gmem sourceID for Macro 3
+slider21:0<0, 1024, 1>gmem sourceID for Macro 4
+slider22:0<0, 1024, 1>gmem sourceID for Macro 5
+slider23:0<0, 1024, 1>gmem sourceID for Macro 6
+slider24:0<0, 1024, 1>gmem sourceID for Macro 7
+slider25:0<0, 1024, 1>gmem sourceID for Macro 8
+slider26:0<0, 1024, 1>gmem sourceID for Macro 9
+slider27:0<0, 1024, 1>gmem sourceID for Macro 10
+slider28:0<0, 1024, 1>gmem sourceID for Macro 11
+slider29:0<0, 1024, 1>gmem sourceID for Macro 12
+slider30:0<0, 1024, 1>gmem sourceID for Macro 13
+slider31:0<0, 1024, 1>gmem sourceID for Macro 14
+slider32:0<0, 1024, 1>gmem sourceID for Macro 15
+slider33:0<0, 1024, 1>gmem sourceID for Macro 16
+
+slider34:0<0, 1024, 1>gmem destID for Macro 1
+slider35:0<0, 1024, 1>gmem destID for Macro 2
+slider36:0<0, 1024, 1>gmem destID for Macro 3
+slider37:0<0, 1024, 1>gmem destID for Macro 4
+slider38:0<0, 1024, 1>gmem destID for Macro 5
+slider39:0<0, 1024, 1>gmem destID for Macro 6
+slider40:0<0, 1024, 1>gmem destID for Macro 7
+slider41:0<0, 1024, 1>gmem destID for Macro 8
+slider42:0<0, 1024, 1>gmem destID for Macro 9
+slider43:0<0, 1024, 1>gmem destID for Macro 10
+slider44:0<0, 1024, 1>gmem destID for Macro 11
+slider45:0<0, 1024, 1>gmem destID for Macro 12
+slider46:0<0, 1024, 1>gmem destID for Macro 13
+slider47:0<0, 1024, 1>gmem destID for Macro 14
+slider48:0<0, 1024, 1>gmem destID for Macro 15
+slider49:0<0, 1024, 1>gmem destID for Macro 16
 
 
 @slider
+slider1==0 ? (
+  gmem[slider34] = slider2;
+  gmem[slider35] = slider3;
+  gmem[slider36] = slider4;
+  gmem[slider37] = slider5;
+  gmem[slider38] = slider6;
+  gmem[slider39] = slider7;
+  gmem[slider40] = slider8;
+  gmem[slider41] = slider9;
+  gmem[slider42] = slider10;
+  gmem[slider43] = slider11;
+  gmem[slider44] = slider12;
+  gmem[slider45] = slider13;
+  gmem[slider46] = slider14;
+  gmem[slider47] = slider15;
+  gmem[slider48] = slider16;
+  gmem[slider49] = slider17;
+) ;
 
-slider33 == 1 ? (
-slider1 = gmem[slider17];
-slider2 = gmem[slider18];
-slider3 = gmem[slider19];
-slider4 = gmem[slider20];
-slider5 = gmem[slider21];
-slider6 = gmem[slider22];
-slider7 = gmem[slider23];
-slider8 = gmem[slider24];
-slider9 = gmem[slider25];
-slider10 = gmem[slider26];
-slider11 = gmem[slider27];
-slider12 = gmem[slider28];
-slider13 = gmem[slider29];
-slider14 = gmem[slider30];
-slider15 = gmem[slider31];
-slider16 = gmem[slider32];
+@block
+slider1==1 ? (
+  test = gmem[42];
+  slider2 = gmem[slider18];
+  slider3 = gmem[slider19];
+  slider4 = gmem[slider20];
+  slider5 = gmem[slider21];
+  slider6 = gmem[slider22];
+  slider7 = gmem[slider23];
+  slider8 = gmem[slider24];
+  slider9 = gmem[slider25];
+  slider10 = gmem[slider26];
+  slider11 = gmem[slider27];
+  slider12 = gmem[slider28];
+  slider13 = gmem[slider29];
+  slider14 = gmem[slider30];
+  slider15 = gmem[slider31];
+  slider16 = gmem[slider32];
+  slider17 = gmem[slider33];
 );

@@ -1,15 +1,38 @@
 -- @description RS5k manager
--- @version 3.0beta31
+-- @version 3.0beta33
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    # fix nil parent track
+--    + Sampler: add sample search actions
+--    + Macro: add link section
+--    + Macro: add offset link
+--    + Macro: add scale link
+--    + Macro: add disable link button
+--    # for now reduce macro knobs count to 8 in the GUI
+
 
 
 --[[ 
+
+v3.0beta30 by MPL – October 26 2022
+  # NO BACKWARD COMPATIBILITY for 3.0beta1-25 versions
+  # Internal code clean up, change names of external states
+  # GUI: use single control form for readouts/knobs
+  # GUI: tweak area is whole frame, not only value field
+  # When drop to replace sample, also rename track and note names
+  # fix and properly handle device / regular child states
+  + 3rd party instrument: cache param IDs
+  + DrumRack: left drag move/replace pads content (single sample/devices)
+  + DrumRack: ctrl drag copy pad content (only non-device is available)
+  + DrumRack: draw frame / names as track colors
+  # DrumRack: remove ME button, use MediaExp button for show active note/layer sampler in MediaExplorer
+  + Sampler/Tune: quantize values, use Ctrl+Drag for fine tune
+  + Sampler/Tune: obey fraction/quantized difference on regular drag
+  + Add help tips at modules
+  
 3.0beta25 17.10.2022 
 --    # Pad Overview: fix incorrect view at some scales
 --    # Sampler: fix doubleclick on filter / drive section
@@ -188,7 +211,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta31'
+    DATA.extstate.version = '3.0beta33'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -266,7 +289,7 @@ Controls:
   M = mute
   S = solo
   > = play
-  MediaExp = show current note sample in browser
+  Explore = show current note sample in browser
    
 Pads:
   Click on pad name = set current note active
@@ -340,7 +363,8 @@ Device childs:
           'PARENT_ACTIVEPAD '..DATA2.PARENT_ACTIVEPAD..'\n'.. 
           'PARENT_LASTACTIVENOTE '..DATA2.PARENT_LASTACTIVENOTE..'\n'.. 
           'PARENT_TABSTATEFLAGS '..DATA2.PARENT_TABSTATEFLAGS..'\n'.. 
-          'PARENT_MACROCNT '..DATA2.PARENT_MACROCNT..'\n' 
+          'PARENT_MACROCNT '..DATA2.PARENT_MACROCNT..'\n'.. 
+          'PARENT_LASTACTIVEMACRO '..DATA2.PARENT_LASTACTIVEMACRO..'\n' 
         GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN', extstr, true)  
         return 
       end
@@ -438,6 +462,7 @@ Device childs:
     local tr_mute = GetMediaTrackInfo_Value( track, 'B_MUTE' )
     local tr_solo = GetMediaTrackInfo_Value( track, 'I_SOLO' )
     local tr_col = GetMediaTrackInfo_Value( track, 'I_CUSTOMCOLOR' )
+    local GUID = reaper.GetTrackGUID( track )
     local retval, tr_name = GetTrackName( track )
     if tr_col&0x1000000==0x1000000 then tr_col = tr_col-0x1000000 end
     if tr_col==16576 then tr_col = nil end
@@ -455,6 +480,7 @@ Device childs:
     note_layer_t.tr_solo = tr_solo
     note_layer_t.tr_col = tr_col
     note_layer_t.tr_name = tr_name
+    note_layer_t.TR_GUID = GUID
   end
   ---------------------------------------------------------------------  
   function DATA2:internal_FormatPan(tr_pan) 
@@ -468,7 +494,7 @@ Device childs:
   end
   ---------------------------------------------------------------------  
   function DATA2:TrackDataRead_GetChildrens_FXParams(note_layer_t)  
-  
+    if not note_layer_t then return end
     -- ReaEQ
     note_layer_t.fx_reaeq_isvalid = false
     if note_layer_t.FX_REAEQ_GUID then  
@@ -537,6 +563,45 @@ Device childs:
     return ret, parGUID
   end
   ---------------------------------------------------------------------  
+  function DATA2:TrackDataRead_GetParent_MacroLinks(note_layer_t)
+    if not note_layer_t then return end
+    if not note_layer_t.tr_ptr then return end
+    for fxid = 1,  TrackFX_GetCount( note_layer_t.tr_ptr ) do
+      if fxid ~= note_layer_t.macro_pos then
+        for paramnumber = 0, TrackFX_GetNumParams( note_layer_t.tr_ptr, fxid-1 )-1 do
+          local isactive = ({TrackFX_GetNamedConfigParm(note_layer_t.tr_ptr, fxid-1, 'param.'..paramnumber..'plink.active')})[2] isactive = tonumber(isactive) 
+          if isactive and isactive ==1 then
+            local src_fx = ({TrackFX_GetNamedConfigParm(note_layer_t.tr_ptr, fxid-1, 'param.'..paramnumber..'plink.effect')})[2] src_fx = tonumber(src_fx) 
+            local src_param = ({TrackFX_GetNamedConfigParm(note_layer_t.tr_ptr, fxid-1, 'param.'..paramnumber..'plink.param')})[2] src_param = tonumber(src_param) 
+            if src_fx and src_fx == note_layer_t.macro_pos then
+              local retval, pname = reaper.TrackFX_GetParamName( note_layer_t.tr_ptr, fxid-1,paramnumber)
+              local macroID = src_param  
+              if DATA2.Macro.sliders[macroID] then 
+                if not DATA2.Macro.sliders[macroID].links then DATA2.Macro.sliders[macroID].links = {} end
+                local linkID = #DATA2.Macro.sliders[macroID].links+1
+                local plink_offset = ({TrackFX_GetNamedConfigParm(note_layer_t.tr_ptr, fxid-1, 'param.'..paramnumber..'plink.offset')})[2] plink_offset = tonumber(plink_offset) 
+                local plink_scale = ({TrackFX_GetNamedConfigParm(note_layer_t.tr_ptr, fxid-1, 'param.'..paramnumber..'plink.scale')})[2] plink_scale = tonumber(plink_scale) 
+                local plink_offset_format = math.floor(plink_offset*100)..'%'
+                local plink_scale_format = math.floor(plink_scale*100)..'%'
+                DATA2.Macro.sliders[macroID].links[linkID] = {
+                    param_name = pname,
+                    plink_offset = plink_offset,
+                    plink_offset_format = plink_offset_format,
+                    plink_scale = plink_scale,
+                    plink_scale_format = plink_scale_format,
+                    src_t = note_layer_t,
+                    fx_dest = fxid-1,
+                    param_dest = paramnumber,
+                  }
+                  
+              end 
+            end
+          end
+        end
+      end
+    end 
+  end
+  ---------------------------------------------------------------------  
   function DATA2:TrackDataRead_GetChildrens_ExtState(track) 
     if DATA2:TrackDataRead_IsChildAppendsToCurrentParent(track) ~= true  then return end
     
@@ -567,6 +632,11 @@ Device childs:
     local ret, INSTR_PARAM_DEC = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_PARAM_DEC', '', false) INSTR_PARAM_DEC = tonumber(INSTR_PARAM_DEC) or nil
     local ret, INSTR_PARAM_SUS = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_PARAM_SUS', '', false) INSTR_PARAM_SUS = tonumber(INSTR_PARAM_SUS) or nil
     local ret, INSTR_PARAM_REL = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_PARAM_REL', '', false) INSTR_PARAM_REL = tonumber(INSTR_PARAM_REL) or nil
+    
+    local _, MACRO_GUID = GetSetMediaTrackInfo_String ( track, 'P_EXT:MPLRS5KMAN_MACRO_GUID', 0, false) if MACRO_GUID == '' then MACRO_GUID = nil end 
+    local  ret, tr, macro_pos, macro_links
+    if MACRO_GUID then ret, tr, macro_pos = VF_GetFXByGUID(MACRO_GUID:gsub('[%{%}]',''),track) end
+    if not macro_pos then MACRO_GUID = nil  end
     
     if TYPE_DEVICECHILD and TYPE_DEVICECHILD_PARENTDEVICEGUID then 
       local devicetr = VF_GetTrackByGUID(TYPE_DEVICECHILD_PARENTDEVICEGUID)
@@ -602,6 +672,10 @@ Device childs:
                                           INSTR_PARAM_DEC=INSTR_PARAM_DEC,
                                           INSTR_PARAM_SUS=INSTR_PARAM_SUS,
                                           INSTR_PARAM_REL=INSTR_PARAM_REL,
+                                          noteID = note,
+                                          layerID = layer,
+                                          MACRO_GUID = MACRO_GUID,
+                                          macro_pos = macro_pos,
                                           }
       end
       
@@ -610,6 +684,9 @@ Device childs:
         DATA2.notes[note].tr_ptr = track
         DATA2.notes[note].tr_GUID = trGUID
         DATA2.notes[note].devicetr_ID = CSurf_TrackToID(track, false ) 
+        DATA2.notes[note].MACRO_GUID = MACRO_GUID
+        DATA2.notes[note].noteID = note
+        DATA2.notes[note].nmacro_pos =macro_pos
       end
     end
     
@@ -744,31 +821,45 @@ Device childs:
     DATA2.PARENT_MACROCNT = 16
     DATA2.PARENT_TABSTATEFLAGS=1|2|4|8--|16 -- 1=drumrack   2=device  4=sampler 8=padview 16=macro
     DATA2.PARENT_LASTACTIVENOTE = -1
+    DATA2.PARENT_LASTACTIVEMACRO = -1
     
-    DATA2.Macro = {sliders = {}} 
-    DATA2:TrackDataRead_GetParent_Macro()
+    DATA2.Macro = {sliders = {}}  
     
   end
   --------------------------------------------------------------------- 
-  function DATA2:TrackDataRead_GetParent_Macro()
-    if not DATA2.tr_ptr then return end
+  function DATA2:TrackDataRead_GetParent_Macro(donotupdatelinks)
+    if not (DATA2.tr_ptr and ValidatePtr2(0,DATA2.tr_ptr,'MediaTrack*') )then return end
     DATA2.Macro.isvalid = false
     local _, MACRO_GUID = GetSetMediaTrackInfo_String ( DATA2.tr_ptr, 'P_EXT:MPLRS5KMAN_MACRO_GUID', 0, false) if MACRO_GUID == '' then MACRO_GUID = nil end 
     if MACRO_GUID then 
-      local ret,tr, macropos = VF_GetFXByGUID(MACRO_GUID, DATA2.tr_ptr)
-      if ret and macropos and macropos ~= -1 then   
+      local ret,tr, macro_pos = VF_GetFXByGUID(MACRO_GUID, DATA2.tr_ptr)
+      if ret and macro_pos and macro_pos ~= -1 then   
         DATA2.Macro.isvalid = true 
-        DATA2.Macro.pos = macropos 
+        DATA2.Macro.macro_pos = macro_pos 
+        DATA2.Macro.MACRO_GUID = MACRO_GUID 
         for i = 1, 16 do
           if not DATA2.Macro.sliders[i] then DATA2.Macro.sliders[i] = {} end
-          local param_val = TrackFX_GetParamNormalized( DATA2.tr_ptr, macropos, i-1 )
+          local param_val = TrackFX_GetParamNormalized( DATA2.tr_ptr, macro_pos, i )
           DATA2.Macro.sliders[i].macroval = param_val
           DATA2.Macro.sliders[i].macroval_format = math.floor(param_val*1000/10)..'%'
           DATA2.Macro.sliders[i].tr_ptr = DATA2.tr_ptr
-          DATA2.Macro.sliders[i].macro_pos = macropos
+          DATA2.Macro.sliders[i].macro_pos = macro_pos
         end
       end
     end 
+    
+    -- get links
+    if not donotupdatelinks then
+      for macroID = 1, 16 do if DATA2.Macro.sliders[macroID] then DATA2.Macro.sliders[macroID].links = nil end end       -- clear links
+      for note in pairs(DATA2.notes) do
+        DATA2:TrackDataRead_GetParent_MacroLinks(DATA2.notes[note])
+        if DATA2.notes[note] and DATA2.notes[note].layers then 
+          for layer in pairs(DATA2.notes[note].layers) do
+            DATA2:TrackDataRead_GetParent_MacroLinks(DATA2.notes[note].layers[layer])
+          end
+        end
+      end
+    end
   end
   ---------------------------------------------------------------------  
   function DATA2:TrackDataRead(track0)
@@ -790,6 +881,7 @@ Device childs:
       DATA2:TrackDataRead_GetChildrens(parenttrack)
     end
     DATA2:TrackDataRead_GetParent_ParseExt(parenttrack)
+    DATA2:TrackDataRead_GetParent_Macro()
   end
   ---------------------------------------------------------------------  
   function DATA_RESERVED_ONPROJCHANGE(DATA)
@@ -944,6 +1036,7 @@ Device childs:
       DATA.GUI.custom_infoh = math.floor(gfx_h*0.1)
       DATA.GUI.custom_moduleH = gfx_h - DATA.GUI.custom_infoh-DATA.GUI.custom_offset -- global H
       DATA.GUI.custom_moduleW = math.floor(DATA.GUI.custom_moduleH*1.5) -- global W
+      DATA.GUI.knob_button_w = math.floor(DATA.GUI.custom_moduleH * 0.2) 
       
       DATA.GUI.custom_framea = 0.1 -- greyed drum rack pads
       DATA.GUI.custom_backcol2 = '#f3f6f4' -- grey back  -- device selection
@@ -962,12 +1055,11 @@ Device childs:
       DATA.GUI.custom_macroY = DATA.GUI.custom_infoh--+ DATA.GUI.custom_offset
       DATA.GUI.custom_macroW = math.floor(DATA.GUI.custom_moduleW*1.3)
       DATA.GUI.custom_macroH = DATA.GUI.custom_moduleH--DATA.GUI.custom_offset
-      local knobcol = 2
-      DATA.GUI.custom_macro_knobH = math.floor(DATA.GUI.custom_macroH/knobcol)
-      local knobrow = 8
-      DATA.GUI.custom_macro_knobW =  math.floor((DATA.GUI.custom_macroW - (knobrow-1)*DATA.GUI.custom_offset)/knobrow)
-      DATA.GUI.custom_macroW = DATA.GUI.custom_macro_knobW*(knobrow)+DATA.GUI.custom_offset
+      DATA.GUI.custom_macro_knobH = math.floor(DATA.GUI.custom_macroH)
+      DATA.GUI.custom_macroW = DATA.GUI.knob_button_w*9+DATA.GUI.custom_offset
       DATA.GUI.custom_macro_knobtxtsz= 15* DATA.GUI.custom_Yrelation
+      DATA.GUI.custom_macro_linkentryh = 25 * DATA.GUI.custom_Yrelation  
+      DATA.GUI.custom_macro_link_txtsz= 14* DATA.GUI.custom_Yrelation
       
     -- pad overview
       DATA.GUI.custom_padgridy = 0
@@ -990,21 +1082,20 @@ Device childs:
       DATA.GUI.custom_devicew = math.floor(DATA.GUI.custom_moduleW*1.3)
       DATA.GUI.custom_deviceh = gfx_h - DATA.GUI.custom_infoh-DATA.GUI.custom_offset -- DEVICE H
       DATA.GUI.custom_deviceentryh = 25 * DATA.GUI.custom_Yrelation
-      DATA.GUI.custom_devicectrl_txtsz = 15 *DATA.GUI.custom_Yrelation   
+      DATA.GUI.custom_devicectrl_txtsz = 14 *DATA.GUI.custom_Yrelation   
       
       
     -- sampler  
-      DATA.GUI.custom_sampler_showbutw = 70 *DATA.GUI.custom_Yrelation  
       DATA.GUI.custom_sampler_peakareah = math.floor(DATA.GUI.custom_moduleH * 0.4) 
-      DATA.GUI.custom_sampler_modew = math.floor(DATA.GUI.custom_sampler_peakareah/2) 
-      DATA.GUI.custom_samplerW = (DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset) * 8
-      DATA.GUI.custom_sampler_namebutw = DATA.GUI.custom_samplerW-DATA.GUI.custom_sampler_showbutw*2 
-      DATA.GUI.custom_sampler_readouth =DATA.GUI.custom_sampler_modew+1 
+      
+      DATA.GUI.custom_samplerW = (DATA.GUI.knob_button_w+DATA.GUI.custom_offset) * 8
+      DATA.GUI.custom_sampler_namebutw = DATA.GUI.custom_samplerW-(DATA.GUI.custom_offset+DATA.GUI.knob_button_w)*2 
+      DATA.GUI.custom_sampler_readouth =DATA.GUI.knob_button_w+1 
       DATA.GUI.custom_sampler_knob_h = DATA.GUI.custom_moduleH - DATA.GUI.custom_module_ctrlreadout_h*2 - DATA.GUI.custom_sampler_peakareah - DATA.GUI.custom_offset*4-DATA.GUI.custom_offset 
       DATA.GUI.custom_sampler_ctrl_txtsz = 13 *DATA.GUI.custom_Yrelation  
-      DATA.GUI.custom_sampler_peaksw = DATA.GUI.custom_samplerW-DATA.GUI.custom_offset-DATA.GUI.custom_sampler_modew-1
+      DATA.GUI.custom_sampler_peaksw = DATA.GUI.custom_samplerW-DATA.GUI.custom_offset-DATA.GUI.knob_button_w-1
       
-      
+      DATA.GUI.knob_button_h =DATA.GUI.custom_sampler_knob_h
       
       
       if not DATA.GUI.layers then DATA.GUI.layers = {} end 
@@ -1097,6 +1188,224 @@ Device childs:
     
   end
   -----------------------------------------------------------------------------  
+  function GUI_MODULE_MACRO_links(DATA) 
+    if not DATA2.PARENT_LASTACTIVEMACRO then return end
+    local macroID = DATA2.PARENT_LASTACTIVEMACRO
+    local x_offs = DATA.GUI.buttons.macroglob_Aframe.x+DATA.GUI.custom_offset
+    local y_offs = DATA.GUI.custom_macroY+DATA.GUI.knob_button_h+DATA.GUI.custom_offset
+    local h_frame = DATA.GUI.custom_macroH-DATA.GUI.knob_button_h-DATA.GUI.custom_offset*2
+    DATA.GUI.buttons.macroglob_linksframe = { x=x_offs,
+                          y=y_offs,
+                          w=DATA.GUI.custom_macroW-DATA.GUI.custom_offset*2,
+                          h=h_frame,
+                          txt = '',
+                          frame_a = 1,
+                          frame_col = '#333333',
+                          --frame_asel = 0.3,
+                          --backgr_fill = 0,
+                          ignoremouse = true,
+                          onmouseclick =  function() end}
+    DATA.GUI.buttons.macroglob_t_addbut = { x=x_offs,
+                          y=y_offs,
+                          w=DATA.GUI.custom_macroW-DATA.GUI.custom_offset*2,
+                          h=DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
+                          txt = 'Add link for last touched parameter in the rack child',
+                          txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
+                          --frame_a = 1,
+                          --frame_asel = 0.3,
+                          --backgr_fill = 0,
+                          --ignoremouse = true,
+                          onmouseclick =  function() 
+                                            DATA2:Actions_Macro_AddLink()
+                                          end}  
+    y_offs = y_offs + DATA.GUI.custom_macro_linkentryh              
+    if not (DATA2.Macro.sliders[macroID] and DATA2.Macro.sliders[macroID].links) then return end
+    
+    local w_layername = math.floor(DATA.GUI.buttons.macroglob_Aframe.w*0.55)
+    local w_ctrls = DATA.GUI.buttons.macroglob_Aframe.w - w_layername-DATA.GUI.custom_offset
+    local w_ctrls_single = (w_ctrls / 3)
+    local backgr_col=DATA.GUI.custom_backcol2
+    local backgr_fill_param = 0.2 
+    local backgr_fill_name = 0
+    
+    for linkID = 1, #DATA2.Macro.sliders[macroID].links do
+      local t = DATA2.Macro.sliders[macroID].links[linkID]
+      DATA.GUI.buttons['macroglob_'..'macroID'..macroID..'link'..linkID] = { 
+                          x=x_offs,
+                          y=y_offs,
+                          w=w_layername-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
+                          txt = DATA2.Macro.sliders[macroID].links[linkID].param_name,
+                          txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
+                          frame_a =DATA.GUI.custom_framea,
+                          frame_col = '#333333',
+                          backgr_fill = backgr_fill_name,
+                          backgr_col =backgr_col,
+                          onmouseclick = function() 
+                            DATA2.PARENT_LASTACTIVENOTE_layer = layer 
+                            GUI_MODULE_SAMPLER(DATA)
+                            GUI_MODULE_DEVICE(DATA) 
+                          end,
+                          onmousefiledrop = function() DATA2:Actions_PadOnFileDrop(note,layer) end, 
+                          } 
+      GUI_CTRL(DATA,
+        {
+          butkey = 'macroglob_'..'macroID'..macroID..'offs'..linkID,
+          
+          x = x_offs+w_layername,
+          y= y_offs,
+          w = w_ctrls_single-DATA.GUI.custom_offset,
+          h = DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
+          
+          ctrlname = 'Offs',
+          ctrlval_key = 'plink_offset',
+          ctrlval_format_key = 'plink_offset_format',
+          ctrlval_src_t = t,
+          ctrlval_res = 0.1,
+          ctrlval_default =0,
+          ctrlval_min =-1,
+          ctrlval_max =1,
+          func_atrelease =      function()      GUI_MODULE_MACRO(DATA)  end,
+          func_app =            function(new_val) 
+                                  TrackFX_SetNamedConfigParm(t.src_t.tr_ptr, t.fx_dest, 'param.'..t.param_dest..'plink.offset', new_val)  
+                                end,
+          func_refresh =        function() 
+                                  DATA2:TrackDataRead_GetParent_Macro()
+                                end,
+          func_formatreverse =  function(str_ret)
+                                  local ret = DATA2:internal_ParsePercent(str_ret) if ret then return ret end
+                                end
+         } )
+      GUI_CTRL(DATA,
+        {
+          butkey = 'macroglob_'..'macroID'..macroID..'scale'..linkID,
+          
+          x = x_offs+w_layername+w_ctrls_single,
+          y= y_offs,
+          w = w_ctrls_single-DATA.GUI.custom_offset,
+          h = DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
+          
+          ctrlname = 'offs',
+          ctrlval_key = 'plink_scale',
+          ctrlval_format_key = 'plink_scale_format',
+          ctrlval_src_t = t,
+          ctrlval_res = 0.1,
+          ctrlval_default =0,
+          func_atrelease =      function() GUI_MODULE_MACRO(DATA) end,          
+          func_app =            function(new_val) 
+                                  TrackFX_SetNamedConfigParm(t.src_t.tr_ptr, t.fx_dest, 'param.'..t.param_dest..'plink.scale', new_val) 
+                                end,
+          func_refresh =        function() 
+                                  DATA2:TrackDataRead_GetParent_Macro()
+                                end,
+          func_formatreverse =  function(str_ret)
+                                  local ret = DATA2:internal_ParsePercent(str_ret) if ret then return ret end
+                                end
+         } ) 
+      DATA.GUI.buttons['macroglob_'..'macroID'..macroID..'linkremove'..linkID] = { 
+                          x=x_offs+w_layername+w_ctrls_single*2,
+                          y=y_offs,
+                          w=w_ctrls_single-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
+                          txt = 'X',
+                          txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
+                          frame_a =DATA.GUI.custom_framea,
+                          --frame_col = '#333333',
+                          backgr_fill = backgr_fill_name,
+                          backgr_col =backgr_col,
+                          onmouserelease = function() 
+                            TrackFX_SetNamedConfigParm(t.src_t.tr_ptr, t.fx_dest, 'param.'..t.param_dest..'plink.active', 0) 
+                            DATA2:TrackDataRead_GetParent_Macro()
+                            GUI_MODULE_MACRO(DATA) 
+                          end,
+                          }          
+      y_offs = y_offs + DATA.GUI.custom_macro_linkentryh 
+    end
+  end 
+  -----------------------------------------------------------------------------  
+  function DATA2:internal_ConfirLTPisChild()
+    local t = VF2_GetLTP()
+    --[[
+    return {tr = tr,
+            trtracknumber=tracknumber,
+            trGUID = trGUID,
+            fxGUID = fxGUID,
+            trname = buf,
+            paramnumber=paramnumber,
+            paramname=paramname,
+            paramformat = paramformat,
+            paramval=paramval,
+            fxnumber=fxnumber,
+            fxname=fxname
+            ]]
+    if not t then return end
+    local note_out, layer_out
+    local lt_tr_GUID = t.trGUID
+    for note in pairs(DATA2.notes) do
+      if DATA2.notes[note].TR_GUID then 
+        if DATA2.notes[note].TR_GUID == lt_tr_GUID then 
+          return true, DATA2.notes[note], t.fxnumber, t.paramnumber
+        end
+      end
+      if DATA2.notes[note].layers then
+        for layer in pairs(DATA2.notes[note].layers) do
+          if DATA2.notes[note].layers[layer].TR_GUID and DATA2.notes[note].layers[layer].TR_GUID == lt_tr_GUID then
+            return true, DATA2.notes[note].layers[layer], t.fxnumber, t.paramnumber
+          end
+        end
+      end
+    end
+  end
+  -----------------------------------------------------------------------------  
+  function DATA2:Actions_Macro_AddLink()
+    if not DATA2.PARENT_LASTACTIVEMACRO then return end 
+    if DATA2.PARENT_LASTACTIVEMACRO == -1 then return end
+    local ret, srct, fxnumber, paramnumber = DATA2:internal_ConfirLTPisChild()
+    if not ret then return end
+    
+    -- init child macro
+      if not srct.macro_pos then 
+        DATA2:TrackData_InitMacro(true, srct)
+        fxnumber=fxnumber+1
+      end
+      
+    -- link
+      local param_src = tonumber(DATA2.PARENT_LASTACTIVEMACRO)
+      local fx_src = tonumber(srct.macro_pos)
+      
+      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.active', 1)
+      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.scale', 1)
+      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.offset', 0)
+      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.effect',fx_src)
+      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.param', param_src)
+      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.midi_bus', 0)
+      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.midi_chan', 0)
+      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.midi_msg', 0)
+      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.midi_msg2', 0)
+      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.mod.active', 1)
+      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.mod.visible', 0)
+      
+      --[[
+      boolean retval, string buf = reaper.TrackFX_GetNamedConfigParm(MediaTrack track, integer fx, string parmname)
+      
+      gets plug-in specific named configuration value (returns true on success). Special values:
+      pdc returns PDC latency.
+      in_pin_X returns name of input pin X (if available).
+      out_pin_X returns name of output pin X (if available).
+      fx_type returns type string.
+      fx_ident returns type-specific identifier.
+      fx_name returns pre-aliased name.
+      vst_chunk and vst_chunk_program can be used for supported VST plug-ins to get/set base64-encoded VST-specific chunk.
+      param.X.lfo.[active,dir,phase,speed,strength,temposync,free,shape]
+      param.X.acs.[active,dir,strength,attack,release,dblo,dbhi,chan,stereo]
+      param.X.plink.[active,scale,offset,effect,param,midi_bus,midi_chan,midi_msg,midi_msg2] - set effect=-100 to support midi_*
+      param.X.mod.[active,baseline,visible]]
+    
+    DATA2:TrackDataRead_GetParent_Macro()
+    GUI_MODULE_MACRO(DATA)   
+    
+  end
+  -----------------------------------------------------------------------------  
   function GUI_MODULE_MACRO(DATA)    
     for key in pairs(DATA.GUI.buttons) do if key:match('macroglob_') then DATA.GUI.buttons[key] = nil end end 
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&16==0) then return end
@@ -1112,12 +1421,13 @@ Device childs:
                           --frame_asel = 0.3,
                           --backgr_fill = 0,
                           onmouseclick =  function() end}
-    DATA.GUI.buttons.macroglob_frame = { x=x_offs,
+    DATA.GUI.buttons.macroglob_Aframe = { x=x_offs, 
                           y=DATA.GUI.custom_macroY,
                           w=DATA.GUI.custom_macroW,
                           h=DATA.GUI.custom_macroH,
                           txt = '',
-                          val = 0,
+                          
+                          
                           frame_a = 0,--0.3,
                           frame_asel = 0.3,
                           --backgr_fill = 0,
@@ -1126,9 +1436,15 @@ Device childs:
                           
     -- controls 
     for ctrlid = 1, 16 do
-      local xshift = DATA.GUI.custom_macro_knobW*(ctrlid-1)
+      local frame_a
+      if DATA2.PARENT_LASTACTIVEMACRO and ctrlid == DATA2.PARENT_LASTACTIVEMACRO then 
+        frame_a = 1
+       else
+        frame_a = nil
+      end
+      local xshift = DATA.GUI.knob_button_w*(ctrlid-1)
       local yshift = DATA.GUI.custom_macro_knobH * math.floor((ctrlid/9))
-      if ctrlid>=9 then  xshift = DATA.GUI.custom_macro_knobW*(ctrlid-9) end 
+      if ctrlid>=9 then  xshift = DATA.GUI.knob_button_w*(ctrlid-9) end 
       local src_t = DATA2.Macro.sliders[ctrlid]
       GUI_CTRL(DATA,
         {
@@ -1136,8 +1452,9 @@ Device childs:
           
           x = x_offs+xshift+DATA.GUI.custom_offset,
           y=  DATA.GUI.custom_infoh + DATA.GUI.custom_offset + yshift,
-          w = DATA.GUI.custom_macro_knobW-DATA.GUI.custom_offset,
-          h = DATA.GUI.custom_macro_knobH-DATA.GUI.custom_offset,
+          w = DATA.GUI.knob_button_w-DATA.GUI.custom_offset,
+          h = DATA.GUI.knob_button_h-DATA.GUI.custom_offset,
+          frame_a = frame_a,
           
           ctrlname = 'Macro \n'..ctrlid,
           ctrlval_key = 'macroval',
@@ -1145,20 +1462,99 @@ Device childs:
           ctrlval_src_t = DATA2.Macro.sliders[ctrlid],
           ctrlval_res = 0.5,
           ctrlval_default = 0,
+          func_atrelease =      function() 
+                                  DATA2.PARENT_LASTACTIVEMACRO = ctrlid
+                                  DATA2:TrackDataWrite(_,{master_upd=true})
+                                  GUI_MODULE_MACRO(DATA)    
+                                end,
           func_app =            function(new_val) 
-                                  TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.macro_pos, ctrlid-1, new_val )
+                                  TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.macro_pos, ctrlid, new_val ) 
                                 end,
           func_refresh =        function() 
-                                  DATA2:TrackDataRead_GetParent_Macro() 
+                                  DATA2:TrackDataRead_GetParent_Macro(true) 
+                                  local note_layer_t = DATA2:internal_GetActiveNoteLayerTable()
+                                  DATA2:TrackDataRead_GetChildrens_InstrumentParams(note_layer_t)
+                                  DATA2:TrackDataRead_GetChildrens_FXParams(note_layer_t)  
+                                  GUI_MODULE_SAMPLER_Section_SplReadouts(DATA) 
+                                  GUI_MODULE_SAMPLER_Section_FilterSection(DATA)   
+                                  GUI_MODULE_SAMPLER_Section_EnvelopeSection(DATA)  
                                 end,
           func_formatreverse =  function(str_ret)
-                                  local new_val = VF_BFpluginparam(str_ret, src_t.tr_ptr, src_t.macro_pos, ctrlid-1) 
-                                  return new_val
+                                  local ret = DATA2:internal_ParsePercent(str_ret)
+                                  if ret then 
+                                    local new_val = VF_BFpluginparam(ret, src_t.tr_ptr, src_t.macro_pos, ctrlid) 
+                                    return new_val
+                                  end
                                 end
          } )    
          
     end
-                          
+    GUI_MODULE_MACRO_links(DATA)                       
+  end
+  -----------------------------------------------------------------------------  
+  function DATA2:internal_ParsePercent(str_ret)
+    if not str_ret then return end
+    str_ret = str_ret:match('[%d%p]+') 
+    if not str_ret then return end
+    str_ret = tonumber(str_ret)
+    if not str_ret then return end
+    str_ret = tostring(str_ret / 99.9)
+    return str_ret
+  end
+  -----------------------------------------------------------------------------  
+  function DATA2:Actions_Sampler_NextPrevSample(spl_t, mode)
+    if not mode then mode = 0 end
+    if not spl_t.ISRS5K then return end
+    fn = spl_t.instrument_filepath:gsub('\\', '/') 
+    path = fn:reverse():match('[%/]+.*'):reverse():sub(0,-2)
+    cur_file =     fn:reverse():match('.-[%/]'):reverse():sub(2)
+    
+    -- get files list
+      local files = {}
+      local i = 0
+      repeat
+      local file = reaper.EnumerateFiles( path, i )
+      if file and reaper.IsMediaExtension(file:gsub('.+%.', ''), false) then
+        files[#files+1] = file
+      end
+      i = i+1
+      until file == nil
+      table.sort(files, function(a,b) return a<b end )
+    
+    
+    local trig_file
+    if mode == 0  then    -- search file list nex
+      if #files < 2 then return end
+      for i = 2, #files do
+        if files[i-1] == cur_file then 
+          trig_file = path..'/'..files[i] 
+          break 
+         elseif i == #files then trig_file = path..'/'..files[1] 
+        end 
+      end
+    end
+    
+    if mode ==1 then     -- search file list prev
+      if #files < 2 then return end
+      for i = #files-1, 1, -1 do
+        if files[i+1] == cur_file then 
+          trig_file = path..'/'..files[i] 
+          break 
+         elseif i ==1 then trig_file = path..'/'..files[#files] 
+        end
+      end
+    end
+      
+    if mode ==2 then        -- search file list random
+      if #files < 2 then return end
+      trig_id = math.floor(math.random(#files-1))+1
+      trig_file = path..'/'..files[trig_id] 
+    end    
+    
+    if trig_file then 
+      DATA2:Actions_PadOnFileDrop_Sub(spl_t.noteID, spl_t.layerID, trig_file)
+    end
+      
   end
   -----------------------------------------------------------------------------  
   function DATA2:Actions_StuffNoteOn(note, vel)
@@ -1180,7 +1576,7 @@ Device childs:
        -- dr rack
        DATA.GUI.buttons.drumrack_trackname = { x=x_offs,
                             y=0,
-                            w=DATA.GUI.custom_drrack_sideW-DATA.GUI.custom_sampler_showbutw-DATA.GUI.custom_offset*2-DATA.GUI.custom_infoh,
+                            w=DATA.GUI.custom_drrack_sideW-DATA.GUI.knob_button_w-DATA.GUI.custom_offset*2-DATA.GUI.custom_infoh,
                             h=DATA.GUI.custom_infoh-1,
                             txt = trname,
                             txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
@@ -1192,13 +1588,13 @@ Device childs:
                              ignoremouse = true,
                              frame_a = 0,
                              }
-      DATA.GUI.buttons.drumrack_showME = { x=x_offs+DATA.GUI.custom_drrack_sideW-DATA.GUI.custom_offset-DATA.GUI.custom_sampler_showbutw-DATA.GUI.custom_infoh,
+      DATA.GUI.buttons.drumrack_showME = { x=x_offs+DATA.GUI.custom_drrack_sideW-DATA.GUI.custom_offset-DATA.GUI.knob_button_w-DATA.GUI.custom_infoh+1,
                            y=0,
-                           w=DATA.GUI.custom_sampler_showbutw,
+                           w=DATA.GUI.knob_button_w,
                            h=DATA.GUI.custom_infoh-1,
-                           txt = 'MediaExp',
+                           txt = 'Explore',
                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                           onmouserelease = function() if DATA2.PARENT_LASTACTIVENOTE then  DATA2:Actions_PadShowME(DATA2.PARENT_LASTACTIVENOTE, DATA2.PARENT_LASTACTIVENOTE_layer or 1) end  end,
+                           onmouserelease = function() if DATA2.PARENT_LASTACTIVENOTE then  DATA2:Actions_Pad_ShowME(DATA2.PARENT_LASTACTIVENOTE, DATA2.PARENT_LASTACTIVENOTE_layer or 1) end  end,
                            }                                 
       DATA.GUI.buttons.drumrack_help = { x=x_offs+DATA.GUI.custom_drrack_sideW-DATA.GUI.custom_infoh,
                            y=0,
@@ -1329,7 +1725,7 @@ Device childs:
                                 GUI_MODULE_SAMPLER(DATA)
                                 --end
                               end,
-                              onmouseclickR = function() DATA2:Actions_PadMenu(note) end,
+                              onmouseclickR = function() DATA2:Actions_Pad_Menu(note) end,
                               onmousefiledrop = function() DATA2:Actions_PadOnFileDrop(note) end,
                               onmouserelease =  function()  
                                                     if not DATA2.ONDOUBLECLICK then
@@ -1346,7 +1742,7 @@ Device childs:
                                               if DATA2.PAD_HOLD then 
                                                 local padsrc = DATA2.PAD_HOLD
                                                 local paddest = note
-                                                DATA2:Actions_PadCopyMove(padsrc,paddest, DATA.GUI.Ctrl) 
+                                                DATA2:Actions_Pad_CopyMove(padsrc,paddest, DATA.GUI.Ctrl) 
                                               end 
                                             end,
                               onmousedoubleclick = function() 
@@ -1369,7 +1765,7 @@ Device childs:
                               prevent_matchrefresh = true,
                               backgr_fill = backgr_fill,
                               backgr_col = DATA.GUI.custom_backcol2,
-                              onmouseclick = function() DATA2:Actions_PadSoloMute(note,_,_, true) end,
+                              onmouseclick = function() DATA2:Actions_Pad_SoloMute(note,_,_, true) end,
                               } 
                               
       
@@ -1404,14 +1800,14 @@ Device childs:
                               prevent_matchrefresh = true,
                               backgr_fill = backgr_fill,
                               backgr_col = DATA.GUI.custom_backcol2,
-                              onmouseclick = function() DATA2:Actions_PadSoloMute(note,_,true) end,
+                              onmouseclick = function() DATA2:Actions_Pad_SoloMute(note,_,true) end,
                               }    
                               
       padID0 = padID0 + 1
     end
   end
   -----------------------------------------------------------------------  
-  function DATA2:Actions_PadShowME(note, layer) 
+  function DATA2:Actions_Pad_ShowME(note, layer) 
     if not DATA2.notes[note] then return end
     if not layer then 
       t = DATA2.notes[note].layers[1]       -- do stuff on device/instrument or first layer only
@@ -1425,7 +1821,7 @@ Device childs:
   end
 
   ----------------------------------------------------------------------- 
-  function DATA2:Actions_PadSoloMute(note,layer,solo, mute)
+  function DATA2:Actions_Pad_SoloMute(note,layer,solo, mute)
     if not DATA2.notes[note] then return end
     if not layer then 
       if DATA2.notes[note].TYPE_DEVICE == true then t = DATA2.notes[note] else t = DATA2.notes[note].layers[1] end       -- do stuff on device or first layer only
@@ -1568,7 +1964,7 @@ Device childs:
       GetSetMediaTrackInfo_String( new_tr, 'P_NAME', filepath_sh, true ) 
   end
   -----------------------------------------------------------------------
-  function DATA2:Actions_PadClear(note)  
+  function DATA2:Actions_Pad_Clear(note)  
     if not DATA2.notes[note] then return end 
     
     local  tr_ptr
@@ -1598,7 +1994,7 @@ Device childs:
     reaper.SetOnlyTrackSelected( DATA2.tr_ptr )
   end 
   -----------------------------------------------------------------------
-  function DATA2:Actions_PadUpdateNote(note, newnote)
+  function DATA2:Actions_Pad_UpdateNote(note, newnote)
     if not DATA2.notes[note] then return end
     if DATA2.notes[note].TYPE_DEVICE then 
       local devicetr = DATA2.notes[note].tr_ptr
@@ -1616,15 +2012,15 @@ Device childs:
     if DATA2.cursplpeaks.note == note then DATA2.cursplpeaks.note = newnote end
   end
   -----------------------------------------------------------------------
-  function DATA2:Actions_PadCopyMove(padsrc,paddest, iscopy) 
-    if not (padsrc and paddest) then return end
+  function DATA2:Actions_Pad_CopyMove(padsrc,paddest, iscopy) 
+    if not (padsrc and paddest) then return end 
     if padsrc == paddest then return end
     
     if not iscopy then 
     -- remove old pad
-      DATA2:Actions_PadClear(paddest)
+      DATA2:Actions_Pad_Clear(paddest)
     -- refresh external states
-      DATA2:Actions_PadUpdateNote(padsrc, paddest) 
+      DATA2:Actions_Pad_UpdateNote(padsrc, paddest) 
       DATA2.PARENT_LASTACTIVENOTE = paddest 
       DATA2:TrackDataWrite(_,{master_upd=true})
     end
@@ -1655,7 +2051,7 @@ Device childs:
     
   end
   -----------------------------------------------------------------------
-  function DATA2:Actions_PadRename(note,layer) 
+  function DATA2:Actions_Pad_Rename(note,layer) 
     if not layer then 
       if DATA2.notes[note].TYPE_DEVICE == true then t = DATA2.notes[note] else t = DATA2.notes[note].layers[1] end       -- do stuff on device or first layer only
      else t = DATA2.notes[note].layers[layer] -- do stuff on defined layer 
@@ -1673,13 +2069,13 @@ Device childs:
     end
   end
   -----------------------------------------------------------------------
-  function DATA2:Actions_PadMenu(note) 
+  function DATA2:Actions_Pad_Menu(note) 
     if not DATA2.tr_valid then return end
     local t = { 
       {str='Rename pad',
-        func=function() DATA2:Actions_PadRename(note) end },  
+        func=function() DATA2:Actions_Pad_Rename(note) end },  
       {str='Clear pad',
-        func=function() DATA2:Actions_PadClear(note) end },  
+        func=function() DATA2:Actions_Pad_Clear(note) end },  
       {str='Import selected items to pads, starting this pad',
         func=function() DATA2:Actions_ImportSelectedItems(note) end },
      
@@ -2028,7 +2424,7 @@ Device childs:
                         backgr_usevalue = true,
                         txt = 'S',
                         txt_fontsz = DATA.GUI.custom_devicectrl_txtsz,
-                        onmouserelease = function()DATA2:Actions_PadSoloMute(note,layer,true) end,
+                        onmouserelease = function()DATA2:Actions_Pad_SoloMute(note,layer,true) end,
                         }   
     local backgr_fill_param_en
     if DATA2.notes and DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[layer].tr_mute and DATA2.notes[note].layers[layer].tr_mute >0 then backgr_fill_param_en = backgr_fill_param end
@@ -2042,7 +2438,7 @@ Device childs:
                         backgr_usevalue = true,
                         txt = 'M',
                         txt_fontsz = DATA.GUI.custom_devicectrl_txtsz,
-                        onmouserelease = function() DATA2:Actions_PadSoloMute(note,layer,_, true)end,
+                        onmouserelease = function() DATA2:Actions_Pad_SoloMute(note,layer,_, true)end,
                         }                         
   end
   ----------------------------------------------------------------------------- 
@@ -2074,7 +2470,7 @@ Device childs:
                          h=DATA.GUI.custom_infoh-1,
                          txt = name,
                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                         onmouseclick = function() DATA2:Actions_PadMenu(DATA2.PARENT_LASTACTIVENOTE) end
+                         onmouseclick = function() DATA2:Actions_Pad_Menu(DATA2.PARENT_LASTACTIVENOTE) end
                          }
       DATA.GUI.buttons.devicestuff_help = { x=x_offs+DATA.GUI.custom_devicew-DATA.GUI.custom_infoh,
                            y=0,
@@ -2321,7 +2717,7 @@ Device childs:
                         layer=layer}
   end 
   ----------------------------------------------------------------------
-  function DATA2:Actions_SamplerMenu_SetStartToLoudestPeak() 
+  function DATA2:Actions_Sampler_Menu_SetStartToLoudestPeak() 
     local note = DATA2.PARENT_LASTACTIVENOTE
     local layer = DATA2.PARENT_LASTACTIVENOTE_layer or 1
     if not note then return end 
@@ -2333,7 +2729,7 @@ Device childs:
     TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 13, loopst ) 
   end    
   ----------------------------------------------------------------------
-  function DATA2:Actions_SamplerMenu_CropToAudibleBoundaries()
+  function DATA2:Actions_Sampler_Menu_CropToAudibleBoundaries()
     local note = DATA2.PARENT_LASTACTIVENOTE
     local layer = DATA2.PARENT_LASTACTIVENOTE_layer or 1
     if not note then return end 
@@ -2352,15 +2748,15 @@ Device childs:
     TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 14, loopend ) 
   end
   ----------------------------------------------------------------------
-  function  DATA2:Actions_SamplerMenu()  
+  function  DATA2:Actions_Sampler_Menu()  
     local t = {
               
   {str = '#Actions'},
   {str = 'Crop sample to audible boundaries, threshold '..DATA.extstate.CONF_cropthreshold..'dB',
-   func = function() DATA2:Actions_SamplerMenu_CropToAudibleBoundaries()   end},
+   func = function() DATA2:Actions_Sampler_Menu_CropToAudibleBoundaries()   end},
 
   {str = 'Set start offset to a loudest peak',
-   func = function() DATA2:Actions_SamplerMenu_SetStartToLoudestPeak()   end},
+   func = function() DATA2:Actions_Sampler_Menu_SetStartToLoudestPeak()   end},
    
   
               }
@@ -2401,9 +2797,9 @@ Device childs:
       x_dest = x0+x
       i = math.floor(VF_lim(cnt * x/w ,1,cnt))
       val = peaks[i]
-      gfx.y = y0+h - math.abs(math.floor(val*h))
+      gfx.y = y0+h - math.abs(math.floor(val*h))-1
       --gfx.rect(x_dest,y,1,hrect)
-      gfx.lineto(x_dest, y0+h)
+      gfx.lineto(x_dest, y0+h-1)
     end 
     
     -- draw grid
@@ -2446,6 +2842,55 @@ Device childs:
     end
   end  
   ----------------------------------------------------------------------
+  function GUI_MODULE_SAMPLER_Section_Actions(DATA)  
+    local actions_cnt = 3
+    local action_h = math.floor(DATA.GUI.custom_sampler_peakareah / actions_cnt)
+    local x_offs = DATA.GUI.buttons.sampler_frame.x + DATA.GUI.custom_offset+DATA.GUI.knob_button_w+DATA.GUI.custom_sampler_namebutw + DATA.GUI.custom_offset
+    local y_offs = DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset
+    local src_t = DATA2:internal_GetActiveNoteLayerTable()
+    if not src_t then return end
+    DATA.GUI.buttons.sampler_nextspl = { x=x_offs ,
+                        y=y_offs,
+                        w=DATA.GUI.knob_button_w,
+                        h=action_h-DATA.GUI.custom_offset,
+                        --ignoremouse = true,
+                        frame_a = DATA.GUI.custom_framea,
+                        backgr_col=backgr_col,
+                        backgr_fill=backgr_fill,
+                        txt = 'Next spl',
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
+                        onmouseclick = function() DATA2:Actions_Sampler_NextPrevSample(src_t)  end,
+                        }   
+    y_offs = y_offs + action_h
+    DATA.GUI.buttons.sampler_prevspl = { x=x_offs ,
+                        y=y_offs,
+                        w=DATA.GUI.knob_button_w,
+                        h=action_h-DATA.GUI.custom_offset,
+                        --ignoremouse = true,
+                        frame_a = DATA.GUI.custom_framea,
+                        backgr_col=backgr_col,
+                        backgr_fill=backgr_fill,
+                        txt = 'Prev spl',
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
+                        onmouseclick = function() DATA2:Actions_Sampler_NextPrevSample(src_t, 1)  end,
+                        }     
+    y_offs = y_offs + action_h
+    DATA.GUI.buttons.sampler_randspl = { x=x_offs ,
+                        y=y_offs,
+                        w=DATA.GUI.knob_button_w,
+                        h=action_h,
+                        --ignoremouse = true,
+                        frame_a = DATA.GUI.custom_framea,
+                        backgr_col=backgr_col,
+                        backgr_fill=backgr_fill,
+                        txt = 'Rand spl',
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
+                        onmouseclick = function() DATA2:Actions_Sampler_NextPrevSample(src_t, 2)  end,
+                        }                         
+                        
+  end
+  
+  ----------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_Section_Loopstate(DATA)
     local spl_t = DATA2:internal_GetActiveNoteLayerTable()
     --if not (spl_t and spl_t.ISRS5K) then return end
@@ -2457,7 +2902,7 @@ Device childs:
     local txt = 'Loop' if not spl_t.ISRS5K then txt = '' end
     DATA.GUI.buttons.sampler_mode1 = { x= DATA.GUI.buttons.sampler_frame.x ,
                         y=DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset,
-                        w=DATA.GUI.custom_sampler_modew,
+                        w=DATA.GUI.knob_button_w,
                         h=DATA.GUI.custom_sampler_readouth-1,
                         --ignoremouse = true,
                         frame_a = DATA.GUI.custom_framea,
@@ -2477,7 +2922,7 @@ Device childs:
     local txt = '1-shot' if not spl_t.ISRS5K then txt = '' end
     DATA.GUI.buttons.sampler_mode2 = { x= DATA.GUI.buttons.sampler_frame.x,
                         y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_readouth+ DATA.GUI.custom_offset+1 ,
-                        w=DATA.GUI.custom_sampler_modew,
+                        w=DATA.GUI.knob_button_w,
                         h=DATA.GUI.custom_sampler_readouth-2,
                         --ignoremouse = true,
                         frame_a = DATA.GUI.custom_framea,
@@ -2526,33 +2971,34 @@ Device childs:
                             } 
       DATA.GUI.buttons.sampler_name = { x=x_offs,
                            y=0,
-                           w=DATA.GUI.custom_sampler_namebutw-DATA.GUI.custom_offset*2,
+                           w=DATA.GUI.custom_sampler_namebutw,
                            h=DATA.GUI.custom_infoh-1,
                            txt = name,
                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                            }
-                            
-      DATA.GUI.buttons.Actions_SamplerMenu = { x=x_offs+DATA.GUI.custom_sampler_namebutw-DATA.GUI.custom_offset,
+      x_offs = x_offs+DATA.GUI.custom_sampler_namebutw + DATA.GUI.custom_offset                      
+      DATA.GUI.buttons.Actions_Sampler_Menu = { x=x_offs,
                            y=0,
-                           w=DATA.GUI.custom_sampler_showbutw-1,
+                           w=DATA.GUI.knob_button_w,
                            h=DATA.GUI.custom_infoh-1,
                            txt = 'Actions',
                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                           onmouserelease = function()  DATA2:Actions_SamplerMenu()  end,
-                           }                             
-      DATA.GUI.buttons.sampler_show = { x=x_offs+DATA.GUI.custom_sampler_namebutw+DATA.GUI.custom_sampler_showbutw,
+                           onmouserelease = function()  DATA2:Actions_Sampler_Menu()  end,
+                           }  
+      x_offs = x_offs+DATA.GUI.knob_button_w + DATA.GUI.custom_offset  
+      DATA.GUI.buttons.sampler_show = { x=x_offs,
                            y=0,
-                           w=DATA.GUI.custom_sampler_showbutw-1,
+                           w=DATA.GUI.knob_button_w-1,
                            h=DATA.GUI.custom_infoh-1,
                            txt = 'Show',
                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                            onmouserelease = function() DATA2:Actions_ShowInstrument(note, layer) end,
-                           }                     
+                           }     
     local txt = ''
     if not spl_t.ISRS5K then txt = '['..spl_t.instrument_fxname..']' end
-    DATA.GUI.buttons.sampler_framepeaks = { x= DATA.GUI.buttons.sampler_frame.x + DATA.GUI.custom_offset+DATA.GUI.custom_sampler_modew,
+    DATA.GUI.buttons.sampler_framepeaks = { x= DATA.GUI.buttons.sampler_frame.x + DATA.GUI.custom_offset+DATA.GUI.knob_button_w,
                             y=DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset,
-                            w=DATA.GUI.custom_sampler_peaksw,
+                            w=DATA.GUI.custom_sampler_namebutw-1,
                             h=DATA.GUI.custom_sampler_peakareah,
                             --ignoremouse = true,
                             txt = txt,
@@ -2560,11 +3006,12 @@ Device childs:
                             data = {['datatype'] = 'samplepeaks'},
                             onmousefiledrop = function() if DATA2.PARENT_LASTACTIVENOTE then DATA2:Actions_PadOnFileDrop(DATA2.PARENT_LASTACTIVENOTE) end end,
                             onmouseclick = function() if DATA2.PARENT_LASTACTIVENOTE then DATA2:Actions_StuffNoteOn(DATA2.PARENT_LASTACTIVENOTE) end  end,
-                            onmouseclickR = function() DATA2:Actions_SamplerMenu()  end,
+                            onmouseclickR = function() DATA2:Actions_Sampler_Menu()  end,
                             refresh = true,
                             }
     
     GUI_MODULE_SAMPLER_Section_Loopstate(DATA)
+    GUI_MODULE_SAMPLER_Section_Actions(DATA)
     GUI_MODULE_SAMPLER_Section_SplReadouts(DATA) 
     GUI_MODULE_SAMPLER_Section_FilterSection(DATA) 
     GUI_MODULE_SAMPLER_Section_EnvelopeSection(DATA)  
@@ -2583,7 +3030,7 @@ Device childs:
                         w=t.w,
                         h=t.h,
                         --ignoremouse = true,
-                        frame_a =DATA.GUI.custom_framea,
+                        frame_a =t.frame_a or DATA.GUI.custom_framea,
                         --frame_col = '#333333',
                         backgr_col = '#333333',
                         backgr_fill = 1,
@@ -2641,6 +3088,7 @@ Device childs:
                                   DATA.GUI.buttons[t.butkey..'knob'].val = val_norm
                                 end
                                 DATA2.ONPARAMDRAG = false
+                                if params_t.func_atrelease then params_t.func_atrelease() end
                                else
                                 DATA2.ONDOUBLECLICK = nil
                               end
@@ -2661,19 +3109,22 @@ Device childs:
                                   if t.ctrlval_max and t.ctrlval_min then val_norm = (val_norm - t.ctrlval_min) / (t.ctrlval_max - t.ctrlval_min) end
                                   DATA.GUI.buttons[t.butkey..'knob'].val = val_norm
                                 end
+                                if params_t.func_atrelease then params_t.func_atrelease() end
                         end,  
                         } 
-                                          
-    DATA.GUI.buttons[t.butkey..'name'] = { x= t.x+1+DATA.GUI.custom_offset*2,
-                        y=t.y+1 ,
-                        w=t.w-2-DATA.GUI.custom_offset*4,
-                        h=DATA.GUI.custom_module_ctrlreadout_h,
-                        ignoremouse = true,
-                        frame_a = 1,
-                        frame_col = '#333333',
-                        txt = t.ctrlname,
-                        txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
-                        }  
+    if t.h > DATA.GUI.custom_module_ctrlreadout_h * 1.9  then                               
+      DATA.GUI.buttons[t.butkey..'name'] = { x= t.x+1+DATA.GUI.custom_offset*2,
+                          y=t.y+1 ,
+                          w=t.w-2-DATA.GUI.custom_offset*4,
+                          h=DATA.GUI.custom_module_ctrlreadout_h,
+                          ignoremouse = true,
+                          frame_a = 1,
+                          frame_col = '#333333',
+                          txt = t.ctrlname,
+                          txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
+                          }  
+    end
+    
     DATA.GUI.buttons[t.butkey..'val'] = { x= t.x+1+DATA.GUI.custom_offset*2,
                         y=t.y+t.h-DATA.GUI.custom_module_ctrlreadout_h -1,
                         w=t.w-2-DATA.GUI.custom_offset*4,
@@ -2684,7 +3135,10 @@ Device childs:
                         txt = src_t[t.ctrlval_format_key],
                         txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
                         }                         
-    
+    if t.h < DATA.GUI.custom_module_ctrlreadout_h * 1.9   then 
+      DATA.GUI.buttons[t.butkey..'val'].y = t.y +1
+      DATA.GUI.buttons[t.butkey..'val'].h = t.h-2
+    end
     if DATA.GUI.custom_module_ctrlreadout_h * 3 > t.h then return end
     
     local val_norm = src_t[t.ctrlval_key] 
@@ -2702,10 +3156,11 @@ Device childs:
   end
   ----------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_Section_SplReadouts(DATA) 
+    if not DATA.GUI.buttons.sampler_frame then return end
     local src_t = DATA2:internal_GetActiveNoteLayerTable()
     
     local val_res = 0.03
-    local woffs= DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset
+    local woffs= DATA.GUI.knob_button_w+DATA.GUI.custom_offset
     local xoffs= DATA.GUI.buttons.sampler_frame.x
     local yoffs= DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_peakareah+DATA.GUI.custom_offset*2
     
@@ -2716,7 +3171,7 @@ Device childs:
         
         x = DATA.GUI.buttons.sampler_frame.x,
         y= yoffs,
-        w = DATA.GUI.custom_sampler_modew,
+        w = DATA.GUI.knob_button_w,
         h = DATA.GUI.custom_module_ctrlreadout_h*2,
         
         ctrlname = 'Gain',
@@ -2741,7 +3196,7 @@ Device childs:
         
         x = xoffs,
         y= yoffs,
-        w = DATA.GUI.custom_sampler_modew,
+        w = DATA.GUI.knob_button_w,
         h = DATA.GUI.custom_module_ctrlreadout_h*2,
         
         ctrlname = 'Tune',
@@ -2759,7 +3214,9 @@ Device childs:
                                   TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, new_val ) 
                                  else
                                   local new_val_quant = math.floor(new_val*160)/160 
-                                  TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, new_val_quant + DATA2.TEMPnew_val_diff) 
+                                  local val = new_val
+                                  if DATA2.TEMPnew_val_diff then val = new_val_quant + DATA2.TEMPnew_val_diff end
+                                  TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, val ) 
                                 end
                               end,
         func_refresh =        function() DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t) end,
@@ -2776,7 +3233,7 @@ Device childs:
         
         x = xoffs,
         y= yoffs,
-        w = DATA.GUI.custom_sampler_modew,
+        w = DATA.GUI.knob_button_w,
         h = DATA.GUI.custom_module_ctrlreadout_h*2,
         
         ctrlname = 'Start',
@@ -2789,8 +3246,12 @@ Device childs:
         func_app =            function(new_val) TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 13, new_val ) end,
         func_refresh =        function() DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t) end,
         func_formatreverse =  function(str_ret)
-                                local new_val = VF_BFpluginparam(str_ret, src_t.tr_ptr, src_t.instrument_pos, 13) 
-                                return new_val
+                                local ret = DATA2:internal_ParsePercent(str_ret)
+                                if ret then 
+                                  local new_val = VF_BFpluginparam(ret, src_t.tr_ptr, src_t.instrument_pos, 13) 
+                                  return new_val
+                                end
+                                
                               end
        } )        
 
@@ -2801,7 +3262,7 @@ Device childs:
         
         x = xoffs,
         y= yoffs,
-        w = DATA.GUI.custom_sampler_modew,
+        w = DATA.GUI.knob_button_w,
         h = DATA.GUI.custom_module_ctrlreadout_h*2,
         
         ctrlname = 'End',
@@ -2814,8 +3275,11 @@ Device childs:
         func_app =            function(new_val) TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 14, new_val ) end,
         func_refresh =        function() DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t) end,
         func_formatreverse =  function(str_ret)
-                                local new_val = VF_BFpluginparam(str_ret, src_t.tr_ptr, src_t.instrument_pos, 14) 
-                                return new_val
+                                local ret = DATA2:internal_ParsePercent(str_ret)
+                                if ret then 
+                                  local new_val = VF_BFpluginparam(ret, src_t.tr_ptr, src_t.instrument_pos, 14) 
+                                  return new_val
+                                end
                               end
        } ) 
     if not src_t.instrument_samplestoffs then return end
@@ -2829,7 +3293,7 @@ Device childs:
         
         x = xoffs,
         y= yoffs,
-        w = DATA.GUI.custom_sampler_modew,
+        w = DATA.GUI.knob_button_w,
         h = DATA.GUI.custom_module_ctrlreadout_h*2,
         
         ctrlname = 'Loop',
@@ -2856,7 +3320,7 @@ Device childs:
         
         x = xoffs,
         y= yoffs,
-        w = DATA.GUI.custom_sampler_modew,
+        w = DATA.GUI.knob_button_w,
         h = DATA.GUI.custom_module_ctrlreadout_h*2,
         
         ctrlname = 'Voices',
@@ -2872,64 +3336,71 @@ Device childs:
                                 local new_val = VF_BFpluginparam(str_ret, src_t.tr_ptr, src_t.instrument_pos, 8) 
                                 return new_val
                               end
-       } )        
-    do return end
-
-      xoffs = xoffs + woffs
-      GUI_CTRL_Readout(DATA,
-        {
-          key = 'spl_maxvoices',
-          ctrlname = 'Voices',
-          val_format_key = 'params_maxvoices_format',
-          val = src_t.params_maxvoices,
-          paramid = 8,
-          val_default = 0,
-          
-          val_res = 0.05,
-          src_t = src_t,
-          x = xoffs,
-          y= yoffs,
-          w = DATA.GUI.custom_sampler_modew-1,
-          h = DATA.GUI.custom_module_ctrlreadout_h*2,
-          note =note,
-          layer=layer
-        } )  
+       } )       
       
   end
   -----------------------------------------------------------------------  
-  function DATA2:TrackData_InitMacro()
+  function DATA2:TrackData_InitMacro(is_child_slave, srct)
+    if DATA2.Macro.isvalid == true and not is_child_slave then return end
+    
     local fxname = 'mpl_RS5k manager_MacroControls.jsfx'
-    local macroJSFX_pos =  TrackFX_AddByName( DATA2.tr_ptr, fxname, false, 1 ) 
-    if macroJSFX_pos ~= -1 then
-      local macroJSFX_fxGUID = reaper.TrackFX_GetFXGUID( DATA2.tr_ptr, macroJSFX_pos ) 
-      DATA2:TrackDataWrite(DATA2.tr_ptr, {MACRO_GUID=macroJSFX_fxGUID})
-      TrackFX_Show( DATA2.tr_ptr, macroJSFX_pos, 0|2 ) 
-     else
-      MB('RS5k manager_MacroControls JSFX is missing. Make sure you installed it correctly via ReaPack.', '', 0)
+    
+    if not is_child_slave then
+      local macroJSFX_pos =  TrackFX_AddByName( DATA2.tr_ptr, fxname, false, 0 )
+      if macroJSFX_pos == -1 then
+        macroJSFX_pos =  TrackFX_AddByName( DATA2.tr_ptr, fxname, false, -1000 ) 
+        local macroJSFX_fxGUID = reaper.TrackFX_GetFXGUID( DATA2.tr_ptr, macroJSFX_pos ) 
+        DATA2:TrackDataWrite(DATA2.tr_ptr, {MACRO_GUID=macroJSFX_fxGUID}) 
+        TrackFX_Show( DATA2.tr_ptr, macroJSFX_pos, 0|2 )
+        for i = 1, 16 do TrackFX_SetParamNormalized( DATA2.tr_ptr, macroJSFX_pos, 33+i, i/1024 ) end -- ini source gmem IDs
+      end
+      if macroJSFX_pos == -1 then MB('RS5k manager_MacroControls JSFX is missing. Make sure you installed it correctly via ReaPack.', '', 0) end
+      return macroJSFX_pos
     end
+    
+    
+    -- child_mode
+    if not srct then return end
+    if not srct.macro_pos then
+      macroJSFX_pos =  TrackFX_AddByName( srct.tr_ptr, fxname, false, -1000 )
+      if macroJSFX_pos == -1 then MB('RS5k manager_MacroControls JSFX is missing. Make sure you installed it correctly via ReaPack.', '', 0) end
+      local macroJSFX_fxGUID = reaper.TrackFX_GetFXGUID( srct.tr_ptr, macroJSFX_pos )  
+      TrackFX_Show( srct.tr_ptr, macroJSFX_pos, 0|2 )
+      TrackFX_SetParamNormalized( srct.tr_ptr, macroJSFX_pos, 0, 1 ) -- set mode to slave
+      for i = 1, 16 do TrackFX_SetParamNormalized( srct.tr_ptr, macroJSFX_pos, 17+i, i/1024 ) end -- ini source gmem IDs
+      DATA2:TrackDataWrite(srct.tr_ptr, {MACRO_GUID=macroJSFX_fxGUID})
+      srct.macro_pos = macroJSFX_pos
+      return macroJSFX_pos
+    end
+    
+    
+    
   end
   -----------------------------------------------------------------------  
   function DATA2:TrackData_InitFilterDrive(note_layer_t) 
     local track = note_layer_t.tr_ptr
-    local reaeq_pos = TrackFX_AddByName( track, 'ReaEQ', 0, 1 )
-    if reaeq_pos ~= -1 then 
+    if not note_layer_t.fx_reaeq_isvalid then 
+      local reaeq_pos = TrackFX_AddByName( track, 'ReaEQ', 0, 1 )
       TrackFX_Show( track, reaeq_pos, 2 )
       TrackFX_SetNamedConfigParm( track, reaeq_pos, 'BANDTYPE0',3 )
       TrackFX_SetParamNormalized( track, reaeq_pos, 0, 1 )
       local GUID = reaper.TrackFX_GetFXGUID( track, reaeq_pos )
       DATA2:TrackDataWrite(track, {FX_REAEQ_GUID = GUID}) 
+      GUI_MODULE_SAMPLER_Section_FilterSection(DATA)  
     end
      
-    local ws_pos = TrackFX_AddByName( track, 'waveShapingDstr', 0, 1 )
-    if ws_pos ~= -1 then
+    if not note_layer_t.fx_ws_isvalid then
+      local ws_pos = TrackFX_AddByName( track, 'Distortion\\waveShapingDstr', 0, 1 )
       TrackFX_Show( track, ws_pos, 2 )
       TrackFX_SetParamNormalized( track, ws_pos, 0, 0 )
       local GUID = reaper.TrackFX_GetFXGUID( track, ws_pos )
       DATA2:TrackDataWrite(track, {FX_WS_GUID = GUID}) 
+      GUI_MODULE_SAMPLER_Section_FilterSection(DATA) 
     end
   end
   ------------------------------------------------------------------------
-  function GUI_MODULE_SAMPLER_Section_FilterSection(DATA)   
+  function GUI_MODULE_SAMPLER_Section_FilterSection(DATA)  
+    if not DATA.GUI.buttons.sampler_frame then return end
     local src_t = DATA2:internal_GetActiveNoteLayerTable()
     local filt_rect_h = math.floor(DATA.GUI.custom_sampler_knob_h / 3)
     local y_offs = DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_peakareah+DATA.GUI.custom_offset*3+DATA.GUI.custom_module_ctrlreadout_h*2
@@ -2937,7 +3408,7 @@ Device childs:
     DATA.GUI.buttons.sampler_spl_reaeq_togglename = { 
                         x = x_offs,
                         y=y_offs,
-                        w = DATA.GUI.custom_sampler_modew,
+                        w = DATA.GUI.knob_button_w,
                         h = filt_rect_h-DATA.GUI.custom_offset,
                         ignoremouse = true,
                         txt = 'Filter',
@@ -2959,15 +3430,15 @@ Device childs:
                         frame_a =DATA.GUI.custom_framea,
                         --state = src_t.fx_reaeq_bandenabled,
                         onmouserelease = function() 
-                          if not src_t.fx_reaeq_isvalid then 
+                          if not (src_t.fx_reaeq_isvalid and src_t.fx_ws_isvalid) then 
                             DATA2:TrackData_InitFilterDrive(src_t) 
                             DATA2:TrackDataRead_GetChildrens_FXParams(src_t)
                             GUI_MODULE_SAMPLER_Section_FilterSection(DATA)  
                           end 
-                          if not src_t.fx_reaeq_isvalid then return end -- if reaeq insertion failed
+                          if not (src_t.fx_reaeq_isvalid and src_t.fx_ws_isvalid) then return end -- if reaeq insertion failed
                           
                           local val = 0
-                          if not src_t.fx_reaeq_bandenabled then val = 1 end
+                          if not (src_t.fx_reaeq_isvalid and src_t.fx_ws_isvalid) then val = 1 end
                           TrackFX_SetNamedConfigParm( src_t.tr_ptr, src_t.fx_reaeq_pos, 'BANDENABLED0', val )
                           DATA2:TrackDataRead_GetChildrens_FXParams(src_t)  
                           GUI_MODULE_SAMPLER_Section_FilterSection(DATA)
@@ -2976,7 +3447,7 @@ Device childs:
     DATA.GUI.buttons.sampler_spl_reaeq_bandtype = { 
                         x =x_offs,
                         y= y_offs+filt_rect_h*2,
-                        w = DATA.GUI.custom_sampler_modew,
+                        w = DATA.GUI.knob_button_w,
                         h = filt_rect_h,
                         frame_a =DATA.GUI.custom_framea,
                         --ignoremouse = true,
@@ -2987,12 +3458,12 @@ Device childs:
                           for key in pairs(DATA2.custom_sampler_bandtypemap) do
                             t[#t+1] = { str = DATA2.custom_sampler_bandtypemap[key],
                                         func =  function() 
-                                                  if not src_t.fx_reaeq_isvalid then 
+                                                  if not (src_t.fx_reaeq_isvalid and src_t.fx_ws_isvalid) then 
                                                     DATA2:TrackData_InitFilterDrive(src_t) 
                                                     DATA2:TrackDataRead_GetChildrens_FXParams(src_t) 
                                                     GUI_MODULE_SAMPLER_Section_FilterSection(DATA)  
                                                   end
-                                                  if not src_t.fx_reaeq_isvalid then return end -- if reaeq insertion failed
+                                                  if not (src_t.fx_reaeq_isvalid and src_t.fx_ws_isvalid) then return end -- if reaeq insertion failed
                                                   
                                                   TrackFX_SetNamedConfigParm( src_t.tr_ptr, src_t.fx_reaeq_pos, 'BANDTYPE0', key ) 
                                                   DATA2:TrackDataRead_GetChildrens_FXParams(src_t)  
@@ -3003,14 +3474,14 @@ Device childs:
                           DATA:GUImenu(t)
                         end
                         }   
-    x_offs = x_offs + DATA.GUI.custom_sampler_modew + DATA.GUI.custom_offset
+    x_offs = x_offs + DATA.GUI.knob_button_w + DATA.GUI.custom_offset
     GUI_CTRL(DATA,
       {
         butkey = 'sampler_fx_reaeq_cut',
         
         x = x_offs,
         y=  y_offs,
-        w = DATA.GUI.custom_sampler_modew,
+        w = DATA.GUI.knob_button_w,
         h = DATA.GUI.custom_sampler_knob_h,
         
         ctrlname = 'Freq',
@@ -3021,29 +3492,29 @@ Device childs:
         ctrlval_default = 0.95,
         
         func_app =            function(new_val) 
-                                if not src_t.fx_reaeq_isvalid then 
+                                if not (src_t.fx_reaeq_isvalid and src_t.fx_ws_isvalid) then 
                                   DATA2:TrackData_InitFilterDrive(src_t) 
                                   DATA2:TrackDataRead_GetChildrens_FXParams(src_t)  
-                                  GUI_MODULE_SAMPLER_Section_FilterSection(DATA)  
+                                  GUI_MODULE_SAMPLER(DATA)  
                                 end 
-                                if not src_t.fx_reaeq_isvalid then return end -- if reaeq insertion failed
+                                if not (src_t.fx_reaeq_isvalid and src_t.fx_ws_isvalid) then return end -- if reaeq insertion failed
                                 TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.fx_reaeq_pos, 0, new_val ) 
                               end,
-        func_refresh =        function() DATA2:TrackDataRead_GetChildrens_FXParams(src_t) end,
+        func_refresh =        function() DATA2:TrackDataRead_GetChildrens_FXParams(src_t)  end,
         func_formatreverse =  function(str_ret)
                                 local new_val = VF_BFpluginparam(str_ret, src_t.tr_ptr, src_t.fx_reaeq_pos, 0) 
                                 return new_val
                               end
        } )    
 
-    x_offs = x_offs + DATA.GUI.custom_sampler_modew + DATA.GUI.custom_offset
+    x_offs = x_offs + DATA.GUI.knob_button_w + DATA.GUI.custom_offset
     GUI_CTRL(DATA,
       {
         butkey = 'sampler_fx_reaeq_gain',
         
         x = x_offs,
         y=  y_offs,
-        w = DATA.GUI.custom_sampler_modew,
+        w = DATA.GUI.knob_button_w,
         h = DATA.GUI.custom_sampler_knob_h,
         
         ctrlname = 'Gain',
@@ -3054,29 +3525,29 @@ Device childs:
         ctrlval_default = 0.5,
         
         func_app =            function(new_val) 
-                                if not src_t.fx_reaeq_isvalid then 
+                                if not (src_t.fx_reaeq_isvalid and src_t.fx_ws_isvalid) then 
                                   DATA2:TrackData_InitFilterDrive(src_t) 
                                   DATA2:TrackDataRead_GetChildrens_FXParams(src_t)  
                                   GUI_MODULE_SAMPLER_Section_FilterSection(DATA)  
                                 end 
-                                if not src_t.fx_reaeq_isvalid then return end -- if reaeq insertion failed
+                                if not (src_t.fx_reaeq_isvalid and src_t.fx_ws_isvalid) then return end -- if reaeq insertion failed
                                 TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.fx_reaeq_pos, 1, new_val ) 
                               end,
-        func_refresh =        function() DATA2:TrackDataRead_GetChildrens_FXParams(src_t) end,
+        func_refresh =        function() DATA2:TrackDataRead_GetChildrens_FXParams(src_t)  end,
         func_formatreverse =  function(str_ret)
                                 local new_val = VF_BFpluginparam(str_ret, src_t.tr_ptr, src_t.fx_reaeq_pos, 1) 
                                 return new_val
                               end
-       } )   
-
-    x_offs = x_offs + DATA.GUI.custom_sampler_modew + DATA.GUI.custom_offset
+       } ) 
+       
+    x_offs = x_offs + DATA.GUI.knob_button_w + DATA.GUI.custom_offset
     GUI_CTRL(DATA,
       {
-        butkey = 'sampler_fx_wa_drive',
+        butkey = 'sampler_fx_ws_drive',
         
         x = x_offs,
         y=  y_offs,
-        w = DATA.GUI.custom_sampler_modew,
+        w = DATA.GUI.knob_button_w,
         h = DATA.GUI.custom_sampler_knob_h,
         
         ctrlname = 'Drive',
@@ -3087,12 +3558,12 @@ Device childs:
         ctrlval_default = 0,
         
         func_app =            function(new_val) 
-                                if not src_t.fx_ws_isvalid then 
-                                  DATA2:TrackData_InitFilterDrive(src_t) 
+                                if not (src_t.fx_reaeq_isvalid and src_t.fx_ws_isvalid) then 
+                                  DATA2:TrackData_InitFilterDrive(src_t)
                                   DATA2:TrackDataRead_GetChildrens_FXParams(src_t) 
                                   GUI_MODULE_SAMPLER_Section_FilterSection(DATA)  
                                 end 
-                                if not src_t.fx_ws_isvalid then return end -- if reaeq insertion failed
+                                if not (src_t.fx_reaeq_isvalid and src_t.fx_ws_isvalid) then return end -- if reaeq insertion failed
                                 TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.fx_ws_pos, 0, new_val )
                               end,
         func_refresh =        function() DATA2:TrackDataRead_GetChildrens_FXParams(src_t) end,
@@ -3105,8 +3576,9 @@ Device childs:
   end
   ------------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_Section_EnvelopeSection(DATA)   
+    if not DATA.GUI.buttons.sampler_frame then return end
     local src_t, note, layer = DATA2:internal_GetActiveNoteLayerTable()
-    local x_offs= DATA.GUI.buttons.sampler_frame.x + (DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset) * 4
+    local x_offs= DATA.GUI.buttons.sampler_frame.x + (DATA.GUI.knob_button_w+DATA.GUI.custom_offset) * 4
     local y_offs = DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_peakareah+DATA.GUI.custom_offset*3+DATA.GUI.custom_module_ctrlreadout_h*2
     
     local attackmax = 1 if src_t.SAMPLELEN and src_t.SAMPLELEN ~= 0 then attackmax = math.min(1,src_t.SAMPLELEN/2) end
@@ -3118,7 +3590,7 @@ Device childs:
         
         x = x_offs,
         y=  y_offs,
-        w = DATA.GUI.custom_sampler_modew,
+        w = DATA.GUI.knob_button_w,
         h = DATA.GUI.custom_sampler_knob_h,
         ctrlname = ctrlname,
         ctrlval_key = 'instrument_attack',
@@ -3139,7 +3611,7 @@ Device childs:
                               end
        } ) 
        
-    local x_offs= x_offs + DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset
+    local x_offs= x_offs + DATA.GUI.knob_button_w+DATA.GUI.custom_offset
     local decaymax = 1 if src_t.SAMPLELEN and src_t.SAMPLELEN ~= 0 then decaymax = math.min(1,src_t.SAMPLELEN/15) end
     local ctrl_paramid = 24 if src_t.INSTR_PARAM_DEC then ctrl_paramid = src_t.INSTR_PARAM_DEC end
     local ctrlname = 'Decay' if src_t.instrument_decay_extname then ctrlname =src_t.instrument_decay_extname end
@@ -3149,7 +3621,7 @@ Device childs:
         
         x = x_offs,
         y=  y_offs,
-        w = DATA.GUI.custom_sampler_modew,
+        w = DATA.GUI.knob_button_w,
         h = DATA.GUI.custom_sampler_knob_h,
         ctrlname = ctrlname,
         ctrlval_key = 'instrument_decay',
@@ -3170,7 +3642,7 @@ Device childs:
                               end
        } ) 
 
-    local x_offs= x_offs + DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset
+    local x_offs= x_offs + DATA.GUI.knob_button_w+DATA.GUI.custom_offset
     local ctrl_paramid = 25 if src_t.INSTR_PARAM_SUS then ctrl_paramid = src_t.INSTR_PARAM_SUS end
     local ctrlname = 'Sustain' if src_t.instrument_sustain_extname then ctrlname =src_t.instrument_sustain_extname end
     GUI_CTRL(DATA,
@@ -3179,7 +3651,7 @@ Device childs:
         
         x = x_offs,
         y=  y_offs,
-        w = DATA.GUI.custom_sampler_modew,
+        w = DATA.GUI.knob_button_w,
         h = DATA.GUI.custom_sampler_knob_h,
         ctrlname = ctrlname,
         ctrlval_key = 'instrument_sustain',
@@ -3198,7 +3670,7 @@ Device childs:
                               end
        } )   
        
-    local x_offs= x_offs + DATA.GUI.custom_sampler_modew+DATA.GUI.custom_offset
+    local x_offs= x_offs + DATA.GUI.knob_button_w+DATA.GUI.custom_offset
     local releasemax = 1 if src_t.SAMPLELEN and src_t.SAMPLELEN ~= 0 then releasemax = math.min(1,src_t.SAMPLELEN/2) end
     local ctrlname = 'Release' if src_t.instrument_release_extname then ctrlname =src_t.instrument_release_extname end
     local ctrl_paramid = 10 if src_t.INSTR_PARAM_REL then ctrl_paramid = src_t.INSTR_PARAM_REL end
@@ -3208,7 +3680,7 @@ Device childs:
         
         x = x_offs,
         y=  y_offs,
-        w = DATA.GUI.custom_sampler_modew,
+        w = DATA.GUI.knob_button_w,
         h = DATA.GUI.custom_sampler_knob_h,
         ctrlname = ctrlname,
         ctrlval_key = 'instrument_release',
@@ -3272,7 +3744,7 @@ Device childs:
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.45) if ret then local ret2 = VF_CheckReaperVrs(6.68,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.45) if ret then local ret2 = VF_CheckReaperVrs(6.69,true) if ret2 then main() end end
   
   
   
