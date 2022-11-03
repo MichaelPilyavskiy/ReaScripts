@@ -1,12 +1,20 @@
 -- @description RS5k manager
--- @version 3.0beta36
+-- @version 3.0beta37
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    + fix typo
+--    + Device: add Fx button (show FX chain for device track)
+--    + Sampler: add Fx button (show FX chain for sampler track)
+--    + Settings: allow to set MIDI bus default input channel
+--    # keep layer ID between triggering pads / incoming notes
+--    + Tabs: rightclick on tab toggle only this tab and all tabs
+
+
+
+
 
 
 --[[ 
@@ -17,6 +25,7 @@ v3.0beta35 by MPL – November 03 2022
   + Settings: add option to rename track
   + Improve incoming notes catching
   + Small UI tweaks
+  + b36 fix typo
   
 v3.0beta34 by MPL  November 03 2022
   # DrumRack: moving pad to existed swap them
@@ -237,7 +246,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta36'
+    DATA.extstate.version = '3.0beta37'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -258,6 +267,7 @@ v3.0beta30 by MPL October 26 2022
                           
                           -- midi bus
                           CONF_midiinput = 63, -- 63 all 62 midi kb
+                          CONF_midichannel = 0, -- 0 == all channels
                           
                           -- drum rack
                           
@@ -318,25 +328,36 @@ v3.0beta30 by MPL October 26 2022
   end
   --------------------------------------------------------------------- 
   function DATA2:Actions_Help(page)
-    if page == 0 then  -- drumrack
-      MB(
+  
+  
+  
+if page == 0 then  -- drumrack
+MB(
 [[
+Actions panel:
+  Explore = show current note sample in browser
+
 Controls:
   M = mute
   S = solo
   > = play
-  Explore = show current note sample in browser
    
 Pads:
   Click on pad name = set current note active
   Drag to other pad = Move/Replace pad content
   Ctrl+drag to other pad = Copy pad (unavailable for existing pads, not supposed to work for devices)
 ]]
-      ,'RS5k manager: drumrack',0)
+,'RS5k manager: drumrack',0)
     
-    elseif page == 1 then  -- device
-      MB(
+    
+    
+    
+elseif page == 1 then  -- device
+MB(
 [[
+Actions panel:
+  FX = show FX chain for current device
+  
 Controls:
   slider1 = Child track volume
   slider2 = Child track pan
@@ -349,27 +370,62 @@ Device childs:
   Click on child name = set current layer active
   Drop to area = Add child to device
 ]]
-      ,'RS5k manager: device',0)
+,'RS5k manager: device',0)
       
+       
       
-    elseif page == 2 then  -- database
-      MB(
+elseif page == 2 then  -- database
+MB(
 [[
-New kit = Set samples for pads based on defined databases per sample
-Lock = prevent pad from replacing sample
+Actions panel:
+  New kit = Set samples for pads based on defined databases per sample
+Database map parameters:
+  Pad name: overwrites pad name
+  Lock = prevent pad from replacing sample
+]]
+,'RS5k manager: database',0)       
+      
+      
+      
+      
+      
+      
+elseif page == 3 then  -- pad overview
+MB(
+[[
 
 ]]
-      ,'RS5k manager: database',0)       
+,'RS5k manager: overview',0)   
       
       
-    elseif page == 3 then  -- pad overview
-      MB(
+elseif page == 4 then  --  sampler
+MB(
 [[
-New kit = Set samples for pads based on defined databases per sample
-Lock = prevent pad from replacing sample
-
+Actions panel:
+  Actions button opens list of available actions
+  FX: show RS5k instance in FX chain
+  
+Peaks area:
+  Loop: set loop ON if available
+  1-shot: set loop OFF if available
+  Prev spl: list previous sample in current sample directory
+  Next spl: list next sample in current sample directory
+  Rand spl: list random sample in current sample directory
+  
+Sampler readouts:
+  Various readouts if available. rightclick for manually enter value, doubleclick to reset, ctrl for fine tweak
+  
+Sampler knobs:
+  Various knobs if available. rightclick for manually enter value, doubleclick to reset, ctrl for fine tweak
+  Filter Cut/Q: add ReaEQ after Rs5k instance and link controls to it
+  Drive: add Waveshaper JSFX after Rs5k instance and link control to it
+  
 ]]
-      ,'RS5k manager: overview',0)   
+,'RS5k manager: sampler',0)   
+            
+      
+      
+      
       
       
       
@@ -603,7 +659,7 @@ Lock = prevent pad from replacing sample
     SetMediaTrackInfo_Value( new_tr, 'I_RECMON', 1 )
     SetMediaTrackInfo_Value( new_tr, 'I_RECARM', 1 )
     SetMediaTrackInfo_Value( new_tr, 'I_RECMODE', 0 ) -- record MIDI out
-    local channel,physical_input = 0, DATA.extstate.CONF_midiinput
+    local channel,physical_input = DATA.extstate.CONF_midichannel, DATA.extstate.CONF_midiinput
     SetMediaTrackInfo_Value( new_tr, 'I_RECINPUT', 4096 + channel + (physical_input<<5)) -- set input to all MIDI
     DATA2:TrackDataWrite(new_tr, {setmidibus=true})  
     DATA2:TrackDataRead()
@@ -1071,131 +1127,61 @@ Lock = prevent pad from replacing sample
     local frame_a = 1
     local frame_asel = 1
     local frame_col = '#333333'
-    if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&16==0 then txt_a = txt_a_unabled end
-    DATA.GUI.buttons.showhide_macroglob = { x=0,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_tab_h*0 ,
-                          w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_tab_h-1,
-                          txt = 'Macro',
-                          txt_a = txt_a,
-                          txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
-                          frame_a = frame_a,
-                          frame_asel = frame_asel,
-                          frame_col = frame_col,
-                          onmouseclick = function()
-                            if DATA2.PARENT_TABSTATEFLAGS then 
-                              DATA2.PARENT_TABSTATEFLAGS = DATA2.PARENT_TABSTATEFLAGS ~ 16
-                              if DATA2.PARENT_TABSTATEFLAGS&16==16 then DATA2:TrackData_InitMacro() end
-                              DATA2:TrackDataWrite(_, {master_upd=true})
-                              DATA.UPD.onGUIinit = true
-                            end
-                          end,
-                          } 
-    local txt_a
-    local txt_a_unabled = 0.25
-    if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&8==0 then txt_a = txt_a_unabled end
+    local y_offs = DATA.GUI.custom_infoh
     
-    DATA.GUI.buttons.showhide_pad = { x=0,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_tab_h*1 ,
-                          w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_tab_h-1,
-                          txt = 'Pad overview',
-                          txt_a = txt_a,
-                          txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
-                          frame_a = frame_a,
-                          frame_asel = frame_asel,
-                          frame_col = frame_col,
-                          onmouseclick = function()
-                            if DATA2.PARENT_TABSTATEFLAGS then 
-                              DATA2.PARENT_TABSTATEFLAGS = DATA2.PARENT_TABSTATEFLAGS ~ 8
-                              DATA2:TrackDataWrite(_, {master_upd=true})
-                              DATA.UPD.onGUIinit = true
-                            end
-                          end,
-                          }                          
-    local txt_a 
-    if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&1==0 then txt_a = txt_a_unabled end
-    DATA.GUI.buttons.showhide_drrack = { x=0,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_tab_h*2 ,
-                          w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_tab_h-1,
-                          txt = 'Drum Rack',
-                          txt_a = txt_a,
-                          txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
-                          frame_a = frame_a,
-                          frame_asel = frame_asel,
-                          frame_col = frame_col,
-                          onmouseclick = function()
-                            if DATA2.PARENT_TABSTATEFLAGS then 
-                              DATA2.PARENT_TABSTATEFLAGS = DATA2.PARENT_TABSTATEFLAGS ~ 1
-                              DATA2:TrackDataWrite(_, {master_upd=true})
-                              DATA.UPD.onGUIinit = true
-                            end
-                          end,
-                          }
-                          
-    local txt_a
-    if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&32==0 then txt_a = txt_a_unabled end 
-    local txt = 'Database map' if DATA2.database_map and DATA2.database_map.valid == true then txt = txt..'\n[Active]' end
-    DATA.GUI.buttons.showhide_database = { x=0,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_tab_h*3 ,
-                          w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_tab_h,
-                          txt = txt,
-                          txt_a = txt_a,
-                          txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
-                          frame_a = frame_a,
-                          frame_asel = frame_asel,
-                          frame_col = frame_col,
-                          onmouseclick = function()
-                            if DATA2.PARENT_TABSTATEFLAGS then 
-                              DATA2.PARENT_TABSTATEFLAGS = DATA2.PARENT_TABSTATEFLAGS ~ 32
-                              DATA2:TrackDataWrite(_,{master_upd=true})
-                              DATA.UPD.onGUIinit = true
-                            end
-                          end
-                          }   
-                          
-    local txt_a
-    if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&2==0 then txt_a = txt_a_unabled end 
-    DATA.GUI.buttons.showhide_device = { x=0,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_tab_h*4 ,
-                          w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_tab_h-1,
-                          txt = 'Device',
-                          txt_a = txt_a,
-                          txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
-                          frame_a = frame_a,
-                          frame_asel = frame_asel,
-                          frame_col = frame_col,
-                          onmouseclick = function()
-                            if DATA2.PARENT_TABSTATEFLAGS then 
-                              DATA2.PARENT_TABSTATEFLAGS = DATA2.PARENT_TABSTATEFLAGS ~ 2
-                              DATA2:TrackDataWrite(_,{master_upd=true})
-                              DATA.UPD.onGUIinit = true
-                            end
-                          end
-                          }      
-    local txt_a
-    if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&4==0 then txt_a = txt_a_unabled end 
-    DATA.GUI.buttons.showhide_sampler = { x=0,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_tab_h*5 ,
-                          w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_tab_h,
-                          txt = 'Sampler',
-                          txt_a = txt_a,
-                          txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
-                          frame_a = frame_a,
-                          frame_asel = frame_asel,
-                          frame_col = frame_col,
-                          onmouseclick = function()
-                            if DATA2.PARENT_TABSTATEFLAGS then 
-                              DATA2.PARENT_TABSTATEFLAGS = DATA2.PARENT_TABSTATEFLAGS ~ 4
-                              DATA2:TrackDataWrite(_,{master_upd=true})
-                              DATA.UPD.onGUIinit = true
-                            end
-                          end
-                          }      
+    local txtdb = 'Database map' if DATA2.database_map and DATA2.database_map.valid == true then txtdb = txtdb..'\n[Active]' end
+    local tabs = {
+      {keyname = 'macroglob',byte = 16,str = 'Macro'},
+      {keyname = 'padoverview',byte = 8,str = 'Pad overview'},
+      {keyname = 'drrack',byte = 1,str = 'Drum Rack'},
+      {keyname = 'dbmap',byte = 32,str = txtdb},
+      {keyname = 'device',byte = 2,str = 'Device'},
+      {keyname = 'sampler',byte = 4,str = 'Sampler'},
+    
+    }
+    for i = 1, #tabs do
+      local byte = tabs[i].byte
+      local keyname = tabs[i].keyname
+      local str = tabs[i].str 
+      local txt_a_unabled,txt_a = 0.25
+      if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&byte==0 then txt_a = txt_a_unabled end
+      
+      DATA.GUI.buttons['showhide_'..keyname] = { x=0,
+                            y=y_offs ,
+                            w=DATA.GUI.custom_tab_w,-- - DATA.GUI.custom_offset,
+                            h=DATA.GUI.custom_tab_h-1,
+                            txt = str,
+                            txt_a = txt_a,
+                            txt_fontsz=DATA.GUI.custom_tabnames_txtsz,
+                            frame_a = frame_a,
+                            frame_asel = frame_asel,
+                            frame_col = frame_col,
+                            onmouseclick = function()
+                              if DATA2.PARENT_TABSTATEFLAGS then 
+                                DATA2.PARENT_TABSTATEFLAGS = DATA2.PARENT_TABSTATEFLAGS ~ byte
+                                if byte == 16 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackData_InitMacro() end end
+                                DATA2:TrackDataWrite(_, {master_upd=true})
+                                DATA.UPD.onGUIinit = true
+                              end
+                            end,
+                            onmouseclickR = function()
+                              if DATA2.PARENT_TABSTATEFLAGS then 
+                                if DATA2.PARENT_TABSTATEFLAGS&byte==byte and DATA2.PARENT_TABSTATEFLAGS~= byte then -- tab is on but not only this tab
+                                  DATA2.PARENT_TABSTATEFLAGS = byte -- set to only this tab
+                                 elseif DATA2.PARENT_TABSTATEFLAGS == byte then
+                                  DATA2.PARENT_TABSTATEFLAGS = -1
+                                 elseif DATA2.PARENT_TABSTATEFLAGS ~= byte then
+                                  DATA2.PARENT_TABSTATEFLAGS = byte -- set to only this tab
+                                end
+                                if byte == 16 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackData_InitMacro() end end
+                                DATA2:TrackDataWrite(_, {master_upd=true})
+                                DATA.UPD.onGUIinit = true
+                              end
+                            end,
+                            } 
+      y_offs = y_offs + DATA.GUI.custom_tab_h
+                            
+    end
                          
   end
   ---------------------------------------------------------------------  
@@ -1290,7 +1276,7 @@ Lock = prevent pad from replacing sample
     -- sampler  
       DATA.GUI.custom_sampler_peakareah = math.floor(DATA.GUI.custom_moduleH * 0.4)  
       DATA.GUI.custom_samplerW = (DATA.GUI.custom_knob_button_w+DATA.GUI.custom_offset) * 8
-      DATA.GUI.custom_sampler_namebutw = DATA.GUI.custom_samplerW-(DATA.GUI.custom_offset+DATA.GUI.custom_knob_button_w)*2 
+      DATA.GUI.custom_sampler_namebutw = DATA.GUI.custom_samplerW-(DATA.GUI.custom_knob_button_w)*2 -DATA.GUI.custom_infoh
       DATA.GUI.custom_sampler_readouth =DATA.GUI.custom_knob_button_w+1 
       DATA.GUI.custom_sampler_knob_h = DATA.GUI.custom_moduleH - DATA.GUI.custom_module_ctrlreadout_h*2 - DATA.GUI.custom_sampler_peakareah - DATA.GUI.custom_offset*4-DATA.GUI.custom_offset 
       DATA.GUI.custom_sampler_ctrl_txtsz = math.floor(13 *DATA.GUI.custom_Yrelation  )
@@ -1388,6 +1374,8 @@ Lock = prevent pad from replacing sample
         {str = 'Custom track template [clear]',                  group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() DATA.extstate.CONF_onadd_customtemplate=  '' GUI_MODULE_SETTINGS(DATA) end},
       {str = 'MIDI bus',                                        group = 2, itype = 'sep'}, 
         {str = 'MIDI bus default input',                        group = 2, itype = 'readout', confkey = 'CONF_midiinput', level = 1, menu = {[63]='All inputs',[62]='Virtual keyboard'},readoutw_extw = readoutw_extw},
+        {str = 'MIDI bus channel',                        group = 2, itype = 'readout', confkey = 'CONF_midichannel', level = 1, menu = {[0]='All channels',[1]='Channel 1',[2]='Channel 2',[3]='Channel 3',[4]='Channel 4',[5]='Channel 5',[6]='Channel 6',[7]='Channel 7',[8]='Channel 8',[9]='Channel 9',[10]='Channel 10',
+        [11]='Channel 11',[12]='Channel 12',[13]='Channel 13',[14]='Channel 14',[15]='Channel 15',[16]='Channel 16'},readoutw_extw = readoutw_extw},
       {str = 'UI',                                              group = 3, itype = 'sep'},
         {str = 'Active note follow incoming note',              group = 3, itype = 'check', confkey = 'UI_incomingnoteselectpad', level = 1},
         {str = 'Tab defaults: drumrack',                        group = 3, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 0},--1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database
@@ -1460,7 +1448,7 @@ Lock = prevent pad from replacing sample
                           backgr_fill = backgr_fill_name,
                           backgr_col =backgr_col,
                           onmouseclick = function() 
-                            DATA2.PARENT_LASTACTIVENOTE_layer = layer 
+                            --DATA2.PARENT_LASTACTIVENOTE_layer = layer 
                             GUI_MODULE_SAMPLER(DATA)
                             GUI_MODULE_DEVICE(DATA) 
                           end,
@@ -1976,11 +1964,11 @@ Lock = prevent pad from replacing sample
                                 --if DATA.GUI.Ctrl == true then DATA2:Actions_ShowInstrument(note, 1) 
                                  --else
                                 DATA2.PARENT_LASTACTIVENOTE = note 
-                                DATA2.PARENT_LASTACTIVENOTE_layer = 1 
+                                --DATA2.PARENT_LASTACTIVENOTE_layer = 1 
                                 DATA2:TrackDataWrite(_,{master_upd=true}) 
                                 --GUI_MODULE_DRUMRACK(DATA)  
                                 if DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'] then DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].refresh = true end
-                                DATA2.PARENT_LASTACTIVENOTE_layer = layer 
+                                --DATA2.PARENT_LASTACTIVENOTE_layer = layer 
                                 GUI_MODULE_DEVICE(DATA)  
                                 GUI_MODULE_SAMPLER(DATA)
                                 GUI_MODULE_DATABASE(DATA)  
@@ -2062,7 +2050,7 @@ Lock = prevent pad from replacing sample
                               txt_a = txt_actrl,
                               txt_col = backgr_col,
                               prevent_matchrefresh = true,
-                              frame_a = frame_actrl0,
+                              frame_a = 0,
                               backgr_fill = 0.2 ,
                               onmouseclick =    function() DATA2:Actions_StuffNoteOn(note, vel) end,
                               onmouserelease =  function() StuffMIDIMessage( 0, 0x80, note, 0 ) DATA.ontrignoteTS =  nil end,
@@ -2247,7 +2235,7 @@ Lock = prevent pad from replacing sample
     -- handle track name 
       filepath_sh = GetShortSmplName(filepath)
       if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end
-      if DATA.extstate.CONF_onadd_renametrack==1 then SetMediaTrackInfo_String( new_tr, 'P_NAME', filepath_sh, true ) end
+      if DATA.extstate.CONF_onadd_renametrack==1 then GetSetMediaTrackInfo_String( new_tr, 'P_NAME', filepath_sh, true ) end
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_Pad_InitSamplesFromDB_ParseList(list_fp)
@@ -2406,7 +2394,7 @@ Lock = prevent pad from replacing sample
         func=function() DATA2:Actions_Pad_Rename(note) end },  
       {str='Clear pad',
         func=function() DATA2:Actions_Pad_Clear(note) end },  
-      {str='Import selected items to pads, starting this pad',
+      {str='|Import selected items to pads, starting this pad',
         func=function() DATA2:Actions_ImportSelectedItems(note) end },      
       {str='Move pad to last recent incoming note',
         func=function() 
@@ -2522,7 +2510,10 @@ Lock = prevent pad from replacing sample
       DATA2:TrackDataWrite(new_tr, {setnote_ID=note})
       DATA2:TrackDataRead_GetChildrens() 
       DATA_RESERVED_ONPROJCHANGE(DATA)
-      local filepath_sh = GetShortSmplName(filepath) if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, filepath_sh)  
+      local filepath_sh = GetShortSmplName(filepath) if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end 
+        SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, filepath_sh)  
+        SetTrackMIDINoteNameEx( 0,new_tr, note, -1, filepath_sh)  
+        
       return
     end
     
@@ -2604,8 +2595,8 @@ Lock = prevent pad from replacing sample
     local x_offs = DATA.GUI.buttons.devicestuff_frame.x--+DATA.GUI.custom_offset
     local w_layername = math.floor(DATA.GUI.buttons.devicestuff_frame.w*0.5)
     local w_ctrls = DATA.GUI.buttons.devicestuff_frame.w - w_layername
-    local w_ctrls_single = (w_ctrls / 11)
-    local w_ctrls_single_q = math.floor(w_ctrls / 11)
+    local w_ctrls_single = (w_ctrls / 9)
+    local w_ctrls_single_q = math.floor(w_ctrls / 9)
     local frame_a = 0
     local backgr_col=DATA.GUI.custom_backcol2
     local backgr_fill_param = 0.2 
@@ -2655,7 +2646,7 @@ Lock = prevent pad from replacing sample
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'vol'] = { 
                         x=x_offs,
                         y=y_offs,
-                        w=w_ctrls_single*4,
+                        w=w_ctrls_single*3-DATA.GUI.custom_offset,
                         h=DATA.GUI.custom_deviceentryh,
                         val = val,
                         val_res = -0.1,
@@ -2699,11 +2690,11 @@ Lock = prevent pad from replacing sample
                               DATA2.ONDOUBLECLICK = true
                             end,
                         }  
-    x_offs = x_offs + w_ctrls_single*4
+    x_offs = x_offs + w_ctrls_single*3
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'] = { 
                         x=x_offs,
                         y=y_offs,
-                        w=w_ctrls_single*3,
+                        w=w_ctrls_single*2-DATA.GUI.custom_offset,
                         h=DATA.GUI.custom_deviceentryh,
                         val = DATA2.notes[note].layers[layer].tr_pan,
                         val_res = -0.6,
@@ -2749,13 +2740,13 @@ Lock = prevent pad from replacing sample
                               DATA.GUI.buttons['devicestuff_'..'layer'..layer..'pan'].refresh = true
                               DATA2.ONDOUBLECLICK = true
                             end,}   
-    x_offs = x_offs + w_ctrls_single  *3                  
+    x_offs = x_offs + w_ctrls_single*2                  
     local backgr_fill_param_en
     if DATA2.notes[note].layers[layer].instrument_enabled == true then backgr_fill_param_en = backgr_fill_param end
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'enable'] = { 
                         x=x_offs,
                         y=y_offs,
-                        w=w_ctrls_single,
+                        w=w_ctrls_single-DATA.GUI.custom_offset,
                         h=DATA.GUI.custom_deviceentryh,
                         backgr_fill2 = backgr_fill_param_en,
                         backgr_col2 =backgr_col,
@@ -2776,7 +2767,7 @@ Lock = prevent pad from replacing sample
     DATA.GUI.buttons['devicestuff_'..'layer'..layer..'solo'] = { 
                         x=x_offs,
                         y=y_offs,
-                        w=w_ctrls_single,
+                        w=w_ctrls_single-DATA.GUI.custom_offset,
                         h=DATA.GUI.custom_deviceentryh,
                         backgr_fill2 = backgr_fill_param_en,
                         backgr_col2 =backgr_col,
@@ -3105,7 +3096,7 @@ Lock = prevent pad from replacing sample
     
     local x_offs= math.floor(DATA.GUI.custom_module_xoffs_device+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
     local x_offs_ctrls = x_offs
-    local devname_w = DATA.GUI.custom_devicew-DATA.GUI.custom_infoh
+    local devname_w = DATA.GUI.custom_devicew-DATA.GUI.custom_infoh-DATA.GUI.custom_knob_button_w
     GUI_MODULE_separator(DATA, 'devicestuff_sep', DATA.GUI.custom_module_xoffs_device) 
     local device_y = DATA.GUI.custom_infoh+DATA.GUI.custom_offset
     
@@ -3117,7 +3108,26 @@ Lock = prevent pad from replacing sample
                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                          onmouseclick = function() DATA2:Actions_Pad_Menu(DATA2.PARENT_LASTACTIVENOTE) end
                          }
-      x_offs = x_offs + devname_w
+    x_offs = x_offs + devname_w    
+    local txt_a = nil
+    if DATA2.notes[DATA2.PARENT_LASTACTIVENOTE].TYPE_DEVICE ~= true then txt_a = DATA.GUI.custom_framea end
+    DATA.GUI.buttons.devicestuff_showtrack = { x=x_offs,
+                         y=0,
+                         w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+                         h=DATA.GUI.custom_infoh-1,
+                         txt = 'FX',
+                         txt_a=txt_a,
+                         txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                         onmouseclick = function()
+                                          if DATA2.notes[DATA2.PARENT_LASTACTIVENOTE] and DATA2.notes[DATA2.PARENT_LASTACTIVENOTE].tr_ptr then
+                                            TrackFX_Show( DATA2.notes[DATA2.PARENT_LASTACTIVENOTE].tr_ptr, -1, 1 )
+                                          end
+                                        end
+                         }                         
+                         
+                         
+                         
+      x_offs = x_offs + DATA.GUI.custom_knob_button_w
       DATA.GUI.buttons.devicestuff_help = { x=x_offs,
                            y=0,
                            w=DATA.GUI.custom_infoh,
@@ -3183,14 +3193,15 @@ Lock = prevent pad from replacing sample
     local cellside = math.floor(DATA.GUI.custom_padgridw / 4)
     local refnote = 127
     for note = 0, 127 do
+    
+      -- handle col
       local blockcol = '#757575'
       if 
         (note >=0 and note<=3)or
         (note >=20 and note<=35)or
         (note >=52 and note<=67)or
         (note >=84 and note<=99)or
-        (note >=116 and note<=127)
-      
+        (note >=116 and note<=127) 
       then blockcol ='#D5D5D5' end
       
       
@@ -3198,19 +3209,25 @@ Lock = prevent pad from replacing sample
       if DATA2.notes[note] then backgr_fill2 = 0.8  blockcol = '#f3f6f4' end
       if DATA2.playingnote_pitch and DATA2.playingnote_pitch == note  then blockcol = '#ffe494' backgr_fill2 = 0.7 end
       
-      DATA.GUI.buttons['padgrid_but'..note] = { x=    DATA.GUI.buttons.padgrid.x+math.floor(cellside*(note%4)),
-                          y=DATA.GUI.custom_padgridy+DATA.GUI.custom_padgridh - cellside*(1+(math.floor(note/4))),
-                          w=cellside,
-                          h=cellside,
+      
+      if note%4 == 0 then x_offs = math.floor(DATA.GUI.buttons.padgrid.x) end
+      local reduce = 1
+      if cellside < 20 then reduce =0 end
+      DATA.GUI.buttons['padgrid_but'..note] = { x=  x_offs,
+                          y=math.floor(DATA.GUI.custom_padgridy+DATA.GUI.custom_padgridh - cellside*(1+(math.floor(note/4)))),
+                          w=cellside-reduce,
+                          h=cellside-reduce,
                           ignoremouse = true,
                           --txt = note,
                           backgr_col2 = blockcol,
-                          frame_a = 0,
+                          frame_a = 0.1,
+                          frame_col = blockcol,
                           txt_fontsz = 10,
                           backgr_fill2 = backgr_fill2,
                           --onmouseclick =  function() end,
                           refresh = true
                           }
+      x_offs = x_offs + cellside
     end
     
     
@@ -3251,7 +3268,7 @@ Lock = prevent pad from replacing sample
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&8==0) then return end
     
     
-    local x_offs= math.floor(DATA.GUI.custom_module_xoffs_padoverview+DATA.GUI.custom_moduleseparatorw)+1
+    local x_offs= math.floor(DATA.GUI.custom_module_xoffs_padoverview+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
     GUI_MODULE_separator(DATA, 'padgrid_sep', DATA.GUI.custom_module_xoffs_padoverview) 
     DATA.GUI.buttons.padgrid = { x=math.floor(x_offs),
                           y=math.floor(DATA.GUI.custom_padgridy),
@@ -3505,7 +3522,7 @@ Lock = prevent pad from replacing sample
   function GUI_MODULE_SAMPLER_Section_Actions(DATA)  
     local actions_cnt = 3
     local action_h = math.floor(DATA.GUI.custom_sampler_peakareah / actions_cnt)
-    local x_offs = DATA.GUI.buttons.sampler_frame.x + DATA.GUI.custom_offset+DATA.GUI.custom_knob_button_w+DATA.GUI.custom_sampler_namebutw + DATA.GUI.custom_offset
+    local x_offs = DATA.GUI.buttons.sampler_frame.x +DATA.GUI.custom_samplerW-DATA.GUI.custom_knob_button_w
     local y_offs = DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset
     local src_t = DATA2:internal_GetActiveNoteLayerTable()
     if not src_t then return end
@@ -3562,7 +3579,7 @@ Lock = prevent pad from replacing sample
     local txt = 'Loop' if not spl_t.ISRS5K then txt = '' end
     DATA.GUI.buttons.sampler_mode1 = { x= DATA.GUI.buttons.sampler_frame.x ,
                         y=DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset,
-                        w=DATA.GUI.custom_knob_button_w,
+                        w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
                         h=DATA.GUI.custom_sampler_readouth-1,
                         --ignoremouse = true,
                         frame_a = DATA.GUI.custom_framea,
@@ -3582,7 +3599,7 @@ Lock = prevent pad from replacing sample
     local txt = '1-shot' if not spl_t.ISRS5K then txt = '' end
     DATA.GUI.buttons.sampler_mode2 = { x= DATA.GUI.buttons.sampler_frame.x,
                         y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_readouth+ DATA.GUI.custom_offset+1 ,
-                        w=DATA.GUI.custom_knob_button_w,
+                        w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
                         h=DATA.GUI.custom_sampler_readouth-2,
                         --ignoremouse = true,
                         frame_a = DATA.GUI.custom_framea,
@@ -3610,7 +3627,7 @@ Lock = prevent pad from replacing sample
     for key in pairs(DATA.GUI.buttons) do if key:match('sampler_') and key~=sampler_framepeaks then DATA.GUI.buttons[key] = nil end end
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&4==0) then return end
     
-    local x_offs= math.floor(DATA.GUI.custom_module_xoffs_sampler+DATA.GUI.custom_moduleseparatorw)+1
+    local x_offs= math.floor(DATA.GUI.custom_module_xoffs_sampler+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
     GUI_MODULE_separator(DATA, 'sampler_sep', DATA.GUI.custom_module_xoffs_sampler) 
     -- sample name  
     
@@ -3627,34 +3644,51 @@ Lock = prevent pad from replacing sample
                             } 
       DATA.GUI.buttons.sampler_name = { x=x_offs,
                            y=0,
-                           w=DATA.GUI.custom_sampler_namebutw,
+                           w=DATA.GUI.custom_sampler_namebutw-DATA.GUI.custom_offset,
                            h=DATA.GUI.custom_infoh-1,
                            txt = name,
                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                            }
-      x_offs = x_offs+DATA.GUI.custom_sampler_namebutw + DATA.GUI.custom_offset                      
+      x_offs = x_offs+DATA.GUI.custom_sampler_namebutw                   
       DATA.GUI.buttons.Actions_Sampler_Menu = { x=x_offs,
                            y=0,
-                           w=DATA.GUI.custom_knob_button_w,
+                           w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
                            h=DATA.GUI.custom_infoh-1,
                            txt = 'Actions',
                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                            onmouserelease = function()  DATA2:Actions_Sampler_Menu()  end,
                            }  
-      x_offs = x_offs+DATA.GUI.custom_knob_button_w + DATA.GUI.custom_offset  
+      x_offs = x_offs+DATA.GUI.custom_knob_button_w
       DATA.GUI.buttons.sampler_show = { x=x_offs,
                            y=0,
-                           w=DATA.GUI.custom_knob_button_w-1,
+                           w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
                            h=DATA.GUI.custom_infoh-1,
-                           txt = 'Show',
+                           txt = 'FX',
                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                           onmouserelease = function() DATA2:Actions_ShowInstrument(note, layer) end,
-                           }     
+                           onmouserelease = function() 
+                                              --DATA2:Actions_ShowInstrument(note, layer) 
+                                              TrackFX_Show( spl_t.tr_ptr, spl_t.instrument_pos, 1 ) 
+                                            end,
+                           }
+      x_offs = x_offs+DATA.GUI.custom_knob_button_w--DATA.GUI.custom_infoh
+      DATA.GUI.buttons.sampler_help = { x=x_offs,
+                           y=0,
+                           w=DATA.GUI.custom_infoh,
+                           h=DATA.GUI.custom_infoh-1,
+                           txt = '?',
+                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                           onmouserelease = function() 
+                                              DATA2:Actions_Help(4)
+                                            end,
+                           }                           
+                           
+                           
+                           
     local txt = ''
     if not spl_t.ISRS5K then txt = '['..spl_t.instrument_fxname..']' end
-    DATA.GUI.buttons.sampler_framepeaks = { x= DATA.GUI.buttons.sampler_frame.x + DATA.GUI.custom_offset+DATA.GUI.custom_knob_button_w,
+    DATA.GUI.buttons.sampler_framepeaks = { x= DATA.GUI.buttons.sampler_frame.x + DATA.GUI.custom_knob_button_w,
                             y=DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset,
-                            w=DATA.GUI.custom_sampler_namebutw-1,
+                            w=DATA.GUI.custom_samplerW - DATA.GUI.custom_knob_button_w*2-DATA.GUI.custom_offset,
                             h=DATA.GUI.custom_sampler_peakareah,
                             --ignoremouse = true,
                             txt = txt,
@@ -4387,7 +4421,7 @@ Lock = prevent pad from replacing sample
     if DATA2.playingnote_trig == true and DATA2.playingnote_isNoteOn == true then 
       if  DATA.extstate.UI_incomingnoteselectpad == 1 then
         DATA2.PARENT_LASTACTIVENOTE = DATA2.playingnote_pitch 
-        DATA2.PARENT_LASTACTIVENOTE_layer = 1 
+        --DATA2.PARENT_LASTACTIVENOTE_layer = 1 
         DATA2:TrackDataWrite(_,{master_upd=true}) 
         GUI_MODULE_DEVICE(DATA)  
         GUI_MODULE_SAMPLER(DATA)
