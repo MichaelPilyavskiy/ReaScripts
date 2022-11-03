@@ -225,7 +225,7 @@
   function DATA:GUIdraw_txtCalibrateFont(txt_font, txt_fontsz_px, txt_fontflags)--, txtmsg, maxv) 
     if not txt_fontsz_px then return end
     for fontsz = 1, 100 do
-      gfx.setfont(1,txt_font, fontsz, txt_fontflags) 
+      gfx.setfont(1,txt_font, fontsz, txt_fontflags or 0) 
       local strh = gfx.texth
       if strh > txt_fontsz_px 
         --*and  (not (maxv and txtmsg) or (maxv and txtmsg and gfx.measurestr(txtmsg) < maxv))
@@ -259,6 +259,7 @@
   function DATA:GUIhandlemousestate()
     DATA.perform_quere = {}
     if not (DATA.GUI and DATA.GUI.buttons) then return end
+    DATA.GUI.mouse_match = {}
     for but in spairs(DATA.GUI.buttons ) do 
       local b = DATA.GUI.buttons[but] 
       if DATA:GUIhandlemousestate_is_offlayer(b) then goto skipb end 
@@ -270,7 +271,7 @@
       
         DATA:GUIhandlemousestate_match(b)
         if b.mouse_match then
-          --DATA.GUI.mouse_match = but
+          DATA.GUI.mouse_match[#DATA.GUI.mouse_match+1] = but
           b.mouse_matchparent = b
           if b.onmousematchcont then DATA.perform_quere[#DATA.perform_quere+1] = b.onmousematchcont end                                                     -- arrow above pointer coninioulsy
           if DATA.GUI.mouse_ismoving then b.refresh = refresh end                                                                                           -- refresh object is arrow above (handle context rectangle selection)
@@ -343,7 +344,7 @@
           b.mouse_latch = false
           b.refresh = true
           DATA.perform_quere[#DATA.perform_quere+1] = b.onmouserelease
-        elseif DATA.GUI.LMB_release == true and b.mouse_match == true and mouse_latch ~= true then -- handle mouse_latch on left release
+        elseif DATA.GUI.LMB_release == true and b.mouse_match == true and mouse_latch ~= true then -- handle mouse_latch on left release --
          DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedrop
        end 
          
@@ -846,7 +847,6 @@
         end
         
       end
-      
       gfx.blit(layer, 1, 0, 
           srcx,srcy,srcw,srch,
           destx,desty,destw,desth, 0,0) 

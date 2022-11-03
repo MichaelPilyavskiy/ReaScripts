@@ -46,6 +46,7 @@
       for trid = 1, CountTracks(0) do
         local tr = GetTrack(0,trid-1)
         for fx_id =1, TrackFX_GetCount( tr ) do
+          
           if TrackFX_GetFXGUID( tr, fx_id-1):gsub(pat,'') == GUID:gsub(pat,'') then return true, tr, fx_id-1 end
         end
       end  
@@ -1725,6 +1726,36 @@ end
     if not param_n and param_str:lower():match('%-inf') then param_n = - math.huge
     elseif not param_n and param_str:lower():match('inf') then param_n = math.huge end
     return param_n
+  end
+    ---------------------------------------------------------------------  
+  function VF_LIP_load(fileName) -- https://github.com/Dynodzzo/Lua_INI_Parser/blob/master/LIP.lua
+    assert(type(fileName) == 'string', 'Parameter "fileName" must be a string.');
+    local file = assert(io.open(fileName, 'r'), 'Error loading file : ' .. fileName);
+    local data = {};
+    local section;
+    for line in file:lines() do
+      local tempSection = line:match('^%[([^%[%]]+)%]$');
+      if(tempSection)then
+        section = tonumber(tempSection) and tonumber(tempSection) or tempSection;
+        data[section] = data[section] or {};
+      end
+      local param, value = line:match('^([%w|_]+)%s-=%s-(.+)$');
+      if(param and value ~= nil)then
+        if(tonumber(value))then
+          value = tonumber(value);
+        elseif(value == 'true')then
+          value = true;
+        elseif(value == 'false')then
+          value = false;
+        end
+        if(tonumber(param))then
+          param = tonumber(param);
+        end
+        data[section][param] = value;
+      end
+    end
+    file:close();
+    return data;
   end
   -------------------------------------------------------  
   -- MAPPING for backwards compability --
