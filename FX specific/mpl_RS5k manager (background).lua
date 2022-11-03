@@ -1,21 +1,24 @@
 -- @description RS5k manager
--- @version 3.0beta35
+-- @version 3.0beta36
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    + Undo copy/move pads
---    + Undo remove note/layers
---    + Device: allow to remove layers
---    + Settings: add option to rename track
---    + Improve incoming notes catching
---    + Small UI tweaks
+--    + fix typo
 
 
 --[[ 
-v3.0beta34 by MPL – November 03 2022
+v3.0beta35 by MPL – November 03 2022
+  + Undo copy/move pads
+  + Undo remove note/layers
+  + Device: allow to remove layers
+  + Settings: add option to rename track
+  + Improve incoming notes catching
+  + Small UI tweaks
+  
+v3.0beta34 by MPL  November 03 2022
   # DrumRack: moving pad to existed swap them
   + DrumRack: indicate dragging pad
   # Sampler: swap prev/next sample buttons
@@ -234,7 +237,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta35'
+    DATA.extstate.version = '3.0beta36'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -2244,7 +2247,7 @@ Lock = prevent pad from replacing sample
     -- handle track name 
       filepath_sh = GetShortSmplName(filepath)
       if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end
-      if DATA.extstate.CONF_onadd_renametrack==1 then SetSetMediaTrackInfo_String( new_tr, 'P_NAME', filepath_sh, true ) end
+      if DATA.extstate.CONF_onadd_renametrack==1 then SetMediaTrackInfo_String( new_tr, 'P_NAME', filepath_sh, true ) end
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_Pad_InitSamplesFromDB_ParseList(list_fp)
