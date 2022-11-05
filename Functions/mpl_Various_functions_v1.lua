@@ -403,66 +403,6 @@
     if fn then fn = fn:reverse() end
     return fn
   end  
-  ---------------------------------------------------------------------------------------------------------------------   
-    function GetNoteStr(conf, val, mode)  -- conf.key_names
-      local oct_shift = -1
-      if conf.oct_shift then oct_shift = conf.oct_shift end
-      local int_mode
-      if mode then int_mode = mode else int_mode = conf.key_names end
-      if int_mode == 0 then
-        if not val then return end
-        local val = math.floor(val)
-        local oct = math.floor(val / 12)
-        local note = math.fmod(val,  12)
-        local key_names = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',}
-        if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift end
-       elseif int_mode == 1 then
-        if not val then return end
-        local val = math.floor(val)
-        local oct = math.floor(val / 12)
-        local note = math.fmod(val,  12)
-        local key_names = {'C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B',}
-        if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift end  
-       elseif int_mode == 2 then
-        if not val then return end
-        local val = math.floor(val)
-        local oct = math.floor(val / 12)
-        local note = math.fmod(val,  12)
-        local key_names = {'Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si',}
-        if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift end      
-       elseif int_mode == 3 then
-        if not val then return end
-        local val = math.floor(val)
-        local oct = math.floor(val / 12)
-        local note = math.fmod(val,  12)
-        local key_names = {'Do', 'Re♭', 'Re', 'Mi♭', 'Mi', 'Fa', 'Sol♭', 'Sol', 'La♭', 'La', 'Si♭', 'Si',}
-        if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift end       
-       elseif int_mode == 4 -- midi pitch
-        then return val, 'MIDI pitch'
-       elseif int_mode == 5 -- freq
-        then return math.floor(440 * 2 ^ ( (val - 69) / 12))..'Hz'
-       elseif int_mode == 6 -- empty
-        then return '', 'Nothing'
-       elseif int_mode == 7 then -- ru
-        if not val then return end
-        local val = math.floor(val)
-        local oct = math.floor(val / 12)
-        local note = math.fmod(val,  12)
-        local key_names = {'До', 'До#', 'Ре', 'Ре#', 'Ми', 'Фа', 'Фа#', 'Соль', 'Соль#', 'Ля', 'Ля#', 'Си'}
-        if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift,
-                                                          'keys (RU) + octave' end  
-       elseif int_mode == 8 then
-        if not val then return end
-        local val = math.floor(val)
-        local oct = math.floor(val / 12)
-        local note = math.fmod(val,  12)
-        local key_names = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',}
-        if note and oct and key_names[note+1] then 
-          return key_names[note+1]..oct+oct_shift..'\n'..val,
-                  'keys + octave + MIDI pitch'
-        end              
-      end
-    end
   ---------------------------------------------------------------------------------------------------------------------
     function math_q(num)  if math.abs(num - math.floor(num)) < math.abs(num - math.ceil(num)) then return math.floor(num) else return math.ceil(num) end end
   -------------------------------------------------------------------------------   
@@ -1756,6 +1696,122 @@ end
     end
     file:close();
     return data;
+  end
+  ---------------------------------------------------------------------------------------------------------------------   
+    function GetNoteStr(conf, val, mode)  -- conf.key_names
+      local oct_shift = -1
+      if conf.oct_shift then oct_shift = conf.oct_shift end
+      local int_mode
+      if mode then int_mode = mode else int_mode = conf.key_names end
+      if int_mode == 0 then
+        if not val then return end
+        local val = math.floor(val)
+        local oct = math.floor(val / 12)
+        local note = math.fmod(val,  12)
+        local key_names = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',}
+        if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift end
+       elseif int_mode == 1 then
+        if not val then return end
+        local val = math.floor(val)
+        local oct = math.floor(val / 12)
+        local note = math.fmod(val,  12)
+        local key_names = {'C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B',}
+        if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift end  
+       elseif int_mode == 2 then
+        if not val then return end
+        local val = math.floor(val)
+        local oct = math.floor(val / 12)
+        local note = math.fmod(val,  12)
+        local key_names = {'Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si',}
+        if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift end      
+       elseif int_mode == 3 then
+        if not val then return end
+        local val = math.floor(val)
+        local oct = math.floor(val / 12)
+        local note = math.fmod(val,  12)
+        local key_names = {'Do', 'Re♭', 'Re', 'Mi♭', 'Mi', 'Fa', 'Sol♭', 'Sol', 'La♭', 'La', 'Si♭', 'Si',}
+        if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift end       
+       elseif int_mode == 4 -- midi pitch
+        then return val, 'MIDI pitch'
+       elseif int_mode == 5 -- freq
+        then return math.floor(440 * 2 ^ ( (val - 69) / 12))..'Hz'
+       elseif int_mode == 6 -- empty
+        then return '', 'Nothing'
+       elseif int_mode == 7 then -- ru
+        if not val then return end
+        local val = math.floor(val)
+        local oct = math.floor(val / 12)
+        local note = math.fmod(val,  12)
+        local key_names = {'До', 'До#', 'Ре', 'Ре#', 'Ми', 'Фа', 'Фа#', 'Соль', 'Соль#', 'Ля', 'Ля#', 'Си'}
+        if note and oct and key_names[note+1] then return key_names[note+1]..oct+oct_shift,
+                                                          'keys (RU) + octave' end  
+       elseif int_mode == 8 then
+        if not val then return end
+        local val = math.floor(val)
+        local oct = math.floor(val / 12)
+        local note = math.fmod(val,  12)
+        local key_names = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',}
+        if note and oct and key_names[note+1] then 
+          return key_names[note+1]..oct+oct_shift..'\n'..val,
+                  'keys + octave + MIDI pitch'
+        end              
+      end
+  end
+  ---------------------------------------------------------------------------------------------------------------------   
+  function VF_GetNoteStr(val, int_mode)  -- conf.key_names
+    if int_mode == 0 then
+      if not val then return end
+      local val = math.floor(val)
+      local oct = math.floor(val / 12)
+      local note = math.fmod(val,  12)
+      local key_names = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',}
+      if note and oct and key_names[note+1] then return key_names[note+1]..oct end
+     elseif int_mode == 1 then
+      if not val then return end
+      local val = math.floor(val)
+      local oct = math.floor(val / 12)
+      local note = math.fmod(val,  12)
+      local key_names = {'C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B',}
+      if note and oct and key_names[note+1] then return key_names[note+1]..oct end  
+     elseif int_mode == 2 then
+      if not val then return end
+      local val = math.floor(val)
+      local oct = math.floor(val / 12)
+      local note = math.fmod(val,  12)
+      local key_names = {'Do', 'Do#', 'Re', 'Re#', 'Mi', 'Fa', 'Fa#', 'Sol', 'Sol#', 'La', 'La#', 'Si',}
+      if note and oct and key_names[note+1] then return key_names[note+1]..oct end      
+     elseif int_mode == 3 then
+      if not val then return end
+      local val = math.floor(val)
+      local oct = math.floor(val / 12)
+      local note = math.fmod(val,  12)
+      local key_names = {'Do', 'Re♭', 'Re', 'Mi♭', 'Mi', 'Fa', 'Sol♭', 'Sol', 'La♭', 'La', 'Si♭', 'Si',}
+      if note and oct and key_names[note+1] then return key_names[note+1]..oct end       
+     elseif int_mode == 4 -- midi pitch
+      then return val, 'MIDI pitch'
+     elseif int_mode == 5 -- freq
+      then return math.floor(440 * 2 ^ ( (val - 69) / 12))..'Hz'
+     elseif int_mode == 6 -- empty
+      then return '', 'Nothing'
+     elseif int_mode == 7 then -- ru
+      if not val then return end
+      local val = math.floor(val)
+      local oct = math.floor(val / 12)
+      local note = math.fmod(val,  12)
+      local key_names = {'До', 'До#', 'Ре', 'Ре#', 'Ми', 'Фа', 'Фа#', 'Соль', 'Соль#', 'Ля', 'Ля#', 'Си'}
+      if note and oct and key_names[note+1] then return key_names[note+1]..oct,
+                                                        'keys (RU) + octave' end  
+     elseif int_mode == 8 then
+      if not val then return end
+      local val = math.floor(val)
+      local oct = math.floor(val / 12)
+      local note = math.fmod(val,  12)
+      local key_names = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',}
+      if note and oct and key_names[note+1] then 
+        return key_names[note+1]..oct..'\n'..val,
+                'keys + octave + MIDI pitch'
+      end              
+    end
   end
   -------------------------------------------------------  
   -- MAPPING for backwards compability --

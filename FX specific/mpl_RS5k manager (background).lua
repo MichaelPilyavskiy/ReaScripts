@@ -1,20 +1,24 @@
 -- @description RS5k manager
--- @version 3.0beta40
+-- @version 3.0beta41
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    + Add MIDI/OSC learn section
---    + Sampler: add tune cents/semitones/octave buttons
-
-
+--    + DrumRack: add FX button to show parent FX chain
+--    + Settings: option to copy files into project directory
+--    # DrumRack use octave offset from REAPER preferences
+--    + Setting: add option to use custom note names
 
 
 
 --[[ 
 
+v3.0beta40 by MPL November 05 2022
+  + Add MIDI/OSC learn section
+  + Sampler: add tune cents/semitones/octave buttons
+  
 v3.0beta37 by MPL November 03 2022
   + Device: add Fx button (show FX chain for device track)
   + Sampler: add Fx button (show FX chain for sampler track)
@@ -252,7 +256,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta40'
+    DATA.extstate.version = '3.0beta41'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -270,6 +274,7 @@ v3.0beta30 by MPL October 26 2022
                           CONF_onadd_obeynoteoff = 1,
                           CONF_onadd_customtemplate = '',
                           CONF_onadd_renametrack = 1,
+                          CONF_onadd_copytoprojectpath = 0,
                           
                           -- midi bus
                           CONF_midiinput = 63, -- 63 all 62 midi kb
@@ -298,6 +303,7 @@ v3.0beta30 by MPL October 26 2022
                           UI_clickonpadselecttrack = 1,
                           UI_incomingnoteselectpad = 0,
                           UI_defaulttabsflags = 1|4|8, --1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database 64=midi map 128 parent FX
+                          UI_keyformat_mode = 0 ,
                           
                           
                           }
@@ -315,7 +321,7 @@ v3.0beta30 by MPL October 26 2022
             [9] = 'Band alt' ,
             [2] = 'Band alt2' ,
             }
-            
+    DATA2:internal_parseREAPER_Settings()        
     DATA:ExtStateGet()
     DATA:ExtStateGetPresets()  
     --DATA2:Database_Load(DATA.extstate.CONF_database_base64) 
@@ -331,6 +337,10 @@ v3.0beta30 by MPL October 26 2022
     DATA:GUIinit()
     
     RUN()
+  end
+  -----------------------------------------------------------------------------  
+  function DATA2:internal_parseREAPER_Settings()
+    DATA2.REAPERini = VF_LIP_load( reaper.get_ini_file())
   end
   --------------------------------------------------------------------- 
   function DATA2:Actions_Help(page)
@@ -1060,7 +1070,7 @@ Actions panel:
   ---------------------------------------------------------------------  
   function DATA2:TrackDataRead_GetMIDIOSC_bindings_sub(src_t)
     if src_t then track = src_t.tr_ptr end
-    if not track then return end
+    if not track and ValidatePtr2(0,track,'MediaTrack*')then return end
     
     for fx = 0,  TrackFX_GetCount( track )-1 do
       local pcount = reaper.TrackFX_GetNumParams( track, fx )
@@ -1524,7 +1534,8 @@ Actions panel:
       {str = 'On sample add:' ,                                 group = 1, itype = 'sep'},
         {str = 'Float RS5k instance',                           group = 1, itype = 'check', confkey = 'CONF_onadd_float', level = 1},
         {str = 'Set obey notes-off',                            group = 1, itype = 'check', confkey = 'CONF_onadd_obeynoteoff', level = 1},
-        {str = 'Rename track',                            group = 1, itype = 'check', confkey = 'CONF_onadd_renametrack', level = 1},
+        {str = 'Rename track',                                  group = 1, itype = 'check', confkey = 'CONF_onadd_renametrack', level = 1},
+        {str = 'Copy samples to project path',                  group = 1, itype = 'check', confkey = 'CONF_onadd_copytoprojectpath', level = 1},
         {str = 'Custom track template: '..customtemplate,       group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() local retval, fp = GetUserFileNameForRead('', 'FX chain for newly dragged samples', 'RTrackTemplate') if retval then DATA.extstate.CONF_onadd_customtemplate=  fp GUI_MODULE_SETTINGS(DATA) end end},
         {str = 'Custom track template [clear]',                  group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() DATA.extstate.CONF_onadd_customtemplate=  '' GUI_MODULE_SETTINGS(DATA) end},
       {str = 'MIDI bus',                                        group = 2, itype = 'sep'}, 
@@ -1533,6 +1544,7 @@ Actions panel:
         [11]='Channel 11',[12]='Channel 12',[13]='Channel 13',[14]='Channel 14',[15]='Channel 15',[16]='Channel 16'},readoutw_extw = readoutw_extw},
       {str = 'UI',                                              group = 3, itype = 'sep'},
         {str = 'Active note follow incoming note',              group = 3, itype = 'check', confkey = 'UI_incomingnoteselectpad', level = 1},
+        {str = 'Key format',                                    group = 3, itype = 'readout', confkey = 'UI_keyformat_mode', level = 1,menu = {[0]='C-C#-D',[2]='Do-Do#-Re',[7]='Russian'}},
       {str = 'Tab defaults',                                    group = 6, itype = 'sep'},
         {str = 'Drumrack',                                      group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 0},
         {str = 'Device',                                        group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 1},
@@ -2134,7 +2146,7 @@ Actions panel:
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&1==0) then return end
     
     local trname = DATA2.tr_name or '[no data]'   
-    local drracvname_w = DATA.GUI.custom_drrack_sideW-DATA.GUI.custom_knob_button_w-DATA.GUI.custom_infoh
+    local drracvname_w = DATA.GUI.custom_drrack_sideW-DATA.GUI.custom_knob_button_w*2-DATA.GUI.custom_infoh
     local x_offs= math.floor(DATA.GUI.custom_module_xoffs_drumrack+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
     GUI_MODULE_separator(DATA, 'drumrack_sep', DATA.GUI.custom_module_xoffs_drumrack) 
        -- dr rack
@@ -2152,7 +2164,17 @@ Actions panel:
                              ignoremouse = true,
                              frame_a = 0,
                              }
-      x_offs = x_offs + drracvname_w
+     x_offs = x_offs + drracvname_w    
+     DATA.GUI.buttons.drumrack_FX = { x=x_offs,
+                          y=0,
+                          w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_infoh-1,
+                          txt = 'FX',
+                          txt_a=txt_a,
+                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                          onmouseclick = function() TrackFX_Show( DATA2.tr_ptr, -1, 1 ) end
+                          } 
+      x_offs = x_offs + DATA.GUI.custom_knob_button_w
       DATA.GUI.buttons.drumrack_showME = { x=x_offs,
                            y=0,
                            w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
@@ -2265,7 +2287,7 @@ Actions panel:
                               frame_col = backgr_col,--DATA.GUI.custom_backcol2,
                               backgr_fill = 0 ,
                               --backgr_col = backgr_col,
-                              back_sela = 0.1 ,
+                              back_sela = 0 ,
                               frame_arcborder = true,
                               frame_arcborderr = DATA.GUI.custom_drrack_arcr,
                               frame_arcborderflags = 1|2,
@@ -2339,7 +2361,7 @@ Actions panel:
                               frame_col = backgr_col,--DATA.GUI.custom_backcol2,
                               backgr_fill = 0 ,
                               --backgr_col = backgr_col,
-                              back_sela = 0.1 ,
+                              back_sela = 0 ,
                               onmousedrag = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmousedrag, 
                               onmouseclick = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmouseclick,
                               onmouseclickR = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmouseclickR,
@@ -2449,11 +2471,12 @@ Actions panel:
   end  
   ----------------------------------------------------------------------- 
   function DATA2:internal_FormatMIDIPitch(note) 
-    local val = math.floor(note)
+    do return VF_GetNoteStr(note-DATA2.REAPERini.REAPER.midioctoffs*2+4,DATA.extstate.UI_keyformat_mode) end
+    --[[local val = math.floor(note)
     local oct = math.floor(note / 12)
     local note = math.fmod(note,  12)
     local key_names = {'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'}
-    if note and oct and key_names[note+1] then return key_names[note+1]..oct-2 end
+    if note and oct and key_names[note+1] then return key_names[note+1]..oct-2 end]]
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_PadOnFileDrop_AddMIDISend(new_tr) 
@@ -2528,6 +2551,30 @@ Actions panel:
     end
   end
   -----------------------------------------------------------------------  
+  function DATA2:Actions_PadOnFileDrop_ExportToRS5k_CopySrc(filepath)
+    local prpath = reaper.GetProjectPathEx( 0 )
+    local filepath_path = GetParentFolder(filepath)
+    local filepath_name = VF_GetShortSmplName(filepath)
+    if prpath and filepath_path and filepath_name then
+      prpath = prpath..'/RS5kmanager_samples/'
+      RecursiveCreateDirectory( prpath, 0 )
+      local src = filepath
+      local dest = prpath..filepath_name
+      local fsrc = io.open(src, 'rb')
+      if fsrc then
+        content = fsrc:read('a') 
+        fsrc:close()
+        fdest = io.open(dest, 'wb')
+        if fdest then 
+          fdest:write(content)
+          fdest:close()
+          return dest
+        end
+      end
+    end
+    return filepath
+  end
+  -----------------------------------------------------------------------  
   function DATA2:Actions_PadOnFileDrop_ExportToRS5k(new_tr, filepath,note)
     if filepath:match('@fx') then
       DATA2:Actions_PadOnFileDrop_ExportFXasDeviceInstrument(new_tr, filepath,note)
@@ -2536,6 +2583,9 @@ Actions panel:
     local instrument_pos = TrackFX_AddByName( new_tr, 'ReaSamplomatic5000', false, 0 ) 
     if instrument_pos == -1 then instrument_pos = TrackFX_AddByName( new_tr, 'ReaSamplomatic5000', false, -1000 ) end 
     if DATA.extstate.CONF_onadd_float == 0 then TrackFX_SetOpen( new_tr, instrument_pos, false ) end
+    if DATA.extstate.CONF_onadd_copytoprojectpath == 1 then 
+      filepath = DATA2:Actions_PadOnFileDrop_ExportToRS5k_CopySrc(filepath)
+    end 
     TrackFX_SetNamedConfigParm( new_tr, instrument_pos, 'FILE0', filepath)
     TrackFX_SetNamedConfigParm( new_tr, instrument_pos, 'DONE', '')      
     TrackFX_SetParamNormalized( new_tr, instrument_pos, 2, 0) -- gain for min vel
@@ -4898,37 +4948,13 @@ Actions panel:
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.46) if ret then local ret2 = VF_CheckReaperVrs(6.69,true) if ret2 then  main() end end
+  local ret = VF_CheckFunctions(3.48) if ret then local ret2 = VF_CheckReaperVrs(6.69,true) if ret2 then  main() end end
   
   
   
   --[[
-    ---------------------------------------------------
-    function v2 ExtState_Def()
-  
-              -- various
-              draggedfile_fxchain = '',
-              --copy_src_media = 0,
-              
-               -- Pads
-              keymode = 0,  -- 0-keys
-              oct_shift = -1, -- note names
-              key_names2 = '#midipitch #keycsharp |#notename #samplecount |#samplename' ,
               
               
-
-           fu nction v2MoveSourceMedia(DRstr)
-             local buf = reaper.GetProjectPathEx( 0, '' )
-             if GetOS():lower():match('win') then
-               local spl_name = GetShortSmplName(DRstr) 
-               local cmd = 'copy "'..DRstr..'" "'..buf..'/RS5k_samples/'..spl_name..'"'
-               cmd = cmd:gsub('\\', '/')
-               os.execute(cmd)
-               msg(cmd)
-               return buf..'/RS5k_samples/'..spl_name
-             end
-             return DRstr
-           end
            ---------------------------------------------------
            func tion v2Choke_Save(conf, data)
              local str = ''
@@ -4969,70 +4995,6 @@ Actions panel:
                  cnt = cnt + 1
                end
              end
-           end
-           ------------------------------------------------------------------------  
-           fu nction v2ExplodeRS5K_main(tr)
-             if tr then 
-               local tr_id = CSurf_TrackToID( tr,false )
-               SetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH', 1 )
-               Undo_BeginBlock2( 0 )      
-               local ch = ExplodeRS5K_Extract_rs5k_tChunks(tr)
-               if ch and #ch > 0 then 
-                 for i = #ch, 1, -1 do 
-                   InsertTrackAtIndex( tr_id, false )
-                   local child_tr = GetTrack(0,tr_id)
-                   ExplodeRS5K_AddChunkToTrack(child_tr, ch[i])
-                   ExplodeRS5K_RenameTrAsFirstInstance(child_tr)
-                   local ch_depth if i == #ch then ch_depth = -1 else ch_depth = 0 end
-                   SetMediaTrackInfo_Value( child_tr, 'I_FOLDERDEPTH', ch_depth )
-                   SetMediaTrackInfo_Value( child_tr, 'I_FOLDERCOMPACT', 1 ) 
-                 end
-               end
-               SetOnlyTrackSelected( tr )
-               Main_OnCommand(40535,0 ) -- Track: Set all FX offline for selected tracks
-               Undo_EndBlock2( 0, 'Explode selected track RS5k instances to new tracks', 0 )
-             end
-           end 
-             
-             
-           
-             ---------------------------------------------------
-               unction v2BuildKeyName(conf, data, note, str)
-               if not str then return "" end
-               --------
-               str = str:gsub('#midipitch', note)
-               --------
-               local ntname = GetNoteStr(conf, note, 0)
-               if not ntname then ntname = '' end
-               str = str:gsub('#keycsharp ', ntname)
-               local ntname2 = GetNoteStr(conf, note, 7)
-               if not ntname2 then ntname2 = '' end
-               str = str:gsub('#keycsharpRU ', ntname2)
-               --------
-               if data[note] and data[note][1] and data[note][1].MIDI_name and data[note][1].MIDI_name ~= '' then 
-                 str = str:gsub('#notename', data[note][1].MIDI_name) 
-                else 
-                 str = str:gsub('#notename', '')
-               end
-               --------
-               if data[note] then 
-                 str = str:gsub('#samplecount', '('..#data[note]..')') else str = str:gsub('#samplecount', '')
-               end 
-               --------
-               local spls = ''
-               if data[note] and #data[note] >= 1 then
-                 for spl = 1, #data[note] do
-                   spls = spls..data[note][spl].sample_short..'\n'
-                 end
-               end
-               str = str:gsub('#samplename', spls)
-               --------
-               str = str:gsub('|  |', '|')
-               str = str:gsub('|', '\n')
-               --------
-           
-               
-               return str
            
                
              end
@@ -5230,13 +5192,5 @@ Actions panel:
                { str = 'All keys from top to the bottom|<|',
                  func = function() conf.keymode = 8 end ,
                  state = conf.keymode == 8},       
-                   
-           
-             
-             { str = 'Allow pads drag to copy/move|<',  
-               state = conf.allow_dragpads&1==1,
-               func =  function() 
-                         conf.allow_dragpads = math.abs(1-conf.allow_dragpads)
-                       end },      
 
       ]]

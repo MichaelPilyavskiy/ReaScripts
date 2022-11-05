@@ -2,7 +2,7 @@
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @about Functions used by MPL scripts.
--- @version 3.46
+-- @version 3.48
 -- @provides
 --    mpl_Various_functions_v1.lua
 --    mpl_Various_functions_v3.lua
@@ -10,12 +10,11 @@
 --    mpl_Various_functions_MOUSE.lua
 --    mpl_Various_functions_Pers.lua
 -- @changelog
---    + Add VF_LIP_load
---    + Add mousematch table
+--    # modify VF_GetNoteStr for further use
 
 
     
-  VF_version = 3.47 -- do not remove, used for versions comparement
+  VF_version = 3.48 -- do not remove, used for versions comparement
   VF_isregist = 1|2 -- do not remove, used for VF versions check
   --------------------------------------------------
   function VF_LoadLibraries()
