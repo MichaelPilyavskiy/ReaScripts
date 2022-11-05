@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.0beta42
+-- @version 3.0beta43
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -7,7 +7,6 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Add MIDI choke JSFX
 --    # fix error when not MIDI octave shift defined in REAPER.ini
 
 
@@ -18,6 +17,8 @@ v3.0beta41 by MPL November 05 2022
   + Settings: option to copy files into project directory
   # DrumRack use octave offset from REAPER preferences
   + Setting: add option to use custom note names
+  + Add MIDI choke JSFX
+  # fix error when not MIDI octave shift defined in REAPER.ini
   
 v3.0beta40 by MPL November 05 2022
   + Add MIDI/OSC learn section
@@ -260,7 +261,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta42'
+    DATA.extstate.version = '3.0beta43'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -1844,7 +1845,7 @@ Actions panel:
     local y_offs = DATA.GUI.custom_infoh + DATA.GUI.custom_offset
     DATA.GUI.buttons.childchain_actionframe = { x=x_offs0,
                           y=0,
-                          w=nameframe_w-DATA.GUI.custom_offset,
+                          w=nameframe_w,
                           h=DATA.GUI.custom_infoh-1,
                           txt = 'Children chain',
                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
@@ -1853,6 +1854,15 @@ Actions panel:
                           --frame_asel = 0.3,
                           --backgr_fill = 0,
                           onmouseclick =  function() end}
+    DATA.GUI.buttons.childchain_listparent = { x=x_offs0,
+                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
+                          w=DATA.GUI.custom_childchainw,---DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_moduleH-DATA.GUI.custom_offset*2,
+                          list_islistparent = true,
+                          onmouseclick =  function() end}                      
+                          
+                              
+                          
     local notenamesw = math.floor(DATA.GUI.custom_childchainw*0.3)
     for note in pairs(DATA2.notes) do
       local x_offs = x_offs0
@@ -2551,7 +2561,9 @@ Actions panel:
   end  
   ----------------------------------------------------------------------- 
   function DATA2:internal_FormatMIDIPitch(note) 
-    do return VF_GetNoteStr(note-(DATA2.REAPERini.REAPER.midioctoffs or 0 )*2+4,DATA.extstate.UI_keyformat_mode) end
+    local offs = 0
+    if DATA2.REAPERini and DATA2.REAPERini.REAPER and DATA2.REAPERini.REAPER.midioctoffs then offs = DATA2.REAPERini.REAPER.midioctoffs end
+    do return VF_GetNoteStr(note+(offs-2)*12,DATA.extstate.UI_keyformat_mode) end
     --[[local val = math.floor(note)
     local oct = math.floor(note / 12)
     local note = math.fmod(note,  12)
@@ -5272,5 +5284,4 @@ Actions panel:
                  state = conf.keymode == 8},       
 
       ]]
-
 
