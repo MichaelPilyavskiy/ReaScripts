@@ -1,11 +1,11 @@
 desc:RS5K_manager_MacroControls
-version: 1.01
+version: 1.02
 author: MPL
 website: http://forum.cockos.com/member.php?u=70694
 about:
   Dummy controls to use with RS5k manager
 changelog: 
-  testing modification
+  stable release
 
  
 desc:RS5K_manager_MacroControls

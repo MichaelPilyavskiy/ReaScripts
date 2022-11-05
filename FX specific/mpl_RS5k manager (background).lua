@@ -1,20 +1,24 @@
 -- @description RS5k manager
--- @version 3.0beta41
+-- @version 3.0beta42
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
---    mpl_RS5k manager_MacroControls.jsfx
+--    mpl_RS5k_manager_MacroControls.jsfx 
+--    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + DrumRack: add FX button to show parent FX chain
---    + Settings: option to copy files into project directory
---    # DrumRack use octave offset from REAPER preferences
---    + Setting: add option to use custom note names
+--    + Add MIDI choke JSFX
+--    # fix error when not MIDI octave shift defined in REAPER.ini
 
 
 
 --[[ 
-
+v3.0beta41 by MPL November 05 2022
+  + DrumRack: add FX button to show parent FX chain
+  + Settings: option to copy files into project directory
+  # DrumRack use octave offset from REAPER preferences
+  + Setting: add option to use custom note names
+  
 v3.0beta40 by MPL November 05 2022
   + Add MIDI/OSC learn section
   + Sampler: add tune cents/semitones/octave buttons
@@ -256,7 +260,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta41'
+    DATA.extstate.version = '3.0beta42'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -302,7 +306,7 @@ v3.0beta30 by MPL October 26 2022
                           --UI_donotupdateonplay = 0,
                           UI_clickonpadselecttrack = 1,
                           UI_incomingnoteselectpad = 0,
-                          UI_defaulttabsflags = 1|4|8, --1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database 64=midi map 128 parent FX
+                          UI_defaulttabsflags = 1|4|8, --1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database 64=midi map 128=children chain
                           UI_keyformat_mode = 0 ,
                           
                           
@@ -466,6 +470,7 @@ Actions panel:
     master_set
     master_upd
     MACRO_GUID
+    CHOKE_GUID
     
     setchild
     setnote_ID
@@ -505,9 +510,8 @@ Actions panel:
         GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN', extstr, true)  
         return 
       end
-      if t.MACRO_GUID then
-        GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_MACRO_GUID', t.MACRO_GUID, true) 
-      end
+      if t.MACRO_GUID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_MACRO_GUID', t.MACRO_GUID, true)  end
+      if t.CHOKE_GUID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHOKE_GUID', t.CHOKE_GUID, true)  end
       
     -- all children ---------------------------------------- 
       if t.set_currentparentforchild then  
@@ -676,6 +680,7 @@ Actions panel:
     
     InsertTrackAtIndex( DATA2.tr_ID, false )
     local new_tr = CSurf_TrackFromID( DATA2.tr_ID+1,false)
+    DATA2.MIDIbus.ptr = new_tr
     DATA2:TrackDataWrite(new_tr, {set_currentparentforchild = true})  
     GetSetMediaTrackInfo_String( new_tr, 'P_NAME', 'MIDI bus', 1 )
     SetMediaTrackInfo_Value( new_tr, 'I_RECMON', 1 )
@@ -685,15 +690,31 @@ Actions panel:
     SetMediaTrackInfo_Value( new_tr, 'I_RECINPUT', 4096 + channel + (physical_input<<5)) -- set input to all MIDI
     DATA2:TrackDataWrite(new_tr, {setmidibus=true})  
     DATA2:TrackDataRead()
-    
-    
     -- 
     local cnt = 0
     for key in pairs(DATA2.notes) do cnt = cnt+ 1 end
     if cnt == 0 then SetMediaTrackInfo_Value( new_tr, 'I_FOLDERDEPTH',-1 ) end
     
+    DATA2:TrackData_InitChoke()
+    
   end
-
+  -----------------------------------------------------------------------  
+  function DATA2:TrackData_InitChoke()
+    if not DATA2.MIDIbus.ptr then return end
+    if DATA2.Choke.isvalid == true then return end 
+    local fxname = 'mpl_RS5K_manager_MIDIBUS_choke.jsfx' 
+    local chokeJSFX_pos =  TrackFX_AddByName( DATA2.MIDIbus.ptr, fxname, false, 0 )
+    if chokeJSFX_pos == -1 then
+      chokeJSFX_pos =  TrackFX_AddByName( DATA2.MIDIbus.ptr, fxname, false, -1000 ) 
+      local chokeJSFX_fxGUID = reaper.TrackFX_GetFXGUID( DATA2.MIDIbus.ptr, chokeJSFX_pos ) 
+      DATA2:TrackDataWrite(DATA2.MIDIbus.ptr, {CHOKE_GUID=chokeJSFX_fxGUID}) 
+      TrackFX_Show( DATA2.MIDIbus.ptr, chokeJSFX_pos, 0|2 )
+      --for i = 1, 16 do TrackFX_SetParamNormalized( DATA2.tr_ptr, chokeJSFX_pos, 33+i, i/1024 ) end -- ini source gmem IDs
+    end
+    if chokeJSFX_pos == -1 then MB('mpl_RS5K_manager_MIDIBUS_choke JSFX is missing. Make sure you installed it correctly via ReaPack.', '', 0) end
+    return chokeJSFX_pos
+    
+  end
   ---------------------------------------------------------------------
   function DATA2:TrackDataRead_IsChildAppendsToCurrentParent(track)   
     local ret, parGUID = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_PARENTGUID', '', false)
@@ -744,9 +765,18 @@ Actions panel:
     if DATA2:TrackDataRead_IsChildAppendsToCurrentParent(track) ~= true  then return end
     
     -- handle MIDI bus --------------------------
-      local _, isMIDIbus = GetSetMediaTrackInfo_String      ( track, 'P_EXT:MPLRS5KMAN_MIDIBUS', 0, false) isMIDIbus = (tonumber(isMIDIbus) or 0)==1  
-      if isMIDIbus then  DATA2.MIDIbus = { ptr = track, ID = CSurf_TrackToID( track, false ) } return  end 
-    
+      local _, isMIDIbus = GetSetMediaTrackInfo_String      ( track, 'P_EXT:MPLRS5KMAN_MIDIBUS', 0, false) isMIDIbus = (tonumber(isMIDIbus) or 0)==1   
+      local _, CHOKE_GUID = GetSetMediaTrackInfo_String ( track, 'P_EXT:MPLRS5KMAN_CHOKE_GUID', 0, false) if CHOKE_GUID == '' then CHOKE_GUID = nil end 
+      local  ret, tr, choke_pos
+      if CHOKE_GUID then ret, tr, choke_pos = VF_GetFXByGUID(CHOKE_GUID:gsub('[%{%}]',''),track) end
+      if not choke_pos then CHOKE_GUID = nil  end
+      if isMIDIbus then  DATA2.MIDIbus = { ptr = track, 
+                                            ID = CSurf_TrackToID( track, false ),
+                                            CHOKE_GUID = CHOKE_GUID,
+                                            choke_pos = choke_pos} return  end  
+      
+      
+      
     local ret, note = GetSetMediaTrackInfo_String         ( track, 'P_EXT:MPLRS5KMAN_NOTE',0, false) note = tonumber(note) local layer = 1
     
     local ret, TYPE_REGCHILD = GetSetMediaTrackInfo_String   ( track, 'P_EXT:MPLRS5KMAN_TYPE_REGCHILD', 0, false) TYPE_REGCHILD = (tonumber(TYPE_REGCHILD) or 0)==1   if not TYPE_REGCHILD then TYPE_REGCHILD = nil end
@@ -1351,6 +1381,10 @@ Actions panel:
       DATA.GUI.custom_module_xoffs_database = mod_xoffs
       if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&32==32 then mod_xoffs = mod_xoffs + DATA.GUI.custom_offset*2+  DATA.GUI.custom_databasew +DATA.GUI.custom_moduleseparatorw end -- database
       
+      DATA.GUI.custom_module_xoffs_childchain = mod_xoffs
+      if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&128==128 then mod_xoffs = mod_xoffs + DATA.GUI.custom_offset*2+  DATA.GUI.custom_childchainw +DATA.GUI.custom_moduleseparatorw end -- childchain
+      
+      
       DATA.GUI.custom_module_xoffs_device = mod_xoffs
       if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&2==2 and validnote then mod_xoffs = mod_xoffs + DATA.GUI.custom_devicew + DATA.GUI.custom_offset*2 +DATA.GUI.custom_moduleseparatorw end -- device
       
@@ -1385,6 +1419,7 @@ Actions panel:
         {keyname = 'padoverview',byte = 8,str = 'Pad overview'},
         {keyname = 'drrack',byte = 1,str = 'Drum Rack'},
         {keyname = 'dbmap',byte = 32,str = txtdb},
+        {keyname = 'childchain',byte = 128,str = 'Children chain'},
         {keyname = 'device',byte = 2,str = 'Device'},
         {keyname = 'sampler',byte = 4,str = 'Sampler'},
       
@@ -1436,6 +1471,10 @@ Actions panel:
       
     -- database
       DATA.GUI.custom_databasew = math.floor(DATA.GUI.custom_moduleW*0.6)
+      
+    -- childchain
+      DATA.GUI.custom_childchainw = math.floor(DATA.GUI.custom_moduleW)      
+      DATA.GUI.custom_childchain_entryh = math.floor(25 * DATA.GUI.custom_Yrelation  )
       
     -- sampler  
       DATA.GUI.custom_sampler_peakareah = math.floor(DATA.GUI.custom_moduleH * 0.4)  
@@ -1500,7 +1539,8 @@ Actions panel:
     GUI_MODULE_SAMPLER(DATA) 
     GUI_MODULE_SETTINGS(DATA)
     GUI_MODULE_DATABASE(DATA)
-    GUI_MODULE_MIDI(DATA)   
+    GUI_MODULE_MIDI(DATA) 
+    GUI_MODULE_CHILDCHAIN(DATA)
   end
   ---------------------------------------------------------------------  
   function GUI_MODULE_SETTINGS(DATA)
@@ -1792,6 +1832,46 @@ Actions panel:
                           backgr_col = '#FFFFFF',
                           onmouseclick =  function() end}
   end
+  -----------------------------------------------------------------------------  
+  function GUI_MODULE_CHILDCHAIN(DATA)  
+    for key in pairs(DATA.GUI.buttons) do if key:match('childchain_') then DATA.GUI.buttons[key] = nil end end 
+    if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&128==0) then return end
+    local x_offs0= math.floor(DATA.GUI.custom_module_xoffs_childchain+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
+    GUI_MODULE_separator(DATA, 'childchain_sep', DATA.GUI.custom_module_xoffs_childchain) 
+    
+    local nameframe_w  = DATA.GUI.custom_childchainw
+      -- DATA.GUI.custom_knob_button_w - DATA.GUI.custom_infoh
+    local y_offs = DATA.GUI.custom_infoh + DATA.GUI.custom_offset
+    DATA.GUI.buttons.childchain_actionframe = { x=x_offs0,
+                          y=0,
+                          w=nameframe_w-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_infoh-1,
+                          txt = 'Children chain',
+                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                          val = 0,
+                          frame_a = 0.3,
+                          --frame_asel = 0.3,
+                          --backgr_fill = 0,
+                          onmouseclick =  function() end}
+    local notenamesw = math.floor(DATA.GUI.custom_childchainw*0.3)
+    for note in pairs(DATA2.notes) do
+      local x_offs = x_offs0
+      DATA.GUI.buttons['childchain_'..'note'..note..'name'] = { 
+                          x=x_offs,
+                          y=y_offs,
+                          w=notenamesw-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_childchain_entryh-DATA.GUI.custom_offset,
+                          txt = DATA2.notes[note].name,
+                          txt_fontsz = DATA.GUI.custom_midi_txtsz,
+                          onmouseclick = function() 
+                          end,
+                          } 
+      x_offs = x_offs + notenamesw
+      y_offs = y_offs + DATA.GUI.custom_childchain_entryh
+    end
+                          
+  end
+  
   -----------------------------------------------------------------------------  
   function GUI_MODULE_MIDI(DATA)  
     for key in pairs(DATA.GUI.buttons) do if key:match('midiosclearn_') then DATA.GUI.buttons[key] = nil end end 
@@ -2471,7 +2551,7 @@ Actions panel:
   end  
   ----------------------------------------------------------------------- 
   function DATA2:internal_FormatMIDIPitch(note) 
-    do return VF_GetNoteStr(note-DATA2.REAPERini.REAPER.midioctoffs*2+4,DATA.extstate.UI_keyformat_mode) end
+    do return VF_GetNoteStr(note-(DATA2.REAPERini.REAPER.midioctoffs or 0 )*2+4,DATA.extstate.UI_keyformat_mode) end
     --[[local val = math.floor(note)
     local oct = math.floor(note / 12)
     local note = math.fmod(note,  12)
@@ -4544,7 +4624,7 @@ Actions panel:
   function DATA2:TrackData_InitMacro(is_child_slave, srct)
     if DATA2.Macro.isvalid == true and not is_child_slave then return end
     
-    local fxname = 'mpl_RS5k manager_MacroControls.jsfx'
+    local fxname = 'mpl_RS5k_manager_MacroControls.jsfx'
     
     if not is_child_slave then
       local macroJSFX_pos =  TrackFX_AddByName( DATA2.tr_ptr, fxname, false, 0 )
@@ -4573,8 +4653,6 @@ Actions panel:
       srct.macro_pos = macroJSFX_pos
       return macroJSFX_pos
     end
-    
-    
     
   end
   -----------------------------------------------------------------------  
@@ -5194,3 +5272,5 @@ Actions panel:
                  state = conf.keymode == 8},       
 
       ]]
+
+
