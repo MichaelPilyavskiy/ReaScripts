@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.0beta43
+-- @version 3.0beta45
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -7,7 +7,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix error when not MIDI octave shift defined in REAPER.ini
+--    # fix choke testing error
 
 
 
@@ -261,7 +261,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta43'
+    DATA.extstate.version = '3.0beta45'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -681,7 +681,6 @@ Actions panel:
     
     InsertTrackAtIndex( DATA2.tr_ID, false )
     local new_tr = CSurf_TrackFromID( DATA2.tr_ID+1,false)
-    DATA2.MIDIbus.ptr = new_tr
     DATA2:TrackDataWrite(new_tr, {set_currentparentforchild = true})  
     GetSetMediaTrackInfo_String( new_tr, 'P_NAME', 'MIDI bus', 1 )
     SetMediaTrackInfo_Value( new_tr, 'I_RECMON', 1 )
@@ -702,10 +701,11 @@ Actions panel:
   -----------------------------------------------------------------------  
   function DATA2:TrackData_InitChoke()
     if not DATA2.MIDIbus.ptr then return end
-    if DATA2.Choke.isvalid == true then return end 
+    if DATA2.MIDIbus.Choke.isvalid == true then return end 
     local fxname = 'mpl_RS5K_manager_MIDIBUS_choke.jsfx' 
     local chokeJSFX_pos =  TrackFX_AddByName( DATA2.MIDIbus.ptr, fxname, false, 0 )
     if chokeJSFX_pos == -1 then
+      DATA2.MIDIbus.Choke.isvalid = true
       chokeJSFX_pos =  TrackFX_AddByName( DATA2.MIDIbus.ptr, fxname, false, -1000 ) 
       local chokeJSFX_fxGUID = reaper.TrackFX_GetFXGUID( DATA2.MIDIbus.ptr, chokeJSFX_pos ) 
       DATA2:TrackDataWrite(DATA2.MIDIbus.ptr, {CHOKE_GUID=chokeJSFX_fxGUID}) 
@@ -1867,6 +1867,7 @@ Actions panel:
     for note in pairs(DATA2.notes) do
       local x_offs = x_offs0
       DATA.GUI.buttons['childchain_'..'note'..note..'name'] = { 
+                          list_islistchild = true,
                           x=x_offs,
                           y=y_offs,
                           w=notenamesw-DATA.GUI.custom_offset,
@@ -5284,4 +5285,3 @@ Actions panel:
                  state = conf.keymode == 8},       
 
       ]]
-
