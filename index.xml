@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="211bbbd797afb65982ae231997763cd1dd38de08" name="MPL Scripts">
+<index version="1" commit="886bed87080172526d57b240d9b7c1a3bf594117" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4163,6 +4163,12 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/211bbbd797afb65982ae231997763cd1dd38de08/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
         <source file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/211bbbd797afb65982ae231997763cd1dd38de08/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
         <source file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/211bbbd797afb65982ae231997763cd1dd38de08/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
+      </version>
+      <version name="3.0beta46" author="MPL" time="2022-11-05T15:03:13Z">
+        <changelog><![CDATA[# fix choke testing error2]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/886bed87080172526d57b240d9b7c1a3bf594117/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/886bed87080172526d57b240d9b7c1a3bf594117/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
+        <source file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/886bed87080172526d57b240d9b7c1a3bf594117/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k tools.lua" type="script" desc="RS5k tools">
