@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.0beta45
+-- @version 3.0beta46
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -7,7 +7,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix choke testing error
+--    # fix choke testing error2
 
 
 
@@ -261,7 +261,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta45'
+    DATA.extstate.version = '3.0beta46'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -701,11 +701,11 @@ Actions panel:
   -----------------------------------------------------------------------  
   function DATA2:TrackData_InitChoke()
     if not DATA2.MIDIbus.ptr then return end
-    if DATA2.MIDIbus.Choke.isvalid == true then return end 
+    if DATA2.MIDIbus.choke_valid == true then return end 
     local fxname = 'mpl_RS5K_manager_MIDIBUS_choke.jsfx' 
     local chokeJSFX_pos =  TrackFX_AddByName( DATA2.MIDIbus.ptr, fxname, false, 0 )
     if chokeJSFX_pos == -1 then
-      DATA2.MIDIbus.Choke.isvalid = true
+      DATA2.MIDIbus.choke_valid = true
       chokeJSFX_pos =  TrackFX_AddByName( DATA2.MIDIbus.ptr, fxname, false, -1000 ) 
       local chokeJSFX_fxGUID = reaper.TrackFX_GetFXGUID( DATA2.MIDIbus.ptr, chokeJSFX_pos ) 
       DATA2:TrackDataWrite(DATA2.MIDIbus.ptr, {CHOKE_GUID=chokeJSFX_fxGUID}) 
@@ -768,12 +768,13 @@ Actions panel:
     -- handle MIDI bus --------------------------
       local _, isMIDIbus = GetSetMediaTrackInfo_String      ( track, 'P_EXT:MPLRS5KMAN_MIDIBUS', 0, false) isMIDIbus = (tonumber(isMIDIbus) or 0)==1   
       local _, CHOKE_GUID = GetSetMediaTrackInfo_String ( track, 'P_EXT:MPLRS5KMAN_CHOKE_GUID', 0, false) if CHOKE_GUID == '' then CHOKE_GUID = nil end 
-      local  ret, tr, choke_pos
+      local  ret, tr, choke_pos, choke_valid
       if CHOKE_GUID then ret, tr, choke_pos = VF_GetFXByGUID(CHOKE_GUID:gsub('[%{%}]',''),track) end
-      if not choke_pos then CHOKE_GUID = nil  end
+      if not choke_pos then CHOKE_GUID = nil else choke_valid = true end
       if isMIDIbus then  DATA2.MIDIbus = { ptr = track, 
                                             ID = CSurf_TrackToID( track, false ),
                                             CHOKE_GUID = CHOKE_GUID,
+                                            choke_valid = choke_valid,
                                             choke_pos = choke_pos} return  end  
       
       
