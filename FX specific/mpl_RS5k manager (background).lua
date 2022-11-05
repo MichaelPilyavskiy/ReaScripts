@@ -1,33 +1,39 @@
 -- @description RS5k manager
--- @version 3.0beta37
+-- @version 3.0beta40
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
 --    mpl_RS5k manager_MacroControls.jsfx
 -- @changelog
---    + Device: add Fx button (show FX chain for device track)
---    + Sampler: add Fx button (show FX chain for sampler track)
---    + Settings: allow to set MIDI bus default input channel
---    # keep layer ID between triggering pads / incoming notes
---    + Tabs: rightclick on tab toggle only this tab and all tabs
-
+--    + Add MIDI/OSC learn section
+--    + Sampler: add tune cents/semitones/octave buttons
 
 
 
 
 
 --[[ 
-v3.0beta35 by MPL – November 03 2022
+
+v3.0beta37 by MPL November 03 2022
+  + Device: add Fx button (show FX chain for device track)
+  + Sampler: add Fx button (show FX chain for sampler track)
+  + Settings: allow to set MIDI bus default input channel
+  # keep layer ID between triggering pads / incoming notes
+  + Tabs: rightclick on tab toggle only this tab and all tabs
+  
+v3.0beta36 by MPL November 03 2022
+  + fix typo
+  
+v3.0beta35 by MPL November 03 2022
   + Undo copy/move pads
   + Undo remove note/layers
   + Device: allow to remove layers
   + Settings: add option to rename track
   + Improve incoming notes catching
   + Small UI tweaks
-  + b36 fix typo
   
-v3.0beta34 by MPL  November 03 2022
+v3.0beta34 by MPL November 03 2022
   # DrumRack: moving pad to existed swap them
   + DrumRack: indicate dragging pad
   # Sampler: swap prev/next sample buttons
@@ -246,15 +252,15 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta37'
+    DATA.extstate.version = '3.0beta40'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
                           {  
                           wind_x =  100,
                           wind_y =  100,
-                          wind_w =  500,
-                          wind_h =  500,
+                          wind_w =  700,
+                          wind_h =  400,
                           dock =    0,
                           
                           CONF_NAME = 'default',
@@ -291,7 +297,7 @@ v3.0beta30 by MPL October 26 2022
                           --UI_donotupdateonplay = 0,
                           UI_clickonpadselecttrack = 1,
                           UI_incomingnoteselectpad = 0,
-                          UI_defaulttabsflags = 1|4|8, --1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database
+                          UI_defaulttabsflags = 1|4|8, --1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database 64=midi map 128 parent FX
                           
                           
                           }
@@ -425,7 +431,13 @@ Sampler knobs:
             
       
       
-      
+elseif page == 5 then  -- midi lear
+MB(
+[[
+Actions panel:
+  Learn: perform action 'FX: Set MIDI learn for last touched FX parameter'
+]]
+,'RS5k manager: learn',0)         
       
       
       
@@ -871,29 +883,41 @@ Sampler knobs:
     note_layer_t.instrument_enabled = TrackFX_GetEnabled( track, instrument_pos )
     
     if note_layer_t.ISRS5K then
-      note_layer_t.instrument_vol = TrackFX_GetParamNormalized( track, instrument_pos, 0 ) 
-      note_layer_t.instrument_vol_format=({TrackFX_GetFormattedParamValue( track, instrument_pos, 0 )})[2]..'dB'
-      note_layer_t.instrument_pan = TrackFX_GetParamNormalized( track, instrument_pos, 1 ) 
-      note_layer_t.instrument_pan_format=({TrackFX_GetFormattedParamValue( track, instrument_pos, 1 )})[2]
-      note_layer_t.instrument_attack = TrackFX_GetParamNormalized( track, instrument_pos, 9 ) 
-      note_layer_t.instrument_attack_format=({TrackFX_GetFormattedParamValue( track, instrument_pos, 9 )})[2]..'ms'
-      note_layer_t.instrument_decay = TrackFX_GetParamNormalized( track, instrument_pos, 24 ) 
-      note_layer_t.instrument_decay_format=({TrackFX_GetFormattedParamValue( track, instrument_pos, 24 )})[2]..'ms'
-      note_layer_t.instrument_sustain = TrackFX_GetParamNormalized( track, instrument_pos, 25 ) 
-      note_layer_t.instrument_sustain_format=({TrackFX_GetFormattedParamValue( track, instrument_pos, 25 )})[2]..'dB'
-      note_layer_t.instrument_release = TrackFX_GetParamNormalized( track, instrument_pos, 10 ) 
-      note_layer_t.instrument_release_format=({TrackFX_GetFormattedParamValue( track, instrument_pos, 10 )})[2]..'ms'
-      note_layer_t.instrument_loop = TrackFX_GetParamNormalized( track, instrument_pos, 12 )
-      note_layer_t.instrument_samplestoffs = TrackFX_GetParamNormalized( track, instrument_pos, 13 ) 
+      note_layer_t.instrument_volID = 0
+      note_layer_t.instrument_vol = TrackFX_GetParamNormalized( track, instrument_pos, note_layer_t.instrument_volID ) 
+      note_layer_t.instrument_vol_format=({TrackFX_GetFormattedParamValue( track, instrument_pos, note_layer_t.instrument_volID )})[2]..'dB'
+      note_layer_t.instrument_panID = 1
+      note_layer_t.instrument_pan = TrackFX_GetParamNormalized( track, instrument_pos, note_layer_t.instrument_panID ) 
+      note_layer_t.instrument_pan_format=({TrackFX_GetFormattedParamValue( track, instrument_pos, note_layer_t.instrument_panID )})[2]
+      note_layer_t.instrument_attackID = 9
+      note_layer_t.instrument_attack = TrackFX_GetParamNormalized( track, instrument_pos,note_layer_t.instrument_attackID ) 
+      note_layer_t.instrument_attack_format=({TrackFX_GetFormattedParamValue( track, instrument_pos, note_layer_t.instrument_attackID )})[2]..'ms'
+      note_layer_t.instrument_decayID = 24
+      note_layer_t.instrument_decay = TrackFX_GetParamNormalized( track, instrument_pos, note_layer_t.instrument_decayID ) 
+      note_layer_t.instrument_decay_format=({TrackFX_GetFormattedParamValue( track, instrument_pos, note_layer_t.instrument_decayID )})[2]..'ms'
+      note_layer_t.instrument_sustainID = 25
+      note_layer_t.instrument_sustain = TrackFX_GetParamNormalized( track, instrument_pos, note_layer_t.instrument_sustainID ) 
+      note_layer_t.instrument_sustain_format=({TrackFX_GetFormattedParamValue( track, instrument_pos, note_layer_t.instrument_sustainID )})[2]..'dB'
+      note_layer_t.instrument_releaseID = 10
+      note_layer_t.instrument_release = TrackFX_GetParamNormalized( track, instrument_pos, note_layer_t.instrument_releaseID ) 
+      note_layer_t.instrument_release_format=({TrackFX_GetFormattedParamValue( track, instrument_pos, note_layer_t.instrument_releaseID )})[2]..'ms'
+      note_layer_t.instrument_loopID = 12
+      note_layer_t.instrument_loop = TrackFX_GetParamNormalized( track, instrument_pos, note_layer_t.instrument_loopID )
+      note_layer_t.instrument_samplestoffsID = 13
+      note_layer_t.instrument_samplestoffs = TrackFX_GetParamNormalized( track, instrument_pos, note_layer_t.instrument_samplestoffsID ) 
       note_layer_t.instrument_samplestoffs_format = (math.floor(note_layer_t.instrument_samplestoffs*1000)/10)..'%'
-      note_layer_t.instrument_sampleendoffs = TrackFX_GetParamNormalized( track, instrument_pos, 14 ) 
+      note_layer_t.instrument_sampleendoffsID = 14
+      note_layer_t.instrument_sampleendoffs = TrackFX_GetParamNormalized( track, instrument_pos, note_layer_t.instrument_sampleendoffsID ) 
       note_layer_t.instrument_sampleendoffs_format = (math.floor(note_layer_t.instrument_sampleendoffs*1000)/10)..'%'
-      note_layer_t.instrument_loopoffs = TrackFX_GetParamNormalized( track, instrument_pos, 23 ) 
+      note_layer_t.instrument_loopoffsID = 23
+      note_layer_t.instrument_loopoffs = TrackFX_GetParamNormalized( track, instrument_pos, note_layer_t.instrument_loopoffsID ) 
       note_layer_t.instrument_loopoffs_format = math.floor(note_layer_t.instrument_loopoffs *30*10000)/10
-      note_layer_t.instrument_maxvoices = TrackFX_GetParamNormalized( track, instrument_pos, 8 ) 
+      note_layer_t.instrument_maxvoicesID = 8
+      note_layer_t.instrument_maxvoices = TrackFX_GetParamNormalized( track, instrument_pos, note_layer_t.instrument_maxvoicesID ) 
       note_layer_t.instrument_maxvoices_format = math.floor(note_layer_t.instrument_maxvoices*64)
-      note_layer_t.instrument_tune = TrackFX_GetParamNormalized( track, instrument_pos, 15 ) 
-      note_layer_t.instrument_tune_format = ({TrackFX_GetFormattedParamValue( track, instrument_pos, 15 )})[2]..'st'
+      note_layer_t.instrument_tuneID = 15
+      note_layer_t.instrument_tune = TrackFX_GetParamNormalized( track, instrument_pos, note_layer_t.instrument_tuneID ) 
+      note_layer_t.instrument_tune_format = ({TrackFX_GetFormattedParamValue( track, instrument_pos, note_layer_t.instrument_tuneID )})[2]..'st'
       note_layer_t.instrument_filepath = ({TrackFX_GetNamedConfigParm(  track, instrument_pos, 'FILE0') })[2]
       local filepath_short = GetShortSmplName(note_layer_t.instrument_filepath) if filepath_short and filepath_short:match('(.*)%.[%a]+') then filepath_short = filepath_short:match('(.*)%.[%a]+') end
       note_layer_t.instrument_filepath_short = filepath_short 
@@ -914,15 +938,37 @@ Sampler knobs:
       DATA2:TrackDataRead_GetChildrens_InstrumentParams_3rdPartyStuff(note_layer_t, p_names, 'INSTR_PARAM_DEC','instrument_decay','instrument_decay_format', {'vca decay','amp decay','decay', 'dec'})
       DATA2:TrackDataRead_GetChildrens_InstrumentParams_3rdPartyStuff(note_layer_t, p_names, 'INSTR_PARAM_SUS','instrument_sustain','instrument_sustain_format',{'vca sustain','amp sustain','sustain', 'sus'})
       DATA2:TrackDataRead_GetChildrens_InstrumentParams_3rdPartyStuff(note_layer_t, p_names, 'INSTR_PARAM_REL','instrument_release','instrument_release_format', {'vca release','amp release','release','rel'})
-      
+      note_layer_t.instrument_volID = note_layer_t.INSTR_PARAM_VOL
+      note_layer_t.instrument_tuneID = note_layer_t.INSTR_PARAM_TUNE
+      note_layer_t.instrument_attackID = note_layer_t.INSTR_PARAM_ATT
+      note_layer_t.instrument_decayID = note_layer_t.INSTR_PARAM_DEC
+      note_layer_t.instrument_sustainID = note_layer_t.INSTR_PARAM_SUS
+      note_layer_t.instrument_releaseID = note_layer_t.INSTR_PARAM_REL
     end
+    --[[
+    for key in pairs(note_layer_t) do
+      if key:match('instrument_(.-)ID') and type(note_layer_t[key]) ~= 'boolean' then
+        local key_src = key:match('(instrument_.-)ID')
+        local retval1, learn_midi1 = reaper.TrackFX_GetNamedConfigParm(track, instrument_pos, 'param.'..note_layer_t[key]..'.learn.midi1')
+        if retval1 then note_layer_t[key_src..'_learn_midi1'] = tonumber(learn_midi1) or nil end
+        local retval2, learn_midi2 = reaper.TrackFX_GetNamedConfigParm(track, instrument_pos, 'param.'..note_layer_t[key]..'.learn.midi2')
+        if retval2 then note_layer_t[key_src..'_learn_midi2'] = tonumber(learn_midi2) or nil end
+        local retval3, learn_osc = reaper.TrackFX_GetNamedConfigParm(track, instrument_pos, 'param.'..note_layer_t[key]..'.learn.osc')
+        if retval3 then note_layer_t[key_src..'_learn_osc'] = learn_osc end
+        note_layer_t[key_src..'_learn_exist'] = retval1 or retval2 or retval3
+      end
+    end]]
     
+    --[[param.X.learn.[midi1,midi2,osc] : first two bytes of MIDI message, or OSC string if set
+    param.X.learn.mode : absolution/relative mode flag (0: Absolute, 1: 127=-1,1=+1, 2: 63=-1, 65=+1, 3: 65=-1, 1=+1, 4: toggle if nonzero)
+    param.X.learn.flags : &1=selected track only, &2=soft takeover, &4=focused FX only, &8=LFO retrigger, &16=visible FX only]]
   end 
   --------------------------------------------------------------------- 
   function DATA2:TrackDataRead_GetParent(track)
     local retval, trname = reaper.GetTrackName( track )
     local GUID = reaper.GetTrackGUID( track)  
     DATA2.tr_valid = true
+    DATA2.tr_isparent = true
     DATA2.tr_ptr = track 
     DATA2.tr_name =  trname
     DATA2.tr_GUID =  GetTrackGUID( track )
@@ -946,8 +992,7 @@ Sampler knobs:
     DATA2.PARENT_LASTACTIVEMACRO = -1
     DATA2.PARENT_DATABASEMAP = ''
     
-    DATA2.Macro = {sliders = {}}  
-    
+    DATA2.Macro = {sliders = {}}   
     DATA2.tr_GUIDlast = DATA2.tr_GUID 
     
   end
@@ -965,6 +1010,18 @@ Sampler knobs:
         for i = 1, 16 do
           if not DATA2.Macro.sliders[i] then DATA2.Macro.sliders[i] = {} end
           local param_val = TrackFX_GetParamNormalized( DATA2.tr_ptr, macro_pos, i )
+          --[[
+          local retval1, learn_midi1 = reaper.TrackFX_GetNamedConfigParm(DATA2.tr_ptr, macro_pos, 'param.'..i..'.learn.midi1')
+          if retval1 then DATA2.Macro.sliders[i].learn_midi1 = tonumber(learn_midi1) or nil end
+          local retval2, learn_midi2 = reaper.TrackFX_GetNamedConfigParm(DATA2.tr_ptr, macro_pos, 'param.'..i..'.learn.midi2')
+          if retval2 then DATA2.Macro.sliders[i].learn_midi2 = tonumber(learn_midi2) or nil end
+          local retval3, learn_osc = reaper.TrackFX_GetNamedConfigParm(DATA2.tr_ptr, macro_pos, 'param.'..i..'.learn.osc')
+          if retval3 then DATA2.Macro.sliders[i].learn_osc = learn_osc end
+          DATA2.Macro.sliders[i].learn_exist = retval1 or retval2 or retval3]]
+          --[[param.X.learn.[midi1,midi2,osc] : first two bytes of MIDI message, or OSC string if set
+          param.X.learn.mode : absolution/relative mode flag (0: Absolute, 1: 127=-1,1=+1, 2: 63=-1, 65=+1, 3: 65=-1, 1=+1, 4: toggle if nonzero)
+          param.X.learn.flags : &1=selected track only, &2=soft takeover, &4=focused FX only, &8=LFO retrigger, &16=visible FX only]]
+          
           DATA2.Macro.sliders[i].macroval = param_val
           DATA2.Macro.sliders[i].macroval_format = math.floor(param_val*1000/10)..'%'
           DATA2.Macro.sliders[i].tr_ptr = DATA2.tr_ptr
@@ -983,6 +1040,91 @@ Sampler knobs:
             DATA2:TrackDataRead_GetParent_MacroLinks(DATA2.notes[note].layers[layer])
           end
         end
+      end
+    end
+  end
+  ---------------------------------------------------------------------  
+  function DATA2:TrackDataRead_GetMIDIOSC_bindings()
+    if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&64==0) then return end -- do not catch data if midi tab not active 
+    if DATA2.MIDIOSC_lastcall and os.clock() - DATA2.MIDIOSC_lastcall < 1 then return end -- minimum update rate is 1sec since it is a big loop
+    DATA2.MIDIOSC = {map = {}}
+    DATA2.MIDIOSC_lastcall = os.clock()
+    
+    
+    DATA2:TrackDataRead_GetMIDIOSC_bindings_sub(DATA2) -- parent
+    for note in pairs(DATA2.notes) do
+      if DATA2.notes[note].TYPE_DEVICE == true then DATA2:TrackDataRead_GetMIDIOSC_bindings_sub(DATA2.notes[note]) end
+      if DATA2.notes[note].layers then for layer in pairs(DATA2.notes[note].layers) do DATA2:TrackDataRead_GetMIDIOSC_bindings_sub(DATA2.notes[note].layers[layer]) end end
+    end
+  end
+  ---------------------------------------------------------------------  
+  function DATA2:TrackDataRead_GetMIDIOSC_bindings_sub(src_t)
+    if src_t then track = src_t.tr_ptr end
+    if not track then return end
+    
+    for fx = 0,  TrackFX_GetCount( track )-1 do
+      local pcount = reaper.TrackFX_GetNumParams( track, fx )
+      for param = 0,  pcount-1 do
+        local retval1, learn_midi1 = reaper.TrackFX_GetNamedConfigParm(track, fx, 'param.'..param..'.learn.midi1')
+        local retval2, learn_midi2 = reaper.TrackFX_GetNamedConfigParm(track, fx, 'param.'..param..'.learn.midi2') 
+        local retval3, learn_osc = reaper.TrackFX_GetNamedConfigParm(track, fx, 'param.'..param..'.learn.osc') 
+        
+        local validOSC = retval3 and learn_osc and learn_osc~= ''
+        local validMIDI = retval1 and retval2 and ((learn_midi1>>4)& 0x0F ) ~= 0
+         
+        if validOSC or validMIDI then
+          local retval, fxname = reaper.TrackFX_GetFXName( track, fx )
+          fxname = VF_ReduceFXname(fxname)
+          fxname = fxname:gsub('\\','/')
+          if fxname:match('%/(.*)') then fxname = fxname:match('%/(.*)') end
+          if fxname:match('MacroControls') then fxname = '[Macro]' end
+          local retval, paramname = reaper.TrackFX_GetParamName( track, fx, param )
+          local mapID = #DATA2.MIDIOSC.map+1
+          DATA2.MIDIOSC.map[mapID] = {tr_ptr = track,
+                                      fx= fx,
+                                      fxname= fxname,
+                                      paramname= paramname,
+                                      param = param,
+                                      format_oscname = '[empty]',
+                                      format_midiname = '[empty]',
+                                      }
+          -- handle OSC                            
+          if validOSC then DATA2.MIDIOSC.map[mapID].format_oscname = learn_osc end 
+          -- handle MIDI                           
+          if validMIDI then
+            local msgtypes_t = {[11]='CC'}
+            local msgtype_int = (learn_midi1>>4)& 0x0F
+            local msgtype = msgtype_int
+            if msgtypes_t[msgtype_int] then msgtype = msgtypes_t[msgtype_int] end
+            DATA2.MIDIOSC.map[mapID].format_midiname = 
+            'Ch '..((learn_midi1 & 0x0F)+1 )..' '..--MIDI 
+            msgtype..' '..learn_midi2
+          end
+          format_ctrlnameID = ''
+          if src_t.tr_isparent then format_ctrlnameID = '[Parent]' end
+          if src_t.TYPE_DEVICE == true then format_ctrlnameID = '[D]'..src_t.noteID  end
+          if not src_t.TYPE_DEVICE and src_t.layerID then format_ctrlnameID = 'N'..src_t.noteID..' L'..src_t.layerID end
+          DATA2.MIDIOSC.map[mapID].format_ctrlnameID = format_ctrlnameID
+        end
+         --[[   if src_t and src_t.name then 
+              if  then
+                format_ctrlname = '[D] '..src_t.name  -- device / note
+               else
+                format_ctrlname = '[N]'..src_t.noteID..' [L]'..src_t.layerID..' '..src_t.name
+              end
+             elseif src_t.tr_isparent then
+              format_ctrlname = '[Parent]'
+            end
+            
+            local format_midiname = ''
+            if DATA2.MIDIOSC.map[mapID].format_channel then format_midiname = 'MIDI Ch '..(DATA2.MIDIOSC.map[mapID].format_channel) end
+            
+            if msgtypes[DATA2.MIDIOSC.map[mapID].format_msgtype_int] then  end
+            
+            DATA2.MIDIOSC.map[mapID].format_ctrlname = format_ctrlname
+            DATA2.MIDIOSC.map[mapID].format_midiname = format_midiname
+          end
+          ]]
       end
     end
   end
@@ -1008,6 +1150,7 @@ Sampler knobs:
     DATA2:TrackDataRead_GetParent_ParseExt()
     DATA2:TrackDataRead_GetParent_Macro()
     DATA2:Database_Load() 
+    DATA2:TrackDataRead_GetMIDIOSC_bindings()
   end
   ---------------------------------------------------------------------  
   function DATA2:Database_ParseREAPER_DB()   
@@ -1118,7 +1261,7 @@ Sampler knobs:
     
     DATA.GUI.Settings_open = 0
     GUI_MODULE_SETTINGS(DATA)
-      
+    
   end
   ---------------------------------------------------------------------  
   function GUI_MODULE_TABS(DATA)  
@@ -1129,20 +1272,10 @@ Sampler knobs:
     local frame_col = '#333333'
     local y_offs = DATA.GUI.custom_infoh
     
-    local txtdb = 'Database map' if DATA2.database_map and DATA2.database_map.valid == true then txtdb = txtdb..'\n[Active]' end
-    local tabs = {
-      {keyname = 'macroglob',byte = 16,str = 'Macro'},
-      {keyname = 'padoverview',byte = 8,str = 'Pad overview'},
-      {keyname = 'drrack',byte = 1,str = 'Drum Rack'},
-      {keyname = 'dbmap',byte = 32,str = txtdb},
-      {keyname = 'device',byte = 2,str = 'Device'},
-      {keyname = 'sampler',byte = 4,str = 'Sampler'},
-    
-    }
-    for i = 1, #tabs do
-      local byte = tabs[i].byte
-      local keyname = tabs[i].keyname
-      local str = tabs[i].str 
+    for i = 1, #DATA.GUI.custom_tabs do
+      local byte = DATA.GUI.custom_tabs[i].byte
+      local keyname = DATA.GUI.custom_tabs[i].keyname
+      local str = DATA.GUI.custom_tabs[i].str 
       local txt_a_unabled,txt_a = 0.25
       if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&byte==0 then txt_a = txt_a_unabled end
       
@@ -1160,6 +1293,7 @@ Sampler knobs:
                               if DATA2.PARENT_TABSTATEFLAGS then 
                                 DATA2.PARENT_TABSTATEFLAGS = DATA2.PARENT_TABSTATEFLAGS ~ byte
                                 if byte == 16 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackData_InitMacro() end end
+                                if byte == 64 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackDataRead_GetMIDIOSC_bindings() end end
                                 DATA2:TrackDataWrite(_, {master_upd=true})
                                 DATA.UPD.onGUIinit = true
                               end
@@ -1169,11 +1303,12 @@ Sampler knobs:
                                 if DATA2.PARENT_TABSTATEFLAGS&byte==byte and DATA2.PARENT_TABSTATEFLAGS~= byte then -- tab is on but not only this tab
                                   DATA2.PARENT_TABSTATEFLAGS = byte -- set to only this tab
                                  elseif DATA2.PARENT_TABSTATEFLAGS == byte then
-                                  DATA2.PARENT_TABSTATEFLAGS = -1
+                                  DATA2.PARENT_TABSTATEFLAGS = DATA.extstate.UI_defaulttabsflags-- -1
                                  elseif DATA2.PARENT_TABSTATEFLAGS ~= byte then
                                   DATA2.PARENT_TABSTATEFLAGS = byte -- set to only this tab
                                 end
                                 if byte == 16 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackData_InitMacro() end end
+                                if byte == 64 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackDataRead_GetMIDIOSC_bindings() end end
                                 DATA2:TrackDataWrite(_, {master_upd=true})
                                 DATA.UPD.onGUIinit = true
                               end
@@ -1193,6 +1328,9 @@ Sampler knobs:
       
       DATA.GUI.custom_module_xoffs_macro = mod_xoffs--+DATA.GUI.custom_moduleseparatorw  
       if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&16==16 then mod_xoffs = mod_xoffs + DATA.GUI.custom_offset*2 +  DATA.GUI.custom_macroW +DATA.GUI.custom_moduleseparatorw end -- macro
+      
+      DATA.GUI.custom_module_xoffs_midi = mod_xoffs--+DATA.GUI.custom_moduleseparatorw  
+      if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&64==64 then mod_xoffs = mod_xoffs + DATA.GUI.custom_offset*2 +  DATA.GUI.custom_midiW +DATA.GUI.custom_moduleseparatorw end -- midi
       
       DATA.GUI.custom_module_xoffs_padoverview = mod_xoffs  
       if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&8==8 then mod_xoffs = mod_xoffs +  DATA.GUI.custom_padgridw +DATA.GUI.custom_moduleseparatorw + DATA.GUI.custom_offset*2 end -- pad view 
@@ -1230,8 +1368,19 @@ Sampler knobs:
       DATA.GUI.custom_backfill2 = 0.1-- device selection
       
     -- settings / tabs
+      local txtdb = 'Database map' if DATA2.database_map and DATA2.database_map.valid == true then txtdb = txtdb..'\n[Active]' end
+      DATA.GUI.custom_tabs = {
+        {keyname = 'macroglob',byte = 16,str = 'Macro'},
+        {keyname = 'midiosclearn',byte = 64,str = 'MIDI/OSC'},
+        {keyname = 'padoverview',byte = 8,str = 'Pad overview'},
+        {keyname = 'drrack',byte = 1,str = 'Drum Rack'},
+        {keyname = 'dbmap',byte = 32,str = txtdb},
+        {keyname = 'device',byte = 2,str = 'Device'},
+        {keyname = 'sampler',byte = 4,str = 'Sampler'},
+      
+      }
       DATA.GUI.custom_tab_w = math.floor(DATA.GUI.custom_moduleW*0.25)
-      DATA.GUI.custom_tab_h = (gfx_h - DATA.GUI.custom_infoh)/6
+      DATA.GUI.custom_tab_h = (gfx_h - DATA.GUI.custom_infoh)/#DATA.GUI.custom_tabs
       
     -- modules
       DATA.GUI.custom_module_startoffsx = DATA.GUI.custom_tab_w + DATA.GUI.custom_offset -- first mod offset
@@ -1246,7 +1395,12 @@ Sampler knobs:
       DATA.GUI.custom_macro_knobtxtsz= math.floor(15* DATA.GUI.custom_Yrelation)
       DATA.GUI.custom_macro_linkentryh = math.floor(25 * DATA.GUI.custom_Yrelation  )
       DATA.GUI.custom_macro_link_txtsz= math.floor(14* DATA.GUI.custom_Yrelation)
-      
+    -- midiosc
+      DATA.GUI.custom_midiY = DATA.GUI.custom_infoh
+      DATA.GUI.custom_midiH = DATA.GUI.custom_moduleH
+      DATA.GUI.custom_midiW = math.floor(DATA.GUI.custom_moduleW*1.25)
+      DATA.GUI.custom_midi_entryh = math.floor(25 * DATA.GUI.custom_Yrelation  )
+      DATA.GUI.custom_midi_txtsz= math.floor(14* DATA.GUI.custom_Yrelation)
     -- pad overview
       DATA.GUI.custom_padgridy = 0
       DATA.GUI.custom_padgridh = gfx_h-DATA.GUI.custom_offset--DATA.GUI.custom_infoh -- - -DATA.GUI.custom_offset 
@@ -1336,6 +1490,7 @@ Sampler knobs:
     GUI_MODULE_SAMPLER(DATA) 
     GUI_MODULE_SETTINGS(DATA)
     GUI_MODULE_DATABASE(DATA)
+    GUI_MODULE_MIDI(DATA)   
   end
   ---------------------------------------------------------------------  
   function GUI_MODULE_SETTINGS(DATA)
@@ -1378,12 +1533,14 @@ Sampler knobs:
         [11]='Channel 11',[12]='Channel 12',[13]='Channel 13',[14]='Channel 14',[15]='Channel 15',[16]='Channel 16'},readoutw_extw = readoutw_extw},
       {str = 'UI',                                              group = 3, itype = 'sep'},
         {str = 'Active note follow incoming note',              group = 3, itype = 'check', confkey = 'UI_incomingnoteselectpad', level = 1},
-        {str = 'Tab defaults: drumrack',                        group = 3, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 0},--1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database
-        {str = 'Tab defaults: device',                          group = 3, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 1},--1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database
-        {str = 'Tab defaults: sampler',                        group = 3, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 2},--1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database
-        {str = 'Tab defaults: padview',                        group = 3, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 3},--1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database
-        --{str = 'Tab defaults: macro',                           group = 3, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 4},--1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database
-        {str = 'Tab defaults: database',                        group = 3, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 5},--1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database
+      {str = 'Tab defaults',                                    group = 6, itype = 'sep'},
+        {str = 'Drumrack',                                      group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 0},
+        {str = 'Device',                                        group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 1},
+        {str = 'Sampler',                                       group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 2},
+        {str = 'Padview',                                       group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 3},
+        --{str = 'Tab defaults: macro',                           group = 3, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 4},
+        {str = 'Database',                                      group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 5},
+        {str = 'MIDI / OSC learn',                              group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 6},
       {str = 'DrumRack',                                        group = 4, itype = 'sep'},  
         {str = 'Click on pad select track',                     group = 4, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
       {str = 'Sample actions',                                  group = 5, itype = 'sep'},    
@@ -1624,6 +1781,175 @@ Sampler knobs:
                           onmouseclick =  function() end}
   end
   -----------------------------------------------------------------------------  
+  function GUI_MODULE_MIDI(DATA)  
+    for key in pairs(DATA.GUI.buttons) do if key:match('midiosclearn_') then DATA.GUI.buttons[key] = nil end end 
+    if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&64==0) then return end
+    
+    local x_offs0= math.floor(DATA.GUI.custom_module_xoffs_midi+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
+    GUI_MODULE_separator(DATA, 'midiosclearn_sep', DATA.GUI.custom_module_xoffs_midi) 
+    local nameframe_w  = DATA.GUI.custom_midiW - DATA.GUI.custom_knob_button_w - DATA.GUI.custom_infoh
+    local x_offs = x_offs0
+    DATA.GUI.buttons.midiosclearn_actionframe = { x=x_offs0,
+                          y=0,
+                          w=nameframe_w-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_infoh-1,
+                          txt = 'MIDI / OSC map',
+                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                          val = 0,
+                          frame_a = 0.3,
+                          --frame_asel = 0.3,
+                          --backgr_fill = 0,
+                          onmouseclick =  function() end}
+    x_offs0 = x_offs0 + nameframe_w
+    DATA.GUI.buttons.midiosclearn_actionframe_actions = { x=x_offs0,
+                          y=0,
+                          w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_infoh-1,
+                          txt = 'Learn',
+                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                          val = 0,
+                          frame_a = 0.3,
+                          --frame_asel = 0.3,
+                          --backgr_fill = 0,
+                          onmouseclick =  function() Action(41144) end}    
+    x_offs0 = x_offs0 + DATA.GUI.custom_knob_button_w
+    DATA.GUI.buttons.midiosclearn_actionframe_help = { x=x_offs0,
+                          y=0,
+                          w=DATA.GUI.custom_infoh-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_infoh-1,
+                          txt = '?',
+                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                          val = 0,
+                          frame_a = 0.3,
+                          --frame_asel = 0.3,
+                          --backgr_fill = 0,
+                          onmouseclick =  function() DATA2:Actions_Help(5) end}                              
+    DATA.GUI.buttons.midiosclearn_Aframe = { x=x_offs, 
+                          y=DATA.GUI.custom_midiY+DATA.GUI.custom_offset,
+                          w=DATA.GUI.custom_midiW-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_midiH-DATA.GUI.custom_offset*2,
+                          txt = '',
+                          hide = true,
+                          frame_a = 0,--0.3,
+                          frame_asel = 0.3,
+                          --backgr_fill = 0,
+                          ignoremouse = true,
+                          onmouseclick =  function() end}
+                          
+    if not (DATA2.MIDIOSC and DATA2.MIDIOSC.map) then return end 
+    local y_offs = DATA.GUI.buttons.midiosclearn_Aframe.y
+    local name_fx_paramW = math.floor(DATA.GUI.custom_midiW*0.6)
+    local name_fx_paramW_single = math.floor(name_fx_paramW/2)
+    local colw = math.floor((DATA.GUI.custom_midiW-name_fx_paramW-DATA.GUI.custom_midi_entryh-DATA.GUI.custom_knob_button_w)/2)
+    for mapID = 1, #DATA2.MIDIOSC.map do
+      local mapt = DATA2.MIDIOSC.map[mapID]
+      local x_offs = DATA.GUI.buttons.midiosclearn_Aframe.x--+DATA.GUI.custom_offset
+      
+      
+      DATA.GUI.buttons['midiosclearn_'..'mapID'..mapID..'remove'] = { 
+                          x=x_offs,
+                          y=y_offs,
+                          w=DATA.GUI.custom_midi_entryh-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_midi_entryh-DATA.GUI.custom_offset,
+                          txt = 'X',
+                          txt_fontsz = DATA.GUI.custom_midi_txtsz,
+                          --[[frame_a =0,
+                          frame_asel =0,
+                          frame_col = '#333333',
+                          backgr_fill = backgr_fill_name,
+                          backgr_col =backgr_col,]]
+                          onmouseclick = function() 
+                            TrackFX_SetNamedConfigParm(mapt.tr_ptr, mapt.fx, 'param.'..mapt.param..'.learn.midi1', '')
+                            TrackFX_SetNamedConfigParm(mapt.tr_ptr, mapt.fx, 'param.'..mapt.param..'.learn.midi2', '')
+                            TrackFX_SetNamedConfigParm(mapt.tr_ptr, mapt.fx, 'param.'..mapt.param..'.learn.osc', '')
+                            TrackFX_SetNamedConfigParm(mapt.tr_ptr, mapt.fx, 'param.'..mapt.param..'.learn', '')
+                            DATA_RESERVED_ONPROJCHANGE(DATA)
+                          end,
+                          }     
+      x_offs = x_offs + DATA.GUI.custom_midi_entryh
+      DATA.GUI.buttons['midiosclearn_'..'mapID'..mapID] = { 
+                          x=x_offs,
+                          y=y_offs,
+                          w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_midi_entryh-DATA.GUI.custom_offset,
+                          txt = DATA2.MIDIOSC.map[mapID].format_ctrlnameID,
+                          txt_fontsz = DATA.GUI.custom_midi_txtsz,
+                          --[[frame_a =0,
+                          frame_asel =0,
+                          frame_col = '#333333',
+                          backgr_fill = backgr_fill_name,
+                          backgr_col =backgr_col,]]
+                          onmouseclick = function() 
+                          end,
+                          }
+      x_offs = x_offs + DATA.GUI.custom_knob_button_w
+      DATA.GUI.buttons['midiosclearn_'..'mapID'..mapID..'fxname'] = { 
+                          x=x_offs,
+                          y=y_offs,
+                          w=name_fx_paramW_single-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_midi_entryh-DATA.GUI.custom_offset,
+                          txt = DATA2.MIDIOSC.map[mapID].fxname,
+                          txt_fontsz = DATA.GUI.custom_midi_txtsz,
+                          --[[frame_a =0,
+                          frame_asel =0,
+                          frame_col = '#333333',
+                          backgr_fill = backgr_fill_name,
+                          backgr_col =backgr_col,]]
+                          onmouseclick = function() 
+                          end,
+                          }
+      x_offs = x_offs + name_fx_paramW_single
+      DATA.GUI.buttons['midiosclearn_'..'mapID'..mapID..'paramname'] = { 
+                          x=x_offs,
+                          y=y_offs,
+                          w=name_fx_paramW_single-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_midi_entryh-DATA.GUI.custom_offset,
+                          txt = DATA2.MIDIOSC.map[mapID].paramname,
+                          txt_fontsz = DATA.GUI.custom_midi_txtsz,
+                          --[[frame_a =0,
+                          frame_asel =0,
+                          frame_col = '#333333',
+                          backgr_fill = backgr_fill_name,
+                          backgr_col =backgr_col,]]
+                          onmouseclick = function() 
+                          end,
+                          }
+      x_offs = x_offs + name_fx_paramW_single
+      DATA.GUI.buttons['midiosclearn_'..'mapID'..mapID..'midi'] = { 
+                          x=x_offs,
+                          y=y_offs,
+                          w=colw-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_midi_entryh-DATA.GUI.custom_offset,
+                          txt = DATA2.MIDIOSC.map[mapID].format_midiname,
+                          txt_fontsz = DATA.GUI.custom_midi_txtsz,
+                          --[[frame_a =0,
+                          frame_asel =0,
+                          frame_col = '#333333',
+                          backgr_fill = backgr_fill_name,
+                          backgr_col =backgr_col,]]
+                          onmouseclick = function() 
+                          end,
+                          } 
+      x_offs = x_offs + colw
+      DATA.GUI.buttons['midiosclearn_'..'mapID'..mapID..'osc'] = { 
+                          x=x_offs,
+                          y=y_offs,
+                          w=colw-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_midi_entryh-DATA.GUI.custom_offset,
+                          txt = DATA2.MIDIOSC.map[mapID].format_oscname,
+                          txt_fontsz = DATA.GUI.custom_midi_txtsz,
+                          --[[frame_a =0,
+                          frame_asel =0,
+                          frame_col = '#333333',
+                          backgr_fill = backgr_fill_name,
+                          backgr_col =backgr_col,]]
+                          onmouseclick = function() 
+                          end,
+                          }                           
+      y_offs = y_offs + DATA.GUI.custom_midi_entryh
+    end
+  end
+  -----------------------------------------------------------------------------  
   function GUI_MODULE_MACRO(DATA)    
     for key in pairs(DATA.GUI.buttons) do if key:match('macroglob_') then DATA.GUI.buttons[key] = nil end end 
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&16==0) then return end
@@ -1635,7 +1961,8 @@ Sampler knobs:
                           y=0,
                           w=DATA.GUI.custom_macroW-DATA.GUI.custom_offset,
                           h=DATA.GUI.custom_infoh-1,
-                          txt = '',
+                          txt = 'Macro',
+                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                           val = 0,
                           frame_a = 0.3,
                           --frame_asel = 0.3,
@@ -1897,9 +2224,9 @@ Sampler knobs:
                               txt='',
                               frame_a = frame_a,
                               frame_col = col,
-                              frame_arcborder = true,
+                              --[[frame_arcborder = true,
                               frame_arcborderr = DATA.GUI.custom_drrack_arcr,
-                              frame_arcborderflags = 1|2,
+                              frame_arcborderflags = 1|2,]]
                               onmouseclick = function() end, 
                               refresh = true,
                               }
@@ -3728,7 +4055,7 @@ Sampler knobs:
                         
                         frame_arcborder = true,
                         frame_arcborderr = math.floor(DATA.GUI.custom_offset*2),
-                        frame_arcborderflags = 1|2|4|8,
+                        frame_arcborderflags = t.frame_arcborderflags or 1|2|4|8,
                         
                         val = src_t[t.ctrlval_key],
                         val_res = t.ctrlval_res,
@@ -3853,7 +4180,8 @@ Sampler knobs:
     local woffs= DATA.GUI.custom_knob_button_w+DATA.GUI.custom_offset
     local xoffs= DATA.GUI.buttons.sampler_frame.x
     local yoffs= DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_peakareah+DATA.GUI.custom_offset*2
-    
+    local w_tune_single = math.floor(woffs/3)
+    local h_tune_single = math.floor(DATA.GUI.custom_module_ctrlreadout_h*2/3)
     xoffs = xoffs + 0 
     GUI_CTRL(DATA,
       {
@@ -3895,6 +4223,7 @@ Sampler knobs:
         ctrlval_src_t = src_t,
         ctrlval_res = 0.01,
         ctrlval_default = 0.5,
+        frame_arcborderflags = 1|8,
         
         func_atclick   =        function(new_val) 
                                   local new_val_quant = math.floor(new_val*160)/160 
@@ -3917,7 +4246,138 @@ Sampler knobs:
                                 return new_val
                               end
        } )   
-    xoffs = xoffs + woffs 
+       
+    if src_t.ISRS5K then   
+      --xoffs = xoffs + woffs   
+      DATA.GUI.buttons['sampler_tune_centup'] = { x= xoffs+woffs,--+arc_shift,
+                          y=yoffs,
+                          w=w_tune_single-1,
+                          h=h_tune_single,
+                          txt = '+',
+                          frame_a = DATA.GUI.custom_framea,
+                          txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
+                          onmouserelease = function()
+                            local inc = 0.05
+                            local tunenorm = src_t.instrument_tune
+                            local tunereal = tunenorm * 160 - 80
+                            tunereal = tunereal +inc
+                            tunenorm = (tunereal+80) / 160
+                            TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
+                            DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
+                          end
+                          }
+      DATA.GUI.buttons['sampler_tune_centval'] = { x= xoffs+woffs,--+arc_shift,
+                          y=yoffs+h_tune_single,
+                          w=w_tune_single-1,
+                          h=h_tune_single,
+                          txt = '.05',
+                          txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
+                          frame_a = 0,
+                          }
+      DATA.GUI.buttons['sampler_tune_centdown'] = { x= xoffs+woffs,--+arc_shift,
+                          y=yoffs+h_tune_single*2,
+                          w=w_tune_single-1,
+                          h=h_tune_single+1,
+                          frame_a = DATA.GUI.custom_framea,
+                          txt = '-',
+                          txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
+                          onmouserelease = function()
+                            local inc = -0.05
+                            local tunenorm = src_t.instrument_tune
+                            local tunereal = tunenorm * 160 - 80
+                            tunereal = tunereal +inc
+                            tunenorm = (tunereal+80) / 160
+                            TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
+                            DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
+                          end
+                          }                        
+      DATA.GUI.buttons['sampler_tune_stup'] = { x= xoffs+woffs+w_tune_single,--+arc_shift,
+                          y=yoffs,
+                          w=w_tune_single-1,
+                          h=h_tune_single,
+                          txt = '+',
+                          frame_a = DATA.GUI.custom_framea,
+                          txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
+                          onmouserelease = function()
+                            local inc = 1
+                            local tunenorm = src_t.instrument_tune
+                            local tunereal = tunenorm * 160 - 80
+                            tunereal = tunereal +inc
+                            tunenorm = (tunereal+80) / 160
+                            TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
+                            DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
+                          end
+                          }
+      DATA.GUI.buttons['sampler_tune_stval'] = { x= xoffs+woffs+w_tune_single,--+arc_shift,
+                          y=yoffs+h_tune_single,
+                          w=w_tune_single-1,
+                          h=h_tune_single,
+                          txt = 'st',
+                          txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
+                          frame_a = 0,
+                          }
+      DATA.GUI.buttons['sampler_tune_stdown'] = { x= xoffs+woffs+w_tune_single,--+arc_shift,
+                          y=yoffs+h_tune_single*2,
+                          w=w_tune_single-1,
+                          h=h_tune_single+1,
+                          frame_a = DATA.GUI.custom_framea,
+                          txt = '-',
+                          txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
+                          onmouserelease = function()
+                            local inc = -1
+                            local tunenorm = src_t.instrument_tune
+                            local tunereal = tunenorm * 160 - 80
+                            tunereal = tunereal +inc
+                            tunenorm = (tunereal+80) / 160
+                            TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
+                            DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
+                          end
+                          }                         
+      DATA.GUI.buttons['sampler_tune_octup'] = { x= xoffs+woffs+w_tune_single*2,
+                          y=yoffs,
+                          w=w_tune_single-1,
+                          h=h_tune_single,
+                          txt = '+',
+                          frame_a = DATA.GUI.custom_framea,
+                          txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
+                          onmouserelease = function()
+                            local inc = 12
+                            local tunenorm = src_t.instrument_tune
+                            local tunereal = tunenorm * 160 - 80
+                            tunereal = tunereal +inc
+                            tunenorm = (tunereal+80) / 160
+                            TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
+                            DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
+                          end
+                          }
+      DATA.GUI.buttons['sampler_tune_octval'] = { x= xoffs+woffs+w_tune_single*2,
+                          y=yoffs+h_tune_single,
+                          w=w_tune_single-1,
+                          h=h_tune_single,
+                          txt = 'oct',
+                          txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
+                          frame_a = 0,
+                          }
+      DATA.GUI.buttons['sampler_tune_octdown'] = { x= xoffs+woffs+w_tune_single*2,
+                          y=yoffs+h_tune_single*2,
+                          w=w_tune_single-1,
+                          h=h_tune_single+1,
+                          frame_a = DATA.GUI.custom_framea,
+                          txt = '-',
+                          txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
+                          onmouserelease = function()
+                            local inc = -12
+                            local tunenorm = src_t.instrument_tune
+                            local tunereal = tunenorm * 160 - 80
+                            tunereal = tunereal +inc
+                            tunenorm = (tunereal+80) / 160
+                            TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
+                            DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
+                          end
+                          }
+                          
+    end
+    xoffs = xoffs + woffs*2
     GUI_CTRL(DATA,
       {
         butkey = 'sampler_samplestoffs',
