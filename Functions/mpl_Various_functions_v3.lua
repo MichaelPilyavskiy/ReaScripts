@@ -460,6 +460,8 @@
   end
   -----------------------------------------------------------------------------    
   function DATA:GUIdraw_Button(b)
+    if b.list_islistparent then DATA:GUIdraw_List(b) return end
+    
     if b.hide then return end
     local x,y,w,h, frame_a, frame_asel, back_sela,val =  
                             b.x or 0,
@@ -488,10 +490,11 @@
     b.knob_minside = math.min(w,h)
     b.knob_arcR = math.floor(b.knob_minside/2 ) -2 
     
-    local layer, layer_yshift= gfx.dest,0
-    if DATA.GUI.layers[layer] and DATA.GUI.layers[layer].layer_yshift then layer_yshift = -DATA.GUI.layers[layer].layer_yshift end
-    
-    if y+layer_yshift<-h or y+h+layer_yshift>gfx.h then return end 
+    if not b.list_islistchild then
+      local layer, layer_yshift= gfx.dest,0
+      if DATA.GUI.layers[layer] and DATA.GUI.layers[layer].layer_yshift then layer_yshift = -DATA.GUI.layers[layer].layer_yshift end 
+      if y+layer_yshift<-h or y+h+layer_yshift>gfx.h and not b.ignoreboundarylimit then return end 
+    end
     
     -- backgr fill
       if backgr_fill ~= 0 then
@@ -1181,6 +1184,50 @@
     DATA.GUI.default_listentryxoffset = 5*DATA.GUI.default_scale
     DATA.GUI.default_listentryframea = 0.4
     DATA.GUI.default_offset =DATA.GUI.default_scale*10
+  end
+  ----------------------------------------------------------------------------------------------------------------
+  function DATA:GUIdraw_List(b_parent)
+    if not b_parent.list_islistparent then return end
+    local parentlistID = b_parent.list_islistparent or 0
+    local x,y,w,h =  
+                            b_parent.x or 0,
+                            b_parent.y or 0,
+                            b_parent.w or 100,
+                            b_parent.h or 100
+    x,y,w,h = 
+              math.floor(x*DATA.GUI.default_scale),
+              math.floor(y*DATA.GUI.default_scale),           
+              math.ceil(w*DATA.GUI.default_scale),            
+              math.ceil(h*DATA.GUI.default_scale)  
+    
+    gfx.set(1,1,1,0.2)
+    gfx.rect(x,y,w,h,1)
+    
+    -- calc common dimensions
+    b_parent.childrendata  = {}
+    for but in spairs(DATA.GUI.buttons ) do 
+      b = DATA.GUI.buttons[but]
+      if b and b.list_islistchild then 
+        local childlistID = b.list_islistchild or 0
+        if childlistID and childlistID == parentlistID then 
+          local x,y,w,h =  
+                                  b.x or 0,
+                                  b.y or 0,
+                                  b.w or 100,
+                                  b.h or 100
+          b_parent.childrendata.minx = math.min(b_parent.childrendata.minx or gfx.w, x)
+          b_parent.childrendata.maxx = math.min(b_parent.childrendata.minx or 0, x)
+        end--DATA:GUIdraw_Button(b) 
+      end
+    end
+    
+    
+    -- draw
+    for but in spairs(DATA.GUI.buttons ) do 
+      b = DATA.GUI.buttons[but]
+      if b and b.list_islistchild then DATA:GUIdraw_Button(b) end
+    end
+    
   end
   ----------------------------------------------------------------------------------------------------------------
   function DATA:GUIBuildLayer()

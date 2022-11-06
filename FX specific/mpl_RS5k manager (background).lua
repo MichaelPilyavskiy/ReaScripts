@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.0beta46
+-- @version 3.0beta48
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -7,7 +7,15 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix choke testing error2
+--    # fix empty database error
+--    # fix some errors when deleting pad/layer
+--    # various GUI fixes
+--    + GUI: arrange modules in row when height is more than 300px (ralative to scaling if available)
+--    + Database: add action to clear current pad
+--    + Rename pad rename child track notename and MIDI bus name
+--    + Setting/Actions: add action to initialize MIDI bus
+--    + MIDI bus: remap all sends on initialisation if was previously removed
+--    # Drumrack: various internal fixes for further layout support
 
 
 
@@ -261,7 +269,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta46'
+    DATA.extstate.version = '3.0beta48'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -329,7 +337,6 @@ v3.0beta30 by MPL October 26 2022
     DATA2:internal_parseREAPER_Settings()        
     DATA:ExtStateGet()
     DATA:ExtStateGetPresets()  
-    --DATA2:Database_Load(DATA.extstate.CONF_database_base64) 
     if DATA.extstate.UI_initatmouse&1==1 then
       local w = DATA.extstate.wind_w
       local h = DATA.extstate.wind_h 
@@ -695,8 +702,16 @@ Actions panel:
     for key in pairs(DATA2.notes) do cnt = cnt+ 1 end
     if cnt == 0 then SetMediaTrackInfo_Value( new_tr, 'I_FOLDERDEPTH',-1 ) end
     
+    if not (DATA2.MIDIbus and DATA2.MIDIbus.ptr) then DATA2.MIDIbus = { ptr =  new_tr}  end   -- reinitialise
     DATA2:TrackData_InitChoke()
     
+    for note in pairs(DATA2.notes) do
+      if DATA2.notes[note].layers then
+        for layer in pairs(DATA2.notes[note].layers) do
+          if DATA2.notes[note].layers[layer] and DATA2.notes[note].layers[layer].tr_ptr then DATA2:Actions_PadOnFileDrop_AddMIDISend(DATA2.notes[note].layers[layer].tr_ptr) end 
+        end
+      end
+    end
   end
   -----------------------------------------------------------------------  
   function DATA2:TrackData_InitChoke()
@@ -1102,7 +1117,7 @@ Actions panel:
   ---------------------------------------------------------------------  
   function DATA2:TrackDataRead_GetMIDIOSC_bindings_sub(src_t)
     if src_t then track = src_t.tr_ptr end
-    if not track and ValidatePtr2(0,track,'MediaTrack*')then return end
+    if not (track and ValidatePtr2(0,track,'MediaTrack*'))then return end
     
     for fx = 0,  TrackFX_GetCount( track )-1 do
       local pcount = reaper.TrackFX_GetNumParams( track, fx )
@@ -1213,52 +1228,86 @@ Actions panel:
     end
     return reaperDB
   end
-  ---------------------------------------------------------------------  
-  function DATA2:Database_Cache()
-    for note in pairs(DATA2.database_map.map)  do
-      local list_fp = DATA2.database_map.map[note].dbflist
-      if list_fp then samples = DATA2:Actions_Pad_InitSamplesFromDB_ParseList(list_fp)
-        DATA2.database_map.map[note].samples = samples
+  --------------------------------------------------------------------- 
+  function DATA2:Database_Load(chunk, forceload)
+    
+    if chunk then
+      local content_b64 = chunk
+      if not content_b64 then return end 
+      local content = VF_decBase64(content_b64)
+      if content == '' then return end 
+      
+      -- parse map
+      local map = {}
+      local dbname = 'Untitled'
+      for line in content:gmatch('[^\r\n]+') do 
+        if line:match('NOTE(%d+)') then 
+          local note = line:match('NOTE(%d+)')
+          if note then note =  tonumber(note) end
+          if note then
+            local params = {}
+            for param in line:gmatch('%<.-%>.-%<%/.-%>') do 
+              local key = param:match('%<(.-)%>')
+              local val = param:match('%<.-%>(.-)%<%/.-%>')
+              params[key] = tonumber(val ) or val
+            end
+            map[note] = params
+          end
+        end
+        if line:match('DBNAME (.*)') then dbname = line:match('DBNAME (.*)') end
       end
+      return {  valid = true, 
+                map=map, 
+                dbname = dbname, 
+                parenttrGUID = DATA2.tr_GUID}
     end
-    DATA2.database_map.cached = true
-  end 
-  ---------------------------------------------------------------------  
-  function DATA2:Database_Load(parseonly)
-    if not parseonly then DATA2.database_map = {} end
+      -------------------------------------------------
+    if not DATA2.database_map then DATA2.database_map = {} end
+    if DATA2.database_map.parenttrGUID and DATA2.database_map.parenttrGUID == DATA2.tr_GUID and not forceload then return end
     
     local content_b64 = DATA2.PARENT_DATABASEMAP
     if parseonly then content_b64 = parseonly end
     if not content_b64 then return end 
     local content = VF_decBase64(content_b64)
-    if content == '' then 
-      if DATA.extstate.CONF_database_map_default == '' then return else content = VF_decBase64(DATA.extstate.CONF_database_map_default) end
+    if content == '' then -- if nothing
+      if DATA.extstate.CONF_database_map_default~= '' then content = VF_decBase64(DATA.extstate.CONF_database_map_default) end
       if content == '' then return end 
     end
+    DATA2.database_map.load_content = content
     
     -- parse map
-    local map = {}
-    local dbname = 'Untitled'
-    for line in content:gmatch('[^\r\n]+') do 
-      if line:match('NOTE(%d+)') then 
-        local note = line:match('NOTE(%d+)')
-        if note then note =  tonumber(note) end
-        if note then
-          local params = {}
-          for param in line:gmatch('%<.-%>.-%<%/.-%>') do 
-            local key = param:match('%<(.-)%>')
-            local val = param:match('%<.-%>(.-)%<%/.-%>')
-            params[key] = tonumber(val ) or val
+      local map = {}
+      local dbname = 'Untitled'
+      for line in content:gmatch('[^\r\n]+') do 
+        if line:match('NOTE(%d+)') then 
+          local note = line:match('NOTE(%d+)')
+          if note then note =  tonumber(note) end
+          if note then
+            local params = {}
+            for param in line:gmatch('%<.-%>.-%<%/.-%>') do 
+              local key = param:match('%<(.-)%>')
+              local val = param:match('%<.-%>(.-)%<%/.-%>')
+              params[key] = tonumber(val ) or val
+            end
+            map[note] = params
           end
-          map[note] = params
+        end
+      end 
+      DATA2.database_map.map = map
+      DATA2.database_map.dbname = dbname
+      
+    -- cache samples
+      for note in pairs(DATA2.database_map.map)  do
+        if not DATA2.database_map.map[note].cached or (DATA2.database_map.map[note].cached and DATA2.database_map.map[note].cached==false)then
+          local list_fp = DATA2.database_map.map[note].dbflist
+          if list_fp then samples = DATA2:Actions_Pad_InitSamplesFromDB_ParseList(list_fp) DATA2.database_map.map[note].samples = samples end
+          DATA2.database_map.map[note].cached = true
         end
       end
       
-      if line:match('DBNAME (.*)') then dbname = line:match('DBNAME (.*)') end
-    end
-    local t = {valid = true, map=map, dbname = dbname, parenttrGUID = DATA2.tr_GUID}
-    if not parseonly then DATA2.database_map = t  end
-    if parseonly then return t end
+    -- valid
+      DATA2.database_map.valid = true
+      DATA2.database_map.parenttrGUID = DATA2.tr_GUID
   end
   ---------------------------------------------------------------------  
   function DATA2:Database_Save()  
@@ -1294,7 +1343,7 @@ Actions panel:
         GUI_MODULE_DEVICE(DATA)  
         GUI_MODULE_MACRO(DATA)    
         GUI_MODULE_SAMPLER(DATA)]]
-        GUI_RESERVED_initmacroXoffs(DATA)
+        GUI_RESERVED_initmacroXYoffs(DATA)
         GUI_RESERVED_init_tabs(DATA)
       end
     
@@ -1362,35 +1411,40 @@ Actions panel:
                          
   end
   ---------------------------------------------------------------------  
-  function GUI_RESERVED_initmacroXoffs(DATA)
+  function GUI_RESERVED_initmacroXYoffs_sub(DATA,mod_xoffs,mod_yoffs, tabflag, modulew, modulexkey,moduleykey ) 
+    local sepshift = DATA.GUI.custom_offset*2+DATA.GUI.custom_moduleseparatorw
+    if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&tabflag==tabflag then -- midi
+      if DATA.GUI.custom_availableforhorizontalseparation == true and mod_xoffs + modulew > DATA.GUI.custom_gfx_wreal then 
+        mod_xoffs = DATA.GUI.custom_module_startoffsx
+        mod_yoffs = mod_yoffs + DATA.GUI.custom_moduleH +DATA.GUI.custom_offset
+        DATA.GUI[modulexkey] = mod_xoffs
+        DATA.GUI[moduleykey] = mod_yoffs
+        mod_xoffs = mod_xoffs + modulew + sepshift
+       else
+        DATA.GUI[modulexkey] = mod_xoffs
+        DATA.GUI[moduleykey] = mod_yoffs
+        mod_xoffs = mod_xoffs + modulew + sepshift
+      end
+    end
+    return mod_xoffs,mod_yoffs
+  end
+  ---------------------------------------------------------------------  
+  function GUI_RESERVED_initmacroXYoffs(DATA) 
     -- modules offs
-      local validnote = DATA2.PARENT_LASTACTIVENOTE and DATA2.PARENT_LASTACTIVENOTE~=-1 and DATA2.notes[DATA2.PARENT_LASTACTIVENOTE]
+      --local validnote = DATA2.PARENT_LASTACTIVENOTE and DATA2.PARENT_LASTACTIVENOTE~=-1 and DATA2.notes[DATA2.PARENT_LASTACTIVENOTE]
+      local validnote = true
       DATA.GUI.custom_moduleseparatorw = 7*DATA.GUI.custom_Yrelation  
       local mod_xoffs = DATA.GUI.custom_module_startoffsx--+DATA.GUI.custom_moduleseparatorw  -- --1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database
+      local mod_yoffs = 0
       
-      DATA.GUI.custom_module_xoffs_macro = mod_xoffs--+DATA.GUI.custom_moduleseparatorw  
-      if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&16==16 then mod_xoffs = mod_xoffs + DATA.GUI.custom_offset*2 +  DATA.GUI.custom_macroW +DATA.GUI.custom_moduleseparatorw end -- macro
-      
-      DATA.GUI.custom_module_xoffs_midi = mod_xoffs--+DATA.GUI.custom_moduleseparatorw  
-      if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&64==64 then mod_xoffs = mod_xoffs + DATA.GUI.custom_offset*2 +  DATA.GUI.custom_midiW +DATA.GUI.custom_moduleseparatorw end -- midi
-      
-      DATA.GUI.custom_module_xoffs_padoverview = mod_xoffs  
-      if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&8==8 then mod_xoffs = mod_xoffs +  DATA.GUI.custom_padgridw +DATA.GUI.custom_moduleseparatorw + DATA.GUI.custom_offset*2 end -- pad view 
-      
-      DATA.GUI.custom_module_xoffs_drumrack = mod_xoffs
-      if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&1==1 then mod_xoffs = mod_xoffs + DATA.GUI.custom_drrack_sideW + DATA.GUI.custom_offset*2 +DATA.GUI.custom_moduleseparatorw end -- drrack 
-      
-      DATA.GUI.custom_module_xoffs_database = mod_xoffs
-      if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&32==32 then mod_xoffs = mod_xoffs + DATA.GUI.custom_offset*2+  DATA.GUI.custom_databasew +DATA.GUI.custom_moduleseparatorw end -- database
-      
-      DATA.GUI.custom_module_xoffs_childchain = mod_xoffs
-      if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&128==128 then mod_xoffs = mod_xoffs + DATA.GUI.custom_offset*2+  DATA.GUI.custom_childchainw +DATA.GUI.custom_moduleseparatorw end -- childchain
-      
-      
-      DATA.GUI.custom_module_xoffs_device = mod_xoffs
-      if DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&2==2 and validnote then mod_xoffs = mod_xoffs + DATA.GUI.custom_devicew + DATA.GUI.custom_offset*2 +DATA.GUI.custom_moduleseparatorw end -- device
-      
-      DATA.GUI.custom_module_xoffs_sampler = mod_xoffs
+      mod_xoffs,mod_yoffs = GUI_RESERVED_initmacroXYoffs_sub(DATA,mod_xoffs,mod_yoffs, 16,DATA.GUI.custom_macroW,'custom_module_xoffs_macro','custom_module_yoffs_macro') -- macro
+      mod_xoffs,mod_yoffs = GUI_RESERVED_initmacroXYoffs_sub(DATA,mod_xoffs,mod_yoffs, 64,DATA.GUI.custom_midiW,'custom_module_xoffs_midi','custom_module_yoffs_midi') -- midi
+      mod_xoffs,mod_yoffs = GUI_RESERVED_initmacroXYoffs_sub(DATA,mod_xoffs,mod_yoffs, 8,DATA.GUI.custom_padgridw,'custom_module_xoffs_padoverview','custom_module_yoffs_padoverview')-- pad view 
+      mod_xoffs,mod_yoffs = GUI_RESERVED_initmacroXYoffs_sub(DATA,mod_xoffs,mod_yoffs, 1,DATA.GUI.custom_drrack_sideW,'custom_module_xoffs_drumrack','custom_module_yoffs_drumrack')-- drrack 
+      mod_xoffs,mod_yoffs = GUI_RESERVED_initmacroXYoffs_sub(DATA,mod_xoffs,mod_yoffs, 32,DATA.GUI.custom_databasew,'custom_module_xoffs_database','custom_module_yoffs_database')-- database 
+      mod_xoffs,mod_yoffs = GUI_RESERVED_initmacroXYoffs_sub(DATA,mod_xoffs,mod_yoffs, 128,DATA.GUI.custom_childchainw,'custom_module_xoffs_childchain','custom_module_yoffs_childchain')-- childchain 
+      mod_xoffs,mod_yoffs = GUI_RESERVED_initmacroXYoffs_sub(DATA,mod_xoffs,mod_yoffs, 2,DATA.GUI.custom_devicew,'custom_module_xoffs_device','custom_module_yoffs_device')-- device 
+      mod_xoffs,mod_yoffs = GUI_RESERVED_initmacroXYoffs_sub(DATA,mod_xoffs,mod_yoffs, 4,DATA.GUI.custom_samplerW,'custom_module_xoffs_sampler','custom_module_yoffs_sampler')-- sampler 
       
   end
   --------------------------------------------------------------------- 
@@ -1401,12 +1455,18 @@ Actions panel:
     --DATA.GUI.default_scale = 1
       
     -- init main stuff
-      DATA.GUI.custom_Yrelation = math.max(gfx_h/300, 0.5) -- global W
+      DATA.GUI.custom_referenceH = 300
+      DATA.GUI.custom_Yrelation = math.max(gfx_h/DATA.GUI.custom_referenceH, 0.5) -- global W
+      DATA.GUI.custom_Yrelation = math.min(DATA.GUI.custom_Yrelation, 1.1) -- global W
+      DATA.GUI.custom_availableforhorizontalseparation = gfx_h / (DATA.GUI.custom_referenceH* DATA.GUI.custom_Yrelation) > 1.5
+      DATA.GUI.custom_gfx_wreal = gfx_w
+      
       DATA.GUI.custom_offset =  math.floor(3 * DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_infoh = math.floor(gfx_h*0.1)
-      DATA.GUI.custom_moduleH = gfx_h - DATA.GUI.custom_infoh-DATA.GUI.custom_offset -- global H
+      DATA.GUI.custom_infoh = math.floor(DATA.GUI.custom_referenceH* DATA.GUI.custom_Yrelation*0.1)
+      DATA.GUI.custom_moduleH = DATA.GUI.custom_referenceH* DATA.GUI.custom_Yrelation-DATA.GUI.custom_offset-- - DATA.GUI.custom_infoh -- global H
       DATA.GUI.custom_moduleW = math.floor(DATA.GUI.custom_moduleH*1.5) -- global W 
       DATA.GUI.custom_knob_button_w = math.floor(DATA.GUI.custom_moduleH * 0.2) 
+      DATA.GUI.custom_knob_button_h =math.floor(DATA.GUI.custom_moduleH * 0.35) 
       DATA.GUI.custom_separator_w = math.floor(10*DATA.GUI.custom_Yrelation)
       
       DATA.GUI.custom_framea = 0.1 -- greyed drum rack pads
@@ -1435,61 +1495,56 @@ Actions panel:
       DATA.GUI.custom_tabnames_txtsz = 15*DATA.GUI.custom_Yrelation--*DATA.GUI.default_scale
       
     -- macro 
-      DATA.GUI.custom_macroY = DATA.GUI.custom_infoh--+ DATA.GUI.custom_offset
       DATA.GUI.custom_macroH = DATA.GUI.custom_moduleH--DATA.GUI.custom_offset
-      DATA.GUI.custom_macro_knobH = math.floor(DATA.GUI.custom_macroH)
+      --DATA.GUI.custom_macro_knobH = math.floor(DATA.GUI.custom_macroH)
       DATA.GUI.custom_macroW = DATA.GUI.custom_knob_button_w*8--+DATA.GUI.custom_offset
       DATA.GUI.custom_macro_knobtxtsz= math.floor(15* DATA.GUI.custom_Yrelation)
       DATA.GUI.custom_macro_linkentryh = math.floor(25 * DATA.GUI.custom_Yrelation  )
       DATA.GUI.custom_macro_link_txtsz= math.floor(14* DATA.GUI.custom_Yrelation)
     -- midiosc
-      DATA.GUI.custom_midiY = DATA.GUI.custom_infoh
       DATA.GUI.custom_midiH = DATA.GUI.custom_moduleH
       DATA.GUI.custom_midiW = math.floor(DATA.GUI.custom_moduleW*1.25)
       DATA.GUI.custom_midi_entryh = math.floor(25 * DATA.GUI.custom_Yrelation  )
       DATA.GUI.custom_midi_txtsz= math.floor(14* DATA.GUI.custom_Yrelation)
     -- pad overview
-      DATA.GUI.custom_padgridy = 0
-      DATA.GUI.custom_padgridh = gfx_h-DATA.GUI.custom_offset--DATA.GUI.custom_infoh -- - -DATA.GUI.custom_offset 
-      DATA.GUI.custom_padgridblockh = math.floor(DATA.GUI.custom_padgridh/8)
+      DATA.GUI.custom_padgridblockh = math.floor(DATA.GUI.custom_moduleH/8)
       DATA.GUI.custom_padgridw = DATA.GUI.custom_padgridblockh 
        
     -- drrack 
-      DATA.GUI.custom_drrack_sideY = math.floor(DATA.GUI.custom_moduleH/4)
-      DATA.GUI.custom_drrack_sideX = DATA.GUI.custom_drrack_sideY*1.5
+      --DATA.GUI.custom_drrack_sideY = math.floor(DATA.GUI.custom_moduleH/4)
+      --DATA.GUI.custom_drrack_sideX = DATA.GUI.custom_drrack_sideY*1.5
       DATA.GUI.custom_drrack_sideW = DATA.GUI.custom_moduleW--DATA.GUI.custom_offset
       DATA.GUI.custom_drrack_pad_txtsz = 13* DATA.GUI.custom_Yrelation--0.5*(DATA.GUI.custom_drrack_sideY/2-DATA.GUI.custom_offset*2)
-      DATA.GUI.custom_drrack_arcr = math.floor(DATA.GUI.custom_drrack_sideX*0.1) 
-      DATA.GUI.custom_drrack_sideW = DATA.GUI.custom_drrack_sideX*4 -- reset to 4 pads
-      DATA.GUI.custom_drrackH = DATA.GUI.custom_drrack_sideY*4
-      DATA.GUI.custom_drrack_ctrlbut_h = DATA.GUI.custom_drrack_sideY/2
+      --DATA.GUI.custom_drrack_arcr = math.floor(DATA.GUI.custom_drrack_sideX*0.1) 
+      --DATA.GUI.custom_drrack_sideW = DATA.GUI.custom_drrack_sideX*4 -- reset to 4 pads
+      --DATA.GUI.custom_drrackH = DATA.GUI.custom_moduleH-DATA.GUI.custom_infoh--DATA.GUI.custom_offset--DATA.GUI.custom_drrack_sideY*4
+      --DATA.GUI.custom_drrack_ctrlbut_h = DATA.GUI.custom_drrack_sideY/2
       
     -- device
       DATA.GUI.custom_device_droptxtsz =  math.floor(20* DATA.GUI.custom_Yrelation)
       DATA.GUI.custom_devicew = math.floor(DATA.GUI.custom_moduleW)
-      DATA.GUI.custom_deviceh = gfx_h - DATA.GUI.custom_infoh-DATA.GUI.custom_offset -- DEVICE H
+      DATA.GUI.custom_deviceh = DATA.GUI.custom_moduleH
       DATA.GUI.custom_deviceentryh = math.floor(25 * DATA.GUI.custom_Yrelation)
       DATA.GUI.custom_devicectrl_txtsz = math.floor(14 *DATA.GUI.custom_Yrelation   )
       
     -- database
       DATA.GUI.custom_databasew = math.floor(DATA.GUI.custom_moduleW*0.6)
-      
+      DATA.GUI.custom_database_text= math.floor(14* DATA.GUI.custom_Yrelation)
     -- childchain
       DATA.GUI.custom_childchainw = math.floor(DATA.GUI.custom_moduleW)      
       DATA.GUI.custom_childchain_entryh = math.floor(25 * DATA.GUI.custom_Yrelation  )
       
-    -- sampler  
-      DATA.GUI.custom_sampler_peakareah = math.floor(DATA.GUI.custom_moduleH * 0.4)  
+    -- sampler   
       DATA.GUI.custom_samplerW = (DATA.GUI.custom_knob_button_w+DATA.GUI.custom_offset) * 8
       DATA.GUI.custom_sampler_namebutw = DATA.GUI.custom_samplerW-(DATA.GUI.custom_knob_button_w)*2 -DATA.GUI.custom_infoh
-      DATA.GUI.custom_sampler_readouth =DATA.GUI.custom_knob_button_w+1 
-      DATA.GUI.custom_sampler_knob_h = DATA.GUI.custom_moduleH - DATA.GUI.custom_module_ctrlreadout_h*2 - DATA.GUI.custom_sampler_peakareah - DATA.GUI.custom_offset*4-DATA.GUI.custom_offset 
+      DATA.GUI.custom_sampler_knob_h = DATA.GUI.custom_knob_button_h--DATA.GUI.custom_moduleH - DATA.GUI.custom_module_ctrlreadout_h*3 - DATA.GUI.custom_sampler_peakareah - DATA.GUI.custom_offset*4-DATA.GUI.custom_offset 
+      DATA.GUI.custom_sampler_peakareah = DATA.GUI.custom_moduleH-DATA.GUI.custom_infoh-DATA.GUI.custom_knob_button_h-DATA.GUI.custom_module_ctrlreadout_h*2-DATA.GUI.custom_offset*5 --math.floor(DATA.GUI.custom_moduleH * 0.3) 
+      
       DATA.GUI.custom_sampler_ctrl_txtsz = math.floor(13 *DATA.GUI.custom_Yrelation  )
       DATA.GUI.custom_sampler_peaksw = DATA.GUI.custom_samplerW-DATA.GUI.custom_offset-DATA.GUI.custom_knob_button_w-1
       
-    -- global
-      DATA.GUI.custom_knob_button_h =DATA.GUI.custom_sampler_knob_h 
-      GUI_RESERVED_initmacroXoffs(DATA)
+    -- global 
+      GUI_RESERVED_initmacroXYoffs(DATA)
       
       
       
@@ -1523,6 +1578,7 @@ Actions panel:
       if DATA.GUI.Settings_open ==0 then  
         if not DATA.GUI.layers[21] then DATA.GUI.layers[21] = {} end DATA.GUI.layers[21].a = 0
         --if DATA2.tr_valid ==true and DATA2.PARENT_TABSTATEFLAGS then 
+        GUI_RESERVED_initmacroXYoffs(DATA)
         GUI_RESERVED_init_tabs(DATA)
         --end
        elseif DATA.GUI.Settings_open and DATA.GUI.Settings_open == 1 then 
@@ -1599,7 +1655,8 @@ Actions panel:
         {str = 'Click on pad select track',                     group = 4, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
       {str = 'Sample actions',                                  group = 5, itype = 'sep'},    
         {str = 'Crop threshold',                                group = 5, itype = 'readout', confkey = 'CONF_cropthreshold', level = 1, menu = {[-80]='-80dB',[-60]='-60dB', [-40]='-40dB',[-30]='-30dB'},readoutw_extw = readoutw_extw},
-
+      {str = 'Actions',                                         group = 7, itype = 'sep'},
+        {str = 'Initialize MIDI bus',                           group = 7, itype = 'button', level = 1, func_onrelease = function() DATA2:TrackDataRead_ValidateMIDIbus() end},
     } 
     return t
     
@@ -1608,10 +1665,10 @@ Actions panel:
   function GUI_MODULE_MACRO_links(DATA) 
     if not DATA2.PARENT_LASTACTIVEMACRO then return end
     local macroID = DATA2.PARENT_LASTACTIVEMACRO
-    local x_offs = DATA.GUI.buttons.macroglob_Aframe.x+DATA.GUI.custom_offset
-    local y_offs = DATA.GUI.custom_macroY+DATA.GUI.custom_knob_button_h+DATA.GUI.custom_offset
+    local x_offs = DATA.GUI.custom_module_xoffs_macro+DATA.GUI.custom_offset+DATA.GUI.custom_moduleseparatorw+1
+    local y_offs = DATA.GUI.custom_module_yoffs_macro+DATA.GUI.custom_knob_button_h+DATA.GUI.custom_offset+DATA.GUI.custom_infoh
     local h_frame = DATA.GUI.custom_macroH-DATA.GUI.custom_knob_button_h-DATA.GUI.custom_offset*2
-    DATA.GUI.buttons.macroglob_linksframe = { x=x_offs,
+    --[[DATA.GUI.buttons.macroglob_linksframe = { x=x_offs,
                           y=y_offs,
                           w=DATA.GUI.custom_macroW-DATA.GUI.custom_offset*2,
                           h=h_frame,
@@ -1621,10 +1678,10 @@ Actions panel:
                           --frame_asel = 0.3,
                           --backgr_fill = 0,
                           ignoremouse = true,
-                          onmouseclick =  function() end}
+                          onmouseclick =  function() end}]]
     DATA.GUI.buttons.macroglob_t_addbut = { x=x_offs,
                           y=y_offs,
-                          w=DATA.GUI.custom_macroW-DATA.GUI.custom_offset*2,
+                          w=DATA.GUI.custom_macroW-DATA.GUI.custom_offset,
                           h=DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
                           txt = 'Add link for last touched parameter in the rack child',
                           txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
@@ -1722,7 +1779,7 @@ Actions panel:
       DATA.GUI.buttons['macroglob_'..'macroID'..macroID..'linkremove'..linkID] = { 
                           x=x_offs+w_layername+w_ctrls_single*2,
                           y=y_offs,
-                          w=w_ctrls_single-DATA.GUI.custom_offset,
+                          w=w_ctrls_single,
                           h=DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
                           txt = 'X',
                           txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
@@ -1823,13 +1880,14 @@ Actions panel:
     
   end
   -----------------------------------------------------------------------------  
-  function GUI_MODULE_separator(DATA, key, xoffs)   
+  function GUI_MODULE_separator(DATA, key, xoffs,yoffs)   
     DATA.GUI.buttons[key] = { x=xoffs,
-                          y=0,
+                          y=yoffs or 0,
                           w=DATA.GUI.custom_moduleseparatorw-1,
-                          h=gfx.h/DATA.GUI.default_scale,
+                          h=DATA.GUI.custom_moduleH-1,
                           frame_a = 0.3,
                           --frame_asel = 0.3,
+                          ignoreboundarylimit=true,
                           backgr_fill = 0.5,
                           backgr_col = '#FFFFFF',
                           onmouseclick =  function() end}
@@ -1839,13 +1897,14 @@ Actions panel:
     for key in pairs(DATA.GUI.buttons) do if key:match('childchain_') then DATA.GUI.buttons[key] = nil end end 
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&128==0) then return end
     local x_offs0= math.floor(DATA.GUI.custom_module_xoffs_childchain+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
-    GUI_MODULE_separator(DATA, 'childchain_sep', DATA.GUI.custom_module_xoffs_childchain) 
+    local y_offs0= DATA.GUI.custom_module_yoffs_childchain
+    GUI_MODULE_separator(DATA, 'childchain_sep', DATA.GUI.custom_module_xoffs_childchain,DATA.GUI.custom_module_yoffs_childchain) 
     
     local nameframe_w  = DATA.GUI.custom_childchainw
       -- DATA.GUI.custom_knob_button_w - DATA.GUI.custom_infoh
-    local y_offs = DATA.GUI.custom_infoh + DATA.GUI.custom_offset
+    local y_offs = y_offs0+DATA.GUI.custom_infoh + DATA.GUI.custom_offset
     DATA.GUI.buttons.childchain_actionframe = { x=x_offs0,
-                          y=0,
+                          y=y_offs0,
                           w=nameframe_w,
                           h=DATA.GUI.custom_infoh-1,
                           txt = 'Children chain',
@@ -1856,10 +1915,10 @@ Actions panel:
                           --backgr_fill = 0,
                           onmouseclick =  function() end}
     DATA.GUI.buttons.childchain_listparent = { x=x_offs0,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
+                          y=y_offs0+DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
                           w=DATA.GUI.custom_childchainw,---DATA.GUI.custom_offset,
                           h=DATA.GUI.custom_moduleH-DATA.GUI.custom_offset*2,
-                          list_islistparent = true,
+                          list_islistparent = 0,
                           onmouseclick =  function() end}                      
                           
                               
@@ -1868,7 +1927,7 @@ Actions panel:
     for note in pairs(DATA2.notes) do
       local x_offs = x_offs0
       DATA.GUI.buttons['childchain_'..'note'..note..'name'] = { 
-                          list_islistchild = true,
+                          list_islistchild = 0,
                           x=x_offs,
                           y=y_offs,
                           w=notenamesw-DATA.GUI.custom_offset,
@@ -1890,11 +1949,12 @@ Actions panel:
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&64==0) then return end
     
     local x_offs0= math.floor(DATA.GUI.custom_module_xoffs_midi+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
-    GUI_MODULE_separator(DATA, 'midiosclearn_sep', DATA.GUI.custom_module_xoffs_midi) 
+    local y_offs= DATA.GUI.custom_module_yoffs_midi
+    GUI_MODULE_separator(DATA, 'midiosclearn_sep', DATA.GUI.custom_module_xoffs_midi,DATA.GUI.custom_module_yoffs_midi) 
     local nameframe_w  = DATA.GUI.custom_midiW - DATA.GUI.custom_knob_button_w - DATA.GUI.custom_infoh
     local x_offs = x_offs0
     DATA.GUI.buttons.midiosclearn_actionframe = { x=x_offs0,
-                          y=0,
+                          y=y_offs,
                           w=nameframe_w-DATA.GUI.custom_offset,
                           h=DATA.GUI.custom_infoh-1,
                           txt = 'MIDI / OSC map',
@@ -1906,7 +1966,7 @@ Actions panel:
                           onmouseclick =  function() end}
     x_offs0 = x_offs0 + nameframe_w
     DATA.GUI.buttons.midiosclearn_actionframe_actions = { x=x_offs0,
-                          y=0,
+                          y=y_offs,
                           w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
                           h=DATA.GUI.custom_infoh-1,
                           txt = 'Learn',
@@ -1918,7 +1978,7 @@ Actions panel:
                           onmouseclick =  function() Action(41144) end}    
     x_offs0 = x_offs0 + DATA.GUI.custom_knob_button_w
     DATA.GUI.buttons.midiosclearn_actionframe_help = { x=x_offs0,
-                          y=0,
+                          y=y_offs,
                           w=DATA.GUI.custom_infoh-DATA.GUI.custom_offset,
                           h=DATA.GUI.custom_infoh-1,
                           txt = '?',
@@ -1929,9 +1989,10 @@ Actions panel:
                           --backgr_fill = 0,
                           onmouseclick =  function() DATA2:Actions_Help(5) end}                              
     DATA.GUI.buttons.midiosclearn_Aframe = { x=x_offs, 
-                          y=DATA.GUI.custom_midiY+DATA.GUI.custom_offset,
+                          y=y_offs + DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
                           w=DATA.GUI.custom_midiW-DATA.GUI.custom_offset,
                           h=DATA.GUI.custom_midiH-DATA.GUI.custom_offset*2,
+                          ignoreboundarylimit= true,
                           txt = '',
                           hide = true,
                           frame_a = 0,--0.3,
@@ -2059,34 +2120,33 @@ Actions panel:
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&16==0) then return end
     
     local x_offs= math.floor(DATA.GUI.custom_module_xoffs_macro+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
-    GUI_MODULE_separator(DATA, 'macroglob_sep', DATA.GUI.custom_module_xoffs_macro) 
+    local y_offs= DATA.GUI.custom_module_yoffs_macro
+    GUI_MODULE_separator(DATA, 'macroglob_sep', DATA.GUI.custom_module_xoffs_macro,DATA.GUI.custom_module_yoffs_macro) 
     
     DATA.GUI.buttons.macroglob_actionframe = { x=x_offs,
-                          y=0,
-                          w=DATA.GUI.custom_macroW-DATA.GUI.custom_offset,
+                          y=y_offs,
+                          w=DATA.GUI.custom_macroW,
                           h=DATA.GUI.custom_infoh-1,
                           txt = 'Macro',
                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                          val = 0,
                           frame_a = 0.3,
                           --frame_asel = 0.3,
                           --backgr_fill = 0,
                           onmouseclick =  function() end}
     DATA.GUI.buttons.macroglob_Aframe = { x=x_offs, 
-                          y=DATA.GUI.custom_macroY,
+                          y=DATA.GUI.custom_module_yoffs_macro+DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
                           w=DATA.GUI.custom_macroW,
-                          h=DATA.GUI.custom_macroH,
+                          h=DATA.GUI.custom_macroH-DATA.GUI.custom_infoh-DATA.GUI.custom_offset,
                           txt = '',
-                          
-                          
+                          ignoreboundarylimit = true,
                           frame_a = 0,--0.3,
-                          frame_asel = 0.3,
+                          frame_asel = 0,
                           --backgr_fill = 0,
                           ignoremouse = true,
                           onmouseclick =  function() end}
                           
     -- controls 
-    for ctrlid = 1, 16 do
+    for ctrlid = 1, 8 do
       local frame_a
       if DATA2.PARENT_LASTACTIVEMACRO and ctrlid == DATA2.PARENT_LASTACTIVEMACRO then 
         frame_a = 1
@@ -2094,7 +2154,7 @@ Actions panel:
         frame_a = nil
       end
       local xshift = DATA.GUI.custom_knob_button_w*(ctrlid-1)+1
-      local yshift = DATA.GUI.custom_macro_knobH * math.floor((ctrlid/9))
+      local yshift = DATA.GUI.custom_module_yoffs_macro--DATA.GUI.custom_macro_knobH * math.floor((ctrlid/9))
       if ctrlid>=9 then  xshift = DATA.GUI.custom_knob_button_w*(ctrlid-9) end 
       local src_t = DATA2.Macro.sliders[ctrlid]
       GUI_CTRL(DATA,
@@ -2102,7 +2162,7 @@ Actions panel:
           butkey = 'macroglob_knob'..ctrlid,
           
           x = x_offs+xshift,
-          y=  DATA.GUI.custom_infoh + DATA.GUI.custom_offset + yshift,
+          y=  DATA.GUI.custom_infoh + DATA.GUI.custom_offset + yshift+1,
           w = DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
           h = DATA.GUI.custom_knob_button_h-DATA.GUI.custom_offset,
           frame_a = frame_a,
@@ -2233,61 +2293,9 @@ Actions panel:
     DATA:GUIdraw_Button(b)
   end
   -----------------------------------------------------------------------------  
-  function GUI_MODULE_DRUMRACK(DATA)  
-    for key in pairs(DATA.GUI.buttons) do if key:match('drumrack') then DATA.GUI.buttons[key] = nil end end 
-    if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&1==0) then return end
-    
-    local trname = DATA2.tr_name or '[no data]'   
-    local drracvname_w = DATA.GUI.custom_drrack_sideW-DATA.GUI.custom_knob_button_w*2-DATA.GUI.custom_infoh
-    local x_offs= math.floor(DATA.GUI.custom_module_xoffs_drumrack+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
-    GUI_MODULE_separator(DATA, 'drumrack_sep', DATA.GUI.custom_module_xoffs_drumrack) 
-       -- dr rack
-       DATA.GUI.buttons.drumrack_trackname = { x=x_offs,
-                            y=0,
-                            w=drracvname_w-DATA.GUI.custom_offset,
-                            h=DATA.GUI.custom_infoh-1,
-                            txt = trname,
-                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                            }
-       DATA.GUI.buttons.drumrackpad = { x=x_offs,
-                             y=DATA.GUI.custom_infoh,
-                             w=DATA.GUI.custom_drrack_sideW+1,
-                             h=DATA.GUI.custom_drrackH,
-                             ignoremouse = true,
-                             frame_a = 0,
-                             }
-     x_offs = x_offs + drracvname_w    
-     DATA.GUI.buttons.drumrack_FX = { x=x_offs,
-                          y=0,
-                          w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_infoh-1,
-                          txt = 'FX',
-                          txt_a=txt_a,
-                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                          onmouseclick = function() TrackFX_Show( DATA2.tr_ptr, -1, 1 ) end
-                          } 
-      x_offs = x_offs + DATA.GUI.custom_knob_button_w
-      DATA.GUI.buttons.drumrack_showME = { x=x_offs,
-                           y=0,
-                           w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
-                           h=DATA.GUI.custom_infoh-1,
-                           txt = 'Explore',
-                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                           onmouserelease = function() if DATA2.PARENT_LASTACTIVENOTE then  DATA2:Actions_Pad_ShowME(DATA2.PARENT_LASTACTIVENOTE, DATA2.PARENT_LASTACTIVENOTE_layer or 1) end  end,
-                           } 
-      x_offs = x_offs + DATA.GUI.custom_knob_button_w
-      DATA.GUI.buttons.drumrack_help = { x=x_offs,
-                           y=0,
-                           w=DATA.GUI.custom_infoh-1,
-                           h=DATA.GUI.custom_infoh-1,
-                           txt = '?',
-                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                           onmouserelease = function() 
-                                              DATA2:Actions_Help(0)
-                                            end,
-                           }                              
-                             
+  function GUI_MODULE_DRUMRACK_drawlayout(DATA)  
     local padactiveshift = 116 
+    -- handle pad overview shifts
     if DATA2.PARENT_ACTIVEPAD == 8 then padactiveshift = 116 end
     if DATA2.PARENT_ACTIVEPAD == 7 then padactiveshift = 100 end
     if DATA2.PARENT_ACTIVEPAD == 6 then padactiveshift = 84 end
@@ -2298,226 +2306,303 @@ Actions panel:
     if DATA2.PARENT_ACTIVEPAD == 1 then padactiveshift = 4 end
     if DATA2.PARENT_ACTIVEPAD == 0 then padactiveshift = 0 end
     
-    for padID0 =0 , 16 do
-      DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'] = nil
-      DATA.GUI.buttons['drumrackpad_pad'..padID0..'mute'] = nil
-      DATA.GUI.buttons['drumrackpad_pad'..padID0..'solo'] = nil
-      DATA.GUI.buttons['drumrackpad_pad'..padID0..'play'] = nil
-      DATA.GUI.buttons['drumrackpad_pad'..padID0..'show'] = nil
+    -- clear stuff
+    for key in pairs(DATA.GUI.buttons) do if key:match('drumrackpad_pad(%d+)') then DATA.GUI.buttons[key] = nil end end
+    
+    
+    local layout_mode = 0
+    
+    
+    if layout_mode == 0 then
+      local layout_pads_cnt = 16
+      local padw = math.floor(DATA.GUI.custom_drrack_sideW / 4)
+      local padh = math.floor((DATA.GUI.custom_moduleH-DATA.GUI.custom_infoh-DATA.GUI.custom_offset*2) / 4)
+      local xoffs0 = DATA.GUI.custom_module_xoffs_drumrack + DATA.GUI.custom_moduleseparatorw+DATA.GUI.custom_offset
+      local yoffs = DATA.GUI.custom_module_yoffs_drumrack+ DATA.GUI.custom_moduleH - padh-DATA.GUI.custom_offset
+      local xoffs= xoffs0
+      local padID0 = 0
+      for note = 0+padactiveshift, layout_pads_cnt-1+padactiveshift do
+        GUI_MODULE_DRUMRACK_drawlayout_pad(DATA, padID0, note, xoffs, yoffs, padw, padh)
+        xoffs = xoffs + padw
+        if padID0%4==3 then 
+          xoffs = xoffs0
+          yoffs = yoffs - padh
+        end
+        padID0 = padID0 + 1
+      end
     end
     
-    local padID0 = 0
-    for note = 0+padactiveshift, 15+padactiveshift do
-      if note > 127 then break end
+  end
+  -----------------------------------------------------------------------------  
+  function GUI_MODULE_DRUMRACK_drawlayout_pad(DATA, padID0, note, xoffs, yoffs, padw, padh)   
+    local ctrlw = math.floor(padw/3)
+    local nameh = math.floor(padh/3)
+    local txt_actrl = 0.2
+    -- handle names
+      local txt = DATA2:internal_FormatMIDIPitch(note)..' ['..note..']'
+      local txt2 = ''
+      if DATA2.notes[note] and DATA2.notes[note].name then txt2 = DATA2.notes[note].name end 
+      if DATA2.notes[note] and DATA2.notes[note].TYPE_DEVICE and DATA2.notes[note].TYPE_DEVICE == true and DATA2.notes[note].tr_name then 
+        txt =txt..' [Device]' 
+        txt2 = DATA2.notes[note].tr_name
+      end 
+      if DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note]  then 
+        txt = '[DB '..note..'] '..(DATA2.database_map.map[note].notename  or '[empty]')
+        if DATA2.database_map.map[note].lock == 1 then txt = '[DB '..note..'] [L] '..(DATA2.database_map.map[note].notename  or '[empty]')  end
+      end
       
-      -- handle names
-        local txt = DATA2:internal_FormatMIDIPitch(note)..' ['..note..']'
-        local txt2 = ''
-        if DATA2.notes[note] and DATA2.notes[note].name then txt2 = DATA2.notes[note].name end 
-        if DATA2.notes[note] and DATA2.notes[note].TYPE_DEVICE and DATA2.notes[note].TYPE_DEVICE == true and DATA2.notes[note].tr_name then 
-          txt =txt..' [Device]' 
-          txt2 = DATA2.notes[note].tr_name
-        end 
-        if DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note]  then 
-          txt = '[DB '..note..'] '..(DATA2.database_map.map[note].notename  or '[empty]')
-          if DATA2.database_map.map[note].lock == 1 then txt = '[DB '..note..'] [L] '..(DATA2.database_map.map[note].notename  or '[empty]')  end
-        end
+    -- handle col
+      local col 
+      if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_col then 
+        col = DATA2.notes[note].layers[1].tr_col 
+        col = string.format("#%06X", col);
+       else
+      end 
       
-      -- handle col
-        local col 
-        if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_col then 
-          col = DATA2.notes[note].layers[1].tr_col 
-          col = string.format("#%06X", col);
-        end
-      
-      DATA.GUI.buttons['drumrackpad_pad'..padID0] = { x=math.floor(DATA.GUI.buttons.drumrackpad.x+(padID0%4)*DATA.GUI.custom_drrack_sideX)+1,
-                              y=DATA.GUI.custom_infoh+DATA.GUI.custom_drrackH-DATA.GUI.custom_drrack_sideY*(math.floor(padID0/4)+1)+DATA.GUI.custom_offset,
-                              w=DATA.GUI.custom_drrack_sideX-DATA.GUI.custom_offset,
-                              h=DATA.GUI.custom_drrack_sideY-DATA.GUI.custom_offset-1,
-                              ignoremouse = true,
-                              txt='',
-                              frame_a = frame_a,
-                              frame_col = col,
-                              --[[frame_arcborder = true,
-                              frame_arcborderr = DATA.GUI.custom_drrack_arcr,
-                              frame_arcborderflags = 1|2,]]
-                              onmouseclick = function() end, 
-                              refresh = true,
-                              }
-      -- mark active
-      local frame_a = DATA.GUI.custom_framea 
+    -- mark active
+      local frame_a = .3--DATA.GUI.custom_framea 
       if DATA2.PARENT_LASTACTIVENOTE and DATA2.PARENT_LASTACTIVENOTE == note then frame_a = 0.7 end
-      DATA.GUI.buttons['drumrackpad_pad'..padID0].frame_a=frame_a
       
-      local padx= DATA.GUI.buttons.drumrackpad.x+(padID0%4)*DATA.GUI.custom_drrack_sideX+1
-      local pady = DATA.GUI.buttons.drumrackpad.y+DATA.GUI.buttons.drumrackpad.h-DATA.GUI.custom_drrack_sideY*(math.floor(padID0/4)+1)+DATA.GUI.custom_offset
-      local controlbut_h2 = DATA.GUI.custom_drrack_sideY/2-DATA.GUI.custom_offset
-      local controlbut_w = ((DATA.GUI.custom_drrack_sideX -DATA.GUI.custom_offset)/ 3)--math.floor
-      local frame_actrl =0
-      local txt_actrl = 0.2
-      local txt_a 
-      if not DATA2.notes[note] then txt_a = 0.1 end
+    -- handle availabler note
+      local txt_a  if not DATA2.notes[note] then txt_a = 0.1 end
       
+    -- frame
+      DATA.GUI.buttons['drumrackpad_pad'..padID0..'frame'] = { 
+          x=xoffs,--math.floor(x_offs0+(padID0%4)*DATA.GUI.custom_drrack_sideX)+1,
+          y=yoffs,--y_offs + DATA.GUI.custom_infoh+DATA.GUI.custom_drrackH-DATA.GUI.custom_drrack_sideY*(math.floor(padID0/4)+1)+DATA.GUI.custom_offset,
+          w=padw-DATA.GUI.custom_offset,--DATA.GUI.custom_drrack_sideX-DATA.GUI.custom_offset,
+          h=padh-DATA.GUI.custom_offset,--DATA.GUI.custom_drrack_sideY-DATA.GUI.custom_offset-1,
+          ignoremouse = true,
+          txt='',
+          frame_a = frame_a,
+          frame_col = col,
+          --[[frame_arcborder = true,
+          frame_arcborderr = DATA.GUI.custom_drrack_arcr,
+          frame_arcborderflags = 1|2,]]
+          onmouseclick = function() end, 
+          refresh = true,
+      }    
       
-      local frame_a = 0
-        
-      --msg(col)
+    -- name
+       local backgr_col =DATA.GUI.custom_backcol2-- '#33FF45'
+       backgr_col = col
+       DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'] = { 
+                              x=xoffs,
+                               y=yoffs,
+                               w=padw,
+                               h=nameh,
+                               txt=txt,
+                               txt_a = txt_a,
+                               txt_fontsz =DATA.GUI.custom_drrack_pad_txtsz,
+                               txt_col = backgr_col,
+                               frame_a = 0,
+                               frame_asel = 0,
+                               frame_col = backgr_col,--DATA.GUI.custom_backcol2,
+                               backgr_fill = 0 ,
+                               --backgr_col = backgr_col,
+                               back_sela = 0 ,
+                               --[[frame_arcborder = true,
+                               frame_arcborderr = DATA.GUI.custom_drrack_arcr,
+                               frame_arcborderflags = 1|2,]]
+                               --prevent_matchrefresh = true,
+                               onmousedrag = function() 
+                                               DATA2.PAD_HOLD = note
+                                               DATA2.ONPARAMDRAG = true
+                                             end,
+                                             
+                               onmouseclick = function() 
+                               
+                                 -- click select track
+                                 if DATA.extstate.UI_clickonpadselecttrack == 1 then
+                                   if DATA2.notes[note] then
+                                     if DATA2.notes[note].TYPE_DEVICE ~= true then 
+                                       SetOnlyTrackSelected( DATA2.notes[note].layers[1].tr_ptr ) 
+                                      else 
+                                       SetOnlyTrackSelected(DATA2.notes[note].tr_ptr)  
+                                     end
+                                   end
+                                 end
+                                 
+                                 --if DATA.GUI.Ctrl == true then DATA2:Actions_ShowInstrument(note, 1) 
+                                  --else
+                                 DATA2.PARENT_LASTACTIVENOTE = note 
+                                 --DATA2.PARENT_LASTACTIVENOTE_layer = 1 
+                                 DATA2:TrackDataWrite(_,{master_upd=true}) 
+                                 --GUI_MODULE_DRUMRACK(DATA)  
+                                 if DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'] then DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].refresh = true end
+                                 --DATA2.PARENT_LASTACTIVENOTE_layer = layer 
+                                 GUI_MODULE_DEVICE(DATA)  
+                                 GUI_MODULE_SAMPLER(DATA)
+                                 GUI_MODULE_DATABASE(DATA)  
+                                 --end
+                               end,
+                               onmouseclickR = function() DATA2:Actions_Pad_Menu(note) end,
+                               onmousefiledrop = function() DATA2:Actions_PadOnFileDrop(note) end,
+                               onmouserelease =  function()  
+                                                   DATA2.PAD_HOLD = nil
+                                                     if not DATA2.ONDOUBLECLICK then
+                                                       DATA2.PARENT_LASTACTIVENOTE = note 
+                                                       GUI_MODULE_DRUMRACK(DATA) 
+                                                       DATA2.ONPARAMDRAG = false
+                                                      else
+                                                       DATA2.ONDOUBLECLICK = nil
+                                                     end
+                                                 end,
+                               onmousedrop =  function()  
+                                               
+                                               if DATA2.PAD_HOLD then 
+                                                 local padsrc = DATA2.PAD_HOLD
+                                                 local paddest = note
+                                                 DATA2:Actions_Pad_CopyMove(padsrc,paddest, DATA.GUI.Ctrl) 
+                                                 DATA2.PAD_HOLD = nil
+                                               end 
+                                             end,
+                               onmousedoubleclick = function() 
+                                                     DATA2.ONDOUBLECLICK = true
+                                                   end
+                               }  
+    -- name secondary    
+       DATA.GUI.buttons['drumrackpad_pad'..padID0..'name2'] = { 
+                              x=xoffs,
+                               y=yoffs+nameh,
+                               w=padw,
+                               h=nameh,
+                               txt=txt2,
+                               txt_a = txt_a,
+                               txt_fontsz =DATA.GUI.custom_drrack_pad_txtsz,
+                               txt_col = backgr_col,
+                               frame_a = 0,
+                               frame_asel = 0,
+                               frame_col = backgr_col,--DATA.GUI.custom_backcol2,
+                               backgr_fill = 0 ,
+                               --backgr_col = backgr_col,
+                               back_sela = 0 ,
+                               onmousedrag = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmousedrag, 
+                               onmouseclick = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmouseclick,
+                               onmouseclickR = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmouseclickR,
+                               onmousefiledrop = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmousefiledrop,
+                               onmouserelease =  DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmouserelease,
+                               onmousedrop =  DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmousedrop,
+                               onmousedoubleclick = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmousedoubleclick,
+                               }  
+    -- mute
+      local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_mute and DATA2.notes[note].layers[1].tr_mute >0 then backgr_fill = 0.2 txt_a = nil end
+       DATA.GUI.buttons['drumrackpad_pad'..padID0..'mute'] = { 
+                                x=xoffs,
+                               y=yoffs+nameh*2,
+                               w=ctrlw,
+                               h=nameh-DATA.GUI.custom_offset,
+                               txt='M',
+                               txt_col = backgr_col,
+                               txt_a = txt_a,
+                               txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
+                               frame_a = 0,
+                               frame_asel = 0,
+                               prevent_matchrefresh = true,
+                               backgr_fill = backgr_fill,
+                               backgr_col = DATA.GUI.custom_backcol2,
+                               onmouseclick = function() DATA2:Actions_Pad_SoloMute(note,_,_, true) end,
+                               }   
+    -- play
+       local backgr_fill2,frame_actrl0=nil,frame_actrl if DATA2.playingnote_pitch and DATA2.playingnote_pitch == note and DATA.extstate.UI_incomingnoteselectpad == 0  then backgr_fill2 = 0.8 frame_actrl0 = 1 end
+       DATA.GUI.buttons['drumrackpad_pad'..padID0..'play'] = { 
+                                x=xoffs+ctrlw,
+                               y=yoffs+nameh*2,
+                               w=ctrlw,
+                               h=nameh-DATA.GUI.custom_offset,
+                               txt='>',
+                               txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
+                               txt_a = txt_actrl,
+                               txt_col = backgr_col,
+                               prevent_matchrefresh = true,
+                               frame_a = 0,
+                               frame_asel = 0,
+                               backgr_fill = 0.2 ,
+                               onmouseclick =    function() DATA2:Actions_StuffNoteOn(note, vel) end,
+                               onmouserelease =  function() StuffMIDIMessage( 0, 0x80, note, 0 ) DATA.ontrignoteTS =  nil end,
+                               refresh = true,
+                               --hide = DATA.extstate.UI_incomingnoteselectpad ==1,
+                               }   
       
-      local backgr_col =DATA.GUI.custom_backcol2-- '#33FF45'
-      backgr_col = col
-      local nameh = math.floor(DATA.GUI.custom_drrack_ctrlbut_h/2)
-      DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'] = { x=padx,
-                              y=pady,
-                              w=DATA.GUI.custom_drrack_sideX-DATA.GUI.custom_offset,
-                              h=nameh,
-                              txt=txt,
-                              txt_a = txt_a,
-                              txt_fontsz =DATA.GUI.custom_drrack_pad_txtsz,
-                              txt_col = backgr_col,
-                              frame_a = frame_a,
-                              frame_asel = frame_a,
-                              frame_col = backgr_col,--DATA.GUI.custom_backcol2,
-                              backgr_fill = 0 ,
-                              --backgr_col = backgr_col,
-                              back_sela = 0 ,
-                              frame_arcborder = true,
-                              frame_arcborderr = DATA.GUI.custom_drrack_arcr,
-                              frame_arcborderflags = 1|2,
-                              --prevent_matchrefresh = true,
-                              onmousedrag = function() 
-                                              DATA2.PAD_HOLD = note
-                                              DATA2.ONPARAMDRAG = true
+                        --solo
+       local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_solo and DATA2.notes[note].layers[1].tr_solo >0 then backgr_fill = 0.2 txt_a = nil end
+       DATA.GUI.buttons['drumrackpad_pad'..padID0..'solo'] = { 
+                                x=xoffs+ctrlw*2,
+                               y=yoffs+nameh*2,
+                               w=ctrlw,
+                               h=nameh-DATA.GUI.custom_offset,
+                               --txt_col=txt_col,
+                               txt_a = txt_a,
+                               txt='S',
+                               txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
+                               txt_col = backgr_col,
+                               frame_a = 0,
+                               frame_asel = 0,
+                               prevent_matchrefresh = true,
+                               backgr_fill = backgr_fill,
+                               backgr_col = DATA.GUI.custom_backcol2,
+                               onmouseclick = function() DATA2:Actions_Pad_SoloMute(note,_,true) end,
+                               }  
+  end  
+  -----------------------------------------------------------------------------  
+  function GUI_MODULE_DRUMRACK(DATA)  
+    for key in pairs(DATA.GUI.buttons) do if key:match('drumrack') then DATA.GUI.buttons[key] = nil end end 
+    if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&1==0) then return end
+    
+    local trname = DATA2.tr_name or '[no data]'   
+    local drracvname_w = DATA.GUI.custom_drrack_sideW-DATA.GUI.custom_knob_button_w*2-DATA.GUI.custom_infoh
+    local x_offs= math.floor(DATA.GUI.custom_module_xoffs_drumrack+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
+    local x_offs0=x_offs
+    local y_offs= DATA.GUI.custom_module_yoffs_drumrack 
+    GUI_MODULE_separator(DATA, 'drumrack_sep', DATA.GUI.custom_module_xoffs_drumrack,DATA.GUI.custom_module_yoffs_drumrack) 
+       -- dr rack
+       DATA.GUI.buttons.drumrack_trackname = { x=x_offs,
+                            y=y_offs,
+                            w=drracvname_w-DATA.GUI.custom_offset,
+                            h=DATA.GUI.custom_infoh-1,
+                            txt = trname,
+                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                            }
+      --[[ DATA.GUI.buttons.drumrackpad = { x=x_offs-1,
+                             y=y_offs+DATA.GUI.custom_infoh,
+                             w=DATA.GUI.custom_drrack_sideW+1,
+                             h=DATA.GUI.custom_drrackH,
+                             ignoreboundarylimit=true,
+                             ignoremouse = true,
+                             frame_a = 0,
+                             }]]
+     x_offs = x_offs + drracvname_w    
+     DATA.GUI.buttons.drumrack_FX = { x=x_offs,
+                          y=y_offs,
+                          w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_infoh-1,
+                          txt = 'FX',
+                          txt_a=txt_a,
+                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                          onmouseclick = function() TrackFX_Show( DATA2.tr_ptr, -1, 1 ) end
+                          } 
+      x_offs = x_offs + DATA.GUI.custom_knob_button_w
+      DATA.GUI.buttons.drumrack_showME = { x=x_offs,
+                           y=y_offs,
+                           w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+                           h=DATA.GUI.custom_infoh-1,
+                           txt = 'Explore',
+                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                           onmouserelease = function() if DATA2.PARENT_LASTACTIVENOTE then  DATA2:Actions_Pad_ShowME(DATA2.PARENT_LASTACTIVENOTE, DATA2.PARENT_LASTACTIVENOTE_layer or 1) end  end,
+                           } 
+      x_offs = x_offs + DATA.GUI.custom_knob_button_w
+      DATA.GUI.buttons.drumrack_help = { x=x_offs,
+                           y=y_offs,
+                           w=DATA.GUI.custom_infoh-DATA.GUI.custom_offset,
+                           h=DATA.GUI.custom_infoh-1,
+                           txt = '?',
+                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                           onmouserelease = function() 
+                                              DATA2:Actions_Help(0)
                                             end,
-                                            
-                              onmouseclick = function() 
-                              
-                                -- click select track
-                                if DATA.extstate.UI_clickonpadselecttrack == 1 then
-                                  if DATA2.notes[note] then
-                                    if DATA2.notes[note].TYPE_DEVICE ~= true then 
-                                      SetOnlyTrackSelected( DATA2.notes[note].layers[1].tr_ptr ) 
-                                     else 
-                                      SetOnlyTrackSelected(DATA2.notes[note].tr_ptr)  
-                                    end
-                                  end
-                                end
-                                
-                                --if DATA.GUI.Ctrl == true then DATA2:Actions_ShowInstrument(note, 1) 
-                                 --else
-                                DATA2.PARENT_LASTACTIVENOTE = note 
-                                --DATA2.PARENT_LASTACTIVENOTE_layer = 1 
-                                DATA2:TrackDataWrite(_,{master_upd=true}) 
-                                --GUI_MODULE_DRUMRACK(DATA)  
-                                if DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'] then DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].refresh = true end
-                                --DATA2.PARENT_LASTACTIVENOTE_layer = layer 
-                                GUI_MODULE_DEVICE(DATA)  
-                                GUI_MODULE_SAMPLER(DATA)
-                                GUI_MODULE_DATABASE(DATA)  
-                                --end
-                              end,
-                              onmouseclickR = function() DATA2:Actions_Pad_Menu(note) end,
-                              onmousefiledrop = function() DATA2:Actions_PadOnFileDrop(note) end,
-                              onmouserelease =  function()  
-                                                  DATA2.PAD_HOLD = nil
-                                                    if not DATA2.ONDOUBLECLICK then
-                                                      DATA2.PARENT_LASTACTIVENOTE = note 
-                                                      GUI_MODULE_DRUMRACK(DATA) 
-                                                      DATA2.ONPARAMDRAG = false
-                                                     else
-                                                      DATA2.ONDOUBLECLICK = nil
-                                                    end
-                                                end,
-                              onmousedrop =  function()  
-                                              
-                                              if DATA2.PAD_HOLD then 
-                                                local padsrc = DATA2.PAD_HOLD
-                                                local paddest = note
-                                                DATA2:Actions_Pad_CopyMove(padsrc,paddest, DATA.GUI.Ctrl) 
-                                                DATA2.PAD_HOLD = nil
-                                              end 
-                                            end,
-                              onmousedoubleclick = function() 
-                                                    DATA2.ONDOUBLECLICK = true
-                                                  end
-                              }  
-      DATA.GUI.buttons['drumrackpad_pad'..padID0..'name2'] = { x=padx,
-                              y=pady+nameh,
-                              w=DATA.GUI.custom_drrack_sideX-DATA.GUI.custom_offset,
-                              h=nameh,
-                              txt=txt2,
-                              txt_a = txt_a,
-                              txt_fontsz =DATA.GUI.custom_drrack_pad_txtsz,
-                              txt_col = backgr_col,
-                              frame_a = frame_a,
-                              frame_asel = frame_a,
-                              frame_col = backgr_col,--DATA.GUI.custom_backcol2,
-                              backgr_fill = 0 ,
-                              --backgr_col = backgr_col,
-                              back_sela = 0 ,
-                              onmousedrag = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmousedrag, 
-                              onmouseclick = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmouseclick,
-                              onmouseclickR = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmouseclickR,
-                              onmousefiledrop = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmousefiledrop,
-                              onmouserelease =  DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmouserelease,
-                              onmousedrop =  DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmousedrop,
-                              onmousedoubleclick = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmousedoubleclick,
-                              }                               
-                              
-      --local txt_a,txt_col= txt_actrl if DATA2.notes[note] and DATA2.notes[note].partrack_mute and DATA2.notes[note].partrack_mute == 1 then txt_col = '#A55034' txt_a = 1 end
-     local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_mute and DATA2.notes[note].layers[1].tr_mute >0 then backgr_fill = 0.2 txt_a = nil end
-      DATA.GUI.buttons['drumrackpad_pad'..padID0..'mute'] = { x=padx,
-                              y=pady+DATA.GUI.custom_drrack_ctrlbut_h,
-                              w=controlbut_w,
-                              h=controlbut_h2-1,
-                              txt='M',
-                              txt_col = backgr_col,
-                              txt_a = txt_a,
-                              txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
-                              frame_a = frame_actrl,
-                              prevent_matchrefresh = true,
-                              backgr_fill = backgr_fill,
-                              backgr_col = DATA.GUI.custom_backcol2,
-                              onmouseclick = function() DATA2:Actions_Pad_SoloMute(note,_,_, true) end,
-                              } 
-                              
-      
-      local backgr_fill2,frame_actrl0=nil,frame_actrl if DATA2.playingnote_pitch and DATA2.playingnote_pitch == note and DATA.extstate.UI_incomingnoteselectpad == 0  then backgr_fill2 = 0.8 frame_actrl0 = 1 end
-      DATA.GUI.buttons['drumrackpad_pad'..padID0..'play'] = { x=padx+controlbut_w,
-                              y=pady+DATA.GUI.custom_drrack_ctrlbut_h+1,
-                              w=controlbut_w,
-                              h=controlbut_h2-2,
-                              txt='>',
-                              txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
-                              txt_a = txt_actrl,
-                              txt_col = backgr_col,
-                              prevent_matchrefresh = true,
-                              frame_a = 0,
-                              backgr_fill = 0.2 ,
-                              onmouseclick =    function() DATA2:Actions_StuffNoteOn(note, vel) end,
-                              onmouserelease =  function() StuffMIDIMessage( 0, 0x80, note, 0 ) DATA.ontrignoteTS =  nil end,
-                              refresh = true,
-                              --hide = DATA.extstate.UI_incomingnoteselectpad ==1,
-                              }   
-                                
-      local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_solo and DATA2.notes[note].layers[1].tr_solo >0 then backgr_fill = 0.2 txt_a = nil end
-      DATA.GUI.buttons['drumrackpad_pad'..padID0..'solo'] = { x=padx+controlbut_w*2,
-                              y=pady+DATA.GUI.custom_drrack_ctrlbut_h,
-                              w=controlbut_w,
-                              h=controlbut_h2-1,
-                              --txt_col=txt_col,
-                              txt_a = txt_a,
-                              txt='S',
-                              txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
-                              txt_col = backgr_col,
-                              frame_a = frame_actrl,
-                              prevent_matchrefresh = true,
-                              backgr_fill = backgr_fill,
-                              backgr_col = DATA.GUI.custom_backcol2,
-                              onmouseclick = function() DATA2:Actions_Pad_SoloMute(note,_,true) end,
-                              }    
-                              
-      padID0 = padID0 + 1
-    end
+                           }  
+    GUI_MODULE_DRUMRACK_drawlayout(DATA) 
+ 
   end
   -----------------------------------------------------------------------  
   function DATA2:Actions_Pad_ShowME(note, layer) 
@@ -2576,8 +2661,7 @@ Actions panel:
   function DATA2:Actions_PadOnFileDrop_AddMIDISend(new_tr) 
     -- make sure MIDI bus exist
     if not new_tr then return end
-    DATA2:TrackDataRead_ValidateMIDIbus()
-    
+    --if not remap then DATA2:TrackDataRead_ValidateMIDIbus() end
     if DATA2.MIDIbus.ptr then 
       local sendidx = CreateTrackSend( DATA2.MIDIbus.ptr, new_tr )
       SetTrackSendInfo_Value( DATA2.MIDIbus.ptr, 0, sendidx, 'I_SRCCHAN',-1 )
@@ -2731,6 +2815,7 @@ Actions panel:
     if not DATA2.tr_valid then return end
     if not (DATA2.database_map and DATA2.database_map.valid and DATA2.database_map.map) then return end
     for note in pairs(DATA2.database_map.map)  do
+      
       local lock = DATA2.database_map.map [note].lock or 0
       if lock~= 1 then
         local samples_t = DATA2.database_map.map[note].samples
@@ -2740,8 +2825,8 @@ Actions panel:
           DATA2:Actions_PadOnFileDrop_Sub(note,1,new_sample)
         end
       end
+      
     end
-    -- 
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_Pad_Clear(note, layer)  
@@ -2763,8 +2848,8 @@ Actions panel:
         tr_ptr = DATA2.notes[note].tr_ptr 
         if tr_ptr and ValidatePtr2(0,tr_ptr, 'MediaTrack*')then DeleteTrack( tr_ptr) end
       end
+      
      else 
-     
       -- remove regular child
       tr_ptr = DATA2.notes[note].layers[1].tr_ptr 
       if tr_ptr and ValidatePtr2(0,tr_ptr, 'MediaTrack*')then DeleteTrack( tr_ptr) end
@@ -2775,9 +2860,9 @@ Actions panel:
     DATA2.FORCEONPROJCHANGE = true
     if not layer then 
       SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, '')
-      -- set parent track selected
-      reaper.SetOnlyTrackSelected( DATA2.tr_ptr )
     end
+    -- set parent track selected
+    reaper.SetOnlyTrackSelected( DATA2.tr_ptr )
     reaper.Undo_EndBlock2( 0, 'RS5k manager: clear layer', 0xFFFFFFFF ) --reaper.Undo_BeginBlock2( 0)
   end 
   -----------------------------------------------------------------------
@@ -2855,6 +2940,8 @@ Actions panel:
     local retval, retvals_csv = reaper.GetUserInputs( 'Rename pad', 1, ',extrawidth=200', curname )
     if retval then 
       GetSetMediaTrackInfo_String( tr, 'P_NAME', retvals_csv, true )
+      SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, retvals_csv)  
+      SetTrackMIDINoteNameEx( 0,tr, note, -1, retvals_csv) 
     end
   end
   -----------------------------------------------------------------------
@@ -3062,10 +3149,9 @@ Actions panel:
   end
   -----------------------------------------------------------------------------  
   
-  function GUI_MODULE_DEVICE_stuff(DATA, note, layer, y_offs) 
-    local x_offs = DATA.GUI.buttons.devicestuff_frame.x--+DATA.GUI.custom_offset
-    local w_layername = math.floor(DATA.GUI.buttons.devicestuff_frame.w*0.5)
-    local w_ctrls = DATA.GUI.buttons.devicestuff_frame.w - w_layername
+  function GUI_MODULE_DEVICE_stuff(DATA, note, layer, x_offs, y_offs) 
+    local w_layername = math.floor(DATA.GUI.custom_devicew*0.5)
+    local w_ctrls = DATA.GUI.custom_devicew - w_layername
     local w_ctrls_single = (w_ctrls / 9)
     local w_ctrls_single_q = math.floor(w_ctrls / 9)
     local frame_a = 0
@@ -3073,7 +3159,7 @@ Actions panel:
     local backgr_fill_param = 0.2 
     local backgr_fill_name = 0
     
-    DATA.GUI.buttons['devicestuff_'..'layer'..layer..'close'] = { 
+    DATA.GUI.buttons['devicestuff_'..'layer'..layer..'clear'] = { 
                         x=x_offs,
                         y=y_offs,
                         w=w_ctrls_single,
@@ -3082,8 +3168,8 @@ Actions panel:
                         txt = 'X',
                         txt_fontsz = DATA.GUI.custom_devicectrl_txtsz,
                         frame_a = DATA.GUI.custom_framea,
-                        onmouseclick = function() 
-                          DATA2:Actions_Pad_Clear(note, layer) 
+                        onmouserelease = function() 
+                          DATA2:Actions_Pad_Clear(note,layer) 
                         end,
                         }
                         
@@ -3374,9 +3460,10 @@ Actions panel:
     
     
     local x_offs= math.floor(DATA.GUI.custom_module_xoffs_database+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
+    local y_offs= DATA.GUI.custom_module_yoffs_database
     local x_offs_padctrls= x_offs
     local dbname_w = DATA.GUI.custom_databasew-DATA.GUI.custom_infoh-DATA.GUI.custom_knob_button_w
-    GUI_MODULE_separator(DATA, 'databasestuff_sep', DATA.GUI.custom_module_xoffs_database) 
+    GUI_MODULE_separator(DATA, 'databasestuff_sep', DATA.GUI.custom_module_xoffs_database,DATA.GUI.custom_module_yoffs_database) 
      
     if not (DATA2.PARENT_LASTACTIVENOTE and DATA2.PARENT_LASTACTIVENOTE ~=-1) then return end   
     
@@ -3386,19 +3473,18 @@ Actions panel:
     
     
     DATA.GUI.buttons.databasestuff_newkit = { x=x_offs,
-                         y=0,
+                         y=y_offs,
                          w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
                          h=DATA.GUI.custom_infoh-1,
                          txt = 'New kit',
-                         txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                         txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function()  
-                                          if not DATA2.database_map.cached then DATA2:Database_Cache() end
                                           DATA2:Actions_Pad_InitSamplesFromDB() 
                                         end
                          }
     x_offs = x_offs + DATA.GUI.custom_knob_button_w
     DATA.GUI.buttons.databasestuff_name = { x=x_offs,
-                         y=0,
+                         y=y_offs,
                          w=dbname_w-DATA.GUI.custom_offset,
                          h=DATA.GUI.custom_infoh-1,
                          txt = dbname_global,
@@ -3407,7 +3493,7 @@ Actions panel:
                          }
     x_offs = x_offs + dbname_w
     DATA.GUI.buttons.databasestuff_help = { x=x_offs,
-                           y=0,
+                           y=y_offs,
                            w=DATA.GUI.custom_infoh-1,
                            h=DATA.GUI.custom_infoh-1,
                            txt = '?',
@@ -3419,28 +3505,28 @@ Actions panel:
     
     
     -- pad ctrls
-    local y_offs = DATA.GUI.custom_infoh+DATA.GUI.custom_offset
+    local y_offs0 = y_offs + DATA.GUI.custom_infoh+DATA.GUI.custom_offset
     local ctrl_w = math.floor(DATA.GUI.custom_databasew/2) 
     local x_offs = x_offs_padctrls
     DATA.GUI.buttons.databasestuff_padname = { x=x_offs,
-                         y=y_offs,
+                         y=y_offs0,
                          w=ctrl_w-DATA.GUI.custom_offset,
                          h=DATA.GUI.custom_infoh-1,
                          txt = 'Pad '..DATA2.PARENT_LASTACTIVENOTE..' name',
                          frame_a = 1,
                          frame_asel = 1,
                          frame_col = '#333333',
-                         txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                         txt_fontsz =DATA.GUI.custom_database_text,
                          onmouseclick = function() end
                          }
     local name = ''
     if DATA2.PARENT_LASTACTIVENOTE and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE] then name = DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE].notename end
     DATA.GUI.buttons.databasestuff_padname_name = { x=x_offs+ ctrl_w,
-                         y=y_offs,
+                         y=y_offs0,
                          w=ctrl_w,
                          h=DATA.GUI.custom_infoh-1,
                          txt = name,
-                         txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                         txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function() 
                          
                           if not DATA2.database_map then DATA2.database_map = {} end
@@ -3458,26 +3544,26 @@ Actions panel:
                           
                          end
                          }  
-    y_offs = y_offs  + DATA.GUI.custom_infoh+DATA.GUI.custom_offset
+    y_offs0 = y_offs0  + DATA.GUI.custom_infoh+DATA.GUI.custom_offset
     DATA.GUI.buttons.databasestuff_dbname = { x=x_offs,
-                         y=y_offs,
+                         y=y_offs0,
                          w=ctrl_w-DATA.GUI.custom_offset,
                          h=DATA.GUI.custom_infoh-1,
                          txt = 'DB name',
                          frame_a = 1,
                          frame_asel = 1,
                          frame_col = '#333333',
-                         txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                         txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function() end
                          }
     local dbname = ''
     if DATA2.PARENT_LASTACTIVENOTE and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE] then dbname = DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE].dbname end
     DATA.GUI.buttons.databasestuff_dbname_name = { x=x_offs+ctrl_w,
-                         y=y_offs,
+                         y=y_offs0,
                          w=ctrl_w,
                          h=DATA.GUI.custom_infoh-1,
                          txt = dbname,
-                         txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                         txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function() 
                          
                           if not DATA2.database_map then DATA2.database_map = {} end
@@ -3501,37 +3587,47 @@ Actions panel:
                                                     DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE].dbflist = reaperDB[key]
                                                     DATA2:TrackDataWrite(_, {master_upd=true})
                                                     DATA2:TrackDataRead()
-                                                    DATA2:Database_Load(DATA2.PARENT_DATABASEMAP, true) 
+                                                    DATA2:Database_Load(_,true) 
                                                     DATA.UPD.onGUIinit = true
                                             
                                           end,
                                           }
+                                                                                                      
                              end
+                             t[#t+1] = {
+                                         str = '|Clear current pad',
+                                         func = function() 
+                                                 DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE] = nil
+                                                 DATA2:TrackDataWrite(_, {master_upd=true})
+                                                 DATA2:TrackDataRead()
+                                                 DATA2:Database_Load(_,true) 
+                                                 DATA.UPD.onGUIinit = true
+                                               end}
                              DATA:GUImenu(t)
                              
                           end
                          end
                          }
-    y_offs = y_offs  + DATA.GUI.custom_infoh+DATA.GUI.custom_offset
+    y_offs0 = y_offs0  + DATA.GUI.custom_infoh+DATA.GUI.custom_offset
     DATA.GUI.buttons.databasestuff_lock = { x=x_offs,
-                         y=y_offs,
+                         y=y_offs0,
                          w=ctrl_w-DATA.GUI.custom_offset,
                          h=DATA.GUI.custom_infoh-1,
                          txt = 'Lock',
                          frame_a = 1,
                          frame_asel = 1,
                          frame_col = '#333333',
-                         txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                         txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function() end
                          }
     local lockstatename = 'Off'
     if DATA2.PARENT_LASTACTIVENOTE and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE] and DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE].lock and DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE].lock  == 1 then lockstatename = 'On' end
     DATA.GUI.buttons.databasestuff_lock_state = { x=x_offs+ctrl_w,
-                         y=y_offs,
+                         y=y_offs0,
                          w=ctrl_w,
                          h=DATA.GUI.custom_infoh-1,
                          txt = lockstatename,
-                         txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                         txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function() 
                           if not DATA2.database_map then DATA2.database_map = {} end
                           DATA2.database_map.valid = true
@@ -3550,13 +3646,14 @@ Actions panel:
   end
   -----------------------------------------------------------------------------   
   function GUI_MODULE_DEVICE(DATA)  
-    for key in pairs(DATA.GUI.buttons) do if key:match('devicestuff') then DATA.GUI.buttons[key] = nil end end
+    for key in pairs(DATA.GUI.buttons) do if key:match('devicestuff_') then DATA.GUI.buttons[key] = nil end end
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&2==0) then return end
+    
+    GUI_MODULE_separator(DATA, 'devicestuff_sep', DATA.GUI.custom_module_xoffs_device,DATA.GUI.custom_module_yoffs_device) 
+    
     if not (DATA2.PARENT_LASTACTIVENOTE and DATA2.PARENT_LASTACTIVENOTE~=-1 and DATA2.notes[DATA2.PARENT_LASTACTIVENOTE] ) then return end
     local layers_cnt = 0
-    if DATA2.notes[DATA2.PARENT_LASTACTIVENOTE].layers then 
-      layers_cnt = #DATA2.notes[DATA2.PARENT_LASTACTIVENOTE].layers
-    end
+    if DATA2.notes[DATA2.PARENT_LASTACTIVENOTE].layers then  layers_cnt = #DATA2.notes[DATA2.PARENT_LASTACTIVENOTE].layers end
     local name = '' 
     if DATA2.PARENT_LASTACTIVENOTE and DATA2.notes[DATA2.PARENT_LASTACTIVENOTE] and DATA2.notes[DATA2.PARENT_LASTACTIVENOTE].name and not DATA2.notes[DATA2.PARENT_LASTACTIVENOTE].TYPE_DEVICE  then 
       name = '[Note '..DATA2.PARENT_LASTACTIVENOTE..' / '..DATA2:internal_FormatMIDIPitch(DATA2.PARENT_LASTACTIVENOTE)..'] '..DATA2.notes[DATA2.PARENT_LASTACTIVENOTE].name 
@@ -3564,15 +3661,14 @@ Actions panel:
       name = '[Device '..DATA2.PARENT_LASTACTIVENOTE..' / '..DATA2:internal_FormatMIDIPitch(DATA2.PARENT_LASTACTIVENOTE)..'] '..(DATA2.notes[DATA2.PARENT_LASTACTIVENOTE].device_name or '')
     end
     
-    
     local x_offs= math.floor(DATA.GUI.custom_module_xoffs_device+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
+    local y_offs= DATA.GUI.custom_module_yoffs_device
     local x_offs_ctrls = x_offs
     local devname_w = DATA.GUI.custom_devicew-DATA.GUI.custom_infoh-DATA.GUI.custom_knob_button_w
-    GUI_MODULE_separator(DATA, 'devicestuff_sep', DATA.GUI.custom_module_xoffs_device) 
-    local device_y = DATA.GUI.custom_infoh+DATA.GUI.custom_offset
+    
     
     DATA.GUI.buttons.devicestuff_name = { x=x_offs,
-                         y=0,
+                         y=y_offs,
                          w=devname_w-DATA.GUI.custom_offset,
                          h=DATA.GUI.custom_infoh-1,
                          txt = name,
@@ -3583,7 +3679,7 @@ Actions panel:
     local txt_a = nil
     if DATA2.notes[DATA2.PARENT_LASTACTIVENOTE].TYPE_DEVICE ~= true then txt_a = DATA.GUI.custom_framea end
     DATA.GUI.buttons.devicestuff_showtrack = { x=x_offs,
-                         y=0,
+                         y=y_offs,
                          w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
                          h=DATA.GUI.custom_infoh-1,
                          txt = 'FX',
@@ -3600,7 +3696,7 @@ Actions panel:
                          
       x_offs = x_offs + DATA.GUI.custom_knob_button_w
       DATA.GUI.buttons.devicestuff_help = { x=x_offs,
-                           y=0,
+                           y=y_offs,
                            w=DATA.GUI.custom_infoh,
                            h=DATA.GUI.custom_infoh-1,
                            txt = '?',
@@ -3616,52 +3712,47 @@ Actions panel:
     if not DATA2.notes[PARENT_LASTACTIVENOTE] then return end
     
                      
-    local x_offs = x_offs_ctrls
-    DATA.GUI.buttons.devicestuff_frame = { x=x_offs,
-                          y=device_y,
-                          w=DATA.GUI.custom_devicew,
-                          h=DATA.GUI.custom_deviceh+DATA.GUI.custom_offset,
-                          ignoremouse = true,
-                          frame_a =1,
-                          frame_col = '#333333',
-                          backgr_fill = 0,
-                          hide=true,
-                          }  
-                          
-    local y_offs = DATA.GUI.buttons.devicestuff_frame.y+ DATA.GUI.custom_offset
-    local w_dev = DATA.GUI.buttons.devicestuff_frame.w
+    y_offs = y_offs + DATA.GUI.custom_infoh + DATA.GUI.custom_offset
+    y_offs_list = y_offs
+    local x_offs= math.floor(DATA.GUI.custom_module_xoffs_device+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
     if DATA2.notes and DATA2.notes[PARENT_LASTACTIVENOTE] and DATA2.notes[PARENT_LASTACTIVENOTE].layers then 
       for layer = 1, #DATA2.notes[PARENT_LASTACTIVENOTE].layers do
-        GUI_MODULE_DEVICE_stuff(DATA, PARENT_LASTACTIVENOTE, layer, y_offs)  
-        y_offs = y_offs + DATA.GUI.custom_deviceentryh
+        GUI_MODULE_DEVICE_stuff(DATA, PARENT_LASTACTIVENOTE, layer, x_offs, y_offs)  
+        y_offs = y_offs + DATA.GUI.custom_deviceentryh 
       end
-    end
-    
+    end  
+    local listh = y_offs - y_offs_list
     DATA.GUI.buttons.devicestuff_frame_fillactive = { x=x_offs,
-                          y=DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
+                          y=y_offs_list,
                           w=DATA.GUI.custom_devicew,
-                          h=y_offs - device_y,--DATA.GUI.custom_deviceh-DATA.GUI.custom_offset+DATA.GUI.custom_offset,
+                          h=listh,
                           ignoremouse = true,
                           frame_a =1,
                           frame_col = '#333333',
                           }
+                          
+                          
+    y_offs = y_offs_list + listh+DATA.GUI.custom_offset
     DATA.GUI.buttons.devicestuff_droparea = { x=x_offs,
-                          y=y_offs+DATA.GUI.custom_offset*2,
+                          y=y_offs,
                           w=DATA.GUI.custom_devicew-1,
-                          h=DATA.GUI.custom_deviceh-(y_offs-device_y)-DATA.GUI.custom_offset*2,
+                          h=DATA.GUI.custom_moduleH-listh-DATA.GUI.custom_infoh-DATA.GUI.custom_offset*3,--DATA.GUI.custom_deviceh-y_offs_list+ ,
                           --ignoremouse = true,
                           txt = 'Drop new instrument here',
                           txt_fontsz = DATA.GUI.custom_device_droptxtsz,
                           --frame_a =0.1,
                           --frame_col = '#333333',
                           onmousefiledrop = function() DATA2:Actions_PadOnFileDrop(DATA2.PARENT_LASTACTIVENOTE, layers_cnt+1) end,
-                          }                           
+                          ignoreboundarylimit = true,
+                          }  
+                         
   end
   -----------------------------------------------------------------------------  
   function GUI_MODULE_PADOVERVIEW_generategrid(DATA)
     if not DATA.GUI.buttons.padgrid then return end
     -- draw notes
-    local cellside = math.floor(DATA.GUI.custom_padgridw / 4)
+    --local cellside = math.floor(DATA.GUI.custom_padgridw / 4)
+    local cellside = math.floor((DATA.GUI.custom_moduleH-DATA.GUI.custom_offset) /31)
     local refnote = 127
     for note = 0, 127 do
     
@@ -3685,7 +3776,7 @@ Actions panel:
       local reduce = 1
       if cellside < 20 then reduce =0 end
       DATA.GUI.buttons['padgrid_but'..note] = { x=  x_offs,
-                          y=math.floor(DATA.GUI.custom_padgridy+DATA.GUI.custom_padgridh - cellside*(1+(math.floor(note/4)))),
+                          y=math.floor(DATA.GUI.custom_module_yoffs_padoverview+DATA.GUI.custom_moduleH - cellside*(1+(math.floor(note/4)))),
                           w=cellside-reduce,
                           h=cellside-reduce,
                           ignoremouse = true,
@@ -3740,11 +3831,12 @@ Actions panel:
     
     
     local x_offs= math.floor(DATA.GUI.custom_module_xoffs_padoverview+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
-    GUI_MODULE_separator(DATA, 'padgrid_sep', DATA.GUI.custom_module_xoffs_padoverview) 
+    local y_offs= DATA.GUI.custom_module_yoffs_padoverview
+    GUI_MODULE_separator(DATA, 'padgrid_sep', DATA.GUI.custom_module_xoffs_padoverview,DATA.GUI.custom_module_yoffs_padoverview) 
     DATA.GUI.buttons.padgrid = { x=math.floor(x_offs),
-                          y=math.floor(DATA.GUI.custom_padgridy),
+                          y=y_offs,
                           w=math.floor(DATA.GUI.custom_padgridw),
-                          h=math.floor(DATA.GUI.custom_padgridh),
+                          h=DATA.GUI.custom_moduleH,
                           txt = '',
                           
                           val = 0,
@@ -3914,6 +4006,7 @@ Actions panel:
   function GUI_MODULE_SAMPLER_peaks()
     if not (DATA2.cursplpeaks and DATA2.cursplpeaks.peaks) then return end
     local note, layer = DATA2.cursplpeaks.note,DATA2.cursplpeaks.layer
+    if not (DATA2.notes and DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[layer]) then return end
     if DATA2.notes[note].layers[layer].ISPLUGIN then return end
     local offs_start = DATA2.notes[note].layers[layer].instrument_samplestoffs
     local offs_end = DATA2.notes[note].layers[layer].instrument_sampleendoffs 
@@ -4048,10 +4141,11 @@ Actions panel:
     local backgr_col = DATA.GUI.custom_backcol2
     if spl_t.instrument_loop == 1 then backgr_fill = 0.2 end
     local txt = 'Loop' if not spl_t.ISRS5K then txt = '' end
+    local modeh = math.floor(DATA.GUI.custom_sampler_peakareah/2)
     DATA.GUI.buttons.sampler_mode1 = { x= DATA.GUI.buttons.sampler_frame.x ,
                         y=DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset,
                         w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
-                        h=DATA.GUI.custom_sampler_readouth-1,
+                        h=modeh-1,
                         --ignoremouse = true,
                         frame_a = DATA.GUI.custom_framea,
                         backgr_col=backgr_col,
@@ -4069,9 +4163,9 @@ Actions panel:
     if spl_t.instrument_loop == 0 then backgr_fill = 0.2 end
     local txt = '1-shot' if not spl_t.ISRS5K then txt = '' end
     DATA.GUI.buttons.sampler_mode2 = { x= DATA.GUI.buttons.sampler_frame.x,
-                        y=DATA.GUI.buttons.sampler_frame.y+DATA.GUI.custom_sampler_readouth+ DATA.GUI.custom_offset+1 ,
+                        y=DATA.GUI.buttons.sampler_frame.y+modeh+ DATA.GUI.custom_offset+1 ,
                         w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
-                        h=DATA.GUI.custom_sampler_readouth-2,
+                        h=modeh,
                         --ignoremouse = true,
                         frame_a = DATA.GUI.custom_framea,
                         txt = txt,
@@ -4099,22 +4193,24 @@ Actions panel:
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&4==0) then return end
     
     local x_offs= math.floor(DATA.GUI.custom_module_xoffs_sampler+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
-    GUI_MODULE_separator(DATA, 'sampler_sep', DATA.GUI.custom_module_xoffs_sampler) 
+    local y_offs= DATA.GUI.custom_module_yoffs_sampler--
+    GUI_MODULE_separator(DATA, 'sampler_sep', DATA.GUI.custom_module_xoffs_sampler,DATA.GUI.custom_module_yoffs_sampler) 
     -- sample name  
     
       local spl_t, note, layer = DATA2:internal_GetActiveNoteLayerTable()
       if not spl_t then return end 
       name = '[Layer '..layer..'] '..(spl_t.name or '')
       DATA.GUI.buttons.sampler_frame = { x=x_offs,
-                            y=DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
+                            y=y_offs+DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
                             w=DATA.GUI.custom_samplerW,
                             h=DATA.GUI.custom_deviceh-DATA.GUI.custom_offset+DATA.GUI.custom_offset,
                             ignoremouse = true,
                             frame_a =1,
                             frame_col = '#333333',
+                            ignoreboundarylimit = true,
                             } 
       DATA.GUI.buttons.sampler_name = { x=x_offs,
-                           y=0,
+                           y=y_offs,
                            w=DATA.GUI.custom_sampler_namebutw-DATA.GUI.custom_offset,
                            h=DATA.GUI.custom_infoh-1,
                            txt = name,
@@ -4122,7 +4218,7 @@ Actions panel:
                            }
       x_offs = x_offs+DATA.GUI.custom_sampler_namebutw                   
       DATA.GUI.buttons.Actions_Sampler_Menu = { x=x_offs,
-                           y=0,
+                           y=y_offs,
                            w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
                            h=DATA.GUI.custom_infoh-1,
                            txt = 'Actions',
@@ -4131,7 +4227,7 @@ Actions panel:
                            }  
       x_offs = x_offs+DATA.GUI.custom_knob_button_w
       DATA.GUI.buttons.sampler_show = { x=x_offs,
-                           y=0,
+                           y=y_offs,
                            w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
                            h=DATA.GUI.custom_infoh-1,
                            txt = 'FX',
@@ -4143,7 +4239,7 @@ Actions panel:
                            }
       x_offs = x_offs+DATA.GUI.custom_knob_button_w--DATA.GUI.custom_infoh
       DATA.GUI.buttons.sampler_help = { x=x_offs,
-                           y=0,
+                           y=y_offs,
                            w=DATA.GUI.custom_infoh,
                            h=DATA.GUI.custom_infoh-1,
                            txt = '?',
@@ -5040,7 +5136,7 @@ Actions panel:
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.48) if ret then local ret2 = VF_CheckReaperVrs(6.69,true) if ret2 then  main() end end
+  local ret = VF_CheckFunctions(3.49) if ret then local ret2 = VF_CheckReaperVrs(6.69,true) if ret2 then  main() end end
   
   
   
