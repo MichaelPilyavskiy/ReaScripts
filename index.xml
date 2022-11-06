@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e76f9af9ffe6f236ddbdca46d9917d0ee58b133a" name="MPL Scripts">
+<index version="1" commit="99ce1a490dd3e5451d67ea22f5e046f476f9704c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
