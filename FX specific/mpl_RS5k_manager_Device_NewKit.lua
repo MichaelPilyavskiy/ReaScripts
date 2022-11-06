@@ -2,7 +2,7 @@
 -- @version 1.0
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
--- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
+-- @noindex
 -- @changelog
 --    + init
 
