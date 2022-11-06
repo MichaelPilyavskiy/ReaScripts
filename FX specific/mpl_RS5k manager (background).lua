@@ -1,25 +1,44 @@
 -- @description RS5k manager
--- @version 3.0beta48
+-- @version 3.0beta49
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
+--    [main] mpl_RS5k_manager_Device_NewKit.lua 
+--    [main] mpl_RS5k_manager_Sampler_PreviousSample.lua 
+--    [main] mpl_RS5k_manager_Sampler_NextSample.lua 
+--    [main] mpl_RS5k_manager_Sampler_RandSample.lua 
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix empty database error
---    # fix some errors when deleting pad/layer
---    # various GUI fixes
---    + GUI: arrange modules in row when height is more than 300px (ralative to scaling if available)
---    + Database: add action to clear current pad
---    + Rename pad rename child track notename and MIDI bus name
---    + Setting/Actions: add action to initialize MIDI bus
---    + MIDI bus: remap all sends on initialisation if was previously removed
---    # Drumrack: various internal fixes for further layout support
+--    + DrumRack: allow to select pads
+--    + Sampler: triggering tune button process also selected pads
+--    # Device: fix crash on removing all device children, then adding new ones
+--    # Device: when removing last layer set device folder depth to normal track
+--    # Device: when addind new layer on empty device set device to folder, device child to last track
+--    # Device: when removing last layer in device folder, make one before last last track enclosing folder
+--    # Drumrack: fix copy/move note
+--    # Drumrack: change pad selection on copy/move
+--    + External actions: allow to run external actions (mostly for controllers)
+--    + External actions: add RS5k_manager_Device_NewKit
+--    + External actions: add RS5k_manager_Sampler_PreviousSample
+--    + External actions: add RS5k_manager_Sampler_NextSample
+--    + External actions: add RS5k_manager_Sampler_RandomSample
 
 
 
 --[[ 
+v3.0beta48 by MPL November 06 2022
+  # fix empty database error
+  # fix some errors when deleting pad/layer
+  # various GUI fixes
+  + GUI: arrange modules in row when height is more than 300px (ralative to scaling if available)
+  + Database: add action to clear current pad
+  + Rename pad rename child track notename and MIDI bus name
+  + Setting/Actions: add action to initialize MIDI bus
+  + MIDI bus: remap all sends on initialisation if was previously removed
+  # Drumrack: various internal fixes for further layout support
+  
 v3.0beta41 by MPL November 05 2022
   + DrumRack: add FX button to show parent FX chain
   + Settings: option to copy files into project directory
@@ -269,7 +288,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta48'
+    DATA.extstate.version = '3.0beta49'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -320,7 +339,7 @@ v3.0beta30 by MPL October 26 2022
                           
                           
                           }
-    
+    DATA2.PADselection = {}
     DATA2.custom_sampler_bandtypemap = {
             [3] = 'Low pass' ,
             [0] = 'Low shelf',
@@ -612,6 +631,7 @@ Actions panel:
     local tr_mute = GetMediaTrackInfo_Value( track, 'B_MUTE' )
     local tr_solo = GetMediaTrackInfo_Value( track, 'I_SOLO' )
     local tr_col = GetMediaTrackInfo_Value( track, 'I_CUSTOMCOLOR' )
+    local tr_folddepth = GetMediaTrackInfo_Value( track, 'I_FOLDERDEPTH' )
     local GUID = reaper.GetTrackGUID( track )
     local retval, tr_name = GetTrackName( track )
     if tr_col&0x1000000==0x1000000 then tr_col = tr_col-0x1000000 end
@@ -631,6 +651,7 @@ Actions panel:
     note_layer_t.tr_col = tr_col
     note_layer_t.tr_name = tr_name
     note_layer_t.TR_GUID = GUID
+    note_layer_t.tr_folddepth = tr_folddepth
   end
   ---------------------------------------------------------------------  
   function DATA2:internal_FormatPan(tr_pan) 
@@ -1490,7 +1511,7 @@ Actions panel:
       DATA.GUI.custom_tab_h = (gfx_h - DATA.GUI.custom_infoh)/#DATA.GUI.custom_tabs
       
     -- modules
-      DATA.GUI.custom_module_startoffsx = DATA.GUI.custom_tab_w + DATA.GUI.custom_offset -- first mod offset
+      DATA.GUI.custom_module_startoffsx = DATA.GUI.custom_tab_w + DATA.GUI.custom_offset -- first mod offset-
       DATA.GUI.custom_module_ctrlreadout_h = math.floor(DATA.GUI.custom_moduleH * 0.1) 
       DATA.GUI.custom_tabnames_txtsz = 15*DATA.GUI.custom_Yrelation--*DATA.GUI.default_scale
       
@@ -2337,7 +2358,7 @@ Actions panel:
   function GUI_MODULE_DRUMRACK_drawlayout_pad(DATA, padID0, note, xoffs, yoffs, padw, padh)   
     local ctrlw = math.floor(padw/3)
     local nameh = math.floor(padh/3)
-    local txt_actrl = 0.2
+    local txt_actrl = 0.1
     -- handle names
       local txt = DATA2:internal_FormatMIDIPitch(note)..' ['..note..']'
       local txt2 = ''
@@ -2351,22 +2372,31 @@ Actions panel:
         if DATA2.database_map.map[note].lock == 1 then txt = '[DB '..note..'] [L] '..(DATA2.database_map.map[note].notename  or '[empty]')  end
       end
       
+    -- mark active
+      local frame_a = .3--DATA.GUI.custom_framea 
+      if DATA2.PARENT_LASTACTIVENOTE and DATA2.PARENT_LASTACTIVENOTE == note then frame_a = 0.7 end
+        
     -- handle col
       local col 
       if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_col then 
         col = DATA2.notes[note].layers[1].tr_col 
         col = string.format("#%06X", col);
+        frame_a = .7--DATA.GUI.custom_framea 
+        if DATA2.PARENT_LASTACTIVENOTE and DATA2.PARENT_LASTACTIVENOTE == note then frame_a = 1 end
        else
       end 
       
-    -- mark active
-      local frame_a = .3--DATA.GUI.custom_framea 
-      if DATA2.PARENT_LASTACTIVENOTE and DATA2.PARENT_LASTACTIVENOTE == note then frame_a = 0.7 end
       
     -- handle availabler note
-      local txt_a  if not DATA2.notes[note] then txt_a = 0.1 end
+      local txt_a=1  if not DATA2.notes[note] then txt_a = 0.3 end
       
     -- frame
+      
+      local backgr_fill_pad, backgr_col_pad
+      if DATA2.PADselection and DATA2.PADselection[note] then 
+        backgr_fill_pad = 0.4
+        backgr_col_pad = '#FFFFFF'
+      end
       DATA.GUI.buttons['drumrackpad_pad'..padID0..'frame'] = { 
           x=xoffs,--math.floor(x_offs0+(padID0%4)*DATA.GUI.custom_drrack_sideX)+1,
           y=yoffs,--y_offs + DATA.GUI.custom_infoh+DATA.GUI.custom_drrackH-DATA.GUI.custom_drrack_sideY*(math.floor(padID0/4)+1)+DATA.GUI.custom_offset,
@@ -2376,6 +2406,8 @@ Actions panel:
           txt='',
           frame_a = frame_a,
           frame_col = col,
+          backgr_fill = backgr_fill_pad,
+          backgr_col = backgr_col_pad,
           --[[frame_arcborder = true,
           frame_arcborderr = DATA.GUI.custom_drrack_arcr,
           frame_arcborderflags = 1|2,]]
@@ -2387,6 +2419,7 @@ Actions panel:
        local backgr_col =DATA.GUI.custom_backcol2-- '#33FF45'
        backgr_col = col
        DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'] = { 
+                              custom_note = note,
                               x=xoffs,
                                y=yoffs,
                                w=padw,
@@ -2435,28 +2468,40 @@ Actions panel:
                                  GUI_MODULE_SAMPLER(DATA)
                                  GUI_MODULE_DATABASE(DATA)  
                                  --end
+                                 
+                                 if not DATA.GUI.Ctrl then
+                                  DATA2.PADselection = {} -- clear selection
+                                  DATA2.PADselection[note] = true
+                                 else
+                                  DATA2.PADselection[note] = true
+                                 end
                                end,
                                onmouseclickR = function() DATA2:Actions_Pad_Menu(note) end,
                                onmousefiledrop = function() DATA2:Actions_PadOnFileDrop(note) end,
                                onmouserelease =  function()  
-                                                   DATA2.PAD_HOLD = nil
-                                                     if not DATA2.ONDOUBLECLICK then
-                                                       DATA2.PARENT_LASTACTIVENOTE = note 
-                                                       GUI_MODULE_DRUMRACK(DATA) 
-                                                       DATA2.ONPARAMDRAG = false
-                                                      else
-                                                       DATA2.ONDOUBLECLICK = nil
-                                                     end
+                                                   if not DATA2.ONDOUBLECLICK then
+                                                   
+                                                      -- copy/move
+                                                      if DATA2.PAD_HOLD then 
+                                                        local padsrc = DATA2.PAD_HOLD
+                                                        for i = 1, #DATA.GUI.mouse_match do
+                                                          if DATA.GUI.buttons[DATA.GUI.mouse_match[i]] and DATA.GUI.buttons[DATA.GUI.mouse_match[i]].custom_note then
+                                                            paddest = DATA.GUI.buttons[DATA.GUI.mouse_match[i]].custom_note
+                                                            DATA2:Actions_Pad_CopyMove(padsrc,paddest, DATA.GUI.Ctrl) 
+                                                            DATA2.PAD_HOLD = nil
+                                                            DATA2.PADselection = {} -- clear selection
+                                                            DATA2.PADselection[paddest] = true
+                                                          end
+                                                        end
+                                                      end
+                                                    
+                                                     DATA2.PARENT_LASTACTIVENOTE = note 
+                                                     GUI_MODULE_DRUMRACK(DATA) 
+                                                     DATA2.ONPARAMDRAG = false
+                                                    else
+                                                     DATA2.ONDOUBLECLICK = nil
+                                                   end
                                                  end,
-                               onmousedrop =  function()  
-                                               
-                                               if DATA2.PAD_HOLD then 
-                                                 local padsrc = DATA2.PAD_HOLD
-                                                 local paddest = note
-                                                 DATA2:Actions_Pad_CopyMove(padsrc,paddest, DATA.GUI.Ctrl) 
-                                                 DATA2.PAD_HOLD = nil
-                                               end 
-                                             end,
                                onmousedoubleclick = function() 
                                                      DATA2.ONDOUBLECLICK = true
                                                    end
@@ -2486,7 +2531,7 @@ Actions panel:
                                onmousedoubleclick = DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].onmousedoubleclick,
                                }  
     -- mute
-      local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_mute and DATA2.notes[note].layers[1].tr_mute >0 then backgr_fill = 0.2 txt_a = nil end
+      local backgr_fill,txt_a= 0,txt_a if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_mute and DATA2.notes[note].layers[1].tr_mute >0 then backgr_fill = 0.2 txt_a = nil end
        DATA.GUI.buttons['drumrackpad_pad'..padID0..'mute'] = { 
                                 x=xoffs,
                                y=yoffs+nameh*2,
@@ -2504,28 +2549,31 @@ Actions panel:
                                onmouseclick = function() DATA2:Actions_Pad_SoloMute(note,_,_, true) end,
                                }   
     -- play
-       local backgr_fill2,frame_actrl0=nil,frame_actrl if DATA2.playingnote_pitch and DATA2.playingnote_pitch == note and DATA.extstate.UI_incomingnoteselectpad == 0  then backgr_fill2 = 0.8 frame_actrl0 = 1 end
+       --[[local backgr_fill2,frame_actrl0=nil,txt_a 
+       ]]--if DATA2.playingnote and DATA2.playingnote == note and DATA.extstate.UI_incomingnoteselectpad == 0  then backgr_fill2 = 0.8 frame_actrl0 = 1 end
+       local backgr_fill,txt_a1= 0,txt_a if DATA2.playingnote == note and DATA.extstate.UI_incomingnoteselectpad == 0 then backgr_fill = 0.1 txt_a1 = nil end
        DATA.GUI.buttons['drumrackpad_pad'..padID0..'play'] = { 
-                                x=xoffs+ctrlw,
+                                x=xoffs+ctrlw, 
                                y=yoffs+nameh*2,
                                w=ctrlw,
                                h=nameh-DATA.GUI.custom_offset,
                                txt='>',
                                txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
-                               txt_a = txt_actrl,
+                               txt_a = txt_a1,
                                txt_col = backgr_col,
-                               prevent_matchrefresh = true,
+                               --prevent_matchrefresh = true,
                                frame_a = 0,
-                               frame_asel = 0,
-                               backgr_fill = 0.2 ,
+                               --frame_asel = 0,
+                               backgr_fill = backgr_fill ,
+                               backgr_col ='#FFFFFF',
                                onmouseclick =    function() DATA2:Actions_StuffNoteOn(note, vel) end,
                                onmouserelease =  function() StuffMIDIMessage( 0, 0x80, note, 0 ) DATA.ontrignoteTS =  nil end,
-                               refresh = true,
+                               --refresh = true,
                                --hide = DATA.extstate.UI_incomingnoteselectpad ==1,
                                }   
       
                         --solo
-       local backgr_fill,txt_a= 0,txt_actrl if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_solo and DATA2.notes[note].layers[1].tr_solo >0 then backgr_fill = 0.2 txt_a = nil end
+       local backgr_fill,txt_a= 0,txt_a if DATA2.notes[note] and DATA2.notes[note].layers and DATA2.notes[note].layers[1] and DATA2.notes[note].layers[1].tr_solo and DATA2.notes[note].layers[1].tr_solo >0 then backgr_fill = 0.2 txt_a = nil end
        DATA.GUI.buttons['drumrackpad_pad'..padID0..'solo'] = { 
                                 x=xoffs+ctrlw*2,
                                y=yoffs+nameh*2,
@@ -2840,7 +2888,18 @@ Actions panel:
         for layerID = 1, #DATA2.notes[note].layers do
           if not layer or (layer and layer==layerID) then
             tr_ptr = DATA2.notes[note].layers[layerID].tr_ptr 
-            if tr_ptr and ValidatePtr2(0,tr_ptr, 'MediaTrack*')then DeleteTrack( tr_ptr) end
+            if tr_ptr and ValidatePtr2(0,tr_ptr, 'MediaTrack*')then 
+            
+              if layerID> 1 and DATA2.notes[note].layers[layerID].tr_folddepth == -1 then -- 2+ last
+                DeleteTrack( tr_ptr) 
+                if DATA2.notes[note].layers[layerID-1] and DATA2.notes[note].layers[layerID-1].tr_ptr then  SetMediaTrackInfo_Value(DATA2.notes[note].layers[layerID-1].tr_ptr,'I_FOLDERDEPTH',-1) end
+               elseif layerID == 1 and #DATA2.notes[note].layers == 1 then -- single left layer in the device
+                DeleteTrack( tr_ptr)
+                SetMediaTrackInfo_Value(DATA2.notes[note].tr_ptr,'I_FOLDERDEPTH',0)
+               elseif (layerID == 1 and #DATA2.notes[note].layers > 1) or (layer>1 and layer<#DATA2.notes[note].layers) then
+                DeleteTrack( tr_ptr)
+              end
+            end
           end
         end
       end
@@ -2956,7 +3015,7 @@ Actions panel:
         func=function() DATA2:Actions_ImportSelectedItems(note) end },      
       {str='Move pad to last recent incoming note',
         func=function() 
-                local notedest = DATA2.playingnote_pitch
+                local notedest = DATA2.playingnote
                 if not notedest then return end
                 DATA2:Actions_Pad_CopyMove(note,notedest) 
                 
@@ -3053,7 +3112,6 @@ Actions panel:
     ]]
     
     
-      
 
     if not layer then layer =1 end
     DATA2:TrackDataWrite(_,{master_set=true})  -- make sure folder is parent
@@ -3076,12 +3134,13 @@ Actions panel:
     end
     
     -- replace existing sample into 1st layer 
-    if DATA2.notes[note] and DATA2.notes[note].layers[1].TYPE_REGCHILD==true and layer == 1 then
+    if DATA2.notes[note] and not DATA2.notes[note].TYPE_DEVICE and DATA2.notes[note].layers[1] and layer == 1 then
       DATA2:Actions_PadOnFileDrop_ReplaceRS5kSample(note, 1, filepath) 
       DATA2:TrackDataRead_GetChildrens() 
       DATA_RESERVED_ONPROJCHANGE(DATA)
       local filepath_sh = GetShortSmplName(filepath) if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, filepath_sh)  
       return
+      
     end
     
     -- create device / move first layer to a device
@@ -3109,13 +3168,17 @@ Actions panel:
     end      
     
     -- add  new layer to device
-    if DATA2.notes[note] and DATA2.notes[note].TYPE_DEVICE == true and DATA2.notes[note].layers and not DATA2.notes[note].layers[layer] then 
+    if DATA2.notes[note] and DATA2.notes[note].TYPE_DEVICE == true and DATA2.notes[note].layers and not DATA2.notes[note].layers[layer] then  
       local devicetr_ID = DATA2.notes[note].devicetr_ID
       local new_tr = DATA2:Actions_PadOnFileDrop_AddChildTrack(devicetr_ID) 
       if new_tr then
         DATA2:Actions_PadOnFileDrop_ExportToRS5k(new_tr, filepath,note) 
         DATA2:Actions_PadOnFileDrop_AddMIDISend(new_tr)
         DATA2:TrackDataWrite(new_tr, {set_devicechild_deviceGUID=DATA2.notes[note].tr_GUID})
+      end
+      if layer == 1 and #DATA2.notes[note].layers == 0 then
+        SetMediaTrackInfo_Value( DATA2.notes[note].tr_ptr, 'I_FOLDERDEPTH',1 )
+        SetMediaTrackInfo_Value( new_tr, 'I_FOLDERDEPTH',-1 )
       end
     end
     
@@ -3769,7 +3832,7 @@ Actions panel:
       
       local backgr_fill2 = 0.4 
       if DATA2.notes[note] then backgr_fill2 = 0.8  blockcol = '#f3f6f4' end
-      if DATA2.playingnote_pitch and DATA2.playingnote_pitch == note  then blockcol = '#ffe494' backgr_fill2 = 0.7 end
+      if DATA2.playingnote and DATA2.playingnote == note  then blockcol = '#ffe494' backgr_fill2 = 0.7 end
       
       
       if note%4 == 0 then x_offs = math.floor(DATA.GUI.buttons.padgrid.x) end
@@ -4412,9 +4475,32 @@ Actions panel:
                         }
   end
   ----------------------------------------------------------------------
+  function GUI_MODULE_SAMPLER_Section_SplReadouts_applytune(DATA, src_t, inc) 
+    local tunenorm = src_t.instrument_tune
+    local tunenorm0 = tunenorm
+    local tunereal = tunenorm * 160 - 80
+    tunereal = tunereal +inc
+    tunenorm = (tunereal+80) / 160
+    local tunenorm_diff = tunenorm - tunenorm0
+    TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
+    for keynote in pairs(DATA2.PADselection) do
+      if DATA2.PADselection[keynote] and keynote ~= note then 
+        if DATA2.notes[keynote].layers then
+          for layer in pairs(DATA2.notes[keynote].layers) do
+            local tunenorm = TrackFX_GetParamNormalized( DATA2.notes[keynote].layers[layer].tr_ptr,  DATA2.notes[keynote].layers[layer].instrument_pos, 15 )
+            TrackFX_SetParamNormalized(  DATA2.notes[keynote].layers[layer].tr_ptr,  DATA2.notes[keynote].layers[layer].instrument_pos, 15 , tunenorm + tunenorm_diff)
+          end
+        end
+      end
+    end
+    
+    DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
+    
+  end
+  ----------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_Section_SplReadouts(DATA) 
     if not DATA.GUI.buttons.sampler_frame then return end
-    local src_t = DATA2:internal_GetActiveNoteLayerTable()
+    local src_t, note = DATA2:internal_GetActiveNoteLayerTable()
     
     local val_res = 0.03
     local woffs= DATA.GUI.custom_knob_button_w+DATA.GUI.custom_offset
@@ -4496,15 +4582,7 @@ Actions panel:
                           txt = '+',
                           frame_a = DATA.GUI.custom_framea,
                           txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
-                          onmouserelease = function()
-                            local inc = 0.05
-                            local tunenorm = src_t.instrument_tune
-                            local tunereal = tunenorm * 160 - 80
-                            tunereal = tunereal +inc
-                            tunenorm = (tunereal+80) / 160
-                            TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
-                            DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
-                          end
+                          onmouserelease = function()GUI_MODULE_SAMPLER_Section_SplReadouts_applytune(DATA, src_t, 0.05)  end
                           }
       DATA.GUI.buttons['sampler_tune_centval'] = { x= xoffs+woffs,--+arc_shift,
                           y=yoffs+h_tune_single,
@@ -4521,15 +4599,7 @@ Actions panel:
                           frame_a = DATA.GUI.custom_framea,
                           txt = '-',
                           txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
-                          onmouserelease = function()
-                            local inc = -0.05
-                            local tunenorm = src_t.instrument_tune
-                            local tunereal = tunenorm * 160 - 80
-                            tunereal = tunereal +inc
-                            tunenorm = (tunereal+80) / 160
-                            TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
-                            DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
-                          end
+                          onmouserelease = function()GUI_MODULE_SAMPLER_Section_SplReadouts_applytune(DATA, src_t, -0.05) end
                           }                        
       DATA.GUI.buttons['sampler_tune_stup'] = { x= xoffs+woffs+w_tune_single,--+arc_shift,
                           y=yoffs,
@@ -4538,15 +4608,7 @@ Actions panel:
                           txt = '+',
                           frame_a = DATA.GUI.custom_framea,
                           txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
-                          onmouserelease = function()
-                            local inc = 1
-                            local tunenorm = src_t.instrument_tune
-                            local tunereal = tunenorm * 160 - 80
-                            tunereal = tunereal +inc
-                            tunenorm = (tunereal+80) / 160
-                            TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
-                            DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
-                          end
+                          onmouserelease = function()GUI_MODULE_SAMPLER_Section_SplReadouts_applytune(DATA, src_t, 1) end
                           }
       DATA.GUI.buttons['sampler_tune_stval'] = { x= xoffs+woffs+w_tune_single,--+arc_shift,
                           y=yoffs+h_tune_single,
@@ -4563,15 +4625,7 @@ Actions panel:
                           frame_a = DATA.GUI.custom_framea,
                           txt = '-',
                           txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
-                          onmouserelease = function()
-                            local inc = -1
-                            local tunenorm = src_t.instrument_tune
-                            local tunereal = tunenorm * 160 - 80
-                            tunereal = tunereal +inc
-                            tunenorm = (tunereal+80) / 160
-                            TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
-                            DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
-                          end
+                          onmouserelease = function()GUI_MODULE_SAMPLER_Section_SplReadouts_applytune(DATA, src_t,-1) end
                           }                         
       DATA.GUI.buttons['sampler_tune_octup'] = { x= xoffs+woffs+w_tune_single*2,
                           y=yoffs,
@@ -4580,15 +4634,7 @@ Actions panel:
                           txt = '+',
                           frame_a = DATA.GUI.custom_framea,
                           txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
-                          onmouserelease = function()
-                            local inc = 12
-                            local tunenorm = src_t.instrument_tune
-                            local tunereal = tunenorm * 160 - 80
-                            tunereal = tunereal +inc
-                            tunenorm = (tunereal+80) / 160
-                            TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
-                            DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
-                          end
+                          onmouserelease = function()GUI_MODULE_SAMPLER_Section_SplReadouts_applytune(DATA, src_t, 12) end
                           }
       DATA.GUI.buttons['sampler_tune_octval'] = { x= xoffs+woffs+w_tune_single*2,
                           y=yoffs+h_tune_single,
@@ -4605,15 +4651,7 @@ Actions panel:
                           frame_a = DATA.GUI.custom_framea,
                           txt = '-',
                           txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
-                          onmouserelease = function()
-                            local inc = -12
-                            local tunenorm = src_t.instrument_tune
-                            local tunereal = tunenorm * 160 - 80
-                            tunereal = tunereal +inc
-                            tunenorm = (tunereal+80) / 160
-                            TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
-                            DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
-                          end
+                          onmouserelease = function()GUI_MODULE_SAMPLER_Section_SplReadouts_applytune(DATA, src_t, -12) end
                           }
                           
     end
@@ -5097,29 +5135,25 @@ Actions panel:
   function DATA_RESERVED_DYNUPDATE()
     if DATA.ontrignoteTS and  os.clock() - DATA.ontrignoteTS >3 then StuffMIDIMessage( 0, 0x80, DATA.ontrignote, 0 ) DATA.ontrignoteTS = nil end
     
-    -- handle incoming note
-    local retval, rawmsg, tsval, devIdx, projPos, projLoopCnt = MIDI_GetRecentInputEvent(0)
-    DATA2.playingnote_trig = false 
-    if retval and retval ~= 0 then
-      DATA2.playingnote_rawmsg = rawmsg
-      DATA2.playingnote_isNoteOn = rawmsg:byte(1)>>4 == 0x9  
-      DATA2.playingnote_isNoteOff = rawmsg:byte(1)>>4 == 0x8 
-      if DATA2.playingnote_isNoteOn == true then 
-        local pitch = rawmsg:byte(2) 
-        local vel = rawmsg:byte(3)
-        DATA2.playingnote_pitch = pitch
-        DATA2.playingnote_vel = vel 
-        DATA2.playingnote_trig = true 
-       elseif DATA2.playingnote_isNoteOff == true then 
-        --DATA2.playingnote_pitch = nil
-        DATA2.playingnote_trig = true 
-      end
-    end
+    DATA2.playingnote_trig = false
     
-    if DATA2.playingnote_trig == true and DATA2.playingnote_isNoteOn == true then 
-      if  DATA.extstate.UI_incomingnoteselectpad == 1 then
-        DATA2.PARENT_LASTACTIVENOTE = DATA2.playingnote_pitch 
-        --DATA2.PARENT_LASTACTIVENOTE_layer = 1 
+    
+    local retval, rawmsg, tsval, devIdx, projPos, projLoopCnt = MIDI_GetRecentInputEvent(0) 
+    if retval and retval ~= 0  then
+      local rawmsg_type = rawmsg:byte(1)>>4
+      if rawmsg_type ==8 or rawmsg_type == 9  then 
+        DATA2.playingnote = rawmsg:byte(2) 
+        if not DATA2.last_playingnote or (DATA2.last_playingnote and DATA2.playingnote ~= DATA2.last_playingnote) then
+          DATA2.playingnote_trig = true
+          DATA2.last_playingnote = DATA2.playingnote
+        end
+      end
+    end 
+    
+    
+    if DATA2.playingnote_trig == true then 
+       if  DATA.extstate.UI_incomingnoteselectpad == 1 then
+        DATA2.PARENT_LASTACTIVENOTE = DATA2.playingnote
         DATA2:TrackDataWrite(_,{master_upd=true}) 
         GUI_MODULE_DEVICE(DATA)  
         GUI_MODULE_SAMPLER(DATA)
@@ -5130,13 +5164,40 @@ Actions panel:
     
     
     if DATA2.FORCEONPROJCHANGE == true then DATA_RESERVED_ONPROJCHANGE(DATA) DATA2.FORCEONPROJCHANGE = nil end
+    DATA_RESERVED_DYNUPDATE_ExtActions()
     
   end
-  
+  ----------------------------------------------------------------------
+  function DATA_RESERVED_DYNUPDATE_ExtActions()
+    local actions = gmem_read(1025)
+    if actions == 0 then return end
+    
+    if actions == 1 then DATA2:Actions_Pad_InitSamplesFromDB() end -- Device / New kit
+    
+    if actions == 2 then   -- prev sample
+      local src_t = DATA2:internal_GetActiveNoteLayerTable()
+      DATA2:Actions_Sampler_NextPrevSample(src_t, 1) 
+    end
+    
+    if actions == 3 then   -- next sample
+      local src_t = DATA2:internal_GetActiveNoteLayerTable()
+      DATA2:Actions_Sampler_NextPrevSample(src_t) 
+    end
+    
+    if actions == 4 then   -- rand sample
+      local src_t = DATA2:internal_GetActiveNoteLayerTable()
+      DATA2:Actions_Sampler_NextPrevSample(src_t, 2) 
+    end
+    
+    gmem_write(1025,0 )
+  end
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.49) if ret then local ret2 = VF_CheckReaperVrs(6.69,true) if ret2 then  main() end end
+  local ret = VF_CheckFunctions(3.49) if ret then local ret2 = VF_CheckReaperVrs(6.69,true) if ret2 then  
+    gmem_attach('RS5K_manager')
+    main() 
+  end end
   
   
   
