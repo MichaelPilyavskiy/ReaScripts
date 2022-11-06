@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.0beta49
+-- @version 3.0beta50
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -11,19 +11,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + DrumRack: allow to select pads
---    + Sampler: triggering tune button process also selected pads
---    # Device: fix crash on removing all device children, then adding new ones
---    # Device: when removing last layer set device folder depth to normal track
---    # Device: when addind new layer on empty device set device to folder, device child to last track
---    # Device: when removing last layer in device folder, make one before last last track enclosing folder
---    # Drumrack: fix copy/move note
---    # Drumrack: change pad selection on copy/move
---    + External actions: allow to run external actions (mostly for controllers)
---    + External actions: add RS5k_manager_Device_NewKit
---    + External actions: add RS5k_manager_Sampler_PreviousSample
---    + External actions: add RS5k_manager_Sampler_NextSample
---    + External actions: add RS5k_manager_Sampler_RandomSample
+--    # refresh reapack index
 
 
 
@@ -288,7 +276,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta49'
+    DATA.extstate.version = '3.0beta50'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
