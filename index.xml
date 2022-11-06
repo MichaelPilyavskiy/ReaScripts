@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="886bed87080172526d57b240d9b7c1a3bf594117" name="MPL Scripts">
+<index version="1" commit="e76f9af9ffe6f236ddbdca46d9917d0ee58b133a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1357,6 +1357,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0910d01aeaabf645f60da41f0172d3fb6a5468a7/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0910d01aeaabf645f60da41f0172d3fb6a5468a7/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0910d01aeaabf645f60da41f0172d3fb6a5468a7/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.49" author="MPL" time="2022-11-06T11:25:55Z">
+        <changelog><![CDATA[# minor GUI fixes]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e76f9af9ffe6f236ddbdca46d9917d0ee58b133a/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e76f9af9ffe6f236ddbdca46d9917d0ee58b133a/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e76f9af9ffe6f236ddbdca46d9917d0ee58b133a/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e76f9af9ffe6f236ddbdca46d9917d0ee58b133a/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e76f9af9ffe6f236ddbdca46d9917d0ee58b133a/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e76f9af9ffe6f236ddbdca46d9917d0ee58b133a/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -4169,6 +4178,20 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/886bed87080172526d57b240d9b7c1a3bf594117/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
         <source file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/886bed87080172526d57b240d9b7c1a3bf594117/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
         <source file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/886bed87080172526d57b240d9b7c1a3bf594117/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
+      </version>
+      <version name="3.0beta48" author="MPL" time="2022-11-06T11:25:55Z">
+        <changelog><![CDATA[# fix empty database error
+# fix some errors when deleting pad/layer
+# various GUI fixes
++ GUI: arrange modules in row when height is more than 300px (ralative to scaling if available)
++ Database: add action to clear current pad
++ Rename pad rename child track notename and MIDI bus name
++ Setting/Actions: add action to initialize MIDI bus
++ MIDI bus: remap all sends on initialisation if was previously removed
+# Drumrack: various internal fixes for further layout support]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e76f9af9ffe6f236ddbdca46d9917d0ee58b133a/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e76f9af9ffe6f236ddbdca46d9917d0ee58b133a/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
+        <source file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e76f9af9ffe6f236ddbdca46d9917d0ee58b133a/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k tools.lua" type="script" desc="RS5k tools">
