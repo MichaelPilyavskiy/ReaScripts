@@ -2,7 +2,6 @@
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @description Set Note mode for focused RS5k
--- @noindex
 -- @changelog
 --    + init
 
