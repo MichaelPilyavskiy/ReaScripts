@@ -1,4 +1,4 @@
--- @description RS5k_manager_Device_NewKit
+-- @description RS5k_manager_Database_NewKit
 -- @version 1.0
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971

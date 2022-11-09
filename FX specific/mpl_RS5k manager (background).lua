@@ -1,31 +1,41 @@
 -- @description RS5k manager
--- @version 3.0beta51
+-- @version 3.0beta52
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
 -- @provides
---    [main] mpl_RS5k_manager_Device_NewKit.lua 
+--    [main] mpl_RS5k_manager_Database_NewSample.lua 
+--    [main] mpl_RS5k_manager_Database_NewKit.lua 
+--    [main] mpl_RS5k_manager_Database_Lock.lua 
 --    [main] mpl_RS5k_manager_Sampler_PreviousSample.lua 
 --    [main] mpl_RS5k_manager_Sampler_NextSample.lua 
 --    [main] mpl_RS5k_manager_Sampler_RandSample.lua 
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Undo: exporting sample to rs5k
---    + Undo: replacing sample to rs5k
---    + Undo: random database kit
---    + Tabs: remember last opened tabs when toggling via rightclick
---    # DrumRack / Pad Overview: fix error on nil note
---    + DrumRack: shift to select bunch of notes following last touched note
---    + Children chain: mimic drumrack pad click behaviour except drag
---    + Children chain: set volume for parent track (layer=1 or device if pad is device)
---    + Database: action to load random sample from database
---    # Improve incoming notes catch a bit
---    # Incoming note trigger only play buttons update rather than redraw all drumrack stuff
+--    # fix error on triggering child chain
+--    # Database: slightly tweak UI for 'New sample' action
+--    # ExtActions: fix name for mpl_RS5k_manager_Database_NewKit
+--    + ExtActions: add mpl_RS5k_manager_Database_NewSample
+--    + ExtActions: add mpl_RS5k_manager_Database_Lock
+--    + Sampler: add option for setting sample listing from database rather than sample path
 
 
 
 --[[ 
+v3.0beta51 by MPL November 08 2022
+  + Undo: exporting sample to rs5k
+  + Undo: replacing sample to rs5k
+  + Undo: random database kit
+  + Tabs: remember last opened tabs when toggling via rightclick
+  # DrumRack / Pad Overview: fix error on nil note
+  + DrumRack: shift to select bunch of notes following last touched note
+  + Children chain: mimic drumrack pad click behaviour except drag
+  + Children chain: set volume for parent track (layer=1 or device if pad is device)
+  + Database: action to load random sample from database
+  # Improve incoming notes catch a bit
+  # Incoming note trigger only play buttons update rather than redraw all drumrack stuff
+  
 v3.0beta50 by MPL November 06 2022  
   --    + DrumRack: allow to select pads
   --    + Sampler: triggering tune button process also selected pads
@@ -302,7 +312,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta51'
+    DATA.extstate.version = '3.0beta52'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -443,8 +453,10 @@ MB(
 [[
 Actions panel:
   New kit = Set samples for pads based on defined databases per sample
+  New sample = Set sample for current pad based on defined database
 Database map parameters:
   Pad name: overwrites pad name
+  DB name: database (list is taken from REAPER Media Explorer)
   Lock = prevent pad from replacing sample
 ]]
 ,'RS5k manager: database',0)       
@@ -454,12 +466,12 @@ Database map parameters:
       
       
       
-elseif page == 3 then  -- pad overview
+--[[elseif page == 3 then  -- pad overview
 MB(
 [[
 
-]]
-,'RS5k manager: overview',0)   
+] ]
+,'RS5k manager: overview',0)   ]]
       
       
 elseif page == 4 then  --  sampler
@@ -475,6 +487,7 @@ Peaks area:
   Prev spl: list previous sample in current sample directory
   Next spl: list next sample in current sample directory
   Rand spl: list random sample in current sample directory
+  DB check: when listing samples takes array from database rather than sample path
   
 Sampler readouts:
   Various readouts if available. rightclick for manually enter value, doubleclick to reset, ctrl for fine tweak
@@ -558,39 +571,19 @@ Actions panel:
       if t.CHOKE_GUID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHOKE_GUID', t.CHOKE_GUID, true)  end
       
     -- all children ---------------------------------------- 
-      if t.set_currentparentforchild then  
-        GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_PARENTGUID', DATA2.tr_GUID, true)
-        return
-      end  
+      if t.set_currentparentforchild then  GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_PARENTGUID', DATA2.tr_GUID, true) return end  
       if t.setchild then
         GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_TYPE_REGCHILD', 1, true)
         GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_TYPE_DEVICECHILD', '', true) 
         return
       end
-      if t.setnote_ID then
-        GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_NOTE', t.setnote_ID, true) 
-        return
-      end
-      if t.setinstr_FXGUID then 
-        GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_FXGUID', t.setinstr_FXGUID, true)
-        return
-      end
-      if t.is_rs5k then 
-        GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_ISRS5K', 1, true)
-        return
-      end      
-      if t.setmidifilt_FXGUID then 
-        GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_MIDIFILTGUID', t.setmidifilt_FXGUID, true)
-        return
-      end
-      if t.FX_REAEQ_GUID then 
-        GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_FX_REAEQ_GUID', t.FX_REAEQ_GUID, true) 
-        return
-      end      
-      if t.FX_WS_GUID then 
-        GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_FX_WS_GUID', t.FX_WS_GUID, true)
-        return
-      end      
+      if t.setnote_ID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_NOTE', t.setnote_ID, true) return end
+      if t.setinstr_FXGUID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_FXGUID', t.setinstr_FXGUID, true) return end
+      if t.is_rs5k then  GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_ISRS5K', 1, true) return end      
+      if t.setmidifilt_FXGUID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_MIDIFILTGUID', t.setmidifilt_FXGUID, true) return end
+      if t.FX_REAEQ_GUID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_FX_REAEQ_GUID', t.FX_REAEQ_GUID, true) return end      
+      if t.FX_WS_GUID then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_FX_WS_GUID', t.FX_WS_GUID, true) return end      
+      if t.SPLLISTDB then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_SPLLISTDB', t.SPLLISTDB, true) return end      
       if t.INSTR_PARAM_CACHE then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_PARAM_CACHE', t.INSTR_PARAM_CACHE, true) return end
       if t.INSTR_PARAM_VOL then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_PARAM_VOL', t.INSTR_PARAM_VOL, true) return end
       if t.INSTR_PARAM_TUNE then GetSetMediaTrackInfo_String( tr, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_PARAM_TUNE', t.INSTR_PARAM_TUNE, true) return end
@@ -855,6 +848,7 @@ Actions panel:
     local ret, INSTR_PARAM_DEC = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_PARAM_DEC', '', false) INSTR_PARAM_DEC = tonumber(INSTR_PARAM_DEC) or nil
     local ret, INSTR_PARAM_SUS = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_PARAM_SUS', '', false) INSTR_PARAM_SUS = tonumber(INSTR_PARAM_SUS) or nil
     local ret, INSTR_PARAM_REL = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_INSTR_PARAM_REL', '', false) INSTR_PARAM_REL = tonumber(INSTR_PARAM_REL) or nil
+    local ret, SPLLISTDB = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_SPLLISTDB', '', false) SPLLISTDB = tonumber(SPLLISTDB) or 0
     
     local _, MACRO_GUID = GetSetMediaTrackInfo_String ( track, 'P_EXT:MPLRS5KMAN_MACRO_GUID', 0, false) if MACRO_GUID == '' then MACRO_GUID = nil end 
     local  ret, tr, macro_pos, macro_links
@@ -905,6 +899,7 @@ Actions panel:
                                           layerID = layer,
                                           MACRO_GUID = MACRO_GUID,
                                           macro_pos = macro_pos,
+                                          SPLLISTDB=SPLLISTDB, -- list samples in path or database
                                           }
       end
       
@@ -1027,7 +1022,7 @@ Actions panel:
       local p_names = {} 
       if note_layer_t.INSTR_PARAM_CACHE ~= 1 then
         for param = 1,  TrackFX_GetNumParams( note_layer_t.tr_ptr, note_layer_t.instrument_pos ) do local retval, buf = TrackFX_GetParamName( note_layer_t.tr_ptr, note_layer_t.instrument_pos, param-1 ) p_names[#p_names+1] = buf end
-        DATA2:TrackDataWrite(note_layer_t.tr_ptr, {INSTR_PARAM_CACHE=1})
+        DATA2:TrackDataWrite(note_layer_t.tr_ptr, {INSTR_PARAM_CACHE=1}) 
       end
       DATA2:TrackDataRead_GetChildrens_InstrumentParams_3rdPartyStuff(note_layer_t, p_names, 'INSTR_PARAM_VOL','instrument_vol','instrument_vol_format', {'general level','amp gain','gain','vol'})
       DATA2:TrackDataRead_GetChildrens_InstrumentParams_3rdPartyStuff(note_layer_t, p_names, 'INSTR_PARAM_TUNE','instrument_tune','instrument_tune_format', {'tune','tuning', 'detune', 'pitch', 'tun'})
@@ -1340,7 +1335,7 @@ Actions panel:
       for note in pairs(DATA2.database_map.map)  do
         if not DATA2.database_map.map[note].cached or (DATA2.database_map.map[note].cached and DATA2.database_map.map[note].cached==false)then
           local list_fp = DATA2.database_map.map[note].dbflist
-          if list_fp then samples = DATA2:Actions_Pad_InitSamplesFromDB_ParseList(list_fp) DATA2.database_map.map[note].samples = samples end
+          if list_fp then samples = DATA2:Actions_DB_InitRandSamples_ParseList(list_fp) DATA2.database_map.map[note].samples = samples end
           DATA2.database_map.map[note].cached = true
         end
       end
@@ -1502,6 +1497,7 @@ Actions panel:
       DATA.GUI.custom_Yrelation = math.min(DATA.GUI.custom_Yrelation, 1.1) -- global W
       DATA.GUI.custom_availableforhorizontalseparation = gfx_h / (DATA.GUI.custom_referenceH* DATA.GUI.custom_Yrelation) > 1.5
       DATA.GUI.custom_gfx_wreal = gfx_w
+      DATA.GUI.custom_anavailableparamtxta = 0.3
       
       DATA.GUI.custom_offset =  math.floor(3 * DATA.GUI.custom_Yrelation)
       DATA.GUI.custom_infoh = math.floor(DATA.GUI.custom_referenceH* DATA.GUI.custom_Yrelation*0.1)
@@ -1514,6 +1510,8 @@ Actions panel:
       DATA.GUI.custom_framea = 0.1 -- greyed drum rack pads
       DATA.GUI.custom_backcol2 = '#f3f6f4' -- grey back  -- device selection
       DATA.GUI.custom_backfill2 = 0.1-- device selection
+      
+      DATA.GUI.custom_layer_scrollw = 10
       
     -- settings / tabs
       local txtdb = 'Database map' if DATA2.database_map and DATA2.database_map.valid == true then txtdb = txtdb..'\n[Active]' end
@@ -1960,7 +1958,7 @@ Actions panel:
   end
   -----------------------------------------------------------------------------  
   function GUI_MODULE_CHILDCHAIN_childs_sub(DATA, note, x_offs, y_offs)  
-    local notenamesw = math.floor(DATA.GUI.custom_childchainw-DATA.GUI.default_layer_scrollw-DATA.GUI.custom_offset- DATA.GUI.custom_knob_button_w)---*3)-- )
+    local notenamesw = math.floor(DATA.GUI.custom_childchainw-DATA.GUI.custom_layer_scrollw-DATA.GUI.custom_offset- DATA.GUI.custom_knob_button_w)---*3)-- )
     
     -- mark active
       local frame_a = .3--DATA.GUI.custom_framea 
@@ -2150,15 +2148,15 @@ Actions panel:
                           onmouseclick =  function() end}
     --[[DATA.GUI.buttons.childchain_frame = { x=x_offs0,
                           y=y_offs0+DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
-                          w=DATA.GUI.custom_childchainw-DATA.GUI.default_layer_scrollw-DATA.GUI.custom_offset,---DATA.GUI.custom_offset,
+                          w=DATA.GUI.custom_childchainw-DATA.GUI.custom_layer_scrollw-DATA.GUI.custom_offset,---DATA.GUI.custom_offset,
                           h=chainframeH,
                           ignoreboundarylimit = true,
                           --frame = 1,
                           onmouseclick =  function() end}    ]]                  
                           
-    DATA.GUI.buttons.childchain_scroll = { x=x_offs0+DATA.GUI.custom_childchainw-DATA.GUI.default_layer_scrollw,
+    DATA.GUI.buttons.childchain_scroll = { x=x_offs0+DATA.GUI.custom_childchainw-DATA.GUI.custom_layer_scrollw,
                           y=y_offs0+DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
-                          w=DATA.GUI.default_layer_scrollw,---DATA.GUI.custom_offset,
+                          w=DATA.GUI.custom_layer_scrollw,---DATA.GUI.custom_offset, 
                           h=DATA.GUI.custom_moduleH-DATA.GUI.custom_infoh-DATA.GUI.custom_offset*2,
                           slider_isslider = true,
                           ignoreboundarylimit = true,
@@ -2443,34 +2441,37 @@ Actions panel:
     return str_ret
   end
   -----------------------------------------------------------------------------  
-  function DATA2:Actions_Sampler_NextPrevSample(spl_t, mode)
+  function DATA2:Actions_Sampler_NextPrevSample(spl_t, mode, extfiles)
     if not mode then mode = 0 end
     if not spl_t.ISRS5K then return end
     fn = spl_t.instrument_filepath:gsub('\\', '/') 
     path = fn:reverse():match('[%/]+.*'):reverse():sub(0,-2)
     cur_file =     fn:reverse():match('.-[%/]'):reverse():sub(2)
     
+    
     -- get files list
       local files = {}
-      local i = 0
-      repeat
-      local file = reaper.EnumerateFiles( path, i )
-      if file and reaper.IsMediaExtension(file:gsub('.+%.', ''), false) then
-        files[#files+1] = file
+      local pathsep = '/'
+      if extfiles then files = extfiles path = '' pathsep = '' cur_file = spl_t.instrument_filepath else
+        local i = 0
+        repeat
+        local file = reaper.EnumerateFiles( path, i )
+        if file and reaper.IsMediaExtension(file:gsub('.+%.', ''), false) then
+          files[#files+1] = file
+        end
+        i = i+1
+        until file == nil
+        table.sort(files, function(a,b) return a<b end )
       end
-      i = i+1
-      until file == nil
-      table.sort(files, function(a,b) return a<b end )
-    
-    
+      
     local trig_file
     if mode == 0  then    -- search file list nex
       if #files < 2 then return end
       for i = 2, #files do
         if files[i-1] == cur_file then 
-          trig_file = path..'/'..files[i] 
+          trig_file = path..pathsep..files[i] 
           break 
-         elseif i == #files then trig_file = path..'/'..files[1] 
+         elseif i == #files then trig_file = path..pathsep..files[1] 
         end 
       end
     end
@@ -2479,9 +2480,9 @@ Actions panel:
       if #files < 2 then return end
       for i = #files-1, 1, -1 do
         if files[i+1] == cur_file then 
-          trig_file = path..'/'..files[i] 
+          trig_file = path..pathsep..files[i] 
           break 
-         elseif i ==1 then trig_file = path..'/'..files[#files] 
+         elseif i ==1 then trig_file = path..pathsep..files[#files] 
         end
       end
     end
@@ -2489,7 +2490,7 @@ Actions panel:
     if mode ==2 then        -- search file list random
       if #files < 2 then return end
       trig_id = math.floor(math.random(#files-1))+1
-      trig_file = path..'/'..files[trig_id] 
+      trig_file = path..pathsep..files[trig_id] 
     end    
     
     if trig_file then 
@@ -2612,7 +2613,7 @@ Actions panel:
       
       
     -- handle availabler note
-      local txt_a=1  if not DATA2.notes[note] then txt_a = 0.3 end
+      local txt_a=1  if not DATA2.notes[note] then txt_a = DATA.GUI.custom_anavailableparamtxta end
       
     -- frame
       
@@ -2710,12 +2711,12 @@ Actions panel:
                                                         for i = 1, #DATA.GUI.mouse_match do
                                                           if DATA.GUI.buttons[DATA.GUI.mouse_match[i]] and DATA.GUI.buttons[DATA.GUI.mouse_match[i]].custom_note then
                                                             paddest = DATA.GUI.buttons[DATA.GUI.mouse_match[i]].custom_note
-                                                            DATA2:Actions_Pad_CopyMove(padsrc,paddest, DATA.GUI.Ctrl) 
-                                                            DATA2.PAD_HOLD = nil
+                                                            DATA2:Actions_Pad_CopyMove(padsrc,paddest, DATA.GUI.Ctrl)  
                                                             DATA2.PADselection = {} -- clear selection
                                                             DATA2.PADselection[paddest] = true
                                                           end
                                                         end
+                                                        DATA2.PAD_HOLD = nil
                                                       end
                                                     
                                                      DATA2.PARENT_LASTACTIVENOTE = note 
@@ -3073,7 +3074,7 @@ Actions panel:
     reaper.Undo_EndBlock2( 0, 'RS5k manager: add instrument', 0xFFFFFFFF )
   end
   -----------------------------------------------------------------------
-  function DATA2:Actions_Pad_InitSamplesFromDB_ParseList(list_fp)
+  function DATA2:Actions_DB_InitRandSamples_ParseList(list_fp)
     local t = {}
     local fullfp =  reaper.GetResourcePath()..'/MediaDB/'..list_fp
     if  not  file_exists( fullfp ) then return end
@@ -3091,7 +3092,7 @@ Actions panel:
     
   end
   -----------------------------------------------------------------------
-  function DATA2:Actions_Pad_InitSamplesFromDB(spec_note)
+  function DATA2:Actions_DB_InitRandSamples(spec_note)
     if not DATA2.tr_valid then return end
     if not (DATA2.database_map and DATA2.database_map.valid and DATA2.database_map.map) then return end
     reaper.Undo_BeginBlock2( 0)
@@ -3778,7 +3779,7 @@ Actions panel:
                          txt = 'New kit',
                          txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function()  
-                                          DATA2:Actions_Pad_InitSamplesFromDB() 
+                                          DATA2:Actions_DB_InitRandSamples() 
                                         end
                          }
     x_offs = x_offs + DATA.GUI.custom_knob_button_w
@@ -3928,32 +3929,35 @@ Actions panel:
                          txt = lockstatename,
                          txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function() 
-                          if not DATA2.database_map then DATA2.database_map = {} end
-                          DATA2.database_map.valid = true
-                          if not DATA2.database_map.map then DATA2.database_map.map = {} end
-                          if not DATA2.database_map.dbname then DATA2.database_map.dbname = 'Untitled' end
-                          if not DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE] then DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE] = {} end 
-                          
-                          local lockstate = DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE].lock or 0
-                          DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE].lock = lockstate~1
-                          DATA2:TrackDataWrite(_, {master_upd=true})
-                          DATA2:TrackDataRead()
-                          DATA.UPD.onGUIinit = true
+                          DATA2:Actions_DB_lock(DATA2.PARENT_LASTACTIVENOTE) 
                          end
                          }  
-    y_offs0 = y_offs0  + DATA.GUI.custom_infoh+DATA.GUI.custom_offset
-    DATA.GUI.buttons.databasestuff_randcurrent = { x=x_offs+ctrl_w,
+    y_offs0 = y_offs0  + DATA.GUI.custom_infoh*2+DATA.GUI.custom_offset
+    DATA.GUI.buttons.databasestuff_randcurrent = { x=x_offs,
                          y=y_offs0,
-                         w=ctrl_w,
+                         w=DATA.GUI.custom_databasew,
                          h=DATA.GUI.custom_infoh-1,
-                         txt = 'Random current spl',
+                         txt = 'New sample',
                          txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function() 
-                          DATA2:Actions_Pad_InitSamplesFromDB(DATA2.PARENT_LASTACTIVENOTE) 
+                          DATA2:Actions_DB_InitRandSamples(DATA2.PARENT_LASTACTIVENOTE) 
                          end}                       
     
   end
-  -----------------------------------------------------------------------------   
+  ------------------------------------------------------------------------------   
+  function DATA2:Actions_DB_lock(note)
+    if not DATA2.database_map then DATA2.database_map = {} end
+    DATA2.database_map.valid = true
+    if not DATA2.database_map.map then DATA2.database_map.map = {} end
+    if not DATA2.database_map.dbname then DATA2.database_map.dbname = 'Untitled' end
+    if not DATA2.database_map.map[note] then DATA2.database_map.map[note] = {} end  
+    local lockstate = DATA2.database_map.map[note].lock or 0
+    DATA2.database_map.map[note].lock = lockstate~1
+    DATA2:TrackDataWrite(_, {master_upd=true})
+    DATA2:TrackDataRead()
+    DATA.UPD.onGUIinit = true
+  end
+  ------------------------------------------------------------------------------   
   function GUI_MODULE_DEVICE(DATA)  
     for key in pairs(DATA.GUI.buttons) do if key:match('devicestuff_') then DATA.GUI.buttons[key] = nil end end
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&2==0) then return end
@@ -4393,11 +4397,11 @@ Actions panel:
   end  
   ----------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_Section_Actions(DATA)  
-    local actions_cnt = 3
+    local actions_cnt = 4
     local action_h = math.floor(DATA.GUI.custom_sampler_peakareah / actions_cnt)
     local x_offs = DATA.GUI.buttons.sampler_frame.x +DATA.GUI.custom_samplerW-DATA.GUI.custom_knob_button_w
     local y_offs = DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset
-    local src_t = DATA2:internal_GetActiveNoteLayerTable()
+    local src_t, note = DATA2:internal_GetActiveNoteLayerTable()
     if not src_t then return end
     DATA.GUI.buttons.sampler_prevspl = { x=x_offs ,
                         y=y_offs,
@@ -4409,7 +4413,13 @@ Actions panel:
                         backgr_fill=backgr_fill,
                         txt = 'Prev spl',
                         txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
-                        onmouseclick = function() DATA2:Actions_Sampler_NextPrevSample(src_t, 1)  end,
+                        onmouseclick = function() 
+                                          if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
+                                            DATA2:Actions_Sampler_NextPrevSample(src_t, 1, DATA2.database_map.map[note].samples)  
+                                           else
+                                            DATA2:Actions_Sampler_NextPrevSample(src_t, 1)
+                                          end
+                                        end
                         }  
     y_offs = y_offs + action_h 
     DATA.GUI.buttons.sampler_nextspl = { x=x_offs ,
@@ -4422,21 +4432,65 @@ Actions panel:
                         backgr_fill=backgr_fill,
                         txt = 'Next spl',
                         txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
-                        onmouseclick = function() DATA2:Actions_Sampler_NextPrevSample(src_t)  end,
+                        onmouseclick = function() 
+                                          if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
+                                            DATA2:Actions_Sampler_NextPrevSample(src_t, nil, DATA2.database_map.map[note].samples)  
+                                           else
+                                            DATA2:Actions_Sampler_NextPrevSample(src_t, nil)
+                                          end
+                                        end
                         }                          
     y_offs = y_offs + action_h
     DATA.GUI.buttons.sampler_randspl = { x=x_offs ,
                         y=y_offs,
                         w=DATA.GUI.custom_knob_button_w,
-                        h=action_h,
+                        h=action_h-DATA.GUI.custom_offset,
                         --ignoremouse = true,
                         frame_a = DATA.GUI.custom_framea,
                         backgr_col=backgr_col,
                         backgr_fill=backgr_fill,
                         txt = 'Rand spl',
                         txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
-                        onmouseclick = function() DATA2:Actions_Sampler_NextPrevSample(src_t, 2)  end,
-                        }                         
+                        onmouseclick = function() 
+                                          if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
+                                            DATA2:Actions_Sampler_NextPrevSample(src_t,2, DATA2.database_map.map[note].samples)  
+                                           else
+                                            DATA2:Actions_Sampler_NextPrevSample(src_t, 2)
+                                          end
+                                        end
+                        }  
+    y_offs = y_offs + action_h
+    local st_w = 20
+    DATA.GUI.buttons.sampler_sdbstate = { x=x_offs ,
+                        y=y_offs,
+                        w=action_h,--DATA.GUI.custom_knob_button_w,
+                        h=action_h,
+                        --ignoremouse = true,
+                        frame_a = DATA.GUI.custom_framea,
+                        backgr_col=backgr_col,
+                        backgr_fill=backgr_fill,
+                        --txt = 'Rand spl',
+                        state = src_t.SPLLISTDB and src_t.SPLLISTDB == 1,
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
+                        onmouseclick = function()  
+                                          src_t.SPLLISTDB=src_t.SPLLISTDB~1--math.abs(1-src_t.SPLLISTDB
+                                          DATA2:TrackDataWrite(src_t.tr_ptr, {SPLLISTDB=src_t.SPLLISTDB}) GUI_MODULE_SAMPLER_Section_Actions(DATA)   end,}
+    local txt_a
+    if not( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then txt_a = DATA.GUI.custom_anavailableparamtxta end
+    DATA.GUI.buttons.sampler_sdbstate_name = { x=x_offs +st_w+DATA.GUI.custom_offset*3,
+                        y=y_offs,
+                        w=DATA.GUI.custom_knob_button_w-st_w-DATA.GUI.custom_offset*3,
+                        h=action_h,
+                        txt_a = txt_a,
+                        --ignoremouse = true,
+                        frame_a = DATA.GUI.custom_framea,
+                        backgr_col=backgr_col,
+                        backgr_fill=backgr_fill,
+                        txt = 'DB',
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
+                        onmouseclick = function()  
+                                        end,                        
+                        }                        
                         
   end
   
@@ -5092,7 +5146,7 @@ Actions panel:
                         txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         frame_a =DATA.GUI.custom_framea, 
                         }
-    local reaeqstate,reaeqstate_a = 'Off',0.3 if src_t.fx_reaeq_bandenabled then reaeqstate = 'On' reaeqstate_a = nil end
+    local reaeqstate,reaeqstate_a = 'Off',DATA.GUI.custom_anavailableparamtxta if src_t.fx_reaeq_bandenabled then reaeqstate = 'On' reaeqstate_a = nil end
     DATA.GUI.buttons.sampler_spl_reaeq_toggle = { 
                         x = x_offs,
                         y= y_offs+filt_rect_h,
@@ -5430,7 +5484,7 @@ Actions panel:
     local actions = gmem_read(1025)
     if actions == 0 then return end
     
-    if actions == 1 then DATA2:Actions_Pad_InitSamplesFromDB() end -- Device / New kit
+    if actions == 1 then DATA2:Actions_DB_InitRandSamples() end -- Device / New kit
     
     if actions == 2 then   -- prev sample
       local src_t = DATA2:internal_GetActiveNoteLayerTable()
@@ -5445,6 +5499,14 @@ Actions panel:
     if actions == 4 then   -- rand sample
       local src_t = DATA2:internal_GetActiveNoteLayerTable()
       DATA2:Actions_Sampler_NextPrevSample(src_t, 2) 
+    end
+    
+    if actions == 5 then   -- rand database sample
+      DATA2:Actions_DB_InitRandSamples(DATA2.PARENT_LASTACTIVENOTE) 
+    end
+
+    if actions == 6 then   -- lock active note database changes
+      DATA2:Actions_DB_lock(DATA2.PARENT_LASTACTIVENOTE)  
     end
     
     gmem_write(1025,0 )
