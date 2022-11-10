@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.0beta52
+-- @version 3.0beta53
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -13,16 +13,27 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix error on triggering child chain
---    # Database: slightly tweak UI for 'New sample' action
---    # ExtActions: fix name for mpl_RS5k_manager_Database_NewKit
---    + ExtActions: add mpl_RS5k_manager_Database_NewSample
---    + ExtActions: add mpl_RS5k_manager_Database_Lock
---    + Sampler: add option for setting sample listing from database rather than sample path
+--    # various UI tweaks
+--    + Macro: make links list scrollable
+--    + Macro: add action to add all RS5k samplers pitch, obey_offsets
+--    + Macro: add action clear all links
+--    # Undo: catch changes outside functions
+--    # Drumrack: fix show dragged pad
+--    # Database: clear database before load
+--    # Database: trigger math.randomseed(os.clock()) before random
+--    + Drumsrack: add action to clear rack
 
 
 
 --[[ 
+v3.0beta52 by MPL November 09 2022
+  # fix error on triggering child chain
+  # Database: slightly tweak UI for 'New sample' action
+  # ExtActions: fix name for mpl_RS5k_manager_Database_NewKit
+  + ExtActions: add mpl_RS5k_manager_Database_NewSample
+  + ExtActions: add mpl_RS5k_manager_Database_Lock
+  + Sampler: add option for setting sample listing from database rather than sample path
+  
 v3.0beta51 by MPL November 08 2022
   + Undo: exporting sample to rs5k
   + Undo: replacing sample to rs5k
@@ -312,7 +323,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta52'
+    DATA.extstate.version = '3.0beta53'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -366,6 +377,7 @@ v3.0beta30 by MPL October 26 2022
                           
     DATA2.PADselection = {}
     DATA2.CHILDRENFX_scroll = 0 
+    DATA2.MACRO_scroll = 0 
     DATA2.custom_sampler_bandtypemap = {
             [3] = 'Low pass' ,
             [0] = 'Low shelf',
@@ -790,6 +802,7 @@ Actions panel:
                 local plink_offset_format = math.floor(plink_offset*100)..'%'
                 local plink_scale_format = math.floor(plink_scale*100)..'%'
                 DATA2.Macro.sliders[macroID].links[linkID] = {
+                    linkID=linkID,
                     param_name = pname,
                     plink_offset = plink_offset,
                     plink_offset_format = plink_offset_format,
@@ -1296,6 +1309,8 @@ Actions panel:
                 dbname = dbname, 
                 parenttrGUID = DATA2.tr_GUID}
     end
+    
+    
       -------------------------------------------------
     if not DATA2.database_map then DATA2.database_map = {} end
     if DATA2.database_map.parenttrGUID and DATA2.database_map.parenttrGUID == DATA2.tr_GUID and not forceload then return end
@@ -1704,90 +1719,57 @@ Actions panel:
   -----------------------------------------------------------------------------  
   function GUI_MODULE_MACRO_links(DATA) 
     if not DATA2.PARENT_LASTACTIVEMACRO then return end
-    local macroID = DATA2.PARENT_LASTACTIVEMACRO
-    local x_offs = DATA.GUI.custom_module_xoffs_macro+DATA.GUI.custom_offset+DATA.GUI.custom_moduleseparatorw+1
-    local y_offs = DATA.GUI.custom_module_yoffs_macro+DATA.GUI.custom_knob_button_h+DATA.GUI.custom_offset+DATA.GUI.custom_infoh
-    local h_frame = DATA.GUI.custom_macroH-DATA.GUI.custom_knob_button_h-DATA.GUI.custom_offset*2
-    --[[DATA.GUI.buttons.macroglob_linksframe = { x=x_offs,
-                          y=y_offs,
-                          w=DATA.GUI.custom_macroW-DATA.GUI.custom_offset*2,
-                          h=h_frame,
-                          txt = '',
-                          frame_a = 1,
-                          frame_col = '#333333',
-                          --frame_asel = 0.3,
-                          --backgr_fill = 0,
-                          ignoremouse = true,
-                          onmouseclick =  function() end}]]
-    local addlink_w = DATA.GUI.custom_macroW-DATA.GUI.custom_offset-DATA.GUI.custom_knob_button_w
-    DATA.GUI.buttons.macroglob_t_addbut = { x=x_offs,
-                          y=y_offs,
-                          w=addlink_w-DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
-                          txt = 'Add link for last touched parameter in the rack child',
-                          txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
-                          --frame_a = 1,
-                          --frame_asel = 0.3,
-                          --backgr_fill = 0,
-                          --ignoremouse = true,
-                          onmouseclick =  function() 
-                                            DATA2:Actions_Macro_AddLink()
-                                          end}  
-    x_offs = x_offs + addlink_w
-    DATA.GUI.buttons.macroglob_t_addbut_actions = { x=x_offs,
-                          y=y_offs,
-                          w=DATA.GUI.custom_knob_button_w,
-                          h=DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
-                          txt = 'Actions',
-                          txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
-                          --frame_a = 1,
-                          --frame_asel = 0.3,
-                          --backgr_fill = 0,
-                          --ignoremouse = true,
-                          onmouseclick =  function() 
-                                            local t = {
-                                              {str= '# (test)Add all RS5k samplers pitch, obey_offsets',
-                                               func = function() 
-                                                        
-                                                        --DATA2:Actions_Macro_AddLink()
-                                                      end
-                                              },
-                                            }
-                                            DATA:GUImenu(t)
-                                          end}                                           
-    y_offs = y_offs + DATA.GUI.custom_macro_linkentryh              
-    if not (DATA2.Macro.sliders[macroID] and DATA2.Macro.sliders[macroID].links) then return end
+    if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&16==0) then return end
+    for key in pairs(DATA.GUI.buttons) do if key:match('macroglob_macrolink') then DATA.GUI.buttons[key] = nil end end 
+    local y_offs = DATA.GUI.buttons.macroglob_frame.y--DATA.GUI.custom_module_yoffs_macro+DATA.GUI.custom_infoh + DATA.GUI.custom_offset
     
-    local w_layername = math.floor(DATA.GUI.buttons.macroglob_Aframe.w*0.55)
-    local w_ctrls = DATA.GUI.buttons.macroglob_Aframe.w - w_layername-DATA.GUI.custom_offset
+    local macroID = DATA2.PARENT_LASTACTIVEMACRO
+    local linkscnt = 0
+    if not DATA2.Macro.sliders[macroID] then return end
+    if  DATA2.Macro.sliders[macroID].links then linkscnt = #DATA2.Macro.sliders[macroID].links end
+    local macroframeH = DATA.GUI.buttons.macroglob_frame.h--DATA.GUI.custom_moduleH-DATA.GUI.custom_infoh-DATA.GUI.custom_offset*2
+    local comh = linkscnt*DATA.GUI.custom_macro_linkentryh
+    if comh > macroframeH then comh = comh - DATA.GUI.custom_macro_linkentryh end
+    
+    local y_offs_list = y_offs - (DATA2.MACRO_scroll*comh)
+    if comh < macroframeH then  y_offs_list = y_offs end 
+    local x_offs0= DATA.GUI.buttons.macroglob_frame.x--math.floor(DATA.GUI.custom_module_xoffs_childchain+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
+    if not DATA2.Macro.sliders[macroID].links then return end
+    for linkID = 1, #DATA2.Macro.sliders[macroID].links do 
+      local x_offs = x_offs0
+      if not (y_offs_list < y_offs or y_offs_list + DATA.GUI.custom_macro_linkentryh > y_offs + macroframeH) then  GUI_MODULE_MACRO_links_sub(DATA, DATA2.Macro.sliders[macroID].links[linkID], x_offs, y_offs_list)   end                     
+      y_offs_list = y_offs_list + DATA.GUI.custom_macro_linkentryh 
+    end
+  end
+  -----------------------------------------------------------------------------  
+  function GUI_MODULE_MACRO_links_sub(DATA,link_t,x_offs0, y_offs ) 
+    local w_layername = math.floor(DATA.GUI.buttons.macroglob_frame.w*0.55)
+    local w_ctrls = DATA.GUI.buttons.macroglob_frame.w - w_layername-DATA.GUI.custom_offset
     local w_ctrls_single = (w_ctrls / 3)
     local backgr_col=DATA.GUI.custom_backcol2
     local backgr_fill_param = 0.2 
     local backgr_fill_name = 0
-    
-    for linkID = 1, #DATA2.Macro.sliders[macroID].links do
-      local t = DATA2.Macro.sliders[macroID].links[linkID]
-      DATA.GUI.buttons['macroglob_'..'macroID'..macroID..'link'..linkID] = { 
-                          x=x_offs,
+    local x_offs = x_offs0
+    y_offs = y_offs + 1
+    local macroID = DATA2.PARENT_LASTACTIVEMACRO
+    local t = link_t
+    DATA.GUI.buttons['macroglob_macrolink'..macroID..'link_name'..link_t.linkID] = { 
+                          x=x_offs0+1,
                           y=y_offs,
                           w=w_layername-DATA.GUI.custom_offset,
                           h=DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
-                          txt = DATA2.Macro.sliders[macroID].links[linkID].param_name,
+                          txt = link_t.param_name,
                           txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
                           frame_a =DATA.GUI.custom_framea,
                           frame_col = '#333333',
                           backgr_fill = backgr_fill_name,
                           backgr_col =backgr_col,
                           onmouseclick = function() 
-                            --DATA2.PARENT_LASTACTIVENOTE_layer = layer 
-                            GUI_MODULE_SAMPLER(DATA)
-                            GUI_MODULE_DEVICE(DATA) 
                           end,
-                          onmousefiledrop = function() DATA2:Actions_PadOnFileDrop(note,layer) end, 
                           } 
       GUI_CTRL(DATA,
         {
-          butkey = 'macroglob_'..'macroID'..macroID..'offs'..linkID,
+          butkey = 'macroglob_macrolink'..macroID..'offs'..link_t.linkID,
           
           x = x_offs+w_layername,
           y= y_offs,
@@ -1815,7 +1797,7 @@ Actions panel:
          } )
       GUI_CTRL(DATA,
         {
-          butkey = 'macroglob_'..'macroID'..macroID..'scale'..linkID,
+          butkey = 'macroglob_macrolink'..macroID..'scale'..link_t.linkID,
           
           x = x_offs+w_layername+w_ctrls_single,
           y= y_offs,
@@ -1839,7 +1821,7 @@ Actions panel:
                                   local ret = DATA2:internal_ParsePercent(str_ret) if ret then return ret end
                                 end
          } ) 
-      DATA.GUI.buttons['macroglob_'..'macroID'..macroID..'linkremove'..linkID] = { 
+      DATA.GUI.buttons['macroglob_macrolink'..macroID..'linkremove'..link_t.linkID] = { 
                           x=x_offs+w_layername+w_ctrls_single*2,
                           y=y_offs,
                           w=w_ctrls_single,
@@ -1856,11 +1838,9 @@ Actions panel:
                             GUI_MODULE_MACRO(DATA) 
                           end,
                           }          
-      y_offs = y_offs + DATA.GUI.custom_macro_linkentryh 
-    end
   end 
   -----------------------------------------------------------------------------  
-  function DATA2:internal_ConfirLTPisChild()
+  function DATA2:internal_ConfirmLTPisChild()
     local t = VF2_GetLTP()
     --[[
     return {tr = tr,
@@ -1894,26 +1874,25 @@ Actions panel:
     end
   end
   -----------------------------------------------------------------------------  
-  function DATA2:Actions_Macro_AddLink()
+  function DATA2:Actions_Macro_AddLink(srct0,fxnumber0,paramnumber0, offset0, scale0)
     if not DATA2.PARENT_LASTACTIVEMACRO then return end 
     if DATA2.PARENT_LASTACTIVEMACRO == -1 then return end
     
-    local ret, srct, fxnumber, paramnumber = DATA2:internal_ConfirLTPisChild()
-    if not ret then return end
+    local ret, srct, fxnumber, paramnumber = DATA2:internal_ConfirmLTPisChild()
+    if not ret and not srct0 then return elseif (srct0 and fxnumber0 and paramnumber0) then
+      srct, fxnumber, paramnumber = srct0, fxnumber0, paramnumber0
+    end 
     
     -- init child macro
-      if not srct.macro_pos then 
-        DATA2:TrackData_InitMacro(true, srct)
-        fxnumber=fxnumber+1
-      end
+      if not srct.macro_pos then DATA2:TrackData_InitMacro(true, srct) fxnumber=fxnumber+1 end 
       
     -- link
       local param_src = tonumber(DATA2.PARENT_LASTACTIVEMACRO)
       local fx_src = tonumber(srct.macro_pos)
       
       TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.active', 1)
-      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.scale', 1)
-      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.offset', 0)
+      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.scale', scale0 or 1)
+      TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.offset', offset0 or 0)
       TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.effect',fx_src)
       TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.param', param_src)
       TrackFX_SetNamedConfigParm(srct.tr_ptr, fxnumber, 'param.'..paramnumber..'.plink.midi_bus', 0)
@@ -2020,7 +1999,7 @@ Actions panel:
                                  GUI_MODULE_DATABASE(DATA)
                                  GUI_MODULE_CHILDCHAIN_childs(DATA)  
                               end,
-                              onmouseclickR = function() DATA2:Actions_Pad_Menu(note) end,
+                              onmouseclickR = function() DATA2:Menu_DrumRack_Actions(note) end,
                               onmousefiledrop = function() DATA2:Actions_PadOnFileDrop(note) end,
                               onmouserelease =  function()  
                                                   if not DATA2.ONDOUBLECLICK then
@@ -2096,7 +2075,7 @@ Actions panel:
                               DATA.GUI.buttons['childchain_note'..note..'vol'].refresh = true
                               DATA.GUI.buttons['childchain_note'..note..'vol'].val = 0.5
                               DATA2.ONDOUBLECLICK = true
-                            end,
+                            end,                     
                         }     
   end
   ----------------------------------------------------------------------------- 
@@ -2106,16 +2085,15 @@ Actions panel:
     local y_offs = DATA.GUI.custom_module_yoffs_childchain+DATA.GUI.custom_infoh + DATA.GUI.custom_offset
     
     local chainframeH = DATA.GUI.custom_moduleH-DATA.GUI.custom_infoh-DATA.GUI.custom_offset*2
-    local comh = (DATA2.active_notes_cnt or 0 )*DATA2.active_notes_cnt
-    if comh > chainframeH*2 then comh = comh - chainframeH end
+    local comh = (DATA2.active_notes_cnt or 0 )*DATA.GUI.custom_childchain_entryh
+    if comh > chainframeH*2 then comh = comh -DATA.GUI.custom_childchain_entryh end
     local y_offs_list = y_offs - (DATA2.CHILDRENFX_scroll*comh)
     if comh < chainframeH then  y_offs_list = y_offs end
     local x_offs0= math.floor(DATA.GUI.custom_module_xoffs_childchain+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
     for note in pairs(DATA2.notes) do 
       local x_offs = x_offs0
       if not (y_offs_list < y_offs or y_offs_list + DATA.GUI.custom_childchain_entryh > y_offs + chainframeH) then  GUI_MODULE_CHILDCHAIN_childs_sub(DATA, note, x_offs, y_offs_list)   end                     
-      y_offs_list = y_offs_list + DATA.GUI.custom_childchain_entryh
-      
+      y_offs_list = y_offs_list + DATA.GUI.custom_childchain_entryh 
     end
   end
   -----------------------------------------------------------------------------  
@@ -2343,12 +2321,68 @@ Actions panel:
     end
   end
   -----------------------------------------------------------------------------  
+  function DATA2:Menu_Macro_Actions()  
+    if not DATA2.PARENT_LASTACTIVEMACRO or (DATA2.PARENT_LASTACTIVEMACRO and DATA2.PARENT_LASTACTIVEMACRO == -1) then  
+      DATA:GUImenu({
+        {str= '# [Macro not selected]',
+         func = function() end
+        },
+      })
+      return
+    end
+    
+    local macroID = DATA2.PARENT_LASTACTIVEMACRO
+    local t = {
+          {str= 'Add all RS5k samplers pitch, obey_offsets',
+           func = function() 
+                    reaper.Undo_BeginBlock2( 0)  
+                    local macro_t = DATA2.Macro.sliders[macroID]
+                    for note in pairs(DATA2.notes) do
+                      if DATA2.notes[note] and DATA2.notes[note].layers then 
+                        for layer in pairs(DATA2.notes[note].layers) do
+                          local srct = DATA2.notes[note].layers[layer]
+                          if srct.ISRS5K then
+                            local instrpos = srct.instrument_pos
+                            local initparam = srct.instrument_tune
+                            local scale = 1
+                            local offs = initparam-0.5
+                            DATA2:Actions_Macro_AddLink(srct,instrpos,15, offs,scale)-- tune
+                          end
+                        end
+                      end
+                    end
+                    reaper.Undo_EndBlock2( 0, 'RS5k manager / Macro / Add tune links', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)   
+                    TrackFX_SetParamNormalized( macro_t.tr_ptr, macro_t.macro_pos, macroID, 0.5 )
+                  end
+          },
+          {str= 'Clear links',
+           func = function() 
+                    if not DATA2.Macro.sliders[macroID].links then return end
+                    reaper.Undo_BeginBlock2( 0)  
+                    for link = #DATA2.Macro.sliders[macroID].links, 1, -1 do
+                      local tmacro = DATA2.Macro.sliders[macroID].links[link]
+                      TrackFX_SetNamedConfigParm(tmacro.src_t.tr_ptr, tmacro.fx_dest, 'param.'..tmacro.param_dest..'plink.active', 0) 
+                    end
+                    reaper.Undo_EndBlock2( 0, 'RS5k manager / Macro / Clear', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)  
+                    DATA2:TrackDataRead_GetParent_Macro()
+                    GUI_MODULE_MACRO(DATA) 
+                  end
+          },
+        }
+    DATA:GUImenu(t)
+  end
+  -----------------------------------------------------------------------------  
   function GUI_MODULE_MACRO(DATA)    
+    local parentlistID = 31 -- reset list blit
+    gfx.setimgdim(parentlistID, -1, -1) 
+    
     for key in pairs(DATA.GUI.buttons) do if key:match('macroglob_') then DATA.GUI.buttons[key] = nil end end 
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&16==0) then return end
     
-    local x_offs= math.floor(DATA.GUI.custom_module_xoffs_macro+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
-    local y_offs= DATA.GUI.custom_module_yoffs_macro
+    local x_offs0= math.floor(DATA.GUI.custom_module_xoffs_macro+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
+    local x_offs= x_offs0
+    local y_offs0= DATA.GUI.custom_module_yoffs_macro
+    local y_offs= y_offs0
     GUI_MODULE_separator(DATA, 'macroglob_sep', DATA.GUI.custom_module_xoffs_macro,DATA.GUI.custom_module_yoffs_macro) 
     
     DATA.GUI.buttons.macroglob_actionframe = { x=x_offs,
@@ -2361,39 +2395,51 @@ Actions panel:
                           --frame_asel = 0.3,
                           --backgr_fill = 0,
                           onmouseclick =  function() end}
-    DATA.GUI.buttons.macroglob_Aframe = { x=x_offs, 
+                              
+    DATA.GUI.buttons.macroglob_Aknobback = { x=x_offs-1, 
                           y=DATA.GUI.custom_module_yoffs_macro+DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
-                          w=DATA.GUI.custom_macroW,
-                          h=DATA.GUI.custom_macroH-DATA.GUI.custom_infoh-DATA.GUI.custom_offset,
+                          w=DATA.GUI.custom_macroW+1,---DATA.GUI.custom_layer_scrollw,
+                          h=DATA.GUI.custom_knob_button_h,--DATA.GUI.custom_macroH-DATA.GUI.custom_infoh-DATA.GUI.custom_offset,
                           txt = '',
                           ignoreboundarylimit = true,
                           frame_a = 0,--0.3,
-                          frame_asel = 0,
+                          --frame_asel = 0,
                           --backgr_fill = 0,
                           ignoremouse = true,
+                          --hide=true,
                           onmouseclick =  function() end}
-                          
+    y_offs = y_offs +   DATA.GUI.custom_infoh + DATA.GUI.custom_offset                
     -- controls 
-    for ctrlid = 1, 8 do
+    local ctrls_cnt = 8
+    for ctrlid = 1, ctrls_cnt do
       local frame_a
       if DATA2.PARENT_LASTACTIVEMACRO and ctrlid == DATA2.PARENT_LASTACTIVEMACRO then 
         frame_a = 1
        else
         frame_a = nil
       end
-      local xshift = DATA.GUI.custom_knob_button_w*(ctrlid-1)+1
+      local xshift = DATA.GUI.custom_knob_button_w*(ctrlid-1)
       local yshift = DATA.GUI.custom_module_yoffs_macro--DATA.GUI.custom_macro_knobH * math.floor((ctrlid/9))
       if ctrlid>=9 then  xshift = DATA.GUI.custom_knob_button_w*(ctrlid-9) end 
+      local wreduce = DATA.GUI.custom_offset
+      if ctrlid==ctrls_cnt then 
+      wreduce = 1
+      end
       local src_t = DATA2.Macro.sliders[ctrlid]
+      local txt_a = DATA.GUI.custom_anavailableparamtxta
+      if DATA2.Macro.sliders[ctrlid] and DATA2.Macro.sliders[ctrlid].links and #DATA2.Macro.sliders[ctrlid].links > 0 then 
+        txt_a = 1
+      end
       GUI_CTRL(DATA,
         {
           butkey = 'macroglob_knob'..ctrlid,
           
           x = x_offs+xshift,
-          y=  DATA.GUI.custom_infoh + DATA.GUI.custom_offset + yshift+1,
-          w = DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+          y=  y_offs+1,
+          w = DATA.GUI.custom_knob_button_w-wreduce,
           h = DATA.GUI.custom_knob_button_h-DATA.GUI.custom_offset,
           frame_a = frame_a,
+          txt_a = txt_a,
           
           ctrlname = 'Macro \n'..ctrlid,
           ctrlval_key = 'macroval',
@@ -2407,7 +2453,7 @@ Actions panel:
                                   GUI_MODULE_MACRO(DATA)    
                                 end,
           func_app =            function(new_val) 
-                                  TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.macro_pos, ctrlid, new_val ) 
+                                  TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.macro_pos, ctrlid, new_val )  
                                 end,
           func_refresh =        function() 
                                   DATA2:TrackDataRead_GetParent_Macro(true) 
@@ -2428,6 +2474,58 @@ Actions panel:
          } )    
          
     end
+    local x_offs= x_offs0
+    y_offs = y_offs + DATA.GUI.custom_knob_button_h+DATA.GUI.custom_offset
+    local addlink_w = DATA.GUI.custom_macroW-DATA.GUI.custom_knob_button_w
+    DATA.GUI.buttons.macroglob_t_addbut = { x=x_offs,
+                          y=y_offs,
+                          w=addlink_w-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
+                          txt = 'Add link for last touched parameter in the rack child',
+                          txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
+                          --frame_a = 1,
+                          --frame_asel = 0.3,
+                          --backgr_fill = 0,
+                          --ignoremouse = true,
+                          onmouseclick =  function() 
+                                            DATA2:Actions_Macro_AddLink()
+                                          end}  
+    x_offs = x_offs + addlink_w
+    DATA.GUI.buttons.macroglob_t_addbut_actions = { x=x_offs,
+                          y=y_offs,
+                          w=DATA.GUI.custom_knob_button_w-1,
+                          h=DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
+                          txt = 'Actions',
+                          txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
+                          --frame_a = 1,
+                          --frame_asel = 0.3,
+                          --backgr_fill = 0,
+                          --ignoremouse = true,
+                          onmouseclick =  function() DATA2:Menu_Macro_Actions() end}    
+    y_offs = y_offs + DATA.GUI.custom_macro_linkentryh
+    local macrolinks_h = (y_offs0 + DATA.GUI.custom_moduleH)-y_offs-DATA.GUI.custom_offset
+    DATA.GUI.buttons.macroglob_frame = { x=x_offs0+1,
+                          y=y_offs-1,
+                          w=DATA.GUI.custom_macroW-DATA.GUI.custom_layer_scrollw-DATA.GUI.custom_offset,---DATA.GUI.custom_offset,
+                          h=macrolinks_h,
+                          ignoreboundarylimit = true,
+                          --hide = true,ignorempuse=true,
+                          frame_a = 0,
+                          frame_asel = 0,
+                          ignoremouse = true,
+                          onmouseclick =  function() end} 
+    DATA.GUI.buttons.macroglob_scroll = { x=x_offs0+DATA.GUI.custom_macroW-DATA.GUI.custom_layer_scrollw,
+                          y=y_offs,--+DATA.GUI.custom_offset,
+                          w=DATA.GUI.custom_layer_scrollw,---DATA.GUI.custom_offset, 
+                          h=macrolinks_h,
+                          slider_isslider = true,
+                          ignoreboundarylimit = true,
+                          val = DATA2.MACRO_scroll,
+                          val_res = -1,
+                          onmousedrag =  function() 
+                                            DATA2.MACRO_scroll = DATA.GUI.buttons.macroglob_scroll.val
+                                            GUI_MODULE_MACRO_links(DATA) 
+                                          end}                                             
     GUI_MODULE_MACRO_links(DATA)                       
   end
   -----------------------------------------------------------------------------  
@@ -2510,16 +2608,19 @@ Actions panel:
     if not (DATA2.PAD_HOLD and DATA2.notes[DATA2.PAD_HOLD] ) then return end
     local mousex = DATA.GUI.x
     local mousey = DATA.GUI.y
+    local custom_drrack_sideY = 100* DATA.GUI.custom_Yrelation
+    if mousey + custom_drrack_sideY/2 > gfx.h/DATA.GUI.default_scale then mousey =gfx.h/DATA.GUI.default_scale - custom_drrack_sideY/2 end
     local txt = 'Drag pad #'..DATA2.PAD_HOLD..'\n'..DATA2.notes[DATA2.PAD_HOLD].name
     local b =  {            x=mousex,
                             y=mousey,
-                            w=DATA.GUI.custom_drrack_sideX,
-                            h=DATA.GUI.custom_drrack_sideY,
+                            w=custom_drrack_sideX,
+                            h=custom_drrack_sideY/2,
                             txt = txt,
                             txt_fontsz = DATA.GUI.custom_drrack_pad_txtsz,
                             frame_arcborder = true,
                             frame_arcborderr = DATA.GUI.custom_drrack_arcr,
                             frame_arcborderflags = 1|2,
+                            ignoreboundarylimit=true,
                             }
     DATA:GUIdraw_Button(b)
   end
@@ -2700,13 +2801,18 @@ Actions panel:
                                  GUI_MODULE_DATABASE(DATA)
                                  GUI_MODULE_CHILDCHAIN_childs(DATA) 
                                end,
-                               onmouseclickR = function() DATA2:Actions_Pad_Menu(note) end,
-                               onmousefiledrop = function() DATA2:Actions_PadOnFileDrop(note) end,
+                               onmouseclickR = function() DATA2:Menu_DrumRack_Actions(note) end,
+                               onmousefiledrop = function() 
+                                                    reaper.Undo_BeginBlock2( 0)
+                                                    DATA2:Actions_PadOnFileDrop(note) 
+                                                    reaper.Undo_EndBlock2( 0, 'RS5k manager / Pad / Drop file', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)
+                                                  end,
                                onmouserelease =  function()  
                                                    if not DATA2.ONDOUBLECLICK then
                                                    
                                                       -- copy/move
                                                       if DATA2.PAD_HOLD then 
+                                                        reaper.Undo_BeginBlock2( 0)
                                                         local padsrc = DATA2.PAD_HOLD
                                                         for i = 1, #DATA.GUI.mouse_match do
                                                           if DATA.GUI.buttons[DATA.GUI.mouse_match[i]] and DATA.GUI.buttons[DATA.GUI.mouse_match[i]].custom_note then
@@ -2716,6 +2822,7 @@ Actions panel:
                                                             DATA2.PADselection[paddest] = true
                                                           end
                                                         end
+                                                        reaper.Undo_EndBlock2( 0, 'RS5k manager / Pad / Copy_Move', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)
                                                         DATA2.PAD_HOLD = nil
                                                       end
                                                     
@@ -2824,7 +2931,7 @@ Actions panel:
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&1==0) then return end
     
     local trname = DATA2.tr_name or '[no data]'   
-    local drracvname_w = DATA.GUI.custom_drrack_sideW-DATA.GUI.custom_knob_button_w*2-DATA.GUI.custom_infoh
+    local drracvname_w = DATA.GUI.custom_drrack_sideW-DATA.GUI.custom_knob_button_w*3-DATA.GUI.custom_infoh
     local x_offs= math.floor(DATA.GUI.custom_module_xoffs_drumrack+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
     local x_offs0=x_offs
     local y_offs= DATA.GUI.custom_module_yoffs_drumrack 
@@ -2864,6 +2971,15 @@ Actions panel:
                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                            onmouserelease = function() if DATA2.PARENT_LASTACTIVENOTE then  DATA2:Actions_Pad_ShowME(DATA2.PARENT_LASTACTIVENOTE, DATA2.PARENT_LASTACTIVENOTE_layer or 1) end  end,
                            } 
+      x_offs = x_offs + DATA.GUI.custom_knob_button_w
+      DATA.GUI.buttons.drumrack_actions = { x=x_offs,
+                           y=y_offs,
+                           w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+                           h=DATA.GUI.custom_infoh-1,
+                           txt = 'Actions',
+                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                           onmouserelease = function() DATA2:Menu_DrumRack_Actions()  end,
+                           }                            
       x_offs = x_offs + DATA.GUI.custom_knob_button_w
       DATA.GUI.buttons.drumrack_help = { x=x_offs,
                            y=y_offs,
@@ -3030,13 +3146,13 @@ Actions panel:
   function DATA2:Actions_PadOnFileDrop_ExportToRS5k(new_tr, filepath,note)
     
     if filepath:match('@fx') then 
-      reaper.Undo_BeginBlock2( 0)
+      --reaper.Undo_BeginBlock2( 0)
       DATA2:Actions_PadOnFileDrop_ExportFXasDeviceInstrument(new_tr, filepath,note)
-      reaper.Undo_EndBlock2( 0, 'RS5k manager: add FX instrument', 0xFFFFFFFF )
+      --reaper.Undo_EndBlock2( 0, 'RS5k manager: add FX instrument', 0xFFFFFFFF )
       return
     end
     
-    reaper.Undo_BeginBlock2( 0)
+    --reaper.Undo_BeginBlock2( 0)
     local instrument_pos = TrackFX_AddByName( new_tr, 'ReaSamplomatic5000', false, 0 ) 
     if instrument_pos == -1 then instrument_pos = TrackFX_AddByName( new_tr, 'ReaSamplomatic5000', false, -1000 ) end 
     if DATA.extstate.CONF_onadd_float == 0 then TrackFX_SetOpen( new_tr, instrument_pos, false ) end
@@ -3071,7 +3187,7 @@ Actions panel:
       if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end
       if DATA.extstate.CONF_onadd_renametrack==1 then GetSetMediaTrackInfo_String( new_tr, 'P_NAME', filepath_sh, true ) end
       
-    reaper.Undo_EndBlock2( 0, 'RS5k manager: add instrument', 0xFFFFFFFF )
+    --reaper.Undo_EndBlock2( 0, 'RS5k manager: add instrument', 0xFFFFFFFF ) -- reaper.Undo_BeginBlock2( 0)
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_DB_InitRandSamples_ParseList(list_fp)
@@ -3095,7 +3211,11 @@ Actions panel:
   function DATA2:Actions_DB_InitRandSamples(spec_note)
     if not DATA2.tr_valid then return end
     if not (DATA2.database_map and DATA2.database_map.valid and DATA2.database_map.map) then return end
-    reaper.Undo_BeginBlock2( 0)
+    --reaper.Undo_BeginBlock2( 0)
+    
+    -- https://stackoverflow.com/questions/18199844/lua-math-random-not-working
+      math.randomseed(os.time())
+      math.random(); math.random(); math.random()
     
     for note in pairs(DATA2.database_map.map)  do
       if not spec_note or (spec_note and spec_note == note) then
@@ -3103,20 +3223,21 @@ Actions panel:
         if lock==0 or ( lock ~= 0 and spec_note) then
           local samples_t = DATA2.database_map.map[note].samples
           if samples_t and #samples_t > 0 then
-            local randID = VF_lim(math.floor(math.random()*#samples_t),1,#samples_t)
+            local randomnum = math.floor(math.random()*#samples_t)
+            local randID = VF_lim(randomnum,1,#samples_t)
             local new_sample = samples_t[randID]
             DATA2:Actions_PadOnFileDrop_Sub(note,1,new_sample)
           end
         end 
       end
     end
-    reaper.Undo_EndBlock2( 0, 'RS5k manager: init random database kit', 0xFFFFFFFF ) 
+    --reaper.Undo_EndBlock2( 0, 'RS5k manager: init random database kit', 0xFFFFFFFF ) 
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_Pad_Clear(note, layer)  
     if not DATA2.notes[note] then return end 
     
-    reaper.Undo_BeginBlock2( 0)
+    --reaper.Undo_BeginBlock2( 0)
     local  tr_ptr
     if DATA2.notes[note].TYPE_DEVICE then 
       -- remove device with layers
@@ -3128,7 +3249,7 @@ Actions panel:
             
               if layerID> 1 and DATA2.notes[note].layers[layerID].tr_folddepth == -1 then -- 2+ last
                 DeleteTrack( tr_ptr) 
-                if DATA2.notes[note].layers[layerID-1] and DATA2.notes[note].layers[layerID-1].tr_ptr then  SetMediaTrackInfo_Value(DATA2.notes[note].layers[layerID-1].tr_ptr,'I_FOLDERDEPTH',-1) end
+                if DATA2.notes[note].layers[layerID-1] and DATA2.notes[note].layers[layerID-1].tr_ptr and ValidatePtr2(0,DATA2.notes[note].layers[layerID-1].tr_ptr, 'MediaTrack*') then  SetMediaTrackInfo_Value(DATA2.notes[note].layers[layerID-1].tr_ptr,'I_FOLDERDEPTH',-1) end
                elseif layerID == 1 and #DATA2.notes[note].layers == 1 then -- single left layer in the device
                 DeleteTrack( tr_ptr)
                 SetMediaTrackInfo_Value(DATA2.notes[note].tr_ptr,'I_FOLDERDEPTH',0)
@@ -3158,7 +3279,7 @@ Actions panel:
     end
     -- set parent track selected
     reaper.SetOnlyTrackSelected( DATA2.tr_ptr )
-    reaper.Undo_EndBlock2( 0, 'RS5k manager: clear layer', 0xFFFFFFFF ) --reaper.Undo_BeginBlock2( 0)
+    --reaper.Undo_EndBlock2( 0, 'RS5k manager: clear layer', 0xFFFFFFFF ) --reaper.Undo_BeginBlock2( 0)
   end 
   -----------------------------------------------------------------------
   function DATA2:Actions_Pad_UpdateNote(note, newnote)
@@ -3183,7 +3304,7 @@ Actions panel:
     if not (padsrc and paddest) then return end 
     if padsrc == paddest then return end
     
-    reaper.Undo_BeginBlock2( 0)
+    --reaper.Undo_BeginBlock2( 0)
     if not iscopy then 
       if DATA2.notes[paddest] then DATA2:Actions_Pad_UpdateNote(paddest, padsrc) end
     --[[ remove old pad
@@ -3217,7 +3338,7 @@ Actions panel:
      
     DATA2:TrackDataRead()
     GUI_MODULE_DRUMRACK(DATA) 
-    reaper.Undo_EndBlock2( 0, 'RS5k manager: copy/move layer', 0xFFFFFFFF ) --reaper.Undo_BeginBlock2( 0)
+    --reaper.Undo_EndBlock2( 0, 'RS5k manager: copy/move layer', 0xFFFFFFFF ) --reaper.Undo_BeginBlock2( 0)
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_Pad_Rename(note,layer) 
@@ -3240,27 +3361,53 @@ Actions panel:
     end
   end
   -----------------------------------------------------------------------
-  function DATA2:Actions_Pad_Menu(note) 
+  function DATA2:Menu_DrumRack_Actions(note)  
     if not DATA2.tr_valid then return end
-    local t = { 
-      {str='Rename pad',
-        func=function() DATA2:Actions_Pad_Rename(note) end },  
-      {str='Clear pad',
-        func=function() DATA2:Actions_Pad_Clear(note) end },  
-      {str='|Import selected items to pads, starting this pad',
-        func=function() DATA2:Actions_ImportSelectedItems(note) end },      
-      {str='Move pad to last recent incoming note',
-        func=function() 
-                local notedest = DATA2.playingnote
-                if not notedest then return end
-                DATA2:Actions_Pad_CopyMove(note,notedest) 
+    
+    if note then 
+      local t = { 
+        {str='Rename pad',
+          func=function() DATA2:Actions_Pad_Rename(note) end },  
+        {str='Clear pad',
+          func=function() 
+                  reaper.Undo_BeginBlock2( 0)
+                  DATA2:Actions_Pad_Clear(note) 
+                  reaper.Undo_EndBlock2( 0, 'RS5k manager / Pad / Clear', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)  
+                end },  
+        {str='|Import selected items to pads, starting this pad',
+          func=function() DATA2:Actions_ImportSelectedItems(note) end },      
+        {str='Move pad to last recent incoming note',
+          func=function() 
+                  local notedest = DATA2.playingnote
+                  if not notedest then return end
+                  DATA2:Actions_Pad_CopyMove(note,notedest)  
+                end },
+       
+           
+                  }
                 
-              end },
-     
+      DATA:GUImenu(t)
+      return
+    end
+    
+    -- common
+    local t = { 
+      {str='Clear rack',
+        func=function() 
+                local ret =  reaper.MB( 'Are you sure you want to REMOVE all DrumRack tracks', 'RS5k manager', 3 )
+                if ret == 6 then 
+                  reaper.Undo_BeginBlock2( 0)
+                  for note in pairs(DATA2.notes) do
+                    DATA2:Actions_Pad_Clear(note) 
+                  end
+                  reaper.Undo_EndBlock2( 0, 'RS5k manager / Pad / Clear', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)  
+                end
+              end },  
          
                 }
               
     DATA:GUImenu(t)
+    
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_ImportSelectedItems(note) 
@@ -3310,7 +3457,7 @@ Actions panel:
   end
   ----------------------------------------------------------------------- 
   function DATA2:Actions_PadOnFileDrop_ReplaceRS5kSample(note,layer0,filepath) 
-    reaper.Undo_BeginBlock2( 0)
+    --reaper.Undo_BeginBlock2( 0)
     local layer = layer0 or 1
     local new_tr = DATA2.notes[note].layers[layer].tr_ptr
     local instrument_pos = DATA2.notes[note].layers[layer].instrument_pos
@@ -3327,7 +3474,7 @@ Actions panel:
       filepath_sh = GetShortSmplName(filepath)
       if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end
       GetSetMediaTrackInfo_String( DATA2.notes[note].layers[layer].tr_ptr, 'P_NAME', filepath_sh, true ) 
-    reaper.Undo_EndBlock2( 0, 'RS5k manager: replace sample', 0xFFFFFFFF ) 
+    --reaper.Undo_EndBlock2( 0, 'RS5k manager: replace sample', 0xFFFFFFFF ) 
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_PadOnFileDrop_Sub(note, layer, filepath)
@@ -3364,9 +3511,8 @@ Actions panel:
       DATA2:TrackDataRead_GetChildrens() 
       DATA_RESERVED_ONPROJCHANGE(DATA)
       local filepath_sh = GetShortSmplName(filepath) if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end 
-        SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, filepath_sh)  
-        SetTrackMIDINoteNameEx( 0,new_tr, note, -1, filepath_sh)  
-        
+        SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, filepath_sh) 
+        SetTrackMIDINoteNameEx( 0,new_tr, note, -1, filepath_sh)
       return
     end
     
@@ -3376,8 +3522,7 @@ Actions panel:
       DATA2:TrackDataRead_GetChildrens() 
       DATA_RESERVED_ONPROJCHANGE(DATA)
       local filepath_sh = GetShortSmplName(filepath) if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, filepath_sh)  
-      return
-      
+      return 
     end
     
     -- create device / move first layer to a device
@@ -3652,7 +3797,7 @@ Actions panel:
                         }                         
   end
   ----------------------------------------------------------------------------- 
-  function GUI_MODULE_DATABASE_Menu(DATA)
+  function DATA2:Menu_Database_Actions(DATA)
     local name1, t1 = '[empty]', DATA2:Database_Load(DATA.extstate.CONF_database_map1) if t1 and t1.dbname then name1 = t1.dbname end
     local name2, t2 = '[empty]', DATA2:Database_Load(DATA.extstate.CONF_database_map2) if t2 and t2.dbname then name2 = t2.dbname end
     local name3, t3 = '[empty]', DATA2:Database_Load(DATA.extstate.CONF_database_map3) if t3 and t3.dbname then name3 = t3.dbname end
@@ -3719,6 +3864,7 @@ Actions panel:
     {str = name1,
      func = function() 
               DATA2.PARENT_DATABASEMAP = DATA.extstate.CONF_database_map1
+              DATA2.database_map = {}
               DATA2:Database_Load()
               DATA2:TrackDataWrite(_, {master_upd=true})
               DATA2:TrackDataRead()
@@ -3727,6 +3873,7 @@ Actions panel:
     {str = name2,
      func = function() 
               DATA2.PARENT_DATABASEMAP = DATA.extstate.CONF_database_map2
+              DATA2.database_map = {}
               DATA2:Database_Load()
               DATA2:TrackDataWrite(_, {master_upd=true})
               DATA2:TrackDataRead()
@@ -3735,6 +3882,7 @@ Actions panel:
     {str = name3,
      func = function() 
               DATA2.PARENT_DATABASEMAP = DATA.extstate.CONF_database_map3
+              DATA2.database_map = {}
               DATA2:Database_Load()
               DATA2:TrackDataWrite(_, {master_upd=true})
               DATA2:TrackDataRead()
@@ -3743,6 +3891,7 @@ Actions panel:
     {str = name4,
      func = function() 
               DATA2.PARENT_DATABASEMAP = DATA.extstate.CONF_database_map4
+              DATA2.database_map = {}
               DATA2:Database_Load()
               DATA2:TrackDataWrite(_, {master_upd=true})
               DATA2:TrackDataRead()
@@ -3779,7 +3928,9 @@ Actions panel:
                          txt = 'New kit',
                          txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function()  
+                                          reaper.Undo_BeginBlock2( 0)
                                           DATA2:Actions_DB_InitRandSamples() 
+                                          reaper.Undo_EndBlock2( 0, 'RS5k manager / Database / New kit', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)
                                         end
                          }
     x_offs = x_offs + DATA.GUI.custom_knob_button_w
@@ -3789,7 +3940,7 @@ Actions panel:
                          h=DATA.GUI.custom_infoh-1,
                          txt = dbname_global,
                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                         onmouseclick = function() GUI_MODULE_DATABASE_Menu(DATA)  end
+                         onmouseclick = function() DATA2:Menu_Database_Actions(DATA)  end  
                          }
     x_offs = x_offs + dbname_w
     DATA.GUI.buttons.databasestuff_help = { x=x_offs,
@@ -3940,7 +4091,9 @@ Actions panel:
                          txt = 'New sample',
                          txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function() 
+                          reaper.Undo_BeginBlock2( 0)
                           DATA2:Actions_DB_InitRandSamples(DATA2.PARENT_LASTACTIVENOTE) 
+                          reaper.Undo_EndBlock2( 0, 'RS5k manager / Database / New sample', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)
                          end}                       
     
   end
@@ -3986,7 +4139,7 @@ Actions panel:
                          h=DATA.GUI.custom_infoh-1,
                          txt = name,
                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                         onmouseclick = function() DATA2:Actions_Pad_Menu(DATA2.PARENT_LASTACTIVENOTE) end
+                         onmouseclick = function() DATA2:Menu_DrumRack_Actions(DATA2.PARENT_LASTACTIVENOTE) end
                          }
     x_offs = x_offs + devname_w    
     local txt_a = nil
@@ -4270,7 +4423,7 @@ Actions panel:
                         layer=layer}
   end 
   ----------------------------------------------------------------------
-  function DATA2:Actions_Sampler_Menu_SetStartToLoudestPeak() 
+  function DATA2:Menu_Sampler_Actions_SetStartToLoudestPeak() 
     local note = DATA2.PARENT_LASTACTIVENOTE
     local layer = DATA2.PARENT_LASTACTIVENOTE_layer or 1
     if not note then return end 
@@ -4282,7 +4435,7 @@ Actions panel:
     TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 13, loopst ) 
   end    
   ----------------------------------------------------------------------
-  function DATA2:Actions_Sampler_Menu_CropToAudibleBoundaries()
+  function DATA2:Menu_Sampler_Actions_CropToAudibleBoundaries()
     local note = DATA2.PARENT_LASTACTIVENOTE
     local layer = DATA2.PARENT_LASTACTIVENOTE_layer or 1
     if not note then return end 
@@ -4301,15 +4454,15 @@ Actions panel:
     TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 14, loopend ) 
   end
   ----------------------------------------------------------------------
-  function  DATA2:Actions_Sampler_Menu()  
+  function  DATA2:Menu_Sampler_Actions()   
     local t = {
               
   {str = '#Actions'},
   {str = 'Crop sample to audible boundaries, threshold '..DATA.extstate.CONF_cropthreshold..'dB',
-   func = function() DATA2:Actions_Sampler_Menu_CropToAudibleBoundaries()   end},
+   func = function() DATA2:Menu_Sampler_Actions_CropToAudibleBoundaries()   end},
 
   {str = 'Set start offset to a loudest peak',
-   func = function() DATA2:Actions_Sampler_Menu_SetStartToLoudestPeak()   end},
+   func = function() DATA2:Menu_Sampler_Actions_SetStartToLoudestPeak()   end},
    
   
               }
@@ -4580,13 +4733,13 @@ Actions panel:
                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                            }
       x_offs = x_offs+DATA.GUI.custom_sampler_namebutw                   
-      DATA.GUI.buttons.Actions_Sampler_Menu = { x=x_offs,
+      DATA.GUI.buttons.Menu_Sampler_Actions = { x=x_offs,
                            y=y_offs,
                            w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
                            h=DATA.GUI.custom_infoh-1,
                            txt = 'Actions',
                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                           onmouserelease = function()  DATA2:Actions_Sampler_Menu()  end,
+                           onmouserelease = function()  DATA2:Menu_Sampler_Actions()  end,
                            }  
       x_offs = x_offs+DATA.GUI.custom_knob_button_w
       DATA.GUI.buttons.sampler_show = { x=x_offs,
@@ -4626,7 +4779,7 @@ Actions panel:
                             data = {['datatype'] = 'samplepeaks'},
                             onmousefiledrop = function() if DATA2.PARENT_LASTACTIVENOTE then DATA2:Actions_PadOnFileDrop(DATA2.PARENT_LASTACTIVENOTE) end end,
                             onmouseclick = function() if DATA2.PARENT_LASTACTIVENOTE then DATA2:Actions_StuffNoteOn(DATA2.PARENT_LASTACTIVENOTE) end  end,
-                            onmouseclickR = function() DATA2:Actions_Sampler_Menu()  end,
+                            onmouseclickR = function() DATA2:Menu_Sampler_Actions()  end,
                             refresh = true,
                             }
     
@@ -4664,6 +4817,7 @@ Actions panel:
                         val_res = t.ctrlval_res,
                         val_min = t.ctrlval_min,
                         val_max = t.ctrlval_max,
+                        
                         onmouseclick = function() 
                                           local new_val = DATA.GUI.buttons[t.butkey..'frame'].val
                                           if params_t.func_atclick then params_t.func_atclick(new_val) end
@@ -4742,6 +4896,7 @@ Actions panel:
                           frame_col = '#333333',
                           txt = t.ctrlname,
                           txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
+                          txt_a = t.txt_a,
                           }  
     end
     
@@ -4754,6 +4909,7 @@ Actions panel:
                         frame_col = '#333333',
                         txt = src_t[t.ctrlval_format_key],
                         txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
+                        txt_a = t.txt_a,
                         }                         
     if t.h < DATA.GUI.custom_module_ctrlreadout_h * 1.9   then 
       DATA.GUI.buttons[t.butkey..'val'].y = t.y +1
@@ -4782,20 +4938,22 @@ Actions panel:
     tunereal = tunereal +inc
     tunenorm = (tunereal+80) / 160
     local tunenorm_diff = tunenorm - tunenorm0
-    TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm )
+    local cnt_selection = 0 for keynote in pairs(DATA2.PADselection) do if DATA2.PADselection[keynote] then cnt_selection = cnt_selection + 1 end end
+    if cnt_selection <2 then TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm ) return end
     for keynote in pairs(DATA2.PADselection) do
-      if DATA2.PADselection[keynote] and keynote ~= note then 
+      if DATA2.PADselection[keynote]  then 
         if DATA2.notes[keynote].layers then
           for layer in pairs(DATA2.notes[keynote].layers) do
             local tunenorm = TrackFX_GetParamNormalized( DATA2.notes[keynote].layers[layer].tr_ptr,  DATA2.notes[keynote].layers[layer].instrument_pos, 15 )
             TrackFX_SetParamNormalized(  DATA2.notes[keynote].layers[layer].tr_ptr,  DATA2.notes[keynote].layers[layer].instrument_pos, 15 , tunenorm + tunenorm_diff)
+            
           end
         end
       end
     end
     
     DATA2:TrackDataRead_GetChildrens_InstrumentParams(src_t)
-    
+    GUI_MODULE_SAMPLER_Section_SplReadouts(DATA) -- referesjh readouts
   end
   ----------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_Section_SplReadouts(DATA) 
@@ -4889,6 +5047,7 @@ Actions panel:
                           w=w_tune_single-1,
                           h=h_tune_single,
                           txt = '.05',
+                          ignoremouse = true,
                           txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
                           frame_a = 0,
                           }
@@ -4914,6 +5073,7 @@ Actions panel:
                           y=yoffs+h_tune_single,
                           w=w_tune_single-1,
                           h=h_tune_single,
+                          ignoremouse = true,
                           txt = 'st',
                           txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
                           frame_a = 0,
@@ -4940,6 +5100,7 @@ Actions panel:
                           y=yoffs+h_tune_single,
                           w=w_tune_single-1,
                           h=h_tune_single,
+                          ignoremouse = true,
                           txt = 'oct',
                           txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
                           frame_a = 0,
@@ -5437,7 +5598,7 @@ Actions panel:
     
     DATA2.playingnote_trig = false
     
-    t_recent = {}
+    local t_recent = {}
     local idx = 0
     local evt_id = 0
     while true do
