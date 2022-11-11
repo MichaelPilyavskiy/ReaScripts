@@ -1384,6 +1384,7 @@
       local readouth = settingsit_h-2
       if t.readouthlev then readouth = settingsit_h * t.readouthlev -2 end
       
+      
       DATA.GUI.buttons[key] = 
       {
         x = settingsxoffs+level*settingsit_offs,
@@ -1394,7 +1395,7 @@
         txt = t.str,
         txt_flags=4 ,
         frame_a=0,
-        ignoremouse = t.func_onrelease==nil,
+        ignoremouse = t.func_onrelease==nil and t.func==nil,
         --frame_asel=0,
         onmouserelease = function()   
                             if t.func then t.func() end 
