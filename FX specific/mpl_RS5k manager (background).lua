@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.0beta58
+-- @version 3.0
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -13,331 +13,8 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # reapack index test
+--    + init release, for full changelog see ActionList > Browse packages > RS5k manager > History
 
-
-
---[[ 
-
-v3.0beta57 by MPL November 12 2022
-  # Macro: refresh offset/scale at change
-  # Macro: decrease val resolution
-  + Macro: scroll list with mousewhell
-  + ChildrenChain: show in sorted order
-  + ChildrenChain: allow to select choke group
-  + ChildrenChain: allow to change parent track pan
-  + ChildrenChain: scroll list with mousewhell
-  
-v3.0beta55 by MPL November 12 2022
-  # Make active pad frame more bright
-  # Macro: move actions to the top of module
-  # Macro: use selected pads for add tune link action or all pads if no pad selected
-  + Macro: show pad names for links
-  + Drumrack: add action to select/unselect all pads
-  + Settings: add children chin to tab defaults options
-  # Settings: cleanup a bit
-  + Pad overview: allow to change pad overview active offset quantize to 4 or 8 pads
-  + Undo: add for drop file into sampler area
-  + test Undo: add for remove single link
-  + test Undo: add for add single link
-  
-v3.0beta53 by MPL November 10 2022
-  # various UI tweaks
-  + Macro: make links list scrollable
-  + Macro: add action to add all RS5k samplers pitch, obey_offsets
-  + Macro: add action clear all links
-  # Undo: catch changes outside functions
-  # Drumrack: fix show dragged pad
-  # Database: clear database before load
-  # Database: trigger math.randomseed(os.clock()) before random
-  + Drumsrack: add action to clear rack
-  
-v3.0beta52 by MPL November 09 2022
-  # fix error on triggering child chain
-  # Database: slightly tweak UI for 'New sample' action
-  # ExtActions: fix name for mpl_RS5k_manager_Database_NewKit
-  + ExtActions: add mpl_RS5k_manager_Database_NewSample
-  + ExtActions: add mpl_RS5k_manager_Database_Lock
-  + Sampler: add option for setting sample listing from database rather than sample path
-  
-v3.0beta51 by MPL November 08 2022
-  + Undo: exporting sample to rs5k
-  + Undo: replacing sample to rs5k
-  + Undo: random database kit
-  + Tabs: remember last opened tabs when toggling via rightclick
-  # DrumRack / Pad Overview: fix error on nil note
-  + DrumRack: shift to select bunch of notes following last touched note
-  + Children chain: mimic drumrack pad click behaviour except drag
-  + Children chain: set volume for parent track (layer=1 or device if pad is device)
-  + Database: action to load random sample from database
-  # Improve incoming notes catch a bit
-  # Incoming note trigger only play buttons update rather than redraw all drumrack stuff
-  
-v3.0beta50 by MPL November 06 2022  
-  --    + DrumRack: allow to select pads
-  --    + Sampler: triggering tune button process also selected pads
-  --    # Device: fix crash on removing all device children, then adding new ones
-  --    # Device: when removing last layer set device folder depth to normal track
-  --    # Device: when addind new layer on empty device set device to folder, device child to last track
-  --    # Device: when removing last layer in device folder, make one before last last track enclosing folder
-  --    # Drumrack: fix copy/move note
-  --    # Drumrack: change pad selection on copy/move
-  --    + External actions: allow to run external actions (mostly for controllers)
-  --    + External actions: add RS5k_manager_Device_NewKit
-  --    + External actions: add RS5k_manager_Sampler_PreviousSample
-  --    + External actions: add RS5k_manager_Sampler_NextSample
-  --    + External actions: add RS5k_manager_Sampler_RandomSample
-  
-  
-v3.0beta48 by MPL November 06 2022
-  # fix empty database error
-  # fix some errors when deleting pad/layer
-  # various GUI fixes
-  + GUI: arrange modules in row when height is more than 300px (ralative to scaling if available)
-  + Database: add action to clear current pad
-  + Rename pad rename child track notename and MIDI bus name
-  + Setting/Actions: add action to initialize MIDI bus
-  + MIDI bus: remap all sends on initialisation if was previously removed
-  # Drumrack: various internal fixes for further layout support
-  
-v3.0beta41 by MPL November 05 2022
-  + DrumRack: add FX button to show parent FX chain
-  + Settings: option to copy files into project directory
-  # DrumRack use octave offset from REAPER preferences
-  + Setting: add option to use custom note names
-  + Add MIDI choke JSFX
-  # fix error when not MIDI octave shift defined in REAPER.ini
-  
-v3.0beta40 by MPL November 05 2022
-  + Add MIDI/OSC learn section
-  + Sampler: add tune cents/semitones/octave buttons
-  
-v3.0beta37 by MPL November 03 2022
-  + Device: add Fx button (show FX chain for device track)
-  + Sampler: add Fx button (show FX chain for sampler track)
-  + Settings: allow to set MIDI bus default input channel
-  # keep layer ID between triggering pads / incoming notes
-  + Tabs: rightclick on tab toggle only this tab and all tabs
-  
-v3.0beta36 by MPL November 03 2022
-  + fix typo
-  
-v3.0beta35 by MPL November 03 2022
-  + Undo copy/move pads
-  + Undo remove note/layers
-  + Device: allow to remove layers
-  + Settings: add option to rename track
-  + Improve incoming notes catching
-  + Small UI tweaks
-  
-v3.0beta34 by MPL November 03 2022
-  # DrumRack: moving pad to existed swap them
-  + DrumRack: indicate dragging pad
-  # Sampler: swap prev/next sample buttons
-  # Sampler: fix EQ enabled toggle
-  # Sampler: fix distortion validation
-  - Sampler: for now disable smart tweak for tune control
-  + Settings: allow to change default tabs
-  # Defaults: remove device tab from defaults
-  # GUI: add module separators
-  + Database map: add database map section
-  + Database map: load/save database from parent track chunk
-  + Database map: allow to store specific pad name when using database
-  + Database map: pressing "new kit" generate new kit from mapped databases
-  + Database map: allow to save kit globally or per parent track
-  
-  
-v3.0beta33 by MPL  October 28 2022
-  + Sampler: add sample search actions
-  + Macro: add link section
-  + Macro: add offset link
-  + Macro: add scale link
-  + Macro: add disable link button
-  # for now reduce macro knobs count to 8 in the GUI
-  
-v3.0beta30 by MPL October 26 2022
-  # NO BACKWARD COMPATIBILITY for 3.0beta1-25 versions
-  # Internal code clean up, change names of external states
-  # GUI: use single control form for readouts/knobs
-  # GUI: tweak area is whole frame, not only value field
-  # When drop to replace sample, also rename track and note names
-  # fix and properly handle device / regular child states
-  + 3rd party instrument: cache param IDs
-  + DrumRack: left drag move/replace pads content (single sample/devices)
-  + DrumRack: ctrl drag copy pad content (only non-device is available)
-  + DrumRack: draw frame / names as track colors
-  # DrumRack: remove ME button, use MediaExp button for show active note/layer sampler in MediaExplorer
-  + Sampler/Tune: quantize values, use Ctrl+Drag for fine tune
-  + Sampler/Tune: obey fraction/quantized difference on regular drag
-  + Add help tips at modules
-  
-3.0beta25 17.10.2022 
---    # Pad Overview: fix incorrect view at some scales
---    # Sampler: fix doubleclick on filter / drive section
---    # Settings: remove "Do not update on play"
---    # Settings: move and rename 'Incoming note activate pad' to UI/'Active note follow incoming note'
-
-3.0beta24 16.10.2022 
---    + Pad Overview: drop on pad overview add sample(s) to first available note starting this area
-
-3.0beta23 15.10.2022 
---    + Sampler: Actions menu by click on actions button or rightclick peaks
---    + Sample/Actions: set start offset to loudest peak
---    + Sample/Actions: crop start/end offset to item boundaries
---    + Settings: allow to set threshold for crop start/end item boundaries
---    # GUI: various retina/scaling mode tweaks
---    # fix header (properly added Macro JSFX)
---    # Cleanup GUI variables, hopefully fix various retina problems
---    # Sampler: fix corner case error on trigger note via peaks
---    # Sampler: turn Attack control powered by y=x^2
---    # DrumRack: fix  clear device
-
-3.0beta15 13.10.2022
---    # Sample: fix oneshot/loop selector
---    + Sampler: onshot deactivates obey note-off [https://forum.cockos.com/showpost.php?p=2601997&postcount=340]
---    + Sampler: click on peaks trigger note
---    + Device: doubleclick on pan reset pan
---    # Device: correctly reset visual values on doubleclick
-
-3.0beta14 12.10.2022
---    # DrumRack: fix mute/solo/showME errors
---    # Sample: decrease resolution
---    + Sampler: add drive knob
---    # Sampler: fix error on empty drive knob
-
-3.0beta12 07.10.202
---    + Write version to parent, children, MIDI bus for further developement and removing backward compatibility errors
---    + DrumRack: rename pads
---    + When drop FX, rename its newly created track to short name if possible
---    + Device: solo layers
---    + Device: mute layers
---    # Device: use track name as layer name
---    + Guess params: add 'att,dec,sus,rel,tun'
---    + Guess params: rename params on UI if guessed
-
-3.0beta11 06.10.2022
---    # refresh peaks follow sampler refresh / at note input if enabled
---    + Allow to enter params even for external plugins by right click
-
-3.0beta10 05.10.2022
---    # Defaults: use play button is off by default
---    # fix error on empty readout
---    + Sampler: add pitch offset
---    + Sampler: look up for pitch offset for plugin parameter
---    # Sampler: fix error on drop sample onto peaks
---    # DrumRack: another fix for not updating pads when input note is triggered
-
-3.0alpha8/9 03.10.2022
---    # fix error at empty rack on click pad
---    # fix update DrumRack when 'Incoming note trigger active pad' enabled
---    # Structure: validate note by ext state, this will potentially allow to move intrument track whenever in the rack chain
---    # Structure: validate instrument by ext state FXGUID, this will potentially allow to use custom plugins before main instrument
---    + Add support for nonRS5k instruments (drop from FX browser, require REAPER6.68+dev1003)
---    + Lookup plugin parameters for adsr envelope controls, gain
---    + Add stock midi filter with pre-set incoming MIDI note limits for nonRS5k instruments
---    # Fix error on clear pad
---    + Clear pad select parent track
-
-3.0alpha6/7 02.10.2022
---    + Settings: click on pad select track, enabled by default
---    + Settings: incoming note on trigger active pad, disabled by default
---    + Sampler: draw 3 signs after point
---    + DrumRack: show device name
---    + Structure: take device name as device track
---    # Properly solo/mute pads depending on device state
-
-3.0alpha5 02.10.2022
---    # Structure: write parent GUID as track ext variable
---    # Structure: write MIDI bus state as track ext variable, this will allow to name MIDI bus whatever you want
---    # Structure: write child state as track ext variable, this will allow to name MIDI bus whatever you want
---    + Sampler: show active layer
---    + Device: support multiple layers per device
---    + Device: show active note + formatted note
---    + Device: internal structure changes
---    # Device: draw pan correctly
---    # MIDI bus: fix error on add
-
-3.0alpha4 02.10.2022
---    + Sampler: add loop offset control, unlike REAPER native knob, properly limit to boundary start/end offset edges
---    # Sampler: cache item length into track external state for better control loop length (which is fixed internally to 30sec)
---    # Sampler: limit attack, decay and release to sample length
---    + Sampler: add voices control
---    + Sampler: add filter section
---    + Sampler: on tweak any filter control, add ReaEq on current sample track
---    + Sampler: initialize ReaEq hidden
---    + Sampler: initialize ReaEq with opened lowpass filter
---    + Sampler: drop sample on peaks window replace sample
---    # Sampler: change width to 8 controls for now
---    + Device: drop on layer change sample at current layer
---    + Settings: allow to enable/disable 'obey note off' on sample add
---    + Settings: allow to not update UI by incoming played notes
---    + Settings: allow to hide play button from DrumRack, use pad name instead
---    + Settings: allow to add custom FX chain when adding child
---    + DrumRack: set MIDI note names for MIDI bus on RS5k adding
---    + DrumRack: show playing notes
---    # DrumRack: refresh internal data on dropping pad
---    # Setting: clear blit layer correctly
---    # Setting: clear blit layer on project state change
---    # MIDI bus: set record mode to 'record output'
---    # fix error when play notes without active track
---    # UI: tweak font size ratios a bit
---    # Always add RS5k to the start of chain
---    # Whaen adding track with external template, hide chain and all floating FX in this chain
-
-3.0alpha2 01.10.2022
---    # Do not update GUI if currently dragging any control in the script UI
---    + DrumRack: clear/refresh rack at child delete
---    + DrumRack: on drop show device chain and sample of recent dropped sample
---    + DrumRack: support multiple samples drop incrementally at pads
---    + DrumRack: rightclick on pad name open pad menu
---    + DrumRack/Menu: add action for export selected items
---    + DrumRack/Menu: add action for export selected items
---    + DrumRack/Menu: link to device name menu
---    + DrumRack: click on pad open RS5k window
---    # DrumRack: more carefully validate MIDI bus pointer
---    + Macro: add Macro section with 16 knobs
---    + Macro: add Macro JSFX to a script package
---    + Macro: instantiate Macro JSFX when clicking macro section for the first time (JSFX is packed with RS5k manager)
---    + Macro: hide Macro JSFX when instantiate
---    + Sampler: add show button to float active RS5k instance
---    + Sampler: add start/end offset control, show it visually on waveform
---    + Sampler: fix hdpi scaling
---    + Sampler: click on controls reset them fo default (defaults initiated from hardcoded values but can be changed in the future)
---    + Defaults: when creating new drum rack hide macro section for the first time
---    # Add MIDI bus after parant track
---    # Add MIDI bus with small foldercompact state
---    # Add child always after MIDI bus
---    # Add child with small foldercompact state
---    # Validate childrens by their external state rather than depth
---    # Reset MIDI bus on track change
---    # prepare external chunk for further reading multiple parameters
---    - pattern editing stuff removed for now
-
-3.0alpha1 25.09.2022
---    + GUI: use MPL library
---    + Replace all 3rd party APIs by native solutions
---    + ParentTrack: catch parent track even if child selected (write data to extstate per track)
---    + PadView: basic Ableton DrumRack port
---    + PadView: store/load with track
---    + PadView: show played notes
---    + PadView: show active notes
---    + DrumRack: basic Ableton DrumRack port
---    + DrumRack: mute pads (layer bus if multilayer mode)
---    + DrumRack: solo pads (layer bus if multilayer mode)
---    + DrumRack: preview pads
---    + DrumRack: show first layer sample in MediaExplorer
---    + DrumRack: add MIDI bus to folder
---    + DrumRack: on drop sample replace by default 1st layer 
---    + DrumRack: on drop sample add new child if need 
---    + DrumRack: on drop sample convert channel to multisampler mode if drop at 2+layer
---    + Device: show child track sampler parameters, multiple samples if in multilayer mode
---    + Device: show volume/pan/enabled from parent track controls
---    + Sampler: show waveform
---    + Sampler: show loop-oneshot buttons
---    + Sampler: add gain control
---    + Sampler: add ADSR control
---    + Setting: separate settings from main window
-]]
 
 
  
@@ -349,7 +26,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta58'
+    DATA.extstate.version = '3.0'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -1126,7 +803,8 @@ List:
       vrs_alpha = tonumber(VERSION:match('alpha([%d%p]+)')) or 0
       vrs_beta = tonumber(VERSION:match('beta([%d%p]+)')) or 0
       vrs = vrs_maj + vrs_beta * 0.000001 + vrs_alpha * 0.000000001
-      if vrs < 3.00003 then DATA2.tr_valid = false MB('This version require new rack. Rack was created in unsupported beta of RS5k manager','Error', 0) return end -- 3.0beta30
+      --if vrs < 3.00003 then DATA2.tr_valid = false MB('This version require new rack. Rack was created in unsupported beta of RS5k manager','Error', 0) return end -- 3.0beta30
+      -- removed after 3.0 initial release
     end
     
     DATA2.PARENT_DRRACKSHIFT = 36
@@ -1143,6 +821,7 @@ List:
   --------------------------------------------------------------------- 
   function DATA2:TrackDataRead_GetParent_Macro(donotupdatelinks)
     if not (DATA2.tr_ptr and ValidatePtr2(0,DATA2.tr_ptr,'MediaTrack*') )then return end
+    if not DATA2.Macro then return end
     DATA2.Macro.isvalid = false
     local _, MACRO_GUID = GetSetMediaTrackInfo_String ( DATA2.tr_ptr, 'P_EXT:MPLRS5KMAN_MACRO_GUID', 0, false) if MACRO_GUID == '' then MACRO_GUID = nil end 
     if MACRO_GUID then 
@@ -1650,7 +1329,7 @@ List:
     -- drrack 
       --DATA.GUI.custom_drrack_sideY = math.floor(DATA.GUI.custom_moduleH/4)
       --DATA.GUI.custom_drrack_sideX = DATA.GUI.custom_drrack_sideY*1.5
-      DATA.GUI.custom_drrack_sideW = DATA.GUI.custom_moduleW--DATA.GUI.custom_offset
+      DATA.GUI.custom_drrack_sideW = DATA.GUI.custom_macroW--DATA.GUI.custom_moduleW--DATA.GUI.custom_offset
       DATA.GUI.custom_drrack_pad_txtsz = 13* DATA.GUI.custom_Yrelation--0.5*(DATA.GUI.custom_drrack_sideY/2-DATA.GUI.custom_offset*2)
       --DATA.GUI.custom_drrack_arcr = math.floor(DATA.GUI.custom_drrack_sideX*0.1) 
       --DATA.GUI.custom_drrack_sideW = DATA.GUI.custom_drrack_sideX*4 -- reset to 4 pads
@@ -2768,6 +2447,7 @@ List:
       if ctrlid==ctrls_cnt then 
       wreduce = 1
       end
+      if not DATA2.Macro then return end
       local src_t = DATA2.Macro.sliders[ctrlid]
       local txt_a = DATA.GUI.custom_anavailableparamtxta
       if DATA2.Macro.sliders[ctrlid] and DATA2.Macro.sliders[ctrlid].links and #DATA2.Macro.sliders[ctrlid].links > 0 then 
