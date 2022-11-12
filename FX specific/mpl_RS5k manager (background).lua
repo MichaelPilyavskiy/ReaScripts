@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.0beta53
+-- @version 3.0beta55
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -13,19 +13,32 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # various UI tweaks
---    + Macro: make links list scrollable
---    + Macro: add action to add all RS5k samplers pitch, obey_offsets
---    + Macro: add action clear all links
---    # Undo: catch changes outside functions
---    # Drumrack: fix show dragged pad
---    # Database: clear database before load
---    # Database: trigger math.randomseed(os.clock()) before random
---    + Drumsrack: add action to clear rack
+--    # Make active pad frame more bright
+--    # Macro: move actions to the top of module
+--    # Macro: use selected pads for add tune link action or all pads if no pad selected
+--    + Macro: show pad names for links
+--    + Drumrack: add action to select/unselect all pads
+--    + Settings: add children chin to tab defaults options
+--    # Settings: cleanup a bit
+--    + Pad overview: allow to change pad overview active offset quantize to 4 or 8 pads
+--    + Undo: add for drop file into sampler area
+--    + test Undo: add for remove single link
+--    + test Undo: add for add single link
 
 
 
 --[[ 
+v3.0beta53 by MPL November 10 2022
+  # various UI tweaks
+  + Macro: make links list scrollable
+  + Macro: add action to add all RS5k samplers pitch, obey_offsets
+  + Macro: add action clear all links
+  # Undo: catch changes outside functions
+  # Drumrack: fix show dragged pad
+  # Database: clear database before load
+  # Database: trigger math.randomseed(os.clock()) before random
+  + Drumsrack: add action to clear rack
+  
 v3.0beta52 by MPL November 09 2022
   # fix error on triggering child chain
   # Database: slightly tweak UI for 'New sample' action
@@ -323,7 +336,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta53'
+    DATA.extstate.version = '3.0beta55'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -347,9 +360,9 @@ v3.0beta30 by MPL October 26 2022
                           CONF_midiinput = 63, -- 63 all 62 midi kb
                           CONF_midichannel = 0, -- 0 == all channels
                           
-                          -- drum rack
+                          -- pad pverview
                           
-                          -- Actions
+                          -- sampler
                           CONF_cropthreshold = -60, -- db
                           
                           -- db
@@ -371,6 +384,7 @@ v3.0beta30 by MPL October 26 2022
                           UI_incomingnoteselectpad = 0,
                           UI_defaulttabsflags = 1|4|8, --1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database 64=midi map 128=children chain
                           UI_keyformat_mode = 0 ,
+                          UI_po_quantizemode = 0,--0 default 1=8pads 2=4pads
                           
                           
                           }
@@ -570,7 +584,7 @@ Actions panel:
       if t.master_upd then  
         if DATA2.tr_valid == false or not DATA2.PARENT_LASTACTIVENOTE then return end 
         local extstr = 
-          'PARENT_ACTIVEPAD '..DATA2.PARENT_ACTIVEPAD..'\n'.. 
+          'PARENT_DRRACKSHIFT '..DATA2.PARENT_DRRACKSHIFT..'\n'.. 
           'PARENT_LASTACTIVENOTE '..DATA2.PARENT_LASTACTIVENOTE..'\n'.. 
           'PARENT_TABSTATEFLAGS '..DATA2.PARENT_TABSTATEFLAGS..'\n'.. 
           'PARENT_MACROCNT '..DATA2.PARENT_MACROCNT..'\n'.. 
@@ -1087,10 +1101,10 @@ Actions panel:
       vrs_alpha = tonumber(VERSION:match('alpha([%d%p]+)')) or 0
       vrs_beta = tonumber(VERSION:match('beta([%d%p]+)')) or 0
       vrs = vrs_maj + vrs_beta * 0.000001 + vrs_alpha * 0.000000001
-      if vrs < 3.00003 then DATA2.tr_valid = false MB('This version require new rack. Rack was created in unsupported beta of RS5k manager','Error', 0) return end
+      if vrs < 3.00003 then DATA2.tr_valid = false MB('This version require new rack. Rack was created in unsupported beta of RS5k manager','Error', 0) return end -- 3.0beta30
     end
     
-    DATA2.PARENT_ACTIVEPAD = 3
+    DATA2.PARENT_DRRACKSHIFT = 36
     DATA2.PARENT_MACROCNT = 16
     DATA2.PARENT_TABSTATEFLAGS=DATA.extstate.UI_defaulttabsflags
     DATA2.PARENT_LASTACTIVENOTE = -1
@@ -1691,13 +1705,18 @@ Actions panel:
         {str = 'Copy samples to project path',                  group = 1, itype = 'check', confkey = 'CONF_onadd_copytoprojectpath', level = 1},
         {str = 'Custom track template: '..customtemplate,       group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() local retval, fp = GetUserFileNameForRead('', 'FX chain for newly dragged samples', 'RTrackTemplate') if retval then DATA.extstate.CONF_onadd_customtemplate=  fp GUI_MODULE_SETTINGS(DATA) end end},
         {str = 'Custom track template [clear]',                  group = 1, itype = 'button', confkey = 'CONF_onadd_customtemplate', level = 1, val_isstring = true, func_onrelease = function() DATA.extstate.CONF_onadd_customtemplate=  '' GUI_MODULE_SETTINGS(DATA) end},
+        
       {str = 'MIDI bus',                                        group = 2, itype = 'sep'}, 
         {str = 'MIDI bus default input',                        group = 2, itype = 'readout', confkey = 'CONF_midiinput', level = 1, menu = {[63]='All inputs',[62]='Virtual keyboard'},readoutw_extw = readoutw_extw},
         {str = 'MIDI bus channel',                        group = 2, itype = 'readout', confkey = 'CONF_midichannel', level = 1, menu = {[0]='All channels',[1]='Channel 1',[2]='Channel 2',[3]='Channel 3',[4]='Channel 4',[5]='Channel 5',[6]='Channel 6',[7]='Channel 7',[8]='Channel 8',[9]='Channel 9',[10]='Channel 10',
         [11]='Channel 11',[12]='Channel 12',[13]='Channel 13',[14]='Channel 14',[15]='Channel 15',[16]='Channel 16'},readoutw_extw = readoutw_extw},
+        {str = 'Initialize MIDI bus',                           group = 2, itype = 'button', level = 1, func_onrelease = function() DATA2:TrackDataRead_ValidateMIDIbus() end},
+        
       {str = 'UI',                                              group = 3, itype = 'sep'},
         {str = 'Active note follow incoming note',              group = 3, itype = 'check', confkey = 'UI_incomingnoteselectpad', level = 1},
         {str = 'Key format',                                    group = 3, itype = 'readout', confkey = 'UI_keyformat_mode', level = 1,menu = {[0]='C-C#-D',[2]='Do-Do#-Re',[7]='Russian'}},
+        {str = 'Pad overview quantize',                                  group = 3, itype = 'readout', confkey = 'UI_po_quantizemode', level = 1, menu = {[0]='Default',[1]='8 pads', [2]='4 pads'},readoutw_extw = readoutw_extw}, 
+      
       {str = 'Tab defaults',                                    group = 6, itype = 'sep'},
         {str = 'Drumrack',                                      group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 0},
         {str = 'Device',                                        group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 1},
@@ -1706,12 +1725,13 @@ Actions panel:
         --{str = 'Tab defaults: macro',                           group = 3, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 4},
         {str = 'Database',                                      group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 5},
         {str = 'MIDI / OSC learn',                              group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 6},
-      {str = 'DrumRack',                                        group = 4, itype = 'sep'},  
-        {str = 'Click on pad select track',                     group = 4, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
-      {str = 'Sample actions',                                  group = 5, itype = 'sep'},    
-        {str = 'Crop threshold',                                group = 5, itype = 'readout', confkey = 'CONF_cropthreshold', level = 1, menu = {[-80]='-80dB',[-60]='-60dB', [-40]='-40dB',[-30]='-30dB'},readoutw_extw = readoutw_extw},
-      {str = 'Actions',                                         group = 7, itype = 'sep'},
-        {str = 'Initialize MIDI bus',                           group = 7, itype = 'button', level = 1, func_onrelease = function() DATA2:TrackDataRead_ValidateMIDIbus() end},
+        {str = 'Children chain',                                group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 7},
+      
+      {str = 'Various',                                         group = 5, itype = 'sep'},    
+        {str = 'Sampler: Crop threshold',                       group = 5, itype = 'readout', confkey = 'CONF_cropthreshold', level = 1, menu = {[-80]='-80dB',[-60]='-60dB', [-40]='-40dB',[-30]='-30dB'},readoutw_extw = readoutw_extw},
+        {str = 'Drumrack: Click on pad select track',                     group = 4, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
+
+        
     } 
     return t
     
@@ -1753,12 +1773,19 @@ Actions panel:
     y_offs = y_offs + 1
     local macroID = DATA2.PARENT_LASTACTIVEMACRO
     local t = link_t
+    local src_t = t.src_t
+    local id_note = src_t.noteID
+    local id_layer = src_t.layerID
+    local param_name = ''
+    if id_note then param_name = '[N'..DATA2.notes[id_note].name..'] ' end
+    --if id_layer then param_name = param_name .. '[L'..id_layer..'] ' end
+    param_name = param_name ..t.param_name
     DATA.GUI.buttons['macroglob_macrolink'..macroID..'link_name'..link_t.linkID] = { 
                           x=x_offs0+1,
                           y=y_offs,
                           w=w_layername-DATA.GUI.custom_offset,
                           h=DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
-                          txt = link_t.param_name,
+                          txt = param_name,
                           txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
                           frame_a =DATA.GUI.custom_framea,
                           frame_col = '#333333',
@@ -1810,12 +1837,14 @@ Actions panel:
           ctrlval_src_t = t,
           ctrlval_res = 0.1,
           ctrlval_default =0,
-          func_atrelease =      function() GUI_MODULE_MACRO(DATA) end,          
+          func_atrelease =      function() GUI_MODULE_MACRO(DATA)end,          
           func_app =            function(new_val) 
                                   TrackFX_SetNamedConfigParm(t.src_t.tr_ptr, t.fx_dest, 'param.'..t.param_dest..'plink.scale', new_val) 
+                                  DATA2:TrackDataRead_GetParent_Macro()
+                                  --DATA.GUI.buttons['macroglob_macrolink'..macroID..'scale'..link_t.linkID..'val'].txt = DATA2.Macro.sliders[macroID].links[link_t.linkID].plink_scale_format
+                                  --DATA.onWHchange = true
                                 end,
           func_refresh =        function() 
-                                  DATA2:TrackDataRead_GetParent_Macro()
                                 end,
           func_formatreverse =  function(str_ret)
                                   local ret = DATA2:internal_ParsePercent(str_ret) if ret then return ret end
@@ -1833,9 +1862,12 @@ Actions panel:
                           backgr_fill = backgr_fill_name,
                           backgr_col =backgr_col,
                           onmouserelease = function() 
+                            reaper.Undo_BeginBlock2( 0)
                             TrackFX_SetNamedConfigParm(t.src_t.tr_ptr, t.fx_dest, 'param.'..t.param_dest..'plink.active', 0) 
+                            reaper.Undo_EndBlock2( 0, 'RS5k manager / Macro / Remove link', 0xFFFFFFFF )                                         
                             DATA2:TrackDataRead_GetParent_Macro()
                             GUI_MODULE_MACRO(DATA) 
+                            
                           end,
                           }          
   end 
@@ -2333,11 +2365,23 @@ Actions panel:
     
     local macroID = DATA2.PARENT_LASTACTIVEMACRO
     local t = {
-          {str= 'Add all RS5k samplers pitch, obey_offsets',
+          {str= 'Add selected/all RS5k samplers pitch, obey_offsets',
            func = function() 
-                    reaper.Undo_BeginBlock2( 0)  
+                    local cnt_selection = 0 
+                    if DATA2.PADselection then for keynote in pairs(DATA2.PADselection) do if DATA2.PADselection[keynote] then cnt_selection = cnt_selection + 1 end end end
+                    
+                    
+                    reaper.Undo_BeginBlock2( 0)
                     local macro_t = DATA2.Macro.sliders[macroID]
-                    for note in pairs(DATA2.notes) do
+                    local notest = {}
+                    if cnt_selection == 0 then 
+                      for note in pairs(DATA2.notes) do notest[#notest+1] = note end -- all
+                     else
+                      for keynote in pairs(DATA2.PADselection) do notest[#notest+1] = keynote end -- selected only
+                    end
+                    
+                    for notestID = 1, #notest do
+                      local note = notest[notestID]
                       if DATA2.notes[note] and DATA2.notes[note].layers then 
                         for layer in pairs(DATA2.notes[note].layers) do
                           local srct = DATA2.notes[note].layers[layer]
@@ -2351,6 +2395,7 @@ Actions panel:
                         end
                       end
                     end
+                    
                     reaper.Undo_EndBlock2( 0, 'RS5k manager / Macro / Add tune links', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)   
                     TrackFX_SetParamNormalized( macro_t.tr_ptr, macro_t.macro_pos, macroID, 0.5 )
                   end
@@ -2363,7 +2408,7 @@ Actions panel:
                       local tmacro = DATA2.Macro.sliders[macroID].links[link]
                       TrackFX_SetNamedConfigParm(tmacro.src_t.tr_ptr, tmacro.fx_dest, 'param.'..tmacro.param_dest..'plink.active', 0) 
                     end
-                    reaper.Undo_EndBlock2( 0, 'RS5k manager / Macro / Clear', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)  
+                    reaper.Undo_EndBlock2( 0, 'RS5k manager / Macro / Clear current macro links', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)  
                     DATA2:TrackDataRead_GetParent_Macro()
                     GUI_MODULE_MACRO(DATA) 
                   end
@@ -2384,18 +2429,47 @@ Actions panel:
     local y_offs0= DATA.GUI.custom_module_yoffs_macro
     local y_offs= y_offs0
     GUI_MODULE_separator(DATA, 'macroglob_sep', DATA.GUI.custom_module_xoffs_macro,DATA.GUI.custom_module_yoffs_macro) 
-    
+    local act_framew = DATA.GUI.custom_macroW-DATA.GUI.custom_knob_button_w*2
     DATA.GUI.buttons.macroglob_actionframe = { x=x_offs,
                           y=y_offs,
-                          w=DATA.GUI.custom_macroW,
+                          w=act_framew-DATA.GUI.custom_offset,
                           h=DATA.GUI.custom_infoh-1,
                           txt = 'Macro',
                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                          frame_a = 0.3,
+                          --frame_a = 0.3,
                           --frame_asel = 0.3,
                           --backgr_fill = 0,
                           onmouseclick =  function() end}
-                              
+
+    x_offs = x_offs + act_framew                         
+    DATA.GUI.buttons.macroglob_t_addbut = { x=x_offs,
+                          y=y_offs,
+                          w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_infoh-1,
+                          txt = 'Add link',
+                          txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
+                          --frame_a = 1,
+                          --frame_asel = 0.3,
+                          --backgr_fill = 0,
+                          --ignoremouse = true,
+                          onmouseclick =  function() 
+                                            reaper.Undo_BeginBlock2( 0)
+                                            DATA2:Actions_Macro_AddLink()
+                                            reaper.Undo_EndBlock2( 0, 'RS5k manager / Macro / Add link', 0xFFFFFFFF )--                                             
+                                          end}   
+    x_offs = x_offs + DATA.GUI.custom_knob_button_w   
+    DATA.GUI.buttons.macroglob_t_addbut_actions = { x=x_offs,
+                          y=y_offs,
+                          w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_infoh-1,
+                          txt = 'Actions',
+                          txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
+                          --frame_a = 1,
+                          --frame_asel = 0.3,
+                          --backgr_fill = 0,
+                          --ignoremouse = true,
+                          onmouseclick =  function() DATA2:Menu_Macro_Actions() end}                                             
+    local x_offs= x_offs0
     DATA.GUI.buttons.macroglob_Aknobback = { x=x_offs-1, 
                           y=DATA.GUI.custom_module_yoffs_macro+DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
                           w=DATA.GUI.custom_macroW+1,---DATA.GUI.custom_layer_scrollw,
@@ -2462,7 +2536,7 @@ Actions panel:
                                   DATA2:TrackDataRead_GetChildrens_FXParams(note_layer_t)  
                                   GUI_MODULE_SAMPLER_Section_SplReadouts(DATA) 
                                   GUI_MODULE_SAMPLER_Section_FilterSection(DATA)   
-                                  GUI_MODULE_SAMPLER_Section_EnvelopeSection(DATA)  
+                                  GUI_MODULE_SAMPLER_Section_EnvelopeSection(DATA) 
                                 end,
           func_formatreverse =  function(str_ret)
                                   local ret = DATA2:internal_ParsePercent(str_ret)
@@ -2477,32 +2551,9 @@ Actions panel:
     local x_offs= x_offs0
     y_offs = y_offs + DATA.GUI.custom_knob_button_h+DATA.GUI.custom_offset
     local addlink_w = DATA.GUI.custom_macroW-DATA.GUI.custom_knob_button_w
-    DATA.GUI.buttons.macroglob_t_addbut = { x=x_offs,
-                          y=y_offs,
-                          w=addlink_w-DATA.GUI.custom_offset,
-                          h=DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
-                          txt = 'Add link for last touched parameter in the rack child',
-                          txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
-                          --frame_a = 1,
-                          --frame_asel = 0.3,
-                          --backgr_fill = 0,
-                          --ignoremouse = true,
-                          onmouseclick =  function() 
-                                            DATA2:Actions_Macro_AddLink()
-                                          end}  
-    x_offs = x_offs + addlink_w
-    DATA.GUI.buttons.macroglob_t_addbut_actions = { x=x_offs,
-                          y=y_offs,
-                          w=DATA.GUI.custom_knob_button_w-1,
-                          h=DATA.GUI.custom_macro_linkentryh-DATA.GUI.custom_offset,
-                          txt = 'Actions',
-                          txt_fontsz = DATA.GUI.custom_macro_link_txtsz,
-                          --frame_a = 1,
-                          --frame_asel = 0.3,
-                          --backgr_fill = 0,
-                          --ignoremouse = true,
-                          onmouseclick =  function() DATA2:Menu_Macro_Actions() end}    
-    y_offs = y_offs + DATA.GUI.custom_macro_linkentryh
+ 
+ 
+    --y_offs = y_offs + DATA.GUI.custom_macro_linkentryh
     local macrolinks_h = (y_offs0 + DATA.GUI.custom_moduleH)-y_offs-DATA.GUI.custom_offset
     DATA.GUI.buttons.macroglob_frame = { x=x_offs0+1,
                           y=y_offs-1,
@@ -2626,18 +2677,18 @@ Actions panel:
   end
   -----------------------------------------------------------------------------  
   function GUI_MODULE_DRUMRACK_drawlayout(DATA)  
-    local padactiveshift = 116 
+    --[[local padactiveshift = 116 
     -- handle pad overview shifts
-    if DATA2.PARENT_ACTIVEPAD == 8 then padactiveshift = 116 end
-    if DATA2.PARENT_ACTIVEPAD == 7 then padactiveshift = 100 end
-    if DATA2.PARENT_ACTIVEPAD == 6 then padactiveshift = 84 end
-    if DATA2.PARENT_ACTIVEPAD == 5 then padactiveshift = 68 end
-    if DATA2.PARENT_ACTIVEPAD == 4 then padactiveshift = 52 end
-    if DATA2.PARENT_ACTIVEPAD == 3 then padactiveshift = 36 end
-    if DATA2.PARENT_ACTIVEPAD == 2 then padactiveshift = 20 end
-    if DATA2.PARENT_ACTIVEPAD == 1 then padactiveshift = 4 end
-    if DATA2.PARENT_ACTIVEPAD == 0 then padactiveshift = 0 end
-    
+    if DATA2.PARENT_DRRACKSHIFT == 8 then padactiveshift = 116 end
+    if DATA2.PARENT_DRRACKSHIFT == 7 then padactiveshift = 100 end
+    if DATA2.PARENT_DRRACKSHIFT == 6 then padactiveshift = 84 end
+    if DATA2.PARENT_DRRACKSHIFT == 5 then padactiveshift = 68 end
+    if DATA2.PARENT_DRRACKSHIFT == 4 then padactiveshift = 52 end
+    if DATA2.PARENT_DRRACKSHIFT == 3 then padactiveshift = 36 end
+    if DATA2.PARENT_DRRACKSHIFT == 2 then padactiveshift = 20 end
+    if DATA2.PARENT_DRRACKSHIFT == 1 then padactiveshift = 4 end
+    if DATA2.PARENT_DRRACKSHIFT == 0 then padactiveshift = 0 end
+    ]]
     -- clear stuff
     for key in pairs(DATA.GUI.buttons) do if key:match('drumrackpad_pad(%d+)') then DATA.GUI.buttons[key] = nil end end
     
@@ -2653,7 +2704,7 @@ Actions panel:
       local yoffs = DATA.GUI.custom_module_yoffs_drumrack+ DATA.GUI.custom_moduleH - padh-DATA.GUI.custom_offset
       local xoffs= xoffs0
       local padID0 = 0
-      for note = 0+padactiveshift, layout_pads_cnt-1+padactiveshift do
+      for note = 0+DATA2.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA2.PARENT_DRRACKSHIFT do
         GUI_MODULE_DRUMRACK_drawlayout_pad(DATA, padID0, note, xoffs, yoffs, padw, padh)
         xoffs = xoffs + padw
         if padID0%4==3 then 
@@ -3374,6 +3425,17 @@ Actions panel:
                   DATA2:Actions_Pad_Clear(note) 
                   reaper.Undo_EndBlock2( 0, 'RS5k manager / Pad / Clear', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)  
                 end },  
+        {str='|Select all pads',
+          func=function() 
+                  for i = 0, 127 do DATA2.PADselection[i] = true end
+                  GUI_MODULE_DRUMRACK(DATA) 
+                end },                 
+        {str='Unselect all pads',
+          func=function() 
+                  DATA2.PADselection = {}
+                  GUI_MODULE_DRUMRACK(DATA) 
+                end },                  
+                
         {str='|Import selected items to pads, starting this pad',
           func=function() DATA2:Actions_ImportSelectedItems(note) end },      
         {str='Move pad to last recent incoming note',
@@ -3403,8 +3465,17 @@ Actions panel:
                   reaper.Undo_EndBlock2( 0, 'RS5k manager / Pad / Clear', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)  
                 end
               end },  
-         
-                }
+        {str='|Select all pads',
+          func=function() 
+                  for i = 0, 127 do DATA2.PADselection[i] = true end
+                  GUI_MODULE_DRUMRACK(DATA) 
+                end },  
+        {str='Unselect all pads',
+          func=function() 
+                  DATA2.PADselection = {}
+                  GUI_MODULE_DRUMRACK(DATA) 
+                end },           
+                }                
               
     DATA:GUImenu(t)
     
@@ -4259,24 +4330,13 @@ Actions panel:
     end
     
     
-    if DATA2.PARENT_ACTIVEPAD then
-      local padactiveshift = 0
-      if DATA2.PARENT_ACTIVEPAD == 7 then padactiveshift = cellside * (4*1-1) end
-      if DATA2.PARENT_ACTIVEPAD == 6 then padactiveshift = cellside * (4*2-1) end
-      if DATA2.PARENT_ACTIVEPAD == 5 then padactiveshift = cellside * (4*3-1) end
-      if DATA2.PARENT_ACTIVEPAD == 4 then padactiveshift = cellside * (4*4-1) end
-      if DATA2.PARENT_ACTIVEPAD == 3 then padactiveshift = cellside * (4*5-1) end
-      if DATA2.PARENT_ACTIVEPAD == 2 then padactiveshift = cellside * (4*6-1) end
-      if DATA2.PARENT_ACTIVEPAD == 1 then padactiveshift = cellside * (4*7-1) end
-      if DATA2.PARENT_ACTIVEPAD == 0 then padactiveshift = cellside * (4*7) end
-      local top = DATA.GUI.buttons['padgrid_but'..refnote].y
-      local sideX = DATA.GUI.buttons['padgrid_but'..refnote].x+DATA.GUI.buttons['padgrid_but'..refnote].w-DATA.GUI.buttons['padgrid_but'..refnote-3].x
-      local sideY = DATA.GUI.buttons['padgrid_but'..111].y-DATA.GUI.buttons['padgrid_but'..127].y
-      
+    if DATA2.PARENT_DRRACKSHIFT then
+      local row_cnt = math.floor(127/4)
+      local activerow = DATA2.PARENT_DRRACKSHIFT  / 4
       DATA.GUI.buttons.padgrid_activerect = { x=DATA.GUI.buttons.padgrid.x,
-                            y=top+padactiveshift,
-                            w=sideX,
-                            h=sideY,
+                            y=DATA.GUI.buttons.padgrid.y+DATA.GUI.buttons.padgrid.h-DATA.GUI.buttons.padgrid.w-cellside*(activerow),
+                            w=DATA.GUI.buttons.padgrid.w,
+                            h=DATA.GUI.buttons.padgrid.w,
                             --txt = note,
                             ignoremouse = true,
                             backgr_col2 = blockcol,
@@ -4285,8 +4345,8 @@ Actions panel:
                             backgr_fill2 = 0.7,
                             onmouseclick =  function() end,
                             }
-      
     end
+    
   end
   ----------------------------------------------------------------------------- 
     
@@ -4309,49 +4369,42 @@ Actions panel:
                           frame_a = 0,
                           frame_asel = 0,
                           backgr_fill = 0,
-                          onmouseclick =  function() 
-                                            DATA2.PARENT_ACTIVEPAD = VF_lim(math.floor((1-DATA.GUI.buttons.padgrid.val_abs)*9) ,0,9) 
-                                            DATA.GUI.buttons.padgrid_activerect.refresh = true
-                                            GUI_MODULE_PADOVERVIEW_generategrid(DATA)
-                                            GUI_MODULE_DRUMRACK(DATA)  
-                                          end,
                           onmousedrag =   function() 
-                                            if DATA.GUI.buttons.padgrid.val_abs then 
-                                              local new = VF_lim(math.floor((1-DATA.GUI.buttons.padgrid.val_abs)*9) ,0,9) 
-                                              if new ~= DATA2.PARENT_ACTIVEPAD then 
-                                                DATA2.PARENT_ACTIVEPAD = new 
-                                                DATA.GUI.buttons.padgrid_activerect.refresh = true
-                                                GUI_MODULE_PADOVERVIEW_generategrid(DATA)
-                                                GUI_MODULE_DRUMRACK(DATA)  
-                                              end
+                                            if not DATA.GUI.buttons.padgrid.val_abs then return end
+                                            local offs = VF_lim(DATA.GUI.buttons.padgrid.val_abs)
+                                            local row_cnt = math.floor(127/4)
+                                            local activerow = math.floor((1-offs)*row_cnt)
+                                            
+                                            -- handle quantize
+                                            if DATA.extstate.UI_po_quantizemode == 0 then 
+                                              local qblock = 4
+                                              if activerow < 1 then activerow = 0 end
+                                              for block = 0, 6 do if activerow >=block*4+1 and activerow <(block*4)+4+1 then activerow =block*4+1 end end
+                                              activerow = math.min(activerow, 28)
+                                             elseif DATA.extstate.UI_po_quantizemode == 1 then 
+                                              for block = 0, 13 do if activerow >=block*2+1 and activerow <(block*2)+2+1 then activerow = block*2+1 end end
+                                              activerow = math.min(activerow, 28)         
+                                             elseif DATA.extstate.UI_po_quantizemode == 2 then 
+                                              
+                                              activerow = math.min(activerow, 28)                                                 
+                                            end
+                                            local out_offs = math.floor(activerow*4)
+                                            if out_offs ~= DATA2.PARENT_DRRACKSHIFT then 
+                                              DATA2.PARENT_DRRACKSHIFT = out_offs
+                                              GUI_MODULE_PADOVERVIEW_generategrid(DATA)
+                                              GUI_MODULE_DRUMRACK(DATA)  
+                                              DATA2:TrackDataWrite(_, {master_upd=true})
                                             end
                                           end,
-                          onmouserelease = function() 
-                                            DATA2.PARENT_ACTIVEPAD = VF_lim(math.floor((1-DATA.GUI.buttons.padgrid.val_abs)*9) ,0,9) 
-                                            DATA.GUI.buttons.padgrid_activerect.refresh = true
-                                            GUI_MODULE_PADOVERVIEW_generategrid(DATA)
-                                            GUI_MODULE_DRUMRACK(DATA)  
-                                            DATA2:TrackDataWrite(_,{master_upd=true}) 
-                                          end,
                           onmousefiledrop = function() 
-                            local note = 0
-                            if DATA2.PARENT_ACTIVEPAD == 0 then note = 0
-                             elseif DATA2.PARENT_ACTIVEPAD == 1 then note = 4
-                             elseif DATA2.PARENT_ACTIVEPAD == 2 then note = 20
-                             elseif DATA2.PARENT_ACTIVEPAD == 3 then note = 36
-                             elseif DATA2.PARENT_ACTIVEPAD == 4 then note = 52
-                             elseif DATA2.PARENT_ACTIVEPAD == 5 then note = 68
-                             elseif DATA2.PARENT_ACTIVEPAD == 6 then note = 84
-                             elseif DATA2.PARENT_ACTIVEPAD == 7 then note = 100
-                             elseif DATA2.PARENT_ACTIVEPAD == 8 then note = 116
-                            end
-                            
-                            for i = note, 127 do
-                              if not DATA2.notes[i] then note = i break end
-                            end
-                            DATA2:Actions_PadOnFileDrop(note) 
+                          
+                            local note = DATA2.PARENT_DRRACKSHIFT
+                            for i = note, 128 do if not DATA2.notes[i] then note = i break end end -- serach for free note
+                            if note ~= 128 then  DATA2:Actions_PadOnFileDrop(note)  end
                           end,
                           }
+    DATA.GUI.buttons.padgrid.onmouseclick = DATA.GUI.buttons.padgrid.onmousedrag
+    DATA.GUI.buttons.padgrid.onmouserelease = DATA.GUI.buttons.padgrid.onmousedrag
      --[[ DATA.GUI.buttons.padgrid_help = { x=x_offs,
                            y=0,
                            w=DATA.GUI.custom_padgridw-1,
@@ -4361,7 +4414,10 @@ Actions panel:
                            onmouserelease = function() 
                                               DATA2:Actions_Help(3)
                                             end,
-                           }   ]]                       
+                           }   ]] 
+                           
+                    
+    
     GUI_MODULE_PADOVERVIEW_generategrid(DATA)
   end
   -----------------------------------------------------------------------------  
@@ -4777,7 +4833,11 @@ Actions panel:
                             txt = txt,
                             frame_a = DATA.GUI.custom_framea,
                             data = {['datatype'] = 'samplepeaks'},
-                            onmousefiledrop = function() if DATA2.PARENT_LASTACTIVENOTE then DATA2:Actions_PadOnFileDrop(DATA2.PARENT_LASTACTIVENOTE) end end,
+                            onmousefiledrop = function() if DATA2.PARENT_LASTACTIVENOTE then 
+                              reaper.Undo_BeginBlock2( 0)
+                              DATA2:Actions_PadOnFileDrop(DATA2.PARENT_LASTACTIVENOTE) 
+                              reaper.Undo_EndBlock2( 0, 'RS5k manager / Sampler / Drop file', 0xFFFFFFFF )--                                          
+                              end end,
                             onmouseclick = function() if DATA2.PARENT_LASTACTIVENOTE then DATA2:Actions_StuffNoteOn(DATA2.PARENT_LASTACTIVENOTE) end  end,
                             onmouseclickR = function() DATA2:Menu_Sampler_Actions()  end,
                             refresh = true,
