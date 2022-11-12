@@ -8,9 +8,7 @@ about:
 changelog: 
   stable release
 
-
  
-desc:RS5K_manager_MacroControls
 options:gmem=RS5K_manager
 
 slider1:0<0, 1, 1>is_slave
