@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.0beta57
+-- @version 3.0beta58
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -10,21 +10,24 @@
 --    [main] mpl_RS5k_manager_Sampler_PreviousSample.lua 
 --    [main] mpl_RS5k_manager_Sampler_NextSample.lua 
 --    [main] mpl_RS5k_manager_Sampler_RandSample.lua 
---    mpl_RS5k_manager_MacroControls.jsfx 
---    mpl_RS5K_manager_MIDIBUS_choke.jsfx
+--    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
+--    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Macro: refresh offset/scale at change
---    # Macro: decrease val resolution
---    + Macro: scroll list with mousewhell
---    + ChildrenChain: show in sorted order
---    + ChildrenChain: allow to select choke group
---    + ChildrenChain: allow to change parent track pan
---    + ChildrenChain: scroll list with mousewhell
+--    # reapack index test
 
 
 
 --[[ 
 
+v3.0beta57 by MPL November 12 2022
+  # Macro: refresh offset/scale at change
+  # Macro: decrease val resolution
+  + Macro: scroll list with mousewhell
+  + ChildrenChain: show in sorted order
+  + ChildrenChain: allow to select choke group
+  + ChildrenChain: allow to change parent track pan
+  + ChildrenChain: scroll list with mousewhell
+  
 v3.0beta55 by MPL November 12 2022
   # Make active pad frame more bright
   # Macro: move actions to the top of module
@@ -346,7 +349,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta57'
+    DATA.extstate.version = '3.0beta58'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -2246,7 +2249,7 @@ List:
                         }                          
     x_offs = x_offs + DATA.GUI.custom_knob_button_w
     local gr_name = 'None'
-    if DATA2.MIDIbus.chokeflags[note] then
+    if DATA2.MIDIbus.chokeflags and DATA2.MIDIbus.chokeflags[note] then
       local flags = DATA2.MIDIbus.chokeflags[note]
       if flags ~= 0 then
         gr_name = ''
@@ -2278,6 +2281,7 @@ List:
   end
   ----------------------------------------------------------------------------- 
   function DATA2:Menu_ChildrenChain_Actions(note)
+    if not DATA2.MIDIbus.chokeflags then return end
     local t = {}
     local loop_t = {}
     local cntsel = 0 for note in pairs(DATA2.PADselection) do cntsel = cntsel + 1 end
