@@ -10,8 +10,8 @@
 --    [main] mpl_RS5k_manager_Sampler_PreviousSample.lua 
 --    [main] mpl_RS5k_manager_Sampler_NextSample.lua 
 --    [main] mpl_RS5k_manager_Sampler_RandSample.lua 
---    [jsfx] mpl_RS5k_manager_MacroControls.jsfx 
---    [jsfx] mpl_RS5K_manager_MIDIBUS_choke.jsfx
+--    mpl_RS5k_manager_MacroControls.jsfx 
+--    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
 --    # reapack index test
 
