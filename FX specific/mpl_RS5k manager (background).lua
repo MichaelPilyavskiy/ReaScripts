@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.0beta55
+-- @version 3.0beta57
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -13,21 +13,31 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Make active pad frame more bright
---    # Macro: move actions to the top of module
---    # Macro: use selected pads for add tune link action or all pads if no pad selected
---    + Macro: show pad names for links
---    + Drumrack: add action to select/unselect all pads
---    + Settings: add children chin to tab defaults options
---    # Settings: cleanup a bit
---    + Pad overview: allow to change pad overview active offset quantize to 4 or 8 pads
---    + Undo: add for drop file into sampler area
---    + test Undo: add for remove single link
---    + test Undo: add for add single link
+--    # Macro: refresh offset/scale at change
+--    # Macro: decrease val resolution
+--    + Macro: scroll list with mousewhell
+--    + ChildrenChain: show in sorted order
+--    + ChildrenChain: allow to select choke group
+--    + ChildrenChain: allow to change parent track pan
+--    + ChildrenChain: scroll list with mousewhell
 
 
 
 --[[ 
+
+v3.0beta55 by MPL November 12 2022
+  # Make active pad frame more bright
+  # Macro: move actions to the top of module
+  # Macro: use selected pads for add tune link action or all pads if no pad selected
+  + Macro: show pad names for links
+  + Drumrack: add action to select/unselect all pads
+  + Settings: add children chin to tab defaults options
+  # Settings: cleanup a bit
+  + Pad overview: allow to change pad overview active offset quantize to 4 or 8 pads
+  + Undo: add for drop file into sampler area
+  + test Undo: add for remove single link
+  + test Undo: add for add single link
+  
 v3.0beta53 by MPL November 10 2022
   # various UI tweaks
   + Macro: make links list scrollable
@@ -336,7 +346,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta55'
+    DATA.extstate.version = '3.0beta57'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -371,6 +381,9 @@ v3.0beta30 by MPL October 26 2022
                           CONF_database_map2 = '',
                           CONF_database_map3 = '',
                           CONF_database_map4 = '',
+                          
+                          -- child chain
+                          CONF_chokegr_limit = 4,
                           
                           -- UI
                           UI_appatchange = 0, 
@@ -528,7 +541,7 @@ Sampler knobs:
             
       
       
-elseif page == 5 then  -- midi lear
+elseif page == 5 then  -- midi learo
 MB(
 [[
 Actions panel:
@@ -536,7 +549,16 @@ Actions panel:
 ]]
 ,'RS5k manager: learn',0)         
       
-      
+ 
+elseif page == 6 then  -- childchain
+MB(
+[[
+List:
+  - volume for parent tracks. If track is device, then it shows device track volume
+  - pan for parent tracks. If track is device, then it shows device track pan
+  - choke group. This is linked to choke JSFX typically placed at MIDI bus track
+]]
+,'RS5k manager: children chain',0)          
       
     end
   end
@@ -1270,7 +1292,49 @@ Actions panel:
     DATA2:TrackDataRead_GetParent_Macro()
     DATA2:Database_Load() 
     DATA2:TrackDataRead_GetMIDIOSC_bindings()
+    DATA2:TrackDataRead_ReadChoke()
   end
+  --------------------------------------------------------------------- 
+  function DATA2:Actions_UpdateChoke()
+    if not (DATA2.MIDIbus.choke_valid and DATA2.MIDIbus.chokeflags ) then return end 
+    local tr = DATA2.MIDIbus.ptr
+    local fx = DATA2.MIDIbus.choke_pos
+    -- write group flags
+    for slider = 0, 63 do
+      local noteID1 = slider*2
+      local noteID2 = slider*2+1
+      local flags1 = DATA2.MIDIbus.chokeflags[noteID1]
+      local flags2 = DATA2.MIDIbus.chokeflags[noteID2]
+      local out_mixed = (flags2<<8) + flags1
+      --[[if out_mixed ~= 0 then 
+        msg('=')
+        msg('out_mixed '..out_mixed) 
+        msg('slider '..slider) 
+        msg('flags1 '..flags1) 
+        msg('noteID1 '..noteID1) 
+        msg('flags2 '..flags2) 
+        msg('noteID2 '..noteID2) 
+      end]]
+      TrackFX_SetParamNormalized( tr, fx, slider, out_mixed/65535 )
+    end
+  end
+  --------------------------------------------------------------------- 
+  function DATA2:TrackDataRead_ReadChoke()
+    if not (DATA2.MIDIbus and DATA2.MIDIbus.choke_valid) then return end
+    
+    local tr = DATA2.MIDIbus.ptr
+    local fx = DATA2.MIDIbus.choke_pos
+    DATA2.MIDIbus.chokeflags = {}
+    -- read group flags
+    for slider = 0, 63 do
+      local flags = TrackFX_GetParamNormalized( tr, fx, slider )
+      flags = math.floor(flags*65535)
+      local noteID1 = slider*2
+      local noteID2 = slider*2+1
+      DATA2.MIDIbus.chokeflags[noteID1] = flags&0xFF
+      DATA2.MIDIbus.chokeflags[noteID2] = (flags>>8)&0xFF 
+    end
+  end 
   ---------------------------------------------------------------------  
   function DATA2:Database_ParseREAPER_DB()   
     local reaperini = get_ini_file()
@@ -1537,6 +1601,7 @@ Actions panel:
       DATA.GUI.custom_separator_w = math.floor(10*DATA.GUI.custom_Yrelation)
       
       DATA.GUI.custom_framea = 0.1 -- greyed drum rack pads
+      DATA.GUI.custom_framea2 = 0.5 -- slider controls
       DATA.GUI.custom_backcol2 = '#f3f6f4' -- grey back  -- device selection
       DATA.GUI.custom_backfill2 = 0.1-- device selection
       
@@ -1777,9 +1842,10 @@ Actions panel:
     local id_note = src_t.noteID
     local id_layer = src_t.layerID
     local param_name = ''
-    if id_note then param_name = '[N'..DATA2.notes[id_note].name..'] ' end
+    if id_note and DATA2.notes and DATA2.notes[id_note] and DATA2.notes[id_note].name then param_name = '[N'..DATA2.notes[id_note].name..'] ' end
     --if id_layer then param_name = param_name .. '[L'..id_layer..'] ' end
     param_name = param_name ..t.param_name
+    local valres = 0.3
     DATA.GUI.buttons['macroglob_macrolink'..macroID..'link_name'..link_t.linkID] = { 
                           x=x_offs0+1,
                           y=y_offs,
@@ -1806,14 +1872,15 @@ Actions panel:
           ctrlname = 'Offs',
           ctrlval_key = 'plink_offset',
           ctrlval_format_key = 'plink_offset_format',
-          ctrlval_src_t = t,
-          ctrlval_res = 0.1,
+          ctrlval_src_t = link_t,
+          ctrlval_res = valres,
           ctrlval_default =0,
           ctrlval_min =-1,
           ctrlval_max =1,
           func_atrelease =      function()      GUI_MODULE_MACRO(DATA)  end,
           func_app =            function(new_val) 
                                   TrackFX_SetNamedConfigParm(t.src_t.tr_ptr, t.fx_dest, 'param.'..t.param_dest..'plink.offset', new_val)  
+                                  link_t.plink_offset_format = math.floor(new_val*100)..'%'
                                 end,
           func_refresh =        function() 
                                   DATA2:TrackDataRead_GetParent_Macro()
@@ -1834,17 +1901,17 @@ Actions panel:
           ctrlname = 'offs',
           ctrlval_key = 'plink_scale',
           ctrlval_format_key = 'plink_scale_format',
-          ctrlval_src_t = t,
-          ctrlval_res = 0.1,
+          ctrlval_src_t = link_t,
+          ctrlval_res = valres,
           ctrlval_default =0,
           func_atrelease =      function() GUI_MODULE_MACRO(DATA)end,          
           func_app =            function(new_val) 
                                   TrackFX_SetNamedConfigParm(t.src_t.tr_ptr, t.fx_dest, 'param.'..t.param_dest..'plink.scale', new_val) 
-                                  DATA2:TrackDataRead_GetParent_Macro()
-                                  --DATA.GUI.buttons['macroglob_macrolink'..macroID..'scale'..link_t.linkID..'val'].txt = DATA2.Macro.sliders[macroID].links[link_t.linkID].plink_scale_format
-                                  --DATA.onWHchange = true
+                                  link_t.plink_scale_format = math.floor(new_val*100)..'%'
                                 end,
           func_refresh =        function() 
+                                  DATA2:TrackDataRead_GetParent_Macro() 
+                                  
                                 end,
           func_formatreverse =  function(str_ret)
                                   local ret = DATA2:internal_ParsePercent(str_ret) if ret then return ret end
@@ -1864,7 +1931,7 @@ Actions panel:
                           onmouserelease = function() 
                             reaper.Undo_BeginBlock2( 0)
                             TrackFX_SetNamedConfigParm(t.src_t.tr_ptr, t.fx_dest, 'param.'..t.param_dest..'plink.active', 0) 
-                            reaper.Undo_EndBlock2( 0, 'RS5k manager / Macro / Remove link', 0xFFFFFFFF )                                         
+                            reaper.Undo_EndBlock2( 0, 'RS5k manager / Macro / Remove link', 0xFFFFFFFF )      --reaper.Undo_BeginBlock2( 0)                                   
                             DATA2:TrackDataRead_GetParent_Macro()
                             GUI_MODULE_MACRO(DATA) 
                             
@@ -1969,7 +2036,7 @@ Actions panel:
   end
   -----------------------------------------------------------------------------  
   function GUI_MODULE_CHILDCHAIN_childs_sub(DATA, note, x_offs, y_offs)  
-    local notenamesw = math.floor(DATA.GUI.custom_childchainw-DATA.GUI.custom_layer_scrollw-DATA.GUI.custom_offset- DATA.GUI.custom_knob_button_w)---*3)-- )
+    local notenamesw = math.floor(DATA.GUI.custom_childchainw-DATA.GUI.custom_layer_scrollw-DATA.GUI.custom_offset- DATA.GUI.custom_knob_button_w*3)---*3)-- )
     
     -- mark active
       local frame_a = .3--DATA.GUI.custom_framea 
@@ -1988,14 +2055,20 @@ Actions panel:
         backgr_fill_pad = 0.4
         backgr_col_pad = '#FFFFFF'
       end
+      local childname = DATA2.notes[note].name
+      if DATA2.notes[note].TYPE_DEVICE == true then 
+        childname = '[D'..note..'] '..childname
+       else
+        childname = '[N'..note..'] '..childname
+      end
       DATA.GUI.buttons['childchain_note'..note..'name'] = { 
                               x=x_offs,
                               y=y_offs,
                               w=notenamesw-DATA.GUI.custom_offset,
                               h=DATA.GUI.custom_childchain_entryh-DATA.GUI.custom_offset,
-                              txt = DATA2.notes[note].name,
+                              txt = childname,
                               txt_fontsz = DATA.GUI.custom_childchain_txtsz,
-                              frame_a = frame_a,
+                              frame_a = 0,
                               frame_col = col,
                               backgr_fill = backgr_fill_pad,
                               backgr_col = backgr_col_pad,
@@ -2075,7 +2148,7 @@ Actions panel:
                         backgr_fill2 = backgr_fill_param,
                         backgr_col2 =backgr_col,
                         backgr_usevalue = true,
-                        frame_a = DATA.GUI.custom_framea,
+                        frame_a = DATA.GUI.custom_framea2,
                         onmousedrag = function()
                               local src_t = actvol_t
                               local new_val = DATA.GUI.buttons['childchain_note'..note..'vol'].val
@@ -2108,7 +2181,164 @@ Actions panel:
                               DATA.GUI.buttons['childchain_note'..note..'vol'].val = 0.5
                               DATA2.ONDOUBLECLICK = true
                             end,                     
-                        }     
+                        }  
+    -- pan
+    x_offs = x_offs + DATA.GUI.custom_knob_button_w
+    local val , val_format, actpan_t
+    if DATA2.notes[note].TYPE_DEVICE == true then 
+      val= DATA2.notes[note].tr_pan
+      val_format= DATA2.notes[note].tr_pan_format 
+      actpan_t = DATA2.notes[note]
+     else
+      val= DATA2.notes[note].layers[1].tr_pan 
+      val_format= DATA2.notes[note].layers[1].tr_pan_format 
+      actpan_t = DATA2.notes[note].layers[1]
+    end
+    DATA.GUI.buttons['childchain_note'..note..'pan'] = { 
+                        x=x_offs,
+                        y=y_offs,
+                        w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+                        h=DATA.GUI.custom_childchain_entryh-DATA.GUI.custom_offset,
+                        val = val,
+                        val_res = -0.6,
+                        val_xaxis = true,
+                        val_centered = true,
+                        val_min = -1,
+                        val_max = 1,
+                        txt = val_format,
+                        txt_fontsz = DATA.GUI.custom_devicectrl_txtsz,
+                        backgr_fill2 = backgr_fill_param,
+                        backgr_col2 =backgr_col,
+                        backgr_usevalue = true,
+                        frame_a = DATA.GUI.custom_framea2,
+                        onmousedrag = function()
+                              local src_t = actpan_t
+                              local new_val = DATA.GUI.buttons['childchain_note'..note..'pan'].val
+                              SetMediaTrackInfo_Value( src_t.tr_ptr, 'D_PAN', new_val )
+                              DATA2:TrackDataRead_GetChildrens_TrackParams(src_t)
+                              DATA.GUI.buttons['childchain_note'..note..'pan'].txt = actpan_t.tr_pan_format
+                              DATA.GUI.buttons['childchain_note'..note..'pan'].refresh = true
+                              DATA2.ONPARAMDRAG = true
+                            end,
+                        onmouserelease = function()
+                              if not DATA2.ONDOUBLECLICK then
+                                DATA2.ONPARAMDRAG = nil
+                                local src_t = actpan_t
+                                local new_val = DATA.GUI.buttons['childchain_note'..note..'pan'].val
+                                SetMediaTrackInfo_Value( src_t.tr_ptr, 'D_PAN', new_val )
+                                DATA2:TrackDataRead_GetChildrens_TrackParams(src_t)
+                                DATA.GUI.buttons['childchain_note'..note..'pan'].txt = actpan_t.tr_pan_format
+                                DATA.GUI.buttons['childchain_note'..note..'pan'].refresh = true
+                               else
+                                DATA2.ONDOUBLECLICK = nil
+                              end
+                        end,
+                        onmousedoubleclick = function() 
+                              local src_t = actpan_t
+                              local new_val = 0
+                              SetMediaTrackInfo_Value( src_t.tr_ptr, 'D_PAN', new_val )
+                              DATA2:TrackDataRead_GetChildrens_TrackParams(src_t)
+                              DATA.GUI.buttons['childchain_note'..note..'pan'].txt = actpan_t.tr_pan_format
+                              DATA.GUI.buttons['childchain_note'..note..'pan'].refresh = true
+                              DATA.GUI.buttons['childchain_note'..note..'pan'].val = 0
+                              DATA2.ONDOUBLECLICK = true
+                            end,                     
+                        }                          
+    x_offs = x_offs + DATA.GUI.custom_knob_button_w
+    local gr_name = 'None'
+    if DATA2.MIDIbus.chokeflags[note] then
+      local flags = DATA2.MIDIbus.chokeflags[note]
+      if flags ~= 0 then
+        gr_name = ''
+        for groupID = 1, DATA.extstate.CONF_chokegr_limit do
+          local byte = 1<<(groupID-1)
+          if DATA2.MIDIbus.chokeflags[note]&byte==byte then 
+            if gr_name~='' then gr_name = gr_name..' '..groupID  else gr_name = gr_name..''..groupID end
+          end
+        end
+      end
+    end
+    DATA.GUI.buttons['childchain_note'..note..'choke'] = { 
+                        x=x_offs,
+                        y=y_offs,
+                        w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+                        h=DATA.GUI.custom_childchain_entryh-DATA.GUI.custom_offset,
+                        val_res = -0.3,
+                        val_xaxis = true,
+                        txt = gr_name,
+                        txt_fontsz = DATA.GUI.custom_devicectrl_txtsz,
+                        --backgr_fill2 = backgr_fill_param,
+                        --backgr_col2 =backgr_col,
+                       -- backgr_usevalue = true,
+                        frame_a = DATA.GUI.custom_framea2,
+                        onmouserelease = function()
+                          DATA2:Menu_ChildrenChain_Actions(note)
+                        end,
+                        }                          
+  end
+  ----------------------------------------------------------------------------- 
+  function DATA2:Menu_ChildrenChain_Actions(note)
+    local t = {}
+    local loop_t = {}
+    local cntsel = 0 for note in pairs(DATA2.PADselection) do cntsel = cntsel + 1 end
+    if cntsel >= 2 then 
+      for note in pairs(DATA2.PADselection) do loop_t[#loop_t+1]= note end
+     else--if DATA2.PARENT_LASTACTIVENOTE then
+      loop_t[1] = note--DATA2.PARENT_LASTACTIVENOTE
+    end
+    
+    if not note then note = loop_t[1] end 
+    if note then 
+      for groupID = 0, DATA.extstate.CONF_chokegr_limit do
+        local byte = 1<<(groupID-1)
+        local active = ''
+        if DATA2.MIDIbus.chokeflags[note]&byte==byte then active = '!' end
+        local name = active..'Set choke group to '..groupID
+        if groupID == 0 then name = 'Clear choke group' end
+        if groupID == 1 then name = '|'..name end
+        t[#t+1] = { str= name,
+                    func = function() 
+                      -- handle selection
+                        local loop_t = {}
+                        local cntsel = 0 for note in pairs(DATA2.PADselection) do cntsel = cntsel + 1 end
+                        if cntsel >= 2 then 
+                          for note in pairs(DATA2.PADselection) do loop_t[#loop_t+1]= note end
+                         else--if DATA2.PARENT_LASTACTIVENOTE then
+                          loop_t[1] = note--DATA2.PARENT_LASTACTIVENOTE
+                        end
+                        
+                      -- handle flags
+                        for i = 1, #loop_t do
+                          local note = loop_t[i]
+                          if groupID == 0 then 
+                            DATA2.MIDIbus.chokeflags[note] = 0 
+                           else 
+                            DATA2.MIDIbus.chokeflags[note] = DATA2.MIDIbus.chokeflags[note] ~byte
+                          end 
+                        end
+                        
+                      -- do stuff
+                        DATA2:Actions_UpdateChoke()
+                        GUI_MODULE_CHILDCHAIN_childs(DATA)
+                    end
+                  }
+      end
+     else
+      t[#t+1] = { str= 'none'}
+    end
+    
+    -- common actions
+      t[#t+1] = { str= '|Clear all group flags',
+                  func = function()
+                            if not (DATA2.MIDIbus and DATA2.MIDIbus.chokeflags) then return end
+                            for note=0,127 do DATA2.MIDIbus.chokeflags[note] = 0 end
+                            DATA2:Actions_UpdateChoke()
+                            GUI_MODULE_CHILDCHAIN_childs(DATA)
+                          end
+                }
+    
+    DATA:GUImenu(t)
+    
   end
   ----------------------------------------------------------------------------- 
   function GUI_MODULE_CHILDCHAIN_childs(DATA)  
@@ -2122,7 +2352,7 @@ Actions panel:
     local y_offs_list = y_offs - (DATA2.CHILDRENFX_scroll*comh)
     if comh < chainframeH then  y_offs_list = y_offs end
     local x_offs0= math.floor(DATA.GUI.custom_module_xoffs_childchain+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
-    for note in pairs(DATA2.notes) do 
+    for note in spairs(DATA2.notes) do 
       local x_offs = x_offs0
       if not (y_offs_list < y_offs or y_offs_list + DATA.GUI.custom_childchain_entryh > y_offs + chainframeH) then  GUI_MODULE_CHILDCHAIN_childs_sub(DATA, note, x_offs, y_offs_list)   end                     
       y_offs_list = y_offs_list + DATA.GUI.custom_childchain_entryh 
@@ -2138,16 +2368,17 @@ Actions panel:
     
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&128==0) then return end
     local x_offs0= math.floor(DATA.GUI.custom_module_xoffs_childchain+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
+    local x_offs = x_offs0
     local y_offs0= DATA.GUI.custom_module_yoffs_childchain
     GUI_MODULE_separator(DATA, 'childchain_sep', DATA.GUI.custom_module_xoffs_childchain,DATA.GUI.custom_module_yoffs_childchain) 
     
-    local nameframe_w  = DATA.GUI.custom_childchainw
+    local nameframe_w  = DATA.GUI.custom_childchainw - DATA.GUI.custom_knob_button_w-DATA.GUI.custom_infoh
       -- DATA.GUI.custom_knob_button_w - DATA.GUI.custom_infoh
     local y_offs = y_offs0+DATA.GUI.custom_infoh + DATA.GUI.custom_offset
     local chainframeH = DATA.GUI.custom_moduleH-DATA.GUI.custom_infoh-DATA.GUI.custom_offset*2
-    DATA.GUI.buttons.childchain_actionframe = { x=x_offs0,
+    DATA.GUI.buttons.childchain_actionframe = { x=x_offs,
                           y=y_offs0,
-                          w=nameframe_w,
+                          w=nameframe_w-DATA.GUI.custom_offset,
                           h=DATA.GUI.custom_infoh-1,
                           txt = 'Children chain',
                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
@@ -2156,13 +2387,47 @@ Actions panel:
                           --frame_asel = 0.3,
                           --backgr_fill = 0,
                           onmouseclick =  function() end}
-    --[[DATA.GUI.buttons.childchain_frame = { x=x_offs0,
+    x_offs = x_offs + nameframe_w
+    DATA.GUI.buttons.childchain_action = { x=x_offs,
+                          y=y_offs0,
+                          w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+                          h=DATA.GUI.custom_infoh-1,
+                          txt = 'Actions',
+                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                          val = 0,
+                          frame_a = 0.3,
+                          --frame_asel = 0.3,
+                          --backgr_fill = 0,
+                          onmouseclick =  function() DATA2:Menu_ChildrenChain_Actions()   end}     
+    x_offs = x_offs + DATA.GUI.custom_knob_button_w
+    DATA.GUI.buttons.childchain_help = { x=x_offs,
+                          y=y_offs0,
+                          w=DATA.GUI.custom_infoh ,
+                          h=DATA.GUI.custom_infoh-1,
+                          txt = '?',
+                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                          val = 0,
+                          frame_a = 0.3,
+                          --frame_asel = 0.3,
+                          --backgr_fill = 0,
+                          onmouseclick =  function()DATA2:Actions_Help(6)   end}                               
+                          
+    DATA.GUI.buttons.childchain_frame = { x=x_offs0,
                           y=y_offs0+DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
                           w=DATA.GUI.custom_childchainw-DATA.GUI.custom_layer_scrollw-DATA.GUI.custom_offset,---DATA.GUI.custom_offset,
                           h=chainframeH,
                           ignoreboundarylimit = true,
-                          --frame = 1,
-                          onmouseclick =  function() end}    ]]                  
+                          frame = 0,
+                          back_sela = 0,
+                          hide=true,
+                          onwheeltrig =  function() 
+                                            local mult = -1
+                                            if DATA.GUI.wheel_dir then mult = 1 end
+                                            DATA2.CHILDRENFX_scroll = VF_lim(DATA2.CHILDRENFX_scroll + 0.1 * mult)
+                                            DATA.GUI.buttons.childchain_scroll.val = DATA2.CHILDRENFX_scroll
+                                            GUI_MODULE_CHILDCHAIN_childs(DATA) 
+                                          end 
+                                          }                     
                           
     DATA.GUI.buttons.childchain_scroll = { x=x_offs0+DATA.GUI.custom_childchainw-DATA.GUI.custom_layer_scrollw,
                           y=y_offs0+DATA.GUI.custom_infoh+DATA.GUI.custom_offset,
@@ -2563,8 +2828,14 @@ Actions panel:
                           --hide = true,ignorempuse=true,
                           frame_a = 0,
                           frame_asel = 0,
-                          ignoremouse = true,
-                          onmouseclick =  function() end} 
+                          back_sela = 0,
+                          onwheeltrig =  function() 
+                                            local mult = -1
+                                            if DATA.GUI.wheel_dir then mult = 1 end
+                                            DATA2.MACRO_scroll = VF_lim(DATA2.MACRO_scroll + 0.1 * mult)
+                                            DATA.GUI.buttons.macroglob_scroll.val = DATA2.MACRO_scroll
+                                            GUI_MODULE_MACRO_links(DATA) 
+                                          end} 
     DATA.GUI.buttons.macroglob_scroll = { x=x_offs0+DATA.GUI.custom_macroW-DATA.GUI.custom_layer_scrollw,
                           y=y_offs,--+DATA.GUI.custom_offset,
                           w=DATA.GUI.custom_layer_scrollw,---DATA.GUI.custom_offset, 
@@ -4888,11 +5159,10 @@ Actions panel:
                               params_t.func_app(new_val)
                               params_t.func_refresh()
                               DATA.GUI.buttons[t.butkey..'val'].txt = src_t[t.ctrlval_format_key]
-                              if DATA.GUI.buttons[t.butkey..'knob'] then 
+                              
                                 local val_norm = src_t[t.ctrlval_key] 
                                 if t.ctrlval_max and t.ctrlval_min then val_norm = (val_norm - t.ctrlval_min) / (t.ctrlval_max - t.ctrlval_min) end
-                                DATA.GUI.buttons[t.butkey..'knob'].val = val_norm
-                              end
+                                if DATA.GUI.buttons[t.butkey..'knob'] then DATA.GUI.buttons[t.butkey..'knob'].val = val_norm end
                               DATA.GUI.buttons[t.butkey..'val'].refresh = true
                             end,
                         onmousedoubleclick = function() 
