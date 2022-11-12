@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.0beta59
+-- @version 3.0beta58
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -349,7 +349,7 @@ v3.0beta30 by MPL October 26 2022
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0beta59'
+    DATA.extstate.version = '3.0beta58'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
