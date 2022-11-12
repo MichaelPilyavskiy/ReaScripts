@@ -1832,3 +1832,55 @@ obj.b.obj_pers_swgrid_name = { persist_buf = true,
                                 end}                                
     return w
   end 
+  --------------------------------------------------------------
+  function Widgets_Persist_mchancnt(data, obj, mouse, x_margin, widgets, conf, y_offs)  
+    local w = 70*conf.scaling
+    local frame_a = 0
+    obj.b.obj_pers_mchancnt_back1 = {persist_buf = true,
+                        x = x_margin - w,
+                        y = obj.offs ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_head,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}
+    obj.b.obj_pers_mchancnt_back2 = {persist_buf = true,
+                        x = x_margin - w,
+                        y = obj.offs+obj.entry_h ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = obj.frame_a_entry,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock}  
+    obj.b.obj_pers_mchancnt = { persist_buf = true,--outside_buf = true,
+                        x = x_margin - w,
+                        y = obj.offs ,
+                        w = w,
+                        h = obj.entry_h*2,
+                        frame_a = 0,
+                        frame_rect_a = 0,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_entry,
+                        fontsz = obj.fontsz_clock,
+                        txt = data.master_chanformat , -- SEE GUI_Main
+                        func =  function()
+                          local t = {}
+                          for ch = 2, 64,2 do
+                            t[#t+1] = { str = 'Set master parent channels to '..ch,
+                                        func = function() 
+                                                local tr =  reaper.GetMasterTrack( 0 )
+                                                reaper.SetMediaTrackInfo_Value( tr, 'I_NCHAN', ch)
+                                                redraw = 2
+                                              end}
+                                      
+                          end
+                          Menu(mouse, t)
+                        end
+                        }
+    return w
+  end   
+  

@@ -224,6 +224,8 @@
   function DataUpdate_MasterTrack(data)
     local tr =  reaper.GetMasterTrack( 0 )
     data.master_W = reaper.GetMediaTrackInfo_Value( tr, 'D_WIDTH')
+    data.master_chan = reaper.GetMediaTrackInfo_Value( tr, 'I_NCHAN')
+    data.master_chanformat = math.floor(data.master_chan)..'ch'
   end
   ---------------------------------------------------
   function DataUpdate(data, mouse, widgets, obj, conf)

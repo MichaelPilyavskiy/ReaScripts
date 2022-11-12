@@ -643,6 +643,7 @@ msg(
           #mastermeter Show master RMS/LUFS
           #masterchan Hover around master width. -100% button makes channes swapped, mono set width to zero. Both change panmode to stereo pan.
           #chordlive Show note / chord of recent played incoming MIDI events
+          #mchancnt Number of master channels
  ]] )  
                  
                         end   
