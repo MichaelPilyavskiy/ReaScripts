@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5b8cee3f3e168d3be50dbe4241f602491ed6fbb1" name="MPL Scripts">
+<index version="1" commit="ad13679b307f85a1e06479a13d4e25eea574f682" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4320,6 +4320,18 @@
         <source main="main" file="mpl_RS5k_manager_Sampler_RandSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b8cee3f3e168d3be50dbe4241f602491ed6fbb1/FX%20specific/mpl_RS5k_manager_Sampler_RandSample.lua</source>
         <source file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b8cee3f3e168d3be50dbe4241f602491ed6fbb1/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
         <source file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b8cee3f3e168d3be50dbe4241f602491ed6fbb1/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
+      </version>
+      <version name="3.0" author="MPL" time="2022-11-12T14:07:23Z">
+        <changelog><![CDATA[+ init release, for full changelog see ActionList > Browse packages > RS5k manager > History]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad13679b307f85a1e06479a13d4e25eea574f682/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad13679b307f85a1e06479a13d4e25eea574f682/FX%20specific/mpl_RS5k_manager_Database_NewSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewKit.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad13679b307f85a1e06479a13d4e25eea574f682/FX%20specific/mpl_RS5k_manager_Database_NewKit.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_Lock.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad13679b307f85a1e06479a13d4e25eea574f682/FX%20specific/mpl_RS5k_manager_Database_Lock.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_PreviousSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad13679b307f85a1e06479a13d4e25eea574f682/FX%20specific/mpl_RS5k_manager_Sampler_PreviousSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_NextSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad13679b307f85a1e06479a13d4e25eea574f682/FX%20specific/mpl_RS5k_manager_Sampler_NextSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_RandSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad13679b307f85a1e06479a13d4e25eea574f682/FX%20specific/mpl_RS5k_manager_Sampler_RandSample.lua</source>
+        <source file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad13679b307f85a1e06479a13d4e25eea574f682/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
+        <source file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad13679b307f85a1e06479a13d4e25eea574f682/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k tools.lua" type="script" desc="RS5k tools">
