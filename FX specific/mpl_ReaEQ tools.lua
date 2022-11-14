@@ -1,5 +1,5 @@
 -- @description ReaEQ tools
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -15,4 +15,4 @@
 --    [main] mpl_ReaEQ tools/mpl_Split focused ReaEQ to LR routing.lua
 --    [main] mpl_ReaEQ tools/mpl_Toggle 64x oversampling for all ReaComp instances.lua
 -- @changelog
---     # mpl_Sort focused ReaEQ bands by frequency limitation message
+--     # upd Port focused ReaEQ bands to spectral edits on selected items
