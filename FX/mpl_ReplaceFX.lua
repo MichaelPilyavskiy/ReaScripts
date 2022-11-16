@@ -1,12 +1,11 @@
 -- @description ReplaceFX
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @about Script for replacing FX by name
 -- @changelog
---    # filter handling tweaks
---    # VariousFunctions 2.5+ support, GUI internal improvements and tweaks
+--    # fix formatting fx name
   
-  version = 1.03
+  version = 1.04
   ---------------------------------------------------
   function ExtState_Def()  
     local t= {
@@ -48,7 +47,7 @@
   --------------------------------------------------------------------  
   function MPL_ReplaceFX_replace(MOUSE,OBJ,DATA)
     local plugintoreplace = DATA.conf.plugintoreplace
-    local replaceto = DATA.conf.replaceto:gsub('%(.-%)', '') 
+    local replaceto = DATA.conf.replaceto--:gsub('%(.-%)', '') 
     if plugintoreplace == '' or replaceto=='' then return end
     VF2_CollectFXData(DATA.custom.FX) -- refresh FX right before replace
     if not DATA.custom.FX or not DATA.custom.FX[plugintoreplace] then return end  
@@ -217,7 +216,7 @@
       if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end  
      else 
       reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) 
-      if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end
+      if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end
     end   
   end
   --------------------------------------------------------------------  
