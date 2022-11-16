@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="caf997cf1fd6941c7d10c8432626b9d46daf22d1" name="MPL Scripts">
+<index version="1" commit="54cbd2fcb57ca0fff44ca2c05efec9d3b7c07a31" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2161,6 +2161,10 @@
         <changelog><![CDATA[# filter handling tweaks
 # VariousFunctions 2.5+ support, GUI internal improvements and tweaks]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0b61a9fea0d48e147eabab3e54d93615bd4da6b1/FX/mpl_ReplaceFX.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2022-11-16T17:13:04Z">
+        <changelog><![CDATA[# fix formatting fx name]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/54cbd2fcb57ca0fff44ca2c05efec9d3b7c07a31/FX/mpl_ReplaceFX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset FX chain pin mapping.lua" type="script" desc="Reset FX chain pin mapping">
