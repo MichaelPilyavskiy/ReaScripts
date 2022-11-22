@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="12ce648bffc2b4e7a0df3ce8d6bc25b3d06445fc" name="MPL Scripts">
+<index version="1" commit="c1055eeef1cd3eb63ffd6d84b9fe163d5aadbfc0" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5324,6 +5324,11 @@
       <version name="1.0" author="MPL" time="2022-11-22T06:42:03Z">
         <changelog><![CDATA[+ Init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/12ce648bffc2b4e7a0df3ce8d6bc25b3d06445fc/Items%20Properties/mpl_Align%20item%20position%20by%20SMPTE%20code%20on%20last%20channel.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2022-11-22T18:58:30Z">
+        <changelog><![CDATA[# use project sample rate instead take sample rate
+# fix wrong offset for a SMPTE sync pattern]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c1055eeef1cd3eb63ffd6d84b9fe163d5aadbfc0/Items%20Properties/mpl_Align%20item%20position%20by%20SMPTE%20code%20on%20last%20channel.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Align selected track items vertically.lua" type="script" desc="Align selected track items vertically (free positioned mode)">
