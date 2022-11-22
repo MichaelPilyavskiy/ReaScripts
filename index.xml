@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ca12390757a64037a4df63626daf7ab7775fd931" name="MPL Scripts">
+<index version="1" commit="12ce648bffc2b4e7a0df3ce8d6bc25b3d06445fc" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5317,6 +5317,15 @@
     </reapack>
   </category>
   <category name="Items Properties">
+    <reapack name="mpl_Align item position by SMPTE code on last channel.lua" type="script" desc="Align item position by SMPTE code on last channel">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-11-22T06:42:03Z">
+        <changelog><![CDATA[+ Init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/12ce648bffc2b4e7a0df3ce8d6bc25b3d06445fc/Items%20Properties/mpl_Align%20item%20position%20by%20SMPTE%20code%20on%20last%20channel.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Align selected track items vertically.lua" type="script" desc="Align selected track items vertically (free positioned mode)">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
