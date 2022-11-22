@@ -1,9 +1,10 @@
 -- @description Align item position by SMPTE code on last channel
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Init
+--    # use project sample rate instead take sample rate
+--    # fix wrong offset for a SMPTE sync pattern
 
 
  
@@ -25,7 +26,8 @@
     
     DATA2.tr_ptr = GetMediaItemTrack( item )
     DATA2.take_src = GetMediaItemTake_Source( take ) 
-    DATA2.SR=  GetMediaSourceSampleRate( DATA2.take_src ) 
+    DATA2.SR=  VF_GetProjectSampleRate()--GetMediaSourceSampleRate( DATA2.take_src ) 
+    
     DATA2.num_ch = GetMediaSourceNumChannels( DATA2.take_src )
     DATA2.tk_srclen = GetMediaSourceLength( DATA2.take_src ) 
     DATA2.item_ptr = item
@@ -162,7 +164,7 @@ t[i+96].state == true
   ---------------------------------------------------------------------  
   function DATA2:GetFrame()
     local t = DATA2.bitstreamout
-    local offs = DATA2.valid_mask_offs
+    local offs = DATA2.valid_mask_offs+16
     local smpte_bitmask = ''
     for i = offs, offs+64 do smpte_bitmask = smpte_bitmask..t[i].val end 
     smpte_bitmask = tonumber(smpte_bitmask:reverse(), 2)
