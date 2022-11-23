@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.0
+-- @version 3.01
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -13,7 +13,10 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + init release, for full changelog see ActionList > Browse packages > RS5k manager > History
+--    + add quick tip window
+--    # DrumRack: fix error at Importing selected items
+--    + Sampler: add noteoff control
+
 
 
 
@@ -685,10 +688,11 @@ List:
         end  
       end
      end
-     
-    note_layer_t[outval_key] = TrackFX_GetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t[extparamkey] ) 
-    note_layer_t[outvalform_key]=math.floor(({TrackFX_GetFormattedParamValue( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t[extparamkey] )})[2]*100)..'%'
     
+    if note_layer_t[extparamkey] then
+      note_layer_t[outval_key] = TrackFX_GetParamNormalized( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t[extparamkey] ) 
+      note_layer_t[outvalform_key]=math.floor(({TrackFX_GetFormattedParamValue( note_layer_t.tr_ptr, note_layer_t.instrument_pos, note_layer_t[extparamkey] )})[2]*100)..'%'
+    end
   end
   ---------------------------------------------------------------------  
   
@@ -740,6 +744,10 @@ List:
       note_layer_t.instrument_tune = TrackFX_GetParamNormalized( track, instrument_pos, note_layer_t.instrument_tuneID ) 
       note_layer_t.instrument_tune_format = ({TrackFX_GetFormattedParamValue( track, instrument_pos, note_layer_t.instrument_tuneID )})[2]..'st'
       note_layer_t.instrument_filepath = ({TrackFX_GetNamedConfigParm(  track, instrument_pos, 'FILE0') })[2]
+      note_layer_t.instrument_noteoffID = 11
+      note_layer_t.instrument_noteoff = TrackFX_GetParamNormalized( track, instrument_pos, note_layer_t.instrument_noteoffID ) 
+      note_layer_t.instrument_noteoff_format = math.floor(note_layer_t.instrument_noteoff)
+      
       local filepath_short = GetShortSmplName(note_layer_t.instrument_filepath) if filepath_short and filepath_short:match('(.*)%.[%a]+') then filepath_short = filepath_short:match('(.*)%.[%a]+') end
       note_layer_t.instrument_filepath_short = filepath_short 
      else
@@ -1164,6 +1172,41 @@ List:
     GUI_MODULE_SETTINGS(DATA)
     
   end
+  ----------------------------------------------------------------------------- 
+  function GUI_MODULE_INITFALED(DATA)
+    local help_text =
+[[
+Quick tips
+-
+Parent track: 
+firstly, select some track, 
+It will be parent track for drum rack
+-
+Drop sample to pads
+While track is selected, drop file from browsr or MediaExplorer to pad,
+this will create dedicated track for a sample.
+-
+Using tabs
+leftclick them to toggle show-hide 
+rightclick them to hide all but active.
+
+]]
+    local w_rep = 0.5*(DATA.GUI.custom_gfx_wreal-DATA.GUI.custom_tab_w)
+    local h_rep = 0.8*(DATA.GUI.custom_gfx_hreal)
+    DATA.GUI.buttons['initfalse'] = { 
+                          x=1+DATA.GUI.custom_tab_w+(DATA.GUI.custom_gfx_wreal-DATA.GUI.custom_tab_w)/2-w_rep/2,
+                          y=DATA.GUI.custom_gfx_hreal/2-h_rep/2,
+                          w=w_rep,
+                          h=h_rep,
+                          txt = help_text,
+                          txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
+                          --frame_a =DATA.GUI.custom_framea,
+                          --frame_col = '#333333',
+                          onmouseclick = function() 
+                          
+                          end,
+                          } 
+  end
   ---------------------------------------------------------------------  
   function GUI_MODULE_TABS(DATA)  
     local txt_a_unabled = 0.25
@@ -1272,6 +1315,7 @@ List:
       DATA.GUI.custom_Yrelation = math.min(DATA.GUI.custom_Yrelation, 1.1) -- global W
       DATA.GUI.custom_availableforhorizontalseparation = gfx_h / (DATA.GUI.custom_referenceH* DATA.GUI.custom_Yrelation) > 1.5
       DATA.GUI.custom_gfx_wreal = gfx_w
+      DATA.GUI.custom_gfx_hreal = gfx_h
       DATA.GUI.custom_anavailableparamtxta = 0.3
       
       DATA.GUI.custom_offset =  math.floor(3 * DATA.GUI.custom_Yrelation)
@@ -1397,6 +1441,9 @@ List:
         GUI_RESERVED_initmacroXYoffs(DATA)
         GUI_RESERVED_init_tabs(DATA)
         --end
+        if DATA2.tr_valid ~=true then 
+          GUI_MODULE_INITFALED(DATA)
+        end
        elseif DATA.GUI.Settings_open and DATA.GUI.Settings_open == 1 then 
         GUI_MODULE_SETTINGS(DATA)
       end
@@ -1405,6 +1452,7 @@ List:
   end 
   ---------------------------------------------------------------------  
   function GUI_RESERVED_init_tabs(DATA)
+    DATA.GUI.buttons['initfalse'] = nil
     GUI_MODULE_TABS(DATA)
     GUI_MODULE_MACRO(DATA) 
     GUI_MODULE_PADOVERVIEW(DATA)
@@ -3150,7 +3198,7 @@ List:
   end
   -----------------------------------------------------------------------  
   function DATA2:Actions_PadOnFileDrop_ExportToRS5k(new_tr, filepath,note)
-    
+    if not filepath then return end
     if filepath:match('@fx') then 
       --reaper.Undo_BeginBlock2( 0)
       DATA2:Actions_PadOnFileDrop_ExportFXasDeviceInstrument(new_tr, filepath,note)
@@ -3451,8 +3499,12 @@ List:
       local tk = GetActiveTake( it )
       if tk and not TakeIsMIDI( tk ) then
         local src = GetMediaItemTake_Source( tk)
+        if not src then 
+          src =  GetMediaSourceParent( src )
+        end
         if src then 
           local filenamebuf = GetMediaSourceFileName( src )
+          filenamebuf = filenamebuf:gsub('\\','/')
           local layer = 1
           DATA2:Actions_PadOnFileDrop(note+i-1, layer, filenamebuf)
           DeleteTrackMediaItem(  reaper.GetMediaItemTrack( it ), it )
@@ -3601,7 +3653,7 @@ List:
     DATA2:TrackDataRead(DATA2.tr_ptr)
     -- get fp
       if filepath0 then 
-        DATA2:Actions_PadOnFileDrop_Sub(note, layer, filepath)
+        DATA2:Actions_PadOnFileDrop_Sub(note, layer, filepath0)
        else
         for i =1, #DATA.GUI.droppedfiles.files+1 do
           local filepath = DATA.GUI.droppedfiles.files[i-1]
@@ -4668,10 +4720,13 @@ List:
     local backgr_col = DATA.GUI.custom_backcol2
     if spl_t.instrument_loop == 1 then backgr_fill = 0.2 end
     local txt = 'Loop' if not spl_t.ISRS5K then txt = '' end
-    local modeh = math.floor(DATA.GUI.custom_sampler_peakareah/2)
-    DATA.GUI.buttons.sampler_mode1 = { x= DATA.GUI.buttons.sampler_frame.x ,
-                        y=DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset,
-                        w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
+    local modeh = math.floor(DATA.GUI.custom_sampler_peakareah/3)
+    local  x_offs = DATA.GUI.buttons.sampler_frame.x
+    local y_offs = DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset
+    local wbut = DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset
+    DATA.GUI.buttons.sampler_mode1 = { x= x_offs,
+                        y=y_offs,
+                        w=wbut,
                         h=modeh-1,
                         --ignoremouse = true,
                         frame_a = DATA.GUI.custom_framea,
@@ -4689,10 +4744,11 @@ List:
     local backgr_col = DATA.GUI.custom_backcol2
     if spl_t.instrument_loop == 0 then backgr_fill = 0.2 end
     local txt = '1-shot' if not spl_t.ISRS5K then txt = '' end
-    DATA.GUI.buttons.sampler_mode2 = { x= DATA.GUI.buttons.sampler_frame.x,
-                        y=DATA.GUI.buttons.sampler_frame.y+modeh+ DATA.GUI.custom_offset+1 ,
-                        w=DATA.GUI.custom_knob_button_w-DATA.GUI.custom_offset,
-                        h=modeh,
+    y_offs=y_offs+modeh
+    DATA.GUI.buttons.sampler_mode2 = { x= x_offs,
+                        y=y_offs,
+                        w=wbut,
+                        h=modeh-1,
                         --ignoremouse = true,
                         frame_a = DATA.GUI.custom_framea,
                         txt = txt,
@@ -4705,6 +4761,28 @@ List:
                           GUI_MODULE_SAMPLER_Section_Loopstate(DATA)
                         end,
                         } 
+    y_offs=y_offs+modeh
+    local backgr_fill = 0
+    local backgr_col = DATA.GUI.custom_backcol2
+    if spl_t.instrument_noteoff == 1 then backgr_fill = 0.2 end
+    DATA.GUI.buttons.sampler_mode3_name = { x=x_offs,
+                        y=y_offs,
+                        w=wbut,---DATA.GUI.custom_offset,
+                        h=modeh,
+                        --txt_a =DATA.GUI.custom_anavailableparamtxta,
+                        --ignoremouse = true,
+                        frame_a = DATA.GUI.custom_framea,
+                        backgr_col=backgr_col,
+                        backgr_fill=backgr_fill,
+                        txt = 'NoteOff',
+                        txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
+                        onmouseclick = function()  
+                                          spl_t.instrument_noteoff=spl_t.instrument_noteoff~1
+                                          TrackFX_SetParamNormalized( spl_t.tr_ptr, spl_t.instrument_pos, 11, spl_t.instrument_noteoff ) 
+                                          DATA2:TrackDataRead_GetChildrens_InstrumentParams(spl_t) -- refresh state
+                                          GUI_MODULE_SAMPLER_Section_Loopstate(DATA)
+                                        end                      
+                        }                 
   end
   ----------------------------------------------------------------------
   function DATA2:Actions_ShowInstrument(note, layer0) 
@@ -4779,7 +4857,7 @@ List:
                            
                            
     local txt = ''
-    if not spl_t.ISRS5K then txt = '['..spl_t.instrument_fxname..']' end
+    if not spl_t.ISRS5K and spl_t.instrument_fxname then txt = '['..spl_t.instrument_fxname..']' end
     DATA.GUI.buttons.sampler_framepeaks = { x= DATA.GUI.buttons.sampler_frame.x + DATA.GUI.custom_knob_button_w,
                             y=DATA.GUI.buttons.sampler_frame.y + DATA.GUI.custom_offset,
                             w=DATA.GUI.custom_samplerW - DATA.GUI.custom_knob_button_w*2-DATA.GUI.custom_offset,
