@@ -1691,7 +1691,9 @@ end
         if(tonumber(param))then
           param = tonumber(param);
         end
-        data[section][param] = value;
+        if data[section] then 
+          data[section][param] = value;
+        end
       end
     end
     file:close();
