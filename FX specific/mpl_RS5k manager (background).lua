@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.01
+-- @version 3.02
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -13,9 +13,8 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + add quick tip window
---    # DrumRack: fix error at Importing selected items
---    + Sampler: add noteoff control
+--    # fix error when get files from source section
+--    + DrumRack: when taking files from arrange, obey source section
 
 
 
@@ -29,7 +28,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.0'
+    DATA.extstate.version = '3.02'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -3197,15 +3196,14 @@ rightclick them to hide all but active.
     return filepath
   end
   -----------------------------------------------------------------------  
-  function DATA2:Actions_PadOnFileDrop_ExportToRS5k(new_tr, filepath,note)
-    if not filepath then return end
+  function DATA2:Actions_PadOnFileDrop_ExportToRS5k(new_tr, filepath,note,section_data)
+    if not (filepath and filepath~='')  then return end
     if filepath:match('@fx') then 
       --reaper.Undo_BeginBlock2( 0)
       DATA2:Actions_PadOnFileDrop_ExportFXasDeviceInstrument(new_tr, filepath,note)
       --reaper.Undo_EndBlock2( 0, 'RS5k manager: add FX instrument', 0xFFFFFFFF )
       return
     end
-    
     --reaper.Undo_BeginBlock2( 0)
     local instrument_pos = TrackFX_AddByName( new_tr, 'ReaSamplomatic5000', false, 0 ) 
     if instrument_pos == -1 then instrument_pos = TrackFX_AddByName( new_tr, 'ReaSamplomatic5000', false, -1000 ) end 
@@ -3222,7 +3220,13 @@ rightclick them to hide all but active.
     TrackFX_SetParamNormalized( new_tr, instrument_pos, 9, 0 ) -- attack
     TrackFX_SetParamNormalized( new_tr, instrument_pos, 11, DATA.extstate.CONF_onadd_obeynoteoff) -- obey note offs
     DATA2:Actions_PadOnFileDrop_setnote_ID(new_tr, instrument_pos, note)
-    
+    if section_data and section_data.src and section_data.offs and section_data.len then
+      --[[msg(section_data.src_len)
+      msg(section_data.offs)
+      msg(section_data.len)]]
+      TrackFX_SetParamNormalized( new_tr, instrument_pos, 13, section_data.offs / section_data.src_len )
+      TrackFX_SetParamNormalized( new_tr, instrument_pos, 14, (section_data.offs+section_data.len) / section_data.src_len )
+    end
     
     -- store external data
     local src = PCM_Source_CreateFromFile( filepath )
@@ -3496,19 +3500,41 @@ rightclick them to hide all but active.
     for selitem = 1, cnt do itt[#itt+1] = GetSelectedMediaItem( 0, selitem -1) end
     for i =1, #itt do
       local it = itt[i]
-      local tk = GetActiveTake( it )
+      local tk = GetActiveTake( it ) 
       if tk and not TakeIsMIDI( tk ) then
+        local section,src_len 
         local src = GetMediaItemTake_Source( tk)
-        if not src then 
-          src =  GetMediaSourceParent( src )
+        local src_len =  GetMediaSourceLength( src )
+        -- handle reversed source
+        if not src or (src and GetMediaSourceType( src ) == 'SECTION') then  
+          parent_src =  GetMediaSourceParent( src ) 
+          src_len =  GetMediaSourceLength( parent_src )
+         else
+          parent_src = src
         end
-        if src then 
-          local filenamebuf = GetMediaSourceFileName( src )
-          filenamebuf = filenamebuf:gsub('\\','/')
-          local layer = 1
-          DATA2:Actions_PadOnFileDrop(note+i-1, layer, filenamebuf)
-          DeleteTrackMediaItem(  reaper.GetMediaItemTrack( it ), it )
+        
+        -- handle section
+        local section_data = {}
+        if parent_src and GetMediaSourceType( src ) == 'SECTION' then 
+          local retval, offs, len, rev = reaper.PCM_Source_GetSectionInfo( src )
+          section_data.offs =offs
+          section_data.len =len
+          section_data.src =src
+          section_data.src_len =src_len
         end
+        
+                
+        
+        if parent_src then 
+          local filenamebuf = GetMediaSourceFileName( parent_src )
+          if filenamebuf then 
+            filenamebuf = filenamebuf:gsub('\\','/')
+            local layer = 1 
+            DATA2:Actions_PadOnFileDrop(note+i-1, layer, filenamebuf,section_data)
+            DeleteTrackMediaItem(  reaper.GetMediaItemTrack( it ), it )
+          end
+        end
+        
       end
     end
   end
@@ -3555,7 +3581,7 @@ rightclick them to hide all but active.
     --reaper.Undo_EndBlock2( 0, 'RS5k manager: replace sample', 0xFFFFFFFF ) 
   end
   -----------------------------------------------------------------------
-  function DATA2:Actions_PadOnFileDrop_Sub(note, layer, filepath)
+  function DATA2:Actions_PadOnFileDrop_Sub(note, layer, filepath,section_data)
     if not DATA2.tr_valid == true then return end
     --[[
     master_set
@@ -3574,7 +3600,6 @@ rightclick them to hide all but active.
     ]]
     
     
-
     if not layer then layer =1 end
     DATA2:TrackDataWrite(_,{master_set=true})  -- make sure folder is parent
     DATA2:TrackDataRead_ValidateMIDIbus()
@@ -3583,14 +3608,17 @@ rightclick them to hide all but active.
     if not DATA2.notes[note] then
       SetMediaTrackInfo_Value( DATA2.tr_ptr, 'I_FOLDERDEPTH', 1 ) -- make sure parent folder get parent ono adding first child
       local new_tr = DATA2:Actions_PadOnFileDrop_AddChildTrack()  -- set_currentparentforchild / setchild
-      DATA2:Actions_PadOnFileDrop_ExportToRS5k(new_tr, filepath,note) 
+      DATA2:Actions_PadOnFileDrop_ExportToRS5k(new_tr, filepath,note,section_data) 
       DATA2:Actions_PadOnFileDrop_AddMIDISend(new_tr)
       DATA2:TrackDataWrite(new_tr, {setnote_ID=note})
       DATA2:TrackDataRead_GetChildrens() 
       DATA_RESERVED_ONPROJCHANGE(DATA)
-      local filepath_sh = GetShortSmplName(filepath) if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end 
+      local filepath_sh = GetShortSmplName(filepath) 
+      if filepath_sh and filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end 
+      if filepath_sh then 
         SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, filepath_sh) 
         SetTrackMIDINoteNameEx( 0,new_tr, note, -1, filepath_sh)
+      end
       return
     end
     
@@ -3609,7 +3637,7 @@ rightclick them to hide all but active.
       SetTrackMIDINoteNameEx( 0,DATA2.MIDIbus.ptr, note, -1, 'Note '..note)  
       local new_tr = DATA2:Actions_PadOnFileDrop_AddChildTrack(DATA2.notes[note].devicetr_ID) 
       if new_tr then 
-        DATA2:Actions_PadOnFileDrop_ExportToRS5k(new_tr, filepath, note) 
+        DATA2:Actions_PadOnFileDrop_ExportToRS5k(new_tr, filepath, note,section_data) 
         DATA2:Actions_PadOnFileDrop_AddMIDISend(new_tr)
         DATA2:TrackDataWrite(new_tr, {set_devicechild_deviceGUID=DATA2.notes[note].tr_GUID})
         DATA2:TrackDataWrite(new_tr, {setnote_ID=note})
@@ -3632,7 +3660,7 @@ rightclick them to hide all but active.
       local devicetr_ID = DATA2.notes[note].devicetr_ID
       local new_tr = DATA2:Actions_PadOnFileDrop_AddChildTrack(devicetr_ID) 
       if new_tr then
-        DATA2:Actions_PadOnFileDrop_ExportToRS5k(new_tr, filepath,note) 
+        DATA2:Actions_PadOnFileDrop_ExportToRS5k(new_tr, filepath,note,section_data) 
         DATA2:Actions_PadOnFileDrop_AddMIDISend(new_tr)
         DATA2:TrackDataWrite(new_tr, {set_devicechild_deviceGUID=DATA2.notes[note].tr_GUID})
       end
@@ -3644,16 +3672,16 @@ rightclick them to hide all but active.
     
   end
   -----------------------------------------------------------------------
-  function DATA2:Actions_PadOnFileDrop(note, layer, filepath0) 
+  function DATA2:Actions_PadOnFileDrop(note, layer, filepath0,section_data0) 
     if not DATA2.tr_valid then return end
-    
     -- validate additional stuff
     DATA2:TrackDataRead_ValidateMIDIbus()
     SetMediaTrackInfo_Value( DATA2.tr_ptr, 'I_FOLDERCOMPACT',1 ) -- folder compacted state (only valid on folders), 0=normal, 1=small, 2=tiny children
     DATA2:TrackDataRead(DATA2.tr_ptr)
+    
     -- get fp
       if filepath0 then 
-        DATA2:Actions_PadOnFileDrop_Sub(note, layer, filepath0)
+        DATA2:Actions_PadOnFileDrop_Sub(note, layer, filepath0,section_data0)
        else
         for i =1, #DATA.GUI.droppedfiles.files+1 do
           local filepath = DATA.GUI.droppedfiles.files[i-1]
@@ -4838,8 +4866,10 @@ rightclick them to hide all but active.
                            txt = 'FX',
                            txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
                            onmouserelease = function() 
+                                              if spl_t.instrument_pos then
                                               --DATA2:Actions_ShowInstrument(note, layer) 
-                                              TrackFX_Show( spl_t.tr_ptr, spl_t.instrument_pos, 1 ) 
+                                                TrackFX_Show( spl_t.tr_ptr, spl_t.instrument_pos, 1 ) 
+                                              end
                                             end,
                            }
       x_offs = x_offs+DATA.GUI.custom_knob_button_w--DATA.GUI.custom_infoh
@@ -5767,7 +5797,7 @@ rightclick them to hide all but active.
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.49) if ret then local ret2 = VF_CheckReaperVrs(6.69,true) if ret2 then  
+  local ret = VF_CheckFunctions(3.51) if ret then local ret2 = VF_CheckReaperVrs(6.69,true) if ret2 then  
     gmem_attach('RS5K_manager')
     main() 
   end end
