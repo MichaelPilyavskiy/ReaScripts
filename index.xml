@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e8ab34fe1227a2123c6c0e992b471e69ad80fb30" name="MPL Scripts">
+<index version="1" commit="b0cfa1a0360177e64c82321abf1ca502153083fe" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1375,6 +1375,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fe0185f3e5a3e7c66f00949f4b824b9f63498b29/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fe0185f3e5a3e7c66f00949f4b824b9f63498b29/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fe0185f3e5a3e7c66f00949f4b824b9f63498b29/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.51" author="MPL" time="2022-11-24T18:40:48Z">
+        <changelog><![CDATA[# fix VF_LIP_load]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc3a829cd3a986d33ce5a430033fb4d0058fc9fc/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc3a829cd3a986d33ce5a430033fb4d0058fc9fc/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc3a829cd3a986d33ce5a430033fb4d0058fc9fc/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc3a829cd3a986d33ce5a430033fb4d0058fc9fc/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc3a829cd3a986d33ce5a430033fb4d0058fc9fc/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc3a829cd3a986d33ce5a430033fb4d0058fc9fc/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -4363,6 +4372,19 @@
         <source main="main" file="mpl_RS5k_manager_Sampler_RandSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e8ab34fe1227a2123c6c0e992b471e69ad80fb30/FX%20specific/mpl_RS5k_manager_Sampler_RandSample.lua</source>
         <source file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e8ab34fe1227a2123c6c0e992b471e69ad80fb30/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
         <source file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e8ab34fe1227a2123c6c0e992b471e69ad80fb30/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
+      </version>
+      <version name="3.02" author="MPL" time="2022-11-25T05:38:25Z">
+        <changelog><![CDATA[# fix error when get files from source section
++ DrumRack: when taking files from arrange, obey source section]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b0cfa1a0360177e64c82321abf1ca502153083fe/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b0cfa1a0360177e64c82321abf1ca502153083fe/FX%20specific/mpl_RS5k_manager_Database_NewSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewKit.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b0cfa1a0360177e64c82321abf1ca502153083fe/FX%20specific/mpl_RS5k_manager_Database_NewKit.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_Lock.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b0cfa1a0360177e64c82321abf1ca502153083fe/FX%20specific/mpl_RS5k_manager_Database_Lock.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_PreviousSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b0cfa1a0360177e64c82321abf1ca502153083fe/FX%20specific/mpl_RS5k_manager_Sampler_PreviousSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_NextSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b0cfa1a0360177e64c82321abf1ca502153083fe/FX%20specific/mpl_RS5k_manager_Sampler_NextSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_RandSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b0cfa1a0360177e64c82321abf1ca502153083fe/FX%20specific/mpl_RS5k_manager_Sampler_RandSample.lua</source>
+        <source file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b0cfa1a0360177e64c82321abf1ca502153083fe/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
+        <source file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b0cfa1a0360177e64c82321abf1ca502153083fe/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
       </version>
     </reapack>
     <reapack name="mpl_RS5k tools.lua" type="script" desc="RS5k tools">
