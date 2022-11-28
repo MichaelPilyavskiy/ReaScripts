@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b0cfa1a0360177e64c82321abf1ca502153083fe" name="MPL Scripts">
+<index version="1" commit="92a656378896b515c5a6b71c69d501f2e72727ba" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5519,6 +5519,15 @@
       <version name="1.02" author="MPL" time="2019-08-03T08:46:00Z">
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/Items%20Properties/mpl_Set%20fadeout%20of%20item%20under%20cursor%20to%20mouse%20position.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Stretch item to project tempo.lua" type="script" desc="Stretch item to project tempo">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-11-28T18:39:50Z">
+        <changelog><![CDATA[+ Init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/92a656378896b515c5a6b71c69d501f2e72727ba/Items%20Properties/mpl_Stretch%20item%20to%20project%20tempo.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle solo selected track items.lua" type="script" desc="Toggle solo selected track items">
