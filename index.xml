@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="92a656378896b515c5a6b71c69d501f2e72727ba" name="MPL Scripts">
+<index version="1" commit="d5f9ef35ab777654c73cd3a3af9295bb8f76e049" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -8479,6 +8479,11 @@ add control for timefall showing last note]]></changelog>
 # requere VariousFinctions 3.32 (solve right drag edit issue)
 + Add presets for growling dubs]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/45351662974a02d88cb843d0af979d6fc8209d56/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="2.22" author="MPL" time="2022-11-29T05:57:45Z">
+        <changelog><![CDATA[# Defaults: get dub takes on init
++ Compact mode: add switch to full mode]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d5f9ef35ab777654c73cd3a3af9295bb8f76e049/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Check REAPER password, quit if not match.lua" type="script" desc="Check REAPER password, quit if not match">
