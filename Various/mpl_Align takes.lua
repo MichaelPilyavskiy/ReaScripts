@@ -1,14 +1,11 @@
 -- @description Align Takes
--- @version 2.21
+-- @version 2.22
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix some long float formatting
---    # add message if reference is longer than 20 second
---    + Preset/Global: allow to not analyze empty takes (enable by default)
---    # requere VariousFinctions 3.32 (solve right drag edit issue)
---    + Add presets for growling dubs
+--    # Defaults: get dub takes on init
+--    + Compact mode: add switch to full mode
 
 
   --[[
@@ -33,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.20
+    DATA.extstate.version = 2.22
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
@@ -58,7 +55,7 @@
                           UI_groupflags = 0,
                           UI_appatchange = 1,
                           
-                          CONF_initflags = 3, -- &1 init ref &2 init dub
+                          CONF_initflags = 7, -- &1 init ref &2 init dub
                           CONF_cleanmarkdub = 1,
                           CONF_obtimesel = 0, 
                           CONF_alignitemtakes = 0, -- per item mode
@@ -244,7 +241,6 @@
   ---------------------------------------------------------------------  
   function GUI_RESERVED_init(DATA)
     --GUI.default_scale = 2
-    
     DATA.GUI.custom_mainbuth = 30
     DATA.GUI.custom_texthdef = 23
     DATA.GUI.custom_offset = math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
@@ -275,7 +271,8 @@
     
     DATA.GUI.buttons = {} 
     -- main buttons
-      DATA.GUI.buttons.getreference = { x=DATA.GUI.custom_offset,
+      if DATA.GUI.compactmode == 0 then 
+        DATA.GUI.buttons.getreference = { x=DATA.GUI.custom_offset,
                             y=DATA.GUI.custom_offset,
                             w=DATA.GUI.custom_mainbutw,
                             h=DATA.GUI.custom_mainbuth,
@@ -286,7 +283,7 @@
                             hide = DATA.GUI.compactmode==1,
                             ignoremouse = DATA.GUI.compactmode==1,
                             } 
-      DATA.GUI.buttons.getdub = { x=DATA.GUI.custom_offset*2+DATA.GUI.custom_mainbutw,
+        DATA.GUI.buttons.getdub = { x=DATA.GUI.custom_offset*2+DATA.GUI.custom_mainbutw,
                             y=DATA.GUI.custom_offset,
                             w=DATA.GUI.custom_mainbutw,
                             h=DATA.GUI.custom_mainbuth,
@@ -296,7 +293,7 @@
                             hide = DATA.GUI.compactmode==1,
                             ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =  function() DATA2:GetDubAudioData() end}  
-      DATA.GUI.buttons.preset = { x=DATA.GUI.custom_offset*5+DATA.GUI.custom_mainbutw*3,
+        DATA.GUI.buttons.preset = { x=DATA.GUI.custom_offset*5+DATA.GUI.custom_mainbutw*3,
                             y=DATA.GUI.custom_offset,
                             w=DATA.GUI.custom_mainsepx-DATA.GUI.custom_offset*2,
                             h=DATA.GUI.custom_mainbuth,
@@ -306,7 +303,7 @@
                             ignoremouse = DATA.GUI.compactmode==1,
                             onmouseclick =  function() DATA:GUIbut_preset() end} 
                                             
-      DATA.GUI.buttons.knob = { x=DATA.GUI.custom_offset*3 + DATA.GUI.custom_mainbutw*2 ,
+        DATA.GUI.buttons.knob = { x=DATA.GUI.custom_offset*3 + DATA.GUI.custom_mainbutw*2 ,
                             y=DATA.GUI.custom_offset,
                             w=DATA.GUI.custom_mainbutw,
                             h=DATA.GUI.custom_mainbuth,
@@ -326,12 +323,30 @@
                                                   Undo_OnStateChange2( 0, 'Align Takes' ) 
                                                 end
                                             
-                                            }   
-
+                                            } 
+        DATA.GUI.buttons.Rsettings = { x=gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx,
+                            y=DATA.GUI.custom_mainbuth + DATA.GUI.custom_offset,
+                            w=DATA.GUI.custom_mainsepx,
+                            h=gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_mainbuth - DATA.GUI.custom_offset,
+                            txt = 'Settings',
+                            --txt_fontsz = DATA.GUI.default_txt_fontsz3,
+                            frame_a = 0,
+                            offsetframe = DATA.GUI.custom_offset,
+                            offsetframe_a = 0.1,
+                            ignoremouse = true,
+                            }   
+                            
+        DATA:GUIBuildSettings()
+        GUI_initdata(DATA)
+      end
+      
+      if DATA.GUI.compactmode == 1 then 
+      local h_help = 20
+      DATA.GUI.layers[22]= nil
       DATA.GUI.buttons.knobCOMPACT = { x=0 ,
-                            y=0,
+                            y=h_help,
                             w=gfx.w/DATA.GUI.default_scale,
-                            h=gfx.h/DATA.GUI.default_scale,
+                            h=(gfx.h-h_help)/DATA.GUI.default_scale,
                             txt = '',
                             txt_fontsz = DATA.GUI.custom_texthdef,
                             knob_isknob = true,
@@ -343,24 +358,33 @@
                             hide = DATA.GUI.compactmode~=1,
                             ignoremouse = DATA.GUI.compactmode~=1,
                             onmousedrag =  function()  DATA2:ApplyOutput(DATA) end,
-                            onmouserelease  = DATA.GUI.buttons.knob.onmouserelease }  
-
-      DATA.GUI.buttons.Rsettings = { x=gfx.w/DATA.GUI.default_scale - DATA.GUI.custom_mainsepx,
-                            y=DATA.GUI.custom_mainbuth + DATA.GUI.custom_offset,
-                            w=DATA.GUI.custom_mainsepx,
-                            h=gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_mainbuth - DATA.GUI.custom_offset,
-                            txt = 'Settings',
-                            --txt_fontsz = DATA.GUI.default_txt_fontsz3,
+                            onmouserelease  =  function() 
+                                                  DATA2:ApplyOutput(DATA, true)
+                                                  Undo_OnStateChange2( 0, 'Align Takes' ) 
+                                                end }  
+      DATA.GUI.buttons.help = { x=0 ,
+                            y=0,
+                            w=gfx.w/DATA.GUI.default_scale,
+                            h=(h_help)/DATA.GUI.default_scale,
+                            txt = 'Switch to full mode',
+                            txt_fontsz = DATA.GUI.default_txt_fontsz3,
                             frame_a = 0,
-                            offsetframe = DATA.GUI.custom_offset,
-                            offsetframe_a = 0.1,
-                            ignoremouse = true,
-                            }
-      if DATA.GUI.compactmode==0 then 
-        DATA:GUIBuildSettings()
-        GUI_initdata(DATA)
-      end
-      
+                            --frame_asel = DATA.GUI.default_framea_normal,
+                            back_sela = 0,
+                            hide = DATA.GUI.compactmode~=1,
+                            ignoremouse = DATA.GUI.compactmode~=1,
+                            onmouserelease =  function()  
+                              DATA.extstate.wind_w = 700
+                              DATA.extstate.wind_h = 500
+                              gfx.init( title,
+                                        DATA.extstate.wind_w or 100,
+                                        DATA.extstate.wind_h or 100,
+                                        DATA.extstate.dock or 0, 
+                                        DATA.extstate.wind_x or 100, 
+                                        DATA.extstate.wind_y or 100)
+                            end, }
+      end                      
+           
     
     for but in pairs(DATA.GUI.buttons) do DATA.GUI.buttons[but].key = but end
   end
@@ -1165,6 +1189,6 @@
       end
     end
   ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
+  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
   local ret = VF_CheckFunctions(3.32) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
