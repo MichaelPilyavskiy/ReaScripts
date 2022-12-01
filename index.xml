@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0f4c4951c5937a13ef15e588fba945ec82c98253" name="MPL Scripts">
+<index version="1" commit="855466e46c9488392658ae67c8503b076c7f31d1" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1384,6 +1384,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc3a829cd3a986d33ce5a430033fb4d0058fc9fc/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc3a829cd3a986d33ce5a430033fb4d0058fc9fc/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc3a829cd3a986d33ce5a430033fb4d0058fc9fc/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.52" author="MPL" time="2022-12-01T20:03:35Z">
+        <changelog><![CDATA[# remove mouse_ismoving condition for left drag, less performant but less buggy on complex structures]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855466e46c9488392658ae67c8503b076c7f31d1/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855466e46c9488392658ae67c8503b076c7f31d1/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855466e46c9488392658ae67c8503b076c7f31d1/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855466e46c9488392658ae67c8503b076c7f31d1/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855466e46c9488392658ae67c8503b076c7f31d1/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855466e46c9488392658ae67c8503b076c7f31d1/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
