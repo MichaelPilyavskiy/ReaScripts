@@ -3,7 +3,7 @@
 -- @description Quantize selected MIDI notes ends
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @provides
--- @provides . [main=main,midi_editor]
+-- @provides [main=main,midi_editor] .
 -- @changelog
 --    # add support for multiple items
 
