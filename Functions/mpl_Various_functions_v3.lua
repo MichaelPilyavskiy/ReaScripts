@@ -307,7 +307,7 @@
         end 
         
       -- handle mouse_latch on left drag
-        if DATA.GUI.LMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true then
+        if DATA.GUI.LMB_state == true and b.mouse_latch == true then--and DATA.GUI.mouse_ismoving ==true 
           DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedrag 
           -- handle relative val slider
           if b.val and b.latchval and type(b.latchval) == 'number' then 
