@@ -1,16 +1,14 @@
--- @version 1.11
+-- @version 1.12
 -- @author MPL
 -- @description Quantize selected MIDI notes ends
 -- @website http://forum.cockos.com/member.php?u=70694
+-- @provides
+-- @provides [main=main,midi_editor]
 -- @changelog
---    # improve/handle math around closest MIDI Editor grid
---    + prevent less than 2 PPQ length notes
+--    # add support for multiple items
 
-  function main() 
-    reaper.Undo_BeginBlock()
-    local ME = reaper.MIDIEditor_GetActive()
-    if not ME then return end
-    local take = reaper.MIDIEditor_GetTake(ME)
+  ----------------------------------------------------------------------
+  function Quantize_selected_MIDI_notes_ends(take) 
     if not take or not TakeIsMIDI(take) then return end
     local ME_grid, swing = reaper.MIDI_GetGrid( take )
      
@@ -63,43 +61,28 @@
 
         if out_ppq and out_ppq - startppqpos > 10 then MIDI_SetNote( take, i-1, true, muted, startppqpos, out_ppq, chan, pitch, vel, true ) end
       end
-    end
-               
+    end 
 
     MIDI_Sort( take )
-    Undo_EndBlock('Quantize selected MIDI notes ends', 0)  
   end
----------------------------------------------------------------------
-  function CheckFunctions(str_func)
-    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
-    local f = io.open(SEfunc_path, 'r')
-    if f then
-      f:close()
-      dofile(SEfunc_path)
-      
-      if not _G[str_func] then 
-        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
-       else
-        return true
+  ----------------------------------------------------------------------
+  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
+  --------------------------------------------------------------------  
+  local ret = VF_CheckFunctions(3.51) if ret then local ret2 = VF_CheckReaperVrs(5.32,true) if ret2 then 
+    Undo_BeginBlock()
+    local ME = reaper.MIDIEditor_GetActive()
+    if ME then
+      take = reaper.MIDIEditor_GetTake(ME)
+      Quantize_selected_MIDI_notes_ends(take) 
+     else
+      for i = 1, CountSelectedMediaItems(0) do
+        local item = GetSelectedMediaItem(0,i-1)
+        local take = GetActiveTake(item) 
+        if take then 
+          Quantize_selected_MIDI_notes_ends(take) 
+        end
       end
-      
-     else
-      reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
-    end  
-  end
-  ---------------------------------------------------
-  function CheckReaperVrs(rvrs) 
-    local vrs_num =  GetAppVersion()
-    vrs_num = tonumber(vrs_num:match('[%d%.]+'))
-    if rvrs > vrs_num then 
-      reaper.MB('Update REAPER to newer version '..'('..rvrs..' or newer)', '', 0)
-      return
-     else
-      return true
     end
-  end
---------------------------------------------------------------------  
-  local ret = CheckFunctions('Action') 
-  local ret2 = CheckReaperVrs(5.32)    
-  if ret and ret2 then main() end
+    Undo_EndBlock('Quantize selected MIDI notes ends', 0xFFFFFFFF)  
+  end end
   
