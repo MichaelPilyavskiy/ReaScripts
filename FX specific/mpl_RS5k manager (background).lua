@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.03
+-- @version 3.04
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -13,11 +13,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Undo: enclose all undo processing into defer() blocks
---    + Undo: tab changes (optiional, off by default)
---    + Sampler: add undo to prev,next,rand sample actions
---    + Database: add undo to attach,lock, clear, load from slot
---    + External actions: add undo state marks
+--    # fix variables scope issues for new undo additions
 
 
 
@@ -31,7 +27,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.03'
+    DATA.extstate.version = '3.04'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -1670,8 +1666,8 @@ rightclick them to hide all but active.
                           backgr_fill = backgr_fill_name,
                           backgr_col =backgr_col,
                           onmouserelease = function() 
-                            local f = function() TrackFX_SetNamedConfigParm(t.src_t.tr_ptr, t.fx_dest, 'param.'..t.param_dest..'plink.active', 0)   end
-                            DATA2:ProcessUndoBlock(f, 'RS5k manager / Macro / Remove link') 
+                            local f = function(t,tr_ptr) TrackFX_SetNamedConfigParm(t.src_t.tr_ptr, t.fx_dest, 'param.'..t.param_dest..'plink.active', 0)   end
+                            DATA2:ProcessUndoBlock(f, 'RS5k manager / Macro / Remove link', t,tr_ptr) 
                             DATA2:TrackDataRead_GetParent_Macro()
                             GUI_MODULE_MACRO(DATA) 
                           end,
@@ -2375,7 +2371,7 @@ rightclick them to hide all but active.
                     local cnt_selection = 0 
                     if DATA2.PADselection then for keynote in pairs(DATA2.PADselection) do if DATA2.PADselection[keynote] then cnt_selection = cnt_selection + 1 end end end
                     
-                    local f = function()
+                    local f = function(macroID)
                       local macro_t = DATA2.Macro.sliders[macroID]
                       local notest = {}
                       if cnt_selection == 0 then 
@@ -2401,19 +2397,19 @@ rightclick them to hide all but active.
                       end
                       TrackFX_SetParamNormalized( macro_t.tr_ptr, macro_t.macro_pos, macroID, 0.5 )
                     end
-                    DATA2:ProcessUndoBlock(f, 'RS5k manager / Macro / Add tune links') 
+                    DATA2:ProcessUndoBlock(f, 'RS5k manager / Macro / Add tune links',macroID) 
                   end
           },
           {str= 'Clear links',
            func = function() 
-                    if not DATA2.Macro.sliders[macroID].links then return end
-                    local f = function() 
+                    local f = function(macroID) 
+                      if not DATA2.Macro.sliders[macroID].links then return end
                       for link = #DATA2.Macro.sliders[macroID].links, 1, -1 do
                         local tmacro = DATA2.Macro.sliders[macroID].links[link]
                         TrackFX_SetNamedConfigParm(tmacro.src_t.tr_ptr, tmacro.fx_dest, 'param.'..tmacro.param_dest..'plink.active', 0) 
                       end
                     end
-                    DATA2:ProcessUndoBlock(f, 'RS5k manager / Macro / Clear current macro links') 
+                    DATA2:ProcessUndoBlock(f, 'RS5k manager / Macro / Clear current macro links',macroID) 
                     DATA2:TrackDataRead_GetParent_Macro()
                     GUI_MODULE_MACRO(DATA) 
                   end
@@ -2865,8 +2861,8 @@ rightclick them to hide all but active.
                                end,
                                onmouseclickR = function() DATA2:Menu_DrumRack_Actions(note) end,
                                onmousefiledrop = function() 
-                                                    local f = function() DATA2:Actions_PadOnFileDrop(note)  end
-                                                    DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Drop file')   
+                                                    local f = function () DATA2:Actions_PadOnFileDrop(note) end
+                                                    DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Drop file', note)  
                                                   end,
                                onmouserelease =  function()  
                                                    if not DATA2.ONDOUBLECLICK then
@@ -3172,7 +3168,7 @@ rightclick them to hide all but active.
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_PadOnFileDrop_setnote_ID(tr, instrument_pos, note, midifilt_pos)
-    if not midifilt_pos then 
+    if not midifilt_pos  then 
       TrackFX_SetParamNormalized( tr, instrument_pos, 3, (note)/127 ) -- note range start
       TrackFX_SetParamNormalized( tr, instrument_pos, 4, (note)/127 ) -- note range end
      else 
@@ -3213,6 +3209,7 @@ rightclick them to hide all but active.
     end
     local instrument_pos = TrackFX_AddByName( new_tr, 'ReaSamplomatic5000', false, 0 ) 
     if instrument_pos == -1 then instrument_pos = TrackFX_AddByName( new_tr, 'ReaSamplomatic5000', false, -1000 ) end 
+    if not instrument_pos then MB('Error adding RS5k', 'Rs5k manager',0) end
     if DATA.extstate.CONF_onadd_float == 0 then TrackFX_SetOpen( new_tr, instrument_pos, false ) end
     if DATA.extstate.CONF_onadd_copytoprojectpath == 1 then 
       filepath = DATA2:Actions_PadOnFileDrop_ExportToRS5k_CopySrc(filepath)
@@ -3347,15 +3344,17 @@ rightclick them to hide all but active.
       DATA2:TrackDataWrite(devicetr, {setnote_ID = newnote}) 
       for layer = 1, #DATA2.notes[note].layers do
         local child_tr = DATA2.notes[note].layers[layer].tr_ptr
-        DATA2:TrackDataWrite( child_tr, {setnote_ID = newnote})
-        DATA2:Actions_PadOnFileDrop_setnote_ID(child_tr, DATA2.notes[note].layers[layer].instrument_pos, newnote, DATA2.notes[note].layers[layer].midifilt_pos)
+        if DATA2.notes[note].layers[layer].instrument_pos then
+          DATA2:TrackDataWrite( child_tr, {setnote_ID = newnote})
+          DATA2:Actions_PadOnFileDrop_setnote_ID(child_tr, DATA2.notes[note].layers[layer].instrument_pos, newnote, DATA2.notes[note].layers[layer].midifilt_pos)
+        end
       end
       
      else
       DATA2:TrackDataWrite(DATA2.notes[note].layers[1].tr_ptr, {setnote_ID = newnote})
       DATA2:Actions_PadOnFileDrop_setnote_ID(DATA2.notes[note].layers[1].tr_ptr, DATA2.notes[note].layers[1].instrument_pos, newnote, DATA2.notes[note].layers[1].midifilt_pos)
     end
-    if DATA2.cursplpeaks.note == note then DATA2.cursplpeaks.note = newnote end
+    if DATA2.cursplpeaks and DATA2.cursplpeaks.note == note then DATA2.cursplpeaks.note = newnote end
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_Pad_CopyMove(padsrc,paddest, iscopy) 
@@ -3423,11 +3422,14 @@ rightclick them to hide all but active.
     if note then 
       local t = { 
         {str='Rename pad',
-          func=function() DATA2:Actions_Pad_Rename(note) end },  
+          func=function() 
+                  local f = function() DATA2:Actions_Pad_Rename(note)  end
+                  DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Rename',note)   
+                end },  
         {str='Clear pad',
           func=function() 
                   local f = function() DATA2:Actions_Pad_Clear(note)  end
-                  DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Clear')   
+                  DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Clear',note)   
                 end },  
         {str='|Select all pads',
           func=function() 
@@ -3441,13 +3443,16 @@ rightclick them to hide all but active.
                 end },                  
                 
         {str='|Import selected items to pads, starting this pad',
-          func=function() DATA2:Actions_ImportSelectedItems(note) end },      
+          func=function() 
+                  local f = function(note) DATA2:Actions_ImportSelectedItems(note)  end
+                  DATA2:ProcessUndoBlock(f, 'RS5k manager / Import selected items',note) 
+                end },      
         {str='Move pad to last recent incoming note',
           func=function() 
                   local notedest = DATA2.playingnote
                   if not notedest then return end 
-                  local f = function() DATA2:Actions_Pad_CopyMove(note,notedest)   end
-                  DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Add to recent note')  
+                  local f = function(note,notedest) DATA2:Actions_Pad_CopyMove(note,notedest)   end
+                  DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Add to recent note',note,notedest)  
                 end },
        
            
@@ -3463,9 +3468,7 @@ rightclick them to hide all but active.
         func=function() 
                 local ret =  reaper.MB( 'Are you sure you want to REMOVE all DrumRack tracks', 'RS5k manager', 3 )
                 if ret == 6 then 
-                  local f = function()
-                    for note in pairs(DATA2.notes) do DATA2:Actions_Pad_Clear(note)  end
-                  end
+                  local f = function() for note in pairs(DATA2.notes) do DATA2:Actions_Pad_Clear(note)  end end
                   DATA2:ProcessUndoBlock(f, 'RS5k manager / Clear rack') 
                 end
               end },  
@@ -4674,14 +4677,14 @@ rightclick them to hide all but active.
                         txt = 'Prev spl',
                         txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         onmouseclick = function() 
-                                          local f = function()                          
-                                            if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
-                                              DATA2:Actions_Sampler_NextPrevSample(src_t, 1, DATA2.database_map.map[note].samples)  
+                                          local f = function(src_t)                          
+                                            if src_t.SPLLISTDB == 1 and ( src_t.noteID and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[src_t.noteID] and DATA2.database_map.map[src_t.noteID].samples) then 
+                                              DATA2:Actions_Sampler_NextPrevSample(src_t, 1, DATA2.database_map.map[src_t.noteID].samples)  
                                              else
                                               DATA2:Actions_Sampler_NextPrevSample(src_t, 1)
                                             end
                                           end
-                                          DATA2:ProcessUndoBlock(f, 'RS5k manager / Sampler / Prev sample') 
+                                          DATA2:ProcessUndoBlock(f, 'RS5k manager / Sampler / Prev sample',src_t) 
                                         end
                         }  
     y_offs = y_offs + action_h 
@@ -4696,14 +4699,14 @@ rightclick them to hide all but active.
                         txt = 'Next spl',
                         txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         onmouseclick = function() 
-                                          local f = function()
-                                            if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
-                                              DATA2:Actions_Sampler_NextPrevSample(src_t, nil, DATA2.database_map.map[note].samples)  
+                                          local f = function(src_t)
+                                            if src_t.SPLLISTDB == 1 and ( src_t.noteID and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[src_t.noteID] and DATA2.database_map.map[src_t.noteID].samples) then 
+                                              DATA2:Actions_Sampler_NextPrevSample(src_t, nil, DATA2.database_map.map[src_t.noteID].samples)  
                                              else
                                               DATA2:Actions_Sampler_NextPrevSample(src_t, nil)
                                             end
                                           end
-                                          DATA2:ProcessUndoBlock(f, 'RS5k manager / Sampler / Next sample') 
+                                          DATA2:ProcessUndoBlock(f, 'RS5k manager / Sampler / Next sample',src_t) 
                                         end
                         }                          
     y_offs = y_offs + action_h
@@ -4718,14 +4721,14 @@ rightclick them to hide all but active.
                         txt = 'Rand spl',
                         txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         onmouseclick = function() 
-                                          local f = function()
-                                            if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
-                                                                                        DATA2:Actions_Sampler_NextPrevSample(src_t,2, DATA2.database_map.map[note].samples)  
+                                          local f = function(src_t)
+                                            if src_t.SPLLISTDB == 1 and ( src_t.noteID and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[src_t.noteID] and DATA2.database_map.map[src_t.noteID].samples) then 
+                                                                                        DATA2:Actions_Sampler_NextPrevSample(src_t,2, DATA2.database_map.map[src_t.noteID].samples)  
                                                                                        else
                                                                                         DATA2:Actions_Sampler_NextPrevSample(src_t, 2)
                                                                                       end
                                           end
-                                          DATA2:ProcessUndoBlock(f, 'RS5k manager / Sampler / Rand sample')  
+                                          DATA2:ProcessUndoBlock(f, 'RS5k manager / Sampler / Rand sample',src_t)  
                                         end
                         }  
     y_offs = y_offs + action_h
@@ -4764,9 +4767,9 @@ rightclick them to hide all but active.
   end
   
   ----------------------------------------------------------------------
-  function DATA2:ProcessUndoBlock(f, name) 
+  function DATA2:ProcessUndoBlock(f, name, a1,a2,a3,a4,a5,a6,a7,a8,a9,a10) 
     Undo_BeginBlock2( 0)
-    defer(f)
+    defer(f(a1,a2,a3,a4,a5,a6,a7,a8,a9,a10))
     Undo_EndBlock2( 0, name, 0xFFFFFFFF )
   end
   ----------------------------------------------------------------------
@@ -5803,8 +5806,8 @@ rightclick them to hide all but active.
     if actions == 2 then   -- prev sample
       local f = function()
         local src_t = DATA2:internal_GetActiveNoteLayerTable()
-        if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
-          DATA2:Actions_Sampler_NextPrevSample(src_t,1, DATA2.database_map.map[note].samples)  
+        if src_t.SPLLISTDB == 1 and ( src_t.noteID and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[src_t.noteID] and DATA2.database_map.map[src_t.noteID].samples) then 
+          DATA2:Actions_Sampler_NextPrevSample(src_t,1, DATA2.database_map.map[src_t.noteID].samples)  
          else
           DATA2:Actions_Sampler_NextPrevSample(src_t, 1)
         end
@@ -5815,8 +5818,8 @@ rightclick them to hide all but active.
     if actions == 3 then   -- next sample
       local f = function()
         local src_t = DATA2:internal_GetActiveNoteLayerTable()
-        if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
-          DATA2:Actions_Sampler_NextPrevSample(src_t,0, DATA2.database_map.map[note].samples)  
+        if src_t.SPLLISTDB == 1 and ( src_t.noteID and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[src_t.noteID] and DATA2.database_map.map[src_t.noteID].samples) then 
+          DATA2:Actions_Sampler_NextPrevSample(src_t,0, DATA2.database_map.map[src_t.noteID].samples)  
          else
           DATA2:Actions_Sampler_NextPrevSample(src_t, 0)
         end
@@ -5827,8 +5830,8 @@ rightclick them to hide all but active.
     if actions == 4 then   -- rand sample
       local f = function()
         local src_t = DATA2:internal_GetActiveNoteLayerTable()
-        if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
-          DATA2:Actions_Sampler_NextPrevSample(src_t,2, DATA2.database_map.map[note].samples)  
+        if src_t.SPLLISTDB == 1 and ( src_t.noteID and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[src_t.noteID] and DATA2.database_map.map[src_t.noteID].samples) then 
+          DATA2:Actions_Sampler_NextPrevSample(src_t,2, DATA2.database_map.map[src_t.noteID].samples)  
          else
           DATA2:Actions_Sampler_NextPrevSample(src_t, 2)
         end
