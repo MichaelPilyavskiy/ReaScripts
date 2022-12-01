@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.02
+-- @version 3.03
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -13,8 +13,11 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix error when get files from source section
---    + DrumRack: when taking files from arrange, obey source section
+--    # Undo: enclose all undo processing into defer() blocks
+--    + Undo: tab changes (optiional, off by default)
+--    + Sampler: add undo to prev,next,rand sample actions
+--    + Database: add undo to attach,lock, clear, load from slot
+--    + External actions: add undo state marks
 
 
 
@@ -28,7 +31,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.02'
+    DATA.extstate.version = '3.03'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -74,6 +77,7 @@
                           UI_showtooltips = 1,
                           UI_groupflags = 0,
                           UI_processoninit = 0,
+                          UI_addundototabclicks = 0,
                           --UI_donotupdateonplay = 0,
                           UI_clickonpadselecttrack = 1,
                           UI_incomingnoteselectpad = 0,
@@ -1234,27 +1238,33 @@ rightclick them to hide all but active.
                             frame_col = frame_col,
                             onmouseclick = function()
                               if DATA2.PARENT_TABSTATEFLAGS then 
-                                DATA2.PARENT_TABSTATEFLAGS = DATA2.PARENT_TABSTATEFLAGS ~ byte
-                                if byte == 16 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackData_InitMacro() end end
-                                if byte == 64 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackDataRead_GetMIDIOSC_bindings() end end
-                                DATA2:TrackDataWrite(_, {master_upd=true})
+                                local f=function()
+                                  DATA2.PARENT_TABSTATEFLAGS = DATA2.PARENT_TABSTATEFLAGS ~ byte
+                                  if byte == 16 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackData_InitMacro() end end
+                                  if byte == 64 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackDataRead_GetMIDIOSC_bindings() end end
+                                  DATA2:TrackDataWrite(_, {master_upd=true})
+                                end
+                                if DATA.extstate.UI_addundototabclicks == 1 then DATA2:ProcessUndoBlock(f, 'RS5k manager / Tab state')  else f() end
                                 DATA.UPD.onGUIinit = true
                               end
                             end,
                             onmouseclickR = function()
                               if DATA2.PARENT_TABSTATEFLAGS then 
-                                if DATA2.PARENT_TABSTATEFLAGS&byte==byte and DATA2.PARENT_TABSTATEFLAGS~= byte then -- tab is on but not only this tab
-                                  DATA2.PARENT_TABSTATEFLAGS_LAST = DATA2.PARENT_TABSTATEFLAGS
-                                  DATA2.PARENT_TABSTATEFLAGS = byte -- set to only this tab
-                                 elseif DATA2.PARENT_TABSTATEFLAGS == byte then
-                                  DATA2.PARENT_TABSTATEFLAGS = DATA2.PARENT_TABSTATEFLAGS_LAST or DATA.extstate.UI_defaulttabsflags-- -1
-                                 elseif DATA2.PARENT_TABSTATEFLAGS ~= byte then
-                                  DATA2.PARENT_TABSTATEFLAGS_LAST = DATA2.PARENT_TABSTATEFLAGS
-                                  DATA2.PARENT_TABSTATEFLAGS = byte -- set to only this tab
+                                local f=function()
+                                  if DATA2.PARENT_TABSTATEFLAGS&byte==byte and DATA2.PARENT_TABSTATEFLAGS~= byte then -- tab is on but not only this tab
+                                    DATA2.PARENT_TABSTATEFLAGS_LAST = DATA2.PARENT_TABSTATEFLAGS
+                                    DATA2.PARENT_TABSTATEFLAGS = byte -- set to only this tab
+                                   elseif DATA2.PARENT_TABSTATEFLAGS == byte then
+                                    DATA2.PARENT_TABSTATEFLAGS = DATA2.PARENT_TABSTATEFLAGS_LAST or DATA.extstate.UI_defaulttabsflags-- -1
+                                   elseif DATA2.PARENT_TABSTATEFLAGS ~= byte then
+                                    DATA2.PARENT_TABSTATEFLAGS_LAST = DATA2.PARENT_TABSTATEFLAGS
+                                    DATA2.PARENT_TABSTATEFLAGS = byte -- set to only this tab
+                                  end
+                                  if byte == 16 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackData_InitMacro() end end
+                                  if byte == 64 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackDataRead_GetMIDIOSC_bindings() end end
+                                  DATA2:TrackDataWrite(_, {master_upd=true})
                                 end
-                                if byte == 16 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackData_InitMacro() end end
-                                if byte == 64 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackDataRead_GetMIDIOSC_bindings() end end
-                                DATA2:TrackDataWrite(_, {master_upd=true})
+                                if DATA.extstate.UI_addundototabclicks == 1 then DATA2:ProcessUndoBlock(f, 'RS5k manager / Tab state')  else f() end
                                 DATA.UPD.onGUIinit = true
                               end
                             end,
@@ -1509,7 +1519,9 @@ rightclick them to hide all but active.
       {str = 'UI',                                              group = 3, itype = 'sep'},
         {str = 'Active note follow incoming note',              group = 3, itype = 'check', confkey = 'UI_incomingnoteselectpad', level = 1},
         {str = 'Key format',                                    group = 3, itype = 'readout', confkey = 'UI_keyformat_mode', level = 1,menu = {[0]='C-C#-D',[2]='Do-Do#-Re',[7]='Russian'}},
-        {str = 'Pad overview quantize',                                  group = 3, itype = 'readout', confkey = 'UI_po_quantizemode', level = 1, menu = {[0]='Default',[1]='8 pads', [2]='4 pads'},readoutw_extw = readoutw_extw}, 
+        {str = 'Pad overview quantize',                         group = 3, itype = 'readout', confkey = 'UI_po_quantizemode', level = 1, menu = {[0]='Default',[1]='8 pads', [2]='4 pads'},readoutw_extw = readoutw_extw}, 
+        {str = 'Undo tab state change',                         group = 3, itype = 'check', confkey = 'UI_addundototabclicks', level = 1,}, 
+        {str = 'Drumrack: Click on pad select track',           group = 3, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
       
       {str = 'Tab defaults',                                    group = 6, itype = 'sep'},
         {str = 'Drumrack',                                      group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 0},
@@ -1523,7 +1535,7 @@ rightclick them to hide all but active.
       
       {str = 'Various',                                         group = 5, itype = 'sep'},    
         {str = 'Sampler: Crop threshold',                       group = 5, itype = 'readout', confkey = 'CONF_cropthreshold', level = 1, menu = {[-80]='-80dB',[-60]='-60dB', [-40]='-40dB',[-30]='-30dB'},readoutw_extw = readoutw_extw},
-        {str = 'Drumrack: Click on pad select track',                     group = 4, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
+        
 
         
     } 
@@ -1658,12 +1670,10 @@ rightclick them to hide all but active.
                           backgr_fill = backgr_fill_name,
                           backgr_col =backgr_col,
                           onmouserelease = function() 
-                            reaper.Undo_BeginBlock2( 0)
-                            TrackFX_SetNamedConfigParm(t.src_t.tr_ptr, t.fx_dest, 'param.'..t.param_dest..'plink.active', 0) 
-                            reaper.Undo_EndBlock2( 0, 'RS5k manager / Macro / Remove link', 0xFFFFFFFF )      --reaper.Undo_BeginBlock2( 0)                                   
+                            local f = function() TrackFX_SetNamedConfigParm(t.src_t.tr_ptr, t.fx_dest, 'param.'..t.param_dest..'plink.active', 0)   end
+                            DATA2:ProcessUndoBlock(f, 'RS5k manager / Macro / Remove link') 
                             DATA2:TrackDataRead_GetParent_Macro()
                             GUI_MODULE_MACRO(DATA) 
-                            
                           end,
                           }          
   end 
@@ -2365,45 +2375,45 @@ rightclick them to hide all but active.
                     local cnt_selection = 0 
                     if DATA2.PADselection then for keynote in pairs(DATA2.PADselection) do if DATA2.PADselection[keynote] then cnt_selection = cnt_selection + 1 end end end
                     
-                    
-                    reaper.Undo_BeginBlock2( 0)
-                    local macro_t = DATA2.Macro.sliders[macroID]
-                    local notest = {}
-                    if cnt_selection == 0 then 
-                      for note in pairs(DATA2.notes) do notest[#notest+1] = note end -- all
-                     else
-                      for keynote in pairs(DATA2.PADselection) do notest[#notest+1] = keynote end -- selected only
-                    end
-                    
-                    for notestID = 1, #notest do
-                      local note = notest[notestID]
-                      if DATA2.notes[note] and DATA2.notes[note].layers then 
-                        for layer in pairs(DATA2.notes[note].layers) do
-                          local srct = DATA2.notes[note].layers[layer]
-                          if srct.ISRS5K then
-                            local instrpos = srct.instrument_pos
-                            local initparam = srct.instrument_tune
-                            local scale = 1
-                            local offs = initparam-0.5
-                            DATA2:Actions_Macro_AddLink(srct,instrpos,15, offs,scale)-- tune
+                    local f = function()
+                      local macro_t = DATA2.Macro.sliders[macroID]
+                      local notest = {}
+                      if cnt_selection == 0 then 
+                        for note in pairs(DATA2.notes) do notest[#notest+1] = note end -- all
+                       else
+                        for keynote in pairs(DATA2.PADselection) do notest[#notest+1] = keynote end -- selected only
+                      end
+                      
+                      for notestID = 1, #notest do
+                        local note = notest[notestID]
+                        if DATA2.notes[note] and DATA2.notes[note].layers then 
+                          for layer in pairs(DATA2.notes[note].layers) do
+                            local srct = DATA2.notes[note].layers[layer]
+                            if srct.ISRS5K then
+                              local instrpos = srct.instrument_pos
+                              local initparam = srct.instrument_tune
+                              local scale = 1
+                              local offs = initparam-0.5
+                              DATA2:Actions_Macro_AddLink(srct,instrpos,15, offs,scale)-- tune
+                            end
                           end
                         end
                       end
+                      TrackFX_SetParamNormalized( macro_t.tr_ptr, macro_t.macro_pos, macroID, 0.5 )
                     end
-                    
-                    reaper.Undo_EndBlock2( 0, 'RS5k manager / Macro / Add tune links', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)   
-                    TrackFX_SetParamNormalized( macro_t.tr_ptr, macro_t.macro_pos, macroID, 0.5 )
+                    DATA2:ProcessUndoBlock(f, 'RS5k manager / Macro / Add tune links') 
                   end
           },
           {str= 'Clear links',
            func = function() 
                     if not DATA2.Macro.sliders[macroID].links then return end
-                    reaper.Undo_BeginBlock2( 0)  
-                    for link = #DATA2.Macro.sliders[macroID].links, 1, -1 do
-                      local tmacro = DATA2.Macro.sliders[macroID].links[link]
-                      TrackFX_SetNamedConfigParm(tmacro.src_t.tr_ptr, tmacro.fx_dest, 'param.'..tmacro.param_dest..'plink.active', 0) 
+                    local f = function() 
+                      for link = #DATA2.Macro.sliders[macroID].links, 1, -1 do
+                        local tmacro = DATA2.Macro.sliders[macroID].links[link]
+                        TrackFX_SetNamedConfigParm(tmacro.src_t.tr_ptr, tmacro.fx_dest, 'param.'..tmacro.param_dest..'plink.active', 0) 
+                      end
                     end
-                    reaper.Undo_EndBlock2( 0, 'RS5k manager / Macro / Clear current macro links', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)  
+                    DATA2:ProcessUndoBlock(f, 'RS5k manager / Macro / Clear current macro links') 
                     DATA2:TrackDataRead_GetParent_Macro()
                     GUI_MODULE_MACRO(DATA) 
                   end
@@ -2448,9 +2458,8 @@ rightclick them to hide all but active.
                           --backgr_fill = 0,
                           --ignoremouse = true,
                           onmouseclick =  function() 
-                                            reaper.Undo_BeginBlock2( 0)
-                                            DATA2:Actions_Macro_AddLink()
-                                            reaper.Undo_EndBlock2( 0, 'RS5k manager / Macro / Add link', 0xFFFFFFFF )--                                             
+                                            local f = function() DATA2:Actions_Macro_AddLink() end
+                                            DATA2:ProcessUndoBlock(f, 'RS5k manager / Macro / Add link')                                     
                                           end}   
     x_offs = x_offs + DATA.GUI.custom_knob_button_w   
     DATA.GUI.buttons.macroglob_t_addbut_actions = { x=x_offs,
@@ -2856,26 +2865,26 @@ rightclick them to hide all but active.
                                end,
                                onmouseclickR = function() DATA2:Menu_DrumRack_Actions(note) end,
                                onmousefiledrop = function() 
-                                                    reaper.Undo_BeginBlock2( 0)
-                                                    DATA2:Actions_PadOnFileDrop(note) 
-                                                    reaper.Undo_EndBlock2( 0, 'RS5k manager / Pad / Drop file', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)
+                                                    local f = function() DATA2:Actions_PadOnFileDrop(note)  end
+                                                    DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Drop file')   
                                                   end,
                                onmouserelease =  function()  
                                                    if not DATA2.ONDOUBLECLICK then
                                                    
                                                       -- copy/move
                                                       if DATA2.PAD_HOLD then 
-                                                        reaper.Undo_BeginBlock2( 0)
-                                                        local padsrc = DATA2.PAD_HOLD
-                                                        for i = 1, #DATA.GUI.mouse_match do
-                                                          if DATA.GUI.buttons[DATA.GUI.mouse_match[i]] and DATA.GUI.buttons[DATA.GUI.mouse_match[i]].custom_note then
-                                                            paddest = DATA.GUI.buttons[DATA.GUI.mouse_match[i]].custom_note
-                                                            DATA2:Actions_Pad_CopyMove(padsrc,paddest, DATA.GUI.Ctrl)  
-                                                            DATA2.PADselection = {} -- clear selection
-                                                            DATA2.PADselection[paddest] = true
+                                                        local f = function()
+                                                          local padsrc = DATA2.PAD_HOLD
+                                                          for i = 1, #DATA.GUI.mouse_match do
+                                                            if DATA.GUI.buttons[DATA.GUI.mouse_match[i]] and DATA.GUI.buttons[DATA.GUI.mouse_match[i]].custom_note then
+                                                              paddest = DATA.GUI.buttons[DATA.GUI.mouse_match[i]].custom_note
+                                                              DATA2:Actions_Pad_CopyMove(padsrc,paddest, DATA.GUI.Ctrl)  
+                                                              DATA2.PADselection = {} -- clear selection
+                                                              DATA2.PADselection[paddest] = true
+                                                            end
                                                           end
                                                         end
-                                                        reaper.Undo_EndBlock2( 0, 'RS5k manager / Pad / Copy_Move', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)
+                                                        DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Copy_Move') 
                                                         DATA2.PAD_HOLD = nil
                                                       end
                                                     
@@ -3199,12 +3208,9 @@ rightclick them to hide all but active.
   function DATA2:Actions_PadOnFileDrop_ExportToRS5k(new_tr, filepath,note,section_data)
     if not (filepath and filepath~='')  then return end
     if filepath:match('@fx') then 
-      --reaper.Undo_BeginBlock2( 0)
       DATA2:Actions_PadOnFileDrop_ExportFXasDeviceInstrument(new_tr, filepath,note)
-      --reaper.Undo_EndBlock2( 0, 'RS5k manager: add FX instrument', 0xFFFFFFFF )
       return
     end
-    --reaper.Undo_BeginBlock2( 0)
     local instrument_pos = TrackFX_AddByName( new_tr, 'ReaSamplomatic5000', false, 0 ) 
     if instrument_pos == -1 then instrument_pos = TrackFX_AddByName( new_tr, 'ReaSamplomatic5000', false, -1000 ) end 
     if DATA.extstate.CONF_onadd_float == 0 then TrackFX_SetOpen( new_tr, instrument_pos, false ) end
@@ -3244,8 +3250,6 @@ rightclick them to hide all but active.
       filepath_sh = GetShortSmplName(filepath)
       if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end
       if DATA.extstate.CONF_onadd_renametrack==1 then GetSetMediaTrackInfo_String( new_tr, 'P_NAME', filepath_sh, true ) end
-      
-    --reaper.Undo_EndBlock2( 0, 'RS5k manager: add instrument', 0xFFFFFFFF ) -- reaper.Undo_BeginBlock2( 0)
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_DB_InitRandSamples_ParseList(list_fp)
@@ -3269,7 +3273,6 @@ rightclick them to hide all but active.
   function DATA2:Actions_DB_InitRandSamples(spec_note)
     if not DATA2.tr_valid then return end
     if not (DATA2.database_map and DATA2.database_map.valid and DATA2.database_map.map) then return end
-    --reaper.Undo_BeginBlock2( 0)
     
     -- https://stackoverflow.com/questions/18199844/lua-math-random-not-working
       math.randomseed(os.time())
@@ -3289,13 +3292,11 @@ rightclick them to hide all but active.
         end 
       end
     end
-    --reaper.Undo_EndBlock2( 0, 'RS5k manager: init random database kit', 0xFFFFFFFF ) 
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_Pad_Clear(note, layer)  
     if not DATA2.notes[note] then return end 
     
-    --reaper.Undo_BeginBlock2( 0)
     local  tr_ptr
     if DATA2.notes[note].TYPE_DEVICE then 
       -- remove device with layers
@@ -3337,7 +3338,6 @@ rightclick them to hide all but active.
     end
     -- set parent track selected
     reaper.SetOnlyTrackSelected( DATA2.tr_ptr )
-    --reaper.Undo_EndBlock2( 0, 'RS5k manager: clear layer', 0xFFFFFFFF ) --reaper.Undo_BeginBlock2( 0)
   end 
   -----------------------------------------------------------------------
   function DATA2:Actions_Pad_UpdateNote(note, newnote)
@@ -3362,7 +3362,6 @@ rightclick them to hide all but active.
     if not (padsrc and paddest) then return end 
     if padsrc == paddest then return end
     
-    --reaper.Undo_BeginBlock2( 0)
     if not iscopy then 
       if DATA2.notes[paddest] then DATA2:Actions_Pad_UpdateNote(paddest, padsrc) end
     --[[ remove old pad
@@ -3396,7 +3395,6 @@ rightclick them to hide all but active.
      
     DATA2:TrackDataRead()
     GUI_MODULE_DRUMRACK(DATA) 
-    --reaper.Undo_EndBlock2( 0, 'RS5k manager: copy/move layer', 0xFFFFFFFF ) --reaper.Undo_BeginBlock2( 0)
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_Pad_Rename(note,layer) 
@@ -3428,9 +3426,8 @@ rightclick them to hide all but active.
           func=function() DATA2:Actions_Pad_Rename(note) end },  
         {str='Clear pad',
           func=function() 
-                  reaper.Undo_BeginBlock2( 0)
-                  DATA2:Actions_Pad_Clear(note) 
-                  reaper.Undo_EndBlock2( 0, 'RS5k manager / Pad / Clear', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)  
+                  local f = function() DATA2:Actions_Pad_Clear(note)  end
+                  DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Clear')   
                 end },  
         {str='|Select all pads',
           func=function() 
@@ -3448,8 +3445,9 @@ rightclick them to hide all but active.
         {str='Move pad to last recent incoming note',
           func=function() 
                   local notedest = DATA2.playingnote
-                  if not notedest then return end
-                  DATA2:Actions_Pad_CopyMove(note,notedest)  
+                  if not notedest then return end 
+                  local f = function() DATA2:Actions_Pad_CopyMove(note,notedest)   end
+                  DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Add to recent note')  
                 end },
        
            
@@ -3465,11 +3463,10 @@ rightclick them to hide all but active.
         func=function() 
                 local ret =  reaper.MB( 'Are you sure you want to REMOVE all DrumRack tracks', 'RS5k manager', 3 )
                 if ret == 6 then 
-                  reaper.Undo_BeginBlock2( 0)
-                  for note in pairs(DATA2.notes) do
-                    DATA2:Actions_Pad_Clear(note) 
+                  local f = function()
+                    for note in pairs(DATA2.notes) do DATA2:Actions_Pad_Clear(note)  end
                   end
-                  reaper.Undo_EndBlock2( 0, 'RS5k manager / Pad / Clear', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)  
+                  DATA2:ProcessUndoBlock(f, 'RS5k manager / Clear rack') 
                 end
               end },  
         {str='|Select all pads',
@@ -3561,7 +3558,6 @@ rightclick them to hide all but active.
   end
   ----------------------------------------------------------------------- 
   function DATA2:Actions_PadOnFileDrop_ReplaceRS5kSample(note,layer0,filepath) 
-    --reaper.Undo_BeginBlock2( 0)
     local layer = layer0 or 1
     local new_tr = DATA2.notes[note].layers[layer].tr_ptr
     local instrument_pos = DATA2.notes[note].layers[layer].instrument_pos
@@ -3578,7 +3574,6 @@ rightclick them to hide all but active.
       filepath_sh = GetShortSmplName(filepath)
       if filepath_sh:match('(.*)%.[%a]+') then filepath_sh = filepath_sh:match('(.*)%.[%a]+') end
       GetSetMediaTrackInfo_String( DATA2.notes[note].layers[layer].tr_ptr, 'P_NAME', filepath_sh, true ) 
-    --reaper.Undo_EndBlock2( 0, 'RS5k manager: replace sample', 0xFFFFFFFF ) 
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_PadOnFileDrop_Sub(note, layer, filepath,section_data)
@@ -3914,9 +3909,12 @@ rightclick them to hide all but active.
     DATA:GUImenu({
     
     {str = 'Clear current database map',
-     func = function() 
-              DATA2.database_map = {}
-              DATA2:TrackDataWrite(_, {master_upd=true})
+     func = function()  
+              local f = function()
+                DATA2.database_map = {}
+                DATA2:TrackDataWrite(_, {master_upd=true})
+              end
+              DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / Clear') 
               DATA.UPD.onGUIinit = true
             end},
     {str = '|Save current database map to slot1',
@@ -3968,39 +3966,51 @@ rightclick them to hide all but active.
             
     {str = '|#Load database map slot:'},         
     {str = name1,
-     func = function() 
-              DATA2.PARENT_DATABASEMAP = DATA.extstate.CONF_database_map1
-              DATA2.database_map = {}
-              DATA2:Database_Load()
-              DATA2:TrackDataWrite(_, {master_upd=true})
-              DATA2:TrackDataRead()
+     func = function()  
+              local f = function()
+                DATA2.PARENT_DATABASEMAP = DATA.extstate.CONF_database_map1
+                DATA2.database_map = {}
+                DATA2:Database_Load()
+                DATA2:TrackDataWrite(_, {master_upd=true})
+                DATA2:TrackDataRead()
+              end
+              DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / Load from slot 1') 
               DATA.UPD.onGUIinit = true
             end},       
     {str = name2,
      func = function() 
-              DATA2.PARENT_DATABASEMAP = DATA.extstate.CONF_database_map2
-              DATA2.database_map = {}
-              DATA2:Database_Load()
-              DATA2:TrackDataWrite(_, {master_upd=true})
-              DATA2:TrackDataRead()
+              local f = function()
+                DATA2.PARENT_DATABASEMAP = DATA.extstate.CONF_database_map2
+                DATA2.database_map = {}
+                DATA2:Database_Load()
+                DATA2:TrackDataWrite(_, {master_upd=true})
+                DATA2:TrackDataRead()
+              end
+              DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / Load from slot 2') 
               DATA.UPD.onGUIinit = true
             end},     
     {str = name3,
      func = function() 
-              DATA2.PARENT_DATABASEMAP = DATA.extstate.CONF_database_map3
-              DATA2.database_map = {}
-              DATA2:Database_Load()
-              DATA2:TrackDataWrite(_, {master_upd=true})
-              DATA2:TrackDataRead()
+              local f = function()
+                DATA2.PARENT_DATABASEMAP = DATA.extstate.CONF_database_map3
+                DATA2.database_map = {}
+                DATA2:Database_Load()
+                DATA2:TrackDataWrite(_, {master_upd=true})
+                DATA2:TrackDataRead()
+              end
+              DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / Load from slot 3') 
               DATA.UPD.onGUIinit = true
             end},  
     {str = name4,
      func = function() 
-              DATA2.PARENT_DATABASEMAP = DATA.extstate.CONF_database_map4
-              DATA2.database_map = {}
-              DATA2:Database_Load()
-              DATA2:TrackDataWrite(_, {master_upd=true})
-              DATA2:TrackDataRead()
+              local f = function()
+                DATA2.PARENT_DATABASEMAP = DATA.extstate.CONF_database_map4
+                DATA2.database_map = {}
+                DATA2:Database_Load()
+                DATA2:TrackDataWrite(_, {master_upd=true})
+                DATA2:TrackDataRead()
+              end
+              DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / Load from slot 4') 
               DATA.UPD.onGUIinit = true
             end},              
     })
@@ -4034,9 +4044,8 @@ rightclick them to hide all but active.
                          txt = 'New kit',
                          txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function()  
-                                          reaper.Undo_BeginBlock2( 0)
-                                          DATA2:Actions_DB_InitRandSamples() 
-                                          reaper.Undo_EndBlock2( 0, 'RS5k manager / Database / New kit', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)
+                                          local f = function() DATA2:Actions_DB_InitRandSamples()   end
+                                          DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / New kit')  
                                         end
                          }
     x_offs = x_offs + DATA.GUI.custom_knob_button_w
@@ -4140,11 +4149,15 @@ rightclick them to hide all but active.
                               t[#t+1] = {
                                           str = key,
                                           func = function() 
-                                                    DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE].dbname = key
-                                                    DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE].dbflist = reaperDB[key]
-                                                    DATA2:TrackDataWrite(_, {master_upd=true})
-                                                    DATA2:TrackDataRead()
-                                                    DATA2:Database_Load(_,true) 
+                                                    local f = function()
+                                                      DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE].dbname = key
+                                                      DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE].dbflist = reaperDB[key]
+                                                      DATA2:TrackDataWrite(_, {master_upd=true})
+                                                      DATA2:TrackDataRead()
+                                                      DATA2:Database_Load(_,true) 
+                                                    end
+                                                    DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / Attach')  
+                                                    
                                                     DATA.UPD.onGUIinit = true
                                             
                                           end,
@@ -4154,10 +4167,13 @@ rightclick them to hide all but active.
                              t[#t+1] = {
                                          str = '|Clear current pad',
                                          func = function() 
-                                                 DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE] = nil
-                                                 DATA2:TrackDataWrite(_, {master_upd=true})
-                                                 DATA2:TrackDataRead()
-                                                 DATA2:Database_Load(_,true) 
+                                                  local f = function()
+                                                   DATA2.database_map.map[DATA2.PARENT_LASTACTIVENOTE] = nil
+                                                   DATA2:TrackDataWrite(_, {master_upd=true})
+                                                   DATA2:TrackDataRead()
+                                                   DATA2:Database_Load(_,true) 
+                                                 end
+                                                 DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / Clear current')  
                                                  DATA.UPD.onGUIinit = true
                                                end}
                              DATA:GUImenu(t)
@@ -4186,7 +4202,8 @@ rightclick them to hide all but active.
                          txt = lockstatename,
                          txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function() 
-                          DATA2:Actions_DB_lock(DATA2.PARENT_LASTACTIVENOTE) 
+                          local f = function()  DATA2:Actions_DB_lock(DATA2.PARENT_LASTACTIVENOTE)  end
+                          DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / Lock')  
                          end
                          }  
     y_offs0 = y_offs0  + DATA.GUI.custom_infoh*2+DATA.GUI.custom_offset
@@ -4197,9 +4214,8 @@ rightclick them to hide all but active.
                          txt = 'New sample',
                          txt_fontsz = DATA.GUI.custom_database_text,
                          onmouseclick = function() 
-                          reaper.Undo_BeginBlock2( 0)
-                          DATA2:Actions_DB_InitRandSamples(DATA2.PARENT_LASTACTIVENOTE) 
-                          reaper.Undo_EndBlock2( 0, 'RS5k manager / Database / New sample', 0xFFFFFFFF )--                                          reaper.Undo_BeginBlock2( 0)
+                          local f = function() DATA2:Actions_DB_InitRandSamples(DATA2.PARENT_LASTACTIVENOTE)    end
+                          DATA2:ProcessUndoBlock(f, 'RS5k manager / Database /  New sample')  
                          end}                       
     
   end
@@ -4658,11 +4674,14 @@ rightclick them to hide all but active.
                         txt = 'Prev spl',
                         txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         onmouseclick = function() 
-                                          if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
-                                            DATA2:Actions_Sampler_NextPrevSample(src_t, 1, DATA2.database_map.map[note].samples)  
-                                           else
-                                            DATA2:Actions_Sampler_NextPrevSample(src_t, 1)
+                                          local f = function()                          
+                                            if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
+                                              DATA2:Actions_Sampler_NextPrevSample(src_t, 1, DATA2.database_map.map[note].samples)  
+                                             else
+                                              DATA2:Actions_Sampler_NextPrevSample(src_t, 1)
+                                            end
                                           end
+                                          DATA2:ProcessUndoBlock(f, 'RS5k manager / Sampler / Prev sample') 
                                         end
                         }  
     y_offs = y_offs + action_h 
@@ -4677,11 +4696,14 @@ rightclick them to hide all but active.
                         txt = 'Next spl',
                         txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         onmouseclick = function() 
-                                          if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
-                                            DATA2:Actions_Sampler_NextPrevSample(src_t, nil, DATA2.database_map.map[note].samples)  
-                                           else
-                                            DATA2:Actions_Sampler_NextPrevSample(src_t, nil)
+                                          local f = function()
+                                            if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
+                                              DATA2:Actions_Sampler_NextPrevSample(src_t, nil, DATA2.database_map.map[note].samples)  
+                                             else
+                                              DATA2:Actions_Sampler_NextPrevSample(src_t, nil)
+                                            end
                                           end
+                                          DATA2:ProcessUndoBlock(f, 'RS5k manager / Sampler / Next sample') 
                                         end
                         }                          
     y_offs = y_offs + action_h
@@ -4696,11 +4718,14 @@ rightclick them to hide all but active.
                         txt = 'Rand spl',
                         txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         onmouseclick = function() 
-                                          if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
-                                            DATA2:Actions_Sampler_NextPrevSample(src_t,2, DATA2.database_map.map[note].samples)  
-                                           else
-                                            DATA2:Actions_Sampler_NextPrevSample(src_t, 2)
+                                          local f = function()
+                                            if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
+                                                                                        DATA2:Actions_Sampler_NextPrevSample(src_t,2, DATA2.database_map.map[note].samples)  
+                                                                                       else
+                                                                                        DATA2:Actions_Sampler_NextPrevSample(src_t, 2)
+                                                                                      end
                                           end
+                                          DATA2:ProcessUndoBlock(f, 'RS5k manager / Sampler / Rand sample')  
                                         end
                         }  
     y_offs = y_offs + action_h
@@ -4738,6 +4763,12 @@ rightclick them to hide all but active.
                         
   end
   
+  ----------------------------------------------------------------------
+  function DATA2:ProcessUndoBlock(f, name) 
+    Undo_BeginBlock2( 0)
+    defer(f)
+    Undo_EndBlock2( 0, name, 0xFFFFFFFF )
+  end
   ----------------------------------------------------------------------
   function GUI_MODULE_SAMPLER_Section_Loopstate(DATA)
     local spl_t = DATA2:internal_GetActiveNoteLayerTable()
@@ -5770,26 +5801,49 @@ rightclick them to hide all but active.
     if actions == 1 then DATA2:Actions_DB_InitRandSamples() end -- Device / New kit
     
     if actions == 2 then   -- prev sample
-      local src_t = DATA2:internal_GetActiveNoteLayerTable()
-      DATA2:Actions_Sampler_NextPrevSample(src_t, 1) 
+      local f = function()
+        local src_t = DATA2:internal_GetActiveNoteLayerTable()
+        if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
+          DATA2:Actions_Sampler_NextPrevSample(src_t,1, DATA2.database_map.map[note].samples)  
+         else
+          DATA2:Actions_Sampler_NextPrevSample(src_t, 1)
+        end
+      end
+      DATA2:ProcessUndoBlock(f, 'RS5k manager / Sampler / Prev sample')  
     end
     
     if actions == 3 then   -- next sample
-      local src_t = DATA2:internal_GetActiveNoteLayerTable()
-      DATA2:Actions_Sampler_NextPrevSample(src_t) 
+      local f = function()
+        local src_t = DATA2:internal_GetActiveNoteLayerTable()
+        if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
+          DATA2:Actions_Sampler_NextPrevSample(src_t,0, DATA2.database_map.map[note].samples)  
+         else
+          DATA2:Actions_Sampler_NextPrevSample(src_t, 0)
+        end
+      end
+      DATA2:ProcessUndoBlock(f, 'RS5k manager / Sampler / Next sample')  
     end
     
     if actions == 4 then   -- rand sample
-      local src_t = DATA2:internal_GetActiveNoteLayerTable()
-      DATA2:Actions_Sampler_NextPrevSample(src_t, 2) 
+      local f = function()
+        local src_t = DATA2:internal_GetActiveNoteLayerTable()
+        if src_t.SPLLISTDB == 1 and ( note and DATA2.database_map and DATA2.database_map.map and DATA2.database_map.map[note] and DATA2.database_map.map[note].samples) then 
+          DATA2:Actions_Sampler_NextPrevSample(src_t,2, DATA2.database_map.map[note].samples)  
+         else
+          DATA2:Actions_Sampler_NextPrevSample(src_t, 2)
+        end
+      end
+      DATA2:ProcessUndoBlock(f, 'RS5k manager / Sampler / Rand sample')  
     end
     
     if actions == 5 then   -- rand database sample
-      DATA2:Actions_DB_InitRandSamples(DATA2.PARENT_LASTACTIVENOTE) 
+      local f = function() DATA2:Actions_DB_InitRandSamples(DATA2.PARENT_LASTACTIVENOTE)  end
+      DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / Rand sample') 
     end
 
-    if actions == 6 then   -- lock active note database changes
-      DATA2:Actions_DB_lock(DATA2.PARENT_LASTACTIVENOTE)  
+    if actions == 6 then   -- lock active note database changes 
+      local f = function() DATA2:Actions_DB_InitRandSamples(DATA2:Actions_DB_lock(DATA2.PARENT_LASTACTIVENOTE)  )  end
+      DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / Lock active note') 
     end
     
     gmem_write(1025,0 )
