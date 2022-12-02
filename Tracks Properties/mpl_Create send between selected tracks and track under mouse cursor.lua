@@ -1,5 +1,5 @@
 -- @description Create send between selected tracks and track under mouse cursor
--- @version 1.16
+-- @version 1.17
 -- @author MPL
 -- @metapackage
 -- @provides
@@ -40,9 +40,7 @@
 --    [main] . > mpl_Send track under mouse cursor to selected tracks (channel 15-16 to 1-2).lua
 -- @website http://forum.cockos.com/showthread.php?t=188335  
 -- @changelog
---    # multichannel mode: remove reset send destination channels to 1/2 if destination track initially have 2 channels, allow to enable it by reset_stereo_in_multich_mode = true
---    + Allow to show routing window by show_routing_window = true
---    + Allow to obey parent channels via obeyparent_channels = true, ON by default
+--    # multichannel mode: improve handling source/dest channel flags
 
 
 
@@ -123,17 +121,16 @@
           if data_t.MCH_mode == true then
             local dest_tr_ch = GetMediaTrackInfo_Value( dest_tr, 'I_NCHAN')
             if dest_tr_ch < src_tr_ch then SetMediaTrackInfo_Value( dest_tr, 'I_NCHAN', src_tr_ch ) end -- increase dest channel count up to src track
-            SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', 0) -- always start multichannel from 1st chan
-            local src_flag = 0--0|(1024*math.floor(src_tr_ch/2))
-            if src_tr_ch == 1 then src_flag = 1024 end
-            if src_tr_ch > 2 then 
-              -- quantize to biggeer channel pair
+            
+            local flags = 0
+            if src_tr_ch == 1 then 
+              flags = 1024 
+             else
               if src_tr_ch%2 ~= 0 then  src_tr_ch = src_tr_ch + 1 end
-              src_flag = 2048
+              flags = src_tr_ch<<9
             end
-            --if src_tr_ch == 2 then src_flag = 0 end
-            if dest_tr_ch == 2 and reset_stereo_in_multich_mode == true then src_flag = 0 end
-            SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SRCCHAN',src_flag)
+            SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', 0)
+            SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SRCCHAN',flags) -- always start multichannel from 1st chan
           end
           
           if data_t.MCH_mode == false then
