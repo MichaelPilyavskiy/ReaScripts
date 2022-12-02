@@ -1,5 +1,5 @@
 -- @description Create send between selected tracks and track under mouse cursor
--- @version 1.15
+-- @version 1.16
 -- @author MPL
 -- @metapackage
 -- @provides
@@ -40,10 +40,15 @@
 --    [main] . > mpl_Send track under mouse cursor to selected tracks (channel 15-16 to 1-2).lua
 -- @website http://forum.cockos.com/showthread.php?t=188335  
 -- @changelog
---    # improve data transfer
+--    # multichannel mode: remove reset send destination channels to 1/2 if destination track initially have 2 channels, allow to enable it by reset_stereo_in_multich_mode = true
+--    + Allow to show routing window by show_routing_window = true
+--    + Allow to obey parent channels via obeyparent_channels = true, ON by default
 
-  
 
+
+  obeyparent_channels = true
+  show_routing_window = false
+  reset_stereo_in_multich_mode = false
   
   ---------------------------------------------------------------------
   function GetDestTrGUID()
@@ -85,6 +90,7 @@
     for srci = 1, #src_t do
       local src_tr =  VF_GetTrackByGUID( src_t[srci] )
       local src_tr_ch = GetMediaTrackInfo_Value( src_tr, 'I_NCHAN')
+      if obeyparent_channels == true then src_tr_ch = GetMediaTrackInfo_Value( src_tr, 'C_MAINSEND_NCH') end
       
       for desti = 1, #dest_t do
         local dest_tr =  VF_GetTrackByGUID(dest_t[desti] )
@@ -97,7 +103,13 @@
             local dest_tr_dest_ch = GetTrackSendInfo_Value( src_tr, 0, sendid-1, 'I_DSTCHAN')
             
             
-            if (dest_tr_check == dest_tr and dest_tr_src_ch == data_t.src_ch-1 and dest_tr_dest_ch == data_t.dest_ch-1) then is_exist = true break end
+            if dest_tr_check == dest_tr and 
+              ( 
+                (data_t.MCH_mode == false and dest_tr_src_ch == data_t.src_ch-1 and dest_tr_dest_ch == data_t.dest_ch-1)
+                or
+                ( data_t.MCH_mode == true and dest_tr_dest_ch == 0)
+              )
+              then is_exist = true  break end
           end
         
         -- perform main stuff
@@ -112,7 +124,15 @@
             local dest_tr_ch = GetMediaTrackInfo_Value( dest_tr, 'I_NCHAN')
             if dest_tr_ch < src_tr_ch then SetMediaTrackInfo_Value( dest_tr, 'I_NCHAN', src_tr_ch ) end -- increase dest channel count up to src track
             SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', 0) -- always start multichannel from 1st chan
-            if dest_tr_ch == 2 then src_flag = 0 else src_flag = 0|(1024*math.floor(src_tr_ch/2)) end
+            local src_flag = 0--0|(1024*math.floor(src_tr_ch/2))
+            if src_tr_ch == 1 then src_flag = 1024 end
+            if src_tr_ch > 2 then 
+              -- quantize to biggeer channel pair
+              if src_tr_ch%2 ~= 0 then  src_tr_ch = src_tr_ch + 1 end
+              src_flag = 2048
+            end
+            --if src_tr_ch == 2 then src_flag = 0 end
+            if dest_tr_ch == 2 and reset_stereo_in_multich_mode == true then src_flag = 0 end
             SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SRCCHAN',src_flag)
           end
           
@@ -120,7 +140,7 @@
             if GetMediaTrackInfo_Value( src_tr, 'I_NCHAN'  ) < data_t.src_ch+1 then SetMediaTrackInfo_Value( src_tr, 'I_NCHAN', data_t.src_ch+1  ) end 
             if GetMediaTrackInfo_Value( dest_tr, 'I_NCHAN'  ) < data_t.dest_ch+1 then SetMediaTrackInfo_Value( dest_tr, 'I_NCHAN', data_t.dest_ch+1  ) end  
             SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SRCCHAN', data_t.src_ch-1)
-            SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', data_t.dest_ch-1)
+            SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', data_t.dest_ch-1) 
           end   
                    
         end
@@ -168,4 +188,5 @@
     local source_type, MCH_mode, src_ch, dest_ch, script_title, custom_sendmode = Parsing_filename()
     local data_t = {source_type=source_type, MCH_mode=MCH_mode, src_ch=src_ch, dest_ch=dest_ch, script_title=script_title, defsendvol=defsendvol, defsendflag=defsendflag, custom_sendmode=custom_sendmode}
     main(data_t)
+    if show_routing_window==true then Action(40293) end
   end end
