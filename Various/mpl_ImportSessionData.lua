@@ -1,10 +1,10 @@
 -- @description ImportSessionData
--- @version 2.05
+-- @version 2.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # Fix markers error for old projects
+--    + Track properties: layout
 
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
@@ -12,7 +12,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.05
+    DATA.extstate.version = 2.06
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -46,6 +46,7 @@
                           CONF_tr_RECINPUT = 1,
                           CONF_tr_MAINSEND = 1,
                           CONF_tr_CUSTOMCOLOR = 1,
+                          CONF_tr_LAYOUTS = 0,
                           --CONF_tr_SEND = 0,
                           --CONF_tr_FOLDERDEPTH = 1,
                           
@@ -595,6 +596,7 @@
       'ISBUS',
       'TRACK',
       'PEAKCOL',
+      --'LAYOUTS',
                   }
     
     for tr_idx = 1, #DATA2.srcproj.TRACK do
@@ -1318,9 +1320,13 @@
   ]]
   -------------------------------------------------------------------- 
   function DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, key)
-    if key=='P_NAME' then
+    if 
+      key=='P_NAME'  or 
+      key=='P_TCP_LAYOUT'  or 
+      key=='P_MCP_LAYOUT' 
+      then
       local retval, stringNeedBig = GetSetMediaTrackInfo_String( src_tr, key, '', 0 )
-      GetSetMediaTrackInfo_String( dest_tr, 'P_NAME', stringNeedBig, 1 )
+      GetSetMediaTrackInfo_String( dest_tr, key, stringNeedBig, 1 )
      else 
       local val = GetMediaTrackInfo_Value( src_tr,key )
       SetMediaTrackInfo_Value( dest_tr, key, val )  
@@ -1341,6 +1347,8 @@
     end
     if DATA.extstate.CONF_tr_PHASE== 1 then         DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'B_PHASE') end
     if DATA.extstate.CONF_tr_CUSTOMCOLOR== 1 then   DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'I_CUSTOMCOLOR') end
+    if DATA.extstate.CONF_tr_LAYOUTS== 1 then   DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'P_MCP_LAYOUT') 
+                                                DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'P_TCP_LAYOUT') end
     if obeystructure then   DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'I_FOLDERDEPTH') end
     if DATA.extstate.CONF_tr_RECINPUT  == 1 then    DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'I_RECINPUT') 
                                                     DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'I_RECMODE') 
@@ -1386,6 +1394,7 @@
         {str = 'Record input / Monitoring' ,              group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_RECINPUT'},
         {str = 'Parent send / channels' ,                 group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_MAINSEND'},
         {str = 'Color' ,                                  group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_CUSTOMCOLOR'},
+        {str = 'Layout' ,                                 group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_LAYOUTS'},
         --{str = 'Folder depth' ,                         group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_FOLDERDEPTH', hide= DATA.extstate.CONF_resetfoldlevel==1},
         
         
