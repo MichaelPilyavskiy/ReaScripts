@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e55a3e1420fefb58252bbb90318ef16a537c52db" name="MPL Scripts">
+<index version="1" commit="10dabb5fcd047198f58737ddfdb2b38bcb7e7ac2" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -9065,6 +9065,12 @@ add control for timefall showing last note]]></changelog>
       <version name="2.06" author="MPL" time="2022-12-05T18:28:28Z">
         <changelog><![CDATA[+ Track properties: layout]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/00a2a4ff6dbd1ec0149cfeadff5c7443c20b8bdf/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="2.07" author="MPL" time="2022-12-06T20:12:54Z">
+        <changelog><![CDATA[+ Track properties: group flags
++ Project header: track group name
++ Project header: render format]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/10dabb5fcd047198f58737ddfdb2b38bcb7e7ac2/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
