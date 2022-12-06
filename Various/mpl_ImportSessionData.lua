@@ -1,10 +1,15 @@
 -- @description ImportSessionData
--- @version 2.06
+-- @version 2.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + Track properties: layout
+--    + Track properties: group flags
+--    + Project header: track group name
+--    + Project header: render format
+
+
+
 
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
@@ -12,7 +17,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.06
+    DATA.extstate.version = 2.07
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -47,6 +52,8 @@
                           CONF_tr_MAINSEND = 1,
                           CONF_tr_CUSTOMCOLOR = 1,
                           CONF_tr_LAYOUTS = 0,
+                          CONF_tr_LAYOUTS = 0,
+                          CONF_tr_GROUPMEMBERSHIP = 0, 
                           --CONF_tr_SEND = 0,
                           --CONF_tr_FOLDERDEPTH = 1,
                           
@@ -54,6 +61,8 @@
                           CONF_head_mast_FX = 0,
                           CONF_head_markers = 0, --&1 mark &2 replace mark &4 reg &8 replace reg &16 edit cur offs
                           CONF_head_tempo = 0,--&2 edit cur offs
+                          CONF_head_groupnames = 0,
+                          CONF_head_rendconf = 0,
                           
                           -- tr options
                           CONF_resetfoldlevel = 1,
@@ -761,6 +770,18 @@
     return t
   end
   ----------------------------------------------------------------------
+  function DATA2:ParseSourceProject_ExtractGroupNames(content)
+    DATA2.srcproj.GROUPNAMES = {}
+    for line in content:gmatch('[^\r\n]+') do
+      if line:match('GROUP_NAME') then
+        local groupid, name = line:match('GROUP_NAME (%d+) (.*)')
+        if groupid and name then 
+          DATA2.srcproj.GROUPNAMES[groupid] = name
+        end
+      end
+    end
+  end
+  ----------------------------------------------------------------------
   function DATA2:ParseSourceProject_ExtractMarkers(content)
     DATA2.srcproj.MARKERS = {}
     local reg_open
@@ -813,6 +834,11 @@
     DATA2:ParseSourceProject_ExtractChunks(content, 'MASTERFXLIST', DATA2.srcproj.HEADER_MASTERFXLIST)
     DATA2:ParseSourceProject_ExtractMarkers(content)
     DATA2:ParseSourceProject_ExtractTempo(content)
+    DATA2:ParseSourceProject_ExtractGroupNames(content)
+    
+    local HEADER_renderconf = content:match('<RENDER_CFG(.-)>')
+    if HEADER_renderconf then DATA2.srcproj.HEADER_renderconf = HEADER_renderconf:gsub('%s','') end
+    
   end
   ----------------------------------------------------------------------
   function DATA2:ParseSourceProject_GetValues(str, ignorefirst)
@@ -1088,6 +1114,14 @@
     reaper.UpdateTimeline()
   end
   ----------------------------------------------------------------------
+  function DATA2:Import2_Header_Groupnames()
+    if DATA.extstate.CONF_head_groupnames&1 ~= 1 then return end
+    if not DATA2.srcproj.GROUPNAMES then return end  
+    for groupID in pairs(DATA2.srcproj.GROUPNAMES) do
+      GetSetProjectInfo_String( 0, 'TRACK_GROUP_NAME:'..(groupID+1), DATA2.srcproj.GROUPNAMES[groupID], true )
+    end
+  end
+  ----------------------------------------------------------------------
   function DATA2:Import2_Header_Tempo()
     if DATA.extstate.CONF_head_tempo&1 ~= 1 then return end
     if not DATA2.srcproj.TEMPOMAP then return end
@@ -1117,6 +1151,11 @@
     DATA2:Import2_Header_MasterFX()
     DATA2:Import2_Header_Markers()
     DATA2:Import2_Header_Tempo()
+    DATA2:Import2_Header_Groupnames()
+    
+    if DATA.extstate.CONF_head_rendconf == 1 and DATA2.srcproj.HEADER_renderconf then
+      GetSetProjectInfo_String( 0, 'RENDER_FORMAT', DATA2.srcproj.HEADER_renderconf, 1 ) 
+    end
   end
   -------------------------------------------------------------------- 
   function DATA2:Import_TransferTrackData_Items(src_tr, dest_tr) 
@@ -1320,13 +1359,46 @@
   ]]
   -------------------------------------------------------------------- 
   function DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, key)
-    if 
-      key=='P_NAME'  or 
-      key=='P_TCP_LAYOUT'  or 
-      key=='P_MCP_LAYOUT' 
-      then
+    if key=='GROUPMEMBERSHIP'  then 
+      local t = {'VOLUME_LEAD',
+      'VOLUME_FOLLOW',
+      'VOLUME_VCA_LEAD',
+      'VOLUME_VCA_FOLLOW',
+      'PAN_LEAD',
+      'PAN_FOLLOW',
+      'WIDTH_LEAD',
+      'WIDTH_FOLLOW',
+      'MUTE_LEAD',
+      'MUTE_FOLLOW',
+      'SOLO_LEAD',
+      'SOLO_FOLLOW',
+      'RECARM_LEAD',
+      'RECARM_FOLLOW',
+      'POLARITY_LEAD',
+      'POLARITY_FOLLOW',
+      'AUTOMODE_LEAD',
+      'AUTOMODE_FOLLOW',
+      'VOLUME_REVERSE',
+      'PAN_REVERSE',
+      'WIDTH_REVERSE',
+      'NO_LEAD_WHEN_FOLLOW',
+      'VOLUME_VCA_FOLLOW_ISPREFX'}
+      local reapervrs = GetAppVersion():match('[%d%.]+')
+      if reapervrs then reapervrs = tonumber(reapervrs) end 
+      if reapervrs and reapervrs <= 6.11 then for i = 1, #t do t[i] = t[i]:gsub('LEAD', 'MASTER'):gsub('FOLLOW', 'SLAVE') end end
+      
+      for i = 1, #t do 
+        local flags = GetSetTrackGroupMembership( src_tr,  t[i], 0, 0 )
+        GetSetTrackGroupMembership( dest_tr,  t[i], flags, 0xFFFFFFFF )
+        local flagshigh = GetSetTrackGroupMembershipHigh( src_tr,  t[i], 0, 0 )
+        GetSetTrackGroupMembershipHigh( dest_tr,  t[i], flagshigh, 0xFFFFFFFF )
+      end
+      
+     elseif (key=='P_NAME'  or  key=='P_TCP_LAYOUT'  or  key=='P_MCP_LAYOUT' ) then
       local retval, stringNeedBig = GetSetMediaTrackInfo_String( src_tr, key, '', 0 )
       GetSetMediaTrackInfo_String( dest_tr, key, stringNeedBig, 1 )
+      
+      
      else 
       local val = GetMediaTrackInfo_Value( src_tr,key )
       SetMediaTrackInfo_Value( dest_tr, key, val )  
@@ -1347,6 +1419,7 @@
     end
     if DATA.extstate.CONF_tr_PHASE== 1 then         DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'B_PHASE') end
     if DATA.extstate.CONF_tr_CUSTOMCOLOR== 1 then   DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'I_CUSTOMCOLOR') end
+    if DATA.extstate.CONF_tr_GROUPMEMBERSHIP== 1 then   DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'GROUPMEMBERSHIP') end
     if DATA.extstate.CONF_tr_LAYOUTS== 1 then   DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'P_MCP_LAYOUT') 
                                                 DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'P_TCP_LAYOUT') end
     if obeystructure then   DATA2:Import_TransferTrackData_SetTrVal(src_tr, dest_tr, 'I_FOLDERDEPTH') end
@@ -1395,6 +1468,7 @@
         {str = 'Parent send / channels' ,                 group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_MAINSEND'},
         {str = 'Color' ,                                  group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_CUSTOMCOLOR'},
         {str = 'Layout' ,                                 group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_LAYOUTS'},
+        {str = 'Group flags' ,                            group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_GROUPMEMBERSHIP'},
         --{str = 'Folder depth' ,                         group = 1, itype = 'check', level = 1, confkey = 'CONF_tr_FOLDERDEPTH', hide= DATA.extstate.CONF_resetfoldlevel==1},
         
         
@@ -1426,6 +1500,8 @@
             {str = 'Clear existing regions' ,             group = 6, itype = 'check', level = 3, confkey = 'CONF_head_markers',confkeybyte=3, hide= DATA.extstate.CONF_head_markers&4~=4},
         {str = 'Tempo / time signature' ,                 group = 6, itype = 'check', level = 1, confkey = 'CONF_head_tempo',confkeybyte = 0}, 
           {str = 'Offset at edit cursor' ,                group = 6, itype = 'check', level = 2, confkey = 'CONF_head_tempo',confkeybyte = 1, hide= DATA.extstate.CONF_head_tempo&1~=1},
+        {str = 'Track group names' ,                      group = 6, itype = 'check', level = 1, confkey = 'CONF_head_groupnames',confkeybyte = 0}, 
+        {str = 'Render format configuration' ,            group = 6, itype = 'check', level = 1, confkey = 'CONF_head_rendconf',confkeybyte = 0}, 
         
       {str = 'UI options' ,                               group = 5, itype = 'sep'},  
         {str = 'Enable shortcuts' ,                       group = 5, itype = 'check', confkey = 'UI_enableshortcuts', level = 1},
