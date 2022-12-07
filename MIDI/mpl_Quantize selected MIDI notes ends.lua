@@ -1,11 +1,11 @@
--- @version 1.12
+-- @version 1.13
 -- @author MPL
 -- @description Quantize selected MIDI notes ends
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @provides
 -- @provides [main=main,midi_editor] .
 -- @changelog
---    # add support for multiple items
+--    # add support for multiple MIDI editor takes
 
   ----------------------------------------------------------------------
   function Quantize_selected_MIDI_notes_ends(take) 
@@ -72,8 +72,12 @@
     Undo_BeginBlock()
     local ME = reaper.MIDIEditor_GetActive()
     if ME then
-      take = reaper.MIDIEditor_GetTake(ME)
-      Quantize_selected_MIDI_notes_ends(take) 
+      --take = reaper.MIDIEditor_GetTake(ME)
+      for takeindex = 1, 100000 do
+        local take = MIDIEditor_EnumTakes( ME, takeindex-1, true) 
+        if not take then break end
+        Quantize_selected_MIDI_notes_ends(take) 
+      end
      else
       for i = 1, CountSelectedMediaItems(0) do
         local item = GetSelectedMediaItem(0,i-1)
