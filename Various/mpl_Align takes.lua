@@ -1,11 +1,10 @@
 -- @description Align Takes
--- @version 2.22
+-- @version 2.23
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # Defaults: get dub takes on init
---    + Compact mode: add switch to full mode
+--    + Settings / Take output: Add support for quantize stretch markers positions to zero crossings
 
 
   --[[
@@ -30,7 +29,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.22
+    DATA.extstate.version = 2.23
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
@@ -105,6 +104,7 @@
                           CONF_post_strmarkfdsize = 0.0111,
                           CONF_post_smmode = 2,
                           CONF_post_pos0mark = 1,
+                          CONF_post_zerocross = 0,
                           }
                           
     DATA:ExtStateGet()
@@ -218,12 +218,16 @@
           if last_src_pos ~= nil and last_dest_pos ~= nil then
             -- check for negative stretch markers
             if (src_pos - last_src_pos) / (dest_pos - last_dest_pos ) > 0 then
-              if is_inside_boundary then SetTakeStretchMarker(take, -1, dest_pos,src_pos0 ) end
+              if is_inside_boundary then 
+                SetTakeStretchMarker(take, -1, dest_pos,src_pos0 ) 
+              end
               last_src_pos = src_pos
               last_dest_pos = dest_pos
             end
            else
-            if is_inside_boundary then SetTakeStretchMarker(take, -1, dest_pos,src_pos0 )  end           
+            if is_inside_boundary then 
+              SetTakeStretchMarker(take, -1, dest_pos,src_pos0 )  
+            end           
             last_src_pos = src_pos
             last_dest_pos = dest_pos
           end
@@ -233,10 +237,60 @@
         if DATA.extstate.CONF_post_pshift >= 0 then pshift = DATA.extstate.CONF_post_pshift end
         if DATA.extstate.CONF_post_pshift >= 0 and  DATA.extstate.CONF_post_pshiftsub >= 0 then  pshiftsub = DATA.extstate.CONF_post_pshiftsub end
         if DATA.extstate.CONF_post_pshift >= 0 or DATA.extstate.CONF_post_strmarkfdsize ~= 0.0025 then  VF_SetTimeShiftPitchChange(item, false, (DATA.extstate.CONF_post_pshift<<16) + DATA.extstate.CONF_post_pshiftsub, DATA.extstate.CONF_post_smmode, DATA.extstate.CONF_post_strmarkfdsize)  end 
+        if DATA.extstate.CONF_post_zerocross ==1 then  MPL_QuantizeSMtoZeroCross( reaper.GetActiveTake( item )) end 
       end
       if item then UpdateItemInProject( item ) end
       ::skipdubtake2::
     end
+  end
+  ---------------------------------------------------------------------
+  function MPL_QuantizeSMtoZeroCross(take)
+    if not take then return end
+    if reaper.TakeIsMIDI(take) then return end
+    local source = reaper.GetMediaItemTake_Source( take )
+    local SR = tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 ))--GetMediaSourceSampleRate( source ) 
+    local cnt = reaper.GetTakeNumStretchMarkers( take )
+    local soffs = reaper.GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
+    local rate = reaper.GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+    local it = reaper.GetMediaItemTake_Item( take )
+    local it_pos = reaper.GetMediaItemInfo_Value(  it, 'D_POSITION' )
+    local tr =  reaper.GetMediaItemTrack( it )
+    local pr_offs = reaper.GetProjectTimeOffset( 0, false )
+     sm_t = {}
+    local pow = 8
+    for i = 1, cnt do 
+      local retval, posOut, src_pos = reaper.GetTakeStretchMarker( take, i-1 )
+      
+      local pos_proj = it_pos + posOut/rate + pr_offs
+      sm_t[#sm_t+1] = {pos = posOut, src_pos = math.floor((10^pow)*src_pos) / (10^pow), pos_proj = pos_proj} 
+    end
+    
+    local bufsz_check = math.floor(SR * (500 / 44100)) -- take approximately 500 samples at 44.1
+    local buf_offs_sec =  math.floor(SR * (1 / 44100))/SR -- take approximately 5 samples at 44.1
+    local accessor = reaper.CreateTrackAudioAccessor( tr)
+    local samplebuffer = reaper.new_array(bufsz_check);
+    for i = 1, #sm_t do
+      local pos_check = sm_t[i].pos_proj - buf_offs_sec - pr_offs
+      reaper.GetAudioAccessorSamples( accessor, SR, 1, pos_check, bufsz_check, samplebuffer )
+      sm_t[i].pos_ZC = sm_t[i].src_pos
+      for spl = 3,bufsz_check do
+        if (samplebuffer[spl] >=0 and samplebuffer[spl-1] <0) or (samplebuffer[spl] <0 and samplebuffer[spl-1] >=0) then
+          sm_t[i].pos_ZC  = sm_t[i].src_pos + (spl-2)/ SR
+          break
+        end
+      end
+      samplebuffer.clear()
+    end
+    reaper.DestroyAudioAccessor( accessor )
+     
+      
+    for i = 2,#sm_t-1 do
+      local src_pos = sm_t[i].src_pos
+      local src_ZC = sm_t[i].pos_ZC
+      local diff = sm_t[i].pos_ZC - sm_t[i].src_pos
+      reaper.SetTakeStretchMarker( take, i-1, sm_t[i].pos + diff, sm_t[i].src_pos+diff )
+    end
+    reaper.UpdateItemInProject( it )
   end
   ---------------------------------------------------------------------  
   function GUI_RESERVED_init(DATA)
@@ -599,6 +653,7 @@
         {str = 'Pitch shift submode' ,                    group = 7, itype = 'readout', confkey = 'CONF_post_pshiftsub', readoutw_extw = readoutw_extw, level = 1, menu = pitch_shift_tsub, func_onrelease = function() DATA2:ProcessAtChange(DATA) end,},  
         {str = 'Stretch marker mode' ,                    group = 7, itype = 'readout', confkey = 'CONF_post_smmode', readoutw_extw = readoutw_extw, level = 1, menu = smmode, func_onrelease = function() DATA2:ProcessAtChange(DATA) end,},  
         {str = 'Stretch marker fade size' ,               group = 7, itype = 'readout', confkey = 'CONF_post_strmarkfdsize', level = 1, val_min = 0.0025, val_max =0.05, val_res = 0.05, val_format = function(x) return VF_math_Qdec(x,4)..'s' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, func_onrelease = function() DATA2:ProcessAtChange(DATA) end,},
+        {str = 'Quantize to zero crossings' ,             group = 7, itype = 'check', confkey = 'CONF_post_zerocross', level = 1, func_onrelease = function() DATA2:ProcessAtChange(DATA) end,},
         
         
       {str = 'UI options' ,                               group = 5, itype = 'sep'},  
@@ -667,6 +722,129 @@
       
     end
     
+  end
+  --------------------------------------------------------------------  
+  function DATA2:GetAudioData_GetTable2(parent_track, edge_start, edge_end, take, item, tkoffs, take_rate) 
+  
+    -- init 
+      local data = {}
+      local accessor 
+      local FFTsz = 512
+      local window_spls = FFTsz*2
+      local SR = tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 )) -- get sample rate obey project start offset
+      if take then 
+        accessor = CreateTakeAudioAccessor( take )
+        edge_end = edge_end - edge_start -- tkoffs*take_rate
+        edge_start = 0
+        local pcm_src  =  GetMediaItemTake_Source( take )
+        local SR = reaper.GetMediaSourceSampleRate( pcm_src ) 
+       else
+        accessor = CreateTrackAudioAccessor( parent_track ) 
+      end
+      
+      local window = window_spls / SR
+      DATA.extstate.CONF_window = window
+      local samplebuffer = reaper.new_array(window_spls) 
+      local t = {}
+      local id = 0
+    
+      local buft = {}
+      local buftid = 0
+      for pos_seek = edge_start, edge_end, window do
+          local pos_seek0 = pos_seek 
+          local rms = 0
+          local rmscnt = 0
+          reaper.GetAudioAccessorSamples( accessor, SR, 1, pos_seek, window_spls, samplebuffer ) 
+          samplebuffer.fft_real(FFTsz, true, 1 )
+          local sum = 0
+          local rms = 0
+          local rmsid = 0
+          local prev_Re = 0
+          local prev_Im = 0 
+          buftid =buftid + 1
+          buft[buftid] = {}
+          local bin2 = -1
+          for bin = 1, FFTsz/2 do 
+            bin2 = bin2 + 2
+            local Re = samplebuffer[bin2]
+            local Im = samplebuffer[bin2 + 1]
+            local magnitude = math.sqrt(Re^2 + Im^2)
+            rms = rms + magnitude
+            rmscnt = rmscnt + 1
+            local phase = math.atan(Im, Re)
+            buft[buftid][bin] = {magnitude=magnitude,phase=phase}
+          end
+          buft[buftid].rms = rms / rmscnt
+      end
+    
+    samplebuffer.clear( )
+    reaper.DestroyAudioAccessor( accessor )
+    local t = DATA2:GetComplexDomainOnsetEnvelope_GetDifference(buft) 
+    local rms, peak = DATA2:GetRMSPeakRatio(t)
+    --VF2_NormalizeT(t)
+    
+    local max_val = 0
+    for i = 1, #t do t[i] = math.abs(t[i]) max_val = math.max(max_val, t[i]) end -- abs all values
+    --[[for i = 1, #t do t[i] = math.min(DATA.extstate.CONF_audio_lim, t[i] /DATA.extstate.CONF_audio_lim) end -- limit 
+    for i = 1, #t do t[i] = (t[i]/max_val) ^DATA.extstate.CONF_audiodosquareroot end -- normalize  / scale
+    
+    
+    local lastval = 0
+    for smooth = 1, DATA.extstate.CONF_smooth do
+      for i = 1, #t do  
+        t[i] = (lastval + t[i] ) /2
+        lastval = t[i]
+      end
+    end]]
+    
+    return t,peak
+  end
+  --------------------------------------------------------------------  
+  function DATA2:GetRMSPeakRatio(t) 
+    local rms = 0 
+    local peak = 0
+    local sz = #t
+    local val
+    for  i = 1,sz do
+      val = t[i]
+      rms = rms + val
+      peak = math.max(peak, val)
+    end
+    rms = rms / sz
+    return rms, peak
+  end
+  --------------------------------------------------------------------  
+  function DATA2:GetComplexDomainOnsetEnvelope_GetDifference(buft)  -- buft is after fft real
+    local out_t = {}
+    
+    for frame = 3, #buft do
+      local t = buft[frame]
+      local t_prev = buft[frame-1]
+      local t_prev2 = buft[frame-2]
+      local sz = #t
+      local sum = 0
+      local Euclidean_distance, Im1, Im2, Re1, Re2
+      local hp = 1--math.floor(sz*0.02)
+      local lp = sz - math.floor(sz*0.1)
+      for bin = hp, lp do
+        magnitude_targ = t_prev[bin].magnitude
+        phase_targ = t_prev[bin].phase + (t_prev[bin].phase - t_prev2[bin].phase)
+        
+        Re2 = magnitude_targ * math.cos(phase_targ);
+        Im2 = magnitude_targ * math.sin(phase_targ);
+        
+        Re1 = t[bin].magnitude * math.cos(t[bin].phase);
+        Im1 = t[bin].magnitude * math.sin(t[bin].phase);
+                
+        Euclidean_distance = math.sqrt((Re2 - Re1)^2 + (Im2 - Im1)^2)
+        sum = sum + Euclidean_distance *(1-bin/sz) -- weight to highs
+      end
+      
+      out_t[frame] = sum * buft[frame].rms
+    end
+    out_t[1] =out_t[3]
+    out_t[2] = out_t[3]
+    return out_t
   end
   ---------------------------------------------------------------------
   function DATA2:GetAudioData_GetTable(parent_track, edge_start, edge_end, take, item, tkoffs, take_rate) 

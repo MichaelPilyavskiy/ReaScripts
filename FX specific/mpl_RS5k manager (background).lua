@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.04
+-- @version 3.05
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -13,7 +13,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix variables scope issues for new undo additions
+--    # fix ctrl error
 
 
 
@@ -27,7 +27,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.04'
+    DATA.extstate.version = '3.05'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -2418,10 +2418,80 @@ rightclick them to hide all but active.
     DATA:GUImenu(t)
   end
   -----------------------------------------------------------------------------  
+  function GUI_MODULE_MACRO_ctrls(DATA) 
+    -- controls 
+    local ctrls_cnt = 8
+    for ctrlid = 1, ctrls_cnt do
+      local frame_a
+      if DATA2.PARENT_LASTACTIVEMACRO and ctrlid == DATA2.PARENT_LASTACTIVEMACRO then 
+        frame_a = 1
+       else
+        frame_a = nil
+      end
+      local xshift = DATA.GUI.custom_knob_button_w*(ctrlid-1)
+      local yshift = DATA.GUI.custom_module_yoffs_macro--DATA.GUI.custom_macro_knobH * math.floor((ctrlid/9))
+      if ctrlid>=9 then  xshift = DATA.GUI.custom_knob_button_w*(ctrlid-9) end 
+      local wreduce = DATA.GUI.custom_offset
+      if ctrlid==ctrls_cnt then 
+      wreduce = 1
+      end
+      if not DATA2.Macro then return end
+      local src_t = DATA2.Macro.sliders[ctrlid]
+      local txt_a = DATA.GUI.custom_anavailableparamtxta
+      if DATA2.Macro.sliders[ctrlid] and DATA2.Macro.sliders[ctrlid].links and #DATA2.Macro.sliders[ctrlid].links > 0 then 
+        txt_a = 1
+      end
+      local x_offs = DATA.GUI.custom_macro_ctrls_x_offs
+      local y_offs = DATA.GUI.custom_macro_ctrls_y_offs
+      GUI_CTRL(DATA,
+        {
+          butkey = 'macroglob_knob'..ctrlid,
+          
+          x = x_offs+xshift,
+          y=  y_offs+1,
+          w = DATA.GUI.custom_knob_button_w-wreduce,
+          h = DATA.GUI.custom_knob_button_h-DATA.GUI.custom_offset,
+          frame_a = frame_a,
+          txt_a = txt_a,
+          
+          ctrlname = 'Macro \n'..ctrlid,
+          ctrlval_key = 'macroval',
+          ctrlval_format_key = 'macroval_format',
+          ctrlval_src_t = DATA2.Macro.sliders[ctrlid],
+          ctrlval_res = 0.5,
+          ctrlval_default = 0,
+          func_atrelease =      function() 
+                                  DATA2.PARENT_LASTACTIVEMACRO = ctrlid
+                                  DATA2:TrackDataWrite(_,{master_upd=true})
+                                  GUI_MODULE_MACRO(DATA)    
+                                end,
+          func_app =            function(new_val) 
+                                  TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.macro_pos, ctrlid, new_val )  
+                                end,
+          func_refresh =        function() 
+                                  DATA2:TrackDataRead_GetParent_Macro(true) 
+                                  local note_layer_t = DATA2:internal_GetActiveNoteLayerTable()
+                                  DATA2:TrackDataRead_GetChildrens_InstrumentParams(note_layer_t)
+                                  DATA2:TrackDataRead_GetChildrens_FXParams(note_layer_t)  
+                                  GUI_MODULE_SAMPLER_Section_SplReadouts(DATA) 
+                                  GUI_MODULE_SAMPLER_Section_FilterSection(DATA)   
+                                  GUI_MODULE_SAMPLER_Section_EnvelopeSection(DATA) 
+                                end,
+          func_formatreverse =  function(str_ret)
+                                  local ret = DATA2:internal_ParsePercent(str_ret)
+                                  if ret then 
+                                    local new_val = VF_BFpluginparam(ret, src_t.tr_ptr, src_t.macro_pos, ctrlid) 
+                                    return new_val
+                                  end
+                                end
+         } )    
+         
+    end
+  end
+  -----------------------------------------------------------------------------  
   function GUI_MODULE_MACRO(DATA)    
     local parentlistID = 31 -- reset list blit
     gfx.setimgdim(parentlistID, -1, -1) 
-    
     for key in pairs(DATA.GUI.buttons) do if key:match('macroglob_') then DATA.GUI.buttons[key] = nil end end 
     if not DATA2.PARENT_TABSTATEFLAGS or ( DATA2.PARENT_TABSTATEFLAGS and DATA2.PARENT_TABSTATEFLAGS&16==0) then return end
     
@@ -2482,73 +2552,10 @@ rightclick them to hide all but active.
                           ignoremouse = true,
                           --hide=true,
                           onmouseclick =  function() end}
-    y_offs = y_offs +   DATA.GUI.custom_infoh + DATA.GUI.custom_offset                
-    -- controls 
-    local ctrls_cnt = 8
-    for ctrlid = 1, ctrls_cnt do
-      local frame_a
-      if DATA2.PARENT_LASTACTIVEMACRO and ctrlid == DATA2.PARENT_LASTACTIVEMACRO then 
-        frame_a = 1
-       else
-        frame_a = nil
-      end
-      local xshift = DATA.GUI.custom_knob_button_w*(ctrlid-1)
-      local yshift = DATA.GUI.custom_module_yoffs_macro--DATA.GUI.custom_macro_knobH * math.floor((ctrlid/9))
-      if ctrlid>=9 then  xshift = DATA.GUI.custom_knob_button_w*(ctrlid-9) end 
-      local wreduce = DATA.GUI.custom_offset
-      if ctrlid==ctrls_cnt then 
-      wreduce = 1
-      end
-      if not DATA2.Macro then return end
-      local src_t = DATA2.Macro.sliders[ctrlid]
-      local txt_a = DATA.GUI.custom_anavailableparamtxta
-      if DATA2.Macro.sliders[ctrlid] and DATA2.Macro.sliders[ctrlid].links and #DATA2.Macro.sliders[ctrlid].links > 0 then 
-        txt_a = 1
-      end
-      GUI_CTRL(DATA,
-        {
-          butkey = 'macroglob_knob'..ctrlid,
-          
-          x = x_offs+xshift,
-          y=  y_offs+1,
-          w = DATA.GUI.custom_knob_button_w-wreduce,
-          h = DATA.GUI.custom_knob_button_h-DATA.GUI.custom_offset,
-          frame_a = frame_a,
-          txt_a = txt_a,
-          
-          ctrlname = 'Macro \n'..ctrlid,
-          ctrlval_key = 'macroval',
-          ctrlval_format_key = 'macroval_format',
-          ctrlval_src_t = DATA2.Macro.sliders[ctrlid],
-          ctrlval_res = 0.5,
-          ctrlval_default = 0,
-          func_atrelease =      function() 
-                                  DATA2.PARENT_LASTACTIVEMACRO = ctrlid
-                                  DATA2:TrackDataWrite(_,{master_upd=true})
-                                  GUI_MODULE_MACRO(DATA)    
-                                end,
-          func_app =            function(new_val) 
-                                  TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.macro_pos, ctrlid, new_val )  
-                                end,
-          func_refresh =        function() 
-                                  DATA2:TrackDataRead_GetParent_Macro(true) 
-                                  local note_layer_t = DATA2:internal_GetActiveNoteLayerTable()
-                                  DATA2:TrackDataRead_GetChildrens_InstrumentParams(note_layer_t)
-                                  DATA2:TrackDataRead_GetChildrens_FXParams(note_layer_t)  
-                                  GUI_MODULE_SAMPLER_Section_SplReadouts(DATA) 
-                                  GUI_MODULE_SAMPLER_Section_FilterSection(DATA)   
-                                  GUI_MODULE_SAMPLER_Section_EnvelopeSection(DATA) 
-                                end,
-          func_formatreverse =  function(str_ret)
-                                  local ret = DATA2:internal_ParsePercent(str_ret)
-                                  if ret then 
-                                    local new_val = VF_BFpluginparam(ret, src_t.tr_ptr, src_t.macro_pos, ctrlid) 
-                                    return new_val
-                                  end
-                                end
-         } )    
-         
-    end
+    y_offs = y_offs +   DATA.GUI.custom_infoh + DATA.GUI.custom_offset  
+    DATA.GUI.custom_macro_ctrls_x_offs = x_offs
+    DATA.GUI.custom_macro_ctrls_y_offs = y_offs
+    GUI_MODULE_MACRO_ctrls(DATA) 
     local x_offs= x_offs0
     y_offs = y_offs + DATA.GUI.custom_knob_button_h+DATA.GUI.custom_offset
     local addlink_w = DATA.GUI.custom_macroW-DATA.GUI.custom_knob_button_w
@@ -4950,7 +4957,6 @@ rightclick them to hide all but active.
   end
   ---------------------------------------------------------------------- 
   function GUI_CTRL(DATA, params_t) 
-  
     local t = params_t
     local src_t = t.ctrlval_src_t 
     if not (src_t and t.ctrlval_key and src_t[t.ctrlval_key]) then return end
@@ -4976,6 +4982,7 @@ rightclick them to hide all but active.
                         val_max = t.ctrlval_max,
                         
                         onmouseclick = function() 
+                                          if not (DATA.GUI.buttons[t.butkey..'frame'] and DATA.GUI.buttons[t.butkey..'frame'].val) then return end
                                           local new_val = DATA.GUI.buttons[t.butkey..'frame'].val
                                           if params_t.func_atclick then params_t.func_atclick(new_val) end
                                         end,
@@ -4985,7 +4992,6 @@ rightclick them to hide all but active.
                               params_t.func_app(new_val)
                               params_t.func_refresh()
                               DATA.GUI.buttons[t.butkey..'val'].txt = src_t[t.ctrlval_format_key]
-                              
                                 local val_norm = src_t[t.ctrlval_key] 
                                 if t.ctrlval_max and t.ctrlval_min then val_norm = (val_norm - t.ctrlval_min) / (t.ctrlval_max - t.ctrlval_min) end
                                 if DATA.GUI.buttons[t.butkey..'knob'] then DATA.GUI.buttons[t.butkey..'knob'].val = val_norm end

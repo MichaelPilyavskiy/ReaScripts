@@ -1,107 +1,68 @@
 -- @description Quantize stretch markers in selected items to zero crossings
--- @version 1.02
+-- @version 1.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix normalize function use
+--    + Use more precise algorithm, improve performance 
+--    + Don`t use various functions
 
-  -- NOT gfx NOT reaper
-  local scr_title = 'Quantize stretch markers in selected items to zero crossings'
-  
-  local peakrate = 5000 -- peaks quality
-  local search_area = 1000 -- search in peaks table entryies (step = src_len / spl_cnt)
-  
-  
+
   ---------------------------------------------------------------------
-  function GetSMData(take)
-    local cnt = GetTakeNumStretchMarkers( take )
-    local soffs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
-    local t = {}
+  function MPL_QuantizeSMtoZeroCross(take)
+    if not take then return end
+    if reaper.TakeIsMIDI(take) then return end
+    local source = reaper.GetMediaItemTake_Source( take )
+    local SR = tonumber(reaper.format_timestr_pos( 1-reaper.GetProjectTimeOffset( 0,false ), '', 4 ))--GetMediaSourceSampleRate( source ) 
+    local cnt = reaper.GetTakeNumStretchMarkers( take )
+    local soffs = reaper.GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
+    local rate = reaper.GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
+    local it = reaper.GetMediaItemTake_Item( take )
+    local it_pos = reaper.GetMediaItemInfo_Value(  it, 'D_POSITION' )
+    local tr =  reaper.GetMediaItemTrack( it )
+    local pr_offs = reaper.GetProjectTimeOffset( 0, false )
+     sm_t = {}
+    local pow = 8
     for i = 1, cnt do 
-      local retval, posOut, src_pos = GetTakeStretchMarker( take, i-1 )
-      local pow = 8
-      t[#t+1] = {pos = posOut, src_pos = math.floor((10^pow)*src_pos) / (10^pow), pos_compensated = posOut + soffs}  
+      local retval, posOut, src_pos = reaper.GetTakeStretchMarker( take, i-1 )
+      
+      local pos_proj = it_pos + posOut/rate + pr_offs
+      sm_t[#sm_t+1] = {pos = posOut, src_pos = math.floor((10^pow)*src_pos) / (10^pow), pos_proj = pos_proj} 
     end
-    return t
-  end
-  ---------------------------------------------------------------------------------------------------------------------
-  function GetPeaks(take)
-    if not take then    return end
-    local src = GetMediaItemTake_Source( take )
-      if not src then return end
-      local src_len =  GetMediaSourceLength( src )
-      local n_spls = math.floor(src_len*peakrate)
-      if n_spls < 10 then return end 
-      local n_ch = 1
-      local want_extra_type = 0--115  -- 's' char
-      local buf = new_array(n_spls * n_ch * 3) -- min, max, spectral each chan(but now mono only)
-        -------------
-      local retval =  PCM_Source_GetPeaks(    src, 
-                                        peakrate, 
-                                        0,--starttime, 
-                                        n_ch,--numchannels, 
-                                        n_spls, 
-                                        want_extra_type, 
-                                        buf )
-      local spl_cnt  = (retval & 0xfffff)        -- sample_count
-      local peaks = {}
-      local peaks2 = {}
-      for i=1, spl_cnt do  peaks[#peaks+1] = buf[i]  end
-      buf.clear()
-      NormalizeT(peaks) 
-      local pow = 8
-      for i=1, spl_cnt do  peaks2[#peaks2+1] = {val = peaks[i],
-                                              pos = math.floor((10^pow)*i * src_len / spl_cnt) / (10^pow)}
-      end
-      return peaks2, src_len
-  end 
-  ---------------------------------------------------------------------
-  function main()
-    for i = 1, CountSelectedMediaItems(0) do
-      local it = GetSelectedMediaItem(0,i-1)
-      local take = GetActiveTake(it)
-      if TakeIsMIDI(take) then return end
-      local sm_t = GetSMData(take)
-      local peaks_t, src_len = GetPeaks(take)
-      ClearConsole()
-      for i = #sm_t-1, 1,-1 do
-        local src_pos = sm_t[i].src_pos
-        for spl = 2, #peaks_t do
-          if peaks_t[spl].pos >= src_pos and peaks_t[spl-1].pos < src_pos then
-            local loopcnt = lim(spl+search_area, 0,#peaks_t)
-            for spl2 =spl , loopcnt  do
-              if math.abs(peaks_t[spl2].val) < 0.1 then
-                local srcpos_new = peaks_t[spl2].pos
-                SetTakeStretchMarker( take, i-1, sm_t[i].pos + ( srcpos_new - sm_t[i].src_pos), srcpos_new )
-                break
-              end
-            end
-            break
-          end
+    
+    local bufsz_check = math.floor(SR * (500 / 44100)) -- take approximately 500 samples at 44.1
+    local buf_offs_sec =  math.floor(SR * (1 / 44100))/SR -- take approximately 5 samples at 44.1
+    local accessor = reaper.CreateTrackAudioAccessor( tr)
+    local samplebuffer = reaper.new_array(bufsz_check);
+    for i = 1, #sm_t do
+      local pos_check = sm_t[i].pos_proj - buf_offs_sec - pr_offs
+      reaper.GetAudioAccessorSamples( accessor, SR, 1, pos_check, bufsz_check, samplebuffer )
+      for spl = 3,bufsz_check do
+        if (samplebuffer[spl] >=0 and samplebuffer[spl-1] <0) or (samplebuffer[spl] <0 and samplebuffer[spl-1] >=0) then
+          sm_t[i].pos_ZC  = sm_t[i].src_pos + (spl-2)/ SR
+          break
         end
       end
+      samplebuffer.clear()
     end
-    UpdateArrange()
-  end
-  ---------------------------------------------------------------------
-  function CheckFunctions(str_func)
-    local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'
-    local f = io.open(SEfunc_path, 'r')
-    if f then
-      f:close()
-      dofile(SEfunc_path)
+    reaper.DestroyAudioAccessor( accessor )
+     
       
-      if not _G[str_func] then 
-        reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0)
-       else
-        Undo_BeginBlock()
-        main()
-        Undo_EndBlock( scr_title, -1 )
-      end
-      
-     else
-      MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0)
-    end  
+    for i = 1,#sm_t do
+      local src_pos = sm_t[i].src_pos
+      local src_ZC = sm_t[i].pos_ZC
+      local diff = sm_t[i].pos_ZC - sm_t[i].src_pos
+      reaper.SetTakeStretchMarker( take, i-1, sm_t[i].pos + diff, sm_t[i].src_pos+diff )
+    end
+    reaper.UpdateItemInProject( it )
   end
---------------------------------------------------------------------
-  CheckFunctions('lim')  
+
+
+    
+    ----------------------------------------------------------------------
+    reaper.Undo_BeginBlock()
+    for i = 1, reaper.CountSelectedMediaItems(0) do
+      local it = reaper.GetSelectedMediaItem(0,i-1)
+      local take = reaper.GetActiveTake(it)
+      MPL_QuantizeSMtoZeroCross(take) 
+    end 
+    reaper.Undo_EndBlock('Quantize stretch markers to zero crossings' ,0xFFFFFFFF )
