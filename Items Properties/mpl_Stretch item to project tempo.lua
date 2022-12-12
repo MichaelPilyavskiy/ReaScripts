@@ -1,9 +1,10 @@
 -- @description Stretch item to project tempo
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Init
+--    # use seek len limit as current item length
+--    # change item length as well when stretching
 
 
   DATA2 ={}
@@ -89,7 +90,7 @@
     local pcm_src  =  GetMediaItemTake_Source( take )
     local SR = reaper.GetMediaSourceSampleRate( pcm_src ) 
     DATA2.SR = SR
-    local seek_len = 6
+    local seek_len = math.min(6,DATA2.item_len)
     local FFTsz = 256
     local window_spls = FFTsz*2
     local window = window_spls / SR
@@ -141,6 +142,19 @@
     
     samplebuffer.clear( )
     reaper.DestroyAudioAccessor( accessor )
+    
+    --[[msg(#CDOE_blocks)
+    if DATA2.item_len ~= 0 and DATA2.item_len < seek_len then
+      local copy_times = math.floor(seek_len / DATA2.item_len)
+      local CDOE_blocks_src = CopyTable(CDOE_blocks)
+      for i = 1, copy_times do
+        for block = 1, #CDOE_blocks_src do
+          CDOE_blocks[#CDOE_blocks+1] = CDOE_blocks_src[block]
+        end
+      end
+      msg(#CDOE_blocks_src)
+      
+    end]]
     return CDOE_blocks
   end
   -------------------------------------------------------------------- 
@@ -404,7 +418,7 @@
       
       
     -- build beats
-       beatmarks = {} 
+      local beatmarks = {} 
       for i = 1, #CDOE_blocks do --#CDOE_blocks do
         local pos = CDOE_blocks[i].pos
         local beat_sec = CDOE_blocks[i].beat_sec
@@ -477,9 +491,10 @@
         local rate =  master_tempo / tempo_bpm
         local cur_rate = GetMediaItemTakeInfo_Value( take, 'D_PLAYRATE' )
         SetMediaItemTakeInfo_Value( take, 'D_PLAYRATE', cur_rate *rate  )
+        SetMediaItemInfo_Value( item, 'D_LENGTH',DATA2.item_len/rate  )
         reaper.UpdateArrange()
         reaper.Undo_BeginBlock2( 0 )
-        reaper.Undo_EndBlock2( 0, 'test', 0xFFFFFFFF )
+        reaper.Undo_EndBlock2( 0, 'Stretch item to tempo', 0xFFFFFFFF )
       end
   end 
   ----------------------------------------------------------------------
