@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="964292166704b31746a06f970d43625b0853eee0" name="MPL Scripts">
+<index version="1" commit="af7d68052a48ad93446a1bab378fb7fed21fc4de" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5589,6 +5589,11 @@
         <changelog><![CDATA[+ Init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/92a656378896b515c5a6b71c69d501f2e72727ba/Items%20Properties/mpl_Stretch%20item%20to%20project%20tempo.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2022-12-12T18:37:26Z">
+        <changelog><![CDATA[# use seek len limit as current item length
+# change item length as well when stretching]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/af7d68052a48ad93446a1bab378fb7fed21fc4de/Items%20Properties/mpl_Stretch%20item%20to%20project%20tempo.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Toggle solo selected track items.lua" type="script" desc="Toggle solo selected track items">
       <metadata>
@@ -5774,6 +5779,15 @@ add control for timefall showing last note]]></changelog>
       <version name="1.13" author="MPL" time="2022-12-07T18:28:22Z">
         <changelog><![CDATA[# add support for multiple MIDI editor takes]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a851822020722ab790ccf8ace78150e0f629b9f4/MIDI/mpl_Quantize%20selected%20MIDI%20notes%20ends.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Quantize selected MIDI notes positions.lua" type="script" desc="Quantize selected MIDI notes positions">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.13" author="MPL" time="2022-12-10T08:22:18Z">
+        <changelog><![CDATA[# add support for multiple MIDI editor takes]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7d1449e1fc5d182c54b9e07686e2ab19885a889f/MIDI/mpl_Quantize%20selected%20MIDI%20notes%20positions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Remove selected takes MIDI data.lua" type="script" desc="Remove selected takes MIDI data">
