@@ -1,5 +1,5 @@
 -- @description Create send between selected tracks and track under mouse cursor
--- @version 1.17
+-- @version 1.18
 -- @author MPL
 -- @metapackage
 -- @provides
@@ -40,7 +40,7 @@
 --    [main] . > mpl_Send track under mouse cursor to selected tracks (channel 15-16 to 1-2).lua
 -- @website http://forum.cockos.com/showthread.php?t=188335  
 -- @changelog
---    # multichannel mode: improve handling source/dest channel flags
+--    # multichannel mode: fix mino send from stereo source
 
 
 
@@ -123,11 +123,11 @@
             if dest_tr_ch < src_tr_ch then SetMediaTrackInfo_Value( dest_tr, 'I_NCHAN', src_tr_ch ) end -- increase dest channel count up to src track
             
             local flags = 0
-            if src_tr_ch == 1 then 
+            if src_tr_ch == 1 then
               flags = 1024 
              else
               if src_tr_ch%2 ~= 0 then  src_tr_ch = src_tr_ch + 1 end
-              flags = src_tr_ch<<9
+              if src_tr_ch ~= 2 then flags = src_tr_ch<<9 end
             end
             SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_DSTCHAN', 0)
             SetTrackSendInfo_Value( src_tr, 0, new_id, 'I_SRCCHAN',flags) -- always start multichannel from 1st chan
