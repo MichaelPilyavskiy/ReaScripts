@@ -1,10 +1,13 @@
 -- @description Toggle FX oversampling
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
 -- @provides
 --    [main] . > mpl_Toggle set to none oversampling for all project FX.lua
+--    [main] . > mpl_Disable oversampling for all project FX.lua
+--    [main] . > mpl_Enable 4x oversampling for all project Slate VMR.lua
+--    [main] . > mpl_Disable oversampling for all project Slate VMR.lua
 --    [main] . > mpl_Toggle set to none oversampling for selected track FX.lua
 --    [main] . > mpl_Toggle set to 2x oversampling for all project FX.lua
 --    [main] . > mpl_Toggle set to 2x oversampling for selected track FX.lua
@@ -13,15 +16,17 @@
 --    [main] . > mpl_Toggle set to 8x oversampling for all project FX.lua
 --    [main] . > mpl_Toggle set to 8x oversampling for selected track FX.lua
 -- @changelog
---    + init
+--    + mpl_Disable oversampling for all project FX.lua
+--    + mpl_Enable 4x oversampling for all project Slate VMR.lua
  
   --NOT gfx NOT reaper
   --------------------------------------------------------------------
-  function main(selectedtrackmode, instanceOS)
+  function main(selectedtrackmode, instanceOS, set, plugin)
     local extstatekey = 'MPLOVSMPLTOGGLE'
     if selectedtrackmode then extstatekey = extstatekey..'_SEL' end
     local state =  GetExtState( extstatekey, 'STATE' )
-    if not state or state == '' or tonumber(state)==0 then 
+    
+    if not state or state == '' or tonumber(state)==0 or set then 
       
       -- bypass 
       local cnttr = CountTracks(0) if selectedtrackmode then cnttr = CountSelectedTracks(0) end
@@ -36,25 +41,37 @@
         
         for fx_id = 1,  TrackFX_GetCount( track ) do
           local retval, buf = TrackFX_GetNamedConfigParm( track, fx_id-1, 'instance_oversample_shift' )
-          if retval then 
-            local is_bypass = tonumber(buf)
-            str = str..'\n'..TrackFX_GetFXGUID( track, fx_id-1)..' '..is_bypass
-            TrackFX_SetNamedConfigParm( track, fx_id-1, 'instance_oversample_shift',instanceOS )
+          local retval, fxname = TrackFX_GetNamedConfigParm( track, fx_id-1, 'fx_name' )
+          
+          if (retval and not plugin) or (retval and plugin and fxname~='' and fxname:lower():match(plugin:lower())) then 
+            if not set then 
+              local is_bypass = tonumber(buf)
+              str = str..'\n'..TrackFX_GetFXGUID( track, fx_id-1)..' '..is_bypass
+              TrackFX_SetNamedConfigParm( track, fx_id-1, 'instance_oversample_shift',instanceOS )
+             else  
+              TrackFX_SetNamedConfigParm( track, fx_id-1, 'instance_oversample_shift',set*instanceOS )
+            end
           end 
+          
         end
 
         for fx_id = 1,  TrackFX_GetCount( track ) do
           local retval, buf = TrackFX_GetNamedConfigParm( track, 0x1000000+fx_id-1, 'instance_oversample_shift' )
           if retval then 
-            local is_bypass = tonumber(buf)
-            str = str..'\n'..TrackFX_GetFXGUID( track, 0x1000000+fx_id-1)..' '..is_bypass
-            TrackFX_SetNamedConfigParm( track, 0x1000000+fx_id-1, 'instance_oversample_shift',instanceOS )
+            if not set then 
+              local is_bypass = tonumber(buf)
+              str = str..'\n'..TrackFX_GetFXGUID( track, 0x1000000+fx_id-1)..' '..is_bypass
+              TrackFX_SetNamedConfigParm( track, 0x1000000+fx_id-1, 'instance_oversample_shift',instanceOS )
+             else 
+              TrackFX_SetNamedConfigParm( track, 0x1000000+fx_id-1, 'instance_oversample_shift',set )
+            end
           end 
         end
                 
         
       end
       
+      if set then return end
       
       SetButtonON()
       SetExtState( extstatekey, 'STATE', 1, true )
@@ -117,13 +134,24 @@
     local ret2 = VF_CheckReaperVrs(6.72,true) 
     if ret2 then 
       local selectedtrackmode = ({reaper.get_action_context()})[2]:match('selected') 
+      
+      local plugin = ({reaper.get_action_context()})[2]:match('Slate VMR') 
+      if plugin then plugin = 'Virtual Mix Rack' end
+      
+      local set
+      local set1 = ({reaper.get_action_context()})[2]:match('Enable') 
+      local set0 = ({reaper.get_action_context()})[2]:match('Enable') 
+      if set1 then set = 1 end
+      if set0 then set = 0 end
+      
       local instanceOS = 0
-      local OS_str = ({reaper.get_action_context()})[2]:match('set to (%d)x oversampling') 
+      local OS_str = ({reaper.get_action_context()})[2]:match('(%d)x oversampling') 
       if OS_str then 
         if tonumber(OS_str) == 2 then instanceOS = 1
         elseif tonumber(OS_str) == 4 then instanceOS = 2
         elseif tonumber(OS_str) == 8 then instanceOS = 3
         end
       end
-      main(selectedtrackmode,instanceOS)
+      
+      main(selectedtrackmode,instanceOS, set, plugin)
     end end
