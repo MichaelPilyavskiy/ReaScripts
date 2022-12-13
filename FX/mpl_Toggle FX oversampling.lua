@@ -1,5 +1,5 @@
 -- @description Toggle FX oversampling
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -16,8 +16,7 @@
 --    [main] . > mpl_Toggle set to 8x oversampling for all project FX.lua
 --    [main] . > mpl_Toggle set to 8x oversampling for selected track FX.lua
 -- @changelog
---    + mpl_Disable oversampling for all project FX.lua
---    + mpl_Enable 4x oversampling for all project Slate VMR.lua
+--    # fix mpl_Enable 4x oversampling for all project Slate VMR.lua
  
   --NOT gfx NOT reaper
   --------------------------------------------------------------------
@@ -139,8 +138,8 @@
       if plugin then plugin = 'Virtual Mix Rack' end
       
       local set
-      local set1 = ({reaper.get_action_context()})[2]:match('Enable') 
-      local set0 = ({reaper.get_action_context()})[2]:match('Enable') 
+      local set1 = ({reaper.get_action_context()})[2]:match('Enable') ~= nil
+      local set0 = ({reaper.get_action_context()})[2]:match('Disable')  ~= nil
       if set1 then set = 1 end
       if set0 then set = 0 end
       
