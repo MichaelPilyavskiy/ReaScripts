@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a3626bc54fc76976ef9c2cfc842f3c4473ac7f83" name="MPL Scripts">
+<index version="1" commit="9e7c9056ef066c6c19af5b465c0527ca41606d10" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5174,6 +5174,15 @@
       <version name="1.0" author="MPL" time="2022-11-09T20:25:00Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f7061fc0fa9fd2569741e0c28ee934aec3e63af7/FX%20specific/mpl_Set%20Sample%20mode%20for%20focused%20RS5k.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set selected tracks ReaGate threshold to peak hold level.lua" type="script" desc="Set selected tracks ReaGate threshold to peak hold level">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2022-12-13T15:41:28Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e7c9056ef066c6c19af5b465c0527ca41606d10/FX%20specific/mpl_Set%20selected%20tracks%20ReaGate%20threshold%20to%20peak%20hold%20level.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Show project linked SysEx data.lua" type="script" desc="Show project linked SysEx data">
