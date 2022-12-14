@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.05
+-- @version 3.06
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -13,7 +13,9 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix ctrl error
+--    # Drumrack: move copy/move undo point inside action block
+--    + External actions/New kit: add undo point
+--    + Database: refresh states at project state load
 
 
 
@@ -27,7 +29,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.05'
+    DATA.extstate.version = '3.06'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -979,7 +981,8 @@ List:
     end
     DATA2:TrackDataRead_GetParent_ParseExt()
     DATA2:TrackDataRead_GetParent_Macro()
-    DATA2:Database_Load() 
+    --DATA2:Database_Load() 
+    DATA2:Database_Load(_,true) 
     DATA2:TrackDataRead_GetMIDIOSC_bindings()
     DATA2:TrackDataRead_ReadChoke()
   end
@@ -2884,10 +2887,10 @@ rightclick them to hide all but active.
                                                               DATA2:Actions_Pad_CopyMove(padsrc,paddest, DATA.GUI.Ctrl)  
                                                               DATA2.PADselection = {} -- clear selection
                                                               DATA2.PADselection[paddest] = true
+                                                              DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Copy_Move') 
                                                             end
                                                           end
                                                         end
-                                                        DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Copy_Move') 
                                                         DATA2.PAD_HOLD = nil
                                                       end
                                                     
@@ -5806,8 +5809,10 @@ rightclick them to hide all but active.
   function DATA_RESERVED_DYNUPDATE_ExtActions()
     local actions = gmem_read(1025)
     if actions == 0 then return end
-    
-    if actions == 1 then DATA2:Actions_DB_InitRandSamples() end -- Device / New kit
+    if actions == 1 then 
+      local f = function() DATA2:Actions_DB_InitRandSamples()  end
+      DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / New kit') 
+    end -- Device / New kit
     
     if actions == 2 then   -- prev sample
       local f = function()
@@ -5852,6 +5857,7 @@ rightclick them to hide all but active.
 
     if actions == 6 then   -- lock active note database changes 
       local f = function() DATA2:Actions_DB_InitRandSamples(DATA2:Actions_DB_lock(DATA2.PARENT_LASTACTIVENOTE)  )  end
+      
       DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / Lock active note') 
     end
     
