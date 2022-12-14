@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.06
+-- @version 3.07
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -13,9 +13,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Drumrack: move copy/move undo point inside action block
---    + External actions/New kit: add undo point
---    + Database: refresh states at project state load
+--    # fix various knob issues
 
 
 
@@ -29,7 +27,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.06'
+    DATA.extstate.version = '3.07'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -4985,12 +4983,13 @@ rightclick them to hide all but active.
                         val_max = t.ctrlval_max,
                         
                         onmouseclick = function() 
-                                          if not (DATA.GUI.buttons[t.butkey..'frame'] and DATA.GUI.buttons[t.butkey..'frame'].val) then return end
+                                          if not (t.butkey and DATA.GUI.buttons[t.butkey..'frame'] and DATA.GUI.buttons[t.butkey..'frame'].val) then return end
                                           local new_val = DATA.GUI.buttons[t.butkey..'frame'].val
                                           if params_t.func_atclick then params_t.func_atclick(new_val) end
                                         end,
                         onmousedrag = function()
                               DATA2.ONPARAMDRAG = true
+                              if not (t.butkey and DATA.GUI.buttons[t.butkey..'frame'] and DATA.GUI.buttons[t.butkey..'frame'].val) then return end
                               local new_val = DATA.GUI.buttons[t.butkey..'frame'].val
                               params_t.func_app(new_val)
                               params_t.func_refresh()
@@ -5004,6 +5003,7 @@ rightclick them to hide all but active.
                                 if not t.ctrlval_default then return end
                                 params_t.func_app(t.ctrlval_default)
                                 params_t.func_refresh()
+                                if not (t.butkey and DATA.GUI.buttons[t.butkey..'val'] and DATA.GUI.buttons[t.butkey..'val'].txt) then return end
                                 DATA.GUI.buttons[t.butkey..'val'].txt = src_t[t.ctrlval_format_key]
                                 DATA.GUI.buttons[t.butkey..'val'].refresh = true
                                 if DATA.GUI.buttons[t.butkey..'knob'] then 
@@ -5015,6 +5015,7 @@ rightclick them to hide all but active.
                               end,                            
                         onmouserelease = function()
                               if not DATA2.ONDOUBLECLICK then
+                                if not (t.butkey and DATA.GUI.buttons[t.butkey..'frame'] and DATA.GUI.buttons[t.butkey..'frame'].val) then return end
                                 local new_val = DATA.GUI.buttons[t.butkey..'frame'].val
                                 params_t.func_app(new_val)
                                 params_t.func_refresh()
