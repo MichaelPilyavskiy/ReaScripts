@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.07
+-- @version 3.08
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -10,10 +10,17 @@
 --    [main] mpl_RS5k_manager_Sampler_PreviousSample.lua 
 --    [main] mpl_RS5k_manager_Sampler_NextSample.lua 
 --    [main] mpl_RS5k_manager_Sampler_RandSample.lua 
+--    [main] mpl_RS5k_manager_DrumRack_Solo.lua 
+--    [main] mpl_RS5k_manager_DrumRack_Mute.lua 
+--    [main] mpl_RS5k_manager_DrumRack_Clear.lua 
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # fix various knob issues
+--    # External actions: fix Lock triggering New Kit
+--    + External actions: drumrack solo
+--    + External actions: drumrack mute
+--    + External actions: drumrack clear
+--    + Settings / UI: add toggle dock button (MacOS issue)
 
 
 
@@ -27,7 +34,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.07'
+    DATA.extstate.version = '3.08'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -1519,6 +1526,27 @@ rightclick them to hide all but active.
         {str = 'Pad overview quantize',                         group = 3, itype = 'readout', confkey = 'UI_po_quantizemode', level = 1, menu = {[0]='Default',[1]='8 pads', [2]='4 pads'},readoutw_extw = readoutw_extw}, 
         {str = 'Undo tab state change',                         group = 3, itype = 'check', confkey = 'UI_addundototabclicks', level = 1,}, 
         {str = 'Drumrack: Click on pad select track',           group = 3, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
+        {str = 'Dock / undock',                                 group = 3, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = 
+          function()  
+            local state = gfx.dock(-1)
+            if state&1==1 then
+              state = 0
+             else
+              state = DATA.extstate.dock 
+              if state == 0 then state = 1 end
+            end
+            local title = DATA.extstate.mb_title or ''
+            if DATA.extstate.version then title = title..' '..DATA.extstate.version end
+            gfx.quit()
+            gfx.init( title,
+                      DATA.extstate.wind_w or 100,
+                      DATA.extstate.wind_h or 100,
+                      state, 
+                      DATA.extstate.wind_x or 100, 
+                      DATA.extstate.wind_y or 100)
+            
+            
+          end},
       
       {str = 'Tab defaults',                                    group = 6, itype = 'sep'},
         {str = 'Drumrack',                                      group = 6, itype = 'check', confkey = 'UI_defaulttabsflags', level = 1, confkeybyte = 0},
@@ -5857,10 +5885,25 @@ rightclick them to hide all but active.
     end
 
     if actions == 6 then   -- lock active note database changes 
-      local f = function() DATA2:Actions_DB_InitRandSamples(DATA2:Actions_DB_lock(DATA2.PARENT_LASTACTIVENOTE)  )  end
-      
+      local f = function() DATA2:Actions_DB_lock(DATA2.PARENT_LASTACTIVENOTE)  end 
       DATA2:ProcessUndoBlock(f, 'RS5k manager / Database / Lock active note') 
     end
+    
+    if actions == 7 then   -- drumrack solo
+      local f = function() DATA2:Actions_Pad_SoloMute(DATA2.PARENT_LASTACTIVENOTE,_,true)  end 
+      DATA2:ProcessUndoBlock(f, 'RS5k manager / DrumRack / Solo active note') 
+    end
+    
+    if actions == 8 then   -- drumrack mute
+      local f = function() DATA2:Actions_Pad_SoloMute(DATA2.PARENT_LASTACTIVENOTE,_,_,true)  end 
+      DATA2:ProcessUndoBlock(f, 'RS5k manager / DrumRack / Mute active note') 
+    end
+
+    if actions == 9 then   -- drumrack clear
+      local f = function() DATA2:Actions_Pad_Clear(note, DATA2.PARENT_LASTACTIVENOTE)  end 
+      DATA2:ProcessUndoBlock(f, 'RS5k manager / DrumRack / Clear active note') 
+    end
+    
     
     gmem_write(1025,0 )
   end
