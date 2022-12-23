@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.08
+-- @version 3.09
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,11 +16,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # External actions: fix Lock triggering New Kit
---    + External actions: drumrack solo
---    + External actions: drumrack mute
---    + External actions: drumrack clear
---    + Settings / UI: add toggle dock button (MacOS issue)
+--    + Macro / Actions: Add selected/all RS5k samplers gain, obey_offsets
 
 
 
@@ -34,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.08'
+    DATA.extstate.version = '3.09'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -2429,6 +2425,40 @@ rightclick them to hide all but active.
                     DATA2:ProcessUndoBlock(f, 'RS5k manager / Macro / Add tune links',macroID) 
                   end
           },
+          {str= 'Add selected/all RS5k samplers gain, obey_offsets',
+           func = function() 
+                    local cnt_selection = 0 
+                    if DATA2.PADselection then for keynote in pairs(DATA2.PADselection) do if DATA2.PADselection[keynote] then cnt_selection = cnt_selection + 1 end end end
+                    
+                    local f = function(macroID)
+                      local macro_t = DATA2.Macro.sliders[macroID]
+                      local notest = {}
+                      if cnt_selection == 0 then 
+                        for note in pairs(DATA2.notes) do notest[#notest+1] = note end -- all
+                       else
+                        for keynote in pairs(DATA2.PADselection) do notest[#notest+1] = keynote end -- selected only
+                      end
+                      
+                      for notestID = 1, #notest do
+                        local note = notest[notestID]
+                        if DATA2.notes[note] and DATA2.notes[note].layers then 
+                          for layer in pairs(DATA2.notes[note].layers) do
+                            local srct = DATA2.notes[note].layers[layer]
+                            if srct.ISRS5K then
+                              local instrpos = srct.instrument_pos
+                              local initparam = srct.instrument_vol
+                              local scale = 1
+                              local offs = initparam-0.5
+                              DATA2:Actions_Macro_AddLink(srct,instrpos,0, offs,scale)
+                            end
+                          end
+                        end
+                      end
+                      TrackFX_SetParamNormalized( macro_t.tr_ptr, macro_t.macro_pos, macroID, 0.5 )
+                    end
+                    DATA2:ProcessUndoBlock(f, 'RS5k manager / Macro / Add gain links',macroID) 
+                  end
+          },          
           {str= 'Clear links',
            func = function() 
                     local f = function(macroID) 
