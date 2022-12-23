@@ -1,12 +1,11 @@
 -- @description ImportSessionData
--- @version 2.07
+-- @version 2.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + Track properties: group flags
---    + Project header: track group name
---    + Project header: render format
+--    + Destination menu: add support for importing sends
+--    + Destination menu: add support for mark destination, not actually import
 
 
 
@@ -17,7 +16,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.07
+    DATA.extstate.version = 2.08
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -154,6 +153,24 @@
     end
   end
   ---------------------------------------------------------------------  
+  function GUI_RESERVED_BuildLayer_DestMenu_Sendlogic(DATA,trid,togglestate) 
+    local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA,trid) 
+    if cnt_selection <= 1 then
+      if not DATA2.srcproj.TRACK[trid].sendlogic_flags then DATA2.srcproj.TRACK[trid].sendlogic_flags = 0 end
+      DATA2.srcproj.TRACK[trid].sendlogic_flags = DATA2.srcproj.TRACK[trid].sendlogic_flags~togglestate
+      GUI_RESERVED_BuildLayer(DATA)  
+     else
+      for trid0 = 1, #DATA2.srcproj.TRACK do 
+        if DATA2.srcproj.TRACK[trid0].sel_isselected == true then 
+          if not DATA2.srcproj.TRACK[trid0].sendlogic_flags then DATA2.srcproj.TRACK[trid0].sendlogic_flags = 0 end
+          DATA2.srcproj.TRACK[trid0].sendlogic_flags = DATA2.srcproj.TRACK[trid0].sendlogic_flags~togglestate 
+        end 
+      end
+      GUI_RESERVED_BuildLayer(DATA)  
+    end  
+  
+  end
+  ---------------------------------------------------------------------  
   function GUI_RESERVED_BuildLayer_DestMenu(DATA,trid) 
     DATA2:Get_DestProject()
     DATA2:Get_DestProject_ValidateSameSources()   
@@ -217,8 +234,8 @@
                           GUI_RESERVED_BuildLayer(DATA)  
                         end
                       end},                      
-            {str='Match by name|',
-              state = DATA2.srcproj.TRACK[trid].destmode == 2 ,
+            {str='Match by name',
+              state = DATA2.srcproj.TRACK[trid].destmode == 2 and DATA2.srcproj.TRACK[trid].destmode_flags ~= 3,
               func = function() 
                         local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA) 
                         if cnt_selection <= 1 then
@@ -231,6 +248,20 @@
                           GUI_RESERVED_BuildLayer(DATA)  
                         end
                       end},  
+            {str='Do not import, only mark for sends remap|',
+              state = DATA2.srcproj.TRACK[trid].destmode_flags == 3 ,
+              func = function() 
+                        local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA) 
+                        if cnt_selection <= 1 then
+                          DATA2.srcproj.TRACK[trid].destmode_flags = 3
+                          GUI_RESERVED_BuildLayer(DATA)  
+                         else
+                          for trid0 = 1, #DATA2.srcproj.TRACK do if DATA2.srcproj.TRACK[trid0].sel_isselected == true then 
+                            DATA2.srcproj.TRACK[trid0].destmode_flags = 3
+                          end end
+                          GUI_RESERVED_BuildLayer(DATA)  
+                        end
+                      end},                       
             {str='#Matched track placement'},
             {str='Replace',
               state = not DATA2.srcproj.TRACK[trid].destmode_flags,
@@ -273,7 +304,14 @@
                           for trid0 = 1, #DATA2.srcproj.TRACK do if DATA2.srcproj.TRACK[trid0].sel_isselected == true then DATA2.srcproj.TRACK[trid0].destmode_flags = setstate end end
                           GUI_RESERVED_BuildLayer(DATA)  
                         end
-                      end},                       
+                      end},        
+            {str='#Handling sends'},
+            {str='Import sends|',
+              state = DATA2.srcproj.TRACK[trid].sendlogic_flags and DATA2.srcproj.TRACK[trid].sendlogic_flags&1== 1 ,
+              func = function() GUI_RESERVED_BuildLayer_DestMenu_Sendlogic(DATA,trid,1) end},  
+           --[[{str='Remap routing if receive is imported|',
+              state = DATA2.srcproj.TRACK[trid].sendlogic_flags and DATA2.srcproj.TRACK[trid].sendlogic_flags&2 == 2,
+              func = function() GUI_RESERVED_BuildLayer_DestMenu_Sendlogic(DATA,trid,2) end},    ]]                   
             {str='#Current project tracks'},
             table.unpack(tracks)
             }
@@ -374,6 +412,7 @@
         if DATA2.srcproj.TRACK[trid].destmode_flags == nil then dest = dest..' [replace]' end
         if DATA2.srcproj.TRACK[trid].destmode_flags == 1 then dest = dest..' [under]' end
         if DATA2.srcproj.TRACK[trid].destmode_flags == 2 then dest = dest..' [under, as child]' end
+        if DATA2.srcproj.TRACK[trid].destmode_flags == 3 then dest = dest..' [mark only]' end
       end
       if txt=='[%s]+' or txt == '' then txt = '[track'..trid..']' end
       
@@ -696,6 +735,9 @@
             local id = #DATA2.srcproj.TRACK[src_id+1].SENDS+1
             DATA2.srcproj.TRACK[src_id+1].SENDS [id] = CopyTable(DATA2.srcproj.TRACK[tr_idx].RECEIVES[recid])
             DATA2.srcproj.TRACK[src_id+1].SENDS [id].dest_tr_id = tr_idx
+            
+            DATA2.srcproj.TRACK[tr_idx].RECEIVES[recid].AUXRECV_SRC_GUID = DATA2.srcproj.TRACK[src_id+1].GUID
+            DATA2.srcproj.TRACK[src_id+1].SENDS [id].AUXRECV_DEST_GUID = DATA2.srcproj.TRACK[tr_idx].GUID
           end
         end
       end
@@ -1006,6 +1048,50 @@
       end
     end
   end
+  -------------------------------------------------------------------- 
+  function DATA2:Import2_Tracks_ImportReceives_params(new_tr, sendidx,auxt)  
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'D_VOL', auxt.vol )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'B_MUTE', auxt.mute )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'B_PHASE', auxt.phase )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'B_MONO', auxt.monosum )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'D_PAN', auxt.pan )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'D_PANLAW', tonumber(auxt.panlaw) or -1 )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_SENDMODE', auxt.mode )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_SRCCHAN', auxt.src_chan )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_DSTCHAN', auxt.dest_chan )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_AUTOMODE', auxt.automode )
+    SetTrackSendInfo_Value( new_tr, 0, sendidx, 'I_MIDIFLAGS', auxt.midi_chan )
+  end
+  ----------------------------------------------------------------------
+  function DATA2:Tracks_GetSourcebyGUID(GUID) for j = 1, #DATA2.srcproj.TRACK do if GUID == DATA2.srcproj.TRACK[j].GUID then return j end end end
+  ----------------------------------------------------------------------
+  function DATA2:Import2_Tracks_ImportReceives()  
+    for tr_id = 1, #DATA2.srcproj.TRACK do
+      local srct = DATA2.srcproj.TRACK[tr_id] 
+      if srct.sendlogic_flags and srct.sendlogic_flags > 0 and srct.SENDS then 
+        
+        for sendID = 1, #srct.SENDS do
+          local destination_GUID = srct.SENDS[sendID].AUXRECV_DEST_GUID
+          if destination_GUID then
+            local dest_id = DATA2:Tracks_GetSourcebyGUID(destination_GUID)
+            local has_imported_destination = false 
+            if DATA2.srcproj.TRACK[dest_id] and DATA2.srcproj.TRACK[dest_id].dest_track_GUID then has_imported_destination = true end -- receive is already imported
+            
+            if has_imported_destination ==true then
+              local src_tr = VF_GetTrackByGUID(srct.dest_track_GUID)
+              local dest_tr = VF_GetTrackByGUID(DATA2.srcproj.TRACK[dest_id].dest_track_GUID)
+              if src_tr and dest_tr then 
+                local sendidx = CreateTrackSend( src_tr, dest_tr )
+                DATA2:Import2_Tracks_ImportReceives_params(src_tr,sendidx,srct.SENDS[sendID])  
+              end
+            end
+            
+          end
+        end
+        
+      end
+    end
+  end
   ----------------------------------------------------------------------
   function DATA2:Import2_Tracks() 
     local cnt_selection = GUI_RESERVED_BuildLayer_Selection_Get(DATA) 
@@ -1024,35 +1110,38 @@
         DATA2:Import_TransferTrackData(new_tr_src, dest_tr)
         srct.dest_track_GUID = GetTrackGUID( dest_tr )
       end
-
+      
       if mode == 3 then -- at the end, obey structure
         local new_tr_src = DATA2:Import_CreateNewTrack(false, srct) 
         local dest_tr = DATA2:Import_CreateNewTrack(true)
         DATA2:Import_TransferTrackData(new_tr_src, dest_tr, true)
         srct.dest_track_GUID = GetTrackGUID( dest_tr )
-      end
+      end 
       
       if mode == 2 and srct.dest_track_GUID then -- replace specific track
-        local new_tr_src = DATA2:Import_CreateNewTrack(false, srct)
-        local dest_tr 
-        local srcpos_tr = VF_GetTrackByGUID(srct.dest_track_GUID)
-        if not srct.destmode_flags then
-          dest_tr = srcpos_tr
-         elseif srct.destmode_flags == 1 or srct.destmode_flags ==2 then
-          dest_tr = DATA2:Import_CreateNewTrack(true)
-        end
-        DATA2:Import_TransferTrackData(new_tr_src, dest_tr) 
-        if srct.destmode_flags == 1 or srct.destmode_flags ==2 then
-          SetOnlyTrackSelected( dest_tr )
-          makePrevFolder = 0
-          if srct.destmode_flags ==2 then makePrevFolder = 1 end
-          ReorderSelectedTracks(  CSurf_TrackToID( srcpos_tr, false ), makePrevFolder )
+        if not (srct.destmode_flags and srct.destmode_flags == 3) then
+          local new_tr_src = DATA2:Import_CreateNewTrack(false, srct)
+          local dest_tr 
+          local srcpos_tr = VF_GetTrackByGUID(srct.dest_track_GUID)
+          if not srct.destmode_flags then
+            dest_tr = srcpos_tr
+           elseif srct.destmode_flags == 1 or srct.destmode_flags ==2 then
+            dest_tr = DATA2:Import_CreateNewTrack(true)
+          end 
+          DATA2:Import_TransferTrackData(new_tr_src, dest_tr) 
+          if srct.destmode_flags == 1 or srct.destmode_flags ==2 then
+            SetOnlyTrackSelected( dest_tr )
+            makePrevFolder = 0
+            if srct.destmode_flags ==2 then makePrevFolder = 1 end
+            ReorderSelectedTracks(  CSurf_TrackToID( srcpos_tr, false ), makePrevFolder )
+          end
         end
       end
+      
       
       ::importnexttrack::
     end
-    
+    DATA2:Import2_Tracks_ImportReceives()  
     if DATA.extstate.CONF_buildpeaks == 1 then Action(40047) end -- Peaks: Build any missing peaks
   end
   ---------------------------------------------------------------------
@@ -1245,18 +1334,6 @@
       end
     end
     
-  end
-  -------------------------------------------------------------------- 
-  function DATA2:Import_TransferTrackData_Send(src_tr, dest_tr)
-    if not src_tr.SENDS then return end
-    if DATA.extstate.CONF_tr_SEND&1==1 then -- import sends as new track
-      for sendID = 1, #src_tr.SENDS do
-        local dest_tr_id = src_tr.SENDS[sendID].dest_tr_id
-        if DATA2.srcproj.TRACK[dest_tr_id] and DATA2.srcproj.TRACK[dest_tr_id].dest_track_GUID then
-          
-        end
-      end
-    end
   end
   --[[
   -------------------------------------------------------------------- 

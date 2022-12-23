@@ -1,5 +1,5 @@
 -- @description RS5k tools
--- @version 1.23
+-- @version 1.24
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -26,7 +26,6 @@
 --    [main] mpl_RS5k tools/mpl_Open and Close Media Explorer when single item is inserted, export it to RS5k (background).lua
 --    [main] mpl_RS5k tools/mpl_Reverse focused RS5k instance sample.lua
 --    [main] mpl_RS5k tools/mpl_Collect and replace selected tracks RS5k instances samples into project folder.lua
---    [main] mpl_RS5k tools/mpl_Export selected Media Explorer items to RS5k instances on selected track (use original source).lua
 --    [main] mpl_RS5k tools/mpl_Add note into RS5k instance name on selected track.lua
 --    [main] mpl_RS5k tools/mpl_Sort by note start RS5k instances on selected track.lua
 --    [main] mpl_RS5k tools/mpl_Export selected items to single RS5k instance on selected track (use original source).lua
@@ -35,4 +34,4 @@
 --    [main] mpl_RS5k tools/mpl_Move sample selection for focused RS5k (MIDI, OSC, Mousewheel).lua
 --    [main] mpl_RS5k tools/mpl_Float RS5k instance by last incoming note.lua
 -- @changelog
---    # sort files for listing
+--    # remove media explorer export
