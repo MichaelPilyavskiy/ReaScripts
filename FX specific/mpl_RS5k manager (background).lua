@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.09
+-- @version 3.10
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,7 +16,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Macro / Actions: Add selected/all RS5k samplers gain, obey_offsets
+--    + Database map: try reaper_sexplorer section if reaper_explorer not available
 
 
 
@@ -30,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.09'
+    DATA.extstate.version = '3.10'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -1033,7 +1033,12 @@ List:
     local reaperini = get_ini_file()
     local backend = VF_LIP_load(reaperini)
     local exp_section = backend.reaper_explorer
-    if not exp_section then return end 
+    if not exp_section then 
+      exp_section = backend.reaper_sexplorer
+      if not exp_section then return end
+    end 
+    
+    
     local reaperDB = {}
     for key in pairs(exp_section) do
       if key:match('Shortcut') then 
