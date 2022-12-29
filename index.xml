@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="121363b61971acf9b9b533b7d370100d314b56a3" name="MPL Scripts">
+<index version="1" commit="9f5cbd9edcc5e05c3954e193d75ed140e9b8b0a9" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5925,6 +5925,11 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0alpha1" author="MPL" time="2022-12-29T06:36:07Z">
         <changelog><![CDATA[init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/121363b61971acf9b9b533b7d370100d314b56a3/MIDI/mpl_Export%20project%20MIDI%20into%20project%20path.lua</source>
+      </version>
+      <version name="1.0alpha2" author="MPL" time="2022-12-29T20:17:55Z">
+        <changelog><![CDATA[# fix tale PPQ different that default
+# ignore 0xFF meta events]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9f5cbd9edcc5e05c3954e193d75ed140e9b8b0a9/MIDI/mpl_Export%20project%20MIDI%20into%20project%20path.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Generate MIDICC from audio take.lua" type="script" desc="Generate MIDICC from audio take">
