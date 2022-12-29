@@ -1,14 +1,15 @@
 -- @description Export project MIDI into project path
--- @version 1.0alpha1
+-- @version 1.0alpha2
 -- @author MPL
 -- @changelog
---  init 
+--    # fix tale PPQ different that default
+--    # ignore 0xFF meta events
 
   -- [[debug search filter: NOT function NOT reaper NOT gfx NOT VF]]
   
   DATA2 = {
     ppq_step = 1,
-    path_name = 'Midi',
+    path_name = '!Midi',
     takes={}
           }
 
@@ -228,6 +229,7 @@
           or  (msgtype == 0xB and msg1:byte(2) ~=123)-- CC
           or  msgtype == 0xD -- CP
           or  msgtype == 0xE -- pitchbend
+          or  msg1:byte(1) == 0xFF -- meta event, REMOVE COMPLETELY
           then 
           remove = true 
         end -- if CC 
@@ -268,9 +270,15 @@
      tk_t.evts=evts
   end
   ----------------------------------------------------------------------
-  function DATA2:ExportMIDIFiles_FormChunk(events_raw)
+  function GetTakePPQ(item,take)
+    local position = reaper.GetMediaItemInfo_Value(item, 'D_POSITION')
+    local offset   = reaper.GetMediaItemTakeInfo_Value(take, 'D_STARTOFFS')
+    local qn = reaper.TimeMap2_timeToQN(nil, position - offset)
+    return reaper.MIDI_GetPPQPosFromProjQN(take, qn + 1)
+  end
+  ----------------------------------------------------------------------
+  function DATA2:ExportMIDIFiles_FormChunk(events_raw,PPQ)
     -- header
-    local PPQ = 960
     local chunk = 'MThd'
       -- header len
       ..string.char(0x00)
@@ -330,12 +338,14 @@
   ----------------------------------------------------------------------
   function DATA2:ExportMIDIFiles(tk_t)
     local take = tk_t.take
+    local item = tk_t.item
     local name = tk_t.name
     local out_fp =GetProjectPath()..'/'..DATA2.path_name
     RecursiveCreateDirectory( out_fp, 0 )
     out_fp = out_fp..'/'..name..'.mid'
     
-    local chunk = DATA2:ExportMIDIFiles_FormChunk(tk_t.events_out)
+    local PPQ = GetTakePPQ(item,take)
+    local chunk = DATA2:ExportMIDIFiles_FormChunk(tk_t.events_out, PPQ)
     
     f=io.open(out_fp, 'wb')
     f:write(chunk)
