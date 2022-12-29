@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="26e5582d0040b5426de32d069591e020fb886b51" name="MPL Scripts">
+<index version="1" commit="121363b61971acf9b9b533b7d370100d314b56a3" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5919,6 +5919,12 @@ add control for timefall showing last note]]></changelog>
     <reapack name="mpl_Copy MIDI notes from selected item.lua" type="script" desc="Copy MIDI notes from selected item">
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/MIDI/mpl_Copy%20MIDI%20notes%20from%20selected%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Export project MIDI into project path.lua" type="script" desc="Export project MIDI into project path">
+      <version name="1.0alpha1" author="MPL" time="2022-12-29T06:36:07Z">
+        <changelog><![CDATA[init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/121363b61971acf9b9b533b7d370100d314b56a3/MIDI/mpl_Export%20project%20MIDI%20into%20project%20path.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Generate MIDICC from audio take.lua" type="script" desc="Generate MIDICC from audio take">
