@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.10
+-- @version 3.11
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,7 +16,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Database map: try reaper_sexplorer section if reaper_explorer not available
+--    + Settings: add option to disable sending note off from pads
 
 
 
@@ -30,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.10'
+    DATA.extstate.version = '3.11'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -83,6 +83,7 @@
                           UI_defaulttabsflags = 1|4|8, --1=drumrack   2=device  4=sampler 8=padview 16=macro 32=database 64=midi map 128=children chain
                           UI_keyformat_mode = 0 ,
                           UI_po_quantizemode = 0,--0 default 1=8pads 2=4pads
+                          UI_pads_sendnoteoff = 1,
                           
                           
                           }
@@ -1527,6 +1528,7 @@ rightclick them to hide all but active.
         {str = 'Pad overview quantize',                         group = 3, itype = 'readout', confkey = 'UI_po_quantizemode', level = 1, menu = {[0]='Default',[1]='8 pads', [2]='4 pads'},readoutw_extw = readoutw_extw}, 
         {str = 'Undo tab state change',                         group = 3, itype = 'check', confkey = 'UI_addundototabclicks', level = 1,}, 
         {str = 'Drumrack: Click on pad select track',           group = 3, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
+        {str = 'Drumrack: Release pad send NoteOff',            group = 3, itype = 'check', confkey = 'UI_pads_sendnoteoff', level = 1},
         {str = 'Dock / undock',                                 group = 3, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = 
           function()  
             local state = gfx.dock(-1)
@@ -3029,7 +3031,7 @@ rightclick them to hide all but active.
                                backgr_fill = backgr_fill ,
                                backgr_col ='#FFFFFF',
                                onmouseclick =    function() DATA2:Actions_StuffNoteOn(note, vel) end,
-                               onmouserelease =  function() StuffMIDIMessage( 0, 0x80, note, 0 ) DATA.ontrignoteTS =  nil end,
+                               onmouserelease =  function() if DATA.extstate.UI_pads_sendnoteoff == 1 then StuffMIDIMessage( 0, 0x80, note, 0 ) end DATA.ontrignoteTS =  nil end,
                                --refresh = true,
                                --hide = DATA.extstate.UI_incomingnoteselectpad ==1,
                                }   
