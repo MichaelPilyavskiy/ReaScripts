@@ -1,17 +1,17 @@
 -- @description QuantizeTool
--- @version 3.12
+-- @version 3.13
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    + GroupMode: add 1/4, 1/2 threshold
+--    # improve SWS groove displaying
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.12
+    DATA.extstate.version = 3.13
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -795,6 +795,9 @@
   function DATA2:GetAnchorPoints_PatternParseRGT(content, take_len)
     local len = content:match('Number of beats in groove: (%d+)')
     if len and take_len  and tonumber(len) then DATA.extstate.CONF_ref_pattern_len2 = tonumber(len) end
+    
+    DATA2.ref_pat.len = tonumber(len) or 1
+    
     local pat = '[%d%.%-%e]+'
     for line in content:gmatch('[^\r\n]+') do
     
@@ -1835,7 +1838,7 @@
         local h = math.floor(b.h*val)
         if tostring(pos)and tostring(pos):match('pat') then
           val = 0.1
-          w = 3
+          w = 1
           y= math.floor(b.y+b.h-b.h*val)
           h = math.floor(b.h*val)
         end
@@ -1893,12 +1896,14 @@
       end
     -- add anchor pattern
       if DATA2.ref_pat then
+        local sws_len  = DATA.extstate.CONF_ref_pattern_len2--DATA2.ref_pat.len or 1
+        local pos_measure =  TimeMap2_beatsToTime( 0, sws_len,0)
         for i = 1, #DATA2.ref_pat do 
-          for measures = 0, project_end_measure + 1 do
-            local pos_sec =  TimeMap2_beatsToTime( 0, DATA2.ref_pat[i].pos_beats, measures )
-            local pos_normal = pos_sec / project_end
+          --for measures = 0, 1 do--project_end_measure + 1 do
+            local pos_sec =  TimeMap2_beatsToTime( 0, DATA2.ref_pat[i].pos_beats, 0 )
+            local pos_normal = pos_sec / pos_measure
             DATA.GUI.srcpoints[pos_normal] = DATA2.ref_pat[i].val or 1
-          end
+          --end
         end
       end
     -- add targets
