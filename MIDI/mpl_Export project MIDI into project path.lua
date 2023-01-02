@@ -1,9 +1,9 @@
 -- @description Export project MIDI into project path
--- @version 1.0alpha2
+-- @version 1.0alpha3
 -- @author MPL
 -- @changelog
---    # fix tale PPQ different that default
---    # ignore 0xFF meta events
+--    # fix shape
+--    # use x0.99 multiplier for tension
 
   -- [[debug search filter: NOT function NOT reaper NOT gfx NOT VF]]
   
@@ -31,13 +31,10 @@
           } 
         end
       end
-      
     -- get takes data
       for i =1, #DATA2.takes do DATA2:MIDIEditor_GetEvts(DATA2.takes[i]) end
-      
     -- build envelope
       for i =1, #DATA2.takes do DATA2:Expose_CC_pointsTables(DATA2.takes[i]) end
-      
     -- interpolate using volume envelope
       for i =1, #DATA2.takes do DATA2:BuildPoints(DATA2.takes[i]) end
     
@@ -133,7 +130,7 @@
           if flags&(64|16)==(64|16) then shape = 5 end -- bezier
           val = CCt[i].val or 0 
           --if msgtype == 0xE then val = math.floor(val * 0.001) end
-          InsertEnvelopePoint( env, CCt[i].pos, val, 5, CCt[i].bz_tension or 0, false, true )
+          InsertEnvelopePoint( env, CCt[i].pos, val, shape, CCt[i].bz_tension or 0, false, true )
         end
         Envelope_SortPoints(env)
         
@@ -250,7 +247,7 @@
           end
           local bz_tension = ((-1)^sign) * (2^(E-127)) * (1+fraction)
           if math.abs(bz_tension) < 10^-15 then bz_tension = 0 end
-          evts[#evts].bz_tension = bz_tension
+          evts[#evts].bz_tension = bz_tension*0.99
           goto skip
         end 
         
