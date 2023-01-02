@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5d829d34381623ead4f03e50607f32f2a658696d" name="MPL Scripts">
+<index version="1" commit="52a915f32a625cb203c6ecd53bb13de1b2d6b2cf" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -4583,6 +4583,21 @@
         <source file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/036b89a3f31e76dc36552e85d86e9abbc9ee09be/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
         <source file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/036b89a3f31e76dc36552e85d86e9abbc9ee09be/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
       </version>
+      <version name="3.12" author="MPL" time="2023-01-02T06:33:01Z">
+        <changelog><![CDATA[+ Sampler: ctrl+alt clc=ick on NoteOff set this value for all notes all layers in current rack]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52a915f32a625cb203c6ecd53bb13de1b2d6b2cf/FX%20specific/mpl_RS5k%20manager%20(background).lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52a915f32a625cb203c6ecd53bb13de1b2d6b2cf/FX%20specific/mpl_RS5k_manager_Database_NewSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_NewKit.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52a915f32a625cb203c6ecd53bb13de1b2d6b2cf/FX%20specific/mpl_RS5k_manager_Database_NewKit.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Database_Lock.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52a915f32a625cb203c6ecd53bb13de1b2d6b2cf/FX%20specific/mpl_RS5k_manager_Database_Lock.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_PreviousSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52a915f32a625cb203c6ecd53bb13de1b2d6b2cf/FX%20specific/mpl_RS5k_manager_Sampler_PreviousSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_NextSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52a915f32a625cb203c6ecd53bb13de1b2d6b2cf/FX%20specific/mpl_RS5k_manager_Sampler_NextSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_Sampler_RandSample.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52a915f32a625cb203c6ecd53bb13de1b2d6b2cf/FX%20specific/mpl_RS5k_manager_Sampler_RandSample.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Solo.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52a915f32a625cb203c6ecd53bb13de1b2d6b2cf/FX%20specific/mpl_RS5k_manager_DrumRack_Solo.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Mute.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52a915f32a625cb203c6ecd53bb13de1b2d6b2cf/FX%20specific/mpl_RS5k_manager_DrumRack_Mute.lua</source>
+        <source main="main" file="mpl_RS5k_manager_DrumRack_Clear.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52a915f32a625cb203c6ecd53bb13de1b2d6b2cf/FX%20specific/mpl_RS5k_manager_DrumRack_Clear.lua</source>
+        <source file="mpl_RS5k_manager_MacroControls.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52a915f32a625cb203c6ecd53bb13de1b2d6b2cf/FX%20specific/mpl_RS5k_manager_MacroControls.jsfx</source>
+        <source file="mpl_RS5K_manager_MIDIBUS_choke.jsfx">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52a915f32a625cb203c6ecd53bb13de1b2d6b2cf/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
+      </version>
     </reapack>
     <reapack name="mpl_RS5k tools.lua" type="script" desc="RS5k tools">
       <metadata>
@@ -5945,6 +5960,11 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[# fix tale PPQ different that default
 # ignore 0xFF meta events]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9f5cbd9edcc5e05c3954e193d75ed140e9b8b0a9/MIDI/mpl_Export%20project%20MIDI%20into%20project%20path.lua</source>
+      </version>
+      <version name="1.0alpha3" author="MPL" time="2023-01-02T06:17:37Z">
+        <changelog><![CDATA[# fix shape
+# use x0.99 multiplier for tension]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0cdf6f9282b76f5cde0bc076a2fe1e1e1ff63558/MIDI/mpl_Export%20project%20MIDI%20into%20project%20path.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Generate MIDICC from audio take.lua" type="script" desc="Generate MIDICC from audio take">
