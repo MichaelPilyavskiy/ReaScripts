@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.11
+-- @version 3.12
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,7 +16,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Settings: add option to disable sending note off from pads
+--    + Sampler: ctrl+alt clc=ick on NoteOff set this value for all notes all layers in current rack
 
 
 
@@ -30,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.11'
+    DATA.extstate.version = '3.12'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -209,6 +209,7 @@ Actions panel:
 Peaks area:
   Loop: set loop ON if available
   1-shot: set loop OFF if available
+  NoteOff: set "Obey note-offs" check. Alt+Ctrl click set it for all samples in rack.
   Prev spl: list previous sample in current sample directory
   Next spl: list next sample in current sample directory
   Rand spl: list random sample in current sample directory
@@ -4912,9 +4913,20 @@ rightclick them to hide all but active.
                         txt = 'NoteOff',
                         txt_fontsz = DATA.GUI.custom_sampler_ctrl_txtsz,
                         onmouseclick = function()  
-                                          spl_t.instrument_noteoff=spl_t.instrument_noteoff~1
+                                          local out_val = spl_t.instrument_noteoff~1
+                                          spl_t.instrument_noteoff=out_val
                                           TrackFX_SetParamNormalized( spl_t.tr_ptr, spl_t.instrument_pos, 11, spl_t.instrument_noteoff ) 
-                                          DATA2:TrackDataRead_GetChildrens_InstrumentParams(spl_t) -- refresh state
+                                          DATA2:TrackDataRead_GetChildrens_InstrumentParams(spl_t) -- refresh state 
+                                          if DATA.GUI.Ctrl == true and  DATA.GUI.Alt == true then 
+                                            for note in pairs(DATA2.notes) do 
+                                              if DATA2.notes[note].layers then 
+                                                for layer in pairs(DATA2.notes[note].layers) do 
+                                                  local spl_t = DATA2.notes[note].layers[layer]
+                                                  TrackFX_SetParamNormalized( spl_t.tr_ptr, spl_t.instrument_pos, 11, out_val ) 
+                                                end
+                                              end
+                                            end
+                                          end
                                           GUI_MODULE_SAMPLER_Section_Loopstate(DATA)
                                         end                      
                         }                 
