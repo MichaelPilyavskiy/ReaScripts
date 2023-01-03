@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="97e6d089914324f47aacfda91e9d41c1fc1463fc" name="MPL Scripts">
+<index version="1" commit="fbc63b1b583d349946f33616b3e2ff3b8a8a3752" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -5961,6 +5961,11 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL" time="2023-01-03T12:50:19Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3409b31ec477889eda95b587f67b0feeb5cfc3a4/MIDI/mpl_Export%20selected%20items%20as%20MIDI%20files%20into%20project%20path.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2023-01-03T13:40:39Z">
+        <changelog><![CDATA[+ Add option to take names from take names
++ Increment filenames to prevent overwriting]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fbc63b1b583d349946f33616b3e2ff3b8a8a3752/MIDI/mpl_Export%20selected%20items%20as%20MIDI%20files%20into%20project%20path.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Generate MIDICC from audio take.lua" type="script" desc="Generate MIDICC from audio take">
