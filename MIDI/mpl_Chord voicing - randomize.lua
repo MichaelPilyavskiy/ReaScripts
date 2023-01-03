@@ -1,9 +1,9 @@
 -- @description Chord voicing - randomize
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @provides [main=main,midi_editor] .
 -- @changelog
---  + init 
+--  # apply to selected chord only
 
   -- [[debug search filter: NOT function NOT reaper NOT gfx NOT VF]]
   ----------------------------------------------------------------------  
@@ -12,7 +12,7 @@
     
     local ret, extdata = GetSetMediaItemInfo_String(  GetMediaItemTake_Item( take ), 'P_EXT:mplchords', '',0 )
     local evts = getevts(take)  
-    local chords = {}
+     chords = {}
     if not ret then chords = chords_storetoitem(take, evts, ret==false) else chords = chords_parse_itemextdata(extdata) end
     
     modifychords(chords) 
@@ -21,13 +21,18 @@
   ----------------------------------------------------------------------
   function modifychords(chords)
     for ppq in spairs(chords) do
-      local chordpattern = {} for chordnote = 1, #chords[ppq] do  chordpattern[chords[ppq][chordnote].pitch %12] = true end -- chord normalized pattern 
-      for chordnote = 1, #chords[ppq] do 
-        local src_pitch = chords[ppq][chordnote].pitch
-        local new_note = math.floor(src_pitch + math.random()*24 - 12)
-        local new_note = checknote(src_pitch, new_note, chordpattern, chords[ppq])
-        chords[ppq][chordnote].pitch = new_note
-      end 
+      has_selectedflag= false
+      for chordnote = 1, #chords[ppq] do if chords[ppq][chordnote].flags&1==1 then has_selectedflag = true break end end
+      
+      if has_selectedflag then 
+        local chordpattern = {} for chordnote = 1, #chords[ppq] do  chordpattern[chords[ppq][chordnote].pitch %12] = true end -- chord normalized pattern 
+        for chordnote = 1, #chords[ppq] do 
+          local src_pitch = chords[ppq][chordnote].pitch
+          local new_note = math.floor(src_pitch + math.random()*24 - 12)
+          local new_note = checknote(src_pitch, new_note, chordpattern, chords[ppq])
+          chords[ppq][chordnote].pitch = new_note
+        end 
+      end
     end
   end
   ----------------------------------------------------------------------
@@ -75,13 +80,16 @@
         ppq = tonumber(ppq)
         chords[ppq] = {}
         for block in line:gmatch('%[.-%]') do
-          local pitch, ppq_pos, ppq_len, vel, chan = block:match('(%d+) (%d+) (%d+) (%d+) (%d+)')
+          local pitch, ppq_pos, ppq_len, vel, chan, flags = block:match('(%d+) (%d+) (%d+) (%d+) (%d+) (%d+)')
           chords[ppq][#chords[ppq]+1] = {
             pitch=tonumber(pitch),
             vel=tonumber(vel),
             chan=tonumber(chan),
             ppq_pos=tonumber(ppq_pos),
-            ppq_len=tonumber(ppq_len)}
+            ppq_len=tonumber(ppq_len),
+            flags=tonumber(flags),
+            
+            }
         end 
       end
     end
@@ -149,6 +157,7 @@
       for i = 1, #evts do
         if evts[i].isnote then 
           local msg1 = evts[i].msg1
+          local flags = evts[i].flags
           local ppq_pos = evts[i].ppq_pos 
           local ppq_len = evts[i].ppq_len 
           if ppq_pos - last_ppq_pos < ppq_filter then ppq_pos = last_ppq_pos end
@@ -159,7 +168,8 @@
               vel = msg1:byte(3),
               chan = msg1:byte(1)&0xF,
               ppq_len = ppq_len,
-              ppq_pos = evts[i].ppq_pos 
+              ppq_pos = evts[i].ppq_pos ,
+              flags = flags
             }
           last_ppq_pos = ppq_pos
         end
@@ -170,7 +180,7 @@
       for ppq in spairs(chords) do
         outstr = outstr..'\n'..ppq
         for note =1, #chords[ppq] do
-          outstr = outstr..' ['..chords[ppq][note].pitch..' '..chords[ppq][note].ppq_pos..' '..chords[ppq][note].ppq_len..' '..chords[ppq][note].vel..' '..chords[ppq][note].chan..']'
+          outstr = outstr..' ['..chords[ppq][note].pitch..' '..chords[ppq][note].ppq_pos..' '..chords[ppq][note].ppq_len..' '..chords[ppq][note].vel..' '..chords[ppq][note].chan..' '..chords[ppq][note].flags..']'
         end
       end
     
