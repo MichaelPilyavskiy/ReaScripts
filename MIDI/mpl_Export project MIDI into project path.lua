@@ -1,9 +1,8 @@
 -- @description Export project MIDI into project path
--- @version 1.0alpha3
+-- @version 1.0alpha4
 -- @author MPL
 -- @changelog
---    # fix shape
---    # use x0.99 multiplier for tension
+--    # fix IEEE 754 to float convertion
 
   -- [[debug search filter: NOT function NOT reaper NOT gfx NOT VF]]
   
@@ -242,12 +241,13 @@
           local fraction = 0
           for i = 1, 23 do
             local bid = 23-i
-            local b = (bz_tension_int>>(bid-1))&1
+            local b = (bz_tension_int>>(bid))&1
             fraction = fraction + b*(2^(-i))
           end
-          local bz_tension = ((-1)^sign) * (2^(E-127)) * (1+fraction)
+          local bz_tension = ((-1)^sign) 
+            * ((  2^(E-127) ) * ( 1+fraction  ))
           if math.abs(bz_tension) < 10^-15 then bz_tension = 0 end
-          evts[#evts].bz_tension = bz_tension*0.99
+          evts[#evts].bz_tension = bz_tension
           goto skip
         end 
         
