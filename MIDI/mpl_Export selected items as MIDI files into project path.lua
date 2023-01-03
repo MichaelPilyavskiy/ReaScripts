@@ -1,14 +1,21 @@
 -- @description Export selected items as MIDI files into project path
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @changelog
---    + init
+--    + Add option to take names from take names
+--    + Increment filenames to prevent overwriting
 
   
   DATA2 = {
+
+
     ppq_step = 1,
     path_name = '!Midi',
-    takes={}
+    getitemname = false,
+
+
+
+    takes={},
           }
 
   ---------------------------------------------------------------------  
@@ -17,15 +24,21 @@
       for i =1 , CountSelectedMediaItems(0)do
         local item = GetSelectedMediaItem(0,i-1)
         local take = GetActiveTake(item)
+        local retval, tkname = GetSetMediaItemTakeInfo_String( take, 'P_NAME', '', false )
         local track = GetMediaItemTrack( item )
         local retval, trname = GetTrackName( track )
+        if DATA2.getitemname == true then
+          name = tkname
+         else
+          name = trname
+        end
         if take and ValidatePtr2( 0, take, 'MediaItem_Take*' ) and TakeIsMIDI(take) then
           DATA2.takes[#DATA2.takes+1] = 
           {
             take = take,
             item = item,
             track=track,
-            name = trname,
+            name = name,
           } 
         end
       end
@@ -336,13 +349,19 @@
     local take = tk_t.take
     local item = tk_t.item
     local name = tk_t.name
-    local out_fp =GetProjectPath()..'/'..DATA2.path_name
-    RecursiveCreateDirectory( out_fp, 0 )
-    out_fp = out_fp..'/'..name..'.mid'
+    local out_fp_path =GetProjectPath()..'/'..DATA2.path_name
+    RecursiveCreateDirectory( out_fp_path, 0 )
+    out_fp = out_fp_path..'/'..name..'.mid'
     
     local PPQ = GetTakePPQ(item,take)
     local chunk = DATA2:ExportMIDIFiles_FormChunk(tk_t.events_out, PPQ)
     
+    if file_exists( out_fp ) then
+      for i = 1, 1000 do
+        out_fp = out_fp_path..'/'..name..'('..i..').mid'
+        if not file_exists( out_fp ) then break end
+      end
+    end
     f=io.open(out_fp, 'wb')
     f:write(chunk)
     f:close()
