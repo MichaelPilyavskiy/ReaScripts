@@ -1,17 +1,17 @@
 -- @description QuantizeTool
--- @version 3.13
+-- @version 3.14
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    # improve SWS groove displaying
+--    + Add pattern support for ordered align
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.13
+    DATA.extstate.version = 3.14
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -1411,10 +1411,15 @@
   --------------------------------------------------------------------- 
   function DATA2:Quantize_CalculateOA() 
     if not DATA2.src then return end
+    
+    DATA2:Quantize_CalculatePBA_addpattern()  -- convert pattern into src edges
+    local use_pattern if DATA.extstate.CONF_ref_grid > 0 then use_pattern = true end
     for i = 1, #DATA2.src do  
       if DATA2.src[i].pos_sec and DATA2.src[i].ignore_search == false then 
-        if DATA2.ref[i] then
-          local pos_secOUT, out_val = DATA2.ref[i].pos_sec, DATA2.ref[i].pos_val 
+      local t_ref = DATA2.ref[i]
+      if use_pattern then t_ref = DATA2.ref_formed[i] end
+        if t_ref then
+          local pos_secOUT, out_val = t_ref.pos_sec, t_ref.pos_val 
           DATA2.src[i].pos_secOUT = pos_secOUT - DATA.extstate.CONF_offset_ms
           DATA2.src[i].valOUT = out_val
         end
