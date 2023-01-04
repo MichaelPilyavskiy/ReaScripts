@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7c7e4d6ed6e5e3f2be416095a6835ee01a33cdb3" name="MPL Scripts">
+<index version="1" commit="cc9dabf718a363508eefd876652d3223d906e411" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2532,6 +2532,11 @@
       <version name="1.02" author="MPL" time="2020-05-23T05:34:05Z">
         <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7463a0a5e6b5a56f489b5651e1bc147e4b64d65/FX/mpl_Toggle%20float%20instrument%20on%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2023-01-04T15:55:57Z">
+        <changelog><![CDATA[# check if plugin is instrument by checking pre-aliased name
++ allow to add plugin name into exception list]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cc9dabf718a363508eefd876652d3223d906e411/FX/mpl_Toggle%20float%20instrument%20on%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle FX oversampling.lua" type="script" desc="Toggle FX oversampling">
