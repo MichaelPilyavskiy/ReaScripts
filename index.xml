@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="eb7334ec4a02cbc67dd1c4f7fdb52d347b68d08d" name="MPL Scripts">
+<index version="1" commit="473ea7219fd90d00a85efeb75cf0f53841b3b6c4" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -11277,6 +11277,10 @@ add control for timefall showing last note]]></changelog>
       <version name="3.14" author="MPL" time="2023-01-04T09:07:37Z">
         <changelog><![CDATA[+ Add pattern support for ordered align]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb7334ec4a02cbc67dd1c4f7fdb52d347b68d08d/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
+      <version name="3.15" author="MPL" time="2023-01-04T09:16:08Z">
+        <changelog><![CDATA[+ Add support for multiple sources for ordered align]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/473ea7219fd90d00a85efeb75cf0f53841b3b6c4/Various/mpl_Quantize%20Tool.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
