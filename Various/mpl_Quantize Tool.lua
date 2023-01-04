@@ -1,17 +1,17 @@
 -- @description QuantizeTool
--- @version 3.14
+-- @version 3.15
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    + Add pattern support for ordered align
+--    + Add support for multiple sources for ordered align
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.14
+    DATA.extstate.version = 3.15
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -1414,14 +1414,26 @@
     
     DATA2:Quantize_CalculatePBA_addpattern()  -- convert pattern into src edges
     local use_pattern if DATA.extstate.CONF_ref_grid > 0 then use_pattern = true end
-    for i = 1, #DATA2.src do  
-      if DATA2.src[i].pos_sec and DATA2.src[i].ignore_search == false then 
-      local t_ref = DATA2.ref[i]
-      if use_pattern then t_ref = DATA2.ref_formed[i] end
-        if t_ref then
-          local pos_secOUT, out_val = t_ref.pos_sec, t_ref.pos_val 
-          DATA2.src[i].pos_secOUT = pos_secOUT - DATA.extstate.CONF_offset_ms
-          DATA2.src[i].valOUT = out_val
+    
+    --split by GUID
+    local src_t = {}
+    for i = 1, #DATA2.src do
+      local GUID = DATA2.src[i].GUID
+      if not src_t[GUID] then src_t[GUID] = {} end
+      src_t[GUID][#src_t[GUID]+1] = DATA2.src[i]
+    end
+    
+    for GUID in pairs(src_t) do 
+      for i= 1, #src_t[GUID] do
+        local tsrc = src_t[GUID][i]
+        if tsrc.pos_sec and tsrc.ignore_search == false then 
+        local t_ref = DATA2.ref[i]
+        if use_pattern then t_ref = DATA2.ref_formed[i] end
+          if t_ref then
+            local pos_secOUT, out_val = t_ref.pos_sec, t_ref.pos_val 
+            tsrc.pos_secOUT = pos_secOUT - DATA.extstate.CONF_offset_ms
+            tsrc.valOUT = out_val
+          end
         end
       end
     end
