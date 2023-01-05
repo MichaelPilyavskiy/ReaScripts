@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="116f6ed057720e5c03af7c4747e5de388a024caf" name="MPL Scripts">
+<index version="1" commit="baf24b45c0c9602d1beefd86a19fae6478d4a3ae" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1889,14 +1889,7 @@
     </reapack>
     <reapack name="mpl_LearnEditor.lua" type="script" desc="LearnEditor">
       <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Script for handling FX parameter MIDI/OSC bindings and parameter modulation data\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=235521</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="MPL" time="2020-04-06T11:01:31Z">
         <changelog><![CDATA[+ initial release
@@ -1994,6 +1987,16 @@
         <source file="mpl_LearnEditor_functions/mpl_LearnEditor_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd1c5a3f0079bf55264f4cc05074892c9d777de2/FX/mpl_LearnEditor_functions/mpl_LearnEditor_data.lua</source>
         <source file="mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd1c5a3f0079bf55264f4cc05074892c9d777de2/FX/mpl_LearnEditor_functions/mpl_LearnEditor_obj.lua</source>
         <source main="main" file="mpl_LearnEditor_functions/mpl_Show and arm envelopes with learn and parameter modulation for selected tracks.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd1c5a3f0079bf55264f4cc05074892c9d777de2/FX/mpl_LearnEditor_functions/mpl_Show%20and%20arm%20envelopes%20with%20learn%20and%20parameter%20modulation%20for%20selected%20tracks.lua</source>
+      </version>
+      <version name="2.0" author="MPL" time="2023-01-05T23:31:18Z">
+        <changelog><![CDATA[+ rebuild using MPL VF3 UI library
++ Node based UI
++ Control-based table rather than track based
++ Use new REAPER API (6.71+)
+- deprecate all modulation related stuff
++ Allow to filter list by selected tracks
++ Allow to filter list by focused FX]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/baf24b45c0c9602d1beefd86a19fae6478d4a3ae/FX/mpl_LearnEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Load selected tracks FX chains by name, offline mode.lua" type="script" desc="Load selected tracks FX chains by name, offline mode">
