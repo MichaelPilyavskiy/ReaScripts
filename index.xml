@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3fdacc02bb7e03fef12ce5dcfa5d7f950e2da23f" name="MPL Scripts">
+<index version="1" commit="89f5289f712a6975235480305504ee3e878e0436" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -2002,6 +2002,10 @@
         <changelog><![CDATA[+ Actions: import/export as XML file
 + Click on control change alias]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3fdacc02bb7e03fef12ce5dcfa5d7f950e2da23f/FX/mpl_LearnEditor.lua</source>
+      </version>
+      <version name="2.02" author="MPL" time="2023-01-06T22:28:15Z">
+        <changelog><![CDATA[# fix typo]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/89f5289f712a6975235480305504ee3e878e0436/FX/mpl_LearnEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Load selected tracks FX chains by name, offline mode.lua" type="script" desc="Load selected tracks FX chains by name, offline mode">
@@ -9447,6 +9451,15 @@ add control for timefall showing last note]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0770840080f118eaefd15976c64f212e4a8308a7/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Input audio check selected track.lua" type="script" desc="Input audio check selected track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-06T18:36:49Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a42fd3d084741cb606995fa18fb8a7964ec6bf52/Various/mpl_Input%20audio%20check%20selected%20track.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_InteractiveToolbar.lua" type="script" desc="InteractiveToolbar">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
@@ -11310,6 +11323,10 @@ add control for timefall showing last note]]></changelog>
       <version name="3.16" author="MPL" time="2023-01-04T09:26:59Z">
         <changelog><![CDATA[+ Preset: align stertch markers sequentally]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c7e4d6ed6e5e3f2be416095a6835ee01a33cdb3/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
+      <version name="3.17" author="MPL" time="2023-01-06T22:28:15Z">
+        <changelog><![CDATA[# improve logic around keeping MIDI notes length]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/89f5289f712a6975235480305504ee3e878e0436/Various/mpl_Quantize%20Tool.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
