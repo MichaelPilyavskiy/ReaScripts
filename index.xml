@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="baf24b45c0c9602d1beefd86a19fae6478d4a3ae" name="MPL Scripts">
+<index version="1" commit="3fdacc02bb7e03fef12ce5dcfa5d7f950e2da23f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -1997,6 +1997,11 @@
 + Allow to filter list by selected tracks
 + Allow to filter list by focused FX]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/baf24b45c0c9602d1beefd86a19fae6478d4a3ae/FX/mpl_LearnEditor.lua</source>
+      </version>
+      <version name="2.01" author="MPL" time="2023-01-06T16:16:39Z">
+        <changelog><![CDATA[+ Actions: import/export as XML file
++ Click on control change alias]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/3fdacc02bb7e03fef12ce5dcfa5d7f950e2da23f/FX/mpl_LearnEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Load selected tracks FX chains by name, offline mode.lua" type="script" desc="Load selected tracks FX chains by name, offline mode">
