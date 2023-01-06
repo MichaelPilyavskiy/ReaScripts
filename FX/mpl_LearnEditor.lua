@@ -1,28 +1,22 @@
 -- @description LearnEditor
--- @version 2.0
+-- @version 2.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + rebuild using MPL VF3 UI library
---    + Node based UI
---    + Control-based table rather than track based
---    + Use new REAPER API (6.71+)
---    - deprecate all modulation related stuff
---    + Allow to filter list by selected tracks
---    + Allow to filter list by focused FX
+--    + Actions: import/export as XML file
+--    + Click on control change alias
 
 
 
  
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
-  -- config defaults
   DATA2 = { 
           }
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.0'
+    DATA.extstate.version = '2.01'
     DATA.extstate.extstatesection = 'MPL_LearnEditor'
     DATA.extstate.mb_title = 'LearnEditor'
     DATA.extstate.default = 
@@ -42,6 +36,7 @@
                           UI_initatmouse = 0,
                           UI_showtooltips = 1,
                           UI_groupflags = 0, 
+                          UI_aliasmap = '', 
                           
                           }
     
@@ -57,6 +52,78 @@
     DATA:GUIinit()
     RUN()
     DATA_RESERVED_ONPROJCHANGE(DATA)
+  end
+  ----------------------------------------------------------------------
+  function DATA2:ImportCSV()
+    --local out_fp =GetProjectPath()..'/LearmEditor_mapping.xml'
+    local retval, xml = reaper.GetUserFileNameForRead('', 'LearmEditor mapping', '.xml' )
+    
+    if not (xml and xml ~= '' ) then return end
+    local f = io.open(xml, 'rb')
+    local content
+    if f then 
+      content = f:read('a')
+      f:close()
+     else
+      return
+    end 
+    if not content then return end
+    
+    -- parse xml
+    for control in content:gmatch('(<control.-<%/control>)') do
+      local ctrl_type = control:match('<ctrl_type>(.-)<%/ctrl_type>')
+      local ctrl_key = control:match('<ctrl_key>(.-)<%/ctrl_key>')
+      for link in control:gmatch('(<link.-<%/link>)') do
+        local fxGUID = link:match('<fxGUID>(.-)<%/fxGUID>')
+        local pid = link:match('<param>(.-)<%/param>')
+        local mode = link:match('<mode>(.-)<%/mode>')
+        local flags = link:match('<flags>(.-)<%/flags>')
+        local ret,track,fx = VF_GetFXByGUID(fxGUID)
+        if ret then
+          if tonumber(ctrl_type) == 0 then
+            local midi_int = tonumber(ctrl_key)
+            TrackFX_SetNamedConfigParm( track, fx, 'param.'..pid..'.learn.midi1',midi_int&0xFF )
+            TrackFX_SetNamedConfigParm( track, fx, 'param.'..pid..'.learn.midi2',(midi_int&0xFF00)>>8 )
+           elseif tonumber(ctrl_type) == 1 then 
+            TrackFX_SetNamedConfigParm( track, fx, 'param.'..pid..'.learn.osc',ctrl_key )
+          end
+          TrackFX_SetNamedConfigParm( track, fx, 'param.'..pid..'.learn.mode',mode )
+          TrackFX_SetNamedConfigParm( track, fx, 'param.'..pid..'.learn.flags',flags ) 
+        end
+      end
+    end
+  end
+  ----------------------------------------------------------------------
+  function DATA2:ExportCSV()
+    local out_fp =GetProjectPath()..'/LearmEditor_mapping.xml'
+    if not DATA2.learnstate then return end
+    
+    local str = ''
+    for control in pairs(DATA2.learnstate) do
+      str=str..'\n<control id="'..control..'">'
+      str=str..'\n  <ctrl_type>'..DATA2.learnstate[control].ctrl_type..'</ctrl_type>'
+      str=str..'\n  <ctrl_key>'..DATA2.learnstate[control].ctrl_key..'</ctrl_key>'
+      for link = 1, #DATA2.learnstate[control] do
+        str=str..'\n  <link linkid="'..link..'">'
+        str=str..'\n    <trGUID>'..DATA2.learnstate[control][link].trGUID..'</trGUID>'
+        str=str..'\n    <fxGUID>'..DATA2.learnstate[control][link].fxGUID..'</fxGUID>'
+        str=str..'\n    <flags>'..DATA2.learnstate[control][link].flags..'</flags>'
+        str=str..'\n    <mode>'..DATA2.learnstate[control][link].mode..'</mode>'
+        str=str..'\n    <param>'..DATA2.learnstate[control][link].param..'</param>'
+        str=str..'\n  </link>'
+      end
+      str=str..'\n</control>'
+    end
+    
+    str=str..'\n<LearnEditor_vrs>'..DATA.extstate.version..'</LearnEditor_vrs>'
+    str=str..'\n<ts>'..os.date()..'</ts>'
+    
+    local f = io.open(out_fp,'wb')
+    if f then 
+      f:write(str)
+      f:close()
+    end
+    MB('Export successfully to '..out_fp,DATA.extstate.mb_title,0)
   end
   ----------------------------------------------------------------------
   function DATA_RESERVED_DYNUPDATE()
@@ -97,7 +164,25 @@
     
   end
   ---------------------------------------------------------------------  
+  function DATA2:RefreshAliasMap()
+    local str = ''
+    for key in pairs(DATA2.aliasmap) do if DATA2.aliasmap[key] ~= '' then str = str..'[<'..key..'><'..DATA2.aliasmap[key]..'>]' end end
+    DATA.extstate.UI_aliasmap = str
+    DATA.UPD.onconfchange = true
+  end
+  ---------------------------------------------------------------------  
   function DATA2:CollectProjectData()
+    DATA2.aliasmap = {}
+    if DATA.extstate.UI_aliasmap~=''then
+      local mapstr = DATA.extstate.UI_aliasmap
+      for block in mapstr:gmatch('%[.-%]') do
+        local key,val = block:match('<(.-)><(.-)>')
+        if key and val then
+          DATA2.aliasmap[key] = val
+        end
+      end
+    end
+    
     DATA2.learnstate = {}
     local cnt_tracks = CountTracks( 0 )
     for trackidx =0, cnt_tracks do
@@ -142,6 +227,10 @@
             mode=tonumber(mode)
             flags=tonumber(flags)
             if not DATA2.learnstate[key] then DATA2.learnstate[key] = {ctrl_key = key,ctrl_type = ctrl_type} end
+            local alias = ''
+            if DATA2.aliasmap[key] then
+              alias = DATA2.aliasmap[key]
+            end
             DATA2.learnstate[key][#DATA2.learnstate[key]+1] = 
               {
                 trGUID = GetTrackGUID( track),
@@ -156,11 +245,13 @@
                 pname = pname,
                 mode=mode,
                 flags=flags,
+                alias=alias,
               }
           end
         end
       end
     end
+    
   end
   ----------------------------------------------------------------------
   function GUI_nodes_ctrl(DATA, ctrl_t, node_y_offs0)  
@@ -185,16 +276,25 @@
      elseif ctrl_t.ctrl_type == 1 then
       format = 'OSC '..ctrl_key
     end
-    
+    local format0 = format
+    if DATA2.aliasmap[ctrl_key] then format0 = DATA2.aliasmap[ctrl_key]..'\n'..format end
     DATA.GUI.buttons['ctrl_'..ctrl_key] = { x=node_x_offs,
                           y=node_y_offs,
                           w=DATA.GUI.custom_nodectrl_w-1,
                           h=DATA.GUI.custom_nodectrl_h-1,
-                          txt = format,
+                          txt = format0,
                           txt_fontsz = DATA.GUI.custom_nodectrl_txtsz,
                           onmouseclick =   function()  end,
                           hide = node_y_offs<DATA.GUI.custom_infoh,
                           refresh= true,
+                          onmouserelease = function()
+                            local retval, retvals_csv = GetUserInputs( 'Alias', 1, format0, DATA2.aliasmap[ctrl_key] or '' )
+                            if retval then
+                              DATA2.aliasmap[ctrl_key]=retvals_csv
+                              DATA2:RefreshAliasMap()
+                              DATA_RESERVED_ONPROJCHANGE(DATA)
+                            end
+                          end
                           }
     return node_y_offs + DATA.GUI.custom_node_areah
   end
@@ -493,6 +593,9 @@
                         y=0,
                         w=DATA.GUI.custom_gfx_wreal-1,
                         h=DATA.GUI.custom_infoh,
+                        frame_a = 0,
+                        --frame_asel = 0,
+                        
                         txt = 'Actions / Options',
                         txt_fontsz=DATA.GUI.custom_info_txtsz,
                         onmouserelease = function() 
@@ -522,7 +625,18 @@
                                 DATA_RESERVED_ONPROJCHANGE(DATA)
                                 DATA.UPD.onconfchange = true
                               end
-                            },                            
+                            },        
+                            { str = '|Export learn state as XML into project path',
+                              func = function()  
+                                DATA2:ExportCSV()
+                              end
+                            },                              
+                            { str = 'Import learn state from XML',
+                              func = function()  
+                                DATA2:ImportCSV()
+                                DATA_RESERVED_ONPROJCHANGE(DATA)
+                              end
+                            },                             
                             {str='|Dock',
                              func =           function()  
             local state = gfx.dock(-1)
@@ -593,7 +707,7 @@
     -- ctrl node
       DATA.GUI.custom_nodectrl_txtsz= math.floor(20* DATA.GUI.custom_Yrelation)
       DATA.GUI.custom_nodectrl_w= math.floor(DATA.GUI.custom_node_areaw*0.8)
-      DATA.GUI.custom_nodectrl_h= math.floor(DATA.GUI.custom_node_areah*0.5)
+      DATA.GUI.custom_nodectrl_h= math.floor(DATA.GUI.custom_node_areah*0.7)
     -- info node
       DATA.GUI.custom_nodeinfo_txtsz= math.floor(15* DATA.GUI.custom_Yrelation)
       DATA.GUI.custom_nodeinfo_w= math.floor(DATA.GUI.custom_node_areaw*0.9)
