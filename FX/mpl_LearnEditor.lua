@@ -1,10 +1,9 @@
 -- @description LearnEditor
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Actions: import/export as XML file
---    + Click on control change alias
+--    # fix typo
 
 
 
@@ -16,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.01'
+    DATA.extstate.version = '2.02'
     DATA.extstate.extstatesection = 'MPL_LearnEditor'
     DATA.extstate.mb_title = 'LearnEditor'
     DATA.extstate.default = 
@@ -55,8 +54,8 @@
   end
   ----------------------------------------------------------------------
   function DATA2:ImportCSV()
-    --local out_fp =GetProjectPath()..'/LearmEditor_mapping.xml'
-    local retval, xml = reaper.GetUserFileNameForRead('', 'LearmEditor mapping', '.xml' )
+    --local out_fp =GetProjectPath()..'/LearNEditor_mapping.xml'
+    local retval, xml = reaper.GetUserFileNameForRead('', 'LearnEditor mapping', '.xml' )
     
     if not (xml and xml ~= '' ) then return end
     local f = io.open(xml, 'rb')
@@ -95,7 +94,7 @@
   end
   ----------------------------------------------------------------------
   function DATA2:ExportCSV()
-    local out_fp =GetProjectPath()..'/LearmEditor_mapping.xml'
+    local out_fp =GetProjectPath()..'/LearnEditor_mapping.xml'
     if not DATA2.learnstate then return end
     
     local str = ''

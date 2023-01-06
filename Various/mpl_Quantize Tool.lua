@@ -1,17 +1,17 @@
 -- @description QuantizeTool
--- @version 3.16
+-- @version 3.17
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    + Preset: align stertch markers sequentally
+--    # improve logic around keeping MIDI notes length
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.16
+    DATA.extstate.version = 3.17
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -1153,7 +1153,11 @@
         local out_vel = math.max(1,math.floor(lim(out_val,0,1)*127))
         str_per_msg = str_per_msg.. string.pack("i4Bi4BBB", out_offs, t.flags, 3,  0x90| (t.chan-1), t.pitch, out_vel )
         
-        if DATA.extstate.CONF_src_midi_msgflag&4==4 and ((DATA.extstate.CONF_src_midi&2==0 and t.flags&1 == 1) or DATA.extstate.CONF_src_midi&2==2) and t.noteoff_msg1 then
+        if DATA.extstate.CONF_src_midi_msgflag&4==4 
+        
+          --and (   (DATA.extstate.CONF_src_midi&2==0 and t.flags&1 == 1) or DATA.extstate.CONF_src_midi&2==2 ) 
+          
+          and t.noteoff_msg1 then
           str_per_msg = str_per_msg.. string.pack("i4Bs4",  t.note_len_PPQ,  t.flags , t.noteoff_msg1)
           ppq_cur = ppq_cur+ t.note_len_PPQ
         end
@@ -1398,15 +1402,17 @@
     end
     
     -- sort ref table by position
-      local id = {}
+      temp_id = {}
       for i = 1, #DATA2.ref_formed do 
         local pos = DATA2.ref_formed[i].pos_sec
         if DATA2.ref_formed[i].istakeenv then pos = pos + DATA2.ref_formed[i].item_pos end
-        id[pos] = DATA2.ref_formed[i].val 
+        if pos then 
+          temp_id[pos] = DATA2.ref_formed[i].val 
+        end
       end
-      table.sort(id)
+      --table.sort(temp_id)
       DATA2.ref_formed = {}
-      for key in spairs(id) do DATA2.ref_formed[#DATA2.ref_formed+1] = {pos_sec = key, val = id[key]} end
+      for key in spairs(temp_id) do DATA2.ref_formed[#DATA2.ref_formed+1] = {pos_sec = key, val = temp_id[key]} end
       
   end
   --------------------------------------------------------------------- 
@@ -1524,9 +1530,7 @@
   end
   --------------------------------------------------------------------- 
   function DATA2:Quantize_CalculatePBA() 
-    
     DATA2:Quantize_CalculatePBA_addpattern()  -- convert pattern into src edges
-    
     if not DATA2.src then return end
     for i = 1, #DATA2.src do  
       if DATA2.src[i].pos_sec and DATA2.src[i].ignore_search == false then
@@ -1713,6 +1717,7 @@
                             onmouseclick =    function() DATA2:Quantize() end,
                             onmousedrag =     function() 
                                 DATA.GUI.buttons.knob.txt = VF_math_Qdec(DATA2.val1*100,2)..'%'
+                                
                                 DATA2.val1 = DATA.GUI.buttons.knob.val 
                                 if DATA.extstate.CONF_act_appbuttoexecute ==0 then 
                                   DATA2:Execute()
@@ -1991,7 +1996,6 @@
         end
 
   --------------------------------------------------------------------- 
-  ---------------------------------------------------------------------  
   function DATA2:ProcessAtChange(DATA, appatchange_flags0)
     if DATA.extstate.UI_appatchange&1~=1 then return end
     local appatchange_flags = appatchange_flags0 or 0
