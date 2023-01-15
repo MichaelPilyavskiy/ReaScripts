@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="36a11e6395837f493e745fb1b030accb7ab48683" name="MPL Scripts">
+<index version="1" commit="b4abb36d84d6faab88905b8c1f42d3a6695a2f20" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11660,6 +11660,11 @@ add control for timefall showing last note]]></changelog>
 + Snapshots: click on empty snapshot write current state to snapshot
 + Snapshots: Ctrl+click on non-empty snapshot write current state to snapshot]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/36a11e6395837f493e745fb1b030accb7ab48683/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.04" author="MPL" time="2023-01-15T21:20:02Z">
+        <changelog><![CDATA[+ Alt click on track reset volume
++ Shift click on track reset pan]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b4abb36d84d6faab88905b8c1f42d3a6695a2f20/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
