@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.12
+-- @version 3.13
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,7 +16,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Sampler: ctrl+alt clc=ick on NoteOff set this value for all notes all layers in current rack
+--    # Extstate: fix child append check
 
 
 
@@ -30,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.12'
+    DATA.extstate.version = '3.13'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -500,7 +500,7 @@ List:
   ---------------------------------------------------------------------
   function DATA2:TrackDataRead_IsChildAppendsToCurrentParent(track)   
     local ret, parGUID = GetSetMediaTrackInfo_String( track, 'P_EXT:MPLRS5KMAN_CHILD_PARENTGUID', '', false)
-    if DATA2.tr_GUID and parGUID == DATA2.tr_GUID then ret = true end 
+    if DATA2.tr_GUID and parGUID == DATA2.tr_GUID then ret = true else ret = false end 
     return ret, parGUID
   end
   ---------------------------------------------------------------------  
