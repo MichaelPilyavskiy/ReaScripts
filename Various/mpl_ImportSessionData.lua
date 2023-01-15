@@ -1,11 +1,11 @@
 -- @description ImportSessionData
--- @version 2.08
+-- @version 2.09
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + Destination menu: add support for importing sends
---    + Destination menu: add support for mark destination, not actually import
+--    + Destination tracks: show colors if available
+--    # track colors: slightly less contrast
 
 
 
@@ -16,7 +16,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.08
+    DATA.extstate.version = 2.09
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -402,13 +402,23 @@
       local level = DATA2.srcproj.TRACK[trid].CUST_foldlev or 0
       -- dest 
       local dest = '[none]'
+      local destcol
+      local dest_bfill
       if DATA2.srcproj.TRACK[trid].destmode == 1 then 
         dest = '['..DATA.GUI.custom_intname1..']' 
        elseif DATA2.srcproj.TRACK[trid].destmode == 3 then 
         dest = '['..DATA.GUI.custom_intname2..']' 
-       elseif DATA2.srcproj.TRACK[trid].destmode == 2 and DATA2.srcproj.TRACK[trid].dest_track_GUID then 
+       elseif DATA2.srcproj.TRACK[trid].destmode == 2 and DATA2.srcproj.TRACK[trid].dest_track_GUID then  
         local desttrid = DATA2:Tracks_GetDestinationbyGUID(DATA2.srcproj.TRACK[trid].dest_track_GUID)
-        if desttrid then  dest = '['..desttrid..'] ' ..DATA2.destproj.TRACK[desttrid].tr_name end
+        if desttrid then  
+          dest = '['..desttrid..'] ' ..DATA2.destproj.TRACK[desttrid].tr_name 
+          destcol = DATA2.destproj.TRACK[desttrid].tr_col
+          if destcol ~= 0 then
+            local r, g, b = reaper.ColorFromNative( destcol )
+            destcol = string.format("#%02X%02X%02X", r, g, b)
+            dest_bfill = 0.5
+          end
+        end
         if DATA2.srcproj.TRACK[trid].destmode_flags == nil then dest = dest..' [replace]' end
         if DATA2.srcproj.TRACK[trid].destmode_flags == 1 then dest = dest..' [under]' end
         if DATA2.srcproj.TRACK[trid].destmode_flags == 2 then dest = dest..' [under, as child]' end
@@ -438,8 +448,8 @@
         txt_flags=4 ,
         frame_a=frame_a,
         backgr_col2= PEAKCOL,
-        backgr_fill = backgr_fill,
-        backgr_fill2 = 0.7,
+        backgr_fill = 0.5,
+        backgr_fill2 = 0.5,
         back_sela = 0.1,
         back_sel_recta = 0.6,
         onmouserelease = function() GUI_RESERVED_BuildLayer_Selection_Set(DATA,trid) end,
@@ -451,11 +461,16 @@
       {
         x = boundary.x + DATA.GUI.custom_setposx/2,
         y = y_out,
-        w = DATA.GUI.custom_setposx/2-DATA.GUI.custom_offset*2-DATA.GUI.custom_scrollw-1,
+        w = DATA.GUI.custom_setposx/2-DATA.GUI.custom_offset*2-DATA.GUI.custom_scrollw-2,
         h = tr_h-1,
         layer = layerid,
         txt = dest,
         txt_flags=4 ,
+        backgr_col2= destcol,
+        backgr_fill = dest_bfill,
+        backgr_fill2 = dest_bfill,
+        back_sela = 0.1,
+        back_sel_recta = 0.6,
         frame_a=frame_a,
         onmouserelease = function() DATA:GUImenu(GUI_RESERVED_BuildLayer_DestMenu(DATA, trid) ) end,
       } 
@@ -848,8 +863,9 @@
         if not is_region_flags then 
           id, pos_sec, name, is_region_flags, col = line:match('MARKER ([%d]+) ([%d%p]+) (.-) ([%d]+) ([%d%p]+) ([%d%p]+) ([%a]+)')
         end
+        if not is_region_flags then return end
         
-        local is_region = is_region_flags&1==1
+        local is_region = is_region_flags&1==1 
         local retval, measures, cml, fullbeats, cdenom = TimeMap2_timeToBeats( 0, pos_sec)
         DATA2.srcproj.MARKERS[#DATA2.srcproj.MARKERS+1] = 
             { id = id,
