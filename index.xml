@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="52baafe94fd527e4e32274e099bc93f45ab56228" name="MPL Scripts">
+<index version="1" commit="6318c22530422673713a4a16cb91ea7f06b78509" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -9466,6 +9466,11 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[+ Destination menu: add support for importing sends
 + Destination menu: add support for mark destination, not actually import]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0770840080f118eaefd15976c64f212e4a8308a7/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="2.09" author="MPL" time="2023-01-15T13:51:49Z">
+        <changelog><![CDATA[+ Destination tracks: show colors if available
+# track colors: slightly less contrast]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6318c22530422673713a4a16cb91ea7f06b78509/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Input audio check selected track.lua" type="script" desc="Input audio check selected track">
