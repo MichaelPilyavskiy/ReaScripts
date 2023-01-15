@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0c31a95f8a04e2105b3954a5edc7d335fe68f71b" name="MPL Scripts">
+<index version="1" commit="52baafe94fd527e4e32274e099bc93f45ab56228" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
       <metadata>
@@ -7135,6 +7135,10 @@ add control for timefall showing last note]]></changelog>
       <version name="1.02" author="MPL" time="2023-01-15T12:40:46Z">
         <changelog><![CDATA[# leave source take as active]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0c31a95f8a04e2105b3954a5edc7d335fe68f71b/Render/mpl_Conditional%20bounce-in-place.lua</source>
+      </version>
+      <version name="1.03" author="MPL" time="2023-01-15T12:44:45Z">
+        <changelog><![CDATA[# crop to active take on source item]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/52baafe94fd527e4e32274e099bc93f45ab56228/Render/mpl_Conditional%20bounce-in-place.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Disable add rendered files to project after render.lua" type="script" desc="Disable add rendered files to project after render">
