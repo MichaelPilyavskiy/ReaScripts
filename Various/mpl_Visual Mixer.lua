@@ -1,14 +1,11 @@
 -- @description VisualMixer
--- @version 2.03
+-- @version 2.04
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Pretty same as what Izotope Neutron Visual mixer do
 -- @changelog
---    # overhaul selection
---    + Add support for marquee selection
---    + Ctrl + drag: drag multiple tracks
---    + Snapshots: click on empty snapshot write current state to snapshot
---    + Snapshots: Ctrl+click on non-empty snapshot write current state to snapshot
+--    + Alt click on track reset volume
+--    + Shift click on track reset pan
 
 
 
@@ -17,7 +14,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.03
+    DATA.extstate.version = 2.04
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -552,6 +549,26 @@
                             --sel_isselected=true,
                             onmousematchcont = function () end,
                             onmouseclick = function() 
+                                              if DATA.GUI.Alt == true or DATA.GUI.Shift == true then 
+                                                for GUID in pairs(DATA2.tracks) do 
+                                                  if DATA.GUI.buttons['trackrect'..GUID].sel_isselected == true then
+                                                    if DATA.GUI.Alt == true then SetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_VOL',1) end
+                                                    if DATA.GUI.Shift == true then SetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_PAN',0) end
+                                                  end
+                                                end 
+                                                
+                                                local cnt = 0 for GUID in pairs(DATA2.tracks) do if DATA.GUI.buttons['trackrect'..GUID].sel_isselected == true then cnt = cnt + 1 end end
+                                                if cnt  == 0 then
+                                                   if DATA.GUI.Alt == true then SetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_VOL',1) end
+                                                   if DATA.GUI.Shift == true then SetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_PAN',0) end
+                                                end
+                                                
+                                                  
+                                                DATA2:tracks_init(true)
+                                                DATA2:GUI_inittracks(DATA) 
+                                                return 
+                                              end
+                                              
                                               if DATA.GUI.Ctrl == false then 
                                                 for GUID in pairs(DATA2.tracks) do 
                                                   DATA.GUI.buttons['trackrect'..GUID].sel_isselected = false   -- reset selection 
@@ -573,6 +590,7 @@
                                             end,
                             --onmousedrag_skipotherobjects = true,
                             onmousedrag = function()
+                                            if DATA.GUI.Alt == true or DATA.GUI.Shift == true then return end
                                             DATA2.ontrackobj = true
                                             for GUID in pairs(DATA2.tracks) do
                                               if DATA.GUI.buttons['trackrect'..GUID].sel_isselected == true then
@@ -588,6 +606,7 @@
                                             end
                                           end,
                             onmouserelease =  function()
+                                                if DATA.GUI.Alt == true or DATA.GUI.Shift == true then return end
                                                 --[[for GUID in pairs(DATA2.tracks) do 
                                                   DATA.GUI.buttons['trackrect'..GUID].sel_isselected = false   -- reset selection 
                                                 end]]
