@@ -1,9 +1,9 @@
--- @version 1.1
+-- @version 1.02
 -- @author MPL
 -- @description Conditional bounce-in-place
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    # improved logic: render as new take, copy render to new track  or selected track if any  
+--    # leave source take as active
 
   
   function Act(id) reaper.Main_OnCommand(id, 0) end
@@ -30,7 +30,11 @@
     Act(40289) -- unselect all items 
     reaper.SetMediaItemSelected( new_item, true ) 
     Act(40131) -- Take: Crop to active take in items
-    
+    Act(40289) -- unselect all items 
+    reaper.SetMediaItemSelected( item, true ) 
+    take = reaper.GetTake( item, 0 )
+    reaper.SetActiveTake( take )
+    --Act(40131) -- Take: Crop to active take in items
     reaper.UpdateArrange()
   end    
 
