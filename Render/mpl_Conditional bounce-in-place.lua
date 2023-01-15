@@ -1,9 +1,9 @@
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @description Conditional bounce-in-place
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    # leave source take as active
+--    # crop to active take on source item
 
   
   function Act(id) reaper.Main_OnCommand(id, 0) end
@@ -34,7 +34,7 @@
     reaper.SetMediaItemSelected( item, true ) 
     take = reaper.GetTake( item, 0 )
     reaper.SetActiveTake( take )
-    --Act(40131) -- Take: Crop to active take in items
+    Act(40131) -- Take: Crop to active take in items
     reaper.UpdateArrange()
   end    
 
