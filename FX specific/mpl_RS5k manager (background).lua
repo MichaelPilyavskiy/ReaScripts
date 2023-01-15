@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.13
+-- @version 3.14
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,7 +16,8 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Extstate: fix child append check
+--    # Device: fix drop multiple samples shared on further notes rather than further layers
+--    # ExtState: another fix for parent definition
 
 
 
@@ -30,7 +31,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.13'
+    DATA.extstate.version = '3.14'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -975,7 +976,7 @@ List:
     -- catch parent by childen
     if parenttrack then 
       local ret, parGUID = DATA2:TrackDataRead_IsChildAppendsToCurrentParent(parenttrack)   
-      if ret and parGUID then parenttrack = VF_GetTrackByGUID(parGUID) end 
+      if parGUID and parGUID ~= '' then  parenttrack = VF_GetTrackByGUID(parGUID) end 
     end
      
     if parenttrack then
@@ -3744,7 +3745,7 @@ rightclick them to hide all but active.
     
   end
   -----------------------------------------------------------------------
-  function DATA2:Actions_PadOnFileDrop(note, layer, filepath0,section_data0) 
+  function DATA2:Actions_PadOnFileDrop(note, layer, filepath0,section_data0, increaselayeronmultiplespls) 
     if not DATA2.tr_valid then return end
     -- validate additional stuff
     DATA2:TrackDataRead_ValidateMIDIbus()
@@ -3757,7 +3758,11 @@ rightclick them to hide all but active.
        else
         for i =1, #DATA.GUI.droppedfiles.files+1 do
           local filepath = DATA.GUI.droppedfiles.files[i-1]
-          DATA2:Actions_PadOnFileDrop_Sub(note+i-1, layer, filepath)
+          if not increaselayeronmultiplespls then 
+            DATA2:Actions_PadOnFileDrop_Sub(note+i-1, layer, filepath)
+           else
+            DATA2:Actions_PadOnFileDrop_Sub(note, layer+i, filepath)
+          end
         end
       end
       
@@ -4407,7 +4412,7 @@ rightclick them to hide all but active.
                           txt_fontsz = DATA.GUI.custom_device_droptxtsz,
                           --frame_a =0.1,
                           --frame_col = '#333333',
-                          onmousefiledrop = function() DATA2:Actions_PadOnFileDrop(DATA2.PARENT_LASTACTIVENOTE, layers_cnt+1) end,
+                          onmousefiledrop = function() DATA2:Actions_PadOnFileDrop(DATA2.PARENT_LASTACTIVENOTE, layers_cnt+1,nil,nil,true) end,
                           ignoreboundarylimit = true,
                           }  
                          
