@@ -1,20 +1,23 @@
 -- @description VisualMixer
--- @version 2.02
+-- @version 2.03
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Pretty same as what Izotope Neutron Visual mixer do
 -- @changelog
---    # store rect size to a persistent config
---    # fix update peaks for bigger rectangles
---    # revert track colors 
+--    # overhaul selection
+--    + Add support for marquee selection
+--    + Ctrl + drag: drag multiple tracks
+--    + Snapshots: click on empty snapshot write current state to snapshot
+--    + Snapshots: Ctrl+click on non-empty snapshot write current state to snapshot
+
 
 
   
-  DATA2 = {}
+  DATA2 = {selectedtracks={},marquee={}}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.02
+    DATA.extstate.version = 2.03
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -148,12 +151,44 @@
                               backgr_fill = backgr_fill,
                               backgr_col = backgr_col,
                               onmouseclick = function()
-                                              DATA.GUI.custom_currentsnapshotID = i
-                                              GUI_buttons_snapshots(DATA) 
-                                              DATA2:Snapshot_Read()
-                                              DATA2:Snapshot_Recall(i)
+                                              if DATA2.Snapshots[i] and DATA.GUI.Ctrl~= true then
+                                                DATA.GUI.custom_currentsnapshotID = i
+                                                GUI_buttons_snapshots(DATA) 
+                                                DATA2:Snapshot_Read()
+                                                DATA2:Snapshot_Recall(i)
+                                                GUI_buttons_snapshots(DATA) 
+                                               else
+                                                DATA2:Snapshot_WriteCurrent(i)
+                                                DATA2:Snapshot_Write()
+                                                GUI_buttons_snapshots(DATA) 
+                                              end
+                                              
                                             end
                               }  
+    end
+  end
+  --------------------------------------------------------------------- 
+  function iscross(L1x,L1y,R1x,R1y,L2x,L2y,R2x,R2y)
+    return 
+      (
+        (L1x > L2x and L1x < R2x)
+        or (R1x > L2x and R1x < R2x)
+        or (L1x < L2x and R1x > R2x)
+      )
+      and 
+      (
+        (L1y > L2y and L1y < R2y)
+        or (R1y > L2y and R1y < R2y)
+        or (L1y < L2y and R1y > R2y)
+      )      
+  end
+  --------------------------------------------------------------------- 
+  function DATA2:marque_selection(DATA) 
+    L1x,L1y,R1x,R1y = DATA2.marquee.x,DATA2.marquee.y,DATA2.marquee.x+DATA2.marquee.w,DATA2.marquee.y+DATA2.marquee.h
+    for GUID in pairs(DATA2.tracks) do
+      DATA.GUI.buttons['trackrect'..GUID].sel_isselected = false
+      L2x,L2y,R2x,R2y = DATA.GUI.buttons['trackrect'..GUID].x,DATA.GUI.buttons['trackrect'..GUID].y,DATA.GUI.buttons['trackrect'..GUID].x+DATA.GUI.buttons['trackrect'..GUID].w,DATA.GUI.buttons['trackrect'..GUID].y+DATA.GUI.buttons['trackrect'..GUID].h
+      DATA.GUI.buttons['trackrect'..GUID].sel_isselected = iscross(L1x,L1y,R1x,R1y,L2x,L2y,R2x,R2y)
     end
   end
   --------------------------------------------------------------------- 
@@ -165,10 +200,51 @@
                             h=gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_mainbuth-DATA.GUI.custom_offset*3,--DATA.GUI.custom_tr_h,
                             ignoremouse = true,
                             --refresh = true,
-                            val_data = {tp = 0},
+                            val_data = {tp = 0,isscale=true},
                             frame_a =0,
-                            backgr_fill = 1,
+                            frame_asel =0,
                             }
+    DATA.GUI.buttons.marquee = { x=DATA.GUI.custom_offset, -- link to GUI.buttons.getreference--+DATA.extstate.CONF_tr_rect_px/2
+                            y=DATA.GUI.custom_mainbuth+DATA.GUI.custom_offset*2,--+DATA.GUI.custom_tr_h/2
+                            w=gfx.w/DATA.GUI.default_scale-DATA.GUI.custom_offset*2,--DATA.extstate.CONF_tr_rect_px,
+                            h=gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_mainbuth-DATA.GUI.custom_offset*3,--DATA.GUI.custom_tr_h,
+                            --refresh = true,
+                            frame_a =0,
+                            frame_asel =0,
+                            val_data = {ismarque=true},
+                            onmouseclick =    function() 
+                             if DATA2.ontrackobj == true then return end 
+                              DATA2.marquee.x = DATA.GUI.x
+                              DATA2.marquee.latchx = DATA.GUI.x
+                              DATA2.marquee.y = DATA.GUI.y
+                              DATA2.marquee.latchy = DATA.GUI.y
+                              DATA2.marquee.state = true
+                            end,
+                            onmousedrag =     function()  
+                              if DATA2.ontrackobj == true then return end 
+                              if DATA2.marquee.state ~= true then return end
+                              
+                              DATA2.marquee.w = DATA.GUI.x-DATA2.marquee.latchx
+                              DATA2.marquee.h = DATA.GUI.y-DATA2.marquee.latchy
+                              if DATA2.marquee.w < 0 then 
+                                DATA2.marquee.w = math.abs(DATA2.marquee.w)
+                                DATA2.marquee.x = DATA2.marquee.latchx - DATA2.marquee.w
+                              end
+                              if DATA2.marquee.h < 0 then 
+                                DATA2.marquee.h = math.abs(DATA2.marquee.h)
+                                DATA2.marquee.y = DATA2.marquee.latchy- DATA2.marquee.h
+                              end
+                              
+                            end,
+                            onmouserelease  = function()  
+                              if DATA2.ontrackobj == true then return end 
+                              if DATA2.marquee.state ~= true then return end
+                              DATA2.marquee.state = false
+                              DATA2:marque_selection(DATA) 
+                              DATA2.marquee = {}
+                              DATA.GUI.layers_refresh[2] = true
+                            end
+                            }                            
     DATA.GUI.buttons.knob = { x=DATA.GUI.custom_offset,
                             y=DATA.GUI.custom_offset,
                             w=DATA.GUI.custom_knob_w,
@@ -468,29 +544,64 @@
                             y=ypos,
                             w=DATA.extstate.CONF_tr_rect_px,
                             h=DATA.GUI.custom_tr_h,
-                            backgr_fill = 0,
+                            --backgr_fill = 0,
                             frame_a =0.4,
                             frame_col = frame_col,
                             refresh = true,
+                            sel_allow = true,
+                            --sel_isselected=true,
+                            onmousematchcont = function () end,
                             onmouseclick = function() 
-                                              DATA.GUI.buttons['trackrect'..GUID].latch_x = DATA.GUI.buttons['trackrect'..GUID].x
-                                              DATA.GUI.buttons['trackrect'..GUID].latch_y = DATA.GUI.buttons['trackrect'..GUID].y
+                                              if DATA.GUI.Ctrl == false then 
+                                                for GUID in pairs(DATA2.tracks) do 
+                                                  DATA.GUI.buttons['trackrect'..GUID].sel_isselected = false   -- reset selection 
+                                                end
+                                                -- set selection to current track
+                                                  DATA.GUI.buttons['trackrect'..GUID].sel_isselected = true
+                                                  DATA.GUI.buttons['trackrect'..GUID].latch_x = DATA.GUI.buttons['trackrect'..GUID].x
+                                                  DATA.GUI.buttons['trackrect'..GUID].latch_y = DATA.GUI.buttons['trackrect'..GUID].y
+                                              end
                                               
+                                              --if DATA.GUI.Ctrl == true then 
+                                                for GUID in pairs(DATA2.tracks) do  
+                                                  DATA.GUI.buttons['trackrect'..GUID].latch_x = DATA.GUI.buttons['trackrect'..GUID].x
+                                                  DATA.GUI.buttons['trackrect'..GUID].latch_y = DATA.GUI.buttons['trackrect'..GUID].y
+                                                end
+                                                -- set selection to current track
+                                                DATA.GUI.buttons['trackrect'..GUID].sel_isselected = true
+                                                
                                             end,
-                            onmousedrag_skipotherobjects = true,
+                            --onmousedrag_skipotherobjects = true,
                             onmousedrag = function()
-                                            DATA.GUI.buttons['trackrect'..GUID].x = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_x + DATA.GUI.dx/DATA.GUI.default_scale, DATA.GUI.buttons.scale.x , DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w-DATA.extstate.CONF_tr_rect_px)
-                                            DATA.GUI.buttons['trackrect'..GUID].y = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_y + DATA.GUI.dy/DATA.GUI.default_scale, DATA.GUI.buttons.scale.y, DATA.GUI.buttons.scale.y+DATA.GUI.buttons.scale.h-DATA.GUI.custom_tr_h)
-                                            DATA.GUI.buttons['trackrect'..GUID].refresh = true
-                                            DATA2:TrackMap_ApplyTrPan(GUID,DATA.GUI.buttons['trackrect'..GUID].x) 
-                                            DATA2:TrackMap_ApplyTrVol(GUID,DATA.GUI.buttons['trackrect'..GUID].y)  
-                                            DATA2:GUI_inittracks_initstuff(DATA,GUID,DATA.GUI.buttons['trackrect'..GUID].x,DATA.GUI.buttons['trackrect'..GUID].y )
+                                            DATA2.ontrackobj = true
+                                            for GUID in pairs(DATA2.tracks) do
+                                              if DATA.GUI.buttons['trackrect'..GUID].sel_isselected == true then
+                                                if DATA.GUI.buttons['trackrect'..GUID].latch_x then
+                                                  DATA.GUI.buttons['trackrect'..GUID].x = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_x + DATA.GUI.dx/DATA.GUI.default_scale, DATA.GUI.buttons.scale.x , DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w-DATA.extstate.CONF_tr_rect_px)
+                                                  DATA.GUI.buttons['trackrect'..GUID].y = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_y + DATA.GUI.dy/DATA.GUI.default_scale, DATA.GUI.buttons.scale.y, DATA.GUI.buttons.scale.y+DATA.GUI.buttons.scale.h-DATA.GUI.custom_tr_h)
+                                                  DATA.GUI.buttons['trackrect'..GUID].refresh = true
+                                                  DATA2:TrackMap_ApplyTrPan(GUID,DATA.GUI.buttons['trackrect'..GUID].x) 
+                                                  DATA2:TrackMap_ApplyTrVol(GUID,DATA.GUI.buttons['trackrect'..GUID].y)  
+                                                  DATA2:GUI_inittracks_initstuff(DATA,GUID,DATA.GUI.buttons['trackrect'..GUID].x,DATA.GUI.buttons['trackrect'..GUID].y )
+                                                end
+                                              end
+                                            end
                                           end,
                             onmouserelease =  function()
-                                                local ID = DATA.GUI.custom_currentsnapshotID or 1
+                                                --[[for GUID in pairs(DATA2.tracks) do 
+                                                  DATA.GUI.buttons['trackrect'..GUID].sel_isselected = false   -- reset selection 
+                                                end]]
+                                                --[[if DATA.GUI.Ctrl ==true then 
+                                                  DATA.GUI.buttons['trackrect'..GUID].sel_isselected = true
+                                                  DATA2.selectedtracks[GUID] = true
+                                                  return 
+                                                end]]
+                                                
+                                                local ID = DATA.GUI.custom_currentsnapshotID or 1 
                                                 DATA2:tracks_init(true)
                                                 DATA2:Snapshot_WriteCurrent(ID)
                                                 DATA2:Snapshot_Write()
+                                                DATA2.ontrackobj = false
                                               end
                             }
       DATA2:GUI_inittracks_initstuff(DATA,GUID,xpos,ypos, frame_col)
@@ -636,12 +747,29 @@
   -----------------------------------------------------------------------------  
   function GUI_RESERVED_drawDYN(DATA)
     DATA2:GUI_draw_peaks()
+    
+    -- marquee sel
+    if DATA2.marquee and DATA2.marquee.x then
+      gfx.set(1,1,1,0.4)
+      gfx.rect(DATA2.marquee.x,DATA2.marquee.y,DATA2.marquee.w,DATA2.marquee.h,0)
+    end
   end
   -----------------------------------------------------------------------------  
   function GUI_RESERVED_draw_data(DATA, b)
+    -- scale
     local t = b.val_data
-    if not t then return end
-    if t.tp == 0 then GUI_buttons_draw_data_scale(DATA, b) end
+    if t and t.isscale then
+      if t.tp == 0 then GUI_buttons_draw_data_scale(DATA, b) end
+    end
+    
+    
+  end
+  -----------------------------------------------------------------------------  
+  function GUI_RESERVED_draw_data2(DATA, b)
+    -- scale
+    local t = b.val_data
+    
+    
   end
   ----------------------------------------------------------------------
   function DATA_RESERVED_ONPROJCHANGE(DATA)
@@ -669,15 +797,15 @@
       --name
       local retval, trname = GetTrackName( tr, '' ) 
       local I_FOLDERDEPTH = GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH')
-      DATA2.tracks[GUID] = {ptr = tr,
-                            pan = pan,
-                           vol = vol,
-                           vol_dB = vol_dB,
-                           I_FOLDERDEPTH = I_FOLDERDEPTH,
-                           name = trname,
-                           width = GetMediaTrackInfo_Value( tr, 'D_WIDTH'),
-                           col =  GetTrackColor( tr ),
-                           }
+      DATA2.tracks[GUID] = {  ptr = tr,
+                              pan = pan,
+                              vol = vol,
+                              vol_dB = vol_dB,
+                              I_FOLDERDEPTH = I_FOLDERDEPTH,
+                              name = trname,
+                              width = GetMediaTrackInfo_Value( tr, 'D_WIDTH'),
+                              col =  GetTrackColor( tr ),
+                             }
     end
   end
   ---------------------------------------------------------------------- 
@@ -712,9 +840,9 @@
      else
       return
     end
-    
     DATA2:tracks_init()
     DATA2:tracks_update_peaks()
+    
   end
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
