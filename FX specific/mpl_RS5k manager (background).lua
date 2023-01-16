@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.14
+-- @version 3.15
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,8 +16,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # Device: fix drop multiple samples shared on further notes rather than further layers
---    # ExtState: another fix for parent definition
+--    # DrumRack: fix moving sample broken release
 
 
 
@@ -31,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.14'
+    DATA.extstate.version = '3.15'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -2941,9 +2940,9 @@ rightclick them to hide all but active.
                                                   end,
                                onmouserelease =  function()  
                                                    if not DATA2.ONDOUBLECLICK then
-                                                   
                                                       -- copy/move
                                                       if DATA2.PAD_HOLD then 
+                                                        
                                                         local f = function()
                                                           local padsrc = DATA2.PAD_HOLD
                                                           for i = 1, #DATA.GUI.mouse_match do
@@ -2952,10 +2951,10 @@ rightclick them to hide all but active.
                                                               DATA2:Actions_Pad_CopyMove(padsrc,paddest, DATA.GUI.Ctrl)  
                                                               DATA2.PADselection = {} -- clear selection
                                                               DATA2.PADselection[paddest] = true
-                                                              DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Copy_Move') 
                                                             end
                                                           end
                                                         end
+                                                        DATA2:ProcessUndoBlock(f, 'RS5k manager / Pad / Copy_Move') 
                                                         DATA2.PAD_HOLD = nil
                                                       end
                                                     
