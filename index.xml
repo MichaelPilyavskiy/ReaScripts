@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="69116989dc7343b564d47a0cce8bf436fae87183" name="MPL Scripts">
+<index version="1" commit="e5229320b9dfda0062a67a54961b5686f95e7afe" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2016,6 +2016,10 @@
         <changelog><![CDATA[# fix typo]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/89f5289f712a6975235480305504ee3e878e0436/FX/mpl_LearnEditor.lua</source>
       </version>
+      <version name="2.03" author="MPL" time="2023-01-17T06:45:18Z">
+        <changelog><![CDATA[# refresh GUI at wh change]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e5229320b9dfda0062a67a54961b5686f95e7afe/FX/mpl_LearnEditor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Load selected tracks FX chains by name, offline mode.lua" type="script" desc="Load selected tracks FX chains by name, offline mode">
       <metadata>
@@ -2041,6 +2045,15 @@
       <version name="1.01" author="MPL" time="2019-05-22T18:16:06Z">
         <changelog><![CDATA[# fix empty chain]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/04cb58a4a5b2bef8204a9284351fb07c2aba19d7/FX/mpl_Load%20selected%20tracks%20FX%20chains%20by%20name.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_ModulationEditor.lua" type="script" desc="ModulationEditor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-17T06:45:18Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e5229320b9dfda0062a67a54961b5686f95e7afe/FX/mpl_ModulationEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Move focused Track FX to screen center.lua" type="script" desc="Move focused Track FX to screen center">
