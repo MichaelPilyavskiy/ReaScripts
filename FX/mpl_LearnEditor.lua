@@ -1,9 +1,9 @@
 -- @description LearnEditor
--- @version 2.02
+-- @version 2.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix typo
+--    # refresh GUI at wh change
 
 
 
@@ -15,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.02'
+    DATA.extstate.version = '2.03'
     DATA.extstate.extstatesection = 'MPL_LearnEditor'
     DATA.extstate.mb_title = 'LearnEditor'
     DATA.extstate.default = 
@@ -562,6 +562,7 @@
   ----------------------------------------------------------------------
   function GUI_nodes_init(DATA)
     for key in pairs(DATA.GUI.buttons) do if key:match('ctrl_') then DATA.GUI.buttons[key] = nil end end
+    if not DATA2.learnstate then return end
     -- calc common h
       local node_comh = 0
       for control in spairs(DATA2.learnstate) do
@@ -712,7 +713,7 @@
       DATA.GUI.custom_nodeinfo_w= math.floor(DATA.GUI.custom_node_areaw*0.9)
       DATA.GUI.custom_nodeinfo_h= math.floor(DATA.GUI.custom_node_areah*0.9)
     
-    GUI_header_info(DATA)
+      GUI_header_info(DATA)
     -- scroll
       DATA.GUI.buttons.scroll = { x=DATA.GUI.custom_gfx_wreal-DATA.GUI.custom_scrollw-DATA.GUI.custom_offset*2,
                           y=DATA.GUI.custom_offset+DATA.GUI.custom_infoh,
@@ -733,7 +734,7 @@
                             DATA.GUI.buttons.scroll.refresh = true
                           end
                           }
-                          
+    GUI_nodes_init(DATA)                      
     for but in pairs(DATA.GUI.buttons) do DATA.GUI.buttons[but].key = but end
   end 
   ----------------------------------------------------------------------
