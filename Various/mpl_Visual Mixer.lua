@@ -1,11 +1,11 @@
 -- @description VisualMixer
--- @version 2.04
+-- @version 2.05
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Pretty same as what Izotope Neutron Visual mixer do
 -- @changelog
---    + Alt click on track reset volume
---    + Shift click on track reset pan
+--    + Snapshots: add support for smooth recall
+--    + Add support for inverting Y axis (rightclick Y scale knob)
 
 
 
@@ -14,7 +14,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.04
+    DATA.extstate.version = 2.05
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -36,7 +36,8 @@
                           CONF_snapshcnt = 8,
                           CONF_scalecent = 0.7,
                           CONF_tr_rect_px = 50,
-                          
+                          CONF_snapshrecalltime = 0.5,
+                          CONF_invertYscale = 0
                           
                           }
     DATA:ExtStateGet()
@@ -122,7 +123,21 @@
                                                                 func = function()
                                                                           local ID = DATA.GUI.custom_currentsnapshotID or 1
                                                                           DATA2:Snapshot_Reset(ID)  
-                                                                        end},                                                                            
+                                                                        end},   
+                                                              { str = '|Smooth recall: off',
+                                                                state =  DATA.extstate.CONF_snapshrecalltime==0,
+                                                                func = function() DATA.extstate.CONF_snapshrecalltime = 0 DATA.UPD.onconfchange=true end},                                                                          
+                                                              { str = 'Smooth recall: 0.1sec',
+                                                                state =  DATA.extstate.CONF_snapshrecalltime==0.1,
+                                                                func = function() DATA.extstate.CONF_snapshrecalltime = 0.1 DATA.UPD.onconfchange=true end},    
+                                                              { str = 'Smooth recall: 0.5sec',
+                                                                state =  DATA.extstate.CONF_snapshrecalltime==0.5,
+                                                                func = function() DATA.extstate.CONF_snapshrecalltime = 0.5 DATA.UPD.onconfchange=true end},    
+                                                              { str = 'Smooth recall: 1sec',
+                                                                state =  DATA.extstate.CONF_snapshrecalltime==1,
+                                                                func = function() DATA.extstate.CONF_snapshrecalltime = 1 DATA.UPD.onconfchange=true end},                                                                 
+                                                                 
+                                                                        
                                                             }) 
                                             end
                             --frame_a = 0,
@@ -149,10 +164,11 @@
                               backgr_col = backgr_col,
                               onmouseclick = function()
                                               if DATA2.Snapshots[i] and DATA.GUI.Ctrl~= true then
+                                                local oldID = DATA.GUI.custom_currentsnapshotID
                                                 DATA.GUI.custom_currentsnapshotID = i
                                                 GUI_buttons_snapshots(DATA) 
                                                 DATA2:Snapshot_Read()
-                                                DATA2:Snapshot_Recall(i)
+                                                DATA2:Snapshot_Recall(i,oldID)
                                                 GUI_buttons_snapshots(DATA) 
                                                else
                                                 DATA2:Snapshot_WriteCurrent(i)
@@ -292,6 +308,14 @@
                               DATA.UPD.onconfchange = true
                               GUI_buttons(DATA) 
                             end,
+                            onmousereleaseR  = function() 
+                              DATA:GUImenu({
+                                { str = 'Invert Y',
+                                state =  DATA.extstate.CONF_invertYscale==1,
+                                func = function() DATA.extstate.CONF_invertYscale = DATA.extstate.CONF_invertYscale~1 DATA.UPD.onconfchange=true end},  
+                              })
+                            end,                            
+ 
                           }                          
                           
                           
@@ -346,9 +370,38 @@
     end
   end
   ------------------------------------------------------------------------------------------------------
-  function DATA2:Snapshot_Recall(ID)
+  function DATA2:Snapshot_Recall_persist()
+    local ID = DATA2.Recall_newID
+    local oldID = DATA2.Recall_oldID
+    local Recall_state = DATA2.Recall_state
+    for GUID in pairs(DATA2.Snapshots[ID]) do
+      local tr = DATA2.Snapshots[oldID][GUID].tr_ptr
+      if not tr then 
+        tr = VF_GetTrackByGUID(GUID)
+        DATA2.Snapshots[oldID][GUID].tr_ptr = tr
+      end
+      if tr then
+        SetTrackSelected( tr, true )
+        SetMediaTrackInfo_Value( tr, 'D_PAN', DATA2.Snapshots[oldID][GUID].pan + (DATA2.Snapshots[ID][GUID].pan - DATA2.Snapshots[oldID][GUID].pan)*Recall_state)
+        SetMediaTrackInfo_Value( tr, 'D_VOL', DATA2.Snapshots[oldID][GUID].vol + (DATA2.Snapshots[ID][GUID].vol - DATA2.Snapshots[oldID][GUID].vol)*Recall_state)
+        SetMediaTrackInfo_Value( tr, 'D_WIDTH', DATA2.Snapshots[oldID][GUID].width + (DATA2.Snapshots[ID][GUID].width - DATA2.Snapshots[oldID][GUID].width)*Recall_state)
+        SetMediaTrackInfo_Value( tr, 'I_PANMODE', 5)
+      end
+    end
+  end
+  ------------------------------------------------------------------------------------------------------
+  function DATA2:Snapshot_Recall(ID,oldID)
     if not (ID and DATA2.Snapshots and DATA2.Snapshots[ID]) then return end 
     Action(40297) -- unselect all tracks
+    
+    if oldID and DATA.extstate.CONF_snapshrecalltime > 0 then 
+      DATA2.Recall_timer = DATA.extstate.CONF_snapshrecalltime
+      DATA2.Recall_newID = ID
+      DATA2.Recall_oldID = oldID
+      for GUID in pairs(DATA2.Snapshots[ID]) do DATA2.Snapshots[oldID][GUID].tr_ptr = nil end
+      return 
+    end
+    
     for GUID in pairs(DATA2.Snapshots[ID]) do
       local tr = VF_GetTrackByGUID(GUID)
       if tr then
@@ -359,6 +412,7 @@
         SetMediaTrackInfo_Value( tr, 'I_PANMODE', 5)
       end
     end
+    
   end
   ---------------------------------------------------
   function DATA2:Snapshot_Write()  
@@ -432,6 +486,7 @@
   function GUI_Scale_GetYPosFromdB(db_val)
     if not db_val then return 0 end 
     local linearval = 1-GUI_Scale_Convertion(db_val)
+    if DATA.extstate.CONF_invertYscale == 1 then linearval = GUI_Scale_Convertion(db_val) end 
     local area = DATA.GUI.buttons.scale.h - DATA.GUI.custom_tr_h
     return linearval *  area + DATA.GUI.buttons.scale.y
   end
@@ -441,6 +496,9 @@
     if not tr then return end
     local area = DATA.GUI.buttons.scale.h - DATA.GUI.custom_tr_h
     val =  1-  ( Yval -  DATA.GUI.buttons.scale.y+DATA.GUI.custom_tr_h/2)/ area
+    if DATA.extstate.CONF_invertYscale == 1 then 
+      val =  ( Yval -  DATA.GUI.buttons.scale.y+DATA.GUI.custom_tr_h/2)/ area
+    end
     local db_val = GUI_Scale_Convertion(nil,val  )
     SetMediaTrackInfo_Value(tr, 'D_VOL',VF_lim(WDL_DB2VAL(db_val),0,6))
   end
@@ -851,6 +909,11 @@
   function  DATA_RESERVED_DYNUPDATE(DATA, trig)
     local trig_upd_s = 0.05
     
+    if DATA2.Recall_timer and DATA2.Recall_timer > 0 then
+      DATA2.Recall_timer = math.max(DATA2.Recall_timer - 0.04,0)
+      DATA2.Recall_state = 1-(DATA2.Recall_timer / DATA.extstate.CONF_snapshrecalltime)
+      DATA2:Snapshot_Recall_persist()
+    end
     
     DATA2.upd_TS = os.clock()
     if not DATA2.last_upd_TS then DATA2.last_upd_TS = DATA2.upd_TS end
