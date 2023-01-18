@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e5229320b9dfda0062a67a54961b5686f95e7afe" name="MPL Scripts">
+<index version="1" commit="ff761d3a39465ad357d9c26a11ac589885ae6d43" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11699,6 +11699,11 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[+ Alt click on track reset volume
 + Shift click on track reset pan]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b4abb36d84d6faab88905b8c1f42d3a6695a2f20/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.05" author="MPL" time="2023-01-18T21:00:18Z">
+        <changelog><![CDATA[+ Snapshots: add support for smooth recall
++ Add support for inverting Y axis (rightclick Y scale knob)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ff761d3a39465ad357d9c26a11ac589885ae6d43/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
