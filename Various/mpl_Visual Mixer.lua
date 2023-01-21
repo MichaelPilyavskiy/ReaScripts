@@ -1,16 +1,13 @@
 -- @description VisualMixer
--- @version 2.08
+-- @version 2.09
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
--- @about Pretty same as what Izotope Neutron Visual mixer do
+-- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    # GUI: don`t allow to marque when drag width
---    # GUI: don`t refresh when draggin 
---    # GUI: don`t perform setting values if mouse is not moving
---    # GUI: make colors brighter
---    + Settings: allow to set black background
---    + Settings: allow to use CSurf API (this will write envelopes but will spam undo history)
---    + Print undo point at mouse release
+--    + GUI: improve drawing pan grid
+--    + GUI: allow to show icons (require latest Various Functions)
+--    + GUI: allow to hide names
+--    + GUI: allow to show names only if there is no icon
 
 
 
@@ -19,7 +16,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.08
+    DATA.extstate.version = 2.09
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -30,12 +27,6 @@
                           wind_h =  600,
                           dock =    0, 
                           
-                          UI_groupflags = 0,
-                          UI_appatchange = 0,
-                          UI_initatmouse = 0,
-                          UI_enableshortcuts = 1,
-                          UI_showtooltips = 1,
-                          UI_sidegrid = 0,
                           
                           -- global
                           CONF_NAME = 'default',
@@ -47,7 +38,17 @@
                           CONF_action = 0,
                           CONF_randsymflags = 0,
                           CONF_csurf = 0,
+                          
+                          UI_groupflags = 0,
+                          UI_appatchange = 0,
+                          UI_initatmouse = 0,
+                          UI_enableshortcuts = 1,
+                          UI_showtooltips = 1,
+                          UI_sidegrid = 0,
                           UI_backgrcol = '#333333',
+                          UI_showtracknames = 1,
+                          UI_showtracknames_flags = 1,
+                          UI_showicons = 1,
                           }
     DATA:ExtStateGet()
     DATA:ExtStateGetPresets() 
@@ -826,6 +827,14 @@
     --info
     local infotxt = DATA2.tracks[GUID].name
     local w_txt = gfx.measurestr(infotxt)
+    
+    local txtout = ''
+    if DATA.extstate.UI_showtracknames ==1 and 
+      ( 
+         DATA.extstate.UI_showtracknames_flags&1==0 or 
+        (DATA.extstate.UI_showtracknames_flags&1==1 and not DATA2.tracks[GUID].icon_fp)) then 
+          txtout = infotxt 
+    end
     DATA.GUI.buttons['trackrect'..GUID..'info']={x=xpos+DATA.extstate.CONF_tr_rect_px/2-w_txt/2,
                             y=ypos+DATA.GUI.custom_tr_h+DATA.GUI.custom_trwidthhandleh,
                             w=w_txt,
@@ -834,8 +843,9 @@
                             refresh = true,
                             txt_fontsz = DATA.GUI.custom_txtfontszinfo,
                             txt_flags = 1,
-                            txt = infotxt,
+                            txt = txtout,
                             ignoremouse = true}
+    
     
   end
   ---------------------------------------------------------------------  
@@ -852,7 +862,8 @@
       end
       local xpos = math.floor(GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan)-DATA.extstate.CONF_tr_rect_px/2)
       local ypos = math.floor(GUI_Scale_GetYPosFromdB  (DATA2.tracks[GUID].vol_dB)   -DATA.GUI.custom_tr_h/2)
-      DATA.GUI.buttons['trackrect'..GUID]={x=xpos,
+      DATA.GUI.buttons['trackrect'..GUID]={
+                            x=xpos,
                             y=ypos,
                             w=DATA.extstate.CONF_tr_rect_px,
                             h=DATA.GUI.custom_tr_h,
@@ -861,6 +872,7 @@
                             frame_col = frame_col,
                             refresh = true,
                             sel_allow = true,
+                            
                             --sel_isselected=true,
                             onmousematchcont = function () end,
                             onmouseclick = function() 
@@ -941,8 +953,10 @@
                                                 DATA2:Snapshot_Write()
                                                 DATA2.ontrackobj = false
                                                 Undo_OnStateChangeEx2( 0, 'MPL Visual mixer change', 1, -1 )
-                                              end
+                                              end,
+                            
                             }
+      if DATA.extstate.UI_showicons == 1 then DATA.GUI.buttons['trackrect'..GUID].png = DATA2.tracks[GUID].icon_fp end
       DATA2:GUI_inittracks_initstuff(DATA,GUID,xpos,ypos, frame_col)
     end
   end
@@ -1019,13 +1033,25 @@
       if gfx.y + gfx.texth> gfx.h then gfx.y = gfx.h -gfx.texth  end
       gfx.a = texta 
       
-      gfx.line(gfx.w/2-x_plane2/2, ypos,gfx.w/2 +x_plane2/2,ypos)
-      gfx.x = (DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w/2)*DATA.GUI.default_scale+ x_plane2/2 + 5--gfx.measurestr(txt)-2
-      gfx.drawstr(txt) 
       
-      if DATA.extstate.UI_sidegrid == 1 then
-      
-      end
+      --if DATA.extstate.UI_sidegrid == 1 then
+        local hrect = 4
+        local inita = 0.5
+        local dx = inita/(b.w/2)
+        gfx.gradrect(b.x,ypos-hrect/2+1,b.w/2,hrect, 1,1,1,0, 0, 0, 0, dx, 0,0, 0, 0 )
+        gfx.gradrect(b.x+b.w/2,ypos-hrect/2+1,b.w/2,hrect, 1,1,1,inita, 0, 0, 0, -dx, 0,0, 0, 0 )
+        --gfx.line(gfx.w/2-x_plane2/2, ypos,gfx.w/2 +x_plane2/2,ypos)
+        gfx.x = (DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w/2)*DATA.GUI.default_scale+ x_plane2/2 + 5--gfx.measurestr(txt)-2
+        --gfx.drawstr(txt)
+        gfx.x= b.x
+        gfx.drawstr(txt)         
+        gfx.x= b.x+b.w-gfx.measurestr(txt)
+        gfx.drawstr(txt) 
+       --[[else
+        gfx.line(gfx.w/2-x_plane2/2, ypos,gfx.w/2 +x_plane2/2,ypos)
+        gfx.x = (DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w/2)*DATA.GUI.default_scale+ x_plane2/2 + 5--gfx.measurestr(txt)-2
+        gfx.drawstr(txt) 
+      end]]
       
     end
     
@@ -1140,10 +1166,12 @@
       --name
       local retval, trname = GetTrackName( tr, '' ) 
       local I_FOLDERDEPTH = GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH')
+      local retval, icon_fp = reaper.GetSetMediaTrackInfo_String( tr, 'P_ICON', '', false ) if icon_fp =='' then icon_fp = nil end
       DATA2.tracks[GUID] = {  ptr = tr,
                               pan = pan,
                               vol = vol,
                               vol_dB = vol_dB,
+                              icon_fp=icon_fp,
                               I_FOLDERDEPTH = I_FOLDERDEPTH,
                               name = trname,
                               width = GetMediaTrackInfo_Value( tr, 'D_WIDTH'),
@@ -1203,8 +1231,11 @@
       {str = 'Snapshot' ,                           group = 1, itype = 'sep'}, 
         {str = 'Smooth transition' ,                group = 1, itype = 'readout', confkey = 'CONF_snapshrecalltime', level = 1, val_min = 0, val_max = 2, val_res = 0.05, val_format = function(x) return VF_math_Qdec(x,3)..'s' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end},
       {str = 'UI' ,                                 group = 1, itype = 'sep'}, 
-        {str = 'Background color (require restart)',            group = 1, itype = 'readout', confkey = 'UI_backgrcol', level = 1, menu = {['#333333'] = 'Grey', ['#0A0A0A'] = 'Black'},func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
-        {str = 'Draw side grid line',               group = 1, itype = 'readout', confkey = 'UI_sidegrid', level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
+        {str = 'Background color (require restart)',group = 1, itype = 'readout', confkey = 'UI_backgrcol', level = 1, menu = {['#333333'] = 'Grey', ['#0A0A0A'] = 'Black'},func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
+        --{str = 'Draw side grid line',               group = 1, itype = 'check', confkey = 'UI_sidegrid', level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
+        {str = 'Show track names',                  group = 1, itype = 'check', confkey = 'UI_showtracknames', level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
+          {str = 'Only if there is no icons',       group = 1, itype = 'check', confkey = 'UI_showtracknames_flags', level = 2,confkeybyte  =0, func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
+        {str = 'Show track icons',                  group = 1, itype = 'check', confkey = 'UI_showicons', level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
         {str = 'Dock / undock',                     group = 1, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = function () GUI_dock(DATA) end},
       {str = 'General' ,                            group = 4, itype = 'sep'}, 
         {str = 'Restore defaults',                  group = 4, itype = 'button', level = 1, func_onrelease = function () DATA:ExtStateRestoreDefaults()  end}
@@ -1217,4 +1248,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.53) if ret then local ret2 = VF_CheckReaperVrs(6,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.54) if ret then local ret2 = VF_CheckReaperVrs(6,true) if ret2 then main() end end

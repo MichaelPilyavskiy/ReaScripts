@@ -481,6 +481,7 @@
     local backgr_fill2 = b.backgr_fill2 or 0
     local frame_col = b.frame_col
     local back_sel_recta = b.back_sel_recta
+    local png = b.png
     
     x,y,w,h = 
               math.floor(x*DATA.GUI.default_scale),
@@ -532,6 +533,17 @@
           gfx.rect(x+1,y+1,w-1,h-1,0) 
         end
       end 
+    
+    -- png
+      if png then 
+        local img_temp = 32
+        gfx.setimgdim(img_temp, -1, -1)  
+        gfx.setpixel(1,1,1)
+        img_temp = gfx.loadimg(img_temp,png )
+        local iw,ih = gfx.getimgdim(img_temp )
+        gfx.setimgdim(img_temp, iw,ih)  
+        gfx.blit(img_temp, 1, 0, 0, 0, iw, ih, x, y, w, h, 0, 0 )
+      end
       
     -- slider
       if b.slider_isslider then 
@@ -803,6 +815,8 @@
     -- 10 - 20 reserved
     --if not DATA.GUI.layers[21] then DATA.GUI.layers[21] = {a=1} end -- Dynamic stuff 1 -- typically settings list
     --if not DATA.GUI.layers[22] then DATA.GUI.layers[22] = {a=1} end -- Dynamic stuff 2 -- typically scrollable list
+    -- 32 reserved fo PNG blit option
+    
     
     if not DATA.GUI.layers_refresh  then DATA.GUI.layers_refresh = {} end
     local upd_customlayers = false
