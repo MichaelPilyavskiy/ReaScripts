@@ -475,8 +475,8 @@
                             
     local offsetframe = b.offsetframe or 0
     local offsetframe_a = b.offsetframe_a or 0
-    local backgr_col = b.backgr_col or '#333333'
-    local backgr_col2 = b.backgr_col2 or '#333333'
+    local backgr_col = b.backgr_col or DATA.GUI.default_backgr
+    local backgr_col2 = b.backgr_col2 or DATA.GUI.default_backgr
     local backgr_fill = b.backgr_fill or 1
     local backgr_fill2 = b.backgr_fill2 or 0
     local frame_col = b.frame_col
@@ -1441,8 +1441,6 @@
                           DATA.UPD.onconfchange = true 
                           DATA:GUIBuildSettings()  
                           --DATA.GUI.buttons[key].refresh = true
-                          
-                          
                         end
     }
     return DATA.GUI.buttons[key].y+DATA.GUI.buttons[key].h

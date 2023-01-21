@@ -1,19 +1,16 @@
 -- @description VisualMixer
--- @version 2.07
+-- @version 2.08
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Pretty same as what Izotope Neutron Visual mixer do
 -- @changelog
---    + Snapshots: add undo point at snapshot recall
---    + GUI: move controls down if window is narrow
---    + GUI: change size live
---    + GUI: change scale live
---    + GUI: reduce knob labels
---    # refresh tracks after inverting Y
---    + Random: add chaotic random
---    + Random: add symmetric random + various  options
---    + Settings: dock/undock
---    + Settings: reset to defaults
+--    # GUI: don`t allow to marque when drag width
+--    # GUI: don`t refresh when draggin 
+--    # GUI: don`t perform setting values if mouse is not moving
+--    # GUI: make colors brighter
+--    + Settings: allow to set black background
+--    + Settings: allow to use CSurf API (this will write envelopes but will spam undo history)
+--    + Print undo point at mouse release
 
 
 
@@ -22,7 +19,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.07
+    DATA.extstate.version = 2.08
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -38,6 +35,7 @@
                           UI_initatmouse = 0,
                           UI_enableshortcuts = 1,
                           UI_showtooltips = 1,
+                          UI_sidegrid = 0,
                           
                           -- global
                           CONF_NAME = 'default',
@@ -48,7 +46,8 @@
                           CONF_invertYscale = 0,
                           CONF_action = 0,
                           CONF_randsymflags = 0,
-                          
+                          CONF_csurf = 0,
+                          UI_backgrcol = '#333333',
                           }
     DATA:ExtStateGet()
     DATA:ExtStateGetPresets() 
@@ -106,6 +105,8 @@
   end
   ---------------------------------------------------------------------  
   function GUI_RESERVED_init(DATA)
+    -- overrride VF3 GUI
+    DATA.GUI.default_backgr = DATA.extstate.UI_backgrcol --black
     
     DATA.GUI.custom_mainbuth = 30
     DATA.GUI.custom_offset = math.floor(DATA.GUI.default_scale*DATA.GUI.default_txt_fontsz/2)
@@ -126,8 +127,7 @@
     DATA.GUI.custom_ctrl_singlew = math.floor(DATA.GUI.custom_ctrls_w/7)
     if DATA.GUI.custom_compactmode ==true then DATA.GUI.custom_ctrl_singlew = math.floor(DATA.GUI.custom_ctrls_w/4) end
     DATA.GUI.default_data_a = 0.7-- normal
-    DATA.GUI.default_data_a2 = 0.2 -- ignore serach
-    
+    DATA.GUI.default_data_a2 = 0.2 -- ignore serach 
     DATA.GUI.custom_currentsnapshotID = 1
     
     DATA.GUI.buttons = {}
@@ -671,9 +671,18 @@
     local tr = VF_GetTrackByGUID(GUID)
     if not tr then return end
     local area = DATA.GUI.buttons.scale.w - DATA.extstate.CONF_tr_rect_px
-    local pan = -0.5+(Xval - DATA.GUI.buttons.scale.x) / area
-    --CSurf_OnPanChangeEx(tr, pan, false, false)
-    SetMediaTrackInfo_Value( tr, 'D_PAN', pan*2)
+    local pan = -0.5+(Xval - DATA.GUI.buttons.scale.x) / area 
+    if DATA.extstate.CONF_csurf ==1 then 
+      if DATA.extstate.CONF_csurf ==1 then 
+        local t = {}
+        for i=1, CountSelectedTracks(0) do t[#t+1]=GetSelectedTrack(0,i-1) end
+        SetOnlyTrackSelected(tr)
+        CSurf_OnPanChangeEx(tr, pan*2, false, false) 
+        for i= 1,#t do SetTrackSelected(t[i],true) end
+      end
+     else 
+      SetMediaTrackInfo_Value( tr, 'D_PAN', pan*2) 
+    end
   end
   
   
@@ -690,8 +699,19 @@
     local tr = VF_GetTrackByGUID(GUID)
     if not tr then return end 
     local width = ((Wval / DATA.extstate.CONF_tr_rect_px)-DATA.GUI.custom_minw_ratio)/(1-DATA.GUI.custom_minw_ratio) 
-    SetMediaTrackInfo_Value( tr, 'D_WIDTH', width)
+    
     SetMediaTrackInfo_Value( tr, 'I_PANMODE', 5)
+    if DATA.extstate.CONF_csurf ==1 then 
+      if DATA.extstate.CONF_csurf ==1 then 
+        local t = {}
+        for i=1, CountSelectedTracks(0) do t[#t+1]=GetSelectedTrack(0,i-1) end
+        SetOnlyTrackSelected(tr)
+        CSurf_OnWidthChange( tr, width, false ) 
+        for i= 1,#t do SetTrackSelected(t[i],true) end
+      end
+     else 
+      SetMediaTrackInfo_Value( tr, 'D_WIDTH', width) 
+    end
   end
   
   
@@ -721,7 +741,19 @@
     end 
     
     local db_val = GUI_Scale_Convertion(nil,val  )
-    SetMediaTrackInfo_Value(tr, 'D_VOL',VF_lim(WDL_DB2VAL(db_val),0,6))
+    local volout = VF_lim(WDL_DB2VAL(db_val),0,6)
+    if DATA.extstate.CONF_csurf ==1 then 
+      
+      if DATA.extstate.CONF_csurf ==1 then 
+        local t = {}
+        for i=1, CountSelectedTracks(0) do t[#t+1]=GetSelectedTrack(0,i-1) end
+        SetOnlyTrackSelected(tr)
+        CSurf_OnVolumeChange( tr, volout, false, false ) 
+        for i= 1,#t do SetTrackSelected(t[i],true) end
+      end
+     else 
+      SetMediaTrackInfo_Value(tr, 'D_VOL',volout)
+    end
   end
   
 
@@ -756,13 +788,17 @@
                                             DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].latch_w = DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].w
                                           end,
                           onmousedrag = function()
-                                          local wout = VF_lim(DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].latch_w + DATA.GUI.dx/DATA.GUI.default_scale, DATA.extstate.CONF_tr_rect_px*DATA.GUI.custom_minw_ratio, DATA.extstate.CONF_tr_rect_px)
-                                          DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].w = wout
-                                          local xpos = math.floor(GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan)-DATA.extstate.CONF_tr_rect_px/2)
-                                          DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].x= xpos+DATA.extstate.CONF_tr_rect_px/2-wout/2
-                                          DATA2:TrackMap_ApplyTrWidth(GUID,wout) 
+                                          DATA2.ontrackobj = true
+                                          if DATA.GUI.mouse_ismoving then 
+                                            local wout = VF_lim(DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].latch_w + DATA.GUI.dx/DATA.GUI.default_scale, DATA.extstate.CONF_tr_rect_px*DATA.GUI.custom_minw_ratio, DATA.extstate.CONF_tr_rect_px)
+                                            DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].w = wout
+                                            local xpos = math.floor(GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan)-DATA.extstate.CONF_tr_rect_px/2)
+                                            DATA.GUI.buttons['trackrect'..GUID..'widthhandle'].x= xpos+DATA.extstate.CONF_tr_rect_px/2-wout/2
+                                            DATA2:TrackMap_ApplyTrWidth(GUID,wout) 
+                                          end
                                         end,
                           onmouserelease =  function()
+                                              DATA2.ontrackobj = false
                                               DATA2:tracks_init(true)
                                               local ID = DATA.GUI.custom_currentsnapshotID or 1
                                               DATA2:Snapshot_WriteCurrent(ID)
@@ -821,13 +857,14 @@
                             w=DATA.extstate.CONF_tr_rect_px,
                             h=DATA.GUI.custom_tr_h,
                             --backgr_fill = 0,
-                            frame_a =0.4,
+                            frame_a =0.7,
                             frame_col = frame_col,
                             refresh = true,
                             sel_allow = true,
                             --sel_isselected=true,
                             onmousematchcont = function () end,
                             onmouseclick = function() 
+                                              DATA2.ontrackobj = true
                                               if DATA.GUI.Alt == true or DATA.GUI.Shift == true then 
                                                 for GUID in pairs(DATA2.tracks) do 
                                                   if DATA.GUI.buttons['trackrect'..GUID].sel_isselected == true then
@@ -869,17 +906,20 @@
                                             end,
                             --onmousedrag_skipotherobjects = true,
                             onmousedrag = function()
+                                          
                                             if DATA.GUI.Alt == true or DATA.GUI.Shift == true then return end
                                             DATA2.ontrackobj = true
-                                            for GUID in pairs(DATA2.tracks) do
-                                              if DATA.GUI.buttons['trackrect'..GUID].sel_isselected == true then
-                                                if DATA.GUI.buttons['trackrect'..GUID].latch_x then
-                                                  DATA.GUI.buttons['trackrect'..GUID].x = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_x + DATA.GUI.dx/DATA.GUI.default_scale, DATA.GUI.buttons.scale.x , DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w-DATA.extstate.CONF_tr_rect_px)
-                                                  DATA.GUI.buttons['trackrect'..GUID].y = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_y + DATA.GUI.dy/DATA.GUI.default_scale, DATA.GUI.buttons.scale.y, DATA.GUI.buttons.scale.y+DATA.GUI.buttons.scale.h-DATA.GUI.custom_tr_h)
-                                                  DATA.GUI.buttons['trackrect'..GUID].refresh = true
-                                                  DATA2:TrackMap_ApplyTrPan(GUID,DATA.GUI.buttons['trackrect'..GUID].x) 
-                                                  DATA2:TrackMap_ApplyTrVol(GUID,DATA.GUI.buttons['trackrect'..GUID].y)  
-                                                  DATA2:GUI_inittracks_initstuff(DATA,GUID,DATA.GUI.buttons['trackrect'..GUID].x,DATA.GUI.buttons['trackrect'..GUID].y )
+                                            if DATA.GUI.mouse_ismoving then 
+                                              for GUID in pairs(DATA2.tracks) do
+                                                if DATA.GUI.buttons['trackrect'..GUID].sel_isselected == true then
+                                                  if DATA.GUI.buttons['trackrect'..GUID].latch_x then
+                                                    DATA.GUI.buttons['trackrect'..GUID].x = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_x + DATA.GUI.dx/DATA.GUI.default_scale, DATA.GUI.buttons.scale.x , DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w-DATA.extstate.CONF_tr_rect_px)
+                                                    DATA.GUI.buttons['trackrect'..GUID].y = VF_lim(DATA.GUI.buttons['trackrect'..GUID].latch_y + DATA.GUI.dy/DATA.GUI.default_scale, DATA.GUI.buttons.scale.y, DATA.GUI.buttons.scale.y+DATA.GUI.buttons.scale.h-DATA.GUI.custom_tr_h)
+                                                    DATA.GUI.buttons['trackrect'..GUID].refresh = true
+                                                    DATA2:TrackMap_ApplyTrPan(GUID,DATA.GUI.buttons['trackrect'..GUID].x)
+                                                    DATA2:TrackMap_ApplyTrVol(GUID,DATA.GUI.buttons['trackrect'..GUID].y) 
+                                                    DATA2:GUI_inittracks_initstuff(DATA,GUID,DATA.GUI.buttons['trackrect'..GUID].x,DATA.GUI.buttons['trackrect'..GUID].y )
+                                                  end
                                                 end
                                               end
                                             end
@@ -900,6 +940,7 @@
                                                 DATA2:Snapshot_WriteCurrent(ID)
                                                 DATA2:Snapshot_Write()
                                                 DATA2.ontrackobj = false
+                                                Undo_OnStateChangeEx2( 0, 'MPL Visual mixer change', 1, -1 )
                                               end
                             }
       DATA2:GUI_inittracks_initstuff(DATA,GUID,xpos,ypos, frame_col)
@@ -966,7 +1007,7 @@
       -80
       }
     local x_plane2 = 50*DATA.GUI.default_scale
-    local texta = 0.4
+    local texta = 0.5
     
     -- values
     gfx.set(1,1,1)
@@ -977,13 +1018,15 @@
       if gfx.y < 0 then gfx.y = 0 end
       if gfx.y + gfx.texth> gfx.h then gfx.y = gfx.h -gfx.texth  end
       gfx.a = texta 
-     -- if gfx.y +gfx.texth< (DATA.GUI.buttons.scale.y+DATA.GUI.buttons.scale.h) then 
-        gfx.line(gfx.w/2-x_plane2/2, ypos,gfx.w/2 +x_plane2/2,ypos)
-        gfx.x = (DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w/2)*DATA.GUI.default_scale+ x_plane2/2 + 5--gfx.measurestr(txt)-2
-        gfx.drawstr(txt) 
-      --end
-      --gfx.x  = DATA.GUI.buttons.scale.x + 2
-      --gfx.drawstr(txt)
+      
+      gfx.line(gfx.w/2-x_plane2/2, ypos,gfx.w/2 +x_plane2/2,ypos)
+      gfx.x = (DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w/2)*DATA.GUI.default_scale+ x_plane2/2 + 5--gfx.measurestr(txt)-2
+      gfx.drawstr(txt) 
+      
+      if DATA.extstate.UI_sidegrid == 1 then
+      
+      end
+      
     end
     
     gfx.y = DATA.GUI.default_scale * (DATA.GUI.buttons.scale.y + DATA.GUI.buttons.scale.h/2)
@@ -1071,9 +1114,11 @@
   end
   ----------------------------------------------------------------------
   function DATA_RESERVED_ONPROJCHANGE(DATA)
-    DATA2:tracks_init()
-    DATA2:tracks_update_peaks()
-    DATA2:GUI_inittracks(DATA)
+    if DATA2.ontrackobj ~= true then
+      DATA2:tracks_init()
+      DATA2:tracks_update_peaks()
+      DATA2:GUI_inittracks(DATA)
+    end
   end 
   ----------------------------------------------------------------------
   function DATA2:tracks_init(force)
@@ -1153,10 +1198,16 @@
         
     local  t = 
     { 
-      {str = 'Snapshot' ,                      group = 1, itype = 'sep'}, 
-        {str = 'Smooth transition' ,           group = 1, itype = 'readout', confkey = 'CONF_snapshrecalltime', level = 1, val_min = 0, val_max = 2, val_res = 0.05, val_format = function(x) return VF_math_Qdec(x,3)..'s' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end},
-      {str = 'Dock / undock',                  group = 2, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = function () GUI_dock(DATA) end},
-      {str = 'Restore defaults',               group = 2, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = function () DATA:ExtStateRestoreDefaults()  end}
+      {str = 'Objects global' ,                     group = 3, itype = 'sep'}, 
+        {str = 'Use Csurf API for objects movings', group = 3, itype = 'check',level = 1,  confkey = 'CONF_csurf'}, 
+      {str = 'Snapshot' ,                           group = 1, itype = 'sep'}, 
+        {str = 'Smooth transition' ,                group = 1, itype = 'readout', confkey = 'CONF_snapshrecalltime', level = 1, val_min = 0, val_max = 2, val_res = 0.05, val_format = function(x) return VF_math_Qdec(x,3)..'s' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end},
+      {str = 'UI' ,                                 group = 1, itype = 'sep'}, 
+        {str = 'Background color (require restart)',            group = 1, itype = 'readout', confkey = 'UI_backgrcol', level = 1, menu = {['#333333'] = 'Grey', ['#0A0A0A'] = 'Black'},func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
+        {str = 'Draw side grid line',               group = 1, itype = 'readout', confkey = 'UI_sidegrid', level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
+        {str = 'Dock / undock',                     group = 1, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = function () GUI_dock(DATA) end},
+      {str = 'General' ,                            group = 4, itype = 'sep'}, 
+        {str = 'Restore defaults',                  group = 4, itype = 'button', level = 1, func_onrelease = function () DATA:ExtStateRestoreDefaults()  end}
         
 
     } 
@@ -1166,4 +1217,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.25) if ret then local ret2 = VF_CheckReaperVrs(6,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.53) if ret then local ret2 = VF_CheckReaperVrs(6,true) if ret2 then main() end end
