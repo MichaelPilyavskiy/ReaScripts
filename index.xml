@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="35e0ec320d436f33eff48fc28e5c84646707219c" name="MPL Scripts">
+<index version="1" commit="4c2b2a1fd42166142c29148aaef5a41de704eb5f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1411,6 +1411,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855466e46c9488392658ae67c8503b076c7f31d1/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855466e46c9488392658ae67c8503b076c7f31d1/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/855466e46c9488392658ae67c8503b076c7f31d1/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.53" author="MPL" time="2023-01-21T08:36:56Z">
+        <changelog><![CDATA[# improve default background]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c2b2a1fd42166142c29148aaef5a41de704eb5f/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c2b2a1fd42166142c29148aaef5a41de704eb5f/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c2b2a1fd42166142c29148aaef5a41de704eb5f/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c2b2a1fd42166142c29148aaef5a41de704eb5f/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c2b2a1fd42166142c29148aaef5a41de704eb5f/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c2b2a1fd42166142c29148aaef5a41de704eb5f/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -11717,6 +11726,16 @@ add control for timefall showing last note]]></changelog>
 + Settings: dock/undock
 + Settings: reset to defaults]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/35e0ec320d436f33eff48fc28e5c84646707219c/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.08" author="MPL" time="2023-01-21T08:36:56Z">
+        <changelog><![CDATA[# GUI: don`t allow to marque when drag width
+# GUI: don`t refresh when draggin 
+# GUI: don`t perform setting values if mouse is not moving
+# GUI: make colors brighter
++ Settings: allow to set black background
++ Settings: allow to use CSurf API (this will write envelopes but will spam undo history)
++ Print undo point at mouse release]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c2b2a1fd42166142c29148aaef5a41de704eb5f/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
