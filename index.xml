@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4c2b2a1fd42166142c29148aaef5a41de704eb5f" name="MPL Scripts">
+<index version="1" commit="4ffe84a7f77a1a324f00f9da7415d17598e2beaf" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1420,6 +1420,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c2b2a1fd42166142c29148aaef5a41de704eb5f/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c2b2a1fd42166142c29148aaef5a41de704eb5f/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c2b2a1fd42166142c29148aaef5a41de704eb5f/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.54" author="MPL" time="2023-01-21T11:12:22Z">
+        <changelog><![CDATA[+ Support blit using 32 layer]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ffe84a7f77a1a324f00f9da7415d17598e2beaf/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ffe84a7f77a1a324f00f9da7415d17598e2beaf/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ffe84a7f77a1a324f00f9da7415d17598e2beaf/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ffe84a7f77a1a324f00f9da7415d17598e2beaf/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ffe84a7f77a1a324f00f9da7415d17598e2beaf/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ffe84a7f77a1a324f00f9da7415d17598e2beaf/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -11666,7 +11675,7 @@ add control for timefall showing last note]]></changelog>
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Pretty same as what Izotope Neutron Visual mixer do\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Basic Izotope Neutron Visual mixer port to REAPER environment\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
@@ -11736,6 +11745,13 @@ add control for timefall showing last note]]></changelog>
 + Settings: allow to use CSurf API (this will write envelopes but will spam undo history)
 + Print undo point at mouse release]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c2b2a1fd42166142c29148aaef5a41de704eb5f/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.09" author="MPL" time="2023-01-21T11:12:22Z">
+        <changelog><![CDATA[+ GUI: improve drawing pan grid
++ GUI: allow to show icons (require latest Various Functions)
++ GUI: allow to hide names
++ GUI: allow to show names only if there is no icon]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ffe84a7f77a1a324f00f9da7415d17598e2beaf/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
