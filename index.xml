@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8799f0edc25ab775393e4538a1bb3b35e70b4e66" name="MPL Scripts">
+<index version="1" commit="7964bb590f483e7253585a2d8b0d0d212effdcdc" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1429,6 +1429,15 @@
         <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ffe84a7f77a1a324f00f9da7415d17598e2beaf/Functions/mpl_Various_functions_GUI.lua</source>
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ffe84a7f77a1a324f00f9da7415d17598e2beaf/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ffe84a7f77a1a324f00f9da7415d17598e2beaf/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
+      <version name="3.55" author="MPL" time="2023-01-22T09:29:59Z">
+        <changelog><![CDATA[+ Support reset UI config]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7964bb590f483e7253585a2d8b0d0d212effdcdc/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7964bb590f483e7253585a2d8b0d0d212effdcdc/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7964bb590f483e7253585a2d8b0d0d212effdcdc/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7964bb590f483e7253585a2d8b0d0d212effdcdc/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7964bb590f483e7253585a2d8b0d0d212effdcdc/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7964bb590f483e7253585a2d8b0d0d212effdcdc/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
     </reapack>
   </category>
@@ -11757,6 +11766,22 @@ add control for timefall showing last note]]></changelog>
 + GUI: allow to hide names
 + GUI: allow to show names only if there is no icon]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4ffe84a7f77a1a324f00f9da7415d17598e2beaf/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.10" author="MPL" time="2023-01-22T09:28:07Z">
+        <changelog><![CDATA[# GUI: don`t overlay icons with track names
+# GUI: marquee selection filled rectangle
++ GUI/Info: info window when latch object
++ GUI/Info: show small grid line inside object
+# Limit volume max to approximately 12dB
+# Settings: move inverting Y scale to 2D settings
+# Settings: cleanup
++ Settings: add solo/mute buttons
++ Settings: allow to quantize volume
++ Settings: allow to quantize pan
++ Settings: add General/Shortcut info
++ Acions: add normalize dB to LUFS
++ Acions: add reset]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b41abda775f7d21a8b208b14c50489a0efc2eea9/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
