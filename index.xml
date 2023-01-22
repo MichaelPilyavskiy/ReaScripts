@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="18f93dc6684afbdefce29b3ece84b761ee9f504f" name="MPL Scripts">
+<index version="1" commit="4736130f2d3cfef842dfcb8a826e2aad58497e9e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11794,6 +11794,12 @@ add control for timefall showing last note]]></changelog>
       <version name="2.12" author="MPL" time="2023-01-22T09:57:05Z">
         <changelog><![CDATA[# API: use SetTrackUI with ignore selection flags by default]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18f93dc6684afbdefce29b3ece84b761ee9f504f/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.13" author="MPL" time="2023-01-22T21:02:42Z">
+        <changelog><![CDATA[# UI: shift a bit info window position
+# UI: mouse modifiers cleanup
++ UI: allow to show FX button]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4736130f2d3cfef842dfcb8a826e2aad58497e9e/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
