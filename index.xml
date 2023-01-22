@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7e9bf998ef73781eefaf6ff78f6a8404d43f2c22" name="MPL Scripts">
+<index version="1" commit="d603979a4943c5aa2dfd98d7be32cd5eb7db9444" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11786,6 +11786,10 @@ add control for timefall showing last note]]></changelog>
 + Acions: add normalize dB to LUFS
 + Acions: add reset]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b41abda775f7d21a8b208b14c50489a0efc2eea9/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.11" author="MPL" time="2023-01-22T09:53:21Z">
+        <changelog><![CDATA[# API: use SetTrackUI with ignore selection flags]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d603979a4943c5aa2dfd98d7be32cd5eb7db9444/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
