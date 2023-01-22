@@ -1,10 +1,10 @@
 -- @description VisualMixer
--- @version 2.11
+-- @version 2.12
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    # API: use SetTrackUI with ignore selection flags
+--    # API: use SetTrackUI with ignore selection flags by default
 
 
 
@@ -13,7 +13,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.11
+    DATA.extstate.version = 2.12
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -39,7 +39,7 @@
                           CONF_normlufswait = 5,--sec
                           
                           -- global
-                          CONF_csurf = 0,
+                          --CONF_csurf = 0,
                           CONF_snapshrecalltime = 0.5,
                           
                           UI_groupflags = 0,
@@ -801,18 +801,19 @@ Object
         pan = pan/m
     end
     
-    if DATA.extstate.CONF_csurf ==1 then 
-      --[[if DATA.extstate.CONF_csurf ==1 then 
+    SetTrackUIPan( tr, pan, false, false,1|2)
+    --[[if DATA.extstate.CONF_csurf ==1 then 
+      --if DATA.extstate.CONF_csurf ==1 then 
         local t = {}
         for i=1, CountSelectedTracks(0) do t[#t+1]=GetSelectedTrack(0,i-1) end
         SetOnlyTrackSelected(tr)
         CSurf_OnPanChangeEx(tr, pan, false, false) 
         for i= 1,#t do SetTrackSelected(t[i],true) end
-      end]]
-      SetTrackUIPan( tr, pan, false, false,1|2)
+      end 
      else 
       SetMediaTrackInfo_Value( tr, 'D_PAN', pan) 
     end
+    ]]
     return pan
   end
   
@@ -832,18 +833,7 @@ Object
     local width = ((Wval / DATA.extstate.CONF_tr_rect_px)-DATA.GUI.custom_minw_ratio)/(1-DATA.GUI.custom_minw_ratio) 
     
     SetMediaTrackInfo_Value( tr, 'I_PANMODE', 5)
-    if DATA.extstate.CONF_csurf ==1 then 
-      --[[if DATA.extstate.CONF_csurf ==1 then 
-        local t = {}
-        for i=1, CountSelectedTracks(0) do t[#t+1]=GetSelectedTrack(0,i-1) end
-        SetOnlyTrackSelected(tr)
-        CSurf_OnWidthChange( tr, width, false ) 
-        for i= 1,#t do SetTrackSelected(t[i],true) end
-      end]]
-      SetTrackUIWidth( tr, width, false, false,1|2)
-     else 
-      SetMediaTrackInfo_Value( tr, 'D_WIDTH', width) 
-    end
+    SetTrackUIWidth( tr, width, false, false,1|2)
     return width
   end
   
@@ -881,19 +871,7 @@ Object
       db_val=math.floor(db_val*q)/q
     end
     local volout = VF_lim(WDL_DB2VAL(db_val),0,3.99)
-    if DATA.extstate.CONF_csurf ==1 then 
-      
-      --[[if DATA.extstate.CONF_csurf ==1 then 
-        local t = {}
-        for i=1, CountSelectedTracks(0) do t[#t+1]=GetSelectedTrack(0,i-1) end
-        SetOnlyTrackSelected(tr)
-        CSurf_OnVolumeChange( tr, volout, false, false ) 
-        for i= 1,#t do SetTrackSelected(t[i],true) end
-      end]]
-      SetTrackUIVolume( tr, volout, false, false,1|2)
-     else 
-      SetMediaTrackInfo_Value(tr, 'D_VOL',volout)
-    end
+    SetTrackUIVolume( tr, volout, false, false,1|2)
     return db_val
   end
   
@@ -1496,7 +1474,7 @@ Object
                     DATA.UPD.onconfchange = true 
                     DATA:GUIBuildSettings()
         end},
-        {str = 'Use SetTrackUI API for objects movings', group = 4, itype = 'check',level = 1,  confkey = 'CONF_csurf'}, 
+        --{str = 'Use SetTrackUI API for objects movings', group = 4, itype = 'check',level = 1,  confkey = 'CONF_csurf'}, 
         {str = 'Snapshot smooth transition' ,       group = 4, itype = 'readout', confkey = 'CONF_snapshrecalltime', level = 1, val_min = 0, val_max = 2, val_res = 0.05, val_format = function(x) return VF_math_Qdec(x,3)..'s' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end},
         {str = 'Dock / undock',                     group = 4, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = function () GUI_dock(DATA) end},
       {str = 'UI appearance' ,                                 group = 1, itype = 'sep'}, 
