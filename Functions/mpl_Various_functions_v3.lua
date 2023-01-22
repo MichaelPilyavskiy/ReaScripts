@@ -20,10 +20,10 @@
     end
   end
   --------------------------------------------------------------------- 
-  function DATA:ExtStateRestoreDefaults(key)
+  function DATA:ExtStateRestoreDefaults(key, UI)
     if not key then
       for key in pairs(DATA.extstate) do
-        if key:match('CONF_') then
+        if key:match('CONF_') or (UI and UI == true and key:match('UI_'))then
           local val = DATA.extstate.default[key]
           if val then DATA.extstate[key] = val end
         end
@@ -536,7 +536,7 @@
     
     -- png
       if png then 
-        local img_temp = 32
+        local img_temp = 512
         gfx.setimgdim(img_temp, -1, -1)  
         gfx.setpixel(1,1,1)
         img_temp = gfx.loadimg(img_temp,png )
