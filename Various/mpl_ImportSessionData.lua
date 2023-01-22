@@ -1,11 +1,10 @@
 -- @description ImportSessionData
--- @version 2.09
+-- @version 2.10
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    + Destination tracks: show colors if available
---    # track colors: slightly less contrast
+--    # fix error at non installed Various Functions
 
 
 
@@ -16,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.09
+    DATA.extstate.version = 2.10
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -1003,6 +1002,7 @@
   end
   ----------------------------------------------------------------------
   function DATA2:MatchTrack(specificid)
+    if not DATA2.srcproj.TRACK then return end
     DATA2:Get_DestProject()
     local cnt_selection = 0 for trid0 = 1, #DATA2.srcproj.TRACK do if DATA2.srcproj.TRACK[trid0].sel_isselected == true then cnt_selection = cnt_selection + 1 end end
     
@@ -1612,6 +1612,6 @@
     
   end
   ----------------------------------------------------------------------
-  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
+  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
   local ret = VF_CheckFunctions(3.34) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
