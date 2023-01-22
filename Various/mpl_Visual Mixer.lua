@@ -1,22 +1,10 @@
 -- @description VisualMixer
--- @version 2.10
+-- @version 2.11
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    # GUI: don`t overlay icons with track names
---    # GUI: marquee selection filled rectangle
---    + GUI/Info: info window when latch object
---    + GUI/Info: show small grid line inside object
---    # Limit volume max to approximately 12dB
---    # Settings: move inverting Y scale to 2D settings
---    # Settings: cleanup
---    + Settings: add solo/mute buttons
---    + Settings: allow to quantize volume
---    + Settings: allow to quantize pan
---    + Settings: add General/Shortcut info
---    + Acions: add normalize dB to LUFS
---    + Acions: add reset
+--    # API: use SetTrackUI with ignore selection flags
 
 
 
@@ -25,7 +13,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.10
+    DATA.extstate.version = 2.11
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -814,13 +802,14 @@ Object
     end
     
     if DATA.extstate.CONF_csurf ==1 then 
-      if DATA.extstate.CONF_csurf ==1 then 
+      --[[if DATA.extstate.CONF_csurf ==1 then 
         local t = {}
         for i=1, CountSelectedTracks(0) do t[#t+1]=GetSelectedTrack(0,i-1) end
         SetOnlyTrackSelected(tr)
         CSurf_OnPanChangeEx(tr, pan, false, false) 
         for i= 1,#t do SetTrackSelected(t[i],true) end
-      end
+      end]]
+      SetTrackUIPan( tr, pan, false, false,1|2)
      else 
       SetMediaTrackInfo_Value( tr, 'D_PAN', pan) 
     end
@@ -844,13 +833,14 @@ Object
     
     SetMediaTrackInfo_Value( tr, 'I_PANMODE', 5)
     if DATA.extstate.CONF_csurf ==1 then 
-      if DATA.extstate.CONF_csurf ==1 then 
+      --[[if DATA.extstate.CONF_csurf ==1 then 
         local t = {}
         for i=1, CountSelectedTracks(0) do t[#t+1]=GetSelectedTrack(0,i-1) end
         SetOnlyTrackSelected(tr)
         CSurf_OnWidthChange( tr, width, false ) 
         for i= 1,#t do SetTrackSelected(t[i],true) end
-      end
+      end]]
+      SetTrackUIWidth( tr, width, false, false,1|2)
      else 
       SetMediaTrackInfo_Value( tr, 'D_WIDTH', width) 
     end
@@ -893,13 +883,14 @@ Object
     local volout = VF_lim(WDL_DB2VAL(db_val),0,3.99)
     if DATA.extstate.CONF_csurf ==1 then 
       
-      if DATA.extstate.CONF_csurf ==1 then 
+      --[[if DATA.extstate.CONF_csurf ==1 then 
         local t = {}
         for i=1, CountSelectedTracks(0) do t[#t+1]=GetSelectedTrack(0,i-1) end
         SetOnlyTrackSelected(tr)
         CSurf_OnVolumeChange( tr, volout, false, false ) 
         for i= 1,#t do SetTrackSelected(t[i],true) end
-      end
+      end]]
+      SetTrackUIVolume( tr, volout, false, false,1|2)
      else 
       SetMediaTrackInfo_Value(tr, 'D_VOL',volout)
     end
@@ -1505,7 +1496,7 @@ Object
                     DATA.UPD.onconfchange = true 
                     DATA:GUIBuildSettings()
         end},
-        {str = 'Use Csurf API for objects movings', group = 4, itype = 'check',level = 1,  confkey = 'CONF_csurf'}, 
+        {str = 'Use SetTrackUI API for objects movings', group = 4, itype = 'check',level = 1,  confkey = 'CONF_csurf'}, 
         {str = 'Snapshot smooth transition' ,       group = 4, itype = 'readout', confkey = 'CONF_snapshrecalltime', level = 1, val_min = 0, val_max = 2, val_res = 0.05, val_format = function(x) return VF_math_Qdec(x,3)..'s' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end},
         {str = 'Dock / undock',                     group = 4, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = function () GUI_dock(DATA) end},
       {str = 'UI appearance' ,                                 group = 1, itype = 'sep'}, 
