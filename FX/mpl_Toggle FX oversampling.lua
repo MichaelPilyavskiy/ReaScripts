@@ -1,5 +1,5 @@
 -- @description Toggle FX oversampling
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @metapackage
@@ -16,7 +16,9 @@
 --    [main] . > mpl_Toggle set to 8x oversampling for all project FX.lua
 --    [main] . > mpl_Toggle set to 8x oversampling for selected track FX.lua
 -- @changelog
---    # fix mpl_Enable 4x oversampling for all project Slate VMR.lua
+--    # fix loop through input FX
+--    # add FX chain parameter handling
+--    + Add undo point, show state
  
   --NOT gfx NOT reaper
   --------------------------------------------------------------------
@@ -27,7 +29,7 @@
     
     if not state or state == '' or tonumber(state)==0 or set then 
       
-      -- bypass 
+      --  
       local cnttr = CountTracks(0) if selectedtrackmode then cnttr = CountSelectedTracks(0) end
       local str = ''
       for tr_id = 0, cnttr do
@@ -40,13 +42,16 @@
         
         for fx_id = 1,  TrackFX_GetCount( track ) do
           local retval, buf = TrackFX_GetNamedConfigParm( track, fx_id-1, 'instance_oversample_shift' )
+          local retval, buf2 = TrackFX_GetNamedConfigParm( track, fx_id-1, 'chain_oversample_shift' )
           local retval, fxname = TrackFX_GetNamedConfigParm( track, fx_id-1, 'fx_name' )
           
           if (retval and not plugin) or (retval and plugin and fxname~='' and fxname:lower():match(plugin:lower())) then 
-            if not set then 
-              local is_bypass = tonumber(buf)
-              str = str..'\n'..TrackFX_GetFXGUID( track, fx_id-1)..' '..is_bypass
+            if not set then  
+              local pluginOSenabled = tonumber(buf)
+              local chainOSenabled = tonumber(buf2)
+              str = str..'\n'..TrackFX_GetFXGUID( track, fx_id-1)..' '..pluginOSenabled..' '..chainOSenabled
               TrackFX_SetNamedConfigParm( track, fx_id-1, 'instance_oversample_shift',instanceOS )
+              if instanceOS == 0 then TrackFX_SetNamedConfigParm( track, fx_id-1, 'chain_oversample_shift',0 ) end
              else  
               TrackFX_SetNamedConfigParm( track, fx_id-1, 'instance_oversample_shift',set*instanceOS )
             end
@@ -54,13 +59,16 @@
           
         end
 
-        for fx_id = 1,  TrackFX_GetCount( track ) do
+        for fx_id = 1,   TrackFX_GetRecCount( track ) do
           local retval, buf = TrackFX_GetNamedConfigParm( track, 0x1000000+fx_id-1, 'instance_oversample_shift' )
+          local retval, buf2 = TrackFX_GetNamedConfigParm( track, 0x1000000+fx_id-1, 'chain_oversample_shift' )
           if retval then 
             if not set then 
-              local is_bypass = tonumber(buf)
-              str = str..'\n'..TrackFX_GetFXGUID( track, 0x1000000+fx_id-1)..' '..is_bypass
+              local pluginOSenabled = tonumber(buf)
+              local chainOSenabled = tonumber(buf2)
+              str = str..'\n'..TrackFX_GetFXGUID( track, 0x1000000+fx_id-1)..' '..pluginOSenabled
               TrackFX_SetNamedConfigParm( track, 0x1000000+fx_id-1, 'instance_oversample_shift',instanceOS )
+              if instanceOS == 0 then TrackFX_SetNamedConfigParm( track, 0x1000000+fx_id-1, 'chain_oversample_shift',0 ) end
              else 
               TrackFX_SetNamedConfigParm( track, 0x1000000+fx_id-1, 'instance_oversample_shift',set )
             end
@@ -80,7 +88,13 @@
       
       local ret, str = GetProjExtState( 0, extstatekey, 'FXGUIDS' )
       local t = {}
-      for line in str:gmatch('[^\r\n]+') do local GUID, bypass = line:match('({.*}) (%d)') t[GUID] = tonumber(bypass) end      
+      for line in str:gmatch('[^\r\n]+') do 
+        local GUID, pluginOS, chainOS = line:match('({.*}) (%d) (%d)') 
+        if not GUID then  GUID, pluginOS = line:match('({.*}) (%d)')  chainOS = 0  end-- support for 1.02 and below
+        t[GUID] = {
+          pluginOS =tonumber(pluginOS),
+          chainOS= tonumber(chainOS) or 0}
+      end      
       
       local cnttr = CountTracks(0) if selectedtrackmode then cnttr = CountSelectedTracks(0) end
       for tr_id = 0, cnttr do
@@ -94,14 +108,16 @@
         for fx_id = 1,  TrackFX_GetCount( track ) do
           local GUID = TrackFX_GetFXGUID( track, fx_id-1)
           if t[GUID] then 
-            TrackFX_SetNamedConfigParm( track, fx_id-1, 'instance_oversample_shift',t[GUID] )
+            TrackFX_SetNamedConfigParm( track, fx_id-1, 'instance_oversample_shift',t[GUID].pluginOS )
+            TrackFX_SetNamedConfigParm( track, fx_id-1, 'chain_oversample_shift',t[GUID].chainOS )
           end
         end
         
         for fx_id = 1,  TrackFX_GetRecCount( track ) do
           local GUID = TrackFX_GetFXGUID( track, 0x1000000+fx_id-1)
           if t[GUID] then 
-            TrackFX_SetNamedConfigParm( track, 0x1000000+fx_id-1, 'instance_oversample_shift',t[GUID] )
+            TrackFX_SetNamedConfigParm( track, 0x1000000+fx_id-1, 'instance_oversample_shift',t[GUID].pluginOS )
+            TrackFX_SetNamedConfigParm( track, 0x1000000+fx_id-1, 'chain_oversample_shift',t[GUID].chainOS )
           end
         end
         
@@ -152,5 +168,23 @@
         end
       end
       
+      local extstatekey = 'MPLOVSMPLTOGGLE'
+      local state = GetExtState( extstatekey, 'STATE' ) 
+      if not state then 
+        state = 0 
+       elseif state =='' then
+        state = 0
+       elseif tonumber(state) and tonumber(state)==0 then 
+        state = 0
+       elseif set == 0 then
+        state = 0
+       else 
+        state = 1
+      end 
+      local actiontxt = 'Toggle FX oversampling: store'
+      if state == 1 then actiontxt = 'Toggle FX oversampling: restore' end
+      
+      Undo_BeginBlock2( 0 )
       main(selectedtrackmode,instanceOS, set, plugin)
+      Undo_EndBlock2( 0,actiontxt, 0xFFFFFFFF )
     end end
