@@ -1,15 +1,16 @@
 -- @description VisualMixer
--- @version 2.13
+-- @version 2.15
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=188335
 -- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    # UI: shift a bit info window position
---    # UI: mouse modifiers cleanup
---    + UI: allow to show FX button
+--    + Add support for center area, enabled by default
+--    + Actions: add action to spread at center area
+--    + Actions/SpreadCenter: option to rearrange tracks in center area below 0dB
+--    + UI: draw info if track under mouse
 
 
-
+ 
   
   DATA2 = {
     selectedtracks={},
@@ -20,7 +21,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.13
+    DATA.extstate.version = 2.15
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -44,6 +45,7 @@
                           CONF_randsymflags = 0, 
                           CONF_normlufsdb = -25,--dB
                           CONF_normlufswait = 5,--sec
+                          CONF_spreadflags = 0,
                           
                           -- global
                           --CONF_csurf = 0,
@@ -60,6 +62,8 @@
                           UI_showtracknames_flags = 1,
                           UI_showicons = 1,
                           UI_showtopctrl_flags = 1|2|4,
+                          UI_extendcenter = 0.3,
+                          
                           CONF_quantizevolume = 1,
                           CONF_quantizepan = 5,
                           
@@ -166,11 +170,17 @@ Object in 2D mode
     DATA.GUI.custom_3droom_sz = 200/DATA.GUI.default_scale
     DATA.GUI.custom_3droom_offs = 50/DATA.GUI.default_scale
     DATA.GUI.custom_3dminptsz = 50/DATA.GUI.default_scale
+    DATA.GUI.custom_scaley = DATA.GUI.custom_mainbuth+DATA.GUI.custom_offset*3
+    DATA.GUI.custom_scalew= gfx.w/DATA.GUI.default_scale-DATA. GUI.custom_offset*2 
+    DATA.GUI.custom_scaleh= gfx.h/DATA.GUI.default_scale-DATA.GUI.custom_scaley-DATA.GUI.custom_offset*2
+    DATA.GUI.custom_extendcenter = DATA.extstate.UI_extendcenter*DATA.GUI.custom_scalew
+    
     DATA.GUI.custom_actionanmes = {
       [0] = 'Rand Chaos',
       [1] = 'Rand Sym',
       [2] = 'Norm LUFS',
       [3] = 'Reset',
+      [4] = 'Spread cent',
     }
     
     DATA.GUI.buttons = {}
@@ -332,10 +342,13 @@ Object in 2D mode
   --------------------------------------------------------------------- 
   function GUI_Areas(DATA)   
     local xoffs = DATA.GUI.custom_offset
-    local yoffs = DATA.GUI.custom_mainbuth+DATA.GUI.custom_offset*3
-    if DATA.GUI.custom_compactmode == true then yoffs = yoffs+DATA.GUI.custom_mainbuth+DATA.GUI.custom_offset end
-    local scalew = gfx.w/DATA.GUI.default_scale-DATA. GUI.custom_offset*2 
-    local scaleh = gfx.h/DATA.GUI.default_scale-yoffs-DATA.GUI.custom_offset*2
+    local yoffs = DATA.GUI.custom_scaley
+    local scaleh = DATA.GUI.custom_scaleh
+    if DATA.GUI.custom_compactmode == true then 
+      yoffs = yoffs+DATA.GUI.custom_mainbuth+DATA.GUI.custom_offset 
+      scaleh = scaleh - DATA.GUI.custom_mainbuth-DATA.GUI.custom_offset 
+    end
+    local scalew = DATA.GUI.custom_scalew
     if DATA.extstate.UI_3dmode == 1 then
       --[[scalew = scalew-DATA.GUI.CONF_tr_rect_px
       scaleh = scaleh-DATA.GUI.CONF_tr_rect_px
@@ -406,6 +419,20 @@ Object in 2D mode
                             ignoremouse=true,
                             --refresh = true,
                             }   
+    end
+    
+    if DATA.GUI.custom_extendcenter > 0 then
+      DATA.GUI.buttons.scale_centerarea = { x=DATA.GUI.custom_offset+scalew/2-DATA.GUI.custom_extendcenter/2,
+                            y=yoffs,
+                            w=DATA.GUI.custom_extendcenter,
+                            h=scaleh,
+                            frame_a =0.1,
+                            backgr_fill = 0.05,
+                            backgr_col = '#FFFFFF',
+                            val_data = {is_room=true},
+                            ignoremouse=true,
+                            --refresh = true,
+                            }
     end
   end
   --------------------------------------------------------------------- 
@@ -526,6 +553,7 @@ Object in 2D mode
   function DATA2:Action_Menu()  
     local t = {
       { str = '#Action',},  
+      { str = 'Spread center', state =  DATA.extstate.CONF_action==4, func = function() DATA.extstate.CONF_action = 4 DATA.UPD.onconfchange=true GUI_RESERVED_init(DATA) end }, 
       { str = 'Reset volume and pan', state =  DATA.extstate.CONF_action==3, func = function() DATA.extstate.CONF_action = 3 DATA.UPD.onconfchange=true GUI_RESERVED_init(DATA) end }, 
       { str = 'Normalize to LUFS', state =  DATA.extstate.CONF_action==2, func = function() DATA.extstate.CONF_action = 2 DATA.UPD.onconfchange=true GUI_RESERVED_init(DATA) end }, 
       { str = 'Random chaotically', state =  DATA.extstate.CONF_action==0, func = function() DATA.extstate.CONF_action = 0 DATA.UPD.onconfchange=true GUI_RESERVED_init(DATA) end }, 
@@ -550,6 +578,11 @@ Object in 2D mode
       t[#t+1] = { str = 'Wait time: 1s', state =  DATA.extstate.CONF_normlufswait==1, func = function() DATA.extstate.CONF_normlufswait = 1 DATA.UPD.onconfchange=true end }
       t[#t+1] = { str = 'Wait time: 5s', state =  DATA.extstate.CONF_normlufswait==5, func = function() DATA.extstate.CONF_normlufswait = 5 DATA.UPD.onconfchange=true end }
     end
+    
+    if DATA.extstate.CONF_action == 4 then  -- spread tracks at center
+      t[#t+1] = { str = 'Rearrange below 0dB', state =  DATA.extstate.CONF_spreadflags&1==1, func = function() DATA.extstate.CONF_spreadflags = DATA.extstate.CONF_spreadflags~1 DATA.UPD.onconfchange=true end }
+    end
+    
     DATA:GUImenu(t)
   end
   ------------------------------------------------------------------------------------------------------
@@ -568,7 +601,57 @@ Object in 2D mode
       DATA2.LUFSnormMeasureRUN = true
      elseif DATA.extstate.CONF_action==3 then
       DATA2:Action_Reset()
+     elseif DATA.extstate.CONF_action==4 then
+      DATA2:Action_Spread()      
     end
+  end
+  ------------------------------------------------------------------------------------------------------ 
+  function DATA2:Action_Spread()
+    if DATA.extstate.CONF_spreadflags &1==0 then -- simply random ext data
+      local cnt_centertracks = 0
+      for GUID in pairs(DATA2.tracks) do if DATA2.tracks[GUID].pan == 0 then cnt_centertracks = cnt_centertracks + 1 end end
+      if cnt_centertracks <= 1 then return end 
+      local spreadstep = 1/cnt_centertracks
+      local shift = 0
+      if cnt_centertracks%2==0 then 
+        spreadstep = 1/(1+cnt_centertracks)
+        shift = spreadstep
+      end 
+      if cnt_centertracks%2==1 then  shift = 0.5*spreadstep end
+      for GUID in pairs(DATA2.tracks) do if DATA2.tracks[GUID].ptr and ValidatePtr2(0,DATA2.tracks[GUID].ptr, 'MediaTrack*') and DATA2.tracks[GUID].pan == 0 then 
+        GetSetMediaTrackInfo_String( DATA2.tracks[GUID].ptr, 'P_EXT:MPL_VISMIX_centerarea', shift, true )
+        shift = shift + spreadstep
+      end end
+    end
+    
+    if DATA.extstate.CONF_spreadflags &1==1 then -- simply random ext data
+      local dvol = 0.2
+      local volout = 1+dvol
+      local cnt_centertracks = 3
+      local spreadstep = 1/cnt_centertracks
+      local shift0 = 0
+      if cnt_centertracks%2==0 then 
+        spreadstep = 1/(1+cnt_centertracks)
+        shift0 = spreadstep
+      end 
+      if cnt_centertracks%2==1 then  shift0 = 0.5*spreadstep end
+      local shift = shift0
+      local i = 0
+      for GUID in pairs(DATA2.tracks) do if DATA2.tracks[GUID].ptr and ValidatePtr2(0,DATA2.tracks[GUID].ptr, 'MediaTrack*') and DATA2.tracks[GUID].pan == 0 then  
+        if i%cnt_centertracks==0 then -- next row
+          volout = volout - dvol
+          i = 0
+          shift = shift0
+        end
+        i = i + 1
+        GetSetMediaTrackInfo_String( DATA2.tracks[GUID].ptr, 'P_EXT:MPL_VISMIX_centerarea', shift, true )
+        SetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_VOL', volout)
+        shift = shift + spreadstep
+      end end
+    end
+    
+    DATA2:tracks_init(true)
+    DATA2:GUI_inittracks(DATA) 
   end
   ------------------------------------------------------------------------------------------------------ 
   function DATA2:Action_Reset()
@@ -813,10 +896,29 @@ Object in 2D mode
   
   
   -----------------------------------------------
-  function GUI_Scale_GetXPosFromPan(pan, w)
+  function GUI_Scale_GetXPosFromPan(pan, GUID)
     if not DATA.GUI.buttons.scale then return end
     local area = DATA.GUI.buttons.scale.w - DATA.extstate.CONF_tr_rect_px
-    if pan then return DATA.GUI.buttons.scale.x +(w or DATA.extstate.CONF_tr_rect_px)/2+ area*0.5* (1+pan) end
+    if pan then 
+      local outx = 0
+      if DATA.extstate.UI_extendcenter  == 0 then outx = DATA.GUI.buttons.scale.x + DATA.extstate.CONF_tr_rect_px/2 + area * (pan + 1) / 2 end
+      if DATA.extstate.UI_extendcenter  > 0  then 
+        if pan == 0 then 
+          outx = DATA.GUI.buttons.scale.x + DATA.GUI.buttons.scale.w/2
+          if GUID and DATA2.tracks[GUID] and DATA2.tracks[GUID].center_area then
+            areaoff = DATA.GUI.custom_extendcenter * DATA2.tracks[GUID].center_area
+            outx = outx -DATA.GUI.custom_extendcenter/2+ areaoff
+          end
+         elseif pan >0 then 
+          outx = DATA.GUI.buttons.scale.x + DATA.GUI.buttons.scale.w/2 + DATA.GUI.custom_extendcenter /2 + pan * ((DATA.GUI.buttons.scale.w-DATA.GUI.custom_extendcenter)/2-DATA.extstate.CONF_tr_rect_px/2)         
+         elseif pan <0 then 
+          outx = DATA.GUI.buttons.scale.x + (1+pan) * ((DATA.GUI.buttons.scale.w-DATA.GUI.custom_extendcenter)/2-DATA.extstate.CONF_tr_rect_px/2)+DATA.extstate.CONF_tr_rect_px/2
+        end
+        
+        
+      end
+      return outx 
+    end
   end 
   ----------------------------------------------------------------------  
   function DATA2:TrackMap_ApplyTrParam(GUID, parmname, newvalue)
@@ -833,10 +935,30 @@ Object in 2D mode
     if not panout then 
       wsz = (DATA.GUI.buttons['trackrect'..GUID].w or DATA.extstate.CONF_tr_rect_px)
       area = DATA.GUI.buttons.scale.w - wsz
-      pan = (-0.5+(Xval - DATA.GUI.buttons.scale.x) / area )*2 
+      
+      if DATA.extstate.UI_extendcenter  == 0  then pan = (-0.5+(Xval - DATA.GUI.buttons.scale.x) / area )*2  end
+      if DATA.extstate.UI_extendcenter  > 0  then 
+        local xcent = Xval + DATA.extstate.CONF_tr_rect_px/2
+        if xcent >= DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w/2 - DATA.GUI.custom_extendcenter/2 and xcent <= DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w/2 + DATA.GUI.custom_extendcenter/2 then  
+          pan = 0 
+          Xnorm = (xcent-(DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w/2 - DATA.GUI.custom_extendcenter/2)) / DATA.GUI.custom_extendcenter
+          GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_VISMIX_centerarea', Xnorm, true )
+        end
+        if xcent <= DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w/2 - DATA.GUI.custom_extendcenter/2 then 
+          pan = (Xval-DATA.GUI.buttons.scale.x)/( (DATA.GUI.buttons.scale.w-DATA.GUI.custom_extendcenter)/2-DATA.extstate.CONF_tr_rect_px/2)-1 
+        end
+        if xcent >= DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w/2 + DATA.GUI.custom_extendcenter/2 then
+          local comw = -1+(DATA.GUI.buttons.scale.w-DATA.GUI.custom_extendcenter)/2 - DATA.extstate.CONF_tr_rect_px/2
+          local Xnorm = xcent - (DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w/2 + DATA.GUI.custom_extendcenter/2)
+          pan = Xnorm/comw
+        end
+      end
+      
+      
      else
       pan = panout
     end
+    
     
     if DATA.extstate.CONF_quantizepan >0 then 
         m = 100/DATA.extstate.CONF_quantizepan
@@ -911,7 +1033,7 @@ Object in 2D mode
   
   ---------------------------- 
   function DATA2:GUI_inittracks_refreshXY(DATA, GUID) 
-    local xpos = GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan)-DATA.extstate.CONF_tr_rect_px/2
+    local xpos = GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan, GUID)-DATA.extstate.CONF_tr_rect_px/2
     local ypos = GUI_Scale_GetYPosFromdB  (DATA2.tracks[GUID].vol_dB)   -DATA.GUI.CONF_tr_rect_px/2
     DATA.GUI.buttons['trackrect'..GUID].x=xpos
     DATA.GUI.buttons['trackrect'..GUID].y=ypos
@@ -1344,7 +1466,7 @@ Object in 2D mode
         wsz = 100
         hsz = wsz
       end
-      local xpos = math.floor(GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan)-wsz/2)
+      local xpos = math.floor(GUI_Scale_GetXPosFromPan (DATA2.tracks[GUID].pan,GUID)-wsz/2)
       local ypos = math.floor(GUI_Scale_GetYPosFromdB  (DATA2.tracks[GUID].vol_dB)-hsz/2)
       
       DATA.GUI.buttons['trackrect'..GUID]={
@@ -1361,6 +1483,16 @@ Object in 2D mode
                             onmouseclick = function() DATA2:GUI_inittracks_onmouseclick(DATA,GUID) end,
                             onmousedrag = function()DATA2:GUI_inittracks_onmousedrag(DATA,GUID) end,
                             onmouserelease =  function()DATA2:GUI_inittracks_onmouserelease(DATA,GUID) end,
+                            onmousematchcont = function() 
+                                if DATA2.ontrackobj ~= true then
+                                  DATA2.info_txt = DATA2.tracks[GUID].name
+                                end
+                              end,
+                            onmouselost = function() 
+                              if DATA2.ontrackobj ~= true then
+                                DATA2.info_txt = nil
+                              end
+                            end,
                             
                             }
       if DATA.extstate.UI_showicons == 1 then DATA.GUI.buttons['trackrect'..GUID].png = DATA2.tracks[GUID].icon_fp end
@@ -1619,6 +1751,8 @@ Object in 2D mode
       local retval, icon_fp = reaper.GetSetMediaTrackInfo_String( tr, 'P_ICON', '', false ) if icon_fp =='' then icon_fp = nil end
       local solo = GetMediaTrackInfo_Value( tr, 'I_SOLO')
       local mute = GetMediaTrackInfo_Value( tr, 'B_MUTE')
+      local ret, center_area = GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_VISMIX_centerarea', '', false )
+      center_area = tonumber(center_area) or 0.5 
       DATA2.tracks[GUID] = {  ptr = tr,
                               pan = pan,
                               vol = vol,
@@ -1630,6 +1764,7 @@ Object in 2D mode
                               col =  GetTrackColor( tr ),
                               solo=solo>0,
                               mute=mute>0,
+                              center_area =center_area
                              }
     end
   end
@@ -1739,6 +1874,7 @@ Object in 2D mode
         {str = 'Quantize pan to 10%',               group = 5, itype = 'check', confkey = 'CONF_quantizepan', isset = 10, level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
       {str = 'UI / 2D view' ,                       group = 2, itype = 'sep',hide=DATA.extstate.UI_3dmode==1}, 
         {str = 'Invert Y',                          group = 1, itype = 'check', confkey = 'CONF_invertYscale', level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end, hide=DATA.extstate.UI_3dmode==1},
+        {str = 'Extend center',                     group = 1, itype = 'readout', confkey = 'UI_extendcenter', level = 1,menu={[0]='Disabled', [0.3] = '30% area',[0.5] = '50% area'},func_onrelease = function ()  GUI_RESERVED_init(DATA) end, hide=DATA.extstate.UI_3dmode==1},
       {str = 'UI / 3D view' ,                       group = 2, itype = 'sep',hide=DATA.extstate.UI_3dmode==0},  
         
 
