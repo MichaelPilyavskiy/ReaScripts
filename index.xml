@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4736130f2d3cfef842dfcb8a826e2aad58497e9e" name="MPL Scripts">
+<index version="1" commit="14e3790f77f15697170751e92e4016c4386cf509" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11800,6 +11800,13 @@ add control for timefall showing last note]]></changelog>
 # UI: mouse modifiers cleanup
 + UI: allow to show FX button]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4736130f2d3cfef842dfcb8a826e2aad58497e9e/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.15" author="MPL" time="2023-01-23T16:56:12Z">
+        <changelog><![CDATA[+ Add support for center area, enabled by default
++ Actions: add action to spread at center area
++ Actions/SpreadCenter: option to rearrange tracks in center area below 0dB
++ UI: draw info if track under mouse]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14e3790f77f15697170751e92e4016c4386cf509/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
