@@ -1,9 +1,9 @@
 -- @description Toggle parameter modulation for last touched parameter
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---  + init 
+--  # fix undo typo
 
   -- [[debug search filter: NOT function NOT reaper NOT gfx NOT VF]]
   
@@ -25,5 +25,5 @@
   local ret = VF_CheckFunctions(3.18) if ret then local ret2 = VF_CheckReaperVrs(6,true) if ret2 then 
     Undo_BeginBlock2( 0 )
     main() 
-    Undo_EndBlock2( 0, 'Toggle parameter modulation for lat touched parameter', 0xFFFFFFFF )
+    Undo_EndBlock2( 0, 'Toggle parameter modulation for last touched parameter', 0xFFFFFFFF )
   end end
