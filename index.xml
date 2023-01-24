@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6b69b36336c7644fe95e5f1bb943807f4739e7fe" name="MPL Scripts">
+<index version="1" commit="bf0f2760f6d40396c1d15696b3e349948d1b5838" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2716,6 +2716,10 @@
       <version name="1.0" author="MPL" time="2023-01-24T06:10:48Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6b69b36336c7644fe95e5f1bb943807f4739e7fe/FX/mpl_Toggle%20parameter%20modulation%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2023-01-24T19:54:28Z">
+        <changelog><![CDATA[# fix undo typo]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bf0f2760f6d40396c1d15696b3e349948d1b5838/FX/mpl_Toggle%20parameter%20modulation%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle soft pseudo bypass focused FX.lua" type="script" desc="Toggle soft pseudo bypass focused FX">
