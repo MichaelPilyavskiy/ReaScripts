@@ -1,27 +1,29 @@
 -- @description VisualMixer
--- @version 2.15
+-- @version 2.17
 -- @author MPL
--- @website https://forum.cockos.com/showthread.php?t=188335
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + Add support for center area, enabled by default
---    + Actions: add action to spread at center area
---    + Actions/SpreadCenter: option to rearrange tracks in center area below 0dB
---    + UI: draw info if track under mouse
-
+--    + Actions/LUFS normalize: handle button as trigger/stop
+--    + Actions/LUFS normalize: add undo step
+--    + Actions/ArrangeMap: allow to arrange tracks by predefined map
+--    + Actions/ArrangeMap: use scriptpath/mpl_Visual Mixer_arrangemaps.ini for map definition, for now only first map used
+--    + Actions/ArrangeMap: allow to change wait timer for LUFS measuring
+--    + Actions/ArrangeMap: allow to use NOT for excluding specific names from match
 
  
   
   DATA2 = {
     selectedtracks={},
     marquee={},
-    latchctrls={}
+    latchctrls={},
+    arrangemaps={}
   }
    
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.15
+    DATA.extstate.version = 2.17
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -46,6 +48,7 @@
                           CONF_normlufsdb = -25,--dB
                           CONF_normlufswait = 5,--sec
                           CONF_spreadflags = 0,
+                          CONF_lufswaitMAP = 5,
                           
                           -- global
                           --CONF_csurf = 0,
@@ -63,6 +66,7 @@
                           UI_showicons = 1,
                           UI_showtopctrl_flags = 1|2|4,
                           UI_extendcenter = 0.3,
+                          UI_expandpeaks =1,
                           
                           CONF_quantizevolume = 1,
                           CONF_quantizepan = 5,
@@ -79,11 +83,14 @@
       DATA.extstate.wind_y = y-h/2
     end
     
+    local is_new_value,filename,sectionID,cmdID,mode,resolution,val,contextstr = reaper.get_action_context()
+    DATA2.arrangemapsfp = filename:gsub('mpl_Visual Mixer%.lua','mpl_Visual Mixer_arrangemaps.ini')
     DATA2:Snapshot_Read()
     DATA_RESERVED_DYNUPDATE(DATA, true)
     DATA:GUIinit()
     GUI_RESERVED_init(DATA)
     RUN()
+    
   end
   ---------------------------------------------------------------------  
   function DATA2:ShortcutsInfo()
@@ -181,6 +188,7 @@ Object in 2D mode
       [2] = 'Norm LUFS',
       [3] = 'Reset',
       [4] = 'Spread cent',
+      [5] = 'Arrange by map',
     }
     
     DATA.GUI.buttons = {}
@@ -553,11 +561,12 @@ Object in 2D mode
   function DATA2:Action_Menu()  
     local t = {
       { str = '#Action',},  
-      { str = 'Spread center', state =  DATA.extstate.CONF_action==4, func = function() DATA.extstate.CONF_action = 4 DATA.UPD.onconfchange=true GUI_RESERVED_init(DATA) end }, 
+      { str = 'Spread center (only for center area enabled)', hidden = DATA.extstate.UI_extendcenter ==0, state =  DATA.extstate.CONF_action==4, func = function() DATA.extstate.CONF_action = 4 DATA.UPD.onconfchange=true GUI_RESERVED_init(DATA) end }, 
       { str = 'Reset volume and pan', state =  DATA.extstate.CONF_action==3, func = function() DATA.extstate.CONF_action = 3 DATA.UPD.onconfchange=true GUI_RESERVED_init(DATA) end }, 
       { str = 'Normalize to LUFS', state =  DATA.extstate.CONF_action==2, func = function() DATA.extstate.CONF_action = 2 DATA.UPD.onconfchange=true GUI_RESERVED_init(DATA) end }, 
       { str = 'Random chaotically', state =  DATA.extstate.CONF_action==0, func = function() DATA.extstate.CONF_action = 0 DATA.UPD.onconfchange=true GUI_RESERVED_init(DATA) end }, 
       { str = 'Random symmetrically', state =  DATA.extstate.CONF_action==1, func = function() DATA.extstate.CONF_action = 1 DATA.UPD.onconfchange=true GUI_RESERVED_init(DATA) end }, 
+      { str = 'Arrange by map', state =  DATA.extstate.CONF_action==5, func = function() DATA.extstate.CONF_action = 5 DATA.UPD.onconfchange=true GUI_RESERVED_init(DATA) end }, 
       { str = '|#Settings', }, 
     }
     
@@ -577,12 +586,26 @@ Object in 2D mode
       t[#t+1] = { str = '-23db', state =  DATA.extstate.CONF_normlufsdb==-23, func = function() DATA.extstate.CONF_normlufsdb = -23 DATA.UPD.onconfchange=true end }
       t[#t+1] = { str = 'Wait time: 1s', state =  DATA.extstate.CONF_normlufswait==1, func = function() DATA.extstate.CONF_normlufswait = 1 DATA.UPD.onconfchange=true end }
       t[#t+1] = { str = 'Wait time: 5s', state =  DATA.extstate.CONF_normlufswait==5, func = function() DATA.extstate.CONF_normlufswait = 5 DATA.UPD.onconfchange=true end }
+      t[#t+1] = { str = 'Wait time: 10s', state =  DATA.extstate.CONF_normlufswait==10, func = function() DATA.extstate.CONF_normlufswait = 10 DATA.UPD.onconfchange=true end }
     end
     
     if DATA.extstate.CONF_action == 4 then  -- spread tracks at center
       t[#t+1] = { str = 'Rearrange below 0dB', state =  DATA.extstate.CONF_spreadflags&1==1, func = function() DATA.extstate.CONF_spreadflags = DATA.extstate.CONF_spreadflags~1 DATA.UPD.onconfchange=true end }
     end
     
+    if DATA.extstate.CONF_action == 5 then  -- LUFS map
+      t[#t+1] = { str = 'Wait time: 5s', state =  DATA.extstate.CONF_lufswaitMAP==5, func = function() DATA.extstate.CONF_lufswaitMAP = 5 DATA.UPD.onconfchange=true end }
+      t[#t+1] = { str = 'Wait time: 10s', state =  DATA.extstate.CONF_lufswaitMAP==10, func = function() DATA.extstate.CONF_lufswaitMAP = 10 DATA.UPD.onconfchange=true end }
+      t[#t+1] = { str = 'Open map configuration file', func = function() 
+          local OS = reaper.GetOS()
+          local fp= DATA2.arrangemapsfp
+          if OS == "OSX32" or OS == "OSX64" then
+            os.execute('open "" "' .. fp .. '"')
+          else
+            os.execute('start "" "' .. fp .. '"')
+          end
+        end }
+    end
     DATA:GUImenu(t)
   end
   ------------------------------------------------------------------------------------------------------
@@ -598,12 +621,134 @@ Object in 2D mode
     if DATA.extstate.CONF_action==0 or DATA.extstate.CONF_action==1 then 
       DATA2:Action_Random()
      elseif DATA.extstate.CONF_action==2 then
+      if DATA2.lufsmeasure then DATA2.lufsmeasureSTOP = true end
       DATA2.LUFSnormMeasureRUN = true
      elseif DATA.extstate.CONF_action==3 then
       DATA2:Action_Reset()
      elseif DATA.extstate.CONF_action==4 then
-      DATA2:Action_Spread()      
+      DATA2:Action_Spread()     
+     elseif DATA.extstate.CONF_action==5 then
+      if DATA2.lufsmeasure then DATA2.lufsmeasureSTOP = true end
+      DATA2:Action_ArrangeMap()     
+      DATA2.LUFSnormMeasureRUN = true
+      DATA2.LUFSnormMeasureRUN_appmap = true
     end
+  end
+  ------------------------------------------------------------------------------------------------------ 
+  function DATA2:Action_ArrangeMap_InitDefault() 
+    return 
+[[
+[MAP1]
+name="default"
+track1_name="kick","bass drum","bassdrum","bd" NOT "sub"
+track1_vol=-32dB
+track1_pan=0
+
+track2_name="subkick"
+track2_vol=-29dB
+track2_pan=0
+
+track3_name="snare1","snare","snarehigh"
+track3_vol=-36dB
+track3_pan=0
+
+track3_name="snare2","snarelow"
+track3_vol=-40dB
+track3_pan=0
+
+track4_name="tom1","hightom","high tom"
+track4_vol=-40dB
+track4_pan=-25
+
+track5_name="tom2","midtom","mid tom"
+track5_vol=-40dB
+track5_pan=15
+
+track6_name="tom3","lowtom","low tom"
+track6_vol=-40dB
+track6_pan=50
+
+track7_name="hat","close hat","cl hat"
+track7_vol=-37dB
+track7_pan=-40
+
+track8_name="oh","overheads"
+track8_vol=-40dB
+track8_pan=0
+]]
+  end
+  ------------------------------------------------------------------------------------------------------ 
+  function DATA2:Action_ArrangeMap_Init()
+    local fp = DATA2.arrangemapsfp 
+    local chunk_str
+    if not file_exists(fp) then 
+      chunk_str = DATA2:Action_ArrangeMap_InitDefault() 
+      local f = io.open(fp, 'w')
+      if not f then return end
+      f:write(chunk_str)
+      f:close()
+      --msg(chunk_str)
+      --msg('write==================')
+     else 
+      local f = io.open(fp, 'r')
+      if not f then return end
+      chunk_str = f:read('a')
+      f:close()
+      --msg(chunk_str)
+      --msg('read==================')
+    end
+    return true, chunk_str
+  end
+  ------------------------------------------------------------------------------------------------------ 
+  function DATA2:Action_ArrangeMap_Parse(chunk_str)
+    if not chunk_str then return end
+    local mapid
+    for line in chunk_str:gmatch('[^\r\n]+') do
+      local is_mapid = line:match('%[MAP%d+%]') ~=nil
+      if is_mapid then
+        local mapid_int = line:match('%[MAP(%d+)%]')
+        if tonumber(mapid_int) then mapid = tonumber(mapid_int) end
+      end
+      if mapid and not is_mapid then
+        local trid, param, val =  line:match('track(%d+)_(.-)%=(.*)')
+        if trid then trid = tonumber(trid) end
+        if (trid and param and val) then
+          if not DATA2.arrangemaps[mapid] then DATA2.arrangemaps[mapid] = {} end
+          if not DATA2.arrangemaps[mapid][trid] then DATA2.arrangemaps[mapid][trid] = {} end
+          if param=='vol' then val = tonumber( val:match('[%-%.%d]+')) end
+          if param=='pan' then val = tonumber( val) end
+          
+          if param=='name' then  
+            local exclude_t = {}
+            local exclude
+            if val:match('NOT') then 
+              exclude = val:match('NOT(.*)') 
+              val = val:match('(.-)NOT') 
+            end 
+            local t = {} for name in val:gmatch('"(.-)"') do t[#t+1] = name end
+            val = t
+            if exclude then 
+              exclude_t = {} 
+              for name in exclude:gmatch('"(.-)"') do exclude_t[#exclude_t+1] = name end 
+            end 
+            if exclude_t then DATA2.arrangemaps[mapid][trid].name_exclude=CopyTable(exclude_t )end
+          end
+          
+          
+          DATA2.arrangemaps[mapid][trid][param]=val
+        end
+      end
+    end
+  end
+  ------------------------------------------------------------------------------------------------------ 
+  function DATA2:Action_ArrangeMap()
+    -- no maps found / add example
+    local ret, chunk_str
+    if not DATA2.arrangemaps or #DATA2.arrangemaps == 0 then  
+      ret, chunk_str = DATA2:Action_ArrangeMap_Init() 
+    end
+    if ret and chunk_str then DATA2:Action_ArrangeMap_Parse(chunk_str)  end
+    DATA2.arrangemaps.current_map = 1  
   end
   ------------------------------------------------------------------------------------------------------ 
   function DATA2:Action_Spread()
@@ -666,11 +811,60 @@ Object in 2D mode
     DATA2:GUI_inittracks(DATA) 
   end
   ------------------------------------------------------------------------------------------------------ 
+  function DATA2:Action_ArrangeMap_GetDestParams(GUID) 
+    if not DATA2.arrangemaps.current_map and DATA2.arrangemaps[DATA2.arrangemaps.current_map] then return end
+    local map_t = DATA2.arrangemaps[DATA2.arrangemaps.current_map]
+    local tr_name = DATA2.tracks[GUID].name:lower()
+    for trid=1, #map_t do 
+      
+      local match_name
+      if map_t[trid].name then
+        
+        for nameid = 1, #map_t[trid].name do
+          if tr_name:match(map_t[trid].name[nameid]:lower()) then
+            match_name = true
+            if map_t[trid].name_exclude then 
+              for name_excludeid=1,#map_t[trid].name_exclude do
+                if tr_name:match(map_t[trid].name_exclude[name_excludeid]:lower()) then
+                  match_name = nil
+                end
+              end
+            end 
+            if match_name == true then break end
+          end
+        end
+        
+      end
+      
+      if match_name == true then 
+        return true, map_t[trid].vol, map_t[trid].pan/100
+      end
+    end
+  end
+  ------------------------------------------------------------------------------------------------------ 
   function DATA2:Action_NormalizeLUFS_persist()
+    if DATA2.lufsmeasureSTOP == true then
+      -- revert volumes back
+      for GUID in pairs(DATA2.tracks) do 
+        if DATA2.tracks[GUID].ptr and ValidatePtr2(0,DATA2.tracks[GUID].ptr, 'MediaTrack*') then 
+          SetMediaTrackInfo_Value( DATA2.tracks[GUID].ptr, 'I_VUMODE',  0 )
+          SetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_VOL', DATA2.tracks[GUID].vol)
+        end
+      end
+      DATA2:tracks_init(true)
+      DATA2:GUI_inittracks(DATA) 
+      DATA2.lufsmeasure = nil
+      DATA2.LUFSnormMeasureRUN = nil
+      DATA2.LUFSnormMeasureRUN_appmap = nil
+      DATA2.lufsmeasureSTOP = nil
+      DATA.GUI.buttons.act.txt = DATA.GUI.custom_actionanmes[DATA.extstate.CONF_action]
+      return 
+    end
+    
     
       if not DATA2.lufsmeasure then  
         -- init
-        DATA.GUI.buttons.act.txt = '[Wait 5 sec]'
+        DATA.GUI.buttons.act.txt = '[Wait]'
         DATA2.lufsmeasure ={TS = os.clock()}
         for GUID in pairs(DATA2.tracks) do 
           if DATA2.tracks[GUID].ptr and ValidatePtr2(0,DATA2.tracks[GUID].ptr, 'MediaTrack*') then 
@@ -679,46 +873,74 @@ Object in 2D mode
           end
         end
       end
-    
+      
+      
     if DATA2.lufsmeasure then
       cur = os.clock()
       
       -- in progress
-      if  cur - DATA2.lufsmeasure.TS < DATA.extstate.CONF_normlufswait then
-        local time_elapsed = math.abs(math.floor(cur - DATA2.lufsmeasure.TS - DATA.extstate.CONF_normlufswait))
+      local waittime_sec = DATA.extstate.CONF_normlufswait
+      if DATA2.LUFSnormMeasureRUN_appmap == true then waittime_sec = DATA.extstate.CONF_lufswaitMAP end 
+      if  cur - DATA2.lufsmeasure.TS < waittime_sec then 
+        local time_elapsed = math.abs(math.floor(cur - DATA2.lufsmeasure.TS - waittime_sec))
         local outtxt = '[Wait '..time_elapsed..' sec]'
         if outtxt ~= DATA.GUI.buttons.act.txt then DATA.GUI.buttons.act.txt = outtxt end
         --DATA.GUI.buttons.act.refresh = true
       end
       
-      -- final refresh
-      if cur - DATA2.lufsmeasure.TS > DATA.extstate.CONF_normlufswait then 
-        DATA.GUI.buttons.act.txt = DATA.GUI.custom_actionanmes[DATA.extstate.CONF_action]
-        for GUID in pairs(DATA2.tracks) do 
-          if DATA2.tracks[GUID].ptr and ValidatePtr2(0,DATA2.tracks[GUID].ptr, 'MediaTrack*') then 
-            local lufs = Track_GetPeakInfo( DATA2.tracks[GUID].ptr, 1024 )
-            local lufsdB = WDL_VAL2DB(lufs)  
-            local lufs_dest = DATA.extstate.CONF_normlufsdb
-            local lufs = Track_GetPeakInfo( DATA2.tracks[GUID].ptr, 1024 )
-            local lufsdB = WDL_VAL2DB(lufs)
-            local vol = GetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_VOL')
-            local vol_DB = WDL_VAL2DB(vol)
-            local diff_DB = lufs_dest-lufsdB
-            local out_db = vol_DB + diff_DB
-            local lufsout =WDL_DB2VAL(out_db)
-            SetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_VOL', math.min(lufsout,3.9))
-            SetMediaTrackInfo_Value( DATA2.tracks[GUID].ptr, 'I_VUMODE',  0 ) 
+      if cur - DATA2.lufsmeasure.TS > waittime_sec then 
+        reaper.Undo_BeginBlock2( 0 )
+        DATA2:Action_NormalizeLUFS_final()
+        reaper.Undo_EndBlock2( 0, 'Visual mixer lufs measure', 0xFFFFFFFF )
+      end
+      
+    end
+    
+  end
+  ------------------------------------------------------------------------------------------------------ 
+  function DATA2:Action_NormalizeLUFS_final()    
+    -- final refresh 
+    DATA.GUI.buttons.act.txt = DATA.GUI.custom_actionanmes[DATA.extstate.CONF_action]
+    for GUID in pairs(DATA2.tracks) do 
+      if DATA2.tracks[GUID].ptr and ValidatePtr2(0,DATA2.tracks[GUID].ptr, 'MediaTrack*') then 
+        local lufs = Track_GetPeakInfo( DATA2.tracks[GUID].ptr, 1024 )
+        local lufsdB = WDL_VAL2DB(lufs)  
+        
+        local lufs_dest = DATA.extstate.CONF_normlufsdb
+        local ret = true
+        local pan_dest
+        local lufs_destmap, pan_destmap
+        if DATA2.LUFSnormMeasureRUN_appmap == true then
+          ret, lufs_destmap, pan_destmap = DATA2:Action_ArrangeMap_GetDestParams(GUID) 
+          if ret == true then 
+            lufs_dest = lufs_destmap 
+            pan_dest = pan_destmap 
           end
         end
-        local ID = DATA.GUI.custom_currentsnapshotID or 1 
-        DATA2:tracks_init(true)
-        DATA2:Snapshot_WriteCurrent(ID)
-        DATA2:Snapshot_Write()
-        DATA2:GUI_inittracks(DATA) 
-        DATA2.lufsmeasure = nil
-        DATA2.LUFSnormMeasureRUN = nil
+        
+        if ret == true then 
+          local lufs = Track_GetPeakInfo( DATA2.tracks[GUID].ptr, 1024 )
+          local lufsdB = WDL_VAL2DB(lufs)
+          local vol = GetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_VOL')
+          local vol_DB = WDL_VAL2DB(vol)
+          local diff_DB = lufs_dest-lufsdB
+          local out_db = vol_DB + diff_DB
+          local lufsout =WDL_DB2VAL(out_db)
+          SetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_VOL', math.min(lufsout,3.9))
+          SetMediaTrackInfo_Value( DATA2.tracks[GUID].ptr, 'I_VUMODE',  0 ) 
+          if pan_dest then SetMediaTrackInfo_Value(DATA2.tracks[GUID].ptr, 'D_PAN', pan_dest) end
+        end
       end
     end
+    local ID = DATA.GUI.custom_currentsnapshotID or 1 
+    DATA2:tracks_init(true)
+    DATA2:Snapshot_WriteCurrent(ID)
+    DATA2:Snapshot_Write()
+    DATA2:GUI_inittracks(DATA) 
+    DATA2.lufsmeasure = nil
+    DATA2.LUFSnormMeasureRUN = nil
+    DATA2.LUFSnormMeasureRUN_appmap = nil
+    DATA2.lufsmeasureSTOP = nil
   end
   ------------------------------------------------------------------------------------------------------ 
   function DATA2:Action_Random()
@@ -1636,6 +1858,9 @@ Object in 2D mode
               peakvalL = lim(peakvalL, 0,1)
               peakvalR = lim(peakvalR, 0,1)
               peakvalmid = (peakvalL + peakvalR) /2
+              if DATA.extstate.UI_expandpeaks ==1 then
+                peakvalmid=peakvalmid^0.4
+              end
               --gfx.set(1,1,1)     
               DATA:GUIhex2rgb(frame_col,true)
               gfx.a = 0.5 * (cnt_lp-i)/cnt_lp
@@ -1747,8 +1972,9 @@ Object in 2D mode
       local vol_dB = WDL_VAL2DB(vol) 
       --name
       local retval, trname = GetTrackName( tr, '' ) 
+      if trname:match('(.-)%s+') then trname = trname:match('(.-)%s+') end -- exclude space at the end
       local I_FOLDERDEPTH = GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH')
-      local retval, icon_fp = reaper.GetSetMediaTrackInfo_String( tr, 'P_ICON', '', false ) if icon_fp =='' then icon_fp = nil end
+      local retval, icon_fp = reaper.GetSetMediaTrackInfo_String( tr, 'P_ICON', '', false ) if icon_fp =='' then icon_fp = nil end if not file_exists(icon_fp) then icon_fp = nli end
       local solo = GetMediaTrackInfo_Value( tr, 'I_SOLO')
       local mute = GetMediaTrackInfo_Value( tr, 'B_MUTE')
       local ret, center_area = GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_VISMIX_centerarea', '', false )
