@@ -1,15 +1,10 @@
 -- @description VisualMixer
--- @version 2.17
+-- @version 2.18
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + Actions/LUFS normalize: handle button as trigger/stop
---    + Actions/LUFS normalize: add undo step
---    + Actions/ArrangeMap: allow to arrange tracks by predefined map
---    + Actions/ArrangeMap: use scriptpath/mpl_Visual Mixer_arrangemaps.ini for map definition, for now only first map used
---    + Actions/ArrangeMap: allow to change wait timer for LUFS measuring
---    + Actions/ArrangeMap: allow to use NOT for excluding specific names from match
+--    # fix icon error
 
  
   
@@ -23,7 +18,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.17
+    DATA.extstate.version = 2.18
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -1974,7 +1969,7 @@ track8_pan=0
       local retval, trname = GetTrackName( tr, '' ) 
       if trname:match('(.-)%s+') then trname = trname:match('(.-)%s+') end -- exclude space at the end
       local I_FOLDERDEPTH = GetMediaTrackInfo_Value( tr, 'I_FOLDERDEPTH')
-      local retval, icon_fp = reaper.GetSetMediaTrackInfo_String( tr, 'P_ICON', '', false ) if icon_fp =='' then icon_fp = nil end if not file_exists(icon_fp) then icon_fp = nli end
+      local retval, icon_fp = reaper.GetSetMediaTrackInfo_String( tr, 'P_ICON', '', false ) if icon_fp =='' then icon_fp = nil end if icon_fp and not file_exists(icon_fp) then icon_fp = nli end
       local solo = GetMediaTrackInfo_Value( tr, 'I_SOLO')
       local mute = GetMediaTrackInfo_Value( tr, 'B_MUTE')
       local ret, center_area = GetSetMediaTrackInfo_String( tr, 'P_EXT:MPL_VISMIX_centerarea', '', false )
