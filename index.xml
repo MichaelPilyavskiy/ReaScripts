@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e4ca487d5ab894ba52940cfeb64eab0a51fa4c20" name="MPL Scripts">
+<index version="1" commit="37100814d777f943b2df45ca65fd686d4e256082" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11845,6 +11845,10 @@ add control for timefall showing last note]]></changelog>
 + Actions/ArrangeMap: allow to change wait timer for LUFS measuring
 + Actions/ArrangeMap: allow to use NOT for excluding specific names from match]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e4ca487d5ab894ba52940cfeb64eab0a51fa4c20/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.18" author="MPL" time="2023-01-26T03:52:16Z">
+        <changelog><![CDATA[# fix icon error]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/37100814d777f943b2df45ca65fd686d4e256082/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
   </category>
