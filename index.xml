@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="0df63a74b397fd92c8be7bb325cb2bb1ee2bbb5d" name="MPL Scripts">
+<index version="1" commit="2312c8c038e9abb5e9d94c035831ed830a4ca52b" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -310,6 +310,15 @@
       <version name="1.1" author="MPL" time="2017-06-20T20:04:56Z">
         <changelog><![CDATA[# perform on master track]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0bec563fc22114ad8960e4c9a902623fe679fd43/Envelopes/mpl_Toggle%20bypass%20selected%20tracks%20envelopes.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Toggle bypass trim envelope.lua" type="script" desc="Toggle bypass trim envelope">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-29T16:23:14Z">
+        <changelog><![CDATA[+ Init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2312c8c038e9abb5e9d94c035831ed830a4ca52b/Envelopes/mpl_Toggle%20bypass%20trim%20envelope.lua</source>
       </version>
     </reapack>
   </category>
