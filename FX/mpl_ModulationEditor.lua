@@ -1,28 +1,28 @@
 -- @description ModulationEditor
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init
+--    # rebuild UI layout o waste less space
 
 
 
  
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
   
-  DATA2 = { 
+  DATA2 = { aliasmap={}
           }
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '1.0'
+    DATA.extstate.version = '1.01'
     DATA.extstate.extstatesection = 'MPL_ModulationEditor'
     DATA.extstate.mb_title = 'ModulationEditor'
     DATA.extstate.default = 
                           {  
                           wind_x =  100,
                           wind_y =  100,
-                          wind_w =  800,
+                          wind_w =  300,
                           wind_h =  600,
                           dock =    0,
                           
@@ -52,77 +52,6 @@
     RUN()
     DATA_RESERVED_ONPROJCHANGE(DATA)
   end
-  --[[--------------------------------------------------------------------
-  function DATA2:ImportCSV()
-    local retval, xml = reaper.GetUserFileNameForRead('', 'ModulationEditor mapping', '.xml' )
-    
-    if not (xml and xml ~= '' ) then return end
-    local f = io.open(xml, 'rb')
-    local content
-    if f then 
-      content = f:read('a')
-      f:close()
-     else
-      return
-    end 
-    if not content then return end
-    
-    -- parse xml
-    for control in content:gmatch('(<control.-<%/control>)') do
-      local ctrl_type = control:match('<ctrl_type>(.-)<%/ctrl_type>')
-      local ctrl_key = control:match('<ctrl_key>(.-)<%/ctrl_key>')
-      for link in control:gmatch('(<link.-<%/link>)') do
-        local fxGUID = link:match('<fxGUID>(.-)<%/fxGUID>')
-        local pid = link:match('<param>(.-)<%/param>')
-        local mode = link:match('<mode>(.-)<%/mode>')
-        local flags = link:match('<flags>(.-)<%/flags>')
-        local ret,track,fx = VF_GetFXByGUID(fxGUID)
-        if ret then
-          if tonumber(ctrl_type) == 0 then
-            local midi_int = tonumber(ctrl_key)
-            TrackFX_SetNamedConfigParm( track, fx, 'param.'..pid..'.learn.midi1',midi_int&0xFF )
-            TrackFX_SetNamedConfigParm( track, fx, 'param.'..pid..'.learn.midi2',(midi_int&0xFF00)>>8 )
-           elseif tonumber(ctrl_type) == 1 then 
-            TrackFX_SetNamedConfigParm( track, fx, 'param.'..pid..'.learn.osc',ctrl_key )
-          end
-          TrackFX_SetNamedConfigParm( track, fx, 'param.'..pid..'.learn.mode',mode )
-          TrackFX_SetNamedConfigParm( track, fx, 'param.'..pid..'.learn.flags',flags ) 
-        end
-      end
-    end
-  end
-  ----------------------------------------------------------------------
-  function DATA2:ExportCSV()
-    local out_fp =GetProjectPath()..'/ModulationEditor_mapping.xml'
-    if not DATA2.modulationstate then return end
-    
-    local str = ''
-    for control in pairs(DATA2.modulationstate) do
-      str=str..'\n<control id="'..control..'">'
-      str=str..'\n  <ctrl_type>'..DATA2.modulationstate[control].ctrl_type..'</ctrl_type>'
-      str=str..'\n  <ctrl_key>'..DATA2.modulationstate[control].ctrl_key..'</ctrl_key>'
-      for link = 1, #DATA2.modulationstate[control] do
-        str=str..'\n  <link linkid="'..link..'">'
-        str=str..'\n    <trGUID>'..DATA2.modulationstate[control][link].trGUID..'</trGUID>'
-        str=str..'\n    <fxGUID>'..DATA2.modulationstate[control][link].fxGUID..'</fxGUID>'
-        str=str..'\n    <flags>'..DATA2.modulationstate[control][link].flags..'</flags>'
-        str=str..'\n    <mode>'..DATA2.modulationstate[control][link].mode..'</mode>'
-        str=str..'\n    <param>'..DATA2.modulationstate[control][link].param..'</param>'
-        str=str..'\n  </link>'
-      end
-      str=str..'\n</control>'
-    end
-    
-    str=str..'\n<ModulationEditor_vrs>'..DATA.extstate.version..'</ModulationEditor_vrs>'
-    str=str..'\n<ts>'..os.date()..'</ts>'
-    
-    local f = io.open(out_fp,'wb')
-    if f then 
-      f:write(str)
-      f:close()
-    end
-    MB('Export successfully to '..out_fp,DATA.extstate.mb_title,0)
-  end]]
   ----------------------------------------------------------------------
   function DATA_RESERVED_DYNUPDATE()
     
@@ -290,541 +219,429 @@
     
   end
   ----------------------------------------------------------------------
-  function GUI_nodes_01parameter(DATA, ctrl_t, node_y_offs0)  
+  function GUI_nodes_01parameter(DATA, ctrl_t, node_yoffs) 
     local ctrl_key = ctrl_t.ctrl_key
-    local node_x_offs = math.floor(DATA.GUI.custom_nodeparam_areaw/2-DATA.GUI.custom_nodeparam_w/2)
-    local node_y_offs = node_y_offs0 + math.floor(DATA.GUI.custom_node_areah/2-DATA.GUI.custom_nodeparam_h/2)
-    local node_w = DATA.GUI.custom_nodeparam_areaw
-    local node_h = DATA.GUI.custom_node_areah
-    
     local infotxt = 
-     ctrl_t.trname..'\n'..
-     ctrl_t.fxname_short..'\n'..
-     ctrl_t.pname
-     
-    local infotxt0 = infotxt
-    local alias_ctrlkey = ctrl_t.fxname_short..'_'..ctrl_t.pname
-    if DATA2.aliasmap[alias_ctrlkey] then infotxt0 = DATA2.aliasmap[alias_ctrlkey]..'\n'..infotxt end
-    DATA.GUI.buttons['ctrl_'..ctrl_key] = { x=node_x_offs,
-                          y=node_y_offs,
-                          w=DATA.GUI.custom_nodeparam_w-1,
-                          h=DATA.GUI.custom_nodeparam_h-1,
-                          txt = infotxt0,
+         ctrl_t.trname..' / '..
+         ctrl_t.fxname_short..'/ '..
+         ctrl_t.pname
+    if DATA2.aliasmap[ctrl_key] then infotxt = DATA2.aliasmap[ctrl_key] end
+    DATA.GUI.buttons['ctrl_'..ctrl_key] = { x=DATA.GUI.custom_node_x,
+                          y=node_yoffs,
+                          w=DATA.GUI.custom_node_w-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = infotxt,
                           txt_fontsz = DATA.GUI.custom_nodeparam_txtsz,
+                          txt_flags = 4,
                           onmouseclick =   function()  end,
-                          hide = node_y_offs<DATA.GUI.custom_infoh,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
                           refresh= true,
                           onmouserelease = function()
-                            local retval, retvals_csv = GetUserInputs( 'Alias', 1, ctrl_t.pname, DATA2.aliasmap[alias_ctrlkey] or '' )
+                            local retval, retvals_csv = GetUserInputs( 'Alias', 1, ctrl_t.pname, DATA2.aliasmap[ctrl_key] or '' )
                             if retval then
-                              DATA2.aliasmap[alias_ctrlkey]=retvals_csv
+                              if not DATA2.aliasmap[ctrl_key] then DATA2.aliasmap[ctrl_key] = {} end
+                              DATA2.aliasmap[ctrl_key]=retvals_csv
                               DATA2:RefreshAliasMap()
                               DATA_RESERVED_ONPROJCHANGE(DATA)
                             end
                           end
                           }
-    return node_y_offs + DATA.GUI.custom_node_areah
-  end
-  ---------------------------------------------------------------------- 
-  function GUI_CTRL(DATA, params_t) 
-    local t = params_t
-    local src_t = t.ctrlval_src_t 
-    if not (src_t and t.ctrlval_key and src_t[t.ctrlval_key]) then return end
-    -- frame
-    local function format_val() 
-      if t.ctrlval_format then 
-        return t.ctrlval_format(src_t[t.ctrlval_key] )
-       else
-        return src_t[t.ctrlval_key] 
-      end 
-    end
-    DATA.GUI.buttons[t.butkey..'frame'] = { x= t.x,
-                        y=t.y ,
-                        w=t.w,
-                        h=t.h,
-                        --ignoremouse = true,
-                        hide = t.y<DATA.GUI.custom_infoh,
-                        frame_a =t.frame_a or DATA.GUI.custom_framea,
-                        --frame_col = '#333333',
-                        backgr_col = '#333333',
-                        backgr_fill = 1,
-                        back_sela = 0,
-                        txt='',
-                        frame_arcborder = true,
-                        frame_arcborderr = math.floor(DATA.GUI.custom_offset*2),
-                        frame_arcborderflags = t.frame_arcborderflags or 1|2|4|8,
-                        val = src_t[t.ctrlval_key],
-                        
-                        val_res = t.ctrlval_res,
-                        val_min = t.ctrlval_min,
-                        val_max = t.ctrlval_max,
-                        onmousedrag = function()
-                          if t.ctrlval_istoggle== true then return end
-                          params_t.func_app()
-                          DATA.GUI.buttons[t.butkey..'val'].txt = format_val()
-                          local val_norm = src_t[t.ctrlval_key] 
-                          if t.ctrlval_max and t.ctrlval_min then val_norm = (val_norm - t.ctrlval_min) / (t.ctrlval_max - t.ctrlval_min) end
-                          if DATA.GUI.buttons[t.butkey..'knob'] then DATA.GUI.buttons[t.butkey..'knob'].val = val_norm end
-                        end,
-                        
-                        
-                        --[[
-                        onmouseclick = function() 
-                                          if not (t.butkey and DATA.GUI.buttons[t.butkey..'frame'] and DATA.GUI.buttons[t.butkey..'frame'].val) then return end
-                                          local new_val = DATA.GUI.buttons[t.butkey..'frame'].val
-                                          if params_t.func_atclick then params_t.func_atclick(new_val) end
-                                        end,
-                                        
-                        onmousedrag = function()
-                              DATA2.ONPARAMDRAG = true
-                              if not (t.butkey and DATA.GUI.buttons[t.butkey..'frame'] and DATA.GUI.buttons[t.butkey..'frame'].val) then return end
-                              local new_val = DATA.GUI.buttons[t.butkey..'frame'].val
-                              params_t.func_app(new_val)
-                              --params_t.func_refresh()
-                              DATA.GUI.buttons[t.butkey..'val'].txt = src_t[t.ctrlval_format_key]
-                                local val_norm = src_t[t.ctrlval_key] 
-                                if t.ctrlval_max and t.ctrlval_min then val_norm = (val_norm - t.ctrlval_min) / (t.ctrlval_max - t.ctrlval_min) end
-                                if DATA.GUI.buttons[t.butkey..'knob'] then DATA.GUI.buttons[t.butkey..'knob'].val = val_norm end
-                              DATA.GUI.buttons[t.butkey..'val'].refresh = true
-                            end,
-                        onmousedoubleclick = function() 
-                                if not t.ctrlval_default then return end
-                                params_t.func_app(t.ctrlval_default)
-                                --params_t.func_refresh()
-                                if not (t.butkey and DATA.GUI.buttons[t.butkey..'val'] and DATA.GUI.buttons[t.butkey..'val'].txt) then return end
-                                DATA.GUI.buttons[t.butkey..'val'].txt = src_t[t.ctrlval_format_key]
-                                DATA.GUI.buttons[t.butkey..'val'].refresh = true
-                                if DATA.GUI.buttons[t.butkey..'knob'] then 
-                                  local val_norm = src_t[t.ctrlval_key] 
-                                  if t.ctrlval_max and t.ctrlval_min then val_norm = (val_norm - t.ctrlval_min) / (t.ctrlval_max - t.ctrlval_min) end
-                                  DATA.GUI.buttons[t.butkey..'knob'].val = val_norm
-                                end
-                                DATA2.ONDOUBLECLICK = true
-                              end,                            
-                        onmouserelease = function()
-                              if not DATA2.ONDOUBLECLICK then
-                                if not (t.butkey and DATA.GUI.buttons[t.butkey..'frame'] and DATA.GUI.buttons[t.butkey..'frame'].val) then return end
-                                local new_val = DATA.GUI.buttons[t.butkey..'frame'].val
-                                params_t.func_app(new_val)
-                                --params_t.func_refresh()
-                                DATA.GUI.buttons[t.butkey..'val'].txt = src_t[t.ctrlval_format_key]
-                                DATA.GUI.buttons[t.butkey..'val'].refresh = true
-                                DATA.GUI.buttons[t.butkey..'val'].val = src_t[t.ctrlval_key]
-                                if DATA.GUI.buttons[t.butkey..'knob'] then 
-                                  local val_norm = src_t[t.ctrlval_key] 
-                                  if t.ctrlval_max and t.ctrlval_min then val_norm = (val_norm - t.ctrlval_min) / (t.ctrlval_max - t.ctrlval_min) end
-                                  DATA.GUI.buttons[t.butkey..'knob'].val = val_norm
-                                end
-                                DATA2.ONPARAMDRAG = false
-                                if params_t.func_atrelease then params_t.func_atrelease() end
-                               else
-                                DATA2.ONDOUBLECLICK = nil
-                              end
-                        end,
-                        
-                        onmousereleaseR = function()
-                                if not params_t.func_formatreverse then return end
-                                local retval, str = GetUserInputs( 'Set values', 1, '', src_t[t.ctrlval_format_key] )
-                                if not (retval and str ~='' ) then return end  
-                                new_val = params_t.func_formatreverse(str )
-                                if not new_val then return end
-                                params_t.func_app(new_val)
-                                params_t.func_refresh()
-                                DATA.GUI.buttons[t.butkey..'val'].txt = src_t[t.ctrlval_format_key]
-                                DATA.GUI.buttons[t.butkey..'val'].refresh = true
-                                if DATA.GUI.buttons[t.butkey..'knob'] then 
-                                  local val_norm = src_t[t.ctrlval_key] 
-                                  if t.ctrlval_max and t.ctrlval_min then val_norm = (val_norm - t.ctrlval_min) / (t.ctrlval_max - t.ctrlval_min) end
-                                  DATA.GUI.buttons[t.butkey..'knob'].val = val_norm
-                                end
-                                if params_t.func_atrelease then params_t.func_atrelease() end
-                        end, ]]
-                        }           
-    if t.ctrlval_istoggle== true then 
-      DATA.GUI.buttons[t.butkey..'frame'].onmouserelease = function() 
-        t.func_app() 
-        GUI_nodes_init(DATA)
-      end
-      if src_t[t.ctrlval_key] == 0 then DATA.GUI.buttons[t.butkey..'frame'].frame_a = 0.05 end
-     else 
-      DATA.GUI.buttons[t.butkey..'frame'].onmouserelease =  DATA.GUI.buttons[t.butkey..'frame'].onmousedrag  
-    end
+    --[[
+    
+    local node_x_offs = math.floor(DATA.GUI.custom_nodeparam_areaw/2-DATA.GUI.custom_nodeparam_w/2)
+    local node_y_offs = node_y_offs0 + math.floor(DATA.GUI.custom_node_areah/2-DATA.GUI.custom_nodeparam_h/2)
+    local node_w = DATA.GUI.custom_nodeparam_areaw
+    local node_h = DATA.GUI.custom_node_nameh
     
     
-    DATA.GUI.buttons[t.butkey..'name'] = { x= t.x+1+DATA.GUI.custom_offset*2,
-                          y=t.y+1 ,
-                          hide = t.y<DATA.GUI.custom_infoh,
-                          w=t.w-2-DATA.GUI.custom_offset*4,
-                          h=DATA.GUI.custom_knob_readout_h,
-                          ignoremouse = true,
-                          frame_a = 1,
-                          frame_col = '#333333',
-                          txt = t.ctrlname,
-                          txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
-                          txt_a = t.txt_a,
-                          }  
+     
+    local infotxt0 = infotxt
+    local alias_ctrlkey = ctrl_t.fxname_short..'_'..ctrl_t.pname
     
-    
-                      
-    if t.ctrlval_istoggle~= true then
-      local val_norm = src_t[t.ctrlval_key] 
-      if t.ctrlval_max and t.ctrlval_min then val_norm = (val_norm - t.ctrlval_min) / (t.ctrlval_max - t.ctrlval_min) end
-      local knob_w = math.floor(t.w*0.8)
-      DATA.GUI.buttons[t.butkey..'knob'] = { x= t.x+1+math.floor(t.w/2-knob_w/2),--+arc_shift,
-                          y=t.y+DATA.GUI.custom_knob_readout_h+DATA.GUI.custom_offset-1,
-                          hide = t.y<DATA.GUI.custom_infoh,
-                          w=knob_w-2,---arc_shift*2,
-                          h=t.h-DATA.GUI.custom_knob_readout_h*2-DATA.GUI.custom_offset*2+2,
-                          ignoremouse = true,
-                          frame_a =1,
-                          frame_col = '#333333',
-                          knob_isknob = true,
-                          val = val_norm,
-                          }
-      DATA.GUI.buttons[t.butkey..'val'] = { x= t.x+1+DATA.GUI.custom_offset*2,
-                        y=t.y+t.h-DATA.GUI.custom_knob_readout_h -1,
-                        w=t.w-2-DATA.GUI.custom_offset*4,
-                        hide = t.y<DATA.GUI.custom_infoh,
-                        h=DATA.GUI.custom_knob_readout_h,
-                        ignoremouse = true,
-                        frame_a = 1,
-                        frame_col = '#333333',
-                        txt = format_val(),
-                        txt_fontsz =  DATA.GUI.custom_sampler_ctrl_txtsz,
-                        txt_a = t.txt_a,
-                        }                           
-    end
-    
-    if t.ctrlval_istoggle==true then
-      local knob_w = math.floor(t.w*0.8)
-      local toggeltxt,togglea = 'Off', 0.3
-      if src_t[t.ctrlval_key] == 1 then toggeltxt,togglea = 'On',1 end
-      DATA.GUI.buttons[t.butkey..'toggle'] = { x= t.x+1+math.floor(t.w/2-knob_w/2),--+arc_shift,
-                          y=t.y+DATA.GUI.custom_knob_readout_h+DATA.GUI.custom_offset-1,
-                          hide = t.y<DATA.GUI.custom_infoh,
-                          w=knob_w-2,---arc_shift*2,
-                          h=t.h-DATA.GUI.custom_knob_readout_h*2-DATA.GUI.custom_offset*2+2,
-                          ignoremouse = true,
-                          frame_col = '#333333',
-                          txt_a = togglea,
-                          txt = toggeltxt,
-                          }
-    end
-    
+]]
+    --return node_y_offs + DATA.GUI.custom_node_nameh
   end
   ----------------------------------------------------------------------
-  function GUI_nodes_02base(DATA, ctrl_t,  node_y_offs0) 
+  function GUI_nodes_02base(DATA, ctrl_t, node_yoffs)
     local ctrl_key = ctrl_t.ctrl_key
-    local node_x_offs = DATA.GUI.custom_nodeparam_areaw + math.floor(DATA.GUI.custom_nodectrlblock_areaw/2-DATA.GUI.custom_nodectrlblock_w/2)
-    local node_y_offs = node_y_offs0 + math.floor(DATA.GUI.custom_node_areah/2-DATA.GUI.custom_nodectrlblock_h/2)
-    local node_w = DATA.GUI.custom_nodeparam_areaw
-    local node_h = DATA.GUI.custom_node_areah
     local basekey = 'ctrl_'..ctrl_key..'base'
-    DATA.GUI.buttons[basekey] = { x=node_x_offs,
-                          y=node_y_offs,
-                          hide = node_y_offs<DATA.GUI.custom_infoh,
-                          w=DATA.GUI.custom_nodectrlblock_w-1,
-                          h=DATA.GUI.custom_nodectrlblock_h-1,
+    DATA.GUI.buttons[basekey] = { x=DATA.GUI.custom_node_x,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_node_w-1,
+                          h=DATA.GUI.custom_node_nameh-1,
                           txt = infotxt,
-                          frame_a = 0.4,
-                          txt_fontsz = DATA.GUI.custom_nodectrlblock_txtsz,
-                          ignoremouse = true,
-                          frame_arcborder = true,
-                          frame_arcborderr = math.floor(DATA.GUI.custom_offset),
-                                                  
-                          }
-    -- wires
-    DATA.GUI.buttons['ctrl_'..ctrl_key..'base_wire'] = { x=0,y=0,w=0,h=0,
-                          txt = '',
-                          hide = node_y_offs<DATA.GUI.custom_infoh,
-                          backgr_col = '#333333',
-                          backgr_fill = 0,
+                          --backgr_fill=0.3,
+                          --backgr_col='#FFFFFF',
                           frame_a = 0,
-                          frame_asel = 0,
-                          wiredata = {  x1 = DATA.GUI.buttons['ctrl_'..ctrl_key].x+DATA.GUI.buttons['ctrl_'..ctrl_key].w,
-                                        x2 = DATA.GUI.buttons['ctrl_'..ctrl_key].x+DATA.GUI.buttons['ctrl_'..ctrl_key].w + DATA.GUI.buttons[basekey].x - DATA.GUI.buttons['ctrl_'..ctrl_key].x-DATA.GUI.buttons['ctrl_'..ctrl_key].w,
-                                        y1=DATA.GUI.buttons['ctrl_'..ctrl_key].y+math.floor(DATA.GUI.buttons['ctrl_'..ctrl_key].h/2),
-                                        y2=DATA.GUI.buttons[basekey].y+math.floor(DATA.GUI.buttons[basekey].h/2)
-                                  },
-                          } 
-    local ctrl_x = node_x_offs + DATA.GUI.custom_knob_buttonarea_w/2-DATA.GUI.custom_knob_button_w/2                  
-    GUI_CTRL(DATA,
-      {
-        butkey = 'mod_mod.active'..ctrl_key,
-        
-        x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w/2-DATA.GUI.custom_knob_button_w/2,
-        y= node_y_offs+DATA.GUI.custom_nodectrlblock_h/2-DATA.GUI.custom_knob_button_h/2,
-        w = DATA.GUI.custom_knob_button_w,
-        h = DATA.GUI.custom_knob_button_h, 
-        ctrlname = 'Enable',
-        ctrlval_key = 'mod.active',
-        ctrlval_format_key = 'mod.active', 
-        ctrlval_istoggle = true, 
-        ctrlval_src_t = ctrl_t.PMOD,
-        ctrlval_res = 0.1,
-        ctrlval_default = 0.5,
-        func_app =            function() ctrl_t.PMOD['mod.active']=ctrl_t.PMOD['mod.active']~1 DATA2:ApplyPMOD(ctrl_key) end,
-       } )   
-    ctrl_x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w    
-    GUI_CTRL(DATA,
-      {
-        butkey = 'mod_mod.visible'..ctrl_key,
-        
-        x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w/2-DATA.GUI.custom_knob_button_w/2,
-        y= node_y_offs+DATA.GUI.custom_nodectrlblock_h/2-DATA.GUI.custom_knob_button_h/2,
-        w = DATA.GUI.custom_knob_button_w,
-        h = DATA.GUI.custom_knob_button_h, 
-        ctrlname = 'Visible',
-        ctrlval_key = 'mod.visible',
-        ctrlval_format_key = 'mod.visible', 
-        ctrlval_istoggle = true, 
-        ctrlval_src_t = ctrl_t.PMOD,
-        ctrlval_res = 0.1,
-        ctrlval_default = 0.5,
-        func_app =            function() ctrl_t.PMOD['mod.visible']=ctrl_t.PMOD['mod.visible']~1 DATA2:ApplyPMOD(ctrl_key) end,
-       } )         
-    ctrl_x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w
-    GUI_CTRL(DATA,
-      {
-        butkey = 'mod_lfo.active'..ctrl_key, 
-        x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w/2-DATA.GUI.custom_knob_button_w/2,
-        y= node_y_offs+DATA.GUI.custom_nodectrlblock_h/2-DATA.GUI.custom_knob_button_h/2,
-        w = DATA.GUI.custom_knob_button_w,
-        h = DATA.GUI.custom_knob_button_h, 
-        ctrlname = 'LFO',
-        ctrlval_key = 'lfo.active',
-        ctrlval_format_key = 'lfo.active',
-        ctrlval_istoggle = true, 
-        ctrlval_src_t = ctrl_t.PMOD,
-        ctrlval_res = 0.1,
-        ctrlval_default = 0.5,
-        func_app =            function() ctrl_t.PMOD['lfo.active']=ctrl_t.PMOD['lfo.active']~1 DATA2:ApplyPMOD(ctrl_key) end,
-       } )  
-    ctrl_x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w
-    GUI_CTRL(DATA,
-      {
-        butkey = 'mod_plink.active'..ctrl_key, 
-        x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w/2-DATA.GUI.custom_knob_button_w/2,
-        y= node_y_offs+DATA.GUI.custom_nodectrlblock_h/2-DATA.GUI.custom_knob_button_h/2,
-        w = DATA.GUI.custom_knob_button_w,
-        h = DATA.GUI.custom_knob_button_h, 
-        ctrlname = 'Link',
-        ctrlval_key = 'plink.active',
-        ctrlval_format_key = 'plink.active',
-        ctrlval_istoggle = true, 
-        ctrlval_src_t = ctrl_t.PMOD,
-        ctrlval_res = 0.1,
-        ctrlval_default = 0.5,
-        func_app =            function() ctrl_t.PMOD['plink.active']=ctrl_t.PMOD['plink.active']~1 DATA2:ApplyPMOD(ctrl_key) end,
-       } )        
-    ctrl_x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w
-    GUI_CTRL(DATA,
-      {
-        butkey = 'mod_acs.active'..ctrl_key, 
-        x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w/2-DATA.GUI.custom_knob_button_w/2,
-        y= node_y_offs+DATA.GUI.custom_nodectrlblock_h/2-DATA.GUI.custom_knob_button_h/2,
-        w = DATA.GUI.custom_knob_button_w,
-        h = DATA.GUI.custom_knob_button_h, 
-        ctrlname = 'Audio ctrl',
-        ctrlval_key = 'acs.active',
-        ctrlval_format_key = 'acs.active',
-        ctrlval_istoggle = true, 
-        ctrlval_src_t = ctrl_t.PMOD,
-        ctrlval_res = 0.1,
-        ctrlval_default = 0.5,
-        func_app =            function() ctrl_t.PMOD['acs.active']=ctrl_t.PMOD['acs.active']~1 DATA2:ApplyPMOD(ctrl_key) end,
-       } )
-    ctrl_x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w
-    GUI_CTRL(DATA,
-      {
-        butkey = 'mod_mod.baseline'..ctrl_key, 
-        x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w/2-DATA.GUI.custom_knob_button_w/2,
-        y= node_y_offs+DATA.GUI.custom_nodectrlblock_h/2-DATA.GUI.custom_knob_button_h/2,
-        w = DATA.GUI.custom_knob_button_w,
-        h = DATA.GUI.custom_knob_button_h, 
-        ctrlname = 'Base',
-        ctrlval_key = 'mod.baseline',
-        ctrlval_format_key = 'mod.baseline',
-        ctrlval_format = function(x) return (math.floor(x*1000)/10-100)..'%' end,
-        ctrlval_src_t = ctrl_t.PMOD,
-        ctrlval_res = 0.4,
-        ctrlval_min = 0,
-        ctrlval_max = 2,
-        ctrlval_default = 1,
-        func_app = function() ctrl_t.PMOD['mod.baseline']=DATA.GUI.buttons['mod_mod.baseline'..ctrl_key..'frame'].val DATA2:ApplyPMOD(ctrl_key) end,
-       } )       
-    return node_y_offs + node_h
-  end    
-  ----------------------------------------------------------------------
-  function GUI_nodes_03lfo(DATA, ctrl_t,  node_y_offs0) 
-    local ctrl_key = ctrl_t.ctrl_key
-    local node_x_offs = DATA.GUI.custom_nodeparam_areaw + math.floor(DATA.GUI.custom_nodectrlblock_areaw/2-DATA.GUI.custom_nodectrlblock_w/2)
-    local node_y_offs = node_y_offs0 + math.floor(DATA.GUI.custom_node_areah/2-DATA.GUI.custom_nodectrlblock_h/2)
-    local node_w = DATA.GUI.custom_nodeparam_areaw
-    local node_h = DATA.GUI.custom_node_areah
-    local basekey = 'ctrl_'..ctrl_key..'lfo'
-    DATA.GUI.buttons[basekey] = { x=node_x_offs,
-                          y=node_y_offs,
-                          hide = node_y_offs<DATA.GUI.custom_infoh,
-                          w=DATA.GUI.custom_nodectrlblock_w-1,
-                          h=DATA.GUI.custom_nodectrlblock_h-1,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          ignoremouse = true,
+                          --hide = true,
+                          }
+    local xoffs = DATA.GUI.custom_node_x
+    local txt_a = DATA.GUI.custom_txta_OFF  if ctrl_t.PMOD['mod.active']&1==1 then txt_a = DATA.GUI.custom_txta_ON end
+    DATA.GUI.buttons[basekey..'modactive'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'Active',
+                          txt_a = txt_a,
+                          frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          onmouserelease = function() 
+                            ctrl_t.PMOD['mod.active']=ctrl_t.PMOD['mod.active']~1 DATA2:ApplyPMOD(ctrl_key)   
+                            GUI_nodes_init(DATA)
+                          end
+                          }  
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle
+    local txt_a = DATA.GUI.custom_txta_OFF  if ctrl_t.PMOD['mod.visible']&1==1 then txt_a = DATA.GUI.custom_txta_ON end
+    DATA.GUI.buttons[basekey..'modvisible'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'Visible',
+                          txt_a = txt_a,
+                          frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          onmouserelease = function() 
+                            ctrl_t.PMOD['mod.visible']=ctrl_t.PMOD['mod.visible']~1 DATA2:ApplyPMOD(ctrl_key)   
+                            GUI_nodes_init(DATA)
+                          end
+                          }   
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle
+    local txt_a = DATA.GUI.custom_txta_OFF  if ctrl_t.PMOD['lfo.active']&1==1 then txt_a = DATA.GUI.custom_txta_ON end
+    DATA.GUI.buttons[basekey..'lfoactive'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
                           txt = 'LFO',
-                          offsetframe = DATA.GUI.custom_offset,
-                          frame_a = 0.4,
-                          txt_fontsz = DATA.GUI.custom_nodectrlblock_txtsz,
-                          ignoremouse = true,
-                          frame_arcborder = true,
-                          frame_arcborderr = math.floor(DATA.GUI.custom_offset),
-                                                  
-                          }
-    -- wires
-    DATA.GUI.buttons['ctrl_'..ctrl_key..'lfo_wire'] = { x=0,y=0,w=0,h=0,
-                          txt = '',
-                          hide = node_y_offs<DATA.GUI.custom_infoh,
-                          backgr_col = '#333333',
-                          backgr_fill = 0,
+                          txt_a = txt_a,
                           frame_a = 0,
-                          frame_asel = 0,
-                          wiredata = {  x1 = DATA.GUI.buttons['ctrl_'..ctrl_key].x+DATA.GUI.buttons['ctrl_'..ctrl_key].w,
-                                        x2 = DATA.GUI.buttons['ctrl_'..ctrl_key].x+DATA.GUI.buttons['ctrl_'..ctrl_key].w + DATA.GUI.buttons[basekey].x - DATA.GUI.buttons['ctrl_'..ctrl_key].x-DATA.GUI.buttons['ctrl_'..ctrl_key].w,
-                                        y1=DATA.GUI.buttons['ctrl_'..ctrl_key].y+math.floor(DATA.GUI.buttons['ctrl_'..ctrl_key].h/2),
-                                        y2=DATA.GUI.buttons[basekey].y+math.floor(DATA.GUI.buttons[basekey].h/2)
-                                  },
-                          } 
-    local ctrl_x = node_x_offs + DATA.GUI.custom_knob_buttonarea_w/2-DATA.GUI.custom_knob_button_w/2      
-    GUI_CTRL(DATA,
-      {
-        butkey = 'mod_lfo.shape'..ctrl_key, 
-        x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w/2-DATA.GUI.custom_knob_button_w/2,
-        y= node_y_offs+DATA.GUI.custom_nodectrlblock_h/2-DATA.GUI.custom_knob_button_h/2,
-        w = DATA.GUI.custom_knob_button_w,
-        h = DATA.GUI.custom_knob_button_h, 
-        ctrlname = 'Shape',
-        ctrlval_key = 'lfo.shape',
-        ctrlval_format_key = 'lfo.shape', 
-        ctrlval_format = function(x) return (math.floor(x*1000)/10)..'%' end,
-        ctrlval_src_t = ctrl_t.PMOD,
-        ctrlval_res = 0.4,
-        ctrlval_min = 0,
-        ctrlval_max = 5,
-        ctrlval_default = 0,
-        func_app = function() ctrl_t.PMOD['lfo.shape']=DATA.GUI.buttons['mod_lfo.shape'..ctrl_key..'frame'].val DATA2:ApplyPMOD(ctrl_key) end  
-      } )
-    return node_y_offs + node_h
-  end    
-  ----------------------------------------------------------------------
-  function GUI_nodes_04link(DATA, ctrl_t,  node_y_offs0) 
-    local ctrl_key = ctrl_t.ctrl_key
-    local node_x_offs = DATA.GUI.custom_nodeparam_areaw + math.floor(DATA.GUI.custom_nodectrlblock_areaw/2-DATA.GUI.custom_nodectrlblock_w/2)
-    local node_y_offs = node_y_offs0 + math.floor(DATA.GUI.custom_node_areah/2-DATA.GUI.custom_nodectrlblock_h/2)
-    local node_w = DATA.GUI.custom_nodeparam_areaw
-    local node_h = DATA.GUI.custom_node_areah
-    local basekey = 'ctrl_'..ctrl_key..'plink'
-    DATA.GUI.buttons[basekey] = { x=node_x_offs,
-                          y=node_y_offs,
-                          hide = node_y_offs<DATA.GUI.custom_infoh,
-                          w=DATA.GUI.custom_nodectrlblock_w-1,
-                          h=DATA.GUI.custom_nodectrlblock_h-1,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          onmouserelease = function() 
+                            ctrl_t.PMOD['lfo.active']=ctrl_t.PMOD['lfo.active']~1 DATA2:ApplyPMOD(ctrl_key)   
+                            GUI_nodes_init(DATA)
+                          end
+                          }                             
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle
+    local txt_a = DATA.GUI.custom_txta_OFF  if ctrl_t.PMOD['plink.active']&1==1 then txt_a = DATA.GUI.custom_txta_ON end
+    DATA.GUI.buttons[basekey..'plinkactive'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Link',
-                          offsetframe = DATA.GUI.custom_offset,
-                          frame_a = 0.4,
-                          txt_fontsz = DATA.GUI.custom_nodectrlblock_txtsz,
-                          ignoremouse = true,
-                          frame_arcborder = true,
-                          frame_arcborderr = math.floor(DATA.GUI.custom_offset),
-                                                  
-                          }
-    -- wires
-    DATA.GUI.buttons['ctrl_'..ctrl_key..'plink_wire'] = { x=0,y=0,w=0,h=0,
-                          txt = '',
-                          hide = node_y_offs<DATA.GUI.custom_infoh,
-                          backgr_col = '#333333',
-                          backgr_fill = 0,
+                          txt_a = txt_a,
                           frame_a = 0,
-                          frame_asel = 0,
-                          wiredata = {  x1 = DATA.GUI.buttons['ctrl_'..ctrl_key].x+DATA.GUI.buttons['ctrl_'..ctrl_key].w,
-                                        x2 = DATA.GUI.buttons['ctrl_'..ctrl_key].x+DATA.GUI.buttons['ctrl_'..ctrl_key].w + DATA.GUI.buttons[basekey].x - DATA.GUI.buttons['ctrl_'..ctrl_key].x-DATA.GUI.buttons['ctrl_'..ctrl_key].w,
-                                        y1=DATA.GUI.buttons['ctrl_'..ctrl_key].y+math.floor(DATA.GUI.buttons['ctrl_'..ctrl_key].h/2),
-                                        y2=DATA.GUI.buttons[basekey].y+math.floor(DATA.GUI.buttons[basekey].h/2)
-                                  },
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          onmouserelease = function() 
+                            ctrl_t.PMOD['plink.active']=ctrl_t.PMOD['plink.active']~1 DATA2:ApplyPMOD(ctrl_key)   
+                            GUI_nodes_init(DATA)
+                          end
+                          }
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle
+    local txt_a = DATA.GUI.custom_txta_OFF  if ctrl_t.PMOD['acs.active']&1==1 then txt_a = DATA.GUI.custom_txta_ON end
+    DATA.GUI.buttons[basekey..'acsactive'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'Audio',
+                          txt_a = txt_a,
+                          frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          onmouserelease = function() 
+                            ctrl_t.PMOD['acs.active']=ctrl_t.PMOD['acs.active']~1 DATA2:ApplyPMOD(ctrl_key)   
+                            GUI_nodes_init(DATA)
+                          end
+                          }
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle
+    DATA.GUI.buttons[basekey..'baseline'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'Base',--GUI_format_val(ctrl_t.PMOD['mod.baseline'],'mod.baseline'),
+                          txt_a = DATA.GUI.custom_txta_ON,
+                          --frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          val = ctrl_t.PMOD['mod.baseline'],
+                          val_res = -0.1,
+                          val_xaxis=true,
+                          backgr_usevalue = true,
+                          backgr_fill2 = DATA.GUI.custom_backgr_fill2,
+                          backgr_col2 = DATA.GUI.custom_backgr_col2 ,
+                          backgr_fill = 0,
+                          onmousedrag =   function() 
+                                            DATA2.ONPARAMDRAG = true
+                                            ctrl_t.PMOD['mod.baseline']=DATA.GUI.buttons[basekey..'baseline'].val
+                                            DATA.GUI.buttons[basekey..'baseline'].txt = GUI_format_val(ctrl_t.PMOD['mod.baseline'],'mod.baseline')
+                                            DATA.GUI.buttons[basekey..'baseline'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key) 
+                                          end,
+                          onmouserelease =function()
+                                            DATA2.ONPARAMDRAG = false
+                                            ctrl_t.PMOD['mod.baseline']=DATA.GUI.buttons[basekey..'baseline'].val
+                                            DATA.GUI.buttons[basekey..'baseline'].txt = 'Base'
+                                            DATA.GUI.buttons[basekey..'baseline'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key)
+                                          end,
+                          }    
+  end 
+  ----------------------------------------------------------------------
+  function GUI_format_val(x, key) 
+    if key == 'mod.baseline' then return math.floor(x*100)..'%' end
+  end
+  ----------------------------------------------------------------------
+  function GUI_nodes_03lfo(DATA, ctrl_t,  node_yoffs)   
+    local ctrl_key = ctrl_t.ctrl_key
+    local basekey = 'ctrl_'..ctrl_key..'lfo'
+    DATA.GUI.buttons[basekey] = { x=DATA.GUI.custom_node_x,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_node_w-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = infotxt,
+                          --backgr_fill=0.3,
+                          --backgr_col='#FFFFFF',
+                          frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          ignoremouse = true,
+                          --hide = true,
+                          }
+    local xoffs = DATA.GUI.custom_node_x
+    
+    local maxspeedHz = 8
+    DATA.GUI.buttons[basekey..'lfo.speed'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'Speed',
+                          txt_a = DATA.GUI.custom_txta_ON,
+                          --frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          val = ctrl_t.PMOD['lfo.speed']/maxspeedHz,
+                          val_res = -0.1,
+                          val_xaxis=true,
+                          val_min=0,
+                          val_max=1,
+                          backgr_usevalue = true,
+                          backgr_fill2 = DATA.GUI.custom_backgr_fill2,
+                          backgr_col2 = DATA.GUI.custom_backgr_col2 ,
+                          backgr_fill = 0,
+                          onmousedrag =   function() 
+                                            DATA2.ONPARAMDRAG = true
+                                            ctrl_t.PMOD['lfo.speed']=DATA.GUI.buttons[basekey..'lfo.speed'].val*maxspeedHz
+                                            DATA.GUI.buttons[basekey..'lfo.speed'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key) 
+                                          end,
+                          onmouserelease =function()
+                                            DATA2.ONPARAMDRAG = false
+                                            ctrl_t.PMOD['lfo.speed']=DATA.GUI.buttons[basekey..'lfo.speed'].val*maxspeedHz
+                                            DATA.GUI.buttons[basekey..'lfo.speed'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key)
+                                          end,
                           } 
-    local ctrl_x = node_x_offs + DATA.GUI.custom_knob_buttonarea_w/2-DATA.GUI.custom_knob_button_w/2      
-    GUI_CTRL(DATA,
-      {
-        butkey = 'mod_plink.offset'..ctrl_key, 
-        x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w/2-DATA.GUI.custom_knob_button_w/2,
-        y= node_y_offs+DATA.GUI.custom_nodectrlblock_h/2-DATA.GUI.custom_knob_button_h/2,
-        w = DATA.GUI.custom_knob_button_w,
-        h = DATA.GUI.custom_knob_button_h, 
-        ctrlname = 'Offset',
-        ctrlval_key = 'plink.offset',
-        ctrlval_format_key = 'plink.offset', 
-        ctrlval_format = function(x) return (math.floor(x*1000)/10)..'%' end,
-        ctrlval_src_t = ctrl_t.PMOD,
-        ctrlval_res = 0.2,
-        ctrlval_min = -1,
-        ctrlval_max = 1,
-        ctrlval_default = 0,
-        func_app = function() ctrl_t.PMOD['plink.offset']=DATA.GUI.buttons['mod_plink.offset'..ctrl_key..'frame'].val DATA2:ApplyPMOD(ctrl_key) end  
-      } )
-    return node_y_offs + node_h
+                          
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle
+    DATA.GUI.buttons[basekey..'lfo.strength'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'Strength',
+                          txt_a = DATA.GUI.custom_txta_ON,
+                          --frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          val = ctrl_t.PMOD['lfo.strength'],
+                          val_res = -0.1,
+                          val_xaxis=true,
+                          backgr_usevalue = true,
+                          backgr_fill2 = DATA.GUI.custom_backgr_fill2,
+                          backgr_col2 = DATA.GUI.custom_backgr_col2 ,
+                          backgr_fill = 0,
+                          onmousedrag =   function() 
+                                            DATA2.ONPARAMDRAG = true
+                                            ctrl_t.PMOD['lfo.strength']=DATA.GUI.buttons[basekey..'lfo.strength'].val
+                                            DATA.GUI.buttons[basekey..'lfo.strength'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key) 
+                                          end,
+                          onmouserelease =function()
+                                            DATA2.ONPARAMDRAG = false
+                                            ctrl_t.PMOD['lfo.strength']=DATA.GUI.buttons[basekey..'lfo.strength'].val
+                                            DATA.GUI.buttons[basekey..'lfo.strength'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key)
+                                          end,
+                          }                          
+                      
+  end    
+  ---------------------------------------------------node_yoffs------------------
+  function GUI_nodes_04link(DATA, ctrl_t,  node_yoffs) 
+    local ctrl_key = ctrl_t.ctrl_key
+    local basekey = 'ctrl_'..ctrl_key..'plink'
+    DATA.GUI.buttons[basekey] = { x=DATA.GUI.custom_node_x,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_node_w-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = infotxt,
+                          --backgr_fill=0.3,
+                          --backgr_col='#FFFFFF',
+                          frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          ignoremouse = true,
+                          --hide = true,
+                          }
+    local xoffs = DATA.GUI.custom_node_x
+    
+    DATA.GUI.buttons[basekey..'plink.offset'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'Offset',
+                          txt_a = DATA.GUI.custom_txta_ON,
+                          --frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          val = ctrl_t.PMOD['plink.offset'],
+                          val_res = -0.1,
+                          val_xaxis=true,
+                          val_min=0,
+                          val_max=1,
+                          backgr_usevalue = true,
+                          backgr_fill2 = DATA.GUI.custom_backgr_fill2,
+                          backgr_col2 = DATA.GUI.custom_backgr_col2 ,
+                          backgr_fill = 0,
+                          onmousedrag =   function() 
+                                            DATA2.ONPARAMDRAG = true
+                                            ctrl_t.PMOD['plink.offset']=DATA.GUI.buttons[basekey..'plink.offset'].val
+                                            DATA.GUI.buttons[basekey..'plink.offset'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key) 
+                                          end,
+                          onmouserelease =function()
+                                            DATA2.ONPARAMDRAG = false
+                                            ctrl_t.PMOD['plink.offset']=DATA.GUI.buttons[basekey..'plink.offset'].val
+                                            DATA.GUI.buttons[basekey..'plink.offset'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key)
+                                          end,
+                          } 
+                          
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle
+    DATA.GUI.buttons[basekey..'plink.scale'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'Scale',
+                          txt_a = DATA.GUI.custom_txta_ON,
+                          --frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          val = ctrl_t.PMOD['plink.scale'],
+                          val_res = -0.1,
+                          val_xaxis=true,
+                          backgr_usevalue = true,
+                          backgr_fill2 = DATA.GUI.custom_backgr_fill2,
+                          backgr_col2 = DATA.GUI.custom_backgr_col2 ,
+                          backgr_fill = 0,
+                          onmousedrag =   function() 
+                                            DATA2.ONPARAMDRAG = true
+                                            ctrl_t.PMOD['plink.scale']=DATA.GUI.buttons[basekey..'plink.scale'].val
+                                            DATA.GUI.buttons[basekey..'plink.scale'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key) 
+                                          end,
+                          onmouserelease =function()
+                                            DATA2.ONPARAMDRAG = false
+                                            ctrl_t.PMOD['plink.scale']=DATA.GUI.buttons[basekey..'plink.scale'].val
+                                            DATA.GUI.buttons[basekey..'plink.scale'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key)
+                                          end,
+                          } 
   end    
   ----------------------------------------------------------------------
-  function GUI_nodes_05acs(DATA, ctrl_t,  node_y_offs0) 
+  function GUI_nodes_05acs(DATA, ctrl_t,  node_yoffs)  
     local ctrl_key = ctrl_t.ctrl_key
-    local node_x_offs = DATA.GUI.custom_nodeparam_areaw + math.floor(DATA.GUI.custom_nodectrlblock_areaw/2-DATA.GUI.custom_nodectrlblock_w/2)
-    local node_y_offs = node_y_offs0 + math.floor(DATA.GUI.custom_node_areah/2-DATA.GUI.custom_nodectrlblock_h/2)
-    local node_w = DATA.GUI.custom_nodeparam_areaw
-    local node_h = DATA.GUI.custom_node_areah
     local basekey = 'ctrl_'..ctrl_key..'acs'
-    DATA.GUI.buttons[basekey] = { x=node_x_offs,
-                          y=node_y_offs,
-                          hide = node_y_offs<DATA.GUI.custom_infoh,
-                          w=DATA.GUI.custom_nodectrlblock_w-1,
-                          h=DATA.GUI.custom_nodectrlblock_h-1,
-                          txt = 'Audio control',
-                          offsetframe = DATA.GUI.custom_offset,
-                          frame_a = 0.4,
-                          txt_fontsz = DATA.GUI.custom_nodectrlblock_txtsz,
-                          ignoremouse = true,
-                          frame_arcborder = true,
-                          frame_arcborderr = math.floor(DATA.GUI.custom_offset),
-                                                  
-                          }
-    -- wires
-    DATA.GUI.buttons['ctrl_'..ctrl_key..'acs_wire'] = { x=0,y=0,w=0,h=0,
-                          txt = '',
-                          hide = node_y_offs<DATA.GUI.custom_infoh,
-                          backgr_col = '#333333',
-                          backgr_fill = 0,
+    DATA.GUI.buttons[basekey] = { x=DATA.GUI.custom_node_x,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_node_w-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = infotxt,
+                          --backgr_fill=0.3,
+                          --backgr_col='#FFFFFF',
                           frame_a = 0,
-                          frame_asel = 0,
-                          wiredata = {  x1 = DATA.GUI.buttons['ctrl_'..ctrl_key].x+DATA.GUI.buttons['ctrl_'..ctrl_key].w,
-                                        x2 = DATA.GUI.buttons['ctrl_'..ctrl_key].x+DATA.GUI.buttons['ctrl_'..ctrl_key].w + DATA.GUI.buttons[basekey].x - DATA.GUI.buttons['ctrl_'..ctrl_key].x-DATA.GUI.buttons['ctrl_'..ctrl_key].w,
-                                        y1=DATA.GUI.buttons['ctrl_'..ctrl_key].y+math.floor(DATA.GUI.buttons['ctrl_'..ctrl_key].h/2),
-                                        y2=DATA.GUI.buttons[basekey].y+math.floor(DATA.GUI.buttons[basekey].h/2)
-                                  },
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          ignoremouse = true,
+                          --hide = true,
+                          }
+    local xoffs = DATA.GUI.custom_node_x
+    
+    local max_ar_ms = 1000
+    DATA.GUI.buttons[basekey..'acs.attack'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'Attack',
+                          txt_a = DATA.GUI.custom_txta_ON,
+                          --frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          val = ctrl_t.PMOD['acs.attack']/max_ar_ms,
+                          val_res = -0.1,
+                          val_xaxis=true,
+                          backgr_usevalue = true,
+                          backgr_fill2 = DATA.GUI.custom_backgr_fill2,
+                          backgr_col2 = DATA.GUI.custom_backgr_col2 ,
+                          backgr_fill = 0,
+                          onmousedrag =   function() 
+                                            DATA2.ONPARAMDRAG = true
+                                            ctrl_t.PMOD['acs.attack']=DATA.GUI.buttons[basekey..'acs.attack'].val*max_ar_ms
+                                            DATA.GUI.buttons[basekey..'acs.attack'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key) 
+                                          end,
+                          onmouserelease =function()
+                                            DATA2.ONPARAMDRAG = false
+                                            ctrl_t.PMOD['acs.attack']=DATA.GUI.buttons[basekey..'acs.attack'].val*max_ar_ms
+                                            DATA.GUI.buttons[basekey..'acs.attack'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key)
+                                          end,
                           } 
-    local ctrl_x = node_x_offs + DATA.GUI.custom_knob_buttonarea_w/2-DATA.GUI.custom_knob_button_w/2      
-    GUI_CTRL(DATA,
-      {
-        butkey = 'mod_acs.strength'..ctrl_key, 
-        x = ctrl_x + DATA.GUI.custom_knob_buttonarea_w/2-DATA.GUI.custom_knob_button_w/2,
-        y= node_y_offs+DATA.GUI.custom_nodectrlblock_h/2-DATA.GUI.custom_knob_button_h/2,
-        w = DATA.GUI.custom_knob_button_w,
-        h = DATA.GUI.custom_knob_button_h, 
-        ctrlname = 'Strength',
-        ctrlval_key = 'acs.strength',
-        ctrlval_format_key = 'acs.strength', 
-        ctrlval_format = function(x) return (math.floor(x*1000)/10)..'%' end,
-        ctrlval_src_t = ctrl_t.PMOD,
-        ctrlval_res = 0.2,
-        ctrlval_min = 0,
-        ctrlval_max = 1,
-        ctrlval_default = 0,
-        func_app = function() ctrl_t.PMOD['acs.strength']=DATA.GUI.buttons['mod_acs.strength'..ctrl_key..'frame'].val DATA2:ApplyPMOD(ctrl_key) end  
-      } )
-    return node_y_offs + node_h
+                          
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle
+    DATA.GUI.buttons[basekey..'acs.release'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'Release',
+                          txt_a = DATA.GUI.custom_txta_ON,
+                          --frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          val = ctrl_t.PMOD['acs.release']/max_ar_ms,
+                          val_res = -0.1,
+                          val_xaxis=true,
+                          backgr_usevalue = true,
+                          backgr_fill2 = DATA.GUI.custom_backgr_fill2,
+                          backgr_col2 = DATA.GUI.custom_backgr_col2 ,
+                          backgr_fill = 0,
+                          onmousedrag =   function() 
+                                            DATA2.ONPARAMDRAG = true
+                                            ctrl_t.PMOD['acs.release']=DATA.GUI.buttons[basekey..'acs.release'].val*max_ar_ms
+                                            DATA.GUI.buttons[basekey..'acs.release'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key) 
+                                          end,
+                          onmouserelease =function()
+                                            DATA2.ONPARAMDRAG = false
+                                            ctrl_t.PMOD['acs.release']=DATA.GUI.buttons[basekey..'acs.release'].val*max_ar_ms
+                                            DATA.GUI.buttons[basekey..'acs.release'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key)
+                                          end,
+                          } 
+    
   end     
   
   -----------------------------------------------------------------------------  
@@ -844,27 +661,37 @@
   function GUI_nodes_init(DATA)
     for key in pairs(DATA.GUI.buttons) do if key:match('ctrl_') or key:match('mod_') then DATA.GUI.buttons[key] = nil end end
     if not DATA2.modulationstate then return end
+    
     -- calc common h
       local node_comh = 0
-      for control in spairs(DATA2.modulationstate) do
-        for link =1,#DATA2.modulationstate[control] do
-          node_comh =node_comh + DATA.GUI.custom_node_areah
+      for param in spairs(DATA2.modulationstate) do
+        node_comh =node_comh + DATA.GUI.custom_node_nameh
+        if DATA2.modulationstate[param].PMOD then 
+          node_comh = node_comh + DATA.GUI.custom_node_nameh 
+          if DATA2.modulationstate[param].PMOD['lfo.active'] == 1 then node_comh = node_comh + DATA.GUI.custom_node_nameh end
+          if DATA2.modulationstate[param].PMOD['plink.active'] == 1 then node_comh = node_comh + DATA.GUI.custom_node_nameh end
+          if DATA2.modulationstate[param].PMOD['acs.active'] == 1 then node_comh = node_comh + DATA.GUI.custom_node_nameh end
         end
       end
       node_comh =math.max(node_comh-DATA.GUI.custom_infoh - DATA.GUI.custom_node_areah,DATA.GUI.custom_gfx_hreal)
     
-    local node_y_offs = (DATA2.scroll_list or 0) * (1-node_comh) + DATA.GUI.custom_infoh
-    for param in spairs(DATA2.modulationstate) do
-      GUI_nodes_01parameter(DATA, DATA2.modulationstate[param], node_y_offs)  
-      if DATA2.modulationstate[param].PMOD then
-        node_y_offs = GUI_nodes_02base(DATA, DATA2.modulationstate[param], node_y_offs) 
-        if DATA2.modulationstate[param].PMOD['mod.active'] == 1 then 
-          if DATA2.modulationstate[param].PMOD['lfo.active'] == 1   then node_y_offs = GUI_nodes_03lfo(DATA, DATA2.modulationstate[param], node_y_offs)  end
-          if DATA2.modulationstate[param].PMOD['plink.active'] == 1   then node_y_offs = GUI_nodes_04link(DATA, DATA2.modulationstate[param], node_y_offs)  end
-          if DATA2.modulationstate[param].PMOD['acs.active'] == 1   then node_y_offs = GUI_nodes_05acs(DATA, DATA2.modulationstate[param], node_y_offs)  end
+    -- draw
+      local node_yoffs = (DATA2.scroll_list or 0) * (1-node_comh) + DATA.GUI.custom_infoh 
+      for param in spairs(DATA2.modulationstate) do
+        GUI_nodes_01parameter(DATA, DATA2.modulationstate[param], node_yoffs) node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
+        if DATA2.modulationstate[param].PMOD then
+          GUI_nodes_02base(DATA, DATA2.modulationstate[param], node_yoffs) node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
+          if DATA2.modulationstate[param].PMOD['lfo.active'] == 1   then    GUI_nodes_03lfo(DATA, DATA2.modulationstate[param], node_yoffs)   node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
+          if DATA2.modulationstate[param].PMOD['plink.active'] == 1   then  GUI_nodes_04link(DATA, DATA2.modulationstate[param], node_yoffs)  node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
+          if DATA2.modulationstate[param].PMOD['acs.active'] == 1   then    GUI_nodes_05acs(DATA, DATA2.modulationstate[param], node_yoffs)   node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
         end
+        --[[
+          node_y_offs = 
+          if DATA2.modulationstate[param].PMOD['mod.active'] == 1 then 
+            
+          end
+        end]]
       end
-    end
   end
   ----------------------------------------------------------------------
   function DATA_RESERVED_ONPROJCHANGE(DATA)
@@ -974,27 +801,41 @@
     -- get globals
       DATA.GUI.custom_gfx_hreal = math.floor(gfx.h/DATA.GUI.default_scale)
       DATA.GUI.custom_gfx_wreal = math.floor(gfx.w/DATA.GUI.default_scale)
-      DATA.GUI.custom_reference = 800
-      DATA.GUI.custom_Yrelation = VF_lim(math.max(DATA.GUI.custom_gfx_hreal,DATA.GUI.custom_gfx_wreal)/DATA.GUI.custom_reference, 0.1, 8) -- global W
-      DATA.GUI.custom_offset =  math.floor(3 * DATA.GUI.custom_Yrelation)
+      DATA.GUI.custom_reference = 400
+      DATA.GUI.custom_Xrelation = VF_lim(DATA.GUI.custom_gfx_wreal/DATA.GUI.custom_reference, 0.1, 8) -- global W
+      DATA.GUI.custom_offset =  math.floor(3 * DATA.GUI.custom_Xrelation)
       
       
-      DATA.GUI.custom_infoh =  math.floor(40 * DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_info_txtsz= math.floor(20* DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_scrollw =  math.floor(20 * DATA.GUI.custom_Yrelation)
+      DATA.GUI.custom_infoh =  math.floor(40 * DATA.GUI.custom_Xrelation)
+      DATA.GUI.custom_info_txtsz= math.floor(19* DATA.GUI.custom_Xrelation)
+      DATA.GUI.custom_scrollw =  math.floor(15 * DATA.GUI.custom_Xrelation)
       
     -- nodes
+      DATA.GUI.custom_node_x = DATA.GUI.custom_offset
+      DATA.GUI.custom_node_w = DATA.GUI.custom_gfx_wreal - DATA.GUI.custom_scrollw-DATA.GUI.custom_offset*4
       DATA.GUI.custom_nodes_area_w = DATA.GUI.custom_gfx_wreal - DATA.GUI.custom_scrollw-DATA.GUI.custom_offset*2
-      DATA.GUI.custom_node_areah = math.floor(90*DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_node_removew = math.floor(20*DATA.GUI.custom_Yrelation) 
-    -- param node
-      DATA.GUI.custom_nodeparam_areaw = math.floor(DATA.GUI.custom_nodes_area_w*0.25)  
-      DATA.GUI.custom_nodeparam_txtsz= math.floor(17* DATA.GUI.custom_Yrelation)  
+      DATA.GUI.custom_node_areah = math.floor(90*DATA.GUI.custom_Xrelation)
+      DATA.GUI.custom_node_removew = math.floor(20*DATA.GUI.custom_Xrelation) 
+    -- ctrls
+      DATA.GUI.custom_txtsz_ctrl= math.floor(16* DATA.GUI.custom_Xrelation)
+      DATA.GUI.custom_txta_OFF = 0.4
+      DATA.GUI.custom_txta_ON = 1
+      DATA.GUI.custom_backgr_fill2 = 0.2
+      DATA.GUI.custom_backgr_col2 =0xFFFFFF
+    -- name 
+      DATA.GUI.custom_node_nameh = math.floor(30*DATA.GUI.custom_Xrelation)
+      DATA.GUI.custom_nodeparam_txtsz= math.floor(16* DATA.GUI.custom_Xrelation)  
+    -- base
+      DATA.GUI.custom_base_wsingle= math.floor(DATA.GUI.custom_nodes_area_w/6)-1
+      
+      
+    --[[ param node
+      DATA.GUI.custom_nodeparam_areaw = math.floor(DATA.GUI.custom_nodes_area_w*0.25)   
       DATA.GUI.custom_nodeparam_w= math.floor(DATA.GUI.custom_nodeparam_areaw*0.9)
       DATA.GUI.custom_nodeparam_h= math.floor(DATA.GUI.custom_node_areah*0.6)
     -- info node
       DATA.GUI.custom_nodectrlblock_areaw = DATA.GUI.custom_nodes_area_w -  DATA.GUI.custom_nodeparam_areaw
-      DATA.GUI.custom_nodectrlblock_txtsz= math.floor(15* DATA.GUI.custom_Yrelation)
+      
       DATA.GUI.custom_nodectrlblock_w= math.floor(DATA.GUI.custom_nodectrlblock_areaw*0.9)
       DATA.GUI.custom_nodectrlblock_h= math.floor(DATA.GUI.custom_node_areah*0.9)
     
@@ -1002,16 +843,18 @@
       DATA.GUI.custom_knob_button_w = math.floor(DATA.GUI.custom_knob_buttonarea_w * 0.9)
       DATA.GUI.custom_knob_button_h= math.floor(DATA.GUI.custom_nodectrlblock_h*0.9)
       DATA.GUI.custom_knob_readout_h = math.floor(DATA.GUI.custom_nodectrlblock_h*0.2 )   
-      
+      ]]
     GUI_header_info(DATA)
     
     -- scroll
-      DATA.GUI.buttons.scroll = { x=DATA.GUI.custom_gfx_wreal-DATA.GUI.custom_scrollw-DATA.GUI.custom_offset*2,
-                          y=DATA.GUI.custom_offset+DATA.GUI.custom_infoh,
-                          w=DATA.GUI.custom_scrollw-DATA.GUI.custom_offset,
+      local xscroll = math.floor(DATA.GUI.custom_gfx_wreal-DATA.GUI.custom_scrollw-DATA.GUI.custom_offset*2)
+      local yscroll = math.floor(DATA.GUI.custom_offset+DATA.GUI.custom_infoh)
+      DATA.GUI.buttons.scroll = { x=xscroll,
+                          y=yscroll,
+                          w=DATA.GUI.custom_scrollw,
                           h=DATA.GUI.custom_gfx_hreal-DATA.GUI.custom_offset*2-DATA.GUI.custom_infoh,
-                          backgr_fill =  0.2,
-                          frame_a = 0.1,
+                          backgr_fill =  0.1,
+                          frame_a = 0,
                           frame_asel = 0.1,
                           val = 0,
                           val_res = -1,
