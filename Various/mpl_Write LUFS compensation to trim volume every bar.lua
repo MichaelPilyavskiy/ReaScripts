@@ -2,8 +2,9 @@
 -- @version 1.0
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @about 
+--	At init - set trim volumes to active, unarmed, set meter mode to lufs. Run - write points at bars. At stop - set meter mode to stereo peaks
 -- @changelog
--- @about At init - set trim volumes to active, unarmed, set meter mode to lufs. Run - write points at bars. At stop - set meter mode to stereo peaks
 --    + Init
 
 
