@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="34378c3df356f7927c0487d8a907c89106b3743e" name="MPL Scripts">
+<index version="1" commit="fa26003cbc5fe1fd434a2e831e3d9ae940b180de" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -1698,6 +1698,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/10e5b1434be7c723092638f6b39e3343e636ee69/FX/mpl_Cubase%20AB%20floating%20FX.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Decrease LFO speed for last touched parameter.lua" type="script" desc="Decrease LFO speed for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Decrease%20LFO%20speed%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Delete bypassed fx from selected tracks.lua" type="script" desc="Delete bypassed fx from selected tracks">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -1714,6 +1723,42 @@
       <version name="1.0" author="MPL" time="2018-08-10T14:29:23Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f796fb7ee80aec7289d049eabde20aa2ffe11c25/FX/mpl_Delete%20offline%20fx%20from%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Disable LFO for last touched parameter.lua" type="script" desc="Disable LFO for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Disable%20LFO%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Disable parameter modulation for selected tracks.lua" type="script" desc="Disable parameter modulation for selected tracks">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Disable%20parameter%20modulation%20for%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Enable LFO for last touched parameter.lua" type="script" desc="Enable LFO for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Enable%20LFO%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Enable parameter modulation for selected tracks.lua" type="script" desc="Enable parameter modulation for selected tracks">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Enable%20parameter%20modulation%20for%20selected%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Float instrument on selected track.lua" type="script" desc="Float instrument on selected track">
@@ -1778,6 +1823,15 @@
       <version name="1.0" author="MPL" time="2022-07-12T15:38:14Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/FX/mpl_Hide%20all%20selected%20tracks%20FX%20embedded%20UI%20in%20MCP.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Increase LFO speed for last touched parameter.lua" type="script" desc="Increase LFO speed for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Increase%20LFO%20speed%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Insert focused FX to selected tracks, preserve parameters.lua" type="script" desc="Insert focused FX to selected tracks, preserve parameters">
@@ -2259,6 +2313,42 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/63018541ccd42c54d5b23e9aa569794474a7ca62/FX/mpl_Randomize%20Track%20FX%20parameters.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Remove MIDI learn from focused FX.lua" type="script" desc="Remove MIDI learn from focused FX">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Remove%20MIDI%20learn%20from%20focused%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Remove MIDI learn from selected tracks.lua" type="script" desc="Remove MIDI learn from selected tracks">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Remove%20MIDI%20learn%20from%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Remove OSC learn from focused FX.lua" type="script" desc="Remove OSC learn from focused FX">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Remove%20OSC%20learn%20from%20focused%20FX.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Remove OSC learn from selected tracks.lua" type="script" desc="Remove OSC learn from selected tracks">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Remove%20OSC%20learn%20from%20selected%20tracks.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_ReplaceFX.lua" type="script" desc="ReplaceFX">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
@@ -2402,9 +2492,17 @@
       </version>
     </reapack>
     <reapack name="mpl_Set auxilary input as a modulation for last touched parameter.lua" type="script" desc="Set auxilary input as a modulation for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="MPL" time="2021-05-29T18:51:14Z">
         <changelog><![CDATA[init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7453fc257544c830ecc8ce539e3c928e9d37204f/FX/mpl_Set%20auxilary%20input%20as%20a%20modulation%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[# use native API REAPER 6.73
+# improve using GetLastTouchedFX]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20auxilary%20input%20as%20a%20modulation%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set last touched parameter value (via deductive brutforce).lua" type="script" desc="Set last touched parameter value (via deductive brutforce)">
@@ -2424,10 +2522,126 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a5bc7dd7e4b0700ee608b61db6a0f00ecb82ecfb/FX/mpl_Set%20last%20touched%20parameter%20value%20(via%20deductive%20brutforce).lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Set LFO direction to centered for last touched parameter.lua" type="script" desc="Set LFO direction to centered for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20direction%20to%20centered%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set LFO direction to negative for last touched parameter.lua" type="script" desc="Set LFO direction to negative for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20direction%20to%20negative%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set LFO direction to positive for last touched parameter.lua" type="script" desc="Set LFO direction to positive for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20direction%20to%20positive%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set LFO shape to sine for last touched parameter.lua" type="script" desc="Set LFO shape to sine for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20shape%20to%20sine%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set LFO speed to 0.5 beat for last touched parameter.lua" type="script" desc="Set LFO speed to 0.5 beat for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20speed%20to%200.5%20beat%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set LFO speed to 1 beat for last touched parameter.lua" type="script" desc="Set LFO speed to 1 beat for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20speed%20to%201%20beat%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set LFO speed to 2 beats for last touched parameter.lua" type="script" desc="Set LFO speed to 2 beats for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20speed%20to%202%20beats%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set LFO square to random for last touched parameter.lua" type="script" desc="Set LFO square to random for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20square%20to%20random%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set LFO square to saw L for last touched parameter.lua" type="script" desc="Set LFO square to saw L for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20square%20to%20saw%20L%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set LFO square to saw R for last touched parameter.lua" type="script" desc="Set LFO square to saw R for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20square%20to%20saw%20R%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set LFO square to sine for last touched parameter.lua" type="script" desc="Set LFO square to sine for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20square%20to%20sine%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set LFO square to triangle for last touched parameter.lua" type="script" desc="Set LFO square to triangle for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20LFO%20square%20to%20triangle%20for%20last%20touched%20parameter.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Set main input as a modulation for last touched parameter.lua" type="script" desc="Set main input as a modulation for last touched parameter">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="MPL" time="2021-05-29T18:51:14Z">
         <changelog><![CDATA[init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7453fc257544c830ecc8ce539e3c928e9d37204f/FX/mpl_Set%20main%20input%20as%20a%20modulation%20for%20last%20touched%20parameter.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2023-01-31T19:33:15Z">
+        <changelog><![CDATA[# use native API REAPER 6.73
+# improve using GetLastTouchedFX]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Set%20main%20input%20as%20a%20modulation%20for%20last%20touched%20parameter.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set selected track FX outputs to incremental stereo pairs.lua" type="script" desc="Set selected track FX outputs to incremental stereo pairs">
