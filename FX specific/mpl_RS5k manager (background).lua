@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.15
+-- @version 3.16
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,7 +16,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # DrumRack: fix moving sample broken release
+--    + Learn: use learn button to map last touched control to last touched parameter
 
 
 
@@ -30,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.15'
+    DATA.extstate.version = '3.16'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -2247,7 +2247,7 @@ rightclick them to hide all but active.
                           frame_a = 0.3,
                           --frame_asel = 0.3,
                           --backgr_fill = 0,
-                          onmouseclick =  function() Action(41144) end}    
+                          onmouseclick =  function()  DATA2:Actions_LearnLastTouchControlToLAstTouchedParam() end }--Action(41144) end}    
     x_offs0 = x_offs0 + DATA.GUI.custom_knob_button_w
     DATA.GUI.buttons.midiosclearn_actionframe_help = { x=x_offs0,
                           y=y_offs,
@@ -5961,9 +5961,40 @@ rightclick them to hide all but active.
     gmem_write(1025,0 )
   end
   ----------------------------------------------------------------------
+  function DATA2:Actions_LearnLastTouchControlToLAstTouchedParam()
+    -- @description Bind last touched controller to last touched parameter
+    -- @version 1.0
+    -- @author MPL
+    -- @website http://forum.cockos.com/showthread.php?t=188335
+    -- @changelog
+    --    + init 02.02.2023
+  
+    local script_title_out = 'Bind last touched controller to last touched parameter' 
+    
+    local retval, tracknumber, fxnumber, paramnumber = reaper.GetLastTouchedFX()
+    if not retval then return end
+    Undo_BeginBlock2( 0 )
+    local trid = tracknumber&0xFFFF
+    local itid = (tracknumber>>16)&0xFFFF
+    if itid > 0 then return end -- ignore item FX
+    local tr
+    if trid==0 then tr = GetMasterTrack(0) else tr = GetTrack(0,trid-1) end
+    if not tr then return end
+    
+    local retval1, rawmsg, tsval, devIdx, projPos, projLoopCnt = MIDI_GetRecentInputEvent(0)
+    if retval1 == 0 then return end
+    midi2 = rawmsg:byte(2)
+    midi1 = rawmsg:byte(1)
+    
+    TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.learn.midi1', midi1)
+    TrackFX_SetNamedConfigParm( tr, fxnumber, 'param.'..paramnumber..'.learn.midi2', midi2)
+    
+    Undo_EndBlock2( 0, script_title_out or '', 0xFFFFFFFF )
+  end
+  ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.51) if ret then local ret2 = VF_CheckReaperVrs(6.69,true) if ret2 then  
+  local ret = VF_CheckFunctions(3.51) if ret then local ret2 = VF_CheckReaperVrs(6.73,true) if ret2 then  
     gmem_attach('RS5K_manager')
     main() 
   end end
