@@ -1,10 +1,9 @@
 -- @description Build harmonic series bands for focused ReaEQ
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @noindex
 -- @changelog
---    # header
+--    # reindex out of metapackage by lot of requests
   
   
   

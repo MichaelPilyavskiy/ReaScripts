@@ -1,9 +1,8 @@
 -- @description ModulationEditor
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # move 'base' after 'active'
 --    # increase a bit reference width
 
 
@@ -16,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '1.02'
+    DATA.extstate.version = '1.03'
     DATA.extstate.extstatesection = 'MPL_ModulationEditor'
     DATA.extstate.mb_title = 'ModulationEditor'
     DATA.extstate.default = 
@@ -804,14 +803,14 @@
     -- get globals
       DATA.GUI.custom_gfx_hreal = math.floor(gfx.h/DATA.GUI.default_scale)
       DATA.GUI.custom_gfx_wreal = math.floor(gfx.w/DATA.GUI.default_scale)
-      DATA.GUI.custom_reference = 250
+      DATA.GUI.custom_reference = 360
       DATA.GUI.custom_Xrelation = VF_lim(DATA.GUI.custom_gfx_wreal/DATA.GUI.custom_reference, 0.1, 8) -- global W
       DATA.GUI.custom_offset =  math.floor(3 * DATA.GUI.custom_Xrelation)
       
       
       DATA.GUI.custom_infoh =  math.floor(40 * DATA.GUI.custom_Xrelation)
-      DATA.GUI.custom_info_txtsz= math.floor(19* DATA.GUI.custom_Xrelation)
-      DATA.GUI.custom_scrollw =  math.floor(15 * DATA.GUI.custom_Xrelation)
+      DATA.GUI.custom_info_txtsz= math.floor(20* DATA.GUI.custom_Xrelation)
+      DATA.GUI.custom_scrollw =  math.floor(10 * DATA.GUI.custom_Xrelation)
       
     -- nodes
       DATA.GUI.custom_node_x = DATA.GUI.custom_offset
@@ -820,7 +819,7 @@
       DATA.GUI.custom_node_areah = math.floor(90*DATA.GUI.custom_Xrelation)
       DATA.GUI.custom_node_removew = math.floor(20*DATA.GUI.custom_Xrelation) 
     -- ctrls
-      DATA.GUI.custom_txtsz_ctrl= math.floor(16* DATA.GUI.custom_Xrelation)
+      DATA.GUI.custom_txtsz_ctrl= math.floor(19* DATA.GUI.custom_Xrelation)
       DATA.GUI.custom_txta_OFF = 0.4
       DATA.GUI.custom_txta_ON = 1
       DATA.GUI.custom_backgr_fill2 = 0.2

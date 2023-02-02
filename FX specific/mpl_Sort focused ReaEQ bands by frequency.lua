@@ -1,10 +1,9 @@
 -- @description Sort focused ReaEQ bands by frequency
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @noindex
 -- @changelog
---    + Show popup about log-scale automated frequencies limitation
+--    # reindex out of metapackage by lot of requests
 
   -- NOT reaper NOT gfx
   -----------------------------------------------------------------------------

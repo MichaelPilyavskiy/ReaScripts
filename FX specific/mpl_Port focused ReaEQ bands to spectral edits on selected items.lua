@@ -1,10 +1,9 @@
 -- @description Port focused ReaEQ bands to spectral edits on selected items
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @noindex
 -- @changelog
---    # fix various errors
+--    # reindex out of metapackage by lot of requests
 
 
   -------------------------------------------------------

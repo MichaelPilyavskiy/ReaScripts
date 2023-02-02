@@ -1,10 +1,10 @@
--- @description Solo last touched ReaEQ band
+-- @description Solo last touched ReaEQ band (alter)
 -- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @noindex
+-- @about Alter bands when soloing (band<>bandpass, LP<>HP, HP<>LP)
 -- @changelog
---    # header
+--    # reindex out of metapackage by lot of requests
 
   -- NOT reaper NOT gfx
   for key in pairs(reaper) do _G[key]=reaper[key]  end 
@@ -51,8 +51,13 @@
         local retval, b_state = TrackFX_GetNamedConfigParm( tr, fx, 'BANDENABLED'..i-1 )
         str_state = str_state..' '..b_type..' '..b_state
         if i == cur_band then
-          --msg(b_type)
-          
+          if b_type == 8 or b_type == 2 or b_type == 9 then -- band/alt1/alr2
+            TrackFX_SetNamedConfigParm( tr, fx, 'BANDTYPE'..i-1, 7 ) -- bandpass
+           elseif b_type == 3 then -- LP
+            TrackFX_SetNamedConfigParm( tr, fx, 'BANDTYPE'..i-1, 4 ) -- HP
+           elseif b_type == 4 then -- LP
+            TrackFX_SetNamedConfigParm( tr, fx, 'BANDTYPE'..i-1, 3 ) -- HP            
+          end
           TrackFX_SetNamedConfigParm( tr, fx, 'BANDENABLED'..i-1, 1 )
          else
           TrackFX_SetNamedConfigParm( tr, fx, 'BANDENABLED'..i-1, 0 )
@@ -103,7 +108,7 @@
   ----------------------------------------------------------------------------- 
   --ClearConsole() 
   --EraseState() 
-  local ret = CheckReaperVrs(5.81, 5)
+  local ret = CheckReaperVrs(5.81)
   if ret then 
     local extstate = GetExtState( 'MPL_SOLOEQBAND', 'state' )
     MPL_SoloReaEqBand(extstate)

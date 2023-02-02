@@ -1,10 +1,9 @@
--- @version 1.21
+-- @version 1.22
 -- @author MPL
 -- @description Toggle 64x oversampling for all ReaComp instances
 -- @website http://forum.cockos.com/member.php?u=70694
--- @noindex
 -- @changelog
---   #header
+--    # reindex out of metapackage by lot of requests
 
 
   function main(state) local tr

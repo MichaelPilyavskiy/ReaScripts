@@ -1,10 +1,9 @@
 -- @description Scale focused ReaEQ bands gain up
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @noindex
 -- @changelog
---      #header
+--    # reindex out of metapackage by lot of requests
 
   
   ratio = 1.1
