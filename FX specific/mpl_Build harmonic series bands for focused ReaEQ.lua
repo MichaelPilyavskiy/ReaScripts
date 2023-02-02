@@ -1,8 +1,7 @@
 -- @description Build harmonic series bands for focused ReaEQ
--- @version 1.06
+-- @version 1.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @noindex
 -- @changelog
 --    # overhaul, code cleanup
 --    # using native API for parameter linking
