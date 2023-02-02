@@ -1,9 +1,10 @@
 -- @description ModulationEditor
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # rebuild UI layout o waste less space
+--    # move 'base' after 'active'
+--    # increase a bit reference width
 
 
 
@@ -15,7 +16,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '1.01'
+    DATA.extstate.version = '1.02'
     DATA.extstate.extstatesection = 'MPL_ModulationEditor'
     DATA.extstate.mb_title = 'ModulationEditor'
     DATA.extstate.default = 
@@ -295,6 +296,38 @@
                           end
                           }  
     xoffs = xoffs + DATA.GUI.custom_base_wsingle
+    DATA.GUI.buttons[basekey..'baseline'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'Base',--GUI_format_val(ctrl_t.PMOD['mod.baseline'],'mod.baseline'),
+                          txt_a = DATA.GUI.custom_txta_ON,
+                          --frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          val = ctrl_t.PMOD['mod.baseline'],
+                          val_res = -0.1,
+                          val_xaxis=true,
+                          backgr_usevalue = true,
+                          backgr_fill2 = DATA.GUI.custom_backgr_fill2,
+                          backgr_col2 = DATA.GUI.custom_backgr_col2 ,
+                          backgr_fill = 0,
+                          onmousedrag =   function() 
+                                            DATA2.ONPARAMDRAG = true
+                                            ctrl_t.PMOD['mod.baseline']=DATA.GUI.buttons[basekey..'baseline'].val
+                                            DATA.GUI.buttons[basekey..'baseline'].txt = GUI_format_val(ctrl_t.PMOD['mod.baseline'],'mod.baseline')
+                                            DATA.GUI.buttons[basekey..'baseline'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key) 
+                                          end,
+                          onmouserelease =function()
+                                            DATA2.ONPARAMDRAG = false
+                                            ctrl_t.PMOD['mod.baseline']=DATA.GUI.buttons[basekey..'baseline'].val
+                                            DATA.GUI.buttons[basekey..'baseline'].txt = 'Base'
+                                            DATA.GUI.buttons[basekey..'baseline'].refresh = true
+                                            DATA2:ApplyPMOD(ctrl_key)
+                                          end,
+                          }                            
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle
     local txt_a = DATA.GUI.custom_txta_OFF  if ctrl_t.PMOD['mod.visible']&1==1 then txt_a = DATA.GUI.custom_txta_ON end
     DATA.GUI.buttons[basekey..'modvisible'] = { x=xoffs,
                           y=node_yoffs,
@@ -359,37 +392,7 @@
                           end
                           }
     xoffs = xoffs + DATA.GUI.custom_base_wsingle
-    DATA.GUI.buttons[basekey..'baseline'] = { x=xoffs,
-                          y=node_yoffs,
-                          hide = node_yoffs<DATA.GUI.custom_infoh,
-                          w=DATA.GUI.custom_base_wsingle-1,
-                          h=DATA.GUI.custom_node_nameh-1,
-                          txt = 'Base',--GUI_format_val(ctrl_t.PMOD['mod.baseline'],'mod.baseline'),
-                          txt_a = DATA.GUI.custom_txta_ON,
-                          --frame_a = 0,
-                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
-                          val = ctrl_t.PMOD['mod.baseline'],
-                          val_res = -0.1,
-                          val_xaxis=true,
-                          backgr_usevalue = true,
-                          backgr_fill2 = DATA.GUI.custom_backgr_fill2,
-                          backgr_col2 = DATA.GUI.custom_backgr_col2 ,
-                          backgr_fill = 0,
-                          onmousedrag =   function() 
-                                            DATA2.ONPARAMDRAG = true
-                                            ctrl_t.PMOD['mod.baseline']=DATA.GUI.buttons[basekey..'baseline'].val
-                                            DATA.GUI.buttons[basekey..'baseline'].txt = GUI_format_val(ctrl_t.PMOD['mod.baseline'],'mod.baseline')
-                                            DATA.GUI.buttons[basekey..'baseline'].refresh = true
-                                            DATA2:ApplyPMOD(ctrl_key) 
-                                          end,
-                          onmouserelease =function()
-                                            DATA2.ONPARAMDRAG = false
-                                            ctrl_t.PMOD['mod.baseline']=DATA.GUI.buttons[basekey..'baseline'].val
-                                            DATA.GUI.buttons[basekey..'baseline'].txt = 'Base'
-                                            DATA.GUI.buttons[basekey..'baseline'].refresh = true
-                                            DATA2:ApplyPMOD(ctrl_key)
-                                          end,
-                          }    
+  
   end 
   ----------------------------------------------------------------------
   function GUI_format_val(x, key) 
@@ -801,7 +804,7 @@
     -- get globals
       DATA.GUI.custom_gfx_hreal = math.floor(gfx.h/DATA.GUI.default_scale)
       DATA.GUI.custom_gfx_wreal = math.floor(gfx.w/DATA.GUI.default_scale)
-      DATA.GUI.custom_reference = 400
+      DATA.GUI.custom_reference = 250
       DATA.GUI.custom_Xrelation = VF_lim(DATA.GUI.custom_gfx_wreal/DATA.GUI.custom_reference, 0.1, 8) -- global W
       DATA.GUI.custom_offset =  math.floor(3 * DATA.GUI.custom_Xrelation)
       
