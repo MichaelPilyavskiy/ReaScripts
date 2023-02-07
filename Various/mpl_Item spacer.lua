@@ -2,8 +2,7 @@
 -- @version 1.0
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
--- @about
---	Audiobook tool for spacing dialogg with the ability to set minimum items distance
+-- @about Audiobook tool for spacing dialogg with the ability to set minimum items distance
 -- @changelog
 --    + Init
 
