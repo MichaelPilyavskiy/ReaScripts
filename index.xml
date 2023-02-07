@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="4e1085b79af14d3b4d2fc01d560176fb547aa644" name="MPL Scripts">
+<index version="1" commit="fd8dc9e3b4a5a525d0261a0a65e5b161867ca988" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11468,6 +11468,22 @@ add control for timefall showing last note]]></changelog>
       <version name="1.09" author="MPL" time="2017-01-12T12:39:37Z">
         <changelog><![CDATA[# fixed B root scale decoding]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/495dca37ac4e465b124311d068d2f85644b2496a/Various/mpl_Isomorphic%20keyboard.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Item spacer.lua" type="script" desc="Item spacer">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Audiobook tool for spacing dialogg with the ability to set minimum items distance\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-02-07T20:31:39Z">
+        <changelog><![CDATA[+ Init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fd8dc9e3b4a5a525d0261a0a65e5b161867ca988/Various/mpl_Item%20spacer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Mapping Panel (background).lua" type="script" desc="MappingPanel">
