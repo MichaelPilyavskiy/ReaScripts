@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="fd8dc9e3b4a5a525d0261a0a65e5b161867ca988" name="MPL Scripts">
+<index version="1" commit="1324c34f9032d2aeb640da5c4a5b349b8371df22" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2166,6 +2166,10 @@
       <version name="1.03" author="MPL" time="2023-02-02T10:29:06Z">
         <changelog><![CDATA[# increase a bit reference width]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/07c62170526ca5bb1e28e44f7e4089de64abcc39/FX/mpl_ModulationEditor.lua</source>
+      </version>
+      <version name="1.04" author="MPL" time="2023-02-08T18:48:27Z">
+        <changelog><![CDATA[# UI tweaks]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1324c34f9032d2aeb640da5c4a5b349b8371df22/FX/mpl_ModulationEditor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Move focused Track FX to screen center.lua" type="script" desc="Move focused Track FX to screen center">
