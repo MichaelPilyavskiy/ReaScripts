@@ -1,9 +1,9 @@
 -- @description ModulationEditor
--- @version 1.03
+-- @version 1.04
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # increase a bit reference width
+--    # UI tweaks
 
 
 
@@ -15,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '1.03'
+    DATA.extstate.version = '1.04'
     DATA.extstate.extstatesection = 'MPL_ModulationEditor'
     DATA.extstate.mb_title = 'ModulationEditor'
     DATA.extstate.default = 
@@ -342,55 +342,6 @@
                             GUI_nodes_init(DATA)
                           end
                           }   
-    xoffs = xoffs + DATA.GUI.custom_base_wsingle
-    local txt_a = DATA.GUI.custom_txta_OFF  if ctrl_t.PMOD['lfo.active']&1==1 then txt_a = DATA.GUI.custom_txta_ON end
-    DATA.GUI.buttons[basekey..'lfoactive'] = { x=xoffs,
-                          y=node_yoffs,
-                          hide = node_yoffs<DATA.GUI.custom_infoh,
-                          w=DATA.GUI.custom_base_wsingle-1,
-                          h=DATA.GUI.custom_node_nameh-1,
-                          txt = 'LFO',
-                          txt_a = txt_a,
-                          frame_a = 0,
-                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
-                          onmouserelease = function() 
-                            ctrl_t.PMOD['lfo.active']=ctrl_t.PMOD['lfo.active']~1 DATA2:ApplyPMOD(ctrl_key)   
-                            GUI_nodes_init(DATA)
-                          end
-                          }                             
-    xoffs = xoffs + DATA.GUI.custom_base_wsingle
-    local txt_a = DATA.GUI.custom_txta_OFF  if ctrl_t.PMOD['plink.active']&1==1 then txt_a = DATA.GUI.custom_txta_ON end
-    DATA.GUI.buttons[basekey..'plinkactive'] = { x=xoffs,
-                          y=node_yoffs,
-                          hide = node_yoffs<DATA.GUI.custom_infoh,
-                          w=DATA.GUI.custom_base_wsingle-1,
-                          h=DATA.GUI.custom_node_nameh-1,
-                          txt = 'Link',
-                          txt_a = txt_a,
-                          frame_a = 0,
-                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
-                          onmouserelease = function() 
-                            ctrl_t.PMOD['plink.active']=ctrl_t.PMOD['plink.active']~1 DATA2:ApplyPMOD(ctrl_key)   
-                            GUI_nodes_init(DATA)
-                          end
-                          }
-    xoffs = xoffs + DATA.GUI.custom_base_wsingle
-    local txt_a = DATA.GUI.custom_txta_OFF  if ctrl_t.PMOD['acs.active']&1==1 then txt_a = DATA.GUI.custom_txta_ON end
-    DATA.GUI.buttons[basekey..'acsactive'] = { x=xoffs,
-                          y=node_yoffs,
-                          hide = node_yoffs<DATA.GUI.custom_infoh,
-                          w=DATA.GUI.custom_base_wsingle-1,
-                          h=DATA.GUI.custom_node_nameh-1,
-                          txt = 'Audio',
-                          txt_a = txt_a,
-                          frame_a = 0,
-                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
-                          onmouserelease = function() 
-                            ctrl_t.PMOD['acs.active']=ctrl_t.PMOD['acs.active']~1 DATA2:ApplyPMOD(ctrl_key)   
-                            GUI_nodes_init(DATA)
-                          end
-                          }
-    xoffs = xoffs + DATA.GUI.custom_base_wsingle
   
   end 
   ----------------------------------------------------------------------
@@ -416,6 +367,22 @@
                           }
     local xoffs = DATA.GUI.custom_node_x
     
+    local txt_a = DATA.GUI.custom_txta_OFF  if ctrl_t.PMOD['lfo.active']&1==1 then txt_a = DATA.GUI.custom_txta_ON end
+    DATA.GUI.buttons[basekey..'lfoactive'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'LFO',
+                          txt_a = txt_a,
+                          frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          onmouserelease = function() 
+                            ctrl_t.PMOD['lfo.active']=ctrl_t.PMOD['lfo.active']~1 DATA2:ApplyPMOD(ctrl_key)   
+                            GUI_nodes_init(DATA)
+                          end
+                          } 
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle                      
     local maxspeedHz = 8
     DATA.GUI.buttons[basekey..'lfo.speed'] = { x=xoffs,
                           y=node_yoffs,
@@ -423,7 +390,7 @@
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Speed',
-                          txt_a = DATA.GUI.custom_txta_ON,
+                          txt_a = txt_a,
                           --frame_a = 0,
                           txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
                           val = ctrl_t.PMOD['lfo.speed']/maxspeedHz,
@@ -456,7 +423,7 @@
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Strength',
-                          txt_a = DATA.GUI.custom_txta_ON,
+                          txt_a = txt_a,
                           --frame_a = 0,
                           txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
                           val = ctrl_t.PMOD['lfo.strength'],
@@ -499,14 +466,30 @@
                           --hide = true,
                           }
     local xoffs = DATA.GUI.custom_node_x
-    
+                            
+    local txt_a = DATA.GUI.custom_txta_OFF  if ctrl_t.PMOD['plink.active']&1==1 then txt_a = DATA.GUI.custom_txta_ON end
+    DATA.GUI.buttons[basekey..'plinkactive'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'Link',
+                          txt_a = txt_a,
+                          frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          onmouserelease = function() 
+                            ctrl_t.PMOD['plink.active']=ctrl_t.PMOD['plink.active']~1 DATA2:ApplyPMOD(ctrl_key)   
+                            GUI_nodes_init(DATA)
+                          end
+                          }
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle
     DATA.GUI.buttons[basekey..'plink.offset'] = { x=xoffs,
                           y=node_yoffs,
                           hide = node_yoffs<DATA.GUI.custom_infoh,
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Offset',
-                          txt_a = DATA.GUI.custom_txta_ON,
+                          txt_a = txt_a,
                           --frame_a = 0,
                           txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
                           val = ctrl_t.PMOD['plink.offset'],
@@ -539,7 +522,7 @@
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Scale',
-                          txt_a = DATA.GUI.custom_txta_ON,
+                          txt_a = txt_a,
                           --frame_a = 0,
                           txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
                           val = ctrl_t.PMOD['plink.scale'],
@@ -581,7 +564,22 @@
                           --hide = true,
                           }
     local xoffs = DATA.GUI.custom_node_x
-    
+    local txt_a = DATA.GUI.custom_txta_OFF  if ctrl_t.PMOD['acs.active']&1==1 then txt_a = DATA.GUI.custom_txta_ON end
+    DATA.GUI.buttons[basekey..'acsactive'] = { x=xoffs,
+                          y=node_yoffs,
+                          hide = node_yoffs<DATA.GUI.custom_infoh,
+                          w=DATA.GUI.custom_base_wsingle-1,
+                          h=DATA.GUI.custom_node_nameh-1,
+                          txt = 'Audio',
+                          txt_a = txt_a,
+                          frame_a = 0,
+                          txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
+                          onmouserelease = function() 
+                            ctrl_t.PMOD['acs.active']=ctrl_t.PMOD['acs.active']~1 DATA2:ApplyPMOD(ctrl_key)   
+                            GUI_nodes_init(DATA)
+                          end
+                          }
+    xoffs = xoffs + DATA.GUI.custom_base_wsingle
     local max_ar_ms = 1000
     DATA.GUI.buttons[basekey..'acs.attack'] = { x=xoffs,
                           y=node_yoffs,
@@ -589,7 +587,7 @@
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Attack',
-                          txt_a = DATA.GUI.custom_txta_ON,
+                          txt_a = txt_a,
                           --frame_a = 0,
                           txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
                           val = ctrl_t.PMOD['acs.attack']/max_ar_ms,
@@ -620,7 +618,7 @@
                           w=DATA.GUI.custom_base_wsingle-1,
                           h=DATA.GUI.custom_node_nameh-1,
                           txt = 'Release',
-                          txt_a = DATA.GUI.custom_txta_ON,
+                          txt_a = txt_a,
                           --frame_a = 0,
                           txt_fontsz = DATA.GUI.custom_txtsz_ctrl,
                           val = ctrl_t.PMOD['acs.release']/max_ar_ms,
@@ -683,9 +681,12 @@
         GUI_nodes_01parameter(DATA, DATA2.modulationstate[param], node_yoffs) node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
         if DATA2.modulationstate[param].PMOD then
           GUI_nodes_02base(DATA, DATA2.modulationstate[param], node_yoffs) node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
-          if DATA2.modulationstate[param].PMOD['lfo.active'] == 1   then    GUI_nodes_03lfo(DATA, DATA2.modulationstate[param], node_yoffs)   node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
+          GUI_nodes_03lfo(DATA, DATA2.modulationstate[param], node_yoffs)   node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
+          GUI_nodes_04link(DATA, DATA2.modulationstate[param], node_yoffs)  node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
+          GUI_nodes_05acs(DATA, DATA2.modulationstate[param], node_yoffs)   node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh
+          --[[if DATA2.modulationstate[param].PMOD['lfo.active'] == 1   then    GUI_nodes_03lfo(DATA, DATA2.modulationstate[param], node_yoffs)   node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
           if DATA2.modulationstate[param].PMOD['plink.active'] == 1   then  GUI_nodes_04link(DATA, DATA2.modulationstate[param], node_yoffs)  node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
-          if DATA2.modulationstate[param].PMOD['acs.active'] == 1   then    GUI_nodes_05acs(DATA, DATA2.modulationstate[param], node_yoffs)   node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end
+          if DATA2.modulationstate[param].PMOD['acs.active'] == 1   then    GUI_nodes_05acs(DATA, DATA2.modulationstate[param], node_yoffs)   node_yoffs = node_yoffs + DATA.GUI.custom_node_nameh end]]
         end
         --[[
           node_y_offs = 
@@ -820,7 +821,7 @@
       DATA.GUI.custom_node_removew = math.floor(20*DATA.GUI.custom_Xrelation) 
     -- ctrls
       DATA.GUI.custom_txtsz_ctrl= math.floor(19* DATA.GUI.custom_Xrelation)
-      DATA.GUI.custom_txta_OFF = 0.4
+      DATA.GUI.custom_txta_OFF = 0.3
       DATA.GUI.custom_txta_ON = 1
       DATA.GUI.custom_backgr_fill2 = 0.2
       DATA.GUI.custom_backgr_col2 =0xFFFFFF
