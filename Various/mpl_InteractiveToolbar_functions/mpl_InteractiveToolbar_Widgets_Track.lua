@@ -191,6 +191,39 @@
                                 end}
     return w
   end    
+  
+  --------------------------------------------------------------  
+  function Widgets_Track_buttons_numchan(data, obj, mouse, x_offs, y_offs, frame_a)
+    local w = 50*obj.entry_ratio
+    local ch = math.floor(data.tr[1].nch1)..'ch'
+    obj.b.obj_traudioin = {  x = x_offs,
+                        y = obj.offs+y_offs ,
+                        w = w,
+                        h = obj.entry_h,
+                        frame_a = frame_a,
+                        txt_a = obj.txt_a,
+                        txt_col = obj.txt_col_toolbar,
+                        txt = ch,
+                        fontsz = obj.fontsz_entry,
+                        state = state,
+                        state_col = 'white',
+                        func =  function()
+                                  local t = {}
+                                  for ch = 2, 64,2 do
+                                    t[#t+1] = { str = 'Set master parent channels to '..ch,
+                                                func = function() 
+                                                        for i = 1, #data.tr do
+                                                          SetMediaTrackInfo_Value( data.tr[i].ptr, 'I_NCHAN', ch)
+                                                        end
+                                                        redraw = 2
+                                                      end}
+                                              
+                                  end
+                                  Menu(mouse, t)
+                                  redraw = 1                              
+                                end}
+    return w
+  end   
   --------------------------------------------------------------  
   function Widgets_Track_buttons_audioin(data, obj, mouse, x_offs, y_offs, frame_a)
     local w = 50*obj.entry_ratio

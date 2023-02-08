@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.27
+-- @version 2.28
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Persistent widgets: #masterchancnt Number of master channels
+--    + Track / #buttons / #numchan: edit number of track channels
 
-    local vrs = '2.27'
+    local vrs = '2.28'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -93,7 +93,7 @@ buttons=#lock #preservepitch #chanmode #loop #srcreverse #mute
 order=#floatfx #position #value #AIlooplen
 [Track]
 order=#color #fxcontrols #buttons #vol #pan #fxlist #sendto #delay #troffs #chsendmixer #chrecvmixer #freeze
-buttons=#polarity #parentsend #midiin #audioin 
+buttons=#polarity #parentsend #midiin #audioin #numchan
 [MIDIEditor]
 order=#position #notelen #CCval #notepitch #notevel #midichan
 [Persist]

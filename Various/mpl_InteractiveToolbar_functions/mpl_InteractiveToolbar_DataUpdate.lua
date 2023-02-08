@@ -1011,6 +1011,7 @@
         data.tr[i].name_proj = tr_name
       
       -- values
+        data.tr[i].nch1 = GetMediaTrackInfo_Value( tr, 'I_NCHAN' )
         data.tr[i].pan = GetMediaTrackInfo_Value( tr, 'D_PAN' )
         data.tr[i].pan_format = MPL_FormatPan(data.tr[i].pan)
         data.tr[i].vol = GetMediaTrackInfo_Value( tr, 'D_VOL' )
