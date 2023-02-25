@@ -1,10 +1,11 @@
 -- @description VisualMixer
--- @version 2.18
+-- @version 2.19
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    # fix icon error
+--    + Settings/UI: allow to hide scale numbers
+--    + Settings/UI: allow to hide per track tooltip
 
  
   
@@ -18,7 +19,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.18
+    DATA.extstate.version = 2.19
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -62,6 +63,8 @@
                           UI_showtopctrl_flags = 1|2|4,
                           UI_extendcenter = 0.3,
                           UI_expandpeaks =1,
+                          UI_showscalenumbers =1,
+                          UI_showinfotooltip =1,
                           
                           CONF_quantizevolume = 1,
                           CONF_quantizepan = 5,
@@ -1799,10 +1802,12 @@ track8_pan=0
         --gfx.line(gfx.w/2-x_plane2/2, ypos,gfx.w/2 +x_plane2/2,ypos)
         gfx.x = (DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w/2)*DATA.GUI.default_scale+ x_plane2/2 + 5--gfx.measurestr(txt)-2
         --gfx.drawstr(txt)
-        gfx.x= b.x
-        gfx.drawstr(txt)         
-        gfx.x= b.x+b.w-gfx.measurestr(txt)
-        gfx.drawstr(txt) 
+        if DATA.extstate.UI_showscalenumbers == 1 then 
+          gfx.x= b.x
+          gfx.drawstr(txt)         
+          gfx.x= b.x+b.w-gfx.measurestr(txt)
+          gfx.drawstr(txt) 
+        end
        --[[else
         gfx.line(gfx.w/2-x_plane2/2, ypos,gfx.w/2 +x_plane2/2,ypos)
         gfx.x = (DATA.GUI.buttons.scale.x+DATA.GUI.buttons.scale.w/2)*DATA.GUI.default_scale+ x_plane2/2 + 5--gfx.measurestr(txt)-2
@@ -2036,7 +2041,7 @@ track8_pan=0
   end
   ----------------------------------------------------------------------------- 
   function DATA2:GUI_draw_info()  
-    if not DATA2.info_txt then return end
+    if not DATA2.info_txt or DATA.extstate.UI_showinfotooltip == 0  then return end
     local mousex = DATA.GUI.x + 20/DATA.GUI.default_scale
     local mousey = DATA.GUI.y
     local custom_drrack_sideX = 120/DATA.GUI.default_scale
@@ -2085,6 +2090,8 @@ track8_pan=0
         {str = 'Top controls: solo',                group = 1, itype = 'check', confkey = 'UI_showtopctrl_flags', confkeybyte  =0, level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
         {str = 'Top controls: mute',                group = 1, itype = 'check', confkey = 'UI_showtopctrl_flags', confkeybyte  =1, level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
         {str = 'Top controls: FX',                  group = 1, itype = 'check', confkey = 'UI_showtopctrl_flags', confkeybyte  =2, level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
+        {str = 'Show scale numbers',                  group = 1, itype = 'check', confkey = 'UI_showscalenumbers', level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
+        {str = 'Show info tooltip',                  group = 1, itype = 'check', confkey = 'UI_showinfotooltip', level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
       {str = 'UI behaviour' ,                                 group = 5, itype = 'sep'},         
         {str = 'Quantize volume off',               group = 5, itype = 'check', confkey = 'CONF_quantizevolume', isset = 0, level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},   
         {str = 'Quantize volume to 0.1dB',          group = 5, itype = 'check', confkey = 'CONF_quantizevolume', isset = 1, level = 1,func_onrelease = function ()  GUI_RESERVED_init(DATA) end},
