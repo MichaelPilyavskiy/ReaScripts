@@ -1,10 +1,10 @@
 -- @description Align Takes
--- @version 2.24
+-- @version 2.25
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # Knob: fix normal/compact mode errors
+--    # Tooltips: add tooltips for long settings entries
 
 
   --[[
@@ -29,7 +29,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.24
+    DATA.extstate.version = 2.25
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
@@ -578,13 +578,13 @@
     local  t = 
     { 
       {str = 'Global' ,                                   group = 1, itype = 'sep'},
-        {str = 'Get reference take at initialization' ,   group = 1, itype = 'check', confkey = 'CONF_initflags', confkeybyte=1, level = 1},
-        {str = 'Get dub take at initialization' ,         group = 1, itype = 'check', confkey = 'CONF_initflags', confkeybyte=2, level = 1},
-        {str = 'Clean dub markers at initialization' ,    group = 1, itype = 'check', confkey = 'CONF_cleanmarkdub', level = 1},
+        {str = 'Get reference take at initialization' ,   group = 1, itype = 'check', confkey = 'CONF_initflags', confkeybyte=1, level = 1, tooltip='Get reference take at initialization'},
+        {str = 'Get dub take at initialization' ,         group = 1, itype = 'check', confkey = 'CONF_initflags', confkeybyte=2, level = 1, tooltip='Get dub take at initialization'},
+        {str = 'Clean dub markers at initialization' ,    group = 1, itype = 'check', confkey = 'CONF_cleanmarkdub', level = 1, tooltip='Clean dub markers at initialization'},
         {str = 'Obey time selection' ,                    group = 1, itype = 'check', confkey = 'CONF_obtimesel', level = 1},
         {str = 'Align takes inside item' ,                group = 1, itype = 'check', confkey = 'CONF_alignitemtakes', level = 1},
         {str = 'Skip empty audio takes' ,                group = 1, itype = 'check', confkey = 'CONF_ignoreemptytakes', level = 1},
-        {str = 'Use maximul amplitude values from all takes as ref' ,                group = 1, itype = 'check', confkey = 'CONF_buildrefasmaximums', level = 1},
+        {str = 'Use maximul amplitude values from all takes as ref' ,                group = 1, itype = 'check', confkey = 'CONF_buildrefasmaximums', level = 1, tooltip='Use maximul amplitude values from all takes as ref'},
         
       {str = 'Audio data' ,                               group = 2, itype = 'sep'},  
         {str = 'BandSplitter Freq 1' ,                    group = 2, itype = 'readout', confkey = 'CONF_audio_bs_f1', level = 1, val_min = 20, val_max = DATA.extstate.CONF_audio_bs_f2,                                  val_res = BandSplitterFreq_res, val_format = function(x) return math.floor(x)..'Hz' end, val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
