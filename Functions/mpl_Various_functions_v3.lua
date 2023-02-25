@@ -1640,6 +1640,7 @@
                             if t.menu then return end
                             if t.val_isstring then return end
                             if not val_format then return end
+                            if not (DATA.GUI.buttons[key..'rout'] and DATA.GUI.buttons[key..'rout'].val) then return end
                             local new_val = VF_lim(DATA.GUI.buttons[key..'rout'].val,t.val_min or 0, t.val_max or 1)
                             if t.val_isinteger then new_val = math.floor(new_val) end
                             DATA.extstate[confkey] = new_val
