@@ -1,10 +1,10 @@
 -- @description Align Takes
--- @version 2.23
+-- @version 2.24
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Settings / Take output: Add support for quantize stretch markers positions to zero crossings
+--    # Knob: fix normal/compact mode errors
 
 
   --[[
@@ -29,7 +29,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.23
+    DATA.extstate.version = 2.24
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
@@ -138,7 +138,7 @@
         DATA2:ApplyOutput(DATA,true)  
         DATA.GUI.buttons.knob.refresh = true
        else
-        DATA.GUI.buttons.knobCOMPACT.val = VF_lim(DATA.GUI.buttons.knob.val+mult*step)
+        DATA.GUI.buttons.knobCOMPACT.val = VF_lim(DATA.GUI.buttons.knobCOMPACT.val+mult*step)
         DATA2:ApplyOutput(DATA, true)  
         DATA.GUI.buttons.knobCOMPACT.refresh = true
       end
@@ -200,8 +200,8 @@
       -- validate data_pointsSRCDEST
         if not data_pointsSRCDEST then goto skipdubtake2 end
       -- get value
-        local val = DATA.GUI.buttons.knob.val or 1
-        if DATA.GUI.compactmode == 1 then val =  DATA.GUI.buttons.knobCOMPACT.val or 1 end
+        local val = 0
+        if DATA.GUI.compactmode == 1 then val =  DATA.GUI.buttons.knobCOMPACT.val or 1 else val = DATA.GUI.buttons.knob.val or 1 end
       -- add markers      
         local last_src_pos
         local last_dest_pos 
@@ -294,6 +294,7 @@
   end
   ---------------------------------------------------------------------  
   function GUI_RESERVED_init(DATA)
+    
     --GUI.default_scale = 2
     DATA.GUI.custom_mainbuth = 30
     DATA.GUI.custom_texthdef = 23
