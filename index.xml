@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e6bf40d8f29b2ad31c18d3732afdfeae6b83ff08" name="MPL Scripts">
+<index version="1" commit="4c8999c287d380bf1b42a4a447d821220a2eb296" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -9452,6 +9452,10 @@ add control for timefall showing last note]]></changelog>
       <version name="2.24" author="MPL" time="2023-02-25T07:56:57Z">
         <changelog><![CDATA[# Knob: fix normal/compact mode errors]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e6bf40d8f29b2ad31c18d3732afdfeae6b83ff08/Various/mpl_Align%20takes.lua</source>
+      </version>
+      <version name="2.25" author="MPL" time="2023-02-25T08:05:48Z">
+        <changelog><![CDATA[# Tooltips: add tooltips for long settings entries]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4c8999c287d380bf1b42a4a447d821220a2eb296/Various/mpl_Align%20takes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Check REAPER password, quit if not match.lua" type="script" desc="Check REAPER password, quit if not match">
