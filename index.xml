@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="41bd1d0c611119932d04a48305c1198bf18e0962" name="MPL Scripts">
+<index version="1" commit="68faa9fb3e1deb7824b66c2e182d7e0d2839ee4f" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -9063,6 +9063,12 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[# set send mode to post fader
 + Add undo]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8799f0edc25ab775393e4538a1bb3b35e70b4e66/Tracks%20Properties/mpl_Toggle%20parent%20and%20regular%20send%20for%20selected%20tracks,%20ignore%20MIDI%20when%20regular.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2023-02-25T09:37:19Z">
+        <changelog><![CDATA[+ Hardcode send level to 0dB
+# remove SWS dependency
+# ignore track if parent is master]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/68faa9fb3e1deb7824b66c2e182d7e0d2839ee4f/Tracks%20Properties/mpl_Toggle%20parent%20and%20regular%20send%20for%20selected%20tracks,%20ignore%20MIDI%20when%20regular.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle recarm on track under mouse cursor.lua" type="script" desc="Toggle recarm on track under mouse cursor">
