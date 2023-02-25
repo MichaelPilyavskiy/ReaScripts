@@ -1,15 +1,11 @@
 -- @description XYPad
--- @version 2.01
+-- @version 2.02
 -- @author MPL 
 -- @website http://forum.cockos.com/member.php?u=70694
 -- @changelog
---    # VariousFunctions 2.5+ support, GUI internal improvements and tweaks
---    - Reverted and simplified for possible future improvements
---    - Remove preset morphing mode
---    + Various internal code improvements
---    + Update configuration on project tab change
+--    # change radius of active area
   
-  version = 2.01
+  version = 2.02
   
   -- NOT gfx NOT reaper NOT MOUSE NOT function 
   ---------------------------------------------------        
@@ -107,7 +103,7 @@
     if not (OBJ.manual and OBJ.field and OBJ['Apoint'..i]) then return end
     
     local r_small = DATA.customGUI.fieldside/2-DATA.customGUI.point_sz/2
-    local r_circle =math.sqrt(r_small^2+r_small^2)
+    local r_circle =DATA.customGUI.fieldside-OBJ['Apoint'..i].w--math.sqrt(r_small^2+r_small^2)
     
     local ptx = OBJ['Apoint'..i].x + OBJ['Apoint'..i].w/2
     local pty = OBJ['Apoint'..i].y + OBJ['Apoint'..i].h/2
@@ -299,7 +295,7 @@
       
   end
   ---------------------------------------------------------------------
-  function VF_CheckFunctions(vrs) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' if reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end else reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0)  if reaper.APIExists('ReaPack_BrowsePackages') then ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
+  function VF_CheckFunctions(vrs) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' if reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path) if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end else reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0)  if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
   local ret = VF_CheckFunctions(2.5) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then 
     VF_run_initVars() 
