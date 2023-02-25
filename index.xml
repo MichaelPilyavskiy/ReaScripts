@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="bb4ce031411af2cbaf2e8e0e431c4e8d8fb4dffb" name="MPL Scripts">
+<index version="1" commit="ddca15dbd9695989741859a929e068ba009c4b94" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11684,6 +11684,11 @@ add control for timefall showing last note]]></changelog>
       <version name="1.09" author="MPL" time="2022-05-14T10:13:09Z">
         <changelog><![CDATA[+ Add slow compression-15dB factory preset]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a63c56cab45c6626bcf8ce5f467268b2162a1209/Various/mpl_Peak%20follower%20tools.lua</source>
+      </version>
+      <version name="1.10" author="MPL" time="2023-02-25T08:59:42Z">
+        <changelog><![CDATA[+ Gate: add invert check
++ Gate: add hold control]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ddca15dbd9695989741859a929e068ba009c4b94/Various/mpl_Peak%20follower%20tools.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_PitchEditor.lua" type="script" desc="PitchEditor">
