@@ -1,11 +1,10 @@
 -- @description Peak follower tools
--- @version 1.10
+-- @version 1.11
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Gate: add invert check
---    + Gate: add hold control
+--    + Output: allow to change points shape
 
 
     
@@ -16,7 +15,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.10
+    DATA.extstate.version = 1.11
     DATA.extstate.extstatesection = 'PeakFollowTools'
     DATA.extstate.mb_title = 'Peak follower tools'
     DATA.extstate.default = 
@@ -71,6 +70,7 @@
                           CONF_out_invert = 0, 
                           CONF_out_scale = 1, 
                           CONF_out_offs = 0, 
+                          CONF_out_pointsshape = 0,
                           
                           -- UI
                           UI_appatchange = 0, 
@@ -547,7 +547,8 @@
           valout = VF_lim(output[i].val*DATA.extstate.CONF_out_scale - DATA.extstate.CONF_out_offs)
           local valout = ScaleToEnvelopeMode( scaling_mode, valout) 
           if DATA.extstate.CONF_out_invert ==1 then valout = 1000- valout end
-          InsertEnvelopePointEx( env, AI_idx, output[i].tpos, valout, 0, 0, 0, true ) 
+          local shape = DATA.extstate.CONF_out_pointsshape 
+          InsertEnvelopePointEx( env, AI_idx, output[i].tpos, valout, shape, 0, 0, true ) 
         end end 
         Envelope_SortPointsEx( env, AI_idx ) 
       end
@@ -772,6 +773,7 @@
             val_format_rev = function(x) return tonumber(x:match('[%d%.]+')) end,
             level = 2, val_res = 0.05, val_min = 0, val_max = 5, func_onrelease = function() DATA2:ProcessAtChange(DATA) end,hide=DATA.extstate.CONF_reducesamevalues~=1}, ]]
         {str = 'Reset boundary edges',          group = 6, itype = 'check', confkey = 'CONF_zeroboundary', level = 1, func_onrelease = function()DATA2:ProcessAtChange(DATA)  end},
+        {str = 'Points shape',                  group = 6, itype = 'readout', confkey = 'CONF_out_pointsshape', level = 1, func_onrelease = function()DATA2:ProcessAtChange(DATA)  end, menu = {[0]='Linear',[1]='Square',[2]='Slow start/end',[5]='Bezier'},readoutw_extw=readoutw_extw},
       {str = 'UI options' ,                     group = 5, itype = 'sep'},  
         {str = 'Enable shortcuts' ,             group = 5, itype = 'check', confkey = 'UI_enableshortcuts', level = 1},
         {str = 'Init UI at mouse' ,             group = 5, itype = 'check', confkey = 'UI_initatmouse', level = 1},
