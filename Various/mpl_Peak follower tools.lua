@@ -1,10 +1,12 @@
 -- @description Peak follower tools
--- @version 1.09
+-- @version 1.10
 -- @author MPL
 -- @about Generate envelope from audio data
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Add slow compression-15dB factory preset
+--    + Gate: add invert check
+--    + Gate: add hold control
+
 
     
   -- NOT gfx NOT reaper NOT VF NOT GUI NOT DATA NOT MAIN 
@@ -14,7 +16,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 1.09
+    DATA.extstate.version = 1.10
     DATA.extstate.extstatesection = 'PeakFollowTools'
     DATA.extstate.mb_title = 'Peak follower tools'
     DATA.extstate.default = 
@@ -48,6 +50,8 @@
                           
                           -- gate
                           CONF_gate_threshold = 0.538,
+                          CONF_gate_inv=0,
+                          CONF_gate_hold = 0,
                           
                           -- comp
                           CONF_comp_threshold = 0.923, -- linear
@@ -342,11 +346,24 @@
     local output = {}
     local window_sec = DATA.extstate.CONF_window/DATA.extstate.CONF_windowoverlap
     --if DATA.extstate.CONF_FFTsz~=-1 then  window_sec = DATA.extstate.CONF_FFTsz / SR_spls end 
-    for i = #t, 1, -1 do   
+    local gate_on,last_gate_on
+    for i = 1, #t do   
       local tpos = (i-1)*window_sec+boundary_start-offs 
       local val = ScaleToEnvelopeMode( scaling_mode, t[i] ) 
       local valdB = SLIDER2DB(val)
-      if valdB > gateDb then setval = 1 else setval = 0 end
+      if valdB > gateDb then 
+        setval = 1 
+        gate_on = i
+       else 
+        setval = 0 
+      end
+      
+      if DATA.extstate.CONF_gate_hold > 0 then
+        if setval == 0 and gate_on and i-gate_on< DATA.extstate.CONF_gate_hold then setval = 1 end
+      end
+      
+      last_gate_on = gate_on
+      if DATA.extstate.CONF_gate_inv == 1 then setval = 1- setval end
       output[#output+1] = {tpos=tpos,val=setval}
         
     end
@@ -363,11 +380,9 @@
     for i = #t-1,1,-1 do  
       local tpos = (i-1)*window_sec+boundary_start-offs
       output[#output+1] = {tpos=tpos,val=t[i]}
-    end
-    
+    end 
     return output
   end  
-
   -------------------------------------------------------------------
   function DATA2:Process_InsertData_Compressor(t, boundary_start, boundary_end, offs, env, AI_idx)
     -- init functions
@@ -575,8 +590,10 @@
          tdiff = {}
         local min = math.huge
         for i = 1, #t0 do 
-          tdiff[i] = t0[i] - t1[i] 
-          min = math.min(min, tdiff[i] )
+          if t0[i] and  t1[i]  then
+            tdiff[i] = t0[i] - t1[i] 
+            min = math.min(min, tdiff[i] )
+          end
         end
         for i = 1, #tdiff do tdiff[i] = tdiff[i] - min end
         local ret, env, AI_idx =  DATA2:Process_GenerateAI(item2)
@@ -602,7 +619,7 @@
           [0]='Peak follower', 
           [1]='Gate', 
           [2] = 'Compressor (by ashcat_lt & SaulT)',
-          [4] = 'Peak fol. difference',
+          [4] = 'Peak fol. difference', 
           --[3] = 'Deesser (by Liteon)', 
           },readoutw_extw=readoutw_extw, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
         {str = 'Boundaries' ,                 group = 1, itype = 'readout', level = 1,  confkey = 'CONF_boundary', menu = { [0]='Item edges', [1]='Time selection'},readoutw_extw=readoutw_extw, func_onrelease = function() DATA2:ProcessAtChange(DATA) end},
@@ -669,6 +686,11 @@
           val_format_rev = function(x) return VF_lim(DB2SLIDER(x)/1000, 0,1000) end, 
           func_onrelease = function() DATA2:ProcessAtChange(DATA) end, 
           hide=DATA.extstate.CONF_mode~=1},
+        {str = 'Invert' ,             group = 2, itype = 'check', confkey = 'CONF_gate_inv', level = 1, func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide=DATA.extstate.CONF_mode~=1},          
+        {str = 'Hold' ,              group = 3, itype = 'readout', val_min = 1, val_max = 40, val_res = 0.05, confkey = 'CONF_gate_hold', level = 1,func_onrelease = function() DATA2:ProcessAtChange(DATA) end, hide=DATA.extstate.CONF_mode~=1, val_isinteger = true,
+          val_format = function(x) return (math.floor(1000*x*DATA.extstate.CONF_window/DATA.extstate.CONF_windowoverlap)/1000)..'s' end, 
+          val_format_rev = function(x) return math.floor(tonumber(x/(DATA.extstate.CONF_window/DATA.extstate.CONF_windowoverlap))) end, },  
+          
           
         -- compressor
         {str = 'Threshold' ,             group = 2, itype = 'readout', confkey = 'CONF_comp_threshold', level = 1, 
