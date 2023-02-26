@@ -1023,7 +1023,7 @@
         {str = 'Reset all settings to default',
           func = function() 
                     DATA.extstate.current_preset = nil
-                    DATA.GUI.buttons.preset.txt = 'Preset: default'
+                    if DATA.GUI.buttons.preset then DATA.GUI.buttons.preset.txt = 'Preset: default' end
                     DATA:ExtStateRestoreDefaults() 
                     DATA.GUI.firstloop = 1 
                     DATA.UPD.onconfchange = true 
@@ -1039,7 +1039,7 @@
                   if retvals_csv~= '' then DATA.extstate.CONF_NAME = retvals_csv end
                   DATA:ExtStateStorePreset(id) 
                   DATA:ExtStateGetPresets()
-                  DATA.GUI.buttons.preset.refresh = true 
+                  if DATA.GUI.buttons.preset then DATA.GUI.buttons.preset.refresh = true  end
                   DATA.GUI.firstloop = 1 
                   DATA.UPD.onconfchange = true 
                   DATA:GUIBuildSettings()
@@ -1055,8 +1055,8 @@
                   if retvals_csv~= '' then DATA.extstate.CONF_NAME = retvals_csv end
                   DATA:ExtStateStorePreset(id) 
                   DATA:ExtStateGetPresets()
-                  DATA.GUI.buttons.preset.refresh = true 
-                  DATA.GUI.buttons.preset.txt = 'Preset: '..(DATA.extstate.CONF_NAME or '')
+                  if DATA.GUI.buttons.preset then DATA.GUI.buttons.preset.refresh = true end
+                  if DATA.GUI.buttons.preset then DATA.GUI.buttons.preset.txt = 'Preset: '..(DATA.extstate.CONF_NAME or '') end
                   DATA.GUI.firstloop = 1 
                   DATA.UPD.onconfchange = true 
                   DATA:GUIBuildSettings()
@@ -1071,7 +1071,7 @@
                   if retvals_csv~= '' then DATA.extstate.CONF_NAME = retvals_csv end
                   DATA:ExtStateStorePreset() 
                   DATA:ExtStateGetPresets()
-                  DATA.GUI.buttons.preset.refresh = true 
+                  if DATA.GUI.buttons.preset then DATA.GUI.buttons.preset.refresh = true end
                   DATA.GUI.firstloop = 1 
                   DATA.UPD.onconfchange = true 
                   DATA:GUIBuildSettings()
@@ -1087,7 +1087,7 @@
                   end
                   local id 
                   DATA:ExtStateGetPresets()
-                  DATA.GUI.buttons.preset.refresh = true 
+                  if DATA.GUI.buttons.preset then DATA.GUI.buttons.preset.refresh = true end
                   DATA.GUI.firstloop = 1 
                   DATA.UPD.onconfchange = true 
                   DATA:GUIBuildSettings()
@@ -1106,8 +1106,8 @@
                                               DATA:ExtStateApplyPreset(DATA.extstate.presets[i]) 
                                               DATA.extstate.current_preset = i
                                               if not (preset_dontchangebutton and type(preset_dontchangebutton) == 'boolean' and preset_dontchangebutton == true) then
-                                                DATA.GUI.buttons.preset.refresh = true 
-                                                DATA.GUI.buttons.preset.txt = 'Preset: '..(DATA.extstate.CONF_NAME or '')
+                                                if DATA.GUI.buttons.preset then DATA.GUI.buttons.preset.refresh = true end
+                                                if DATA.GUI.buttons.preset then DATA.GUI.buttons.preset.txt = 'Preset: '..(DATA.extstate.CONF_NAME or '') end
                                                 DATA.GUI.firstloop = 1 
                                                 DATA.UPD.onconfchange = true 
                                                 DATA:GUIBuildSettings()

@@ -29,15 +29,42 @@
       if projfn == projfn0 then return idx end
     end
   end
-  ---------------------------------------------------
-  function VF_GetTrackByGUID(giv_guid)
+  --------------------------------------------------
+  function VF_GetTrackByGUID(giv_guid, reaproj)
     if not (giv_guid and giv_guid:gsub('%p+','')) then return end
-    for i = 1, CountTracks(0) do
-      local tr = GetTrack(0,i-1)
-      local GUID = reaper.GetTrackGUID( tr )
+    for i = 1, CountTracks(reaproj or 0) do
+      local tr = GetTrack(reaproj or 0,i-1)
+      --local GUID = reaper.GetTrackGUID( tr )
+      local retval, GUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
       if GUID:gsub('%p+','') == giv_guid:gsub('%p+','') then return tr end
     end
   end
+  --[[local track_guid_cache = {}; 
+  function VF_GetTrackByGUID(g,proj0)--https://forum.cockos.com/showpost.php?p=2132656&postcount=10
+    local proj = proj0 or 0
+    local c = track_guid_cache[g];
+    if c ~= nil and reaper.GetTrack(proj,c.idx) == c.ptr and reaper.GetTrackGUID(c.ptr) == g then
+      -- cached!
+      return c.ptr;
+    end
+    
+    -- find guid in project
+    local x = 0
+    while true do
+      local t = reaper.GetTrack(proj,x)
+      if t == nil then
+        -- not found in project, remove from cache and return error
+        if c ~= nil then track_guid_cache[g] = nil end
+        return nil
+      end
+      if g == reaper.GetTrackGUID(t) then
+        -- found, add to cache
+        track_guid_cache[g] = { idx = x, ptr = t }
+        return t
+      end
+      x = x + 1
+    end
+  end]]
   ---------------------------------------------------
   function VF_GetFXByGUID(GUID, tr)
     if not GUID then return end
