@@ -1,10 +1,10 @@
 -- @description Align Takes
--- @version 2.25
+-- @version 2.26
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # Tooltips: add tooltips for long settings entries
+--    # another fix for knob
 
 
   --[[
@@ -29,7 +29,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.25
+    DATA.extstate.version = 2.26
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
@@ -201,7 +201,11 @@
         if not data_pointsSRCDEST then goto skipdubtake2 end
       -- get value
         local val = 0
-        if DATA.GUI.compactmode == 1 then val =  DATA.GUI.buttons.knobCOMPACT.val or 1 else val = DATA.GUI.buttons.knob.val or 1 end
+        if DATA.GUI.compactmode == 1 then 
+          if DATA.GUI.buttons and DATA.GUI.buttons.knobCOMPACT and DATA.GUI.buttons.knobCOMPACT.val then val =  DATA.GUI.buttons.knobCOMPACT.val else val = 1 end
+         else 
+          if DATA.GUI.buttons and DATA.GUI.buttons.knob and DATA.GUI.buttons.knob.val then val =  DATA.GUI.buttons.knob.val else val = 1 end
+        end
       -- add markers      
         local last_src_pos
         local last_dest_pos 
