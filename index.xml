@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="6355b290825c0afcdf58550b5fbb3897d8206920" name="MPL Scripts">
+<index version="1" commit="357fb9c636e3bda245d9f4dfc0cca1083c4e9739" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -11935,6 +11935,10 @@ add control for timefall showing last note]]></changelog>
       <version name="3.17" author="MPL" time="2023-01-06T22:28:15Z">
         <changelog><![CDATA[# improve logic around keeping MIDI notes length]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/89f5289f712a6975235480305504ee3e878e0436/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
+      <version name="3.18" author="MPL" time="2023-02-27T21:06:45Z">
+        <changelog><![CDATA[+ Added align MIDI to SWS groove preset]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/357fb9c636e3bda245d9f4dfc0cca1083c4e9739/Various/mpl_Quantize%20Tool.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
