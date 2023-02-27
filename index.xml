@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="98e58760ef44ba66b6b37f05d529f8d1232ffea8" name="MPL Scripts">
+<index version="1" commit="6355b290825c0afcdf58550b5fbb3897d8206920" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6842,6 +6842,15 @@ add control for timefall showing last note]]></changelog>
         <source main="main" file="mpl_Remove selected takes MIDI CC125 Omni Mode On.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71aa5cf837122306055f565aa22cc8d47c9672b6/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
         <source main="main" file="mpl_Remove selected takes MIDI CC126 Mono Operation.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71aa5cf837122306055f565aa22cc8d47c9672b6/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
         <source main="main" file="mpl_Remove selected takes MIDI CC127 Poly Mode.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71aa5cf837122306055f565aa22cc8d47c9672b6/MIDI/mpl_Remove%20selected%20takes%20MIDI%20data.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Select first notes in selected passages.lua" type="script" desc="Select first notes in selected passages">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-02-27T20:51:55Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6355b290825c0afcdf58550b5fbb3897d8206920/MIDI/mpl_Select%20first%20notes%20in%20selected%20passages.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Send short NoteOn MIDI message to virtual keyboard.lua" type="script" desc="Send short NoteOn MIDI message to virtual keyboard">
