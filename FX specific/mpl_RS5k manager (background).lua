@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.16
+-- @version 3.18
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,7 +16,10 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Learn: use learn button to map last touched control to last touched parameter
+--    + Settings: add option to change tabs via mousewheel, on by default
+--    + DrumRack: add 2 octaves key layout
+--    + Grid: add 2 octaves key layout
+--    + Settings: when change layout, reset drumrack/active grid block to pitch=36
 
 
 
@@ -30,7 +33,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.16'
+    DATA.extstate.version = '3.18'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -84,7 +87,8 @@
                           UI_keyformat_mode = 0 ,
                           UI_po_quantizemode = 0,--0 default 1=8pads 2=4pads
                           UI_pads_sendnoteoff = 1,
-                          
+                          UI_usemousewheelontabs = 1,
+                          UI_drracklayout = 0,
                           
                           }
                           
@@ -1275,6 +1279,43 @@ rightclick them to hide all but active.
                                 DATA.UPD.onGUIinit = true
                               end
                             end,
+                            onwheeltrig =  function() 
+                                              if DATA.extstate.UI_usemousewheelontabs == 0 then return end
+                                              local mult = -1
+                                              if DATA.GUI.wheel_dir then mult = 1 end
+                                              
+                                               tab_map = {
+                                                [1]={id=4},
+                                                [2]={id=6},
+                                                [3]={id=3},
+                                                [4]={id=0},
+                                                [5]={id=5},
+                                                [6]={id=7},
+                                                [7]={id=1},
+                                                [8]={id=2}}
+                                              local activeID = 0
+                                              for tabID = 0, 20 do
+                                                local byte = 2^tabID
+                                                if DATA2.PARENT_TABSTATEFLAGS&byte==byte then activeID = tabID break end
+                                              end
+                                              
+                                              local activetab = 0
+                                              for i = 1, #tab_map do if activeID == tab_map[i].id then activetab = i break end end
+                                              activetab = activetab + 1*mult
+                                              if activetab<1 then activetab = 1 end
+                                              if activetab>#tab_map then activetab=#tab_map end
+                                              
+                                              if not (tab_map[activetab] and tab_map[activetab].id) then return end
+                                              local byte = 2^(tab_map[activetab].id)
+                                              local f=function()
+                                                DATA2.PARENT_TABSTATEFLAGS = byte
+                                                if byte == 16 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackData_InitMacro() end end
+                                                if byte == 64 then if DATA2.PARENT_TABSTATEFLAGS&byte==byte then DATA2:TrackDataRead_GetMIDIOSC_bindings() end end
+                                                DATA2:TrackDataWrite(_, {master_upd=true})
+                                              end
+                                              if DATA.extstate.UI_addundototabclicks == 1 then DATA2:ProcessUndoBlock(f, 'RS5k manager / Tab state')  else f() end
+                                              DATA.UPD.onGUIinit = true
+                                            end           
                             } 
       y_offs = y_offs + DATA.GUI.custom_tab_h
                             
@@ -1383,9 +1424,15 @@ rightclick them to hide all but active.
       DATA.GUI.custom_midi_entryh = math.floor(25 * DATA.GUI.custom_Yrelation  )
       DATA.GUI.custom_midi_txtsz= math.floor(14* DATA.GUI.custom_Yrelation)
     -- pad overview
+      
       DATA.GUI.custom_padgridblockh = math.floor(DATA.GUI.custom_moduleH/8)
-      DATA.GUI.custom_padgridw = DATA.GUI.custom_padgridblockh 
-       
+      DATA.GUI.custom_padgridw = DATA.GUI.custom_padgridblockh  
+      local layout_mode = DATA.extstate.UI_drracklayout
+      if layout_mode == 1 then 
+        local cellside = math.floor((DATA.GUI.custom_moduleH-DATA.GUI.custom_offset) /24)
+        DATA.GUI.custom_padgridw = cellside*7
+      end
+      
     -- drrack 
       --DATA.GUI.custom_drrack_sideY = math.floor(DATA.GUI.custom_moduleH/4)
       --DATA.GUI.custom_drrack_sideX = DATA.GUI.custom_drrack_sideY*1.5
@@ -1530,6 +1577,8 @@ rightclick them to hide all but active.
         {str = 'Undo tab state change',                         group = 3, itype = 'check', confkey = 'UI_addundototabclicks', level = 1,}, 
         {str = 'Drumrack: Click on pad select track',           group = 3, itype = 'check', confkey = 'UI_clickonpadselecttrack', level = 1},
         {str = 'Drumrack: Release pad send NoteOff',            group = 3, itype = 'check', confkey = 'UI_pads_sendnoteoff', level = 1},
+        {str = 'Tabs: use mouse wheel',                         group = 3, itype = 'check', confkey = 'UI_usemousewheelontabs', level = 1},
+        {str = 'DrumRack layout',                               group = 3, itype = 'readout', confkey = 'UI_drracklayout', level = 1,menu={[0]='Default / 8x4 pads',[1]='2 octaves keys'},readoutw_extw=readoutw_extw, func_onrelease = function() DATA2.PARENT_DRRACKSHIFT = 36 end},
         {str = 'Dock / undock',                                 group = 3, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = 
           function()  
             local state = gfx.dock(-1)
@@ -2774,7 +2823,7 @@ rightclick them to hide all but active.
     for key in pairs(DATA.GUI.buttons) do if key:match('drumrackpad_pad(%d+)') then DATA.GUI.buttons[key] = nil end end
     
     
-    local layout_mode = 0
+    local layout_mode = DATA.extstate.UI_drracklayout
     
     
     if layout_mode == 0 then
@@ -2793,6 +2842,39 @@ rightclick them to hide all but active.
           yoffs = yoffs - padh
         end
         padID0 = padID0 + 1
+      end
+    end
+    
+    if layout_mode == 1 then
+      local layout_pads_cnt = 24
+      local padw = math.floor(DATA.GUI.custom_drrack_sideW / 8)
+      local padh = math.floor((DATA.GUI.custom_moduleH-DATA.GUI.custom_infoh-DATA.GUI.custom_offset*2) / 4)
+      
+      local xoffs0 = DATA.GUI.custom_module_xoffs_drumrack + DATA.GUI.custom_moduleseparatorw+DATA.GUI.custom_offset
+      local yoffs0 = DATA.GUI.custom_module_yoffs_drumrack+ DATA.GUI.custom_moduleH - padh-DATA.GUI.custom_offset
+      
+      local padID0 = 0
+      local oct = -1
+      for note = 0+DATA2.PARENT_DRRACKSHIFT, layout_pads_cnt-1+DATA2.PARENT_DRRACKSHIFT do
+        xoffs = xoffs0
+        yoffs = yoffs0
+        local note_oct = note%12
+        if note_oct ==0 then oct = oct + 1 end
+        if oct == 1 then yoffs = yoffs - padh*2 end
+        if note_oct == 0 then xoffs = xoffs0 end
+        if note_oct == 1 then xoffs = xoffs0+0.5*padw yoffs=yoffs-padh end
+        if note_oct == 2 then xoffs = xoffs0+1*padw end
+        if note_oct == 3 then xoffs = xoffs0+1.5*padw yoffs=yoffs-padh end
+        if note_oct == 4 then xoffs = xoffs0+padw*2 end
+        if note_oct == 5 then xoffs = xoffs0+padw*3 end
+        if note_oct == 6 then xoffs = xoffs0+3.5*padw yoffs=yoffs-padh end
+        if note_oct == 7 then xoffs = xoffs0+padw*4 end
+        if note_oct == 8 then xoffs = xoffs0+4.5*padw yoffs=yoffs-padh end
+        if note_oct == 9 then xoffs = xoffs0+padw*5 end
+        if note_oct == 10 then xoffs = xoffs0+5.5*padw yoffs=yoffs-padh end
+        if note_oct == 11 then xoffs = xoffs0+padw*6 end
+        if note >= 0 and note <=127 then  GUI_MODULE_DRUMRACK_drawlayout_pad(DATA, padID0, note, xoffs, yoffs, padw, padh) end
+        padID0=padID0+1
       end
     end
     
@@ -3589,7 +3671,7 @@ rightclick them to hide all but active.
         
         -- handle section
         local section_data = {}
-        if parent_src and GetMediaSourceType( src ) == 'SECTION' then 
+        if parent_src and (GetMediaSourceType( src ) == 'SECTION' or GetMediaSourceType( src ) == 'WAVE') then 
           local retval, offs, len, rev = reaper.PCM_Source_GetSectionInfo( src )
           section_data.offs =offs
           section_data.len =len
@@ -4418,6 +4500,100 @@ rightclick them to hide all but active.
   end
   -----------------------------------------------------------------------------  
   function GUI_MODULE_PADOVERVIEW_generategrid(DATA)
+    local layout_mode = DATA.extstate.UI_drracklayout
+      
+    if layout_mode == 0 then GUI_MODULE_PADOVERVIEW_generategrid_8x4pads(DATA) end
+    if layout_mode == 1 then GUI_MODULE_PADOVERVIEW_generategrid_keys(DATA) end
+    
+  end
+  -----------------------------------------------------------------------------  
+  function GUI_MODULE_PADOVERVIEW_generategrid_keys(DATA)
+    if not DATA.GUI.buttons.padgrid then return end
+    -- draw notes
+    local cnt_rows = 22
+    local cellsideH = math.floor((DATA.GUI.custom_moduleH-DATA.GUI.custom_offset)/cnt_rows)
+    local cellside = math.floor((DATA.GUI.custom_moduleH-DATA.GUI.custom_offset) /24)
+    local x_offs0 = math.floor(DATA.GUI.buttons.padgrid.x) 
+    local y_offs0 = math.floor(DATA.GUI.buttons.padgrid.y+cellsideH*(cnt_rows-1)) 
+    for note = 0, 127 do
+    
+      -- handle col
+      local blockcol = '#757575'
+      if 
+        (
+          note%12 == 0
+          or note%12 == 2
+          or note%12 == 4
+          or note%12 == 5
+          or note%12 == 7
+          or note%12 == 9
+          or note%12 == 11
+          
+        ) 
+      then blockcol ='#D5D5D5' end
+      
+      
+      local backgr_fill2 = 0.4 
+      if DATA2.notes[note] then backgr_fill2 = 0.8  blockcol = '#f3f6f4' end
+      if DATA2.playingnote and DATA2.playingnote == note  then blockcol = '#ffe494' backgr_fill2 = 0.7 end
+      
+      y_offs = y_offs0
+      if note%12 == 0 then x_offs = x_offs0 end
+      if note%12 == 1 then x_offs = x_offs0+cellside*0.5 y_offs=y_offs0-cellsideH end
+      if note%12 == 2 then x_offs = x_offs0+cellside*1 end
+      if note%12 == 3 then x_offs = x_offs0+cellside*1.5 y_offs=y_offs0-cellsideH end
+      if note%12 == 4 then x_offs = x_offs0+cellside*2 end
+      if note%12 == 5 then x_offs = x_offs0+cellside*3 end
+      if note%12 == 6 then x_offs = x_offs0+cellside*3.5 y_offs=y_offs0-cellsideH end
+      if note%12 == 7 then x_offs = x_offs0+cellside*4 end
+      if note%12 == 8 then x_offs = x_offs0+cellside*4.5 y_offs=y_offs0-cellsideH end
+      if note%12 == 9 then x_offs = x_offs0+cellside*5 end
+      if note%12 == 10 then x_offs = x_offs0+cellside*5.5 y_offs=y_offs0-cellsideH end
+      if note%12 == 11 then x_offs = x_offs0+cellside*6 end
+      local oct = math.floor(note/12)
+      y_offs = y_offs - (cellsideH*2) * oct
+      
+      
+      local reduce = 1
+      if cellside < 20 then reduce =0 end
+      DATA.GUI.buttons['padgrid_but'..note] = { x=  x_offs,
+                          y=y_offs,
+                          w=cellside-reduce,
+                          h=cellsideH-reduce,
+                          ignoremouse = true,
+                          --txt = note,
+                          backgr_col2 = blockcol,
+                          frame_a = 0.1,
+                          frame_col = blockcol,
+                          --txt=note,
+                          txt_fontsz = 10,
+                          backgr_fill2 = backgr_fill2,
+                          --onmouseclick =  function() end,
+                          refresh = true
+                          }
+    end
+    
+    
+    if DATA2.PARENT_DRRACKSHIFT then
+      local activerow = DATA2.PARENT_DRRACKSHIFT/12
+      local activerecth = cellsideH*2
+      DATA.GUI.buttons.padgrid_activerect = { x=DATA.GUI.buttons.padgrid.x,
+                            y=DATA.GUI.buttons.padgrid.y+(10-activerow)*activerecth,--+DATA.GUI.buttons.padgrid.h-DATA.GUI.buttons.padgrid.w-activerecth,-- -cellside*activerow 
+                            w=DATA.GUI.buttons.padgrid.w,
+                            h=activerecth,
+                            --txt = note,
+                            ignoremouse = true,
+                            backgr_col2 = blockcol,
+                            frame_a = 0.9,
+                            txt_fontsz = 10,
+                            backgr_fill2 = 0.7,
+                            onmouseclick =  function() end,
+                            }
+    end
+    
+  end
+  -----------------------------------------------------------------------------  
+  function GUI_MODULE_PADOVERVIEW_generategrid_8x4pads(DATA)
     if not DATA.GUI.buttons.padgrid then return end
     -- draw notes
     --local cellside = math.floor(DATA.GUI.custom_padgridw / 4)
@@ -4491,10 +4667,18 @@ rightclick them to hide all but active.
     local x_offs= math.floor(DATA.GUI.custom_module_xoffs_padoverview+DATA.GUI.custom_moduleseparatorw)+DATA.GUI.custom_offset
     local y_offs= DATA.GUI.custom_module_yoffs_padoverview
     GUI_MODULE_separator(DATA, 'padgrid_sep', DATA.GUI.custom_module_xoffs_padoverview,DATA.GUI.custom_module_yoffs_padoverview) 
+    
+    local modH = DATA.GUI.custom_moduleH--math.floor((DATA.GUI.custom_moduleH-DATA.GUI.custom_offset) /31) * 10
+    if DATA.extstate.UI_drracklayout == 1 then 
+      local cnt_rows = 22
+      local cellsideH = math.floor((DATA.GUI.custom_moduleH-DATA.GUI.custom_offset)/cnt_rows)
+      modH = cellsideH*(cnt_rows)
+    end
+    
     DATA.GUI.buttons.padgrid = { x=math.floor(x_offs),
                           y=y_offs,
                           w=math.floor(DATA.GUI.custom_padgridw),
-                          h=DATA.GUI.custom_moduleH,
+                          h=modH,--DATA.GUI.custom_moduleH,
                           txt = '',
                           
                           val = 0,
@@ -4503,30 +4687,49 @@ rightclick them to hide all but active.
                           backgr_fill = 0,
                           onmousedrag =   function() 
                                             if not DATA.GUI.buttons.padgrid.val_abs then return end
-                                            local offs = VF_lim(DATA.GUI.buttons.padgrid.val_abs)
-                                            local row_cnt = math.floor(127/4)
-                                            local activerow = math.floor((1-offs)*row_cnt)
                                             
-                                            -- handle quantize
-                                            if DATA.extstate.UI_po_quantizemode == 0 then 
-                                              local qblock = 4
-                                              if activerow < 1 then activerow = 0 end
-                                              for block = 0, 6 do if activerow >=block*4+1 and activerow <(block*4)+4+1 then activerow =block*4+1 end end
-                                              activerow = math.min(activerow, 28)
-                                             elseif DATA.extstate.UI_po_quantizemode == 1 then 
-                                              for block = 0, 13 do if activerow >=block*2+1 and activerow <(block*2)+2+1 then activerow = block*2+1 end end
-                                              activerow = math.min(activerow, 28)         
-                                             elseif DATA.extstate.UI_po_quantizemode == 2 then 
+                                            local layout_mode = DATA.extstate.UI_drracklayout
                                               
-                                              activerow = math.min(activerow, 28)                                                 
+                                            if layout_mode == 0 then 
+                                              local offs = VF_lim(DATA.GUI.buttons.padgrid.val_abs)
+                                              local row_cnt = math.floor(127/4)
+                                              local activerow = math.floor((1-offs)*row_cnt)
+                                              
+                                              -- handle quantize
+                                              if DATA.extstate.UI_po_quantizemode == 0 then 
+                                                local qblock = 4
+                                                if activerow < 1 then activerow = 0 end
+                                                for block = 0, 6 do if activerow >=block*4+1 and activerow <(block*4)+4+1 then activerow =block*4+1 end end
+                                                activerow = math.min(activerow, 28)
+                                               elseif DATA.extstate.UI_po_quantizemode == 1 then 
+                                                for block = 0, 13 do if activerow >=block*2+1 and activerow <(block*2)+2+1 then activerow = block*2+1 end end
+                                                activerow = math.min(activerow, 28)         
+                                               elseif DATA.extstate.UI_po_quantizemode == 2 then  
+                                                activerow = math.min(activerow, 28)                                                 
+                                              end
+                                              local out_offs = math.floor(activerow*4)
+                                              if out_offs ~= DATA2.PARENT_DRRACKSHIFT then 
+                                                DATA2.PARENT_DRRACKSHIFT = out_offs
+                                                GUI_MODULE_PADOVERVIEW_generategrid(DATA)
+                                                GUI_MODULE_DRUMRACK(DATA)  
+                                                DATA2:TrackDataWrite(_, {master_upd=true})
+                                              end
                                             end
-                                            local out_offs = math.floor(activerow*4)
-                                            if out_offs ~= DATA2.PARENT_DRRACKSHIFT then 
-                                              DATA2.PARENT_DRRACKSHIFT = out_offs
-                                              GUI_MODULE_PADOVERVIEW_generategrid(DATA)
-                                              GUI_MODULE_DRUMRACK(DATA)  
-                                              DATA2:TrackDataWrite(_, {master_upd=true})
+                                            
+                                            
+                                            if layout_mode == 1 then 
+                                              local offs = VF_lim(DATA.GUI.buttons.padgrid.val_abs)
+                                              local out_offs = 127-math.floor(offs*127) 
+                                              out_offs = 12 * math.floor(out_offs/12)
+                                              if out_offs ~= DATA2.PARENT_DRRACKSHIFT then 
+                                                DATA2.PARENT_DRRACKSHIFT = out_offs
+                                                GUI_MODULE_PADOVERVIEW_generategrid(DATA)
+                                                GUI_MODULE_DRUMRACK(DATA)  
+                                                DATA2:TrackDataWrite(_, {master_upd=true})
+                                              end
                                             end
+                                            
+                                            
                                           end,
                           onmousefiledrop = function() 
                           
@@ -4537,19 +4740,6 @@ rightclick them to hide all but active.
                           }
     DATA.GUI.buttons.padgrid.onmouseclick = DATA.GUI.buttons.padgrid.onmousedrag
     DATA.GUI.buttons.padgrid.onmouserelease = DATA.GUI.buttons.padgrid.onmousedrag
-     --[[ DATA.GUI.buttons.padgrid_help = { x=x_offs,
-                           y=0,
-                           w=DATA.GUI.custom_padgridw-1,
-                           h=DATA.GUI.custom_infoh-1,
-                           txt = '?',
-                           txt_fontsz = DATA.GUI.custom_tabnames_txtsz,
-                           onmouserelease = function() 
-                                              DATA2:Actions_Help(3)
-                                            end,
-                           }   ]] 
-                           
-                    
-    
     GUI_MODULE_PADOVERVIEW_generategrid(DATA)
   end
   -----------------------------------------------------------------------------  
