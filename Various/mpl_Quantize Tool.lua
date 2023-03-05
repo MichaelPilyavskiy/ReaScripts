@@ -1,17 +1,17 @@
 -- @description QuantizeTool
--- @version 3.18
+-- @version 3.19
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=165672
 -- @about Script for manipulating REAPER objects time and values
 -- @changelog
---    + Added align MIDI to SWS groove preset
+--    + Target/MIDI: add option to convert noteOn velocity 0 to NoteOff
 
   
   DATA2 = {}
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 3.18
+    DATA.extstate.version = 3.19
     DATA.extstate.extstatesection = 'MPL_QuantizeTool'
     DATA.extstate.mb_title = 'QuantizeTool'
     DATA.extstate.default = 
@@ -79,6 +79,7 @@
                           CONF_src_envpointsflags =1, -- ==1 selected ==2 all selected --==4 selected AI
                           CONF_src_envpointsflag = 1, -- 1 values
                           CONF_src_midi = 0 ,
+                          CONF_src_midi_fixnoteonvel0 = 0 ,
                           CONF_src_midiflags = 1 ,
                           CONF_src_midi_msgflag = 5,--&1 note on &2 note off &4 preserve length
                           CONF_src_strmarkers = 0,
@@ -392,10 +393,34 @@
       --end
     end
   end
+    ---------------------------------------------------------------------- 
+  function GetTargets_MIDI_perTake_ConvertNoteOntNoteOffNotes(take)
+    local tableEvents = {}
+    local t = 0
+    local gotAllOK, MIDIstring = MIDI_GetAllEvts(take, "")
+    local MIDIlen = MIDIstring:len()
+    local stringPos = 1
+    local offset, flags, msg
+    while stringPos < MIDIlen-12 do
+      offset, flags, msg1, stringPos = string.unpack("i4Bs4", MIDIstring, stringPos) 
+        
+      local msgtype = msg1:byte(1)&0xF0
+      local chan = msg1:byte(1)&0xF
+      if msgtype == 0x90 and msg1:byte(3) == 0 then 
+        msgtype = 0x80
+      end
+      t = t + 1
+      tableEvents[t] = string.pack("i4Bi4BBB", offset, flags, 3, msgtype|chan, msg1:byte(2), msg1:byte(3) )
+    end
+    
+    MIDI_SetAllEvts(take, table.concat(tableEvents) .. MIDIstring:sub(-12))
+    MIDI_Sort(take)
+  end
   ---------------------------------------------------------------------- 
   function DATA2:GetTargets_MIDI_perTake(take, item, mode)
     local table_name = 'src'
     if not take or not ValidatePtr2( 0, take, 'MediaItem_Take*' ) or not TakeIsMIDI(take) then return end
+    if DATA.extstate.CONF_src_midi_fixnoteonvel0 == 1 then GetTargets_MIDI_perTake_ConvertNoteOntNoteOffNotes(take) end
     local item_pos = 0 
     if item then item_pos  = GetMediaItemInfo_Value( item, 'D_POSITION' )  end
     local t_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
@@ -426,6 +451,13 @@
       local pitch = msg1:byte(2)
       local vel = msg1:byte(3) 
       if not vel then vel = 120 end 
+      
+      if vel ==0 and isNoteOn == true then 
+        isNoteOn = false
+        isNoteOff = true 
+        msg1 = string.pack("i4Bi4BBB", 0, flags, 3,  0x80| (chan-1), pitch, 0 )
+      end
+      
       local ignore_search = true 
 
         t0[#t0+1] = 
@@ -2084,6 +2116,7 @@
           {str = 'Destination' ,                          group = 4, itype = 'readout', confkey = 'CONF_src_midiflags', level = 2, hide = DATA.extstate.CONF_src_midi~=1, menu={[1]='MIDI Editor',[2]='Selected items'},readoutw_extw = readoutw_extw},
           {str = 'NoteOn' ,                               group = 4, itype = 'check', confkey = 'CONF_src_midi_msgflag', level = 2, hide = DATA.extstate.CONF_src_midi~=1, confkeybyte = 0},
           {str = 'NoteOff' ,                              group = 4, itype = 'check', confkey = 'CONF_src_midi_msgflag', level = 2, hide = DATA.extstate.CONF_src_midi~=1, confkeybyte = 1},
+          {str = 'Convert noteOn velocity 0 to NoteOff' , group = 4, itype = 'check', confkey = 'CONF_src_midi_fixnoteonvel0', level = 2, hide = DATA.extstate.CONF_src_midi~=1},
           {str = 'Preserve notes length' ,                group = 4, itype = 'check', confkey = 'CONF_src_midi_msgflag', level = 2, hide = DATA.extstate.CONF_src_midi~=1, confkeybyte = 2},
         {str = 'Stretch markers' ,                        group = 4, itype = 'check', confkey = 'CONF_src_strmarkers', level = 1},
         
