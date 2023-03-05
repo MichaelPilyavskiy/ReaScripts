@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="04946f8b7b8d92a84cd6471c040cc939bd9fcf96" name="MPL Scripts">
+<index version="1" commit="5dcda0aef58eb4ca2e833405691065a81c99e1e6" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12336,6 +12336,10 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[+ Settings/UI: allow to hide scale numbers
 + Settings/UI: allow to hide per track tooltip]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/41bd1d0c611119932d04a48305c1198bf18e0962/Various/mpl_Visual%20Mixer.lua</source>
+      </version>
+      <version name="2.20" author="MPL" time="2023-03-05T12:13:04Z">
+        <changelog><![CDATA[+ Solo: use solo-in-place]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5dcda0aef58eb4ca2e833405691065a81c99e1e6/Various/mpl_Visual%20Mixer.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Write LUFS compensation to trim volume every bar.lua" type="script" desc="Write LUFS compensation to trim volume every bar (background)">
