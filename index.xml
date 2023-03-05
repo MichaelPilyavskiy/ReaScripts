@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5dcda0aef58eb4ca2e833405691065a81c99e1e6" name="MPL Scripts">
+<index version="1" commit="169a6bb155c6598947516e0654cb012fe48fe79e" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6464,6 +6464,18 @@ add control for timefall showing last note]]></changelog>
       <version name="1.01" author="MPL" time="2023-01-03T16:37:17Z">
         <changelog><![CDATA[# apply to selected chord only]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d40f6fcf8e1d26c1a9281a2cc4216346d45fa878/MIDI/mpl_Chord%20voicing%20-%20randomize.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Chord voicing - select higher notes.lua" type="script" desc="Chord voicing - select higher notes">
+      <version name="1.0" author="MPL" time="2023-03-05T13:06:32Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/169a6bb155c6598947516e0654cb012fe48fe79e/MIDI/mpl_Chord%20voicing%20-%20select%20higher%20notes.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Chord voicing - select lower notes.lua" type="script" desc="Chord voicing - select lower notes">
+      <version name="1.0" author="MPL" time="2023-03-05T13:06:32Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/169a6bb155c6598947516e0654cb012fe48fe79e/MIDI/mpl_Chord%20voicing%20-%20select%20lower%20notes.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Copy MIDI notes from selected item.lua" type="script" desc="Copy MIDI notes from selected item">
