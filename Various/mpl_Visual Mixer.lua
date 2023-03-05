@@ -1,11 +1,10 @@
 -- @description VisualMixer
--- @version 2.19
+-- @version 2.20
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about Basic Izotope Neutron Visual mixer port to REAPER environment
 -- @changelog
---    + Settings/UI: allow to hide scale numbers
---    + Settings/UI: allow to hide per track tooltip
+--    + Solo: use solo-in-place
 
  
   
@@ -19,7 +18,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.19
+    DATA.extstate.version = 2.20
     DATA.extstate.extstatesection = 'MPL_VisualMixer'
     DATA.extstate.mb_title = 'Visual Mixer'
     DATA.extstate.default = 
@@ -1367,7 +1366,7 @@ track8_pan=0
                           refresh = true,
                           hide = DATA.extstate.UI_showtopctrl_flags&1~=1,
                           onmouserelease =  function()
-                                              local solo = 1
+                                              local solo = 2
                                               if DATA2.tracks[GUID].solo == true then solo = 0 end
                                               DATA2:TrackMap_ApplyTrParam(GUID, 'I_SOLO', solo)
                                               DATA2:tracks_init(true)
