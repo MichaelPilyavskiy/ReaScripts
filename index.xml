@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="357fb9c636e3bda245d9f4dfc0cca1083c4e9739" name="MPL Scripts">
+<index version="1" commit="c66764d1e141c657c2c0409abf399523287beb6a" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -7025,6 +7025,15 @@ add control for timefall showing last note]]></changelog>
         <source main="midi_editor" file="mpl_Adjust selected notes pitch by octave (mousewheel, inverted).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/780dee8bf1cc658fc41649c71508335654cb7979/MIDI%20editor/mpl_Adjust%20selected%20notes%20pitch%20(mousewheel).lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Convert noteOn with velocity 0 to noteOff.lua" type="script" desc="Convert noteOn with velocity 0 to noteOff">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-03-05T07:23:42Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c66764d1e141c657c2c0409abf399523287beb6a/MIDI%20editor/mpl_Convert%20noteOn%20with%20velocity%200%20to%20noteOff.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Copy selected CC.lua" type="script" desc="Copy selected CC">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -11939,6 +11948,10 @@ add control for timefall showing last note]]></changelog>
       <version name="3.18" author="MPL" time="2023-02-27T21:06:45Z">
         <changelog><![CDATA[+ Added align MIDI to SWS groove preset]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/357fb9c636e3bda245d9f4dfc0cca1083c4e9739/Various/mpl_Quantize%20Tool.lua</source>
+      </version>
+      <version name="3.19" author="MPL" time="2023-03-05T07:23:42Z">
+        <changelog><![CDATA[+ Target/MIDI: add option to convert noteOn velocity 0 to NoteOff]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c66764d1e141c657c2c0409abf399523287beb6a/Various/mpl_Quantize%20Tool.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Reset audio and MIDI devices.lua" type="script" desc="Reset audio and MIDI devices">
