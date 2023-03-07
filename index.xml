@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="5a6561a3877703a0f322f20b35982487daaafd26" name="MPL Scripts">
+<index version="1" commit="dd820526cd8b2f0c326479318f24c49584dfe107" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6965,42 +6965,6 @@ add control for timefall showing last note]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b88516f70f19e947487db943372d41ba999c4edd/MIDI/mpl_Snap%20takes%20to%20scale.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Store incoming SysEx into current project (background).lua" type="script" desc="Store incoming SysEx into current project (background)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-05-27T14:57:21Z">
-        <changelog><![CDATA[+ init, mpl_SysEx_Tracker.jsfx must be installed]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6272be943cf0119b62345264800efa962f1f4d03/MIDI/mpl_Store%20incoming%20SysEx%20into%20current%20project%20(background).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Store incoming SysEx to the 1st track 1st MIDI item, no prompt (background).lua" type="script" desc="Store incoming SysEx to the 1st track 1st MIDI item, no prompt (background)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-05-27T14:57:21Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6272be943cf0119b62345264800efa962f1f4d03/MIDI/mpl_Store%20incoming%20SysEx%20to%20the%201st%20track%201st%20MIDI%20item,%20no%20prompt%20(background).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Store project linked SysEx data to SYX file into project folder.lua" type="script" desc="Store project linked SysEx data to SYX file into project folder">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-05-27T12:56:51Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e4bd69adb8e7a01876f702830b657b9ccb84744/MIDI/mpl_Store%20project%20linked%20SysEx%20data%20to%20SYX%20file%20into%20project%20folder.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Store project linked SysEx data to the 1st track 1st MIDI item.lua" type="script" desc="Store project linked SysEx data to the 1st track 1st MIDI item">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-05-27T12:56:51Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e4bd69adb8e7a01876f702830b657b9ccb84744/MIDI/mpl_Store%20project%20linked%20SysEx%20data%20to%20the%201st%20track%201st%20MIDI%20item.lua</source>
-      </version>
-    </reapack>
   </category>
   <category name="MIDI editor">
     <reapack name="mpl_Add CC64 off to channel 0 of active MIDI Editor take.lua" type="script" desc="Add CC64 off to channel 0 of active MIDI Editor take">
@@ -12079,23 +12043,14 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[# show name when docked]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/31eed1e653997d9d3ec03b9c50618b2c0ac7249a/Various/mpl_SendFader%20(background).lua</source>
       </version>
-    </reapack>
-    <reapack name="mpl_SendFader - set active send (MIDI OSC only).lua" type="script" desc="SendFader - set active send (MIDI OSC only)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-02-23T14:00:22Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e72bea2d7857820755c64ab91a41743f309d8b7/Various/mpl_SendFader%20-%20set%20active%20send%20(MIDI%20OSC%20only).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_SendFader - set volume (MIDI OSC only).lua" type="script" desc="SendFader - set volume (MIDI OSC only)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-01-29T17:22:38Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/28db9db63306262a42e5ac1bf237e5ead60c7e87/Various/mpl_SendFader%20-%20set%20volume%20(MIDI%20OSC%20only).lua</source>
+      <version name="2.0" author="MPL" time="2023-03-06T19:56:15Z">
+        <changelog><![CDATA[+ Rebuild using VariousFunctions framework
++ Overall code cleanup, improve performance
+# remove SWS dependency
++ Allow to mark sends using external state right inside track chunk, so it is store with track template
++ Allow to control multiple sends
+- Remove solo buttons]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dd820526cd8b2f0c326479318f24c49584dfe107/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set REAPER password.lua" type="script" desc="Set REAPER password">
