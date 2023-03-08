@@ -1,9 +1,10 @@
 -- @description Chord voicing - select higher note under play cursor
--- @version 1.0
+-- @version 1.01
 -- @author MPL
 -- @provides [main=main,midi_editor] .
 -- @changelog
---  + init
+--    # on stop handle position as edit cursor
+--    # ignore note doubles
 
   -- [[debug search filter: NOT function NOT reaper NOT gfx NOT VF]]
   
@@ -11,6 +12,7 @@
   function main(take)
     if not take or not TakeIsMIDI(take) then return end  
     local playcurpos =  GetPlayPosition2()
+    if  GetPlayState()&1==0 then playcurpos = GetCursorPosition() end
     local evts = getevts(take)  
     chords = {}
     chords = chords_get(take, evts)
@@ -27,9 +29,9 @@
         for chordnote = 1, #chords[ppq] do  
           local timest = MIDI_GetProjTimeFromPPQPos( take, chords[ppq][chordnote].ppq_pos )
           local timeen = MIDI_GetProjTimeFromPPQPos( take, chords[ppq][chordnote].ppq_pos+(chords[ppq][chordnote].ppq_len or 0) )
-          
           if chordnote == #chords[ppq] and (timest<=playcurpos and timeen >=playcurpos)
             then chords[ppq][chordnote].flags = 1 
+            
            else 
             chords[ppq][chordnote].flags = 0 
           end
@@ -38,7 +40,7 @@
     end
   end
   ----------------------------------------------------------------------
-  function setevtsback(take,evts,chords)
+  function setevtsback(take,evts,chords) 
     local str = ""
     local s_pack = string.pack
     local ppq_pos = 0
@@ -51,9 +53,11 @@
     
     for ppq in spairs(chords) do
       for chordnote = 1, #chords[ppq] do
-        str=str..string.pack("i4BI4BBB", chords[ppq][chordnote].ppq_pos - ppq_pos, chords[ppq][chordnote].flags, 3, 0x90 | chords[ppq][chordnote].chan, chords[ppq][chordnote].pitch, chords[ppq][chordnote].vel)
-        str=str..string.pack("i4BI4BBB", chords[ppq][chordnote].ppq_len, chords[ppq][chordnote].flags, 3, 0x80 | chords[ppq][chordnote].chan, chords[ppq][chordnote].pitch, 0)
-        ppq_pos = chords[ppq][chordnote].ppq_pos+chords[ppq][chordnote].ppq_len
+        if chords[ppq][chordnote].ppq_len then 
+          str=str..string.pack("i4BI4BBB", chords[ppq][chordnote].ppq_pos - ppq_pos, chords[ppq][chordnote].flags, 3, 0x90 | chords[ppq][chordnote].chan, chords[ppq][chordnote].pitch, chords[ppq][chordnote].vel)
+          str=str..string.pack("i4BI4BBB", chords[ppq][chordnote].ppq_len, chords[ppq][chordnote].flags, 3, 0x80 | chords[ppq][chordnote].chan, chords[ppq][chordnote].pitch, 0)
+          ppq_pos = chords[ppq][chordnote].ppq_pos+chords[ppq][chordnote].ppq_len
+        end
       end
     end
     
@@ -84,6 +88,7 @@
         local isNoteOn = msg1:byte(1)>>4 == 0x9 
         local isNoteOff = msg1:byte(1)>>4 == 0x8
         local pitch
+        if isNoteOn == true and msg1:byte(3) == 0 then isNoteOn = false isNoteOff = true end
         if isNoteOn or isNoteOff then
           pitch = msg1:byte(2)
         end
