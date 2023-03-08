@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="a56c67a89cc77219b5640e6d10eca9d3ce5bbf6b" name="MPL Scripts">
+<index version="1" commit="e0725538f3fb2f4def77d643feacf832c4b2a28d" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6471,6 +6471,11 @@ add control for timefall showing last note]]></changelog>
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5a6561a3877703a0f322f20b35982487daaafd26/MIDI/mpl_Chord%20voicing%20-%20select%20higher%20note%20under%20play%20cursor.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2023-03-08T20:23:09Z">
+        <changelog><![CDATA[# on stop handle position as edit cursor
+# ignore note doubles]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e0725538f3fb2f4def77d643feacf832c4b2a28d/MIDI/mpl_Chord%20voicing%20-%20select%20higher%20note%20under%20play%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Chord voicing - select higher notes.lua" type="script" desc="Chord voicing - select higher notes">
       <version name="1.0" author="MPL" time="2023-03-05T13:06:32Z">
@@ -6482,6 +6487,11 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL" time="2023-03-05T13:14:18Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5a6561a3877703a0f322f20b35982487daaafd26/MIDI/mpl_Chord%20voicing%20-%20select%20lower%20note%20under%20play%20cursor.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2023-03-08T20:23:09Z">
+        <changelog><![CDATA[# on stop handle position as edit cursor
+# ignore note doubles]]></changelog>
+        <source main="main midi_editor">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e0725538f3fb2f4def77d643feacf832c4b2a28d/MIDI/mpl_Chord%20voicing%20-%20select%20lower%20note%20under%20play%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Chord voicing - select lower notes.lua" type="script" desc="Chord voicing - select lower notes">
