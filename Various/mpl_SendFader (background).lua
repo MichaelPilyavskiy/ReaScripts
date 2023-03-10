@@ -1,13 +1,9 @@
 ﻿-- @description SendFader
--- @version 2.01
+-- @version 2.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + Settings: allow to auto-define sends by 'aux' or 'send' as send track or parent group name
---    + add peaks to sends
---    + add peaks to source track
---    # fix auto creating sends
---    # invert filter Q
+--    + Settings: add dock action
 
 
 
@@ -20,7 +16,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.01'
+    DATA.extstate.version = '2.02'
     DATA.extstate.extstatesection = 'MPL_SendFader'
     DATA.extstate.mb_title = 'MPL SendFader'
     DATA.extstate.default = 
@@ -960,7 +956,27 @@
     { 
       {str = 'General' ,                                        group = 1, itype = 'sep'},
         {str = 'Preset',                                        group = 1, itype = 'button', level = 1, func_onrelease = function() DATA:GUIbut_preset() end},
-        
+        {str = 'Dock / undock',                                 group = 3, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = 
+          function()  
+            local state = gfx.dock(-1)
+            if state&1==1 then
+              state = 0
+             else
+              state = DATA.extstate.dock 
+              if state == 0 then state = 1 end
+            end
+            local title = DATA.extstate.mb_title or ''
+            if DATA.extstate.version then title = title..' '..DATA.extstate.version end
+            gfx.quit()
+            gfx.init( title,
+                      DATA.extstate.wind_w or 100,
+                      DATA.extstate.wind_h or 100,
+                      state, 
+                      DATA.extstate.wind_x or 100, 
+                      DATA.extstate.wind_y or 100)
+            
+            
+          end},
       {str = 'Sends definition' ,                               group = 2, itype = 'sep'},   
         {str = '[Action] Mark selected tracks as send',         group = 2, itype = 'button', level = 1, func_onrelease = function() DATA2:MarkSelectedTracksAsSend(1) end},
         {str = '[Action] Unmark selected tracks as send',       group = 2, itype = 'button', level = 1, func_onrelease = function() DATA2:MarkSelectedTracksAsSend(0) end},
