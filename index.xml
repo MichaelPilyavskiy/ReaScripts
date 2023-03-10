@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e0725538f3fb2f4def77d643feacf832c4b2a28d" name="MPL Scripts">
+<index version="1" commit="8e73f20b4c5ca62cccd464cb4adfcc7225b24029" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12069,6 +12069,10 @@ add control for timefall showing last note]]></changelog>
 # fix auto creating sends
 # invert filter Q]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a56c67a89cc77219b5640e6d10eca9d3ce5bbf6b/Various/mpl_SendFader%20(background).lua</source>
+      </version>
+      <version name="2.02" author="MPL" time="2023-03-10T03:57:18Z">
+        <changelog><![CDATA[+ Settings: add dock action]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e73f20b4c5ca62cccd464cb4adfcc7225b24029/Various/mpl_SendFader%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set REAPER password.lua" type="script" desc="Set REAPER password">
