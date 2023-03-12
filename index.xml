@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="8e73f20b4c5ca62cccd464cb4adfcc7225b24029" name="MPL Scripts">
+<index version="1" commit="2c14675485c6a42dfb7117f660d7fe7de8685597" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -3527,6 +3527,15 @@
       <version name="1.01" author="MPL" time="2022-06-14T19:00:10Z">
         <changelog><![CDATA[# set MIDI to none, thanks to Karl Metum github.com/MichaelPilyavskiy/ReaScripts/pull/26]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f0ca89b66808ca91ec7232b94aca4e9abd6b481e/FX%20specific/mpl_Create%20ReaGate%20sidechain%20routing.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Export RS5k sample into item on same track.lua" type="script" desc="Export RS5k sample into item on same track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-03-12T09:34:53Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2c14675485c6a42dfb7117f660d7fe7de8685597/FX%20specific/mpl_Export%20RS5k%20sample%20into%20item%20on%20same%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Float Fre(a)koscope on master channel.lua" type="script" desc="Float Fre(a)koscope on master channel">
