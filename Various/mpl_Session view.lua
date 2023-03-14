@@ -1,35 +1,11 @@
 -- @description Session view
--- @version 1.0alpha1
+-- @version 1.0alpha2
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about
 --    Basic ableton session view port. Limitation: clip is hard snapped into scene by its length, so it is not completely free-running - it will be cut off by scene boundaries and triggerring clip triggers it from closer clip boundary, not the closest beat. Clips can`t be triggerer at exact same time.
 -- @changelog
---    + LiveProject: use separate subproject, opened in active or inactive tab
---    + LiveProject: get by 'live.rpp' name
---    + LiveProject: suggest to create liveproject if not opened
---    + LiveProject: suggest to create liveproject if not in main project parent folder
---    + LiveProject: build a template at initialization with 8 tracks, 8 scenes, 2 send trackss with track routed to them
---    + HW feedback: use StuffMsgToHardWare to send stuff to device (by default LPMiniMK3 MIDI)
---    + HW feedback: use MIDI_GetRecentInputEvent to receive stuff from device (by default LPMiniMK3 MIDI)
---    + HW feedback/LPMiniMK3: use a SysEx message to enable DAW mode at initialization
---    + HW feedback/LPMiniMK3: use a SysEx message to enable Session layout at initialization
---    + HW feedback/LPMiniMK3: use a SysEx message to clear DAW at initialization
---    + HW feedback/LPMiniMK3: send scenes CC flashing/pulsing/off
---    + HW feedback/LPMiniMK3: stop playback at stop/solo/mute button
---    + HW feedback/LPMiniMK3: trigger scene by general session layout
---    + Settings/Hardware: init HW + clear state at device change
---    + Scenes: implement as time areas enclosed by markers with then ST/EN as start/end ans S[sceneID]name
---    + Scenes: when trigger scene, mark it as quired, mark active playing scene as SCENE_CURRENT region, quered scene as SCENE_QUERED, set looped time selection to quered scene
---    + Scenes: use 1 measure quantization for playlisting scenes
---    + Scenes: inialize lights at start, ahndle if scene is already playing before scipt trigger
---    + Actions: add action to clear live project, write default template
---    + Main panel: add Stop button
---    + Clip: implement clips launch as sharing source item into timeline
---    + Clip: click + imports selected item into session grid, mark as playable clip, mark as source, mark source scene for further reading, lock and mute spurce
---    + Clip: when trigger scene from stopped playback, mute other tracks in taht scene
---    + Clip menu: right click on frame to run click menu
---    + Clip menu: rebuild clips at current region (overwise it follow user editable scene)
+--    + HW feedback/Launchpad MK2: map Launchpad MK2
 
 
 
@@ -47,7 +23,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '1.0alpha1'
+    DATA.extstate.version = '1.0alpha2'
     DATA.extstate.extstatesection = 'Session view'
     DATA.extstate.mb_title = 'Session view'
     DATA.extstate.default = 
@@ -1314,7 +1290,7 @@
   end
   ----------------------------------------------------------------------  
   function DATA2:HW_Send_LightScene(sceneID, state) 
-    if DATA.extstate.CONF_HWoutname == "LPMiniMK3 MIDI" then
+    if DATA.extstate.CONF_HWoutname == "LPMiniMK3 MIDI"  or DATA.extstate.CONF_HWoutname == 'Launchpad MK2'  then
       if sceneID <= 7 then -- limit to low button
         -- refresh scene lights
         local msgtype = 0xB0
@@ -1334,7 +1310,7 @@
   end
   ----------------------------------------------------------------------  
   function DATA2:HW_Send_LightClip(trID, sceneID, state) 
-    if DATA.extstate.CONF_HWoutname == "LPMiniMK3 MIDI" then
+    if DATA.extstate.CONF_HWoutname == "LPMiniMK3 MIDI" or DATA.extstate.CONF_HWoutname == 'Launchpad MK2'  then
       -- refresh scene lights
       local msgtype = 0x90
       local chan = 0 
@@ -1351,7 +1327,7 @@
   end
   ----------------------------------------------------------------------  
   function DATA2:HW_Send_ClearState(minor)
-    if DATA.extstate.CONF_HWoutname == "LPMiniMK3 MIDI" then
+    if DATA.extstate.CONF_HWoutname == "LPMiniMK3 MIDI" or DATA.extstate.CONF_HWoutname == 'Launchpad MK2' then
       if not minor then 
         local mode = '01'   DATA2:Actions_StuffMIDI('F0 00 20 29 02 0D 10 '..mode..' F7')           -- enable DAW mode
         local layout = '00' DATA2:Actions_StuffMIDI('F0h 00h 20h 29h 02h 0Dh 00h '..layout..' F7')  -- enable Session layout 
@@ -1386,7 +1362,7 @@
     DATA2.retroactiveHW.msg = midimsg
     DATA2.retroactiveHW.ts = ts
     if DATA2.retroactiveHW.last_msg and DATA2.retroactiveHW.last_msg ~= DATA2.retroactiveHW.msg and DATA2.HWdata.HWdevinID == devIdx then
-      if DATA.extstate.CONF_HWinname == 'LPMiniMK3 MIDI' then DATA2:HW_ReceiveData_LaunchPadMiniMK3(midimsg) end
+      if DATA.extstate.CONF_HWinname == 'LPMiniMK3 MIDI' or DATA.extstate.CONF_HWinname == 'Launchpad MK2' then DATA2:HW_ReceiveData_LaunchPadMiniMK3(midimsg) end
     end
     DATA2.retroactiveHW.last_msg = DATA2.retroactiveHW.msg
   end
@@ -1394,19 +1370,21 @@
   function DATA2:HW_InitHardware()  
     -- search HW MIDI out
       local devout 
+      local devOUTnamecheck = DATA.extstate.CONF_HWoutname
       if DATA.extstate.CONF_HWoutname ~= 'Off' then 
         for dev = 1, GetNumMIDIOutputs() do
           local retval, nameout = GetMIDIOutputName( dev-1, '' )
-          if retval and nameout:match(DATA.extstate.CONF_HWoutname) then DATA2.HWdata.HWdevoutID =  dev-1 break end 
+          if retval and nameout:lower():match(literalize(devOUTnamecheck:lower())) then DATA2.HWdata.HWdevoutID =  dev-1 break end 
         end
       end
       
     -- search HW MIDI in
       local devin 
+      local devINnamecheck = DATA.extstate.CONF_HWinname
       if DATA.extstate.CONF_HWinname ~= 'Off' then 
         for dev = 1, GetNumMIDIInputs() do
           local retval, nameout = GetMIDIInputName( dev-1, '' )
-          if retval and nameout:match(DATA.extstate.CONF_HWinname) then DATA2.HWdata.HWdevinID =  dev-1 break end 
+          if retval and nameout:lower():match(literalize(devOUTnamecheck:lower())) then DATA2.HWdata.HWdevinID =  dev-1 break end 
         end 
       end
   end
@@ -1500,13 +1478,15 @@
         {str = 'Input: '..DATA.extstate.CONF_HWinname,             group = 2, itype = 'button', confkey = 'CONF_HWinname', level = 1, func_onrelease = function() DATA:GUImenu(
           { 
             {str='Off',func=function() DATA.extstate.CONF_HWinname = 'Off' DATA.UPD.onGUIinit = true DATA.UPD.onconfchange = true end},
-            {str='LPMiniMK3 MIDI',func=function() DATA.extstate.CONF_HWinname = 'LPMiniMK3 MIDI' DATA.UPD.onGUIinit = true DATA.UPD.onconfchange = true DATA2:HW_InitHardware() DATA2:HW_Send_ClearState() end}
+            {str='LPMiniMK3 MIDI',func=function() DATA.extstate.CONF_HWinname = 'LPMiniMK3 MIDI' DATA.UPD.onGUIinit = true DATA.UPD.onconfchange = true DATA2:HW_InitHardware() DATA2:HW_Send_ClearState() end},
+            {str='Launchpad MK2',func=function() DATA.extstate.CONF_HWinname = 'Launchpad MK2' DATA.UPD.onGUIinit = true DATA.UPD.onconfchange = true DATA2:HW_InitHardware() DATA2:HW_Send_ClearState() end},
           }
         )end, readoutw_extw=readoutw_extw}, 
         {str = 'Output: '..DATA.extstate.CONF_HWoutname,             group = 2, itype = 'button', confkey = 'CONF_HWoutname', level = 1, func_onrelease = function() DATA:GUImenu(
           { 
             {str='Off',func=function() DATA.extstate.CONF_HWoutname = 'Off' DATA.UPD.onGUIinit = true DATA.UPD.onconfchange = true end},
-            {str='LPMiniMK3 MIDI',func=function() DATA.extstate.CONF_HWoutname = 'LPMiniMK3 MIDI' DATA.UPD.onGUIinit = true DATA.UPD.onconfchange = true DATA2:HW_InitHardware() DATA2:HW_Send_ClearState() end}
+            {str='LPMiniMK3 MIDI',func=function() DATA.extstate.CONF_HWoutname = 'LPMiniMK3 MIDI' DATA.UPD.onGUIinit = true DATA.UPD.onconfchange = true DATA2:HW_InitHardware() DATA2:HW_Send_ClearState() end},
+            {str='Launchpad MK2',func=function() DATA.extstate.CONF_HWoutname = 'Launchpad MK2' DATA.UPD.onGUIinit = true DATA.UPD.onconfchange = true DATA2:HW_InitHardware() DATA2:HW_Send_ClearState() end},
           }
         )end, readoutw_extw=readoutw_extw},       
 
@@ -1519,4 +1499,3 @@
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
   local ret = VF_CheckFunctions(3.57) if ret then local ret2 = VF_CheckReaperVrs(6.77,true) if ret2 then main() end end
-
