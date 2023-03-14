@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="eb0ad5a403bcb639b08861f078b3be2a72339bb5" name="MPL Scripts">
+<index version="1" commit="7c99582d7f872686a90e70a60483faefd25fe9b7" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12122,6 +12122,10 @@ add control for timefall showing last note]]></changelog>
 + Clip menu: right click on frame to run click menu
 + Clip menu: rebuild clips at current region (overwise it follow user editable scene)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb0ad5a403bcb639b08861f078b3be2a72339bb5/Various/mpl_Session%20view.lua</source>
+      </version>
+      <version name="1.0alpha2" author="MPL" time="2023-03-14T20:38:28Z">
+        <changelog><![CDATA[+ HW feedback/Launchpad MK2: map Launchpad MK2]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c99582d7f872686a90e70a60483faefd25fe9b7/Various/mpl_Session%20view.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set REAPER password.lua" type="script" desc="Set REAPER password">
