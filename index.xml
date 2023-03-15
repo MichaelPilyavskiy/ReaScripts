@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="7c99582d7f872686a90e70a60483faefd25fe9b7" name="MPL Scripts">
+<index version="1" commit="051a9152db4400432888c03ec85c3cf13ec386af" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12082,50 +12082,6 @@ add control for timefall showing last note]]></changelog>
       <version name="2.02" author="MPL" time="2023-03-10T03:57:18Z">
         <changelog><![CDATA[+ Settings: add dock action]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8e73f20b4c5ca62cccd464cb4adfcc7225b24029/Various/mpl_SendFader%20(background).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Session view.lua" type="script" desc="Session view">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Basic ableton session view port. Limitation: clip is hard snapped into scene by its length, so it is not completely free-running - it will be cut off by scene boundaries and triggerring clip triggers it from closer clip boundary, not the closest beat. Clips can`t be triggerer at exact same time.\par}
-}
-]]></description>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0alpha1" author="MPL" time="2023-03-14T19:59:50Z">
-        <changelog><![CDATA[+ LiveProject: use separate subproject, opened in active or inactive tab
-+ LiveProject: get by 'live.rpp' name
-+ LiveProject: suggest to create liveproject if not opened
-+ LiveProject: suggest to create liveproject if not in main project parent folder
-+ LiveProject: build a template at initialization with 8 tracks, 8 scenes, 2 send trackss with track routed to them
-+ HW feedback: use StuffMsgToHardWare to send stuff to device (by default LPMiniMK3 MIDI)
-+ HW feedback: use MIDI_GetRecentInputEvent to receive stuff from device (by default LPMiniMK3 MIDI)
-+ HW feedback/LPMiniMK3: use a SysEx message to enable DAW mode at initialization
-+ HW feedback/LPMiniMK3: use a SysEx message to enable Session layout at initialization
-+ HW feedback/LPMiniMK3: use a SysEx message to clear DAW at initialization
-+ HW feedback/LPMiniMK3: send scenes CC flashing/pulsing/off
-+ HW feedback/LPMiniMK3: stop playback at stop/solo/mute button
-+ HW feedback/LPMiniMK3: trigger scene by general session layout
-+ Settings/Hardware: init HW + clear state at device change
-+ Scenes: implement as time areas enclosed by markers with then ST/EN as start/end ans S[sceneID]name
-+ Scenes: when trigger scene, mark it as quired, mark active playing scene as SCENE_CURRENT region, quered scene as SCENE_QUERED, set looped time selection to quered scene
-+ Scenes: use 1 measure quantization for playlisting scenes
-+ Scenes: inialize lights at start, ahndle if scene is already playing before scipt trigger
-+ Actions: add action to clear live project, write default template
-+ Main panel: add Stop button
-+ Clip: implement clips launch as sharing source item into timeline
-+ Clip: click + imports selected item into session grid, mark as playable clip, mark as source, mark source scene for further reading, lock and mute spurce
-+ Clip: when trigger scene from stopped playback, mute other tracks in taht scene
-+ Clip menu: right click on frame to run click menu
-+ Clip menu: rebuild clips at current region (overwise it follow user editable scene)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/eb0ad5a403bcb639b08861f078b3be2a72339bb5/Various/mpl_Session%20view.lua</source>
-      </version>
-      <version name="1.0alpha2" author="MPL" time="2023-03-14T20:38:28Z">
-        <changelog><![CDATA[+ HW feedback/Launchpad MK2: map Launchpad MK2]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7c99582d7f872686a90e70a60483faefd25fe9b7/Various/mpl_Session%20view.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set REAPER password.lua" type="script" desc="Set REAPER password">
