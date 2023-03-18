@@ -1,9 +1,20 @@
 ﻿-- @description SendFader
--- @version 2.02
+-- @version 2.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
+-- @provides
+--    mpl_SendFader_Mark selected tracks as sends.lua
 -- @changelog
---    + Settings: add dock action
+--    + Add external action for mark sends external state
+--    + UI: Add 'remove send' button
+--    + Allow shortcuts passthrough (require VariousFunctions update)
+--    + UI: Color mute red
+--    + UI: Alt+click reset volume/pan
+--    + UI: Right click to enter volume/pan
+--    + UI: allow horizontal scroll
+--    # UI: fix retina / scling issues
+--    # UI: make pan label shorter 
+--    # UI: increase minimum width a bit
 
 
 
@@ -12,11 +23,13 @@
             tracks = {},
             sendtracks={},
             peaks={},
+            scroll_x=0,
+            scroll_w=1,
           }
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.02'
+    DATA.extstate.version = '2.03'
     DATA.extstate.extstatesection = 'MPL_SendFader'
     DATA.extstate.mb_title = 'MPL SendFader'
     DATA.extstate.default = 
@@ -51,6 +64,9 @@
     end
     DATA:GUIinit()
     DATA_RESERVED_ONPROJCHANGE(DATA)
+    DATA.GUI.shortcuts2= {
+      custom = {}--{['Space']='_RSfc6990bed179e8ecd167f17a2ca833b0a3e04af7'}
+                          } -- use shortcuts handling
     RUN()
   end
   ----------------------------------------------------------------------
@@ -59,10 +75,10 @@
     for sendID = 1, #DATA2.sendtracks do 
       if DATA.GUI.buttons['fader_'..sendID] and DATA2.peaks[sendID] and #DATA2.peaks[sendID] > 4 then
         local obj = DATA.GUI.buttons['fader_'..sendID]
-        local x=obj.x
-        local y=obj.y
-        local w=DATA.GUI.custom_meterW--obj.w
-        local h=obj.h
+        local x=obj.x*DATA.GUI.default_scale
+        local y=obj.y*DATA.GUI.default_scale
+        local w=DATA.GUI.custom_meterW*DATA.GUI.default_scale--obj.w
+        local h=obj.h*DATA.GUI.default_scale
         gfx.a=0.4
         local sz = #DATA2.peaks[sendID]
         local L = (DATA2.peaks[sendID][sz][1] + DATA2.peaks[sendID][sz-1][1]+ DATA2.peaks[sendID][sz-2][1]+ DATA2.peaks[sendID][sz-3][1]) /4
@@ -74,10 +90,10 @@
     
     if DATA.GUI.buttons['fadervca_fader'] and DATA2.peaks[0] and #DATA2.peaks[0] > 4 then
       local obj = DATA.GUI.buttons['fadervca_fader']
-      local x=obj.x
-      local y=obj.y
-      local w=DATA.GUI.custom_meterW--obj.w
-      local h=obj.h
+      local x=obj.x*DATA.GUI.default_scale
+      local y=obj.y*DATA.GUI.default_scale
+      local w=DATA.GUI.custom_meterW*DATA.GUI.default_scale--*DATA.GUI.default_scale-obj.w
+      local h=obj.h*DATA.GUI.default_scale
       gfx.a=0.4
       local sz = #DATA2.peaks[0]
       local L = (DATA2.peaks[0][sz][1] + DATA2.peaks[0][sz-1][1]+ DATA2.peaks[0][sz-2][1]+ DATA2.peaks[0][sz-3][1]) /4
@@ -294,6 +310,7 @@
       DATA.GUI.custom_Yrelation = math.max(gfx_h/DATA.GUI.custom_referenceH, 0.5) -- global W
       DATA.GUI.custom_Yrelation = math.min(DATA.GUI.custom_Yrelation, 1) -- global W
       DATA.GUI.custom_offset =  math.floor(2 * DATA.GUI.custom_Yrelation)
+      DATA.GUI.custom_scrollH =  math.floor(10 * DATA.GUI.custom_Yrelation)
       --DATA.GUI.default_scale = 1
       
     -- init button stuff
@@ -313,7 +330,7 @@
     -- send block
       DATA.GUI.custom_sendfaderH = DATA.GUI.custom_gfx_hreal - DATA.GUI.custom_sendctrl_nameh*8-DATA.GUI.custom_infobuth - DATA.GUI.custom_offset*3
       DATA.GUI.custom_sendfaderWmax = math.floor(80*DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_sendfaderWmin = math.floor(30*DATA.GUI.custom_Yrelation)
+      DATA.GUI.custom_sendfaderWmin = math.floor(35*DATA.GUI.custom_Yrelation)
       DATA.GUI.custom_fader_scale_lim = 0.8
       DATA.GUI.custom_fader_coeff = 30
       DATA.GUI.custom_txtsz_scalelevels = DATA:GUIdraw_txtCalibrateFont( DATA.GUI.default_txt_font, math.floor(14*DATA.GUI.custom_Yrelation), 0) 
@@ -351,7 +368,25 @@
                             --frame_a =0,
                             ignoremouse = true,
                             onmouseclick = function() end,
-                            }      
+                            }   
+                            
+      DATA.GUI.buttons.horizscroll = { x=0,
+                            y=DATA.GUI.custom_gfx_hreal-DATA.GUI.custom_scrollH,
+                            w=DATA.GUI.custom_gfx_wreal-1,--DATA.GUI.custom_infobut_w*2-2,
+                            h=DATA.GUI.custom_scrollH-1, 
+                            data = {horslider = true},
+                            frame_a =0.3,
+                            val = 0,
+                            val_xaxis = true,
+                            val_res = -1,
+                            onmousedrag = function()
+                              DATA2.scroll_x = DATA.GUI.buttons.horizscroll.val
+                              GUI_refresh(DATA)
+                            end
+                            }
+
+
+                            
      GUI_refresh(DATA)
     for but in pairs(DATA.GUI.buttons) do DATA.GUI.buttons[but].key = but end
   end 
@@ -407,7 +442,7 @@
     
     local x_offs = DATA.GUI.custom_offset
     local y_offs = DATA.GUI.custom_offset*2 + DATA.GUI.custom_infobuth
-    local faderH = DATA.GUI.custom_sendfaderH
+    local faderH = DATA.GUI.custom_sendfaderH-DATA.GUI.custom_scrollH
     DATA.GUI.buttons['fadervca_fader'] = { x=x_offs,
                           y=y_offs,
                           w=DATA.GUI.custom_vcaW-1,--DATA.GUI.custom_infobut_w*2-2,
@@ -446,6 +481,7 @@
   ---------------------------------------------------------------------  
   function GUI_MODULE_BuildSends(DATA)
     for key in pairs(DATA.GUI.buttons) do if key:match('fader_') then DATA.GUI.buttons[key] = nil end end 
+    for key in pairs(DATA.GUI.buttons) do if key:match('fader_') then DATA.GUI.buttons[key] = nil end end 
     if not (DATA2.tracks and DATA2.tracks[1] and DATA2.tracks[1].sends) then return end
     if DATA.GUI.Settings_open ==1 then return end 
     
@@ -453,10 +489,15 @@
     local cntsends = #DATA2.sendtracks
     local y_offs = DATA.GUI.custom_offset*2 + DATA.GUI.custom_infobuth
     local x_offs0 = DATA.GUI.custom_offset*2+DATA.GUI.custom_vcaW
-    local faderW = math.min(DATA.GUI.custom_sendfaderWmax,(DATA.GUI.custom_gfx_wreal -DATA.GUI.custom_offset*2) /cntsends )
+    local faderareaW = (DATA.GUI.custom_gfx_wreal -DATA.GUI.custom_vcaW-DATA.GUI.custom_offset*3) 
+    local faderW = math.min(DATA.GUI.custom_sendfaderWmax, math.floor(faderareaW/cntsends ))
     local faderW = math.max(DATA.GUI.custom_sendfaderWmin,faderW)
-    local faderH = DATA.GUI.custom_sendfaderH
+    local faderH = DATA.GUI.custom_sendfaderH-DATA.GUI.custom_scrollH
     local faderW_scale = faderW--math.floor(faderW*0.8)
+    
+    
+    DATA2.scroll_w = math.min(1,faderareaW / (faderW_scale * cntsends ))
+    local x_shift = -DATA2.scroll_x*faderareaW
     
     for sendID = 1, cntsends do
       local destGUID = DATA2.sendtracks[sendID].GUID
@@ -464,7 +505,7 @@
       if DATA2.tracks[1].sends[destGUID] then vol = DATA2.tracks[1].sends[destGUID].vol end
       local val = DATA2:Convert_Val2Fader(vol)
       local x_offs = x_offs0 + faderW * (sendID-1)
-      DATA.GUI.buttons['fader_'..sendID] = { x=x_offs+ faderW/2 - faderW_scale/2 ,
+      DATA.GUI.buttons['fader_'..sendID] = { x=x_offs+ faderW/2 - faderW_scale/2 +x_shift,
                             y=y_offs,
                             w=faderW_scale-DATA.GUI.custom_offset*2,--DATA.GUI.custom_infobut_w*2-2,
                             h=faderH-1,
@@ -483,6 +524,7 @@
                             onmouserelease = function() 
                               local sendIDx = DATA2:GetSendIdx(destGUID,true)
                               local outvol = DATA2:Convert_Fader2Val(DATA.GUI.buttons['fader_'..sendID].val)
+                              if DATA.GUI.Alt == true then outvol = 0 end
                               SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_VOL', outvol)
                               SetTrackSendUIVol( DATA2.tracks[1].ptr, sendIDx, outvol, 1)
                               DATA.UPD.onprojstatechange = true
@@ -502,15 +544,17 @@
                             data = {fader_cust=true,destGUID=destGUID}
                             } 
       
+      DATA.GUI.buttons['fader_'..sendID].hide = DATA.GUI.buttons['fader_'..sendID].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
       local y_offs = DATA.GUI.custom_offset*2 + DATA.GUI.custom_infobuth + faderH
-      GUI_MODULE_BuildSends_ControlStuff(DATA,sendID,destGUID,x_offs, y_offs, faderW,faderH)
+      GUI_MODULE_BuildSends_ControlStuff(DATA,sendID,destGUID,x_offs+x_shift, y_offs, faderW,faderH)
     end
     
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_name(DATA,sendID,destGUID,srct,x,y,w,h) 
     local name= DATA2.sendtracks[sendID].name
-    DATA.GUI.buttons['fader_'..sendID..'_name'] = { 
+    local key = 'fader_'..sendID..'_name'
+    DATA.GUI.buttons[key] = { 
       x=x,
       y=y,
       w=w,
@@ -519,18 +563,21 @@
       frame_a = 0,
       txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
     }
+    DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_mute(DATA,sendID,destGUID,srct,x,y,w,h) 
     local txt_a = DATA.GUI.custom_txta
     if srct.B_MUTE==0 then txt_a = DATA.GUI.custom_txta_disabled  end
-    DATA.GUI.buttons['fader_'..sendID..'_mute'] = { 
+    local key = 'fader_'..sendID..'_mute'
+    DATA.GUI.buttons[key] = { 
       x=x,--+ctrlbutw,
       y=y,
       w=w,
       h=h,
       txt = 'Mute', 
       txt_a=txt_a,
+      txt_col = '#FF0000',
       txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
       frame_a = 0,
       onmouserelease = function() 
@@ -538,6 +585,27 @@
         SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'B_MUTE', srct.B_MUTE~1)
         DATA.UPD.onprojstatechange = true 
       end}
+      DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+  end
+  -------------------------------------------------------------------- 
+  function GUI_MODULE_BuildSends_ControlStuff_remove(DATA,sendID,destGUID,srct,x,y,w,h) 
+    local txt_a = DATA.GUI.custom_txta
+    local key = 'fader_'..sendID..'_remove'
+    DATA.GUI.buttons[key] = { 
+      x=x,--+ctrlbutw,
+      y=y,
+      w=w,
+      h=h,
+      txt = 'X', 
+      txt_a=txt_a,
+      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
+      frame_a = 0,
+      onmouserelease = function() 
+        local sendIDx = DATA2:GetSendIdx(destGUID,true)
+        RemoveTrackSend( DATA2.tracks[1].ptr, 0, sendIDx )
+        DATA.UPD.onprojstatechange = true 
+      end}
+      DATA.GUI.buttons[key].hide = DATA.GUI.buttons['fader_'..sendID..'_mute'].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_smode(DATA,sendID,destGUID,srct,x,y,w,h) 
@@ -547,8 +615,8 @@
     elseif srct.I_SENDMODE == 1 then modetxtx = 'PreFX'
     
     end
-      
-    DATA.GUI.buttons['fader_'..sendID..'_stype'] = { 
+    local key = 'fader_'..sendID..'_stype'
+    DATA.GUI.buttons[key] = { 
       x=x,
       y=y,
       w=w,
@@ -566,14 +634,16 @@
         )
       end 
     }
+    DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_pan(DATA,sendID,destGUID,srct,x,y,w,h) 
-    local val_txt = 'Center' if srct.D_PAN > 0.01 then val_txt = math.ceil(srct.D_PAN*100)..'% Right' elseif srct.D_PAN < -0.01 then val_txt = -math.floor(srct.D_PAN*100)..'% Left' end 
+    local val_txt = 'Center' if srct.D_PAN > 0.01 then val_txt = math.ceil(srct.D_PAN*100)..'%R' elseif srct.D_PAN < -0.01 then val_txt = -math.floor(srct.D_PAN*100)..'%L' end 
     local destGUID = DATA2.sendtracks[sendID].GUID
     local pan = 0
     if DATA2.tracks[1].sends[destGUID] then pan = DATA2.tracks[1].sends[destGUID].pan end 
-    DATA.GUI.buttons['fader_'..sendID..'_pan'] = { 
+    local key = 'fader_'..sendID..'_pan'
+    DATA.GUI.buttons[key] = { 
       x=x,
       y=y,
       w=w,
@@ -596,23 +666,35 @@
         SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_PAN', outpan)
         SetTrackSendUIPan( DATA2.tracks[1].ptr, sendIDx, outpan, 0)
         srct.D_PAN=DATA.GUI.buttons['fader_'..sendID..'_pan'].val
-        local val_txt = 'Center'   if srct.D_PAN > 0.01 then val_txt = math.ceil(srct.D_PAN*100)..'% Right' elseif srct.D_PAN < -0.01 then val_txt = -math.floor(srct.D_PAN*100)..'% Left' end
+        local val_txt = 'Center'   if srct.D_PAN > 0.01 then val_txt = math.ceil(srct.D_PAN*100)..'%R' elseif srct.D_PAN < -0.01 then val_txt = -math.floor(srct.D_PAN*100)..'%L' end
         DATA.GUI.buttons['fader_'..sendID..'_pan'].txt=val_txt
         DATA.GUI.buttons['fader_'..sendID..'_pan'].refresh = true
       end,
       onmouserelease = function() 
         local sendIDx = DATA2:GetSendIdx(destGUID,true)
         local outpan = DATA.GUI.buttons['fader_'..sendID..'_pan'].val
+        if DATA.GUI.Alt == true then outpan = 0 end
         SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_PAN', outpan)
         SetTrackSendUIPan( DATA2.tracks[1].ptr, sendIDx, outpan, 1)
         srct.D_PAN=DATA.GUI.buttons['fader_'..sendID..'_pan'].val
-        local val_txt = 'Center'   if srct.D_PAN > 0.01 then val_txt = math.ceil(srct.D_PAN*100)..'% Right' elseif srct.D_PAN < -0.01 then val_txt = -math.floor(srct.D_PAN*100)..'% Left' end
+        local val_txt = 'Center'   if srct.D_PAN > 0.01 then val_txt = math.ceil(srct.D_PAN*100)..'%R' elseif srct.D_PAN < -0.01 then val_txt = -math.floor(srct.D_PAN*100)..'%L' end
         DATA.GUI.buttons['fader_'..sendID..'_pan'].txt=val_txt
         DATA.GUI.buttons['fader_'..sendID..'_pan'].refresh = true
         DATA.UPD.onprojstatechange = true
       end,
-      
+      onmouseclickR = function() 
+        local sendIDx = DATA2:GetSendIdx(destGUID,true)
+        local cur_pan = math.floor( DATA2.tracks[1].sends[destGUID].D_PAN *100)
+        local ret, outpan = GetUserInputs( 'set pan', 1, '%', cur_pan)
+        if not (ret and tonumber(outpan)) then return end
+        outpan = tonumber(outpan)
+        if ( outpan > 1 and outpan < -1) then return end
+        SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_PAN', outpan/100)
+        SetTrackSendUIPan( DATA2.tracks[1].ptr, sendIDx, outpan, 1)
+        DATA.UPD.onprojstatechange = true 
+      end,
     }
+    DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function DATA2:SetData_SetReaEQLPHP(tr, fx, HP_freq, LP_freq)
@@ -729,10 +811,12 @@
         DATA2:ReadProject_ReadSends()
       end,
     }
+    DATA.GUI.buttons[butkey].hide = DATA.GUI.buttons[butkey].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_FX(DATA,sendID,destGUID,srct,x,y,w,h) 
-    DATA.GUI.buttons['fader_'..sendID..'_fx'] = { 
+    local key = 'fader_'..sendID..'_fx'
+    DATA.GUI.buttons[key] = { 
       x=x,
       y=y,
       w=w,
@@ -745,12 +829,14 @@
         TrackFX_Show( dest_trptr, 0, 1 )
       end,
     }
+    DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_mono(DATA,sendID,destGUID,srct,x,y,w,h) 
     local txt_a = DATA.GUI.custom_txta
     if srct.B_MONO==0 then txt_a = DATA.GUI.custom_txta_disabled  end
-    DATA.GUI.buttons['fader_'..sendID..'_mono'] = { 
+    local key = 'fader_'..sendID..'_mono'
+    DATA.GUI.buttons[key] = { 
       x=x,
       y=y,
       w=w,
@@ -765,12 +851,14 @@
         DATA.UPD.onprojstatechange = true 
       end,
     }
+    DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_phase(DATA,sendID,destGUID,srct,x,y,w,h) 
     local txt_a = DATA.GUI.custom_txta
     if srct.B_PHASE==0 then txt_a = DATA.GUI.custom_txta_disabled  end
-    DATA.GUI.buttons['fader_'..sendID..'_phase'] = { 
+    local key = 'fader_'..sendID..'_phase'
+    DATA.GUI.buttons[key] = { 
       x=x,
       y=y,
       w=w,
@@ -785,15 +873,20 @@
         DATA.UPD.onprojstatechange = true 
       end,
     }
+    DATA.GUI.buttons[key].hide = DATA.GUI.buttons['fader_'..sendID..'_mono'].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
-  function GUI_MODULE_BuildSends_ControlStuff(DATA,sendID,destGUID,x_offs, y_offs, faderW)
+  function GUI_MODULE_BuildSends_ControlStuff(DATA,sendID,destGUID,x_offs0, y_offs, faderW)
     local srct = DATA2.tracks[1].sends[destGUID]
     local act_w = faderW-DATA.GUI.custom_offset*2
+    local x_offs = x_offs0
     GUI_MODULE_BuildSends_ControlStuff_name(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1) 
     local ctrlbutw = math.floor(act_w/2) 
     y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh
-    if srct then GUI_MODULE_BuildSends_ControlStuff_mute(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1) end
+    if srct then GUI_MODULE_BuildSends_ControlStuff_mute(DATA,sendID,destGUID,srct,x_offs,y_offs,ctrlbutw,DATA.GUI.custom_sendctrl_nameh-1) end
+    x_offs = x_offs + ctrlbutw 
+    if srct then GUI_MODULE_BuildSends_ControlStuff_remove(DATA,sendID,destGUID,srct,x_offs,y_offs,ctrlbutw,DATA.GUI.custom_sendctrl_nameh-1) end
+    x_offs = x_offs0
     y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
     if srct then GUI_MODULE_BuildSends_ControlStuff_smode(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1) end
     y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh 
@@ -872,10 +965,10 @@
   function GUI_RESERVED_draw_data_fader(DATA, b)
     if not b.data.destGUID then return end
     
-    local x=b.x
-    local y=b.y
-    local w=b.w
-    local h=b.h
+    local x=b.x*DATA.GUI.default_scale
+    local y=b.y*DATA.GUI.default_scale
+    local w=b.w*DATA.GUI.default_scale
+    local h=b.h*DATA.GUI.default_scale
     
     --[[local fader_norm = b.data.srct.vol
     if not fader_norm then return end
@@ -927,10 +1020,10 @@
     local width = b.data.filtFwidth
     
     if not (pos and width )  then return end 
-    local x0=b.x
-    local y0=b.y
-    local w=b.w
-    local h0=b.h
+    local x0=b.x*DATA.GUI.default_scale
+    local y0=b.y*DATA.GUI.default_scale
+    local w=b.w*DATA.GUI.default_scale
+    local h0=b.h*DATA.GUI.default_scale
     
     -- center line
       DATA:GUIhex2rgb('#FFFFFF',true)
@@ -941,12 +1034,35 @@
       gfx.rect(xmid-w*width/2,y0,math.ceil(w*width),h0,1)
       
   end
+  ---------------------------------------------------------------------
+  function GUI_RESERVED_draw_data_slider(DATA, b)
+    local pos = DATA2.scroll_x
+    local width = DATA2.scroll_w
+    
+    if not (pos and width )  then return end 
+    local x=b.x*DATA.GUI.default_scale
+    local y=b.y*DATA.GUI.default_scale
+    local w=b.w*DATA.GUI.default_scale
+    local h=b.h*DATA.GUI.default_scale
+    
+    x = x + w*(1-width)*pos
+    w = w * width
+    -- center line
+      DATA:GUIhex2rgb('#FFFFFF',true)
+      a_init = 0.4
+      local halfw = math.ceil(w/2)
+      local dxa = (1-a_init)/halfw
+      gfx.gradrect(x,y,halfw,h, 1,1,1,a_init, 0, 0, 0, dxa, 0, 0, 0, 0 )
+      gfx.gradrect(x+halfw,y,halfw,h, 1,1,1,1, 0, 0, 0, -dxa, 0, 0, 0, 0 )
+      
+  end
   ---------------------------------------------------------------------  
   function GUI_RESERVED_draw_data(DATA, b)
     if not b.data then return end 
     
     if b.data.slider_2dir then GUI_RESERVED_draw_data_filter(DATA, b) end
     if b.data.fader_cust then GUI_RESERVED_draw_data_fader(DATA, b) end
+    if b.data.horslider then GUI_RESERVED_draw_data_slider(DATA, b) end
   end
   ---------------------------------------------------------------------  
   function GUI_RESERVED_BuildSettings(DATA)
@@ -1031,4 +1147,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.57) if ret then local ret2 = VF_CheckReaperVrs(6.68,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.58) if ret then local ret2 = VF_CheckReaperVrs(6.68,true) if ret2 then main() end end

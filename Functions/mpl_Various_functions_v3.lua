@@ -754,8 +754,100 @@
     for i = 1, #DATA.perform_quere do if DATA.perform_quere[i] then DATA.perform_quere[i]() end end
     DATA.perform_quere = {} --- clear
   end
+    -----------------------------------------------------------------------------  
+  function DATA:GUIhandleshortcuts2_BuildShortcutCache(section_id)-- https://forum.cockos.com/showpost.php?p=2620873&postcount=10
+    local special_chars = {}
+    special_chars[8] = 'Backspace'
+    special_chars[9] = 'Tab'
+    special_chars[13] = 'Enter'
+    special_chars[27] = 'ESC'
+    special_chars[32] = 'Space'
+    special_chars[176] = '°'
+    special_chars[26161] = 'F1'
+    special_chars[26162] = 'F2'
+    special_chars[26163] = 'F3'
+    special_chars[26164] = 'F4'
+    special_chars[26165] = 'F5'
+    special_chars[26166] = 'F6'
+    special_chars[26167] = 'F7'
+    special_chars[26168] = 'F8'
+    special_chars[26169] = 'F9'
+    special_chars[6697264] = 'F10'
+    special_chars[6697265] = 'F11'
+    special_chars[6697266] = 'F12'
+    special_chars[65105] = '﹑'
+    special_chars[65106] = '﹒'
+    special_chars[6579564] = 'Delete'
+    special_chars[6909555] = 'Insert'
+    special_chars[1752132965] = 'Home'
+    special_chars[6647396] = 'End'
+    special_chars[1885828464] = 'Page Up'
+    special_chars[1885824110] = 'Page Down'
+    
+    DATA.GUI.shortcuts2[section_id] = {}
+    -- Go through all actions of the section
+      local sec = reaper.SectionFromUniqueID(section_id)
+      for i = 0, 100000 do
+        local cmd = reaper.kbd_enumerateActions(sec, i)
+        if cmd == 0 then break end
+        for n = 0, reaper.CountActionShortcuts(sec, cmd) - 1 do
+          local _, desc = reaper.GetActionShortcutDesc(sec, cmd, n, '')
+          DATA.GUI.shortcuts2[desc] = cmd
+        end
+      end
+      
+    DATA.GUI.shortcuts2.special_chars = special_chars
+    
+    DATA.GUI.shortcuts2.cached = true
+  end
+      -----------------------------------------------------------------------------  
+  function DATA:GUIhandleshortcuts2_ConvertCharToShortcut(char)-- https://forum.cockos.com/showpost.php?p=2620873&postcount=10
+      local is_ctrl = gfx.mouse_cap & 4 == 4
+      local is_shift = gfx.mouse_cap & 8 == 8
+      local is_alt = gfx.mouse_cap & 16 == 16
+  
+      local key
+  
+      -- Check for special characters, avoid 1..26 (Ctrl+A..Z)
+      if not (is_ctrl and char <= 26) then key = DATA.GUI.shortcuts2.special_chars[char] end
+  
+      if not key then
+          -- Add offset for 1..26 (Ctrl+A..Z)
+          if char >= 1 and char <= 26 then char = char + 64 end
+          -- Add offset for 257..282 (Ctrl+Alt+A..Z)
+          if char >= 257 and char <= 282 then char = char - 192 end
+          -- Convert char to key string
+          key = string.char(char & 0xFF):upper()
+      end
+  
+      -- Add keyboard modifiers in text form
+      if is_shift and key ~= key:lower() then key = 'Shift+' .. key end
+      if is_alt then key = 'Alt+' .. key end
+      if is_ctrl then key = 'Ctrl+' .. key end
+  
+      return key
+  end
+  -----------------------------------------------------------------------------
+  function DATA:GUIhandleshortcuts2() 
+    local char = DATA.GUI.char
+    if char == 0 then return end
+    local shortcut = DATA:GUIhandleshortcuts2_ConvertCharToShortcut(char)-- https://forum.cockos.com/showpost.php?p=2620873&postcount=10
+    if DATA.GUI.shortcuts2 then 
+      if DATA.GUI.shortcuts2.custom and DATA.GUI.shortcuts2.custom[shortcut] then VF_Action(DATA.GUI.shortcuts2.custom[shortcut], 0) return end
+      if DATA.GUI.shortcuts2[shortcut] then VF_Action(DATA.GUI.shortcuts2[shortcut]) end
+    end
+  end
   -----------------------------------------------------------------------------  
-  function DATA:GUIhandleshortcuts()
+  function DATA:GUIhandleshortcuts() 
+    if DATA.GUI.shortcuts2 then 
+      if not DATA.GUI.shortcuts2.cached then
+        DATA:GUIhandleshortcuts2_BuildShortcutCache(0)
+       else 
+        DATA:GUIhandleshortcuts2() 
+      end
+      return
+    end
+    
     for key in pairs(DATA.GUI.shortcuts) do
       if key == DATA.GUI.char and DATA.GUI.shortcuts[key] then
         DATA.GUI.shortcuts[key]()
@@ -1122,7 +1214,7 @@
       DATA:GUImenu(presets_t)  
     end
 -----------------------------------------------------------------------------  
-  function DATA:GUIinit() 
+  function DATA:GUIinit()
     DATA.GUI.custom_layerset= 21 -- settings layer idx
     DATA.GUI.custom_layerset2= 22 -- scrollable list layer idx
     DATA.GUI.doubleclicktime = 0.4 -- s
