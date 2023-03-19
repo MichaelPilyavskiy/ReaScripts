@@ -1,10 +1,10 @@
 -- @description Align Takes
--- @version 2.26
+-- @version 2.27
 -- @author MPL
 -- @about Script for matching RMS of audio takes and stratch them using stretch markers
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # another fix for knob
+--    # fix 'Switch to full mode' for retina on Mac and non-100% scaling on Win
 
 
   --[[
@@ -29,7 +29,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.26
+    DATA.extstate.version = 2.27
     DATA.extstate.extstatesection = 'AlignTakes2'
     DATA.extstate.mb_title = 'AlignTakes'
     DATA.extstate.default = 
@@ -433,8 +433,8 @@
                             hide = DATA.GUI.compactmode~=1,
                             ignoremouse = DATA.GUI.compactmode~=1,
                             onmouserelease =  function()  
-                              DATA.extstate.wind_w = 700
-                              DATA.extstate.wind_h = 500
+                              DATA.extstate.wind_w = 700*DATA.GUI.default_scale
+                              DATA.extstate.wind_h = 500*DATA.GUI.default_scale
                               gfx.init( title,
                                         DATA.extstate.wind_w or 100,
                                         DATA.extstate.wind_h or 100,
@@ -1374,4 +1374,4 @@
   ----------------------------------------------------------------------
   function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = VF_CheckFunctions(3.32) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
+  local ret = VF_CheckFunctions(3.59) if ret then local ret2 = VF_CheckReaperVrs(5.975,true) if ret2 then main() end end
