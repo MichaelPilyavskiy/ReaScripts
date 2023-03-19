@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="eb679707a49ad6bb0076ca1156493c0b2dc38ce7" name="MPL Scripts">
+<index version="1" commit="631368c05d1a982c693c1840ed295fe67ebfa0b4" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12118,6 +12118,12 @@ add control for timefall showing last note]]></changelog>
 # UI: increase minimum width a bit]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d876bace95e71325382c7084516ef47b2a98eed3/Various/mpl_SendFader%20(background).lua</source>
         <source file="mpl_SendFader_Mark selected tracks as sends.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d876bace95e71325382c7084516ef47b2a98eed3/Various/mpl_SendFader_Mark%20selected%20tracks%20as%20sends.lua</source>
+      </version>
+      <version name="2.04" author="MPL" time="2023-03-19T20:15:52Z">
+        <changelog><![CDATA[+ When receive selected, show source tracks sends, mute,remove,sendmode,pan
++ Pan: when entering % outside boundary, limit to -100..100]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/631368c05d1a982c693c1840ed295fe67ebfa0b4/Various/mpl_SendFader%20(background).lua</source>
+        <source file="mpl_SendFader_Mark selected tracks as sends.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/631368c05d1a982c693c1840ed295fe67ebfa0b4/Various/mpl_SendFader_Mark%20selected%20tracks%20as%20sends.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set REAPER password.lua" type="script" desc="Set REAPER password">
