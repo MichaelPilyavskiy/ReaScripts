@@ -298,7 +298,7 @@
             DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedoubleclick
           end
           local tslatch = os.clock()
-          DATA.GUI.buttons[but] .mouse_latchTS =  tslatch
+          DATA.GUI.buttons[but].mouse_latchTS =  tslatch
           -- handle relative val slider
           if b.val then   b.latchval = b.val    if b.val_min and b.val_max then b.latchval = (b.val - b.val_min) / (b.val_max - b.val_min) end end
           -- handle absolute val slider
@@ -383,6 +383,36 @@
           DATA.perform_quere[#DATA.perform_quere+1] = b.onwheeltrig
         end
       
+      -- handle mouse_latch on left drag
+        if DATA.GUI.MMB_state == true and b.mouse_latch == true then--and DATA.GUI.mouse_ismoving ==true 
+          DATA.perform_quere[#DATA.perform_quere+1] = b.onmousedragM
+          -- handle relative val slider
+          if b.val and b.latchval and type(b.latchval) == 'number' then 
+            local res= b.val_res or 1
+            if DATA.GUI.Ctrl then res = res /10 end 
+            
+            local sourcediff = DATA.GUI.dy
+            local comdim = b.h
+            if b.val_xaxis then 
+              sourcediff = DATA.GUI.dx
+              comdim = b.w
+            end
+            local outval = 0
+            outval = VF_lim(b.latchval - (sourcediff*res/DATA.GUI.default_scale) / comdim)
+            local pow = 3
+            if b.val_ispow then 
+              outval = (VF_lim(b.latchval^(1/pow) - (sourcediff*res/DATA.GUI.default_scale) / comdim))^pow
+            end
+            if b.val_min and b.val_max then outval = b.val_min + (b.val_max - b.val_min) * outval end
+            b.val = outval
+            --val_islog
+          end
+          -- handle absolute val slider
+          local res = b.val_res or 1
+          b.val_abs = ((DATA.GUI.y*res/DATA.GUI.default_scale)-b.y) / b.h 
+          b.refresh = true
+        end
+        
       --
       if DATA.GUI.LMB_state == true and DATA.GUI.mouse_ismoving ==true and b.mouse_latch == true and b.onmousedrag_skipotherobjects then return end
       --if b.refresh then msg(1) end
@@ -1286,10 +1316,10 @@
         end
       end
       
-    DATA.GUI.default_listentryh = 20*DATA.GUI.default_scale
-    DATA.GUI.default_listentryxoffset = 5*DATA.GUI.default_scale
+    DATA.GUI.default_listentryh = 20--*DATA.GUI.default_scale
+    DATA.GUI.default_listentryxoffset = 5--*DATA.GUI.default_scale
     DATA.GUI.default_listentryframea = 0.4
-    DATA.GUI.default_offset =DATA.GUI.default_scale*10
+    DATA.GUI.default_offset =10--*DATA.GUI.default_scale
   end
   ----------------------------------------------------------------------------------------------------------------
   function DATA:GUIdraw_List(b_parent)
