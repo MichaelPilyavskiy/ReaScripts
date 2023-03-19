@@ -1,12 +1,12 @@
 ﻿-- @description SendFader
--- @version 2.04
+-- @version 2.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
 --    mpl_SendFader_Mark selected tracks as sends.lua
 -- @changelog
---    + When receive selected, show source tracks sends, mute,remove,sendmode,pan
---    + Pan: when entering % outside boundary, limit to -100..100
+--    # Sends filter: fix check
+--    # Sends filter: set to '[none]' if empty
 
 
 
@@ -21,7 +21,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.04'
+    DATA.extstate.version = '2.05'
     DATA.extstate.extstatesection = 'MPL_SendFader'
     DATA.extstate.mb_title = 'MPL SendFader'
     DATA.extstate.default = 
@@ -195,15 +195,17 @@
   end
   ---------------------------------------------------------------------  
   function DATA2:ReadProject_ReadSends()
+    local CONF_definebygroup = tostring(DATA.extstate.CONF_definebygroup)
+    local CONF_definebyname = tostring(DATA.extstate.CONF_definebyname)
     -- parse group names
       local names_group = {cached=true} 
-      if DATA.extstate.CONF_definebygroup ~= '' then
-        for word in DATA.extstate.CONF_definebygroup:gmatch('[^,]+') do names_group[#names_group+1]=word end
+      if CONF_definebygroup ~= '' then
+        for word in CONF_definebygroup:gmatch('[^,]+') do names_group[#names_group+1]=word end
       end
     -- parse group names
       local names_track = {} 
-      if DATA.extstate.CONF_definebyname ~= '' then
-        for word in DATA.extstate.CONF_definebyname:gmatch('[^,]+') do names_track[#names_track+1]=word end
+      if CONF_definebyname ~= '' then
+        for word in CONF_definebyname:gmatch('[^,]+') do names_track[#names_track+1]=word end
       end
       
     -- read sends
@@ -325,16 +327,19 @@
     DATA2.tracks = {}
     DATA2.issendselected = false 
     
+    local CONF_definebygroup = tostring(DATA.extstate.CONF_definebygroup)
+    local CONF_definebyname = tostring(DATA.extstate.CONF_definebyname)
+    
     -- parse group names
       local names_group = {cached=true} 
-      if DATA.extstate.CONF_definebygroup ~= '' then
-        for word in DATA.extstate.CONF_definebygroup:gmatch('[^,]+') do names_group[#names_group+1]=word end
+      if CONF_definebygroup ~= '' then
+        for word in CONF_definebygroup:gmatch('[^,]+') do names_group[#names_group+1]=word end
       end
       
     -- parse group names
       local names_track = {} 
-      if DATA.extstate.CONF_definebyname ~= '' then
-        for word in DATA.extstate.CONF_definebyname:gmatch('[^,]+') do names_track[#names_track+1]=word end
+      if CONF_definebyname ~= '' then
+        for word in CONF_definebyname:gmatch('[^,]+') do names_track[#names_track+1]=word end
       end
       
     local tr = GetSelectedTrack(0,0)
@@ -1417,11 +1422,11 @@
         {str = '[Action] Unmark selected tracks as send',       group = 2, itype = 'button', level = 1, func_onrelease = function() DATA2:MarkSelectedTracksAsSend(0) end},
         {str = 'Group name: '..DATA.extstate.CONF_definebygroup,group = 2, itype = 'button',level = 1, func_onrelease = function() 
           local retval, retvals_csv = GetUserInputs( 'Group name', 1, ',separator=|', DATA.extstate.CONF_definebygroup )
-          if retval then DATA.extstate.CONF_definebygroup = retvals_csv DATA.UPD.onconfchange = true end
+          if retval then if retvals_csv =='' then retvals_csv = '[none]' end DATA.extstate.CONF_definebygroup = retvals_csv DATA.UPD.onconfchange = true GUI_refresh(DATA) end
         end},
         {str = 'Send name: '..DATA.extstate.CONF_definebyname, group = 2, itype = 'button',level = 1, func_onrelease = function() 
           local retval, retvals_csv = GetUserInputs( 'Send name', 1, ',separator=|', DATA.extstate.CONF_definebyname )
-          if retval then DATA.extstate.CONF_definebyname = retvals_csv DATA.UPD.onconfchange = true end
+          if retval then if retvals_csv =='' then retvals_csv = '[none]' end DATA.extstate.CONF_definebyname = retvals_csv DATA.UPD.onconfchange = true GUI_refresh(DATA) end
         end},
         
         --[[{str = 'Float RS5k instance',                           group = 1, itype = 'check', confkey = 'CONF_onadd_float', level = 1},
