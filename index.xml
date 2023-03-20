@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="ebae04d26c39e56c71f6fc05579f098ebe6439e0" name="MPL Scripts">
+<index version="1" commit="d2e533c812d7683fd5b12ec0ae44ee11957a642c" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -2792,6 +2792,19 @@
       <version name="1.0" author="MPL" time="2019-03-31T09:50:58Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e81527d0f1ee49db884568e0e005e4c37a343cc0/FX/mpl_Sort%20focused%20FX%20presets%20alphabetically.lua</source>
+      </version>
+      <version name="2.0" author="MPL" time="2023-03-20T17:35:15Z">
+        <changelog><![CDATA[# Complete script rebuild
+# Direct preset file parsing, avoid using SWS functions and SWS requirement
++ Do backup file if not exists
++ Support take FX
++ Reboot plugin after sort
++ Inform before executing script
++ Inform if focused plugin not found
++ Inform if preset file not found
++ Inform at succesful sort
++ Inform at succesful backup]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d2e533c812d7683fd5b12ec0ae44ee11957a642c/FX/mpl_Sort%20focused%20FX%20presets%20alphabetically.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Sort plugins by vendor.lua" type="script" desc="Sort plugins by vendor">
