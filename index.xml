@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="e3597b0130a17c91926bd179f495d6b5ef270cf5" name="MPL Scripts">
+<index version="1" commit="ebae04d26c39e56c71f6fc05579f098ebe6439e0" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -12130,6 +12130,16 @@ add control for timefall showing last note]]></changelog>
 # Sends filter: set to '[none]' if empty]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e3597b0130a17c91926bd179f495d6b5ef270cf5/Various/mpl_SendFader%20(background).lua</source>
         <source file="mpl_SendFader_Mark selected tracks as sends.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e3597b0130a17c91926bd179f495d6b5ef270cf5/Various/mpl_SendFader_Mark%20selected%20tracks%20as%20sends.lua</source>
+      </version>
+      <version name="2.06" author="MPL" time="2023-03-20T16:55:46Z">
+        <changelog><![CDATA[# Settings: rename filter 'Send name' to 'Folder name'
+# Settings: allow to add presets
+# UI: refresh control stuff on scroll correctly
+# UI: draw source peaks at track name
+# UI: fix scroll issues
+# UI: don`t hide sends if out of screen]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ebae04d26c39e56c71f6fc05579f098ebe6439e0/Various/mpl_SendFader%20(background).lua</source>
+        <source file="mpl_SendFader_Mark selected tracks as sends.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ebae04d26c39e56c71f6fc05579f098ebe6439e0/Various/mpl_SendFader_Mark%20selected%20tracks%20as%20sends.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set REAPER password.lua" type="script" desc="Set REAPER password">
