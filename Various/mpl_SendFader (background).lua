@@ -1,12 +1,16 @@
 ﻿-- @description SendFader
--- @version 2.05
+-- @version 2.06
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
 --    mpl_SendFader_Mark selected tracks as sends.lua
 -- @changelog
---    # Sends filter: fix check
---    # Sends filter: set to '[none]' if empty
+--    # Settings: rename filter 'Send name' to 'Folder name'
+--    # Settings: allow to add presets
+--    # UI: refresh control stuff on scroll correctly
+--    # UI: draw source peaks at track name
+--    # UI: fix scroll issues
+--    # UI: don`t hide sends if out of screen
 
 
 
@@ -21,7 +25,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.05'
+    DATA.extstate.version = '2.06'
     DATA.extstate.extstatesection = 'MPL_SendFader'
     DATA.extstate.mb_title = 'MPL SendFader'
     DATA.extstate.default = 
@@ -31,6 +35,8 @@
                           wind_w =  600,
                           wind_h =  480,
                           dock =    0,
+                          
+                          FPRESET1 = 'CkNPTkZfTkFNRT1kZWZhdWx0CkNPTkZfZGVmaW5lYnlncm91cD1hdXgsc2VuZApDT05GX2RlZmluZWJ5bmFtZT1hdXgsc2VuZA==',
                           
                           CONF_NAME = 'default',
                           CONF_definebyname = 'aux,send',
@@ -42,6 +48,7 @@
                           UI_initatmouse = 0,
                           UI_showtooltips = 1,
                           UI_groupflags = 0, 
+                          UI_showsendrecnamevertically = 0, 
                           
                           }
     
@@ -103,18 +110,19 @@
     
     
     
-    if DATA.GUI.buttons['fadervca_fader'] and DATA2.peaks[0] and #DATA2.peaks[0] > 4 then
-      local obj = DATA.GUI.buttons['fadervca_fader']
+    if DATA.GUI.buttons['activetrack'] and DATA2.peaks[0] and #DATA2.peaks[0] > 4 then
+      local obj = DATA.GUI.buttons['activetrack']
       local x=obj.x*DATA.GUI.default_scale
       local y=obj.y*DATA.GUI.default_scale
-      local w=DATA.GUI.custom_meterW*DATA.GUI.default_scale--*DATA.GUI.default_scale-obj.w
+      local w=obj.w*DATA.GUI.default_scale--DATA.GUI.custom_meterW*DATA.GUI.default_scale--*DATA.GUI.default_scale-obj.w
       local h=obj.h*DATA.GUI.default_scale
       gfx.a=0.4
       local sz = #DATA2.peaks[0]
       local L = (DATA2.peaks[0][sz][1] + DATA2.peaks[0][sz-1][1]+ DATA2.peaks[0][sz-2][1]+ DATA2.peaks[0][sz-3][1]) /4
       local R = (DATA2.peaks[0][sz][2] + DATA2.peaks[0][sz-1][2]+ DATA2.peaks[0][sz-2][2]+ DATA2.peaks[0][sz-3][2]) /4
-      gfx.rect(x,y+h-h*L,w,h*L,1)
-      gfx.rect(x+w,y+h-h*R,w,h*R,1)
+      local h2 = math.floor(h/2)
+      gfx.rect(x,y,w*L,h2,1)
+      gfx.rect(x,y+h2,w*R,h2,1)
     end
     
   end
@@ -405,14 +413,15 @@
       
     -- send block
       DATA.GUI.custom_sendfaderH = DATA.GUI.custom_gfx_hreal - DATA.GUI.custom_sendctrl_nameh*8-DATA.GUI.custom_infobuth - DATA.GUI.custom_offset*3
-      DATA.GUI.custom_sendfaderWmax = math.floor(80*DATA.GUI.custom_Yrelation)
-      DATA.GUI.custom_sendfaderWmin = math.floor(35*DATA.GUI.custom_Yrelation)
+      if DATA.extstate.UI_showsendrecnamevertically == 1 then DATA.GUI.custom_sendfaderH = DATA.GUI.custom_gfx_hreal - DATA.GUI.custom_sendctrl_nameh*7-DATA.GUI.custom_infobuth - DATA.GUI.custom_offset*3 end
+      DATA.GUI.custom_sendfaderW = math.floor(90*DATA.GUI.custom_Yrelation)
+      DATA.GUI.custom_sendfaderWmin = math.floor(90*DATA.GUI.custom_Yrelation)
       DATA.GUI.custom_fader_scale_lim = 0.8
       DATA.GUI.custom_fader_coeff = 30
       DATA.GUI.custom_txtsz_scalelevels = DATA:GUIdraw_txtCalibrateFont( DATA.GUI.default_txt_font, math.floor(14*DATA.GUI.custom_Yrelation), 0) 
     
     -- main control
-      DATA.GUI.custom_vcaW = math.floor(20*DATA.GUI.custom_Yrelation)
+      --DATA.GUI.custom_vcaW = math.floor(20*DATA.GUI.custom_Yrelation)
       
     -- meters
       DATA.GUI.custom_meterW = math.floor(5*DATA.GUI.custom_Yrelation)
@@ -443,7 +452,8 @@
                             --txt_flags = 4,
                             --frame_a =0,
                             ignoremouse = true,
-                            onmouseclick = function() end,
+                            onmouseclick = function() end, 
+                            data = {fader_vca=true}
                             }   
                             
       DATA.GUI.buttons.horizscroll = { x=0,
@@ -459,6 +469,7 @@
                               DATA2.scroll_x = DATA.GUI.buttons.horizscroll.val
                               GUI_refresh(DATA)
                             end
+                            
                             }
 
 
@@ -481,7 +492,6 @@
     if DATA.GUI.buttons then
       GUI_MODULE_SETTINGS(DATA)
       GUI_RefreshreadOuts(DATA)
-      GUI_MODULE_BuildVCA(DATA)
       GUI_MODULE_BuildSends(DATA)
       GUI_MODULE_BuildReceives(DATA)
     end
@@ -509,49 +519,7 @@
       DATA:GUIBuildSettings()
     end
     
-  ---------------------------------------------------------------------  
-  function GUI_MODULE_BuildVCA(DATA)
-    for key in pairs(DATA.GUI.buttons) do if key:match('fadervca_') then DATA.GUI.buttons[key] = nil end end 
-    if DATA.GUI.Settings_open ==1 then return end 
-    
-    local x_offs = DATA.GUI.custom_offset
-    local y_offs = DATA.GUI.custom_offset*2 + DATA.GUI.custom_infobuth
-    local faderH = DATA.GUI.custom_gfx_hreal - y_offs - DATA.GUI.custom_scrollH -DATA.GUI.custom_offset--DATA.GUI.custom_sendfaderH-DATA.GUI.custom_scrollH
-    DATA.GUI.buttons['fadervca_fader'] = { x=x_offs,
-                          y=y_offs,
-                          w=DATA.GUI.custom_vcaW-1,--DATA.GUI.custom_infobut_w*2-2,
-                          h=faderH-1,
-                          frame_a =0.5,
-                          --[[onmousedrag = function() 
-                            local sendIDx = DATA2:GetSendIdx(destGUID,true)
-                            local outvol = DATA2:Convert_Fader2Val(DATA.GUI.buttons['fader_'..sendID].val)
-                            SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_VOL', outvol)
-                            SetTrackSendUIVol( DATA2.tracks[1].ptr, sendIDx, outvol, 0)
-                            DATA.GUI.buttons['fader_'..sendID].refresh = true
-                          end,
-                          onmouserelease = function() 
-                            local sendIDx = DATA2:GetSendIdx(destGUID,true)
-                            local outvol = DATA2:Convert_Fader2Val(DATA.GUI.buttons['fader_'..sendID].val)
-                            SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_VOL', outvol)
-                            SetTrackSendUIVol( DATA2.tracks[1].ptr, sendIDx, outvol, 1)
-                            DATA.UPD.onprojstatechange = true
-                          end,
-                          onmouseclickR = function()
-                            local cur_dB = math.floor(  WDL_VAL2DB(DATA2.tracks[1].sends[destGUID].vol) *100)/100
-                            local ret, str = GetUserInputs( 'set volume', 1, 'dB', cur_dB)
-                            if not (ret and tonumber(str)) then return end
-                            local dbval = tonumber(str)
-                            if not ( dbval > -90 and dbval < 12) then return end
-                            local sendIDx = DATA2:GetSendIdx(destGUID,true)
-                            local outvol = WDL_DB2VAL(dbval)
-                            SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'D_VOL', outvol)
-                            SetTrackSendUIVol( DATA2.tracks[1].ptr, sendIDx, outvol, 1 )
-                            DATA.UPD.onprojstatechange = true 
-                          end,]]
-                          data = {fader_vca=true}
-                          } 
-    
-  end
+
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildReceives_ControlStuff(DATA,receiveGUID,x_offs0, y_offs, faderW)
     local srct = DATA2.tracks[1].receives[receiveGUID]
@@ -592,7 +560,7 @@
       frame_a = 0,
       txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
     }
-    DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildReceives_ControlStuff_mute(DATA,receiveGUID,srct,x,y,w,h) 
@@ -614,7 +582,7 @@
         SetTrackSendInfo_Value( srctr, 0, sendIDx, 'B_MUTE', srct.B_MUTE~1)
         DATA.UPD.onprojstatechange = true 
       end}
-      DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+      --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildReceives_ControlStuff_remove(DATA,receiveGUID,srct,x,y,w,h) 
@@ -634,7 +602,7 @@
         RemoveTrackSend(srctr, 0, sendIDx )
         DATA.UPD.onprojstatechange = true 
       end}
-      DATA.GUI.buttons[key].hide = DATA.GUI.buttons['fader_rec'..receiveGUID..'_mute'].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+      --DATA.GUI.buttons[key].hide = DATA.GUI.buttons['fader_rec'..receiveGUID..'_mute'].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildReceives_ControlStuff_smode(DATA,receiveGUID,srct,x,y,w,h) 
@@ -663,7 +631,7 @@
         )
       end 
     }
-    DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildReceives_ControlStuff_pan(DATA,receiveGUID,srct,x,y,w,h) 
@@ -722,7 +690,7 @@
         DATA.UPD.onprojstatechange = true 
       end,
     }
-    DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   ---------------------------------------------------------------------  
   function GUI_MODULE_BuildReceives(DATA)
@@ -732,17 +700,19 @@
     
     local cntreceives = 0
     for receiveID in pairs(DATA2.tracks[1].receives) do cntreceives = cntreceives + 1 end
-    local x_offs0 = DATA.GUI.custom_offset*2+DATA.GUI.custom_vcaW
-    local faderareaW = (DATA.GUI.custom_gfx_wreal -DATA.GUI.custom_vcaW-DATA.GUI.custom_offset*3) 
-    local faderW = math.min(DATA.GUI.custom_sendfaderWmax, math.floor(faderareaW/cntreceives ))
-    local faderW = math.max(DATA.GUI.custom_sendfaderWmin,faderW)
+    local x_offs0 = DATA.GUI.custom_offset--*2+DATA.GUI.custom_vcaW
+    local faderareaW = (DATA.GUI.custom_gfx_wreal-DATA.GUI.custom_offset*2) -- -DATA.GUI.custom_vcaW
+    --local faderW = math.min(DATA.GUI.custom_sendfaderWmax, math.floor(faderareaW/cntreceives ))
+    local faderW = DATA.GUI.custom_sendfaderW
+    --local faderW = math.max(DATA.GUI.custom_sendfaderWmin,faderW)
     local faderH = DATA.GUI.custom_sendfaderH-DATA.GUI.custom_scrollH
     local faderW_scale = faderW--math.floor(faderW*0.8) 
     local y_offs = DATA.GUI.custom_gfx_hreal - faderH-DATA.GUI.custom_scrollH-DATA.GUI.custom_offset--DATA.GUI.custom_offset*2 + DATA.GUI.custom_infobuth
     
     
     DATA2.scroll_w = math.min(1,faderareaW / (faderW_scale * cntreceives ))
-    local x_shift = -DATA2.scroll_x*faderareaW
+    local x_shift = -DATA2.scroll_x*((faderW_scale * cntreceives ) - faderareaW)
+    if DATA2.scroll_w == 1 then x_shift = 0 end
     
     local recID = 0
     for receiveGUID in spairs(DATA2.tracks[1].receives) do
@@ -790,7 +760,7 @@
                             data = {fader_cust=true,receiveGUID=receiveGUID}
                             } 
       
-      DATA.GUI.buttons['fader_rec'..receiveGUID].hide = DATA.GUI.buttons['fader_rec'..receiveGUID].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+      --DATA.GUI.buttons['fader_rec'..receiveGUID].hide = DATA.GUI.buttons['fader_rec'..receiveGUID].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
       local y_offs = DATA.GUI.custom_offset*2 + DATA.GUI.custom_infobuth
       GUI_MODULE_BuildReceives_ControlStuff(DATA,receiveGUID,x_offs+x_shift, y_offs, faderW,faderH)
     end
@@ -805,16 +775,18 @@
     if not DATA2.sendtracks then return end
     local cntsends = #DATA2.sendtracks
     local y_offs = DATA.GUI.custom_offset*2 + DATA.GUI.custom_infobuth
-    local x_offs0 = DATA.GUI.custom_offset*2+DATA.GUI.custom_vcaW
-    local faderareaW = (DATA.GUI.custom_gfx_wreal -DATA.GUI.custom_vcaW-DATA.GUI.custom_offset*3) 
-    local faderW = math.min(DATA.GUI.custom_sendfaderWmax, math.floor(faderareaW/cntsends ))
-    local faderW = math.max(DATA.GUI.custom_sendfaderWmin,faderW)
+    local x_offs0 = DATA.GUI.custom_offset--*2+DATA.GUI.custom_vcaW
+    local faderareaW = (DATA.GUI.custom_gfx_wreal -DATA.GUI.custom_offset*2) ---DATA.GUI.custom_vcaW
+    --local faderW = math.min(DATA.GUI.custom_sendfaderWmax, math.floor(faderareaW/cntsends ))
+    --local faderW = math.max(DATA.GUI.custom_sendfaderWmin,faderW)
+    local faderW =  DATA.GUI.custom_sendfaderW
     local faderH = DATA.GUI.custom_sendfaderH-DATA.GUI.custom_scrollH
     local faderW_scale = faderW--math.floor(faderW*0.8)
     
     
     DATA2.scroll_w = math.min(1,faderareaW / (faderW_scale * cntsends ))
-    local x_shift = -DATA2.scroll_x*faderareaW
+    local x_shift = -DATA2.scroll_x*((faderW_scale * cntsends ) - faderareaW)
+    if DATA2.scroll_w == 1 then x_shift = 0 end
     
     for sendID = 1, cntsends do
       local destGUID = DATA2.sendtracks[sendID].GUID
@@ -861,25 +833,46 @@
                             data = {fader_cust=true,destGUID=destGUID}
                             } 
       
-      DATA.GUI.buttons['fader_send'..sendID].hide = DATA.GUI.buttons['fader_send'..sendID].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+      --DATA.GUI.buttons['fader_send'..sendID].hide = DATA.GUI.buttons['fader_send'..sendID].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
       local y_offs = DATA.GUI.custom_offset*2 + DATA.GUI.custom_infobuth + faderH
-      GUI_MODULE_BuildSends_ControlStuff(DATA,sendID,destGUID,x_offs, y_offs, faderW,faderH)
+      GUI_MODULE_BuildSends_ControlStuff(DATA,sendID,destGUID,x_offs+x_shift, y_offs, faderW,faderH)
     end
     
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_name(DATA,sendID,destGUID,srct,x,y,w,h, name) 
-    local key = 'fader_send'..sendID..'_name'
-    DATA.GUI.buttons[key] = { 
-      x=x,
-      y=y,
-      w=w,
-      h=h,
-      txt = name,
-      frame_a = 0,
-      txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
-    }
-    DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+    if DATA.extstate.UI_showsendrecnamevertically ==0 then
+      local key = 'fader_send'..sendID..'_name'
+      DATA.GUI.buttons[key] = { 
+        x=x,
+        y=y,
+        w=w,
+        h=h,
+        txt = name,
+        frame_a = 0,
+        txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
+      }
+      return
+    end
+    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+    
+    if DATA.extstate.UI_showsendrecnamevertically ==1 then
+      local key = 'fader_send'..sendID..'_name'
+      DATA.GUI.buttons[key] = { 
+        x=DATA.GUI.buttons['fader_send'..sendID].x,
+        y=DATA.GUI.buttons['fader_send'..sendID].y,
+        w=DATA.GUI.buttons['fader_send'..sendID].w,
+        h=DATA.GUI.buttons['fader_send'..sendID].h,
+        txt = name,
+        txt_vertical = true,
+        frame_a = 0,
+        backgr_fill = 0,
+        ignoremouse = true,
+        txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
+      }
+      return
+    end
+    
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_mute(DATA,sendID,destGUID,srct,x,y,w,h) 
@@ -901,7 +894,7 @@
         SetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'B_MUTE', srct.B_MUTE~1)
         DATA.UPD.onprojstatechange = true 
       end}
-      DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+      --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_remove(DATA,sendID,destGUID,srct,x,y,w,h) 
@@ -921,7 +914,7 @@
         RemoveTrackSend( DATA2.tracks[1].ptr, 0, sendIDx )
         DATA.UPD.onprojstatechange = true 
       end}
-      DATA.GUI.buttons[key].hide = DATA.GUI.buttons['fader_send'..sendID..'_mute'].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+      --DATA.GUI.buttons[key].hide = DATA.GUI.buttons['fader_send'..sendID..'_mute'].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_smode(DATA,sendID,destGUID,srct,x,y,w,h) 
@@ -950,7 +943,7 @@
         )
       end 
     }
-    DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_pan(DATA,sendID,destGUID,srct,x,y,w,h) 
@@ -1010,7 +1003,7 @@
         DATA.UPD.onprojstatechange = true 
       end,
     }
-    DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function DATA2:SetData_SetReaEQLPHP(tr, fx, HP_freq, LP_freq)
@@ -1127,7 +1120,7 @@
         DATA2:ReadProject_ReadSends()
       end,
     }
-    DATA.GUI.buttons[butkey].hide = DATA.GUI.buttons[butkey].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+    --DATA.GUI.buttons[butkey].hide = DATA.GUI.buttons[butkey].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_FX(DATA,sendID,destGUID,srct,x,y,w,h) 
@@ -1145,7 +1138,7 @@
         TrackFX_Show( dest_trptr, 0, 1 )
       end,
     }
-    DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_mono(DATA,sendID,destGUID,srct,x,y,w,h) 
@@ -1167,7 +1160,7 @@
         DATA.UPD.onprojstatechange = true 
       end,
     }
-    DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff_phase(DATA,sendID,destGUID,srct,x,y,w,h) 
@@ -1189,7 +1182,7 @@
         DATA.UPD.onprojstatechange = true 
       end,
     }
-    DATA.GUI.buttons[key].hide = DATA.GUI.buttons['fader_send'..sendID..'_mono'].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons['fader_send'..sendID..'_mono'].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
   -------------------------------------------------------------------- 
   function GUI_MODULE_BuildSends_ControlStuff(DATA,sendID,destGUID,x_offs0, y_offs, faderW)
@@ -1198,7 +1191,7 @@
     local x_offs = x_offs0
     GUI_MODULE_BuildSends_ControlStuff_name(DATA,sendID,destGUID,srct,x_offs,y_offs,act_w,DATA.GUI.custom_sendctrl_nameh-1,DATA2.sendtracks[sendID].name) 
     local ctrlbutw = math.floor(act_w/2) 
-    y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh
+    if DATA.extstate.UI_showsendrecnamevertically == 0 then y_offs = y_offs+DATA.GUI.custom_sendctrl_nameh end
     if srct then GUI_MODULE_BuildSends_ControlStuff_mute(DATA,sendID,destGUID,srct,x_offs,y_offs,ctrlbutw,DATA.GUI.custom_sendctrl_nameh-1) end
     x_offs = x_offs + ctrlbutw 
     if srct then GUI_MODULE_BuildSends_ControlStuff_remove(DATA,sendID,destGUID,srct,x_offs,y_offs,ctrlbutw,DATA.GUI.custom_sendctrl_nameh-1) end
@@ -1314,7 +1307,7 @@
       local hfade = math.floor(h*fader_norm)
       gfx.rect(x,y+1+h-hfade,w,hfade,1)
     
-    if b.w<=DATA.GUI.custom_sendfaderWmin then return end
+    --if b.w<=DATA.GUI.custom_sendfaderWmin then return end
     
     --line 
       DATA:GUIhex2rgb('#FFFFFF',true)
@@ -1396,7 +1389,7 @@
     { 
       {str = 'General' ,                                        group = 1, itype = 'sep'},
         {str = 'Preset',                                        group = 1, itype = 'button', level = 1, func_onrelease = function() DATA:GUIbut_preset() end},
-        {str = 'Dock / undock',                                 group = 3, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = 
+        {str = 'Dock / undock',                                 group = 1, itype = 'button', confkey = 'dock',  level = 1, func_onrelease = 
           function()  
             local state = gfx.dock(-1)
             if state&1==1 then
@@ -1420,14 +1413,16 @@
       {str = 'Sends definition' ,                               group = 2, itype = 'sep'},   
         {str = '[Action] Mark selected tracks as send',         group = 2, itype = 'button', level = 1, func_onrelease = function() DATA2:MarkSelectedTracksAsSend(1) end},
         {str = '[Action] Unmark selected tracks as send',       group = 2, itype = 'button', level = 1, func_onrelease = function() DATA2:MarkSelectedTracksAsSend(0) end},
-        {str = 'Group name: '..DATA.extstate.CONF_definebygroup,group = 2, itype = 'button',level = 1, func_onrelease = function() 
-          local retval, retvals_csv = GetUserInputs( 'Group name', 1, ',separator=|', DATA.extstate.CONF_definebygroup )
+        {str = 'Folder name: '..DATA.extstate.CONF_definebygroup,group = 2, itype = 'button',level = 1, func_onrelease = function() 
+          local retval, retvals_csv = GetUserInputs( 'Folder name', 1, ',separator=|', DATA.extstate.CONF_definebygroup )
           if retval then if retvals_csv =='' then retvals_csv = '[none]' end DATA.extstate.CONF_definebygroup = retvals_csv DATA.UPD.onconfchange = true GUI_refresh(DATA) end
         end},
         {str = 'Send name: '..DATA.extstate.CONF_definebyname, group = 2, itype = 'button',level = 1, func_onrelease = function() 
           local retval, retvals_csv = GetUserInputs( 'Send name', 1, ',separator=|', DATA.extstate.CONF_definebyname )
           if retval then if retvals_csv =='' then retvals_csv = '[none]' end DATA.extstate.CONF_definebyname = retvals_csv DATA.UPD.onconfchange = true GUI_refresh(DATA) end
         end},
+      --{str = 'UI',                                              group = 3, itype = 'sep'},
+        --{str = 'Show send/receive names vertically',              group = 3, itype = 'check', confkey = 'UI_showsendrecnamevertically', level = 1},  
         
         --[[{str = 'Float RS5k instance',                           group = 1, itype = 'check', confkey = 'CONF_onadd_float', level = 1},
         {str = 'Set obey notes-off',                            group = 1, itype = 'check', confkey = 'CONF_onadd_obeynoteoff', level = 1},
@@ -1443,6 +1438,7 @@
         {str = 'Initialize MIDI bus',                           group = 2, itype = 'button', level = 1, func_onrelease = function() DATA2:TrackDataRead_ValidateMIDIbus() end},
         
       {str = 'UI',                                              group = 3, itype = 'sep'},
+        {str = 'Active note follow incoming note',              group = 3, itype = 'check', confkey = 'UI_showsendrecnamevertically', level = 1},
         {str = 'Active note follow incoming note',              group = 3, itype = 'check', confkey = 'UI_incomingnoteselectpad', level = 1},
         {str = 'Key format',                                    group = 3, itype = 'readout', confkey = 'UI_keyformat_mode', level = 1,menu = {[0]='C-C#-D',[2]='Do-Do#-Re',[7]='Russian'}},
         {str = 'Pad overview quantize',                         group = 3, itype = 'readout', confkey = 'UI_po_quantizemode', level = 1, menu = {[0]='Default',[1]='8 pads', [2]='4 pads'},readoutw_extw = readoutw_extw}, 
