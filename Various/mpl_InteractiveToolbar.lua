@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.28
+-- @version 2.29
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,9 +14,9 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    + Track / #buttons / #numchan: edit number of track channels
+--    # update VariousFunctions check
 
-    local vrs = '2.28'
+    local vrs = '2.29'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
@@ -255,13 +255,8 @@ order=#swing #grid #timesellen #timeselend #timeselstart #timeselLeftEdge #lastt
     obj = Obj_init(conf)
     Config_ParseIni(data.conf_path, widgets)
     Run()
-  end
-  ---------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing. Install it via Reapack (Action: browse packages)', '', 0) end   end
+  end 
+  ---------------------------------------------------   
+  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
   --------------------------------------------------------------------  
-  local ret = CheckFunctions('VF2_LoadVFv2') 
-  if ret then 
-    local ret2 = VF_CheckReaperVrs(5.97,true)    
-    if ret2 then reaper.gmem_attach('MPLInterToolbar') main() end
-  end
-  
+  local ret = VF_CheckFunctions(3.57) if ret then local ret2 = VF_CheckReaperVrs(5.97,true) if ret2 then reaper.gmem_attach('MPLInterToolbar')  main() end end
