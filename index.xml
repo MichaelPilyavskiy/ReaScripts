@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="20b6e76dbf0014762607794b5c62375bf6e13479" name="MPL Scripts">
+<index version="1" commit="445e36c27ecc71bdf4e492d6ce4f51bdf24306eb" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -5740,6 +5740,22 @@
       <version name="1.01" author="MPL" time="2022-11-12T13:22:05Z">
         <changelog><![CDATA[limit 65536]]></changelog>
         <source>https://github.com/MichaelPilyavskiy/ReaScripts/raw/80fc01d7348a5fa1066643170119ad996245ba40/FX%20specific/mpl_RS5K_manager_MIDIBUS_choke.jsfx</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Sample Layering check.lua" type="script" desc="Sample Layering check">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Share samples into selected track, use selected MIDI item as destination for step sequencer\par}
+}
+]]></description>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-03-28T20:40:47Z">
+        <changelog><![CDATA[+ Init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/445e36c27ecc71bdf4e492d6ce4f51bdf24306eb/FX%20specific/mpl_Sample%20Layering%20check.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Scale focused ReaEQ bands gain down.lua" type="script" desc="Scale focused ReaEQ bands gain down">
