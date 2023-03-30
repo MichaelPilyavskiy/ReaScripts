@@ -136,7 +136,7 @@
                             tbl.rul_format,
                             tbl.wheel_ratio 
                             if not obj  then return end
-    if not wheel_ratio then wheel_ratio = 1 end                       
+    if not wheel_ratio then wheel_ratio = wheel_override end                       
     if y then y_offs = y end
     local measured_x_offs = 0
     if not y_offs then y_offs = obj.offs *2 +obj.entry_h end

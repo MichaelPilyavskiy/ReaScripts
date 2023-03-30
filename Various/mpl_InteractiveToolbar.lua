@@ -1,5 +1,5 @@
 -- @description InteractiveToolbar
--- @version 2.29
+-- @version 2.30
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @about This script displaying some information about different objects, also allow to edit them quickly without walking through menus and windows. For widgets editing purposes see Menu > Help.
@@ -14,14 +14,17 @@
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_Track.lua
 --    mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_Widgets_MIDIEditor.lua
 -- @changelog
---    # update VariousFunctions check
+--    # add temporary setting for wheel override
 
-    local vrs = '2.29'
+    local vrs = '2.30'
 
     local info = debug.getinfo(1,'S');
     local script_path = info.source:match([[^@?(.*[\/])[^\/]-$]])
-      
+    
+    
+    
   function RefreshExternalLibs()
+    wheel_override = 1
     -- lua example by Heda -- http://github.com/ReaTeam/ReaScripts-Templates/blob/master/Files/Require%20external%20files%20for%20the%20script.lua
     dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_basefunc.lua")
     dofile(script_path .. "mpl_InteractiveToolbar_functions/mpl_InteractiveToolbar_GUI.lua")
