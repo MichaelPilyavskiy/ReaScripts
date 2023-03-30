@@ -1,15 +1,15 @@
 -- @description AB floating FX parameters, make snapshots equal
--- @version 1.02
+-- @version 1.03
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + support master track
---    + support take FX
+--    # fix missing FX GUID error
 -- @about
 --    implementation of "equal" button in Cubase 7+ plugin window
 
   function main()
     local retval, tracknumber, itemnumber, fxnum = reaper.GetFocusedFX2()
+    if retval==0 then return end
     local tr = CSurf_TrackFromID( tracknumber, false )
     if not ValidatePtr2( 0, tr, 'MediaTrack*' ) then return end
     local it = GetTrackMediaItem( tr, itemnumber )
@@ -28,6 +28,7 @@
     -- get current config  
     local config_t = {}
     local fx_guid = _G[func_str..'GetFXGUID'](ptr, fxnum&0xFFFF)  
+    if not fx_guid then return end
     local count_params = _G[func_str..'GetNumParams'](ptr, fxnum&0xFFFF)
     if count_params ~= nil then        
       for i = 1, count_params do

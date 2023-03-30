@@ -1,10 +1,9 @@
 -- @description AB floating FX parameters
--- @version 1.04
+-- @version 1.05
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + support master track
---    + support take FX
+--    # fix missing FX GUID error
 -- @about
 --    implementation of "AB" button in Cubase 7+ plugin window
 --    Instructions: float FX, changes params, run script, change params again and run script again. 
@@ -12,13 +11,12 @@
 
      
   function main()
-     retval, tracknumber, itemnumber, fxnum = reaper.GetFocusedFX2()
+    local retval, tracknumber, itemnumber, fxnum = reaper.GetFocusedFX2()
+    if retval == 0 then return end
     local tr = CSurf_TrackFromID( tracknumber, false )
     if not ValidatePtr2( 0, tr, 'MediaTrack*' ) then return end
     local it = GetTrackMediaItem( tr, itemnumber )
     
-   --[[For item FX, the low word defines the FX index in the chain, and the high word defines the take number.
-    ]]
     local func_str = 'TrackFX_'
     if retval&1 == 1 then 
       ptr = tr
@@ -31,9 +29,9 @@
     end
     
     -- get current config  
-      config_t = {}
-      fx_guid = _G[func_str..'GetFXGUID'](ptr, fxnum&0xFFFF)    
-      count_params = _G[func_str..'GetNumParams'](ptr, fxnum&0xFFFF)
+      local config_t = {}
+      local fx_guid = _G[func_str..'GetFXGUID'](ptr, fxnum&0xFFFF)    
+      local count_params = _G[func_str..'GetNumParams'](ptr, fxnum&0xFFFF)
       if count_params ~= nil then        
         for i = 1, count_params do
           value = _G[func_str..'GetParam'](ptr, fxnum&0xFFFF, i-1) 
@@ -41,8 +39,8 @@
         end  
       end              
       config_t_s = table.concat(config_t,"_")
-    
-    
+      if not fx_guid then return end
+      
     -- check memory -- 
       local ret, config_t_ret = GetProjExtState(0, "mpl_CubaseFloatAB", fx_guid)    
       if config_t_ret == "" then 
