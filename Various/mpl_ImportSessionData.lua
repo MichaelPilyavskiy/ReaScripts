@@ -1,10 +1,11 @@
 -- @description ImportSessionData
--- @version 2.10
+-- @version 2.11
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=233358
 -- @about This script allow to import tracks, items, FX etc from defined RPP project file
 -- @changelog
---    # fix error at non installed Various Functions
+--    # support track template
+--    # fix parsing track parameters
 
 
 
@@ -15,7 +16,7 @@
   ---------------------------------------------------------------------  
   function main()
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = 2.10
+    DATA.extstate.version = 2.11
     DATA.extstate.extstatesection = 'ImportSessionData'
     DATA.extstate.mb_title = 'Import Session Data'
     DATA.extstate.default = 
@@ -524,7 +525,7 @@
                           txt_allowreduce = true,
                           txt_fontsz = DATA.GUI.default_txt_fontsz3,
                           onmouseclick =  function () 
-                            local retval, filenameNeed4096 = reaper.GetUserFileNameForRead(DATA.extstate.UI_lastsrcproj, 'Import RPP session data', '.RPP' )
+                            local retval, filenameNeed4096 = reaper.GetUserFileNameForRead(DATA.extstate.UI_lastsrcproj, 'Import RPP session data', '' )
                             if retval then  
                               DATA.extstate.UI_lastsrcproj=filenameNeed4096
                               DATA2:ParseSourceProject(filenameNeed4096)
@@ -719,7 +720,8 @@
             local param_str = trparams[param]
             if line:match(' '..param_str) then
               local out_valt = DATA2:ParseSourceProject_GetValues(line, true)
-              DATA2.srcproj.TRACK[tr_idx][param_str] = CopyTable(out_valt)
+              if not DATA2.srcproj.TRACK[tr_idx][param_str] then DATA2.srcproj.TRACK[tr_idx][param_str] = CopyTable(out_valt) end
+              --DATA2.srcproj.TRACK[tr_idx][param_str] = CopyTable(out_valt)
             end
           end 
         end
@@ -772,7 +774,8 @@
     f:close()
     
     -- get chunks
-      DATA2:ParseSourceProject_ExtractChunks(content, 'TRACK')
+      DATA2.srcproj.is_tracktemplatemode = false if fp:lower():match('rtracktemplate') then DATA2.srcproj.is_tracktemplatemode = true end
+      DATA2:ParseSourceProject_ExtractChunks(content, 'TRACK', nil, DATA2.srcproj.is_tracktemplatemode)
       DATA2:ParseSourceProject_ExplodeTrackData()
       DATA2:ParseSourceProject_ExtractChunks(content, 'EXTENSIONS')
       DATA2:ParseSourceProject_ExplodeHeaderData(content)
@@ -939,10 +942,13 @@
     if #tout > 0 then return tout end
   end
   ----------------------------------------------------------------------
-  function DATA2:ParseSourceProject_ExtractChunks(content, key, output_t)
+  function DATA2:ParseSourceProject_ExtractChunks(content, key, output_t, tracktemplatemode)
     local t = {}
     local sep = '  '
     for block in content:gmatch('[\n\r]+'..sep..'<('..key..'.-'..')[\n\r]'..sep..'>') do t[#t +1] = {chunk=block } end
+    
+    if tracktemplatemode ==true  then t[#t +1] = {chunk=content:match('<(.*)>') }end
+    
     if output_t then output_t = CopyTable(t) else DATA2.srcproj[key] = CopyTable(t) end
   end 
   ----------------------------------------------------------------------
@@ -1490,8 +1496,9 @@
      elseif (key=='P_NAME'  or  key=='P_TCP_LAYOUT'  or  key=='P_MCP_LAYOUT' ) then
       local retval, stringNeedBig = GetSetMediaTrackInfo_String( src_tr, key, '', 0 )
       GetSetMediaTrackInfo_String( dest_tr, key, stringNeedBig, 1 )
-      
-      
+      if DATA2.srcproj.is_tracktemplatemode == true then
+        GetSetMediaTrackInfo_String( dest_tr, key, DATA2.srcproj.TRACK[1].NAME, 1 )
+      end
      else 
       local val = GetMediaTrackInfo_Value( src_tr,key )
       SetMediaTrackInfo_Value( dest_tr, key, val )  
