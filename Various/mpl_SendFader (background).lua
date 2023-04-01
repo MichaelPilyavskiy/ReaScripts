@@ -1,16 +1,14 @@
 ﻿-- @description SendFader
--- @version 2.06
+-- @version 2.07
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
 --    mpl_SendFader_Mark selected tracks as sends.lua
 -- @changelog
---    # Settings: rename filter 'Send name' to 'Folder name'
---    # Settings: allow to add presets
---    # UI: refresh control stuff on scroll correctly
---    # UI: draw source peaks at track name
---    # UI: fix scroll issues
---    # UI: don`t hide sends if out of screen
+--    + Rightclick on receive name rename it 
+--    + Alt click on receive name select only it 
+--    + Alt click on send name select only it 
+--    + UI: display color of sends/receives peaks/faders
 
 
 
@@ -25,7 +23,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.06'
+    DATA.extstate.version = '2.07'
     DATA.extstate.extstatesection = 'MPL_SendFader'
     DATA.extstate.mb_title = 'MPL SendFader'
     DATA.extstate.default = 
@@ -80,7 +78,12 @@
           local y=obj.y*DATA.GUI.default_scale
           local w=DATA.GUI.custom_meterW*DATA.GUI.default_scale--obj.w
           local h=obj.h*DATA.GUI.default_scale
-          gfx.a=0.4
+          gfx.a=0.5
+          local trcol = DATA2.sendtracks[sendID].col
+          if trcol then 
+            local r, g, b = reaper.ColorFromNative( trcol )
+            gfx.set(r/255,g/255,b/255)
+          end
           local sz = #DATA2.peaks[sendID]
           local L = (DATA2.peaks[sendID][sz][1] + DATA2.peaks[sendID][sz-1][1]+ DATA2.peaks[sendID][sz-2][1]+ DATA2.peaks[sendID][sz-3][1]) /4
           local R = (DATA2.peaks[sendID][sz][2] + DATA2.peaks[sendID][sz-1][2]+ DATA2.peaks[sendID][sz-2][2]+ DATA2.peaks[sendID][sz-3][2]) /4
@@ -98,7 +101,12 @@
           local y=obj.y*DATA.GUI.default_scale
           local w=DATA.GUI.custom_meterW*DATA.GUI.default_scale--obj.w
           local h=obj.h*DATA.GUI.default_scale
-          gfx.a=0.4
+          gfx.a=0.5
+          local trcol = DATA2.tracks[1].receives[recGUID].trcol
+          if trcol then 
+            local r, g, b = reaper.ColorFromNative( trcol )
+            gfx.set(r/255,g/255,b/255)
+          end
           local sz = #DATA2.peaks[recGUID]
           local L = (DATA2.peaks[recGUID][sz][1] + DATA2.peaks[recGUID][sz-1][1]+ DATA2.peaks[recGUID][sz-2][1]+ DATA2.peaks[recGUID][sz-3][1]) /4
           local R = (DATA2.peaks[recGUID][sz][2] + DATA2.peaks[recGUID][sz-1][2]+ DATA2.peaks[recGUID][sz-2][2]+ DATA2.peaks[recGUID][sz-3][2]) /4
@@ -226,7 +234,7 @@
         local retval, trname = GetTrackName( tr )
         id = id + 1
         local  retval, GUID = reaper.GetSetMediaTrackInfo_String( tr, 'GUID', '', false )
-        DATA2.sendtracks[id] = {ptr=tr,GUID = GUID,name=trname,sendEQ={}} 
+        DATA2.sendtracks[id] = {ptr=tr,GUID = GUID,name=trname,sendEQ={},col =  GetTrackColor( tr )} 
         DATA2:ReadProject_ReadSends_readEQ(tr, DATA2.sendtracks[id].sendEQ)
       end
     end
@@ -310,6 +318,7 @@
       local B_PHASE = GetTrackSendInfo_Value( tr, -1, sendidx-1, 'B_PHASE' )
       local I_SENDMODE = GetTrackSendInfo_Value( tr, -1, sendidx-1, 'I_SENDMODE' )
       local I_AUTOMODE = GetTrackSendInfo_Value( tr, -1, sendidx-1, 'I_AUTOMODE' )
+      local trcol = GetTrackColor( src_trptr )
       if ValidatePtr(src_trptr, 'MediaTrack*') then
         local retval, srcGUID = reaper.GetSetMediaTrackInfo_String( src_trptr, 'GUID', '', false )
         local retval, srcname = reaper.GetSetMediaTrackInfo_String( src_trptr, 'P_NAME', '', false )
@@ -321,7 +330,8 @@
               B_PHASE =B_PHASE,
               I_SENDMODE =I_SENDMODE,
               I_AUTOMODE =I_AUTOMODE,
-              srcname = srcname
+              srcname = srcname,
+              trcol=trcol,
               }
       end
     end
@@ -559,6 +569,13 @@
       txt = name,
       frame_a = 0,
       txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
+      onmouseclick = function()
+        if DATA.GUI.Alt == true then
+          local sendIDx,srctr = DATA2:GetReceiveIdx(receiveGUID)
+          reaper.SetOnlyTrackSelected( srctr)
+          DATA.UPD.onprojstatechange = true 
+        end
+      end,
     }
     --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
   end
@@ -717,8 +734,9 @@
     local recID = 0
     for receiveGUID in spairs(DATA2.tracks[1].receives) do
       recID = recID + 1
-      local vol = 0
+      local vol,trcol = 0,0
       if DATA2.tracks[1].receives[receiveGUID].vol then vol = DATA2.tracks[1].receives[receiveGUID].vol end
+      if DATA2.tracks[1].receives[receiveGUID].trcol then trcol = DATA2.tracks[1].receives[receiveGUID].trcol end
       local val = DATA2:Convert_Val2Fader(vol)
       local x_offs = x_offs0 + faderW * (recID-1)
       DATA.GUI.buttons['fader_rec'..receiveGUID] = { x=x_offs+ faderW/2 - faderW_scale/2 +x_shift,
@@ -757,7 +775,7 @@
                               SetTrackSendUIVol( srctr, sendIDx, outvol, 1 )
                               DATA.UPD.onprojstatechange = true 
                             end,
-                            data = {fader_cust=true,receiveGUID=receiveGUID}
+                            data = {fader_cust=true,receiveGUID=receiveGUID,trcol=trcol}
                             } 
       
       --DATA.GUI.buttons['fader_rec'..receiveGUID].hide = DATA.GUI.buttons['fader_rec'..receiveGUID].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
@@ -789,6 +807,7 @@
     if DATA2.scroll_w == 1 then x_shift = 0 end
     
     for sendID = 1, cntsends do
+      local trcol = DATA2.sendtracks[sendID].col
       local destGUID = DATA2.sendtracks[sendID].GUID
       local vol = 0
       if DATA2.tracks[1].sends[destGUID] then vol = DATA2.tracks[1].sends[destGUID].vol end
@@ -803,6 +822,7 @@
                             --txt_fontsz = DATA.GUI.custom_txtsz1,
                             --txt_flags = 4,
                             frame_a =0.5,
+                            --frame_col = col,
                             onmousedrag = function() 
                               local sendIDx = DATA2:GetSendIdx(destGUID,true)
                               local outvol = DATA2:Convert_Fader2Val(DATA.GUI.buttons['fader_send'..sendID].val)
@@ -830,7 +850,7 @@
                               SetTrackSendUIVol( DATA2.tracks[1].ptr, sendIDx, outvol, 1 )
                               DATA.UPD.onprojstatechange = true 
                             end,
-                            data = {fader_cust=true,destGUID=destGUID}
+                            data = {fader_cust=true,destGUID=destGUID,trcol=trcol}
                             } 
       
       --DATA.GUI.buttons['fader_send'..sendID].hide = DATA.GUI.buttons['fader_send'..sendID].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
@@ -851,10 +871,28 @@
         txt = name,
         frame_a = 0,
         txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
+        onmouseclick = function()
+          if DATA.GUI.Alt == true then
+            local sendIDx = DATA2:GetSendIdx(destGUID,true)
+            local desttr = reaper.GetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'P_DESTTRACK' )
+            reaper.SetOnlyTrackSelected( desttr)
+            DATA.UPD.onprojstatechange = true 
+          end
+        end,
+        onmouseclickR = function()
+          local sendIDx = DATA2:GetSendIdx(destGUID,true)
+          local desttr = reaper.GetTrackSendInfo_Value( DATA2.tracks[1].ptr, 0, sendIDx, 'P_DESTTRACK' )
+          local  retval, trname = reaper.GetTrackName( desttr )
+          if retval then
+            local retval1, retvals_csv = reaper.GetUserInputs( 'Set destination track name', 1, '', trname )
+            if retval1 then GetSetMediaTrackInfo_String( desttr, 'P_NAME', retvals_csv, true ) end
+          end
+          DATA.UPD.onprojstatechange = true 
+        end
       }
       return
     end
-    --DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
+    --[[DATA.GUI.buttons[key].hide = DATA.GUI.buttons[key].x < DATA.GUI.custom_vcaW + DATA.GUI.custom_offset*2
     
     if DATA.extstate.UI_showsendrecnamevertically ==1 then
       local key = 'fader_send'..sendID..'_name'
@@ -871,7 +909,7 @@
         txt_fontsz =DATA.GUI.custom_sendctrl_txtsz1,
       }
       return
-    end
+    end]]
     
   end
   -------------------------------------------------------------------- 
@@ -1281,6 +1319,7 @@
   ---------------------------------------------------------------------
   function GUI_RESERVED_draw_data_fader(DATA, b)
     if not (b.data.destGUID or b.data.receiveGUID ) then return end
+    local trcol=b.data.trcol
     
     local x=b.x*DATA.GUI.default_scale
     local y=b.y*DATA.GUI.default_scale
@@ -1303,7 +1342,11 @@
     
     -- value
       DATA:GUIhex2rgb('#FFFFFF',true)
-      gfx.a = 0.2
+      if trcol then 
+        local r, g, b = reaper.ColorFromNative( trcol )
+        gfx.set(r/255,g/255,b/255)
+      end
+      gfx.a = 0.4
       local hfade = math.floor(h*fader_norm)
       gfx.rect(x,y+1+h-hfade,w,hfade,1)
     
