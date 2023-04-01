@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="13e9829552c533cc3d0ca611bbd1ad7b6b0b366b" name="MPL Scripts">
+<index version="1" commit="b92d385b1f465b1543a7ea87781909c17da07ede" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -10100,6 +10100,11 @@ add control for timefall showing last note]]></changelog>
       <version name="2.10" author="MPL" time="2023-01-22T09:35:20Z">
         <changelog><![CDATA[# fix error at non installed Various Functions]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e9bf998ef73781eefaf6ff78f6a8404d43f2c22/Various/mpl_ImportSessionData.lua</source>
+      </version>
+      <version name="2.11" author="MPL" time="2023-04-01T20:17:57Z">
+        <changelog><![CDATA[# support track template
+# fix parsing track parameters]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b92d385b1f465b1543a7ea87781909c17da07ede/Various/mpl_ImportSessionData.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Input audio check selected track.lua" type="script" desc="Input audio check selected track">
