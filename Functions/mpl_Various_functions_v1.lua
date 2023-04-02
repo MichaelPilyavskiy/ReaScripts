@@ -560,8 +560,11 @@
         if GetOS():match('Win') then gfx.set(r/255,g/255,b/255) else gfx.set(b/255,g/255,r/255)     end        
     end
   -----------------------------------------------------------------------
-  function SetFXName(track, fx, new_name)
+  function VF_SetFXName(track, fx, new_name) 
     if not new_name then return end
+    
+    if VF_CheckReaperVrs(6.78) then TrackFX_SetNamedConfigParm( track, fx, 'renamed_name', new_name ) return end
+    
     local edited_line,edited_line_id, segm
     -- get ref guid
       if not track or not tonumber(fx) then return end
@@ -1850,3 +1853,4 @@ end
   math_q_dec = VF_math_Qdec 
   GetShortSmplName = VF_GetShortSmplName  
   MPL_ReduceFXname = VF_ReduceFXname
+  SetFXName = VF_SetFXName

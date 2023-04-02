@@ -1,9 +1,9 @@
 -- @description Toggle solo for selected FX
--- @version 1.1
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/member.php?u=70694 
 -- @changelog
---    # perform only one FX chain (first track with opened FX chain)
+--    # remove SWS dependency
   
 
   function main()
@@ -42,6 +42,5 @@
   end
   
   reaper.Undo_BeginBlock()
-  reaper.Main_OnCommand(reaper.NamedCommandLookup('_BR_FOCUS_ARRANGE_WND'),0)
   main()
   reaper.Undo_EndBlock("Toggle solo for selected FX", 0)
