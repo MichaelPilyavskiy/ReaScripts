@@ -1,9 +1,0 @@
-desc:POOL FX slave
-version: 1.0
-changelog: init
-author: MPL
-website: http://forum.cockos.com/member.php?u=70694
-about: do nothing, just an mark for mpl_Pooled fx tools.lua package
-
-
-slider1:1<1,8,1>Pool Group

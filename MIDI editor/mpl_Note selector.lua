@@ -1,11 +1,9 @@
 -- @description Note selector
--- @about
---    MPL: code snippets based on juliansader work https://forum.cockos.com/member.php?u=14710
--- @version 0.1alpha
+-- @version 1.01
 -- @author juliansader, MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    + init release
+--    # remove SWS dependency
 
 
 
@@ -378,7 +376,7 @@
         mouse.temp_val2 = nil   -- table controls size
         mouse.temp_val3 = nil   -- last good value
         SCC_trig2 = true
-        Main_OnCommand(NamedCommandLookup('_SN_FOCUS_MIDI_EDITOR'),0)
+        --Main_OnCommand(NamedCommandLookup('_SN_FOCUS_MIDI_EDITOR'),0)
         
        else
         SCC_trig2 = false

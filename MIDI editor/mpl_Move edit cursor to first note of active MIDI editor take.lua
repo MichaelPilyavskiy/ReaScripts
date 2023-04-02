@@ -1,9 +1,9 @@
 -- @description Move edit cursor to first note of active MIDI editor take
--- @version 1.01
+-- @version 1.02
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # ReaPack header, name 
+--    # remove SWS dependency
 
 
   
@@ -13,10 +13,11 @@
     take = reaper.MIDIEditor_GetTake(MIDIEditor)
     if take == nil then return end
     if reaper.TakeIsMIDI(take) == false then return end
-    fngtake = reaper.FNG_AllocMidiTake(take)
-    note = reaper.FNG_GetMidiNote(fngtake, 0)
-    note_pos = reaper.FNG_GetMidiNoteIntProperty(note, 'POSITION')
-    pos = reaper.MIDI_GetProjTimeFromPPQPos(take, note_pos)
+    
+     retval, notecnt, ccevtcnt, textsyxevtcnt = reaper.MIDI_CountEvts( take )
+    if notecnt ==0 then return end
+    local retval, selected, muted, startppqpos, endppqpos, chan, pitch, vel = reaper.MIDI_GetNote( take, 0 )
+    pos = reaper.MIDI_GetProjTimeFromPPQPos(take, startppqpos)
     reaper.SetEditCurPos(pos, true, true)
   end
   
