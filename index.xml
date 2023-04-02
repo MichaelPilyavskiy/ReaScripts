@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="554e3e94234691ab447332a2d11eff629399d47e" name="MPL Scripts">
+<index version="1" commit="7118ad989f12066272c4eac064b391b32c963293" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6174,50 +6174,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ccb8e205e9b15f5336372e934170504dfcedfa80/Regions/mpl_Convert%20CUE%20file%20into%20markers.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Generate CUE from project markers.lua" type="script" desc="Generate CUE from project markers">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-06-20T14:20:43Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ee721a4c0432e3918fb4a9e572d8503a184a0432/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
-      </version>
-      <version name="1.01" author="mpl" time="2016-06-21T11:17:17Z">
-        <changelog><![CDATA[+ fix split name]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0dde77cb7dae0eea2fd8064ba641f3fc432ea448/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
-      </version>
-      <version name="1.02" author="mpl" time="2016-06-21T11:31:25Z">
-        <changelog><![CDATA[+ fix split name]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/be6729359d51511981bdb34cadada7c5d3dfa5bc/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2019-05-29T22:18:09Z">
-        <changelog><![CDATA[+ Add save file dialog (require JS ReaScript API Extension)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a1eff36196d18edb313b57a229b3d036cb941c56/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
-      </version>
-      <version name="1.04" author="MPL" time="2021-08-11T19:57:38Z">
-        <changelog><![CDATA[+ Obey markers only inside time selection
-+ Do not add markers with # sign at the start
-+ Skip executing if user cancelled dialog
-# require VariousFunctions v2+]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8156c6584ea579b215682c21dad6f8e9337143b9/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
-      </version>
-      <version name="1.05" author="MPL" time="2021-08-11T20:08:45Z">
-        <changelog><![CDATA[+ Pass time relative to time selection
-# Add markers with # sign at the start if any
-+ Skip markers starting at @ or !]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/af852e6b54cfcd26ba9ec277e1de29b993addaf3/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
-      </version>
-      <version name="1.06" author="MPL" time="2021-08-14T06:45:19Z">
-        <changelog><![CDATA[# use essential order fro markers rather that markers IDs
-# fix use marker name or Untitled X]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/42616d6d7f2011d99b2f27a7f34b0b6b41d0b2b9/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
-      </version>
-      <version name="1.07" author="MPL" time="2021-08-15T05:50:52Z">
-        <changelog><![CDATA[# 1-based markers count
-# exculde number sign from marker name]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f627a80c1f6c52af10136cada345495bd9640a15/Regions/mpl_Generate%20CUE%20from%20project%20markers.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Go to next marker id.lua" type="script" desc="Go to next marker id">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -6225,140 +6181,6 @@
       <version name="1.0" author="MPL" time="2017-10-14T22:50:37Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18a6a1b52fb22db830dde788c6f0f34455853125/Regions/mpl_Go%20to%20next%20marker%20id.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Region chord editor.lua" type="script" desc="Region chord editor">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=165672</link>
-      </metadata>
-      <version name="1.01" author="MPL" time="2019-03-11T19:39:06Z">
-        <changelog><![CDATA[# any region with @ character is ignored
-# change layout to 4 measures per line
-+ added various improvements for adding regions logic
-+ feedback region color to GUI]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d1dec921722184805219ba1ea575a465fffe732a/Regions/mpl_Region%20chord%20editor.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2019-03-13T05:04:51Z">
-        <changelog><![CDATA[# improve region adding logic
-# fix displayed region 1 beat back
-# various GUI tweaks]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/57a739445030c207bbfa3b9f27cdb3a19b52890a/Regions/mpl_Region%20chord%20editor.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2019-03-13T05:38:00Z">
-        <changelog><![CDATA[# fix fill previous region if entering empty string]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/586ab1b29cf3e685ffcf476f0fc74506db3bb3a7/Regions/mpl_Region%20chord%20editor.lua</source>
-      </version>
-      <version name="1.04" author="MPL" time="2019-03-16T17:00:12Z">
-        <changelog><![CDATA[+ use existed regions color map, otherwise on cropping current region use previous color
-# disable text wrap
-# set edit cursor to start of newly added region
-# dark/ignore regions contain @ character]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4aeaea722e98a962a5f6f251d837f82af4acc30b/Regions/mpl_Region%20chord%20editor.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_RegionManager.lua" type="script" desc="RegionManager">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2020-06-02T04:41:23Z">
-        <changelog><![CDATA[+ Port some features from Samplitude by user request]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/945c32b7539067417a072d94c0482d921f8634c6/Regions/mpl_RegionManager.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/945c32b7539067417a072d94c0482d921f8634c6/Regions/mpl_RegionManager_functions/mpl_RegionManager_GUI.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/945c32b7539067417a072d94c0482d921f8634c6/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/945c32b7539067417a072d94c0482d921f8634c6/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/945c32b7539067417a072d94c0482d921f8634c6/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2020-06-02T06:56:59Z">
-        <changelog><![CDATA[+ Sort by ID
-+ Sort by name
-+ Allow to disable dynamic GUI refresh]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/637247cbba95d1cc8a4e2a64178f748d5150d0a4/Regions/mpl_RegionManager.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/637247cbba95d1cc8a4e2a64178f748d5150d0a4/Regions/mpl_RegionManager_functions/mpl_RegionManager_GUI.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/637247cbba95d1cc8a4e2a64178f748d5150d0a4/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/637247cbba95d1cc8a4e2a64178f748d5150d0a4/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/637247cbba95d1cc8a4e2a64178f748d5150d0a4/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2020-06-08T23:17:49Z">
-        <changelog><![CDATA[# extend search input width 
-# extend marker name input width
-# reduce playing position
-+ Allow to set rows order/width using wildcards]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/917b85b5e667e5cc5d29a2b5e39dbd65ec699974/Regions/mpl_RegionManager.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/917b85b5e667e5cc5d29a2b5e39dbd65ec699974/Regions/mpl_RegionManager_functions/mpl_RegionManager_GUI.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/917b85b5e667e5cc5d29a2b5e39dbd65ec699974/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/917b85b5e667e5cc5d29a2b5e39dbd65ec699974/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/917b85b5e667e5cc5d29a2b5e39dbd65ec699974/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2020-06-09T05:26:55Z">
-        <changelog><![CDATA[+ #sel wildcard to show is region under edit/playcursor or selection (only works in dynamic refresh mode)
-+ Shortcut: move to options
-+ Shortcut: allow to select region by Enter
-+ Link mouse LMB/LMB+Ctrl triggers on #sel row to Enter/Enter+Ctrl shortcuts
-+ Allow to change fontsize]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e536da9da1a789c44ef542093cc792a1f12765/Regions/mpl_RegionManager.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e536da9da1a789c44ef542093cc792a1f12765/Regions/mpl_RegionManager_functions/mpl_RegionManager_GUI.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e536da9da1a789c44ef542093cc792a1f12765/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e536da9da1a789c44ef542093cc792a1f12765/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6e536da9da1a789c44ef542093cc792a1f12765/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
-      </version>
-      <version name="1.04" author="MPL" time="2020-06-09T05:38:10Z">
-        <changelog><![CDATA[+ Add option for use search as filter]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/caa6dcb1b99a25234c1d0501f146328d8ed167d1/Regions/mpl_RegionManager.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/caa6dcb1b99a25234c1d0501f146328d8ed167d1/Regions/mpl_RegionManager_functions/mpl_RegionManager_GUI.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/caa6dcb1b99a25234c1d0501f146328d8ed167d1/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/caa6dcb1b99a25234c1d0501f146328d8ed167d1/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/caa6dcb1b99a25234c1d0501f146328d8ed167d1/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
-      </version>
-      <version name="1.05" author="MPL" time="2020-06-09T06:43:02Z">
-        <changelog><![CDATA[+ Add button for insert region from time selection and edit
-# Search: not case sensitive
-# move scroll and menu to the right side]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d232a3eff3afc40f16555872af1d8d8831b7026/Regions/mpl_RegionManager.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d232a3eff3afc40f16555872af1d8d8831b7026/Regions/mpl_RegionManager_functions/mpl_RegionManager_GUI.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d232a3eff3afc40f16555872af1d8d8831b7026/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d232a3eff3afc40f16555872af1d8d8831b7026/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9d232a3eff3afc40f16555872af1d8d8831b7026/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
-      </version>
-      <version name="1.06" author="MPL" time="2020-06-21T09:21:14Z">
-        <changelog><![CDATA[# Search: remember last entered text]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78fda80486c2ad045803c8c830ece7beae8abd6e/Regions/mpl_RegionManager.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78fda80486c2ad045803c8c830ece7beae8abd6e/Regions/mpl_RegionManager_functions/mpl_RegionManager_GUI.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78fda80486c2ad045803c8c830ece7beae8abd6e/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78fda80486c2ad045803c8c830ece7beae8abd6e/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/78fda80486c2ad045803c8c830ece7beae8abd6e/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
-      </version>
-      <version name="1.07" author="MPL" time="2020-06-27T06:42:39Z">
-        <changelog><![CDATA[# Search: do not reset search results after data refresh
-+ Shortcuts: allow to redirect Num0 as Transport: play/stop]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cbf7e1adc1f100c1fb64e41f0ef9edc64aa200b/Regions/mpl_RegionManager.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cbf7e1adc1f100c1fb64e41f0ef9edc64aa200b/Regions/mpl_RegionManager_functions/mpl_RegionManager_GUI.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cbf7e1adc1f100c1fb64e41f0ef9edc64aa200b/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cbf7e1adc1f100c1fb64e41f0ef9edc64aa200b/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4cbf7e1adc1f100c1fb64e41f0ef9edc64aa200b/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
-      </version>
-      <version name="1.08" author="MPL" time="2020-06-27T15:32:59Z">
-        <changelog><![CDATA[+ Shortcuts: allow to redirect Num0 as Transport: play/stop in addition to space and separately disable]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/666244de3f127f0ab5822a8fc8774141e8d8d438/Regions/mpl_RegionManager.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/666244de3f127f0ab5822a8fc8774141e8d8d438/Regions/mpl_RegionManager_functions/mpl_RegionManager_GUI.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/666244de3f127f0ab5822a8fc8774141e8d8d438/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/666244de3f127f0ab5822a8fc8774141e8d8d438/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/666244de3f127f0ab5822a8fc8774141e8d8d438/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
-      </version>
-      <version name="1.09" author="MPL" time="2020-06-27T16:39:59Z">
-        <changelog><![CDATA[# Shortcuts: handle Num0 as insert too]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cbe17140384e70683f9bece72c69be354bf285b1/Regions/mpl_RegionManager.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cbe17140384e70683f9bece72c69be354bf285b1/Regions/mpl_RegionManager_functions/mpl_RegionManager_GUI.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cbe17140384e70683f9bece72c69be354bf285b1/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cbe17140384e70683f9bece72c69be354bf285b1/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cbe17140384e70683f9bece72c69be354bf285b1/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
-      </version>
-      <version name="1.10" author="MPL" time="2020-07-02T05:44:28Z">
-        <changelog><![CDATA[# fix Clear button]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55207ea96e42f09459322b43bf166e1c6992e4ad/Regions/mpl_RegionManager.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55207ea96e42f09459322b43bf166e1c6992e4ad/Regions/mpl_RegionManager_functions/mpl_RegionManager_GUI.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55207ea96e42f09459322b43bf166e1c6992e4ad/Regions/mpl_RegionManager_functions/mpl_RegionManager_MOUSE.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55207ea96e42f09459322b43bf166e1c6992e4ad/Regions/mpl_RegionManager_functions/mpl_RegionManager_data.lua</source>
-        <source file="mpl_RegionManager_functions/mpl_RegionManager_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55207ea96e42f09459322b43bf166e1c6992e4ad/Regions/mpl_RegionManager_functions/mpl_RegionManager_obj.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Shift regions and markers to edit cursor.lua" type="script" desc="Shift regions and markers to edit cursor">
@@ -6378,38 +6200,6 @@
     </reapack>
   </category>
   <category name="Render">
-    <reapack name="mpl_Add to render queue selected tracks with their parents.lua" type="script" desc="Add to render queue selected tracks with their parents">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20parents.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2018-12-22T08:06:31Z">
-        <changelog><![CDATA[# fix check for parent track
-# restore mute/solo/selected states
-+ Prepare message  ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/006c164c4c010c998452539b7702f57a1b02b4c3/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20parents.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Add to render queue selected tracks with their sends.lua" type="script" desc="Add to render queue selected tracks with their sends">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20sends.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2018-12-22T08:06:31Z">
-        <changelog><![CDATA[# fix check for children track
-# restore mute/solo/selected states
-+ Prepare message]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/006c164c4c010c998452539b7702f57a1b02b4c3/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20sends.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2018-12-24T20:01:59Z">
-        <changelog><![CDATA[# fix check for external package]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0f458db1d83a2a2324e5cf57b2d7168d7468f969/Render/mpl_Add%20to%20render%20queue%20selected%20tracks%20with%20their%20sends.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Conditional bounce-in-place.lua" type="script" desc="Conditional bounce-in-place">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -6782,15 +6572,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/964292166704b31746a06f970d43625b0853eee0/Stretch%20Markers/mpl_Quantize%20stretch%20markers%20in%20selected%20items%20to%20zero%20crossings.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Randomize stretch markers.lua" type="script" desc="Randomize stretch markers">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-07-28T14:37:29Z">
-        <changelog><![CDATA[init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/60930572d15a62ecf221774c57cc72a7644d5b43/Stretch%20Markers/mpl_Randomize%20stretch%20markers.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Remove all non-1x stretch markers from selected takes.lua" type="script" desc="Remove all non-1x stretch markers from selected items">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
@@ -6798,19 +6579,6 @@
       <version name="1.0" author="mpl" time="2016-09-23T12:00:10Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25fcdddfbc75e85be0176730523fe22e0d83ee11/Stretch%20Markers/mpl_Remove%20all%20non-1x%20stretch%20markers%20from%20selected%20takes.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Stretch marker guard.lua" type="script" desc="Stretch marker guard">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2016-09-13T19:52:21Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f689134363755d46436d69e2416c194858775bd0/Stretch%20Markers/mpl_Stretch%20marker%20guard.lua</source>
-      </version>
-      <version name="1.1" author="MPL" time="2016-09-23T12:11:15Z">
-        <changelog><![CDATA[+ Acion: Remove all non-1x stretch markers from selected takes]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/55f741082f03e1303606581f06792b22a81eec33/Stretch%20Markers/mpl_Stretch%20marker%20guard.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Tape start selected items.lua" type="script" desc="Tape start selected items">
@@ -6843,30 +6611,6 @@
       </version>
     </reapack>
   </category>
-  <category name="Takes Editing">
-    <reapack name="mpl_Copy selection area of active take to new track.lua" type="script" desc="Copy selection area of active take to new track">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-02-03T15:20:40Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4f5e813e92e041701a39379af009387ef47f226a/Takes%20Editing/mpl_Copy%20selection%20area%20of%20active%20take%20to%20new%20track.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Copy selection area of take under mouse cursor to new track.lua" type="script" desc="Copy selection area of take under mouse cursor to new track">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Takes%20Editing/mpl_Copy%20selection%20area%20of%20take%20under%20mouse%20cursor%20to%20new%20track.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2019-08-08T19:12:26Z">
-        <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Takes%20Editing/mpl_Copy%20selection%20area%20of%20take%20under%20mouse%20cursor%20to%20new%20track.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Delete take number x from selected items.lua" type="script" desc="Delete take number x from selected items">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Takes%20Editing/mpl_Delete%20take%20number%20x%20from%20selected%20items.lua</source>
-      </version>
-    </reapack>
-  </category>
   <category name="Takes Properties">
     <reapack name="mpl_Check is multichannel item mono sourced, convert to mono if need.lua" type="script" desc="Check is multichannel item mono sourced, convert to mono if need">
       <metadata>
@@ -6875,11 +6619,6 @@
       <version name="1.0" author="MPL" time="2022-06-16T04:47:31Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/75bfc7e56224d6de49437ead0a1103449ff31ff0/Takes%20Properties/mpl_Check%20is%20multichannel%20item%20mono%20sourced,%20convert%20to%20mono%20if%20need.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Color pooled MIDI takes as selected reference.lua" type="script" desc="Color pooled MIDI takes as selected reference">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Takes%20Properties/mpl_Color%20pooled%20MIDI%20takes%20as%20selected%20reference.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Rename active take as (itemname)_bounce_(date time).lua" type="script" desc="Rename active take as (itemname)_bounce_(date time)">
@@ -7123,15 +6862,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c7fe537643af12d82d2024af046d47c79fe5c24f/Tempo/mpl_Toggle%20gradually%20transition%20for%20tempo%20marker%20before%20edit%20cursor.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Toggle tempo envelope.lua" type="script" desc="Toggle tempo envelope">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-05-22T19:42:17Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/82cbc769bf1999f168ea139b048d5957d4fdb3d3/Tempo/mpl_Toggle%20tempo%20envelope.lua</source>
-      </version>
-    </reapack>
   </category>
   <category name="Tracks Editing">
     <reapack name="mpl_Create layer track from selected instruments tracks.lua" type="script" desc="Create layer track from selected instruments tracks">
@@ -7180,65 +6910,6 @@
     </reapack>
   </category>
   <category name="Tracks Properties">
-    <reapack name="mpl_Add receive track from selected tracks.lua" type="script" desc="Add receive track from selected tracks">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2020-04-25T11:48:55Z">
-        <changelog><![CDATA[# change name]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fd36e64af962370bc1837fd5da38bfc0c5f3707/Tracks%20Properties/mpl_Add%20receive%20track%20from%20selected%20tracks.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Add receive tracks to selected tracks respectively.lua" type="script" desc="Add receive tracks to selected tracks respectively">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.02" author="MPL" time="2020-04-25T11:48:55Z">
-        <changelog><![CDATA[# change name]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fd36e64af962370bc1837fd5da38bfc0c5f3707/Tracks%20Properties/mpl_Add%20receive%20tracks%20to%20selected%20tracks%20respectively.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Apply selected track pan to its pre-fader sends pan.lua" type="script" desc="Apply selected track pan to its pre-fader sends pan">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-08-26T01:18:10Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/122df421e003d35da552311a45f15feb496a7db2/Tracks%20Properties/mpl_Apply%20selected%20track%20pan%20to%20its%20pre-fader%20sends%20pan.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2022-05-12T05:51:01Z">
-        <changelog><![CDATA[# sligtly cleanup code
-# use all Undo flags
-+ Apply pan envelope to send pan envelope if any, obey dualpan envelopes]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5d505c4dfb887fe09e2f046a6423ac41a44ef239/Tracks%20Properties/mpl_Apply%20selected%20track%20pan%20to%20its%20pre-fader%20sends%20pan.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2022-05-12T19:47:41Z">
-        <changelog><![CDATA[# set envelope visible and armed]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b8720bb00f5bc493dc7660c8735c7eb5164c2cc7/Tracks%20Properties/mpl_Apply%20selected%20track%20pan%20to%20its%20pre-fader%20sends%20pan.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Apply visibility of focused FX TCP controls to instances in selected tracks.lua" type="script" desc="Apply visibility of focused FX TCP controls to instances in selected tracks">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-08-08T06:25:06Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/832407a3d234b5b7eff89d17b929b8b761b6cca5/Tracks%20Properties/mpl_Apply%20visibility%20of%20focused%20FX%20TCP%20controls%20to%20instances%20in%20selected%20tracks.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-08-09T22:31:14Z">
-        <changelog><![CDATA[# fixed for custom plugin aliases]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5c2766d87ddc99d33e33c463e7a608b05e0cec17/Tracks%20Properties/mpl_Apply%20visibility%20of%20focused%20FX%20TCP%20controls%20to%20instances%20in%20selected%20tracks.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Clear TCP controls for selected tracks.lua" type="script" desc="Clear TCP controls for selected tracks">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-11-26T06:48:38Z">
-        <changelog><![CDATA[+ init port from mpl_LearnManager]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f701ce46f7a01f09a3db12cadd978c5bb22be70a/Tracks%20Properties/mpl_Clear%20TCP%20controls%20for%20selected%20tracks.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Color project tracks by user defined filter and color.lua" type="script" desc="Color project tracks by user defined filter and color">
       <metadata>
         <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
