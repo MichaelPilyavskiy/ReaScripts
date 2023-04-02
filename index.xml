@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="b92d385b1f465b1543a7ea87781909c17da07ede" name="MPL Scripts">
+<index version="1" commit="277c7b2778004fbfbd325bc3772ae7b101bea657" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -10,20 +10,27 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/db9ad59b458d15e54ea60bbd1083ea64eb4561d4/Automation%20Items/mpl_Convert%20selected%20envelope%20points%20to%20automation%20item.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Generate pooled automation items for selected envelope based on selected track peaks.lua" type="script" desc="Generate pooled automation items for selected envelope based on selected track peaks">
+    <reapack name="mpl_Generate pooled automation item for selected envelope from item audio.lua" type="script" desc="Generate pooled automation item for selected envelope from item audio">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
 {\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
 \widowctrl\hyphauto
 
-{\pard \ql \f0 \sa180 \li0 \fi0 Select envelope, selecte track, define time selection (contain media items on selected track), run script\par}
+{\pard \ql \f0 \sa180 \li0 \fi0 Select envelope, select item, run script\par}
 }
 ]]></description>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
-      <version name="1.0" author="MPL" time="2018-09-20T21:35:00Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/Automation%20Items/mpl_Generate%20pooled%20automation%20items%20for%20selected%20envelope%20based%20on%20selected%20track%20peaks.lua</source>
+      <version name="1.01" author="MPL" time="2023-04-02T10:13:42Z">
+        <changelog><![CDATA[# Store parameters
+# Don`t clear envelope/AI
+# Don`t pool AI
+# Use envelope scaling
+# Enclose AI with the latched value
+# Use media item parent track instead selected one
+# Use media item boundaries instead time selection
+# Latch value on threshold fall]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Automation%20Items/mpl_Generate%20pooled%20automation%20item%20for%20selected%20envelope%20from%20item%20audio.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Insert 1 measure long automation item for last touched parameter.lua" type="script" desc="Insert 1 measure long automation item for last touched parameter">
@@ -36,104 +43,10 @@
       </version>
     </reapack>
   </category>
-  <category name="Cursor">
-    <reapack name="mpl_Move cursor to next phrase in items.lua" type="script" desc="Move cursor to next phrase in items">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-03-22T05:37:13Z">
-        <changelog><![CDATA[+ init
-+ limit forward audio check to 60sec]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2a76e3f67c4a9da2701fed6a2744eceb8ce255f3/Cursor/mpl_Move%20cursor%20to%20next%20phrase%20in%20items.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Move cursor to next selected item edge, keep overlapping condition.lua" type="script" desc="Move cursor to next selected item edge, keep overlapping condition">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Calculate edges of selected items and move cursor to next edge\par}
-}
-]]></description>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-12-12T06:08:11Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9fb7e6dc7e6c19b47b12183efe40c83b47433336/Cursor/mpl_Move%20cursor%20to%20next%20selected%20item%20edge,%20keep%20overlapping%20condition.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Move cursor to previous phrase in items.lua" type="script" desc="Move cursor to previous phrase in items">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-03-22T05:37:13Z">
-        <changelog><![CDATA[+ init
-+ limit forward audio check to 60sec]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2a76e3f67c4a9da2701fed6a2744eceb8ce255f3/Cursor/mpl_Move%20cursor%20to%20previous%20phrase%20in%20items.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Move edit cursor to first note of selected item.lua" type="script" desc="Move edit cursor to first note of selected item">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-03-06T07:14:02Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18a280d356ce75b45448c411761a16d98558c830/Cursor/mpl_Move%20edit%20cursor%20to%20first%20note%20of%20selected%20item.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2018-03-08T14:57:42Z">
-        <changelog><![CDATA[# ReaPack header, name ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d02548590e8d84d292f139994ee8e9574c586e90/Cursor/mpl_Move%20edit%20cursor%20to%20first%20note%20of%20selected%20item.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Select following phrase.lua" type="script" desc="Select following phrase">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-12-07T05:53:42Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/60a953e7cb750dd3736adba8f5db67ab25d96193/Cursor/mpl_Select%20following%20phrase.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Set time selection from edit cursor to end of current region.lua" type="script" desc="Set time selection from edit cursor to end of current region">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-07-05T20:00:35Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/88d5cd0ecd66e7f6c4882dc9a4ed56134c8a33ca/Cursor/mpl_Set%20time%20selection%20from%20edit%20cursor%20to%20end%20of%20current%20region.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2019-02-12T18:10:42Z">
-        <changelog><![CDATA[# fix "end" keyword, doesn't work in first region (Lokasenna)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b66ef1557f939cdda852330aea13f375904a4d0a/Cursor/mpl_Set%20time%20selection%20from%20edit%20cursor%20to%20end%20of%20current%20region.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Set time selection from edit cursor to start of current region.lua" type="script" desc="Set time selection from edit cursor to start of current region">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-01-10T18:38:17Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bbc6de33a3204fe18964f76994fe5c1766e08f22/Cursor/mpl_Set%20time%20selection%20from%20edit%20cursor%20to%20start%20of%20current%20region.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2018-07-07T07:19:34Z">
-        <changelog><![CDATA[# fix comparing region ID (http://forum.cockos.com/showpost.php?p=2008307)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/71ac415044a8e716d0b01f982b5165cca7c26d42/Cursor/mpl_Set%20time%20selection%20from%20edit%20cursor%20to%20start%20of%20current%20region.lua</source>
-      </version>
-    </reapack>
-  </category>
   <category name="Envelopes">
-    <reapack name="mpl_Decrease selected tracks envelopes heights.lua" type="script" desc="Decrease selected tracks envelopes heights">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-09-16T20:06:18Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b94d833a4a2b989d5658963b45475c506f0a4593/Envelopes/mpl_Decrease%20selected%20tracks%20envelopes%20heights.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Duplicate envelope points.lua" type="script" desc="Duplicate envelope points">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="mpl" time="2016-08-31T08:17:18Z">
         <changelog><![CDATA[+ init]]></changelog>
@@ -160,117 +73,9 @@
         <changelog><![CDATA[# fix dealing with take envelopes]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/38d2aa292749c5ae9863538252b5d1628b290f02/Envelopes/mpl_Duplicate%20envelope%20points.lua</source>
       </version>
-    </reapack>
-    <reapack name="mpl_Hide all track envelopes except envelope under mouse cursor.lua" type="script" desc="Hide all track envelopes except envelope under mouse cursor">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-09-16T20:49:27Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e059ccf5961be2173c180f051d0559132265a627/Envelopes/mpl_Hide%20all%20track%20envelopes%20except%20envelope%20under%20mouse%20cursor.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2019-08-03T08:46:00Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/83922b35cca1517310306d1b91a2e2f6e08a77d2/Envelopes/mpl_Hide%20all%20track%20envelopes%20except%20envelope%20under%20mouse%20cursor.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2019-08-08T19:12:26Z">
-        <changelog><![CDATA[# update for use with REAPER 5.981+]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56dbe1743627f0225292ca96bb42776714895a6c/Envelopes/mpl_Hide%20all%20track%20envelopes%20except%20envelope%20under%20mouse%20cursor.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Hide all track envelopes except last touched parameter envelope.lua" type="script" desc="Hide all track envelopes except last touched parameter envelope">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-09-16T20:44:07Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4049a95749a54c589560e2af149f03459d599348/Envelopes/mpl_Hide%20all%20track%20envelopes%20except%20last%20touched%20parameter%20envelope.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Increase selected tracks envelopes heights.lua" type="script" desc="Increase selected tracks envelopes heights">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-09-16T20:10:08Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/85ccf24536125079ec39cc5119d4f3de5015edc2/Envelopes/mpl_Increase%20selected%20tracks%20envelopes%20heights.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Maximize selected tracks envelopes heights.lua" type="script" desc="Maximize selected tracks envelopes heights">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-09-16T20:01:14Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e7936fdeadfd8c07a5b7f50c6f402fe7f7092a02/Envelopes/mpl_Maximize%20selected%20tracks%20envelopes%20heights.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2021-12-16T20:53:44Z">
-        <changelog><![CDATA[+ internal cleanup
-+ include Master track if selected]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0a6a7b6eaee38f5b7d96b1d4d11bdc740e9f86ba/Envelopes/mpl_Maximize%20selected%20tracks%20envelopes%20heights.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Minimize all tracks envelopes heights.lua" type="script" desc="Minimize all tracks envelopes heights">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-09-16T20:02:50Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d7772b271ed10e46e3ee5915e49f51e906262d47/Envelopes/mpl_Minimize%20all%20tracks%20envelopes%20heights.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2021-10-21T18:56:36Z">
-        <changelog><![CDATA[# obey master track]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad3e22e2f943459c08e04aeba7116c512bc9ad91/Envelopes/mpl_Minimize%20all%20tracks%20envelopes%20heights.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Minimize selected tracks envelopes heights.lua" type="script" desc="Minimize selected tracks envelopes heights">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-09-16T20:01:31Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/18597ec1247d54f2e99441488e0c67ed6798f75c/Envelopes/mpl_Minimize%20selected%20tracks%20envelopes%20heights.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2021-12-16T20:53:44Z">
-        <changelog><![CDATA[+ internal cleanup
-+ include Master track if selected]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0a6a7b6eaee38f5b7d96b1d4d11bdc740e9f86ba/Envelopes/mpl_Minimize%20selected%20tracks%20envelopes%20heights.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Select active envelopes tracks.lua" type="script" desc="Select active envelopes tracks">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-07-15T18:41:34Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/be639fa12eb73f10b595f0cbdabdbad746c924f6/Envelopes/mpl_Select%20active%20envelopes%20tracks.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Show all active track envelopes, hide unactive.lua" type="script" desc="Show all active track envelopes, hide unactive">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-09-16T20:15:29Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/bcd946bf9c2852fc2414b75ef1d1ac1453cc04a9/Envelopes/mpl_Show%20all%20active%20track%20envelopes,%20hide%20unactive.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Show all armed track envelopes, hide unarmed.lua" type="script" desc="Show all armed track envelopes, hide unarmed">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-09-16T20:16:17Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2d5f2ecfb9ee96616942487148031c7eec5492bc/Envelopes/mpl_Show%20all%20armed%20track%20envelopes,%20hide%20unarmed.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Show existing envelopes for last touched FX.lua" type="script" desc="Show existing envelopes for last touched FX">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.01" author="MPL" time="2018-09-08T09:38:50Z">
-        <changelog><![CDATA[# rename title]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25e84f72089c3534945b42a691a8a00d60b8dd58/Envelopes/mpl_Show%20existing%20envelopes%20for%20last%20touched%20FX.lua</source>
+      <version name="1.05" author="MPL" time="2023-04-02T10:13:42Z">
+        <changelog><![CDATA[# remove SWS dependency]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Envelopes/mpl_Duplicate%20envelope%20points.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Split all track envelopes at selected envelope points positions.lua" type="script" desc="Split all track envelopes at selected envelope points positions">
@@ -284,41 +89,6 @@
       <version name="1.01" author="MPL" time="2021-08-09T05:52:30Z">
         <changelog><![CDATA[# use sorting when adding new points one-by-one]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/06e1c31d77255471c06f89bc75826a5885f2205c/Envelopes/mpl_Split%20all%20track%20envelopes%20at%20selected%20envelope%20points%20positions.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Toggle bypass selected tracks envelopes (reset FX parameters).lua" type="script" desc="Toggle bypass selected tracks envelopes (reset FX parameters)">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-06-19T19:55:43Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fa4b912fda867ce2ff2a84b49e82c434c7a7777/Envelopes/mpl_Toggle%20bypass%20selected%20tracks%20envelopes%20(reset%20FX%20parameters).lua</source>
-      </version>
-      <version name="1.1" author="MPL" time="2017-06-20T20:04:56Z">
-        <changelog><![CDATA[# perform on master track]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0bec563fc22114ad8960e4c9a902623fe679fd43/Envelopes/mpl_Toggle%20bypass%20selected%20tracks%20envelopes%20(reset%20FX%20parameters).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Toggle bypass selected tracks envelopes.lua" type="script" desc="Toggle bypass selected tracks envelopes">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-06-19T19:55:43Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fa4b912fda867ce2ff2a84b49e82c434c7a7777/Envelopes/mpl_Toggle%20bypass%20selected%20tracks%20envelopes.lua</source>
-      </version>
-      <version name="1.1" author="MPL" time="2017-06-20T20:04:56Z">
-        <changelog><![CDATA[# perform on master track]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0bec563fc22114ad8960e4c9a902623fe679fd43/Envelopes/mpl_Toggle%20bypass%20selected%20tracks%20envelopes.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Toggle bypass trim envelope.lua" type="script" desc="Toggle bypass trim envelope">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2023-01-29T16:23:14Z">
-        <changelog><![CDATA[+ Init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2312c8c038e9abb5e9d94c035831ed830a4ca52b/Envelopes/mpl_Toggle%20bypass%20trim%20envelope.lua</source>
       </version>
     </reapack>
   </category>
@@ -1485,22 +1255,18 @@
         <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/724fcd2f018fc54117426983366c8c2e85453ebe/Functions/mpl_Various_functions_MOUSE.lua</source>
         <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/724fcd2f018fc54117426983366c8c2e85453ebe/Functions/mpl_Various_functions_Pers.lua</source>
       </version>
+      <version name="3.60" author="MPL" time="2023-04-02T10:13:42Z">
+        <changelog><![CDATA[# VF_SetFXName]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Functions/mpl_Various_functions.lua</source>
+        <source file="mpl_Various_functions_v1.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Functions/mpl_Various_functions_v1.lua</source>
+        <source file="mpl_Various_functions_v3.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Functions/mpl_Various_functions_v3.lua</source>
+        <source file="mpl_Various_functions_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Functions/mpl_Various_functions_GUI.lua</source>
+        <source file="mpl_Various_functions_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Functions/mpl_Various_functions_MOUSE.lua</source>
+        <source file="mpl_Various_functions_Pers.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Functions/mpl_Various_functions_Pers.lua</source>
+      </version>
     </reapack>
   </category>
   <category name="FX">
-    <reapack name="mpl_Add FXChain to selected track.lua" type="script" desc="Add FXChain to selected track">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2020-05-29T06:41:05Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fc13756626d3100e53de404479d1a39c0a66979f/FX/mpl_Add%20FXChain%20to%20selected%20track.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2020-06-02T07:16:24Z">
-        <changelog><![CDATA[# fix path]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/99ba931039f3b5c6e32285545f0127601ac35a57/FX/mpl_Add%20FXChain%20to%20selected%20track.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Adjust normalized last touched parameter by X units (MIDI, OSC, mousewheel).lua" type="script" desc="Adjust normalized last touched parameter by X units (MIDI, OSC, mousewheel)">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -1641,55 +1407,6 @@
       <version name="1.0" author="MPL" time="2022-02-12T20:09:13Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd0bc9bb2f9159b4e14616467d768a2b2f250dfe/FX/mpl_Bypass%20all%20the%20selected%20track%20FX%20starting%20from%20focused%20FX.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Copy Focused FX data.lua" type="script" desc="Copy Focused FX data">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2017-01-11T12:56:19Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b14eb396eda3e6f8cad28fd0ba8934bed6130389/FX/mpl_Copy%20Focused%20FX%20data.lua</source>
-      </version>
-      <version name="1.01" author="mpl" time="2017-01-12T05:25:41Z">
-        <changelog><![CDATA[+ support parameters copypaste]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/93d5ae1dbb4a92fddc2ac9bab32ae34b1340b691/FX/mpl_Copy%20Focused%20FX%20data.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Copy LFO settings from last touched FX parameter.lua" type="script" desc="Copy LFO settings from last touched FX parameter">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.01" author="MPL" time="2017-08-03T17:42:23Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e4b05c4cffae26df6603e477c8df6a95d85ae11/FX/mpl_Copy%20LFO%20settings%20from%20last%20touched%20FX%20parameter.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Create send from focused FX insert.lua" type="script" desc="Create send from focused FX insert">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-08-20T15:29:03Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4838e6246210c95b076f3c7017c2f7236dffb2ae/FX/mpl_Create%20send%20from%20focused%20FX%20insert.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-09-13T05:17:56Z">
-        <changelog><![CDATA[# respect send parameters
-# forum link]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2734b65a041b97fcf9fe6b6918d548361764078a/FX/mpl_Create%20send%20from%20focused%20FX%20insert.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2019-08-25T03:33:46Z">
-        <changelog><![CDATA[# Native remove FX implementation]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/395f97872cf1f307f6be47ab969cae211119a4e4/FX/mpl_Create%20send%20from%20focused%20FX%20insert.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2019-12-14T19:29:19Z">
-        <changelog><![CDATA[# Native move FX implementation
-# remove chunking]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fdbbc1b54acfbe22ab73428b4a6989b1cedd9bcc/FX/mpl_Create%20send%20from%20focused%20FX%20insert.lua</source>
-      </version>
-      <version name="1.04" author="MPL" time="2019-12-15T04:43:48Z">
-        <changelog><![CDATA[# fix adding send to the last track in playlist]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/aff3c92cf52c0213eecbf77522d832adf0435e67/FX/mpl_Create%20send%20from%20focused%20FX%20insert.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Cubase AB floating FX make equal.lua" type="script" desc="AB floating FX parameters, make snapshots equal">
@@ -1868,15 +1585,6 @@
       <version name="1.0" author="mpl" time="2016-08-03T12:57:15Z">
         <changelog><![CDATA[+ init alpha]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e940e5111272af87c3cf63455cd983163347cef2/FX/mpl_Generate%20reabank%20from%20focused%20FX.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Hide all selected tracks FX embedded UI in MCP.lua" type="script" desc="Hide all selected tracks FX embedded UI in MCP">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-07-12T15:38:14Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/FX/mpl_Hide%20all%20selected%20tracks%20FX%20embedded%20UI%20in%20MCP.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Increase LFO speed for last touched parameter.lua" type="script" desc="Increase LFO speed for last touched parameter">
@@ -2165,32 +1873,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e5229320b9dfda0062a67a54961b5686f95e7afe/FX/mpl_LearnEditor.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Load selected tracks FX chains by name, offline mode.lua" type="script" desc="Load selected tracks FX chains by name, offline mode">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?p=2137484</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-05-22T18:16:06Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/04cb58a4a5b2bef8204a9284351fb07c2aba19d7/FX/mpl_Load%20selected%20tracks%20FX%20chains%20by%20name,%20offline%20mode.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2019-05-27T12:56:51Z">
-        <changelog><![CDATA[# fix uncomment offline]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e4bd69adb8e7a01876f702830b657b9ccb84744/FX/mpl_Load%20selected%20tracks%20FX%20chains%20by%20name,%20offline%20mode.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Load selected tracks FX chains by name.lua" type="script" desc="Load selected tracks FX chains by name">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?p=2137484</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2019-05-22T18:05:47Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25e02300f247eb86fbdcb72298255abfffd3dfdd/FX/mpl_Load%20selected%20tracks%20FX%20chains%20by%20name.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2019-05-22T18:16:06Z">
-        <changelog><![CDATA[# fix empty chain]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/04cb58a4a5b2bef8204a9284351fb07c2aba19d7/FX/mpl_Load%20selected%20tracks%20FX%20chains%20by%20name.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_ModulationEditor.lua" type="script" desc="ModulationEditor">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -2215,19 +1897,6 @@
       <version name="1.04" author="MPL" time="2023-02-08T18:48:27Z">
         <changelog><![CDATA[# UI tweaks]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1324c34f9032d2aeb640da5c4a5b349b8371df22/FX/mpl_ModulationEditor.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Move focused Track FX to screen center.lua" type="script" desc="Move focused Track FX to screen center">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-07-23T04:51:54Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0dc278d52ea804274a91ee710161b1fd5139e224/FX/mpl_Move%20focused%20Track%20FX%20to%20screen%20center.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2020-04-11T07:50:12Z">
-        <changelog><![CDATA[# improve fix chunk modification]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/14779eec07d96d9975a1b80160c343393584e8b6/FX/mpl_Move%20focused%20Track%20FX%20to%20screen%20center.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Offline all the track FX before focused FX (including focused FX).lua" type="script" desc="Offline all the track FX before focused FX (including focused FX)">
@@ -2318,28 +1987,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b934e136c8319a80d71417a72aa4ace8336961f6/FX/mpl_Pan%20focused%20FX%20track%20at%20center.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Paste Focused FX data.lua" type="script" desc="Paste Focused FX data">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2017-01-11T12:57:14Z">
-        <changelog><![CDATA[+ init ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ccb758fd1b7d0473b930c1007d30f0c645a914d1/FX/mpl_Paste%20Focused%20FX%20data.lua</source>
-      </version>
-      <version name="1.01" author="mpl" time="2017-01-12T05:24:04Z">
-        <changelog><![CDATA[+ support parameters copypaste]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6059ffb0f56e5275efd7af4db1898a8a7f63292a/FX/mpl_Paste%20Focused%20FX%20data.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Paste LFO settings for last touched FX parameter.lua" type="script" desc="Paste LFO settings for last touched FX parameter">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.01" author="MPL" time="2017-08-03T17:42:23Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9e4b05c4cffae26df6603e477c8df6a95d85ae11/FX/mpl_Paste%20LFO%20settings%20for%20last%20touched%20FX%20parameter.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Random modulated parameters LFO phase on selected tracks.lua" type="script" desc="Random modulated parameters LFO phase on selected tracks">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -2425,30 +2072,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/fa26003cbc5fe1fd434a2e831e3d9ae940b180de/FX/mpl_Remove%20OSC%20learn%20from%20selected%20tracks.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_ReplaceFX.lua" type="script" desc="ReplaceFX">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Script for replacing FX by name\par}
-}
-]]></description>
-      </metadata>
-      <version name="1.0" author="MPL" time="2021-05-14T06:32:14Z">
-        <changelog><![CDATA[init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/476367c963680ec49a2ecc5fadf29880e4a67419/FX/mpl_ReplaceFX.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2021-08-22T20:11:15Z">
-        <changelog><![CDATA[# filter handling tweaks
-# VariousFunctions 2.5+ support, GUI internal improvements and tweaks]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0b61a9fea0d48e147eabab3e54d93615bd4da6b1/FX/mpl_ReplaceFX.lua</source>
-      </version>
-      <version name="1.04" author="MPL" time="2022-11-16T17:13:04Z">
-        <changelog><![CDATA[# fix formatting fx name]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/54cbd2fcb57ca0fff44ca2c05efec9d3b7c07a31/FX/mpl_ReplaceFX.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Reset FX chain pin mapping.lua" type="script" desc="Reset FX chain pin mapping">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
@@ -2519,6 +2142,10 @@
 + add information message]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6f5b4f7439e828e0e70c3c0fbea740d2c8d746b3/FX/mpl_Route%20FX%20chain%20followed%20by%20focused%20FX%20to%203-4%20pair.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2023-04-02T10:13:42Z">
+        <changelog><![CDATA[# handle 6.79+ VF_SetFXName]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/FX/mpl_Route%20FX%20chain%20followed%20by%20focused%20FX%20to%203-4%20pair.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Save focused FX parent track bypass states.lua" type="script" desc="Save focused FX parent track bypass states">
       <metadata>
@@ -2527,44 +2154,6 @@
       <version name="1.0" author="MPL" time="2022-02-12T20:09:13Z">
         <changelog><![CDATA[+ init ]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cd0bc9bb2f9159b4e14616467d768a2b2f250dfe/FX/mpl_Save%20focused%20FX%20parent%20track%20bypass%20states.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Save selected tracks FX chains (no prompt, saved project only).lua" type="script" desc="Save selected tracks FX chains (no prompt, saved project only)">
-      <metadata>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-04-24T16:07:51Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a5100e2c8585ad5fe844e52b0b9d4088f1b1cf75/FX/mpl_Save%20selected%20tracks%20FX%20chains%20(no%20prompt,%20saved%20project%20only).lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2022-04-25T20:36:25Z">
-        <changelog><![CDATA[+ use wildcards (editable inside script)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/b72962f9631d62b1b470a783e4aa2d0991e57cc2/FX/mpl_Save%20selected%20tracks%20FX%20chains%20(no%20prompt,%20saved%20project%20only).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Save selected tracks FX chains.lua" type="script" desc="Save selected tracks FX chains">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?p=2137484</link>
-      </metadata>
-      <version name="1.03" author="MPL" time="2019-05-21T20:03:00Z">
-        <changelog><![CDATA[# Require REAPER 5.95+ and JS ReaScript API extension
-+ Ask for output folder
-+ Remove old awful code for matching FX Chains, using now single Lua pattern]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d08b6917124b4eb363935828fdcdcff07a9cb6ac/FX/mpl_Save%20selected%20tracks%20FX%20chains.lua</source>
-      </version>
-      <version name="1.04" author="MPL" time="2019-05-22T18:05:47Z">
-        <changelog><![CDATA[# increment file names
-# cut Input FX Chain from saved chunk]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25e02300f247eb86fbdcb72298255abfffd3dfdd/FX/mpl_Save%20selected%20tracks%20FX%20chains.lua</source>
-      </version>
-      <version name="1.05" author="MPL" time="2019-05-27T12:56:51Z">
-        <changelog><![CDATA[# add option to overwrite saving path, for now use reaper.ini
-# disable incrementing file names, always overwrite]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7e4bd69adb8e7a01876f702830b657b9ccb84744/FX/mpl_Save%20selected%20tracks%20FX%20chains.lua</source>
-      </version>
-      <version name="1.06" author="MPL" time="2019-07-05T01:11:51Z">
-        <changelog><![CDATA[# fix loading ext config]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dbe4be6f8861a355e00eeacc9b72139d182dfcc9/FX/mpl_Save%20selected%20tracks%20FX%20chains.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set auxilary input as a modulation for last touched parameter.lua" type="script" desc="Set auxilary input as a modulation for last touched parameter">
@@ -2784,15 +2373,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/290bfe6c6293de26b09780bc00120cd2731dde88/FX/mpl_Show%20selected%20envelope%20FX.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Show selected tracks first FX embedded UI in MCP.lua" type="script" desc="Show selected tracks first FX embedded UI in MCP">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-07-12T15:38:14Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/735935d70652032082cc65617880072b451abb5b/FX/mpl_Show%20selected%20tracks%20first%20FX%20embedded%20UI%20in%20MCP.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Sort focused FX presets alphabetically.lua" type="script" desc="Sort focused FX presets alphabetically">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -2813,52 +2393,6 @@
 + Inform at succesful sort
 + Inform at succesful backup]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d2e533c812d7683fd5b12ec0ae44ee11957a642c/FX/mpl_Sort%20focused%20FX%20presets%20alphabetically.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Sort plugins by vendor.lua" type="script" desc="Sort plugins by vendor">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0alpha" author="MPL" time="2017-05-09T06:57:13Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad4efb93a01f1317690a1afcac50db2b2c0acc9c/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
-      </version>
-      <version name="1.0" author="MPL" time="2017-05-09T11:35:07Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/58fe2d0219d426a643b3c2e1111d0d13dbe22f96/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
-      </version>
-      <version name="1.1" author="MPL" time="2017-05-11T19:52:24Z">
-        <changelog><![CDATA[+ ask for open REAPER path after generating new list
-+ add search for AU vendors
-+ add JSFX bundled and ReaTeam filters/paths
-+ list unknown vendor plugins in 'reaper-fxfolders_UNKNOWN.txt'
-# fix reading vst64 list
-# read vendor from last brackets for VST
-# add some string conditions
-# prevent adding waveshaper to Waves
-- remove code for parsing VST name and creating backup]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f64ddc570395ee3e55fd89fa20b62f5691c8f3ff/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
-      </version>
-      <version name="1.2" author="MPL" time="2017-05-11T21:04:18Z">
-        <changelog><![CDATA[# fix crossmatching condition for AU/VST]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/94c4c6c142d0e01b82f592b3a9ad4e8a4594dee9/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
-      </version>
-      <version name="1.21" author="MPL" time="2017-05-12T03:18:51Z">
-        <changelog><![CDATA[# fix nil on 33 line]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e6ae18b105e1de715d82c36089cf20e119835623/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
-      </version>
-      <version name="1.22" author="MPL" time="2017-05-12T03:20:31Z">
-        <changelog><![CDATA[# fix nil on 33 line]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4340e3750172edb9408bbff98fdd83d539903aed/FX/mpl_Sort%20plugins%20by%20vendor.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Split focused plugin into to left right instances.lua" type="script" desc="Split focused plugin into to left right instances">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2020-04-28T04:48:32Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/6388cdc91437e206abf4a8dceb3b3b8f691b4844/FX/mpl_Split%20focused%20plugin%20into%20to%20left%20right%20instances.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle auto bypass on silence.lua" type="script" desc="Toggle auto bypass on silence">
@@ -3080,252 +2614,9 @@
         <changelog><![CDATA[# perform only one FX chain (first track with opened FX chain)]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0e09644009b45769cf68ec960bfcea0141ef65fd/FX/mpl_Toggle%20solo%20for%20selected%20FX.lua</source>
       </version>
-    </reapack>
-    <reapack name="mpl_WiredChain (background).lua" type="script" desc="WiredChain">
-      <metadata>
-        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
-{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
-\widowctrl\hyphauto
-
-{\pard \ql \f0 \sa180 \li0 \fi0 Script for handling FX chain data on selected track\par}
-}
-]]></description>
-        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2018-08-04T16:50:01Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08802b866be040d8666e8617f68c60f8158d50e3/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08802b866be040d8666e8617f68c60f8158d50e3/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08802b866be040d8666e8617f68c60f8158d50e3/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08802b866be040d8666e8617f68c60f8158d50e3/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08802b866be040d8666e8617f68c60f8158d50e3/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2018-08-04T19:49:52Z">
-        <changelog><![CDATA[+ When drag to FX standing before source, automatically move destination FX right after source
-+ Menu/Rearranging FX
-+ FX/ContextMenu/Float FX
-+ FX/ContextMenu/Duplicate FX
-+ FX/ContextMenu/Remove FX
-+ Undo some actions
-+ Auto increase track channel count when release wire on pin with id more than track channels
-# When not using custom positions, properly indent FX if not fit GUI edges
-# fix build pin mask when linking two closer FX]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/23bc484a807db41263a5a87a4455cfb7ca65e75b/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/23bc484a807db41263a5a87a4455cfb7ca65e75b/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/23bc484a807db41263a5a87a4455cfb7ca65e75b/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/23bc484a807db41263a5a87a4455cfb7ca65e75b/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/23bc484a807db41263a5a87a4455cfb7ca65e75b/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2018-08-05T06:25:41Z">
-        <changelog><![CDATA[+ Show tooltips for output pins
-# FormWires: another testing build
-# Data_BuildRouting_Audio: clear input and force behaviour 'pin == channel', send source to output pin channel
-# prevent removing signal flow by touching track output pins
-+ Undo for DataBuildRouting
-+ Undo for clear pin]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/31c419f918f9a7d395925fc71ee6fe644c96fa82/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/31c419f918f9a7d395925fc71ee6fe644c96fa82/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/31c419f918f9a7d395925fc71ee6fe644c96fa82/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/31c419f918f9a7d395925fc71ee6fe644c96fa82/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/31c419f918f9a7d395925fc71ee6fe644c96fa82/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.05" author="MPL" time="2018-08-06T16:42:31Z">
-        <changelog><![CDATA[+ Enable wiring inputs
-+ Menu/Clear and reset ALL plugins pins
-+ FX/Clear and reset plugin pins
-# improve pins indentation/snap
-# fix refresh data/GUI after FX/Clear plugin pins]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56a4687c29dce067d1047bf40d42f8ff0bf2ff0c/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56a4687c29dce067d1047bf40d42f8ff0bf2ff0c/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56a4687c29dce067d1047bf40d42f8ff0bf2ff0c/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56a4687c29dce067d1047bf40d42f8ff0bf2ff0c/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/56a4687c29dce067d1047bf40d42f8ff0bf2ff0c/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.06" author="MPL" time="2018-08-08T05:47:30Z">
-        <changelog><![CDATA[# using TrackFX_CopyToTrack/TrackFX_Delete instead chunking: supported REAPER now 5.93pre3+
-+ Selecting FX [t.me/mplscripts_chat]
-+ Group moving FX [t.me/mplscripts_chat]
-+ Delete key remove selected FX [t.me/mplscripts_chat]
-+ display tooltip for inputs
-+ redesign tooltip to internal GUI
-# reduce GUI minor refresh
-# fix show on drag wire for track output
-# fix check Various_functions
-# temporary limit channel count to 32]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0206efdc18c133ef0010d09704a84a420385eff4/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0206efdc18c133ef0010d09704a84a420385eff4/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0206efdc18c133ef0010d09704a84a420385eff4/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0206efdc18c133ef0010d09704a84a420385eff4/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0206efdc18c133ef0010d09704a84a420385eff4/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.07" author="MPL" time="2018-08-08T19:42:53Z">
-        <changelog><![CDATA[+ Shift+click selection support [t.me/mplscripts_chat] 
-+ Show FX indexes
-+ Float FX button [p=2020564]
-+ Bypass toggle [p=2020564]
-+ Offline toggle [p=2020564]
-+ Option to not 3+ channel pins and wires of track output
-# clear sends to destination channel when drag wire from FX to FX [p=2020476]
-# fix auto adding channel in auto_route_further_channel mode [t.me/mplscripts_chat] 
-# clear wires dropped on empty space on mouse release [p=2020476]
-# increase Y space for init/rearranging FX]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b13cc05a34c162031a220db9cd8d7314139ac62/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b13cc05a34c162031a220db9cd8d7314139ac62/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b13cc05a34c162031a220db9cd8d7314139ac62/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b13cc05a34c162031a220db9cd8d7314139ac62/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/5b13cc05a34c162031a220db9cd8d7314139ac62/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.08" author="MPL" time="2018-08-10T06:01:28Z">
-        <changelog><![CDATA[+ Movable track IO
-+ Middle drag move whole structure, click on XY offsets reset view shifting]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cec561562bdc2447c4c10c164202856c8604fa37/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cec561562bdc2447c4c10c164202856c8604fa37/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cec561562bdc2447c4c10c164202856c8604fa37/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cec561562bdc2447c4c10c164202856c8604fa37/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/cec561562bdc2447c4c10c164202856c8604fa37/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.09" author="MPL" time="2018-08-10T15:24:08Z">
-        <changelog><![CDATA[# route FX to FX: fix clear destination FX output channels when there are FX in beetween [p=2021358]]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/12f642994cdc098eb6572d2fd8991dc7e6b2a43b/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/12f642994cdc098eb6572d2fd8991dc7e6b2a43b/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/12f642994cdc098eb6572d2fd8991dc7e6b2a43b/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/12f642994cdc098eb6572d2fd8991dc7e6b2a43b/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/12f642994cdc098eb6572d2fd8991dc7e6b2a43b/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.10" author="MPL" time="2018-08-11T08:31:14Z">
-        <changelog><![CDATA[+ Add/Replace FX action, called by menu item or Enter, closed by escape or click at empty area
-+ Actions moved to right click menu
-+ Actions/Select bypassed FX
-+ Actions/Select offline FX
-+ Action/Various FX reposition
-+ Add solo FX buttons (bypass others)
-# rename 'bypass' to 'mute'
-# tooltip indentation improvements
-# wrap FX names
-# snap to halfed pin height
-# routing performance improvements]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0cbdf0c6aff32ba9416a61b2cb5fe4e6a717f2c1/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0cbdf0c6aff32ba9416a61b2cb5fe4e6a717f2c1/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0cbdf0c6aff32ba9416a61b2cb5fe4e6a717f2c1/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0cbdf0c6aff32ba9416a61b2cb5fe4e6a717f2c1/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0cbdf0c6aff32ba9416a61b2cb5fe4e6a717f2c1/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.11" author="MPL" time="2018-08-11T08:37:12Z">
-        <changelog><![CDATA[# fix moving FX 1 position before when replacing FX]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4eddee60b61473e19b2e87968e37885dc3a0b455/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4eddee60b61473e19b2e87968e37885dc3a0b455/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4eddee60b61473e19b2e87968e37885dc3a0b455/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4eddee60b61473e19b2e87968e37885dc3a0b455/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4eddee60b61473e19b2e87968e37885dc3a0b455/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.12" author="MPL" time="2018-08-11T16:47:09Z">
-        <changelog><![CDATA[+ Add/Replace FX: support for VST64, AU32/64, DX32/64, JSFX
-+ Add/Replace FX: set XY position to mouse position (scroll compensated) for newly added FX]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1159b8bde562a2512d9e6da1962f5d02f99b3f05/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1159b8bde562a2512d9e6da1962f5d02f99b3f05/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1159b8bde562a2512d9e6da1962f5d02f99b3f05/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1159b8bde562a2512d9e6da1962f5d02f99b3f05/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1159b8bde562a2512d9e6da1962f5d02f99b3f05/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.13" author="MPL" time="2018-08-12T05:43:25Z">
-        <changelog><![CDATA[+ DataBuildRouting(): use lowest channel for connecting [p=2021919]
-+ Undo/redo buttons
-+ option to show info line on bottom (ex. if docked)
-# set search lower limit to 2 symbols to prevent long searching for big FX listts [p=2021919]
-# float FX acts like a toggle [p=2021882]
-# JSFX name formatting improvements
-# increase minimum heigth for non-audio JSFX
-# improve bypass selected FX
-+ Bezier curves (experimental/developer test)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0767665eaf1c3332dd35ab33c8f66cb4a97a7e88/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0767665eaf1c3332dd35ab33c8f66cb4a97a7e88/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0767665eaf1c3332dd35ab33c8f66cb4a97a7e88/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0767665eaf1c3332dd35ab33c8f66cb4a97a7e88/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0767665eaf1c3332dd35ab33c8f66cb4a97a7e88/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.14" author="MPL" time="2018-08-13T20:21:49Z">
-        <changelog><![CDATA[# try to guess which channel destination FX go through
-+ Cltr+Drag route next channel also
-+ Added shortcuts/mouse menu info]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08c845dd6809d8b96d8fa1084f2dd3c1852a453e/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.15" author="MPL" time="2018-08-15T04:59:47Z">
-        <changelog><![CDATA[+ add plugin selection by selecting area
-# fix ctrl+drag from Track IO
-# Data_BuildRouting_Audio: prevent connection input to inputs and outputs to outputs
-# Data_BuildRouting_Audio: fix clear output pins FX pin in beetween based on dest pin instead dest channel]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dadf0c172d742d93ab400821847fc6348e397afe/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dadf0c172d742d93ab400821847fc6348e397afe/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dadf0c172d742d93ab400821847fc6348e397afe/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dadf0c172d742d93ab400821847fc6348e397afe/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/dadf0c172d742d93ab400821847fc6348e397afe/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.16" author="MPL" time="2018-08-15T23:31:53Z">
-        <changelog><![CDATA[+ Menu/Clear plugin pins when adding FX
-+ ContextMenu/Clear all FX input pins
-+ FX menu/Clear input pins
-+ Added expert options for audio routing]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/076776ff3855b43a85ca137d1baecfc9e5fb8fd0/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/076776ff3855b43a85ca137d1baecfc9e5fb8fd0/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/076776ff3855b43a85ca137d1baecfc9e5fb8fd0/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/076776ff3855b43a85ca137d1baecfc9e5fb8fd0/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/076776ff3855b43a85ca137d1baecfc9e5fb8fd0/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.17" author="MPL" time="2018-08-23T17:26:21Z">
-        <changelog><![CDATA[# fix selection error]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cffd247eb8eac35140740e348aec9e851c1a943/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cffd247eb8eac35140740e348aec9e851c1a943/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cffd247eb8eac35140740e348aec9e851c1a943/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cffd247eb8eac35140740e348aec9e851c1a943/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1cffd247eb8eac35140740e348aec9e851c1a943/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.18" author="MPL" time="2018-08-24T02:01:52Z">
-        <changelog><![CDATA[# fix selection error #2]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7724e35794388055eea6132910163df00e1cb047/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7724e35794388055eea6132910163df00e1cb047/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7724e35794388055eea6132910163df00e1cb047/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7724e35794388055eea6132910163df00e1cb047/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/7724e35794388055eea6132910163df00e1cb047/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.19" author="MPL" time="2018-09-15T08:46:39Z">
-        <changelog><![CDATA[# improve FX search navigation]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3447edf14751dc3dad9046780df60d76ab7974f/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3447edf14751dc3dad9046780df60d76ab7974f/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3447edf14751dc3dad9046780df60d76ab7974f/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3447edf14751dc3dad9046780df60d76ab7974f/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/f3447edf14751dc3dad9046780df60d76ab7974f/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.20" author="MPL" time="2018-09-20T21:35:00Z">
-        <changelog><![CDATA[+ list /REAPER/FXChains in Add FX dialog
-+ option to hide direct track IO links
-+ option to hide FX to track IO 3+ channel links
-+ option to prevent 3+ track IO linking
-+ Data_BuildRouting_Audio: optionally use free channels (limited to 32)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e166a73e47f7adfa0a403e6569f8dc8a428d95d5/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.21" author="MPL" time="2019-02-24T15:17:49Z">
-        <changelog><![CDATA[+ Store dockstate (require mpl_Various_Functions 1.23+)]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/c14ef492dbefd04420b5e587f694eb9b2498ab68/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
-      </version>
-      <version name="1.22" author="MPL" time="2019-03-10T20:28:31Z">
-        <changelog><![CDATA[# fix FX list matching pattern]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_WiredChain%20(background).lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_GUI.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_WiredChain_functions/mpl_WiredChain_GUI.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_WiredChain_functions/mpl_WiredChain_MOUSE.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_WiredChain_functions/mpl_WiredChain_data.lua</source>
-        <source file="mpl_WiredChain_functions/mpl_WiredChain_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/731a5a7af73563166d131832e75981cf4f03d19d/FX/mpl_WiredChain_functions/mpl_WiredChain_obj.lua</source>
+      <version name="1.02" author="MPL" time="2023-04-02T10:13:42Z">
+        <changelog><![CDATA[# remove SWS dependency]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/FX/mpl_Toggle%20solo%20for%20selected%20FX.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_XYPad (background).lua" type="script" desc="XYPad">
@@ -7448,6 +6739,80 @@ add control for timefall showing last note]]></changelog>
       <version name="1.0" author="MPL" time="2017-03-19T08:32:04Z">
         <changelog><![CDATA[+ init release]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/155b173983260042fbf3bc249cb35a496ea49c39/Mouse/mpl_Set%20default%20mouse%20modifier%20action%20for%20media%20item%20left%20click%20to%20%5BSplit%20item%20at%20mouse%20cursor%5D.lua</source>
+      </version>
+    </reapack>
+  </category>
+  <category name="Navigation">
+    <reapack name="mpl_Move cursor to next phrase in items.lua" type="script" desc="Move cursor to next phrase in items">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-04-02T10:13:42Z">
+        <changelog><![CDATA[+ init
++ limit forward audio check to 60sec]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Navigation/mpl_Move%20cursor%20to%20next%20phrase%20in%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Move cursor to next selected item edge, keep overlapping condition.lua" type="script" desc="Move cursor to next selected item edge, keep overlapping condition">
+      <metadata>
+        <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
+{\colortbl;\red255\green0\blue0;\red0\green0\blue255;}
+\widowctrl\hyphauto
+
+{\pard \ql \f0 \sa180 \li0 \fi0 Calculate edges of selected items and move cursor to next edge\par}
+}
+]]></description>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-04-02T10:13:42Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Navigation/mpl_Move%20cursor%20to%20next%20selected%20item%20edge,%20keep%20overlapping%20condition.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Move cursor to previous phrase in items.lua" type="script" desc="Move cursor to previous phrase in items">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-04-02T10:13:42Z">
+        <changelog><![CDATA[+ init
++ limit forward audio check to 60sec]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Navigation/mpl_Move%20cursor%20to%20previous%20phrase%20in%20items.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Move edit cursor to first note of selected item.lua" type="script" desc="Move edit cursor to first note of selected item">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2023-04-02T10:13:42Z">
+        <changelog><![CDATA[# ReaPack header, name ]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Navigation/mpl_Move%20edit%20cursor%20to%20first%20note%20of%20selected%20item.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Select following phrase.lua" type="script" desc="Select following phrase">
+      <metadata>
+        <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.0" author="MPL" time="2023-04-02T10:13:42Z">
+        <changelog><![CDATA[+ init]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Navigation/mpl_Select%20following%20phrase.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set time selection from edit cursor to end of current region.lua" type="script" desc="Set time selection from edit cursor to end of current region">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2023-04-02T10:13:42Z">
+        <changelog><![CDATA[# fix "end" keyword, doesn't work in first region (Lokasenna)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Navigation/mpl_Set%20time%20selection%20from%20edit%20cursor%20to%20end%20of%20current%20region.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Set time selection from edit cursor to start of current region.lua" type="script" desc="Set time selection from edit cursor to start of current region">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2023-04-02T10:13:42Z">
+        <changelog><![CDATA[# fix comparing region ID (http://forum.cockos.com/showpost.php?p=2008307)]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/277c7b2778004fbfbd325bc3772ae7b101bea657/Navigation/mpl_Set%20time%20selection%20from%20edit%20cursor%20to%20start%20of%20current%20region.lua</source>
       </version>
     </reapack>
   </category>
