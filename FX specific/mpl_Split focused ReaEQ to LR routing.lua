@@ -1,99 +1,39 @@
 -- @description Split focused ReaEQ to LR routing
--- @version 1.02
+-- @version 2.0
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # reindex out of metapackage by lot of requests
+--    # use new REAPER API
+--    # rename FX (REAPER 6.79+)
   
-  -- NOT reaper NOT gfx
-  for key in pairs(reaper) do _G[key]=reaper[key]  end 
-  function msg(s) if s then ShowConsoleMsg(s..'\n') end end
-  ---------------------------------------------------
-  function lit(str) -- http://stackoverflow.com/questions/1745448/lua-plain-string-gsub
-     if str then  return str:gsub("[%(%)%.%%%+%-%*%?%[%]%^%$]", function(c) return "%" .. c end) end
-  end
-  -----------------------------------------------------------------------------
-  function ModNewReaEQChunk(REQchunk, fxGUID, modGUID, modXY, renamestr, fx, num_params, link_str)
-    -- geb new GUID
-      local REQchunk_new = REQchunk
-      if modGUID then 
-        local REQchunk_new = REQchunk:gsub(lit(fxGUID), genGuid('' ))
-      end
-          
-    -- shift screen position
-      if modXY then
-        local floatpos = REQchunk:match('FLOAT.-\n') 
-        if floatpos then
-          local xy_shift = 50
-          local floatpos_t = {} for num in floatpos:gmatch('[^%s]+') do if tonumber(num) then floatpos_t[#floatpos_t+1] = math.floor(num) end end
-          floatpos_t[2] = floatpos_t[2] + xy_shift
-          floatpos_t[1] = floatpos_t[1] + xy_shift
-          REQchunk_new = REQchunk_new:gsub(floatpos, 'FLOAT '..table.concat(floatpos_t, ' ')..'\n')
-        end
-      end
-      
-    -- rename
-      if renamestr then
-        local edited_line = REQchunk_new:match('VST.-\n')
-        if edited_line then
-          local t1 = {}
-          for word in edited_line:gmatch('[%S]+') do t1[#t1+1] = word end
-          local t2 = {}
-          local segm
-          for i = 1, #t1 do 
-            segm = t1[i]
-            if not q then t2[#t2+1] = segm else t2[#t2] = t2[#t2]..' '..segm end
-            if segm:find('"') and not segm:find('""') then if not q then q = true else q = nil end end
-          end
-          if t2[5] == '""' then 
-            t2[5] = '"'..t2[2]:gsub('"', '')..' '..renamestr..'"' 
-           else 
-            t2[5] = t2[5]:gsub('"','')..' (Side)' 
-          end
-          REQchunk_new = REQchunk_new:gsub(lit(edited_line), table.concat(t2, ' ')..'\n')
-        end
-      end
-    
-    -- add parameter links
-      local PM_str = ''
-      for param_id = 0,  num_params-3 do
-        PM_str = PM_str..
-      [[<PROGRAMENV ]]..param_id..[[ 0
-        PARAMBASE 0
-        LFO 0
-        LFOWT 1 1
-        AUDIOCTL 0
-        AUDIOCTLWT 1 1
-        PLINK 1 ]]..link_str..' '..param_id..[[ 0
-      >]]..'\n'  
-      end
-      REQchunk_new = REQchunk_new:gsub('WAK',PM_str..'WAK' )
-    
-    return REQchunk_new
-  end
-  
-  --[[
-]]  
   -----------------------------------------------------------------------------
   function MPL_SplitReaEq()
     local  retval, tracknumber, itemnumber, fx = GetFocusedFX()
-    if not (retval ==1 and fx >= 0) then return end
+    if not (retval ==1 and fx >= 0) then return end 
     local tr = CSurf_TrackFromID( tracknumber, false )
+    
+    
     local isReaEQ = TrackFX_GetEQParam( tr, fx, 0 )
     if not isReaEQ then return end
-    local num_params = TrackFX_GetNumParams( tr, fx )
     
-    -- copy/mod chunk
-      local fxGUID = TrackFX_GetFXGUID( tr, fx )
-      local ret, chunk = GetTrackStateChunk(tr, '', false)
-      local REQchunk = chunk:match(lit('<VST "VST: ReaEQ')..'.-'..lit(fxGUID)..'.-WAK %d')
-      if not REQchunk then return end
-      local link_strFX1 = (fx+1)..':'..1
-      local link_strFX2 = (fx+1)..':'..-1
-      local REQchunk_old = ModNewReaEQChunk(REQchunk, fxGUID, false,  false,  '(Left)', fx, num_params, link_strFX1) 
-      local REQchunk_new = ModNewReaEQChunk(REQchunk, fxGUID, true,   true,   '(Right)', fx, num_params, link_strFX2)
-      chunk = chunk:gsub(lit(REQchunk), REQchunk_old..'\n'..REQchunk_new)
-      SetTrackStateChunk(tr, chunk , true)
+    TrackFX_CopyToTrack( tr, fx, tr, fx, false )
+    local ret, fx_name = TrackFX_GetNamedConfigParm( tr, fx, 'fx_name')
+    TrackFX_SetNamedConfigParm( tr, fx, 'renamed_name', fx_name..' L' )
+    TrackFX_SetNamedConfigParm( tr, fx+1, 'renamed_name', fx_name..' R' )
+    
+    -- link params
+    for pid = 1,  TrackFX_GetNumParams( tr, fx )-1 do
+      TrackFX_SetNamedConfigParm( tr, fx+1, 'param.'..(pid-1)..'.plink.active', 1 )
+      TrackFX_SetNamedConfigParm( tr, fx+1, 'param.'..(pid-1)..'.plink.effect',fx )
+      TrackFX_SetNamedConfigParm( tr, fx+1, 'param.'..(pid-1)..'.plink.param',pid-1)
+      
+      TrackFX_SetNamedConfigParm( tr, fx+1, 'param.'..(pid-1)..'.lfo.active',0)
+      local retval, paramname = TrackFX_GetParamName( tr, fx, pid-1 )
+      if paramname:match('Gain') then  TrackFX_SetNamedConfigParm( tr, fx+1, 'param.'..(pid-1)..'.mod.baseline',0) end
+    end
+    
+
+      
       
     -- set IO pins 
       -- fx 1 in
@@ -111,4 +51,12 @@
       
   end
   ----------------------------------------------------------------------------- 
-  MPL_SplitReaEq()
+  
+  ----------------------------------------------------------------------
+  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
+  --------------------------------------------------------------------  
+  local ret = VF_CheckFunctions(3.60) if ret then local ret2 = VF_CheckReaperVrs(6.78,true) if ret2 then 
+    Undo_BeginBlock2( 0 )
+    MPL_SplitReaEq()
+    Undo_EndBlock2( 0, 'Split focused ReaEQ to LR routing', 0xFFFFFFFF )
+  end end

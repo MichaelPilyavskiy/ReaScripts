@@ -1,13 +1,13 @@
--- @version 1.31
+-- @description Smart duplicate items, use measure shift
+-- @version 1.32
 -- @author MPL
--- @website http://forum.cockos.com/member.php?u=70694
--- @description Smart duplicate items
+-- @website http://forum.cockos.com/showthread.php?t=188335
 -- @changelog
---    # fix zero measure shift
+--   # remove SWS dependency
   
   local data = {}
   
-  function SmartDuplicateItems(data)
+  function main()
     if CountSelectedMediaItems(0) < 1 then return end
     CollectData(data)
     local measure_shift, end_fullbeatsmax = CalcMeasureShift(data)
@@ -20,7 +20,8 @@
       local item = GetSelectedMediaItem( 0, i-1 ) 
       local pos = GetMediaItemInfo_Value( item, 'D_POSITION' )
       local len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
-      local GUID = BR_GetMediaItemGUID( item ) 
+      --local GUID = BR_GetMediaItemGUID( item ) 
+      local retval, GUID = reaper.GetSetMediaItemInfo_String( item, 'GUID', '', 0 )
       local pos_beats_t = {TimeMap2_timeToBeats( 0,pos )}
       local end_beats_t = {TimeMap2_timeToBeats( 0,pos+len )}
       data[i] = {src_tr =  GetMediaItem_Track( item ),
@@ -35,7 +36,7 @@
                     end_conv_measure = end_beats_t [2],
                     end_conv_fullbeats = end_beats_t [4],
                     },                 
-                 GUID = BR_GetMediaItemGUID( item ) 
+                 GUID = GUID--BR_GetMediaItemGUID( item ) 
                  }
                  
     end
@@ -55,7 +56,7 @@
   end
 ---------------------------------------------------------------------   
   function OverlapCheck(data, measure_shift, end_fullbeatsmax)
-    ClearConsole()
+    --ClearConsole()
     for i = 1, #data do
       local shifted_pos = TimeMap2_beatsToTime( 0, data[i].pos_conv.pos_conv_beats, data[i].pos_conv.pos_conv_measure + measure_shift )
       if shifted_pos < TimeMap2_beatsToTime( 0, end_fullbeatsmax ) then  return 1 end
@@ -74,14 +75,11 @@
       --SetMediaItemInfo_Value( new_it, 'I_CUSTOMCOLOR', data[i].col )
     end
   end
-
----------------------------------------------------------------------
-  function CheckFunctions(str_func) local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua' local f = io.open(SEfunc_path, 'r')  if f then f:close() dofile(SEfunc_path) if not _G[str_func] then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to newer version', '', 0) else return true end  else reaper.MB(SEfunc_path:gsub('%\\', '/')..' missing', '', 0) end   end
---------------------------------------------------------------------  
-  local ret = CheckFunctions('VF_CalibrateFont') 
-  local ret2 = VF_CheckReaperVrs(5.95,true)    
-  if ret and ret2 then 
-    Undo_BeginBlock()
-    SmartDuplicateItems(data)
-    Undo_EndBlock("Smart duplicate items", 0)
-  end
+  ----------------------------------------------------------------------
+  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
+  --------------------------------------------------------------------  
+  local ret = VF_CheckFunctions(3.60) if ret then local ret2 = VF_CheckReaperVrs(6.78,true) if ret2 then 
+    Undo_BeginBlock2( 0 )
+    main() 
+    Undo_EndBlock2( 0, 'Smart duplicate items', 0xFFFFFFFF )
+  end end

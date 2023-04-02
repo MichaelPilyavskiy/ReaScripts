@@ -1845,6 +1845,27 @@ end
       end              
     end
   end
+    -------------------------------------------------------  
+  function VF_GetClosestPrevNextGridDivision(pos)
+    local tsmarker = FindTempoTimeSigMarker( 0, pos )
+    local retval1, timepos, measurepos, beatpos, bpm, timesig_num, timesig_denom, lineartempo = GetTempoTimeSigMarker( 0, tsmarker )
+    if retval1 == false then
+      local test_time = TimeMap2_beatsToTime( 0, 0, 1 )
+       _, _, _, _, timesig_denom = TimeMap2_timeToBeats( 0, test_time )
+    end
+    
+    local retval, measures, cml, fullbeats, cdenom = reaper.TimeMap2_timeToBeats( 0, pos )
+    local flags, division2, swingmode, swingamt = reaper.GetSetProjectGrid( 0, false, 0, 0, 0) 
+    --timesig_denom = 4
+    local division2 = division2*timesig_denom
+    local prev_div_pos_beats = division2*math.floor(fullbeats/division2)
+    local prev_div_pos = TimeMap2_beatsToTime( 0, prev_div_pos_beats ) 
+    local next_div_pos = TimeMap2_beatsToTime( 0, prev_div_pos_beats + division2)
+    local is_next_closest = math.abs(next_div_pos-pos) < math.abs(pos-prev_div_pos)
+    local closest_div_pos = prev_div_pos
+    if is_next_closest == true then closest_div_pos = next_div_pos end
+    return closest_div_pos, prev_div_pos, next_div_pos, is_next_closest
+  end 
   -------------------------------------------------------  
   -- MAPPING for backwards compability --
   Open_URL = VF_Open_URL
