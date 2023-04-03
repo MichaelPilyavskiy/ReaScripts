@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.18
+-- @version 3.19
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,10 +16,7 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    + Settings: add option to change tabs via mousewheel, on by default
---    + DrumRack: add 2 octaves key layout
---    + Grid: add 2 octaves key layout
---    + Settings: when change layout, reset drumrack/active grid block to pitch=36
+--    # improve importing loop slices after dynamic split
 
 
 
@@ -33,7 +30,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.18'
+    DATA.extstate.version = '3.19'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -3379,12 +3376,15 @@ rightclick them to hide all but active.
     TrackFX_SetParamNormalized( new_tr, instrument_pos, 9, 0 ) -- attack
     TrackFX_SetParamNormalized( new_tr, instrument_pos, 11, DATA.extstate.CONF_onadd_obeynoteoff) -- obey note offs
     DATA2:Actions_PadOnFileDrop_setnote_ID(new_tr, instrument_pos, note)
-    if section_data and section_data.src and section_data.offs and section_data.len then
-      --[[msg(section_data.src_len)
-      msg(section_data.offs)
-      msg(section_data.len)]]
+    
+    
+    --[[if section_data and section_data.src and section_data.offs and section_data.len then
       TrackFX_SetParamNormalized( new_tr, instrument_pos, 13, section_data.offs / section_data.src_len )
       TrackFX_SetParamNormalized( new_tr, instrument_pos, 14, (section_data.offs+section_data.len) / section_data.src_len )
+    end]]
+    if section_data and section_data.SOFFS and section_data.EOFFS then
+      TrackFX_SetParamNormalized( new_tr, instrument_pos, 13, section_data.SOFFS )
+      TrackFX_SetParamNormalized( new_tr, instrument_pos, 14, section_data.EOFFS )
     end
     
     -- store external data
@@ -3643,7 +3643,7 @@ rightclick them to hide all but active.
     DATA:GUImenu(t)
     
   end
-  -----------------------------------------------------------------------
+  --[[---------------------------------------------------------------------
   function DATA2:Actions_ImportSelectedItems(note) 
     local cnt = CountSelectedMediaItems(0)
     local max_items = 8
@@ -3693,6 +3693,42 @@ rightclick them to hide all but active.
         
       end
     end
+  end]]
+  -----------------------------------------------------------------------
+  function DATA2:Actions_ImportSelectedItems(note) 
+    local cnt = CountSelectedMediaItems(0)
+    local max_items = 8
+    if cnt > max_items then
+      local ret = MB('There are more than '..max_items..' items to import, continue?', '',3 )
+      if ret~=6 then return end
+    end
+    
+    local itt = {}
+    for selitem = 1, cnt do itt[#itt+1] = GetSelectedMediaItem( 0, selitem -1) end
+    
+    for i = 1, #itt do
+      local item = itt[i]
+      local it_len = GetMediaItemInfo_Value( item, 'D_LENGTH' )
+      local take = reaper.GetActiveTake(item)
+      if not take or reaper.TakeIsMIDI(take) then goto skip_to_next_item end
+      local tk_src =  GetMediaItemTake_Source( take )
+      local s_offs = GetMediaItemTakeInfo_Value( take, 'D_STARTOFFS' )
+      local src_len =GetMediaSourceLength( tk_src )
+      if GetMediaSourceType( tk_src ) == 'SECTION' or GetMediaSourceType( tk_src ) == 'WAVE' and GetMediaSourceParent( tk_src ) then tk_src = GetMediaSourceParent( tk_src ) end
+      local filepath = reaper.GetMediaSourceFileName( tk_src, '' )
+      local layer = 1
+      local section_data = {}
+      section_data.offs =s_offs
+      section_data.len =it_len
+      section_data.src =tk_src
+      section_data.src_len =src_len
+      section_data.SOFFS =s_offs/src_len
+      section_data.EOFFS =(s_offs+it_len)/src_len 
+      DATA2:Actions_PadOnFileDrop(note+i-1, layer, filepath,section_data)
+      DeleteTrackMediaItem(  reaper.GetMediaItemTrack( item), item )
+      ::skip_to_next_item::
+    end
+    
   end
   -----------------------------------------------------------------------
   function DATA2:Actions_PadOnFileDrop_ConvertChildToDevice(note) 
@@ -3720,6 +3756,7 @@ rightclick them to hide all but active.
     local layer = layer0 or 1
     local new_tr = DATA2.notes[note].layers[layer].tr_ptr
     local instrument_pos = DATA2.notes[note].layers[layer].instrument_pos
+    if not instrument_pos then return end 
     TrackFX_SetNamedConfigParm(  DATA2.notes[note].layers[layer].tr_ptr, DATA2.notes[note].layers[layer].instrument_pos, 'FILE0', filepath)
     TrackFX_SetNamedConfigParm(  DATA2.notes[note].layers[layer].tr_ptr, DATA2.notes[note].layers[layer].instrument_pos, 'DONE', '') 
     -- store external data
