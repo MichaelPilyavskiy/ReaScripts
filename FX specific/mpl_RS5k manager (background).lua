@@ -1,5 +1,5 @@
 -- @description RS5k manager
--- @version 3.19
+-- @version 3.20
 -- @author MPL
 -- @website https://forum.cockos.com/showthread.php?t=207971
 -- @about Script for handling ReaSamplomatic5000 data on group of connected tracks
@@ -16,7 +16,8 @@
 --    mpl_RS5k_manager_MacroControls.jsfx 
 --    mpl_RS5K_manager_MIDIBUS_choke.jsfx
 -- @changelog
---    # improve importing loop slices after dynamic split
+--    # DrumRack: fix broken selection
+--    # fix changing pitch for pads selection
 
 
 
@@ -30,7 +31,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '3.19'
+    DATA.extstate.version = '3.20'
     DATA.extstate.extstatesection = 'MPL_RS5K manager'
     DATA.extstate.mb_title = 'RS5K manager'
     DATA.extstate.default = 
@@ -2981,7 +2982,6 @@ rightclick them to hide all but active.
                                              end,
                                              
                                onmouseclick = function() 
-                               
                                  -- click select track
                                  if DATA.extstate.UI_clickonpadselecttrack == 1 then
                                    if DATA2.notes[note] then
@@ -2995,12 +2995,12 @@ rightclick them to hide all but active.
                                  
                                  if DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'] then DATA.GUI.buttons['drumrackpad_pad'..padID0..'name'].refresh = true end
                                  
-                                 if not DATA.GUI.Ctrl and not DATA.GUI.Shift then
+                                 if DATA.GUI.Ctrl==false and DATA.GUI.Shift==false then
                                     DATA2.PADselection = {} -- clear selection
                                     DATA2.PADselection[note] = true
-                                   elseif DATA.GUI.Ctrl then
+                                   elseif DATA.GUI.Ctrl==true then
                                     if not DATA2.PADselection[note] then DATA2.PADselection[note] = true else DATA2.PADselection[note] = not DATA2.PADselection[note]  end
-                                   elseif DATA.GUI.Shift and DATA2.PARENT_LASTACTIVENOTE then
+                                   elseif DATA.GUI.Shift==true and DATA2.PARENT_LASTACTIVENOTE then
                                     for note2 = math.min(note, DATA2.PARENT_LASTACTIVENOTE), math.max(note, DATA2.PARENT_LASTACTIVENOTE) do
                                       DATA2.PADselection[note2] = true
                                     end
@@ -3028,7 +3028,8 @@ rightclick them to hide all but active.
                                                             if DATA.GUI.buttons[DATA.GUI.mouse_match[i]] and DATA.GUI.buttons[DATA.GUI.mouse_match[i]].custom_note then
                                                               paddest = DATA.GUI.buttons[DATA.GUI.mouse_match[i]].custom_note
                                                               DATA2:Actions_Pad_CopyMove(padsrc,paddest, DATA.GUI.Ctrl)  
-                                                              DATA2.PADselection = {} -- clear selection
+                                                              if DATA.GUI.Ctrl == false then DATA2.PADselection[padsrc] = false end 
+                                                              --DATA2.PADselection = {} -- clear selection
                                                               DATA2.PADselection[paddest] = true
                                                             end
                                                           end
@@ -5416,7 +5417,7 @@ rightclick them to hide all but active.
     if cnt_selection <2 then TrackFX_SetParamNormalized( src_t.tr_ptr, src_t.instrument_pos, 15, tunenorm ) return end
     for keynote in pairs(DATA2.PADselection) do
       if DATA2.PADselection[keynote]  then 
-        if DATA2.notes[keynote].layers then
+        if DATA2.notes[keynote] and DATA2.notes[keynote].layers then
           for layer in pairs(DATA2.notes[keynote].layers) do
             local tunenorm = TrackFX_GetParamNormalized( DATA2.notes[keynote].layers[layer].tr_ptr,  DATA2.notes[keynote].layers[layer].instrument_pos, 15 )
             TrackFX_SetParamNormalized(  DATA2.notes[keynote].layers[layer].tr_ptr,  DATA2.notes[keynote].layers[layer].instrument_pos, 15 , tunenorm + tunenorm_diff)
