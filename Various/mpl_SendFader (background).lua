@@ -1,14 +1,11 @@
 ﻿-- @description SendFader
--- @version 2.07
+-- @version 2.08
 -- @author MPL
 -- @website http://forum.cockos.com/showthread.php?t=188335
 -- @provides
 --    mpl_SendFader_Mark selected tracks as sends.lua
 -- @changelog
---    + Rightclick on receive name rename it 
---    + Alt click on receive name select only it 
---    + Alt click on send name select only it 
---    + UI: display color of sends/receives peaks/faders
+--    # fix error with EQ
 
 
 
@@ -23,7 +20,7 @@
   ---------------------------------------------------------------------  
   function main()  
     if not DATA.extstate then DATA.extstate = {} end
-    DATA.extstate.version = '2.07'
+    DATA.extstate.version = '2.08'
     DATA.extstate.extstatesection = 'MPL_SendFader'
     DATA.extstate.mb_title = 'MPL SendFader'
     DATA.extstate.default = 
@@ -1135,8 +1132,10 @@
           DATA2:ReadProject_ReadSends()
           PreventUIRefresh( -1 )
         end
-        DATA2.latch_filt.pos = DATA2.sendtracks[sendID].sendEQ[key].val_POS
-        DATA2.latch_filt.width = DATA2.sendtracks[sendID].sendEQ[key].val_WID
+        if DATA2.sendtracks[sendID].sendEQ[key].val_POS and DATA2.sendtracks[sendID].sendEQ[key].val_WID then
+          DATA2.latch_filt.pos = DATA2.sendtracks[sendID].sendEQ[key].val_POS
+          DATA2.latch_filt.width = DATA2.sendtracks[sendID].sendEQ[key].val_WID
+        end
       end,
       onmousedrag = function() 
         if not (DATA2.latch_filt and DATA2.latch_filt.pos and DATA2.latch_filt.width) then return end
