@@ -1,13 +1,11 @@
--- @version 1.0.1
--- @author MPL
--- @changelog + fix crash when pressing Ctrl+Right before typing anything
 -- @description Search tracks
--- @website http://forum.cockos.com/member.php?u=70694
+-- @version 1.0.2
+-- @author MPL
+-- @website http://forum.cockos.com/showthread.php?t=188335
+-- @changelog
+--  #remove SWS dependency
 
 
-  ---------------------------------------------------------------------------------------
-  
-  function msg(s) reaper.ShowConsoleMsg(s..'\n') end
 
   ---------------------------------------------------------------------------------------
     
@@ -140,7 +138,8 @@
         
       if not matched_id then matched_id = 1 end          
       if last_char and matched_id and last_char > 0 and char == 0 and matched then  
-        sel_track = reaper.BR_GetMediaTrackByGUID( 0, matched[matched_id] )
+        --sel_track = reaper.BR_GetMediaTrackByGUID( 0, matched[matched_id] )
+        sel_track = VF_GetMediaTrackByGUID( 0, matched[matched_id] )
         if sel_track then 
           reaper.SetMixerScroll( sel_track )
           reaper.Main_OnCommand(40297,0) -- unselect all tracks
@@ -167,23 +166,26 @@
     gfx.init("mpl Search tracks", w, h, 0, x, y)  
   end
 
-  ---------------------------------------------------------------------------------------
+  ----------------------------------------------------------------------
+  function VF_CheckFunctions(vrs)  local SEfunc_path = reaper.GetResourcePath()..'/Scripts/MPL Scripts/Functions/mpl_Various_functions.lua'  if  reaper.file_exists( SEfunc_path ) then dofile(SEfunc_path)  if not VF_version or VF_version < vrs then  reaper.MB('Update '..SEfunc_path:gsub('%\\', '/')..' to version '..vrs..' or newer', '', 0) else return true end   else  reaper.MB(SEfunc_path:gsub('%\\', '/')..' not found. You should have ReaPack installed. Right click on ReaPack package and click Install, then click Apply', '', 0) if reaper.APIExists('ReaPack_BrowsePackages') then reaper.ReaPack_BrowsePackages( 'Various functions' ) else reaper.MB('ReaPack extension not found', '', 0) end end end
+  --------------------------------------------------------------------  
+  local ret = VF_CheckFunctions(3.60) if ret then local ret2 = VF_CheckReaperVrs(6.78,true) if ret2 then 
+    obj_mainW = 400
+    obj_mainH = 50
+    obj_offs = 10
     
-  obj_mainW = 400
-  obj_mainH = 50
-  obj_offs = 10
-  
-  gui_aa = 1
-  gui_fontname = 'Calibri'
-  gui_fontsize = 23      
-  local gui_OS = reaper.GetOS()
-  if gui_OS == "OSX32" or gui_OS == "OSX64" then gui_fontsize = gui_fontsize - 7 end
-  
-  mouse = {}
-  textbox_t = {}  
-
-  matched = SearchTracks('')
-  matched_id = 1
-  
-  Lokasenna_WindowAtCenter (obj_mainW,obj_mainH)
-  Run()
+    gui_aa = 1
+    gui_fontname = 'Calibri'
+    gui_fontsize = 23      
+    gui_OS = reaper.GetOS()
+    if gui_OS == "OSX32" or gui_OS == "OSX64" then gui_fontsize = gui_fontsize - 7 end
+    
+    mouse = {}
+    textbox_t = {}  
+    
+    matched = SearchTracks('')
+    matched_id = 1
+    
+    Lokasenna_WindowAtCenter (obj_mainW,obj_mainH)
+    Run()
+  end end
