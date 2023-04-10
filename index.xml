@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" commit="3ef8bf38838f5830006091ce0d9b141d17b368c0" name="MPL Scripts">
+<index version="1" commit="08868abafdcb03eb74d020c03460aa1960cef964" name="MPL Scripts">
   <category name="Automation Items">
     <reapack name="mpl_Convert selected envelope points to automation item.lua" type="script" desc="Convert selected envelope points to automation item">
       <metadata>
@@ -6612,6 +6612,15 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/25fcdddfbc75e85be0176730523fe22e0d83ee11/Stretch%20Markers/mpl_Remove%20all%20non-1x%20stretch%20markers%20from%20selected%20takes.lua</source>
       </version>
     </reapack>
+    <reapack name="mpl_Stretch marker guard.lua" type="script" desc="Stretch marker guard">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+      </metadata>
+      <version name="1.02" author="MPL" time="2023-04-10T18:32:17Z">
+        <changelog><![CDATA[# remove SWS dependency]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Stretch%20Markers/mpl_Stretch%20marker%20guard.lua</source>
+      </version>
+    </reapack>
     <reapack name="mpl_Tape start selected items.lua" type="script" desc="Tape start selected items">
       <metadata>
         <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
@@ -7283,14 +7292,25 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Tracks%20Properties/mpl_Enlarge%20selected%20track,%20define%20height%20(background).lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Go to first receive track.lua" type="script" desc="Go to first receive track">
-      <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-15T07:07:25Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Go%20to%20first%20receive%20track.lua</source>
+    <reapack name="mpl_Go to first receive track (send source).lua" type="script" desc="Go to first receive track (send source)">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2023-04-10T18:32:17Z">
+        <changelog><![CDATA[# remove SWS dependency]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Go%20to%20first%20receive%20track%20(send%20source).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Go to first send destination track.lua" type="script" desc="Go to first send destination track">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2016-01-15T07:07:25Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Go%20to%20first%20send%20destination%20track.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2023-04-10T18:32:17Z">
+        <changelog><![CDATA[# remove SWS dependency]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Go%20to%20first%20send%20destination%20track.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Invert selected tracks solo to mute states.lua" type="script" desc="Invert selected tracks solo to mute states">
@@ -7300,6 +7320,16 @@
       <version name="1.0" author="MPL" time="2022-04-24T15:50:41Z">
         <changelog><![CDATA[+init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/704714216a269cfc9f9b18d2656d5d46b84c9e2b/Tracks%20Properties/mpl_Invert%20selected%20tracks%20solo%20to%20mute%20states.lua</source>
+      </version>
+    </reapack>
+    <reapack name="mpl_Monitor selected track with track 1.lua" type="script" desc="Monitor selected track with track 1">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
+      <version name="1.01" author="MPL" time="2023-04-10T18:32:17Z">
+        <changelog><![CDATA[# remove SWS dependency
+# cleanup]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Monitor%20selected%20track%20with%20track%201.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Move selected tracks faders to 0dB relative to holded peak.lua" type="script" desc="Move selected tracks faders to 0dB relative to holded peak">
@@ -7354,7 +7384,7 @@
     </reapack>
     <reapack name="mpl_Search tracks.lua" type="script" desc="Search tracks">
       <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
       </metadata>
       <version name="1.0" author="mpl" time="2016-08-17T14:58:41Z">
         <changelog><![CDATA[+ init release]]></changelog>
@@ -7363,6 +7393,10 @@
       <version name="1.0.1" author="MPL" time="2019-10-15T23:09:07Z">
         <changelog><![CDATA[+ fix crash when pressing Ctrl+Right before typing anything]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2c101c160f1d44bb49dd082759dc5a207ba3aec9/Tracks%20Properties/mpl_Search%20tracks.lua</source>
+      </version>
+      <version name="1.0.2" author="MPL" time="2023-04-10T18:32:17Z">
+        <changelog><![CDATA[#remove SWS dependency]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Search%20tracks.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Select last track.lua" type="script" desc="Select last track">
@@ -7410,16 +7444,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a6da702d065a92e8337b9a8808e032643b258eff/Tracks%20Properties/mpl_Select%20tracks%20with%20instruments.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Send tracks (background).lua" type="script" desc="Send tracks">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.02" author="MPL" time="2018-01-27T04:42:47Z">
-        <changelog><![CDATA[# refresh matrix after changing 
-+ clear matrix button]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Tracks%20Properties/mpl_Send%20tracks%20(background).lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Set hardware MIDI output to GM.lua" type="script" desc="Set hardware MIDI output to GM">
       <metadata>
         <link rel="website">https://forum.cockos.com/showthread.php?t=188335</link>
@@ -7427,17 +7451,6 @@
       <version name="1.0" author="MPL" time="2020-04-03T19:53:20Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d6264b23ca9eefd1c85eec1512c2d83706886ecd/Tracks%20Properties/mpl_Set%20hardware%20MIDI%20output%20to%20GM.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Set MCP collapsed states from TCP.lua" type="script" desc="Set MCP collapsed states from TCP">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2022-07-10T12:51:21Z">
-        <changelog><![CDATA[# a branch from unstable script mpl_Link TCP MCP folder collapsed state (running in background)
-# avoid SWS dependency
-# avoid chunking as much as possible]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a3329c85d72654d5a38045d705e1003468223de9/Tracks%20Properties/mpl_Set%20MCP%20collapsed%20states%20from%20TCP.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Set parent channels according to index for selected tracks.lua" type="script" desc="Set parent channels according to index for selected tracks">
@@ -7527,6 +7540,10 @@
         <changelog><![CDATA[# fix msg vsr]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad32074bac41bbe3d1affb23532b5b8e13c443f3/Tracks%20Properties/mpl_Sort%20selected%20tracks%20by%20color.lua</source>
       </version>
+      <version name="1.4.2" author="MPL" time="2023-04-10T18:32:17Z">
+        <changelog><![CDATA[# remove SWS dependency]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Sort%20selected%20tracks%20by%20color.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Swap master channels (cycle width 100...-100).lua" type="script" desc="Swap master channels (cycle width 100...-100)">
       <metadata>
@@ -7544,12 +7561,6 @@
       <version name="1.0" author="MPL" time="2019-03-06T20:53:31Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/ad7417d4ce189994a7dbc0d0caf8ebe19667f3d8/Tracks%20Properties/mpl_TalkBack%20Track%201%20(MIDI%20CC%20and%20OSC%20only).lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Toggle auto add last touched parameter to TCP (background).lua" type="script">
-      <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Tracks%20Properties/mpl_Toggle%20auto%20add%20last%20touched%20parameter%20to%20TCP%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle between normal and supercollapsed selected folders state.lua" type="script" desc="Toggle between normal and supercollapsed selected folders state">
@@ -7588,18 +7599,45 @@
       </version>
     </reapack>
     <reapack name="mpl_Toggle recarm on track under mouse cursor.lua" type="script" desc="Toggle recarm on track under mouse cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Tracks%20Properties/mpl_Toggle%20recarm%20on%20track%20under%20mouse%20cursor.lua</source>
       </version>
+      <version name="1.01" author="MPL" time="2023-04-10T18:32:17Z">
+        <changelog><![CDATA[# remove SWS dependency]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Toggle%20recarm%20on%20track%20under%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Toggle reverse pan flag and invert color of track under mouse cursor.lua" type="script" desc="Toggle reverse pan flag and invert color of track under mouse cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Tracks%20Properties/mpl_Toggle%20reverse%20pan%20flag%20and%20invert%20color%20of%20track%20under%20mouse%20cursor.lua</source>
       </version>
+      <version name="1.02" author="MPL" time="2023-04-10T18:32:17Z">
+        <changelog><![CDATA[# remove SWS dependency
+# use native API
+# correctly handle followed mask
+# support 64 groups]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Toggle%20reverse%20pan%20flag%20and%20invert%20color%20of%20track%20under%20mouse%20cursor.lua</source>
+      </version>
     </reapack>
     <reapack name="mpl_Toggle reverse volume flag and invert color of track under mouse cursor.lua" type="script" desc="Toggle reverse volume flag and invert color of track under mouse cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Tracks%20Properties/mpl_Toggle%20reverse%20volume%20flag%20and%20invert%20color%20of%20track%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.02" author="MPL" time="2023-04-10T18:32:17Z">
+        <changelog><![CDATA[# remove SWS dependency
+# use native API
+# correctly handle followed mask
+# support 64 groups]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Tracks%20Properties/mpl_Toggle%20reverse%20volume%20flag%20and%20invert%20color%20of%20track%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Toggle set midi routing mode for all selected tracks sends.lua" type="script" desc="Toggle set midi routing mode for all selected tracks sends">
@@ -7656,8 +7694,15 @@
   </category>
   <category name="Transport">
     <reapack name="mpl_Play from item under mouse cursor.lua" type="script" desc="Play from item under mouse cursor">
+      <metadata>
+        <link rel="website">http://forum.cockos.com/showthread.php?t=188335</link>
+      </metadata>
       <version name="1.0" author="Michael Pilyavskiy (mpl)" time="2015-12-02T10:11:59Z">
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/1b0ddb39acd4a2f7fc85317e482f1b6155f1b91c/Transport/mpl_Play%20from%20item%20under%20mouse%20cursor.lua</source>
+      </version>
+      <version name="1.01" author="MPL" time="2023-04-10T18:32:17Z">
+        <changelog><![CDATA[# remove SWS dependency]]></changelog>
+        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/08868abafdcb03eb74d020c03460aa1960cef964/Transport/mpl_Play%20from%20item%20under%20mouse%20cursor.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Transport Play Stop (obey longest negative track offset).lua" type="script" desc="Transport Play Stop (obey longest negative track offset)">
@@ -8119,15 +8164,6 @@
         <source main="main" file="mpl_Dump Retrospective Record log (everything from last 30 minutes).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/da45cd99444868599eb77ce94178c698c5abba10/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
         <source main="main" file="mpl_Dump Retrospective Record log (everything from last hour, obey stored data break).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/da45cd99444868599eb77ce94178c698c5abba10/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
         <source main="main" file="mpl_Dump Retrospective Record log (clean buffer only).lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/da45cd99444868599eb77ce94178c698c5abba10/Various/mpl_Dump%20Retrospective%20Record%20log.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Import Winamp Playlist.lua" type="script" desc="Import Winamp Playlist">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="mpl" time="2016-08-23T11:06:45Z">
-        <changelog><![CDATA[+ init]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/9271eb5fe2df842dee33cc6027d8ead9288352e2/Various/mpl_Import%20Winamp%20Playlist.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_ImportSessionData.lua" type="script" desc="ImportSessionData">
@@ -10007,59 +10043,6 @@
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/e1be82de925f458f6b535a63355beee404aa7291/Various/mpl_InteractiveToolbar_RefreshGUI.lua</source>
       </version>
     </reapack>
-    <reapack name="mpl_Isomorphic keyboard.lua" type="script" desc="Isomorphic keyboard">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-01-06T10:28:56Z">
-        <changelog><![CDATA[+ init official release    ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/4fd1c88024bafa7202176d57e54bcaa2948ef245/Various/mpl_Isomorphic%20keyboard.lua</source>
-      </version>
-      <version name="1.01" author="MPL" time="2017-01-06T10:36:10Z">
-        <changelog><![CDATA[+ init official release    ]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a19a42ff62b9af8ce631ed99c4aa04817fdbded3/Various/mpl_Isomorphic%20keyboard.lua</source>
-      </version>
-      <version name="1.02" author="MPL" time="2017-01-06T21:56:56Z">
-        <changelog><![CDATA[# fix incorrect checks behaviour
-+ Add microtonal mode (split by channel up to 16 + distribute pitchbends)
-+ Prevent microtonal for last note hold release behaviour]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/85f8e1109ab6c9cd14c8fcf00b49e39ecf28b1a1/Various/mpl_Isomorphic%20keyboard.lua</source>
-      </version>
-      <version name="1.03" author="MPL" time="2017-01-06T22:06:16Z">
-        <changelog><![CDATA[# fix incorrect checks behaviour
-+ Add microtonal mode (split by channel up to 16 + distribute pitchbends)
-+ Prevent microtonal for last note hold release behaviour]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/09520446567340709cea721e03cc6bea7cc5d9f4/Various/mpl_Isomorphic%20keyboard.lua</source>
-      </version>
-      <version name="1.04" author="MPL" time="2017-01-07T06:51:45Z">
-        <changelog><![CDATA[# fixed incorrect key root parsing
-+ Add octave shift selector]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2b90bfcbf2dd856953097e824f7ce9d78d786064/Various/mpl_Isomorphic%20keyboard.lua</source>
-      </version>
-      <version name="1.05" author="MPL" time="2017-01-07T09:34:53Z">
-        <changelog><![CDATA[# fixed default color]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/2062e1b7be97e7398ed67d1678065992cf97ce7c/Various/mpl_Isomorphic%20keyboard.lua</source>
-      </version>
-      <version name="1.06" author="MPL" time="2017-01-07T14:38:01Z">
-        <changelog><![CDATA[# draw colors for microtonal intervals properly]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/961b7338ca8afb1a1012c4192f60777ad99696cd/Various/mpl_Isomorphic%20keyboard.lua</source>
-      </version>
-      <version name="1.07" author="MPL" time="2017-01-07T14:45:08Z">
-        <changelog><![CDATA[# draw colors for microtonal intervals properly]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/475ff7ffeb982d177919e43a212a462f5e2f6458/Various/mpl_Isomorphic%20keyboard.lua</source>
-      </version>
-      <version name="1.08" author="MPL" time="2017-01-08T09:21:09Z">
-        <changelog><![CDATA[+ reset draw offset when change layout
-+ auto set keynames to 'C-C# + cents' if change to microtonal layout
-+ support for cents shift in layout(clear config requied)  
-# don`t redraw when moving gfx window]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/a92ad328680db8e39cd26de946d243568c44c943/Various/mpl_Isomorphic%20keyboard.lua</source>
-      </version>
-      <version name="1.09" author="MPL" time="2017-01-12T12:39:37Z">
-        <changelog><![CDATA[# fixed B root scale decoding]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/495dca37ac4e465b124311d068d2f85644b2496a/Various/mpl_Isomorphic%20keyboard.lua</source>
-      </version>
-    </reapack>
     <reapack name="mpl_Item spacer.lua" type="script" desc="Item spacer">
       <metadata>
         <description><![CDATA[{\rtf1\ansi\deff0{\fonttbl{\f0 \fswiss Helvetica;}{\f1 \fmodern Courier;}}
@@ -10172,11 +10155,6 @@
         <source file="mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fb08717e6f47f2e4cebfc20256f18076a41c404/Various/mpl_MappingPanel_functions/mpl_MappingPanel_MOUSE.lua</source>
         <source file="mpl_MappingPanel_functions/mpl_MappingPanel_data.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fb08717e6f47f2e4cebfc20256f18076a41c404/Various/mpl_MappingPanel_functions/mpl_MappingPanel_data.lua</source>
         <source file="mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua">https://github.com/MichaelPilyavskiy/ReaScripts/raw/8fb08717e6f47f2e4cebfc20256f18076a41c404/Various/mpl_MappingPanel_functions/mpl_MappingPanel_obj.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Monitor selected track with track 1 (background).lua" type="script" desc="Monitor selected track with track 1">
-      <version name="1.0" author="MPL" time="2018-01-27T04:42:47Z">
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/720dd322e25b6d383a245a3a4b7ec88c14625fca/Various/mpl_Monitor%20selected%20track%20with%20track%201%20(background).lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Open and Close Media Explorer when item is inserted (background).lua" type="script" desc="Open and Close Media Explorer when item is inserted">
@@ -10466,15 +10444,6 @@
       <version name="1.0" author="MPL" time="2017-05-13T21:43:36Z">
         <changelog><![CDATA[+ init]]></changelog>
         <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/0aea8d0ce03ad042fe8b6875271e9eae4920cfe3/Various/mpl_Reset%20audio%20and%20MIDI%20devices.lua</source>
-      </version>
-    </reapack>
-    <reapack name="mpl_Reset internal windows xy positions.lua" type="script" desc="Reset internal windows xy positions">
-      <metadata>
-        <link rel="website">http://forum.cockos.com/member.php?u=70694</link>
-      </metadata>
-      <version name="1.0" author="MPL" time="2017-01-10T18:36:33Z">
-        <changelog><![CDATA[+ init release]]></changelog>
-        <source main="main">https://github.com/MichaelPilyavskiy/ReaScripts/raw/d8eafb34e940480c6fd965a91b9da5edf9db58d4/Various/mpl_Reset%20internal%20windows%20xy%20positions.lua</source>
       </version>
     </reapack>
     <reapack name="mpl_Sampling tool.lua" type="script" desc="Sampling tool">
